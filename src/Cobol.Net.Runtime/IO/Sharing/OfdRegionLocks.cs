@@ -53,12 +53,6 @@ internal static class OfdRegionLocks
     private const int O_RDONLY = 0;
     private const int O_CLOEXEC = 0x80000;
     private const int O_NONBLOCK = 0x800;
-    private const int AT_EMPTY_PATH = 0x1000;
-    private const uint STATX_TYPE = 1;
-    private const int StatxBytes = 256;       // sizeof(struct statx); the kernel fills the first 144
-    private const int StatxModeOffset = 28;   // stx_mode: after mask, blksize, attributes, nlink, uid, gid
-    private const int S_IFMT = 0xF000;
-    private const int S_IFREG = 0x8000;
     private const int EACCES = 13;
     private const int EAGAIN = 11;
     private const int EINTR = 4;
@@ -66,10 +60,6 @@ internal static class OfdRegionLocks
 
     [DllImport("libc", EntryPoint = "open", SetLastError = true)]
     private static extern int NativeOpen([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
-
-    [DllImport("libc", EntryPoint = "statx", SetLastError = true)]
-    private static extern int NativeStatx(int dirfd, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags,
-        uint mask, byte[] buffer);
 
     [DllImport("libc", EntryPoint = "fcntl", SetLastError = true)]
     private static extern int NativeFcntl(int fd, int command, ref Flock lockRequest);
@@ -93,7 +83,7 @@ internal static class OfdRegionLocks
     /// assigns <c>/dev/null</c> would be arbitrated against every other on the machine. The open is
     /// <c>O_NONBLOCK</c> so that a FIFO answers at once instead of waiting for a writer that is this very program's
     /// next statement, and the kind is read from the descriptor (<c>statx</c>, whose layout is the same on every
-    /// architecture) rather than guessed from the path.</para></summary>
+    /// architecture, <see cref="HostFileIdentity.IsRegularFile"/>: the runtime's one binding of it) rather than guessed from the path.</para></summary>
     internal static SafeFileHandle? Open(string hostPath)
     {
         if (!AbiMatches) return null;
@@ -102,20 +92,11 @@ internal static class OfdRegionLocks
             int fd = NativeOpen(hostPath, O_RDONLY | O_CLOEXEC | O_NONBLOCK);
             if (fd < 0) return null;
             var handle = new SafeFileHandle(fd, ownsHandle: true);
-            if (IsRegularFile(fd)) return handle;
+            if (HostFileIdentity.IsRegularFile(fd)) return handle;
             handle.Dispose();
             return null;
         }
-        catch (EntryPointNotFoundException) { return null; }   // a libc without statx (before glibc 2.28)
         catch (DllNotFoundException) { return null; }          // no libc under this name
-    }
-
-    private static bool IsRegularFile(int fd)
-    {
-        var buffer = new byte[StatxBytes];
-        if (NativeStatx(fd, "", AT_EMPTY_PATH, STATX_TYPE, buffer) != 0) return false;
-        ushort mode = BitConverter.ToUInt16(buffer, StatxModeOffset);
-        return (mode & S_IFMT) == S_IFREG;
     }
 
     /// <summary>The ABI this binding was written for — callers holding a descriptor they did not get from
