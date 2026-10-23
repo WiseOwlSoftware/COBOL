@@ -1186,6 +1186,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ GR-12.4.6.4.4-3, added deliberately (kb/Work PB3539, owner decision 2026-10-23): its
             // owner-signed §8 determination is DRV-GR-12.4.6.4.4-3 in docs/CONFORMANCE.md.
             "GR-12.4.6.4.4-3",
+            // ⚙ GR-12.4.5.9.4-2, added deliberately (kb/Work PB1636, owner signature 2026-10-23): its
+            // owner-signed §8 determination is DRV-GR-12.4.5.9.4-2 in docs/CONFORMANCE.md.
+            "GR-12.4.5.9.4-2",
         ];
 
         var s = LoadSchema();
