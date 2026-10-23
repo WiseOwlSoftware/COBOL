@@ -1589,6 +1589,66 @@ with tempfile.TemporaryDirectory() as td:
     check("status_line finds the bare word and its index; None without one",
           (pw.status_line(["# title", "DONE"]), pw.status_line(["# title", "Branch: b"])), ((1, "DONE"), None))
 
+# PB3536: A GATE HANDED TO THE WAVE. A GATE-PENDING report names the run directory of the gate its agent left running at
+# its turn cap; the report is FINISHED only when that gate's verdict file is GREEN for the report's HEAD and measured
+# that commit's own tree (Report.gate_state, through run_gate_legs' one reader); a gate still running holds the note
+# (no finisher re-runs it), and any other end plans a finisher.
+with tempfile.TemporaryDirectory() as td:
+    gdir = pathlib.Path(td)
+    head = subprocess.run(["git", "-C", str(coord.REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    tree = subprocess.run(["git", "-C", str(coord.REPO), "rev-parse", "HEAD^{tree}"], capture_output=True,
+                          text=True).stdout.strip()
+    ended = subprocess.Popen([sys.executable, "-c", "pass"])
+    ended.wait()
+
+    def gate_run(name, rec=None, pid=None):
+        run = gdir / "runs" / name
+        run.mkdir(parents=True)
+        if rec is not None:
+            (run / "verdict.json").write_text(json.dumps({"verdict": "x", "line": "=== BUILD-LOCAL GATE: x ===", **rec}),
+                                              encoding="utf-8", newline="\n")
+        if pid is not None:
+            (run / "gate.pid").write_text(json.dumps({"pid": pid}), encoding="utf-8", newline="\n")
+        return run
+
+    green = {"exit_code": 0, "head": head, "tree": tree, "tree_end": tree}
+    runs = {"a": gate_run("green", green), "b": gate_run("red", {**green, "exit_code": 1}),
+            "c": gate_run("running", pid=os.getpid()), "d": gate_run("died", pid=ended.pid),
+            "e": gate_run("other-tree", {**green, "tree": "f" * 40, "tree_end": "f" * 40}),
+            "f": gate_run("edited-while-gated", {**green, "tree_end": "e" * 40}),
+            "g": gate_run("other-head", {**green, "head": "0" * 40})}
+    for letter, run in runs.items():
+        (gdir / f"w9g1{letter}-PB1-report.md").write_text(
+            f"Status: GATE-PENDING\nBranch: b\nHEAD: {head[:12]}\nGate run: {run}\n\n## Gate\n", encoding="utf-8",
+            newline="\n")
+    (gdir / "w9g1h-PB1-report.md").write_text(f"**Status:** GATE-PENDING · **HEAD:** `{head[:12]}`\n", encoding="utf-8",
+                                              newline="\n")
+    got = {n[4]: (r.status, r.gate_state, r.finished) for n in sorted(p.name for p in gdir.glob("*.md"))
+           if (r := pw.parse_report(gdir / n))}
+    check("PB3536: a GATE-PENDING report is finished only when its gate run is GREEN for its HEAD and that commit's "
+          "tree; RUNNING while the gate's process lives; ENDED on a red, a death, another tree or head, or no run named",
+          got, {"a": ("GATE-PENDING", "GREEN", True), "b": ("GATE-PENDING", "ENDED", False),
+                "c": ("GATE-PENDING", "RUNNING", False), "d": ("GATE-PENDING", "ENDED", False),
+                "e": ("GATE-PENDING", "ENDED", False), "f": ("GATE-PENDING", "ENDED", False),
+                "g": ("GATE-PENDING", "ENDED", False), "h": ("GATE-PENDING", "ENDED", False)})
+    check("PB3536: --finished answers a GATE-PENDING report from its gate run (GREEN 0, running 1, red 1)",
+          [pw.main(["--finished", str(gdir / f"w9g1{x}-PB1-report.md")]) for x in "acb"], [0, 1, 1])
+    # the planner: a note whose agent handed over a gate that still runs waits for it; one whose gate ended gets a
+    # finisher; one whose gate is GREEN is finished work, never re-planned
+    grep = gdir / "plan-reports"
+    grep.mkdir()
+    for name, lead, run in (("w1150a-PB5-report.md", "PB5", runs["c"]), ("w1150b-PB10-report.md", "PB10", runs["b"]),
+                            ("w1150c-PB11-report.md", "PB11", runs["a"])):
+        (grep / name).write_text(f"Status: GATE-PENDING\nBranch: worktree-wf_gp-{lead}\nHEAD: {head[:12]}\n"
+                                 f"Gate run: {run}\n\n## Gate\n", encoding="utf-8", newline="\n")
+    pg = pw.plan(notes, CLUSTERS, HALF, pw.load_reports(grep), lambda b: "UNLANDED", {}, RULES, budget_points=100)
+    gp = {i: [g for g in pg["groups"] if i in g.notes] for i in ("PB5", "PB10", "PB11")}
+    check("PB3536: the planner waits on a handed gate that still runs, gives a finisher to one that ended RED, and "
+          "re-plans none whose gate is GREEN",
+          ("still running" in pg["waiting"].get("PB5", ""), not gp["PB5"],
+           bool(gp["PB10"]) and gp["PB10"][0].kind == "finisher", not gp["PB11"]),
+          (True, True, True, True))
+
 # 10. A NOTE'S DECLARED FILE SET IS ITS STRUCTURED SITES, READ BY ONE READER (kb/Work PB3242; DESIGN-architecture-review
 #     §8.7). The planner once declared every path a note's prose mentioned (fix_clusters' scored reading), so the R2
 #     and PB3160 campaigns planned zero groups: 57 of PB1754's 63 ready notes DISCUSS plan_wave.py and landing_check.py,
