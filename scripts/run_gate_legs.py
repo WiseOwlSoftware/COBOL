@@ -413,7 +413,9 @@ class Host:
                 never = list(NEVER_WORK)
                 at_head = git("ls-tree", "-r", "-z", "HEAD", "--", *never)   # NUL-ended ls-tree lines are
                 # `update-index -z --index-info`'s own input form
-                if (at_head is None or git("add", "-A", "--", ".", *(f":!{n}" for n in never)) is None
+                # every path, then the NEVER_WORK ones back to HEAD's: an exclusion pathspec on `add` naming an ignored
+                # path (STATUS.md) is refused (`The following paths are ignored`), so none is passed to it
+                if (at_head is None or git("add", "-A", "--", ".") is None
                         or git("rm", "--cached", "-r", "-q", "--ignore-unmatch", "--", *never) is None
                         or (at_head and git("update-index", "-z", "--index-info", stdin=at_head) is None)):
                     return None
@@ -1694,6 +1696,10 @@ def self_test() -> int:
             subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
         committed = real.git("rev-parse", "HEAD^{tree}")
         settings.write_text('{"permissions": {}}\n', encoding="utf-8", newline="\n")
+        # STATUS.md is IGNORED, as in this repository (git refuses an `add` pathspec naming an ignored path, even an
+        # exclusion: the first form of this exclusion measured no tree at all in a real worktree)
+        (repo / ".git" / "info").mkdir(exist_ok=True)
+        (repo / ".git" / "info" / "exclude").write_text("STATUS.md\n", encoding="utf-8", newline="\n")
         (repo / "STATUS.md").write_text("STATUS-AT: x\n", encoding="utf-8", newline="\n")
         (repo / "TestResults" / "build-local").mkdir(parents=True)
         (repo / "TestResults" / "build-local" / "gate.log").write_text("x\n", encoding="utf-8", newline="\n")
