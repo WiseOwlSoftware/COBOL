@@ -97,10 +97,31 @@ public sealed class SdidiOperandLiftDriftTests
             if (line.Contains("private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);")) continue;
             offenders.Add(line.Trim());
         }
-        foreach (string line in src.Split('\n').Where(IsCode))
+        // Every call of DecQuotientOperand lies inside the argument list of a nested-quotient consumer: DecDivTruncatedToOdd,
+        // or its run-time-precision twin DecWithPrecisionDivTruncatedToOdd (review finding R3-1), which reduces the same
+        // truncated quotient by the same round-to-odd (CobolDecWithPrecision.DivTruncatedToOdd → CobolDec.DivTruncatedToOdd).
+        string code = string.Join("\n", src.Split('\n').Where(IsCode));
+        var consumerArguments = new List<(int Start, int End)>();
+        foreach (string consumer in new[] { "RuntimeApi.DecDivTruncatedToOdd(", "RuntimeApi.DecWithPrecisionDivTruncatedToOdd(" })
+            for (int at = code.IndexOf(consumer, StringComparison.Ordinal); at >= 0; at = code.IndexOf(consumer, at + 1, StringComparison.Ordinal))
+            {
+                int open = at + consumer.Length - 1, depth = 0, close = open;
+                for (; close < code.Length; close++)
+                {
+                    if (code[close] == '(') depth++;
+                    else if (code[close] == ')' && --depth == 0) break;
+                }
+                consumerArguments.Add((open, close));
+            }
+        for (int at = code.IndexOf("DecQuotientOperand(", StringComparison.Ordinal); at >= 0;
+             at = code.IndexOf("DecQuotientOperand(", at + 1, StringComparison.Ordinal))
         {
-            if (!line.Contains("DecQuotientOperand(") || line.Contains("private string DecQuotientOperand(")) continue;
-            if (!line.Contains("DecDivTruncatedToOdd(")) offenders.Add(line.Trim());
+            if (code.AsSpan(Math.Max(0, at - "private string ".Length), Math.Min(at, "private string ".Length)).SequenceEqual("private string ")) continue;
+            if (!consumerArguments.Any(span => at > span.Start && at < span.End))
+            {
+                int lineStart = code.LastIndexOf('\n', at) + 1, lineEnd = code.IndexOf('\n', at);
+                offenders.Add(code[lineStart..(lineEnd < 0 ? code.Length : lineEnd)].Trim());
+            }
         }
         Assert.True(offenders.Count == 0,
             "DecOperandExact lifts a fixed-point operand WITHOUT rounding, which only a round-to-odd consumer may do "
