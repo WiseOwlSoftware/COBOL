@@ -234,8 +234,35 @@ of an unsupported facility.
   item written without USAGE BIT has (§13.18.60.4 GR7); the alternative, packing the literal as bits, would make one
   literal two usages. A zero-length boolean literal is not affected: GR3 makes it the figurative ZERO before the sender
   is asked. Written once, in `OperandText.NonElementaryMoveSender`, which every group-move sender channel (MOVE, an
-  implicit MOVE such as WRITE FROM, a CALL / INVOKE argument into a group formal) reads;
-  witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3562_boolean_literal_group_move`.
+  implicit MOVE such as WRITE FROM, a CALL / INVOKE argument into a group formal) reads - directly where the formal is
+  known to the activating element, and through the argument's second alphabet where it is not (kb/Work PB3587): a
+  Format-1 CALL, or a CALL located at run time, cannot see the formal, so it states a BY CONTENT argument's `Sending`
+  with its characters (what an elementary formal reads) and, for a sender of usage national or bit,
+  its representation (`MoveSending.StorageImage`, produced by `OperandText.StorageImageIfDiffers` / `StorageImageConverter`
+  from the same codec), which a plain-group formal's record is filled from (`CobolArgAdapt.Text`); an INVOKE literal
+  crosses as the bound literal, its category kept (`BoundInvokeArg.StringLiteral`), so a national literal is usage
+  national there too. Pinned by `GroupMoveSenderChannelDriftTests`;
+  witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3562_boolean_literal_group_move` and
+  `conformance:cases/14.2-Procedure-division-structure/pb3587_content_group_formal_usage_values`.
+- **D-B4 - a numeric literal sent to a group stores its DIGITS ONLY** (kb/Work PB3570; owner decision 2026-10-23, on a
+  point of implementor latitude). A MOVE to a group item is §14.9.25.4 GR4's move, "treated exactly as if it were an
+  alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal
+  representation to another": it preserves the sender's representation, and a numeric literal has none, so the standard
+  does not say what `MOVE -456 TO G` stores. CLAUDE.md rule 1's precedence for implementor latitude is the standard,
+  then GnuCOBOL, whose literal data holds the digits without the sign or the decimal point - and an elementary
+  alphanumeric receiver already drops the sign by GR6 a) ("the operational sign is not moved"), so the group move now
+  agrees with it. WiseOwl COBOL sends the digits of the literal's value, in the order written, with neither sign nor
+  decimal point: `MOVE -456 TO G`, `MOVE +456 TO G` and `MOVE 456 TO G` store 456, `MOVE -4.56 TO G` stores 456,
+  `MOVE -0.05 TO G` stores 005 (leading zeros are digits), and a floating-point literal sends the digits of its exact
+  value (`1.5E+3` sends 1500, §8.3.3.3.3 GR5); the group then aligns left with space fill or truncation to the right
+  (§14.6.8.5). The same characters cross a CALL ... AS NESTED or INVOKE BY CONTENT argument into a plain-group formal
+  (§14.2.3 GR9, "otherwise, a MOVE statement"). This supersedes kb/Work PB1113's determination, which kept the literal's
+  own characters, sign included. Not covered: the value of a numeric FUNCTION, which is a computed value rather than a
+  literal and keeps its signed rendering (`MOVE FUNCTION MIN(N 3) TO G` stores `-15`; a call the compiler folds to a
+  literal keeps it too, so the answer never depends on whether the call could be folded); an ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already
+  gives. Written once, in `OperandText.NonElementaryMoveSender`; witnessed by
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move` and
+  `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3570_numeric_literal_group_formal`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
   GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is
