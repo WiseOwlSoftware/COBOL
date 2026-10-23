@@ -4926,6 +4926,94 @@
   ],
   "expect": "COBOLNET1607: a VALIDATE naming more than one identifier shall not appear within an exception-checking PERFORM"
  },
+ "pb3568-validate-undefined-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-ITEM' is not defined"
+ },
+ "pb3568-validate-ref-modified-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4777"
+ },
+ "pb3568-validate-report-item-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4777"
+ },
+ "pb3568-validate-pointer-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-index-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-object-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-66-level-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4779"
+ },
+ "pb3568-validate-any-length-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4779"
+ },
+ "pb3568-receive-undefined-operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-BUF' is not defined"
+ },
+ "pb3568-receive-undefined-in-exception-phrase": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-MSG' is not defined"
+ },
+ "pb3568-send-undefined-from-operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-OUT' is not defined"
+ },
+ "pb3568-send-unknown-raising-name": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET0711"
+ },
  "pb1160-resume-in-when-in-global-declarative": {
   "refuse-at": [
    "2023"
@@ -22700,5 +22788,11 @@
    "2023"
   ],
   "expect": "COBOLNET4709"
+ },
+ "pb3562_group_move_function_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET1502"
  }
 }

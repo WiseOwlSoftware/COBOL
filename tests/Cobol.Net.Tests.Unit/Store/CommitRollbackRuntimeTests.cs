@@ -658,6 +658,45 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ THE OTHER ARM OF THE OWED-WRITES FACT: AN INPUT OPENER WHOSE COLUMN IS TAKEN AFRESH STILL PUBLISHES IT (kb/Work
+    /// PB3499; §9.1.15 2); Table 19, the SHARING WITH READ ONLY INPUT row against the existing READ ONLY INPUT column is
+    /// <i>"Normal open"</i>). A connector under commit control and SHARING WITH NO OTHER changes a record and is CLOSEd: its kept
+    /// handle excludes every other open and publishes no column, so its re-OPEN INPUT under SHARING WITH READ ONLY takes its
+    /// column afresh, after the body, through the writable handle that replaced the kept one (the transaction stands). That
+    /// opener owes its writes exactly as one that amended a kept column does, so another run unit's OPEN INPUT under SHARING
+    /// WITH READ ONLY is a normal open beside it: '00' on a host whose share modes are mandatory as on one that is not.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_input_opener_whose_column_is_taken_afresh_after_a_NO_OTHER_close_publishes_that_it_owes_writes(FileOrg org)
+    {
+        string host = Tmp($"pb3499-noother-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.NoOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.RegisterSharing("F", FileSharing.ReadOnly, FileLockMode.Automatic, multiple: true);
+            a.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("F"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.ReadOnly);
+            b.OpenStatic("B", FileOpenMode.Input);
+            Assert.Equal("00", b.Status("B"));
+            Assert.Equal("00", Read(b, org, 1, out var image, name: "B"));
+            Assert.Equal(Rec(1, "A001"), image);
+            b.CloseAll();
+
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, <i>"For files specified
     /// in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the file locks are
@@ -713,7 +752,8 @@ public sealed class CommitRollbackRuntimeTests
     /// request"</i>; §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not
     /// affected"</i>; §14.9.7.4 GR4, <i>"For files specified in active APPLY COMMIT clauses that have been closed and not
     /// reopened prior to the COMMIT statement, the file locks are released."</i>): B, under commit control and SHARING WITH READ
-    /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener; a program
+    /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener that owes
+    /// writes (kb/Work PB3499; the second attempt is made only beside one); a program
     /// outside the protocol reads the file with a share mode that refuses writers, so B's OPEN I-O is refused by the host on a
     /// host whose share modes are mandatory, its column held, and made again with the share mode that admits what an INPUT
     /// opener may owe (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>), which the outside reader refuses too: '61'.
@@ -734,11 +774,15 @@ public sealed class CommitRollbackRuntimeTests
         bool thirdRunUnitRacesTheSecond)
     {
         string host = Tmp($"pb3498-twice-{org}-{thirdRunUnitRacesTheSecond}");
-        RunUnitFileLock? thirdRunUnit = null;
+        RunUnitFileLock? thirdRunUnit = null, owingOpener = null;
         try
         {
             Seed(host, org);
-            var a = Open(host, org, commit: false, FileOpenMode.Input, name: "A", sharing: FileSharing.AllOther);
+            // Another run unit's INPUT opener that OWES WRITES (kb/Work PB3499: the second attempt is made only beside one): the
+            // file lock a CLOSE under commit control kept (SHARING WITH ALL OTHER on I-O), replaced by its INPUT re-OPEN's column.
+            Assert.Equal(RunUnitFileLock.Outcome.Held,
+                RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, FileSharing.AllOther, FileOpenMode.IO, out owingOpener));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, owingOpener!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: true));
             var b = new FileRegistry();
             Declare(b, host, org, commit: true, name: "B", sharing: FileSharing.ReadOnly);
             var log = new ColumnRequestLog();
@@ -800,13 +844,14 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Null(b.Rollback());
             Assert.Equal(RunUnitFileLock.Outcome.Held, Ask(host, FileSharing.AllOther, FileOpenMode.IO));
             using (new FileStream(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) { }
-            a.CloseAll();
+            owingOpener.Dispose();
             b.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
         }
         finally
         {
             thirdRunUnit?.Dispose();
+            owingOpener?.Dispose();
             TryDelete(host);
         }
     }

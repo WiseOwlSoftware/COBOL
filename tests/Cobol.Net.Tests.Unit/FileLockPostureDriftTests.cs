@@ -312,7 +312,7 @@ public sealed class FileLockPostureDriftTests
     /// (kb/Work PB3482; Annex A.1 item 75, docs/CONFORMANCE.md DOC-A.1-75). A bare handle open for WRITING holds the file when
     /// a SHARING WITH READ ONLY connector opens INPUT: where the host's share modes separate readers from writers (Windows)
     /// the connector's first attempt is refused '61', and its second attempt (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>)
-    /// is taken only when another run unit's INPUT opener holds its column — here nobody does, so the refusal stands; where
+    /// is taken only when another run unit's INPUT opener owes writes — here nobody does, so the refusal stands; where
     /// they cannot (the advisory <c>flock</c> of Unix) the share mode admits the OPEN in the first place. Nothing a
     /// connector has to say about it changes the outside writer's.</summary>
     [Theory]
@@ -339,12 +339,62 @@ public sealed class FileLockPostureDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
+    /// <summary>⛔ THE POSTURE YIELDS TO AN INPUT OPENER THAT OWES WRITES AND TO NOTHING ELSE (kb/Work PB3499). Another run unit's
+    /// INPUT opener that owes no writes (SHARING WITH ALL OTHER, an ordinary reader) is a connector Table 19 admits a READ
+    /// ONLY INPUT request beside (§14.9.27.4 GR4, Table 19), but it is not what the host's share mode refuses a program outside
+    /// the protocol for: its handle is a reader's, so a bare handle open for WRITING is the only thing refusing the request,
+    /// and that refusal is the one <see cref="AReadOnlyOpenBesideAnOutsideWriterIsRefusedWhereTheShareModeRefusesIt"/> pins with
+    /// nobody beside it. Where the host's share modes separate readers from writers (Windows) the answer is '61' whether or not
+    /// an unrelated reader is open, and the outside writer is not admitted for the rest of the OPEN: a second bare writer
+    /// that opens AFTER the connector is refused by its handle. Where they cannot (the advisory <c>flock</c> of Unix) the
+    /// share mode admits the OPEN in the first place, with the reader beside it or not.</summary>
+    [Theory]
+    [MemberData(nameof(EveryOrganization))]
+    public void AnInputOpenerThatOwesNoWritesDoesNotAdmitAReadOnlyOpenBesideAnOutsideWriter(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"unrelated-reader-{org}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+            var reader = new FileRegistry();
+            FileHarness.Register(reader, "A", host, org, sharing: FileSharing.AllOther);
+            reader.OpenStatic("A", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.Success, reader.Status("A"));
+            bool mandatory = HostCapability.Sharing.SeparatesReadersFromWriters;
+            using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                var reg = new FileRegistry();
+                FileHarness.Register(reg, "B", host, org, sharing: FileSharing.ReadOnly);
+                reg.OpenStatic("B", FileOpenMode.Input);
+                string expected = mandatory ? FileStatusCode.FileSharingConflict : FileStatusCode.Success;
+                Assert.True(reg.Status("B") == expected,
+                    $"({org}) SHARING WITH READ ONLY beside a bare writer and an unrelated ALL OTHER reader answered "
+                    + $"'{reg.Status("B")}', expected '{expected}'. {HostCapability.Sharing.Because}");
+                reg.CloseAll();
+            }
+            if (mandatory)
+            {
+                // The refused OPEN left nothing behind, and the outside writer was never admitted into a handle of its own
+                // making: with the writer gone the same OPEN is a normal open, and while it stands a bare writer is refused.
+                var admitted = new FileRegistry();
+                FileHarness.Register(admitted, "B", host, org, sharing: FileSharing.ReadOnly);
+                admitted.OpenStatic("B", FileOpenMode.Input);
+                Assert.Equal(FileStatusCode.Success, admitted.Status("B"));
+                Assert.False(HostCapability.OutsiderCan(host, FileAccess.Write),
+                    $"({org}) a SHARING WITH READ ONLY reader's handle admitted an outside writer.");
+                admitted.CloseAll();
+            }
+            reader.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
     /// <summary>⛔ THE SECOND ATTEMPT OF AN OPEN IS REFUSED TOO, AND THEN THE OPEN IS UNSUCCESSFUL (kb/Work PB3498; §9.1.13.9 1),
     /// <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a physical file and that
     /// physical file is already open by another file connector in a manner that conflicts with this request"</i>, and
     /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>). Another
-    /// run unit's INPUT opener holds the file (SHARING WITH ALL OTHER) and a program outside the protocol has it open for
-    /// writing; a connector's OPEN INPUT under SHARING WITH READ ONLY is a normal open beside the INPUT opener (Table 19), so
+    /// run unit's INPUT opener that owes writes holds the file (SHARING WITH ALL OTHER; kb/Work PB3499) and a bare handle open
+    /// for writing stands for the handle it keeps; a connector's OPEN INPUT under SHARING WITH READ ONLY is a normal open beside the INPUT opener (Table 19), so
     /// its Table 19 column is held, and where the host's share modes are mandatory the share mode alone refuses it. The
     /// connector makes the OPEN again with the share mode that admits what an INPUT opener may owe
     /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>), and between the two attempts a third run unit publishes a
@@ -357,14 +407,17 @@ public sealed class FileLockPostureDriftTests
     public void AnOpenWhoseSecondAttemptIsRefusedTooAnswers61AfterExactlyTwoRequestsAndLeavesNothingBehind(FileOrg org)
     {
         string host = FileHarness.Tmp($"second-refused-{org}");
+        RunUnitFileLock? inputOpener = null;
         try
         {
             FileHarness.Seed(host, org, ["SEED"]);
             byte[] before = Bytes(host);
-            var inputOpener = new FileRegistry();
-            FileHarness.Register(inputOpener, "A", host, org, sharing: FileSharing.AllOther);
-            inputOpener.OpenStatic("A", FileOpenMode.Input);
-            Assert.Equal(FileStatusCode.Success, inputOpener.Status("A"));
+            // The INPUT opener that owes writes (kb/Work PB3499): the file lock a CLOSE under commit control kept (SHARING WITH ALL
+            // OTHER on I-O), replaced by its INPUT re-OPEN's column with the owed-writes fact published. The outside writer below
+            // stands for the handle that re-OPEN keeps open for writing, which is the writer the share mode yields to.
+            Assert.Equal(RunUnitFileLock.Outcome.Held,
+                RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, FileSharing.AllOther, FileOpenMode.IO, out inputOpener));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, inputOpener!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: true));
 
             // The third run unit: SHARING WITH READ ONLY on I-O publishes a column the OPEN INPUT under READ ONLY refuses,
             // and the INPUT opener's column admits it.
@@ -420,9 +473,12 @@ public sealed class FileLockPostureDriftTests
             third.OpenStatic("C", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.Success, third.Status("C"));
             third.CloseAll();
-            inputOpener.CloseAll();
         }
-        finally { FileHarness.TryDelete(host); }
+        finally
+        {
+            inputOpener?.Dispose();
+            FileHarness.TryDelete(host);
+        }
     }
 
     /// <summary>The file's bytes through a handle that admits every other handle's access, so the read is never what a
