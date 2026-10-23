@@ -35,7 +35,10 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
 {
     internal static readonly SidecarColumnLockHost Instance = new();
 
-    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+    /// <inheritdoc/>
+    /// <remarks><paramref name="owesWrites"/> is not published: the share mode of this host is one advisory <c>flock</c> that
+    /// no writable handle refuses a reader of (<see cref="HostFile.ShareModesAreMandatory"/>), so no share mode yields.</remarks>
+    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
         IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
     {
         hold = null;

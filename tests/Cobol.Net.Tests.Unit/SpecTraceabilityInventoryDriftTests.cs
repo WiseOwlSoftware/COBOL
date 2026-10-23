@@ -1183,6 +1183,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "GR-13.18.10.4-3", "GR-13.18.10.4-4", "GR-7.3.4-4", "GR-8.1.3.2-5",
             "GR-9.1.13.3-1", "GR-13.18.49.4-4", "DOC-A.1-169", "SR-8.4.2.3.3-7", "GR-8.5.1.11.3-1",
             "GR-14.9.51.4-16",
+            // ⚙ GR-12.4.6.4.4-3, added deliberately (kb/Work PB3539, owner decision 2026-10-23): its
+            // owner-signed §8 determination is DRV-GR-12.4.6.4.4-3 in docs/CONFORMANCE.md.
+            "GR-12.4.6.4.4-3",
+            // ⚙ GR-12.4.5.9.4-2, added deliberately (kb/Work PB1636, owner signature 2026-10-23): its
+            // owner-signed §8 determination is DRV-GR-12.4.5.9.4-2 in docs/CONFORMANCE.md.
+            "GR-12.4.5.9.4-2",
         ];
 
         var s = LoadSchema();

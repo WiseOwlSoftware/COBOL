@@ -11,7 +11,7 @@ named five, CI's audits job named those five plus `landing_check.py`, linux-gate
 fourteen orchestrator self-tests (the loop's unit choice, the allocator's lock, the wave planner, …) ran in no gate and
 no CI job at all, so a regression in any of them passed everything. A list goes stale the day a self-test is added.
 This runner FINDS them, and the local gate (scripts/run_gate_legs.py AUDITS, before the gate slot), the Linux gate
-(scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and a step of `windows-build-test`) all run
+(scripts/linux-gate.sh leg `selftests`) and CI (the `audits` job on Linux and `windows-self-tests` on Windows) all run
 THIS entry point, so no gate can run a self-test CI does not, or the reverse (the CI invariant, kb/Work PB1957).
 
 THE DISCOVERY RULE (one rule, `discover`): a tracked file under one of the live tools' trees (`live_tools.ROOTS`:
@@ -29,7 +29,7 @@ PLATFORM: every self-test runs on every platform unless its file declares otherw
 first HEADER_LINES lines (so a docstring that SHOWS the marker, as this one does, never declares it):
     # SELF-TEST-PLATFORM: windows — <why it cannot run elsewhere>
 On another platform it is reported `NOT RUN on <platform>: …` with that reason, on its own line and in the verdict —
-never skipped silently. CI's `windows-build-test` job runs this runner too, so a Windows-only self-test still runs in
+never skipped silently. CI's `windows-self-tests` job runs this runner too, so a Windows-only self-test still runs in
 CI.
 
 BUILD: a self-test that reads the BUILT test assemblies (filter_population.py asks vstest which tests a filter selects)

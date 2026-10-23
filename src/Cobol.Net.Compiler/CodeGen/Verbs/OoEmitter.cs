@@ -1082,7 +1082,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // universal __CobolInvoke switch, and by an inline invocation — one mechanism, not three arms.
             // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
-            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false);   // §15.65.4 r5 — INVOKE is an activation");
+            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §15.65.4 r5 — INVOKE is an activation; §8.6.6: a method is always recursive");
             // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
             // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
             // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§8.6.4; §8.6.5).
@@ -1746,8 +1746,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // the argument): pass the leading formal-width characters; the write-back below splices the
                 // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
                 int fw = a.Formal.IsGroup ? CallEmitter.BoundaryImageWidth(a.Formal) : CallEmitter.ElementaryFormalWindow(a.Formal);
+                // …and an ELEMENTARY USAGE BIT / USAGE NATIONAL argument BY CONTENT into a plain GROUP formal is that same
+                // unconverted move (kb/Work PB3562): its storage image crosses, not its operand text.
                 string read = a.Source is { } gsp
-                    ? a.ByContent ? CallEmitter.CallContentRead(gsp) : CallEmitter.CallStringRead(gsp)
+                    ? a.ByContent
+                        ? CallEmitter.IsPlainGroupFormal(a.Formal) && OperandText.CarrierDiffersFromStorage(gsp)
+                            ? OperandText.NonElementaryMoveSender(new BoundFieldOperand(gsp), Num, "INVOKE argument")
+                            : CallEmitter.CallContentRead(gsp)
+                        : CallEmitter.CallStringRead(gsp)
                     : CsLiteral(a.StringLiteral ?? "");
                 // A GROUP argument BY CONTENT into an ELEMENTARY formal is §14.2.3 GR9's MOVE into the formal's record,
                 // and a group sender makes it §14.9.25.4 GR4's group move (kb/Work PB2587's sweep): the receiver's

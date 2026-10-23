@@ -433,6 +433,81 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             else
                 ExpandInitialize(childCur, spec, actions, identifier1Item, key);
         }
+        if (spec.WithFiller) ExpandImplicitFillers(cur, item, spec, actions);
+    }
+
+    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §14.9.20.4 5) a) 2.: "If the FILLER
+    /// phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are not receiving
+    /// operands; §8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
+    /// table as "implicitly described as a filler elementary bit data item"). Each stored filler (<see cref="BitLayout.FillersOf"/>) is the elementary boolean item
+    /// <see cref="BitFiller.Item"/>, qualified and sent exactly as an explicit FILLER boolean item is (GR5c, GR6: the
+    /// ZEROES default, or the REPLACING BOOLEAN operand) and stored by the ordinary implicit MOVE (kb/Work PB3564 review
+    /// R1-4). Without the phrase they are not receivers, so a group MOVE's filler bits survive an INITIALIZE.
+    /// <para>In a Tier-B class (a REDEFINES area, an EXTERNAL or BASED record, a LINKAGE area) the filler is bytes of the
+    /// class's backing (<see cref="BitLayout.WindowFillersOf"/>), received through the class's view cursor like any other bit
+    /// member (kb/Work PB3564 review R2-1). ⛔ A TABLE PAD IS N - 1 FILLER ITEMS, NOT ONE (§8.5.1.6.3: each stretch of
+    /// positions that advances the next occurrence to its boundary is "a filler elementary bit data item"; kb/Work PB3597):
+    /// both lanes receive them in ONE loop over the gaps, never one statement per gap, so a sender that is not the same for
+    /// any length (a REPLACING BOOLEAN operand; the ZEROES default fills any length alike) reaches each gap as the
+    /// elementary item it is. In a class the loop is the table's own occurrence displacement; in the record-struct lane,
+    /// whose pad is ONE stored string of every gap back to back, the gap's own reference-modified place
+    /// (<see cref="PadGapPlace"/>).</para></summary>
+    private void ExpandImplicitFillers(PlaceCursor cur, DataItem group, in InitializeSpec spec, List<InitializeAction> actions)
+    {
+        var qualification = Qualify(InitializeCategory.Boolean, effectiveValue: null, spec);
+        if (qualification is InitializeQualification.None) return;                              // GR5c — left unchanged
+        foreach (var window in BitLayout.WindowFillersOf(group))
+        {
+            var gap = window.Item;
+            PlaceCursor? gapCur = null;
+            string? gapVar = null;
+            if (window.Gaps == 0) gapCur = cur.Child(gap);
+            else
+            {
+                gapVar = $"__ini{_initializeLoopVar++}";
+                gapCur = cur.Child(window.Subject)?.Indexed(new PositionLocal(gapVar)).Child(gap);
+            }
+            if (gapCur is null)
+            {
+                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                continue;
+            }
+            if (ElementaryAction(gapCur, gap, InitializeCategory.Boolean, spec, effectiveValue: null) is not { } gapAction) continue;
+            actions.Add(gapVar is null ? gapAction : new InitializeLoop(gapVar, new AllCount.Fixed(window.Gaps), [gapAction]));
+        }
+        foreach (var filler in BitLayout.FillersOf(group))
+        {
+            var item = filler.Item;
+            if (cur.Child(item) is not { } fillerCur)
+            {
+                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                continue;
+            }
+            if (filler.Kind is BitFillerKind.TablePad && qualification is InitializeQualification.ViaReplacing)
+            {
+                int gapBits = BitLayout.StrideBits(filler.Subject) - BitLayout.WidthBits(filler.Subject);
+                string gapVar = $"__ini{_initializeLoopVar++}";
+                if (ElementaryAction(fillerCur, item, InitializeCategory.Boolean, spec, effectiveValue: null,
+                        receiver: PadGapPlace(fillerCur.ToPlace(), gapVar, gapBits)) is { } gapAction)
+                    actions.Add(new InitializeLoop(gapVar, new AllCount.Fixed(filler.Subject.Occurs!.Value - 1), [gapAction]));
+                continue;
+            }
+            if (ElementaryAction(fillerCur, item, InitializeCategory.Boolean, spec, effectiveValue: null) is { } action)
+                actions.Add(action);
+        }
+    }
+
+    /// <summary>Gap <paramref name="loopVar"/> (1-based) of a stored table pad: the <paramref name="gapBits"/> boolean positions
+    /// that start at <c>(loopVar - 1) * gapBits + 1</c> of the pad string (§8.4.3.3.4 GR5a: a reference-modified bit item is
+    /// counted in bit positions), the elementary bit item §8.5.1.6.3 describes between two occurrences.</summary>
+    private static Place PadGapPlace(Place pad, string loopVar, int gapBits)
+    {
+        var before = new PositionBinary(new PositionLocal(loopVar, AsLong: true), PositionOperator.Subtract, new PositionConstant(1));
+        var offset = new PositionBinary(new PositionGroup(before), PositionOperator.Multiply, new PositionConstant(gapBits));
+        return new RefModPlace(pad, new PositionBinary(new PositionGroup(offset), PositionOperator.Add, new PositionConstant(1)),
+            new PositionConstant(gapBits));
     }
 
     // ── GR5c (qualification) and GR6 (sender), which are TWO rules and used to be one method (kb/Work PB418) ────
@@ -539,8 +614,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private InitializeStore Store(Place target, BoundOperand source) =>
         new(host.Move.BindMoveOf(source, [target], ImplicitMovePhrase.Initialize));
 
+    /// <param name="receiver">The place the sender is stored into when it is not the cursor's own (a gap of a stored
+    /// table pad, <see cref="PadGapPlace"/>); null for the cursor's.</param>
     private InitializeAction? ElementaryAction(PlaceCursor cur, DataItem item, InitializeCategory cat,
-        in InitializeSpec spec, string? effectiveValue)
+        in InitializeSpec spec, string? effectiveValue, Place? receiver = null)
     {
         var q = Qualify(cat, effectiveValue, spec);
         if (q is InitializeQualification.None) return null;                                     // GR5c — left unchanged
@@ -593,7 +670,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // second write. (CODE-SPEC-AUDIT CA1.) Pinned at both poles by conformance:cases/14.9.20-INITIALIZE/initialize_dynamic_length
         // (the GR6c arm) and conformance:cases/14.9.20-INITIALIZE/pb418_initialize_dynamic_length_senders (the GR6a/GR6b arms).
         if (item.IsDynamicLength && q is InitializeQualification.ViaDefault) source = new BoundStringLiteral("");
-        return Store(cur.ToPlace(), source);
+        return Store(receiver ?? cur.ToPlace(), source);
     }
 
     /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §14.9.20.4

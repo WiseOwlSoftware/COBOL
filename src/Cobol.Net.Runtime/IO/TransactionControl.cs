@@ -20,7 +20,7 @@ namespace CobolNet.Runtime.IO;
 /// <para><b>Run-unit scope.</b> A COMMIT or ROLLBACK acts on every active clause of the run unit whichever element
 /// executes it (§14.9.7.1, §14.9.36.1), so the statement emits a call here and nothing of its own element's clause.</para>
 /// </summary>
-internal sealed class TransactionControl(FileRegistry files, ProgramTable programs, SortFileTable sorts, ExceptionEngine exceptions)
+internal sealed class TransactionControl(FileRegistry files, ModuleStack modules, SortFileTable sorts, ExceptionEngine exceptions)
 {
     /// <summary>One activated APPLY COMMIT clause: the element instance that activated it, the file connectors it put
     /// under commit control, the emitted image copies, and the FILE STATUS store of the element's own files
@@ -44,10 +44,13 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
     /// clause" is its negation.</summary>
     public bool AnyActive => _participants.Count > 0;
 
-    /// <summary>§9.1.18.7's "under the control of a recursive runtime element, or … the MERGE or SORT file statements".</summary>
+    /// <summary>§9.1.18.7's "under the control of a recursive runtime element, or … the MERGE or SORT file statements".
+    /// A recursive runtime element (§8.6.6) is a RECURSIVE program, a function or a method, and the run unit's module
+    /// stack holds the frame of each kind while it runs (<see cref="ModuleStack.AnyRecursive"/>; kb/Work PB3540: a method
+    /// is no <see cref="ProgramTable"/> node, so asking the table missed it).</summary>
     private bool FlowForbidden(out string why)
     {
-        if (programs.AnyRecursiveActive()) { why = "under the control of a recursive runtime element"; return true; }
+        if (modules.AnyRecursive) { why = "under the control of a recursive runtime element"; return true; }
         if (sorts.AnyInPhase([ProcedurePhase.Input, ProcedurePhase.Output]))
         {
             why = "under the control of a file SORT or MERGE statement";

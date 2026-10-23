@@ -536,7 +536,17 @@ import prune_worktrees  # noqa: E402
 _dr_tips = {"worktree-wf_dr-2": "2020202bb", "worktree-wf_dr-5": "6060606ff"}
 _dr_rep = {r.lead: r for r in prune_worktrees.report_index(DR, lambda _i: False)}
 _git_saved = prune_worktrees.git
-prune_worktrees.git = lambda *a, **_k: _Shown(0 if a == ("merge-base", "--is-ancestor", "6060606ff", "2020202bb") else 1)
+
+
+def _dr_git(*a, **_k):
+    """The one ancestry fact of this scenario, in contained()'s question (kb/Work PB3583: one `rev-list <carrier tip>`
+    per carrier): 6060606ff is a commit of 2020202bb's history, and no origin/main exists."""
+    if a[:1] == ("rev-list",):
+        return _Shown(0, {"2020202bb": "2020202bb\n6060606ff\n", "6060606ff": "6060606ff\n"}.get(a[1], ""))
+    return _Shown(1)
+
+
+prune_worktrees.git = _dr_git
 try:
     for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", True)):
         rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
@@ -2045,6 +2055,18 @@ pdl2 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES
                busy={"worktree dl-3 (worktree-dl-3)": pw.InFlight({F_BIND}, "worktree-dl-3", {"PB9"}, state="DECISION")})
 check("PB3528: an undecided branch this wave does not finish still holds a group on its files",
       ([g.notes for g in pdl2["groups"]], "PB5" in pdl2["waiting"]), ([], True))
+# ... and a ONE-SIDED meeting still chains (branch review R1-1): PB5's group meets PB9's branch on a file PB5's notes
+# own (its primary file) while PB9's group never meets PB5's branch; whichever is placed first, the other follows it.
+DL1_BUSY = {"worktree dl-1 (worktree-dl-1)": pw.InFlight({F_BIND}, "worktree-dl-1", {"PB5"}, state="DECISION"),
+            "worktree dl-2 (worktree-dl-2)": pw.InFlight({"src/X/Misc.cs", "docs/CONFORMANCE.md"}, "worktree-dl-2",
+                                                         {"PB9"}, state="DECISION")}
+pdl3 = pw.plan(notes, [cl("docs/CONFORMANCE.md", "PB5"), cl("src/X/Misc.cs", "PB9")], [], pw.load_reports(DL_REPORTS),
+               lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL1_BUSY)
+dl3 = {n: g for g in pdl3["groups"] for n in g.notes}
+check("PB3528 R1-1: a one-sided meeting between two finishers chains them; neither runs beside the other",
+      (sorted(dl3), {g.after for g in dl3.values() if g.after} <= {g.letter for g in dl3.values()},
+       sum(1 for g in dl3.values() if g.after) == 1),
+      (["PB5", "PB9"], True, True))
 
 for f in fails:
     print("FAIL:", f)

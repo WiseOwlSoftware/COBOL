@@ -58,9 +58,10 @@ namespace CobolNet.Runtime.IO;
 /// owes its COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10): the host refused an OPEN the table
 /// admits, '61' where the table says <i>Normal open</i>. A share mode cannot say "an INPUT opener that owes its
 /// transaction's writes", so that connector's OPEN is made a second time, only after the first attempt was refused with
-/// its Table 19 column held and an INPUT opener of another run unit beside it, with
-/// <see cref="WhenOwedWritesAreAdmitted"/>; the columns (<see cref="RunUnitFileLock"/>, which Windows carries since this
-/// change) keep out every request the table refuses.</para>
+/// its Table 19 column held and another run unit's connector that OWES WRITES beside it (published with its column,
+/// <see cref="RunUnitFileLock.AnotherOwesWrites"/>, kb/Work PB3499), with <see cref="WhenOwedWritesAreAdmitted"/>; the columns
+/// (<see cref="RunUnitFileLock"/>, which Windows carries since this change) keep out every request the table refuses.
+/// An INPUT opener that owes no writes, or a program outside the protocol, is no reason for the share mode to yield.</para>
 /// </remarks>
 public static class FileLockPosture
 {
@@ -97,9 +98,10 @@ public static class FileLockPosture
     /// (<see cref="RunUnitFileLock"/> holds the column), the share mode of a READ ONLY connector yields: it admits a
     /// writer, and the column — not the share mode — keeps every request Table 19 refuses out
     /// (<c>FileConnector.Open</c> takes this posture on a second attempt, only after the column was held and another run
-    /// unit's INPUT opener — the only holder that can owe writes — is there to be admitted:
-    /// <c>RunUnitFileLock.AnotherInputOpenerHolds</c>; a program outside the protocol that holds the file for writing still
-    /// refuses the request). The other two modes have nothing to yield: NO OTHER is exclusive and ALL OTHER already admits
+    /// unit's connector that owes writes — an INPUT opener whose handle stands open for writing, the writer this posture
+    /// exists to admit — is there to be admitted: <c>RunUnitFileLock.AnotherOwesWrites</c>; a program outside the protocol
+    /// that holds the file for writing still refuses the request, whether or not a reader that owes none is open beside it,
+    /// kb/Work PB3499). The other two modes have nothing to yield: NO OTHER is exclusive and ALL OTHER already admits
     /// a writer.</summary>
     public static FileShare WhenOwedWritesAreAdmitted(FileSharing sharing) => sharing switch
     {

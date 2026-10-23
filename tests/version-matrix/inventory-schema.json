@@ -1273,7 +1273,8 @@
         "writes its rows; it never re-uses an older date for an argument drafted after it (kb/Work PB1636)."
       ],
       "owner: 2026-09-03": "kb/Work PB386 — the owner opened the derivation door; also the rows signed under it through 2026-09-25 (Q25-Q27, wave 40, kb/Work R43 item 4)",
-      "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')"
+      "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')",
+      "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')"
     },
     "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
     "$refusals": [

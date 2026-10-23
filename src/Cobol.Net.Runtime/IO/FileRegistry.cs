@@ -616,7 +616,7 @@ public sealed class FileRegistry
         // association has just moved to ANOTHER one, so the OPEN about to run is an ordinary OPEN of that file - it adopts neither
         // the old file's handle nor its store - while the old file's transaction, record locks and file lock stay the COMMIT's and
         // the ROLLBACK's, as a replaced connector's do (Retire).
-        if (c is KeyedConnector { KeptIsOfAnotherFile: true }) Retire(name);
+        if (c is KeyedConnector { KeptIsOfAnotherPath: true }) Retire(name);
         return true;
     }
 
@@ -1129,15 +1129,20 @@ public sealed class FileRegistry
     /// transaction now, so a state a CLOSE kept and the registry retired (<see cref="_retired"/>: its connector displaced, or
     /// associated with another file and perhaps holding a later file's transaction open) keeps the place of its file. Neither
     /// the registration order nor the order of the two collections is that order (review finding R1-2 of kb/Work PB3494). A
-    /// file both a retired state and a registered connector reach has ONE transaction, told by the retired state's name.</summary>
+    /// file both a retired state and a registered connector reach has ONE transaction, told by the retired state's name.
+    /// <para>⛔ A file is told by its STORE, never by its path (kb/Work PB3533): the transaction lives in the run unit's store of
+    /// the physical file, and two physical files can stand at one path in a run unit - one removed or renamed away outside it
+    /// while a connector still holds it, and the one made at the path since (<see cref="StoreTable"/>) - each with a transaction
+    /// of its own, which a path would have folded into one, leaving the other uncommitted.</para></summary>
     private List<TransactionHolder> TransactionHolders()
     {
-        var seen = new HashSet<string>(HostFile.PhysicalFileComparer);
+        var seen = new HashSet<KeyedStore>(ReferenceEqualityComparer.Instance);
         var owners = new List<TransactionHolder>();
         foreach (var (name, kept) in _retired)
-            if (kept.OpenTransaction != 0 && seen.Add(kept.HostPath)) owners.Add(new(name, null, kept, kept.Store.OpenOrder));
+            if (kept.OpenTransaction != 0 && seen.Add(kept.Store)) owners.Add(new(name, null, kept, kept.Store.OpenOrder));
         foreach (var (name, c) in _files)
-            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add(new(name, k, null, k.StoreOpenOrder));
+            if (c is KeyedConnector { TransactionStore: { Transaction: not 0 } store } k && seen.Add(store))
+                owners.Add(new(name, k, null, store.OpenOrder));
         return [.. owners.OrderBy(h => h.Order)];
     }
 

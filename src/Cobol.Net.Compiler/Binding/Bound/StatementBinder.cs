@@ -46,6 +46,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx, this);
     private FileLockBinder? _fileLockBinder;
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
+    private DeclinedFacilityBinder? _declinedFacilityBinder;
+    private DeclinedFacilityBinder DeclinedFacility => _declinedFacilityBinder ??= new DeclinedFacilityBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
     internal PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
     private KeyedIoBinder? _keyedIoBinder;
@@ -584,18 +586,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §4.2.7 requires us only to DOCUMENT,
         //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
-        //    and never an EC (licensed off by §14.6.13.1.1). ──
-        //    RECEIVE / SEND parse at EVERY edition (the union grammar, kb/Work PB374), so below 2023 the facility is
-        //    not this edition's to decline: the edition pass's COBOLNET0900 (async-messaging-2023) is the whole
-        //    answer there, and a COBOLNET1578 beside it would name a 2023 facility to a COBOL-85 program.
-        _ when s.mcsReceiveStatement() is not null || s.mcsSendStatement() is not null
-            => ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.AsyncMessaging2023)
-                ? BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported)
-                : new BoundNop(),
+        //    and never an EC (licensed off by §14.6.13.1.1). The statement's IDENTIFIERS are still read first
+        //    (DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedMcs says why below 2023 it does neither. ──
+        _ when s.mcsReceiveStatement() is { } rcv => BindDeclinedMcs(DeclinedFacility.BindReceive, rcv),
+        _ when s.mcsSendStatement() is { } snd => BindDeclinedMcs(DeclinedFacility.BindSend, snd),
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
             => BindCommitRollback(s.commitFacilityStatement() is not null),
-        _ when s.validateFacilityStatement() is not null
-            => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
+        _ when s.validateFacilityStatement() is { } val => BindDeclinedValidate(val),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
         // NEXT SENTENCE is a PHRASE, not a statement: the grammar parses it as one so `statementBlock` spells the
         // printed `{ statement | NEXT SENTENCE }` braces, and THIS is where its position is decided — admitted only
@@ -722,6 +719,30 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {
         Ctx.Edition.Declined(d);
+        return new BoundNop();
+    }
+
+    /// <summary>VALIDATE (ISO §14.9.50): the FACILITY is declined (COBOLNET1580) and its operands are still identifiers —
+    /// <see cref="DeclinedFacilityBinder.BindValidate"/> resolves and screens each one (kb/Work PB3568).</summary>
+    private BoundStatement BindDeclinedValidate(Core.ValidateFacilityStatementContext v)
+    {
+        DeclinedFacility.BindValidate(v);
+        return BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported);
+    }
+
+    /// <summary>An MCS SEND or RECEIVE (ISO §14.9.38, §14.9.31). RECEIVE and SEND parse at EVERY edition (the union
+    /// grammar, kb/Work PB374), so below 2023 the facility is not this edition's to decline: the edition pass's
+    /// COBOLNET0900 (async-messaging-2023) is the whole answer there, and a COBOLNET1578 beside it would name a 2023
+    /// facility to a COBOL-85 program. At 2023 the facility is declined and the operands are still identifiers —
+    /// <paramref name="bindOperands"/> is the <see cref="DeclinedFacilityBinder"/> half for the statement (kb/Work PB3568).</summary>
+    private BoundStatement BindDeclinedMcs<TStatement>(Action<TStatement> bindOperands, TStatement statement)
+    {
+        if (ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.AsyncMessaging2023))
+        {
+            bindOperands(statement);
+            return BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported);
+        }
+
         return new BoundNop();
     }
 
