@@ -164,7 +164,7 @@ internal sealed class SequentialJournal
 {
     private const uint Magic = 0x4A4C4F57;   // "WOLJ" little-endian
     private const ushort Format = 1;
-    internal const int HeaderBytes = 24;
+    internal const int HeaderLength = 24;
     private const int ChecksumBytes = 4;
     private const string NamePrefix = "txn-";
     private const string LiveSuffix = ".live";
@@ -242,7 +242,7 @@ internal sealed class SequentialJournal
 
     private static byte[] Header(ulong id, JournalStart start)
     {
-        var header = new byte[HeaderBytes];
+        var header = new byte[HeaderLength];
         BinaryPrimitives.WriteUInt32LittleEndian(header, Magic);
         BinaryPrimitives.WriteUInt16LittleEndian(header.AsSpan(4), Format);
         header[6] = (byte)start;
@@ -292,7 +292,7 @@ internal sealed class SequentialJournal
     /// litter with nothing to undo, R1), and every whole record before the first torn one.</summary>
     internal static JournalContent? Parse(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length < HeaderBytes
+        if (bytes.Length < HeaderLength
             || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != Magic
             || BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]) != Format
             || BinaryPrimitives.ReadUInt32LittleEndian(bytes[20..]) != PageHeader.Crc32C(bytes[..20]))
@@ -304,7 +304,7 @@ internal sealed class SequentialJournal
         JournalCapture? capture = null;
         var decision = JournalDecision.Open;
         var images = new List<RewriteImage>();
-        int at = HeaderBytes;
+        int at = HeaderLength;
         while (at < bytes.Length)
         {
             int payload = bytes[at] switch
