@@ -2527,8 +2527,8 @@ standard (27 listed elements) — which `docs/CONFORMANCE.md` §5 records as **N
 implementation shall accept the syntax and provide the functionality for an optional element **only when**
 support for that language element is claimed by the implementor."* That is a prohibition on accepting, so an
 unclaimed A.4 module is a named **error** (`COBOLNET1560` / `COBOLNET1707`). Contrast the Annex **A.3
-processor-dependent** facilities — MCS, COMMIT/ROLLBACK — whose licence is §4.2.6 and whose posture is
-accept-inert plus a mandatory compile-time **warning** (`COBOLNET1578`, `COBOLNET1579`; `COBOLNET1580` VALIDATE
+processor-dependent** facilities — MCS — whose licence is §4.2.6 and whose posture is
+accept-inert plus a mandatory compile-time **warning** (`COBOLNET1578`; `COBOLNET1580` VALIDATE
 rides the same band). The severity is carried by the `DiagnosticDescriptor` and dispatched once in
 `EditionContext.Report(descriptor, message)` — never by a local test at an emit site.
 
