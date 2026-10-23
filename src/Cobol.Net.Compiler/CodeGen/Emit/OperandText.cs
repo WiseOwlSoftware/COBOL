@@ -284,8 +284,8 @@ internal static class OperandText
         // is stated no usage - §8.3.3.4.4 GR3 gives only its VALUE, "the sequence of occurrences of boolean-character-1" -
         // so its usage is the implementor's: a run of boolean positions packed as USAGE BIT, the usage every boolean
         // function value has, so `MOVE B"11111111" TO G` and the function above deposit one image (docs/CONFORMANCE.md,
-        // the usage of a boolean literal). A zero-length literal never gets here: §14.9.25.4 GR2/GR3 make it the
-        // figurative SPACE / ZERO (MoveClassifier.Sender).
+        // D-B3). A MOVE's zero-length literal never gets here: §14.9.25.4 GR2/GR3 make it the figurative SPACE / ZERO
+        // (MoveClassifier.Sender); at a CALL it is an empty image either way.
         _ => SenderCategory(op) switch
         {
             PicCategory.National => RuntimeApi.NatBytes(AsString(op, num, deSign: false)),
