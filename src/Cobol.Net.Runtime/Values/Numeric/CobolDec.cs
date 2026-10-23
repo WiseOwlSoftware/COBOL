@@ -557,6 +557,25 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return sig == 1 && exp == 0;
     }
 
+    /// <summary>The value's FRACTION DIGITS: the decimal places of <paramref name="value"/> once trailing zeros are dropped
+    /// (0 for an integer). A property of the VALUE, never of its representation: 2.0E0 and 2, 5 × 10^-16 and 5.000 × 10^-16
+    /// have the same. It is the precision a NESTED native quotient gives an SDIDI operand whose precision the compiler
+    /// cannot know (<see cref="CobolDecWithPrecision.Own"/>), and the compiler computes the same for a floating-point literal
+    /// (kb/Work PB3538 review finding R3-1). An SDIDI value has at most 34 significant digits, so its last fraction digit is
+    /// at most 33 places past its leading one: the precision is bounded by the value's significance, never by a scale.</summary>
+    public static int FractionDigits(CobolDec value)
+    {
+        if (value.Sig == 0) return 0;
+        UInt128 sig = UAbs(value.Sig);
+        int exp = value.Exp;
+        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
+        return exp < 0 ? -exp : 0;
+    }
+
+    /// <summary>The negation of <paramref name="value"/>, its operand evaluated once (the renderer spelled it
+    /// <c>new CobolDec(-(x).Sig, (x).Exp)</c>, which evaluated the operand expression twice).</summary>
+    public static CobolDec Negate(CobolDec value) => new(-value.Sig, value.Exp);
+
     public static CobolDec Add(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: false, mode);
 
     public static CobolDec Sub(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: true, mode);

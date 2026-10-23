@@ -238,11 +238,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// significand and the SDIDI carrier holds 34, so a 35th/36th significand digit rounds at
     /// <c>CobolDec.FromParsed</c>.</para>
     /// <para>Every consumer of the Dec lane already exists — the PB84 landing/store funnel; <see cref="Real"/>
-    /// converts it where a binary64 body wants a double; <see cref="DecOperand"/> where an SDIDI body does.</para></summary>
+    /// converts it where a binary64 body wants a double; <see cref="DecOperand"/> where an SDIDI body does.</para>
+    /// <para>⛔ ITS PRECISION IS ITS VALUE'S FRACTION DIGITS, KNOWN AT COMPILE TIME (kb/Work PB3538 review finding R3-1):
+    /// <c>CobolDec.FractionDigits</c> of the literal's exact value, the same rule a run-time SDIDI value's precision
+    /// follows, so `1.0E-15` carries the 15 places `0.000000000000001` does and a nested quotient over it keeps them
+    /// (`IF 1.0E-15 / 2 > 0` was NOT GREATER at a working scale of 14), and `2.0E0` carries the 0 that `2` does.</para></summary>
     private NumX LiteralNum(string text) =>
         CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
             && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
-        ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true)
+        ? new NumX(RuntimeApi.DecFromParsedLiteral(sig, exp10, IntermediateMode), 0, Dec: true,
+            Precision: CobolDec.FractionDigits(new CobolDec(sig, exp10)))
         : EmitText.UnscaledLit(text);
     public NumX Visit(BoundNumRef n) => FieldNum(n.Place);
     public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);   // an index IS its 1-based occurrence number (§3.5)
@@ -715,16 +720,35 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its shortest round-trip decimal, an exact wide
     /// intermediate by round-to-odd). The ONE spelling of the four operators for every caller that takes an operation
     /// there: the standard-decimal engine, an SDIDI-carried native operand (kb/Work PB69) and an exact wide operand whose
-    /// operation has no wide form (kb/Work PB1900). The result carries the operation's <see cref="NumX.FractionPrecision"/>
+    /// operation has no wide form (kb/Work PB1900). Under native arithmetic the result carries the operation's precision
     /// rule (the larger for a sum, difference or quotient, the sum for a product) as the exact lanes do, so a nested
-    /// quotient above it takes the same working scale whichever lane carried its dividend (kb/Work PB3538).</summary>
+    /// quotient above it takes the same working scale whichever lane carried its dividend (kb/Work PB3538): at compile
+    /// time when both operands' precisions are known, else in the <see cref="NumX.WithPrecision"/> spelling that carries
+    /// it at run time (review finding R3-1: an operand of run-time precision is never given 0).</summary>
     private NumX DecBinary(string op, NumX a, NumX b)
     {
         string? kernel = op switch { "+" => "Add", "-" => "Sub", "*" => "Mul", "/" => "Div", _ => null };
         if (kernel is null) return a;
+        string left = DecOperand(a), right = DecOperand(b);
+        string value = $"CobolDec.{kernel}({left}, {right}, {IntermediateMode})";
+        // Under STANDARD-DECIMAL no nested quotient reads a precision; a quotient here is a final transfer's (Divide owns
+        // every nested one), so nothing above it reads its precision either.
+        if (StandardDecimal || op == "/") return new NumX(value, 0, Dec: true);
+        if (a.RuntimePrecision || b.RuntimePrecision)
+            return new NumX(value, 0, Dec: true, WithPrecision: RuntimeApi.DecWithPrecisionOperation(op[0],
+                WithPrecisionOperand(a, left), WithPrecisionOperand(b, right), IntermediateMode));
         int precision = op == "*" ? a.FractionPrecision + b.FractionPrecision : Math.Max(a.FractionPrecision, b.FractionPrecision);
-        return new NumX($"CobolDec.{kernel}({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true, Precision: precision);
+        return new NumX(value, 0, Dec: true, Precision: precision);
     }
+
+    /// <summary>The <c>CobolDecWithPrecision</c> spelling of an SDIDI operation's operand whose plain SDIDI spelling is
+    /// <paramref name="dec"/> (kb/Work PB3538 review finding R3-1): its own <see cref="NumX.WithPrecision"/> when an
+    /// operation below it built one; the value with its own fraction digits when it is a run-time-precision leaf (a NUMVAL
+    /// value, a power, a function's result); else the value with the precision the compiler knows.</summary>
+    private static string WithPrecisionOperand(NumX x, string dec) =>
+        x.WithPrecision ?? (x.RuntimePrecision
+            ? RuntimeApi.DecOwnPrecision(dec)
+            : RuntimeApi.DecWithKnownPrecision(dec, x.FractionPrecision));
 
     /// <summary>Does a FLOAT operand own this operation's lane — a floating-point data item or carrier literal
     /// (<c>Real</c> and not <see cref="NumX.Approximate"/>) or a floating-point receiver (kb/Work PB1641)? When none
@@ -934,15 +958,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// operation's rule over the operands' <see cref="NumX.FractionPrecision"/> (kb/Work PB3538).</summary>
     private static int? Carried(NumX a, NumX b, int value) => a.Precision is null && b.Precision is null ? null : value;
 
-    /// <summary>Guard digits past the deepest receiver / OPERAND precision for a division NESTED inside a larger expression
-    /// (numeric design D2): rounding happens ONCE, at the receiver, so the nested quotient carries fraction headroom
-    /// for the operations above it. 14 reproduces the legacy decimal accumulator's ~28-significant-digit behaviour the
-    /// golden corpus encodes. They are added to the operands' precision (<see cref="NumX.FractionPrecision"/>), never to
-    /// an intermediate's scale, so they are added ONCE whatever the expression's depth (kb/Work PB3538).</summary>
-    private const int DivGuardDigits = 14;
-
     /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). ⛔ FIVE ARMS, AND A NESTED QUOTIENT HAS ONE PRECISION
-    /// WHATEVER THE EXPRESSION'S DEPTH (kb/Work PB3538; numeric design D2).
+    /// WHATEVER THE EXPRESSION'S DEPTH (kb/Work PB3538; numeric design D2). Every nested arm truncates at the ONE working
+    /// scale, <c>w = </c><see cref="CobolNum.NestedQuotientScale"/><c>(receiver scale, operands' precision)</c> — the
+    /// receiver's scale or the fraction digits the operands carry, whichever is larger, plus
+    /// <see cref="CobolNum.NestedQuotientGuardDigits"/> — the compiler applying it where it knows the precision and the
+    /// runtime where only the value does (an SDIDI operand of <see cref="NumX.RuntimePrecision"/>, review finding R3-1).
     /// <list type="bullet">
     ///   <item><b>The final transfer</b> (<see cref="_outermost"/> into a resultant that rounds at its own scale — the
     ///         quotient IS the value transferred to the single resultant identifier): computed DIRECTLY at the receiver
@@ -951,7 +972,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         rule 3 NOTE 1 / §14.7.4.3 GR7).</item>
     ///   <item><b>A nested quotient whose digit bound fits the scaled carrier</b>: computed with TRUNCATION (never the
     ///         receiver's mode — rounding happens once, at the receiver store, §14.7.7 rule 3 NOTE 1) at the working scale
-    ///         <c>w = max(receiver scale, operands' precision) + DivGuardDigits</c>. The operands' PRECISION is their
+    ///         <c>w = max(receiver scale, operands' precision) + 14</c>. The operands' PRECISION is their
     ///         <see cref="NumX.FractionPrecision"/>, not their scale: a quotient operand's scale holds the guard digits
     ///         its own division added, and deriving <c>w</c> from it made the scale COMPOUND with depth — 14, 28, 42 —
     ///         until `COMPUTE R = A / B / B / B / B` (0.5) and `(A / B) * (A / B) * (A / B)` (64) left the Int128 carrier
@@ -994,8 +1015,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             return new NumX(DivideAt(a, b, _rcv.Scale, _rcv.Rounding), _rcv.Scale);
         if (NestedQuotient)
         {
+            // ⛔ AN OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS (kb/Work PB3538 review finding R3-1): a NUMVAL value, a
+            // power or a function's result — or an operation over one — has the precision of its VALUE, never the
+            // placeholder 0 of a Dec's scale. Given 0, `IF 1.0E-15 / 2 > 0` (before the literal carried its own) and
+            // `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0` truncated the quotient at 14 places and were NOT
+            // GREATER. The same rule, CobolNum.NestedQuotientScale, then runs at run time over the carried precision, and
+            // the quotient carries that precision, not its working scale, to the operations above it.
+            if (a.RuntimePrecision || b.RuntimePrecision)
+            {
+                string pair = RuntimeApi.DecWithPrecisionDivTruncatedToOdd(WithPrecisionOperand(a, DecQuotientOperand(a)),
+                    WithPrecisionOperand(b, DecQuotientOperand(b)), _rcv.Scale);
+                return new NumX(RuntimeApi.DecWithPrecisionValue(pair), 0, Dec: true, WithPrecision: pair);
+            }
             int precision = Math.Max(a.FractionPrecision, b.FractionPrecision);
-            int w = Math.Max(_rcv.Scale, precision) + DivGuardDigits;
+            int w = CobolNum.NestedQuotientScale(_rcv.Scale, precision);
             if (exact)
             {
                 int digits = Math.Max(0, DigitBound(a) - a.Scale + b.Scale) + w;
@@ -1365,7 +1398,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     private static NumX Negate(NumX x) =>
         x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true, Approximate: x.Approximate)
-        : x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true, Precision: x.Precision)
+        // A Dec operand is evaluated ONCE (CobolDec.Negate; `new CobolDec(-(x).Sig, (x).Exp)` evaluated it twice), and a
+        // run-time precision rides along in its own spelling (kb/Work PB3538 review finding R3-1).
+        : x.Dec ? new NumX(RuntimeApi.DecNegate(x.Expr), 0, Dec: true, Precision: x.Precision,
+            WithPrecision: x.WithPrecision is null ? null : RuntimeApi.DecWithPrecisionNegate(x.WithPrecision))
         : x.Wide ? new NumX(RuntimeApi.WideNegate(x.Expr), x.Scale, Digits: x.Digits, Wide: true, Precision: x.Precision)
         : x.U ? new NumX($"(-{DeU(x).Expr})", x.Scale, Digits: x.Digits)   // negation is arithmetic — the Widen funnel applies
         : new($"(-{x.Expr})", x.Scale, Digits: x.Digits, Precision: x.Precision);

@@ -740,6 +740,45 @@ internal static class RuntimeApi
     public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
 
+    /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
+    public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
+
+    // ── An SDIDI value WITH THE PRECISION its operands carry, when only the run time knows it (CobolDecWithPrecision,
+    //    kb/Work PB3538 review finding R3-1) — the form a nested quotient reads the precision of.
+
+    /// <summary>An SDIDI value whose precision is its own fraction digits — <c>CobolDecWithPrecision.Own</c>.</summary>
+    public static string DecOwnPrecision(string value) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.Own)}({value})";
+
+    /// <summary>An SDIDI value paired with the precision the compiler knows.</summary>
+    public static string DecWithKnownPrecision(string value, int precision) =>
+        $"new {nameof(CobolDecWithPrecision)}({value}, {precision})";
+
+    /// <summary>A sum, difference or product of two precision-carrying values — <c>CobolDecWithPrecision.Add</c> /
+    /// <c>Sub</c> / <c>Mul</c> at the INTERMEDIATE ROUNDING mode.</summary>
+    public static string DecWithPrecisionOperation(char op, string left, string right, string modeExpr) =>
+        $"{nameof(CobolDecWithPrecision)}.{op switch
+        {
+            '+' => nameof(CobolDecWithPrecision.Add),
+            '-' => nameof(CobolDecWithPrecision.Sub),
+            '*' => nameof(CobolDecWithPrecision.Mul),
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "a precision-carrying operation is +, - or *"),
+        }}({left}, {right}, {modeExpr})";
+
+    /// <summary>The negation of a precision-carrying value — <c>CobolDecWithPrecision.Negate</c>.</summary>
+    public static string DecWithPrecisionNegate(string operand) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.Negate)}({operand})";
+
+    /// <summary>A NESTED native quotient over an operand whose precision only the run time knows —
+    /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c>: the same truncated quotient as <see cref="DecDivTruncatedToOdd"/>, at
+    /// the working scale <c>CobolNum.NestedQuotientScale</c> takes from <paramref name="receiverScale"/> and the operands'
+    /// run-time precision.</summary>
+    public static string DecWithPrecisionDivTruncatedToOdd(string left, string right, int receiverScale) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.DivTruncatedToOdd)}({left}, {right}, {receiverScale})";
+
+    /// <summary>The SDIDI value of a precision-carrying expression.</summary>
+    public static string DecWithPrecisionValue(string pair) => $"{pair}.{nameof(CobolDecWithPrecision.Value)}";
+
     // ── The EXACT WIDE intermediate (CobolWide, kb/Work PB1900) — one spelling per operation, so the renderer never
     //    writes the runtime type's member names out for itself.
 

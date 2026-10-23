@@ -1190,6 +1190,24 @@ public static partial class CobolNum
         }
     }
 
+    /// <summary>The guard digits a NESTED native quotient carries past its precision (numeric design D2): rounding happens
+    /// ONCE, at the final transfer, so a nested quotient keeps fraction headroom for the operations above it. 14
+    /// reproduces the legacy decimal accumulator's ~28-significant-digit behaviour the golden corpus encodes.</summary>
+    public const int NestedQuotientGuardDigits = 14;
+
+    /// <summary>⛔ THE ONE RULE FOR THE WORKING SCALE OF A NESTED NATIVE QUOTIENT, ON EVERY LANE (kb/Work PB3538 and its review
+    /// findings R1-1, R2-1, R3-1; numeric design D2; CONFORMANCE.md DOC-A.1-123): the quotient is truncated at
+    /// <c>max(receiver scale, precision) + </c><see cref="NestedQuotientGuardDigits"/>, where <paramref name="precision"/> is
+    /// the fraction digits the quotient's OPERANDS carry (the larger of the two), never the guard digits an earlier quotient
+    /// added, so the scale is the same at every depth of the expression. The compiler applies it at compile time wherever it
+    /// knows the operands' precision (the scaled <see cref="Divide"/>, <c>CobolWide.DivTruncated</c>,
+    /// <c>CobolDec.DivTruncatedToOdd</c>), and <see cref="CobolDecWithPrecision.DivTruncatedToOdd"/> applies it at run time
+    /// to an operand whose precision is its VALUE's own (a NUMVAL value, a power, a function's result,
+    /// <see cref="CobolDec.FractionDigits"/>): 10^-15 has 15 fraction digits, so its half is never truncated to zero at a
+    /// scale chosen without them. <paramref name="receiverScale"/> is 0 for a receiver-less expression (a relation).</summary>
+    public static int NestedQuotientScale(int receiverScale, int precision) =>
+        Math.Max(receiverScale, precision) + NestedQuotientGuardDigits;
+
     /// <summary>
     /// Divide two fixed-point operands and return the quotient as an unscaled integer at <paramref name="resultScale"/>
     /// fractional digits, rounding with <paramref name="mode"/>. Operands are given as unscaled integers with their
