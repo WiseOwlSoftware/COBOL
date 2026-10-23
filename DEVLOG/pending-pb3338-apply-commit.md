@@ -75,3 +75,27 @@ A.3 items 6-7; the README summary; VCR row 39 anchored to the new construct `app
 validation and data-model designs; plan §0. Register: PB3338 and PB1096 landed; PB3330 unblocked.
 
 **Gate.** Wave 1154: `LEG 1 ONLY (batched gating, PB2515): GREEN` at 5cdb38b69 (run 20261023T004812Z-d80e58; Conformance 10,490/18,151, Unit 34,849/35,408, Characterization 5/36 in leg 1), after two audit reds the change itself exposed: the ledger renderer's hand-kept verdict classes lacked NEEDS-OWNER-DECISION (now read from the schema's `resolves` flag), and `differential_fuzz.py`'s self-test still expected COMMIT and ROLLBACK among the declined seeds. Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 7c3ad53fe) ===`.
+
+**Branch review, round 1 (wave 1154, the review finisher).** Three blocking findings. R1-3, a wrong answer: a COMMIT
+or ROLLBACK the medium refused never raised EC-I-O-PERMANENT-ERROR, even with `>>TURN EC-I-O CHECKING ON`, because
+`EcBinder.IoFilesOf` had no arm for `BoundCommitRollback`, which carried no file, so the statement's enabled set held
+no (EC-I-O, file) pair and `EmitUseHook` emitted the plain hook (PB1036's shape): the run unit went on with '30' and a
+silent rollback where §14.6.13.1.3 rule 7 terminates it, and no EC-I-O declarative ran. The re-probe on this build
+(`ck.cob`) showed the COMMIT arm without `__IoCheckEc`. Fix: the node now carries its element's files under commit
+control (`BoundCommitRollback.Files`, from `ApplyCommitModel.CommitControlledFiles`, which is now the one statement of
+the keyed-files rule the emitter had kept privately), `IoFilesOf` names them, and a refused file of ANOTHER element is
+raised in the executing element under a directive that names no file (the COMMIT/ROLLBACK rows declare
+EC-I-O-PERMANENT-ERROR with no file; `SequentialIoEmitter.EmitForeignFileIoCheck`, sharing the `__IoCheckEc` call
+with the hook through one helper). R1-1: `CommitRollbackRefusalWitnessTests` compiles each program and runs it over the
+refusing medium (both keyed organizations; COMMIT and ROLLBACK; every combination of a USE procedure and a FILE
+STATUS clause; EC-I-O checking with and without a declarative; the foreign-file arm with and without a status item
+and checking; item 8 after an ordinary statement's '47'; 43 cases). It measured two facts the expectations then took
+from the design rather than assumed: a refused ROLLBACK has restored the items before the USE procedure runs, and the
+refusal leaves the connector in permanent error until its CLOSE, now stated in CONFORMANCE A.4.3 (a). R1-2: two
+goldens pin EC-FLOW-APPLY-COMMIT's compiled path, `pb3338_ec_flow_apply_commit_under_sort` (checking off at the CALL,
+through an intermediate element whose own CALL has checking off, on; the RESUME ends the SORT by §14.9.40.4 GR17; a
+positive control after the SORT) and `pb3338_ec_flow_apply_commit_under_recursive_element`. The leads: R1-4 fixed in
+passing (SR9's implicit items come only from the files under commit control, so a declined SEQUENTIAL operand's FILE
+STATUS item is no longer restored by a ROLLBACK that leaves the file alone; witnessed in the same test class); R1-5,
+R1-6, R1-7 left for the clerk. Batch `w1154a-pb3338-review-r1` adds the new witnesses to GR-12.4.6.3.4-3/-4/-5 and
+GR-14.6.13.1.3-8 (no verdict changes; GAP 74).

@@ -2029,8 +2029,15 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
   describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
   the element that describes it, and handed to that file's exception processing, whose last step is §14.6.13.1.3 item
-  8's ROLLBACK (`SequentialIoEmitter.EmitUseHook` for every statement on a keyed file of the clause). A refused COMMIT
-  saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
+  8's ROLLBACK (`SequentialIoEmitter.EmitUseHook` for every statement on a keyed file of the clause). The statement's
+  node carries the files of its own element's clause under commit control (`BoundCommitRollback.Files`, read from
+  `ApplyCommitModel.CommitControlledFiles`, the one statement of "a declined SEQUENTIAL operand is absent"), and they are
+  its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through
+  `__IoCheckEc` exactly as at any input-output statement; a refused file of ANOTHER element has no file description
+  here, so its condition is declared with no file and only a directive naming no file enables it
+  (`SequentialIoEmitter.EmitForeignFileIoCheck`), and with no declarative qualifying DOC-A.1-103 decides
+  (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
+  CLOSE. A refused COMMIT saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
   statements are CONTINUE wherever they run. EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are read at the statement's entry;
   EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4, Table 13's *"Invocation of a runtime element with an APPLY COMMIT clause in
   effect by a runtime element for which commit and rollback is not permitted"*) is the ACTIVATING element's: the CALL
@@ -2038,7 +2045,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   (`ExceptionEngine.ActivatorFlowApplyCommit`), and the activation raises under the latch. With checking off a
   forbidden statement is not executed and a forbidden activation leaves the clause inactive. Witnesses:
   `TransactionControlTests` (the refusing medium at every operation of a COMMIT, two files, item 8, the flow
-  conditions, retirement) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
+  conditions, retirement), `CommitRollbackRefusalWitnessTests` (the same refusals through a COMPILED program: the
+  own-file and foreign-file arms in every combination of a USE procedure, a FILE STATUS clause and EC-I-O checking,
+  and item 8 after an ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
+  activation latch through compiled CALLs) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
   that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
 
