@@ -18,6 +18,9 @@ namespace CobolNet.Tests.Unit;
 /// from that one entry, and the runtime's decimal formatter is named from one façade method. A second reader of the option
 /// would make a MOVE's result depend on it - the wrong answer this guard exists to keep out. And every value of the option
 /// is pinned by a WiseOwl conformance test, so a form added to the enum cannot ship untested.
+/// <para>ACCEPT's GR1 conversion of a numeric receiver (§14.9.1.4 GR1; kb/Work PB3513) is the same latitude's other
+/// direction and takes the same option from the same emitter file: <c>decimal</c> reads DISPLAY's decimal form back
+/// (<c>AcceptSource.DeviceNumeric</c>, named from one façade method), <c>digits</c> keeps the digit window.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class NumericDisplayFormDriftTests
@@ -48,6 +51,21 @@ public sealed class NumericDisplayFormDriftTests
         // The runtime's decimal formatter is spelled in the façade, and reached from OperandText through it.
         Assert.Equal(["OperandText.cs", "RuntimeApi.cs"], Readers(@"\bNumDisplayDecimal\(").Order());
         Assert.Equal(["RuntimeApi.cs"], Readers(@"nameof\(CobolNum\.DisplayDecimal"));
+    }
+
+    [Fact]
+    public void TheAcceptReader_IsAskedForFromTheAcceptEmitterAndNamedFromOneFacadeMethod()
+    {
+        // ACCEPT's decimal reader is spelled in the façade and asked for by the ACCEPT emitter's one numeric arm, the arm that
+        // also reads the option (TheOption_IsReadByTheDisplayEmitterAlone), so the form ACCEPT reads and the form DISPLAY
+        // writes are chosen by the same value in the same file.
+        Assert.Equal(["AcceptDisplayEmitter.cs", "RuntimeApi.cs"], Readers(@"\bAcceptDeviceNumeric\(").Order());
+        Assert.Equal(["RuntimeApi.cs"], Readers(@"nameof\(AcceptSource\.DeviceNumeric\)"));
+        Assert.Equal(new[] { "CobolNum.DeviceDecimal.cs", "AcceptSource.cs" }.Order(),
+            Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Runtime"), "*.cs", SearchOption.AllDirectories)
+                .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
+                .Where(f => Regex.IsMatch(Code(f), @"\bParseDeviceDecimal\("))
+                .Select(f => Path.GetFileName(f)).Order());
     }
 
     [Fact]
