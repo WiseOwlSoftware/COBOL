@@ -9,7 +9,8 @@
       *> function values, 39 + 39 digits; a function value times a
       *> 20-digit item, whose quotient then needs 79) is formed on the
       *> standard-decimal intermediate, and so is any operation beside
-      *> a floating-point literal. The LANE must not change the VALUE.
+      *> a floating-point literal, a NUMVAL value or a power. The LANE
+      *> must not change the VALUE.
       *> 8.8.1.2 3) evaluates left to right, a nested quotient is
       *> truncated at the documented native precision (CONFORMANCE.md
       *> DOC-A.1-123: the receiver's or the operands' fraction digits,
@@ -17,7 +18,7 @@
       *> the receiver. R has 6 fraction digits, so w = 20:
       *>   2 / 7 = 0.28571428571428571428, * 7 = 1.99999999999999999996,
       *>   stored 1.999999 in every spelling (ITEM, INT, WIDE, MOD,
-      *>   FLT) and -1.999999 for -2 (NEG);
+      *>   FLT, NUMVAL, POW) and -1.999999 for -2 (NEG);
       *>   THIRD  1 / 3 / 3 * 9 = 0.99999999999999999999, stored 0.999999;
       *>   DEEP   2 * 512 / 2 nine times = 2, stored 2.000000;
       *>   REL    no receiver, w = 14: 1.99999999999996 < 2, LESS;
@@ -27,8 +28,9 @@
       *>          case 2): ON SIZE ERROR runs and R keeps 9.000000.
       *> Why each leg can fail: the standard-decimal quotient of the
       *> exact value (34 digits, rounded or round-to-odd) made every
-      *> product above it round back up to 2.000000, so INT, WIDE, MOD
-      *> and FLT stored 2.000000, REL was NOT LESS, and a lane that
+      *> product above it round back up to 2.000000, so INT, WIDE, MOD,
+      *> FLT, NUMVAL and POW stored 2.000000, REL was NOT LESS, and a
+      *> lane that
       *> dropped the operands' fraction digits made PREC NOT EQUAL.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3538SDQ.
@@ -62,6 +64,12 @@
            COMPUTE R = 2.0E0 / T * T.
            MOVE R TO E.
            DISPLAY "FLT " E.
+           COMPUTE R = FUNCTION NUMVAL ("2") / T * T.
+           MOVE R TO E.
+           DISPLAY "NUMVAL " E.
+           COMPUTE R = X ** 1 / T * T.
+           MOVE R TO E.
+           DISPLAY "POW " E.
            COMPUTE R = FUNCTION INTEGER (NX) * FUNCTION INTEGER (Y)
                / T * T.
            MOVE R TO E.

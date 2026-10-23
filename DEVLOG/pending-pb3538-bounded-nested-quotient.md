@@ -69,8 +69,8 @@ each FUNCTION spelling beside its data-item spelling; it failed on the reviewed 
 against a BigInteger oracle (operands past 128 bits, both signs, a divisor scaled up, a divisor above 2^255 whose partial
 remainder carries) and against the Int128 lane's truncating quotient. `NestedQuotientPrecisionDriftTests` now counts
 the wide kernel's scales at depth 2 and 16 and requires that no nested quotient takes `CobolDec.DivToOdd`.
-CONFORMANCE.md DOC-A.1-123 and the numeric design D2 state the rule. `FUNCTION NUMVAL` is unaffected: its value rides
-the SDIDI lane by the documented PB69 rule, so its quotient is formed there on main and on this branch alike.
+CONFORMANCE.md DOC-A.1-123 and the numeric design D2 state the rule. `FUNCTION NUMVAL`'s value rides the SDIDI lane by
+the documented PB69 rule, so this round left its quotient there; round 2 brings it under the same rule.
 
 Branch review round 2 (finding R2-1) found the same lane-changes-the-value defect one step further out. Two intrinsic
 values are each bounded by their 39-digit carrier, so their product's bound (78) passed the 77-digit wide form and
@@ -83,13 +83,14 @@ and are LESS. The fix keeps the rule and widens its reach: a nested quotient is 
 scale on EVERY native lane. The new runtime member `CobolDec.DivTruncatedToOdd` (additive, `PublicAPI.Unshipped.txt`)
 forms that truncated quotient on the SDIDI and holds it to 34 digits by round-to-odd, so one of at most 34 digits is
 exact; `Divide`'s nested arm falls to it past 77 digits, and `CombineCore` sends a nested `/` with an SDIDI-carried
-operand to `Divide` instead of `DecBinary`. A float literal is such an operand, so `2.0E0 / 7 * 7` now stores 1.999999
-as `2 / 7 * 7` does (native intermediate rounding is the implementor's, §11.9.11.2 r1; DOC-A.1-82 records it). The
+operand to `Divide` instead of `DecBinary`. A float literal, a NUMVAL value and a power are such operands, so
+`2.0E0 / 7 * 7`, `FUNCTION NUMVAL ("2") / 7 * 7` and `X ** 1 / 7 * 7` now store 1.999999 as `2 / 7 * 7` does (main
+stored 2.000000 for each; native intermediate rounding is the implementor's, §11.9.11.2 r1; DOC-A.1-82 records it). The
 sweep found the precision sibling: an SDIDI value's scale is 0, so `DecBinary`, `MulToOdd`'s arm, `LowerWide` and
 `Negate` dropped the operands' fraction digits, and a quotient above them took a working scale of 14 where the exact
 lanes took 22 (`F8 * FUNCTION INTEGER (Y) * FUNCTION INTEGER (Y) / T * T` was not equal to `F8 * Y * Y / T * T`); each
 now carries `NumX.Precision`. An outermost quotient with an SDIDI operand keeps `DecBinary` (DOC-A.1-82's lane). Golden
-`pb3538_sdidi_lane_quotients` (2002 to 2023; INT, WIDE, MOD, FLT, NEG, REL and PREC failed on the reviewed head and pass
+`pb3538_sdidi_lane_quotients` (2002 to 2023; INT, WIDE, MOD, FLT, NUMVAL, POW, NEG, REL and PREC failed on the reviewed head and pass
 after), `CobolDecTruncatedQuotientTests` (a BigInteger oracle, the Int128 lane's agreement, a remainder below the scale
 that must not jam), and a `NestedQuotientPrecisionDriftTests` fact for the SDIDI shapes (and their scales at depth 16)
 pin it.
