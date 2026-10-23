@@ -219,7 +219,7 @@ public readonly struct CobolWide
     /// <summary>This value, at <paramref name="scale"/>, as the SDIDI reduced to 34 significant digits by ROUND-TO-ODD
     /// (<see cref="CobolDec.MulToOdd"/>'s rule): the lowering a consumer that has no wide form takes, so that
     /// whatever rounds it next, in any mode, sees the exact value on the same side of every boundary.</summary>
-    public CobolDec ToDec(int scale) => IsZero ? new CobolDec(0, 0) : CobolDec.FromWideToOdd(_negative, _hi, _lo, -scale);
+    public CobolDec ToDec(int scale) => CobolDec.FromWideToOdd(_negative, _hi, _lo, -scale);   // a zero is held at -scale too
 
     /// <summary>This value, at <paramref name="scale"/>, as binary64 (through the round-to-odd SDIDI, as every exact
     /// value reaches the float lane).</summary>

@@ -76,8 +76,11 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > `0.0000000000000010`); a NUMVAL-family value's is its argument's written places, known only at run time
 > (`NUMVAL ("2.50")` has 2, because the family lifts its argument EXACTLY at the parsed scale); and a value an
 > operation formed, a function's returned value or a power formed on the SDIDI, has the places its result is held at
-> (an exact sum or product keeps its operands', the larger or the sum; a result the SDIDI rounded holds its 34
-> significant digits), also known only at run time (`NumX.RuntimePrecision`). So the NOTATION never changes the
+> (an exact sum or product keeps its operands', the larger or the sum, a ZERO operand's places and a zero result's
+> included, since §8.8.1.5.3 performs the operations as ISO/IEC 60559 5.4.1 does and its exact results, zero among them,
+> take the preferred exponent: `0.000 + 2.5` is held at 3 places as `0.001 + 2.5` is, a zero quotient at the dividend's
+> less the divisor's, review finding R5-1, `CobolDec.Zero`, `pb3538_zero_operand_precision`; a result the SDIDI rounded
+> holds its 34 significant digits), also known only at run time (`NumX.RuntimePrecision`). So the NOTATION never changes the
 > precision: `2.50`, `2.50E0`, `NUMVAL ("2.50")` and a `PIC 9V99` item all truncate a quotient at 16 places with no
 > receiver. Counting the value's SIGNIFICANT fraction digits instead dropped the trailing zero, so
 > `IF 2.50E0 / 3 * 1000000000000000 > 833333333333333` was NOT GREATER where the `2.50` spelling is GREATER (R4-1,

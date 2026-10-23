@@ -131,3 +131,20 @@ depth-independence are unchanged. The new golden `pb3538_written_precision` (200
 an item, the equalities and the one-place spelling; `pb3538_float_literal_precision`'s TINY leg now compares `1.0E-15`
 with an item of the same 16 written places (its output is unchanged); `CobolDecWithPrecisionTests` pins the rule and
 the NUMVAL family's exact lift.
+
+Branch review round 5 (finding R5-1) found that the held places were not held for a ZERO. `CobolDec.AddSigned` returned
+the other operand at its own exponent when one operand was zero, and the rounding funnel (`Clamp`) returned every zero
+result at exponent 0. So a sum with a zero term was held at the nonzero term's places: with `Z PIC 9V999 VALUE 0`,
+`IF FUNCTION ABS (Z + FUNCTION NUMVAL ("2.5")) / 3 * 1000000000000000 > 833333333333333` was NOT GREATER on the branch
+and GREATER on main, and Z = 0.001 made it GREATER, so the outcome depended on the operand's value (the reviewer's
+probe `scratchpad/w1153/rev-a5/q9.cob`; `NUMVAL ("0.000")` in place of Z likewise). §8.8.1.5.3 performs the four
+operations as ISO/IEC 60559 5.4.1 does, and that standard holds an exact result, a zero included, at the preferred
+exponent. Every arm that forms a zero now does: the funnel, a sum with a zero operand (the smaller exponent, lowered as
+far as 34 digits hold), a zero dividend (the dividend's exponent less the divisor's), the truncated nested quotient (its
+scale), an integer power of zero (n times the base's, on the SDIDI and natively), a root of zero (half, rounded down),
+a zero subsidiary quotient (the receiver's scale) and the unsigned and wide lifts (the declared scale). One constructor,
+`CobolDec.Zero`, clamps the exponent to decimal128's range. The new golden `pb3538_zero_operand_precision` (2014 and
+2023; FUNCTION ABS is 2014's) pins the probe in both spellings, the 0.001 variant, a difference, a cancelled difference,
+a zero product and the equality with `2.500`; every leg but the nonzero one fails against the round-5 runtime.
+`CobolDecWithPrecisionTests` pins each arm, and `CobolDecWideLiftTests` now expects the unsigned lift of a zero at its
+declared scale, as the signed lift has always kept it.
