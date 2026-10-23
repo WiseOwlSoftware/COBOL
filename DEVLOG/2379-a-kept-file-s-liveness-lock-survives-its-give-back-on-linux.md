@@ -1,3 +1,4 @@
-## A kept file's liveness lock survives its give-back on Linux: filed as PB3549
+## Entry 2379 — 2026-10-22 18:05 PDT — A kept file's liveness lock survives its give-back on Linux: filed as PB3549
 
 The Linux gate of a docs-only branch failed once on `A_transaction_whose_rollback_was_refused_is_never_committed` ("the HOLDINGS tree is empty once no transaction is open") inside the full parallel unit run, while eight isolated WSL runs passed and CI's merge groups for the same code were green. A locator traced the assertion to the dead-owner rollback at the next writable OPEN, which runs only when the previous owner's liveness byte reads as released. Two Linux-only candidates are recorded and neither is confirmed: the kept file's byte is left to the fd close, so a concurrent fork's copy keeps it held; or an interrupted lock probe reads as "alive". PB3549 holds the facts, the code sites and the fix shape (an explicit release, a bounded retry before reading "unavailable" as alive, and a model case that reproduces the race first).
+
