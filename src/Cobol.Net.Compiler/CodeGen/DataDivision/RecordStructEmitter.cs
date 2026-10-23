@@ -206,7 +206,10 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// (<c>CobolDynTable.Recreated</c>) and never shares a table, an array or an element with the sender.</para></summary>
     private void EmitLeafMethods(DataItem item, CodeWriter w)
     {
-        var fs = phys.PhysicalChildrenOf(item);
+        // ⛔ A STORED IMPLICIT FILLER IS NO MEMBER (Physical.FillerBits, kb/Work PB3564): the vector is one entry per
+        // subordinate item, "the neutral carrier between their storage forms" (PlaceRenderer.CellLeaves builds it from the
+        // cell-backed twin, which has no field for a filler), so the filler positions stay the receiving struct's own.
+        var fs = phys.PhysicalChildrenOf(item).Where(f => f.FillerBits == 0).ToList();
         // A strongly-typed group holds no REDEFINES subject (§13.18.44.3 SR14), so its physical fields are its
         // subordinate groups and elementary items one for one (PlaceRenderer.LeafFieldsOf walks the same members).
         var members = item.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
