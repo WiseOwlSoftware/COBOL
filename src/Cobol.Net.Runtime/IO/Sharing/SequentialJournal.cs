@@ -366,6 +366,7 @@ internal sealed class SequentialJournal
     /// ROLLBACK or termination runs it again before anything else.</summary>
     internal bool Rollback(IJournalData data)
     {
+        if (Retired) return true;
         try
         {
             if (Unacknowledged)
@@ -376,23 +377,35 @@ internal sealed class SequentialJournal
             }
             var contents = ReadRecord(_record!) ?? throw new IOException($"the record of transaction {Id} on '{HostPath}' could not be read back");
             RollBack(_medium, HostPath, _directory, Id, contents, data, _record!);
-            Retire();
-            return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
+        // Rolled back: the record reads R, so a retirement the medium refuses is completed by the next entry (2.2.2.7 (3)).
+        try { Retire(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        return true;
     }
 
     /// <summary>The retirement (2.2.2.6 (3), 2.2.2.7 (4)): the before file, the record and the holder deleted in that order and
     /// the lock directory synced; the directory goes with its last file (<see cref="SidecarLockFiles.LockFileHolder"/>).</summary>
     private void Retire()
     {
-        _medium.RetireName(Path.Combine(_directory, BeforeName(Id)));
-        _record?.Dispose();
-        _record = null;
-        _medium.RetireName(Path.Combine(_directory, RecordName(Id)));
-        _medium.SyncDirectory(_directory);
-        _holder?.Dispose();
-        _holder = null;
+        try
+        {
+            _medium.RetireName(Path.Combine(_directory, BeforeName(Id)));
+            _record?.Dispose();
+            _record = null;
+            _medium.RetireName(Path.Combine(_directory, RecordName(Id)));
+            _medium.SyncDirectory(_directory);
+        }
+        finally
+        {
+            // The holder goes whatever the deletions did: the decision is on the medium, so a dead holder's leftovers are the
+            // next entry's to retire, while a holder kept alive would read as a live transaction to every other run unit.
+            _record?.Dispose();
+            _record = null;
+            _holder?.Dispose();
+            _holder = null;
+        }
     }
 
     /// <summary>Whether the transaction is over: committed or rolled back and retired.</summary>

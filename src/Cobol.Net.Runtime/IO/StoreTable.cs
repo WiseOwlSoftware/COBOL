@@ -40,12 +40,17 @@ internal sealed class StoreTable
     /// file takes the next one, so the stamps are the order of the run unit's open stores.</summary>
     private long _opened;
 
+    /// <summary>The next place in the order of the run unit's open files: a store that becomes the run unit's takes one
+    /// (<see cref="Enter{T}"/>), and so does a sequential file's transaction when it begins (<see cref="SequentialTransactions"/>;
+    /// DESIGN-runtime-library.md 2.2.2.6), so a COMMIT and a ROLLBACK reach the keyed and the sequential files in one order.</summary>
+    internal long NextOrder() => ++_opened;
+
     /// <summary>Make <paramref name="store"/> the run unit's for <paramref name="host"/>, the physical file of
     /// <paramref name="identity"/>, stamped with its place in the order of the open stores. An entry it displaces was of a file the
     /// path no longer names (<see cref="NamesAnotherFile"/>).</summary>
     private T Enter<T>(string host, PhysicalFileIdentity? identity, T store) where T : KeyedStore
     {
-        store.OpenOrder = ++_opened;
+        store.OpenOrder = NextOrder();
         _byHost[host] = new Entry { Store = store, Attached = 1, Identity = identity };
         return store;
     }
