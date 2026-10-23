@@ -1,3 +1,4 @@
-## Pausing the fuzz run for a game lost three programs: filed as PB3561
+## Entry 2392 — 2026-10-22 22:19 PDT — Pausing the fuzz run for a game lost three programs: filed as PB3561
 
 During the third fuzz night the run was paused for the owner's game from 21:01 to 22:05 PDT. The wrapper suspended the harness and ended Ollama's runner, so the four in-flight generation requests failed on resume and the harness recorded three of them (fz02696, fz02698, fz02699) as terminal RUNNER_ERROR rows instead of retrying them. The owner's verdict was that the script did not pause and resume losslessly. PB3561 records the fix: the harness honors a PAUSE file and re-queues a program whose request fails during a pause, the report counts pauses separately from model failures, and the wrapper moves into `scripts/` with a self-test.
+
