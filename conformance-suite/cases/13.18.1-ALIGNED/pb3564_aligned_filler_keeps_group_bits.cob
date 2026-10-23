@@ -24,8 +24,8 @@
       *> bytes the alias reads, and L3 proves an elementary store to a member leaves the filler next to it alone.
       *>
       *> DERIVATIONS (high-order bit first; ORD of a byte is its value + 1):
-      *>   G   T PIC 1(3) ALIGNED OCCURS 2: T(1) = bits 0-2, filler bits 3-7; T(2) = bits 8-10, filler bits 11-15 (the
-      *>       end of the record, 8.5.1.6.3); X = byte 3.   X"4F6E43": 0x4F = 0100 1111 -> T(1) = 010, pad 01111;
+      *>   G   T PIC 1(3) ALIGNED OCCURS 2: T(1) = bits 0-2, filler bits 3-7; T(2) = bits 8-10, filler bits 11-15 (the bits
+      *>       that reach the byte X starts on, 8.5.1.6.3); X = byte 3.   X"4F6E43": 0x4F = 0100 1111 -> T(1) = 010, pad 01111;
       *>       0x6E = 0110 1110 -> T(2) = 011, tail 01110; "C".   ORD: 80, 111, 68.
       *>   L3  MOVE B"101" TO T(1): 101 + pad 01111 = 0xAF -> ORD 176 (the pad is kept); MOVE B"000" TO T(2):
       *>       000 + tail 01110 = 0x0E -> ORD 15.

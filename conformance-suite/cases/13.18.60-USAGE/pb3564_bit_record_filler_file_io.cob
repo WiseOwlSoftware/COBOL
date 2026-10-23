@@ -19,7 +19,7 @@
       *> WRITE ... FROM it would then write 0x80 / 0x40 where the file held 0xC1 / 0x7E, and a REWRITE of a record
       *> would lose the filler of the record it replaced the same way.  The abnormal paths share the codec: AT END
       *> after the last record (status 10), INVALID KEY on an absent relative record (status 23), and the status 35
-      *> of an OPEN INPUT of a file that does not exist (9.1.13.4: the record area keeps what it held).
+      *> of an OPEN INPUT of a file that does not exist (9.1.13.6 5: a permanent error condition).
       *>
       *> DERIVATIONS (ORD of a byte is its value + 1):
       *>   R1  X"C142": 0xC1 = 1100 0001 -> GB = 1, filler 1000001; "B".   Copied through the group: ORD 194, 67.

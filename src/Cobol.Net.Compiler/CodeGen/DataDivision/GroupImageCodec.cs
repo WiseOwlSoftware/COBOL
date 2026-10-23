@@ -1170,7 +1170,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // depend on where in a byte it begins (kb/Work PB3167) has stride = width, and keeps the plain concatenation.
         // ⛔ THAT FILLER IS STORED (§8.5.1.6.3 "implicitly described as a filler elementary bit data item", kb/Work PB3564): the
         // table's TablePad field holds the positions between the occurrences, so a group move that wrote them is read back.
-        return BitLayout.StrideBits(m) == BitLayout.WidthBits(m)
+        return !BitLayout.HasTablePad(m)
             ? $"string.Concat({occurrences})"
             : RuntimeApi.BitsStrided(occurrences, $"{BitLayout.StrideBits(m)}",
                 (BitLayout.TablePadOf(m) ?? throw new InvalidOperationException(
