@@ -109,6 +109,17 @@ public static class AcceptSource
         return sb.Length >= width ? sb.ToString(0, width) : sb.ToString().PadRight(width);
     }
 
+    /// <summary>The Format 1 device transfer into a FIXED-POINT numeric receiver under the DECIMAL device form
+    /// (<c>--numeric-display decimal</c>, the default; kb/Work PB3513): ISO §14.9.1.4 GR1's implementor-defined conversion
+    /// is <see cref="CobolNum.ParseDeviceDecimal"/>, the inverse of DISPLAY's. The transfer is the receiver's own
+    /// <paramref name="size"/> characters when the item is stored as characters (GR3 / GR4 — a DISPLAY or NATIONAL item,
+    /// its digit positions plus a SIGN SEPARATE position, so the leftmost <paramref name="size"/> characters of a longer
+    /// record are converted and the rest ignored), and ONE whole record for a binary or packed item (GR2 — it has no
+    /// character positions to size a window by, and a decimal point or a sign would be cut off by one sized to its
+    /// digits). Returns the item's unscaled value.</summary>
+    public static Int128 DeviceNumeric(in NumProfile receiver, int size, bool commaMode) =>
+        CobolNum.ParseDeviceDecimal(Device(receiver.ByteForm == NumericByteForm.Zoned ? size : RecordSize), receiver, commaMode);
+
     /// <summary>The Format 1 device transfer into a FLOATING-POINT receiver (COMP-1 / COMP-2 / FLOAT-*) — the
     /// ISO §14.9.1.4 GR1 conversion ("Any conversion of data required between the device and the data item
     /// referenced by identifier-1 is defined by the implementor"), documented as CONFORMANCE.md §7 DOC-A.1-1

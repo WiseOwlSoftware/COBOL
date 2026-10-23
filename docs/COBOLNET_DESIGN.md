@@ -762,7 +762,9 @@ fixed-point numeric item is ISO §14.9.11.4 GR1's implementor-defined conversion
 BINARY-CAPACITY item's container digits — and `digits` is the image of this section. ONE composition
 (`CobolNum.DisplayDecimal`, `CobolNum.DeviceDecimal.cs`) serves the native carriers and the character image;
 `OperandText.AsDeviceString` is the one entry the DISPLAY emitter asks (every other character use of a numeric item,
-MOVE's included, keeps the digit image, §14.9.25.4 GR6), and `NumericDisplayFormDriftTests` holds the reach. The
+MOVE's included, keeps the digit image, §14.9.25.4 GR6), and `NumericDisplayFormDriftTests` holds the reach. ACCEPT of a
+numeric item reads the same form back (`CobolNum.ParseDeviceDecimal`, through `AcceptSource.DeviceNumeric`; kb/Work
+PB3513, docs/CONFORMANCE.md DOC-A.1-1): under `digits` it keeps the digit window of this section. The
 survey table and the divergences are `docs/CONFORMANCE.md` item 56.
 **`CobolNum.FormatDisplaySigned`/`ParseDisplay` (encode+decode incl. overpunch + separate sign) must land before §4
 Tier-B/C numeric-view accessors are exact** — the current `FormatDisplay` returns magnitude.

@@ -16,9 +16,42 @@ namespace CobolNet.Tests.Unit;
 /// against a file it never shared, and a keyed one killed the run unit in the shared store table.
 /// <see cref="CobolFile.ResolveHostPath"/> now makes the path absolute and <see cref="HostFile.PhysicalFileComparer"/>
 /// carries the case rule; the structural half keeps every table keyed on the physical file on that comparer.
+/// <para>A path names a physical file only at the instant it is asked (kb/Work PB3533): a file removed or renamed away and
+/// another made at its path outside the run unit is another physical file under the same path, which a host that unlinks a file
+/// under an open handle (Linux) permits. The host's own identity (<see cref="HostFile.IdentityOf"/>, <see cref="HostFile.IdentityAt"/>)
+/// tells them apart where a handle holds the first one: the run unit's store table and the state a CLOSE under commit control
+/// kept compare it beside the path.</para>
 /// </summary>
 public sealed class PhysicalFileIdentityDriftTests
 {
+    /// <summary>The host identity answers the question the path cannot (kb/Work PB3533): a handle and the path it was opened through
+    /// name one file, two files are two, a path that names nothing has no identity — and, where the host lets a file be taken
+    /// away under an open handle, the file made at the path since is another file than the one the handle still holds.</summary>
+    [Fact]
+    public void TheHostIdentity_TellsTheFileAHandleHoldsFromTheOneMadeAtItsPathSince()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"pb3533-identity-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string first = Path.Combine(dir, "first.dat"), second = Path.Combine(dir, "second.dat");
+            File.WriteAllText(first, "1");
+            File.WriteAllText(second, "2");
+            using var held = new FileStream(first, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            var identity = HostFile.IdentityOf(held.SafeFileHandle);
+            Assert.NotNull(identity);
+            Assert.Equal(identity, HostFile.IdentityAt(first));
+            Assert.NotEqual(identity, HostFile.IdentityAt(second));
+            Assert.Null(HostFile.IdentityAt(Path.Combine(dir, "absent.dat")));
+            File.Move(first, Path.Combine(dir, "moved.dat"));
+            File.WriteAllText(first, "made since");
+            Assert.NotEqual(identity, HostFile.IdentityAt(first));
+            Assert.Equal(identity, HostFile.IdentityOf(held.SafeFileHandle));
+            Assert.Equal(identity, HostFile.IdentityAt(Path.Combine(dir, "moved.dat")));
+        }
+        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+    }
+
     [Fact]
     public void TwoSpellingsOfOneFile_ResolveToOneHostPath()
     {
