@@ -49,4 +49,4 @@ run.py parallelism formula is stated once in the drift test and passed to run.py
 **Gate.** The first gate was RED on one case: `HostWitnessTraitDriftTests` refused the tree-sweep trait on
 `CiHarnessLogDriftTests`, which reads one file (`drift_rules.py` maps the workflow to it as a specific rule); the trait
 went. Re-gate, run 20261023T010839Z-e8c3f5: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, with
-every added case passed and the two-runner drift test passing in 1 min 21 s on a host its load line read 100 % busy.
+every added case passed and the two-runner drift test passing in 1 min 21 s while the leg's observation log read the host 96 to 99 % busy.
