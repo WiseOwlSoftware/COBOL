@@ -665,6 +665,37 @@ public sealed class TransactionControlTests
         Assert.Equal("00", Read(r.Reg, "F2", org, 2, out _));   // MANUAL again: a READ without WITH LOCK locks nothing
     }
 
+    /// <summary>⛔ kb/Work PB3541's refused arm: a ROLLBACK the medium refuses still deactivates the retired clause
+    /// (§14.9.36.4 GR6 is not conditioned on GR3's success) and takes F out of commit control, but F's transaction, made
+    /// while the clause was active, stays OWED: the refusal is told ('30'), and the next ROLLBACK, which another element's
+    /// active clause keeps from being a CONTINUE (GR1), finishes it, because the registry finds the transaction by its open
+    /// id and not by the connector's commit-control flag.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_refused_rollback_that_deactivates_the_clause_leaves_the_files_transaction_owed(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        r.Declare("G");
+        object canceled = new(), live = new();
+        var gone = new Clause(r.Reg);
+        var kept = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        Assert.True(r.Activate(live, kept, "G"));
+        r.OpenIO("F");
+        Change(r);                                           // F's changes, made while its clause is active
+        r.Txn.Retire(canceled);
+        r.Refuse = (file, _, op) => file == "F" && op[0] == 'W' ? Refusal : null;
+        Assert.Equal("F", r.Txn.Rollback());
+        r.Refuse = null;
+        Assert.Equal("30", r.Reg.Status("F"));
+        Assert.False(r.Reg.IsCommitControlled("F"));         // GR6: the clause is deactivated all the same
+        Assert.NotEqual(0UL, r.Reg.TransactionOf("F"));      // ... and F's transaction is owed
+        Assert.Null(r.Txn.Rollback());                       // the next ROLLBACK finishes it
+        Assert.Equal(0UL, r.Reg.TransactionOf("F"));
+        Assert.Equal(Seeded(), r.Contents("F"));
+    }
+
     public static TheoryData<FileOrg, bool> OrgsByStatement()
     {
         var data = new TheoryData<FileOrg, bool>();
