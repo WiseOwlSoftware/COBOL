@@ -127,7 +127,11 @@ LEG1_ONLY = "LEG 1 ONLY (batched gating, PB2515)"
 #: Who runs the leg 2 a `leg1` gate leaves: the whole-population regression net (kb/Work PB3015, PB3022, §3.17.2).
 LEG2_OWNER = "CI's whole-population run"
 RUN_ROOT = Path("TestResults") / "build-local"
-RUN_DIR = re.compile(r"\d{8}T\d{6}Z-[0-9a-f]{6}")
+#: A run directory's name: its start, UTC to the MICROSECOND, then a nonce. Names sort in start order, which "the
+#: newest earlier run" (the plan's reds and timings, the reuse rule, the pruning) reads: to the second only, two gates
+#: of one second sorted by their random nonce, and the reuse rule answered from the OLDER run (its self-test, 2 runs
+#: in 3, PB3536 review finisher). A name of the second-only form (`…T%H%M%SZ-…`, before it) still matches.
+RUN_DIR = re.compile(r"\d{8}T\d{6}(?:\.\d{6})?Z-[0-9a-f]{6}")
 KEEP_RUNS = 5
 LOCK_NAME = "cobol-gate.lock"
 VERDICT_FILE = "verdict.json"
@@ -879,7 +883,7 @@ class Gate:
 
     def new_run(self) -> Path:
         self.run_root.mkdir(parents=True, exist_ok=True)
-        stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")   # RUN_DIR: names sort in start order
         run = self.run_root / f"{stamp}-{secrets.token_hex(3)}"
         run.mkdir()
         return run
@@ -1728,8 +1732,14 @@ def self_test() -> int:
         first, _ = regate(d)
         again, h2 = regate(d)
         third, h3 = regate(d)
-        # the record of the second gate: run names sort by the second they started, so read it by its own name
+        # the record of the second gate, read by its own name
         rec2 = read_record(d / "runs" / again.line.rsplit("(run ", 1)[1].split(")", 1)[0])
+        ordered = Gate(FakeHost(d, d / "gate.lock"), root / "names", say=sink.append)
+        made = [ordered.new_run().name for _ in range(20)]   # one second holds them all
+        arm("run names sort in START order, however many start in one second (the newest earlier run is the plan's, "
+            "the reuse rule's and the pruning's)",
+            [p.name for p in ordered._runs()] == made and all(RUN_DIR.fullmatch(n) for n in made)
+            and RUN_DIR.fullmatch("20261022T225440Z-2797b8") is not None, made)
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
