@@ -222,7 +222,7 @@ internal readonly record struct ReceiverContext(
     /// <para>
     /// The obvious repair — give the nested arm guard digits, as <c>NumericRenderer.Divide</c>'s nested arm
     /// does — is WRONG, and measurably so: a landing does not know how many multiplications sit above it, so a
-    /// guarded scale ACCUMULATES. At <c>DivGuardDigits</c>'s 14 a nested float operand would land at scale 23,
+    /// guarded scale ACCUMULATES. At <c>CobolNum.NestedQuotientGuardDigits</c>'s 14 a nested float operand would land at scale 23,
     /// and <c>FUNCTION SQRT(10) * FUNCTION SQRT(10)</c> would multiply two scale-23 operands into a scale-46
     /// product — past the <see cref="IntermediateDigits"/> carrier, where the unchecked no-phrase store WRAPS.
     /// <c>Divide</c> can afford a guard only because it adds the guard to its operands' PRECISION, never to an
