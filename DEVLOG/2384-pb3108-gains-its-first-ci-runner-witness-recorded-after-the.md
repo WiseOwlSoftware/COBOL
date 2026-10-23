@@ -1,0 +1,4 @@
+## Entry 2384 — 2026-10-22 19:19 PDT — PB3108 gains its first CI-runner witness, recorded after the fix landed
+
+PR #400 (fix-pb3528-split-deadlock) left the merge queue on one red: ConformanceSuiteRunnerDriftTests.BothRunners_GiveEverySuiteTestTheSameVerdict on the Windows conformance rest shard of run 39867759611, where the observed run.py process timed out at 120 s twice. The branch changes only the wave planner and cannot reach run.py. The next merge group, built on the same head, went green, and the local Linux gate had passed the same test in 3 m 43 s. PB3108's fix landed in PR #413 after this witness was found; the note now records the witness, the finisher's attribution and the evidence that no local leg was missing. One point stays open: the CI job does not upload the observation log, so a CI non-observation cannot be told apart from a hang after the fact.
+
