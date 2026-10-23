@@ -992,13 +992,42 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   operand; INITIALIZE — a national group is initialized as a national item? NO: §14.9.19 walks elementary
   items regardless — structural; CORRESPONDING — structural).
 - **Storage is unchanged.** A national group's record image is the concatenation of its national subordinates
-  (already what `AsImage()` yields); a bit group's image is the packed bit run `BitLayout` already lays out for a
-  USAGE-BIT-descendant group, minus rule 4's trailing filler (`ExtentBits(group, trailingFiller: !isBitGroup)`).
+  (already what `AsImage()` yields); a bit group's image is its `AsBits()` area PACKED (`CobolBits.Pack` over its
+  `ExtentBits`, and `FromImage` the inverse into `FromBits`) — one composition behind both faces, minus rule 4's trailing
+  filler (`ExtentBits(group, trailingFiller: !isBitGroup)`).
   The value a bit group presents as an OPERAND is its bit string (`PICTURE 1(m)`): `AsBits()` on the record
   struct is what the boolean MOVE / compare / INSPECT paths read; the packed image stays the file/REDEFINES form.
   ⛔ **`AsBits()` is a PLACEMENT, not a concatenation** (`GroupImageCodec.BitAreaOf`, kb/Work PB207): each member
-  sits at `BitLayout.StartBitWithin`, with §8.5.1.6.3's implicit-filler zeros between and after, for the group's
-  whole `ExtentBits`. Concatenating the subordinate bit strings — and taking their SUM as the width — is right
+  sits at `BitLayout.StartBitWithin`, with §8.5.1.6.3's implicit filler between and after, for the group's
+  whole `ExtentBits`. ⛔ **The implicit filler has STORAGE (kb/Work PB3564):** `BitLayout.FillersOf(owner)` is the one
+  list of the filler positions a group's struct holds — a `RunTail` after each run (the bits that reach the byte the next
+  item, or the end of the record, starts on) and a `TablePad` between the occurrences of an ALIGNED / strided table
+  (§13.18.1.4 GR2) — each a hidden string field `__bf<k>` that `PhysicalModel` declares (`Physical.FillerBits`), that
+  `GroupValueSlicer.SliceBitInit` initializes from a group VALUE area, and that `BitAreaOf` / `FromBits` (the bit
+  face), `PackedRunOf` / `EmitMemberFromImage` (the record image) and `BitCarrierOf` / `EmitRunMemberFromBits` (a
+  strided table, through `CobolBits.Strided` / `StridePads`) compose and distribute, so a group MOVE, READ or MOVE of
+  m positions is read back whole. Each entry is also the elementary boolean item §8.5.1.6.3 describes
+  (`BitFiller.Item`, in no `Children` list), which is how `INITIALIZE ... WITH FILLER` reaches it (§14.9.20.4 5) a) 2.:
+  the ordinary place cursor and implicit MOVE, ZEROES by default; a bare INITIALIZE leaves it). A REDEFINES class, an
+  EXTERNAL / BASED record and a LINKAGE area need no field: their shared string holds the bits, so the list holds none
+  of the positions of an owner such a class holds (WHERE a position is stored is the OWNER's fact: an owner outside a
+  class has a field for every position, including the tail of a run that holds the CANONICAL of a class, kb/Work PB3597)
+  and `BitLayout.WindowFillersOf(owner)` names them as `WindowFiller`s: a run's tail (one `BitFiller.GapItem`, an
+  elementary bit item with a `ClassBitOffset` in the class's backing) and the pad of a strided table (the FIRST gap's
+  item and the gap count: gap k is that item displaced by k occurrences of the table). `INITIALIZE ... WITH FILLER`
+  receives them in both lanes as the n - 1 elementary items a pad is, in ONE loop over the gaps (never one statement
+  per gap): through the class's `ViewCursor` (the table's own occurrence displacement) in a class, through the gap's
+  reference-modified place (`InitializeBinder.PadGapPlace`) over the record-struct lane's one stored pad string, so ZEROES
+  or a REPLACING BOOLEAN sender reaches each gap as its own item. A strongly-typed group that crosses as a leaf vector
+  (`OoClassTable.LeafCarried`) carries its fillers AFTER its members, one string of boolean positions per entry of
+  `FillersOf` (`RecordStructEmitter.EmitLeafMethods`) or of `WindowFillersOf` (`PlaceRenderer.CellLeaves`, a pad's gaps
+  back to back), which enumerate the same positions in the same order (kb/Work PB3598). A run holding an OCCURS DEPENDING table has its
+  tail measured at the table's MAXIMUM count (the stored field holds the positions past the maximum extent, which no
+  occurrence owns; at a smaller count the filler that ends the current extent's last character lies in the first unused
+  occurrence's storage and is that occurrence's bits as well: an ordinary group's receiving store takes the character whole
+  from the sender, a variable-length group's `OdoTail.KeepUnused` keeps the unused occurrence's bits, an open question,
+  kb/Work PB3598). Not stored yet: a dynamic-capacity bit table's element padding, and the in-range part of an ODO run's
+  tail for INITIALIZE ... WITH FILLER. Concatenating the subordinate bit strings — and taking their SUM as the width — is right
   only while every member is "immediately following … an item of the same level"; a member whose LEVEL NUMBER
   differs starts at the next byte, and `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2). 03 B2 PIC 1(2).` measured
   `DISPLAY BG` = four positions against `FUNCTION LENGTH(BG)` = ten, the two reading the same group through

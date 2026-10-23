@@ -76,7 +76,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// PB244): the item whose slice of the one-way transfer image <c>GroupImageCodec.AsImageOf</c> renders — the
     /// pointer's storage image (<c>PointerImage</c>, DOC-A.1-216; kb/Work PB1071) when
     /// <see cref="SlotWindow.CarriesPointerImage"/>, else the reserved placeholder positions. Null on every other field.</param>
-    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, DataItem? SlotLeaf = null);
+    /// <param name="FillerBits">⛔ Non-zero ONLY on a STORED IMPLICIT FILLER (ISO §8.5.1.6.3, kb/Work PB3564): the hidden string
+    /// field of boolean positions that holds <c>BitLayout.FillersOf</c>'s entry — the bits after a run's last member, or
+    /// between a strided table's occurrences — whose value is data of the owner group (a group move writes it, the next
+    /// read gives it back). It is a FIELD and no part of the image: <see cref="Width"/> is 0 and the run leader's packed
+    /// slice (<c>GroupImageCodec.AsImageOf</c>) is what carries its positions; every walk that is one-to-one with the
+    /// group's MEMBERS (a leaf vector) skips it. Initialized to zero positions, §13.18.63's boolean initial state.</param>
+    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, DataItem? SlotLeaf = null, int FillerBits = 0);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
     /// <para>⚠ <paramref name="subs"/> is the OCCURRENCE CONTEXT (see <see cref="ValueInitializer.FieldInit"/>) and
@@ -142,6 +148,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
         // the same answer and used to have none (kb/Work PB584).
         var siblings = items as IList<DataItem> ?? items.ToList();
         var runs = BitLayout.RunsOf(siblings);
+        // The owner's stored implicit filler (§8.5.1.6.3, kb/Work PB3564): the root forest has no owner and no filler.
+        var fillers = !ReferenceEquals(runs, BitRunMap.Empty) && siblings[0].Parent is { } owner ? BitLayout.FillersOf(owner) : [];
 
         foreach (var c in siblings)
         {
@@ -166,6 +174,9 @@ internal sealed class PhysicalModel(EmitContext ctx)
                         var run = runs.RunLedBy(c);
                         yield return new Physical(cls.BackingCsName, "string", run is null ? 0 : BitLayout.RunCharacters(run), false,
                             backingInit, $"REDEFINES backing for {c.CobolName}", 0, null, run);
+                        // The canonical may LEAD a run whose tail follows its bits in THIS group's layout (kb/Work PB3597).
+                        foreach (var filler in FillerFieldsOf(fillers, c, c.CobolName ?? "FILLER"))
+                            yield return filler;
                     }
                     else
                         yield return new Physical(cls.BackingCsName, "string", cls.Width, false, backingInit, $"REDEFINES backing for {c.CobolName}");
@@ -217,6 +228,11 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
                 yield return new Physical(c.CsName, c.FieldType, run is null ? 0 : BitLayout.RunCharacters(run),
                     c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, null, run);
+                // ⛔ THE IMPLICIT FILLER THIS MEMBER OPENS OR PADS HAS A FIELD OF ITS OWN (§8.5.1.6.3, kb/Work PB3564) — see
+                // Physical.FillerBits: the positions after the run's last member (asked of its LEADER) and the ones
+                // between a strided table's occurrences (asked of the table).
+                foreach (var filler in FillerFieldsOf(fillers, c, comment))
+                    yield return filler;
                 continue;
             }
             // A class pointer/object leaf (kb/Work PB244): its slice of the one-way transfer image is its pointer image
@@ -225,6 +241,20 @@ internal sealed class PhysicalModel(EmitContext ctx)
             yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, numLeaf, null, natLeaf,
                 SlotWindow.CarriedBySlot(c) ? c : null);
         }
+    }
+
+    /// <summary>The hidden string fields of the stored implicit fillers whose subject is <paramref name="subject"/> (the run it
+    /// leads, the table it is) — see <see cref="Physical.FillerBits"/>.</summary>
+    private static IEnumerable<Physical> FillerFieldsOf(IReadOnlyList<BitFiller> fillers, DataItem subject, string comment)
+    {
+        foreach (var filler in fillers)
+            if (ReferenceEquals(filler.Subject, subject))
+                yield return new Physical(filler.Field, "string", 0, false,
+                    // The boolean initial state, as text proportional to the DESCRIPTION: a pad run of a
+                    // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
+                    filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))
+                        : RuntimeApi.StrRepeat(EmitText.CsLiteral("0"), $"{filler.Bits}"),
+                    $"implicit filler bits after {comment} (§8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
     }
 
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical

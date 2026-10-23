@@ -206,7 +206,12 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// (<c>CobolDynTable.Recreated</c>) and never shares a table, an array or an element with the sender.</para></summary>
     private void EmitLeafMethods(DataItem item, CodeWriter w)
     {
-        var fs = phys.PhysicalChildrenOf(item);
+        // ⛔ A STORED IMPLICIT FILLER IS NO MEMBER (Physical.FillerBits, kb/Work PB3564) but it IS DATA OF THE GROUP (§8.5.1.6.3:
+        // "implicitly described as a filler elementary bit data item"), so it rides the vector AFTER the members, one string of
+        // boolean positions per entry of BitLayout.FillersOf, in that list's order (kb/Work PB3598): the cell-backed twin builds the
+        // same entries from BitLayout.WindowFillersOf, which enumerates the same positions (PlaceRenderer.CellLeaves).
+        var fillers = BitLayout.FillersOf(item);
+        var fs = phys.PhysicalChildrenOf(item).Where(f => f.FillerBits == 0).ToList();
         // A strongly-typed group holds no REDEFINES subject (§13.18.44.3 SR14), so its physical fields are its
         // subordinate groups and elementary items one for one (PlaceRenderer.LeafFieldsOf walks the same members).
         var members = item.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
@@ -236,11 +241,12 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                     (true, false) => $"__s.{f.Name} = __s.{f.Name}.WithLeaves((object?[]){v}!);",
                     (true, true) => FixedGroupTableIn(f, v),
                 };
-        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])))}];   // kb/Work PB1116");
+        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])).Concat(fillers.Select(f => f.Field)))}];   // kb/Work PB1116");
         using (w.Block($"public readonly {item.StructName} WithLeaves(object?[] __l)"))
         {
             w.Line("var __s = this;");
             for (int i = 0; i < fs.Count; i++) w.Line(In(fs[i], members[i], $"__l[{i}]"));
+            for (int j = 0; j < fillers.Count; j++) w.Line($"__s.{fillers[j].Field} = (string)__l[{fs.Count + j}]!;");
             w.Line("return __s;");
         }
     }
