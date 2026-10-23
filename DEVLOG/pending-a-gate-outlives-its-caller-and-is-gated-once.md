@@ -45,4 +45,12 @@ the first gate the new driver ran DETACHED. Re-gated at once on the same tree, i
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree 42951658c89c at head
 222e9d07403c was gated in run 20261023T002325Z-aa7b26 and has not changed since, so nothing ran …`.
 
+**A red that passed alone.** The re-gate after the docs commit went RED in its audits: `test_dispatch_guard.py`'s
+"unchecked rendered spec" case expected a BLOCK and got a PASS, and it was green when run alone. The host was
+loaded (one audit took 348 s), so the hook's 60 s wait for `check_practices.py` expired, and the hook then PASSED
+the dispatch it exists to refuse. `readonly_repo.py` failed open the same way when `git rev-parse` outran its 15 s.
+Both hooks now REFUSE on an expired wait, which wedges nothing because the call is re-issued. Each wait is a hang
+guard their self-tests lift, so the check's own verdict decides every case, and each self-test plants a 1 us wait
+to see the refusal.
+
 Rows: none (process-only, `closes_rows: []` with its reason).
