@@ -1370,12 +1370,17 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     for g in groups:
         for b in g.continues:
             finisher_of.setdefault(b, g)
+    # A meeting may be ONE-SIDED (branch review R1-1): the earlier group meets the later finisher's branch, but the later
+    # finisher never meets the earlier group's. The earlier group then goes ahead past a finisher not yet placed, and
+    # that finisher must still follow it, so the exemption records the debt here and the finisher pays it when placed.
+    must_follow: dict[int, list[Group]] = {}  # id(a finisher not yet placed) -> the groups it must follow
     for g in groups:
         # a finisher's set includes what the branches it continues already change (their actual diff, read once by
         # inflight_file_sets): that much of its work is known whatever its notes declare
         if carried := {f for x in (busy or {}).values() if x.branch and x.branch in g.continues for f in x.files}:
             g.files = sorted(set(g.files) | carried)
         links = [last_on_file[g.file]] if g.file and g.file in last_on_file else []
+        links += [x for x in must_follow.pop(id(g), []) if id(x) in chain_of and x not in links]   # R1-1, above
         areas = subsystems(g.notes, notes)
         mine = {f.replace(chr(92), "/") for f in g.files}
         unpart = [x for x in placed if not (mine and x.files) and collision(mine, areas, set(x.files), areas_of[id(x)])]
@@ -1389,6 +1394,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             # a branch another group of this wave finishes: follow that group when it is placed (PB3528, above)
             planned = {o: finisher_of[x.branch] for o, x in met.items() if x.branch and x.branch in finisher_of}
             links += [f for f in planned.values() if id(f) in chain_of and f not in links]
+            for f in planned.values():
+                if id(f) not in chain_of:      # not placed yet: it follows this group (a one-sided meeting, R1-1)
+                    must_follow.setdefault(id(f), []).append(g)
             met = {o: x for o, x in met.items() if o not in planned}
             # a meeting the partition could not check by file (an UNKNOWN set) waits even for FINISHED work: a
             # continuation would merge a branch the group may share nothing with (collision, kb/Work PB3263)

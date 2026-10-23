@@ -341,7 +341,7 @@ public sealed class ProgramTable
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;
         n.CalledSinceCancel = true;   // §14.9.5 GR7 — the main activation counts as "called in this run unit"
-        _owner.Modules.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
+        _owner.Modules.PushMain(n.Name, n.Recursive);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
         // The §14.6.13.1.4 #3 selector for a NONFATAL condition raised at a RUNTIME site is the ACTIVATION's
         // (kb/Work PB367b) — same scope, same boundary, as the ModuleStack frame and the §14.9.28.4 PERFORM
         // depth above it. The main program's activator is the run-unit boundary, so the prior value is null.
@@ -576,7 +576,9 @@ public sealed class ProgramTable
 
         n.Active++;
         n.CalledSinceCancel = true;   // §14.9.5 GR7 — called in this run unit (cleared again by CANCEL)
-        _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null);   // §15.65.4 r7/r8 frame
+        // §15.65.4 r7/r8 frame; a RECURSIVE program or a function is a recursive runtime element (§8.6.6: "Functions and
+        // methods are always recursive"), which the frame records for §9.1.18.7's "under the control of" (ModuleStack.AnyRecursive).
+        _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null, n.Recursive || n.IsFunction);
         // Latch the activating half (§14.8.4.1 / §14.9.4.4 GR3e) as the activated element's ACTIVATOR mask for its
         // ExternalStore.Describe gate; restored on return, so a nested activation never sees its activator's.
         var exc = excState;
@@ -837,17 +839,6 @@ public sealed class ProgramTable
         }
         CallProgram(target.Name!, callerPath, args, returning, notFoundEc: "EC-FUNCTION-NOT-FOUND",
             siteArgMismatchChecking: siteArgMismatchChecking);
-    }
-
-    /// <summary>Whether a RECURSIVE runtime element is active: a program carrying the RECURSIVE attribute, or a function
-    /// (§8.6.6: "Functions and methods are always recursive"). Whatever runs while one is active runs under the control
-    /// of a recursive runtime element, which §9.1.18.7, §12.4.6.3.4 GR3, §14.9.7.4 GR2 and §14.9.36.4 GR2 forbid for
-    /// commit and rollback (kb/Work PB3338).</summary>
-    internal bool AnyRecursiveActive()
-    {
-        foreach (var n in _order)
-            if (n.Active > 0 && (n.Recursive || n.IsFunction)) return true;
-        return false;
     }
 
     /// <summary>
