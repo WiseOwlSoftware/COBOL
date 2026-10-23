@@ -25,10 +25,6 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
 {
     private ApplyCommitModel? Clause => ctx.Data.ApplyCommit;
 
-    /// <summary>The keyed files the clause puts under commit control. A SEQUENTIAL file in the clause is refused
-    /// (COBOLNET1709); under <c>--permissive</c> the refusal is a warning and the declined operand is simply absent.</summary>
-    private static IEnumerable<FileModel> KeyedFiles(ApplyCommitModel clause) => clause.Files.Where(f => !f.IsSequential);
-
     /// <summary>The program-class members of an element with an APPLY COMMIT clause: the per-instance activation flag,
     /// one image field per item, and the three methods the run unit calls back.</summary>
     public void EmitMembers(CodeWriter w)
@@ -49,7 +45,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         // it (DESIGN-runtime-library.md 2.2.1.10, "What the program is told"): true when this element stored it.
         using (w.Block("private bool __CommitStatus(string __file)"))
         {
-            foreach (var file in KeyedFiles(clause))
+            foreach (var file in clause.CommitControlledFiles)
                 using (w.Block($"if (__file == {FileKeyExpr(file)})"))
                 {
                     seqIo.EmitStoreFileStatus(file);
@@ -68,7 +64,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         if (Clause is not { } clause) return;
         using (w.Block("if (!__applyCommitActive)"))
         {
-            string files = "new string[] { " + string.Join(", ", KeyedFiles(clause).Select(FileKeyExpr)) + " }";
+            string files = "new string[] { " + string.Join(", ", clause.CommitControlledFiles.Select(FileKeyExpr)) + " }";
             w.Line($"__applyCommitActive = {RuntimeApi.ActivateApplyCommit(files, "__CommitSave", "__CommitRestore", "__CommitStatus")};");
         }
     }
@@ -89,8 +85,10 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
     /// clause (§14.9.7.1). A file whose COMMIT or ROLLBACK the medium refuses is told as an input-output statement's
     /// fatal status would be (DESIGN-runtime-library.md 2.2.1.10; docs/CONFORMANCE.md §5, A.4.3): '30' in its I-O status
     /// and FILE STATUS item, EC-I-O-PERMANENT-ERROR through the file's exception processing — this element's USE
-    /// procedures for a file of its own clause, DOC-A.1-103's termination for another element's file without a FILE
-    /// STATUS item — and then §14.6.13.1.3 item 8's unconditional ROLLBACK, when checking did not end the run unit.</summary>
+    /// procedures for a file of its own clause (<see cref="BoundCommitRollback.Files"/>, which carry the statement's
+    /// (EC-I-O, file) checking), and for another element's file the condition under the checking a directive naming no
+    /// file enabled, else DOC-A.1-103's termination when no element gives it a FILE STATUS item — and then
+    /// §14.6.13.1.3 item 8's unconditional ROLLBACK, when checking did not end the run unit.</summary>
     public void EmitStatement(BoundCommitRollback n)
     {
         var w = ctx.Writer;
@@ -100,7 +98,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         using (w.Block($"if ({refused} is not null)"))
         {
             bool first = true;
-            foreach (var file in Clause is { } clause ? KeyedFiles(clause) : [])
+            foreach (var file in n.Files)
             {
                 using (w.Block($"{(first ? "" : "else ")}if ({refused} == {FileKeyExpr(file)})"))
                 {
@@ -109,10 +107,14 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
                 }
                 first = false;
             }
-            // Another element's file: its own element stored the status (TransactionControl.Refused).
+            // Another element's file: its own element stored the status (TransactionControl.Refused). The condition is
+            // raised in THIS element when a directive naming no file enabled it here (§7.3.25.4 GR6/GR8 scope a FILE
+            // phrase to this element's files); otherwise, or when no declarative qualified, DOC-A.1-103 decides.
             void Foreign()
             {
-                w.Line($"{RuntimeApi.TerminateOnRefusalWithoutStatusItem(refused, CsLiteral(verb))};");
+                string terminate = $"{RuntimeApi.TerminateOnRefusalWithoutStatusItem(refused, CsLiteral(verb))};";
+                if (seqIo.EmitForeignFileIoCheck(refused) is { } noHandler) w.Line($"if ({noHandler}) {terminate}");
+                else w.Line(terminate);
                 w.Line($"{RuntimeApi.RollbackOnFatal(refused)};   // ISO §14.6.13.1.3 item 8");
             }
             if (first) Foreign();

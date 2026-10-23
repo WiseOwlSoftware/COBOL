@@ -729,8 +729,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// statement in a RECURSIVE source element at bind (a function and a method are ALWAYS recursive, §8.6.6), and the
     /// IDENTITY node lets the VersionConformancePass enforce SR2's SORT/MERGE procedure ban. The statement is the run
     /// unit's whatever element executes it (§14.9.7.1: "all files subject to active APPLY COMMIT clauses in the run
-    /// unit"), so the node carries nothing of this element's clause: the emitter calls the run unit's commit control,
-    /// which raises EC-FLOW-COMMIT / EC-FLOW-ROLLBACK for GR2's dynamic reach (§9.1.18.7).</summary>
+    /// unit"): the emitter calls the run unit's commit control, which raises EC-FLOW-COMMIT / EC-FLOW-ROLLBACK for GR2's
+    /// dynamic reach (§9.1.18.7). The node carries this element's files under commit control, the ones whose refusal the
+    /// statement tells through its own exception processing (<see cref="BoundCommitRollback.Files"/>).</summary>
     private BoundStatement BindCommitRollback(bool isCommit)
     {
         string verb = isCommit ? "COMMIT" : "ROLLBACK";
@@ -741,6 +742,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
                 + "method is always recursive, §8.6.6)");
         }
-        return new BoundCommitRollback(isCommit);
+        return new BoundCommitRollback(isCommit, [.. Ctx.Data.ApplyCommit?.CommitControlledFiles ?? []]);
     }
 }
