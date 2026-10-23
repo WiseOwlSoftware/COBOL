@@ -159,6 +159,13 @@ public sealed class TransactionControlTests
 
     private static string?[] Changed() => With(With(With(Seeded(), 5, null), 1, "X001"), 7, "A007");
 
+    /// <summary>§14.6.13.1.3 item 8 as the emitted hook drives it (<c>SequentialIoEmitter.Item8Applies</c>): the question
+    /// asked at the raise, under the statement's checking for the raised condition, and the ROLLBACK when it is due.</summary>
+    private static void Item8(Run r, string name, bool checkingEnabled = false)
+    {
+        if (r.Txn.RollbackDueOnFatal(name, checkingEnabled)) r.Txn.RollbackOnFatal();
+    }
+
     // ── The data items' image (§14.9.7.4 GR5, §14.9.36.4 GR3) ─────────────────────────────────────────────────────
 
     [Theory]
@@ -266,7 +273,7 @@ public sealed class TransactionControlTests
             Assert.Equal("30", r.Reg.Status("F"));
             Assert.Equal(statusItem, r.Txn.HasStatusItem("F"));
             Assert.Equal(statusItem ? "30" : null, clause.StatusItems.GetValueOrDefault("F"));
-            r.Txn.RollbackOnFatal("F");                      // §14.6.13.1.3 item 8
+            Item8(r, "F");                                   // §14.6.13.1.3 item 8
             Assert.Equal("INITIAL", clause.Item);            // the refused COMMIT saved nothing
             Assert.Equal(Seeded(), r.Contents());
         }
@@ -281,6 +288,29 @@ public sealed class TransactionControlTests
             data.Add(org, false);
         }
         return data;
+    }
+
+    /// <summary>The controls §14.9.36.4 GR2 forbids a ROLLBACK under, as the run unit records each one.</summary>
+    public enum Item8Control { InputProcedure, OutputProcedure, RecursiveElement }
+
+    public static TheoryData<FileOrg, Item8Control, bool> Item8ControlsWithAndWithoutChecking()
+    {
+        var data = new TheoryData<FileOrg, Item8Control, bool>();
+        foreach (var org in KeyedOrgs)
+            foreach (var control in Enum.GetValues<Item8Control>())
+            {
+                data.Add(org, control, true);
+                data.Add(org, control, false);
+            }
+        return data;
+    }
+
+    /// <summary>A registered runtime element whose activation runs <paramref name="body"/>.</summary>
+    private sealed class Body(Action body) : ICobolProgram
+    {
+        public void Call(CobolArg[] args, CobolArg? returning) => body();
+        public void Activate() { }
+        public void CloseFiles() { }
     }
 
     /// <summary>A COMMIT over two files is refused at the SECOND (files commit one at a time, in the order of the run
@@ -307,7 +337,7 @@ public sealed class TransactionControlTests
         Assert.Equal("00", r.Reg.Status("F"));
         Assert.Equal("30", r.Reg.Status("G"));
         Assert.Equal("30", clause.StatusItems["G"]);
-        r.Txn.RollbackOnFatal("G");
+        Item8(r, "G");
         Assert.Equal("INITIAL", clause.Item);
         Assert.Equal(Changed(), r.Contents("F"));
         Assert.Equal(Seeded(), r.Contents("G"));
@@ -358,12 +388,12 @@ public sealed class TransactionControlTests
         r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
         Assert.Equal("30", r.Write(9, "A009", "H"));
         r.Refuse = null;
-        r.Txn.RollbackOnFatal("H");                          // H is not under commit control: nothing happens
+        Item8(r, "H");                                       // H is not under commit control: nothing happens
         Assert.Equal("CHANGED", clause.Item);
         r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
         Assert.Equal("30", r.Write(9, "A009"));
         r.Refuse = null;
-        r.Txn.RollbackOnFatal("F");
+        Item8(r, "F");
         Assert.Equal("INITIAL", clause.Item);
         Assert.Equal(Seeded(), r.Contents());
     }
@@ -381,10 +411,98 @@ public sealed class TransactionControlTests
         Change(r);
         clause.Item = "CHANGED";
         Assert.Equal("22", r.Write(2, "A002"));
-        r.Txn.RollbackOnFatal("F");
+        Item8(r, "F");
         Assert.Equal("CHANGED", clause.Item);
         Assert.Null(r.Txn.Commit());
         Assert.Equal(Changed(), r.Contents());
+    }
+
+    /// <summary>kb/Work PB3543: item 8 opens <i>"If checking for the exception condition is not enabled"</i>; with checking
+    /// enabled items 4-7 decide (a RESUME continues, item 5 NOTE 2, with no ROLLBACK). A refused WRITE ('30', fatal) under
+    /// enabled checking is therefore not due, and the transaction stands for the program's own ROLLBACK.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void Item_8_is_not_due_when_checking_for_the_condition_is_enabled(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));
+        r.Refuse = null;
+        Assert.False(r.Txn.RollbackDueOnFatal("F", checkingEnabled: true));
+        Assert.True(r.Txn.RollbackDueOnFatal("F", checkingEnabled: false));   // the same status, checking off: due
+        Item8(r, "F", checkingEnabled: true);
+        Assert.Equal("CHANGED", clause.Item);
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal("INITIAL", clause.Item);
+        Assert.Equal(Seeded(), r.Contents());
+    }
+
+    /// <summary>kb/Work PB3544: item 8's ROLLBACK is <i>"a ROLLBACK statement"</i>, so §14.9.36.4 GR2 holds for it: <i>"If
+    /// this statement is attempted to be executed under the control of a recursive runtime element or a file SORT or MERGE
+    /// statement, then the exception condition EC-FLOW-ROLLBACK is set to exist."</i> A fatal status on a file under commit
+    /// control under each control GR2 names raises EC-FLOW-ROLLBACK with checking on and, with it off, rolls nothing
+    /// back; the transaction stands for the program's ROLLBACK once the control has ended. The controls are a SORT's input
+    /// procedure, an output procedure (the run unit records the procedure's phase, which a SORT's and a MERGE's output
+    /// procedure share; the MERGE end to end is the golden <c>pb3544_item8_rollback_in_merge_output_procedure_ec_flow</c>)
+    /// and a recursive runtime element in the call chain (end to end:
+    /// <c>pb3544_item8_rollback_under_recursive_element_unchecked</c>). Checking is set inside the control, because an
+    /// activation starts its element's checking from all off.</summary>
+    [Theory]
+    [MemberData(nameof(Item8ControlsWithAndWithoutChecking))]
+    public void Item_8_under_a_forbidding_control_raises_ec_flow_rollback_or_rolls_nothing_back(
+        FileOrg org, Item8Control control, bool checking)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));
+        r.Refuse = null;
+        Exception? raised = null;
+        bool ran = false;
+        void Item8UnderTheControl()
+        {
+            r.Unit.Exceptions.FlowRollbackChecking = checking;
+            Assert.True(r.Txn.RollbackDueOnFatal("F", checkingEnabled: false));
+            raised = Record.Exception(r.Txn.RollbackOnFatal);
+            Assert.Equal("CHANGED", clause.Item);            // nothing was rolled back under the control
+            ran = true;
+        }
+        switch (control)
+        {
+            case Item8Control.InputProcedure:
+            case Item8Control.OutputProcedure:
+                r.Unit.SortFiles.Get("SD1").Phase =
+                    control == Item8Control.InputProcedure ? ProcedurePhase.Input : ProcedurePhase.Output;
+                Item8UnderTheControl();
+                r.Unit.SortFiles.Remove("SD1");
+                break;
+            case Item8Control.RecursiveElement:
+                r.Unit.Programs.RegisterModule("Cobol.R.__CobolModule", RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi,
+                    () => r.Unit.Programs.Register("R", "R", null, initial: false, common: false, recursive: true,
+                        _ => new Body(Item8UnderTheControl)));
+                r.Unit.Programs.CallProgram("R", "", [], null, "EC-PROGRAM-NOT-FOUND");
+                break;
+        }
+        Assert.True(ran);
+        if (checking)
+            Assert.Equal("EC-FLOW-ROLLBACK", Assert.IsType<CobolFatalException>(raised).EcName);
+        else
+            Assert.Null(raised);
+        Assert.Equal("CHANGED", clause.Item);
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal("INITIAL", clause.Item);
+        Assert.Equal(Seeded(), r.Contents());
     }
 
     // ── §9.1.18.7: EC-FLOW-COMMIT, EC-FLOW-ROLLBACK and EC-FLOW-APPLY-COMMIT under an active SORT or MERGE ──────────

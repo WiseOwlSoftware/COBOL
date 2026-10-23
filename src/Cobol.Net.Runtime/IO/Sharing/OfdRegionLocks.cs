@@ -28,9 +28,9 @@ namespace CobolNet.Runtime.IO;
 /// first <c>F_OFD_GETLK</c> says: <c>EINVAL</c> (a kernel before 3.15, or a host whose <c>fcntl</c> number 36 is
 /// something else), <c>ENOLCK</c>/<c>EOPNOTSUPP</c> (a filesystem without byte-range locks) and a missing
 /// <c>libc</c> (Windows, where <see cref="FileShare"/> is mandatory and per-access already) all answer
-/// <see cref="Unavailable"/>, and the connector then has exactly the file lock its <see cref="FileShare"/> gives.
+/// <see cref="RegionLockResult.Unavailable"/>, and the connector then has exactly the file lock its <see cref="FileShare"/> gives.
 /// The constants are the Linux x86-64/arm64 values and <c>struct flock</c> is the 64-bit layout; any other
-/// process shape is <see cref="Unavailable"/> without a call being made.</para>
+/// process shape is <see cref="RegionLockResult.Unavailable"/> without a call being made.</para>
 /// </summary>
 internal static class OfdRegionLocks
 {
@@ -62,6 +62,7 @@ internal static class OfdRegionLocks
     private const int EACCES = 13;
     private const int EAGAIN = 11;
     private const int EINTR = 4;
+    private const int ENOLCK = 37;
 
     [DllImport("libc", EntryPoint = "open", SetLastError = true)]
     private static extern int NativeOpen([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
@@ -124,17 +125,12 @@ internal static class OfdRegionLocks
     /// <summary>Hold a lock on the one byte at <paramref name="offset"/> through <paramref name="handle"/>'s
     /// description — EXCLUSIVE (incompatible with every other holder; the descriptor must be open for writing) or
     /// SHARED (compatible with every other shared holder, incompatible with an exclusive one). With
-    /// <paramref name="wait"/> the call blocks until the byte can be had (<c>F_OFD_SETLKW</c>, re-issued when a
-    /// signal interrupts it); without it a conflicting holder answers <see cref="RegionLockResult.Held"/> at once.</summary>
+    /// <paramref name="wait"/> the call blocks until the byte can be had (<c>F_OFD_SETLKW</c>); without it a conflicting
+    /// holder answers <see cref="RegionLockResult.Held"/> at once.</summary>
     internal static RegionLockResult Hold(SafeFileHandle handle, long offset, bool exclusive, bool wait)
     {
-        while (true)
-        {
-            var request = new Flock { Type = exclusive ? F_WRLCK : F_RDLCK, Whence = 0, Start = offset, Length = 1 };
-            var result = Classify(handle, wait ? F_OFD_SETLKW : F_OFD_SETLK, ref request, onSuccess: RegionLockResult.Ok,
-                out bool interrupted);
-            if (!interrupted) return result;
-        }
+        var request = new Flock { Type = exclusive ? F_WRLCK : F_RDLCK, Whence = 0, Start = offset, Length = 1 };
+        return Classify(handle, wait ? F_OFD_SETLKW : F_OFD_SETLK, ref request);
     }
 
     /// <summary>Does a description OTHER than <paramref name="handle"/>'s hold the byte at
@@ -143,7 +139,7 @@ internal static class OfdRegionLocks
     internal static RegionLockResult HeldByAnother(SafeFileHandle handle, long offset)
     {
         var request = new Flock { Type = F_WRLCK, Whence = 0, Start = offset, Length = 1 };
-        var result = Classify(handle, F_OFD_GETLK, ref request, onSuccess: RegionLockResult.Ok);
+        var result = Classify(handle, F_OFD_GETLK, ref request);
         return result == RegionLockResult.Ok && request.Type != F_UNLCK ? RegionLockResult.Held : result;
     }
 
@@ -156,25 +152,44 @@ internal static class OfdRegionLocks
     internal static void Release(SafeFileHandle handle, long offset, long length)
     {
         var request = new Flock { Type = F_UNLCK, Whence = 0, Start = offset, Length = length };
-        _ = Classify(handle, F_OFD_SETLK, ref request, onSuccess: RegionLockResult.Ok);
+        _ = Classify(handle, F_OFD_SETLK, ref request);
     }
 
-    private static RegionLockResult Classify(SafeFileHandle handle, int command, ref Flock request, RegionLockResult onSuccess) =>
-        Classify(handle, command, ref request, onSuccess, out _);
+    /// <summary>How many times an <c>ENOLCK</c> answer is asked in all before it stands (<see cref="Classify"/>).</summary>
+    private const int LockRecordAttempts = 4;
 
-    private static RegionLockResult Classify(SafeFileHandle handle, int command, ref Flock request, RegionLockResult onSuccess,
-        out bool interrupted)
+    /// <summary>⛔ THE ONE CALL OF <c>fcntl</c> AND THE ONE READING OF ITS ANSWER, for every command (kb/Work PB3549): Ok, a
+    /// conflict (<see cref="RegionLockResult.Held"/>), or a host that cannot carry the lock here
+    /// (<see cref="RegionLockResult.Unavailable"/>) — and never a TRANSIENT failure read as either of the last two, because a
+    /// caller reads Unavailable as "this host carries no such lock" and the dead-owner probe reads anything but Ok as an owner
+    /// it may not roll back (<c>KeyedStore.OwnerOf</c>). <c>EINTR</c> (a signal delivered during the call; the .NET runtime
+    /// itself signals threads to suspend them) is asked again for as long as it recurs, the POSIX idiom; <c>ENOLCK</c> (the
+    /// kernel could not allocate the lock record now, or a remote locking protocol failed) is asked again up to
+    /// <see cref="LockRecordAttempts"/> times in all and then stands as Unavailable, so a filesystem that never carries the
+    /// lock costs a few calls, never a wait. <paramref name="request"/> is put back as the caller made it before each new
+    /// attempt.</summary>
+    private static RegionLockResult Classify(SafeFileHandle handle, int command, ref Flock request)
     {
-        interrupted = false;
+        var asked = request;
+        for (int attempts = 1; ; attempts++, request = asked)
+        {
+            int errno = Fcntl(handle, command, ref request);
+            if (errno == 0) return RegionLockResult.Ok;
+            if (errno is EAGAIN or EACCES) return RegionLockResult.Held;   // F_OFD_SETLK's refusal: another description holds an incompatible lock
+            if (errno == EINTR) { attempts--; continue; }   // never counted: the call did not run to an answer
+            if (errno == ENOLCK && attempts < LockRecordAttempts) { Thread.Yield(); continue; }
+            return RegionLockResult.Unavailable;   // EINVAL (this kernel has no OFD locks), EOPNOTSUPP, ENOSYS, EBADF, a lasting ENOLCK — none of them is a conflict
+        }
+    }
+
+    /// <summary>One <c>fcntl</c> through <paramref name="handle"/>'s descriptor: 0, or the call's <c>errno</c>.</summary>
+    private static int Fcntl(SafeFileHandle handle, int command, ref Flock request)
+    {
         bool added = false;
         try
         {
             handle.DangerousAddRef(ref added);
-            if (NativeFcntl((int)handle.DangerousGetHandle(), command, ref request) >= 0) return onSuccess;
-            int errno = Marshal.GetLastPInvokeError();
-            if (errno is EAGAIN or EACCES) return RegionLockResult.Held;   // F_OFD_SETLK's refusal: another description holds an incompatible lock
-            if (errno == EINTR) { interrupted = true; return RegionLockResult.Unavailable; }   // a signal broke a waiting request
-            return RegionLockResult.Unavailable;   // EINVAL (this kernel has no OFD locks), ENOLCK, EOPNOTSUPP, ENOSYS, EBADF — none of them is a conflict
+            return NativeFcntl((int)handle.DangerousGetHandle(), command, ref request) >= 0 ? 0 : Marshal.GetLastPInvokeError();
         }
         finally { if (added) handle.DangerousRelease(); }
     }

@@ -104,9 +104,10 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         {
             if (!kept)
             {
-                // A superseded hold stays as it was: only the byte this request added is given back.
+                // A superseded hold stays as it was: only the byte this request added is given back — unlocked
+                // explicitly before a handle of this request's own is closed (kb/Work PB3549: never left to the close).
+                if (added >= 0) WindowsByteRangeLocks.Unlock(handle, added, 1);
                 if (previous is null) handle.Dispose();
-                else if (added >= 0) WindowsByteRangeLocks.Unlock(handle, added, 1);
             }
         }
     }
@@ -186,7 +187,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         return taken == RegionLockResult.Held || (taken == RegionLockResult.Unavailable && whenUnobservable);
     }
 
-    /// <summary>The published column: closing the handle releases every byte it holds. Idempotent. A superseding request
+    /// <summary>The published column: disposing it unlocks its byte and closes the handle. Idempotent. A superseding request
     /// moves it to its own column (<see cref="Move"/>); a hold with no handle publishes nothing (a re-OPEN under SHARING
     /// WITH NO OTHER, <see cref="GiveWay"/>).</summary>
     private sealed class Published(SafeFileHandle? handle, ExistingSharingColumn own, long publishedByte) : IPublishedColumn
@@ -209,8 +210,12 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             Handle is { IsClosed: false } held && OperatingSystem.IsWindows()
             && OthersHold(held, column, [(Own, Byte)], whenUnobservable: false);
 
+        /// <summary>Unlock the published byte, THEN close the handle (kb/Work PB3549): Windows documents that the time it
+        /// takes to unlock a closed handle's locks "depends upon available system resources", so a successor must not be
+        /// refused for a column already given back.</summary>
         public void Dispose()
         {
+            if (Handle is { IsClosed: false } held && OperatingSystem.IsWindows()) WindowsByteRangeLocks.Unlock(held, Byte, 1);
             Handle?.Dispose();
             Handle = null;
         }

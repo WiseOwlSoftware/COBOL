@@ -697,7 +697,22 @@ if another handle holds the byte — publish then test, as `RunUnitFileLock` doe
 lock EXCLUSIVELY (`RegionLocks.ExclusiveNeedsWritableHandle`): `LockFileEx` takes an exclusive lock through a
 read-only handle, and its locks are per handle, so a test through the handle that holds the byte shared meets its own
 hold and answers held with nobody else holding it; a lock file has no such limit and holds exclusively whatever the
-connector's access. The region map: `RegionBase` = 2^62; the five
+connector's access. ⛔ **AN ENDPOINT GIVES EVERY BYTE BACK EXPLICITLY, NEVER BY THE CLOSE OF ITS HANDLE (kb/Work PB3549).**
+Every host keeps the endpoint's own map of the bytes it holds (holds do not stack: a byte held at least as strongly already
+is held at once, and one release gives it back), and the endpoint's disposal unlocks each of them through the handle while
+the handle is still open; every owner of an endpoint (the keyed connector's CLOSE and abandoned OPEN, the sequential
+connector's, a kept handle's give-back, `KeptFile.GiveBack`) disposes it BEFORE it closes the handle. The close is no release a
+successor can rely on: a Linux open-file-description lock lives until every descriptor on the description is closed, and a
+`fork` in another thread (a `CALL "SYSTEM"`, any child process the host program starts) holds a copy of every descriptor
+until its `exec`; Windows documents that the time it takes to unlock a closed handle's locks *"depends upon available system
+resources"*. A transaction's liveness byte left to the close was read as a LIVE owner by the next writable OPEN, whose
+dead-owner step left the abandoned transaction standing (an intermittent red in a parallel Linux run; reproduced
+deterministically by a second handle on the same open file, `tests/_shared/DescriptionCopy.cs`). The Windows column holder
+(`HandleColumnLockHost`) unlocks its byte before it closes its handle for the same reason, and the OFD column host already
+did. The model is `scripts/models/kept_liveness_model.py` (a self-test every gate and CI runs): the give-back under every
+fork and exec interleaving, the probe's transient answers, a live owner never rolled back, and a watchdog of mutations (the
+disposal that unlocks nothing, the close before the disposal, an interrupted or transiently refused probe read as unavailable,
+an unknowable owner read as dead) each RED on the row it names. The region map: `RegionBase` = 2^62; the five
 Table 19 column bytes at +0..+4 (`RunUnitFileLock`); the store mutex at +0x100; the LOCK-PRESENCE byte at +0x101,
 held shared by every handle that holds at least one published record lock, so a statement asks that one byte
 (`PhysicalFileTable.AnotherRunUnitHoldsLocks`) before it pays for a record identity, a SHA-256 and a record byte; the
@@ -1819,7 +1834,12 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   — a record statement's or an OPEN's (R6 step 5), in any run unit, under the mutex, whether or not other run units hold the
   file open — when page 2's transactions root is not empty, the TRANSACTIONS tree is read, each transaction of ANOTHER run
   unit has its liveness byte probed (this run unit's own are alive by construction), and every transaction whose byte is
-  free is rolled back by the ROLLBACK statement above before the entering statement proceeds. *Finding R3-1: the round-2
+  free is rolled back by the ROLLBACK statement above before the entering statement proceeds. The probe has THREE answers,
+  read in one place (`KeyedStore.OwnerOf`, `OwnerLiveness`; kb/Work PB3549): free is DEAD, held is ALIVE, and a host that
+  cannot carry the lock is UNKNOWABLE, which the dead-owner step and the lock test read as alive (nothing is rolled back on a
+  guess). A transient host failure is never the third answer: the host asks again before it answers (`OfdRegionLocks.Classify`
+  repeats an interrupted call, `EINTR`, for as long as it recurs, and a refused lock record, `ENOLCK`, up to four calls in
+  all; the lock-file host's publication and observation are bounded the same way). *Finding R3-1: the round-2
   text ran the step only at the next writable OPEN and rested the rollback's safety on the transaction's locks, which a
   dead owner no longer holds; between the death and that OPEN a live writer not under commit control changed the dead
   transaction's records and took its freed unique values with no lock refusing it, and the later rollback restored
@@ -2028,8 +2048,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6). COMMIT and ROLLBACK
   are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
   describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
-  the element that describes it, and handed to that file's exception processing, whose last step is §14.6.13.1.3 item
-  8's ROLLBACK (`SequentialIoEmitter.EmitUseHook` for every statement on a keyed file of the clause). The statement's
+  the element that describes it, and handed to that file's exception processing. §14.6.13.1.3 item 8's ROLLBACK is ONE
+  rule (`SequentialIoEmitter.Item8Applies`, kb/Work PB3542-PB3544), which every hook arm consumes: it is asked at the
+  raise (`CobolFile.RollbackDueOnFatal`: checking for the raised condition not enabled, the status fatal, the file under
+  commit control; asked before the declarative, whose own CLOSE would replace the status) and run after the declarative
+  and before a RESUME transfers control or DOC-A.1-103 ends the run unit (`CobolFile.RollbackOnFatal`); never on a SORT
+  or MERGE implicit transfer (item 2) nor after an ON EXCEPTION phrase that processes the condition (item 1). It is the
+  ROLLBACK statement's general rules, so in a SORT input or output procedure it raises EC-FLOW-ROLLBACK (§14.9.36.4 GR2;
+  every input-output statement on a file under commit control declares the condition, `EcBinder.NodeKindRaises`); its
+  own refusal is not told to the program, and `TransactionControl.HasStatusItem` is a question that stores nothing (the
+  refusal recorded whether a FILE STATUS item was told). `Item8RollbackSiteDriftTests` pins the one site. The statement's
   node carries the files of its own element's clause under commit control (`BoundCommitRollback.Files`, read from
   `ApplyCommitModel.CommitControlledFiles`, the one statement of "a declined SEQUENTIAL operand is absent"), and they are
   its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through

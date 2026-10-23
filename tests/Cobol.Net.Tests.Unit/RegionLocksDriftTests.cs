@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -51,12 +52,16 @@ public sealed class RegionLocksDriftTests
         internal string File { get; }
 
         /// <summary>A second connector over the file: its own handle (open for write, as a store's is) and endpoint.</summary>
-        internal RegionLocks Endpoint(bool writable = true)
+        internal RegionLocks Endpoint(bool writable = true) => Endpoint(out _, writable);
+
+        /// <summary><see cref="Endpoint(bool)"/>, and the handle it is over (the Site closes it, after the endpoint).</summary>
+        internal RegionLocks Endpoint(out Microsoft.Win32.SafeHandles.SafeFileHandle handle, bool writable = true)
         {
             var stream = new FileStream(File, FileMode.Open, writable ? FileAccess.ReadWrite : FileAccess.Read, FileShare.ReadWrite);
             var regions = HostOf(_kind).Open(stream.SafeFileHandle, File, writable);
             _owned.Add(regions);
             _owned.Add(stream);
+            handle = stream.SafeFileHandle;
             return regions;
         }
 
@@ -110,26 +115,52 @@ public sealed class RegionLocksDriftTests
         Assert.Equal(RegionLockResult.Held, a.Hold(Byte1, exclusive: false, wait: false));   // exclusive refuses shared
     }
 
-    /// <summary>The CLOSE (or the loss of the handle) gives back everything the endpoint holds, and a successor is not
-    /// refused for a lock the program had already given up.</summary>
+    /// <summary>⛔ The CLOSE gives back everything the endpoint holds BY THE ENDPOINT'S DISPOSAL, on every host, and never
+    /// leaves it to the handle's close (kb/Work PB3549): a successor is not refused for a lock the program had already given
+    /// up, even while another copy of the handle lives — a <c>fork</c> in another thread holds one until its <c>exec</c>
+    /// (<see cref="DescriptionCopy"/>; the Site closes the handles themselves only after the assertions). A byte held twice
+    /// is held once (holds do not stack, so one disposal or one release gives it back on every host).</summary>
     [Theory]
     [MemberData(nameof(Hosts))]
     public void DisposingAnEndpointGivesBackEverythingItHolds(RegionHostKind kind)
     {
         using var site = new Site(kind);
-        var a = site.Endpoint();
+        var a = site.Endpoint(out var aHandle);
         var b = site.Endpoint();
+        using var forkCopy = kind == RegionHostKind.OfThisProcess ? DescriptionCopy.Of(aHandle) : null;
         Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: true, wait: false));
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: true, wait: false));   // held already: Ok, and not stacked
         Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: false, wait: false));
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: false, wait: false));
+        Assert.Equal(RegionLockResult.Held, b.HeldByAnother(Byte1));
         a.Dispose();
         a.Dispose();   // idempotent
-        // The handle-owned hosts give a lock back when the connector closes the handle, which the Site does last.
-        if (kind == RegionHostKind.LockFiles)
-        {
-            Assert.Equal(RegionLockResult.Ok, b.HeldByAnother(Byte1));
-            Assert.Equal(RegionLockResult.Ok, b.HeldByAnother(Byte2));
-            Assert.Equal(RegionLockResult.Ok, b.Hold(Byte1, exclusive: true, wait: false));
-        }
+        Assert.Equal(RegionLockResult.Ok, b.HeldByAnother(Byte1));
+        Assert.Equal(RegionLockResult.Ok, b.HeldByAnother(Byte2));
+        Assert.Equal(RegionLockResult.Ok, b.Hold(Byte1, exclusive: true, wait: false));
+        Assert.Equal(RegionLockResult.Unavailable, a.Hold(Byte2, exclusive: false, wait: false));   // a disposed endpoint holds nothing more
+    }
+
+    /// <summary>One release gives back a byte held twice, while another copy of the handle lives (kb/Work PB3549: the hold
+    /// map that the disposal unlocks is the one a release edits; a Windows lock taken twice through one handle would
+    /// otherwise stand after its release).</summary>
+    [Theory]
+    [MemberData(nameof(Hosts))]
+    public void OneReleaseGivesBackAByteHeldTwice(RegionHostKind kind)
+    {
+        using var site = new Site(kind);
+        var a = site.Endpoint(out var aHandle);
+        var b = site.Endpoint();
+        using var forkCopy = kind == RegionHostKind.OfThisProcess ? DescriptionCopy.Of(aHandle) : null;
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: false, wait: false));
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: false, wait: false));
+        a.Release(Byte2);
+        Assert.Equal(RegionLockResult.Ok, b.HeldByAnother(Byte2));
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: false, wait: false));
+        Assert.Equal(RegionLockResult.Ok, a.Hold(Byte2, exclusive: true, wait: false));   // shared -> exclusive
+        Assert.Equal(RegionLockResult.Held, b.Hold(Byte2, exclusive: false, wait: false));
+        a.Release(Byte2);
+        Assert.Equal(RegionLockResult.Ok, b.Hold(Byte2, exclusive: true, wait: false));
     }
 
     /// <summary>A waiting hold gets the byte when the holder gives it back (the store mutex, §14.7.9.3's statement
