@@ -778,8 +778,10 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     // ── The EC-I-O bridge (the per-statement hook variant; §9.1.13.1) ────────────────────────────────────────
 
     /// <summary>The enabled EC-I-O (name → mask bit) pairs of the current statement for <paramref name="file"/>,
-    /// or 0 when none (the caller then emits the plain F1 hook).</summary>
-    public int IoMaskFor(FileModel file)
+    /// or 0 when none (the caller then emits the plain F1 hook). A null <paramref name="file"/> asks for the pairs
+    /// declared with no file — enabled only by a directive that names no file (<c>TurnState.Fold</c>) — the checking of
+    /// a file this element does not describe (<c>SequentialIoEmitter.EmitForeignFileIoCheck</c>).</summary>
+    public int IoMaskFor(FileModel? file)
     {
         if (ecState.Info is null) return 0;
         int mask = 0;
@@ -793,7 +795,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <c>__IoCheckEc</c> answers §15.32.3 r1 PER EC-I-O name: the status→EC mapping picks the raised name at
     /// runtime, and one file's <c>EC-I-O-AT-END … WITH LOCATION</c> must not make its <c>EC-I-O-INVALID-KEY</c>
     /// raise record location information (kb/Work R06).</summary>
-    public int IoLocMaskFor(FileModel file)
+    public int IoLocMaskFor(FileModel? file)
     {
         if (ecState.Info is null) return 0;
         int mask = 0;

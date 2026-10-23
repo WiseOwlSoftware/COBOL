@@ -180,6 +180,9 @@ internal sealed partial class EcBinder
         BoundKeyedStart k => [k.File],
         BoundSort so => so.Using.Concat(so.Giving),
         BoundMerge mg => mg.Using.Concat(mg.Giving),
+        // A COMMIT or ROLLBACK the medium refuses raises EC-I-O-PERMANENT-ERROR for the refused file (docs/CONFORMANCE.md
+        // §5, A.4.3 (a)): this element's files under commit control (kb/Work PB3338, review finding w1154a R1-3).
+        BoundCommitRollback cr => cr.Files,
         _ => [],
     };
 
@@ -224,10 +227,12 @@ internal sealed partial class EcBinder
         // procedure / a RETURN in an input procedure is §14.9.40.4 GR10 / GR13, §14.9.24.4 GR8.
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
         // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
-        // EC-FLOW-ROLLBACK at the statement's entry (§14.9.7.4 GR2, §14.9.36.4 GR2); the refused file's EC-I-O condition
-        // is its own exception processing (the I-O hook), as for any input-output statement.
-        new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT"]),
-        new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK"]),
+        // EC-FLOW-ROLLBACK at the statement's entry (§14.9.7.4 GR2, §14.9.36.4 GR2). A refused file of this element's
+        // clause is an I-O file of the statement (IoFilesOf); a refused file of ANOTHER element's clause has no FileModel
+        // here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared with no file, and
+        // only a directive naming no file enables it (review finding w1154a R1-3).
+        new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
+        new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundReturn, ["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN", "EC-SORT-MERGE-ACTIVE"]),
         // The SORT / MERGE statements themselves (kb/Work PB1036). PRECISE: every raise is CobolSort's, at the point
         // the verb's rule names. A name the statement's shape cannot raise is not asked (a SORT with no USING releases

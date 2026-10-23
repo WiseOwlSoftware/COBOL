@@ -198,7 +198,10 @@ public sealed partial class DataBinder
         // SR9 — "the file status data items and data-items specified in the linage or record clauses of those file
         // descriptions are automatically subject to the APPLY COMMIT clause … and they shall only be specified in the
         // linkage, working-storage or local-storage sections, or in the case of the record clause also in the file section".
-        foreach (var file in clause.Files)
+        // Over the files the clause puts under commit control: a declined SEQUENTIAL operand (COBOLNET1709, a warning
+        // under --permissive) is absent from the clause, so its FILE STATUS, LINAGE and DEPENDING items are not saved by
+        // a COMMIT nor restored by a ROLLBACK that leaves the file itself alone (review finding w1154a R1-4).
+        foreach (var file in clause.CommitControlledFiles)
         {
             using var _ = Edition.At(clause.At);
             var implicitItems = new List<(DataItem Item, string What, bool FileSectionAllowed)>();

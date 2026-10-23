@@ -93,17 +93,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             }
             if (ec.IoMaskFor(file) is not 0 and var mask)
             {
-                int id = ctx.Names.NextEc();
-                // The literals travel whenever ANY pair for this file carries WITH LOCATION; __locMask decides
-                // PER RAISED NAME inside __IoCheckEc (§15.32.3 r1 per-condition — kb/Work R06).
-                int locMask = ec.IoLocMaskFor(file);
-                var (stmt, loc) = locMask != 0
-                    ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
-                    : ("null", "null");
-                w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
-                    + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc}"
-                    + $"{(verbDisposes ? ", __verbRule: true" : "")});");
-                w.Line(dispatch.ResumeTransfer($"__ior{id}"));
+                int id = EmitIoCheckEc(FileKeyExpr(file), file, mask, atEndHandled, invalidKeyHandled, onExceptionHandled, verbDisposes);
                 NotNormal(id);
                 Completed($"__ior{id} == DispatchResult.Normal || __ior{id} == DispatchResult.HandledNonfatal");
                 // Checking enabled for THIS status's condition has already terminated (or dispatched) inside __IoCheckEc;
@@ -168,6 +158,39 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 return null;
             }
         }
+    }
+
+    /// <summary>The EC-I-O raise of one statement on one file: the <c>__IoCheckEc</c> call under the statement's mask for
+    /// the file and the transfer a declarative's RESUME asks for. Returns the call's id (<c>__ior</c>id). The literals
+    /// travel whenever ANY pair for the file carries WITH LOCATION; <c>__locMask</c> decides PER RAISED NAME inside
+    /// <c>__IoCheckEc</c> (§15.32.3 r1 per-condition — kb/Work R06).</summary>
+    private int EmitIoCheckEc(string fileKey, FileModel? file, int mask, bool atEnd, bool invalidKey, bool onException,
+        bool verbDisposes)
+    {
+        var w = ctx.Writer;
+        int id = ctx.Names.NextEc();
+        int locMask = ec.IoLocMaskFor(file);
+        var (stmt, loc) = locMask != 0
+            ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
+            : ("null", "null");
+        w.Line($"int __ior{id} = __IoCheckEc({fileKey}, {(atEnd ? "true" : "false")}, "
+            + $"{(invalidKey ? "true" : "false")}, {(onException ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc}"
+            + $"{(verbDisposes ? ", __verbRule: true" : "")});");
+        w.Line(dispatch.ResumeTransfer($"__ior{id}"));
+        return id;
+    }
+
+    /// <summary>⛔ A FATAL I-O STATUS ON A FILE THIS ELEMENT DOES NOT DESCRIBE (kb/Work PB3338, review finding w1154a
+    /// R1-3): the file of another element's APPLY COMMIT clause whose COMMIT or ROLLBACK the medium refused, named at run
+    /// time by <paramref name="fileKeyExpr"/>. Its EC-I-O condition is raised through <c>__IoCheckEc</c> when checking for
+    /// it is enabled at the statement by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no file;
+    /// §7.3.25.4 GR6/GR8 scope a FILE phrase to the files it names, all of this element). Returns the C# test that no
+    /// declarative qualified, or null — nothing emitted — when checking is not enabled.</summary>
+    public string? EmitForeignFileIoCheck(string fileKeyExpr)
+    {
+        if (ec.IoMaskFor(null) is not (not 0 and var mask)) return null;
+        int id = EmitIoCheckEc(fileKeyExpr, null, mask, atEnd: false, invalidKey: false, onException: false, verbDisposes: false);
+        return $"__ior{id} == DispatchResult.NoHandler";
     }
 
     /// <summary>⛔ THE ONE RENDERING OF DOC-A.1-103's ABNORMAL TERMINATION (kb/Work PB322 E, PB2700): a FATAL I-O status
