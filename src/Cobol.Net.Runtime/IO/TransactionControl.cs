@@ -203,7 +203,15 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         if (named is null) return;
         _participants.RemoveAll(p => p.Retired);
         foreach (var name in named)
-            if (!_participants.Exists(p => Array.Exists(p.Files, f => CobolNames.Same(f, name))))
-                files.ReleaseCommitControl(name);
+            if (!NamedByAnActiveClause(name)) files.ReleaseCommitControl(name);
+    }
+
+    /// <summary>Whether a remaining participant names the file connector <paramref name="name"/>.</summary>
+    private bool NamedByAnActiveClause(string name)
+    {
+        foreach (var p in _participants)
+            foreach (var file in p.Files)
+                if (CobolNames.Same(file, name)) return true;
+        return false;
     }
 }
