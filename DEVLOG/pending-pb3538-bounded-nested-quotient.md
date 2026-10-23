@@ -100,11 +100,11 @@ compiler cannot know the precision 0, its placeholder scale. A floating-point li
 such values, so a quotient over 10**-15 was truncated at 14 places, to zero: `IF 1.0E-15 / 2 > 0` and
 `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0` were NOT GREATER on the branch and GREATER on main, while
 `0.000000000000001 / 2` and an item of PIC V9(15) were GREATER (the reviewer's probe `scratchpad/w1153/rev-a3/q1.cob`).
-The literal's notation changed its value. The fix states the rule once and makes it a rule about the value's own digits.
+The literal's notation changed its value. The fix states the rule once.
 `CobolNum.NestedQuotientScale` (runtime) is the one working-scale rule, `max(receiver scale, precision) + 14`, applied by
-the compiler at compile time and by the new `CobolDecWithPrecision` at run time. An SDIDI value's precision is the
-fraction digits of its VALUE (`CobolDec.FractionDigits`): a float literal's at compile time, so `1.0E-15` carries the 15
-digits of `0.000000000000001` and `2.0E0` the 0 of `2`; a NUMVAL value's, a power's and a function result's at run time.
+the compiler at compile time and by the new `CobolDecWithPrecision` at run time. An SDIDI value's precision is
+`CobolDec.FractionDigits` (round 4 below gives its final form): a float literal's at compile time; a NUMVAL value's, a
+power's and a function result's at run time.
 A nested quotient over such a value, and every sum, difference, product and negation between it and that quotient, is
 also spelled as a `CobolDecWithPrecision` (the value paired with its operands' precision; `NumX.WithPrecision` is an
 alternative spelling of the same evaluation, never a second one), whose quotient carries the precision, not its working
@@ -113,5 +113,21 @@ scale, upward, so the scale does not grow with depth: `FUNCTION NUMVAL ("2") / T
 sweep fixed the Dec `Negate`, which evaluated its operand twice (`CobolDec.Negate`). The goldens
 `pb3538_runtime_precision_quotients` (85 to 2023: NUMVAL, a power, depth, a product, a negation, a sum, two receivers,
 a zero divisor) and `pb3538_float_literal_precision` (2002 to 2023), `CobolDecWithPrecisionTests` and two
-`NestedQuotientPrecisionDriftTests` additions (NUMVAL shapes at depth 2 and 16; the literal's scale 29 and the run-time
+`NestedQuotientPrecisionDriftTests` additions (NUMVAL shapes at depth 2 and 16; the literals' scales and the run-time
 quotients) pin it.
+
+Branch review round 4 (finding R4-1) found that round 3's `CobolDec.FractionDigits` counted the value's SIGNIFICANT
+fraction digits, dropping trailing zeros, while a fixed-point literal's and an item's precision is the scale they are
+written or declared at. So `2.50E0` and `NUMVAL ("2.50")` had the precision 1 where `2.50` and a `PIC 9V99` item have 2,
+and `IF 2.50E0 / 3 * 1000000000000000 > 833333333333333` was NOT GREATER on the branch and GREATER on main and for the
+`2.50` spelling (the reviewer's probe `scratchpad/w1153/rev-a4/p4.cob`; the difference lies past the 14 guard digits, so
+it shows only under a factor of 10**15). The rule is now the places the value is HELD at, `-Exp`: a floating-point
+literal's written scale (its significand's places less its exponent, so `1.0E-15` has the 16 of `0.0000000000000010`
+and `2.0E0` the 1 of `2.0`), a NUMVAL-family value's written places (the family lifts its argument exactly at the
+parsed scale), and for a value an operation formed, a power or a function's result, the places its result is held at.
+The notation no longer changes the precision, while the written scale still decides, as it does for fixed-point
+operands: `2.5E0` truncates one place sooner than `2.50`. The bound (a significand of at most 34 digits) and the
+depth-independence are unchanged. The new golden `pb3538_written_precision` (2002 to 2023) pins the probe, a NUMVAL of
+an item, the equalities and the one-place spelling; `pb3538_float_literal_precision`'s TINY leg now compares `1.0E-15`
+with an item of the same 16 written places (its output is unchanged); `CobolDecWithPrecisionTests` pins the rule and
+the NUMVAL family's exact lift.

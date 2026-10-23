@@ -1202,9 +1202,9 @@ public static partial class CobolNum
     /// added, so the scale is the same at every depth of the expression. The compiler applies it at compile time wherever it
     /// knows the operands' precision (the scaled <see cref="Divide"/>, <c>CobolWide.DivTruncated</c>,
     /// <c>CobolDec.DivTruncatedToOdd</c>), and <see cref="CobolDecWithPrecision.DivTruncatedToOdd"/> applies it at run time
-    /// to an operand whose precision is its VALUE's own (a NUMVAL value, a power, a function's result,
-    /// <see cref="CobolDec.FractionDigits"/>): 10^-15 has 15 fraction digits, so its half is never truncated to zero at a
-    /// scale chosen without them. <paramref name="receiverScale"/> is 0 for a receiver-less expression (a relation).</summary>
+    /// to an operand whose precision only the run time knows (a NUMVAL value, a power, a function's result: the places it
+    /// is held at, written or formed, <see cref="CobolDec.FractionDigits"/>): `NUMVAL ("0.000000000000001")` has 15
+    /// fraction digits, so its half is never truncated to zero at a scale chosen without them. <paramref name="receiverScale"/> is 0 for a receiver-less expression (a relation).</summary>
     public static int NestedQuotientScale(int receiverScale, int precision) =>
         Math.Max(receiverScale, precision) + NestedQuotientGuardDigits;
 

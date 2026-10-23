@@ -239,10 +239,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <c>CobolDec.FromParsed</c>.</para>
     /// <para>Every consumer of the Dec lane already exists — the PB84 landing/store funnel; <see cref="Real"/>
     /// converts it where a binary64 body wants a double; <see cref="DecOperand"/> where an SDIDI body does.</para>
-    /// <para>⛔ ITS PRECISION IS ITS VALUE'S FRACTION DIGITS, KNOWN AT COMPILE TIME (kb/Work PB3538 review finding R3-1):
-    /// <c>CobolDec.FractionDigits</c> of the literal's exact value, the same rule a run-time SDIDI value's precision
-    /// follows, so `1.0E-15` carries the 15 places `0.000000000000001` does and a nested quotient over it keeps them
-    /// (`IF 1.0E-15 / 2 > 0` was NOT GREATER at a working scale of 14), and `2.0E0` carries the 0 that `2` does.</para></summary>
+    /// <para>⛔ ITS PRECISION IS ITS WRITTEN SCALE, KNOWN AT COMPILE TIME (kb/Work PB3538 review findings R3-1 and R4-1):
+    /// <c>CobolDec.FractionDigits</c> of the literal's (significand, exponent) pair as written — the significand's places
+    /// less the exponent — the same rule a run-time SDIDI value's precision follows, so `2.50E0` carries the 2 places `2.50`
+    /// and a <c>PIC 9V99</c> item do and `1.0E-15` the 16 of `0.0000000000000010`, and a nested quotient over it keeps
+    /// them (`IF 1.0E-15 / 2 > 0` was NOT GREATER at a working scale of 14; `2.50E0 / 3 * 1000000000000000` was truncated
+    /// one place sooner than `2.50 / 3 * 1000000000000000` while the trailing zero was dropped).</para></summary>
     private NumX LiteralNum(string text) =>
         CobolNet.Common.NumericLiteral.IsFloatingPointForm(text)
             && CobolNet.Common.NumericLiteral.TryParseExact(text, out var sig, out int exp10)
@@ -743,8 +745,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>The <c>CobolDecWithPrecision</c> spelling of an SDIDI operation's operand whose plain SDIDI spelling is
     /// <paramref name="dec"/> (kb/Work PB3538 review finding R3-1): its own <see cref="NumX.WithPrecision"/> when an
-    /// operation below it built one; the value with its own fraction digits when it is a run-time-precision leaf (a NUMVAL
-    /// value, a power, a function's result); else the value with the precision the compiler knows.</summary>
+    /// operation below it built one; the value with the fraction digits it is held at when it is a run-time-precision leaf
+    /// (a NUMVAL value's written places, a power's or a function's result's; <c>CobolDec.FractionDigits</c>); else the value
+    /// with the precision the compiler knows.</summary>
     private static string WithPrecisionOperand(NumX x, string dec) =>
         x.WithPrecision ?? (x.RuntimePrecision
             ? RuntimeApi.DecOwnPrecision(dec)
@@ -1016,8 +1019,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (NestedQuotient)
         {
             // ⛔ AN OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS (kb/Work PB3538 review finding R3-1): a NUMVAL value, a
-            // power or a function's result — or an operation over one — has the precision of its VALUE, never the
-            // placeholder 0 of a Dec's scale. Given 0, `IF 1.0E-15 / 2 > 0` (before the literal carried its own) and
+            // power or a function's result — or an operation over one — has the fraction digits its value is HELD at
+            // (CobolDec.FractionDigits: a NUMVAL value's written places, review finding R4-1), never the placeholder 0 of a
+            // Dec's scale. Given 0, `IF 1.0E-15 / 2 > 0` (before the literal carried its own) and
             // `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0` truncated the quotient at 14 places and were NOT
             // GREATER. The same rule, CobolNum.NestedQuotientScale, then runs at run time over the carried precision, and
             // the quotient carries that precision, not its working scale, to the operations above it.

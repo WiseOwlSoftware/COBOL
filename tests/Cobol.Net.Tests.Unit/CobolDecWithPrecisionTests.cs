@@ -6,25 +6,58 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN SDIDI OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS HAS ITS VALUE'S FRACTION DIGITS, AND A NESTED QUOTIENT
-/// CARRIES ITS OPERANDS' PRECISION, NEVER ITS WORKING SCALE (kb/Work PB3538 review finding R3-1; CONFORMANCE.md
-/// DOC-A.1-123). A NUMVAL value, a power or a function's result was given the precision 0, so a quotient of 10^-15 was
-/// truncated at 14 places, to zero. The expected values are the rule's: the working scale is
-/// <c>max(receiver scale, precision) + 14</c> (<see cref="CobolNum.NestedQuotientScale"/>), the quotient is truncated there,
-/// a sum or difference carries the larger precision and a product the sum, and the scaled lane
-/// (<see cref="CobolNum.Divide"/> at the same scale, TRUNCATION) forms the same value from an item of that precision.
+/// ⛔ AN SDIDI OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS HAS THE FRACTION DIGITS IT IS HELD AT — WRITTEN, DECLARED OR
+/// FORMED, NEVER A COUNT OF ITS VALUE'S SIGNIFICANT DIGITS — AND A NESTED QUOTIENT CARRIES ITS OPERANDS' PRECISION, NEVER ITS
+/// WORKING SCALE (kb/Work PB3538 review findings R3-1 and R4-1; CONFORMANCE.md DOC-A.1-123). A NUMVAL value, a power or a
+/// function's result was given the precision 0, so a quotient of 10^-15 was truncated at 14 places, to zero; and counting
+/// significant digits dropped the trailing zero of `NUMVAL ("2.50")`, whose quotient was truncated one place sooner than
+/// `2.50`'s. The expected values are the rule's: the working scale is <c>max(receiver scale, precision) + 14</c>
+/// (<see cref="CobolNum.NestedQuotientScale"/>), the quotient is truncated there, a sum or difference carries the larger
+/// precision and a product the sum, and the scaled lane (<see cref="CobolNum.Divide"/> at the same scale, TRUNCATION)
+/// forms the same value from an item of that precision.
 /// </summary>
 public sealed class CobolDecWithPrecisionTests
 {
     [Theory]
     [InlineData(5, -16, 16)]     // 5 × 10^-16
-    [InlineData(50, -17, 16)]    // the same value with a trailing zero: the VALUE's digits, not the representation's
-    [InlineData(20, -1, 0)]      // 2.0E0 is the integer 2
+    [InlineData(50, -17, 17)]    // 5.0 × 10^-16, held at 17 places: the scale it is written at, not its significant digits
+    [InlineData(250, -2, 2)]     // 2.50E0 and NUMVAL ("2.50"): the 2 of 2.50 (review finding R4-1)
+    [InlineData(20, -1, 1)]      // 2.0E0: the 1 of 2.0
     [InlineData(-15, -3, 3)]     // -0.015
     [InlineData(123, 2, 0)]      // 12300
-    [InlineData(0, -5, 0)]       // zero has no fraction digits
-    public void FractionDigits_AreTheValuesOwn(long sig, int exp, int expected) =>
+    [InlineData(0, -5, 5)]       // 0.00000: a zero keeps its written places
+    public void FractionDigits_AreThePlacesTheValueIsHeldAt(long sig, int exp, int expected) =>
         Assert.Equal(expected, CobolDec.FractionDigits(new CobolDec(sig, exp)));
+
+    /// <summary>The NUMVAL family lifts its argument EXACTLY at the written scale, which is what makes
+    /// <see cref="CobolDecWithPrecision.Own"/> of its value the argument's written places (§15.67.4 1) and §15.68.4 1):
+    /// "The returned value is the numeric value represented by argument-1"; NUMVAL-F's SDIDI arm likewise). The value is the
+    /// standard's; the precision a nested native quotient reads from it is this implementation's (DOC-A.1-123).</summary>
+    [Theory]
+    [InlineData("2.50", 2)]
+    [InlineData("2.5", 1)]
+    [InlineData("0.000000000000001", 15)]
+    [InlineData("2", 0)]
+    [InlineData("-0.10", 2)]
+    public void ANumvalValuesPrecision_IsItsArgumentsWrittenPlaces(string text, int expected)
+    {
+        Assert.Equal(expected, CobolDecWithPrecision.Own(CobolIntrinsics.NumvalDec(text)).Precision);
+        Assert.Equal(expected, CobolDecWithPrecision.Own(CobolIntrinsics.NumvalCDec(text, "$")).Precision);
+        Assert.Equal(expected, CobolDecWithPrecision.Own(CobolIntrinsics.NumvalFDec(CobolRounding.NearestAwayFromZero, text)).Precision);
+    }
+
+    /// <summary>Review finding R4-1's relation: `NUMVAL ("2.50") / 3 * 1000000000000000 > 833333333333333` with no receiver.
+    /// The precision is 2, so w = 16 and the quotient is 0.8333333333333333 (16 places), whose product is
+    /// 833333333333333.3: GREATER, as for `2.50` (precision 1 gave w = 15 and exactly 833333333333333, NOT GREATER).</summary>
+    [Fact]
+    public void ATrailingZero_IsAPlaceOfThePrecision()
+    {
+        var q = CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own(CobolIntrinsics.NumvalDec("2.50")), Known(3, 0, 0), 0);
+        Assert.Equal(2, q.Precision);
+        Assert.Equal(0, CobolDec.Compare(q.Value, new CobolDec(8333333333333333, -16)));
+        var product = CobolDecWithPrecision.Mul(q, Known(1000000000000000, 0, 0), CobolRounding.NearestAwayFromZero);
+        Assert.Equal(1, CobolDec.Compare(product.Value, new CobolDec(833333333333333, 0)));
+    }
 
     [Theory]
     [InlineData(0, 0, 14)]       // a relation (no receiver) over operands of no fraction digits

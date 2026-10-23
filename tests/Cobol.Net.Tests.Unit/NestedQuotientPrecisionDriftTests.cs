@@ -28,9 +28,10 @@ namespace CobolNet.Tests.Unit;
 /// the exact wide form (<c>CobolWide.DivTruncated</c>), never the SDIDI's round-to-odd <c>CobolDec.DivToOdd</c>, which
 /// made `FUNCTION INTEGER(X) / 7 * 7` 2.000000 where `X / 7 * 7` is 1.999999.</para>
 /// <para>⛔ AND AN OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS IS NEVER GIVEN 0 (review finding R3-1): a NUMVAL value,
-/// a power or a function's result carries its value's fraction digits at run time (<c>CobolDecWithPrecision</c>, whose
-/// <c>DivTruncatedToOdd</c> is asked for the receiver scale and applies <c>CobolNum.NestedQuotientScale</c> itself), and a
-/// floating-point literal its value's at compile time.</para>
+/// a power or a function's result carries the fraction digits it is held at to run time (<c>CobolDecWithPrecision</c>,
+/// whose <c>DivTruncatedToOdd</c> is asked for the receiver scale and applies <c>CobolNum.NestedQuotientScale</c> itself),
+/// and a floating-point literal its written scale at compile time — never a count of the value's significant digits,
+/// which dropped a trailing zero (review finding R4-1).</para>
 /// </summary>
 public sealed class NestedQuotientPrecisionDriftTests
 {
@@ -196,13 +197,14 @@ public sealed class NestedQuotientPrecisionDriftTests
             $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where every lane owes 18 (receiver) and 14 (relation)");
     }
 
-    /// <summary>⛔ AN SDIDI OPERAND IS NEVER GIVEN THE PRECISION 0 (review finding R3-1). A floating-point literal's precision
-    /// is its value's fraction digits, known at compile time (`1.0E-15` has 15, so its quotient's working scale is 29); a
-    /// NUMVAL value's and a power's are known only at run time, so their quotients are
+    /// <summary>⛔ AN SDIDI OPERAND IS NEVER GIVEN THE PRECISION 0 (review finding R3-1), AND ITS PRECISION IS ITS WRITTEN SCALE
+    /// (review finding R4-1). A floating-point literal's is known at compile time: `1.0E-15` is written 0.0000000000000010,
+    /// 16 places, so its quotient's working scale is 30, and `2.50E0` has the 2 of `2.50`, so 16 (counting the value's
+    /// significant digits gave 1 and 15). A NUMVAL value's and a power's are known only at run time, so their quotients are
     /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c> over <c>CobolDecWithPrecision.Own</c>, which applies the same rule to
-    /// the value's own digits. Given 0, each of these quotients was truncated at 14 places, to zero.</summary>
+    /// the places the value is held at. Given 0, each of these quotients was truncated at 14 places, to zero.</summary>
     [Fact]
-    public void AnSdidiOperandsPrecision_IsItsValuesFractionDigits_NeverZero()
+    public void AnSdidiOperandsPrecision_IsItsWrittenScale_NeverZero()
     {
         string cs = EmitCSharp("""
             IDENTIFICATION DIVISION.
@@ -210,15 +212,16 @@ public sealed class NestedQuotientPrecisionDriftTests
             PROCEDURE DIVISION.
             MAIN.
                 IF 1.0E-15 / 2 > 0 DISPLAY "FLT" END-IF.
+                IF 2.50E0 / 3 > 0 DISPLAY "TRAILING" END-IF.
                 IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0 DISPLAY "NUMVAL" END-IF.
                 IF 10 ** -15 / 2 > 0 DISPLAY "POW" END-IF.
                 STOP RUN.
             """);
         Assert.Contains("CobolDec.DivTruncatedToOdd(", cs);
         Assert.Equal(2, CountOf(cs, "CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own("));
-        // The literal's 15 fraction digits + 14 guard digits; the run-time quotients are asked for the relation's scale 0.
-        Assert.True(DivisionScales(cs).SetEquals(new[] { 0, 29 }),
-            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where 1.0E-15 owes 29 and the run-time quotients 0");
+        // The literals' written 16 and 2 places + 14 guard digits; the run-time quotients are asked for the relation's 0.
+        Assert.True(DivisionScales(cs).SetEquals(new[] { 0, 16, 30 }),
+            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where 1.0E-15 owes 30, 2.50E0 16 and the run-time quotients 0");
     }
 
     private static int CountOf(string text, string what)

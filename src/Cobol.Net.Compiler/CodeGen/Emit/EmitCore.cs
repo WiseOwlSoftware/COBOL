@@ -202,7 +202,8 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// quotient that reads it (kb/Work PB3538 review finding R3-1). It is an ALTERNATIVE spelling of <see cref="Expr"/>,
 /// never an addition: a consumer emits exactly one of the two, so the operands are evaluated once either way, and a
 /// consumer that rewrites <see cref="Expr"/> drops it. <c>null</c> on a runtime-precision value means the precision is
-/// the value's own fraction digits (<c>CobolDecWithPrecision.Own</c>: a NUMVAL value, a power, a function's result).</param>
+/// the fraction digits the value is held at (<c>CobolDecWithPrecision.Own</c>: a NUMVAL value's written places, a power's
+/// or a function's result's).</param>
 internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false, bool U = false,
     bool Approximate = false, int Digits = 0, bool Wide = false, int? Precision = null, string? WithPrecision = null)
 {
