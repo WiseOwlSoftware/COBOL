@@ -30,19 +30,28 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    steer that names branches (`handoff.last.json`) is the lane's order too: name it in the handoff if the lane did not
    take them. By class:
    - `RUNNING`: being landed; nothing to do (do not wait on it: a later tick reaps it).
-   - `DONE` (`ENQUEUED`, or `NOTHING TO LAND`): the pull request is in the queue; GitHub tests it in a merge group and
-     merges it. The branch is ON MAIN only once the PR has merged (`gh pr view <n> --json state,mergedAt`); until then
-     it reads ENQUEUED. Its leads go to step 5 and its record to step 6b.
-   - `STOPPED`: `CONFLICT` (exit 4, before or after the gate), `GATE RED` (exit 5) or a DEVLOG refusal (exit 6): the
+   - `DONE` (`ENQUEUED`, or `NOTHING TO LAND`): the pull request was handed to the queue (auto-merge on); GitHub
+     queues it once its required checks pass, tests it in a merge group and merges it. The branch is ON MAIN only once
+     the PR has merged (`gh pr view <n> --json state,mergedAt`); until then it reads ENQUEUED (in the queue) or NOT
+     QUEUED (not yet in it). The lane's QUEUE WATCH (kb/Work PB3527) follows it in: its line says the watch's state;
+     past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
+     operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
+     ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
+   - `STOPPED`: `CONFLICT` (exit 4, before or after the gate), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5:
+     a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
+     or a DEVLOG refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
      I10): it goes back to step 2's reviewer, never to a finisher and never landed another way. A repeated exit 2 or
-     9 (main kept moving, GitHub refused twice at one head): name it in the handoff with its log.
+     9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice for a cause in the environment or
+     one main fails the same way: no finisher fixes it, kb/Work PB3526): name it in the handoff with its log.
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
      INDEPENDENT in-flight work; a branch that descends from it — its successor, its finisher, a carrier that merged
-     any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381) and `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
-     `landing_check.py` passes on the branch). Nothing to do here.
+     any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
+     another gate held the worktree's gate lock, nothing ran and nothing is red, kb/Work PB3527) and `RETRY-ONCE` (a
+     first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once `landing_check.py` passes
+     on the branch, exit 12 once the gate lock is free). Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`
      once `ruleset.py check` reports ACTIVE; it already named it in the operator's mailbox. Land nothing another way:
      name it in the handoff.
