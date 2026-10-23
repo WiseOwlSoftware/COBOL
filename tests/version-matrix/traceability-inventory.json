@@ -15759,10 +15759,10 @@
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#LocksEffective; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock",
   "test-ref": "",
-  "derivation": "",
+  "derivation": "docs/CONFORMANCE.md#DRV-GR-12.4.5.9.4-2",
   "editions": "2002,2014,2023",
-  "notes": "cite.py --check 12.4.5.9.4 2) 'If the processor does not support record locking, record locks have no effect for the associated file connector.' OK. The antecedent is false for this implementation. docs/CONFORMANCE.md claims A.4.7 'File sharing and record locking' (SHARING/LOCK MODE/RETRY on every organization), and the runtime supports record locking on all three organizations (probe rt1.cob: '51' conflicts on relative; the existing goldens pb683_open_sharing_read_only cover sequential/relative/indexed). The rule is therefore satisfied vacuously, and nothing in the processor switches record locking off. FileRegistry's own comment cites GR2 correctly as the clause that would disable the CHECK. No test can witness a vacuous antecedent, so test-ref is empty. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
-  "state": "GAP"
+  "notes": "GR-12.4.5.9.4-2 CONFORMS on DRV-GR-12.4.5.9.4-2 (docs/CONFORMANCE.md section 8, unpopulatable-antecedent, owner: 2026-10-23, kb/Work PB1636). cite.py --check 12.4.5.9.4 OK 2); cite.py --check 9.1.16 OK. Every connector supports record locking, so GR2's antecedent is never populated; the cross-run-unit probes (RELATIVE, INDEXED, SEQUENTIAL, LINE SEQUENTIAL) answer '51' to a second run unit (PB1636 re-verification 2026-10-17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.9.4-3",
