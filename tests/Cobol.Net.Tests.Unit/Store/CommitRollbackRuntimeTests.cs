@@ -658,6 +658,45 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ THE OTHER ARM OF THE OWED-WRITES FACT: AN INPUT OPENER WHOSE COLUMN IS TAKEN AFRESH STILL PUBLISHES IT (kb/Work
+    /// PB3499; §9.1.15 2); Table 19, the SHARING WITH READ ONLY INPUT row against the existing READ ONLY INPUT column is
+    /// <i>"Normal open"</i>). A connector under commit control and SHARING WITH NO OTHER changes a record and is CLOSEd: its kept
+    /// handle excludes every other open and publishes no column, so its re-OPEN INPUT under SHARING WITH READ ONLY takes its
+    /// column afresh, after the body, through the writable handle that replaced the kept one (the transaction stands). That
+    /// opener owes its writes exactly as one that amended a kept column does, so another run unit's OPEN INPUT under SHARING
+    /// WITH READ ONLY is a normal open beside it: '00' on a host whose share modes are mandatory as on one that is not.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_input_opener_whose_column_is_taken_afresh_after_a_NO_OTHER_close_publishes_that_it_owes_writes(FileOrg org)
+    {
+        string host = Tmp($"pb3499-noother-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.NoOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.RegisterSharing("F", FileSharing.ReadOnly, FileLockMode.Automatic, multiple: true);
+            a.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("F"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.ReadOnly);
+            b.OpenStatic("B", FileOpenMode.Input);
+            Assert.Equal("00", b.Status("B"));
+            Assert.Equal("00", Read(b, org, 1, out var image, name: "B"));
+            Assert.Equal(Rec(1, "A001"), image);
+            b.CloseAll();
+
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, <i>"For files specified
     /// in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the file locks are
@@ -713,7 +752,8 @@ public sealed class CommitRollbackRuntimeTests
     /// request"</i>; §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not
     /// affected"</i>; §14.9.7.4 GR4, <i>"For files specified in active APPLY COMMIT clauses that have been closed and not
     /// reopened prior to the COMMIT statement, the file locks are released."</i>): B, under commit control and SHARING WITH READ
-    /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener; a program
+    /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener that owes
+    /// writes (kb/Work PB3499; the second attempt is made only beside one); a program
     /// outside the protocol reads the file with a share mode that refuses writers, so B's OPEN I-O is refused by the host on a
     /// host whose share modes are mandatory, its column held, and made again with the share mode that admits what an INPUT
     /// opener may owe (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>), which the outside reader refuses too: '61'.
@@ -734,11 +774,15 @@ public sealed class CommitRollbackRuntimeTests
         bool thirdRunUnitRacesTheSecond)
     {
         string host = Tmp($"pb3498-twice-{org}-{thirdRunUnitRacesTheSecond}");
-        RunUnitFileLock? thirdRunUnit = null;
+        RunUnitFileLock? thirdRunUnit = null, owingOpener = null;
         try
         {
             Seed(host, org);
-            var a = Open(host, org, commit: false, FileOpenMode.Input, name: "A", sharing: FileSharing.AllOther);
+            // Another run unit's INPUT opener that OWES WRITES (kb/Work PB3499: the second attempt is made only beside one): the
+            // file lock a CLOSE under commit control kept (SHARING WITH ALL OTHER on I-O), replaced by its INPUT re-OPEN's column.
+            Assert.Equal(RunUnitFileLock.Outcome.Held,
+                RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, FileSharing.AllOther, FileOpenMode.IO, out owingOpener));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, owingOpener!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: true));
             var b = new FileRegistry();
             Declare(b, host, org, commit: true, name: "B", sharing: FileSharing.ReadOnly);
             var log = new ColumnRequestLog();
@@ -800,13 +844,14 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Null(b.Rollback());
             Assert.Equal(RunUnitFileLock.Outcome.Held, Ask(host, FileSharing.AllOther, FileOpenMode.IO));
             using (new FileStream(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) { }
-            a.CloseAll();
+            owingOpener.Dispose();
             b.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
         }
         finally
         {
             thirdRunUnit?.Dispose();
+            owingOpener?.Dispose();
             TryDelete(host);
         }
     }
@@ -1323,6 +1368,191 @@ public sealed class CommitRollbackRuntimeTests
             TryDelete(host);
             try { Directory.Delete(dir, recursive: true); } catch (IOException) { }
         }
+    }
+
+    /// <summary>Outside the run unit, take the physical file at <paramref name="host"/> away — <c>removed</c> (unlinked) or
+    /// <c>renamed</c> to <paramref name="moved"/> — and make another one there, holding record 2 (<c>B002</c>), through another run
+    /// unit's OPEN OUTPUT. False when the host refuses to take away a file a handle holds (Windows: the kept handle's share mode
+    /// admits no delete), which is the host's own protection of the kept state.</summary>
+    private static bool ReplaceOutsideTheRunUnit(string host, string moved, string how, FileOrg org)
+    {
+        try
+        {
+            if (how == "renamed") File.Move(host, moved);
+            else File.Delete(host);
+        }
+        catch (IOException) when (OperatingSystem.IsWindows()) { return false; }
+        catch (UnauthorizedAccessException) when (OperatingSystem.IsWindows()) { return false; }
+        var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
+        Assert.Equal("00", Write(maker, org, 2, "B002", name: "S"));
+        maker.CloseAll();
+        return true;
+    }
+
+    /// <summary>⛔ THE KEPT STATE IS OF A PHYSICAL FILE, AND A PATH NAMES ONE ONLY WHEN IT IS ASKED (kb/Work PB3533; the decision of
+    /// kb/Work PB3493 for a kept file that is not there, DESIGN-runtime-library.md 2.2.1.10): A changes record 7 under commit
+    /// control and is CLOSEd; outside the run unit the file is removed (or renamed away) and another made at the same path, holding
+    /// record 2. A's re-OPEN is an ordinary OPEN of the file the path names: it reads record 2 and finds no record 7 or 1 ('23'),
+    /// no transaction stands, and a change and COMMIT reach the new file. What the CLOSE kept ended with the file it was kept on:
+    /// its transaction is left as a death leaves it, so the next writable OPEN of the renamed file rolls record 7 back. Before the
+    /// fix the re-OPEN adopted the kept handle on the removed file and read its records ('23' for record 2, '00' for record 7), and
+    /// the COMMIT went to the removed file.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, "removed")]
+    [InlineData(FileOrg.Relative, FileOpenMode.Input, "renamed")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, "renamed")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Input, "removed")]
+    public void A_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept(FileOrg org, FileOpenMode mode, string how)
+    {
+        string host = Tmp($"pb3533-replaced-{org}-{mode}-{how}");
+        string moved = host + ".old";
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            if (!ReplaceOutsideTheRunUnit(host, moved, how, org))
+            {
+                Assert.Null(a.Rollback());
+                a.CloseAll();
+                return;
+            }
+            a.OpenStatic("F", mode);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 2, out var image));
+            Assert.Equal(Rec(2, "B002"), image);
+            Assert.Equal("23", Read(a, org, 7, out _));
+            Assert.Equal("23", Read(a, org, 1, out _));
+            if (mode == FileOpenMode.IO) Assert.Equal("00", Write(a, org, 8, "B008"));
+            Assert.Null(a.Commit());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[2] = Rec(2, "B002");
+            if (mode == FileOpenMode.IO) expected[8] = Rec(8, "B008");
+            Assert.Equal(expected, Contents(host, org));
+            if (how == "renamed") Assert.Equal(Seeded(), Settled(moved, org));
+        }
+        finally
+        {
+            TryDelete(host);
+            TryDelete(moved);
+        }
+    }
+
+    /// <summary>The same decision when the re-OPEN of the file made at the path is UNSUCCESSFUL (kb/Work PB3533; §14.9.27.4 GR25,
+    /// <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>, speaks of the file the path names,
+    /// and the kept one is not it): the path names a file that is not a keyed file (GR10's fixed file attribute conflict, '39'), or
+    /// one another run unit holds under SHARING WITH NO OTHER (§9.1.13.9 1), '61'). The kept state has ended all the same — no
+    /// transaction stands and the ROLLBACK has nothing to restore — and the file at the path is as the other party left it.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "39")]
+    [InlineData(FileOrg.Relative, "61")]
+    [InlineData(FileOrg.Indexed, "39")]
+    [InlineData(FileOrg.Indexed, "61")]
+    public void An_unsuccessful_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept(FileOrg org, string refusal)
+    {
+        string host = Tmp($"pb3533-replaced-refused-{org}-{refusal}");
+        FileRegistry? holder = null;
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            try { File.Delete(host); }
+            catch (IOException) when (OperatingSystem.IsWindows())
+            {
+                Assert.Null(a.Rollback());   // the host kept the file with the handle: nothing was made in its place
+                a.CloseAll();
+                return;
+            }
+            if (refusal == "39") File.WriteAllText(host, "not a keyed file\n");
+            else
+            {
+                holder = Open(host, org, commit: false, FileOpenMode.Output, name: "S", sharing: FileSharing.NoOther);
+                Assert.Equal("00", Write(holder, org, 2, "B002", name: "S"));
+            }
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal(refusal, a.Status("F"));
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            if (holder is null)
+                Assert.Equal("not a keyed file\n", File.ReadAllText(host));
+            else
+            {
+                holder.CloseAll();
+                holder = null;
+                var expected = new string?[10];
+                expected[2] = Rec(2, "B002");
+                Assert.Equal(expected, Contents(host, org));
+            }
+        }
+        finally
+        {
+            holder?.CloseAll();
+            TryDelete(host);
+        }
+    }
+
+    /// <summary>⛔ TWO PHYSICAL FILES AT ONE PATH IN ONE RUN UNIT, EACH WITH ITS OWN STORE AND TRANSACTION (kb/Work PB3533, the
+    /// run-unit tables' sibling of the kept state): connector F, under commit control, holds the file open and changes record 7;
+    /// outside the run unit the file is removed and another made at the path, holding record 2; connector G of the same run unit
+    /// OPENs the path. G reaches the file the path names now — record 2, no record 1 or 7 — while F goes on reading the removed
+    /// file it holds; and the COMMIT commits BOTH transactions, one per file. Before the fix the run unit's store table gave G the
+    /// removed file's store (G read record 1 and record 7), and the COMMIT, telling files by their path, committed only one.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void Two_connectors_on_a_path_whose_file_was_replaced_each_reach_their_own_file(FileOrg org)
+    {
+        string host = Tmp($"pb3533-two-files-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true, name: "F");
+            Declare(a, host, org, commit: true, name: "G");
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 7, "A007", name: "F"));
+            if (!ReplaceOutsideTheRunUnit(host, host + ".old", "removed", org))
+            {
+                Assert.Null(a.Rollback());
+                a.CloseAll();
+                return;
+            }
+            a.OpenStatic("G", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("G"));
+            Assert.Equal("00", Read(a, org, 2, out var image, name: "G"));
+            Assert.Equal(Rec(2, "B002"), image);
+            Assert.Equal("23", Read(a, org, 7, out _, name: "G"));
+            Assert.Equal("23", Read(a, org, 1, out _, name: "G"));
+            Assert.Equal("00", Read(a, org, 1, out image, name: "F"));
+            Assert.Equal(Rec(1, "A001"), image);
+            Assert.Equal("00", Write(a, org, 8, "B008", name: "G"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+            Assert.NotEqual(0ul, a.TransactionOf("G"));
+            Assert.Null(a.Commit());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            Assert.Equal(0ul, a.TransactionOf("G"));
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[2] = Rec(2, "B002");
+            expected[8] = Rec(8, "B008");
+            Assert.Equal(expected, Contents(host, org));
+        }
+        finally { TryDelete(host); }
     }
 
     /// <summary>Open connector <paramref name="name"/> of <paramref name="reg"/> in I-O mode on the physical file the content of

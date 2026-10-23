@@ -66,19 +66,23 @@ internal sealed class RunUnitFileLock : IDisposable
 
     private IDisposable? _hold;
 
-    /// <summary>What the lock is established as — the host, the physical file and the Table 19 column the OPEN published
-    /// and the columns its row refuses.</summary>
-    private (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused) _as;
+    /// <summary>What a lock is established as: the host, the physical file, the Table 19 column the OPEN published, the
+    /// columns its row refuses and whether its connector owes writes (<see cref="IColumnLockHost.Establish"/>'s
+    /// <c>owesWrites</c>) — everything <see cref="Revert"/> needs to publish a lock again.</summary>
+    private readonly record struct Established(IColumnLockHost Host, string HostPath, ExistingSharingColumn Own,
+        ExistingSharingColumn[] Refused, bool OwesWrites);
 
-    /// <summary>What the lock was before the last <see cref="Amend"/> replaced it — the column <see cref="Revert"/>
+    /// <summary>What the lock is established as.</summary>
+    private Established _as;
+
+    /// <summary>What the lock was before the last <see cref="Amend"/> replaced it — the state <see cref="Revert"/>
     /// publishes again; null when nothing has been amended.</summary>
-    private (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused)? _before;
+    private Established? _before;
 
-    private RunUnitFileLock(IDisposable hold, (IColumnLockHost, string, ExistingSharingColumn, ExistingSharingColumn[]) taken) =>
-        (_hold, _as) = (hold, taken);
+    private RunUnitFileLock(IDisposable hold, Established taken) => (_hold, _as) = (hold, taken);
 
     /// <summary>The column an OPEN in (<paramref name="sharing"/>, <paramref name="mode"/>) publishes and the columns its
-    /// Table 19 row refuses — the one derivation <see cref="Take(IColumnLockHost?, string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>
+    /// Table 19 row refuses — the one derivation <see cref="Take(IColumnLockHost?, string, FileSharing, FileOpenMode, out RunUnitFileLock?, bool)"/>
     /// and <see cref="Amend"/> share.</summary>
     private static (ExistingSharingColumn Own, ExistingSharingColumn[] Refused) RequestOf(FileSharing sharing, FileOpenMode mode)
     {
@@ -100,12 +104,15 @@ internal sealed class RunUnitFileLock : IDisposable
 
     /// <summary>Establish the file lock of an OPEN in (<paramref name="sharing"/>, <paramref name="mode"/>) on
     /// <paramref name="hostPath"/> through this process's host. <paramref name="held"/> is non-null exactly when the
-    /// outcome is <see cref="Outcome.Held"/>; a refused or unavailable lock leaves nothing behind.</summary>
-    internal static Outcome Take(string hostPath, FileSharing sharing, FileOpenMode mode, out RunUnitFileLock? held) =>
-        Take(HostObserver.Value?.Invoke(HostOfThisProcess) ?? HostOfThisProcess, hostPath, sharing, mode, out held);
+    /// outcome is <see cref="Outcome.Held"/>; a refused or unavailable lock leaves nothing behind. <paramref name="owesWrites"/>
+    /// is the connector's (<see cref="Amend"/>'s, <see cref="IColumnLockHost.Establish"/>'s): false for the lock of every OPEN
+    /// whose handle is no writer in the INPUT mode.</summary>
+    internal static Outcome Take(string hostPath, FileSharing sharing, FileOpenMode mode, out RunUnitFileLock? held,
+        bool owesWrites = false) =>
+        Take(HostObserver.Value?.Invoke(HostOfThisProcess) ?? HostOfThisProcess, hostPath, sharing, mode, out held, owesWrites);
 
     /// <summary>A test's view of every request the connectors of the calling flow make of the host
-    /// (<see cref="HostOfThisProcess"/>): it wraps the host a <see cref="Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>
+    /// (<see cref="HostOfThisProcess"/>): it wraps the host a <see cref="Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?, bool)"/>
     /// establishes through, and the lock keeps that wrapper for its <see cref="Amend"/> and <see cref="Revert"/>. It is how
     /// a test COUNTS the requests an OPEN makes (<see cref="FileConnector.Open"/> makes at most two, kb/Work PB3498). An
     /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes (the pattern of
@@ -115,13 +122,13 @@ internal sealed class RunUnitFileLock : IDisposable
     /// <summary>The same through <paramref name="host"/> (null: a host with no lock, <see cref="Outcome.Unavailable"/>).
     /// Every host is held to the same table by <c>RunUnitFileLockDriftTests</c>, whichever the process is running on.</summary>
     internal static Outcome Take(IColumnLockHost? host, string hostPath, FileSharing sharing, FileOpenMode mode,
-        out RunUnitFileLock? held)
+        out RunUnitFileLock? held, bool owesWrites = false)
     {
         held = null;
         if (host is null) return Outcome.Unavailable;
         var (own, refused) = RequestOf(sharing, mode);
-        var outcome = host.Establish(hostPath, own, refused, supersedes: null, out var hold);
-        if (outcome == Outcome.Held) held = new RunUnitFileLock(hold!, (host, hostPath, own, refused));
+        var outcome = host.Establish(hostPath, own, owesWrites, refused, supersedes: null, out var hold);
+        if (outcome == Outcome.Held) held = new RunUnitFileLock(hold!, new Established(host, hostPath, own, refused, owesWrites));
         return outcome;
     }
 
@@ -134,23 +141,27 @@ internal sealed class RunUnitFileLock : IDisposable
     /// (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>): that
     /// left the file unlocked for two instants, in which another run unit's OPEN against the kept column was admitted.
     /// <see cref="Outcome.Held"/>: this lock now holds the new column, and <see cref="Revert"/> can publish the old one
-    /// again. <see cref="Outcome.Refused"/> or <see cref="Outcome.Unavailable"/>: the lock is exactly as it was.</summary>
-    internal Outcome Amend(FileSharing sharing, FileOpenMode mode)
+    /// again. <see cref="Outcome.Refused"/> or <see cref="Outcome.Unavailable"/>: the lock is exactly as it was.
+    /// <para><paramref name="owesWrites"/> is true when the connector's re-OPEN is an INPUT opener whose handle is open for
+    /// WRITING, because the transaction its CLOSE kept still owes its COMMIT or ROLLBACK (kb/Work PB3499,
+    /// <see cref="IColumnLockHost.Establish"/>'s <c>owesWrites</c>): the one case a host share mode needs told about.</para></summary>
+    internal Outcome Amend(FileSharing sharing, FileOpenMode mode, bool owesWrites)
     {
         var (own, refused) = RequestOf(sharing, mode);
-        var outcome = _as.Host.Establish(_as.HostPath, own, refused, _hold, out var hold);
+        var outcome = _as.Host.Establish(_as.HostPath, own, owesWrites, refused, _hold, out var hold);
         if (outcome != Outcome.Held) return outcome;
-        (_before, _as, _hold) = (_as, (_as.Host, _as.HostPath, own, refused), hold);
+        (_before, _as, _hold) = (_as, _as with { Own = own, Refused = refused, OwesWrites = owesWrites }, hold);
         return outcome;
     }
 
-    /// <summary>Does another run unit's connector hold an INPUT column (ALL OTHER or READ ONLY input) — the only holders that
-    /// can owe writes while open in the input mode (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482)?
-    /// Answered by a host whose share modes are mandatory (<see cref="HandleColumnLockHost"/>); false for any other and for a
-    /// lock that was given back.</summary>
-    internal bool AnotherInputOpenerHolds() =>
-        _hold is IPublishedColumn published
-        && (published.AnotherHolds(ExistingSharingColumn.AllOtherInput) || published.AnotherHolds(ExistingSharingColumn.ReadOnlyInput));
+    /// <summary>Does another run unit's connector owe writes — is it open in the INPUT mode with a handle open for WRITING,
+    /// because its transaction still owes its COMMIT or ROLLBACK (<see cref="IColumnLockHost.Establish"/>'s <c>owesWrites</c>)?
+    /// It is the exact condition under which a SHARING WITH READ ONLY request's host share mode refuses what Table 19 admits
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482, PB3499): the writer that refuses it is that
+    /// connector's own handle, and no other writer — a reader that merely holds an INPUT column, or a program outside the
+    /// protocol — is a reason for the share mode to yield. Answered by a host whose share modes are mandatory
+    /// (<see cref="HandleColumnLockHost"/>); false for any other and for a lock that was given back.</summary>
+    internal bool AnotherOwesWrites() => _hold is IPublishedColumn published && published.AnotherOwesWrites();
 
     /// <summary>Is this lock held through an open handle on the physical file (<see cref="IPublishedColumn.HoldsAHandle"/>:
     /// the Windows column holder)? Such a handle is its owner's own, which a probe for another's handle must admit.</summary>
@@ -163,7 +174,7 @@ internal sealed class RunUnitFileLock : IDisposable
     internal bool Revert()
     {
         if (_before is not { } before) return true;
-        if (before.Host.Establish(before.HostPath, before.Own, [], _hold, out var hold) != Outcome.Held)
+        if (before.Host.Establish(before.HostPath, before.Own, before.OwesWrites, [], _hold, out var hold) != Outcome.Held)
         {
             Dispose();
             return false;

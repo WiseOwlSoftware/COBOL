@@ -68,6 +68,104 @@ public static partial class CobolNum
         return Compose(negative, digits, receiver, commaMode, padTo: false);
     }
 
+    /// <summary>The digits an <see cref="Int128"/> unscaled value holds: the widest capacity the device conversion
+    /// reads, whatever the item (a BINARY-CAPACITY item keeps every digit of its container, past its PICTURE's).</summary>
+    private const int DeviceReadDigits = 38;
+
+    /// <summary>⛔ THE ACCEPT-SIDE READER OF THE DECIMAL DEVICE FORM (kb/Work PB3513, the inverse of
+    /// <see cref="DisplayDecimal(Int128, in NumProfile, bool)"/>; ISO/IEC 1989:2023 §14.9.1.4 GR1 — "Any conversion of data
+    /// required between the device and the data item referenced by identifier-1 is defined by the implementor";
+    /// docs/CONFORMANCE.md DOC-A.1-1). It converts the characters an ACCEPT of a fixed-point numeric item transferred
+    /// (<paramref name="window"/>: the item's own size for a character-form item, the whole record for a binary or
+    /// packed one, <c>AcceptSource.DeviceNumeric</c>) to the item's UNSCALED value, exactly as GnuCOBOL 3.2.0 does
+    /// (measured 2026-10-23, the precedence tiebreaker of CLAUDE.md rule 1):
+    /// <list type="bullet">
+    ///   <item>leading spaces, then an optional sign (<c>+</c> or <c>-</c>; an unsigned item drops it), then the number:
+    ///         digits, ONE decimal separator (the program's, a comma under DECIMAL-POINT IS COMMA, §12.3.7.4 GR14 a),
+    ///         with spaces and the other separator character skipped wherever they stand;</item>
+    ///   <item>a character that is none of those makes the WHOLE text invalid and the value zero: a trailing sign
+    ///         (<c>12.5-</c>), a second separator, a letter. No exception is set (§14.6.13.2: undefined content);</item>
+    ///   <item>the fraction keeps its first <see cref="NumProfile.FractionDigits"/> digits (truncation, never rounding);
+    ///         integer digits past the item's capacity lose their HIGH-ORDER end, so the item keeps the low-order digits
+    ///         (§14.6.8.2 rule 4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
+    ///         reduced to the PICTURE's digit count here, a BINARY-CAPACITY item's container excepted: it keeps every digit its
+    ///         container holds and the value wraps to the container (<see cref="WrapBinary"/>, DOC-A.1-208), as GnuCOBOL's does;</item>
+    ///   <item>an item whose characters ARE the window (<see cref="NumericByteForm.Zoned"/>, DISPLAY and NATIONAL) is read
+    ///         only until its last digit position is filled, so whatever follows is never examined (<c>12.50CR</c> into
+    ///         <c>PIC 9(5)V99</c> is 12.50); a binary or packed item reads the whole text, so the same <c>CR</c> is invalid.</item>
+    /// </list>
+    /// A P-scaled item is read by VALUE: <c>PIC 9(3)PP</c> given 1200 holds 12 (its digits are the hundreds), and a
+    /// packed <c>PIC PP9(3)</c> given .00123 holds 123 (a DISPLAY one is cut by its three-character window first).</summary>
+    /// <param name="window">The transferred characters.</param>
+    /// <param name="receiver">The receiving item's profile.</param>
+    /// <param name="commaMode">The unit's decimal separator: <c>,</c> under DECIMAL-POINT IS COMMA, else <c>.</c>.</param>
+    public static Int128 ParseDeviceDecimal(string window, in NumProfile receiver, bool commaMode)
+    {
+        char point = commaMode ? ',' : '.';
+        char group = commaMode ? '.' : ',';
+        int i = 0, n = window.Length;
+        while (i < n && window[i] == ' ') i++;
+        bool negative = false;
+        if (i < n && window[i] is '+' or '-') { negative = window[i] == '-'; i++; }
+
+        bool binaryCapacity = receiver.Truncation == NumericTruncation.BinaryCapacity;
+        bool characterForm = receiver.ByteForm == NumericByteForm.Zoned;
+        int scale = receiver.FractionDigits;
+        int digits = binaryCapacity ? DeviceReadDigits : Math.Min(receiver.Digits, DeviceReadDigits);
+        int fractionCap = Math.Max(scale, 0);
+        int integerCap = Math.Min(Math.Max(digits - scale, 0), DeviceReadDigits);
+
+        // The integer digits the text carries: every digit before the first separator, junk or not, so the item's
+        // high-order surplus (count - integerCap) is dropped from the FRONT of the run, never from its end.
+        int count = 0;
+        for (int k = i; k < n && window[k] != point; k++)
+            if (char.IsAsciiDigit(window[k])) count++;
+        int skip = Math.Max(0, count - integerCap);
+
+        Int128 integer = 0, fraction = 0;
+        int integerRead = 0, fractionRead = 0;
+        bool pointSeen = false;
+        for (; i < n; i++)
+        {
+            // The last digit position is filled: a character item stops here and the rest of the window is ignored.
+            if (characterForm && integerRead == count && fractionRead == fractionCap) break;
+            char c = window[i];
+            if (char.IsAsciiDigit(c))
+            {
+                int d = c - '0';
+                if (!pointSeen)
+                {
+                    if (++integerRead > skip) integer = integer * 10 + d;
+                }
+                else if (fractionRead < fractionCap)
+                {
+                    fraction = fraction % Pow10.AsWide(DeviceReadDigits - 1) * 10 + d;   // the low-order digits are the ones kept
+                    fractionRead++;
+                }
+            }
+            else if (c == point)
+            {
+                if (pointSeen) return 0;
+                pointSeen = true;
+            }
+            else if (c != ' ' && c != group) return 0;
+        }
+
+        // The unscaled value: integer digits at the scale plus the fraction padded to the scale, then the store's
+        // high-order truncation to the item's digits.
+        Int128 value;
+        if (scale >= 0)
+        {
+            int pad = fractionCap - fractionRead;
+            Int128 high = scale < digits ? integer * Pow10.AsWide(scale) : 0;
+            Int128 low = pad >= digits ? 0 : fraction % Pow10.AsWide(digits - pad) * Pow10.AsWide(pad);
+            value = high + low;
+        }
+        else value = -scale > DeviceReadDigits ? 0 : integer / Pow10.AsWide(-scale);
+        if (negative && receiver.Signed) value = -value;
+        return binaryCapacity ? WrapBinary(value, receiver) : value % Pow10.AsWide(digits);
+    }
+
     /// <summary>The digit positions a numeric item shows under the decimal device form: its PICTURE's, except a
     /// BINARY-CAPACITY item's, which are its container's (the decimal digits of the largest unsigned value of
     /// <see cref="NumProfile.StorageLength"/> bytes: 3, 5, 10, 20 and 39 for 1, 2, 4, 8 and 16 bytes — GnuCOBOL 3.2.0's

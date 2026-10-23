@@ -72,12 +72,12 @@ public sealed class RunUnitFileLockAmendTests
 
         public void Reset() => (Establishments, Admitted) = (0, 0);
 
-        public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+        public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
             IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
         {
             Establishments++;
             if (Ask(inner, file, Racer.Sharing, Racer.Mode) == RunUnitFileLock.Outcome.Held) Admitted++;
-            return inner.Establish(hostPath, own, refused, supersedes, out hold);
+            return inner.Establish(hostPath, own, owesWrites, refused, supersedes, out hold);
         }
     }
 
@@ -118,7 +118,7 @@ public sealed class RunUnitFileLockAmendTests
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(racing, file, old.Item1, old.Item2, out var kept));
             racing.Reset();
 
-            Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(replacement.Item1, replacement.Item2));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(replacement.Item1, replacement.Item2, owesWrites: false));
             Assert.Equal((1, 0), (racing.Establishments, racing.Admitted));
             Assert.Equal(RunUnitFileLock.Outcome.Refused, Ask(HostNamed(hostName), file, third.Item1, third.Item2));   // the new column stands
 
@@ -156,7 +156,7 @@ public sealed class RunUnitFileLockAmendTests
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(HostNamed(hostName), file, other.Item1, other.Item2, out var neighbour));
             racing.Reset();
 
-            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(replacement.Item1, replacement.Item2));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(replacement.Item1, replacement.Item2, owesWrites: false));
             Assert.Equal((1, 0), (racing.Establishments, racing.Admitted));
             neighbour!.Dispose();   // alone again: only K's column stands against the writer
             Assert.Equal(RunUnitFileLock.Outcome.Refused, Ask(HostNamed(hostName), file, writer.Item1, writer.Item2));

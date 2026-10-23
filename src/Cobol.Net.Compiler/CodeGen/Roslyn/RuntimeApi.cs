@@ -82,6 +82,12 @@ internal static class RuntimeApi
     public static string NumParseDisplay(string image, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.ParseDisplay)}({image}, {profile})";
 
+    /// <summary>ACCEPT's device transfer into a fixed-point numeric receiver under the decimal device form, converted to the
+    /// receiver's unscaled value — <c>AcceptSource.DeviceNumeric</c> (ISO §14.9.1.4 GR1; kb/Work PB3513).
+    /// <paramref name="size"/> is the receiver's character-position count, an <c>int</c> expression.</summary>
+    public static string AcceptDeviceNumeric(string profile, string size, bool commaMode) =>
+        $"{nameof(AcceptSource)}.{nameof(AcceptSource.DeviceNumeric)}({profile}, {size}, {(commaMode ? "true" : "false")})";
+
     /// <summary>An unsigned integer's DISPLAY image zero-padded to a fixed digit width —
     /// <c>CobolNum.FormatUnsignedDisplay</c> (the ACCEPT temporal conceptual-item image, ISO §14.9.1.4 GR7–GR12).</summary>
     public static string NumFormatUnsignedDisplay(string value, int digits) =>
@@ -2734,9 +2740,15 @@ internal static class RuntimeApi
         $"{nameof(CobolBits)}.{nameof(CobolBits.Slice)}({carrierExpr}, {offsetExpr}, {countExpr})";
 
     /// <summary>The carrier of a table of bit occurrences laid <paramref name="strideExpr"/> bits apart —
-    /// <c>CobolBits.Strided</c>.</summary>
-    public static string BitsStrided(string occurrencesExpr, string strideExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.Strided)}({occurrencesExpr}, {strideExpr})";
+    /// <c>CobolBits.Strided</c>; <paramref name="padsExpr"/> is the table's STORED implicit filler between the occurrences
+    /// (§8.5.1.6.3, kb/Work PB3564).</summary>
+    public static string BitsStrided(string occurrencesExpr, string strideExpr, string padsExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Strided)}({occurrencesExpr}, {strideExpr}, {padsExpr})";
+
+    /// <summary>The filler positions between the occurrences of a strided table, read from its unpacked carrier —
+    /// <c>CobolBits.StridePads</c>, the inverse of <see cref="BitsStrided"/>'s padding (kb/Work PB3564).</summary>
+    public static string BitsStridePads(string carrierExpr, string atExpr, string widthExpr, string strideExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.StridePads)}({carrierExpr}, {atExpr}, {widthExpr}, {strideExpr}, {countExpr})";
 
     /// <summary>Repeat an element image for a table initializer — <c>CobolString.Repeat</c>.</summary>
     public static string StrRepeat(string s, string n) =>

@@ -23,6 +23,12 @@ namespace CobolNet.Runtime.IO;
 /// (<see cref="OfdColumnLockHost"/>): two OPENs at the same instant cannot both pass, because whichever publishes second
 /// finds the first (both may be refused, which is a refused OPEN and no violated lock). The lock dies with the handle, so
 /// a run unit that is killed releases it.</para>
+/// <para><b>The owed-writes byte</b> (kb/Work PB3499). A holder whose connector is an INPUT opener with a handle open for
+/// WRITING (<see cref="IColumnLockHost.Establish"/>'s <c>owesWrites</c>) holds exclusively one byte more, of the range
+/// <see cref="HostRegionLocks.OwedWritesRangeStart"/>, chosen and tested exactly as a column's is. It is the one fact that
+/// lets a share mode yield to the right writer: <see cref="FileConnector.Open"/>'s second attempt asks
+/// <see cref="IPublishedColumn.AnotherOwesWrites"/>, a test of that range with the asker's own byte left out, and a reader
+/// that merely holds an INPUT column publishes nothing there, so it is no reason to admit a program outside the protocol.</para>
 /// <para><b>SHARING WITH NO OTHER publishes nothing</b> (<see cref="RunUnitFileLock.Outcome.Unavailable"/>): its own handle
 /// is <see cref="FileShare.None"/>, which refuses this host's read handle, and refuses every other open — a column
 /// would add nothing the share mode does not already say. A holder that meets such a connector is refused: its read
@@ -45,7 +51,13 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// be trusted here, not a refusal.</summary>
     private const int PublishAttempts = 64;
 
-    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+    /// <inheritdoc/>
+    /// <remarks>⛔ <paramref name="owesWrites"/> is published as one more exclusive byte, of the OWED-WRITES range
+    /// (<see cref="HostRegionLocks.OwedWritesRangeStart"/>), through the same handle and in the same request as the column: a
+    /// request that cannot publish it is <see cref="RunUnitFileLock.Outcome.Unavailable"/> and leaves nothing published. A
+    /// superseding request keeps the superseded hold's byte when it owes writes too, publishes one when only it does, and
+    /// gives the old one back, after the new state stands, when only the superseded hold did.</remarks>
+    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
         IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
     {
         hold = null;
@@ -70,7 +82,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             catch (NotSupportedException) { return RunUnitFileLock.Outcome.Unavailable; }
 
         bool kept = false;
-        long added = -1;
+        long added = -1, addedOwed = -1;
         try
         {
             if (previous is null && !WindowsByteRangeLocks.IsDiskFile(handle)) return RunUnitFileLock.Outcome.Unavailable;   // only a disk file is locked
@@ -78,9 +90,20 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             if (previous is not null && previous.Own == own) publishedByte = previous.Byte;   // the column stands as it is
             else
             {
-                publishedByte = Publish(handle, own);
+                publishedByte = Publish(handle, HostRegionLocks.ColumnRangeStart(own));
                 if (publishedByte < 0) return RunUnitFileLock.Outcome.Unavailable;
                 added = publishedByte;
+            }
+
+            // The owed-writes byte: the superseded hold's when this request owes writes too, a new one when only this request
+            // does. One the superseded hold had and this request does not owe goes back with the old column, below.
+            long supersededOwed = previous?.OwedByte ?? -1;
+            long owedByte = owesWrites ? supersededOwed : -1;
+            if (owesWrites && owedByte < 0)
+            {
+                owedByte = Publish(handle, HostRegionLocks.OwedWritesRangeStart);
+                if (owedByte < 0) return RunUnitFileLock.Outcome.Unavailable;
+                addedOwed = owedByte;
             }
 
             (ExistingSharingColumn, long)[] ownBytes = previous is null || previous.Own == own
@@ -89,12 +112,13 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             foreach (var column in refused)
                 if (OthersHold(handle, column, ownBytes, whenUnobservable: true)) return RunUnitFileLock.Outcome.Refused;
 
-            if (previous is null) hold = new Published(handle, own, publishedByte);
+            if (previous is null) hold = new Published(handle, own, publishedByte, owedByte);
             else
             {
-                // The replacement stands; only now does the column it replaced go.
+                // The replacement stands; only now does what it replaced go.
                 if (previous.Own != own) WindowsByteRangeLocks.Unlock(handle, previous.Byte, 1);
-                previous.Move(own, publishedByte);
+                if (!owesWrites && supersededOwed >= 0) WindowsByteRangeLocks.Unlock(handle, supersededOwed, 1);
+                previous.Move(own, publishedByte, owedByte);
                 hold = previous;
             }
             kept = true;
@@ -104,26 +128,27 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         {
             if (!kept)
             {
-                // A superseded hold stays as it was: only the byte this request added is given back — unlocked
+                // A superseded hold stays as it was: only the bytes this request added are given back — unlocked
                 // explicitly before a handle of this request's own is closed (kb/Work PB3549: never left to the close).
                 if (added >= 0) WindowsByteRangeLocks.Unlock(handle, added, 1);
+                if (addedOwed >= 0) WindowsByteRangeLocks.Unlock(handle, addedOwed, 1);
                 if (previous is null) handle.Dispose();
             }
         }
     }
 
-    /// <summary>Hold exclusively one byte of <paramref name="own"/>'s range through <paramref name="handle"/>, chosen at
-    /// random, and answer it; -1 when this host cannot (the attempts ran out, or the handle carries no lock).</summary>
+    /// <summary>Hold exclusively one byte of the range starting at <paramref name="rangeStart"/> (a column's, or the
+    /// owed-writes range) through <paramref name="handle"/>, chosen at random, and answer it; -1 when this host cannot (the
+    /// attempts ran out, or the handle carries no lock).</summary>
     [SupportedOSPlatform("windows")]
-    private static long Publish(SafeFileHandle handle, ExistingSharingColumn own)
+    private static long Publish(SafeFileHandle handle, long rangeStart)
     {
-        long ownStart = HostRegionLocks.ColumnRangeStart(own);
         for (int attempt = 0; attempt < PublishAttempts; attempt++)
         {
             // A tester's shared request over the range lasts microseconds: the first retries yield, the later ones wait
             // a millisecond, so a run of tries cannot all fall inside one tester's instant.
             if (attempt > 0) { if (attempt < 8) Thread.Yield(); else Thread.Sleep(1); }
-            long candidate = ownStart + Random.Shared.NextInt64(HostRegionLocks.ColumnRangeWidth);
+            long candidate = rangeStart + Random.Shared.NextInt64(HostRegionLocks.ColumnRangeWidth);
             switch (WindowsByteRangeLocks.Lock(handle, candidate, 1, exclusive: true, wait: false))
             {
                 case RegionLockResult.Ok: return candidate;
@@ -146,7 +171,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         foreach (var column in refused)
             if (OthersHold(previous.Handle!, column, ownBytes, whenUnobservable: true)) return RunUnitFileLock.Outcome.Refused;
         previous.Dispose();
-        hold = new Published(null, ExistingSharingColumn.NoOtherAnyMode, -1);
+        hold = new Published(null, ExistingSharingColumn.NoOtherAnyMode, -1, -1);
         return RunUnitFileLock.Outcome.Held;
     }
 
@@ -159,16 +184,23 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     private static bool OthersHold(SafeFileHandle handle, ExistingSharingColumn column,
         ReadOnlySpan<(ExistingSharingColumn Column, long Byte)> ownBytes, bool whenUnobservable)
     {
-        long start = HostRegionLocks.ColumnRangeStart(column);
-        long end = start + HostRegionLocks.ColumnRangeWidth;
         Span<long> skipped = stackalloc long[ownBytes.Length];
         int count = 0;
         foreach (var (ownColumn, ownByte) in ownBytes)
             if (ownColumn == column) skipped[count++] = ownByte;
-        skipped = skipped[..count];
-        skipped.Sort();
-        long from = start;
-        foreach (long ownByte in skipped)
+        return OthersHoldRange(handle, HostRegionLocks.ColumnRangeStart(column), skipped[..count], whenUnobservable);
+    }
+
+    /// <summary>Does a handle other than the asker's hold a byte of the range starting at <paramref name="rangeStart"/>
+    /// (<see cref="HostRegionLocks.ColumnRangeWidth"/> wide), the asker's own bytes (<paramref name="ownBytes"/>, in any order)
+    /// left out? The one question both a column and the owed-writes range are asked by.</summary>
+    [SupportedOSPlatform("windows")]
+    private static bool OthersHoldRange(SafeFileHandle handle, long rangeStart, Span<long> ownBytes, bool whenUnobservable)
+    {
+        long end = rangeStart + HostRegionLocks.ColumnRangeWidth;
+        ownBytes.Sort();
+        long from = rangeStart;
+        foreach (long ownByte in ownBytes)
         {
             if (RangeIsHeld(handle, from, ownByte - from, whenUnobservable)) return true;
             from = ownByte + 1;
@@ -187,10 +219,10 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         return taken == RegionLockResult.Held || (taken == RegionLockResult.Unavailable && whenUnobservable);
     }
 
-    /// <summary>The published column: disposing it unlocks its byte and closes the handle. Idempotent. A superseding request
+    /// <summary>The published column: disposing it unlocks its bytes (the column's and the owed-writes one) and closes the handle. Idempotent. A superseding request
     /// moves it to its own column (<see cref="Move"/>); a hold with no handle publishes nothing (a re-OPEN under SHARING
     /// WITH NO OTHER, <see cref="GiveWay"/>).</summary>
-    private sealed class Published(SafeFileHandle? handle, ExistingSharingColumn own, long publishedByte) : IPublishedColumn
+    private sealed class Published(SafeFileHandle? handle, ExistingSharingColumn own, long publishedByte, long owedByte) : IPublishedColumn
     {
         /// <summary>The holder's handle, or null once given back (or when it publishes nothing).</summary>
         internal SafeFileHandle? Handle { get; private set; } = handle;
@@ -201,21 +233,35 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         /// <summary>The byte of <see cref="Own"/>'s range the handle holds exclusively.</summary>
         internal long Byte { get; private set; } = publishedByte;
 
-        /// <summary>A superseding request published <paramref name="column"/> at <paramref name="at"/> and gave the old byte back.</summary>
-        internal void Move(ExistingSharingColumn column, long at) => (Own, Byte) = (column, at);
+        /// <summary>The byte of the owed-writes range the handle holds exclusively (<see cref="IColumnLockHost.Establish"/>'s
+        /// <c>owesWrites</c>), or -1 when its connector owes none.</summary>
+        internal long OwedByte { get; private set; } = owedByte;
+
+        /// <summary>A superseding request published <paramref name="column"/> at <paramref name="at"/> and the owed-writes state
+        /// <paramref name="owed"/> (a byte, or -1), and gave back what it replaced.</summary>
+        internal void Move(ExistingSharingColumn column, long at, long owed) => (Own, Byte, OwedByte) = (column, at, owed);
 
         public bool HoldsAHandle => Handle is { IsClosed: false };
 
-        public bool AnotherHolds(ExistingSharingColumn column) =>
-            Handle is { IsClosed: false } held && OperatingSystem.IsWindows()
-            && OthersHold(held, column, [(Own, Byte)], whenUnobservable: false);
+        public bool AnotherOwesWrites()
+        {
+            if (Handle is not { IsClosed: false } held || !OperatingSystem.IsWindows()) return false;
+            Span<long> own = stackalloc long[1];
+            int count = 0;
+            if (OwedByte >= 0) own[count++] = OwedByte;
+            return OthersHoldRange(held, HostRegionLocks.OwedWritesRangeStart, own[..count], whenUnobservable: false);
+        }
 
-        /// <summary>Unlock the published byte, THEN close the handle (kb/Work PB3549): Windows documents that the time it
+        /// <summary>Unlock the published bytes, THEN close the handle (kb/Work PB3549): Windows documents that the time it
         /// takes to unlock a closed handle's locks "depends upon available system resources", so a successor must not be
         /// refused for a column already given back.</summary>
         public void Dispose()
         {
-            if (Handle is { IsClosed: false } held && OperatingSystem.IsWindows()) WindowsByteRangeLocks.Unlock(held, Byte, 1);
+            if (Handle is { IsClosed: false } held && OperatingSystem.IsWindows())
+            {
+                WindowsByteRangeLocks.Unlock(held, Byte, 1);
+                if (OwedByte >= 0) WindowsByteRangeLocks.Unlock(held, OwedByte, 1);
+            }
             Handle?.Dispose();
             Handle = null;
         }
