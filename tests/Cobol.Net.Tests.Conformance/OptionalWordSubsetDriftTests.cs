@@ -853,10 +853,11 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         new("value-when-set-to-false", "13.18.63.2 Format 3", 2002, ["IS", "WHEN", "SET", "TO", "IS"], "OPWN",
             ValueFalseWords),
         // kb/Work PB695 family 3 — the last eight audit candidates plus the INHERITS sibling the audit is
-        // structurally blind to. The three DECLINED constructs family 3 also relaxed (APPLY COMMIT's ON,
-        // VALIDATE-STATUS's WHEN, ERASE's END and OF) cannot appear here — a subset row must COMPILE AND RUN,
-        // and those refuse by name — so they are pinned by the negative corpus instead
-        // (pb695-apply-commit-no-on, pb695-validate-status-no-when, pb695-erase-no-end-of).
+        // structurally blind to. The two DECLINED constructs family 3 also relaxed (VALIDATE-STATUS's WHEN, ERASE's
+        // END and OF) cannot appear here — a subset row must COMPILE AND RUN, and those refuse by name — so they are
+        // pinned by the negative corpus instead (pb695-validate-status-no-when, pb695-erase-no-end-of). APPLY COMMIT's
+        // ON, declined too until kb/Work PB3340 admitted the clause's SEQUENTIAL file, is pinned by the corpus case that
+        // now compiles and runs it (pb695-apply-commit-no-on: the ON-less clause's file is rolled back).
         new("alternate-suppress-when", "12.4.5.6.2", 2023, ["KEY", "IS", "WITH", "WHEN"], "OPWO",
             AlternateSuppress),
         new("lock-mode-words", "12.4.5.9.2", 2002, ["MODE", "IS", "WITH"], "OPWP", LockModeWords),

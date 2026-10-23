@@ -61,7 +61,8 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     }
 
     /// <summary>⛔ ACTIVATE an APPLY COMMIT clause (§12.4.6.3.4 GR5) — emitted at the activation of a runtime element that
-    /// contains one, once per element instance. <paramref name="files"/> are the keyed file connectors the clause names,
+    /// contains one, once per element instance. <paramref name="fileNames"/> are the file connectors the clause names (every
+    /// organization §9.1.18.2 admits: the keyed ones and, kb/Work PB3340, the sequential ones),
     /// put under commit control here (<see cref="FileRegistry.RegisterCommitControl"/>); <paramref name="save"/> runs at
     /// once, because a ROLLBACK before the first COMMIT restores the state "at the start of the run unit" (§14.9.36.4 GR3),
     /// which for an element activated later is its state at activation. Returns false — and activates nothing — when
@@ -70,7 +71,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     /// which commit and rollback is not permitted") — the ACTIVATING element's checking, which the activation boundary
     /// latched (<see cref="ExceptionEngine.ActivatorFlowApplyCommit"/>) — and with checking off the clause stays
     /// inactive.</summary>
-    public bool Activate(object owner, string[] keyedFiles, Action save, Action restore, Func<string, bool> storeStatus)
+    public bool Activate(object owner, string[] fileNames, Action save, Action restore, Func<string, bool> storeStatus)
     {
         if (FlowForbidden(out string why))
         {
@@ -82,9 +83,9 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
             finally { exceptions.FlowApplyCommitChecking = scoped; }
             return false;
         }
-        foreach (var name in keyedFiles) files.RegisterCommitControl(name);
+        foreach (var name in fileNames) files.RegisterCommitControl(name);
         save();
-        _participants.Add(new Participant(owner, keyedFiles, save, restore, storeStatus));
+        _participants.Add(new Participant(owner, fileNames, save, restore, storeStatus));
         return true;
     }
 

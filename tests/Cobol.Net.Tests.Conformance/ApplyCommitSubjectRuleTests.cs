@@ -11,12 +11,12 @@ namespace CobolNet.Tests.Conformance;
 /// <c>DataBinder.ScreenApplyCommitSubject</c>) in BOTH lanes.
 /// </summary>
 /// <remarks>
-/// <para>⛔ WHY THIS EXISTS. Until kb/Work PB3338 the APPLY COMMIT clause was declined (COBOLNET1709, Annex A.4.3 item 2),
+/// <para>⛔ WHY THIS EXISTS. Until kb/Work PB3338 the APPLY COMMIT clause was declined (Annex A.4.3 item 2),
 /// so the family was recorded CONFORMS as vacuously satisfied (kb/Work PB371) and only <c>--permissive</c>, where the
 /// declined clause was a warning, reached the rules (PB666). Since PB3338 the clause is accepted for a RELATIVE or
 /// INDEXED file, so every forbidden shape is a program a user can write in the strict lane. The corpus negatives pin the
 /// strict lane's refusal by code; this class pins, for both lanes, that the refusal is the rule's own (its citation in
-/// the message) and that the clause itself is no longer declined (no COBOLNET1709).</para>
+/// the message) and that it is the only refusal: every diagnostic is the rule's.</para>
 /// <para>The sources ARE the corpus fixtures, read from disk, so the forbidden shape is written once. §12.4.6.4.4 GR3
 /// (two files of one SAME clause both subject to commit and rollback) is a general rule, not one of these syntax
 /// rules, and has no fixture here.</para>
@@ -29,7 +29,7 @@ public sealed class ApplyCommitSubjectRuleTests
             .Where(line => !line.TrimStart().StartsWith("*>", StringComparison.Ordinal)));
 
     /// <summary>Each fixture's forbidden shape, over a RELATIVE file, draws its rule in the strict lane and under
-    /// <c>--permissive</c> alike, and the APPLY COMMIT clause itself is accepted (no COBOLNET1709).</summary>
+    /// <c>--permissive</c> alike, and nothing else of the program is refused (the APPLY COMMIT clause itself is accepted).</summary>
     [Theory]
     [InlineData("apply-commit-open-sharing", "§14.9.27.3 SR7", false)]
     [InlineData("apply-commit-open-sharing", "§14.9.27.3 SR7", true)]
@@ -49,8 +49,9 @@ public sealed class ApplyCommitSubjectRuleTests
         Assert.False(ok, $"{fixture}: {rule} forbids this shape for a file subject to an APPLY COMMIT clause");
         Assert.Contains(errors, e => e.Contains("COBOLNET2974", StringComparison.Ordinal)
                                      && e.Contains(rule, StringComparison.Ordinal));
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1709");     // the clause is accepted for a RELATIVE file
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1709");
+        Assert.All(errors.Where(e => e.Contains("COBOLNET", StringComparison.Ordinal)),
+            e => Assert.Contains("COBOLNET2974", e, StringComparison.Ordinal));   // the clause is accepted: the rule is the only refusal
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET17", StringComparison.Ordinal));   // and no declined-facility warning
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the SR7 fixture with its I-O-CONTROL paragraph removed — the
