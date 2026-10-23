@@ -1,4 +1,4 @@
-## PB3565: COMPUTE with a sole boolean function, parenthesised boolean item or boolean constant-name is Format 2, through the one sole-operand classifier
+## Entry 2406 — 2026-10-23 12:30 PDT — PB3565: COMPUTE with a sole boolean function, parenthesised boolean item or boolean constant-name is Format 2, through the one sole-operand classifier
 
 Fuzz programs fz00030 and fz02828 (run fuzz-20261022-163846) were refused with COBOLNET1511 on `COMPUTE B8 = FUNCTION BOOLEAN-OF-INTEGER(5, 8)` with `B8 USAGE BIT PIC 1(8)`. Re-probe on the worktree build reproduced it, and the sibling sweep found the same refusal on a user-defined boolean function (alone and in parentheses), a parenthesised boolean item (`COMPUTE B8 = (C8)`) and a boolean constant-name (`COMPUTE B8 = KB`). ISO §8.8.2 admits "an identifier referencing a boolean data item" and "a boolean expression enclosed in parentheses", §15.2 2) makes a boolean function a boolean identifier, §8.4.3.2.4 1) gives a function-identifier a temporary data item, and §13.10.4 1) makes a constant-name the literal it stands for (each citation run through `cite.py --check`).
 
@@ -9,3 +9,4 @@ Goldens: `14.9.8-COMPUTE/pb3565_compute_boolean_sole_identifier` (2002; intrinsi
 Found and left: a user-defined function whose RETURNING item is `USAGE BIT` returns zeros to the caller (the MOVE inside the function works), while the same function without USAGE BIT returns the value. It is outside this mechanism and is reported as a lead.
 
 Gate: `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 000002-20261023T184314Z (Conformance 10,380/18,198, Unit 34,522/35,559, Characterization 5/36 in leg 1). The first gate was RED on `HostWitnessTraitDriftTests` because the new drift class carried the tree-wide-sweep trait it does not qualify for; the trait is dropped. Self-review found nothing further: the extraction moved the `COBOLNET1511` literals rather than adding any (the semgrep counts are unchanged).
+
