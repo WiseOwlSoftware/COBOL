@@ -3330,6 +3330,42 @@ public static class DiagnosticCatalog
         + "See docs/CONFORMANCE.md §4.",
         "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented,
         Annex: DeclinedAnnex.A4);
+
+    // ── The VALIDATE statement's OPERANDS are identifiers whether or not the facility is supported (kb/Work
+    //    PB3568). COBOLNET1580 declines the FACILITY (the statement is accepted and inert); it never declined the
+    //    §14.9.50.3 syntax rules, which are about the identifier and which §4.2.7 does not license an
+    //    implementation to skip, so each is a plain Error. Three codes, one per FAMILY of the rule's wording:
+    //    where the operand may sit (SR1), what class it may be (SR2), and what its description entry may be (SR4,
+    //    SR5). SR3 (a VALIDATE-STATUS clause referencing the operand) reads a DATA-division clause the declined
+    //    facility REFUSES by name (COBOLNET1708), so the program it would apply to is already refused, and SR6 is
+    //    COBOLNET1607's. ──
+
+    /// <summary>COBOLNET4777 — §14.9.50.3 SR1: a VALIDATE operand that is reference-modified or is not a data item
+    /// described in the file, linkage, local-storage or working-storage section.</summary>
+    public static readonly DiagnosticDescriptor ValidateOperandForm = new(
+        "COBOLNET4777", "validate-operand-form", EditionSeverity.Error,
+        "A VALIDATE operand is reference-modified, or is not a data item described in the file, linkage, "
+        + "local-storage or working-storage section. §14.9.50.3 SR1: \"Identifier-1 shall reference a data item "
+        + "described in the file, linkage, local-storage, or working-storage section. Identifier-1 shall not be "
+        + "reference-modified.\" The VALIDATE facility being unsupported (COBOLNET1580) does not lift the rule: an "
+        + "operand of the statement is still an identifier.",
+        "ISO §14.9.50.3 SR1");
+
+    /// <summary>COBOLNET4778 — §14.9.50.3 SR2: a VALIDATE operand of class index, message-tag, object or pointer.</summary>
+    public static readonly DiagnosticDescriptor ValidateOperandClass = new(
+        "COBOLNET4778", "validate-operand-class", EditionSeverity.Error,
+        "A VALIDATE operand references a data item of class index, message-tag, object or pointer. §14.9.50.3 SR2: "
+        + "\"Identifier-1 shall not reference a data item of class index, message-tag, object, or pointer.\"",
+        "ISO §14.9.50.3 SR2");
+
+    /// <summary>COBOLNET4779 — §14.9.50.3 SR4 and SR5: a VALIDATE operand that is a 66-level entry or is described
+    /// with the ANY LENGTH clause.</summary>
+    public static readonly DiagnosticDescriptor ValidateOperandDescription = new(
+        "COBOLNET4779", "validate-operand-description", EditionSeverity.Error,
+        "A VALIDATE operand references a 66-level (RENAMES) entry or a data item described with the ANY LENGTH "
+        + "clause. §14.9.50.3 SR4: \"Identifier-1 shall not reference a 66-level entry.\" SR5: \"Identifier-1 shall "
+        + "not be described with the ANY LENGTH clause.\"",
+        "ISO §14.9.50.3 SR4 / SR5");
     // ⛔ ONE CODE FOR THE WHOLE CLAUSE, BOTH ARMS, and that is the point (kb/Work PB292). The general format
     //    (§12.4.5.11.2, rendered from the printed page) is a plain required choice — `RECORD DELIMITER IS
     //    { STANDARD-1 | feature-name-1 }` — and the two alternatives are declined on DIFFERENT grounds that
