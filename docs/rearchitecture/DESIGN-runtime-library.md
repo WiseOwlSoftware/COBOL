@@ -2048,8 +2048,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6). COMMIT and ROLLBACK
   are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
   describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
-  the element that describes it, and handed to that file's exception processing, whose last step is §14.6.13.1.3 item
-  8's ROLLBACK (`SequentialIoEmitter.EmitUseHook` for every statement on a keyed file of the clause). The statement's
+  the element that describes it, and handed to that file's exception processing. §14.6.13.1.3 item 8's ROLLBACK is ONE
+  rule (`SequentialIoEmitter.Item8Applies`, kb/Work PB3542-PB3544), which every hook arm consumes: it is asked at the
+  raise (`CobolFile.RollbackDueOnFatal`: checking for the raised condition not enabled, the status fatal, the file under
+  commit control; asked before the declarative, whose own CLOSE would replace the status) and run after the declarative
+  and before a RESUME transfers control or DOC-A.1-103 ends the run unit (`CobolFile.RollbackOnFatal`); never on a SORT
+  or MERGE implicit transfer (item 2) nor after an ON EXCEPTION phrase that processes the condition (item 1). It is the
+  ROLLBACK statement's general rules, so in a SORT input or output procedure it raises EC-FLOW-ROLLBACK (§14.9.36.4 GR2;
+  every input-output statement on a file under commit control declares the condition, `EcBinder.NodeKindRaises`); its
+  own refusal is not told to the program, and `TransactionControl.HasStatusItem` is a question that stores nothing (the
+  refusal recorded whether a FILE STATUS item was told). `Item8RollbackSiteDriftTests` pins the one site. The statement's
   node carries the files of its own element's clause under commit control (`BoundCommitRollback.Files`, read from
   `ApplyCommitModel.CommitControlledFiles`, the one statement of "a declined SEQUENTIAL operand is absent"), and they are
   its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through

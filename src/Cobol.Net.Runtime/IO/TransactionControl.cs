@@ -35,6 +35,9 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
 
     private readonly List<Participant> _participants = [];
 
+    /// <summary>Per refused file, whether its last refusal reached a FILE STATUS item (<see cref="HasStatusItem"/>).</summary>
+    private readonly Dictionary<string, bool> _toldByStatusItem = [];
+
     /// <summary>Whether a clause is active in the run unit — §14.9.7.4 GR1 / §14.9.36.4 GR1's "no active APPLY COMMIT
     /// clause" is its negation.</summary>
     public bool AnyActive => _participants.Count > 0;
@@ -118,7 +121,12 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
     /// §9.1.18.7 forbids raises EC-FLOW-ROLLBACK (GR2) or, with checking off, does nothing. The data items are restored
     /// even when a file's ROLLBACK is refused: every other file was rolled back, and the program is told of the one that
     /// was not by its '30'.</summary>
-    public string? Rollback()
+    public string? Rollback() => Execute() is { } refused ? Refused(refused) : null;
+
+    /// <summary>The ROLLBACK statement's general rules (§14.9.36.4 GR1-GR6), shared by the program's ROLLBACK
+    /// (<see cref="Rollback"/>) and §14.6.13.1.3 item 8's (<see cref="RollbackOnFatal"/>): returns the connector name of
+    /// the file whose ROLLBACK the medium refused, not yet told to the program, or null.</summary>
+    private string? Execute()
     {
         if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
         if (FlowForbidden(out string why))
@@ -128,40 +136,46 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
         }
         string? refused = files.Rollback();
         RestoreData();
-        return refused is null ? null : Refused(refused);
+        return refused;
     }
 
-    /// <summary>⛔ §14.6.13.1.3 ITEM 8: <i>"if there is a fatal exception condition for a file subject to an active APPLY
-    /// COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i> — emitted after an input-output
-    /// statement's (or a refused COMMIT's or ROLLBACK's) exception processing, where checking for the condition is not
-    /// enabled (an enabled one has terminated the run unit, whose §14.6.12 rollback is the termination's). Does nothing
-    /// unless <paramref name="name"/>'s I-O status is fatal and the file is under commit control. The ROLLBACK it executes
-    /// is the statement's, files and data items alike; its own refusal is left to the run unit's termination and the
-    /// dead-owner step (a second exception processing would repeat this one without end).</summary>
-    public void RollbackOnFatal(string name)
-    {
-        if (!files.IsCommitControlled(name) || !ExceptionCatalog.IsFatalIoStatus(files.Status(name))) return;
-        files.Rollback();
-        RestoreData();
-    }
+    /// <summary>⛔ §14.6.13.1.3 ITEM 8's QUESTION: <i>"If checking for the exception condition is not enabled, … However,
+    /// if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK
+    /// statement is executed unconditionally."</i> True when <paramref name="checkingEnabled"/> is false (the emitter's
+    /// fact: the raised condition's bit in the statement's checking — with checking enabled items 4-7 decide, and a
+    /// RESUME continues with no ROLLBACK), <paramref name="name"/>'s I-O status is fatal and the file is under commit
+    /// control. Asked at the raise, before any declarative runs, so a declarative that replaces the file's status (its
+    /// own CLOSE of the file) does not change the answer; the emitter runs <see cref="RollbackOnFatal"/> after the
+    /// declarative when it is true (<c>SequentialIoEmitter.Item8Applies</c>, the one rule).</summary>
+    public bool RollbackDueOnFatal(string name, bool checkingEnabled) =>
+        !checkingEnabled && files.IsCommitControlled(name) && ExceptionCatalog.IsFatalIoStatus(files.Status(name));
+
+    /// <summary>⛔ §14.6.13.1.3 ITEM 8's ROLLBACK: <i>"a ROLLBACK statement is executed"</i>, so it is the ROLLBACK
+    /// statement's general rules (<see cref="Execute"/>): with no active clause it is CONTINUE (§14.9.36.4 GR1), and under
+    /// the control of a recursive runtime element or a file SORT or MERGE statement it raises EC-FLOW-ROLLBACK and rolls
+    /// nothing back (GR2) — an input-output statement in a SORT input or output procedure reaches it. Files and data
+    /// items are restored alike. Its own refusal is not told to the program (the connector's I-O status keeps the '30',
+    /// the FILE STATUS item the restored value): it is left to the run unit's termination and the dead-owner step, never
+    /// to a second exception processing, which would repeat this one without end.</summary>
+    public void RollbackOnFatal() => _ = Execute();
 
     /// <summary>The refused file of a COMMIT or ROLLBACK, told to the program (DESIGN-runtime-library.md 2.2.1.10, "What the
     /// program is told"; docs/CONFORMANCE.md §5, A.4.3): the registry has set '30', and the element that describes the
     /// file stores it into its FILE STATUS item. Returns the name for the statement's exception processing.</summary>
     private string Refused(string name)
     {
-        foreach (var p in _participants) p.StoreStatus(name);
+        bool told = false;
+        foreach (var p in _participants) told |= p.StoreStatus(name);
+        _toldByStatusItem[name] = told;
         return name;
     }
 
-    /// <summary>Whether an element's FILE STATUS item received <paramref name="name"/>'s status — false when no element
-    /// describing the file writes a FILE STATUS clause for it, which is DOC-A.1-103's "nothing covers this status".</summary>
-    public bool HasStatusItem(string name)
-    {
-        foreach (var p in _participants)
-            if (p.StoreStatus(name)) return true;
-        return false;
-    }
+    /// <summary>Whether the refusal <see cref="Refused"/> last told of <paramref name="name"/> reached an element's FILE
+    /// STATUS item — false when no element describing the file writes a FILE STATUS clause for it, which is DOC-A.1-103's
+    /// "nothing covers this status". A QUESTION, so it stores nothing: asked after §14.6.13.1.3 item 8's ROLLBACK has
+    /// restored the FILE STATUS items (kb/Work PB3542), a second store would put the refusal's '30' back over the
+    /// restored value, and a participant the ROLLBACK deactivated would no longer be asked.</summary>
+    public bool HasStatusItem(string name) => _toldByStatusItem.GetValueOrDefault(name);
 
     private void RestoreData()
     {

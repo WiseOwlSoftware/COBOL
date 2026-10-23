@@ -17,8 +17,9 @@ namespace CobolNet.Tests.Unit;
 /// tested as fully as its success paths). <see cref="Store.TransactionControlTests"/> drives the run unit's half with a
 /// hand-written clause; these compile the program, so the EMITTED half is checked: <c>TransactionEmitter.EmitStatement</c>'s
 /// own-file arm (the FILE STATUS store, the file's exception processing, item 8's ROLLBACK, in that order) and its
-/// foreign-file arm (another element's file), and the item 8 line <c>SequentialIoEmitter.EmitUseHook</c> appends to every
-/// input-output statement on a file under commit control. Each runs in both keyed organizations, with every combination
+/// foreign-file arm (another element's file), and the item 8 lines <c>SequentialIoEmitter.EmitUseHook</c> writes around
+/// every input-output statement's exception processing on a file under commit control (<c>Item8Applies</c>, the one
+/// rule; kb/Work PB3542). Each runs in both keyed organizations, with every combination
 /// of a USE procedure and a FILE STATUS clause, and with EC-I-O checking enabled with no declarative and with a
 /// declarative for the condition.
 ///
@@ -37,9 +38,9 @@ namespace CobolNet.Tests.Unit;
 /// active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i>; that ROLLBACK restores the
 /// files and the data items to the last COMMIT, here the activation (§14.9.36.4 GR3: <i>"the state they were in at the
 /// execution of the last COMMIT statement or the start of the run unit"</i>), and the data items include the FILE STATUS
-/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"This includes the file status data items"</i>), so after item 8 the FILE
-/// STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it is
-/// the condition's exception processing; item 8 is the hook's last step), so it sees '30' and 'CHGD'. With checking not
+/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"It also includes the file status data items"</i>), so after item 8 the
+/// FILE STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it
+/// is the condition's exception processing; item 8's ROLLBACK follows it), so it sees '30' and 'CHGD'. With checking not
 /// enabled the run unit continues when a FILE STATUS clause or a USE procedure covers the statement and terminates
 /// abnormally when neither does (DOC-A.1-103); with checking enabled the run unit terminates abnormally, with no
 /// declarative by §14.6.13.1.3 rule 7 and after a declarative for the condition by rule 5, whose trace entry is then the
