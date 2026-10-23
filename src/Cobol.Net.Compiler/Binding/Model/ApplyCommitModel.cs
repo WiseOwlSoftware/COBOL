@@ -9,9 +9,10 @@ namespace CobolNet.Binding.Model;
 /// <see cref="FileModel.SubjectToApplyCommit"/>, the antecedent of the claimed clauses' syntax rules.
 /// <see cref="Items"/> is every data item the clause saves at COMMIT and restores at ROLLBACK: the identifier-1
 /// operands (SR3) and, after them, the items SR9 makes "automatically subject to the APPLY COMMIT clause" — each listed
-/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (§14.9.7.4 GR5, §14.9.36.4 GR3:
+/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (COMMIT, §14.9.7.4 GR5:
 /// "This includes the file status data items and data-items specified in the linage or record clauses of the file
-/// descriptions"). An item appears once, whichever way it arrived.</para>
+/// descriptions"; ROLLBACK, §14.9.36.4 GR3: "It also includes the file status data items and data-items specified in the
+/// linage or record clauses of the file descriptions"). An item appears once, whichever way it arrived.</para>
 /// </summary>
 public sealed class ApplyCommitModel
 {

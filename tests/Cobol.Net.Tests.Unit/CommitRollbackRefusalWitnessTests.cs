@@ -38,9 +38,9 @@ namespace CobolNet.Tests.Unit;
 /// active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i>; that ROLLBACK restores the
 /// files and the data items to the last COMMIT, here the activation (§14.9.36.4 GR3: <i>"the state they were in at the
 /// execution of the last COMMIT statement or the start of the run unit"</i>), and the data items include the FILE STATUS
-/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"This includes the file status data items"</i>), so after item 8 the FILE
-/// STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it is
-/// the condition's exception processing; item 8's ROLLBACK follows it), so it sees '30' and 'CHGD'. With checking not
+/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"It also includes the file status data items"</i>), so after item 8 the
+/// FILE STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it
+/// is the condition's exception processing; item 8's ROLLBACK follows it), so it sees '30' and 'CHGD'. With checking not
 /// enabled the run unit continues when a FILE STATUS clause or a USE procedure covers the statement and terminates
 /// abnormally when neither does (DOC-A.1-103); with checking enabled the run unit terminates abnormally, with no
 /// declarative by §14.6.13.1.3 rule 7 and after a declarative for the condition by rule 5, whose trace entry is then the
