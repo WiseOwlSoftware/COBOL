@@ -94,7 +94,7 @@ public sealed class AlignedBitTableExtentDriftTests
     /// BIT. 10 ATA PIC 1(5) USAGE BIT ALIGNED.</c> — lead 2 bits, stride 16, width 11, so trailing filler 5. Its characters
     /// at every count are the character channel's (<see cref="CobolTable.OdoExtentChars"/> over the same fixed bits), and
     /// at the maximum the table is 6 characters (bit 45), never the stride count's 7 (bit 50). The receiving splice keeps
-    /// the occurrences past the count from bit <c>lead + count × stride</c> of the member.</summary>
+    /// the occurrences past the count from the character after the current extent (<see cref="OdoTail.CutAt"/>).</summary>
     [Fact]
     public void OdoTail_AgreesWithTheCharacterExtent_AtEveryCount_WhenTheTableBeginsInsideACharacter()
     {
