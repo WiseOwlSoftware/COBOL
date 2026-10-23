@@ -17577,6 +17577,14 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3567-value-plus-float-literal-unsigned-subject": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
+ },
  "pb3567-value-plus-literal-unsigned-subject": {
   "refuse-at": [
    "85",

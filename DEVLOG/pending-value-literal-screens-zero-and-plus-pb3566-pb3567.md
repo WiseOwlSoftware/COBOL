@@ -40,3 +40,15 @@ pin an implementor-defined sign image, and two stale comments ("negative literal
 corrected. Gate (run 000002-20261023T173202Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance
 10,553 of 18,207, Unit 34,701 of 35,559, Characterization 5 of 36 ran; the first gate, run 000001, stopped RED on the
 citations audit, which read a section reference in a design-doc sentence and was reworded).
+
+Review round 1 (finisher). The reviewer found the PB3567 sibling arm the sweep had missed: a floating-point literal whose
+significand carries a plus sign is a signed literal (§8.3.3.3.3 2), "If the significand is signed, the floating-point
+numeric literal is considered to be signed"), but `ValidateValueCategory` rewrites it for a fixed-point subject through
+`NumericLiteral.ExpandFloatingPoint`, which kept only a leading minus, so `PIC 9(4)V9 VALUE +1.5E+0`, `PIC 9(4) VALUE
++0.0E+0` and `88 U3-A VALUE +1.0E+1` compiled while their fixed-point twins were COBOLNET1625. The root is the expansion,
+not the screen: it now keeps whichever sign was written (`+1.5E+0` becomes `+1.5`), so the one reader in
+`ValidateNumericValue` sees the sign for the item, table, level-88 and report arms alike. New goldens:
+`pb3567-value-plus-float-literal-unsigned-subject` (refused at 2002, 2014 and 2023; floating-point literals are a
+COBOL-2002 feature, so 85 refuses them for that reason first) and `pb3567_value_signed_float_literal_signed_subject`
+(signed subjects keep the exact value at 2002 to 2023). The lead (R1-2) is fixed too: the NBZN comments in
+`pb646_national_form_numeric_2002/_2014` now cite §13.18.8.4 GR1 alone, since NBZN no longer has a VALUE clause there.

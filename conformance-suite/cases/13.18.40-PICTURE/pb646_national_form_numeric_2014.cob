@@ -81,8 +81,8 @@
       *>       BLANK WHEN ZERO clause and the VALUE clause uses either an alphanumeric or national
       *>       literal, the BLANK WHEN ZERO clause has no effect on initialization" - so NBZ, seeded
       *>       from N"  0", keeps [  0]; NBZN, STORED from the NUMERIC literal 0 by a MOVE (a numeric literal VALUE on a
-      *>       numeric-edited item is a COBOL-2023 permission, Annex E.3.3 item 43), is blanked by SR8's
-      *>       NOTE 2 and 13.18.8.4 GR1: [   ]. After MOVE 0 the clause applies to both: [   ] / [   ].
+      *>       numeric-edited item is a COBOL-2023 permission, Annex E.3.3 item 43), is blanked by
+      *>       13.18.8.4 GR1 alone (a receiving operand set to zero; no VALUE clause is involved): [   ]. After MOVE 0 the clause applies to both: [   ] / [   ].
       *>
       *> GL    13.18.60.4 GR1 - "If the USAGE clause is specified or implied at a group level, it
       *>       applies only to each elementary item in the group" - so GL is the SAME item its written
