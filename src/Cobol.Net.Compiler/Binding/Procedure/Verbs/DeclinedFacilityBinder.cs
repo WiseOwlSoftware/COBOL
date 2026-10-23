@@ -3,7 +3,6 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
-using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
