@@ -1175,4 +1175,83 @@ public sealed class HostEntryTests
         }
         finally { CutRunner.TryDelete(dir); }
     }
+
+    /// <summary>kb/Work PB3586 (branch review R1-1): an ELEMENTARY <c>USAGE BIT</c> formal and RETURNING item cross the host
+    /// entry as their boolean POSITIONS (ISO §14.8.2.1's NOTE and §8.5.2.5, cite.py OK), never the storage occupancy
+    /// <c>ceil(n/8)</c>: <c>PIC 1(8) USAGE BIT</c> is one storage character but eight positions, so a host lands eight
+    /// positions into the formal (the width <c>HostLanding.LandText</c> checks), refuses nine, and reads back an
+    /// eight-position RETURNING item; <c>PIC 1(12) USAGE BIT</c> is two storage characters and twelve positions.</summary>
+    private const string BitPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H8BIT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-B PIC 1(8) USAGE BIT.
+        01 LK-W PIC 1(12) USAGE BIT.
+        01 LK-R PIC 1(8) USAGE BIT.
+        PROCEDURE DIVISION USING LK-B LK-W RETURNING LK-R.
+        P1.
+            DISPLAY "B " LK-B " W " LK-W
+            MOVE B"01010101" TO LK-B
+            MOVE B"110011001100" TO LK-W
+            MOVE B"10100101" TO LK-R
+            GOBACK.
+        END PROGRAM H8BIT.
+        """;
+
+    private const string BitFunction = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. H8FN.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-X PIC 9(3).
+        01 LK-R PIC 1(8) USAGE BIT.
+        PROCEDURE DIVISION USING LK-X RETURNING LK-R.
+        P1.
+            MOVE B"00001010" TO LK-R
+            GOBACK.
+        END FUNCTION H8FN.
+        """;
+
+    private const string BitHost = """
+        using System;
+        using Cobol.H8PROGS;
+        using Cobol.H8FUNC;
+
+        public static class H8HostProgram
+        {
+            public static int Main()
+            {
+                string b = "00001010", w = "101010101010";
+                string r = H8BIT.Call(ref b, ref w);
+                Console.WriteLine($"1 {b} {w} {r}");
+                try { string bad = "000010101"; H8BIT.Call(ref bad, ref w); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"LENGTH {e.ParamName}"); }
+                long x = 1;
+                Console.WriteLine($"FN {H8FN.Call(ref x)}");
+                return 0;
+            }
+        }
+        """;
+
+    [Fact]
+    public void AHost_PassesAnElementaryUsageBitItem_AsItsBooleanPositions_NotItsStorageOccupancy()
+    {
+        string dir = CutRunner.NewTempDir("h8host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H8PROGS", BitPrograms);
+            NonCobolElement.CompileCobol(dir, "H8FUNC", BitFunction);
+            NonCobolElement.CompileCSharp(dir, "H8HOST", BitHost, "H8PROGS", "H8PROGS", "H8FUNC");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H8HOST.dll"), dir);
+            Assert.Equal(
+                "B 00001010 W 101010101010\n" +
+                "1 01010101 110011001100 10100101\n" +
+                "LENGTH LK_B\n" +
+                "FN 00001010", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
 }

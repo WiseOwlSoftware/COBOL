@@ -136,15 +136,33 @@ public static class CobolBits
     /// occurrences are a whole number of bytes apart (<c>BitLayout.StrideBits</c>, kb/Work PB3167), and §8.5.1.6.3
     /// generates filler only "as needed to advance alignment to a required natural boundary for the next item", so the
     /// last occurrence has none after it (<c>BitLayout.TableBits</c>). With every occurrence exactly
-    /// <paramref name="stride"/> bits wide (a table packed bit by bit) it is the plain concatenation.</summary>
-    public static string Strided(string[] occurrences, int stride)
+    /// <paramref name="stride"/> bits wide (a table packed bit by bit) it is the plain concatenation.
+    /// <para>The padding is the table's STORED implicit filler (§8.5.1.6.3 "implicitly described as a filler elementary bit
+    /// data item"; kb/Work PB3564): <paramref name="pads"/> holds the <c>stride − width</c> positions that follow each
+    /// occurrence but the last, one gap after another, as <see cref="StridePads"/> reads them back — so what a group move
+    /// wrote there is what the next read of the group gives. A pad string shorter than a gap reads zero beyond its end.</para></summary>
+    public static string Strided(string[] occurrences, int stride, string pads)
     {
         var sb = new System.Text.StringBuilder();
+        int pad = occurrences.Length > 0 ? System.Math.Max(0, stride - occurrences[0].Length) : 0;
         for (int i = 0; i < occurrences.Length; i++)
         {
             sb.Append(occurrences[i]);
-            if (i < occurrences.Length - 1 && occurrences[i].Length < stride) sb.Append('0', stride - occurrences[i].Length);
+            if (i < occurrences.Length - 1 && pad > 0) sb.Append(Slice(pads, i * pad, pad));
         }
+        return sb.ToString();
+    }
+
+    /// <summary>The inverse of <see cref="Strided"/>'s padding: the filler positions between the <paramref name="count"/>
+    /// occurrences of a <paramref name="width"/>-bit table laid <paramref name="stride"/> bits apart, read from the table's
+    /// unpacked <paramref name="carrier"/> starting at <paramref name="at"/>, one gap after another — the occurrences'
+    /// own positions are <see cref="Slice"/>d out by the caller; this is what lies between them (kb/Work PB3564).</summary>
+    public static string StridePads(string carrier, int at, int width, int stride, int count)
+    {
+        int pad = stride - width;
+        if (pad <= 0 || count < 2) return "";
+        var sb = new System.Text.StringBuilder((count - 1) * pad);
+        for (int i = 0; i < count - 1; i++) sb.Append(Slice(carrier, at + i * stride + width, pad));
         return sb.ToString();
     }
 
