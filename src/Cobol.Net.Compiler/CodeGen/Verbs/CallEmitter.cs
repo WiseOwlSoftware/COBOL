@@ -1149,7 +1149,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static int? FigurativeFillWidth(DataItem? formal) =>
         formal is null || formal.IsAnyLength || formal.IsDynamicLength ? null
         : formal.IsElementary
-            ? formal.Pic is { Category: not PicCategory.Numeric } && formal.ImageWidth > 0 ? formal.ImageWidth : null
+            ? formal.Pic is { Category: not PicCategory.Numeric } && BoundaryImageWidth(formal) is > 0 and var window ? window : null
         : VariableLengthCompatibility.IsVariableLength(formal) ? null
         : BoundaryImageWidth(formal);
 
@@ -1444,9 +1444,15 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>The character width of a formal's TEXT crossing — the unit <see cref="CallStringRead"/> measures it
     /// in: a bit / national group's as-if position count (kb/Work PB1166), else its record image width. ONE
-    /// answer for the CALL callee's carrier window and the INVOKE argument / copy-out windows.</summary>
+    /// answer for the CALL callee's carrier window and the INVOKE argument / copy-out windows.
+    /// <para>⛔ An ELEMENTARY <c>USAGE BIT</c> item crosses as its boolean POSITIONS too (kb/Work PB3586), exactly as a bit
+    /// group does: <see cref="DataItem.ImageWidth"/> is its OCCUPANCY (<c>ceil(n/8)</c> storage characters,
+    /// <c>BitLayout.Characters</c>), so a <c>PIC 1(8) USAGE BIT</c> RETURNING item stated length 1 and the delivery fitted
+    /// its eight-position result to one position: the caller read all zeros.</para></summary>
     internal static int BoundaryImageWidth(DataItem item) =>
-        item.IsAsIfElementary ? item.AsIfPic!.Length : item.ImageWidth;
+        item.IsAsIfElementary ? item.AsIfPic!.Length
+        : BitLayout.IsBitLeaf(item) ? item.Pic!.Length
+        : item.ImageWidth;
 
     /// <summary>The character window of an ELEMENTARY string-carried formal — its carrier's width: the PICTURE's
     /// length for every character category, and for an image-stored NUMERIC formal its storage image
