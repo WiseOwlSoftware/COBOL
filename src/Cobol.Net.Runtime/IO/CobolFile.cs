@@ -278,6 +278,35 @@ public static class CobolFile
     /// <see cref="FileRegistry.RegisterReserve"/>.</summary>
     public static void RegisterReserve(string name, int areas) => _reg.RegisterReserve(name, areas);
 
+    // ── COMMIT AND ROLLBACK (ISO §9.1.18; kb/Work PB3338) — see TransactionControl ───────────────────────────────────
+
+    private static TransactionControl _txn => RunUnit.Current.Transactions;
+
+    /// <summary>Activate the executing element's APPLY COMMIT clause (§12.4.6.3.4 GR5) — see
+    /// <see cref="TransactionControl.Activate"/>.</summary>
+    public static bool ActivateApplyCommit(object owner, string[] keyedFiles, Action save, Action restore,
+        Func<string, bool> storeStatus) => _txn.Activate(owner, keyedFiles, save, restore, storeStatus);
+
+    /// <summary>The element instance has been canceled or has returned as an INITIAL program — see
+    /// <see cref="TransactionControl.Retire"/>.</summary>
+    public static void RetireApplyCommit(object owner) => _txn.Retire(owner);
+
+    /// <summary>The COMMIT statement (§14.9.7) — see <see cref="TransactionControl.Commit"/>.</summary>
+    public static string? Commit() => _txn.Commit();
+
+    /// <summary>The ROLLBACK statement (§14.9.36) — see <see cref="TransactionControl.Rollback"/>.</summary>
+    public static string? Rollback() => _txn.Rollback();
+
+    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK — see <see cref="TransactionControl.RollbackOnFatal"/>.</summary>
+    public static void RollbackOnFatal(string name) => _txn.RollbackOnFatal(name);
+
+    /// <summary>A refused COMMIT or ROLLBACK on a file no element gives a FILE STATUS item — DOC-A.1-103's termination, for
+    /// a file the executing element does not describe (its own files take their statement's exception processing).</summary>
+    public static void TerminateOnRefusalWithoutStatusItem(string name, string statement)
+    {
+        if (!_txn.HasStatusItem(name)) TerminateOnUncoveredFatalStatus(name, statement);
+    }
+
     /// <summary>Register the file's §13.18.13 CODE-SET conversion — see
     /// <see cref="FileRegistry.RegisterCodeSet"/>.</summary>
     public static void RegisterCodeSet(string name, char[] toNative) => _reg.RegisterCodeSet(name, toNative);

@@ -35,19 +35,16 @@ namespace CobolNet.Tests.Conformance;
 /// <c>CobolScreen.g4</c>. Adding a screen test back here would need it to COMPILE, which is exactly what the
 /// module may no longer do.</para>
 ///
-/// <para>THE SPEC BASIS, per remaining facility. Commit/rollback is PROCESSOR-DEPENDENT (Annex A.3 item 6) and
-/// §4.2.6 third paragraph makes the compile-time warning mechanism MANDATORY for one that is not supported, so
-/// the COBOLNET1579 assertion is a conformance obligation, not a house style. VALIDATE (Annex A.4.14) is
+/// <para>THE SPEC BASIS, per remaining facility. (Commit and rollback left this class with kb/Work PB3338, which
+/// built it on the keyed store engine.) VALIDATE (Annex A.4.14) is
 /// OPTIONAL and additionally OBSOLETE (§4.2.13; Annex F.2 item 5): §4.2.7 requires only that the decline be
 /// identified in user documentation, so COBOLNET1580 is this implementation's own stronger posture — and a
-/// posture that is documented but unmeasured is exactly what these rows owe. kb/Work PB261 owns the
-/// commit/rollback debt. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
+/// posture that is documented but unmeasured is exactly what these rows owe. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
 /// item 13) are processor-dependent too, so their warnings (COBOLNET1578, COBOLNET2424) are §4.2.6 ¶3
 /// obligations; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness.</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
-    private const string CommitNonSupport = "COBOLNET1579";     // COMMIT/ROLLBACK — A.3 items 6-7 / §4.2.6 ¶3
     private const string ValidateNonSupport = "COBOLNET1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
     private const string RecordDelimiterNonSupport = "COBOLNET1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
     private const string McsNonSupport = "COBOLNET1578";               // SEND/RECEIVE — A.3 item 4 / §4.2.6 ¶3
@@ -69,21 +66,6 @@ public sealed class DocumentedNonSupportWitnessTests
             EditionHarness.AssertHasDiagnostic(warnings, code);
         }
     }
-
-    /// <summary>COMMIT / ROLLBACK → COBOLNET1579. This is the one assertion in this class the STANDARD itself
-    /// compels: Annex A.3 item 6 makes the facility processor-dependent, and §4.2.6 ¶3 — "An implementation
-    /// shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
-    /// processor-dependent language elements not supported by that implementation" — makes the compile-time
-    /// warning mandatory. §14.9.7.4 GR3/GR4/GR5 ride the decline through A.4.1. kb/Work PB261.
-    /// <para>⛔ AND IT IS THE ONLY EVIDENCE AVAILABLE, which is why the golden's <c>.out</c> cannot close these
-    /// rows on its own: §14.9.7.4 GR1 and §14.9.36.4 GR1 both read "If this statement is executed when there is
-    /// no active APPLY COMMIT clause, then it has the same effect as a CONTINUE statement with no additional
-    /// phrases", so with no APPLY COMMIT clause in the program a conforming processor and a declining one are
-    /// behaviourally IDENTICAL. The observable difference needs an APPLY COMMIT clause, and that clause does not
-    /// parse (the sibling row GR-14.9.7.4-1) — so the compile-time name is the whole witness.</para></summary>
-    [Fact]
-    public void CommitRollbackFacility_NamedNonSupportWarning_PinnedToSpec() =>
-        AssertRecognizedAndNamed(Golden("pb261_commit_facility_witness"), CommitNonSupport, 2023);
 
     /// <summary>VALIDATE → COBOLNET1580, at the editions the facility exists (2002+; at --std 85 VALIDATE is
     /// an ordinary user-defined word). §13.18.40.4 GR19's only trigger is the format validation stage of a
@@ -237,9 +219,6 @@ public sealed class DocumentedNonSupportWitnessTests
     [InlineData("declined-ec-validate-raise", "EC-VALIDATE-CONTENT")]
     [InlineData("declined-ec-validate-turn", "EC-VALIDATE")]
     [InlineData("declined-ec-validate-use", "EC-VALIDATE-FORMAT")]
-    [InlineData("declined-ec-flow-rollback-raise", "EC-FLOW-ROLLBACK")]
-    [InlineData("declined-ec-flow-commit-turn", "EC-FLOW-COMMIT")]
-    [InlineData("declined-ec-flow-apply-commit-use", "EC-FLOW-APPLY-COMMIT")]
     public void DeclinedModuleExceptionName_Permissive_IsAcceptedAndResolves(string negative, string name)
     {
         string source = Golden(negative);

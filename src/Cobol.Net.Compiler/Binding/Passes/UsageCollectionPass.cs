@@ -95,6 +95,14 @@ internal static class UsageCollectionPass
         // The program/function PROCEDURE DIVISION RETURNING group item crosses the activation boundary as its image.
         if (data.LinkageReturning is { IsGroup: true } ret) set.Add(ret);
 
+        // ⛔ AN APPLY COMMIT ITEM IS SAVED AND RESTORED AS ITS STORAGE IMAGE (§14.9.7.4 GR5, §14.9.36.4 GR3; kb/Work PB3338):
+        // the restore puts back the characters the COMMIT saved, which a numeric VALUE need not represent, so a group
+        // takes the image round trip and an elementary item is a character channel, exactly as a boundary-copied formal.
+        if (data.ApplyCommit is { } apply)
+            foreach (var item in apply.Items)
+                if (item.IsGroup) set.Add(item);
+                else channels.Add(item);
+
         // OO method USING/RETURNING group items (supplied by the caller — not on data as LinkageFormals).
         if (extraFormalGroups is not null)
             foreach (var g in extraFormalGroups)

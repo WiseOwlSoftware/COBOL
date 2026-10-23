@@ -321,11 +321,24 @@ ioControlParagraph
     : I_O_CONTROL DOT (ioControlClause DOT?)*
     ;
 
+// ISO §12.4.6.3.2 — APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] … (kb/Work PB3338).
+// ⛔ ON IS AN OPTIONAL WORD (kb/Work PB695 family 3): MEASURED on printed page 363 / folio 333, APPLY's box
+// 145.21–175.84 carries a rule at 143.99–177.13 (100% cover) and COMMIT's 180.64–224.64 one at 182.04–225.22
+// (96.8%), while ON's box 228.49–243.51 has NO horizontal rule in its band at all.
+// ⛔ THE OPERAND LIST MAY BE EMPTY IN THE GRAMMAR (kb/Work PB1096). The format repeats an ALL-OPTIONAL pair, so
+// `APPLY COMMIT.` is a spelling of the format; §12.4.6.3.3 SR4 ("At least one file or data-item shall be
+// specified") is a SYNTAX RULE, checked at bind (DataBinder.BindIoControl), so the empty clause is refused by name
+// rather than by a parse error. file-name-1 and identifier-1 both arrive as dataReference: only the symbol table
+// tells them apart (SR1 vs SR3), so the binder classifies each operand. COMMIT stays the required anchor, so the
+// clause can never match on APPLY alone.
+applyCommitClause
+    : APPLY COMMIT ON? dataReference*
+    ;
+
 ioControlClause
     : sameClause
-    // The DECLINED A.4.3 APPLY COMMIT clause (ISO §12.4.6.3; Grammar/Core/CobolDeclined.g4) — recognized so
-    // DataBinder refuses it BY NAME (COBOLNET1709). It must precede unrecognizedClause, which would otherwise
-    // match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
+    // The APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338). It must precede unrecognizedClause, which would
+    // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
     // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2). ⚠ kb/Work PB2291 VERDICT: a
     // CONSTRUCT GATE, not word status — APPLY is §8.10 context-sensitive at every edition and no earlier edition
     // has an APPLY clause, so `APPLY COMMIT` has no other reading below 2023, and the gate turns what the

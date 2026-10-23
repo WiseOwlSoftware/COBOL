@@ -483,43 +483,37 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-open-sharing": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-read-lock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-rewrite-lock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-same-area": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
- },
- "apply-commit-same-area-shared": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-unlock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "arith-standard-at-85": {
   "refuse-at": [
@@ -899,24 +893,6 @@
    "2023"
   ],
   "expect": "COBOLNET1709"
- },
- "declined-ec-flow-apply-commit-use": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
- },
- "declined-ec-flow-commit-turn": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
- },
- "declined-ec-flow-rollback-raise": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
  },
  "declined-ec-validate-raise": {
   "refuse-at": [
@@ -13948,6 +13924,25 @@
   ],
   "expect": "COBOL0001"
  },
+ "pb3338_apply_commit_below_2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET1970"
+ },
+ "pb3338_apply_commit_gr6_set_address": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET0869"
+ },
+ "pb3338_apply_commit_no_operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
  "pb334-read-key-sequential-org": {
   "refuse-at": [
    "85",
@@ -22601,5 +22596,65 @@
    "2023"
   ],
   "expect": "COBOLNET0853"
+ },
+ "pb3338_apply_commit_sr2_sort_file": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr3_subordinate_item": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr3_repeated_item": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr5_recursive_program": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr7_object_reference": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr8_odo_dependency": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr10_based_item": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr11_global_file": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639"
+ },
+ "pb3338_apply_commit_sr1_file_of_another_element": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639"
+ },
+ "pb3338_apply_commit_sr6_factory": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
  }
 }

@@ -41,7 +41,7 @@ both compilers before it was written here. A correction quotes the refused sourc
 refusal round's first diagnostics are recorded on the row (`repair_rounds`), and a round whose first diagnostics repeat
 the previous round's ends the corrections (`stopped_early`): the same error twice is a program the model cannot fix.
 A clause of an optional module the conformance claim declines (docs/CONFORMANCE.md §5: the screen section, VALIDATE,
-COMMIT and ROLLBACK, FORMAT and SELECT WHEN) is not a seed (`declined_seed_titles`): WiseOwl refuses it by name, so its
+FORMAT and SELECT WHEN) is not a seed (`declined_seed_titles`): WiseOwl refuses it by name, so its
 programs could only be refused or explained. MEASURED (2026-10-22, the PB3523 bake-offs, 40 programs an arm): the prompt
 did not move first-attempt validity beyond the run-to-run noise (on one seed walk, 10 of 40 for the old prompt and 10, 9
 and 8 for the new); the early stop
@@ -1674,11 +1674,12 @@ def self_test() -> int:
                               + "\n    — GAMMA function\n— Delta\n") == ["Alpha thing", "Beta thing"], changes)
     declined_titles = declined_seed_titles(spec_text, conformance_text)
     every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
-    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE, and PRESENT WHEN and VARYING, which declined VALIDATE lists too) stay",
+    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2), a claimed module's clause (Report Writer's PAGE, and PRESENT WHEN and VARYING, which declined VALIDATE lists too) and a Partial module's statements (COMMIT and ROLLBACK, A.4.3, kb/Work PB3338) stay",
           {"BLINK clause", "UNDERLINE clause", "REQUIRED clause", "BLANK clause", "VALIDATE statement", "VALIDATE-STATUS clause",
-           "DEFAULT clause", "COMMIT statement", "ROLLBACK statement", "FORMAT clause", "SELECT WHEN clause"} <= declined_titles
+           "DEFAULT clause", "FORMAT clause", "SELECT WHEN clause"} <= declined_titles
           and not {"ACCEPT statement", "SET statement", "COLUMN clause", "PAGE clause", "REWRITE statement", "WRITE statement",
-                   "VALUE clause", "OCCURS clause", "DISPLAY statement", "PRESENT WHEN clause", "VARYING clause"} & declined_titles
+                   "VALUE clause", "OCCURS clause", "DISPLAY statement", "PRESENT WHEN clause", "VARYING clause",
+                   "COMMIT statement", "ROLLBACK statement"} & declined_titles
           and declined_titles <= every_title, sorted(declined_titles - every_title))
     fixture_spec = ("#### A.4.2 Screens\n1\\) ACCEPT statement, format 3: screen (14.9.1)\n2\\) BLINK clause (13.18.9)\n"
                     "3\\) SHARED clause (13.18.70)\n4\\) PART clause (13.18.71)\n"

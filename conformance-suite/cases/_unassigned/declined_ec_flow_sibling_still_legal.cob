@@ -9,6 +9,8 @@
       *> is keyed to EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK, the three names Annex A.4.3
       *> item 3 lists - NOT to the EC-FLOW level-2 family, whose other level-3 names belong to facilities
       *> this compiler DOES implement. A bare "EC-FLOW" prefix in the table would reject this legal program.
+      *> Since kb/Work PB3338 provides commit and rollback, the three names have left the table too; the
+      *> program stays the witness that no EC-FLOW name is refused as a declined facility's.
       *> EC-FLOW-RELEASE is the sibling chosen because it sits alphabetically between -COMMIT and -ROLLBACK,
       *> so a table that mis-ordered or over-matched its prefixes would take it.
        IDENTIFICATION DIVISION.
