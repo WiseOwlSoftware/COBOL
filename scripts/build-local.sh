@@ -3,8 +3,13 @@
 # §3.14.1–3.14.6, §3.17.3; the bash twin of build-local.ps1). It hands the gate to its driver, scripts/run_gate_legs.py,
 # which holds this worktree's gate lock, runs the audits (before any slot, kb/Work PB2524), takes a gate slot, runs the
 # solution build, lists the population, plans the order and runs leg 1 of it — the change's own tests, the previous
-# gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps (tier 0c) and the cheapest cases the
-# change reaches — then checks that population and prints `=== BUILD-LOCAL GATE: … ===`.
+# gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps (tier 0c), the drift tests that govern
+# a changed file (tier 0d) and the cheapest cases the change reaches — then checks that population and prints
+# `=== BUILD-LOCAL GATE: … ===`.
+# ⛔ THE GATE OUTLIVES THIS COMMAND (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12): the driver starts the gate
+# DETACHED in its run directory (`TestResults/build-local/<run>/`: gate.log, gate.pid, verdict.json) and follows it, so
+# a caller killed mid-gate leaves it running to its verdict, which `python scripts/run_gate_legs.py --await <run>`
+# reads; and a re-gate of an unchanged tree answers from the recorded GREEN (`… GREEN — REUSED: …`), running nothing.
 # ⛔ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015/PB3022): there is no mode; the verdict line says
 # `LEG 1 ONLY (batched gating, PB2515)`, and CI's merge-group run is the whole-population regression net. Only while
 # the owner sets the shared scope to `whole` (`gate_slot.py set-implementer-scope whole`) does it run leg 2 too.
@@ -18,9 +23,10 @@ fi
 cd "$(dirname "$0")/.."
 # THE ONE INTERPRETER (scripts/python-resolve.sh; kb/Work PB1637, PB3197): a bare `python` died `command not found`
 # (exit 127, no verdict line) on a host that has only `python3`. Resolved in a subshell, so a host with no runnable
-# Python ends on the gate's own verdict line, NOT RUN with exit 2 as the driver's NOT RUN does, the reason above it.
+# Python ends on the gate's own verdict line, NOT RUN [interpreter] (ENVIRONMENT, run_gate_legs.NOT_RUN_CAUSES) with
+# exit 2 as the driver's NOT RUN does, the reason above it.
 if ! PY="$(. scripts/python-resolve.sh && printf '%s' "$PY")"; then
-    echo "=== BUILD-LOCAL GATE: NOT RUN — python-resolve.sh found no runnable Python (its reason is printed above) ==="
+    echo "=== BUILD-LOCAL GATE: NOT RUN [interpreter] — python-resolve.sh found no runnable Python (its reason is printed above) ==="
     exit 2
 fi
 "$PY" scripts/run_gate_legs.py

@@ -1,0 +1,4 @@
+## Entry 2390 — 2026-10-22 21:33 PDT — The EC-FLOW checking-off choice is not in CONFORMANCE.md: filed as PB3559
+
+Round-2 review of wave 1156 group A (PB3542) found that two new goldens cite `docs/CONFORMANCE.md` A.4.3 for the rule that a forbidden COMMIT or ROLLBACK with checking off is not executed, while that choice is documented only in the runtime design memo. It is an implementor-defined choice under section 14.6.13.1.3 item 8, so Annex A.1 requires it in the conformance document. PB3559 records the lead and the fix: a DOC-A.1 row in `CONFORMANCE.md`, the two golden comments pointing at it, and a cross-reference from the design memo.
+

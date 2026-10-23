@@ -93,7 +93,12 @@ public sealed class GateLegDriftTests
     /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
     /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build;
     /// and the audits run before the gate slot is taken (kb/Work PB2524); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527). ⛔ This test does
+    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
+    /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
+    /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
+    /// [verdict]) and resolves a relative run name against the worktree that gated it, and a re-gate of an unchanged
+    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base or
+    /// a narrower scope. ⛔ This test does
     /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
     /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
     /// took 311 s, retried, in train 1058's lander gate.
@@ -131,8 +136,28 @@ public sealed class GateLegDriftTests
                      "a defect in work beside the critical path is a named RED with its traceback",
                      "ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits before it and stops at a red in",
                      "a second gate in the same worktree is REFUSED",
+                     "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
+                     "the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass",
                      "a defect in the driver still ends in ONE verdict line",
+                     // kb/Work PB3526, review R2-1 of wave 1150: every NOT RUN cause classified ONCE, its printers held to it
+                     "a population that cannot be listed after a GREEN build is NOT RUN [population]",
+                     "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",
                      "the gate lock is per worktree",
+                     "the measured tree is the working tree's content",
+                     "a re-gate of an unchanged tree answers from the recorded GREEN",
+                     "a chain of reuses names the run that MEASURED the tree",
+                     "a re-gate of a CHANGED tree runs the gate",
+                     "a RED is never reused",
+                     "a LEG 1 ONLY GREEN never answers a gate under the scope whole",
+                     "a gate whose tree changed WHILE it ran is never reused",
+                     "--await reads the verdict file",
+                     // review R1-1 and R1-2 of wave 1152: a handed run's name is its worktree's; the harness's
+                     // edit of a tracked settings file is no part of a measured tree
+                     "the measured tree leaves out coord.NEVER_WORK",
+                     "a relative run name resolves against the worktree that gated it",
+                     "a record with no exit code takes it from its verdict through the one verdict reader",
+                     "build-local's gate runs DETACHED and is followed",
+                     "a detached gate OUTLIVES its follower's tree kill",
                  });
     }
 
@@ -175,7 +200,7 @@ public sealed class GateLegDriftTests
     [Fact]
     public void Arm6_EveryDotnetTestCaller_ScrubsTheGateEnvironment()
     {
-        ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts(PopulationTool), "audit-callers");
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool), "audit-callers");
 
         Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== CALLER AUDIT: CLEAN", StringComparison.Ordinal),
             "A `dotnet test` caller can run with a gate leg handshake (COBOLNET_GATE_*) or a VSTest*/"
@@ -291,7 +316,7 @@ public sealed class GateLegDriftTests
                 "names = json.load(open(sys.argv[1], encoding='utf-8'))",
                 "plan = json.load(open(sys.argv[2], encoding='utf-8'))",
                 "print(json.dumps([[gate_plan.name_key(n), gate_plan.leg_of(plan, 'Conformance', n)] for n in names]))");
-            var r = PythonInstrument.Run("-c", code, namesFile, planFile);
+            var r = PythonInstrument.Run(ObservationBudget.OneProcess, "-c", code, namesFile, planFile);
             Assert.True(r.ExitCode == 0, $"gate_plan.py could not be driven:\n{r.Stdout}{r.Stderr}");
             var python = JsonSerializer.Deserialize<JsonElement[][]>(r.Stdout.Trim())!;
             GateAssemblyPlan plan = GatePlan.Parse(File.ReadAllBytes(planFile), "Conformance");

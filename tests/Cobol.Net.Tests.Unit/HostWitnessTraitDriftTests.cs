@@ -84,13 +84,13 @@ public sealed class HostWitnessTraitDriftTests
     [Fact]
     public void TheSweepTrait_IsExactlyDriftRulesTreeWideSweeps_AndThePlannerSeesEveryTrait()
     {
-        ProcessObservation sweeps = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"), "--sweeps");
+        ProcessObservation sweeps = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"), "--sweeps");
         Assert.True(sweeps.ExitCode == 0, $"drift_rules.py --sweeps failed (exit {sweeps.ExitCode}):\n{sweeps.Stdout}{sweeps.Stderr}");
         var expected = sweeps.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains(nameof(HostWitnessTraitDriftTests), expected); // the population check: it reads scripts/
 
-        ProcessObservation scan = PythonInstrument.Run(TestRepo.Scripts("gate_plan.py"), "--traits");
+        ProcessObservation scan = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"), "--traits");
         Assert.True(scan.ExitCode == 0, $"gate_plan.py --traits failed (exit {scan.ExitCode}):\n{scan.Stdout}{scan.Stderr}");
         using var json = System.Text.Json.JsonDocument.Parse(scan.Stdout);
         var scanned = json.RootElement.EnumerateObject()
@@ -123,7 +123,7 @@ public sealed class HostWitnessTraitDriftTests
     public void ThePlan_OrdersTheHostAndSweepTiers_AfterTheChangesOwnCases()
     {
         string planner = File.ReadAllText(TestRepo.Scripts("gate_plan.py"));
-        Assert.Matches(@"(?m)^TIER_ORDER = \(""0a"", ""0h"", ""0c"", ""0u"", ""1"", ""2"", ""3""\)\r?$", planner);
+        Assert.Matches(@"(?m)^TIER_ORDER = \(""0a"", ""0h"", ""0c"", ""0d"", ""0u"", ""1"", ""2"", ""3""\)\r?$", planner);
         Assert.Matches(@"(?m)^HOST_ONLY = \{\r?$", planner);
         // ⛔ THIS CLASS RUNS AT EVERY GATE (tier 0h, kb/Work PB2730's finisher): its scans cost 5-11 s under a gate's
         // load, over SWEEP_CHEAP_SECONDS, so as a plain sweep it sat in leg 2 and two branches gated GREEN on Windows

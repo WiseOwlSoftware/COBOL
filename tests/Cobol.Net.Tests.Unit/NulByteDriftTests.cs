@@ -37,18 +37,21 @@ namespace CobolNet.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class NulByteDriftTests
 {
-    /// <summary>The repo-root-relative trees swept: the compiler, its tests, and the conformance suite, which holds the
-    /// corpus's <c>.cob</c>/<c>.out</c> text since the move (kb/Work PB3177, slice S2). The class summary states this
-    /// same scope, and <see cref="TheSweepFiresOnAPlantedNul"/> plants an offender in the suite and one outside every
-    /// tree.</summary>
-    private static readonly string[] Trees = ["src/", "tests/", "conformance-suite/"];
-
-    /// <summary>The text kinds the repo's greps and drift sweeps read, compared case-insensitively. COBOL sources and
+    /// <summary>The files swept (kb/Work PB3531: declared, so the drift-rule index names this class for each of them).
+    /// The trees are the compiler, its tests, and the conformance suite, which holds the corpus's <c>.cob</c>/<c>.out</c>
+    /// text since the move (kb/Work PB3177, slice S2); the class summary states the same trees, and
+    /// <see cref="TheSweepFiresOnAPlantedNul"/> plants an offender in the suite and one outside every tree. The kinds
+    /// are the text kinds the repo's greps and drift sweeps read, compared case-insensitively: COBOL sources and
     /// copybooks, the C# the compiler is made of, the grammar, the registers and project files, and the golden
     /// <c>.out</c>/<c>.err</c> fixtures (expected output is text: a program whose output holds a control character is
     /// asserted through a relation, not by pinning the raw byte).</summary>
-    private static readonly string[] TextKinds =
-        [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".md", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"];
+    private static readonly TreeScope TextKinds = new(Under: ["src/", "tests/", "conformance-suite/"],
+        Kinds: [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".md", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"]);
+
+    /// <summary>The one sweep of the committed tree the three tree tests judge, read once per test assembly (a read of
+    /// the text tree costs 15-60 s under a gate's load, and the gate runs this class in leg 1 for a change to any file
+    /// it sweeps, tier 0d).</summary>
+    private static readonly Lazy<SweepResult> s_tree = new(() => Sweep(TestRepo.Root, TrackedTree.Files(TextKinds)));
 
     /// <summary>The tracked text-kind files that legitimately hold a NUL, each with why: a key is a path, or a
     /// directory (a key ending in <c>/</c>) that covers every file beneath it. A file is here only when no agent's
@@ -85,7 +88,7 @@ public sealed class NulByteDriftTests
     [Fact]
     public void NoTrackedTextFileContainsANulByte()
     {
-        SweepResult r = Sweep(TestRepo.Root, TrackedTree.Files());
+        SweepResult r = s_tree.Value;
 
         Assert.True(r.Offenders.Count == 0,
             $"{r.Offenders.Count} tracked text file(s) contain a NUL byte ({r.FilesScanned} files scanned) — grep reports "
@@ -105,7 +108,7 @@ public sealed class NulByteDriftTests
     [Fact]
     public void TheSweepActuallyReadsTheTrackedTextTree()
     {
-        SweepResult r = Sweep(TestRepo.Root, TrackedTree.Files());
+        SweepResult r = s_tree.Value;
 
         Assert.True(r.FilesScanned >= 5000,
             $"the NUL sweep read only {r.FilesScanned} text file(s) of the tracked tree under {TestRepo.Root} "
@@ -122,7 +125,7 @@ public sealed class NulByteDriftTests
     [Fact]
     public void EveryExemptionStillHoldsItsNul()
     {
-        SweepResult r = Sweep(TestRepo.Root, TrackedTree.Files());
+        SweepResult r = s_tree.Value;
 
         Assert.Equal(Exempt.Keys.Order(StringComparer.Ordinal), r.Exempted.Order(StringComparer.Ordinal));
     }
@@ -132,7 +135,7 @@ public sealed class NulByteDriftTests
     /// byte-order mark, an exempt path is reported as exempt, a file beneath an exempt directory is reported as that
     /// directory's exemption (once, however many files it covers) while a sibling directory sharing its name's prefix
     /// is still swept, a binary asset kind is out of scope, and a suite golden is swept while the same bytes outside
-    /// every <see cref="Trees"/> entry are not.</summary>
+    /// every tree of <see cref="TextKinds"/> are not.</summary>
     [Fact]
     public void TheSweepFiresOnAPlantedNul()
     {
@@ -163,10 +166,12 @@ public sealed class NulByteDriftTests
             File.WriteAllBytes(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned", "lowvalue.out"), [0x41, 0x00]);
             File.WriteAllBytes(Path.Combine(scratch, "docs", "Outside.md"), [0x41, 0x00]);
 
-            SweepResult r = Sweep(scratch,
+            // The planted tree goes through the class's one scope, as the tracked tree does (TrackedTree.Files).
+            string[] planted =
                 ["src/Planted.cs", "src/Clean.cs", "src/Wide.cpy", "src/Asset.bin", "src/Gone.cs", "tests/nist/valid/NC107A.txt",
                  "tests/nist/valid-files/IX101A/tf024.txt", "tests/nist/valid-files/IX101A/tf025.txt",
-                 "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"]);
+                 "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"];
+            SweepResult r = Sweep(scratch, planted.Where(TextKinds.Holds));
 
             Assert.Equal(
                 new[] { "src/Planted.cs", "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out" },
@@ -185,8 +190,8 @@ public sealed class NulByteDriftTests
         }
     }
 
-    /// <summary>Scan the text-kind files of <paramref name="paths"/> (repo-root-relative, under
-    /// <see cref="Trees"/>) beneath <paramref name="root"/> for a NUL byte.</summary>
+    /// <summary>Scan <paramref name="paths"/> (repo-root-relative, already narrowed to <see cref="TextKinds"/>) beneath
+    /// <paramref name="root"/> for a NUL byte.</summary>
     internal static SweepResult Sweep(string root, IEnumerable<string> paths)
     {
         var offenders = new List<string>();
@@ -194,10 +199,6 @@ public sealed class NulByteDriftTests
         int scanned = 0, missing = 0, wide = 0;
         foreach (string path in paths)
         {
-            if (!Trees.Any(t => path.StartsWith(t, StringComparison.Ordinal))
-                || !TextKinds.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
-                continue;
-
             string full = Path.Combine(root, path);
             if (!File.Exists(full)) { missing++; continue; }
 

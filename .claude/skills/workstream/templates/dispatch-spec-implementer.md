@@ -29,14 +29,25 @@ LSP DIAGNOSTICS (P13, owner 2026-10-01): act on every diagnostic the language se
 stop {stop_file}; if EITHER exists, checkpoint-commit, write STATUS.md NEXT and your report, and return status SPLIT.
 Never start a build or gate once one exists. No other STOP file is yours (another session's fleet stop is not).
 
-⛔ HOW TO WAIT FOR A LONG JOB (measured 2026-09-22, wave 45): a workflow agent that ENDS ITS TURN while a background
-build/gate is running is RETURNED BY THE HARNESS AND ITS BACKGROUND PROCESS IS KILLED. So:
+⛔ HOW TO WAIT FOR A LONG JOB (measured 2026-09-22, wave 45; 2026-10-22, wave 1150): a workflow agent that ENDS ITS TURN
+while a background command is running is RETURNED BY THE HARNESS AND THAT COMMAND'S PROCESS TREE IS KILLED. The gate
+itself survives it (build-local starts it DETACHED in its run directory, kb/Work PB3536), but YOU must still block for
+its verdict. So:
 1. Start the gate in the background, logging to a file:
      PowerShell (run_in_background): pwsh -NoProfile -File scripts/build-local.ps1 -Priority BelowNormal *> <log>
 2. Then BLOCK in the foreground until the verdict line appears, in chunks under the 10-minute tool limit:
      Bash (timeout 590000): timeout 580 bash -c 'until grep -qE "=== BUILD-LOCAL GATE: " "<log>"; do sleep 5; done' ; tail -3 "<log>"
    If it times out with no verdict, issue the SAME command again. Do not use `sleep`; do not end your turn.
 3. Only after the verdict line is in hand: record it, checkpoint, write the report, return the structured result.
+4. AT YOUR TURN CAP ONLY, with the gate still running (kb/Work PB3536): the gate runs DETACHED, so your return does
+   not kill it, and the wave awaits it for you. Hand it over only when it is gating your COMMITTED HEAD with nothing
+   uncommitted (the checkpoint commit comes before the gate, and nothing is committed after it): its run directory
+   is the `build-local: gate, run directory <run>` line of your log. Write STATUS.md (GATE: pending in <run>) and your
+   report, its header `Status: GATE-PENDING` with `Gate run: <run>`, and return status GATE-PENDING with gate_run
+   <run> and your head. A GREEN verdict makes the report finished (the review follows), any other a gate finisher.
+   Never otherwise: before the cap you block (step 2).
+A re-gate of a tree an earlier gate in this worktree measured GREEN answers at once from that record, its verdict line
+saying `REUSED` (kb/Work PB3536): quote it as the gate's verdict.
 
 ⚠ SIZING: if the group proves to be two mechanisms, finish the first at its root, checkpoint at the note boundary, and
 return SPLIT rather than pass the 220-turn cap.
@@ -58,7 +69,8 @@ GATE — ORDER, DON'T SKIP (owner 2026-09-28; kb/Work PB1708, PB1721): `pwsh scr
 -Priority BelowNormal` — nothing to derive, pass or trim. It takes a gate slot (`gate-slot: waiting, k ahead` is the cap
 working: keep blocking), builds, and plans EVERY discovered case of Conformance, Unit and Characterization into two
 legs — your added tests, your previous gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps
-(tier 0c) and the cheapest cases your change reaches in leg 1 — FAIL-FAST. The gate has ONE shape (kb/Work PB3022): a
+(tier 0c), the drift tests that govern a file you changed (tier 0d) and the cheapest cases your change reaches in
+leg 1 — FAIL-FAST. The gate has ONE shape (kb/Work PB3022): a
 re-gate after a fix runs leg 1 again, never the population.
 ⭐ BATCHED GATING (owner 2026-10-10, kb/Work PB2515, MANDATORY-PRACTICES I1): the gate runs LEG 1 ONLY, names every
 leg-2 case NOT RUN, and is done on `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …`; a red

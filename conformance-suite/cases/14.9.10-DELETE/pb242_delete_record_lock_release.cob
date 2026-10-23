@@ -54,7 +54,7 @@
       *> cite.py: OK  §9.1.16   (Record locking) - "all record locks
       *>   established for a file are released by the execution of an
       *>   explicit or implicit CLOSE statement for the file."
-      *> APPLY COMMIT is declined (COBOLNET1709), so GR7's antecedent
+      *> No APPLY COMMIT clause is written here, so GR7's antecedent
       *> reduces to "record locks are in effect" - here, MANUAL mode
       *> with an explicit WITH LOCK.
       *> Probe: observer connector Q (LOCK MODE MANUAL, never locks)

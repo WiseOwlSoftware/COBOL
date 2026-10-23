@@ -42,22 +42,24 @@ public sealed class LandingPipelineDriftTests
     private static readonly Regex PullRequestStep = new(
         @"\bgh\s+pr\s+(?:create|merge)\b|[""']pr[""']\s*,\s*[""'](?:create|merge)[""']", RegexOptions.Compiled);
 
-    /// <summary>Tracked paths that DESCRIBE the landing rather than perform it: design docs, the work register, the
-    /// history, frozen evidence and adjudication records, the spec, and the test sources (this file names the patterns).</summary>
-    private static readonly string[] Narrative = ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/"];
+    /// <summary>The files that PERFORM the landing: the whole tree but the paths that describe it (design docs, the work
+    /// register, the history, frozen evidence and adjudication records, the spec, and the test sources, as this file
+    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them.</summary>
+    private static readonly TreeScope NotNarrative = new(Under: [""],
+        Except: ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
 
     private const string TheGuardedStep = "scripts/orchestrator/enqueue.py";
 
-    /// <summary>The tracked files, outside <see cref="Narrative"/>, that hold a pull-request step.</summary>
+    /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="NotNarrative"/>) that hold a
+    /// pull-request step.</summary>
     internal static IReadOnlyList<string> FilesWithAPullRequestStep(string root, IEnumerable<string> tracked) =>
-        [.. tracked.Where(p => !Narrative.Any(n => p.StartsWith(n, StringComparison.Ordinal)))
-                   .Where(p => File.Exists(Path.Combine(root, p)))
+        [.. tracked.Where(p => File.Exists(Path.Combine(root, p)))
                    .Where(p => PullRequestStep.IsMatch(File.ReadAllText(Path.Combine(root, p))))];
 
     [Fact]
     public void NoFileButEnqueue_OpensOrQueuesAPullRequest()
     {
-        IReadOnlyList<string> tracked = TrackedTree.Files();
+        IReadOnlyList<string> tracked = TrackedTree.Files(NotNarrative);
         Assert.True(tracked.Count >= 1000, $"`git ls-files` reported only {tracked.Count} paths — the sweep would scan nothing");
         Assert.Contains(TheGuardedStep, tracked);
         var offenders = FilesWithAPullRequestStep(TestRepo.Root, tracked).Where(p => p != TheGuardedStep).ToList();
@@ -80,7 +82,8 @@ public sealed class LandingPipelineDriftTests
             File.WriteAllText(Path.Combine(dir, "brief", "fine.md"), "land with enqueue.py queue");
             Directory.CreateDirectory(Path.Combine(dir, "docs"));
             File.WriteAllText(Path.Combine(dir, "docs", "design.md"), "the lander runs `gh pr create` (narrative)");
-            var found = FilesWithAPullRequestStep(dir, ["brief/lander.md", "brief/tool.py", "brief/fine.md", "docs/design.md"]);
+            var found = FilesWithAPullRequestStep(
+                dir, new[] { "brief/lander.md", "brief/tool.py", "brief/fine.md", "docs/design.md" }.Where(NotNarrative.Holds));
             Assert.Equal(new[] { "brief/lander.md", "brief/tool.py" }, found);
         }
         finally
@@ -147,21 +150,25 @@ public sealed class LandingPipelineDriftTests
         ["scripts/push-main.sh", "scripts/push-main.ps1", "scripts/orchestrator/landing_lease.py",
          "scripts/orchestrator/train_apply.py", "scripts/orchestrator/landing_oracle.py"];
 
-    /// <summary>The directory that held the committed arch-oracle baseline until kb/Work PB3107.</summary>
-    private const string RetiredOracleRecord = "docs/rearchitecture/evidence/arch-oracle/";
+    /// <summary>The directory that held the committed arch-oracle baseline until kb/Work PB3107 (declared, kb/Work
+    /// PB3531).</summary>
+    private static readonly TreeScope RetiredOracleRecords = new(Under: ["docs/rearchitecture/evidence/arch-oracle/"]);
 
-    /// <summary>The tracked paths that keep the HISTORY, where a retired name is a fact about the past: the DEVLOG,
-    /// frozen evidence, the work register and adjudication records. Every other tracked file describes the current
-    /// landing (DESIGN-test-build-ci.md §3.17.8); this file names the retired scripts to forbid them.</summary>
-    private static readonly string[] History = ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/Work/", "adjudication/"];
+    /// <summary>The files that describe the current landing (DESIGN-test-build-ci.md §3.17.8): the whole tree but the
+    /// paths that keep the HISTORY, where a retired name is a fact about the past (the DEVLOG, frozen evidence, the work
+    /// register and adjudication records). This file names the retired scripts to forbid them, and is set aside by
+    /// <see cref="FilesNamingARetiredScript"/>. Declared (kb/Work PB3531).</summary>
+    private static readonly TreeScope Current = new(Under: [""],
+        Except: ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/Work/", "adjudication/"]);
 
     private const string ThisFile = "tests/Cobol.Net.Tests.Unit/LandingPipelineDriftTests.cs";
 
-    /// <summary>The tracked files, outside <see cref="History"/> and this file, that name a retired landing script.</summary>
+    /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="Current"/>) but this one that
+    /// name a retired landing script.</summary>
     internal static IReadOnlyList<string> FilesNamingARetiredScript(string root, IEnumerable<string> tracked)
     {
         string[] names = [.. RetiredScripts.Select(Path.GetFileName).Select(n => n!)];
-        return [.. tracked.Where(p => p != ThisFile && !History.Any(h => p.StartsWith(h, StringComparison.Ordinal)))
+        return [.. tracked.Where(p => p != ThisFile)
                           .Where(p => File.Exists(Path.Combine(root, p)))
                           .Where(p => File.ReadAllText(Path.Combine(root, p)) is var text
                                       && names.Any(n => text.Contains(n, StringComparison.Ordinal)))];
@@ -180,7 +187,7 @@ public sealed class LandingPipelineDriftTests
         Assert.Matches(new Regex(@"^    branches: \[ main \]\s*$", RegexOptions.Multiline), push);
         Assert.DoesNotContain("ci/**", wf);
 
-        IReadOnlyList<string> tracked = TrackedTree.Files();
+        IReadOnlyList<string> tracked = TrackedTree.Files(Current);
         Assert.True(tracked.Count >= 1000, $"`git ls-files` reported only {tracked.Count} paths — the sweep would scan nothing");
         Assert.Contains(ThisFile, tracked);
         var offenders = FilesNamingARetiredScript(TestRepo.Root, tracked);
@@ -201,9 +208,8 @@ public sealed class LandingPipelineDriftTests
     [Fact]
     public void NoTrackedRecord_DescribesOneBranchsTree()
     {
-        IReadOnlyList<string> tracked = TrackedTree.Files();
-        Assert.True(tracked.Count >= 1000, $"`git ls-files` reported only {tracked.Count} paths — the sweep would scan nothing");
-        var records = tracked.Where(p => p.StartsWith(RetiredOracleRecord, StringComparison.Ordinal)).ToList();
+        // The empty answer is the pass; that the enumeration works is proven by this class's whole-tree sweeps.
+        IReadOnlyList<string> records = TrackedTree.Files(RetiredOracleRecords);
         Assert.True(records.Count == 0, $"a committed arch-oracle baseline is back ({string.Join(", ", records)}): the "
             + "merge queue lands a tree no branch recorded; compare against the capture of the base commit instead "
             + "(scripts/arch/compare_oracle.py --base, kb/Work PB3107)");
@@ -228,7 +234,7 @@ public sealed class LandingPipelineDriftTests
             File.WriteAllText(Path.Combine(dir, "DEVLOG/0001-x.md"), "train_apply.py landed it");
             File.WriteAllText(Path.Combine(dir, "kb/Work/PB1.md"), "push-main.sh held the lease");
             File.WriteAllText(Path.Combine(dir, ThisFile), "push-main.sh");
-            Assert.Equal(new[] { "scripts/x.py", "skill/SKILL.md" }, FilesNamingARetiredScript(dir, files));
+            Assert.Equal(new[] { "scripts/x.py", "skill/SKILL.md" }, FilesNamingARetiredScript(dir, files.Where(Current.Holds)));
         }
         finally
         {
@@ -287,6 +293,24 @@ public sealed class LandingPipelineDriftTests
                 + "run_gate_legs.py and every other row under `gate_slot.py run` (kb/Work PB3104)",
             "gate rows: a planted unslotted row (a bare row, an unknown slot, a script claiming its own slot without "
                 + "the driver, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
+            // kb/Work PB3527: a held gate lock is BUSY, never a red; the queue watch's remedies live in the only file that queues
+            "land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
+                + "no stamp, nothing queued (kb/Work PB3527)",
+            "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
+                + "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527)",
+            // kb/Work PB3526, review R2-1 of wave 1150: a NOT RUN blocks by its cause's class, and main is measured
+            "land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
+                + "2, never a red",
+            "land: a BRANCH-carried NOT RUN (the tree's own gate driver failed) on a main that passes the same gate "
+                + "is exit 5 with a BLOCKED line naming the cause and main's reading",
+            "land: a BRANCH-carried NOT RUN that main fails the SAME way at the same step (its cause) is exit 2 with "
+                + "no report line",
+            "land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried",
+            "gate_main: main is measured in a clean checkout of its head",
+            "the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
+                + "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
+                + "failed close stops before anything else (kb/Work PB3527)",
+            "the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
         });
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "ruleset.py"), new[]
         {

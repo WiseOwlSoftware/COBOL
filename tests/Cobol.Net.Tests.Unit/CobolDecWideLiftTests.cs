@@ -67,7 +67,8 @@ public sealed class CobolDecWideLiftTests
     [Fact]
     public void UnsignedLift_ZeroAndExactValuesAreUnrounded()
     {
-        Assert.Equal(CobolDec.From(0, 0), CobolDec.FromUnsigned(0, 3, CobolRounding.Prohibited));
+        // A zero keeps its declared scale, as the signed lift CobolDec.From does (kb/Work PB3538 review finding R5-1).
+        Assert.Equal(CobolDec.From(0, 3), CobolDec.FromUnsigned(0, 3, CobolRounding.Prohibited));
         Assert.Equal(new CobolDec(12345, -2), CobolDec.FromUnsigned(12345, 2, CobolRounding.Prohibited));
     }
 

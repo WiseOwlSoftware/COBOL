@@ -734,6 +734,51 @@ internal static class RuntimeApi
     public static string DecDivToOdd(string leftOperand, string rightOperand) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivToOdd)}({leftOperand}, {rightOperand})";
 
+    /// <summary>A NESTED native quotient formed on the SDIDI — <c>CobolDec.DivTruncatedToOdd</c>: the quotient truncated at
+    /// <paramref name="resultScale"/>, held to 34 digits by round-to-odd, the same value the scaled and wide lanes form
+    /// (kb/Work PB3538 review finding R2-1).</summary>
+    public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
+
+    /// <summary>The negation of an SDIDI value, its operand evaluated once — <c>CobolDec.Negate</c>.</summary>
+    public static string DecNegate(string operand) => $"{nameof(CobolDec)}.{nameof(CobolDec.Negate)}({operand})";
+
+    // ── An SDIDI value WITH THE PRECISION its operands carry, when only the run time knows it (CobolDecWithPrecision,
+    //    kb/Work PB3538 review finding R3-1) — the form a nested quotient reads the precision of.
+
+    /// <summary>An SDIDI value whose precision is the fraction digits it is held at — <c>CobolDecWithPrecision.Own</c>.</summary>
+    public static string DecOwnPrecision(string value) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.Own)}({value})";
+
+    /// <summary>An SDIDI value paired with the precision the compiler knows.</summary>
+    public static string DecWithKnownPrecision(string value, int precision) =>
+        $"new {nameof(CobolDecWithPrecision)}({value}, {precision})";
+
+    /// <summary>A sum, difference or product of two precision-carrying values — <c>CobolDecWithPrecision.Add</c> /
+    /// <c>Sub</c> / <c>Mul</c> at the INTERMEDIATE ROUNDING mode.</summary>
+    public static string DecWithPrecisionOperation(char op, string left, string right, string modeExpr) =>
+        $"{nameof(CobolDecWithPrecision)}.{op switch
+        {
+            '+' => nameof(CobolDecWithPrecision.Add),
+            '-' => nameof(CobolDecWithPrecision.Sub),
+            '*' => nameof(CobolDecWithPrecision.Mul),
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "a precision-carrying operation is +, - or *"),
+        }}({left}, {right}, {modeExpr})";
+
+    /// <summary>The negation of a precision-carrying value — <c>CobolDecWithPrecision.Negate</c>.</summary>
+    public static string DecWithPrecisionNegate(string operand) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.Negate)}({operand})";
+
+    /// <summary>A NESTED native quotient over an operand whose precision only the run time knows —
+    /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c>: the same truncated quotient as <see cref="DecDivTruncatedToOdd"/>, at
+    /// the working scale <c>CobolNum.NestedQuotientScale</c> takes from <paramref name="receiverScale"/> and the operands'
+    /// run-time precision.</summary>
+    public static string DecWithPrecisionDivTruncatedToOdd(string left, string right, int receiverScale) =>
+        $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.DivTruncatedToOdd)}({left}, {right}, {receiverScale})";
+
+    /// <summary>The SDIDI value of a precision-carrying expression.</summary>
+    public static string DecWithPrecisionValue(string pair) => $"{pair}.{nameof(CobolDecWithPrecision.Value)}";
+
     // ── The EXACT WIDE intermediate (CobolWide, kb/Work PB1900) — one spelling per operation, so the renderer never
     //    writes the runtime type's member names out for itself.
 
@@ -752,6 +797,11 @@ internal static class RuntimeApi
     /// <paramref name="exponent"/>; kb/Work PB2617).</summary>
     public static string WidePow(string wide, int exponent) =>
         $"{nameof(CobolWide)}.{nameof(CobolWide.Pow)}({wide}, {exponent})";
+
+    /// <summary>The quotient of two wide values TRUNCATED at <paramref name="resultScale"/> (<c>CobolWide.DivTruncated</c>):
+    /// a nested quotient whose digit bound passes the Int128 lane (kb/Work PB3538).</summary>
+    public static string WideDivTruncated(string left, int leftScale, string right, int rightScale, int resultScale) =>
+        $"{nameof(CobolWide)}.{nameof(CobolWide.DivTruncated)}({left}, {leftScale}, {right}, {rightScale}, {resultScale})";
 
     /// <summary>A wide value aligned UP by <paramref name="digits"/> decimal places (× 10^digits).</summary>
     public static string WideUp(string wide, int digits) =>
@@ -1626,6 +1676,36 @@ internal static class RuntimeApi
     /// <paramref name="verbLiteral"/> is the statement's name as a C# string literal.</summary>
     public static string TerminateOnUncoveredFatalStatus(string name, string verbLiteral) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.TerminateOnUncoveredFatalStatus)}({name}, {verbLiteral})";
+
+    // ── COMMIT AND ROLLBACK (ISO §9.1.18; kb/Work PB3338) — TransactionEmitter's calls ───────────────────────────────
+    //    Each names the facade by its FULL name: a COMMIT or ROLLBACK statement acts on the run unit's clauses whatever
+    //    element executes it (§14.9.7.1), and an APPLY COMMIT clause may name only data items, so an element that
+    //    emits these calls need not describe a file, and the file-I/O namespace import is emitted only for one that does.
+    private const string TransactionFacade = "global::CobolNet.Runtime.IO." + nameof(CobolFile);
+
+    /// <summary>Activate the element's APPLY COMMIT clause — <c>CobolFile.ActivateApplyCommit</c>.</summary>
+    public static string ActivateApplyCommit(string keyedFilesArray, string save, string restore, string storeStatus) =>
+        $"{TransactionFacade}.{nameof(CobolFile.ActivateApplyCommit)}(this, {keyedFilesArray}, {save}, {restore}, {storeStatus})";
+
+    /// <summary>Retire the element instance's clause (canceled, or an INITIAL program returned) — <c>CobolFile.RetireApplyCommit</c>.</summary>
+    public static string RetireApplyCommit() => $"{TransactionFacade}.{nameof(CobolFile.RetireApplyCommit)}(this)";
+
+    /// <summary>The COMMIT statement — <c>CobolFile.Commit</c>; the refused file's connector name or null.</summary>
+    public static string Commit() => $"{TransactionFacade}.{nameof(CobolFile.Commit)}()";
+
+    /// <summary>The ROLLBACK statement — <c>CobolFile.Rollback</c>; the refused file's connector name or null.</summary>
+    public static string Rollback() => $"{TransactionFacade}.{nameof(CobolFile.Rollback)}()";
+
+    /// <summary>§14.6.13.1.3 item 8's question, asked at the raise — <c>CobolFile.RollbackDueOnFatal</c>.</summary>
+    public static string RollbackDueOnFatal(string name, string checkingEnabled) =>
+        $"{TransactionFacade}.{nameof(CobolFile.RollbackDueOnFatal)}({name}, {checkingEnabled})";
+
+    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK statement — <c>CobolFile.RollbackOnFatal</c>.</summary>
+    public static string RollbackOnFatal() => $"{TransactionFacade}.{nameof(CobolFile.RollbackOnFatal)}()";
+
+    /// <summary>A refused COMMIT/ROLLBACK on another element's file with no FILE STATUS item — <c>CobolFile.TerminateOnRefusalWithoutStatusItem</c>.</summary>
+    public static string TerminateOnRefusalWithoutStatusItem(string name, string verbLiteral) =>
+        $"{TransactionFacade}.{nameof(CobolFile.TerminateOnRefusalWithoutStatusItem)}({name}, {verbLiteral})";
 
     /// <summary>The EC-I-O level-3 exception-name the connector's last I-O operation set to exist (§9.1.13.1's
     /// status correspondence, or a name the operation's own rule gave) — <c>CobolFile.IoConditionName</c>.</summary>

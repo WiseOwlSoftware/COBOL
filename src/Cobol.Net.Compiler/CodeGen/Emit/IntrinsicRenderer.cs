@@ -899,7 +899,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         NumX x = num.AsNum(ic.Args[i], num.Receiver);
         if (!(x.Real || x.Dec || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         return x.Dec
-            ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr) }
+            ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr), WithPrecision = null }
             : new NumX(IntegerIntake(x, wide: true), 0);
     }
 

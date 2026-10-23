@@ -43,7 +43,7 @@ public sealed class PageLayoutGoldenTests
     public void An_empty_two_key_indexed_store_records_both_descriptors_and_the_alternate_root()
     {
         var medium = new MemoryPageMedium();
-        Assert.Equal(StoreStatus.Ok, PagedFile.Create(medium.Open("A"), StoreKit.TwoKeyIndexed, coherent: true, HoldingsKeyOrder.RecordNumbers, out _));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Create(medium.Open("A"), StoreKit.TwoKeyIndexed, coherent: true, HoldingsKeyOrder.RecordNumbers, out _, out _));
         for (uint p = 0; p < 3; p++)
         {
             var page = medium.Snapshot(p);
@@ -143,7 +143,7 @@ public sealed class PageLayoutGoldenTests
             Assert.Equal(StoreFormat.Foreign, MetaPage.Describes(path, out _));
 
             using (var handle = File.OpenHandle(path, FileMode.Create, FileAccess.ReadWrite))
-                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.TwoKeyIndexed, true, HoldingsKeyOrder.RecordNumbers, out _));
+                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.TwoKeyIndexed, true, HoldingsKeyOrder.RecordNumbers, out _, out _));
             Assert.Equal(StoreFormat.Described, MetaPage.Describes(path, out var recorded));
             Assert.False(recorded!.Conflicts(StoreKit.TwoKeyIndexed));
 
@@ -172,7 +172,7 @@ public sealed class PageLayoutGoldenTests
         {
             using (SafeFileHandle handle = File.OpenHandle(path, FileMode.Create, FileAccess.ReadWrite))
             {
-                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var store));
+                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var store, out _));
                 Assert.Equal(StoreStatus.Ok, StoreKit.Put(store!, 1, "one"));
                 Assert.Equal(StoreStatus.Ok, StoreKit.Put(store!, 2, "two", blobPages: 3));
                 Assert.Equal(StoreStatus.Ok, store!.Close());
@@ -261,7 +261,7 @@ public sealed class PageLayoutGoldenTests
             }
             Assert.Equal(previous, File.ReadAllBytes(path));
             using (var handle = File.OpenHandle(path, FileMode.Open, FileAccess.ReadWrite))
-                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _));
+                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out _));
             Assert.Equal(3L * PageHeader.PageSize, new FileInfo(path).Length);
             Assert.Equal(StoreFormat.Described, MetaPage.Describes(path, out _));
         }

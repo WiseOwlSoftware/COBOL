@@ -577,6 +577,12 @@ public sealed record PicInfo(
     /// into it cannot disagree about where the carrier ends.</summary>
     public const int ScaledCarrierDigits = 38;
 
+    /// <summary>The most decimal digits the UNSCALED value of ANY <see cref="Int128"/> holds: 2^127 is about 1.7x10^38, a
+    /// 39-digit number. It is the digit bound of a 16-byte binary container (<see cref="UnscaledDigitBound"/>) and the bound
+    /// the native renderer assumes for an operand whose own bound is unknown (an intrinsic value, a windowed view), so an
+    /// operation on such an operand is decided on a bound like every other (kb/Work PB3538).</summary>
+    public const int CarrierDigitBound = 39;
+
     /// <summary>
     /// ⛔ THE ONE "is this the description of an INTEGER DATA ITEM?" primitive (ISO §5.5 2)b)2., kb/Work PB248).
     /// The standard's own definition of the term is a CONJUNCTION of three conditions, and every screen in this
@@ -687,9 +693,9 @@ public sealed record PicInfo(
         get
         {
             int pictured = Math.Max(Digits, DigitPositions);
-            if (Truncation != NumericTruncation.BinaryCapacity) return Math.Min(pictured, 39);
-            int container = StorageWidth switch { 1 => 3, 2 => 5, 4 => 10, 8 => Signed ? 19 : 20, _ => 39 };
-            return Math.Min(Math.Max(pictured, container), 39);
+            if (Truncation != NumericTruncation.BinaryCapacity) return Math.Min(pictured, CarrierDigitBound);
+            int container = StorageWidth switch { 1 => 3, 2 => 5, 4 => 10, 8 => Signed ? 19 : 20, _ => CarrierDigitBound };
+            return Math.Min(Math.Max(pictured, container), CarrierDigitBound);
         }
     }
 

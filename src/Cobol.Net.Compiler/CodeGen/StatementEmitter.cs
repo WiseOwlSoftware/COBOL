@@ -38,6 +38,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly KeyedIoEmitter _keyedIo;
     private readonly SequentialIoEmitter _seqIo;
     private readonly SortEmitter _sort;
+    private readonly TransactionEmitter _transactions;
     private readonly ReportWriterEmitter _reportWriter;
     private readonly ControlFlowEmitter _controlFlow;
     private readonly CallEmitter _call;
@@ -64,6 +65,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _keyedIo = u.KeyedIo;
         _seqIo = u.SeqIo;
         _sort = u.Sort;
+        _transactions = u.Transactions;
         _reportWriter = u.ReportWriter;
         _controlFlow = u.ControlFlow;
         _call = u.Call;
@@ -198,10 +200,9 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
-    // COMMIT/ROLLBACK: §14.9.7.4 GR1 — with no active APPLY COMMIT clause (the documented A.3 non-support,
-    // so there can never be one) the statement is CONTINUE-equivalent; the node exists for the SR2 cross-pass
-    // identity (kb/Work PB137).
-    public bool Visit(BoundCommitRollback n) => false;
+    // COMMIT/ROLLBACK (ISO §14.9.7, §14.9.36; kb/Work PB3338): the run unit's commit control — GR1's CONTINUE when no
+    // clause is active is the runtime's answer, because a clause of ANY element of the run unit makes it act.
+    public bool Visit(BoundCommitRollback n) { _transactions.EmitStatement(n); return false; }
     /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §14.9.9.4 GR1: the sign
     /// test (GR1a/GR1b: a fractional (-1,0) still sets the EC) and the m=0 truncation (the implicit COMPUTE without
     /// ROUNDED) are taken by <c>CobolTiming.ContinueAfter</c> from the value in ITS OWN DOMAIN, which then clamps to

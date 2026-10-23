@@ -9,7 +9,8 @@ export const meta = {
 }
 
 // args: { scratch, wave, stop_file, global_stop, concurrency (6), groups: [{letter, lead, notes, codes}],
-//         review_fix_rounds (2), reviewer_ceiling_min (90); each group may carry requirements: {campaign lead: [string]} }
+//         review_fix_rounds (2), reviewer_ceiling_min (90), gate_fix_rounds (1), gate_await_wait_s (540),
+//         gate_await_windows (one per 9 minutes of the ceiling); each group may carry requirements: {campaign lead: [string]} }
 // THE WAVE STARTS NO LANDER (kb/Work PB3023; DESIGN-test-build-ci.md section 3.17.5): it produces DONE branches reviewed
 // CLEAN, and the loop's landing lane (land_lane.py, kb/Work PB3103) lands each with `scripts/orchestrator/enqueue.py
 // land` as it comes back, beside this wave (a script: main merged in,
@@ -50,7 +51,7 @@ const IMPL_MODEL = args.implementer_model || 'opus'
 const IMPL_SCHEMA = {
   type: 'object',
   properties: {
-    status: { type: 'string', enum: ['DONE', 'SPLIT', 'DISCHARGED', 'BLOCKED'] },
+    status: { type: 'string', enum: ['DONE', 'SPLIT', 'DISCHARGED', 'BLOCKED', 'GATE-PENDING'] },
     branch: { type: 'string' }, worktree: { type: 'string' }, base: { type: 'string' }, head: { type: 'string' },
     report: { type: 'string' }, gate_run: { type: 'string' }, gate_verdict: { type: 'string' },
     notes_landed: { type: 'array', items: { type: 'string' } },
@@ -65,7 +66,88 @@ const IMPL_SCHEMA = {
 const RETURN_LINE =
   `⛔ YOUR LAST ACTION MUST BE THE StructuredOutput CALL — never end on a report file or a summary message (three agents in waves 65-67 did, and their finished branches were stranded): ` +
   `status, your ACTUAL branch (git branch --show-current), your worktree path, base sha, head sha, report path, your last gate's run directory (TestResults/build-local/<run>, whose verdict.json records its timings) and its verdict line, the notes you landed, the codes you used, and any new leads (text; do NOT allocate PB ids). ` +
-  `⛔ KEEP THE RETURN SHORT: summary at most 900 characters, at most 6 leads of at most 500 characters each (each lead: repro path and code site), and every detail goes in your report file, which the orchestrator reads only on demand.`
+  `⛔ KEEP THE RETURN SHORT: summary at most 900 characters, at most 6 leads of at most 500 characters each (each lead: repro path and code site), and every detail goes in your report file, which the orchestrator reads only on demand. ` +
+  `GATE-PENDING is for ONE case only (kb/Work PB3536; MANDATORY-PRACTICES P2): you reach your turn cap while your own gate still runs — then checkpoint-commit, write STATUS.md and your report (header \`Status: GATE-PENDING\` and \`Gate run: <the run directory>\`), and return status GATE-PENDING with that run directory as gate_run and your head; the wave awaits the gate's verdict for you.`
+
+// A GATE HANDED TO THE WAVE (kb/Work PB3536; owner 2026-10-22 ~16:50 PDT: "Reruning these simply wastes tokens: but the
+// workflow returned before its gate finished, so it needs the gate re-run at its head and a round-2 review. - we
+// should have the failure in the first place"). An agent that reaches its turn cap while its gate runs returns
+// GATE-PENDING with the gate's run directory: the gate runs DETACHED (scripts/run_gate_legs.py starts it through
+// scripts/detached.py), so the agent's return does not kill it, and its verdict lands in the run directory's verdict
+// file. The wave AWAITS that file, inside the same ceiling, one window at a time: ONE mechanical cobol-locator per
+// window runs `run_gate_legs.py --await <run> --worktree <its worktree>` (a workflow script has no process API; a
+// relative run name is the agent's WORKTREE's run, never the main checkout's: run_gate_legs.resolve_run) and returns
+// its exit code and line. Exit 0 (GREEN) continues exactly as a DONE return carrying that verdict: the finished test
+// (the report's `Status: GATE-PENDING` is finished only when its gate run is GREEN at its HEAD,
+// plan_wave.Report.finished), then the branch review. Any other verdict (RED; NOT RUN, a process that DIED among them;
+// BUSY, a gate that never ran) goes to a GATE FINISHER, at most `gate_fix_rounds`. No verdict by
+// the last window, or the ceiling, is STALLED. Before PB3536 the wave read any non-DONE as SPLIT and the next wave's
+// finisher re-ran the same gate at the same head (wave 1150 group A's review finisher, whose gate the return killed).
+const GATE_FIX_ROUNDS = args.gate_fix_rounds === undefined ? 1 : args.gate_fix_rounds
+const AWAIT_WAIT_S = args.gate_await_wait_s === undefined ? 540 : args.gate_await_wait_s
+const AWAIT_WINDOWS = args.gate_await_windows === undefined ? Math.max(1, Math.ceil((CEILING_MIN || 240) / 9)) : args.gate_await_windows
+// `--await`'s exit while the gate still runs: run_gate_legs.AWAIT_PENDING_EXIT (3 is BUSY there, kb/Work PB3527);
+// test_rolling_wave.py holds the two equal.
+const AWAIT_PENDING_EXIT = 4
+const AWAIT_SCHEMA = {
+  type: 'object',
+  properties: { exit: { type: 'integer' }, line: { type: 'string', maxLength: 1200 } },
+  required: ['exit', 'line'],
+}
+async function awaitGate(g, r, label, ctl) {
+  for (let w = 1; w <= AWAIT_WINDOWS && !ctl.cancelled; w++) {
+    let v = null
+    try {
+      v = await agent(
+        AUTH + `Run exactly ONE command, from the repository root E:\\COBOL, with the Bash tool's timeout set to 600000 ms, and nothing else: ` +
+        `python scripts/run_gate_legs.py --await "${r.gate_run}" --worktree "${r.worktree}" --wait-s ${AWAIT_WAIT_S} ` +
+        `— then call StructuredOutput with its exit code as \`exit\` and its last line verbatim as \`line\`. ` +
+        `Read no file, judge nothing, retry nothing: an exit code other than 0 is an answer, not an error.`,
+        { label: `gate-await-${label}-${w}`, phase: 'Implement', agentType: 'cobol-locator', schema: AWAIT_SCHEMA })
+    } catch (e) { v = null }
+    if (v && v.exit !== AWAIT_PENDING_EXIT) return v
+  }
+  return null
+}
+
+function fixGate(g, r, v, round) {
+  return agent(
+    AUTH + `You are the wave-${W} GATE FINISHER for group ${g.letter} (${g.notes}), gate round ${round} (kb/Work PB3536). ` +
+    `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are implemented on the branch. ` +
+    `FIRST \`git merge ${r.branch}\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
+    `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its leg logs and not-run files, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
+    `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
+    `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
+    RETURN_LINE,
+    { label: `gatefix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
+  ).then(f => f ? { ...f, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes } : { ...r, status: 'NO-RESULT', finisher: 'NO-RESULT' })
+}
+
+// A return as the rest of the wave reads it once any gate it handed over has settled: GATE-PENDING whose gate is
+// GREEN reads DONE (the finished test still decides), RED goes to a gate finisher (whose own return settles the same
+// way), no verdict is STALLED. Every other return passes through unchanged.
+async function settleGate(g, r, label, ctl, round = 1) {
+  if (!r || r.status !== 'GATE-PENDING') return r
+  if (!r.gate_run) {
+    log(`${g.letter}: ${label} returned GATE-PENDING with no gate run directory; read as SPLIT`)
+    return { ...r, claimed: r.status, status: 'SPLIT' }
+  }
+  const v = await awaitGate(g, r, label, ctl)
+  if (!v) {
+    log(`${g.letter}: ${label}'s gate ${r.gate_run} wrote no verdict within the ceiling; recorded STALLED (kb/Work PB3536)`)
+    return { ...r, claimed: r.status, status: 'STALLED', gate_verdict: `no verdict in ${r.gate_run}` }
+  }
+  log(`${g.letter}: ${label}'s handed gate ${r.gate_run}: exit ${v.exit}`)
+  if (v.exit === 0) return { ...r, claimed: r.status, status: 'DONE', gate_verdict: v.line, gate_awaited: true }
+  if (round > GATE_FIX_ROUNDS || ctl.cancelled) {
+    log(`${g.letter}: ${label}'s gate is not GREEN and the gate finisher rounds (${GATE_FIX_ROUNDS}) are spent; read as SPLIT`)
+    return { ...r, claimed: r.status, status: 'SPLIT', gate_verdict: v.line }
+  }
+  let f = null
+  try { f = await fixGate(g, r, v, round) } catch (e) { f = null }
+  if (!f) return { ...r, claimed: r.status, status: 'SPLIT', gate_verdict: v.line, finisher: 'NO-RESULT' }
+  return settleGate(g, f, `gate finisher round ${round}`, ctl, round + 1)
+}
 
 // THE BRANCH REVIEW (kb/Work PB3027; DESIGN-test-build-ci.md §3.17.2 step 2; MANDATORY-PRACTICES I10). The review of
 // finished work used to run inside the lander, between its gates (lander-train-brief step 5b, retired): on 2026-10-10
@@ -220,6 +302,7 @@ function successorNote(g) {
 }
 
 function runGroup(g) {
+  const ctl = { cancelled: false }
   return withCeiling(agent(
     AUTH + `You are the wave-${W} fix-lane implementer for group ${g.letter} (${g.notes}). ` + successorNote(g) +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow it exactly; ` +
@@ -227,8 +310,10 @@ function runGroup(g) {
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and your report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `impl-${g.letter}-${g.lead}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
-  ).then(r => r ? { ...r, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes } : { letter: g.letter, lead: g.lead, notes: g.notes, status: 'NO-RESULT' }),
+  ).then(r => r ? { ...r, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes } : { letter: g.letter, lead: g.lead, notes: g.notes, status: 'NO-RESULT' })
+    .then(r => settleGate(g, r, 'implementer', ctl)),
   CEILING_MIN, () => {
+    ctl.cancelled = true
     log(`${g.letter}: no return after ${CEILING_MIN} min; recorded STALLED, the wave moves on (PB1704)`)
     return { letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes, status: 'STALLED' }
   })
@@ -281,6 +366,7 @@ function reviewBranch(g, r, round) {
 }
 
 function fixFindings(g, r, v, round) {
+  const ctl = { cancelled: false }
   return withCeiling(agent(
     AUTH + `You are the wave-${W} REVIEW FINISHER for group ${g.letter} (${g.notes}), after branch review round ${round} (kb/Work PB3027). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are already implemented on the reviewed branch. ` +
@@ -290,7 +376,8 @@ function fixFindings(g, r, v, round) {
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `fix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
-  ), CEILING_MIN, () => {
+  ).then(f => settleGate(g, f, `review finisher round ${round}`, ctl)), CEILING_MIN, () => {
+    ctl.cancelled = true
     log(`${g.letter}: review finisher round ${round} not back after ${CEILING_MIN} min; recorded STALLED (PB1704)`)
     return { status: 'STALLED' }
   })

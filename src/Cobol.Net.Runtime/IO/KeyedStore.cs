@@ -6,6 +6,18 @@ using Microsoft.Win32.SafeHandles;
 
 namespace CobolNet.Runtime.IO;
 
+/// <summary>What the dead-owner probe of a transaction's liveness byte answers (<see cref="KeyedStore.OwnerOf"/>; 2.2.1.10,
+/// kb/Work PB3549).</summary>
+internal enum OwnerLiveness
+{
+    /// <summary>The byte is free: the owner gave it back, or died. Its transaction is the dead-owner step's to roll back.</summary>
+    Dead,
+    /// <summary>Another holder holds the byte: the owner lives.</summary>
+    Alive,
+    /// <summary>The host cannot carry the lock here, so nobody can say; read as alive.</summary>
+    Unknowable,
+}
+
 /// <summary>⭐ THE RUN UNIT'S HANDLE ON ONE PHYSICAL FILE'S KEYED STORE ENGINE
 /// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333, PB3334): ONE paged store (<see cref="PagedFile"/>, its page cache, its ledger) opened through the
 /// handles of the run unit's connectors on the file (<see cref="RunUnitPageMedium"/>), and its trees, which the
@@ -83,10 +95,18 @@ internal abstract class KeyedStore
         _coherent = coherent;
         File = null;
         _fenceOwed = false;
-        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, _cachePages);
-        if (status == StoreStatus.Ok) File = created;
+        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, out bool replaced, _cachePages);
+        File = created;
+        FileReplaced = replaced;
         return status;
     }
+
+    /// <summary>Whether the last <see cref="Create"/> left the physical file other than the previous one, successful or not
+    /// (<see cref="PagedFile.Create"/>'s <c>replaced</c>): false only for a creation refused and undone, which leaves the
+    /// previous file as it was (§14.9.27.4 GR25); true for one that landed, one whose final sync was refused after the
+    /// truncation, and one whose undo the medium refused too — the previous store is gone in all three, so what was kept
+    /// over it ends with it (<c>KeyedConnector.Recreate</c>; kb/Work PB3493, review finding R1-1).</summary>
+    public bool FileReplaced { get; private set; }
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
     /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a
@@ -138,7 +158,7 @@ internal abstract class KeyedStore
     /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edits write (its claim, its reservation), every edit
     /// flushed, every root set and the statement completed — page 2 last. A torn page or a refused write answers '30' and
     /// a boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and
-    /// every pending edit discarded.</summary>
+    /// every pending edit discarded.
     /// <para>⛔ UNDER COMMIT CONTROL THE SAME STATEMENT KEEPS THE BEFORE-IMAGE AND THE HOLDINGS
     /// (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337): with <paramref name="work"/> the statement also inserts the
     /// record's before-image into the run unit's UNDO tree under (R, identity) unless an entry exists (the first image is
@@ -228,6 +248,14 @@ internal abstract class KeyedStore
     /// through <see cref="_liveness"/> until COMMIT or ROLLBACK ends it.</summary>
     public ulong Transaction { get; private set; }
 
+    /// <summary>⛔ THE STORE'S PLACE IN THE RUN UNIT'S ORDER OF OPEN STORES (<see cref="StoreTable"/>, which stamps it when the
+    /// store becomes the run unit's for its physical file; 0 for a store no table holds): the order COMMIT and ROLLBACK take
+    /// the run unit's transactions in (2.2.1.10, <i>"Files are committed one at a time, in the order of the run unit's open
+    /// stores"</i>; <c>FileRegistry.TransactionHolders</c>). A transaction's store stays in the table from its first change
+    /// to its COMMIT or ROLLBACK (a CLOSE under commit control keeps the attachment), so the place is stable for as long as
+    /// a transaction stands, whoever holds it: a live connector, or what a CLOSE kept (<see cref="KeptFile"/>).</summary>
+    internal long OpenOrder { get; set; }
+
     /// <summary>The endpoint holding <see cref="Transaction"/>'s liveness byte.</summary>
     private RegionLocks? _liveness;
 
@@ -266,7 +294,7 @@ internal abstract class KeyedStore
     /// handle, <see cref="LivenessGoneWith"/>) is taken again. The caller holds the store mutex, so no other run unit's
     /// dead-owner probe, lock test or draw can find the byte free in between. A handle the host lets hold no exclusive lock
     /// (a read-only one where the lock needs a writable handle) holds it SHARED, which refuses every other run unit's
-    /// exclusive probe and draw alike (<see cref="OwnerIsDead"/>, <see cref="Draw"/>).</summary>
+    /// exclusive probe and draw alike (<see cref="OwnerOf"/>, <see cref="Draw"/>).</summary>
     internal void HoldLivenessThrough(RegionLocks to)
     {
         if (Transaction == 0 || ReferenceEquals(_liveness, to)) return;
@@ -277,7 +305,9 @@ internal abstract class KeyedStore
 
     /// <summary>The liveness byte went with <paramref name="endpoint"/> — a kept handle given back while the transaction
     /// stands (a re-OPEN whose share mode the kept handle refused, a ROLLBACK refused before its handle went): what a death
-    /// does to it; <see cref="HoldLivenessThrough"/> takes it again, else the dead-owner step settles it.</summary>
+    /// does to it; <see cref="HoldLivenessThrough"/> takes it again, else the dead-owner step settles it. The endpoint's
+    /// disposal, which follows, is what unlocks the byte, explicitly and before its handle closes (<c>KeptFile.GiveBack</c>,
+    /// kb/Work PB3549).</summary>
     internal void LivenessGoneWith(RegionLocks endpoint)
     {
         if (ReferenceEquals(_liveness, endpoint)) _liveness = null;
@@ -319,11 +349,29 @@ internal abstract class KeyedStore
         return status;
     }
 
-    /// <summary>Whether transaction <paramref name="id"/>'s owner is DEAD, by its liveness byte probed through
-    /// <paramref name="prober"/> NOW (2.2.1.10; findings R3-1, R4-1): free means the operating environment released it with
-    /// a dead handle. A host that cannot say answers "alive", so nothing is rolled back on a guess.</summary>
-    internal static bool OwnerIsDead(RegionLocks prober, ulong id) =>
-        prober.HeldByAnother(HostRegionLocks.TransactionLivenessByte(id)) == RegionLockResult.Ok;
+    /// <summary>⛔ THE DEAD-OWNER PROBE (2.2.1.10; findings R3-1, R4-1; kb/Work PB3549): transaction <paramref name="id"/>'s
+    /// liveness byte asked through <paramref name="prober"/> NOW, and the host's three answers read in this one place — free
+    /// is <see cref="OwnerLiveness.Dead"/> (its owner gave the byte back explicitly, or the operating environment released
+    /// it with a dead process's handle), held is <see cref="OwnerLiveness.Alive"/>, and a host that cannot carry the lock is
+    /// <see cref="OwnerLiveness.Unknowable"/>. A transient host failure is never the third answer: the host asks again
+    /// before it answers (<c>OfdRegionLocks.Classify</c>; the lock-file host's bounded publication and observation).</summary>
+    internal static OwnerLiveness OwnerOf(RegionLocks prober, ulong id) =>
+        prober.HeldByAnother(HostRegionLocks.TransactionLivenessByte(id)) switch
+        {
+            RegionLockResult.Ok => OwnerLiveness.Dead,
+            RegionLockResult.Held => OwnerLiveness.Alive,
+            _ => OwnerLiveness.Unknowable,
+        };
+
+    /// <summary>Whether the dead-owner step and the lock test may roll transaction <paramref name="id"/> back: only a DEAD
+    /// owner's. An owner the host cannot see is treated as alive, so nothing is rolled back on a guess (its holdings answer
+    /// '51', and its transaction stands until its owner ends it).</summary>
+    internal static bool MayRollBack(RegionLocks prober, ulong id) => OwnerOf(prober, id) switch
+    {
+        OwnerLiveness.Dead => true,
+        OwnerLiveness.Alive or OwnerLiveness.Unknowable => false,
+        _ => throw new InvalidOperationException("an owner liveness the dead-owner step does not read"),
+    };
 
     /// <summary>⛔ THE ROLLBACK STATEMENT (§14.9.36.4 GR3; 2.2.1.10): transaction <paramref name="id"/>'s UNDO tree walked
     /// once — every R before-image written back under its identity through the organization's
@@ -374,7 +422,7 @@ internal abstract class KeyedStore
         }
         if (status != StoreStatus.Ok) return status;
         foreach (ulong id in ids)
-            if (id != Transaction && OwnerIsDead(prober, id) && (status = RollBack(id, restoring)) != StoreStatus.Ok)
+            if (id != Transaction && MayRollBack(prober, id) && (status = RollBack(id, restoring)) != StoreStatus.Ok)
                 return status;
         return StoreStatus.Ok;
     }
@@ -643,7 +691,7 @@ internal sealed class IndexedStore : KeyedStore
     /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
     public int FrameSlots => File?.Meta.Attributes.Keys.Count ?? 1;
 
-    /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
+    /// <summary>The tree of key <paramref name="key"/> (<see cref="KeyedStore.TreeChange.PrimeRoot"/> the prime key, else an
     /// alternate key's index) under <paramref name="orders"/>; null when the file holds no store, or no such tree.</summary>
     public BTree? Tree(int key, IndexedKeyOrders orders)
     {
@@ -776,14 +824,16 @@ internal sealed class IndexedStore : KeyedStore
     /// alternate trees' composite entries are rebuilt from that vector — the record's current entries removed (found from
     /// its current frame) and the image's inserted — so the duplicate order of §14.9.35.4 GR24 is the one at the last
     /// COMMIT (the release mint only ever grows). <paramref name="entriesOf"/> is the connector's: a frame's alternate
-    /// entries (its key values and ordinals, suppression applied), null for a frame it cannot decode ('30').</summary>
+    /// entries (its key values and ordinals, suppression applied) given the number of release ordinals the FILE's frames
+    /// carry (its meta page's key table, which the file being restored states), null for a frame it cannot decode ('30').</summary>
     public static RestoringTreesFactory Restoring(IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
         (file, meta) => new IndexedRestoring(file, meta, orders, entriesOf);
 
     private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
     {
+        private readonly int _frameSlots = meta.Attributes.Keys.Count;
         private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
         private readonly SortedDictionary<int, BTree> _alternates = [];
 
@@ -806,13 +856,13 @@ internal sealed class IndexedStore : KeyedStore
             if (status != StoreStatus.Ok) return status;
             if (current is not null)
             {
-                if (entriesOf(current) is not { } entries) return StoreStatus.PermanentError;
+                if (entriesOf(_frameSlots, current) is not { } entries) return StoreStatus.PermanentError;
                 foreach (var (key, entry) in entries)
                     if (Alternate(key) is { } tree && (status = tree.Delete(entry, out _)) != StoreStatus.Ok) return status;
                 if ((status = _prime.Delete(identity, out _)) != StoreStatus.Ok) return status;
             }
             if (image is null) return StoreStatus.Ok;
-            if (entriesOf(image) is not { } restored) return StoreStatus.PermanentError;
+            if (entriesOf(_frameSlots, image) is not { } restored) return StoreStatus.PermanentError;
             if ((status = _prime.Put(identity, image)) != StoreStatus.Ok) return status;
             foreach (var (key, entry) in restored)
                 if (Alternate(key) is { } tree && (status = tree.Insert(entry, identity, out _)) != StoreStatus.Ok) return status;
