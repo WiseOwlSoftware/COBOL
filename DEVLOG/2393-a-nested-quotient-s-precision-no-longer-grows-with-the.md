@@ -1,4 +1,4 @@
-## A nested quotient's precision no longer grows with the expression's depth (PB3538)
+## Entry 2393 — 2026-10-23 05:00 PDT — A nested quotient's precision no longer grows with the expression's depth (PB3538)
 
 The nemotron fuzz run's one compiler defect, kb/Work PB3538: `COMPUTE R = A / B / B / B / B` with A = 8 and B = 2 is 0.5.
 On main it ended the run unit with EC-SIZE-OVERFLOW. With ON SIZE ERROR it took the phrase and left R unchanged.
@@ -148,3 +148,4 @@ a zero subsidiary quotient (the receiver's scale) and the unsigned and wide lift
 a zero product and the equality with `2.500`; every leg but the nonzero one fails against the round-5 runtime.
 `CobolDecWithPrecisionTests` pins each arm, and `CobolDecWideLiftTests` now expects the unsigned lift of a zero at its
 declared scale, as the signed lift has always kept it.
+
