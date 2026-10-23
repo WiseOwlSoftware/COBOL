@@ -105,8 +105,9 @@ internal static class Program
         // --std/--permissive, refused by the parser when unknown exactly as --sign-encoding's value is.
         var numericDisplayOption = new Option<string?>("--numeric-display")
         {
-            Description = "How DISPLAY shows a numeric item: decimal (default — the decimal point and a leading +/-, "
-                + "00012.50 and -00012.50) or digits (the digit image, 0001250 and 000125} — see --sign-encoding).",
+            Description = "How DISPLAY shows, and ACCEPT reads, a numeric item: decimal (default — the decimal point and a "
+                + "leading +/-, 00012.50 and -00012.50) or digits (the digit image, 0001250 and 000125}, ACCEPT's digit "
+                + "window — see --sign-encoding).",
             HelpName = string.Join("|", NumericDisplayFormOption.OptionSpellings),
         };
         numericDisplayOption.Validators.Add(result =>

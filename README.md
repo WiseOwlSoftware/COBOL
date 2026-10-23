@@ -75,7 +75,7 @@ The options you will use most:
 | `--source-format fixed`, `free` or `auto` | the reference format the source starts in (default fixed) |
 | `--copy DIR` | a COPY library directory; repeat it for several |
 | `--sign-encoding ibm` or `ascii` | the overpunched-sign convention for DISPLAY numerics (default ibm) |
-| `--numeric-display decimal` or `digits` | how DISPLAY shows a numeric item: with its decimal point and a leading sign, `00012.50` and `-00012.50` (default decimal), or as the digit image, `0001250` and `000125}` (digits) |
+| `--numeric-display decimal` or `digits` | how DISPLAY shows, and ACCEPT reads, a numeric item: with its decimal point and a leading sign, `00012.50` and `-00012.50` (default decimal), or as the digit image, `0001250` and `000125}`, which ACCEPT reads as a digit window (digits) |
 | `--flag-extensions` | warns at every nonstandard extension the compiler accepts |
 | `--nist NAME` | the NIST CCVS placeholder preprocessing |
 
