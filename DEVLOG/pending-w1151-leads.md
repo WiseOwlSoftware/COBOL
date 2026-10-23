@@ -1,0 +1,3 @@
+## Wave 1151's four APPLY COMMIT leads filed: PB3539, PB3540, PB3541, PB3542
+
+The implementer of PB3338 (APPLY COMMIT) left four leads, now filed as register notes. PB3539 lays out the owner question for §12.4.6.4.4 GR3 (two files of one SAME RECORD AREA under APPLY COMMIT: refuse at compile time or check at run time). PB3540 records that EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are not raised under an active method. PB3541 records that a retired connector stays commit-controlled after its clause is deactivated. PB3542 records that the unconditional ROLLBACK of a fatal exception can be skipped by a USE procedure ending in RESUME, and lays out the ordering readings of §14.6.13.1.3 for adjudication.
