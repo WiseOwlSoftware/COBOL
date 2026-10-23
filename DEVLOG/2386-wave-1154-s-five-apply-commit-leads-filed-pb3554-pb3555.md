@@ -1,3 +1,4 @@
-## Wave 1154's five APPLY COMMIT leads filed: PB3554, PB3555, PB3556, PB3557, PB3558; PB3340 unblocked
+## Entry 2386 — 2026-10-22 19:36 PDT — Wave 1154's five APPLY COMMIT leads filed: PB3554, PB3555, PB3556, PB3557, PB3558; PB3340 unblocked
 
 The PB3338 (APPLY COMMIT) reports of wave 1154 left five leads, now filed as register notes. PB3554 asks which element's USE procedure runs when a foreign file refuses a COMMIT or ROLLBACK under EC-I-O checking, a question for an adjudicator before the owner. PB3555 records that a declined SEQUENTIAL file's status item still joins the commit clause under --permissive. PB3556 records that the register check misses repeated inventory row ids. PB3557 records that APPLY COMMIT SR1 and SR11 violations are reported as an undefined data name. PB3558 corrects a test comment that cites ROLLBACK's clause for COMMIT's words. PB3340 (the sequential journal) now carries a dated line saying PB3338's landing unblocked it and that it needs its own group.
+
