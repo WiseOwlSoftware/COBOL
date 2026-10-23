@@ -1,4 +1,4 @@
-## A MOVE into a RENAMES THROUGH alias no longer converts the numeric leaf it spans (PB3563)
+## Entry 2409 — 2026-10-23 12:49 PDT — A MOVE into a RENAMES THROUGH alias no longer converts the numeric leaf it spans (PB3563)
 
 **Defect.** `MOVE "XXXXXXX" TO R-AC` over `66 R-AC RENAMES R-A THROUGH R-C` with `R-A X(2)`, `R-B 9(3)`, `R-C X(2)` stored
 `XX000XX`; the rule requires `XXXXXXX`. §13.18.45.4 2) makes the alias "an alphanumeric group item", and §14.9.25.4 4) makes a move
@@ -57,3 +57,4 @@ in `StorageFormPass`. Witnesses: golden `14.6.2.3.2-Initial-state/pb3563_options
 and NOT NUMERIC, COMP-5 pair `23130 23130`, unredefined control `ZZZ`; accept 2023, and the OPTIONS paragraph's existing
 below-2023 refusal golden is its negative) and unit `OptionsInitializeBackground_PromotesTheNumericLeaf_WhetherOrNotItIsRedefined`
 (Tier-A DISPLAY, Tier-A COMP-5, Tier-B numeric view, unredefined control).
+
