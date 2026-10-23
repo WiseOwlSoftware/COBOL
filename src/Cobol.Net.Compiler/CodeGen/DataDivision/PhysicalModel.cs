@@ -149,7 +149,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
         var siblings = items as IList<DataItem> ?? items.ToList();
         var runs = BitLayout.RunsOf(siblings);
         // The owner's stored implicit filler (§8.5.1.6.3, kb/Work PB3564): the root forest has no owner and no filler.
-        var fillers = siblings.Count > 0 && siblings[0].Parent is { } owner ? BitLayout.FillersOf(owner) : [];
+        var fillers = !ReferenceEquals(runs, BitRunMap.Empty) && siblings[0].Parent is { } owner ? BitLayout.FillersOf(owner) : [];
 
         foreach (var c in siblings)
         {
@@ -230,7 +230,11 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // between a strided table's occurrences (asked of the table).
                 foreach (var filler in fillers)
                     if (ReferenceEquals(filler.Subject, c))
-                        yield return new Physical(filler.Field, "string", 0, false, EmitText.CsLiteral(new string('0', filler.Bits)),
+                        yield return new Physical(filler.Field, "string", 0, false,
+                            // The boolean initial state, as text proportional to the DESCRIPTION: a pad run of a
+                            // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
+                            filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))
+                                : RuntimeApi.StrRepeat(EmitText.CsLiteral("0"), $"{filler.Bits}"),
                             $"implicit filler bits after {comment} (§8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
                 continue;
             }

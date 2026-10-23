@@ -247,7 +247,7 @@ internal static class BitLayout
         bool bitOwner = owner.GroupUsage is GroupUsage.Bit;
         int phase = bitOwner ? PhaseOf(owner) : 0;
         var starts = bitOwner ? ChildStarts(owner) : null;
-        var found = new List<BitFiller>();
+        var found = new List<(BitFillerKind Kind, DataItem Subject, int StartBit, int Bits)>();
         for (int i = 0; i < children.Count; i++)
         {
             var c = children[i];
@@ -255,7 +255,7 @@ internal static class BitLayout
             int at = starts?[i] ?? 0;
             // The padding between the occurrences of a strided table (§13.18.1.4 GR2).
             if (c.Occurs is { } n && n > 1 && StrideBits(c) > WidthBits(c))
-                found.Add(new BitFiller(BitFillerKind.TablePad, c, "", at + WidthBits(c), (n - 1) * (StrideBits(c) - WidthBits(c))));
+                found.Add((BitFillerKind.TablePad, c, at + WidthBits(c), (n - 1) * (StrideBits(c) - WidthBits(c))));
             if (runs.RunLedBy(c) is not { } run || !StoresTail(run)) continue;
             int runBits = 0;
             foreach (var m in run) runBits += RunBits(m);
@@ -273,12 +273,11 @@ internal static class BitLayout
                 tail = starts[next] - end;
             }
             else tail = RoundUpToByte(runBits) - runBits;
-            if (tail > 0) found.Add(new BitFiller(BitFillerKind.RunTail, run[0], "", at + runBits, tail));
+            if (tail > 0) found.Add((BitFillerKind.RunTail, run[0], at + runBits, tail));
         }
         // The serial names are given in list order, which is the owner's member order: deterministic for the emitter's
         // field declaration and for every composer that asks this method again.
-        for (int k = 0; k < found.Count; k++) found[k] = found[k] with { Field = FillerFieldStem + k };
-        return found;
+        return found.Select((f, k) => new BitFiller(f.Kind, f.Subject, FillerFieldStem + k, f.StartBit, f.Bits)).ToList();
     }
 
     /// <summary>The stored trailing filler of <paramref name="run"/>, or null when it has none.</summary>

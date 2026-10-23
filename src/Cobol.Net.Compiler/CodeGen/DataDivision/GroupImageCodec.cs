@@ -1032,9 +1032,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     ///
     /// <para>The filler positions are §8.5.1.6.3's — "implicit filler bit positions are generated … as needed to
     /// advance alignment to a required natural boundary for the next item within that group" and, at the end,
-    /// "as needed to increase the number of bits to fill an integral number of characters". They are ZEROS
-    /// because that is the boolean initial state §13.18.63 gives a position no VALUE reaches, and
-    /// <c>CobolBits.Pack</c>'s own contract already zero-fills a trailing partial byte.</para></summary>
+    /// "as needed to increase the number of bits to fill an integral number of characters". On the emitted face
+    /// (<paramref name="storedFillers"/>) they are the owner's STORED filler fields (<see cref="BitLayout.FillersOf"/>,
+    /// kb/Work PB3564), because "the filler bit positions are implicitly described as a filler elementary bit data
+    /// item" and so hold what the last move put there; on the seed's face they are ZEROS, the boolean initial state
+    /// §13.18.63 gives a position no VALUE reaches (the string backing the seed starts stores them itself).</para></summary>
     private static string BitAreaOf(DataItem group, Func<DataItem, string> carrierOf, bool storedFillers = false)
     {
         var parts = new List<string>();
