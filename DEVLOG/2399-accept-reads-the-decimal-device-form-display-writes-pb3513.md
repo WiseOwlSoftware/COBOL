@@ -1,4 +1,4 @@
-## ACCEPT reads the decimal device form DISPLAY writes (PB3513)
+## Entry 2399 — 2026-10-23 11:05 PDT — ACCEPT reads the decimal device form DISPLAY writes (PB3513)
 
 PB3505 made DISPLAY of a numeric item write GnuCOBOL 3.2.0's default form (`00012.50`, `-00012.50`) and left ACCEPT decoding
 a digit window, so text DISPLAY wrote and a later ACCEPT read came back about ten times too small with its sign lost:
@@ -44,3 +44,4 @@ no second spelling of the form. Full code: the reader implements the cited rules
 Performance: the reader allocates nothing beyond the transferred window. Duplication: none. Comment and silent-failure
 passes: the zero for invalid text is a documented choice (the standard defines no exception for ACCEPT conversion), and the
 NATIONAL divergence is written where it applies.
+
