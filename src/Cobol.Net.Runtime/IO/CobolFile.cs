@@ -297,8 +297,11 @@ public static class CobolFile
     /// <summary>The ROLLBACK statement (§14.9.36) — see <see cref="TransactionControl.Rollback"/>.</summary>
     public static string? Rollback() => _txn.Rollback();
 
-    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK — see <see cref="TransactionControl.RollbackOnFatal"/>.</summary>
-    public static void RollbackOnFatal(string name) => _txn.RollbackOnFatal(name);
+    /// <summary>§14.6.13.1.3 item 8's question, asked at the raise — see <see cref="TransactionControl.RollbackDueOnFatal"/>.</summary>
+    public static bool RollbackDueOnFatal(string name, bool checkingEnabled) => _txn.RollbackDueOnFatal(name, checkingEnabled);
+
+    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK statement — see <see cref="TransactionControl.RollbackOnFatal"/>.</summary>
+    public static void RollbackOnFatal() => _txn.RollbackOnFatal();
 
     /// <summary>A refused COMMIT or ROLLBACK on a file no element gives a FILE STATUS item — DOC-A.1-103's termination, for
     /// a file the executing element does not describe (its own files take their statement's exception processing).</summary>

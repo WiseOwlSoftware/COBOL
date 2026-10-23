@@ -159,6 +159,13 @@ public sealed class TransactionControlTests
 
     private static string?[] Changed() => With(With(With(Seeded(), 5, null), 1, "X001"), 7, "A007");
 
+    /// <summary>§14.6.13.1.3 item 8 as the emitted hook drives it (<c>SequentialIoEmitter.Item8Applies</c>): the question
+    /// asked at the raise, under the statement's checking for the raised condition, and the ROLLBACK when it is due.</summary>
+    private static void Item8(Run r, string name, bool checkingEnabled = false)
+    {
+        if (r.Txn.RollbackDueOnFatal(name, checkingEnabled)) r.Txn.RollbackOnFatal();
+    }
+
     // ── The data items' image (§14.9.7.4 GR5, §14.9.36.4 GR3) ─────────────────────────────────────────────────────
 
     [Theory]
@@ -266,7 +273,7 @@ public sealed class TransactionControlTests
             Assert.Equal("30", r.Reg.Status("F"));
             Assert.Equal(statusItem, r.Txn.HasStatusItem("F"));
             Assert.Equal(statusItem ? "30" : null, clause.StatusItems.GetValueOrDefault("F"));
-            r.Txn.RollbackOnFatal("F");                      // §14.6.13.1.3 item 8
+            Item8(r, "F");                      // §14.6.13.1.3 item 8
             Assert.Equal("INITIAL", clause.Item);            // the refused COMMIT saved nothing
             Assert.Equal(Seeded(), r.Contents());
         }
@@ -307,7 +314,7 @@ public sealed class TransactionControlTests
         Assert.Equal("00", r.Reg.Status("F"));
         Assert.Equal("30", r.Reg.Status("G"));
         Assert.Equal("30", clause.StatusItems["G"]);
-        r.Txn.RollbackOnFatal("G");
+        Item8(r, "G");
         Assert.Equal("INITIAL", clause.Item);
         Assert.Equal(Changed(), r.Contents("F"));
         Assert.Equal(Seeded(), r.Contents("G"));
@@ -358,12 +365,12 @@ public sealed class TransactionControlTests
         r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
         Assert.Equal("30", r.Write(9, "A009", "H"));
         r.Refuse = null;
-        r.Txn.RollbackOnFatal("H");                          // H is not under commit control: nothing happens
+        Item8(r, "H");                          // H is not under commit control: nothing happens
         Assert.Equal("CHANGED", clause.Item);
         r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
         Assert.Equal("30", r.Write(9, "A009"));
         r.Refuse = null;
-        r.Txn.RollbackOnFatal("F");
+        Item8(r, "F");
         Assert.Equal("INITIAL", clause.Item);
         Assert.Equal(Seeded(), r.Contents());
     }
@@ -381,10 +388,69 @@ public sealed class TransactionControlTests
         Change(r);
         clause.Item = "CHANGED";
         Assert.Equal("22", r.Write(2, "A002"));
-        r.Txn.RollbackOnFatal("F");
+        Item8(r, "F");
         Assert.Equal("CHANGED", clause.Item);
         Assert.Null(r.Txn.Commit());
         Assert.Equal(Changed(), r.Contents());
+    }
+
+    /// <summary>kb/Work PB3543: item 8 opens <i>"If checking for the exception condition is not enabled"</i>; with checking
+    /// enabled items 4-7 decide (a RESUME continues, item 5 NOTE 2, with no ROLLBACK). A refused WRITE ('30', fatal) under
+    /// enabled checking is therefore not due, and the transaction stands for the program's own ROLLBACK.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void Item_8_is_not_due_when_checking_for_the_condition_is_enabled(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));
+        r.Refuse = null;
+        Assert.False(r.Txn.RollbackDueOnFatal("F", checkingEnabled: true));
+        Assert.True(r.Txn.RollbackDueOnFatal("F", checkingEnabled: false));   // the same status, checking off: due
+        Item8(r, "F", checkingEnabled: true);
+        Assert.Equal("CHANGED", clause.Item);
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal("INITIAL", clause.Item);
+        Assert.Equal(Seeded(), r.Contents());
+    }
+
+    /// <summary>kb/Work PB3544: item 8's ROLLBACK is <i>"a ROLLBACK statement"</i>, so §14.9.36.4 GR2 holds for it: <i>"If
+    /// this statement is attempted to be executed under the control of a recursive runtime element or a file SORT or MERGE
+    /// statement, then the exception condition EC-FLOW-ROLLBACK is set to exist."</i> A fatal status on a file under commit
+    /// control in a SORT input or output procedure raises EC-FLOW-ROLLBACK with checking on and, with it off, rolls
+    /// nothing back; the transaction stands for the ROLLBACK after the SORT.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsWithAndWithoutStatus))]
+    public void Item_8_under_an_active_sort_raises_ec_flow_rollback_or_rolls_nothing_back(FileOrg org, bool checking)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Refuse = (_, _, op) => op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));
+        r.Refuse = null;
+        r.Unit.SortFiles.Get("SD1").Phase = ProcedurePhase.Input;
+        r.Unit.Exceptions.FlowRollbackChecking = checking;
+        Assert.True(r.Txn.RollbackDueOnFatal("F", checkingEnabled: false));
+        if (checking)
+            Assert.Equal("EC-FLOW-ROLLBACK", Assert.Throws<CobolFatalException>(() => r.Txn.RollbackOnFatal()).EcName);
+        else
+            r.Txn.RollbackOnFatal();
+        Assert.Equal("CHANGED", clause.Item);                // nothing was rolled back
+        r.Unit.SortFiles.Remove("SD1");
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal("INITIAL", clause.Item);
+        Assert.Equal(Seeded(), r.Contents());
     }
 
     // ── §9.1.18.7: EC-FLOW-COMMIT, EC-FLOW-ROLLBACK and EC-FLOW-APPLY-COMMIT under an active SORT or MERGE ──────────
