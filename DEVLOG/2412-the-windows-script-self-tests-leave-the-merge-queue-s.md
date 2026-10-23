@@ -1,4 +1,4 @@
-## The Windows script self-tests leave the merge queue's critical path, and prune_worktrees stops spawning git per pair (PB3581, PB3583; PB3582, PB3584, PB3585 filed)
+## Entry 2412 — 2026-10-23 13:20 PDT — The Windows script self-tests leave the merge queue's critical path, and prune_worktrees stops spawning git per pair (PB3581, PB3583; PB3582, PB3584, PB3585 filed)
 
 The owner asked for the Windows script self-tests to be analyzed for duplication, redundancy and inefficiency, and
 asked why the data was not read from GitHub Actions, where they run. It was: merge group run 40004159292 ran the same
@@ -22,3 +22,4 @@ origin/main). Same trace after: 3,140 processes, 154 sha-to-sha ancestry calls (
 milliseconds; trace each hot one and batch its git reads. PB3584: fifteen self-tests each build a scratch repository,
 seven through a git helper of their own; one shared fixture. PB3585 (analysis, blocked on PB3582): the budget cap is
 `os.cpu_count()` for work that waits on process starts; measure a larger cap on CI.
+
