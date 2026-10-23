@@ -427,6 +427,52 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ AN OWED-WRITES BYTE THAT CANNOT BE PUBLISHED FAILS THE WHOLE REQUEST AND TAKES BACK THE COLUMN BYTE IT ALREADY
+    /// ADDED (kb/Work PB3499, review round 1, MANDATORY-PRACTICES I11 exception path): the request publishes its column first
+    /// and the owed-writes byte second, so an outside program that holds the whole owed-writes range exclusively collides every
+    /// try of the second publication. The outcome is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (a lock this host cannot
+    /// hold, never '61': §9.1.13.9 1) names another file connector), and it leaves nothing behind (§14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>): a first request leaves no stray byte in
+    /// its column's range and no handle on the file, and a superseding request leaves the superseded column standing, the
+    /// column it asked for unpublished.</summary>
+    [Fact]
+    public void AnOwedWritesByteThatCannotBePublishedFailsTheRequestAndGivesBackTheColumnByteAlreadyAdded()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.Input);
+            long column = HostRegionLocks.ColumnRangeStart(Table19.Column(sharing, mode));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using (var probe = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, HostRegionLocks.OwedWritesRangeStart,
+                    HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+
+                // A first request: unavailable, no hold, and the column range it published a byte in is free again.
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, RunUnitFileLock.Take(Host, file, sharing, mode, out var none, owesWrites: true));
+                Assert.Null(none);
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(probe.SafeFileHandle, column, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+                WindowsByteRangeLocks.Unlock(probe.SafeFileHandle, column, HostRegionLocks.ColumnRangeWidth);
+
+                // A superseding request: unavailable, the new column's range free again, the kept column standing (it still
+                // refuses a READ ONLY I-O request) and Revert a no-op.
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept!.Amend(sharing, mode, owesWrites: true));
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(probe.SafeFileHandle, column, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+                WindowsByteRangeLocks.Unlock(probe.SafeFileHandle, column, HostRegionLocks.ColumnRangeWidth);
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
+                Assert.True(kept.Revert());
+                kept.Dispose();
+            }
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, sharing, mode, out var after, owesWrites: true));
+            after!.Dispose();
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // no handle of a failed try stays
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>A host that cannot hold the lock for a path — a file that is not there, a directory — holds nothing and
     /// refuses nothing: it is <see cref="RunUnitFileLock.Outcome.Unavailable"/>, never an exception out of an OPEN.</summary>
     [Fact]
