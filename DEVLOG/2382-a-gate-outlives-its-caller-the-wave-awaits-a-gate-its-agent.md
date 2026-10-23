@@ -89,5 +89,14 @@ cause. `--await`'s PENDING moved to exit 4, the lock refusal is BUSY written to 
 dead gate is `NOT RUN [verdict]`, and two ENVIRONMENT causes are new: `launch` (the host would not start the detached
 gate) and `run` (no run directory). A record from before schema 3 takes its exit code through `read_verdict`.
 
+**The merged head's gate was RED on the measured-tree arm, and the cause is racy git.** The arm passed alone and failed
+inside the loaded gate: an edit measured as the unedited tree. `measured_tree` copied the index with `shutil.copyfile`,
+which gives the copy a fresh mtime. The index file's own mtime is git's racy-git reference: git re-reads by content an
+entry whose cached mtime is not older than the index file's. Git for Windows compares whole seconds here, so an edit
+in the cached entry's second keeps the entry's size and mtime. With the reference moved forward, `add -A` kept the old
+blob, and 13 of 200 such edits under eight parallel loops went unseen. A gate that reuses a GREEN on that tree would
+have skipped a changed tree. The copy is now `shutil.copy2`, which keeps the mtime (0 of 200). A new arm pins one past
+second on the entry, the index and the edit, so it fails every time `copyfile` comes back, whatever the load.
+
 Rows: none (process-only, `closes_rows: []` with its reason).
 

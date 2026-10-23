@@ -1704,7 +1704,9 @@ gate still running and plans a finisher for one that ended otherwise, and the br
 
 **4. Reuse: a measured tree is gated once.** Every verdict record (schema 3) carries the HEAD, the TREE the gate
 measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
-as on disk, untracked files git does not ignore — written through a private copy of the index; a path
+as on disk, untracked files git does not ignore — written through a private copy of the index that keeps the index
+file's own mtime, git's racy-git reference: an edit in the cached entry's own second keeps its size and mtime, and only
+that reference makes git re-read such an entry by content; a path
 `coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the TRACKED `.claude/settings.local.json`
 in every agent worktree is no difference and a GREEN at a clean commit measures as that commit's own tree, the tree
 `gate_state` checks: review R1-2 of wave 1152), the base it planned
