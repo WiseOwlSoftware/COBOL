@@ -39,4 +39,10 @@ and `test_plan_wave.py` gains 3. The wave and planner arms read real verdict fil
 **Measured.** By the same pattern, today's workflow journals, and every journal on disk, hold one return of this
 shape. That is one finisher dispatch saved, and the wave would have gone straight to round 2.
 
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 10,491/18,125 · Unit
+33,958/35,379 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … (run 20261023T002325Z-aa7b26) ===`,
+the first gate the new driver ran DETACHED. Re-gated at once on the same tree, it answered in about three seconds:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree 42951658c89c at head
+222e9d07403c was gated in run 20261023T002325Z-aa7b26 and has not changed since, so nothing ran …`.
+
 Rows: none (process-only, `closes_rows: []` with its reason).
