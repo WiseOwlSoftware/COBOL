@@ -586,6 +586,7 @@ public sealed class TransactionControlTests
         Assert.Null(r.Txn.Rollback());
         Assert.Equal("GONE-CHANGED", gone.Item);             // GR4/GR5: the canceled element's items are not restored
         Assert.Equal("INITIAL", kept.Item);
+        Assert.True(r.Reg.IsCommitControlled("F"));          // the live clause still names F
         Assert.Null(r.Txn.Commit());
         Assert.Equal(1, gone.Saves);                         // GR6: deactivated by the ROLLBACK, never saved again
         Assert.Equal(2, kept.Saves);
@@ -594,5 +595,57 @@ public sealed class TransactionControlTests
         Assert.Null(r.Txn.Commit());                         // §14.9.7.4 GR3: the COMMIT deactivates the last clause
         Assert.False(r.Txn.AnyActive);
         Assert.Equal(2, kept.Saves);
+        Assert.False(r.Reg.IsCommitControlled("F"));         // kb/Work PB3541: no active clause names F any more
+    }
+
+    /// <summary>⛔ kb/Work PB3541 — A FILE WHOSE LAST CLAUSE IS DEACTIVATED LEAVES COMMIT CONTROL. §14.9.7.4 GR3 (<i>"The COMMIT
+    /// statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"</i>) and
+    /// §14.9.36.4 GR6 for the ROLLBACK end the clause, and §12.4.6.3.4 GR5 makes it active only until then; so F's changes
+    /// after the deactivating statement are no ROLLBACK's (§14.9.36.4 GR3 restores <i>"All files and data-items referenced
+    /// in active APPLY COMMIT clauses"</i>) and a fatal status on F runs no §14.6.13.1.3 item 8 ROLLBACK, while another
+    /// element's active clause, on file G, keeps the run unit's commit control alive. Both deactivating statements are
+    /// cases: the COMMIT (<paramref name="byCommit"/>) and the ROLLBACK.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsByStatement))]
+    public void A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s(FileOrg org, bool byCommit)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        r.Declare("G");
+        object canceled = new(), live = new();
+        var gone = new Clause(r.Reg);
+        var kept = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        Assert.True(r.Activate(live, kept, "G"));
+        r.OpenIO("F");
+        r.OpenIO("G");
+        r.Txn.Retire(canceled);
+        Assert.Null(byCommit ? r.Txn.Commit() : r.Txn.Rollback());
+        Assert.False(r.Reg.IsCommitControlled("F"));
+        Assert.True(r.Reg.IsCommitControlled("G"));
+        Assert.True(r.Txn.AnyActive);
+        Change(r);                                           // F's changes, made after the deactivation
+        Assert.Equal("00", r.Write(8, "A008", "G"));         // G's change, under its active clause
+        kept.Item = "CHANGED";
+        r.Refuse = (file, _, op) => file == "F" && op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));              // a fatal status on F
+        r.Refuse = null;
+        Item8(r, "F");                                       // F is subject to no active clause: no ROLLBACK
+        Assert.Equal("CHANGED", kept.Item);
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal(Changed(), r.Contents("F"));            // F is no ROLLBACK's: every change of it survives
+        Assert.Equal(Seeded(), r.Contents("G"));             // G is rolled back
+        Assert.Equal("INITIAL", kept.Item);
+    }
+
+    public static TheoryData<FileOrg, bool> OrgsByStatement()
+    {
+        var data = new TheoryData<FileOrg, bool>();
+        foreach (var org in KeyedOrgs)
+        {
+            data.Add(org, true);
+            data.Add(org, false);
+        }
+        return data;
     }
 }
