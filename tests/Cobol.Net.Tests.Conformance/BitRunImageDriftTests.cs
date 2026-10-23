@@ -165,6 +165,12 @@ public sealed class BitRunImageDriftTests
     [InlineData("BFL08", 2,
         "05 BA PIC 1(2) USAGE BIT. 05 SUB GROUP-USAGE BIT. 10 SA PIC 1 USAGE BIT. 10 TA PIC 1(5) USAGE BIT ALIGNED.",
         "BA|SA|TA|SUB")]
+    // A strided table of ONE occurrence has no pad between occurrences (§13.18.1.4 GR2) and only the tail after it: the
+    // compiler once asked for the pad field it does not have (review R1-1).
+    [InlineData("BFL09", 2, "05 T PIC 1(3) USAGE BIT ALIGNED OCCURS 1. 05 X PIC X(1).", "T (1)|X")]
+    [InlineData("BFL10", 3,
+        "05 S1 GROUP-USAGE BIT OCCURS 1. 10 Q1 PIC 1 USAGE BIT. 10 Q2 PIC 1(5) USAGE BIT ALIGNED. 05 X PIC X(1).",
+        "Q1 (1)|Q2 (1)|X")]
     public void AliasedGroup_HoldsTheFillerAGroupMoveWrote(string pid, int width, string members, string reads)
     {
         string bytes = string.Concat(Enumerable.Repeat("5A", width));

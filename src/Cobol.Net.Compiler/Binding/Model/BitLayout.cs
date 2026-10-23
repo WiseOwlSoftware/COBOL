@@ -238,7 +238,14 @@ internal static class BitLayout
     ///     ALIGNED table, or of a table whose elements hold an ALIGNED member (<see cref="StrideBits"/> &gt;
     ///     <see cref="WidthBits"/>): every occurrence but the last is padded to its stride.</item>
     /// </list></summary>
-    public static IReadOnlyList<BitFiller> FillersOf(DataItem owner)
+    public static IReadOnlyList<BitFiller> FillersOf(DataItem owner) => FillerLists.GetValue(owner, ComputeFillersOf);
+
+    /// <summary>The list per owner, computed once: the codec asks it for every run and every strided table of a group, and a
+    /// recomputation walks the group's runs and placements each time (compile time grew with the square of the run count,
+    /// kb/Work PB3564 review R1-3). The model is final when code generation asks (no caller binds).</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<DataItem, IReadOnlyList<BitFiller>> FillerLists = new();
+
+    private static IReadOnlyList<BitFiller> ComputeFillersOf(DataItem owner)
     {
         if (!owner.IsGroup) return [];
         var children = owner.Children;
@@ -254,8 +261,8 @@ internal static class BitLayout
             if (c.RedefinesTargetName is not null || !(c.IsGroup || c.IsElementary) || !runs.IsInRun(c)) continue;
             int at = starts?[i] ?? 0;
             // The padding between the occurrences of a strided table (§13.18.1.4 GR2).
-            if (c.Occurs is { } n && n > 1 && StrideBits(c) > WidthBits(c))
-                found.Add((BitFillerKind.TablePad, c, at + WidthBits(c), (n - 1) * (StrideBits(c) - WidthBits(c))));
+            if (HasTablePad(c))
+                found.Add((BitFillerKind.TablePad, c, at + WidthBits(c), (c.Occurs!.Value - 1) * (StrideBits(c) - WidthBits(c))));
             if (runs.RunLedBy(c) is not { } run || !StoresTail(run)) continue;
             int runBits = 0;
             foreach (var m in run) runBits += RunBits(m);
@@ -265,7 +272,7 @@ internal static class BitLayout
                 // A bit group's extent is exact: the tail is the gap to the NEXT run's first position, and the last run has none.
                 int last = i;
                 for (int j = i; j < children.Count; j++)
-                    if (ReferenceEquals(children[j], run[^1])) last = j;
+                    if (ReferenceEquals(children[j], run[^1])) { last = j; break; }
                 int next = last + 1;
                 while (next < children.Count && children[next].RedefinesTargetName is not null) next++;
                 if (next >= children.Count) continue;
@@ -279,6 +286,13 @@ internal static class BitLayout
         // field declaration and for every composer that asks this method again.
         return found.Select((f, k) => new BitFiller(f.Kind, f.Subject, FillerFieldStem + k, f.StartBit, f.Bits)).ToList();
     }
+
+    /// <summary>Whether <paramref name="table"/> has stored padding BETWEEN its occurrences (§13.18.1.4 GR2): more than one
+    /// occurrence, each padded to a stride wider than its width. THE one predicate of the TablePad list entry, so the list
+    /// (<see cref="FillersOf"/>) and every composer that asks whether a table is strided (<c>GroupImageCodec.BitCarrierOf</c>)
+    /// agree: a one-occurrence table has no gap to store, whatever its stride (kb/Work PB3564 review R1-1).</summary>
+    public static bool HasTablePad(DataItem table) =>
+        table.Occurs is > 1 && StrideBits(table) > WidthBits(table);
 
     /// <summary>The stored trailing filler of <paramref name="run"/>, or null when it has none.</summary>
     public static BitFiller? RunTailOf(IReadOnlyList<DataItem> run)
@@ -622,7 +636,24 @@ internal enum BitFillerKind
 /// owner's record struct that holds its <paramref name="Bits"/> boolean positions (an emitter-fixed name,
 /// <see cref="BitLayout.FillerFieldStem"/> and a serial); <paramref name="StartBit"/> is where it begins relative to the
 /// owner's first bit (meaningful for a bit group, whose bit face is its own area — the other owners compose by run).</summary>
-internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Field, int StartBit, int Bits);
+internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Field, int StartBit, int Bits)
+{
+    private DataItem? _item;
+
+    /// <summary>⛔ THE FILLER AS THE ELEMENTARY BIT DATA ITEM §8.5.1.6.3 SAYS IT IS ("implicitly described as a filler
+    /// elementary bit data item"): a nameless boolean item of <see cref="Bits"/> positions whose <see cref="DataItem.CsName"/>
+    /// is the hidden <see cref="Field"/>, so a statement that walks a group's elementary items as receivers (INITIALIZE
+    /// ... WITH FILLER, §14.9.20.4 5) a) 2.) reaches it through the ordinary place cursor and the ordinary MOVE, with no
+    /// second storage law (kb/Work PB3564 review R1-4). It is in no <c>Children</c> list: the owner's layout is the
+    /// <see cref="BitLayout.FillersOf"/> list's, never this item's.</summary>
+    public DataItem Item => _item ??= new DataItem
+    {
+        Level = Subject.Level,
+        CsName = Field,
+        Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: Bits, Digits: 0, Scale: 0, Signed: false),
+        Parent = Subject.Parent,
+    };
+}
 
 /// <summary>The §8.5.1.6.3 bit RUNS of one sibling list — see <see cref="BitLayout.RunsOf"/>. A run is keyed by
 /// the member that LEADS it; every member of a run (leader included) answers true to

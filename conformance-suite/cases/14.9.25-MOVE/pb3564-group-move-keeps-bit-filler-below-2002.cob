@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> The NEGATIVE below the introducing edition of conformance-suite/cases/14.9.25-MOVE/pb3564_group_move_keeps_bit_filler
-      *> (and of its two siblings in 13.18.1-ALIGNED and 13.18.60-USAGE).  The filler bits PB3564 stores are 8.5.1.6.3's,
+      *> (and of its siblings in 13.18.1-ALIGNED, 13.18.60-USAGE and 14.9.20-INITIALIZE).  The filler bits PB3564 stores are 8.5.1.6.3's,
       *> and their antecedent is a data item of USAGE BIT - boolean data, which with the PICTURE symbol 1 is a COBOL-2002
       *> introduction.  Below 2002 the group is refused at its DATA DIVISION entry, so no bit run exists and no filler can.
       *> Witness for kb/Work PB3564.
