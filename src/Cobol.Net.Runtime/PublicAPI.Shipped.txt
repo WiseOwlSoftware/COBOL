@@ -2252,7 +2252,7 @@ const CobolNet.Runtime.NativeCollatingSequence.LowValue = '\0' -> char
 const CobolNet.Runtime.PointerImage.NullImage = "\0\0\0\0\0\0\0\0" -> string!
 const CobolNet.Runtime.PointerImage.Width = 8 -> int
 const CobolNet.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 1 -> int
-const CobolNet.Runtime.RuntimeAbi.CallAbi = 1 -> int
+const CobolNet.Runtime.RuntimeAbi.CallAbi = 2 -> int
 const CobolNet.Runtime.SwitchStore.Prefix = "COBOL_" -> string!
 const CobolNet.Runtime.Unicode.Segmentation.GraphemeBreaker.ResourceName = "Unicode/Segmentation/Data/grapheme-break.bin" -> string!
 override CobolNet.Runtime.ActivationDescription.Equals(object? obj) -> bool
