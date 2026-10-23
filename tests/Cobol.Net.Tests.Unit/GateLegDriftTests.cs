@@ -93,7 +93,12 @@ public sealed class GateLegDriftTests
     /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
     /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build;
     /// and the audits run before the gate slot is taken (kb/Work PB2524); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527). ⛔ This test does
+    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
+    /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
+    /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, a process that DIED: NOT RUN
+    /// [verdict]) and resolves a relative run name against the worktree that gated it, and a re-gate of an unchanged
+    /// tree (coord.NEVER_WORK left out) answers from a recorded GREEN, never from a RED, another tree, another base or
+    /// a narrower scope. ⛔ This test does
     /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
     /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
     /// took 311 s, retried, in train 1058's lander gate.
@@ -138,6 +143,21 @@ public sealed class GateLegDriftTests
                      "a population that cannot be listed after a GREEN build is NOT RUN [population]",
                      "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",
                      "the gate lock is per worktree",
+                     "the measured tree is the working tree's content",
+                     "a re-gate of an unchanged tree answers from the recorded GREEN",
+                     "a chain of reuses names the run that MEASURED the tree",
+                     "a re-gate of a CHANGED tree runs the gate",
+                     "a RED is never reused",
+                     "a LEG 1 ONLY GREEN never answers a gate under the scope whole",
+                     "a gate whose tree changed WHILE it ran is never reused",
+                     "--await reads the verdict file",
+                     // review R1-1 and R1-2 of wave 1152: a handed run's name is its worktree's; the harness's
+                     // edit of a tracked settings file is no part of a measured tree
+                     "the measured tree leaves out coord.NEVER_WORK",
+                     "a relative run name resolves against the worktree that gated it",
+                     "a record with no exit code takes it from its verdict through the one verdict reader",
+                     "build-local's gate runs DETACHED and is followed",
+                     "a detached gate OUTLIVES its follower's tree kill",
                  });
     }
 
