@@ -890,6 +890,9 @@ acceptance (§3.14.9) records the time to the first red of every implementer gat
   gate lock and the population check, for an implementer's commit, a re-gate after a fix and a landing alike. The
   lander's former mode (no plan, ONE whole-population leg, no slot) is deleted: it was 7–53 min, 8 of 15 RED under
   load, on 2026-10-10. The battery and CI do not use the driver.
+- **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
+  run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
+  from the recorded GREEN, saying `REUSED`.
 
 #### 3.14.2 The plan: `scripts/gate_plan.py`
 
@@ -1651,6 +1654,67 @@ that runs `$PY` sources its shell's resolver; and the two resolvers probe the sa
 same floor probe. Before PB3197 the gate's own entry points bypassed the resolver (bare `python` in both
 `build-local` twins; `command -v python3 || command -v python`, no probe and no floor, in `linux-gate.sh`), so
 `bash scripts/build-local.sh` died `python: command not found` (exit 127, no verdict line) on a python3-only host.
+
+#### 3.14.12 A gate outlives its caller, and a measured tree is gated once (kb/Work PB3536)
+
+**The defect it removes.** A workflow agent's return kills the process TREE of every background command it started
+(the harness walks the tree; the agent's shell is in no job object). Measured 2026-10-22 on wave 1150 group A: the
+review finisher reached its turn cap while its gate ran, its return killed the gate mid-audit (run
+`20261022T225440Z-2797b8`: no verdict, its log stopping in the audits), the wave read the return as SPLIT, and the only
+path was a second finisher whose whole job was to re-run the same gate at the same head. Owner, ~16:50 PDT: "Reruning
+these simply wastes tokens: but the workflow returned before its gate finished, so it needs the gate re-run at its
+head and a round-2 review. - we should have the failure in the first place". The bar: the gate's result is PERSISTED
+and AWAITED by the orchestrator, never left to an agent's turn budget.
+
+**1. Detached, and followed.** `run_gate_legs.py` (what `build-local.ps1` and `.sh` run) makes the run directory and
+starts the gate itself (`--run <run>`) through `scripts/detached.py`, THE one launch that outlives its caller: a
+launcher that starts the target and exits at once, so no walk of the caller's tree reaches it (Windows: its own
+process group and a console with no window, out of the caller's job where the job allows it; POSIX: its own session).
+The landing lane starts its runners through the same function (§DESIGN-orchestrator-loop 4.9). The run directory
+holds `gate.log` (the gate's whole output), `gate.pid` and, at the end, `verdict.json`. The caller FOLLOWS it: it
+echoes the log as it grows and exits with the gate's own exit code once the verdict file is written, so every caller
+that blocks on the `=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees exactly what it saw before. A
+caller that is killed leaves the gate running to its verdict. To stop a gate, end the process `gate.pid` names.
+
+**2. One way to wait: the verdict file.** `run_gate_legs.watch` — the CLI `run_gate_legs.py --await <run> [--worktree
+W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
+there; `NOT RUN [verdict]` (exit 2, BRANCH) when the process `gate.pid` names DIED without one; PENDING (exit 4: exit 3
+is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
+directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
+that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
+wave's await (`--worktree`, the agent's worktree) and `plan_wave.Report.gate_state` (the report's Worktree field) both
+read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
+`plan_wave.Report.gate_state` all read through `watch`.
+
+**3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
+head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
+`Status: GATE-PENDING` and `Gate run: <run>` (MANDATORY-PRACTICES P2's one exception). The rolling wave
+(`wf_rolling_wave.js` `settleGate`) awaits the run inside the agent's own ceiling, one window at a time (one mechanical
+`cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
+as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
+finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
+also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
+is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
+gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
+
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 3) carries the HEAD, the TREE the gate
+measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
+as on disk, untracked files git does not ignore — written through a private copy of the index; a path
+`coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the TRACKED `.claude/settings.local.json`
+in every agent worktree is no difference and a GREEN at a clean commit measures as that commit's own tree, the tree
+`gate_state` checks: review R1-2 of wave 1152), the base it planned
+against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree whose tree
+did not change while it ran, under a scope that run covered (a `LEG 1 ONLY` GREEN covers `leg1`; a plain GREEN covers
+both), takes the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a leg, and
+says so: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree … at head
+… was gated in run <the measuring run> and has not changed since, so nothing ran (run <this run>); that gate: … ===`.
+It is the self-test reuse rule (§3.14.10) extended to the gate, keyed on what was measured rather than on a branch or
+a head: a RED is never reused, and the landing's gate on the merged head (another tree, another base) always runs.
+A reused record carries its own seconds (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
+
+**What it would have saved on 2026-10-22.** The wave journals of the day name one rerun of this shape (wave 1150 group
+A, PB3527: a whole finisher dispatched to re-run the gate its predecessor's return killed, plus the second review
+round it waited on); with the gate detached and handed over, the wave awaits the verdict and goes straight to round 2.
 
 ### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
 

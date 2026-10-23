@@ -73,8 +73,8 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    re-armed; the enqueue unit dispatches its finisher
                                                                    or reviewer, and re-arms a stop resolved with no
                                                                    new commit (`rearm`)
-     A launch writes the attempt and starts `land_lane.py run <attempt>` DETACHED (its own process group, out of the
-     supervisor's job where Windows allows it), which runs `enqueue.py land <branch> --worktree <wt>` with its output in
+     A launch writes the attempt and starts `land_lane.py run <attempt>` DETACHED through scripts/detached.py (the one
+     launch that outlives its caller's tree kill, kb/Work PB3536), which runs `enqueue.py land <branch> --worktree <wt>` with its output in
      the log and records the outcome. (A permission refusal cannot happen here: a script has no permission layer.)
   4. THE QUEUE WATCH (kb/Work PB3527), on the facts the survey read (queue_facts.read, the one reader of GitHub's
      facts), before the stops are read: `ENQUEUED` means only that the pull request was HANDED to the queue (auto-merge
@@ -116,6 +116,7 @@ sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
+from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
 LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
@@ -382,27 +383,6 @@ def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree)
     return landing_check_free(worktree)
-
-
-def spawn(argv: list[str], log: pathlib.Path) -> int:
-    """Start `argv` DETACHED, its output appended to `log`; its pid. On Windows it leaves the supervisor's console and,
-    where the job allows it, the supervisor's job, so a supervisor that ends does not end a landing mid-gate; a job that
-    refuses breakaway keeps it (the landing is idempotent: the next tick reaps it DIED and retries it once).
-
-    It leaves the console through CREATE_NO_WINDOW (a new console with no window, which every descendant inherits), never
-    DETACHED_PROCESS (no console at all): under DETACHED_PROCESS each console program the landing starts (enqueue.py,
-    git, pwsh, dotnet) gets a console of its own, and with Windows Terminal as the default terminal each one opens a
-    window that takes the desktop's focus (kb/Work PB3117)."""
-    log.parent.mkdir(parents=True, exist_ok=True)
-    with log.open("ab") as out:
-        kw: dict[str, Any] = {"stdin": subprocess.DEVNULL, "stdout": out, "stderr": subprocess.STDOUT, "close_fds": True}
-        if os.name == "nt":
-            base = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
-            try:
-                return subprocess.Popen(argv, creationflags=base | subprocess.CREATE_BREAKAWAY_FROM_JOB, **kw).pid
-            except OSError:
-                return subprocess.Popen(argv, creationflags=base, **kw).pid
-        return subprocess.Popen(argv, start_new_session=True, **kw).pid
 
 
 def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say, kind: str = "info") -> None:
@@ -772,7 +752,7 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
 
 def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
          survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str], dict | None]] = survey_rows,
-         start: Callable[[list[str], pathlib.Path], int] = spawn,
+         start: Callable[[list[str], pathlib.Path], int] = spawn_detached,
          alive: Callable[[int | None], bool] = pid_alive,
          wait_free: Callable[[int | None, str], tuple[bool, str]] = wait_free,
          argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None,
@@ -1486,21 +1466,10 @@ def self_test() -> int:
                and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
                and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
 
-        # 13. a launch opens no window (kb/Work PB3117): the runner OWNS a console with no visible window, so every
-        #     console program it starts (enqueue.py, git, pwsh, dotnet) shares it. Under DETACHED_PROCESS the runner has
-        #     no console (code page 0), and each program it starts gets a console of its own, a window that takes focus.
-        if os.name == "nt":
-            log13 = root / "console-probe.log"
-            spawn([sys.executable, "-c", "import ctypes; k = ctypes.windll.kernel32; u = ctypes.windll.user32; "
-                   "h = k.GetConsoleWindow(); print('console-cp', k.GetConsoleCP(), 'visible', "
-                   "1 if (h and u.IsWindowVisible(h)) else 0, flush=True)"], log13)
-            deadline = time.monotonic() + 120
-            while time.monotonic() < deadline and "console-cp" not in (
-                    log13.read_text(encoding="utf-8", errors="replace") if log13.exists() else ""):
-                time.sleep(0.2)
-            words = (log13.read_text(encoding="utf-8", errors="replace") if log13.exists() else "").split()
-            expect("a spawned runner owns a console with no visible window, so nothing it starts opens a window",
-                   words[:4:2] == ["console-cp", "visible"] and words[1] != "0" and words[3] == "0", " ".join(words))
+        # 13. the runner's launch (no window, outliving the tick) is scripts/detached.py's, with its own self-test
+        #     arms (kb/Work PB3117, PB3536): the tick starts every runner through it.
+        expect("the tick starts every runner through the one detached launch (scripts/detached.py)",
+               tick.__kwdefaults__["start"] is spawn_detached)
     finally:
         for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
             for name in files:
