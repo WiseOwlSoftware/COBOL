@@ -36,7 +36,7 @@ public sealed class TrackedTreeScopeDriftTests
     /// <summary>The declared scopes as the index reads them: {class: {field: {under, except, kinds}}}.</summary>
     private static readonly Lazy<Dictionary<string, Dictionary<string, JsonElement>>> s_indexed = new(() =>
     {
-        ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"), "--scopes");
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"), "--scopes");
         Assert.True(r.ExitCode == 0, $"drift_rules.py --scopes failed (exit {r.ExitCode}):\n{r.Stdout}{r.Stderr}");
         return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, JsonElement>>>(r.Stdout)!;
     });
@@ -153,7 +153,7 @@ public sealed class TrackedTreeScopeDriftTests
         try
         {
             File.WriteAllText(input, JsonSerializer.Serialize(probes));
-            ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"), "--held", input);
+            ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"), "--held", input);
             Assert.True(r.ExitCode == 0, $"drift_rules.py --held failed (exit {r.ExitCode}):\n{r.Stdout}{r.Stderr}");
             var held = JsonSerializer.Deserialize<Dictionary<string, string[]>>(r.Stdout)!;
             var problems = new List<string>();
@@ -230,7 +230,7 @@ public sealed class TrackedTreeScopeDriftTests
             .SelectMany(kv => (kv.Value.Except ?? []).Where(e => !e.EndsWith('/')).Select(e => (Class: kv.Key.Split('.')[0], Path: e)))
             .Distinct().ToList();
         Assert.True(owners.Count >= 4, $"only {owners.Count} path(s) set aside by name — the scan of the scopes is broken");
-        ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"),
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"),
             [.. owners.Select(o => o.Path).Distinct(StringComparer.Ordinal)]);
         Assert.True(r.ExitCode == 0, $"drift_rules.py <paths> failed (exit {r.ExitCode}):\n{r.Stdout}{r.Stderr}");
         IReadOnlyList<string> ungoverned = UngovernedOwners(owners, SpecificRules(r.Stdout));

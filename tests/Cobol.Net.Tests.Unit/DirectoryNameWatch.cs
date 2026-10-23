@@ -50,15 +50,15 @@ internal sealed class DirectoryNameWatch : IDisposable
     /// RENAME to a retired name and never by a deletion under its own; elsewhere an unlink is atomic and there is nothing
     /// to see. The wait is for the operating environment's report of the retired name's deletion to arrive, never a
     /// measure of time: it ends the moment the report does, and it is bounded only by the harness's ONE budget
-    /// (<see cref="ProcessObserver.TimeoutMs"/>, kb/Work PB3022 — a test sets no literal time limit). A report that never
+    /// (<see cref="ObservationBudget.UnitMs"/>, kb/Work PB3022 — a test sets no literal time limit). A report that never
     /// comes, or a watcher that lost reports, is a NON-OBSERVATION (<see cref="HarnessNonObservationException"/>), never a
     /// verdict on the order.</summary>
     internal void AssertRenamedAwayRatherThanDeletedInPlace(string name)
     {
         if (!HostFile.ShareModesAreMandatory) return;
-        if (!_deletion.Wait(ProcessObserver.TimeoutMs))
+        if (!_deletion.Wait(ObservationBudget.UnitMs))
             throw new HarnessNonObservationException(
-                $"NON-OBSERVATION: the host reported no subdirectory deletion within the harness budget ({ProcessObserver.TimeoutMs} ms).");
+                $"NON-OBSERVATION: the host reported no subdirectory deletion within the harness budget ({ObservationBudget.UnitMs} ms).");
         string[] seen;
         Exception? lost;
         lock (_events) (seen, lost) = ([.. _events], _lost);

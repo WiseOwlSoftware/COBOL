@@ -20,7 +20,8 @@ namespace CobolNet.Tests.Unit;
 /// a <c>timeoutMs:</c> literal or a literal budget handed to the process observer. Each one measured the host: a fixed
 /// limit was the top recurring load red of the gate. A regex needs no timeout when it runs
 /// <c>RegexOptions.NonBacktracking</c> (linear time); a child process is bounded by the ONE harness budget
-/// (<c>ProcessObserver.TimeoutMs</c>, whose run past it is a named non-observation, never a value), or by its own exit.
+/// (<c>ObservationBudget</c>: one harness unit per serial step of the work the process was started to do, kb/Work PB3108;
+/// a run past it is a named non-observation, never a value), or by its own exit.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class NoWallClockAssertionDriftTests
@@ -50,7 +51,7 @@ public sealed class NoWallClockAssertionDriftTests
     // A literal time limit, in each shape a test has used one.
     private static readonly Regex LiteralLimit = new(
         @"WaitForExit\(\s*\d|CancelAfter\(\s*(?:\d|TimeSpan\.From)|RegexOptions[^;]*,\s*TimeSpan\.From"
-        + @"|\btimeout(?:Ms)?\s*:\s*\d|ProcessObserver\.Observe\([^;]*,\s*\d[\d_]*\s*\)"
+        + @"|\btimeout(?:Ms)?\s*:\s*\d|ObservationBudget\.For\(\s*\d"
         + @"|new CancellationTokenSource\(\s*(?:\d|TimeSpan\.From)|\.Wait\(\s*(?:\d|TimeSpan\.From)"
         + @"|WaitOne\(\s*(?:\d|TimeSpan\.From)|\.Join\(\s*(?:\d|TimeSpan\.From)|Task\.Delay\(\s*(?:\d|TimeSpan\.From)",
         RegexOptions.NonBacktracking);
@@ -72,11 +73,12 @@ public sealed class NoWallClockAssertionDriftTests
             .ToList();
         Assert.True(offenders.Count == 0,
             "tests set a literal time limit (kb/Work PB3022 — a deterministic witness, RegexOptions.NonBacktracking, or "
-            + "the harness's one budget ProcessObserver.TimeoutMs):\n" + string.Join("\n", offenders));
+            + "the harness's one budget rule, ObservationBudget):\n" + string.Join("\n", offenders));
         Assert.Matches(LiteralLimit, "Assert.True(p.WaitForExit(180_000), \"timed out\");");
         Assert.Matches(LiteralLimit, "new Regex(\"x\", RegexOptions.None, TimeSpan.FromSeconds(5));");
-        Assert.Matches(LiteralLimit, "ProcessObserver.Observe(psi, null, 30_000)");
-        Assert.DoesNotMatch(LiteralLimit, "ProcessObserver.Observe(psi, null, ProcessObserver.TimeoutMs)");
+        Assert.Matches(LiteralLimit, "ProcessObserver.Observe(psi, null, ObservationBudget.For(30_000, 0, 1, \"x\"))");
+        Assert.DoesNotMatch(LiteralLimit, "ProcessObserver.Observe(psi, null, ObservationBudget.OneProcess)");
+        Assert.DoesNotMatch(LiteralLimit, "ObservationBudget.ForChildren(2 * tests, jobs, work)");
         Assert.DoesNotMatch(LiteralLimit, "p.WaitForExit();");
     }
 
