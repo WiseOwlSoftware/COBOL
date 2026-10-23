@@ -638,6 +638,33 @@ public sealed class TransactionControlTests
         Assert.Equal("INITIAL", kept.Item);
     }
 
+    /// <summary>⛔ kb/Work PB3541 — THE DEACTIVATION PUTS THE FILE CONTROL ENTRY'S OWN LOCK POSTURE BACK. Under commit control
+    /// §9.1.16 applies <i>"an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"</i>, so a READ locks its record
+    /// (§12.4.5.9.4 GR4) and another connector's READ of it answers '51'. Once the clause naming F is deactivated F is no
+    /// longer a file subject to commit and rollback, and its entry's LOCK MODE IS MANUAL holds again: a READ without the
+    /// WITH LOCK phrase locks nothing, and the other connector reads the record '00'.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_deactivated_clause_gives_the_file_its_declared_lock_posture_back(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        Register(r.Reg, "F2", r.Hosts["F"], org);
+        object canceled = new();
+        var gone = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        r.OpenIO("F");
+        FileHarness.Open(r.Reg, "F2", FileOpenMode.IO);
+        Assert.Equal("00", Read(r.Reg, "F", org, 2, out _));
+        Assert.Equal("51", Read(r.Reg, "F2", org, 2, out _));   // AUTOMATIC under commit control: F's READ locked record 2
+        r.Txn.Retire(canceled);
+        r.Reg.Close("F");
+        Assert.Null(r.Txn.Commit());                            // deactivates the clause; F's kept locks released
+        r.OpenIO("F");
+        Assert.Equal("00", Read(r.Reg, "F", org, 2, out _));
+        Assert.Equal("00", Read(r.Reg, "F2", org, 2, out _));   // MANUAL again: a READ without WITH LOCK locks nothing
+    }
+
     public static TheoryData<FileOrg, bool> OrgsByStatement()
     {
         var data = new TheoryData<FileOrg, bool>();
