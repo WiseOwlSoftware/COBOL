@@ -1082,7 +1082,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // universal __CobolInvoke switch, and by an inline invocation — one mechanism, not three arms.
             // Frame = (method name, declaring class as the compilation unit's outermost element, not nested), so
             // r7 CURRENT yields the class, r5 ACTIVATING the invoker, and r9 STACK the full chain.
-            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false);   // §15.65.4 r5 — INVOKE is an activation");
+            w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false, true);   // §15.65.4 r5 — INVOKE is an activation; §8.6.6: a method is always recursive");
             // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
             // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
             // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§8.6.4; §8.6.5).

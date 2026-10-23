@@ -291,7 +291,7 @@ public sealed class TransactionControlTests
     }
 
     /// <summary>The controls §14.9.36.4 GR2 forbids a ROLLBACK under, as the run unit records each one.</summary>
-    public enum Item8Control { InputProcedure, OutputProcedure, RecursiveElement }
+    public enum Item8Control { InputProcedure, OutputProcedure, RecursiveElement, Method }
 
     public static TheoryData<FileOrg, Item8Control, bool> Item8ControlsWithAndWithoutChecking()
     {
@@ -451,7 +451,8 @@ public sealed class TransactionControlTests
     /// procedure, an output procedure (the run unit records the procedure's phase, which a SORT's and a MERGE's output
     /// procedure share; the MERGE end to end is the golden <c>pb3544_item8_rollback_in_merge_output_procedure_ec_flow</c>)
     /// and a recursive runtime element in the call chain (end to end:
-    /// <c>pb3544_item8_rollback_under_recursive_element_unchecked</c>). Checking is set inside the control, because an
+    /// <c>pb3544_item8_rollback_under_recursive_element_unchecked</c>), or a running method, which is a frame on the
+    /// module stack and no program of the table (kb/Work PB3540). Checking is set inside the control, because an
     /// activation starts its element's checking from all off.</summary>
     [Theory]
     [MemberData(nameof(Item8ControlsWithAndWithoutChecking))]
@@ -492,6 +493,11 @@ public sealed class TransactionControlTests
                     () => r.Unit.Programs.Register("R", "R", null, initial: false, common: false, recursive: true,
                         _ => new Body(Item8UnderTheControl)));
                 r.Unit.Programs.CallProgram("R", "", [], null, "EC-PROGRAM-NOT-FOUND");
+                break;
+            case Item8Control.Method:   // a method is no ProgramTable node: its body's prologue pushes the frame (kb/Work PB3540)
+                r.Unit.Modules.Push("M", "C", isNested: false, recursive: true);
+                try { Item8UnderTheControl(); }
+                finally { r.Unit.Modules.Pop(); }
                 break;
         }
         Assert.True(ran);
@@ -558,6 +564,106 @@ public sealed class TransactionControlTests
                 Assert.Throws<CobolFatalException>(() => r.Activate(this, clause, "F")).EcName);
         else
             Assert.False(r.Activate(this, clause, "F"));
+        Assert.False(r.Txn.AnyActive);
+        Assert.False(r.Reg.IsCommitControlled("F"));
+        Assert.Equal(0, clause.Saves);
+        Assert.False(r.Unit.Exceptions.FlowApplyCommitChecking);
+    }
+
+    // ── §9.1.18.7 / §8.6.6: a METHOD is a recursive runtime element, though it is no ProgramTable node (kb/Work PB3540) ──
+
+    /// <summary>§14.9.7.4 GR2 and §14.9.36.4 GR2: <i>"under the control of a recursive runtime element"</i>, and §8.6.6:
+    /// <i>"Functions and methods are always recursive."</i> A method's frame on the run unit's module stack (pushed by the
+    /// emitted method body, <c>OoEmitter.EmitMethod</c>) is such a control, and so is a plain program the method CALLs:
+    /// with checking on COMMIT and ROLLBACK raise their fatal conditions and change nothing, with it off they are not
+    /// executed.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsWithAndWithoutStatus))]
+    public void Commit_and_rollback_under_an_active_method_raise_ec_flow_or_change_nothing(FileOrg org, bool checking)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Unit.Exceptions.FlowCommitChecking = checking;
+        r.Unit.Exceptions.FlowRollbackChecking = checking;
+        r.Unit.Modules.Push("M", "C", isNested: false, recursive: true);
+        try
+        {
+            if (checking)
+            {
+                Assert.Equal("EC-FLOW-COMMIT", Assert.Throws<CobolFatalException>(() => r.Txn.Commit()).EcName);
+                Assert.Equal("EC-FLOW-ROLLBACK", Assert.Throws<CobolFatalException>(() => r.Txn.Rollback()).EcName);
+            }
+            else
+            {
+                Assert.Null(r.Txn.Commit());
+                Assert.Null(r.Txn.Rollback());
+            }
+            // A plain program the method CALLs is under the method's control all the same.
+            r.Unit.Modules.Push("P", "P", isNested: false, recursive: false);
+            try
+            {
+                if (checking)
+                    Assert.Equal("EC-FLOW-COMMIT", Assert.Throws<CobolFatalException>(() => r.Txn.Commit()).EcName);
+                else
+                    Assert.Null(r.Txn.Commit());
+            }
+            finally { r.Unit.Modules.Pop(); }
+        }
+        finally { r.Unit.Modules.Pop(); }
+        Assert.Equal(1, clause.Saves);                       // no statement ran
+        Assert.Equal("CHANGED", clause.Item);
+        Assert.Null(r.Txn.Rollback());                       // the method has returned: the transaction was still there
+        Assert.Equal("INITIAL", clause.Item);
+        Assert.Equal(Seeded(), r.Contents());
+    }
+
+    /// <summary>The negative control of the test above: with only programs that carry no RECURSIVE attribute on the module
+    /// stack, a COMMIT runs (§14.9.7.4 GR3) — the frame's flag, never its presence, is the control.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void Commit_under_programs_that_are_not_recursive_runs(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Activate(this, clause, "F");
+        r.OpenIO("F");
+        Change(r);
+        clause.Item = "CHANGED";
+        r.Unit.Exceptions.FlowCommitChecking = true;
+        r.Unit.Modules.PushMain("MAIN", recursive: false);
+        r.Unit.Modules.Push("P", "P", isNested: false, recursive: false);
+        Assert.Null(r.Txn.Commit());
+        Assert.Equal(2, clause.Saves);
+        Assert.Equal(Changed(), r.Contents());
+    }
+
+    /// <summary>§12.4.6.3.4 GR3 and §9.1.18.7: a clause activated while a method runs raises EC-FLOW-APPLY-COMMIT with
+    /// the ACTIVATING element's checking on; with it off the clause stays inactive and its file is not put under commit
+    /// control.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsWithAndWithoutStatus))]
+    public void An_activation_under_an_active_method_raises_ec_flow_apply_commit_or_stays_inactive(FileOrg org, bool checking)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        var clause = new Clause(r.Reg);
+        r.Unit.Modules.Push("M", "C", isNested: false, recursive: true);
+        r.Unit.Exceptions.ActivatorFlowApplyCommit = checking;   // the activating CALL's checking, latched
+        try
+        {
+            if (checking)
+                Assert.Equal("EC-FLOW-APPLY-COMMIT",
+                    Assert.Throws<CobolFatalException>(() => r.Activate(this, clause, "F")).EcName);
+            else
+                Assert.False(r.Activate(this, clause, "F"));
+        }
+        finally { r.Unit.Modules.Pop(); }
         Assert.False(r.Txn.AnyActive);
         Assert.False(r.Reg.IsCommitControlled("F"));
         Assert.Equal(0, clause.Saves);
