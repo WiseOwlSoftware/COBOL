@@ -27,7 +27,7 @@ namespace CobolNet.Tests.Unit;
 public sealed class AnnexA2UndefinedListDriftTests
 {
     private static ProcessObservation Run(params string[] args) =>
-        PythonInstrument.Run(TestRepo.Scripts("spec", "extract_annex_a2.py"), args);
+        PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "extract_annex_a2.py"), args);
 
     /// <summary>The committed list is what the standard's Annex A.2 says today, re-derived.</summary>
     [Fact]
@@ -87,7 +87,7 @@ public sealed class AnnexA2UndefinedListDriftTests
 public sealed class DerivationRegisterDriftTests
 {
     private static ProcessObservation Run(params string[] args) =>
-        PythonInstrument.Run(TestRepo.Scripts("spec", "audit_derivations.py"), args);
+        PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "audit_derivations.py"), args);
 
     /// <summary>Every live derivation still stands under the Python engine, over a population it asserts.</summary>
     [Fact]

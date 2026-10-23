@@ -587,13 +587,16 @@ def leg_stem(leg: int, asm: str) -> str:
     return f"leg-{leg}-{asm}"
 
 
-def leg_env(handshake: dict[str, str]) -> dict[str, str]:
+def leg_env(handshake: dict[str, str], observations: Path) -> dict[str, str]:
     """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (§3.14.3): the scrubbed environment — no stray
     COBOLNET_GATE_*, VSTest* or RunSettingsFilePath — in English, with this gate's handshake merged over it: all three
-    variables, or none."""
+    variables, or none. The test harness's observation log (every retry and non-observation of a child process,
+    tests/_shared/ProcessObservation.cs) goes to `observations` in the run directory, one per leg host, so a
+    non-observation is read beside the leg's own log instead of in one temp file every gate on the host appends to
+    (kb/Work PB3108)."""
     if handshake and set(handshake) != set(HANDSHAKE):
         raise ValueError(f"a partial handshake {sorted(handshake)}: the driver hands all three variables or none")
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake}
+    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake, "COBOLNET_HARNESS_LOG": str(observations)}
 
 
 # ── a run directory: the gate's pid, its verdict record, and the one way to wait for it (kb/Work PB3536) ──────────
@@ -1032,7 +1035,7 @@ class Gate:
                                              "COBOLNET_GATE_LEG": str(leg), "COBOLNET_GATE_PLAN_SHA256": digest}
 
         def one(asm: str) -> tuple[str, int, float, float]:
-            env = leg_env(handshake)
+            env = leg_env(handshake, run / f"{leg_stem(leg, asm)}.observations.log")
             out.handshakes[(leg, asm)] = {k: v for k, v in env.items() if k.upper().startswith("COBOLNET_GATE_")}
             t = time.monotonic()
             rc = self.host.run_leg(asm, leg, run, env, spawn)
@@ -1417,10 +1420,12 @@ def self_test() -> int:
         stray = {"COBOLNET_GATE_LEG": "2", "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
         os.environ.update(stray)
         try:
-            env = leg_env({})
-            planned = leg_env({"COBOLNET_GATE_PLAN": "p", "COBOLNET_GATE_LEG": "1", "COBOLNET_GATE_PLAN_SHA256": "d"})
+            observations = Path("run") / "leg-1-Unit.observations.log"
+            env = leg_env({}, observations)
+            planned = leg_env({"COBOLNET_GATE_PLAN": "p", "COBOLNET_GATE_LEG": "1", "COBOLNET_GATE_PLAN_SHA256": "d"},
+                              observations)
             try:
-                leg_env({"COBOLNET_GATE_LEG": "1"})
+                leg_env({"COBOLNET_GATE_LEG": "1"}, observations)
                 partial_refused = False
             except ValueError:
                 partial_refused = True
@@ -1431,6 +1436,9 @@ def self_test() -> int:
             "is refused",
             "COBOLNET_GATE_LEG" not in env and "VSTestTestCaseFilter" not in env and planned["COBOLNET_GATE_LEG"] == "1"
             and "VSTestTestCaseFilter" not in planned and partial_refused)
+        arm("a leg host writes the harness observation log into the run directory, one file per leg host (PB3108)",
+            env.get("COBOLNET_HARNESS_LOG") == str(observations) == planned.get("COBOLNET_HARNESS_LOG"), str(env.get(
+                "COBOLNET_HARNESS_LOG")))
 
         # Batched gating (kb/Work PB2515): the shared implementer scope `leg1`, and with no setting the coded default.
         o, h = gate("default-scope", scope=None)
