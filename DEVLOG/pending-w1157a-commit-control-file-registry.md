@@ -32,3 +32,20 @@ keyed organizations' two capture verbs ride PB3340's journal (the before file co
 record, then the creation or the removal; ROLLBACK restores the before file and rolls back the run unit's transaction inside
 it), and it records the one primitive the journal design assumes and the runtime lacks, a directory sync, for the
 `IHostMedium` seam to own.
+
+**PB3340, the journal and its medium (wave 20261024, group A).** The predecessor's five commits were cherry-picked onto
+5229bde65 and re-gated GREEN (run 000001). The sequential journal of DESIGN-runtime-library.md 2.2.2 is now code, written
+from the executable model (`scripts/models/sequential_journal_model.py`) operation for operation:
+`IO/Sharing/SequentialJournal.cs` holds the three transient files, the id drawing, the record format (a 24-byte header with
+its CRC-32C, then `L`, `R`, `K` and `D` records each CRC-framed, a torn tail ending the records), the write-ahead rules R1 to
+R5, COMMIT's three regions, the idempotent ROLLBACK, the settle, the entry step, the lock test's journal arm and the entry
+mutex (`HostRegionLocks.EntryMutexByte`, held through a new handle-free `SidecarRegionLocks.WithoutHandle` on every host).
+Every operation it makes on the operating environment goes through the new `IHostMedium` seam, whose production medium
+spends three new `HostFile` roles (the transient journal file, the restore handle, the directory sync of
+`IO/Sharing/HostDirectory.cs`: `FlushFileBuffers` on a backup-semantics directory handle on Windows, `open` and `fsync`
+elsewhere). `tests/Cobol.Net.Tests.Unit/Journal/` runs 2.2.2.12's rows over real files through a fault-injecting medium that
+refuses, kills or cuts the power at every operation (four power-loss shapes: everything unsynced lost, all kept, the data
+file's kept and the journal's lost, the converse), each followed by the next entry, and asserts the model's I1 and I3. Its
+worth was proved by mutation: each of R1, R2, R3 and R4 broken, and the branch review's R1-1 put back, turned the sweep RED on
+its own rows. The SEQUENTIAL connector does not drive the journal yet; its kept handle, the verb hooks and the compiler's
+acceptance of the operand are the rest of PB3340.
