@@ -3,8 +3,9 @@
 # §3.14.1–3.14.6, §3.17.3; the bash twin of build-local.ps1). It hands the gate to its driver, scripts/run_gate_legs.py,
 # which holds this worktree's gate lock, runs the audits (before any slot, kb/Work PB2524), takes a gate slot, runs the
 # solution build, lists the population, plans the order and runs leg 1 of it — the change's own tests, the previous
-# gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps (tier 0c) and the cheapest cases the
-# change reaches — then checks that population and prints `=== BUILD-LOCAL GATE: … ===`.
+# gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps (tier 0c), the drift tests that govern
+# a changed file (tier 0d) and the cheapest cases the change reaches — then checks that population and prints
+# `=== BUILD-LOCAL GATE: … ===`.
 # ⛔ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015/PB3022): there is no mode; the verdict line says
 # `LEG 1 ONLY (batched gating, PB2515)`, and CI's merge-group run is the whole-population regression net. Only while
 # the owner sets the shared scope to `whole` (`gate_slot.py set-implementer-scope whole`) does it run leg 2 too.

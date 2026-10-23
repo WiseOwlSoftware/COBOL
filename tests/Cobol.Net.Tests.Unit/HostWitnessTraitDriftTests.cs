@@ -123,7 +123,7 @@ public sealed class HostWitnessTraitDriftTests
     public void ThePlan_OrdersTheHostAndSweepTiers_AfterTheChangesOwnCases()
     {
         string planner = File.ReadAllText(TestRepo.Scripts("gate_plan.py"));
-        Assert.Matches(@"(?m)^TIER_ORDER = \(""0a"", ""0h"", ""0c"", ""0u"", ""1"", ""2"", ""3""\)\r?$", planner);
+        Assert.Matches(@"(?m)^TIER_ORDER = \(""0a"", ""0h"", ""0c"", ""0d"", ""0u"", ""1"", ""2"", ""3""\)\r?$", planner);
         Assert.Matches(@"(?m)^HOST_ONLY = \{\r?$", planner);
         // ⛔ THIS CLASS RUNS AT EVERY GATE (tier 0h, kb/Work PB2730's finisher): its scans cost 5-11 s under a gate's
         // load, over SWEEP_CHEAP_SECONDS, so as a plain sweep it sat in leg 2 and two branches gated GREEN on Windows
