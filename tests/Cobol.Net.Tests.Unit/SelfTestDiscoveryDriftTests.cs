@@ -82,7 +82,7 @@ public sealed class SelfTestDiscoveryDriftTests
     {
         string runner = TestRepo.Scripts("self_tests.py");
         Assert.True(File.Exists(runner), $"the self-test runner is missing: {runner}");
-        var r = PythonInstrument.Run(runner, "--list");
+        var r = PythonInstrument.Run(ObservationBudget.OneProcess, runner, "--list");
         Assert.True(r.ExitCode == 0, $"`self_tests.py --list` failed (exit {r.ExitCode}).\n{r.Stdout}\n{r.Stderr}");
         var roots = Roots();
         var found = new Dictionary<string, bool>(StringComparer.Ordinal);
