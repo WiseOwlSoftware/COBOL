@@ -305,10 +305,8 @@ public abstract class KeyedConnector : FileConnector
         // (§9.1.15). The handle that stands writable while the transaction does leaves the one case a share mode cannot say, an
         // INPUT opener that owes its transaction's writes, to the OPEN that meets it: a SHARING WITH READ ONLY request is
         // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
-        // (FileConnector.Open, kb/Work PB3482).
-        var access = _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0
-            ? FileAccess.ReadWrite
-            : HostAccess(Mode);
+        // (FileConnector.Open, kb/Work PB3482), which the connector's column says by owing writes (FileConnector.OwesWrites, kb/Work PB3499).
+        var access = HandleAccess(Mode);
         try { TakeFileLock(create, access); }
         catch (IOException refusal) when (HostFile.IsSharingRefusal(refusal) && _kept is { Handle: { } kept, Adopted: false })
         {
@@ -328,6 +326,18 @@ public abstract class KeyedConnector : FileConnector
         }
         return null;
     }
+
+    /// <summary>⛔ THE ACCESS THE HANDLE OF AN OPEN IN <paramref name="mode"/> TAKES, in ONE place for the two questions that depend
+    /// on it (kb/Work PB3499): <see cref="Lock"/>, which opens the handle with it, and <see cref="WillTakeWritableHandle"/>, which
+    /// the file lock publishes as "owes writes" when the mode is INPUT (<c>FileConnector.OwesWrites</c>). While the run unit's transaction on the file STANDS and the
+    /// handle a CLOSE under commit control kept is WRITABLE, the re-OPEN's handle is writable whatever its mode
+    /// (<see cref="Lock"/>'s determination); otherwise it takes <see cref="HostAccess"/> of its own mode and no more.</summary>
+    private FileAccess HandleAccess(FileOpenMode mode) =>
+        _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0 ? FileAccess.ReadWrite : HostAccess(mode);
+
+    /// <inheritdoc/>
+    private protected sealed override bool WillTakeWritableHandle(FileOpenMode mode) =>
+        HandleAccess(mode).HasFlag(FileAccess.Write);
 
     /// <summary>The handle this OPEN took from <see cref="_kept"/> to try a share mode it refused (<see cref="Lock"/>), until
     /// the OPEN succeeds (<see cref="CarryKeptOver"/>) or <see cref="AbandonOpen"/> takes it back.</summary>
