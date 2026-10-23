@@ -966,7 +966,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// scale, <c>w = </c><see cref="CobolNum.NestedQuotientScale"/><c>(receiver scale, operands' precision)</c> — the
     /// receiver's scale or the fraction digits the operands carry, whichever is larger, plus
     /// <see cref="CobolNum.NestedQuotientGuardDigits"/> — the compiler applying it where it knows the precision and the
-    /// runtime where only the value does (an SDIDI operand of <see cref="NumX.RuntimePrecision"/>, review finding R3-1).
+    /// runtime where only the run time knows it (an SDIDI operand of <see cref="NumX.RuntimePrecision"/>, whose precision
+    /// is the places it is held at, review findings R3-1 and R4-1).
     /// <list type="bullet">
     ///   <item><b>The final transfer</b> (<see cref="_outermost"/> into a resultant that rounds at its own scale — the
     ///         quotient IS the value transferred to the single resultant identifier): computed DIRECTLY at the receiver
