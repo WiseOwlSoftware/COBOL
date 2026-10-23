@@ -154,6 +154,60 @@ public sealed class CobolWideTests
             CobolWide.Mul(CobolWide.From(e), CobolWide.From(f)).ToUnscaled(7, 2, CobolRounding.NearestEven, true));
     }
 
+    /// <summary>Any value below 10^77 as a wide value, built from Int128 pieces (the test's own construction, so the
+    /// assertion compares through <see cref="CobolWide.Compare"/> with no reading-back past the carrier).</summary>
+    private static CobolWide Wb(BigInteger v)
+    {
+        BigInteger unit = BigInteger.Pow(10, 30);
+        BigInteger magnitude = BigInteger.Abs(v);
+        CobolWide w = CobolWide.Add(CobolWide.Mul(W(magnitude / unit / unit), CobolWide.Up(W(1), 60)),
+            CobolWide.Add(CobolWide.Mul(W(magnitude / unit % unit), W(unit)), W(magnitude % unit)));
+        return v < 0 ? CobolWide.Negate(w) : w;
+    }
+
+    /// <summary>⛔ THE NESTED QUOTIENT ON THE WIDE FORM IS THE TRUNCATED QUOTIENT (kb/Work PB3538 review finding R1-1):
+    /// <c>trunc(a / 10^aScale ÷ b / 10^bScale)</c> at the result scale, against the BigInteger oracle — dividends and
+    /// divisors past 128 bits, both signs, a divisor scaled up (a dividend at a scale above the result's) and a divisor
+    /// above 2^255, whose partial remainder carries out of the 256-bit word.</summary>
+    [Theory]
+    [InlineData("1000000000000000000000000000000000000000000000000000000000007", 0, "3", 0, 10)]
+    [InlineData("10000000000000000000000000000000000000000000000000000000000000000000000", 0, "10000000000000000000000000000000000000001", 0, 5)]
+    [InlineData("-7", 0, "2", 0, 0)]
+    [InlineData("7", 0, "-2", 0, 0)]
+    [InlineData("-170141183460469231731687303715884105727", 20, "-3", 1, 14)]
+    [InlineData("123456789012345678901234567890123456789", 30, "7", 0, 5)]
+    [InlineData("99999999999999999999999999999999999999999999999999999999999999999999999999999", 0,
+                "60000000000000000000000000000000000000000000000000000000000000000000000000000", 0, 0)]
+    [InlineData("99999999999999999999999999999999999999999999999999999999999999999999999999999", 0,
+                "57900000000000000000000000000000000000000000000000000000000000000000000000000", 0, 0)]
+    public void DivTruncated_IsTheTruncatedQuotientAtTheResultScale(string a, int aScale, string b, int bScale, int resultScale)
+    {
+        BigInteger x = BigInteger.Parse(a), y = BigInteger.Parse(b);
+        int exp = bScale + resultScale - aScale;
+        BigInteger expected = exp >= 0 ? x * BigInteger.Pow(10, exp) / y : x / (y * BigInteger.Pow(10, -exp));   // BigInteger truncates
+        CobolWide q = CobolWide.DivTruncated(Wb(x), aScale, Wb(y), bScale, resultScale);
+        Assert.Equal(0, CobolWide.Compare(q, 0, Wb(expected), 0));
+    }
+
+    [Fact]
+    public void DivTruncated_IsTheInt128LanesTruncatedQuotient()
+    {
+        // The lane is a representation: wherever both lanes hold the quotient, they hold the same one.
+        (long A, int As, long B, int Bs, int R)[] cases = [(2, 0, 7, 0, 20), (-2, 0, 7, 0, 20), (8, 0, 2, 0, 18), (1, 0, 3, 4, 18), (123456789, 4, -97, 2, 9)];
+        foreach (var (a, aScale, b, bScale, r) in cases)
+            Assert.Equal(CobolNum.Divide(a, aScale, b, bScale, r, CobolRounding.Truncation),
+                CobolWide.DivTruncated(W(a), aScale, W(b), bScale, r).ToUnscaled(r, r, CobolRounding.Truncation, checkedTransfer: true));
+    }
+
+    [Fact]
+    public void DivTruncated_ZeroDivisorIsTheZeroDivideCondition_AndADivisorAlignedPastTheRangeIsAZeroQuotient()
+    {
+        var error = Assert.Throws<CobolSizeError>(() => CobolWide.DivTruncated(W(1), 0, W(0), 0, 4));
+        Assert.Equal("EC-SIZE-ZERO-DIVIDE", error.EcName);
+        Assert.Equal(0, CobolWide.Compare(CobolWide.DivTruncated(W(5), 100, W(3), 0, 0), 0, W(0), 0));
+        Assert.Equal(0, CobolWide.Compare(CobolWide.DivTruncated(W(0), 0, W(3), 0, 40), 0, W(0), 0));
+    }
+
     [Fact]
     public void ToDouble_GoesThroughTheRoundToOddSdidi()
     {
