@@ -115,4 +115,56 @@ public sealed class CobolDecWithPrecisionTests
             CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own(new CobolDec(2, 0)), Known(0, 0, 0), 6));
         Assert.Equal("EC-SIZE-ZERO-DIVIDE", error.EcName);
     }
+
+    /// <summary>⛔ A ZERO CARRIES ITS PLACES LIKE ANY OTHER VALUE (review finding R5-1). ISO §8.8.1.5.3 performs the four
+    /// operations as ISO/IEC 60559 5.4.1 does, whose exact results take the PREFERRED exponent: the smaller of a sum's two,
+    /// the sum of a product's, the dividend's less the divisor's for a quotient — a zero operand's and a zero result's
+    /// included. The sum with a zero term was held at the OTHER operand's places, so `0.000 + 2.5` had 1 where
+    /// `0.001 + 2.5` has 3, and every zero result came back at exponent 0.</summary>
+    [Theory]
+    [InlineData(0, -3, 25, -1, false, 2500, -3)]     // 0.000 + 2.5 = 2.500, as 0.001 + 2.5 = 2.501
+    [InlineData(25, -1, 0, -3, false, 2500, -3)]     // 2.5 + 0.000
+    [InlineData(25, -1, 0, -3, true, 2500, -3)]      // 2.5 - 0.000
+    [InlineData(0, -3, 25, -1, true, -2500, -3)]     // 0.000 - 2.5
+    [InlineData(0, -1, 25, -3, false, 25, -3)]       // 0.0 + 0.025: the nonzero operand already has the smaller exponent
+    [InlineData(0, -3, 0, -1, false, 0, -3)]         // 0.000 + 0.0 = 0.000
+    [InlineData(1250, -3, 1250, -3, true, 0, -3)]    // 1.250 - 1.250 = 0.000: the cancelled zero keeps the places
+    public void ASumWithAZero_IsHeldAtTheSmallerExponent(long aSig, int aExp, long bSig, int bExp, bool subtract,
+        long sig, int exp)
+    {
+        CobolDec a = new(aSig, aExp), b = new(bSig, bExp);
+        CobolDec r = subtract ? CobolDec.Sub(a, b, CobolRounding.NearestAwayFromZero) : CobolDec.Add(a, b, CobolRounding.NearestAwayFromZero);
+        Assert.Equal(new CobolDec(sig, exp), r);
+    }
+
+    [Fact]
+    public void AZeroProductQuotientPowerAndRoot_KeepThePreferredExponent()
+    {
+        var mode = CobolRounding.NearestAwayFromZero;
+        Assert.Equal(new CobolDec(0, -4), CobolDec.Mul(new CobolDec(0, -3), new CobolDec(10, -1), mode));       // 0.000 × 1.0
+        Assert.Equal(new CobolDec(0, -3), CobolDec.Div(new CobolDec(0, -3), new CobolDec(3, 0), mode));         // 0.000 / 3
+        Assert.Equal(new CobolDec(0, -2), CobolDec.Div(new CobolDec(0, -3), new CobolDec(30, -1), mode));       // 0.000 / 3.0
+        Assert.Equal(new CobolDec(0, -17), CobolDec.DivTruncatedToOdd(new CobolDec(0, -3), new CobolDec(3, 0), 17));
+        Assert.Equal(new CobolDec(0, -6), CobolDec.Pow(new CobolDec(0, -3), new CobolDec(2, 0), mode));         // 0.000 ** 2
+        Assert.Equal(new CobolDec(0, -6), CobolIntrinsics.PowNativeDec(new CobolDec(0, -3), 2));
+        Assert.Equal(new CobolDec(0, -2), CobolDec.Sqrt(new CobolDec(0, -4), mode));                          // SQRT (0.0000)
+        Assert.Equal(new CobolDec(0, -3), CobolDec.Sqrt(new CobolDec(0, -5), mode));                          // half, rounded down
+        Assert.Equal(new CobolDec(0, -3), CobolDec.FromParsed(0, -3, mode));                                  // NUMVAL ("0.000")
+        Assert.Equal(new CobolDec(0, -3), CobolDec.FromUnsigned(0, 3, mode));
+        Assert.Equal(new CobolDec(0, -2), CobolDec.SubsidiaryQuotient(new CobolDec(0, -5), 2, 0));             // the receiver's scale
+        Assert.Equal(3, CobolDecWithPrecision.Own(CobolIntrinsics.NumvalDec("0.000")).Precision);
+        // 0E-40 + 7: as near the preferred -40 as the 34-digit significand holds, exactly 7.000…0 at 33 places
+        Assert.Equal(new CobolDec(Int128.Parse("7000000000000000000000000000000000"), -33),
+            CobolDec.Add(new CobolDec(0, -40), new CobolDec(7, 0), mode));
+    }
+
+    /// <summary>A zero's exponent stays inside decimal128's: at least 10^-6176, at most 10^(6144 - 33).</summary>
+    [Fact]
+    public void AZerosExponent_IsClampedToTheDecimal128Range()
+    {
+        var mode = CobolRounding.NearestAwayFromZero;
+        Assert.Equal(new CobolDec(0, -6176), CobolDec.Mul(new CobolDec(0, -6000), new CobolDec(0, -6000), mode));
+        Assert.Equal(new CobolDec(0, 6111), CobolDec.Mul(new CobolDec(0, 6000), new CobolDec(0, 6000), mode));
+        Assert.Equal(new CobolDec(0, -6176), CobolDec.Zero(long.MinValue));
+    }
 }
