@@ -601,7 +601,7 @@
    "2014",
    "2023"
   ],
-  "expect": "a signed (negative) numeric literal in the VALUE clause requires a signed"
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
  },
  "ca34_value_range_over": {
   "refuse-at": [
@@ -17587,6 +17587,31 @@
    "2014"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb3566-numeric-edited-value-zero-below-2023": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3567-value-plus-float-literal-unsigned-subject": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
+ },
+ "pb3567-value-plus-literal-unsigned-subject": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
  },
  "pb563-validate-value-format5-no-connective": {
   "refuse-at": [

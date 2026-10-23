@@ -31,9 +31,9 @@
       *>                (GR1 says "the content of the data item", so no symbol renders).
       *>   MOVE-CS-NZ  1.25 -> PIC $$$9.99: nonzero, so 13.18.40.5 rule 6 a) floats the '$' to the rightmost
       *>                suppressed position of its zone -> "  $1.25".
-      *>   VALUE-ZERO   VALUE 0 with the clause: 13.18.63.4 GR8's NOTE - the clause DOES affect initialization
-      *>                when the VALUE literal is numeric -> 3 spaces. 13.18.63 SR6 exempts the literal zero from
-      *>                the 2023-only numeric-literal VALUE, so this entry is legal at COBOL-85 too.
+      *>   (The VALUE 0 initialization leg is not here: a numeric literal VALUE on a numeric-edited item, the zero
+      *>   literal included, is a COBOL-2023 permission - 13.18.63.3 SR6, Annex E.3.3 item 43, kb/Work PB3566 - so
+      *>   it is pinned at 2023 by pb3566_numeric_edited_value_zero_2023, item ZB.)
       *>   INIT-VERB    INITIALIZE moves ZEROES to the item (14.9.20.4 GR6 c) -> 3 spaces.
       *>   DEEDIT-BACK  13.18.8.4 GR3 - the blanked item is a sending operand and the object of the operation
       *>                is numeric, so its value is zero -> "00000".
@@ -45,7 +45,7 @@
        01 WS-P      PIC 9(3)    BLANK WHEN ZERO.
        01 WS-HI     PIC 99      BLANK WHEN ZERO.
        01 WS-CS     PIC $$$9.99 BLANK WHEN ZERO.
-       01 WS-VZ     PIC 9(3)    BLANK WHEN ZERO VALUE 0.
+       01 WS-VZ     PIC 9(3)    BLANK WHEN ZERO.
        01 WS-SRC    PIC 9V9     VALUE 0.4.
        01 WS-NSRC   PIC S9V9    VALUE -0.4.
        01 WS-BIG    PIC 9(3)    VALUE 100.
@@ -69,7 +69,6 @@
            DISPLAY "MOVE-CS-0[" WS-CS "]"
            MOVE 1.25 TO WS-CS
            DISPLAY "MOVE-CS-NZ[" WS-CS "]"
-           DISPLAY "VALUE-ZERO[" WS-VZ "]"
            MOVE 9 TO WS-VZ
            INITIALIZE WS-VZ
            DISPLAY "INIT-VERB[" WS-VZ "]"
