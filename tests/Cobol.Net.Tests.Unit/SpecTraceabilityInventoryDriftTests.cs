@@ -1259,7 +1259,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         // …and the OTHER engine, run for real rather than assumed. A fixture both sides are compared against is
         // only half the check: this is the half that would have caught PB315.
-        var run = PythonInstrument.Run(TestRepo.Scripts("spec", "audit_derivations.py"), "--parity", "--json");
+        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "audit_derivations.py"), "--parity", "--json");
         string? line = run.Stdout.Split('\n').Select(l => l.Trim())
             .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
         Assert.True(line is not null,
