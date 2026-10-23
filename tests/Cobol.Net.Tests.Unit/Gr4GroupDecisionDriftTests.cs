@@ -86,9 +86,15 @@ public sealed class Gr4GroupDecisionDriftTests
         var body = Regex.Match(src, @"public\s+static\s+string\s+NonElementaryMoveSender\s*\([^)]*\)(?<b>.*?)\n    \};",
             RegexOptions.Singleline);
         Assert.True(body.Success, "OperandText.NonElementaryMoveSender is no longer recognizable");
-        Assert.Contains("IntrinsicArgumentRules.StaticUsageOf(op)", body.Groups["b"].Value);
-        Assert.Matches(@"Usage\.National\s*=>\s*RuntimeApi\.NatBytes\(", body.Groups["b"].Value);
-        Assert.Matches(@"Usage\.Bit\s*=>\s*RuntimeApi\.BitsPackAll\(", body.Groups["b"].Value);
+        // The usage-keyed codec (StaticUsageOf -> NatBytes / BitsPackAll) is OperandText.RepresentationOfText, which this arm
+        // reads and GroupMoveSenderChannelDriftTests pins (kb/Work PB3587).
+        Assert.Matches(@"_\s*=>\s*RepresentationOfText\(op,", body.Groups["b"].Value);
+        var codec = Regex.Match(src, @"private\s+static\s+string\s+RepresentationOfText\s*\([^)]*\)(?<b>.*?)\n    \};",
+            RegexOptions.Singleline);
+        Assert.True(codec.Success, "OperandText.RepresentationOfText is no longer recognizable");
+        Assert.Contains("IntrinsicArgumentRules.StaticUsageOf(op)", codec.Groups["b"].Value);
+        Assert.Matches(@"Usage\.National\s*=>\s*RuntimeApi\.NatBytes\(", codec.Groups["b"].Value);
+        Assert.Matches(@"Usage\.Bit\s*=>\s*RuntimeApi\.BitsPackAll\(", codec.Groups["b"].Value);
     }
 
     /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §15.13.4 1), §15.2 2)),
