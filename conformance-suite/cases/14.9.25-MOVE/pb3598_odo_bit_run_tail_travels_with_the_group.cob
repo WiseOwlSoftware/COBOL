@@ -16,7 +16,7 @@
       *> characters, and the filler positions that end its last character are inside it.  At a count whose last character
       *> reaches past the maximum extent they lie beyond the last occurrence, in storage no occurrence owns, and the compiler
       *> kept them nowhere.  (Where they lie in the first unused occurrence's storage the bits are two things at once - the
-      *> filler of the current extent and an occurrence GR8 a) leaves unused - and the compiler's two receiving stores answer
+      *> filler of the current extent and an occurrence 13.18.38.4 GR8 a) leaves unused - and the compiler's two receiving stores answer
       *> differently; that is the open part of kb/Work PB3598, and no leg here depends on it.)
       *>
       *> HOW EACH LEG CAN FAIL.  Every value is read as a byte through FUNCTION ORD (byte + 1).  "~" is 0x7E = 01111110 and
