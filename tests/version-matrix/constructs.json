@@ -720,7 +720,7 @@
   },
   {
    "id": "value-numeric-literal-numeric-edited-2023",
-   "description": "A non-zero numeric literal in the VALUE clause of a numeric-edited item (ISO §13.18.63 SR6) — a COBOL-2023 capability (Annex E.3.3 item 43): the literal is converted to its numeric-edited form per the MOVE rules. Below 2023 a numeric-edited VALUE required an alphanumeric edited-image literal. SR6 exempts the figurative constant ZERO and the integer/decimal forms of the literal zero at ALL editions, so only a NON-ZERO numeric literal is gated.",
+   "description": "A numeric literal, the literal zero included, in the VALUE clause of a numeric-edited item (ISO §13.18.63 SR6) — a COBOL-2023 capability (Annex E.3.3 item 43): the literal is converted to its numeric-edited form per the MOVE rules. Below 2023 a numeric-edited VALUE required an alphanumeric edited-image literal. SR6's last sentence (the integer and decimal forms of the literal zero for either format) separates fixed-point from floating-point formats inside the 2023 permission and exempts nothing below it; only the figurative constant ZERO or ZEROES, which is no numeric literal, is accepted at every edition (kb/Work PB3566).",
    "display": "numeric-literal VALUE for a numeric-edited item",
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §13.18.63.3 SR6; Annex E.3.3 item 43",
