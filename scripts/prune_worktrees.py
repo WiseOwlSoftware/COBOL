@@ -796,8 +796,15 @@ def contained(rows: list[Row], repo=REPO) -> None:
     # `merge-base --is-ancestor` was 1,746 of the 4,636 git processes of this script's self-test, 168 s of CI's Windows
     # self-test job). A candidate is not MERGED (LANDED_CONTENT, above: classify() reads `--is-ancestor <its branch>
     # origin/main`), so its tip is no ancestor of origin/main, and it is an ancestor of a carrier's tip exactly when it
-    # is one of the commits that tip has beyond origin/main.
-    beyond = {c.tip: set(git('rev-list', c.tip, '^refs/remotes/origin/main', cwd=repo).stdout.split()) for c in carriers}
+    # is one of the commits that tip has beyond origin/main. With no origin/main (a repository that never fetched one)
+    # nothing is excluded: every commit of the carrier's tip.
+    main = git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/main^{commit}', cwd=repo).stdout.strip()
+    beyond = {}
+    for c in carriers:
+        listed = git('rev-list', c.tip, *([f'^{main}'] if main else []), cwd=repo)
+        if listed.returncode != 0:  # an empty set here would read every candidate as uncontained, silently
+            raise RuntimeError(f'git rev-list {c.tip} failed ({listed.returncode}): {listed.stderr.strip()}')
+        beyond[c.tip] = set(listed.stdout.split())
     for r in candidates:
         c = next((c for c in carriers if c.tip != r.tip and r.tip in beyond[c.tip]), None)
         if c:
