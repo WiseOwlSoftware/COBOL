@@ -1908,6 +1908,45 @@ gred.write_text(json.dumps({"wave": "9115", "scratch": str(S3114), "base": "abc"
 check("PB3114 (d): make_dispatch_specs.py records nothing when its practices check is RED",
       (mds.main([str(gred), "--coord", str(C3114)]), pw.ledger_groups(C3114)), (1, []))
 
+# PB3528: two SPLIT branches whose file sets share a file. Each finisher met the OTHER branch (a DECISION owner, read
+# RUNNING) in the partition and waited, so neither was ever planned. A branch another group of this same wave
+# finishes is planned work: the two finishers chain, the later one a successor (`after:`) of the earlier.
+DL_REPORTS = TMP / "reports-3528"
+DL_REPORTS.mkdir()
+for slug, lead, branch in (("w1141a", "PB5", "worktree-dl-1"), ("w1141b", "PB9", "worktree-dl-2")):
+    (DL_REPORTS / f"{slug}-{lead}-report.md").write_text(
+        f"SPLIT\n# {lead} group\n**Status:** SPLIT at the turn cap · **branch:** `{branch}` · **HEAD:** `5555555ee`\n\n"
+        "## Reproduced?\n", encoding="utf-8", newline="\n")
+returned(DL_REPORTS)
+DL_BUSY = {"worktree dl-1 (worktree-dl-1)": pw.InFlight({F_BIND, "docs/CONFORMANCE.md"}, "worktree-dl-1", {"PB5"},
+                                                        state="DECISION"),
+           "worktree dl-2 (worktree-dl-2)": pw.InFlight({"src/X/Misc.cs", "docs/CONFORMANCE.md"}, "worktree-dl-2",
+                                                        {"PB9"}, state="DECISION")}
+pdl = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], pw.load_reports(DL_REPORTS),
+              lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=DL_BUSY)
+dl = {n: g for g in pdl["groups"] for n in g.notes}
+check("PB3528: two SPLIT branches sharing a file are both finished, the second a successor of the first",
+      (sorted(dl), dl["PB9"].after if "PB9" in dl else None, dl["PB5"].kind if "PB5" in dl else None),
+      (["PB5", "PB9"], dl["PB5"].letter if "PB5" in dl else "?", "finisher"))
+check("PB3528: neither waits on the other", sorted(n for n in pdl["waiting"] if n in ("PB5", "PB9")), [])
+# ... and on every host alike: the two reports tie on wave and modification time (returned() above), so only their
+# NAME orders them; left to the directory's enumeration order (the name on NTFS, a hash order on ext4) the successor
+# was PB5's finisher under the Linux gate and PB9's on Windows. A reversed listing must not change the order read.
+_glob = pathlib.Path.glob
+try:
+    pathlib.Path.glob = lambda self, pattern: reversed(list(_glob(self, pattern)))
+    reversed_listing = [r.path.name for r in pw.load_reports(DL_REPORTS)]
+finally:
+    pathlib.Path.glob = _glob
+check("PB3528: reports tied on wave and mtime are read in name order, whatever order the directory lists them in",
+      (reversed_listing, [r.path.name for r in pw.load_reports(DL_REPORTS)]),
+      (["w1141a-PB5-report.md", "w1141b-PB9-report.md"], ["w1141a-PB5-report.md", "w1141b-PB9-report.md"]))
+# ... and a branch no group of this wave finishes still holds a group that meets it (the partition is unchanged)
+pdl2 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+               busy={"worktree dl-3 (worktree-dl-3)": pw.InFlight({F_BIND}, "worktree-dl-3", {"PB9"}, state="DECISION")})
+check("PB3528: an undecided branch this wave does not finish still holds a group on its files",
+      ([g.notes for g in pdl2["groups"]], "PB5" in pdl2["waiting"]), ([], True))
+
 for f in fails:
     print("FAIL:", f)
 print(f"plan_wave self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")
