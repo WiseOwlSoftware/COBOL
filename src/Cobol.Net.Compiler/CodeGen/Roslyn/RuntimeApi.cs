@@ -753,6 +753,11 @@ internal static class RuntimeApi
     public static string WidePow(string wide, int exponent) =>
         $"{nameof(CobolWide)}.{nameof(CobolWide.Pow)}({wide}, {exponent})";
 
+    /// <summary>The quotient of two wide values TRUNCATED at <paramref name="resultScale"/> (<c>CobolWide.DivTruncated</c>):
+    /// a nested quotient whose digit bound passes the Int128 lane (kb/Work PB3538).</summary>
+    public static string WideDivTruncated(string left, int leftScale, string right, int rightScale, int resultScale) =>
+        $"{nameof(CobolWide)}.{nameof(CobolWide.DivTruncated)}({left}, {leftScale}, {right}, {rightScale}, {resultScale})";
+
     /// <summary>A wide value aligned UP by <paramref name="digits"/> decimal places (× 10^digits).</summary>
     public static string WideUp(string wide, int digits) =>
         digits == 0 ? wide : $"{nameof(CobolWide)}.{nameof(CobolWide.Up)}({wide}, {digits})";

@@ -18,11 +18,15 @@ namespace CobolNet.Tests.Unit;
 /// product, negation, power) carries that precision as it carries the scale.
 /// <para>This class reads the EMITTED C#: for each expression shape that crosses a quotient (a division chain, a product,
 /// a sum and a negation of quotients, a quotient over a scaled leaf, a receiver-less relation), compiled at depth 2 and
-/// at depth 16 into receivers of scale 0, 4 and 18, the set of result scales the scaled division kernel is asked for
-/// (<c>CobolNum.Divide</c> / <c>DivideOrThrow</c>'s fifth argument) is the same at both depths, and none passes the
-/// carrier's 38 digits. A new arm that derives a scale from an intermediate's scale makes the depth-16 set grow and
+/// at depth 16 into receivers of scale 0, 4 and 18, the set of result scales the truncating division kernels are asked for
+/// (the fifth argument of <c>CobolNum.Divide</c> / <c>DivideOrThrow</c> and of the wide form's <c>CobolWide.DivTruncated</c>)
+/// is the same at both depths, and none passes the carrier's 38 digits. A new arm that derives a scale from an intermediate's scale makes the depth-16 set grow and
 /// turns this red even where no golden crosses it; the goldens
 /// <c>conformance-suite/cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_*</c> pin the values.</para>
+/// <para>⛔ AND THE LANE NEVER CHANGES THE RULE (review finding R1-1): a dividend of unknown digit bound (an intrinsic's
+/// value) or a wide product passes the Int128 lane's bound, and its nested quotient is the same truncated quotient on
+/// the exact wide form (<c>CobolWide.DivTruncated</c>), never the SDIDI's round-to-odd <c>CobolDec.DivToOdd</c>, which
+/// made `FUNCTION INTEGER(X) / 7 * 7` 2.000000 where `X / 7 * 7` is 1.999999.</para>
 /// </summary>
 public sealed class NestedQuotientPrecisionDriftTests
 {
@@ -51,6 +55,8 @@ public sealed class NestedQuotientPrecisionDriftTests
             sb.AppendLine($"    COMPUTE {r} = {Chain("(- (A / B))", "/", "B")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("F / B", "/", "B")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("(F / B)", "*", "(F / B)")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("FUNCTION INTEGER(A) / B", "/", "B")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("(FUNCTION MOD(A 9) * A / B)", "*", "(A / B)")}.");
         }
         sb.AppendLine($"    IF {Chain("A / B", "/", "B")} > 0 DISPLAY \"GT\" END-IF.");
         sb.AppendLine("    STOP RUN.");
@@ -73,11 +79,12 @@ public sealed class NestedQuotientPrecisionDriftTests
         finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
     }
 
-    /// <summary>The fifth argument (the result scale) of every scaled division kernel call in <paramref name="cs"/>.</summary>
+    /// <summary>The fifth argument (the result scale) of every truncating division kernel call in <paramref name="cs"/>,
+    /// each kernel with its argument count.</summary>
     private static SortedSet<int> DivisionScales(string cs)
     {
         var scales = new SortedSet<int>();
-        foreach (string call in new[] { "CobolNum.Divide(", "CobolNum.DivideOrThrow(" })
+        foreach (var (call, arity) in new[] { ("CobolNum.Divide(", 6), ("CobolNum.DivideOrThrow(", 6), ("CobolWide.DivTruncated(", 5) })
             for (int at = cs.IndexOf(call, StringComparison.Ordinal); at >= 0; at = cs.IndexOf(call, at + 1, StringComparison.Ordinal))
             {
                 var args = new List<string>();
@@ -94,7 +101,7 @@ public sealed class NestedQuotientPrecisionDriftTests
                         if (c == ')') break;
                     }
                 }
-                Assert.True(args.Count == 6, $"a {call} call with {args.Count} arguments: the kernel's shape changed");
+                Assert.True(args.Count == arity, $"a {call} call with {args.Count} arguments: the kernel's shape changed");
                 scales.Add(int.Parse(args[4], System.Globalization.CultureInfo.InvariantCulture));
             }
         return scales;
@@ -111,5 +118,30 @@ public sealed class NestedQuotientPrecisionDriftTests
             + $"{{{string.Join(", ", shallow)}}} at depth 2: a nested intermediate's scale is being derived from an "
             + "intermediate's scale (kb/Work PB3538) instead of from its operands' precision (NumX.FractionPrecision)");
         Assert.True(deep.Max <= 38, $"a division result scale {deep.Max} passes the Int128 carrier's 38 digits");
+    }
+
+    [Fact]
+    public void ANestedQuotientPastTheInt128Lane_IsTheTruncatedQuotientOnTheWideForm()
+    {
+        // Every quotient here is NESTED (the outermost operation is a product or a relation), so none is the final
+        // transfer whose one rounding may take the SDIDI's round-to-odd form.
+        string cs = EmitCSharp("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3538W.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A   PIC 9 VALUE 2.
+            01 B   PIC 9 VALUE 7.
+            01 R4  PIC S9(9)V9(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                COMPUTE R4 = FUNCTION INTEGER(A) / B * B.
+                COMPUTE R4 = FUNCTION MOD(A 9) / B / B * B * B.
+                COMPUTE R4 = (FUNCTION ORD-MAX(A B) * A) / B * B.
+                IF FUNCTION INTEGER(A) / B * B < 2 DISPLAY "LT" END-IF.
+                STOP RUN.
+            """);
+        Assert.Contains("CobolWide.DivTruncated(", cs);
+        Assert.DoesNotContain("CobolDec.DivToOdd(", cs);
     }
 }
