@@ -32,6 +32,11 @@ and its `_below_2002` negative, `cases/14.2-.../pb3587_content_group_formal_usag
 one-line group-adapter read disabled, the Format-1 and specifier legs of the PB3587 golden print `F:G F`, `F:N ??`, `S:G F`, `S:N ??`
 (measured). Unit: `GroupMoveSenderChannelDriftTests` (the shape), `MoveSendingStorageImageTests` (the adapters).
 
+**Version pins.** `MoveSending` and `CobolArgAdapt.WithValueSending` changed shape (the shipped surface, no shim left behind), so the
+runtime major is 15; a new caller states `StorageImage` and an old callee would ignore it, so the call ABI is 2 (it is also a constant in
+the shipped surface list, which is why the surface hash moved with it). `RuntimeAbiPinDriftTests` re-pinned both pairs; the first gate
+was red on exactly those two tests and nothing else.
+
 **Sweep.** Reference-modified national slices, a numeric item of usage national, a national group, the function values and the specifier
 lane all answer correctly; a universal-receiver INVOKE is BY REFERENCE only (COBOLNET0866); Format-1 CALL admits identifiers only BY
 CONTENT. Rows: none claimed, none closed (GR-14.9.25.4-4 and GR-14.2.3-9 were already CONFORMS).
