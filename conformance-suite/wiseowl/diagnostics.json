@@ -13931,6 +13931,12 @@
   ],
   "expect": "COBOLNET1970"
  },
+ "pb3338_apply_commit_gr6_set_address": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET0869"
+ },
  "pb3338_apply_commit_no_operand": {
   "refuse-at": [
    "2023"
@@ -22632,6 +22638,18 @@
    "2023"
   ],
   "expect": "COBOLNET4709"
+ },
+ "pb3338_apply_commit_sr11_global_file": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639"
+ },
+ "pb3338_apply_commit_sr1_file_of_another_element": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639"
  },
  "pb3338_apply_commit_sr6_factory": {
   "refuse-at": [
