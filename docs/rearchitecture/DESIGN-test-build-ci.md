@@ -94,7 +94,8 @@ Ten jobs. `changes` decides whether the matrix runs at all; `audits` runs on eve
 ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
-`inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors); and finally `ci-gate`. (The nightly
+`inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
+on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
 
@@ -1128,7 +1129,7 @@ file named `test_*.py`/`test_*.ps1`), runs them in parallel, each with a private
 global config, and reports a self-test marked `# SELF-TEST-PLATFORM: windows — <reason>` as NOT RUN elsewhere with its
 reason. Its post-build half (`self_tests.py --built`: the self-tests marked `# SELF-TEST-NEEDS: build`,
 `filter_population.py`) runs beside the legs once the build is done. The same runner is CI's (the `audits` job on Linux,
-`windows-build-test` on Windows, `greenfield-unit` for `--built`) and the Linux gate's (`selftests` and
+`windows-self-tests` on Windows, `greenfield-unit` for `--built`) and the Linux gate's (`selftests` and
 `selftests-built`), and `SelfTestDiscoveryDriftTests` holds every one of those entry points to it and forbids any of
 them to name a self-test by hand (kb/Work PB2563: eleven orchestrator self-tests had run in no gate, and
 `landing_check.py --self-test` only in CI). Measured 2026-10-08 on a loaded Windows host: the runner takes about 80 s,
@@ -1578,7 +1579,7 @@ that was a second or more, and the verdict line carries the budget's width and t
 whether the inputs or the budget set the phase's time (wave 1062: 50 of 75 re-ran in every first gate, the slowest
 6 min, with no line saying what had changed). **Every gate reuses** (one shape, kb/Work
 PB3022; `run_gate_legs.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit, and a self-test that runs records its
-PASS); **CI's `audits` and `windows-build-test` jobs and the Linux gate never reuse**: they run every self-test, so a
+PASS); **CI's `audits` and `windows-self-tests` jobs and the Linux gate never reuse**: they run every self-test, so a
 branch that changes nothing a self-test reads reuses the PASS an earlier gate recorded, and the CI invariant (kb/Work PB1957) is
 untouched — CI still runs them all. The `--built` phase reads build output no record covers: it always runs and never
 records. Measured 2026-10-10 on this host: the whole phase recorded in 71-76 s; the same tree with `--reuse`, 0 ran and
@@ -2113,7 +2114,7 @@ demand and not committed.
   format"):** LF everywhere. `.gitattributes` opens with `* text=auto eol=lf`, so git stores and checks out every text
   file LF on every OS; a file that must keep its bytes is declared `-text` there with its reason. One normalization
   landing made every blob LF (the index was already LF for 15,234 files: what changed is what each OS's WORKING TREE
-  shows). `scripts/line_endings.py --check` — a gate audit, CI's `audits` job and a `windows-build-test` step —
+  shows). `scripts/line_endings.py --check` — a gate audit, CI's `audits` job and a `windows-self-tests` step —
   refuses a CR in a tracked text file's blob or checkout and a Python text-mode write that does not state `newline=`;
   `--fix` rewrites a checkout made before the rule and then re-states the index entry of every file `git diff-files`
   lists whose cleaned content (`git hash-object --stdin-paths`) IS the staged blob and whose working-tree mode IS the

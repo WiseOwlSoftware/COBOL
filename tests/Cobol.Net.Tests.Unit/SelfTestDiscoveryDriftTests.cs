@@ -161,7 +161,7 @@ public sealed class SelfTestDiscoveryDriftTests
 
     /// <summary>
     /// Every gate entry point runs the runner: the local gate's AUDITS (before the slot) and its post-build half, the
-    /// Linux gate's two legs, CI's audits job on Linux, greenfield-unit's post-build step and windows-build-test on
+    /// Linux gate's two legs, CI's audits job on Linux, greenfield-unit's post-build step and windows-self-tests on
     /// Windows. And none of them runs a discovered self-test itself: a self-test named in a gate is a hand list again,
     /// and a list goes stale the day a self-test is added.
     /// </summary>
@@ -189,10 +189,14 @@ public sealed class SelfTestDiscoveryDriftTests
         var steps = Jobs(workflow);
         Assert.Contains("run: python3 scripts/self_tests.py", RunLines(steps["audits"]));
         Assert.Contains("run: python3 scripts/self_tests.py --built", RunLines(steps["greenfield-unit"]));
-        Assert.Contains("run: python scripts/self_tests.py", RunLines(steps["windows-build-test"]));
+        Assert.Contains("run: python scripts/self_tests.py", RunLines(steps["windows-self-tests"]));
         Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["audits"]);
         Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["greenfield-unit"]);
-        Assert.Matches(@"(?m)^\s+runs-on:\s*windows", steps["windows-build-test"]);
+        Assert.Matches(@"(?m)^\s+runs-on:\s*windows", steps["windows-self-tests"]);
+        // kb/Work PB3581: the Windows self-tests are their own job, never a step after a build (the default phase never
+        // builds, and as windows-build-test's last step they were 7.4 minutes of the merge queue's longest job).
+        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunLines(steps["windows-build-test"])), StringComparison.Ordinal);
+        Assert.DoesNotContain("dotnet build", steps["windows-self-tests"], StringComparison.Ordinal);
 
         // No entry point runs a self-test by hand: a flag-handling self-test named with `--self-test`, or a standalone
         // test_* script named at all, in a line that runs something (comments excluded).

@@ -93,6 +93,24 @@ public sealed class RedefinesClassificationTests
         Assert.IsType<StorageForm.DynamicString>(Item(d, "WS-D").Storage);
     }
 
+    /// <summary>⛔ AN OPTIONS INITIALIZE BACKGROUND REACHES A REDEFINES-CLASS NUMERIC LEAF AS IT REACHES ANY OTHER
+    /// (kb/Work PB3563, review round 2). ISO 14.6.2.3.2 GR1 sets "the storage allocated for the implied or associated
+    /// sections" to the fill character with no exception for a redefined item, and <c>InitialStateBackground.Seed</c>
+    /// seeds a class member's IMAGE, so the leaf must store its image: the promotion's arm (5) once excluded class
+    /// members while the emitter did not, and the seed string met a native <c>long</c> field (CS0029). A Tier-A alias
+    /// (same shape) and a Tier-B view (a different shape) are both measured, with the unredefined control.</summary>
+    [Theory]
+    [InlineData("01 WS-G.\n   05 WS-A PIC 9(3).\n   05 WS-B REDEFINES WS-A PIC 9V99.", "WS-A")]
+    [InlineData("01 WS-G.\n   05 WS-A PIC 9(4) COMP-5.\n   05 WS-B REDEFINES WS-A PIC 9(4) COMP-5.", "WS-A")]
+    [InlineData("01 WS-G.\n   05 WS-A PIC X(6).\n   05 WS-B REDEFINES WS-A PIC 9(6).", "WS-B")]
+    [InlineData("01 WS-G.\n   05 WS-A PIC 9(3).", "WS-A")]
+    public void OptionsInitializeBackground_PromotesTheNumericLeaf_WhetherOrNotItIsRedefined(string ws, string leaf)
+    {
+        var (d, _) = BindFull(ws, dialect: 2023, options: "OPTIONS. INITIALIZE WORKING-STORAGE TO X\"5A\".");
+        Assert.True(Item(d, leaf).StoreAsImage, $"{leaf} kept a native carrier under the OPTIONS INITIALIZE background");
+        Assert.IsType<StorageForm.CharImage>(Item(d, leaf).Storage);
+    }
+
     /// <summary>Bind a WORKING-STORAGE fragment and return the populated <see cref="DataBinder"/>.</summary>
     private static DataBinder Bind(string ws, int dialect = 85)
     {
@@ -130,11 +148,12 @@ public sealed class RedefinesClassificationTests
     /// tail computes; the resolve-only helper leaves those fields null and makes such an assertion inert.
     /// Bind diagnostics do NOT stop the tail — the driver fails the compile afterwards — which is what lets a
     /// REJECTED class still be measured at the storage layer.</summary>
-    private static (DataBinder Data, EditionContext Edition) BindFull(string ws, int dialect = 85)
+    private static (DataBinder Data, EditionContext Edition) BindFull(string ws, int dialect = 85, string options = "")
     {
         string src = $"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. TFULL.
+            {options}
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             {ws}
