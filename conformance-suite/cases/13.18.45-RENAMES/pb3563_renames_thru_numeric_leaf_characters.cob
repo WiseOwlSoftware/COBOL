@@ -22,7 +22,9 @@
       *> the program never names, which converted too); legs 5-6 (valid digits
       *> still flow both ways through the same leaf); legs 7-9 (a figurative
       *> constant and an INSPECT REPLACING through the alias are characters
-      *> too).
+      *> too); legs 10-11 (the numeric leaf is a REDEFINES class member, which
+      *> the same two rules do not exempt: through the alias, and as the
+      *> receiver of a group move).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3563MOVE.
        DATA DIVISION.
@@ -41,6 +43,17 @@
           05 Q-B PIC 9(3) VALUE 123.
           05 Q-C PIC X(2) VALUE "CD".
        66 Q-AC RENAMES Q-A THROUGH Q-C.
+       01 RV.
+          05 RV-A PIC X(2) VALUE "AB".
+          05 RV-B PIC 9(3) VALUE 123.
+          05 RV-B2 REDEFINES RV-B PIC 9V99.
+          05 RV-C PIC X(2) VALUE "CD".
+       66 RV-AC RENAMES RV-A THROUGH RV-C.
+       01 SG.
+          05 SG-1 PIC X(3) VALUE "ABC".
+       01 RE.
+          05 RE-B PIC 9(3).
+          05 RE-B2 REDEFINES RE-B PIC 9V99.
        PROCEDURE DIVISION.
        MAIN.
            MOVE "XXXXXXX" TO R-AC
@@ -63,4 +76,8 @@
            END-IF
            INSPECT R-AC REPLACING ALL SPACE BY "Z"
            DISPLAY "9 [" R-AC "]"
+           MOVE "XXXXXXX" TO RV-AC
+           DISPLAY "10 [" RV-AC "]"
+           MOVE SG TO RE-B
+           DISPLAY "11 [" RE-B "]"
            STOP RUN.
