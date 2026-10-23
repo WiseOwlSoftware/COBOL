@@ -267,6 +267,28 @@ public abstract class FileConnector
     /// (<see cref="Open"/>) all ask this and never an inline edition comparison.</summary>
     internal bool SharingFacilityInEffect => DialectBehaviors.IsActive(DialectBehavior.FileSharingFacility, Edition);
 
+    /// <summary>⛔ MUST THIS CONNECTOR'S RELEASES AND READS ACCOUNT FOR ANOTHER FILE CONNECTOR RIGHT NOW (kb/Work PB670
+    /// review R1-1)? Where the file sharing facility is in effect, the sharing mode's file lock is the answer and it is
+    /// fixed at OPEN (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c> may meet a
+    /// sibling at any moment, in this run unit or another, so every WRITE is released to the medium). At COBOL-85 the
+    /// default mode restricts nobody (<c>FileRegistry.ImplementorDefaultSharing</c>) but no run unit is guaranteed to see
+    /// another's records (§A.4.1: the facility's rules are optional with it), so only a file connector that IS open beside
+    /// this one, in this run unit, is owed anything: the posture a program that names no sharing clause has at 2002, where
+    /// its OUTPUT buffers until the area fills or the file closes. Paying a flush per record and a seek per READ for a
+    /// sibling that may never come measured a 5x WRITE and a 1.6x READ slowdown on every <c>--std 85</c> file.
+    /// ⛔ THE SIBLING THAT ARRIVES LATER is owed the records already buffered: the registry asks every connector open on
+    /// the file to <see cref="ReleaseBufferedRecords"/> before the incoming OPEN's body runs.</summary>
+    internal bool OtherConnectorsMayShare =>
+        FileLockPosture.AdmitsAnotherRunUnit(HostShare) && (SharingFacilityInEffect || Physical is { Open.Count: > 1 });
+
+    /// <summary>⛔ HAND THE RECORDS THIS CONNECTOR HAS BUFFERED TO THE MEDIUM (§14.9.51.4 GR12, "releases a logical record
+    /// to the operating environment"), because a sibling file connector is about to open the same physical file at
+    /// COBOL-85 (<see cref="OtherConnectorsMayShare"/>; <c>FileRegistry.SharedOpenAttempt</c>). A connector that buffers
+    /// nothing does nothing. Never throws: a host refusal is held and reported by this connector's own next WRITE or its
+    /// CLOSE ('34' or '30', <see cref="FileStatusCode.ForWriteFailure"/>), because the opener's OPEN is not the
+    /// statement that failed to store those bytes.</summary>
+    internal virtual void ReleaseBufferedRecords() { }
+
     /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §14.9.10.4 GR5's "removed
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused

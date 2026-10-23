@@ -429,7 +429,15 @@ OFD and handle locks do not know a process's own descriptors), and a host refusa
 the engines meet the states Table 19 used to keep out: a keyed `OPEN OUTPUT` beside connectors that hold the file creates the new store
 and `StoreTable.AttachCreated(…, arbitrated: false)` makes it the path's (the holders keep the store they have; what they find in the file
 is the engine's own word, an at-end `'10'` for a created file with no records, §14.9.27.4 GR18). From 2002 the guard of PB754 stays loud
-(`arbitrated: true` throws on a creation beside a holder).
+(`arbitrated: true` throws on a creation beside a holder). **The ALL OTHER default is a statement about what the host handle ADMITS,
+not about what a lone connector DOES (review R1-1 of PB670).** A connector pays for a sibling only while one is open: from 2002 the
+file lock fixed at OPEN decides it (`FileLockPosture.AdmitsAnotherRunUnit`), and at 85 `FileConnector.OtherConnectorsMayShare` also
+asks whether another connector of the run unit is open on the physical file (`PhysicalFileTable.State.Open`). Where none is, a
+sequential writer keeps its records in its input-output areas until the area fills or the CLOSE (GR12 releases to the operating
+environment, as the 2002 clause-less OUTPUT does), and a reader compares only the release generation, with no re-anchor per frame.
+A sibling that OPENs later is owed what was already written: `SharedOpenAttempt` asks every connector open on the file to
+`ReleaseBufferedRecords` before the incoming body runs, and a host refusal met there is held by the writer and reported by its own
+next WRITE or CLOSE (`'34'` or `'30'`), never by the opener. No run unit is promised another's records at 85 (A.4.1).
 
 **The §9.1.15 FILE LOCK AGAINST OTHER RUN UNITS is Table 19 itself: `RunUnitFileLock` (`IO/Sharing/`), taken by
 `FileConnector.Open` (kb/Work PB833).** The share mode above is what a process that takes part in no protocol

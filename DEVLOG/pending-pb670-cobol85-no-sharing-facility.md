@@ -29,8 +29,18 @@ re-OPEN succeeds), a second run unit, two EXTENDs keeping both records, the empt
 and GR5 visibility between two updaters. `CrossRunUnitKeyedStoreDriftTests` gained the unarbitrated creation. Rows: DOC-A.1-77 and DOC-A.1-131 stay CONFORMS and
 gain the 85 band (`closes_rows: []` with its reason). The NIST 85 corpus (364 programs) ran green with the posture change before any test was written.
 
-**Cost, stated.** At 85 every file connector now has the ALL OTHER posture, so the sequential writer flushes each release and the keyed stores run coherent (the
-paths 2002 sharers use). The NIST 85 corpus showed no difference (45 s for 364 programs). Cross-process protection at 85 is the operating environment's alone.
+**Cost, and the review that measured it (R1-1).** The first cut gave every 85 connector the ALL OTHER posture, so the sequential writer flushed each release and the
+reader re-anchored at every frame (the paths 2002 sharers use). The NIST 85 corpus (small files) showed nothing; a 3,000,000-record file did: WRITE 6.3 s at 85
+against 1.1 s at 2002, READ 8.8 s against 5.5 s (reviewer), 9.4 s and 9.9 s against 1.2 s and 5.5 s on my debug build. The root cause is that the posture was read as "a
+sibling may exist" for the life of the OPEN. Now `FileConnector.OtherConnectorsMayShare` asks the run unit's physical-file table whether another connector is open on
+the file: alone, the writer buffers (as the 2002 clause-less OUTPUT does) and the reader compares the release generation only; a sibling that arrives later is owed the
+records already written, so `FileRegistry.SharedOpenAttempt` has every connector open on the file `ReleaseBufferedRecords` before the incoming body runs (a host
+refusal there is held by the writer and answered by its own next WRITE or CLOSE, '34'/'30', never by the opener); while the sibling is open each WRITE reaches the
+medium at once, and when it closes the writer buffers again. After: the same programs run WRITE 1.14 s and READ 5.36 s at 85, 1.06 s and 5.72 s at 2002.
+`SharingFacilityEditionTests` pin the buffering, the arrival, the departure, the 2002 controls and the refusal (Windows: a locked byte range; Linux: /dev/full).
+Not changed: the keyed stores still run coherent at 85 (a store mutex per statement, because the engine writes shared pages and an outside process could
+otherwise corrupt it): 9.2 s against 8.1 s on 200,000 INDEXED writes and reads, about 10 %, left as a lead. Cross-process protection at 85 is the operating
+environment's alone.
 
 **Self-review.** Architecture: one predicate, one mechanism per job (arbitration, default mode, run-unit lock, host status, keyed creation). Code: the old
 one-argument `ImplementorDefaultSharing` was changed at every caller (no overload). Duplication: none. Found and fixed in the files read: the stale "(an owner

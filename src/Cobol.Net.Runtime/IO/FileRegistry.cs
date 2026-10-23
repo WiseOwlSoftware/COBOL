@@ -1468,6 +1468,13 @@ public sealed class FileRegistry
         // cross-run-unit region lock (RunUnitFileLock, kb/Work PB833), so the two halves of the file lock cannot
         // disagree about which mode this OPEN is under.
         c.HostSharing = sharing;
+        // ⛔ A SIBLING THAT ARRIVES AFTER A WRITER IS OWED WHAT THE WRITER HAS ALREADY WRITTEN (kb/Work PB670 review R1-1).
+        // At COBOL-85 a connector buffers its records while it is the only one open on the file (FileConnector.
+        // OtherConnectorsMayShare), so the incoming OPEN's connector must find them in the physical file: each connector
+        // already open on it releases its buffer first, ahead of the body that may read, count or truncate the medium.
+        if (!c.SharingFacilityInEffect)
+            foreach (var other in st.Open.Keys)
+                if (!CobolNames.Same(other, name) && _files.TryGetValue(other, out var holder)) holder.ReleaseBufferedRecords();
         string status = c.Open(mode);
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {

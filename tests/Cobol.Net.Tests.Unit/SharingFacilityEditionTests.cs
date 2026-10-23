@@ -302,4 +302,120 @@ public sealed class SharingFacilityEditionTests
         }
         finally { FileHarness.TryDelete(host); }
     }
+
+    /// <summary>The COST side of the determination (review R1-1 of PB670): the default mode restricts nobody, but a COBOL-85
+    /// file connector with no sibling open pays nothing for it. §14.9.51.4 GR12 releases a record to the operating environment,
+    /// not to the physical file at once (the 2002 program with no sharing clause buffers its OUTPUT the same way), so a
+    /// lone writer keeps its records in its input-output areas; a sibling connector of the run unit that OPENs the file
+    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§9.1.15 3), the
+    /// reader's next READ selects it (§14.9.30.4 GR21 c)); when the sibling closes the writer buffers again. The control
+    /// arms: 2002's clause-less OUTPUT buffers (NO OTHER), and 2002's SHARING WITH ALL OTHER writes through.</summary>
+    [Fact]
+    public void AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten()
+    {
+        string host = FileHarness.Tmp("pb670-lazy");
+        try
+        {
+            int record = FileHarness.Rec(1, "AAAA").Length;
+            var reg = new FileRegistry();
+            foreach (string name in new[] { "A", "B" })
+                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
+            FileHarness.Open(reg, "A", FileOpenMode.Output);
+            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 1, "AAAA"));
+            Assert.Equal(0, new FileInfo(host).Length);                 // alone: buffered, no syscall per record
+
+            FileHarness.Open(reg, "B", FileOpenMode.Input);
+            Assert.Equal("00", reg.Status("B"));
+            Assert.Equal(record, new FileInfo(host).Length);            // the arriving sibling was handed the earlier record
+            Assert.Equal("00", FileHarness.ReadNext(reg, "B", out string first));
+            Assert.Equal(FileHarness.Rec(1, "AAAA"), first);
+
+            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 2, "BBBB"));
+            Assert.Equal(2 * record, new FileInfo(host).Length);        // with a sibling open: released at the WRITE
+            Assert.Equal("00", FileHarness.ReadNext(reg, "B", out string second));
+            Assert.Equal(FileHarness.Rec(2, "BBBB"), second);           // …and the reader's next READ selects it
+
+            reg.Close("B");
+            Assert.Equal("00", reg.Status("B"));
+            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 3, "CCCC"));
+            Assert.Equal(2 * record, new FileInfo(host).Length);        // alone again: buffered
+            reg.Close("A");
+            Assert.Equal("00", reg.Status("A"));
+            Assert.Equal(3 * record, new FileInfo(host).Length);        // CLOSE releases the rest
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>The controls of <see cref="AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten"/>: from
+    /// 2002 the posture is fixed at OPEN by the sharing mode, so a clause-less OUTPUT (NO OTHER) buffers whether or not a sibling
+    /// could exist, and SHARING WITH ALL OTHER releases every record at once, alone or not.</summary>
+    [Theory]
+    [InlineData(null, 0)]
+    [InlineData(FileSharing.AllOther, 1)]
+    public void From2002_TheSharingModeFixesWhetherAWriterReleasesAtOnce(FileSharing? sharing, int expectedRecordsInTheFile)
+    {
+        string host = FileHarness.Tmp($"pb670-lazy-2002-{sharing}");
+        try
+        {
+            var reg = new FileRegistry();
+            FileHarness.Register(reg, "A", host, FileOrg.Sequential, sharing: sharing, edition: 2002);
+            FileHarness.Open(reg, "A", FileOpenMode.Output);
+            Assert.Equal("00", reg.Status("A"));
+            Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 1, "AAAA"));
+            Assert.Equal(expectedRecordsInTheFile * FileHarness.Rec(1, "AAAA").Length, new FileInfo(host).Length);
+            reg.Close("A");
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>A host that refuses the earlier writer's buffered records when a sibling arrives (the OPEN asks for the release):
+    /// the sibling's OPEN is not the statement that failed to store them, so it answers '00', and the refusal is the writer's
+    /// own, at its next WRITE ('30', or '34' where the medium is full; §9.1.13.6 items 1 and 3) — never an escaping
+    /// exception, and never lost. Windows refuses a write into a byte range another handle has LOCKED; Linux's
+    /// <c>/dev/full</c> refuses every write with ENOSPC. A host with neither must be neither of them, so the test cannot pass on a
+    /// CI host by not running.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AtCobol85_AHostRefusalOfTheEarlierWritersRecordsIsTheWritersOwnAtItsNextWriteOrClose(bool writeAgain)
+    {
+        bool windows = OperatingSystem.IsWindows();
+        const string full = "/dev/full";
+        if (!windows && !File.Exists(full))
+        {
+            Assert.False(OperatingSystem.IsLinux(), "a Linux host provides /dev/full; the refusal was not exercised");
+            return;
+        }
+        string host = windows ? FileHarness.Tmp("pb670-lazy-refused") : full;
+        try
+        {
+            var reg = new FileRegistry();
+            foreach (string name in new[] { "A", "B" })
+                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
+            FileHarness.Open(reg, "A", FileOpenMode.Output);
+            Assert.Equal("00", reg.Status("A"));
+            FileStream? locker = null;
+            try
+            {
+                if (windows)
+                {
+                    locker = new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                    locker.Lock(0, 1024);
+                }
+                Assert.Equal("00", FileHarness.Write(reg, "A", FileOrg.Sequential, 1, "AAAA"));   // alone: buffered, nothing refused yet
+                FileHarness.Open(reg, "B", FileOpenMode.Input);
+                Assert.Equal("00", reg.Status("B"));                                              // the opener is not the failing statement
+                string refused = windows ? FileStatusCode.PermanentError : FileStatusCode.PermanentBoundary;
+                if (writeAgain) Assert.Equal(refused, FileHarness.Write(reg, "A", FileOrg.Sequential, 2, "BBBB"));
+                else
+                {
+                    reg.Close("A");   // the CLOSE is the next statement that owns the bytes: its final flush answers the host's refusal
+                    Assert.Equal(FileStatusCode.PermanentError, reg.Status("A"));
+                }
+            }
+            finally { locker?.Dispose(); }
+            reg.CloseAll();
+        }
+        finally { if (windows) FileHarness.TryDelete(host); }
+    }
 }
