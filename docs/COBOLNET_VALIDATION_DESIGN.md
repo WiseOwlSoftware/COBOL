@@ -102,7 +102,8 @@ semantics).
   `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
   `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOLNET1708 (the VALIDATE
   facility's §13.16.2 *validation-clauses* group and the §13.18.63 format-5 content-validation entry),
-  COBOLNET1709 (the I-O-CONTROL `APPLY COMMIT` clause, §12.4.6.3), COBOLNET1710 (a declined module's
+  COBOLNET1709 (a SEQUENTIAL or LINE SEQUENTIAL file in the I-O-CONTROL `APPLY COMMIT` clause, §12.4.6.3, whose
+  keyed half A.4.3 provides; reported by `DataBinder.BindApplyCommitClause`, kb/Work PB3338), COBOLNET1710 (a declined module's
   exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
   `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
   `CursorFollowingVisitor`.
@@ -116,7 +117,7 @@ semantics).
     it means — and the binder's own entry paths drop it exactly where it matters: `DataBinder.BindEntry` returns
     early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §13.16.2
     format-4 validation entry.
-  - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOLNET1578/1579/1778 cover
+  - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOLNET1578/1778 cover
     PROCESSOR-DEPENDENT elements (Annex A.3), where §4.2.6 ¶3 requires only a compile-time warning and the
     construct may be accepted-inert. A.4.1 is stronger: syntax is accepted "only when support … is claimed", so
     accepting a declined optional element's syntax IS the non-conformance. All three route through the ONE

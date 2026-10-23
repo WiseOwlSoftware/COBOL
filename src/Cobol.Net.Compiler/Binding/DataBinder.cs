@@ -2465,6 +2465,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §13.18.34 — the logical-page operands and §13.18.34.3's syntax rules
         }
+        ResolveApplyCommit();   // §12.4.6.3.3 — its identifiers, and SR9's FILE STATUS / LINAGE / RECORD items resolved above
     }
 
     /// <summary>⭐ ONE OPERAND OF A FILE'S data-name CLAUSE, RESOLVED (kb/Work PB489) — FILE STATUS, RELATIVE KEY,

@@ -468,9 +468,13 @@ internal sealed class ProgramEmitter
             // discarded — an INITIAL program's activation exit, any other program's CANCEL (ISO §8.6.4; ICobolProgram.
             // EndStorage; kb/Work PB1216). Emitted only when the unit owns such a cell (zero scaffolding).
             var instanceCells = data.CellFieldsOf(CellLifetime.Instance).ToList();
-            if (instanceCells.Count > 0)
+            if (instanceCells.Count > 0 || Current.Transactions.NeedsEndStorage)
                 using (w.Block("public void EndStorage(StorageEnd __why)   // §8.6.4 / §8.6.5: the instance's storage ends — pointers into it are no longer valid (§13.18.5.4 GR4)"))
+                {
                     foreach (string cell in instanceCells) w.Line($"{cell}.End(__why);");
+                    Current.Transactions.EmitRetire(w);   // a canceled or returned-INITIAL element's APPLY COMMIT clause (kb/Work PB3338)
+                }
+            Current.Transactions.EmitMembers(w);
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists

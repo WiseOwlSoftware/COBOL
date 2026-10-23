@@ -36,9 +36,11 @@
       *> the two UNIT rows. The plain CLOSE below must release both locks
       *> and the CLOSE ... UNIT must release neither.
       *>
-      *> GR9's APPLY COMMIT carve-out cannot be exercised: the commit and
-      *> rollback module (Annex A.4.3) is not claimed - docs/CONFORMANCE.md
-      *> 5 - so no program can name an APPLY COMMIT clause.
+      *> GR9's APPLY COMMIT carve-out is not exercised here: these files
+      *> are SEQUENTIAL, for which APPLY COMMIT is still refused
+      *> (COBOLNET1709, kb/Work PB3340); a keyed file's carve-out is the
+      *> keyed store engine's (a CLOSE under commit control keeps the
+      *> transaction, kb/Work PB3480).
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
