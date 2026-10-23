@@ -18215,6 +18215,12 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3564-group-move-keeps-bit-filler-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb586-level88-literal-out-of-range": {
   "refuse-at": [
    "85",
