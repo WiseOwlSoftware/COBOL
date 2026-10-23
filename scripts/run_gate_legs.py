@@ -411,7 +411,13 @@ class Host:
             with tempfile.TemporaryDirectory(prefix="gate-tree-") as tmp:
                 private = Path(tmp) / "index"
                 if index.exists():
-                    shutil.copyfile(index, private)
+                    # copy2, never copyfile: the copy keeps the index file's own mtime, which is git's RACY-GIT
+                    # reference. An entry whose mtime is not older than the index file's is re-read by content,
+                    # because an edit in that same timestamp unit (one whole second for Git for Windows) keeps
+                    # the size and the mtime the index cached. A fresh mtime on the copy made such an entry look
+                    # settled, and `add -A` then kept the cached blob for an edited file: under load, 13 of 200
+                    # same-second edits measured as the unedited tree (the merged-head gate of PB3536).
+                    shutil.copy2(index, private)
                 env = {**os.environ, "GIT_INDEX_FILE": str(private)}
 
                 def git(*argv: str, stdin: bytes | None = None) -> bytes | None:
@@ -1732,6 +1738,26 @@ def self_test() -> int:
             "does not, a clean tree measures as its commit's tree, and the worktree's index is untouched",
             t0 == committed and t_edit not in (None, t0) and t_new not in (None, t0, t_edit) and t_ignored == t0
             and (repo / ".git" / "index").read_bytes() == index_before, f"{t0} {t_edit} {t_new} {t_ignored} {committed}")
+        # RACY GIT, pinned rather than left to the clock: the arm above passed alone and failed under a loaded gate,
+        # because an edit in the same second as the index's cached entry kept that entry's size and mtime. Here the
+        # entry, the index file and the edit all carry one past whole second, so the real index holds the entry
+        # racily clean (git re-reads it by content: the porcelain shows the edit) and the private copy must too.
+        past = (int(time.time()) - 60) * 1_000_000_000
+        tracked, real_index = repo / "tracked.txt", repo / ".git" / "index"
+        os.utime(tracked, ns=(past, past))
+        subprocess.run(git + ["add", "--", "tracked.txt"], cwd=repo, check=True, capture_output=True)
+        os.utime(real_index, ns=(past, past))
+        t_racy0 = real.measured_tree()
+        tracked.write_text("six\n", encoding="utf-8", newline="\n")      # the same size as "one\n"
+        os.utime(tracked, ns=(past, past))
+        seen = subprocess.run(git + ["--no-optional-locks", "status", "--porcelain", "--", "tracked.txt"], cwd=repo,
+                              check=True, capture_output=True, text=True).stdout
+        t_racy = real.measured_tree()
+        tracked.write_text("one\n", encoding="utf-8", newline="\n")
+        arm("an edit in the index's own second (racy git) changes the measured tree: the private index keeps the "
+            "real index's mtime, so git re-reads a racily clean entry by content",
+            t_racy0 == committed and seen.strip() == "M tracked.txt" and t_racy not in (None, committed),
+            f"{t_racy0} {t_racy} {committed} {seen!r}")
         # coord.NEVER_WORK (review R1-2 of wave 1152): every harness worktree carries an edited TRACKED
         # .claude/settings.local.json; with it (edited on disk, then also staged), an untracked STATUS.md and a
         # TestResults/ beside a clean commit, the measured tree is still the commit's own.
