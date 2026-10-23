@@ -99,7 +99,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override KeyedStore AttachStore(bool create) =>
         _st = SharedStores is { } table
-            ? create ? table.AttachCreated(HostPath, new RelativeStore()) : table.Attach<RelativeStore>(HostPath)
+            ? create ? table.AttachCreated(HostPath, HandleIdentity, new RelativeStore()) : table.Attach<RelativeStore>(HostPath, HandleIdentity)
             : new RelativeStore();
 
     /// <inheritdoc/>
@@ -107,7 +107,7 @@ public sealed class RelativeConnector : KeyedConnector
 
     /// <inheritdoc/>
     private protected override void AttachCreated(KeyedStore created) =>
-        _st = SharedStores is { } table ? table.AttachCreated(HostPath, (RelativeStore)created) : (RelativeStore)created;
+        _st = SharedStores is { } table ? table.AttachCreated(HostPath, HandleIdentity, (RelativeStore)created) : (RelativeStore)created;
 
     /// <inheritdoc/>
     private protected override void ForgetStore() => _st = new RelativeStore();
