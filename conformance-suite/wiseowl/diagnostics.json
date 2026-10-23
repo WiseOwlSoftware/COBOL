@@ -18221,6 +18221,12 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3597-initialize-with-filler-replacing-boolean-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb586-level88-literal-out-of-range": {
   "refuse-at": [
    "85",

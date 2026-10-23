@@ -171,6 +171,14 @@ public sealed class BitRunImageDriftTests
     [InlineData("BFL10", 3,
         "05 S1 GROUP-USAGE BIT OCCURS 1. 10 Q1 PIC 1 USAGE BIT. 10 Q2 PIC 1(5) USAGE BIT ALIGNED. 05 X PIC X(1).",
         "Q1 (1)|Q2 (1)|X")]
+    // The canonical of a REDEFINES class inside the run (kb/Work PB3597): the record-struct twin holds the tail beside the
+    // class's backing, the aliased one holds it as bytes of the group's own class — the two must read the same.
+    [InlineData("BFL11", 2,
+        "05 M1 PIC 1(2) USAGE BIT. 05 M2 PIC 1(3) USAGE BIT. 05 M2R REDEFINES M2 PIC 1(2) USAGE BIT. 05 X PIC X(1).", "M1|M2|X")]
+    [InlineData("BFL12", 2,
+        "05 K1 PIC 1(3) USAGE BIT. 05 K1R REDEFINES K1 PIC 1(3) USAGE BIT. 05 K2 PIC 1(2) USAGE BIT. 05 X PIC X(1).", "K1|K2|X")]
+    [InlineData("BFL13", 2,
+        "05 X PIC X(1). 05 M1 PIC 1(3) USAGE BIT. 05 M1R REDEFINES M1 PIC 1(2) USAGE BIT.", "X|M1")]
     public void AliasedGroup_HoldsTheFillerAGroupMoveWrote(string pid, int width, string members, string reads)
     {
         string bytes = string.Concat(Enumerable.Repeat("5A", width));

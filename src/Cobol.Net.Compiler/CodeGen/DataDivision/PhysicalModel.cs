@@ -174,6 +174,9 @@ internal sealed class PhysicalModel(EmitContext ctx)
                         var run = runs.RunLedBy(c);
                         yield return new Physical(cls.BackingCsName, "string", run is null ? 0 : BitLayout.RunCharacters(run), false,
                             backingInit, $"REDEFINES backing for {c.CobolName}", 0, null, run);
+                        // The canonical may LEAD a run whose tail follows its bits in THIS group's layout (kb/Work PB3597).
+                        foreach (var filler in FillerFieldsOf(fillers, c, c.CobolName ?? "FILLER"))
+                            yield return filler;
                     }
                     else
                         yield return new Physical(cls.BackingCsName, "string", cls.Width, false, backingInit, $"REDEFINES backing for {c.CobolName}");
@@ -228,14 +231,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // ⛔ THE IMPLICIT FILLER THIS MEMBER OPENS OR PADS HAS A FIELD OF ITS OWN (§8.5.1.6.3, kb/Work PB3564) — see
                 // Physical.FillerBits: the positions after the run's last member (asked of its LEADER) and the ones
                 // between a strided table's occurrences (asked of the table).
-                foreach (var filler in fillers)
-                    if (ReferenceEquals(filler.Subject, c))
-                        yield return new Physical(filler.Field, "string", 0, false,
-                            // The boolean initial state, as text proportional to the DESCRIPTION: a pad run of a
-                            // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
-                            filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))
-                                : RuntimeApi.StrRepeat(EmitText.CsLiteral("0"), $"{filler.Bits}"),
-                            $"implicit filler bits after {comment} (§8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
+                foreach (var filler in FillerFieldsOf(fillers, c, comment))
+                    yield return filler;
                 continue;
             }
             // A class pointer/object leaf (kb/Work PB244): its slice of the one-way transfer image is its pointer image
@@ -244,6 +241,20 @@ internal sealed class PhysicalModel(EmitContext ctx)
             yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs, recipe), comment, occurs, numLeaf, null, natLeaf,
                 SlotWindow.CarriedBySlot(c) ? c : null);
         }
+    }
+
+    /// <summary>The hidden string fields of the stored implicit fillers whose subject is <paramref name="subject"/> (the run it
+    /// leads, the table it is) — see <see cref="Physical.FillerBits"/>.</summary>
+    private static IEnumerable<Physical> FillerFieldsOf(IReadOnlyList<BitFiller> fillers, DataItem subject, string comment)
+    {
+        foreach (var filler in fillers)
+            if (ReferenceEquals(filler.Subject, subject))
+                yield return new Physical(filler.Field, "string", 0, false,
+                    // The boolean initial state, as text proportional to the DESCRIPTION: a pad run of a
+                    // hundred-million-occurrence table is a repeat, never a literal (kb/Work PB1722).
+                    filler.Bits <= 64 ? EmitText.CsLiteral(new string('0', filler.Bits))
+                        : RuntimeApi.StrRepeat(EmitText.CsLiteral("0"), $"{filler.Bits}"),
+                    $"implicit filler bits after {comment} (§8.5.1.6.3)", 0, null, null, null, null, filler.Bits);
     }
 
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
