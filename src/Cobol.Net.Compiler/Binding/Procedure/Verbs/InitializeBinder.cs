@@ -433,6 +433,42 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             else
                 ExpandInitialize(childCur, spec, actions, identifier1Item, key);
         }
+        if (spec.WithFiller) ExpandImplicitFillers(cur, item, spec, actions);
+    }
+
+    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §14.9.20.4 5) a) 2.: "If the FILLER
+    /// phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are not receiving
+    /// operands; §8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
+    /// table as "implicitly described as a filler elementary bit data item"). Each stored filler (<see cref="BitLayout.FillersOf"/>) is the elementary boolean item
+    /// <see cref="BitFiller.Item"/>, qualified and sent exactly as an explicit FILLER boolean item is (GR5c, GR6: the
+    /// ZEROES default, or the REPLACING BOOLEAN operand) and stored by the ordinary implicit MOVE (kb/Work PB3564 review
+    /// R1-4). Without the phrase they are not receivers, so a group MOVE's filler bits survive an INITIALIZE.
+    /// <para>A table's pad is ONE stored string of every gap in turn; a sender that is not the zero default would have to
+    /// reach each gap as its own item, which no place addresses, so that one combination is staged named instead of
+    /// smearing the sender across the gaps.</para></summary>
+    private void ExpandImplicitFillers(PlaceCursor cur, DataItem group, in InitializeSpec spec, List<InitializeAction> actions)
+    {
+        var qualification = Qualify(InitializeCategory.Boolean, effectiveValue: null, spec);
+        if (qualification is InitializeQualification.None) return;                              // GR5c — left unchanged
+        foreach (var filler in BitLayout.FillersOf(group))
+        {
+            var item = filler.Item;
+            if (filler.Kind is BitFillerKind.TablePad && qualification is InitializeQualification.ViaReplacing)
+            {
+                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER ... REPLACING BOOLEAN of the implicit filler "
+                    + $"bits between the occurrences of the ALIGNED table '{filler.Subject.CobolName ?? "FILLER"}' "
+                    + "(ISO §8.5.1.6.3, §13.18.1.4 GR2, §14.9.20.4 5) a) 2.)"));
+                continue;
+            }
+            if (cur.Child(item) is not { } fillerCur)
+            {
+                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                continue;
+            }
+            if (ElementaryAction(fillerCur, item, InitializeCategory.Boolean, spec, effectiveValue: null) is { } action)
+                actions.Add(action);
+        }
     }
 
     // ── GR5c (qualification) and GR6 (sender), which are TWO rules and used to be one method (kb/Work PB418) ────

@@ -928,6 +928,19 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = phys.PhysicalChildrenOf(group);
+        // ⛔ A BIT GROUP'S BYTE FACE IS ITS BIT FACE PACKED (§13.18.29.4 GR1b — "treated as though it were an elementary
+        // data item … PICTURE 1(m)", kb/Work PB3564): the image is those m positions through CobolBits.Pack and FromImage
+        // unpacks m positions into FromBits, so ONE composition — the §8.5.1.6.3 area, with its stored implicit filler —
+        // stands behind both faces. The member-by-member run packing below is for the owners whose image is the
+        // concatenation of their members' (every other group); a bit group that begins mid-byte measures its runs from
+        // that position (kb/Work PB3158), which the run packing's byte-rounded slices cannot state.
+        if (group.GroupUsage is GroupUsage.Bit && group.ElementImageCapable)
+        {
+            w.Line($"public readonly string AsImage() => {RuntimeApi.BitsPack("AsBits()", $"{BitLayout.ExtentBits(group)}")};");
+            w.Line($"public void FromImage(string __s) => FromBits({RuntimeApi.BitsUnpack("__s", $"{BitLayout.ExtentBits(group)}")});");
+            EmitBitMethods(group, w);
+            return;
+        }
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
         if (!group.ElementImageCapable) return;   // one-way (PB244): no FromImage over a pointer/object leaf
         using (w.Block("public void FromImage(string __s)"))
@@ -985,7 +998,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// group.</para></summary>
     private static void EmitBitMethods(DataItem group, CodeWriter w)
     {
-        w.Line($"public readonly string AsBits() => {BitAreaOf(group, BitCarrierOf)};");
+        w.Line($"public readonly string AsBits() => {BitAreaOf(group, BitCarrierOf, storedFillers: true)};");
         using (w.Block("public void FromBits(string __b)"))
         {
             // pad with boolean zeros / truncate to m (§14.6.8.6)
@@ -995,6 +1008,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 int at = BitLayout.StartBitWithin(group, m);
                 EmitRunMemberFromBits(m, "__b", at < 0 ? 0 : at, w);
             }
+            // ⛔ THE IMPLICIT FILLER BETWEEN THE RUNS TAKES WHAT THE AREA HOLDS THERE (§8.5.1.6.3 "implicitly described as a
+            // filler elementary bit data item", kb/Work PB3564) — the positions are part of the m the group is described
+            // with (§13.18.29.4 GR1b), so a MOVE of m boolean positions to the group stores them all.
+            foreach (var filler in BitLayout.FillersOf(group))
+                if (filler.Kind is BitFillerKind.RunTail)
+                    w.Line($"{filler.Field} = {RuntimeApi.BitsSlice("__b", $"{filler.StartBit}", $"{filler.Bits}")};");
         }
     }
 
@@ -1013,18 +1032,29 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     ///
     /// <para>The filler positions are §8.5.1.6.3's — "implicit filler bit positions are generated … as needed to
     /// advance alignment to a required natural boundary for the next item within that group" and, at the end,
-    /// "as needed to increase the number of bits to fill an integral number of characters". They are ZEROS
-    /// because that is the boolean initial state §13.18.63 gives a position no VALUE reaches, and
-    /// <c>CobolBits.Pack</c>'s own contract already zero-fills a trailing partial byte.</para></summary>
-    private static string BitAreaOf(DataItem group, Func<DataItem, string> carrierOf)
+    /// "as needed to increase the number of bits to fill an integral number of characters". On the emitted face
+    /// (<paramref name="storedFillers"/>) they are the owner's STORED filler fields (<see cref="BitLayout.FillersOf"/>,
+    /// kb/Work PB3564), because "the filler bit positions are implicitly described as a filler elementary bit data
+    /// item" and so hold what the last move put there; on the seed's face they are ZEROS, the boolean initial state
+    /// §13.18.63 gives a position no VALUE reaches (the string backing the seed starts stores them itself).</para></summary>
+    private static string BitAreaOf(DataItem group, Func<DataItem, string> carrierOf, bool storedFillers = false)
     {
         var parts = new List<string>();
         int at = 0;
+        // The gaps between the runs are the owner's STORED filler on the emitted face (kb/Work PB3564) and the boolean
+        // initial state on the compile-time seed's, which composes a string backing that stores them itself.
+        var stored = storedFillers
+            ? BitLayout.FillersOf(group).Where(f => f.Kind is BitFillerKind.RunTail).ToDictionary(f => f.StartBit)
+            : null;
         foreach (var m in BitMembers(group))
         {
             int start = BitLayout.StartBitWithin(group, m);
             if (start < 0) start = at;      // an unmodelled overlay chain — keep the composition total
-            if (start > at) parts.Add(EmitText.CsLiteral(new string('0', start - at)));
+            if (start > at)
+                parts.Add(stored is not null && stored.TryGetValue(at, out var filler)
+                    ? (filler.Bits == start - at ? filler.Field
+                        : throw new InvalidOperationException($"the implicit filler after bit {at} of '{group.CobolName}' is {filler.Bits} bits, the walk's gap {start - at} (kb/Work PB3564)"))
+                    : EmitText.CsLiteral(new string('0', start - at)));
             parts.Add(carrierOf(m));
             at = start + BitLayout.RunBits(m);
         }
@@ -1105,6 +1135,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 w.Line(m.IsGroup
                     ? $"{m.CsName}[__i].FromBits({RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")});"
                     : $"{m.CsName}[__i] = {RuntimeApi.BitsSlice(carrier, $"{at} + __i * {stride}", $"{per}")};");
+            // The stored filler BETWEEN the occurrences (§8.5.1.6.3, kb/Work PB3564) takes what the carrier holds there.
+            if (BitLayout.TablePadOf(m) is { } pad)
+                w.Line($"{pad.Field} = {RuntimeApi.BitsStridePads(carrier, $"{at}", $"{per}", $"{stride}", $"{o}")};");
         }
         else
         {
@@ -1135,9 +1168,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // every occurrence at the first bit of a byte, so the carrier carries the filler between them — the extent
         // BitLayout.TableBits states, which BitAreaOf and the run packer both advance by. A table whose layout does not
         // depend on where in a byte it begins (kb/Work PB3167) has stride = width, and keeps the plain concatenation.
-        return BitLayout.StrideBits(m) == BitLayout.WidthBits(m)
+        // ⛔ THAT FILLER IS STORED (§8.5.1.6.3 "implicitly described as a filler elementary bit data item", kb/Work PB3564): the
+        // table's TablePad field holds the positions between the occurrences, so a group move that wrote them is read back.
+        return !BitLayout.HasTablePad(m)
             ? $"string.Concat({occurrences})"
-            : RuntimeApi.BitsStrided(occurrences, $"{BitLayout.StrideBits(m)}");
+            : RuntimeApi.BitsStrided(occurrences, $"{BitLayout.StrideBits(m)}",
+                (BitLayout.TablePadOf(m) ?? throw new InvalidOperationException(
+                    $"the strided bit table '{m.CobolName}' has no stored filler field (kb/Work PB3564)")).Field);
     }
 
     /// <summary>The C# name of the string backing that STORES bit member <paramref name="m"/> when it is the canonical of a
@@ -1150,13 +1187,39 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             ? cls.BackingCsName
             : null;
 
+    /// <summary>The stored trailing filler of <paramref name="run"/> as the run's PACKED IMAGE carries it: the filler
+    /// <see cref="BitLayout.RunTailOf"/> names when it fills exactly the characters the run occupies
+    /// (<see cref="BitLayout.RunCharacters"/>), else null. The two are the same positions for every run of a group that
+    /// begins on a byte of the record; a bit group that begins MID-BYTE measures the gap to its next run from that
+    /// position (§8.5.1.6.3, kb/Work PB3158), which no character image of it states — its elementary bit face
+    /// (<c>AsBits</c>) is where those positions live, and its byte face is derived from that (<see cref="EmitImageMethods"/>).</summary>
+    private static BitFiller? ImageTailOf(IReadOnlyList<DataItem> run)
+    {
+        var tail = BitLayout.RunTailOf(run);
+        return tail is not null && run.Sum(BitLayout.RunBits) + tail.Bits == BitLayout.RunCharacters(run) * BitLayout.BitsPerCharacter
+            ? tail : null;
+    }
+
+    /// <summary>A §8.5.1.6.3 run's PACKED image: its members' carriers back to back, then its stored trailing filler
+    /// (<see cref="ImageTailOf"/>), packed over every position — so the slice is the whole of the characters the
+    /// run occupies (kb/Work PB3564).</summary>
+    private static string PackedRunOf(IReadOnlyList<DataItem> run)
+    {
+        var tail = ImageTailOf(run);
+        var carriers = run.Select(BitCarrierOf).ToList();
+        if (tail is not null) carriers.Add(tail.Field);
+        return RuntimeApi.BitsPack(string.Join(" + ", carriers), $"{run.Sum(BitLayout.RunBits) + (tail?.Bits ?? 0)}");
+    }
+
     private static string AsImageOf(PhysicalModel.Physical f) =>
         // D19/PB43 — a USAGE BIT run images as its PACKED bits (§13.18.60.4 GR5), high-order first, and a run may
         // span several FIELDS because §8.5.1.6.3 puts same-level bit items at successive bit positions. The run's
         // leader packs every member's carrier concatenated; a continuation contributed Width 0 and images as "".
-        f.BitRun is { } run
-            ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(BitCarrierOf)),
-                                  $"{run.Sum(BitLayout.RunBits)}")
+        // ⛔ THE RUN'S TRAILING FILLER IS PART OF THE PACK (§8.5.1.6.3, kb/Work PB3564): the positions after the last member,
+        // up to the byte the next item starts on, are "a filler elementary bit data item" of the group and have a field
+        // of their own (BitLayout.FillersOf), so the image carries what the last group move wrote there. Without it the
+        // pack zero-filled them and MOVE "AB" TO G read back as NUL,B.
+        f.BitRun is { } run ? PackedRunOf(run)
         : f.Width == 0 ? "\"\""
         // A class pointer/object leaf (kb/Work PB244) contributes its slice of the one-way transfer image, every
         // occurrence at once: the pointer's storage image (kb/Work PB1071) or the object's reserved placeholder
@@ -1213,12 +1276,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (f.BitRun is { } run)
         {
             int runBits = run.Sum(BitLayout.RunBits);
+            // The run's stored trailing filler (§8.5.1.6.3, kb/Work PB3564) is unpacked with it and stored back below.
+            var tail = ImageTailOf(run);
             // ⚠ The carrier local is named for the run's OFFSET, not a bare `__bits`: a group may hold SEVERAL
             // runs (two bit items separated by a character item are two runs, §8.5.1.6.3 — the character item
             // breaks the same-level adjacency), and they all land in this one method scope. The first version
             // emitted `var __bits` per run and a two-run group failed to compile with CS0128.
             string carrier = $"__bits{off}";
-            w.Line($"var {carrier} = {RuntimeApi.BitsUnpack($"__s.Substring({off}, {f.Width})", $"{runBits}")};");
+            w.Line($"var {carrier} = {RuntimeApi.BitsUnpack($"__s.Substring({off}, {f.Width})", $"{runBits + (tail?.Bits ?? 0)}")};");
             int at = 0;
             foreach (var m in run)
             {
@@ -1227,6 +1292,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 EmitRunMemberFromBits(m, carrier, at, w);
                 at += BitLayout.RunBits(m);
             }
+            // ⛔ WHAT THE IMAGE HELD AFTER THE LAST MEMBER IS THE FILLER'S VALUE NOW — MOVE "AB" TO G stores 'A''s low
+            // seven bits here, and the next DISPLAY of G reads them back (§14.9.25.4 GR4: the group move is an
+            // alphanumeric move and so round-trips the bytes).
+            if (tail is not null) w.Line($"{tail.Field} = {RuntimeApi.BitsSlice(carrier, $"{at}", $"{tail.Bits}")};");
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
