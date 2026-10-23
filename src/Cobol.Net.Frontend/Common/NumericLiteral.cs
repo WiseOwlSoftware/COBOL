@@ -243,7 +243,7 @@ public static class NumericLiteral
     /// <summary>The EXACT value of a floating-point numeric literal (ISO §8.3.3.3.3 GR5: "the algebraic product of
     /// the value of its significand and the quantity derived by raising ten to the power of the exponent") as a
     /// canonical fixed-point literal text — <c>1.5E+3</c> → <c>1500</c>, <c>-1.234E-5</c> → <c>-0.00001234</c>,
-    /// <c>0.0E+0</c> → <c>0.0</c>. The ONE expansion the VALUE-clause pipeline applies when a floating-point literal
+    /// <c>0.0E+0</c> → <c>0.0</c>, <c>+1.5E+0</c> → <c>+1.5</c> (a written sign is kept). The ONE expansion the VALUE-clause pipeline applies when a floating-point literal
     /// seeds a FIXED-POINT numeric subject (§13.18.63.3 SR2 — a numeric literal whose value shall be representable
     /// exactly, checked downstream on the expanded text). <paramref name="text"/> shall satisfy
     /// <see cref="IsFloatingPointForm"/>.</summary>
@@ -252,7 +252,11 @@ public static class NumericLiteral
         string t = text.Trim();
         int e = t.IndexOfAny(['E', 'e']);
         string sig = t[..e], exps = t[(e + 1)..];
-        bool neg = sig.StartsWith('-');
+        // The significand's written sign survives the expansion: "If the significand is signed, the floating-point
+        // numeric literal is considered to be signed" (§8.3.3.3.3 2)), and the SR3 test downstream
+        // (DataBinder.ValidateNumericValue) reads the sign off the text, so dropping a '+' made +1.5E+0 an unsigned
+        // literal (kb/Work PB3567 sibling arm).
+        char? sign = sig.Length > 0 && (sig[0] == '-' || sig[0] == '+') ? sig[0] : null;
         sig = sig.TrimStart('+', '-');
         int exp = int.Parse(exps, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
         int dot = sig.IndexOf('.');
@@ -269,6 +273,6 @@ public static class NumericLiteral
         int lead = 0;
         while (lead < ip - 1 && body[lead] == '0') lead++;
         body = body[lead..];
-        return neg ? "-" + body : body;
+        return sign is { } c ? c + body : body;
     }
 }
