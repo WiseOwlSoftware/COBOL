@@ -485,7 +485,21 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   from 2^62 + 2^61 + 2^60, past the liveness region); it tests another column by a shared request over the whole range
   (released at once, conflicting only with an exclusive hold, so testers never exclude each other) and its own column
   by two shared requests either side of its own byte. A collision with a holder or a tester's instant costs a retry.
-  There is no cap on holders. `SHARING WITH NO OTHER` publishes nothing (`Unavailable`): its own handle is
+  There is no cap on holders. **The owed-writes byte (kb/Work PB3499).** A holder whose connector is an INPUT opener with a
+  handle open for WRITING (the re-OPEN of a CLOSE under commit control while its transaction stands, 2.2.1.10 As built
+  (3); `FileConnector.OwesWrites`, `KeyedConnector.HandleAccess`) holds exclusively ONE byte more, of a sixth range of the
+  same width right past the columns' (`HostRegionLocks.OwedWritesRangeStart`), published in the SAME `Establish` request as
+  its column (`owesWrites`; both `RunUnitFileLock.Take` and `Amend` carry it, and `Revert` publishes the superseded state
+  again). The column is taken BEFORE the OPEN body, so the connector says it from what the CLOSE kept
+  (`WillTakeWritableHandle`: the one expression `Lock` opens the handle by), so a kept column is replaced by one that already
+  owes, never an instant before; where the column is taken after the body (a CLOSE under SHARING WITH NO OTHER kept a
+  `FileShare.None` handle that publishes no column, `KeptHandleExcludesEveryOpen`) the handle the body took says it
+  (`FileLock.CanWrite`). It is tested as a column's range is, its own byte left out
+  (`RunUnitFileLock.AnotherOwesWrites`). It is the one fact a share mode needs to yield to the right writer, and it
+  replaced a proxy (PB3499: "does any other INPUT opener hold a column") that an unrelated ALL OTHER reader satisfied, so
+  a `SHARING WITH READ ONLY` OPEN beside a program outside the protocol that holds the file for writing answered '00' with
+  a reader open and '61' without one; the other two hosts have no share mode to yield and publish nothing for it.
+  `SHARING WITH NO OTHER` publishes nothing (`Unavailable`): its own handle is
   `FileShare.None`, which refuses the holder's read handle and every other open, so the share mode already says all
   its column would; and a holder that meets a `FileShare.None` handle is `Refused` (every request row refuses the
   first column). A path that is not a disk file, is absent or is refused is `Unavailable`. Two consequences of the
@@ -564,12 +578,15 @@ the share mode of the connector's own handle, whose strength is the host's:
   process on the machine, with one yielding posture (kb/Work PB3482). A share mode refuses by ACCESS, and an INPUT
   opener can owe writes (2.2.1.10), so `SHARING WITH READ ONLY`'s `FileShare.Read` refused a request Table 19 admits
   beside it. A connector whose first attempt the host refused with its Table 19 column HELD (the table admitted it
-  against every WiseOwl COBOL run unit) is OPENed again with `FileLockPosture.WhenOwedWritesAreAdmitted` —
-  `FileShare.ReadWrite` — and the columns, not the share mode, keep out every request Table 19 refuses. The
-  consequence for an outside program is the one A.1 item 75 already leaves to the implementor: a READ ONLY connector
-  is admitted beside an outside writer when the host's share mode alone refused it, Table 19 admitted it against
-  every WiseOwl COBOL connector and the file is open; that connector's own handle still refuses an outside writer
-  that opens AFTER it only if its first attempt was not refused.
+  against every WiseOwl COBOL run unit) AND another run unit's connector OWES WRITES (an INPUT opener holding a handle
+  open for writing, published with its column: `RunUnitFileLock.AnotherOwesWrites`, kb/Work PB3499) is OPENed again with
+  `FileLockPosture.WhenOwedWritesAreAdmitted` — `FileShare.ReadWrite` — and the columns, not the share mode, keep out
+  every request Table 19 refuses. **Determination:** a program outside the protocol that holds the file for writing
+  refuses a READ ONLY request '61' whether or not an INPUT opener that owes no writes is open beside it (an unrelated
+  ALL OTHER reader is no reason for the share mode to yield, and its presence changes no answer); and a READ ONLY
+  connector's handle admits an outside writer only when its second attempt was made, because a share mode cannot tell
+  the owing connector's writer from an outside one. That is the one consequence for an outside program that A.1 item
+  75 leaves to the implementor: such a connector's handle stays `FileShare.ReadWrite` for the rest of the OPEN.
 - **On Linux** the share mode is one advisory `flock`: rule 1 (`FileShare.None` ⇒ `LOCK_EX`) excludes an outside
   reader and writer that also take `flock`, and rule 2's refusal of an outside writer exists only against a run unit
   of this runtime (the region lock). A program that opens the file without locking is neither stopped nor
@@ -1528,7 +1545,11 @@ tables only those. **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one 
 = base + (id mod 2^60)), held EXCLUSIVELY through the owner's writable handle for the life of the transaction** (2.2.1.10): the
 operating environment releases it with the handle when the owner dies, and the lock-file host already deletes a dead holder's
 file (`SidecarLockFiles`: *"delete it when its holder is dead"*), so "is this transaction's owner alive" is one test of one
-byte on every host, by the same primitive and with the same liveness the record locks have. **Added for the sequential organization (2.2.2.4): the ENTRY MUTEX byte, `EntryMutexByte` at 2^62 + 0x102, expressed by `SidecarRegionLocks` on EVERY host** — its holder is a file in the lock directory, so it exists whether or not the physical file does, which a byte of the file's region cannot (a DELETE FILE removes the file; a creation precedes it); for the same reason a sequential transaction's liveness is its holder file `txn-<id>.live`, not a byte of the file's region, and `TransactionLivenessByte` stays the keyed engine's. `PhysicalFileTable` (the run
+byte on every host, by the same primitive and with the same liveness the record locks have. **Added for Windows (kb/Work PB3482,
+PB3499): the Table 19 COLUMN region at `ColumnRegionBase` = 2^62 + 2^61 + 2^60, one 2^32-byte range per column (`ColumnRangeStart`: base + wire
+number × 2^32), and the OWED-WRITES range at base + 5 × 2^32 (`OwedWritesRangeStart`),** each published as one random exclusive byte of
+its range through the holder's own read handle (`HandleColumnLockHost`; the owed-writes byte only by an INPUT opener that holds a handle open
+for writing, 2.2.1.10 As built (3)). **Added for the sequential organization (2.2.2.4): the ENTRY MUTEX byte, `EntryMutexByte` at 2^62 + 0x102, expressed by `SidecarRegionLocks` on EVERY host** — its holder is a file in the lock directory, so it exists whether or not the physical file does, which a byte of the file's region cannot (a DELETE FILE removes the file; a creation precedes it); for the same reason a sequential transaction's liveness is its holder file `txn-<id>.live`, not a byte of the file's region, and `TransactionLivenessByte` stays the keyed engine's. `PhysicalFileTable` (the run
 unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), the presence-byte shortcut, the publish-then-test
 discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait outside the mutex (`WaitOutsideStatement`)
 keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged in intent over the new engine (its
@@ -1922,10 +1943,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   connector over-restricts there, and the lock between run units is Table 19 itself, which Windows now carries as columns
   (`HandleColumnLockHost`, 2.2.1.8's byte map). So `FileConnector.Open` makes a second attempt, with
   `FileLockPosture.WhenOwedWritesAreAdmitted` (`FileShare.ReadWrite`), exactly when the first was refused by the host
-  with the request's column HELD (Table 19 admitted it against every WiseOwl COBOL run unit) and another run unit's INPUT
-  opener holds its column (`RunUnitFileLock.AnotherInputOpenerHolds`: only an INPUT opener can owe writes); every
-  request the table refuses is still refused, by the columns, and a program outside the protocol that holds the file for
-  writing, with no INPUT opener beside it, still refuses the READ ONLY request. Witness:
+  with the request's column HELD (Table 19 admitted it against every WiseOwl COBOL run unit) and another run unit's
+  connector OWES WRITES: the re-OPEN INPUT of this very paragraph publishes it with its column (`FileConnector.OwesWrites`, from `KeyedConnector.WillTakeWritableHandle`: the
+  OPEN is INPUT and `HandleAccess` is writable, the one expression `Lock` opens the handle by; `RunUnitFileLock.Amend`'s
+  `owesWrites`), and the second attempt asks `RunUnitFileLock.AnotherOwesWrites` (kb/Work PB3499: it had asked whether any
+  INPUT opener held a column, a proxy an unrelated reader satisfied); every request the table refuses is still refused, by the
+  columns, and a program outside the protocol that holds the file for writing still refuses the READ ONLY request, whether or
+  not a reader that owes nothing is open beside it. Witnesses:
+  `FileLockPostureDriftTests.AnInputOpenerThatOwesNoWritesDoesNotAdmitAReadOnlyOpenBesideAnOutsideWriter` (all three
+  organizations) and `HandleColumnLockHostDriftTests.AHolderThatOwesWritesIsSeenByAnotherHolderAndOnlyByAnother`, and
+  the end-to-end witness:
   `CommitRollbackRuntimeTests.An_input_opener_that_owes_its_transactions_writes_admits_what_Table_19_admits` (both
   organizations, READ ONLY INPUT and I-O beside the re-OPENed INPUT opener, COMMIT and ROLLBACK, and the requests the
   table refuses meeting the widened connector's column). **THE SECOND ATTEMPT IS THE LAST (kb/Work PB3498).** A second
