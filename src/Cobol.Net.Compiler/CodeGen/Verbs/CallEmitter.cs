@@ -1451,7 +1451,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// its eight-position result to one position: the caller read all zeros.</para></summary>
     internal static int BoundaryImageWidth(DataItem item) =>
         item.IsAsIfElementary ? item.AsIfPic!.Length
-        : item is { IsElementary: true, Pic: { Category: PicCategory.Boolean, Usage: Usage.Bit } bitPic } ? bitPic.Length
+        : BitLayout.IsBitLeaf(item) ? item.Pic!.Length
         : item.ImageWidth;
 
     /// <summary>The character window of an ELEMENTARY string-carried formal — its carrier's width: the PICTURE's
