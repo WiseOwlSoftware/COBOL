@@ -661,9 +661,18 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             },
             DynLimit: limit);
 
-    /// <summary>The usage of a character category's carrier: NATIONAL for category national, DISPLAY otherwise.</summary>
-    private static Usage CharacterUsage(PicCategory category) =>
-        category is PicCategory.National ? Usage.National : Usage.Display;
+    /// <summary>The usage of a function result's character carrier: NATIONAL for category national, BIT for category boolean,
+    /// DISPLAY otherwise. ⛔ A boolean function's returned value "is a boolean item of usage bit" (ISO §15.13.4 1), and
+    /// §15.2 2) gives every boolean function "an implicit usage bit" - so the temporary that stands for it has that usage,
+    /// or a MOVE of it into a group (§14.9.25.4 GR4's move "without conversion of data from one form of internal
+    /// representation to another") copies its '0'/'1' TEXT, a DISPLAY representation the function never had (kb/Work
+    /// PB3562: `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G8` stored 00110001, not 11111111).</summary>
+    private static Usage CharacterUsage(PicCategory category) => category switch
+    {
+        PicCategory.National => Usage.National,
+        PicCategory.Boolean => Usage.Bit,
+        _ => Usage.Display,
+    };
 
     /// <summary>
     /// ⛔ <b>THE CONCEPTUAL SENDING ITEM</b> of a statement whose own general rule DEFINES an elementary sender and

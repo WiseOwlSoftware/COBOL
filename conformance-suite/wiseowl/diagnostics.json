@@ -22788,5 +22788,11 @@
    "2023"
   ],
   "expect": "COBOLNET4709"
+ },
+ "pb3562_group_move_function_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET1502"
  }
 }
