@@ -2734,9 +2734,15 @@ internal static class RuntimeApi
         $"{nameof(CobolBits)}.{nameof(CobolBits.Slice)}({carrierExpr}, {offsetExpr}, {countExpr})";
 
     /// <summary>The carrier of a table of bit occurrences laid <paramref name="strideExpr"/> bits apart —
-    /// <c>CobolBits.Strided</c>.</summary>
-    public static string BitsStrided(string occurrencesExpr, string strideExpr) =>
-        $"{nameof(CobolBits)}.{nameof(CobolBits.Strided)}({occurrencesExpr}, {strideExpr})";
+    /// <c>CobolBits.Strided</c>; <paramref name="padsExpr"/> is the table's STORED implicit filler between the occurrences
+    /// (§8.5.1.6.3, kb/Work PB3564).</summary>
+    public static string BitsStrided(string occurrencesExpr, string strideExpr, string padsExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.Strided)}({occurrencesExpr}, {strideExpr}, {padsExpr})";
+
+    /// <summary>The filler positions between the occurrences of a strided table, read from its unpacked carrier —
+    /// <c>CobolBits.StridePads</c>, the inverse of <see cref="BitsStrided"/>'s padding (kb/Work PB3564).</summary>
+    public static string BitsStridePads(string carrierExpr, string atExpr, string widthExpr, string strideExpr, string countExpr) =>
+        $"{nameof(CobolBits)}.{nameof(CobolBits.StridePads)}({carrierExpr}, {atExpr}, {widthExpr}, {strideExpr}, {countExpr})";
 
     /// <summary>Repeat an element image for a table initializer — <c>CobolString.Repeat</c>.</summary>
     public static string StrRepeat(string s, string n) =>
