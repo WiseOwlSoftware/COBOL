@@ -17,7 +17,8 @@ active clause names out of commit control through the new `FileRegistry.ReleaseC
 back the file control entry's own lock posture (the registration now records it; a displaced connector forgets it with its
 share). A transaction whose rollback the medium refused stays owed: the registry finds it by its open transaction id, not by
 the flag. Witnesses: `TransactionControlTests.A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s`
-(COMMIT and ROLLBACK arms, RELATIVE and INDEXED) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
+(COMMIT and ROLLBACK arms, RELATIVE and INDEXED), `A_deactivated_clause_gives_the_file_its_declared_lock_posture_back` (the
+entry's MANUAL posture back, RED on a mutant that keeps the AUTOMATIC share) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
 RED on a mutant that skips the release. DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
 
 **PB3492 re-probed and settled; PB3340 not started (the group SPLIT at the note boundary).** On this branch's build a RELATIVE
