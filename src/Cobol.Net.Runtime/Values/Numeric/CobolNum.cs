@@ -798,30 +798,14 @@ public static partial class CobolNum
     internal static bool HasFraction(UInt128 unscaled, int scale) =>
         scale > 0 && unscaled % Pow10U(scale) != 0;
 
-    /// <summary>Multiply two unscaled operands with overflow checking against the Int128 carrier: raises
-    /// <see cref="CobolSizeError"/> EC-SIZE-OVERFLOW (the size error condition, ISO §14.7.5 case 5) when the product
-    /// leaves it. ⛔ THE RENDERER EMITS IT WHENEVER THE OPERANDS' DIGIT BOUNDS DO NOT PROVE THE PRODUCT FITS (kb/Work
-    /// PB1143 — <c>NumericRenderer.Multiply</c>): a product whose bounds prove N+M ≤ 38 digits is a bare multiply, one
-    /// that may exceed 38 is formed on the SDIDI instead, and an unknown bound lands HERE in every statement — a
-    /// silent two's-complement wrap is no longer a possible outcome of a native product. Being a method call (not a
-    /// constant expression), a constant product is checked at run time, never folded to a compile-time error.</summary>
-    public static Int128 MulChecked(Int128 a, Int128 b)
-    {
-        // kb/Work PB91: the overflow is the size error CONDITION (§14.7.5 case 5) wherever the checked kernel runs —
-        // inside an arithmetic statement its try catches CobolSizeError (and reads EcName), and in a NON-arithmetic
-        // context under EC-SIZE checking (a condition, an argument, a subscript) the statement's ambient EC guard
-        // dispatches it as the fatal EC-SIZE-OVERFLOW; a bare OverflowException escaped that guard as a crash.
-        try { return checked(a * b); }
-        catch (OverflowException) { throw new CobolSizeError("intermediate product exceeds the Int128 carrier", "EC-SIZE-OVERFLOW"); }
-    }
-
-    /// <summary>The additive siblings of <see cref="MulChecked"/> (the same §14.7.5 case-5 mapping, kb/Work
-    /// R10): a sum/difference at the very top of a 16-byte BinaryCapacity container can exceed the Int128
+    /// <summary>The checked sum and difference of the scaled Int128 lane (§14.7.5 case 5, kb/Work R10, PB91): a
+    /// sum/difference at the very top of a 16-byte BinaryCapacity container can exceed the Int128
     /// engine itself (HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is exactly <see cref="Int128.MaxValue"/>, so
     /// <c>ADD 1</c> overflows the CARRIER, not merely the receiver), and an unchecked <c>+</c> would wrap to
     /// the far end of the container and store "in range" with NO size error. Emitted inside a statement that
     /// carries an ON SIZE ERROR phrase and (kb/Work PB91) in the receiver-less renders of an EC-SIZE-checked
-    /// statement — elsewhere an add stays a bare unchecked <c>+</c>, exactly like the multiply. Raises
+    /// statement — elsewhere an add stays a bare unchecked <c>+</c>. (A product has no checked twin: the renderer forms
+    /// one whose digit bound may leave the carrier exactly, on the 256-bit lane or the SDIDI, kb/Work PB1143, PB3538.) Raises
     /// <see cref="CobolSizeError"/> (the size error condition), never a bare OverflowException.</summary>
     public static Int128 AddChecked(Int128 a, Int128 b)
     {

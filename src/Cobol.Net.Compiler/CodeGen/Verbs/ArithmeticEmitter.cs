@@ -159,10 +159,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal
                 ? SdidiSubsidiaryQuotient(d, rcv, qs, qDigits)
                 : NativeSubsidiaryQuotient(d, rcv, ise, qs, qDigits);
-            // The back-multiply rides Combine — the checked MulChecked fork under checking, the Dec lane under a
-            // standard mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129).
+            // The back-multiply rides Combine — the native product's digit-bound arms, the Dec lane under a standard
+            // mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129). A product past the Int128
+            // carrier is the exact wide form, KEPT exact into the subtraction (keepWide) so the remainder is formed from
+            // the exact back-multiply and settled once, by the outer Combine (kb/Work PB3538).
             NumX remainder = num.Combine(dividend, "-",
-                num.Combine(subsidiary, "*", divisor, rcv), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
+                num.Combine(subsidiary, "*", divisor, rcv, keepWide: true), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
             // The quotient STORE sees the UNCAPPED quotient, so an over-wide one raises ITS size error (§14.7.5); the
             // cap applies to the REMAINDER's subsidiary quotient only (GR6c, kb/Work PB129).
             GuardedStore(ise, d.Quotient.Place, () => StoreArith(d.Quotient.Place,
@@ -200,7 +202,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // back-multiply used 333).
         string qtc = $"__qc{ctx.Names.NextStoreTmp()}";
         w.Line($"Int128 {qtc} = {RuntimeApi.NumCapDigits(qt, qDigits)};");
-        return (dividend, divisor, new NumX(qtc, qs), mode => mode == CobolRounding.Truncation
+        // The capped subsidiary quotient's digit bound IS qDigits (0, unknown, for a binary-capacity receiver with no
+        // cap), so the back-multiply is decided on it rather than on the carrier's 39 digits.
+        return (dividend, divisor, new NumX(qtc, qs, Digits: qDigits), mode => mode == CobolRounding.Truncation
             ? new NumX(qt, qs)
             : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", mode), qs));
     }
