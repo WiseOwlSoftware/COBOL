@@ -23,7 +23,6 @@ namespace CobolNet.Tests.Unit;
 /// <c>DeclinedFacilityBinder</c> first, and the operands the grammar gives each declined rule are a census that
 /// fails when a rule grows one.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class DeclinedFacilityOperandDriftTests
 {
     private static readonly string StatementBinderPath =
@@ -76,9 +75,9 @@ public sealed class DeclinedFacilityOperandDriftTests
             sites.Add(current);
         }
 
-        Assert.True(sites.Count >= 3,
-            "the scan found fewer than three BindUnsupportedFacility call sites — VALIDATE, the MCS SEND and RECEIVE all "
-            + "route through it; the guard would pass vacuously on a renamed method.");
+        Assert.True(sites.Count >= 2,
+            "the scan found fewer than two BindUnsupportedFacility call sites — VALIDATE (BindDeclinedValidate) and the "
+            + "MCS SEND and RECEIVE (BindDeclinedMcs) route through it; the guard would pass vacuously on a renamed method.");
         var offenders = sites.Where(s => !s.StartsWith("BindDeclined", StringComparison.Ordinal)).Distinct().ToList();
         Assert.True(offenders.Count == 0,
             "BindUnsupportedFacility is called outside a BindDeclined… method (" + string.Join(", ", offenders)

@@ -737,9 +737,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <paramref name="bindOperands"/> is the <see cref="DeclinedFacilityBinder"/> half for the statement (kb/Work PB3568).</summary>
     private BoundStatement BindDeclinedMcs<TStatement>(Action<TStatement> bindOperands, TStatement statement)
     {
-        if (!ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.AsyncMessaging2023)) return new BoundNop();
-        bindOperands(statement);
-        return BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported);
+        if (ConstructRegistry.IsAvailable(Ctx.Edition.Edition, Constructs.AsyncMessaging2023))
+        {
+            bindOperands(statement);
+            return BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported);
+        }
+
+        return new BoundNop();
     }
 
     /// <summary>COMMIT / ROLLBACK (ISO §14.9.7, §14.9.36; kb/Work PB3338): §14.9.7.3/§14.9.36.3 SR1 rejects the
