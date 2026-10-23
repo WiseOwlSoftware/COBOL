@@ -1,4 +1,4 @@
-## The Windows self-test job split, measured; its review leads and PB3584's over-broad sites fixed (PB3581, PB3584)
+## Entry 2424 — 2026-10-23 16:32 PDT — The Windows self-test job split, measured; its review leads and PB3584's over-broad sites fixed (PB3581, PB3584)
 
 PB3581 landed with pull request #445. Its merge group ran `windows-self-tests` in 4.0 minutes beside `Windows build +
 tests`, which fell from 16.0 minutes (pr-442) to 6.5; the next merge group (pr-439) read 6.7 and 8.8. The NIST guard
@@ -13,3 +13,4 @@ PB3584's `**Sites:**` named two DIRECTORIES (`scripts/` and `tests/Cobol.Net.Tes
 its file set as colliding with every unit-test file: the Mythos lane's `plan_wave.py --cluster PB3582` held it on
 `TransactionControlTests.cs`, a file of wave 1157 group A. The sites now name the files the design creates,
 `scripts/scratch_repo.py` and `tests/Cobol.Net.Tests.Unit/SelfTestFixtureDriftTests.cs`.
+
