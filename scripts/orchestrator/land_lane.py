@@ -21,8 +21,13 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
   attempts/<id>.json  one per `enqueue.py land` run: branch, head (its tip at launch), worktree, argv, log
                       (`<coord>/logs/land-lane-<branch>-<stamp>.log`), runner pid, and once it ends rc, the log's
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
-                      and `collected` (the enqueue unit handled it). Only the runner writes a running attempt; the tick
-                      writes one only to mark it DIED (its runner is gone with no rc).
+                      pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
+                      unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
+                      read). Several processes write one record, each only ITS fields, through the ONE writer
+                      `update` (it re-reads the record under the record's own lock and changes only the fields named):
+                      the runner (rc, verdict, end_head, pr), the tick (`reap`'s DIED and halted, the queue watch's
+                      `watch`), `launch` (the pid) and the enqueue unit's `collect` (`collected`). A whole-record write
+                      from a copy read earlier undid a concurrent writer's field (kb/Work PB3527 review R1-3).
   survey.json         the last tick's branch survey (prune_worktrees' rows, imported, never re-parsed from its text):
                       what next_unit.py reads to decide whether the enqueue unit has AGENT work.
   rearm/<branch>.json the enqueue unit's re-arm of a branch at its tip (branch, head, why, at): a stop that was resolved
@@ -35,7 +40,7 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
                       `clear-halt`; the operator is named through the mailbox.
   tick.lock           an OS lock: one tick at a time (a second exits at once, saying so).
 
-THE TICK, in order:
+THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead of the stops):
   1. REAP: an attempt whose runner is gone without an rc is DIED. A run that ended QUEUE NOT ACTIVE writes HALT.
   2. SURVEY: `git fetch`, then `prune_worktrees.live_survey` and its landing order (the most harmful lead first, kb/Work
      PB2981), written to survey.json. The survey reads these attempts back (`view`, kb/Work PB3125, PB3181): a branch
@@ -51,14 +56,19 @@ THE TICK, in order:
        a run in flight                                             wait
        re-armed by the enqueue unit at this head                   launch (once: the launch consumes the re-arm)
        no attempt, or a NEW HEAD (a finisher's commit, reviewed)  launch
-       ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to do: the queue has it
+       ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to land: the QUEUE WATCH (below) follows its
+                                                                   pull request into the merge queue
        exit 3 — the landing check's STOP: the branch shares a file with earlier-dispatched in-flight work (kb/Work
                 PB2701)                                            retried at this head once `landing_check.py` passes
                                                                    on the branch (the overlap is gone); never as is
-       exit 2 (main moved under every catch-up, or the branch could not be read), exit 9 (GitHub refused the push, the
-                PR or the queue), or a runner that DIED           retried ONCE at this head (enqueue.md's own rule)
+       exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
+                lock (kb/Work PB3527; nothing ran, nothing red)   is free (`wait_free`); never the enqueue unit's
+       exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
+                cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
+                queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
-       anything else — CONFLICT 4, GATE RED 5, a DEVLOG refusal 6, UNREVIEWED 11, an exit
+       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
+                UNREVIEWED 11, an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
                                                                    or reviewer, and re-arms a stop resolved with no
@@ -66,6 +76,15 @@ THE TICK, in order:
      A launch writes the attempt and starts `land_lane.py run <attempt>` DETACHED (its own process group, out of the
      supervisor's job where Windows allows it), which runs `enqueue.py land <branch> --worktree <wt>` with its output in
      the log and records the outcome. (A permission refusal cannot happen here: a script has no permission layer.)
+  4. THE QUEUE WATCH (kb/Work PB3527), on the facts the survey read (queue_facts.read, the one reader of GitHub's
+     facts), before the stops are read: `ENQUEUED` means only that the pull request was HANDED to the queue (auto-merge
+     on); on 2026-10-22 PR #385's ci-gate job completed and its check-run stayed in_progress for 50 minutes, outside
+     the queue, and nothing looked. Each branch's latest exit-0 attempt is watched until its pull request is in the
+     merge queue (or merged, BOUNCED, or superseded by a new head). Not in the queue QUEUE_GRACE_MIN after its required
+     checks' work ended (a stuck check-run's JOB time) is a STALLED read: read 1 re-runs the stuck check's workflow run,
+     read 2 (one grace after) closes, reopens and re-queues the pull request (both enqueue.py's: the only file that
+     queues), read 3 sends the operator a mailbox question and the watch acts no more; each read is recorded on the
+     attempt (`watch`) and in landing_measure.py's record (`stalls`). Under a stop the watch reads but acts on nothing.
 `status` prints each branch's latest attempt; the enqueue unit reads it (units/enqueue.md step 3), sends each STOPPED
 attempt to a finisher or a reviewer, files the leads of each ENQUEUED one, and then `collect`s them. `agent_work` is
 next_unit.py's one reader: the enqueue unit starts only for agent work (WAITING FOR REVIEW, a BOUNCED branch the lane is
@@ -95,7 +114,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, VERDICT)  # noqa: E402  (the landing's own exit contract)
+from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 
 LANE_DIR = "land-lane"
@@ -106,6 +125,9 @@ REARM = "rearm"
 TICK_LOCK = "tick.lock"
 EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch shares a file with in-flight work)
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
+#: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
+#: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -159,8 +181,24 @@ def by_branch(atts: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     return out
 
 
-def save(rec: dict[str, Any]) -> None:
-    coord.write_json(pathlib.Path(rec["_path"]), {k: v for k, v in rec.items() if k != "_path"})
+def update(rec: dict[str, Any], fields: dict[str, Any] | Callable[[dict[str, Any]], dict[str, Any]]) -> dict[str, Any]:
+    """THE ONE WRITER of an existing attempt record (module doc, STATE). Under the record's own lock it re-reads the
+    record and changes only `fields` (or, given a function, the fields it returns from the FRESH record; {} writes
+    nothing), so no writer undoes another's field: a tick that read the record before its slow survey no longer writes
+    back over the `collected` the enqueue unit set meanwhile (kb/Work PB3527 review R1-3). `rec` is refreshed to what
+    is on disk and returned."""
+    path = pathlib.Path(rec["_path"])
+    with coord.locked(path.parent, f"{path.stem}.lock"):
+        fresh = coord.read_json(path, None)
+        if not isinstance(fresh, dict):
+            fresh = {k: v for k, v in rec.items() if k != "_path"}
+        change = fields(fresh) if callable(fields) else fields
+        if change:
+            fresh.update(change)
+            coord.write_json(path, fresh)
+    rec.clear()
+    rec.update(fresh, _path=str(path))
+    return rec
 
 
 def finished(a: dict[str, Any]) -> bool:
@@ -174,7 +212,7 @@ def classify(a: dict[str, Any]) -> str:
     rc = a.get("rc")
     if rc == 0:
         return DONE
-    if rc == EXIT_CHECK_STOP:
+    if rc in WAITS:
         return FREE
     if rc in (EXIT_STATE, EXIT_GITHUB):
         return ONCE
@@ -216,6 +254,19 @@ def last_verdict(log: pathlib.Path) -> str | None:
     return found
 
 
+def queued_pr(log: pathlib.Path) -> int | None:
+    """The pull request number on the log's last `ENQUEUED pr=<n> ...` line (enqueue.QUEUED_LINE), or None."""
+    try:
+        text = log.read_bytes().decode("utf-8", errors="replace")
+    except OSError:
+        return None
+    found = None
+    for line in text.splitlines():
+        if m := QUEUED_LINE.match(line.strip()):
+            found = int(m.group("pr"))
+    return found
+
+
 # ── the decisions ──────────────────────────────────────────────────────────────────────────────────────────────────
 @dataclasses.dataclass(frozen=True)
 class Decision:
@@ -223,11 +274,11 @@ class Decision:
     why: str
 
 
-def decide(tip: str, atts: list[dict[str, Any]], overlap_free: Callable[[], tuple[bool, str]],
+def decide(tip: str, atts: list[dict[str, Any]], free_now: Callable[[], tuple[bool, str]],
            rearmed: dict[str, Any] | None = None) -> Decision:
     """Whether to start `enqueue.py land` for a branch at `tip`, given its attempts (oldest first) and the enqueue
-    unit's re-arm of it, if any. The global stops (HALT, STOP, the loop's fleet stop) are the caller's; `overlap_free` is asked
-    only for an exit 3 at this head."""
+    unit's re-arm of it, if any. The global stops (HALT, STOP, the loop's fleet stop) are the caller's; `free_now` is
+    asked only for a retry-when-free exit at this head (WAITS names what it waits on; wait_free says if it is free)."""
     last = atts[-1] if atts else None
     if last is not None and not finished(last):
         return Decision(False, f"being landed (attempt {last['id']}, pid {last.get('pid')})")
@@ -244,9 +295,9 @@ def decide(tip: str, atts: list[dict[str, Any]], overlap_free: Callable[[], tupl
     if cls == HALTED:
         return Decision(True, "the queue halt was cleared since its exit 8")
     if cls == FREE:
-        free, detail = overlap_free()
-        return Decision(free, ("the in-flight work it shared a file with is gone; retried at this head" if free else
-                               f"exit 3 at this head and it still shares a file with in-flight work ({detail})"))
+        free, detail = free_now()
+        return Decision(free, (f"{WAITS[rc]} is free now; retried at this head" if free else
+                               f"exit {rc} at this head and it still waits on {WAITS[rc]} ({detail})"))
     if cls == ONCE and trailing(atts, ONCE) < 2:
         return Decision(True, f"{'its runner DIED' if rc is None else f'exit {rc}'} at this head: retried once")
     return Decision(False, f"STOPPED at this head ({'exit ' + str(rc) if rc is not None else 'DIED'}: "
@@ -272,24 +323,29 @@ def pid_alive(pid: int | None) -> bool:
     return bool(name) and "python" in name.lower()
 
 
-def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str]]:
-    """(every surveyed row as {name, state, tip, worktree, why, lead}, the WAITING TO LAND names in landing order) —
+def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str], dict | None]:
+    """(every surveyed row as {name, state, content, tip, worktree, why, lead}, the WAITING TO LAND names in landing
+    order, the open pull requests the survey read: queue_facts.read, None when GitHub was not observed) —
     prune_worktrees.live_survey, imported: one lifecycle rule (MANDATORY-PRACTICES O10). The reports and the dispatch
     ledger are the TICK's coordination directory's, never the environment's default. The survey's reader of the review
     findings files never raises (review_findings.last_verdict, kb/Work PB3381 review R5-1, R6-1): a file it cannot
     read, or a torn one, holds only the branches that file concerns, so one findings file never stops the tick for
-    every branch."""
+    every branch. The pull requests are read BEFORE the fetch, so one the queue merges in between reads open (or
+    queued) and its branch then reads on main: never a merged pull request missing from both (the queue watch would
+    take that for one closed by hand)."""
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
+    import queue_facts  # noqa: PLC0415
     probe = prune_worktrees.git("rev-parse", "--git-common-dir", cwd=repo)
     if probe.returncode != 0:
         raise LaneError(f"{repo} is not a git repository ({probe.stderr.strip()[:120]})")
+    prs = queue_facts.read()
     fetch = prune_worktrees.git("fetch", "-q", "origin", cwd=repo)
     if fetch.returncode != 0:
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
-    rows = prune_worktrees.live_survey(repo, coord_dir=cdir)
+    rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
     order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank())]
-    return ([{"name": r.name, "state": r.state, "tip": r.tip, "worktree": r.worktree, "why": r.why,
-              "lead": r.report.lead if r.report else None} for r in rows], order)
+    return ([{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
+              "why": r.why, "lead": r.report.lead if r.report else None} for r in rows], order, prs)
 
 
 def landing_check_free(worktree: str) -> tuple[bool, str]:
@@ -303,6 +359,29 @@ def landing_check_free(worktree: str) -> tuple[bool, str]:
                        cwd=worktree, capture_output=True, text=True, encoding="utf-8", errors="replace")
     stops = [ln for ln in p.stdout.splitlines() if ln.startswith("⛔")]
     return p.returncode == 0, (stops[0] if stops else (p.stdout.strip().splitlines() or ["no output"])[-1])[:240]
+
+
+def gate_lock_free(worktree: str) -> tuple[bool, str]:
+    """Whether the worktree's gate lock (the gate driver's own: run_gate_legs.Host.lock_path) is free now: taken and
+    released at once (an OS lock, freed when its holder dies, so a lock that reads held is a live gate)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    try:
+        path = run_gate_legs.Host(pathlib.Path(worktree)).lock_path()
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        return False, f"the gate lock of {worktree} could not be located ({exc})"
+    lock = ExclusiveLock.try_take(path, f"land_lane.py probe (pid {os.getpid()})")
+    if lock is None:
+        return False, f"held by {ExclusiveLock.holder(path) or '(no label)'}"
+    lock.release()
+    return True, ""
+
+
+def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
+    """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
+    branch; exit 12, the worktree's gate lock is free."""
+    if rc == EXIT_GATE_BUSY:
+        return gate_lock_free(worktree)
+    return landing_check_free(worktree)
 
 
 def spawn(argv: list[str], log: pathlib.Path) -> int:
@@ -326,11 +405,12 @@ def spawn(argv: list[str], log: pathlib.Path) -> int:
         return subprocess.Popen(argv, start_new_session=True, **kw).pid
 
 
-def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say) -> None:
-    """One open mailbox message per subject (the supervisor's own pattern for an owed publish); never fatal."""
+def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: Say, kind: str = "info") -> None:
+    """One open mailbox message per subject (the supervisor's own pattern for an owed publish); never fatal. `kind`:
+    `info` for what the operator should know, `question` for what it must decide (the queue watch's alert)."""
     try:
         import mailbox  # noqa: PLC0415
-        mailbox.send(cdir, to="operator", kind="info", subject=subject, body=body[:mailbox.BODY_MAX], refs=[ref],
+        mailbox.send(cdir, to="operator", kind=kind, subject=subject, body=body[:mailbox.BODY_MAX], refs=[ref],
                      sender="loop", session=f"land_lane.py pid {os.getpid()}", unless_pending=True)
     except Exception as exc:  # noqa: BLE001  (a mailbox that cannot be written must not stop the lane; it is said)
         say(f"land lane: the operator's mailbox was not written ({exc}); {subject}")
@@ -403,6 +483,200 @@ def rearm(cdir: pathlib.Path, branch: str, why: str, say: Say = print,
     return 0
 
 
+# ── the queue watch (kb/Work PB3527) ───────────────────────────────────────────────────────────────────────────────
+# A landing ends at `=== ENQUEUE: ENQUEUED ===`, which means only that the pull request was opened and handed to the
+# merge queue (auto-merge on): GitHub queues it once its required checks pass. On 2026-10-22 PR #385's `ci-gate` job
+# completed at 18:46:46Z and its check-run on the head commit stayed in_progress for 50 minutes, the queue empty and
+# the pull request BLOCKED, and nothing looked. So every tick WATCHES each pull request the lane queued until the merge
+# queue holds it, as a state machine over the facts the survey read on the same tick (queue_facts.read, the one
+# reader): never a wait inside enqueue.py, never a second reader of GitHub.
+QUEUE_GRACE_MIN = 10          # how long a pull request may stay out of the queue after its required checks' work ended
+WATCHING, IN_QUEUE, MERGED, LEFT, ALERTED = "watching", "queued", "merged", "left", "alerted"
+WATCH_DONE = (IN_QUEUE, MERGED, LEFT, ALERTED)
+STUCK, NOT_QUEUED, CLOSED = "stuck-check-run", "not-queued", "closed"   # landing_measure.STALL_CAUSES
+RERUN, REQUEUE, ALERT = "rerun", "requeue", "alert"                     # landing_measure.STALL_ACTS
+
+
+@dataclasses.dataclass(frozen=True)
+class WatchStep:
+    """One read of the watch: its state after the read and, on a stalled read, what to do about it."""
+    state: str
+    why: str
+    act: str = ""          # "" (nothing), RERUN, REQUEUE or ALERT
+    cause: str = ""        # on a stalled read: STUCK, NOT_QUEUED or CLOSED
+    run: int = 0           # RERUN: the workflow run of the stuck required check
+
+
+def _iso(t: str) -> dt.datetime | None:
+    try:
+        v = dt.datetime.fromisoformat(str(t).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return v if v.tzinfo else None
+
+
+def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.datetime) -> WatchStep:
+    """THE QUEUE WATCH'S DECISION for the pull request a DONE attempt queued (pure: the self-test drives every arm).
+    `row_state`: the branch's survey state (None: no longer surveyed); `pr`: its open pull request (queue_facts), None
+    when none is open.
+      merged, or in the queue                        the watch ends: the queue has it (a bounce is BOUNCED's, PB3023)
+      a required check FAILED, the queue removed    the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
+        it, or it conflicts with main (DIRTY)          a conflict is the branch's: no re-run or reopen clears it)
+      the head moved past the attempt's              the watch ends: a new push is a new landing, watched afresh
+      a required check still running (its job too)  watching: nothing is late yet
+      not in the queue, the checks' work ended       a STALLED read once QUEUE_GRACE_MIN have passed since that work
+        (or no check-run at all) or since the last     ended (a stuck check-run's JOB time), or since the last remedy:
+        remedy                                         read 1 re-runs the stuck check's workflow run (`gh run rerun`;
+                                                       a pull request with no check-run goes straight to read 2's
+                                                       remedy), read 2 closes, reopens and re-queues the pull request
+                                                       (enqueue.requeue), read 3 ALERTS the operator and acts no more
+      no pull request open, the branch not on main   a stalled read (closed by hand?): it ALERTS at once"""
+    w = att.get("watch") or {}
+    reads = list(w.get("reads") or [])
+    if row_state is None:
+        return WatchStep(LEFT, "the branch is no longer surveyed (deleted after landing, or by hand)")
+    if row_state == "LANDED":
+        return WatchStep(MERGED, "the branch's work is on main")
+    if pr is None:
+        return WatchStep(ALERTED, f"no pull request is open for the branch and its work is not on main (closed by hand? "
+                                  f"pull request #{w.get('pr') or att.get('pr') or '?'})", ALERT, CLOSED)
+    end = str(att.get("end_head") or att.get("head") or "")
+    if end and pr.head and not (pr.head.startswith(end) or end.startswith(pr.head)):
+        return WatchStep(LEFT, f"pull request #{pr.number}'s head moved to {pr.head[:12]}: a new landing")
+    if pr.in_queue:
+        return WatchStep(IN_QUEUE, f"pull request #{pr.number} is in the merge queue")
+    if pr.red or pr.conflicts or pr.bounced:
+        why = (f"{pr.red.name} failed" if pr.red else "it conflicts with main: merge state DIRTY" if pr.conflicts
+               else pr.bounced)
+        return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({why}): the enqueue unit's finisher")
+    # Running only while its job is SEEN running: a job the jobs API could not read (job_status '') is unknown, and an
+    # unknown job must not hold the watch for ever, so its clock falls back to the enqueue, like no check-run at all.
+    running = [c for c in pr.checks if not c.resolved and c.job_status not in ("", "completed")]
+    if running:
+        return WatchStep(WATCHING, f"pull request #{pr.number}: {', '.join(c.name for c in running)} still running")
+    ends = [t for t in (_iso(c.done_at) for c in pr.checks) if t]
+    if not ends:
+        ends += [t for t in (_iso(att.get("ended", "")),) if t]
+    ends += [t for t in (_iso(r.get("at", "")) for r in reads) if t]
+    since = max(ends) if ends else now
+    late = (now - since).total_seconds() / 60
+    if late < QUEUE_GRACE_MIN:
+        return WatchStep(WATCHING, f"pull request #{pr.number} not in the queue {late:.0f} min after its checks' work "
+                                   f"ended (grace {QUEUE_GRACE_MIN} min)")
+    stuck = next((c for c in pr.checks if c.stuck), None)
+    cause = STUCK if stuck else NOT_QUEUED
+    unknown = [c.name for c in pr.checks if not c.resolved and not c.stuck]
+    what = (f"{stuck.name}'s check-run is {stuck.status.lower()} although its job completed at {stuck.job_completed_at}"
+            if stuck else
+            f"{', '.join(unknown)} unresolved and its job could not be read, and it is not in the queue "
+            f"({pr.merge_state or '?'})" if unknown else
+            f"its required checks resolved but it is not in the queue ({pr.merge_state or '?'})")
+    n = len(reads) + 1
+    if n >= 3:
+        return WatchStep(ALERTED, f"stalled read {n}: {what}, after a re-run and a requeue", ALERT, cause)
+    run = next((c.run for c in ([stuck] if stuck else list(pr.checks)) if c.run), 0)
+    if n == 1 and run:
+        return WatchStep(WATCHING, f"stalled read 1: {what}; re-running workflow run {run}", RERUN, cause, run)
+    return WatchStep(WATCHING, f"stalled read {n}: {what}; closing, reopening and re-queueing it", REQUEUE, cause)
+
+
+@dataclasses.dataclass(frozen=True)
+class WatchEffects:
+    """What a stalled read does, and its record (the self-test plants recorders): rerun(repo, run) and requeue(repo,
+    pr) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok)."""
+    rerun: Callable[[str, int], tuple[bool, str]]
+    requeue: Callable[[str, int], tuple[bool, str]]
+    alert: Callable[[str, str, str], None]
+    measure: Callable[[int, str, int, str, str, bool], None]
+
+
+def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
+    import enqueue  # noqa: PLC0415  (the only file that queues a pull request: LandingPipelineDriftTests)
+    import landing_measure  # noqa: PLC0415
+    import ruleset  # noqa: PLC0415
+
+    def measure(pr: int, branch: str, read: int, cause: str, act: str, ok: bool) -> None:
+        try:
+            landing_measure.record_stall(cdir / landing_measure.FILE, pr, branch, read, cause, act, ok)
+        except (OSError, ValueError) as exc:   # the record is the instrument's, never the watch's stop; it is said
+            say(f"land lane: PR #{pr}: the stall was NOT recorded in {landing_measure.FILE} ({exc})")
+    return WatchEffects(
+        rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=ruleset.real_gh),
+        requeue=lambda repo, pr: enqueue.requeue(repo, pr, gh=ruleset.real_gh, state=enqueue.queue_state),
+        alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
+        measure=measure)
+
+
+def watch_text(att: dict[str, Any]) -> str:
+    """The queue watch on this attempt, in one clause (status, the survey's NOT QUEUED row)."""
+    w = att.get("watch")
+    if not w:
+        return "the landing lane's queue watch has not read it yet (it reads on every tick)"
+    reads = "; ".join(f"read {r['read']} {r['cause']}: {r['act']} {'done' if r.get('ok') else 'FAILED'} at {r['at']}"
+                      for r in w.get("reads") or [])
+    return (f"queue watch {w.get('state', WATCHING).upper()}"
+            + (f" ({w.get('why')})" if w.get("why") else "") + (f" [{reads}]" if reads else ""))
+
+
+def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], rows: list[dict[str, Any]],
+                prs: dict[str, Any] | None, effects: WatchEffects, held: str | None, say: Say,
+                now: dt.datetime | None = None) -> None:
+    """Read each branch's latest attempt that ended ENQUEUED (exit 0) and whose watch has not ended, and act on a
+    stalled read (watch_step). Unobserved facts (None) read nothing; a stop (`held`) lets it read but not act."""
+    now = now or _now()
+    if prs is None:
+        if any(finished(a[-1]) and classify(a[-1]) == DONE and (a[-1].get("watch") or {}).get("state") not in WATCH_DONE
+               for a in branches.values()):
+            say("land lane: queue watch: GitHub's facts were not observed this tick; nothing read")
+        return
+    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports this module back, lazily)
+    # A branch whose work is on main reads LANDED here even while the survey still calls it IN FLIGHT (touched inside
+    # --min-age, as a just-merged branch is): its pull request is merged, not closed by hand.
+    states = {r["name"]: "LANDED" if r.get("content") in prune_worktrees.LANDED_CONTENT else r.get("state")
+              for r in rows}
+    for branch, atts in branches.items():
+        att = atts[-1]
+        if not finished(att) or classify(att) != DONE:
+            continue
+        w = dict(att.get("watch") or {})
+        if w.get("state") in WATCH_DONE:
+            continue
+        pr = prs.get(branch)
+        step = watch_step(att, states.get(branch), pr, now)
+        if step.act and held:
+            say(f"land lane: {branch}: queue watch: {step.why} — NOT acted on: {held}")
+            continue
+        w.update(state=step.state, why=step.why, pr=pr.number if pr else (w.get("pr") or att.get("pr")),
+                 at=now.isoformat(timespec="seconds"))
+        if step.act:
+            number = int(w.get("pr") or 0)
+            if step.act == RERUN:
+                ok, detail = effects.rerun(pr.repo, step.run)
+            elif step.act == REQUEUE:
+                ok, detail = effects.requeue(pr.repo, pr.number)
+            else:
+                import queue_facts  # noqa: PLC0415
+                prior = "; ".join(f"read {r['read']}: {r['act']} {'done' if r.get('ok') else 'FAILED'} ({r.get('detail')})"
+                                  for r in w.get("reads") or [])
+                effects.alert(f"Landing stalled: PR #{number or '?'} ({branch}) is not in the merge queue",
+                              f"{step.why}. {queue_facts.describe(pr) if pr else 'No pull request is open.'} The "
+                              f"landing lane's queue watch acts no more (kb/Work PB3527){': ' + prior if prior else ''}. "
+                              "Read it on GitHub ("
+                              + (f"gh pr view {number} --json mergeStateStatus,statusCheckRollup" if number else
+                                 f"gh pr list --head {branch} --state all") + ") and land it or record why not.",
+                              att["log"])
+                ok, detail = True, "the operator alerted (a mailbox question)"
+            read = len(w.get("reads") or []) + 1
+            w["reads"] = [*(w.get("reads") or []), {"read": read, "cause": step.cause, "act": step.act, "ok": ok,
+                                                    "detail": detail[:240], "at": now.isoformat(timespec="seconds")}]
+            if number:
+                effects.measure(number, branch, read, step.cause, step.act, ok)
+            say(f"land lane: {branch}: queue watch: {step.why} — {step.act} {'done' if ok else 'FAILED'}: {detail}")
+        elif w.get("state") != (att.get("watch") or {}).get("state"):
+            say(f"land lane: {branch}: queue watch: {step.why}")
+        update(att, {"watch": w})
+
+
 # ── the tick ───────────────────────────────────────────────────────────────────────────────────────────────────────
 def stop_reason(cdir: pathlib.Path) -> str | None:
     """Why no attempt may start now: the loop's STOP, its fleet stop `scratch\\STOP-loop` (the hard context cap and
@@ -424,16 +698,14 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | 
             continue
         if alive(a.get("pid")):
             continue
-        fresh = coord.read_json(pathlib.Path(a["_path"]), {})   # the runner writes its rc and then exits
-        if "rc" in fresh:
-            a.update(fresh)
-            continue
         # Its tip now is its end head: a runner that died after `enqueue.py land` committed (main merged in, the stamp)
-        # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it.
-        a.update(outcome="DIED", ended=_now().isoformat(timespec="seconds"),
-                 verdict=last_verdict(pathlib.Path(a["log"])), end_head=tip_of(a.get("worktree")))
-        save(a)
-        say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
+        # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it. A runner that wrote
+        # its rc and then exited is not DIED: the fresh record decides, under the record's lock.
+        update(a, lambda fresh: {} if "rc" in fresh else {
+            "outcome": "DIED", "ended": _now().isoformat(timespec="seconds"),
+            "verdict": last_verdict(pathlib.Path(a["log"])), "end_head": tip_of(a.get("worktree"))})
+        if a.get("outcome") == "DIED":
+            say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
     for a in atts:
         if finished(a) and a.get("rc") == EXIT_QUEUE_NOT_ACTIVE and not a.get("halted"):
             halt = lane_dir(cdir) / HALT
@@ -447,8 +719,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | 
                                 f"{a.get('verdict')}. The landing lane starts no landing until the queue is ACTIVE "
                                 "(`python scripts/orchestrator/ruleset.py check`) and the operator runs "
                                 "`python scripts/orchestrator/land_lane.py clear-halt`.", a["log"], say)
-            a["halted"] = True
-            save(a)
+            update(a, {"halted": True})
 
 
 def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str, list[dict[str, Any]]],
@@ -465,14 +736,14 @@ def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str,
         last = atts[-1]
         if branch in seen or r is None or not finished(last) or classify(last) not in RETRYABLE:
             continue
-        if r["state"] in ("STOPPED", "ENQUEUED", "BOUNCED", "LANDED") or r["tip"] != last.get("end_head") \
+        if r["state"] in ("STOPPED", "ENQUEUED", "NOT QUEUED", "BOUNCED", "LANDED") or r["tip"] != last.get("end_head") \
                 or not r["worktree"]:
             continue
         out.append(r)
         seen.add(branch)
     for branch, rec in (rearmed or {}).items():
         r = named.get(branch)
-        if branch in seen or r is None or not r["worktree"] or r["state"] in ("ENQUEUED", "LANDED"):
+        if branch in seen or r is None or not r["worktree"] or r["state"] in ("ENQUEUED", "NOT QUEUED", "LANDED"):
             continue
         if r["tip"] == rec.get("head"):
             out.append(r)
@@ -490,25 +761,22 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
     rec = {"id": aid, "branch": row["name"], "head": row["tip"], "worktree": row["worktree"], "why": why,
            "argv": argv or [sys.executable, str(HERE / "enqueue.py"), "land", row["name"], "--worktree", row["worktree"]],
            "cwd": str(repo), "log": str(log), "started": now.isoformat(timespec="seconds"), "pid": None,
-           "collected": False, "_path": str(path)}
-    save(rec)
-    rec["pid"] = start([sys.executable, str(pathlib.Path(__file__).resolve()), "run", str(path)], log)
+           "collected": False}
+    coord.write_json(path, rec)   # a new record: no other writer knows its path yet
+    rec["_path"] = str(path)
+    pid = start([sys.executable, str(pathlib.Path(__file__).resolve()), "run", str(path)], log)
     rearm_path(cdir, row["name"]).unlink(missing_ok=True)   # a re-arm buys ONE attempt: this one
-    # The runner may already have finished (a fast refusal) and written its outcome: keep it, add only the pid.
-    current = coord.read_json(path, {})
-    if "rc" in current:
-        rec.update(current)
-        rec["_path"] = str(path)
-    save(rec)
-    return rec
+    # The runner may already have finished (a fast refusal) and written its outcome: `update` keeps it, adding the pid.
+    return update(rec, {"pid": pid})
 
 
 def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
-         survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str]]] = survey_rows,
+         survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str], dict | None]] = survey_rows,
          start: Callable[[list[str], pathlib.Path], int] = spawn,
          alive: Callable[[int | None], bool] = pid_alive,
-         overlap_free: Callable[[str], tuple[bool, str]] = landing_check_free,
-         argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None, say: Say = print) -> int:
+         wait_free: Callable[[int | None, str], tuple[bool, str]] = wait_free,
+         argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None,
+         effects: WatchEffects | None = None, now: dt.datetime | None = None, say: Say = print) -> int:
     d = lane_dir(cdir)
     d.mkdir(parents=True, exist_ok=True)
     lock = ExclusiveLock.try_take(d / TICK_LOCK, f"land_lane.py tick (pid {os.getpid()}, {_now():%Y-%m-%d %H:%M:%S}Z)")
@@ -522,25 +790,29 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
             say(f"land lane: {p} is not an attempt record; left out (its branch may be landed again): inspect it")
         reap(cdir, atts, alive, say)
         try:
-            rows, order = survey(repo, cdir)
+            rows, order, prs = survey(repo, cdir)
         except (LaneError, OSError, subprocess.SubprocessError) as exc:
             say(f"land lane: no survey, nothing launched: {exc}")
             return 1
         coord.write_json(d / SURVEY, {"at": _now().isoformat(timespec="seconds"), "rows": rows, "landing_order": order})
-        if why := stop_reason(cdir):
+        branches = by_branch(atts)
+        why = stop_reason(cdir)
+        # THE QUEUE WATCH (kb/Work PB3527), on the facts this survey read: under a stop it reads, and acts on nothing.
+        watch_queue(cdir, branches, rows, prs, effects or real_effects(cdir, say), why, say, now)
+        if why:
             say(f"land lane: {why}: no landing starts (a running one finishes)")
             return 0
-        branches = by_branch(atts)
         pending = drop_stale_rearms(cdir, rows, say)
         failed = 0
         for row in candidates(rows, order, branches, pending):
             dec = decide(row["tip"], branches.get(row["name"], []),
-                         lambda r=row: overlap_free(r["worktree"]) if r["worktree"] else (False, "no worktree"),
+                         lambda r=row: (wait_free((branches.get(r["name"]) or [{}])[-1].get("rc"), r["worktree"])
+                                        if r["worktree"] else (False, "no worktree")),
                          pending.get(row["name"]))
             if not dec.launch:
                 if branches.get(row["name"]) and classify(branches[row["name"]][-1]) == FREE \
                         and finished(branches[row["name"]][-1]):
-                    say(f"land lane: {row['name']}: {dec.why}")   # why an exit 3 still waits, every tick
+                    say(f"land lane: {row['name']}: {dec.why}")   # why an exit 3 or 12 still waits, every tick
                 continue
             if not row["worktree"]:
                 say(f"land lane: {row['name']}: WAITING TO LAND with no worktree; not launched (enqueue.py needs one)")
@@ -569,18 +841,19 @@ def run_attempt(path: pathlib.Path) -> int:
     with open(rec["log"], "ab") as log:
         rc = subprocess.run(rec["argv"], cwd=rec.get("cwd") or None, stdin=subprocess.DEVNULL, stdout=log,
                             stderr=subprocess.STDOUT).returncode
-    current = coord.read_json(path, rec)
-    current.update(rc=rc, ended=_now().isoformat(timespec="seconds"), end_head=tip_of(rec.get("worktree")),
-                   verdict=last_verdict(pathlib.Path(rec["log"])))
-    coord.write_json(path, current)
+    current = update({**rec, "_path": str(path)},
+                     {"rc": rc, "ended": _now().isoformat(timespec="seconds"), "end_head": tip_of(rec.get("worktree")),
+                      "verdict": last_verdict(pathlib.Path(rec["log"])), "pr": queued_pr(pathlib.Path(rec["log"]))})
     print(f"land lane: attempt {rec['id']} ended exit {rc}: {current['verdict'] or 'no verdict line'}", flush=True)
     return rc
 
 
 # ── what the enqueue unit and next_unit.py read ────────────────────────────────────────────────────────────────────
 ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 reviewer; a repeated exit 2 or 9: handoff)",
-          DONE: "the enqueue unit's: file its leads (step 5), complete its landing record (step 6b), then collect it",
-          FREE: "the lane retries it once landing_check.py passes (the in-flight work it shares a file with is gone)",
+          DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
+                "leads (step 5), complete its landing record (step 6b), then collect it",
+          FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -658,8 +931,13 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
     survey = ("no survey yet: the lane has not ticked" if age is None else
               f"survey {age:.0f} min old" + (f" — STALE (over {SURVEY_MAX_AGE_MIN} min): the lane is not ticking; run "
                                               "`land_lane.py tick`" if age > SURVEY_MAX_AGE_MIN else ""))
-    out = [f"=== LAND LANE: {n['running']} running · {n[STOPPED]} stopped · {n[DONE]} enqueued · "
-           f"{n[FREE] + n[ONCE]} to retry · {survey}{' · HALTED: ' + lane.halt if lane.halt else ''} ==="]
+    watches = [(a.get("watch") or {}).get("state") for a, k in lane.latest if k == DONE]
+    stalled = sum(1 for a, k in lane.latest if k == DONE and (a.get("watch") or {}).get("state") == WATCHING
+                  and (a.get("watch") or {}).get("reads"))
+    out = [f"=== LAND LANE: {n['running']} running · {n[STOPPED]} stopped · {n[DONE]} enqueued "
+           f"({watches.count(IN_QUEUE) + watches.count(MERGED)} in the queue or merged, {stalled} stalled, "
+           f"{watches.count(ALERTED)} alerted) · {n[FREE] + n[ONCE]} to retry · {survey}"
+           f"{' · HALTED: ' + lane.halt if lane.halt else ''} ==="]
     out += [f"UNREADABLE       {p}: not a lane record (inspect it; its branch may be landed again, or wait)"
             for p in lane.unreadable]
     out += [f"{'REARMED':16} {b} @{str(r.get('head'))[:12]}: {r.get('why') or '-'} — the next tick lands it again at "
@@ -667,8 +945,9 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
     order = {"running": 0, STOPPED: 1, HALTED: 2, FREE: 3, ONCE: 3, DONE: 4}
     for a, cls in sorted(lane.latest, key=lambda t: (order.get(t[1], 9), t[0]["branch"])):
         mark = " [collected]" if a.get("collected") else ""
+        watch = f" [{watch_text(a)}]" if cls == DONE else ""
         out.append(f"{cls.upper():16} {a['branch']} @{str(a.get('head'))[:12]} {outcome(a)}: {a.get('verdict') or '-'} — "
-                   f"{ACTION.get(cls, '')}{mark} (attempt {a['id']}; {a['log']})")
+                   f"{ACTION.get(cls, '')}{mark}{watch} (attempt {a['id']}; {a['log']})")
     return out
 
 
@@ -683,8 +962,7 @@ def collect(cdir: pathlib.Path, branches: list[str], say: Say = print) -> int:
             missing += 1
             continue
         for a in done:
-            a["collected"] = True
-            save(a)
+            update(a, {"collected": True})
         say(f"land lane: {b}: {len(done)} attempt(s) collected")
     return 1 if missing else 0
 
@@ -714,9 +992,19 @@ def self_test() -> int:
             def __init__(self, rows: list[dict[str, Any]]):
                 self.rows, self.started, self.live, self.free = rows, [], set(), False
                 self.asked: list[str] = []
+                self.prs: dict[str, Any] | None = None     # GitHub's facts: unobserved unless a case plants them
+                self.now: dt.datetime | None = None
+                self.effects: list[tuple] = []
 
-            def survey(self, repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list, list[str]]:
-                return self.rows, [r["name"] for r in self.rows if r["state"] == "WAITING TO LAND"]
+            def survey(self, repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list, list[str], dict | None]:
+                return self.rows, [r["name"] for r in self.rows if r["state"] == "WAITING TO LAND"], self.prs
+
+            def watch_effects(self) -> WatchEffects:
+                rec = self.effects.append
+                return WatchEffects(rerun=lambda repo, run: rec(("rerun", repo, run)) or (True, "re-run requested"),
+                                    requeue=lambda repo, pr: rec(("requeue", repo, pr)) or (True, "requeued"),
+                                    alert=lambda subject, body, ref: rec(("alert", subject, body)),
+                                    measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)))
 
             def start(self, argv: list[str], log: pathlib.Path) -> int:
                 self.started.append(json.loads(pathlib.Path(argv[-1]).read_text(encoding="utf-8"))["branch"])
@@ -727,15 +1015,15 @@ def self_test() -> int:
             def alive(self, pid: int | None) -> bool:
                 return pid in self.live
 
-            def overlap(self, wt: str) -> tuple[bool, str]:
+            def overlap(self, rc: int | None, wt: str) -> tuple[bool, str]:
                 self.asked.append(wt)
                 return self.free, "shares scripts/x.py with w1069g (dispatched earlier)"
 
             def tick(self, cdir: pathlib.Path) -> list[str]:
                 before = len(self.started)
                 out: list[str] = []
-                tick(cdir, root, survey=self.survey, start=self.start, alive=self.alive, overlap_free=self.overlap,
-                     say=out.append)
+                tick(cdir, root, survey=self.survey, start=self.start, alive=self.alive, wait_free=self.overlap,
+                     effects=self.watch_effects(), now=self.now, say=out.append)
                 self.said = out
                 return self.started[before:]
 
@@ -743,8 +1031,8 @@ def self_test() -> int:
             """The runner's own completion of the branch's running attempt (the record `run_attempt` writes)."""
             for a in attempts(cdir):
                 if a["branch"] == branch and not finished(a):
-                    a.update(rc=rc, verdict=verdict, ended=_now().isoformat(), end_head=end_head or a["head"])
-                    save(a)
+                    update(a, {"rc": rc, "verdict": verdict, "ended": _now().isoformat(),
+                               "end_head": end_head or a["head"]})
 
         # 1. planted survey rows: exactly the WAITING TO LAND rows start, in survey order; a second tick starts none.
         c = fresh("survey")
@@ -794,6 +1082,34 @@ def self_test() -> int:
                str(agent_work(c3).reasons))
         f3.free = True
         expect("exit 3 once the overlap is gone: retried at the same head", f3.tick(c3) == ["w2a"], str(f3.started))
+
+        # 3b. exit 12 (GATE BUSY: another gate held the worktree's gate lock, kb/Work PB3527): never the enqueue unit's
+        #     and never a red; retried at the same head once the lock is free.
+        c3b = fresh("busy")
+        f3b = Fake([row("w2b", "WAITING TO LAND", "g1")])
+        f3b.tick(c3b)
+        finish(c3b, "w2b", EXIT_GATE_BUSY, "GATE BUSY (Windows) on g2 — another gate holds the worktree's gate lock",
+               end_head="g2")
+        f3b.live.clear()
+        f3b.rows[0] = row("w2b", "IN FLIGHT", "g2")
+        expect("exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work, and status says the "
+               "lane retries it once the lock is free",
+               f3b.tick(c3b) == [] and agent_work(c3b).reasons == []
+               and any("w2b" in ln and "gate lock is free" in ln for ln in status_lines(c3b)), str(status_lines(c3b)))
+        f3b.free = True
+        expect("exit 12 once the gate lock is free: retried at the same head", f3b.tick(c3b) == ["w2b"], str(f3b.started))
+        lock_wt = root / "wt-lock"
+        lock_wt.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=lock_wt, check=True, capture_output=True)
+        import run_gate_legs  # noqa: PLC0415
+        held = ExclusiveLock.try_take(run_gate_legs.Host(lock_wt).lock_path(), "gate (pid 356316)")
+        try:
+            while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+        finally:
+            held.release()
+        after = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+        expect("wait_free for exit 12 reads the gate driver's own lock of the worktree: held names its holder, then free",
+               while_held[0] is False and "pid 356316" in while_held[1] and after == (True, ""), f"{while_held} {after}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")
@@ -904,7 +1220,7 @@ def self_test() -> int:
         fake = [sys.executable, "-c", "print('=== ENQUEUE: GATE RED (Windows) on x (w9a) ==='); raise SystemExit(5)"]
         r = {"name": "w9a", "state": "WAITING TO LAND", "tip": head, "worktree": str(wt), "why": "", "lead": None}
         out: list[str] = []
-        tick(c10, root, survey=lambda repo, cdir: ([r], ["w9a"]), argv_for=lambda row: fake, say=out.append)
+        tick(c10, root, survey=lambda repo, cdir: ([r], ["w9a"], None), argv_for=lambda row: fake, say=out.append)
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline and not all(finished(a) for a in attempts(c10)):
             time.sleep(0.2)
@@ -973,6 +1289,202 @@ def self_test() -> int:
         rearm(c12b, "w11a", "reviewed CLEAN at y1", say=said.append, tip_for=lambda wt: "y1")
         expect("an UNREVIEWED exit 11 waits, then a reviewer's CLEAN stamp plus rearm lands it at the same head",
                stopped_first and f12b.tick(c12b) == ["w11a"], f"{f12b.started} {f12b.said}")
+
+        # 14. THE QUEUE WATCH (kb/Work PB3527): each pull request the lane queued, followed into the merge queue from a
+        #     stubbed reader of GitHub's facts, on a planted clock; PR #385's shape is a ci-gate check-run in progress
+        #     whose job completed at 18:46:46Z.
+        import queue_facts  # noqa: PLC0415
+        t = lambda hm: dt.datetime.fromisoformat(f"2026-10-22T{hm}:00+00:00")   # noqa: E731
+        job_done = "2026-10-22T18:46:46Z"
+        stuck_gate = queue_facts.CheckRun("ci-gate", "IN_PROGRESS", "", 120018552758, 39834070835,
+                                          job_status="completed", job_completed_at=job_done)
+        running_gate = queue_facts.CheckRun("ci-gate", "IN_PROGRESS", "", 120018552759, 39834070835,
+                                            job_status="in_progress")
+        green_gate = queue_facts.CheckRun("ci-gate", "COMPLETED", "SUCCESS", 120043423624, 39834070835, job_done)
+        red_gate = queue_facts.CheckRun("ci-gate", "COMPLETED", "FAILURE", 120043423625, 39834070836, job_done)
+
+        def pr(number: int, *checks, in_queue: bool = False, head: str = "z1") -> Any:
+            return queue_facts.PullRequest(number, f"https://github.com/o/r/pull/{number}", head, in_queue,
+                                           "2026-10-22T18:44:50Z", "BLOCKED", "", tuple(checks), "o/r")
+
+        c14 = fresh("watch")
+        names = ["q", "m", "rerun", "reopen", "alert", "red", "closed", "held"]
+        f14 = Fake([row(f"w14{n}", "WAITING TO LAND", "z0") for n in names])
+        f14.tick(c14)
+        for n in names:
+            finish(c14, f"w14{n}", 0, "ENQUEUED", end_head="z1")
+        f14.live.clear()
+        f14.rows = [row(f"w14{n}", "IN FLIGHT", "z1") for n in names]
+        f14.rows[1]["content"] = "MERGED"                      # merged by the queue, the survey still calls it fresh
+        n_of = {f"w14{n}": 380 + i for i, n in enumerate(names)}
+
+        def facts(**over) -> dict[str, Any]:
+            base = {b: pr(n_of[b], stuck_gate) for b in n_of if b not in ("w14q", "w14m", "w14red", "w14closed")}
+            base.update(w14q=pr(n_of["w14q"], green_gate, in_queue=True), w14red=pr(n_of["w14red"], red_gate))
+            base.update(over)
+            return {k: v for k, v in base.items() if v is not None}
+
+        def watch(b: str) -> dict[str, Any]:
+            return next(a for a in attempts(c14) if a["branch"] == b).get("watch") or {}
+
+        def acts(b: str) -> list[str]:
+            """What the watch did for branch b, in order: its recorded stalls (each act is measured), and an alert
+            on a pull request whose number is unknown (closed), which has no record to write."""
+            return [e[5] if e[0] == "measure" else e[0] for e in f14.effects
+                    if (e[0] == "measure" and e[2] == b) or (e[0] == "alert" and f"({b})" in e[1] and "#?" in e[1])]
+
+        (lane_dir(c14).parent / "STOP").write_text("", encoding="utf-8", newline="\n")
+        f14.prs, f14.now = facts(w14held=pr(n_of["w14held"], stuck_gate)), t("18:57")
+        f14.tick(c14)
+        held_said = list(f14.said)
+        (lane_dir(c14).parent / "STOP").unlink()
+        expect("queue watch: under a stop it reads but acts on nothing (no re-run, no requeue, no alert)",
+               not f14.effects and any("NOT acted on" in s for s in held_said), f"{f14.effects} {held_said}")
+        f14.prs, f14.now = None, t("18:58")
+        f14.tick(c14)
+        expect("queue watch: GitHub's facts unobserved this tick: nothing is read and nothing is done",
+               not f14.effects and any("not observed" in s for s in f14.said), str(f14.said))
+
+        f14.prs, f14.now = facts(w14closed=None), t("18:50")
+        f14.tick(c14)
+        expect("queue watch: a pull request in the queue ends the watch QUEUED; one whose branch's work is on main "
+               "ends it MERGED; a required check that failed ends it LEFT (BOUNCED: the finisher's); none acted on",
+               watch("w14q").get("state") == IN_QUEUE and watch("w14m").get("state") == MERGED
+               and watch("w14red").get("state") == LEFT and not acts("w14q") and not acts("w14m") and not acts("w14red"),
+               f"{watch('w14q')} {watch('w14m')} {watch('w14red')} {f14.effects}")
+        expect("queue watch: a stuck check-run inside the grace is only watched; a pull request with no open pull "
+               "request and its work not on main ALERTS at once (closed by hand)",
+               watch("w14rerun").get("state") == WATCHING and not watch("w14rerun").get("reads")
+               and watch("w14closed").get("state") == ALERTED
+               and acts("w14closed") == ["alert"], f"{watch('w14rerun')} {watch('w14closed')} {f14.effects}")
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=pr(n_of["w14rerun"], running_gate)), t("18:57")
+        f14.tick(c14)
+        expect("queue watch: past the grace, read 1 of a stuck check-run re-runs its workflow run and records the "
+               "stall (cause stuck-check-run, read 1); a check whose job still runs is not stalled",
+               ("rerun", "o/r", 39834070835) in f14.effects and acts("w14reopen") == [RERUN]
+               and ("measure", n_of["w14reopen"], "w14reopen", 1, STUCK, RERUN) in f14.effects
+               and not acts("w14rerun") and watch("w14reopen")["reads"][0]["act"] == RERUN, str(f14.effects))
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=pr(n_of["w14rerun"], green_gate, in_queue=True)), t("19:05")
+        f14.tick(c14)
+        expect("queue watch: stuck, then cleared by the re-run: the pull request enters the queue and the watch ends; "
+               "a stuck one only 8 min after its re-run is still inside the grace",
+               watch("w14rerun").get("state") == IN_QUEUE and len(watch("w14reopen")["reads"]) == 1,
+               f"{watch('w14rerun')} {watch('w14reopen')}")
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=None), t("19:08")
+        f14.tick(c14)
+        expect("queue watch: read 2 (still stuck one grace after the re-run) closes, reopens and re-queues the pull "
+               "request, recorded as read 2",
+               ("requeue", "o/r", n_of["w14reopen"]) in f14.effects and acts("w14reopen") == [RERUN, REQUEUE]
+               and ("measure", n_of["w14reopen"], "w14reopen", 2, STUCK, REQUEUE) in f14.effects, str(f14.effects))
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=None,
+                                 w14reopen=pr(n_of["w14reopen"], green_gate, in_queue=True)), t("19:12")
+        f14.tick(c14)
+        expect("queue watch: stuck, then cleared by the reopen: in the queue, the watch ends with no third read",
+               watch("w14reopen").get("state") == IN_QUEUE and len(watch("w14reopen")["reads"]) == 2,
+               str(watch("w14reopen")))
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=None, w14reopen=None), t("19:19")
+        f14.tick(c14)
+        f14.now = t("19:45")
+        f14.tick(c14)
+        alerts = [e for e in f14.effects if e[0] == "alert" and "(w14alert)" in e[1]]
+        expect("queue watch: a third stalled read ALERTS the operator (one mailbox question naming the pull request and "
+               "the remedies tried) and the watch acts no more, however long it stays out",
+               acts("w14alert") == [RERUN, REQUEUE, ALERT] and len(alerts) == 1
+               and f"PR #{n_of['w14alert']}" in alerts[0][1] and "re-run" in alerts[0][2]
+               and watch("w14alert").get("state") == ALERTED and len(watch("w14alert")["reads"]) == 3,
+               f"{acts('w14alert')} {watch('w14alert')}")
+        expect("queue watch: status and the survey's NOT QUEUED row say the watch's state and each read",
+               any("w14alert" in ln and "queue watch ALERTED" in ln and "read 1 stuck-check-run: rerun done" in ln
+                   for ln in status_lines(c14))
+               and "read 2 stuck-check-run: requeue done" in watch_text(watch_holder := next(
+                   a for a in attempts(c14) if a["branch"] == "w14alert")), str(watch_holder))
+        unread_gate = queue_facts.CheckRun("ci-gate", "IN_PROGRESS", "", 120018552760, 39834070835)
+        enq = {"end_head": "z1", "ended": "2026-10-22T18:45:00Z"}
+        early, late = (watch_step(enq, "IN FLIGHT", pr(397, unread_gate), t(hm)) for hm in ("18:50", "18:56"))
+        expect("queue watch: a check-run whose job the jobs API could not read never holds the watch for ever: its "
+               "clock is the enqueue, and past the grace it is a stalled read (not-queued) that names the unread job",
+               early.state == WATCHING and not early.act and late.act == RERUN and late.cause == NOT_QUEUED
+               and "could not be read" in late.why, f"{early} {late}")
+        noq = watch_step({"end_head": "z1", "ended": "2026-10-22T18:45:00Z"}, "IN FLIGHT", pr(399), t("18:56"))
+        expect("queue watch: with no check-run at all the clock starts at the enqueue, and read 1 goes straight to the "
+               "requeue (there is no run to re-run); a new head on the pull request ends the watch LEFT",
+               noq.act == REQUEUE and noq.cause == NOT_QUEUED
+               and watch_step({"end_head": "z1"}, "IN FLIGHT", pr(398, head="z9"), t("19:00")).state == LEFT, str(noq))
+        dirty = watch_step(enq, "IN FLIGHT", dataclasses.replace(pr(396, green_gate), merge_state="DIRTY"), t("19:30"))
+        expect("queue watch: a pull request that conflicts with main (merge state DIRTY), its checks green, ends the "
+               "watch LEFT (BOUNCED, the finisher's) with no remedy: a re-run or a reopen cannot clear a conflict "
+               "(kb/Work PB3527 review R1-5)",
+               dirty.state == LEFT and not dirty.act and "DIRTY" in dirty.why, str(dirty))
+
+        # 12b. ONE WRITER PER FIELD (kb/Work PB3527 review R1-3): the tick reads the attempts before its slow survey (git
+        #      fetch, the GraphQL read, the jobs API); the enqueue unit's `collect` that lands in between is kept, and the
+        #      watch's own field is written beside it. And a runner that writes its rc after reap read the record is
+        #      never marked DIED.
+        c15 = fresh("race")
+        f15 = Fake([row("w15", "WAITING TO LAND", "y0")])
+        f15.tick(c15)
+        finish(c15, "w15", 0, "ENQUEUED", end_head="y1")
+        f15.live.clear()
+        f15.rows = [row("w15", "IN FLIGHT", "y1")]
+        f15.prs, f15.now = {"w15": pr(415, running_gate, head="y1")}, t("18:50")
+        planted = f15.survey
+        f15.survey = lambda repo, cdir: (collect(cdir, ["w15"], say=lambda s: None), planted(repo, cdir))[1]
+        f15.tick(c15)
+        raced = next(a for a in attempts(c15) if a["branch"] == "w15")
+        expect("one writer per field: a `collect` between the tick's read and its queue watch's write is kept (collected "
+               "stays true, nothing asks the enqueue unit again), and the watch's state is written beside it",
+               raced.get("collected") is True and (raced.get("watch") or {}).get("state") == WATCHING
+               and not agent_work(c15, t("18:51")).reasons, f"{raced} {agent_work(c15, t('18:51')).reasons}")
+        f15.survey = planted
+        f15.rows = [row("w15b", "WAITING TO LAND", "x0")]
+        f15.prs = None
+        f15.tick(c15)
+        stale = next(a for a in attempts(c15) if a["branch"] == "w15b")
+        late = next(a for a in attempts(c15) if a["branch"] == "w15b")
+        update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": _now().isoformat(), "end_head": "x1"})
+        reap(c15, [stale], lambda pid: False, say=lambda s: None)
+        expect("one writer per field: a runner that wrote its rc after reap read the record is not marked DIED (the "
+               "fresh record decides, under the record's lock)",
+               "outcome" not in stale and stale.get("rc") == 0
+               and "outcome" not in next(a for a in attempts(c15) if a["branch"] == "w15b"), str(stale))
+
+        # 12c. A HUNG GITHUB CALL NEVER STOPS THE TICK (kb/Work PB3527 review R1-4): the real remedy (enqueue.rerun_check)
+        #      on a gh that gives no answer (real_gh's timeout raises ruleset.Unobserved) is a FAILED read, recorded and
+        #      measured; the tick still launches the branch WAITING TO LAND; the next stalled read escalates.
+        import enqueue  # noqa: PLC0415
+        import ruleset  # noqa: PLC0415
+
+        def silent(args: list[str]) -> tuple[int, str, str]:
+            raise ruleset.Unobserved(f"`gh {' '.join(args[:2])}` gave no answer in 120 s")
+        c16 = fresh("hang")
+        f16 = Fake([row("w16", "WAITING TO LAND", "v0")])
+        f16.tick(c16)
+        finish(c16, "w16", 0, "ENQUEUED", end_head="v1")
+        f16.live.clear()
+        f16.rows = [row("w16", "IN FLIGHT", "v1"), row("w16next", "WAITING TO LAND", "u0")]
+        f16.prs, f16.now = {"w16": pr(416, stuck_gate, head="v1")}, t("18:57")
+        recorded: list[tuple] = []
+        f16.watch_effects = lambda: WatchEffects(
+            rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=silent),
+            requeue=lambda repo, number: enqueue.requeue(repo, number, gh=silent, state=lambda: (ruleset.ACTIVE, "x")),
+            alert=lambda subject, body, ref: recorded.append(("alert", subject)),
+            measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)))
+        try:
+            launched = f16.tick(c16)
+            hung = None
+        except ruleset.Unobserved as exc:
+            launched, hung = [], exc
+        reads16 = (next(a for a in attempts(c16) if a["branch"] == "w16").get("watch") or {}).get("reads") or []
+        f16.rows = [row("w16", "IN FLIGHT", "v1")]
+        f16.now = t("19:08")
+        f16.tick(c16)
+        reads16b = (next(a for a in attempts(c16) if a["branch"] == "w16").get("watch") or {}).get("reads") or []
+        expect("a remedy GitHub does not answer (gh's timeout) is a FAILED read, recorded and measured, and the tick "
+               "still launches the branch WAITING TO LAND; the next stalled read escalates to the requeue, never "
+               "repeats the re-run",
+               hung is None and launched == ["w16next"] and [r["ok"] for r in reads16] == [False]
+               and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
+               and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
 
         # 13. a launch opens no window (kb/Work PB3117): the runner OWNS a console with no visible window, so every
         #     console program it starts (enqueue.py, git, pwsh, dotnet) shares it. Under DETACHED_PROCESS the runner has
