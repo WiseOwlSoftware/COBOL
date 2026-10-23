@@ -276,6 +276,14 @@ internal static class OperandText
         // never read back into it, so a strongly-typed group with a class pointer/object leaf sends its storage
         // image - the leaf's 8 positions (a pointer's storage image, kb/Work PB1071) - under §14.9.25.4 GR4.
         BoundFieldOperand f => AsStorageImage(f.Place, context, transfer: true),
+        // ⛔ A NUMERIC LITERAL SENDS ITS DIGITS ONLY (kb/Work PB3570, owner decision 2026-10-23; docs/CONFORMANCE.md D-B4).
+        // §14.9.25.4 GR4 preserves a sender's internal representation, and a numeric literal has none: the standard does not
+        // say what a literal sent to a group stores. Rule 1's precedence for implementor latitude (ISO, then GnuCOBOL) picks
+        // GnuCOBOL's, whose literal data is the digits without the sign or the decimal point - the same characters an
+        // elementary alphanumeric receiver takes by GR6 a) ("the operational sign is not moved"): MOVE -456 TO G stores 456,
+        // as MOVE -456 TO PIC X(3) does. A function value folded to a literal (FunctionValue) is a computed value and keeps the
+        // rendering its unfolded twin has, so the answer does not depend on whether the compiler could fold the call.
+        BoundNumericLiteral { FunctionValue: false } lit => EmitText.CsLiteral(LiteralDigits(lit.Text)),
         // ⛔ A LITERAL OR FUNCTION VALUE OF USAGE NATIONAL OR BIT IS THE OTHER SENDER WITH A REPRESENTATION OF ITS OWN (kb/Work
         // PB3562): a national item sends its UTF-16BE pairs and a usage-bit item its packed bits (the field arm above), so
         // a value of the same usage sends the same bytes. `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G` deposited the
@@ -287,21 +295,60 @@ internal static class OperandText
         // (§8.3.3.4.3 SR2) - so it keeps its text (docs/CONFORMANCE.md D-B3). A MOVE's zero-length literal never gets here:
         // §14.9.25.4 GR2/GR3 make it the figurative SPACE / ZERO (MoveClassifier.Sender); at a CALL it is an empty image
         // either way.
-        _ => IntrinsicArgumentRules.StaticUsageOf(op) switch
-        {
-            Usage.National => RuntimeApi.NatBytes(AsString(op, num, deSign: false)),
-            Usage.Bit => RuntimeApi.BitsPackAll(AsString(op, num, deSign: false)),
-            _ => AsString(op, num, deSign: false),
-        },
+        _ => RepresentationOfText(op, AsString(op, num, deSign: false)),
     };
+
+    /// <summary>The representation of a sender whose operand text is <paramref name="text"/> (a C# string expression): the
+    /// UTF-16BE pairs of a national value, the packed bits of a bit value, else the text itself. THE one codec by usage
+    /// (<see cref="IntrinsicArgumentRules.StaticUsageOf"/>), read by <see cref="NonElementaryMoveSender"/> and by
+    /// <see cref="StorageImageConverter"/>.</summary>
+    private static string RepresentationOfText(BoundOperand op, string text) => IntrinsicArgumentRules.StaticUsageOf(op) switch
+    {
+        Usage.National => RuntimeApi.NatBytes(text),
+        Usage.Bit => RuntimeApi.BitsPackAll(text),
+        _ => text,
+    };
+
+    /// <summary>The codec of <see cref="RepresentationOfText"/> as a <c>static</c> lambda over the RUN-TIME text of an
+    /// already-evaluated value - a national or boolean function, whose cell a CALL reads back rather than evaluating twice
+    /// (<c>CobolArgAdapt.WithValueSending</c>) - or null when the text is the representation (kb/Work PB3587).</summary>
+    public static string? StorageImageConverter(BoundOperand op) =>
+        RepresentationDiffersFromText(op) ? $"static __t => {RepresentationOfText(op, "__t")}" : null;
 
     /// <summary>True when an operand place's operand carrier (<see cref="AsString"/>'s text, '0'/'1' per boolean position
     /// or one character per national position) is NOT its storage image (<see cref="AsStorageImage"/>'s packed bits or
     /// UTF-16BE pairs): an item of USAGE BIT or USAGE NATIONAL (a bit or national group included, §13.18.29.4 GR1 b) /
     /// GR2 b)), or a reference-modified slice of one - the usage asked of the ONE static-usage reader. The CALL and INVOKE
     /// boundaries ask it to send such an argument to a plain-group formal as GR4's unconverted move (kb/Work PB3562).</summary>
-    public static bool CarrierDiffersFromStorage(Place p) =>
-        IntrinsicArgumentRules.StaticUsageOf(new BoundFieldOperand(p)) is Usage.National or Usage.Bit;
+    public static bool CarrierDiffersFromStorage(Place p) => RepresentationDiffersFromText(new BoundFieldOperand(p));
+
+    /// <summary>⛔ THE ONE TEST OF WHETHER A SENDER'S OPERAND TEXT IS NOT ITS REPRESENTATION (kb/Work PB3562, PB3587): a value
+    /// of USAGE NATIONAL or USAGE BIT - an item, a national literal, a national or boolean function - whose operand text
+    /// (<see cref="AsString"/>) is one character per position where its representation is UTF-16BE pairs or packed bits. Asked
+    /// of the ONE static-usage reader, so <see cref="NonElementaryMoveSender"/>'s last arm, the CALL / INVOKE boundary's
+    /// <see cref="CarrierDiffersFromStorage"/> and the argument <c>Sending</c> every Format-1 CALL states
+    /// (<see cref="StorageImageIfDiffers"/>) cannot answer it differently.</summary>
+    public static bool RepresentationDiffersFromText(BoundOperand op) =>
+        IntrinsicArgumentRules.StaticUsageOf(op) is Usage.National or Usage.Bit;
+
+    /// <summary>The group-move representation (<see cref="NonElementaryMoveSender"/>) of a sender whose operand text is not
+    /// it (<see cref="RepresentationDiffersFromText"/>), or null when the text IS the representation. The second alphabet a
+    /// CALL argument's <c>MoveSending</c> carries (kb/Work PB3587): an activating element that cannot see the formal sends
+    /// its characters for an elementary formal and this image for a plain-group formal, which the activated unit chooses.</summary>
+    public static string? StorageImageIfDiffers(BoundOperand op, NumericRenderer num, string context) =>
+        RepresentationDiffersFromText(op) ? NonElementaryMoveSender(op, num, context) : null;
+
+    /// <summary>The characters a numeric LITERAL sends to a group (<see cref="NonElementaryMoveSender"/>): the digits of its
+    /// value, in the order written, with neither the sign nor the decimal point. <paramref name="canonicalText"/> is the
+    /// literal's canonical dot-decimal text (<see cref="BoundNumericLiteral.Text"/>); a floating-point literal sends the digits
+    /// of its exact value (<c>1.5E+3</c> sends 1500, §8.3.3.3.3 GR5), the same pair every literal reader decomposes it to.</summary>
+    private static string LiteralDigits(string canonicalText)
+    {
+        if (!CobolNet.Common.NumericLiteral.TryUnscaledParts(canonicalText, out string digits, out int scale))
+            throw new InvalidOperationException($"the numeric literal '{canonicalText}' is not a canonical literal: the binder rejects it before code generation");
+        digits = digits.TrimStart('-', '+');
+        return scale < 0 ? digits + new string('0', -scale) : digits;
+    }
 
     /// <summary>⛔ THE ONE-WAY STRING CHANNEL FOR A READ-ONLY CONSUMER OF A GROUP'S CHARACTERS (kb/Work PB244, PB1901):
     /// <see cref="AsString"/>, except that a strongly-typed group holding a class pointer/object leaf — a legal

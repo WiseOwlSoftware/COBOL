@@ -276,8 +276,14 @@ public sealed class MoveLanding(Func<MoveSending, string> Record) : CarrierLandi
 /// <param name="Unscaled">The fixed-point value, unscaled.</param>
 /// <param name="Scale">The fixed-point value's fraction scale.</param>
 /// <param name="Real">The value of a floating-point sender, null for a fixed-point one.</param>
+/// <param name="StorageImage">⛔ THE SECOND ALPHABET (kb/Work PB3587): the sender's REPRESENTATION - the UTF-16BE pairs of a USAGE
+/// NATIONAL item or value, the packed bits of a USAGE BIT one - when that is not its <paramref name="Characters"/> (one
+/// character a position). An elementary formal reads the characters; a PLAIN-GROUP formal's record is filled by §14.9.25.4
+/// GR4's move, "no conversion of data from one form of internal representation to another", so it reads this image
+/// (<see cref="CobolArgAdapt.Text"/>). The activating element cannot choose between them - it does not see the formal - and
+/// the activated unit can. Null when the characters ARE the representation.</param>
 public readonly record struct MoveSending(string Characters, bool Group = false, bool Fill = false, bool Numeric = false,
-    Int128 Unscaled = default, int Scale = 0, double? Real = null)
+    Int128 Unscaled = default, int Scale = 0, double? Real = null, string? StorageImage = null)
 {
     /// <summary>The value aligned at <paramref name="scale"/> — §14.6.8.2's alignment, which truncates (a MOVE has no
     /// ROUNDED phrase).</summary>
@@ -799,12 +805,15 @@ public static class CobolArgAdapt
     /// its <see cref="CobolArg.Sending"/> read back from that cell, so the expression is never evaluated a second time. A
     /// fixed-point value sends the characters a MOVE of an intrinsic function's value sends (<see cref="CobolNum.FormatFunctionText"/>
     /// without its sign, §14.9.25.4 GR6 a)) and its algebraic value; a binary64 one its display form
-    /// (<see cref="CobolFloat.Display"/>) and its value; a character value its characters.</summary>
-    public static CobolArg WithValueSending(CobolArg arg) => arg with
+    /// (<see cref="CobolFloat.Display"/>) and its value; a character value its characters, and - when the value is of usage
+    /// national or bit - its representation too, by <paramref name="storageImage"/> (<see cref="MoveSending.StorageImage"/>).</summary>
+    public static CobolArg WithValueSending(CobolArg arg, Func<string, string>? storageImage = null) => arg with
     {
         Sending = arg.Carrier switch
         {
-            ManagedPointer<string> s => new MoveSending(s.Value ?? ""),
+            // storageImage is stated when the value's usage is NATIONAL or BIT (a national or boolean function): its characters
+            // are then not its representation, and the compiler names the codec from the value's usage (kb/Work PB3587).
+            ManagedPointer<string> s => new MoveSending(s.Value ?? "", StorageImage: storageImage?.Invoke(s.Value ?? "")),
             ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value),
             var c when ReadNumericCell(c) is { } v =>
                 new MoveSending(CobolNum.FormatFunctionText(v, arg.Scale, deSign: true), Numeric: true, Unscaled: v, Scale: arg.Scale),
@@ -853,8 +862,16 @@ public static class CobolArgAdapt
         if (args[i].Mode is not CobolPassMode.Content || PointerImage.OfCarrier(args[i].Carrier) is not { } image
             || formalWidth >= 0 && formalWidth != image.Length)
             return args;
+        return WithCarrier(args, i, ManagedPointer<string>.Cell(image));
+    }
+
+    /// <summary>A copy of <paramref name="args"/> whose argument <paramref name="i"/> crosses as the character cell
+    /// <paramref name="carrier"/>, with no numeric description: the caller's own array is never written (an argument array
+    /// can outlive the activation, and the activating element may read it again).</summary>
+    private static CobolArg[] WithCarrier(CobolArg[] args, int i, ManagedPointer<string> carrier)
+    {
         var copy = (CobolArg[])args.Clone();
-        copy[i] = args[i] with { Carrier = ManagedPointer<string>.Cell(image), Num = null };
+        copy[i] = args[i] with { Carrier = carrier, Num = null };
         return copy;
     }
 
@@ -983,6 +1000,13 @@ public static class CobolArgAdapt
     {
         if (!Present(args, i)) return OmittedText(unbound);
         if (groupAtoms is null && IsPointerContent(args[i])) args = WithPointerContent(args, i, width);
+        // ⛔ A PLAIN-GROUP FORMAL READS THE SENDER'S REPRESENTATION (kb/Work PB3587): its record is filled by §14.9.25.4 GR4's
+        // move "as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data from
+        // one form of internal representation to another", so a BY CONTENT USAGE BIT or USAGE NATIONAL argument crosses as the
+        // packed bits or UTF-16BE pairs its Sending states, never as the '0'/'1' or one-character-a-position text an
+        // elementary formal reads off the carrier.
+        if (groupAtoms is not null && args[i] is { Mode: CobolPassMode.Content, Sending.StorageImage: { } groupImage })
+            args = WithCarrier(args, i, ManagedPointer<string>.Cell(groupImage));
         switch (args[i].Carrier)
         {
             case ManagedPointer<CobolVarGroup> vp when VariableToFixedPair(args[i], groupAtoms, width) is { } pair:

@@ -1748,19 +1748,27 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 int fw = a.Formal.IsGroup ? CallEmitter.BoundaryImageWidth(a.Formal) : CallEmitter.ElementaryFormalWindow(a.Formal);
                 // …and an ELEMENTARY USAGE BIT / USAGE NATIONAL argument BY CONTENT into a plain GROUP formal is that same
                 // unconverted move (kb/Work PB3562): its storage image crosses, not its operand text.
+                // A LITERAL argument is the same unconverted move (kb/Work PB3570, PB3587): the bound literal - a national one
+                // keeps its category, a numeric one is its text - through the same codec, so it crosses as a MOVE of it to the
+                // group stores it (docs/CONFORMANCE.md D-B3, D-B4).
+                BoundOperand? literal = a.StringLiteral is { } sl ? sl
+                    : a.NumericLiteral is { } nl ? new BoundNumericLiteral(nl) : null;
                 string read = a.Source is { } gsp
                     ? a.ByContent
                         ? CallEmitter.IsPlainGroupFormal(a.Formal) && OperandText.CarrierDiffersFromStorage(gsp)
                             ? OperandText.NonElementaryMoveSender(new BoundFieldOperand(gsp), Num, "INVOKE argument")
                             : CallEmitter.CallContentRead(gsp)
                         : CallEmitter.CallStringRead(gsp)
-                    : CsLiteral(a.StringLiteral ?? "");
+                    : literal is not null ? OperandText.NonElementaryMoveSender(literal, Num, "INVOKE argument")
+                    : throw new InvalidOperationException("an INVOKE argument into a group formal is neither an identifier nor a literal");
                 // A GROUP argument BY CONTENT into an ELEMENTARY formal is §14.2.3 GR9's MOVE into the formal's record,
                 // and a group sender makes it §14.9.25.4 GR4's group move (kb/Work PB2587's sweep): the receiver's
                 // JUSTIFIED still applies and a national or bit formal decodes the group's bytes — the CALL lane's one
-                // record value (MoveEmitter.RecordValue), not a plain width fit.
-                Decl("string", a.ByContent && CallEmitter.IsMovedFormal(a.Formal) && a.Source is { } gms
-                    ? U.Move.RecordValue(new BoundFieldOperand(gms), a.Formal)
+                // record value (MoveEmitter.RecordValue), not a plain width fit. A literal into such a formal (a bit or
+                // national group is "treated as an elementary item") is the elementary MOVE into its record.
+                Decl("string", a.ByContent && CallEmitter.IsMovedFormal(a.Formal)
+                               && (a.Source is { } gms ? new BoundFieldOperand(gms) : literal) is { } moved
+                    ? U.Move.RecordValue(moved, a.Formal)
                     : RuntimeApi.StrStore(read, $"{fw}"));
             }
             else if (stringCarried)
@@ -1768,12 +1776,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     ? OoStringReadOf(sp, a, qualProfile)
                     : a.StringLiteral is { } slit
                     // An ANY LENGTH formal sees the literal AT ITS OWN length (§13.18.2 GR1) — no width-fit.
-                    ? a.Formal.IsAnyLength ? CsLiteral(slit)
+                    ? a.Formal.IsAnyLength ? CsLiteral(slit.Value)
                         // §14.2.3 GR9's MOVE into a non-numeric formal's record (kb/Work PB2587's sweep): a JUSTIFIED formal
                         // right-justifies the literal and an edited one edits it (§14.9.25.4 GR6), as the CALL lane does.
                         : CallEmitter.IsMovedFormal(a.Formal)
-                            ? U.Move.RecordValue(new BoundStringLiteral(slit), a.Formal)
-                            : RuntimeApi.StrStore(CsLiteral(slit), $"{CallEmitter.ElementaryFormalWindow(a.Formal)}")
+                            ? U.Move.RecordValue(slit, a.Formal)
+                            : RuntimeApi.StrStore(CsLiteral(slit.Value), $"{CallEmitter.ElementaryFormalWindow(a.Formal)}")
                     // A numeric literal into a formal of ANOTHER category (alphanumeric, numeric-edited, national):
                     // §14.8.2.3.3 rule 2d's MOVE, stored by the receiving category's ONE MOVE store — the store the
                     // identifier arm reaches through OoStringReadOf (kb/Work PB1113: the sign is not moved into an
