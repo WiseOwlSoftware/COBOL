@@ -25,6 +25,13 @@ path gets a store of its own, `Detach` is by store, and `FileRegistry.Transactio
 so a COMMIT reaches both files'. `KeptIsOfAnotherFile` became `KeptIsOfAnotherPath`. DESIGN-runtime-library.md 2.2.1.7 and
 2.2.1.10 say all of it, including what stays path-keyed (Table 19's arbitration and the record-lock table).
 
+**A gate red on the way, fixed at its root.** The first gate (both hosts) failed
+`HostWitnessTraitDriftTests.EveryFileSystemRaceWitness_CarriesTheHostTrait`, naming `ConstantNameLiteralPositionDriftTests`: its
+type-declaration pattern read `internal readonly record struct PhysicalFileIdentity` as a type named `struct`, the first
+`record struct` in `IO/Sharing/` it reached, so every concurrent test that says "struct" became a race witness. The pattern now
+reads `record struct` and `record class` as one keyword pair. Before that red, the ten new cases passed on Linux at the fix
+commit.
+
 **Goldens.** None: the change is the runtime's host file I/O layer, below any COBOL source a conformance case can write (an
 outside party replacing a file mid-run). Witnesses: `CommitRollbackRuntimeTests` (re-OPEN after removal or rename, INPUT and
 I-O, both organizations; its '39' and '61' refusals; two connectors on a replaced path), `PhysicalFileIdentityDriftTests`
