@@ -877,7 +877,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         (<c>CobolDec.MulToOdd</c>: the exact product reduced to 34 significant digits by ROUND-TO-ODD, which keeps an odd
     ///         last digit whenever digits were dropped, so a receiver of at most 32 digit positions — every PICTURE-limited one,
     ///         §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product).
-    ///         A quotient above a wide value is formed there too (<c>CobolDec.DivToOdd</c>): GnuCOBOL's own divide is inexact
+    ///         A NESTED quotient above a wide value is the truncated quotient on the wide form (<see cref="Divide"/>); a final
+    ///         transfer's is formed on the SDIDI (<c>CobolDec.DivToOdd</c>): GnuCOBOL's own divide is inexact
     ///         (<c>shift_decimal</c> then a truncating <c>mpz_tdiv_q</c>), so the precedence does not demand an exact quotient.</item>
     ///   <item><b>A bound unknown</b> (an intrinsic's value, a windowed view, a counter) — ⛔ IS STILL A BOUND: the
     ///         operand is an <see cref="Int128"/>, so its unscaled value has at most <see cref="PicInfo.CarrierDigitBound"/>
@@ -927,7 +928,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// an intermediate's scale, so they are added ONCE whatever the expression's depth (kb/Work PB3538).</summary>
     private const int DivGuardDigits = 14;
 
-    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). ⛔ THREE ARMS, AND A NESTED QUOTIENT HAS ONE PRECISION
+    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). ⛔ FOUR ARMS, AND A NESTED QUOTIENT HAS ONE PRECISION
     /// WHATEVER THE EXPRESSION'S DEPTH (kb/Work PB3538; numeric design D2).
     /// <list type="bullet">
     ///   <item><b>The final transfer</b> (<see cref="_outermost"/> into a resultant that rounds at its own scale — the
@@ -948,8 +949,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         case 2, checked or not, kb/Work PB1605). The truncating quotient follows GnuCOBOL (CLAUDE.md rule 1),
     ///         whose <c>cob_decimal_div</c> truncates (<c>mpz_tdiv_q</c>) and whose products and sums above it are exact,
     ///         as they are here: `2 / 7 * 7` into <c>PIC S9(9)V9(6)</c> is 1.999999.</item>
-    ///   <item><b>Every other quotient</b> — one whose bound passes the carrier (a dividend of unknown bound, an operand
-    ///         of large scale), an exact wide operand, a floating-point edited resultant: formed on the SDIDI, whose
+    ///   <item><b>A nested quotient whose bound passes the carrier but fits 77 digits</b> — a dividend of unknown bound
+    ///         (an intrinsic's value: the carrier's 39 digits), an exact wide operand, an operand of large scale: the SAME
+    ///         truncated quotient at <c>w</c> on the exact wide form (<c>CobolWide.DivTruncated</c>). The lane is a
+    ///         representation, never a rule: the SDIDI's round-to-odd here made `FUNCTION INTEGER(X) / 7 * 7` 2.000000
+    ///         beside `X / 7 * 7`'s 1.999999 (kb/Work PB3538 review finding R1-1).</item>
+    ///   <item><b>Every other quotient</b> — a nested one whose bound passes 77 digits, a final transfer over an exact
+    ///         wide operand, a floating-point edited resultant: formed on the SDIDI, whose
     ///         exponent floats with the VALUE, and reduced to its 34 significant digits by ROUND-TO-ODD
     ///         (<c>CobolDec.DivToOdd</c>), so the one rounding at the final transfer into a receiver of at most 32 digit
     ///         positions equals rounding the exact quotient. Its size error is the one §14.7.5 case 5 licenses: the
@@ -964,13 +970,21 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     {
         if (!a.Wide && !b.Wide && _outermost && _rcv.RoundsAtItsScale)
             return new NumX(DivideAt(a, b, _rcv.Scale, _rcv.Rounding), _rcv.Scale);
-        if (!a.Wide && !b.Wide && !_rcv.FloatEdited)
+        if (!_rcv.FloatEdited && !(_outermost && _rcv.RoundsAtItsScale))
         {
             int precision = Math.Max(a.FractionPrecision, b.FractionPrecision);
             int w = Math.Max(_rcv.Scale, precision) + DivGuardDigits;
             int digits = Math.Max(0, DigitBound(a) - a.Scale + b.Scale) + w;
-            if (digits <= ReceiverContext.IntermediateDigits)
+            if (!a.Wide && !b.Wide && digits <= ReceiverContext.IntermediateDigits)
                 return new NumX(DivideAt(a, b, w, CobolRounding.Truncation), w, Digits: digits, Precision: precision);
+            // ⛔ THE SAME VALUE ON THE WIDE FORM (kb/Work PB3538 review finding R1-1): a bound past the Int128 lane — a
+            // dividend of unknown bound (an intrinsic's value: the carrier's 39 digits), a wide product — changes the
+            // REPRESENTATION, never the rule. The SDIDI's round-to-odd here made `FUNCTION INTEGER(X) / 7 * 7` 2.000000
+            // where `X / 7 * 7` is 1.999999. A divisor scaled up to the dividend's scale must fit the form as well.
+            int divisorDigits = DigitBound(b) + Math.Max(0, a.Scale - b.Scale - w);
+            if (digits <= RuntimeApi.WideMaxDigits && divisorDigits <= RuntimeApi.WideMaxDigits)
+                return new NumX(RuntimeApi.WideDivTruncated(WideOperand(a), a.Scale, WideOperand(b), b.Scale, w), w,
+                    Digits: digits, Wide: true, Precision: precision);
         }
         return new NumX(RuntimeApi.DecDivToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true);
     }
@@ -990,13 +1004,19 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         int digits = a.Digits > 0 && b.Digits > 0
             ? Math.Max(a.Digits + (s - a.Scale), b.Digits + (s - b.Scale)) + 1 : 0;
         // ⛔ A SUM OR DIFFERENCE WITH AN EXACT WIDE OPERAND STAYS EXACT (kb/Work PB1900) while its digit bound fits the
-        // wide form — the cancellation of two nested products is the case the form exists for. A bound that does not fit
-        // (or is unknown) lowers both operands to the SDIDI, whose round-to-odd addition keeps the inexact marker.
+        // wide form — the cancellation of two nested products is the case the form exists for. An operand of unknown bound
+        // (an intrinsic's value) is bounded by its Int128 carrier (DigitBound), exactly as in Multiply and Divide: taking
+        // the SDIDI for it made `FUNCTION INTEGER (BIG) - BIG / T * T` keep a round-to-odd tail that `BIG - BIG / T * T`
+        // does not (kb/Work PB3538 review finding R1-1's sweep). A bound past the form lowers both operands to the SDIDI,
+        // whose round-to-odd addition keeps the inexact marker.
         if (a.Wide || b.Wide)
-            return digits is > 0 and <= RuntimeApi.WideMaxDigits
-                ? new NumX(RuntimeApi.WideAdditive(WideAligned(a, s), op == "-", WideAligned(b, s)), s, Digits: digits, Wide: true,
+        {
+            int wideDigits = Math.Max(DigitBound(a) + (s - a.Scale), DigitBound(b) + (s - b.Scale)) + 1;
+            return wideDigits <= RuntimeApi.WideMaxDigits
+                ? new NumX(RuntimeApi.WideAdditive(WideAligned(a, s), op == "-", WideAligned(b, s)), s, Digits: wideDigits, Wide: true,
                     Precision: precision)
                 : DecBinary(op, a, b);
+        }
         if (digits > ReceiverContext.IntermediateDigits) digits = 0;
         // Under an ON SIZE ERROR phrase the sum/difference is overflow-checked at the Int128 ENGINE boundary
         // (AddChecked/SubChecked → OverflowException → the size error condition, §14.7.5 case 5). Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself

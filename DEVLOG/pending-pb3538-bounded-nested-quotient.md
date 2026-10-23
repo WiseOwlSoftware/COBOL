@@ -50,3 +50,24 @@ products of two `FUNCTION ABS(A)` values (A = 10**20 - 1). Under the new rule th
 legs now add 1 to HIGHEST-ALGEBRAIC of a `PIC S9(19) COMP-5` item (2**127 - 1), a sum no Int128 intermediate holds.
 The expected statuses are unchanged, and a new R8 leg pins the ABS product as TRUE. No inventory row moved state. GR-14.7.5-5 (`CobolNum.MulChecked` retired as a witness) and GR-14.9.12.4-7 are
 restated through batches, and the rules' other rows were already OK and gain witnesses.
+
+Branch review round 1 found one blocking defect (R1-1), and the review finisher fixed it at its root. The nested
+quotient's lane came from a digit bound, and a dividend of unknown bound (any intrinsic's value: INTEGER, MOD, ORD) is
+bounded by its Int128 carrier, 39 digits, so every such quotient passed the Int128 lane and took the SDIDI's
+round-to-odd. `COMPUTE R = FUNCTION INTEGER(X) / 7 * 7` stored 2.000000 where `X / 7 * 7` stores 1.999999, and the
+relation `FUNCTION INTEGER(X) / 7 * 7 < 2` was false. Re-probed on the merged build before the fix (rev-a q1 and q2):
+INTEGER 2, MOD 2.000000, REL NOT LESS. The fix makes the lane a representation, never a rule: a nested quotient whose
+bound passes 38 digits but fits 77 is the same truncated quotient at the same working scale on the exact 256-bit form,
+through the new runtime member `CobolWide.DivTruncated` (an additive member in `PublicAPI.Unshipped.txt`, so neither the
+major nor the ABI pin moves). The sweep found the additive sibling: a sum or difference of a wide value and an operand
+of unknown bound also dropped to the SDIDI, so `FUNCTION INTEGER (BIG) - BIG / T * T` kept a round-to-odd tail
+(0.00000000000000001 in V9(18)); `CombineAdditive` now bounds that operand by its carrier, as `Multiply` and `Divide`
+do. A scale-32 quotient of a PIC 9(18) item (50 digits) had taken the SDIDI on any spelling, and now takes the wide
+form too. Golden `pb3538_unbounded_operand_quotients` (2002 to 2023, values from §8.8.1.2 3) and §14.7.4.3 2)) pins
+each FUNCTION spelling beside its data-item spelling; it failed on the reviewed head (INTQ 2.0000, INTQ0 2, PRODQ
+16.0000, INTREL NOT LESS, each SUM leg 0.000000000000000010) and passes after. `CobolWideTests` pins `DivTruncated`
+against a BigInteger oracle (operands past 128 bits, both signs, a divisor scaled up, a divisor above 2^255 whose partial
+remainder carries) and against the Int128 lane's truncating quotient. `NestedQuotientPrecisionDriftTests` now counts
+the wide kernel's scales at depth 2 and 16 and requires that no nested quotient takes `CobolDec.DivToOdd`.
+CONFORMANCE.md DOC-A.1-123 and the numeric design D2 state the rule. `FUNCTION NUMVAL` is unaffected: its value rides
+the SDIDI lane by the documented PB69 rule, so its quotient is formed there on main and on this branch alike.
