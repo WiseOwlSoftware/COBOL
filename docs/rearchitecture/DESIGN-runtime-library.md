@@ -2936,7 +2936,7 @@ with the second run unit at every boundary; the expected state in every row is I
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
-**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the facility is declined today (COBOLNET1709).
+**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the sequential operand of an APPLY COMMIT clause is refused by name today (COBOLNET1709; kb/Work PB3338 provides the keyed organizations).
 Kept, unchanged in contract: every verb arm of `SequentialConnector`, `OverwriteInPlace` as the one in-place overwrite,
 `ReleaseRecord` as the one release, `SharedAppendStream`, the region map (one new byte kind, `EntryMutexByte`, in 2.2.1.8's
 map, expressed by `SidecarRegionLocks` on every host), `SidecarLockFiles`' holder, probe and retirement rules (the holder file
