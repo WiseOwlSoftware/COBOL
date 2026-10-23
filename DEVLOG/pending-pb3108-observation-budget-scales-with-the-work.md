@@ -45,3 +45,8 @@ script caller; the run.py hang guard stays run.py's own. Code: the in-process ru
 at its budget and run.py's NO VERDICT for its 600 s hang guard are still compared as verdicts by the drift test,
 reported as a lead. Performance: two cheap reads of the host's processor times per observed process. Duplication: the
 run.py parallelism formula is stated once in the drift test and passed to run.py.
+
+**Gate.** The first gate was RED on one case: `HostWitnessTraitDriftTests` refused the tree-sweep trait on
+`CiHarnessLogDriftTests`, which reads one file (`drift_rules.py` maps the workflow to it as a specific rule); the trait
+went. Re-gate, run 20261023T010839Z-e8c3f5: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, with
+every added case passed and the two-runner drift test passing in 1 min 21 s on a host its load line read 100 % busy.
