@@ -30,7 +30,8 @@ ONE GATE, in this order (§3.14.3):
   1. the worktree's GATE LOCK (`<worktree git dir>/cobol-gate.lock`): a second gate in the same worktree is REFUSED at
      once, naming the holder — its build would overwrite the binaries between this gate's legs — with the verdict
      BUSY (exit 3), never RED: it measured nothing (kb/Work PB3527);
-  2. a fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/` holding the listings, the plan, every trx,
+  2. a fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>Z/` (n = the run's number in its run root, taken under
+     `runs.lock`, so start order never depends on the clock) holding the listings, the plan, every trx,
      log and identity record, and the verdict file — nothing at a fixed name, so no earlier gate's file is read as
      this one's; the newest earlier run holding a verdict gives the plan its timings and reds; five are kept;
   3. the audits (the one list below, run CONCURRENTLY; one of them is every script self-test, found by
