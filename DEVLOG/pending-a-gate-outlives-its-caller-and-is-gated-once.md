@@ -67,7 +67,12 @@ paths that are never work), at HEAD's content whether edited on disk or staged. 
 and NUL-separated now. New arms: the NEVER_WORK exclusion and the run-name resolution in `run_gate_legs.py`, a relative
 run and an end-to-end harness worktree (a real `measured_tree` record, then `gate_state` GREEN) in `test_plan_wave.py`,
 and in `test_rolling_wave.py` a relative run awaited from another directory plus a check that the wave's PENDING exit
-equals the driver's.
+equals the driver's. The first exclusion form passed `:!STATUS.md` to `git add`, and git refuses any add pathspec that
+names an ignored path, so on a real worktree the measured tree was None (nothing reusable, every handed gate ENDED):
+the probe on this worktree caught it, and the arm now ignores STATUS.md as this repository does. Run three times, the
+driver's self-test went red twice in the scope-reuse arm: run names carried the start to the second, so two gates of
+one second sorted by their random nonce and "the newest earlier run" was sometimes the older one. Names now carry the
+microsecond (the second-only form still matches), with an arm that starts twenty runs in one second.
 
 **Merged with main's PB3527.** Main had made a held gate lock `BUSY` with exit 3 and every NOT RUN carries a classified
 cause. `--await`'s PENDING moved to exit 4, the lock refusal is BUSY written to the detached run's verdict file, a
