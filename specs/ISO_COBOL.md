@@ -3656,11 +3656,11 @@ Format 1 (evaluate-value)
             │                         │
             ╰ boolean-expression-1    ╯
 
-╭         ╭ literal-2               ╮ ┌                                         ┐            ╮
-│         │                         │ │ ╭ <u>THROUGH</u> ╮ ╭ literal-3               ╮ │            │ …
+╭         ╭ literal-2               ╮                                                        ╮
+│         │                         │ ┌ ╭ <u>THROUGH</u> ╮ ╭ literal-3               ╮ ┐            │ …
 ┤ >> <u>WHEN</u> ┤ arithmetic-expression-2 ├ │ ┤         ├ ┤                         ├ │ [ text-1 ] ├
-│         │                         │ │ ╰ <u>THRU</u>    ╯ ╰ arithmetic-expression-3 ╯ │            │
-╰         ╰ boolean-expression-2    ╯ └                                         ┘            ╯
+│         │                         │ └ ╰ <u>THRU</u>    ╯ ╰ arithmetic-expression-3 ╯ ┘            │
+╰         ╰ boolean-expression-2    ╯                                                        ╯
 
 [ >> <u>WHEN</u> <u>OTHER</u> [ text-2 ] ]
 >> <u>END-EVALUATE</u>
@@ -4192,8 +4192,8 @@ The PUSH directive is used to save the state of a directive so that its status m
 ##### 7.3.22.2 General format
 
 <pre style="line-height:1">
->> <u>PUSH</u> ╭ directive-name ╮
-        ┤                ├
+        ╭ directive-name ╮
+>> <u>PUSH</u> ┤                ├
         ╰ <u>ALL</u>            ╯
 </pre>
 
@@ -6215,16 +6215,15 @@ Inline method invocation references a temporary data item returned from invocati
 ###### 8.4.3.4.2 General format
 
 <pre style="line-height:1">
-                                     ┌   ╭ arithmetic-expression-1 ╮   ┐
-                                     │   │                         │   │
-                                     │   │ boolean-expression-1    │   │
-╭ object-class-name-1 ╮              │   │                         │ … │
-│                     │              │   │                         │   │
-┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ ) │
-│                     │              │   │                         │   │
-╰ identifier-1        ╯              │   │ literal-2               │   │
-                                     │   │                         │   │
-                                     └   ╰ <u>OMITTED</u>                 ╯   ┘
+                                     ┌   ╭ arithmetic-expression-1 ╮     ┐
+                                     │   │                         │     │
+                                     │   │ boolean-expression-1    │     │
+╭ object-class-name-1 ╮              │   │                         │     │
+┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ … ) │
+╰ identifier-1        ╯              │   │                         │     │
+                                     │   │ literal-2               │     │
+                                     │   │                         │     │
+                                     └   ╰ <u>OMITTED</u>                 ╯     ┘
 </pre>
 
 > **Figure notes (inline method invocation syntax diagram).** `OMITTED` is the only underlined word in the printed figure (required word); `::` and the parentheses are required punctuation as printed. The outer brackets make the whole parenthesized argument list optional; the inner braces select exactly one argument form, and the `…` repeats that brace group to give a list of arguments inside the single parenthesis pair.
@@ -8974,11 +8973,11 @@ Within a sequence of relation conditions, both forms of omission may be used.
 
 <pre style="line-height:1">
                      ╭ ╭ <u>AND</u>          ╮                                           ╮
-                     │ │              │                                           │
-                     │ │ <u>OR</u>           │ ╭ <u>NOT</u>                          ╮          │
+                     │ │              │ ╭ <u>NOT</u>                          ╮          │
+                     │ │ <u>OR</u>           │ │                              │          │
 relation-condition-1 ┤ ┤              ├ ┤                              ├ object-1 ├ …
-                     │ │ <u>EXCLUSIVE-OR</u> │ │ simple-relational-operator   │          │
-                     │ │              │ │                              │          │
+                     │ │              │ │ simple-relational-operator   │          │
+                     │ │ <u>EXCLUSIVE-OR</u> │ │                              │          │
                      │ │              │ ╰ extended-relational-operator ╯          │
                      ╰ ╰ <u>XOR</u>          ╯                                           ╯
 </pre>
@@ -11906,12 +11905,12 @@ The INITIALIZE clause specifies that during program initialization of allocation
            ╭ <u>ALL</u>                     ╮            ╭ <u>BINARY</u> <u>ZEROES</u> ╮
            │                         │            │               │
            │                         │            │ <u>HIGH-VALUES</u>   │
-           │                         │            │               │
-<u>INITIALIZE</u> ┤ ╭ │ <u>LOCAL-STORAGE</u>   │ ╮ ├ SECTION TO ┤ literal-1     ├
-           │ │ │                 │ │ │            │               │
-           │ ┤ │ <u>SCREEN</u>          │ ├ │            │ <u>LOW-VALUES</u>    │
-           │ │ │                 │ │ │            │               │
-           ╰ ╰ │ <u>WORKING-STORAGE</u> │ ╯ ╯            ╰ <u>SPACES</u>        ╯
+           │ ╭ │ <u>LOCAL-STORAGE</u>   │ ╮ │            │               │
+<u>INITIALIZE</u> ┤ │ │                 │ │ ├ SECTION TO ┤ literal-1     ├
+           │ ┤ │ <u>SCREEN</u>          │ ├ │            │               │
+           │ │ │                 │ │ │            │ <u>LOW-VALUES</u>    │
+           │ ╰ │ <u>WORKING-STORAGE</u> │ ╯ │            │               │
+           ╰                         ╯            ╰ <u>SPACES</u>        ╯
 </pre>
 
 > **Figure notes (INITIALIZE clause general format syntax diagram).** `INITIALIZE`, `ALL`, `LOCAL-STORAGE`, `SCREEN`, `WORKING-STORAGE`, `BINARY`, `ZEROES`, `HIGH-VALUES`, `LOW-VALUES`, and `SPACES` are underlined in the printed standard (required words). `SECTION` and `TO` are not underlined. The outer braces require exactly one of the two alternatives (`ALL`, or the storage-section group), and the final braces require exactly one fill specification.
@@ -12352,8 +12351,8 @@ The SPECIAL-NAMES paragraph provides a means for:
 │ <u>CLASS</u> class-name-1 │ FOR ┤              ├ │                             │
 │                    └     ╰ <u>NATIONAL</u>     ╯ ┘                             │
 │                                                                         │ …
-│ IS ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮ … [ <u>IN</u> alphabet-name-4 ] │
-│    ┤ literal-5     │ ┤         ├ literal-6 │ ├                          │
+│    ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│ IS ┤ literal-5     │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
 └    ╰               └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CRT</u> <u>STATUS</u> IS data-name-2 ]
@@ -12430,7 +12429,8 @@ where literal-phrase is:
 <pre style="line-height:1">
           ┌ ╭ <u>THROUGH</u> ╮           ┐
           │ ┤         ├ literal-2 │
-literal-1 │ ╰ <u>THRU</u>    ╯           │
+literal-1 │ │         │           │
+          │ ╰ <u>THRU</u>    ╯           │
           │                       │
           └ { <u>ALSO</u> literal-3 } …  ┘
 </pre>
@@ -14192,9 +14192,9 @@ Format 1 (sequential):
 
 ┌          ╭ IS alphabet-name-1 [ alphabet-name-2]       ╮ ┐
 │          │                                             │ │
-│ <u>CODE-SET</u> ┤   │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │   ├ │ .
-│          │   │                                     │   │ │
-└          ╰ { │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ } ╯ ┘
+│ <u>CODE-SET</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │ .
+│          │ ┤ │                                     │ ├ │ │
+└          ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
 </pre>
 
 > **Figure notes (File description entry Format 1 (sequential) syntax diagram).** Underlined in the printed standard (required words / required minimum abbreviations): `FD`, `EXTERNAL`, `AS`, `GLOBAL`, `FORMAT`, `BIT`, `CHARACTER`, `NUMERIC`, `BLOCK`, `TO`, `RECORDS`, `CODE-SET`, `ALPHANUMERIC`, `NATIONAL`. `IS`, `DATA`, `CONTAINS`, `CHARACTERS`, and `FOR` are not underlined.
@@ -14686,8 +14686,8 @@ A constant entry defines a constant. A constant may be used in place of a litera
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
 ╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
 ┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤    │ literal-1                  │ ├ .
-│    │                                       │    │                            │ │
-╰ <u>01</u> ╯                                       │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
+╰ <u>01</u> ╯                                       │    │                            │ │
+                                             │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
                                              │                                   │
                                              ╰ <u>FROM</u> compilation-variable-name-1  ╯
 </pre>
@@ -15232,8 +15232,8 @@ level-number [ entry-name-clause ]
 
 ┌                ┌ <u>PLUS</u>  ┐                  ┐
 │                │       │                  │
-│ <u>LINE</u> NUMBER IS │ +     │ ╭ identifier-1 ╮ │
-│                │       │ ┤              ├ │
+│                │ +     │ ╭ identifier-1 ╮ │
+│ <u>LINE</u> NUMBER IS │       │ ┤              ├ │
 │                │ <u>MINUS</u> │ ╰ integer-1    ╯ │
 │                │       │                  │
 └                └ -     ┘                  ┘
@@ -15756,8 +15756,8 @@ The CLASS clause specifies a range of values for each character of a data item, 
          │ <u>ALPHABETIC</u>       │
          │                  │
          │ <u>ALPHABETIC-LOWER</u> │
-         │                  │
-<u>CLASS</u> IS ┤ <u>ALPHABETIC-UPPER</u> ├
+<u>CLASS</u> IS ┤                  ├
+         │ <u>ALPHABETIC-UPPER</u> │
          │                  │
          │ <u>BOOLEAN</u>          │
          │                  │
@@ -15910,13 +15910,13 @@ Format 1 (report-writer):
 <pre style="line-height:1">
 ╭ <u>COLUMN</u> NUMBER  ╮
 │                │
-│ <u>COLUMN</u> NUMBERS │ ╭ LEFT   ╮         ╭ integer-1          ╮
-│                │ │        │         │                    │
-┤ <u>COLUMNS</u>        ├ ┤ <u>CENTER</u> ├ ┌ IS  ┐ ┤ ╭ <u>PLUS</u> ╮           ├ …
-│                │ │        │ │     │ │ │      │           │
+│ <u>COLUMN</u> NUMBERS │                    ╭                    ╮
+│                │ ╭ LEFT   ╮         │ integer-1          │
+│ <u>COLUMNS</u>        │ │        │ ┌ IS  ┐ │                    │
+┤                ├ ┤ <u>CENTER</u> ├ │     │ ┤ ╭ <u>PLUS</u> ╮           ├ …
 │ <u>COL</u> NUMBER     │ │        │ └ ARE ┘ │ ┤      ├ integer-2 │
-│                │ │        │         │ │      │           │
-│ <u>COL</u> NUMBERS    │ ╰ <u>RIGHT</u>  ╯         ╰ ╰ +    ╯           ╯
+│                │ ╰ <u>RIGHT</u>  ╯         │ ╰ +    ╯           │
+│ <u>COL</u> NUMBERS    │                    ╰                    ╯
 │                │
 ╰ <u>COLS</u>           ╯
 </pre>
@@ -17076,13 +17076,12 @@ Format 1 (report-writer):
 ╭ <u>LINE</u> NUMBER IS   ╮ │                            │
 │                  │ │ ╭ <u>PLUS</u> ╮                   │ …
 ┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
-│                  │ │ │      │                   │
-╰ <u>LINES</u> ARE        ╯ │ ╰ +    ╯                   │
-                     │                            │
+│                  │ │ ╰ +    ╯                   │
+╰ <u>LINES</u> ARE        ╯ │                            │
                      ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
 </pre>
 
-> **Figure notes (LINE clause Format 1 (report-writer) syntax diagram).** `LINE` (in the first two alternatives), `LINES`, `NEXT`, `PAGE`, and `PLUS` are underlined in the printed standard (required words); `NUMBER`, `NUMBERS`, `IS`, `ARE`, and `ON` are not underlined (optional words). ⚠ **The first group is a three-way BRACE** — `LINE NUMBER IS`, `LINE NUMBERS ARE`, `LINES ARE`, one alternative per printed line, with `LINE NUMBER IS` INSIDE the brace (re-rendered 2026-10-05, kb/Work PB1221; an earlier transcription drew it as a prefix outside the brace). So `NUMBER` pairs only with `IS`, `NUMBERS` only with `LINE … ARE`, and `LINES` takes neither `NUMBER`, `NUMBERS` nor `IS`. ⚠ **The second group is enclosed in BRACES, not brackets** — exactly one of its three alternatives shall be specified; the `…` to its right repeats that brace group. Within the second alternative, `PLUS` and `+` are a nested brace pair (synonyms, one required).
+> **Figure notes (LINE clause Format 1 (report-writer) syntax diagram).** `LINE` (in the first two alternatives), `LINES`, `NEXT`, `PAGE`, and `PLUS` are underlined in the printed standard (required words); `NUMBER`, `NUMBERS`, `IS`, `ARE`, and `ON` are not underlined (optional words). ⚠ **The first group is a three-way BRACE** — `LINE NUMBER IS`, `LINE NUMBERS ARE`, `LINES ARE`, one alternative per printed line, with `LINE NUMBER IS` INSIDE the brace, as the figure generated from the printed page draws it (kb/Work PB1221, PB3530). So `NUMBER` pairs only with `IS`, `NUMBERS` only with `LINE … ARE`, and `LINES` takes neither `NUMBER`, `NUMBERS` nor `IS`. ⚠ **The second group is enclosed in BRACES, not brackets** — exactly one of its three alternatives shall be specified; the `…` to its right repeats that brace group. Within the second alternative, `PLUS` and `+` are a nested brace pair (synonyms, one required).
 
 Format 2 (screen):
 
@@ -17638,8 +17637,8 @@ The PAGE clause defines the maximum length and width of a page of a report and t
 
 <pre style="line-height:1">
                     ╭ integer-1                                         ╮
-<u>PAGE</u> ┌ LIMIT IS   ┐ ┤ ┌                     ┐ ┌                       ┐ ├
-     │            │ │ │           ╭ <u>LINE</u>  ╮ │ │           ╭ <u>COLS</u>    ╮ │ │
+<u>PAGE</u> ┌ LIMIT IS   ┐ ┤                                                   ├
+     │            │ │ ┌           ╭ <u>LINE</u>  ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ │
      └ LIMITS ARE ┘ │ │ integer-1 ┤       ├ │ │ integer-2 ┤         ├ │ │
                     ╰ └           ╰ <u>LINES</u> ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯
 
@@ -17731,13 +17730,11 @@ The PICTURE clause describes the General characteristics, editing requirements, 
 Format 1 (basic):
 
 <pre style="line-height:1">
-  <u>PICTURE</u>                     ┌                     ╭ IS literal-1                      ╮ ┐
-                              │                     │                                   │ │
-╭     ╮ IS character-string-1 │ <u>EDITING</u> character-1 ┤       │ <u>NEGATIVE</u> IS literal-2 │   ├ │ …
-┤     ├                       │                     │       │                       │   │ │
-╰ <u>PIC</u> ╯                       │                     │ <u>FOR</u> ╭ │                       │ ╮ │ │
-                              │                     │     ┤ │                       │ ├ │ │
-                              └                     ╰     ╰ │ <u>POSITIVE</u> IS literal-3 │ ╯ ╯ ┘
+                                  ┌                     ╭ IS literal-1                      ╮ ┐
+╭ <u>PICTURE</u> ╮                       │                     │                                   │ │
+┤         ├ IS character-string-1 │ <u>EDITING</u> character-1 ┤     ╭ │ <u>NEGATIVE</u> IS literal-2 │ ╮ ├ │ …
+╰ <u>PIC</u>     ╯                       │                     │ <u>FOR</u> ┤ │                       │ ├ │ │
+                                  └                     ╰     ╰ │ <u>POSITIVE</u> IS literal-3 │ ╯ ╯ ┘
 </pre>
 
 > **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `FOR`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `character-1`, and the literals are not.
@@ -20168,10 +20165,10 @@ NOTE    The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsole
 
 <pre style="line-height:1">
                                                           ┌    ╭ │ <u>FORMAT</u>   │ ╮ ┐
-                                                          │    │ │          │ │ │
-╭ <u>VALIDATE-STATUS</u> ╮ IS ╭ identifier-1 ╮ WHEN ╭ <u>ERROR</u>    ╮ │ <u>ON</u> ┤ │ <u>CONTENT</u>  │ ├ │
-┤                 ├    ┤              ├      ┤          ├ │    │ │          │ │ │
-╰ <u>VAL-STATUS</u>      ╯    ╰ literal-1    ╯      ╰ <u>NO</u> <u>ERROR</u> ╯ └    ╰ │ <u>RELATION</u> │ ╯ ┘
+╭ <u>VALIDATE-STATUS</u> ╮    ╭ identifier-1 ╮      ╭ <u>ERROR</u>    ╮ │    │ │          │ │ │
+┤                 ├ IS ┤              ├ WHEN ┤          ├ │ <u>ON</u> ┤ │ <u>CONTENT</u>  │ ├ │
+╰ <u>VAL-STATUS</u>      ╯    ╰ literal-1    ╯      ╰ <u>NO</u> <u>ERROR</u> ╯ │    │ │          │ │ │
+                                                          └    ╰ │ <u>RELATION</u> │ ╯ ┘
 
 <u>FOR</u> { identifier-2 } …
 </pre>
@@ -20291,11 +20288,10 @@ Format 4 (report-section):
 Format 5 (content-validation-entry):
 
 <pre style="line-height:1">
-╭ <u>VALUE</u>  ╮ ╭           ┌   <u>THROUGH</u>          ┐ ╮
-│        │ │           │                    │ │
-┤        ├ ┤ literal-5 │ ╭      ╮ literal-6 │ ├
-│ <u>VALUES</u> │ │           │ ┤      ├           │ │ … [ IN alphabet-name-1 ]
-╰        ╯ ╰           └ ╰ <u>THRU</u> ╯           ┘ ╯
+╭ <u>VALUE</u>  ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮
+┤        ├ ┤ literal-5 │ ┤         ├ literal-6 │ ├
+│        │ │           │ │         │           │ │ … [ IN alphabet-name-1 ]
+╰ <u>VALUES</u> ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
 
 ┌ IS  ┐ ╭ <u>INVALID</u> ╮
 │     │ ┤         ├ [ <u>WHEN</u> condition-1 ]
@@ -23785,11 +23781,11 @@ where selection-object is:
 where range-expression is:
 
 <pre style="line-height:1">
-╭ identifier-3            ╮   <u>THROUGH</u> ╭ identifier-4            ╮
-│                         │           │                         │
-┤ literal-3               ├ ╭      ╮  ┤ literal-4               ├ [ IN alphabet-name-1 ]
-│                         │ ┤      ├  │                         │
-╰ arithmetic-expression-3 ╯ ╰ <u>THRU</u> ╯  ╰ arithmetic-expression-4 ╯
+╭ identifier-3            ╮             ╭ identifier-4            ╮
+│                         │ ╭ <u>THROUGH</u> ╮ │                         │
+┤ literal-3               ├ ┤         ├ ┤ literal-4               ├ [ IN alphabet-name-1 ]
+│                         │ ╰ <u>THRU</u>    ╯ │                         │
+╰ arithmetic-expression-3 ╯             ╰ arithmetic-expression-4 ╯
 </pre>
 
 > **Figure notes (range-expression).** Underlining measured from the printed page: `THROUGH` and `THRU` are underlined (required words, 5.2.2) and are equivalent — 12.3.7.3 syntax rule 12 says so explicitly. `IN` is **not** underlined, so it is an optional word per 5.2.3. All three braces are plain select-exactly-one (5.2.6.3); no choice indicators are printed.
@@ -24885,23 +24881,23 @@ The INVOKE statement causes a method to be invoked.
 ##### 14.9.23.2 General format
 
 <pre style="line-height:1">
-                                                                       ┌       ╭                  ╭ identifier-3 ╮          ╮   ┐
-                                                                       │       │ [ BY <u>REFERENCE</u> ] ┤              ├          │   │
-                                                                       │       │                  ╰ <u>OMITTED</u>      ╯          │   │
-                                                                       │       │                                            │   │
-                                                                       │       │                ╭ arithmetic-expression-1 ╮ │   │
-                                                                       │       │                │                         │ │   │
-       ╭                                  ╮ ╭                        ╮ │       │ [ BY <u>CONTENT</u> ] ┤ boolean-expression-1    ├ │   │
-       │                                  │ │                        │ │       │                │                         │ │   │
-<u>INVOKE</u> ┤ object-class-name-1 identifier-1 ├ ┤ identifier-2 literal-1 ├ │ <u>USING</u> ┤                │ identifier-5            │ ├ … │
-       │                                  │ │                        │ │       │                │                         │ │   │
-       ╰                                  ╯ ╰                        ╯ │       │                ╰ literal-2               ╯ │   │
-                                                                       │       │                                            │   │
-                                                                       │       │              ╭ arithmetic-expression-1 ╮   │   │
-                                                                       │       │              │                         │   │   │
-                                                                       │       │ [ BY <u>VALUE</u> ] ┤ identifier-5            ├   │   │
-                                                                       │       │              │                         │   │   │
-                                                                       └       ╰              ╰ literal-2               ╯   ╯   ┘
+                                                ┌       ╭                  ╭ identifier-3 ╮          ╮   ┐
+                                                │       │ [ BY <u>REFERENCE</u> ] ┤              ├          │   │
+                                                │       │                  ╰ <u>OMITTED</u>      ╯          │   │
+                                                │       │                                            │   │
+                                                │       │                ╭ arithmetic-expression-1 ╮ │   │
+                                                │       │                │                         │ │   │
+                                                │       │                │ boolean-expression-1    │ │   │
+       ╭ object-class-name-1 ╮ ╭ identifier-2 ╮ │       │ [ BY <u>CONTENT</u> ] ┤                         ├ │   │
+<u>INVOKE</u> ┤                     ├ ┤              ├ │ <u>USING</u> ┤                │ identifier-5            │ ├ … │
+       ╰ identifier-1        ╯ ╰ literal-1    ╯ │       │                │                         │ │   │
+                                                │       │                ╰ literal-2               ╯ │   │
+                                                │       │                                            │   │
+                                                │       │              ╭ arithmetic-expression-1 ╮   │   │
+                                                │       │              │                         │   │   │
+                                                │       │ [ BY <u>VALUE</u> ] ┤ identifier-5            ├   │   │
+                                                │       │              │                         │   │   │
+                                                └       ╰              ╰ literal-2               ╯   ╯   ┘
 
 [ <u>RETURNING</u> identifier-4 ]
 </pre>
@@ -25751,11 +25747,11 @@ The PERFORM statement is used to transfer control explicitly to one or more proc
 Format 1 (out-of-line):
 
 <pre style="line-height:1">
-                         ┌                              ┐ ┌ times-phrase   ┐
-                         │ ╭ <u>THROUGH</u> ╮                  │ │                │
+                                                          ┌ times-phrase   ┐
+                         ┌ ╭ <u>THROUGH</u> ╮                  ┐ │                │
 <u>PERFORM</u> procedure-name-1 │ ┤         ├ procedure-name-2 │ │ until-phrase   │
-                         │ ╰ <u>THRU</u>    ╯                  │ │                │
-                         └                              ┘ └ varying-phrase ┘
+                         └ ╰ <u>THRU</u>    ╯                  ┘ │                │
+                                                          └ varying-phrase ┘
 </pre>
 
 > **Figure notes (PERFORM statement Format 1 (out-of-line)).** `PERFORM`, `THROUGH`, and `THRU` are underlined in the printed standard (required words). The two bracket groups are independent and adjacent, not nested: the first optionally supplies the `THROUGH`/`THRU procedure-name-2` range (exactly one of `THROUGH` / `THRU` if written), the second optionally supplies one of `times-phrase`, `until-phrase`, or `varying-phrase`. No choice indicators are present.
@@ -25834,17 +25830,17 @@ where varying-phrase is:
 │ WITH <u>TEST</u> ┤        ├ │
 └           ╰ <u>AFTER</u>  ╯ ┘
 
-                              ╭ identifier-3 ╮ ┌                     ┐
-        ╭ identifier-2 ╮      │              │ │    ╭ identifier-4 ╮ │
+                              ╭ identifier-3 ╮
+        ╭ identifier-2 ╮      │              │ ┌    ╭ identifier-4 ╮ ┐
 <u>VARYING</u> ┤              ├ <u>FROM</u> ┤ index-name-2 ├ │ <u>BY</u> ┤              ├ │ <u>UNTIL</u> condition-1
-        ╰ index-name-1 ╯      │              │ │    ╰ literal-2    ╯ │
-                              ╰ literal-1    ╯ └                     ┘
+        ╰ index-name-1 ╯      │              │ └    ╰ literal-2    ╯ ┘
+                              ╰ literal-1    ╯
 
-┌                             ╭ identifier-6 ╮ ┌                     ┐                   ┐
-│       ╭ identifier-5 ╮      │              │ │    ╭ identifier-7 ╮ │                   │ …
+┌                             ╭ identifier-6 ╮                                           ┐
+│       ╭ identifier-5 ╮      │              │ ┌    ╭ identifier-7 ╮ ┐                   │ …
 │ <u>AFTER</u> ┤              ├ <u>FROM</u> ┤ index-name-4 ├ │ <u>BY</u> ┤              ├ │ <u>UNTIL</u> condition-2 │
-│       ╰ index-name-3 ╯      │              │ │    ╰ literal-4    ╯ │                   │
-└                             ╰ literal-3    ╯ └                     ┘                   ┘
+│       ╰ index-name-3 ╯      │              │ └    ╰ literal-4    ╯ ┘                   │
+└                             ╰ literal-3    ╯                                           ┘
 </pre>
 
 > **Figure notes (varying-phrase syntax diagram).** `TEST`, `BEFORE`, `AFTER` (both the TEST AFTER word and the AFTER phrase word), `VARYING`, `FROM`, `BY`, and `UNTIL` are underlined in the printed standard (required words); `WITH` is not underlined. The `WITH TEST` phrase and each `BY` phrase are bracketed (optional). Every brace group requires exactly one of its enclosed alternatives. The ellipsis in the printed figure is placed **outside** the closing bracket of the whole `AFTER … UNTIL condition-2` group, so that entire optional group — not merely `condition-2` — may be repeated.
@@ -26973,21 +26969,21 @@ Format 2 (all):
 <pre style="line-height:1">
 <u>SEARCH</u> <u>ALL</u> identifier-1 [ AT <u>END</u> imperative-statement-1 ]
 
-     ╭               IS <u>EQUAL</u> TO ╭ identifier-3            ╮ ╮
-     │                           │                         │ │
-<u>WHEN</u> ┤ data-name-1 ╭      ╮      ┤ literal-1               ├ ├
-     │             ┤      ├      │                         │ │
-     │             ╰ IS = ╯      ╰ arithmetic-expression-1 ╯ │
-     │                                                       │
-     ╰ condition-name-1                                      ╯
+     ╭                             ╭ identifier-3            ╮ ╮
+     │             ╭ IS <u>EQUAL</u> TO ╮ │                         │ │
+<u>WHEN</u> ┤ data-name-1 ┤             ├ ┤ literal-1               ├ ├
+     │             ╰ IS =        ╯ │                         │ │
+     │                             ╰ arithmetic-expression-1 ╯ │
+     │                                                         │
+     ╰ condition-name-1                                        ╯
 
-┌     ╭               IS <u>EQUAL</u> TO ╭ identifier-4            ╮ ╮ ┐
-│     │                           │                         │ │ │
-│ <u>AND</u> ┤ data-name-2 ╭      ╮      ┤ literal-2               ├ ├ │ …
-│     │             ┤      ├      │                         │ │ │
-│     │             ╰ IS = ╯      ╰ arithmetic-expression-2 ╯ │ │
-│     │                                                       │ │
-└     ╰ condition-name-2                                      ╯ ┘
+┌     ╭                             ╭ identifier-4            ╮ ╮ ┐
+│     │             ╭ IS <u>EQUAL</u> TO ╮ │                         │ │ │
+│ <u>AND</u> ┤ data-name-2 ┤             ├ ┤ literal-2               ├ ├ │ …
+│     │             ╰ IS =        ╯ │                         │ │ │
+│     │                             ╰ arithmetic-expression-2 ╯ │ │
+│     │                                                         │ │
+└     ╰ condition-name-2                                        ╯ ┘
 
 ╭ imperative-statement-2 ╮
 ┤                        ├
@@ -27138,9 +27134,9 @@ Format 1 (to-message-server)
 
 <u>RETURNING</u> data-name-1
 
-┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
 │ │                                         │ │
-└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
 
 <u>END-SEND</u>
 </pre>
@@ -27156,9 +27152,9 @@ Format 2 (message-server-response)
 │ <u>RAISING</u> ┤                            ├ │
 └         ╰ <u>LAST</u> EXCEPTION             ╯ ┘
 
-┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
 │ │                                         │ │
-└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
 
 <u>END-SEND</u>
 </pre>
@@ -27253,10 +27249,10 @@ Format 1 (index-assignment):
 
 <pre style="line-height:1">
                           ╭ arithmetic-expression-1 ╮
-                          │                         │
-<u>SET</u> ╭ index-name-1 ╮ … <u>TO</u> ┤ index-name-2            ├
-    ┤              ├      │                         │
-    ╰ identifier-1 ╯      ╰ identifier-2            ╯
+    ╭ index-name-1 ╮      │                         │
+<u>SET</u> ┤              ├ … <u>TO</u> ┤ index-name-2            ├
+    ╰ identifier-1 ╯      │                         │
+                          ╰ identifier-2            ╯
 </pre>
 
 > **Figure notes (SET statement Format 1 (index-assignment) syntax diagram).** `SET` and `TO` are underlined in the printed standard (required words). The first brace group requires exactly one of `index-name-1` / `identifier-1` and the `…` repeats that group, giving one or more receiving operands; the second brace group requires exactly one of the three sending operands.
@@ -28325,8 +28321,8 @@ The STRING statement provides concatenation of the partial or complete contents 
        ╭                    ┌              ╭ identifier-2 ╮ ┐ ╮
 <u>STRING</u> │ ╭ identifier-1 ╮   │              │              │ │ │ …
        ┤ ┤              ├ … │ <u>DELIMITED</u> BY ┤ literal-2    ├ │ ├
-       │ │              │   │              │              │ │ │
-       ╰ ╰ literal-1    ╯   └              ╰ <u>SIZE</u>         ╯ ┘ ╯
+       │ ╰ literal-1    ╯   │              │              │ │ │
+       ╰                    └              ╰ <u>SIZE</u>         ╯ ┘ ╯
 
 <u>INTO</u> identifier-3
 [ WITH <u>POINTER</u> identifier-4 ]
@@ -28846,10 +28842,10 @@ Format 1 (file-exception):
                                                          ╭ { file-name-1 } … ╮
                                                          │                   │
                                                          │ <u>INPUT</u>             │
-                                                         │                   │
-<u>USE</u> [ <u>GLOBAL</u> ] AFTER STANDARD ╭ <u>EXCEPTION</u> ╮ PROCEDURE ON ┤ <u>OUTPUT</u>            ├
-                              ┤           ├              │                   │
-                              ╰ <u>ERROR</u>     ╯              │ <u>I-O</u>               │
+                              ╭ <u>EXCEPTION</u> ╮              │                   │
+<u>USE</u> [ <u>GLOBAL</u> ] AFTER STANDARD ┤           ├ PROCEDURE ON ┤ <u>OUTPUT</u>            ├
+                              ╰ <u>ERROR</u>     ╯              │                   │
+                                                         │ <u>I-O</u>               │
                                                          │                   │
                                                          ╰ <u>EXTEND</u>            ╯
 </pre>
@@ -29198,7 +29194,8 @@ Format 1 (sequential):
 │                          │ ┤              ├ │       │ │ │
 │ ╭ │ <u>BEFORE</u> │ ╮           │ ╰ integer-1    ╯ └ LINES ┘ │ │
 │ ┤ │        │ ├ ADVANCING ┤                            ├ │
-│ ╰ │ <u>AFTER</u>  │ ╯           │ ╭ mnemonic-name-1 ╮        │ │
+│ ╰ │ <u>AFTER</u>  │ ╯           │                            │ │
+│                          │ ╭ mnemonic-name-1 ╮        │ │
 │                          │ ┤                 ├        │ │
 └                          ╰ ╰ <u>PAGE</u>            ╯        ╯ ┘
 
