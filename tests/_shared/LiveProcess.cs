@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Shared;
 /// <para>The protocol is the program's own stdin and stdout: the test <see cref="Send"/>s a line the program
 /// <c>ACCEPT</c>s and <see cref="ReadLine"/>s a line the program <c>DISPLAY</c>ed, so every step is ordered by a
 /// message and never by a delay. ⛔ A line that never comes is a NON-OBSERVATION, bounded by the one harness budget
-/// (<see cref="ProcessObserver.TimeoutMs"/>) and raised as <see cref="HarnessNonObservationException"/> — never a
+/// (<see cref="ObservationBudget.UnitMs"/>) and raised as <see cref="HarnessNonObservationException"/> — never a
 /// value to compare (plan §11 A12), and never a private literal timeout in a test.</para>
 /// </summary>
 internal sealed class LiveProcess : IDisposable
@@ -52,9 +52,9 @@ internal sealed class LiveProcess : IDisposable
     public string? ReadLine()
     {
         var read = Task.Run(_process.StandardOutput.ReadLine);
-        if (!read.Wait(ProcessObserver.TimeoutMs))
+        if (!read.Wait(ObservationBudget.UnitMs))
             throw new HarnessNonObservationException(
-                $"⛔ HARNESS NON-OBSERVATION — no stdout line from '{_command}' within {ProcessObserver.TimeoutMs} ms "
+                $"⛔ HARNESS NON-OBSERVATION — no stdout line from '{_command}' within {ObservationBudget.UnitMs} ms "
                 + "(COBOLNET_RUN_TIMEOUT_MS); this is NOT a value mismatch and NOT a compiler verdict.");
         return read.Result;
     }
