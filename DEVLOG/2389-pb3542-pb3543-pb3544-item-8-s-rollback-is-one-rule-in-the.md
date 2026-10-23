@@ -1,4 +1,4 @@
-## PB3542, PB3543, PB3544: item 8's ROLLBACK is one rule, in the standard's order
+## Entry 2389 — 2026-10-22 21:24 PDT — PB3542, PB3543, PB3544: item 8's ROLLBACK is one rule, in the standard's order
 
 Wave 1156 group A. ISO §14.6.13.1.3 item 8 says that "if there is a fatal exception condition for a file subject to an
 active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally", but only in its own arm: "If checking for
@@ -48,3 +48,4 @@ SORT/MERGE transfer hook passes `verbDisposes: true`.
 
 **Rows.** None claimed; GR-14.6.13.1.3-8 stays CONFORMS. Docs: DESIGN-runtime-library.md 2.2.1.10 ("The compiler half")
 and CONFORMANCE.md A.4.3's witnesses.
+
