@@ -656,6 +656,9 @@ whose medium is the file system, needed the rule stating in two places at once:
   own watermark in the same breath, because a sequential REWRITE targets a record at or before its own file
   position indicator and cannot invalidate its own read-ahead). `NextFrame` — the ONE physical framing walk —
   compares it before every frame and re-anchors the reader at the logical offset, discarding the read-ahead.
+  A sibling OPEN OUTPUT's truncation moves it too (`OpenCore`'s OUTPUT arm calls `NoteRelease`): from COBOL-2002
+  Table 19 refuses an OUTPUT beside an open connector, but at COBOL-85 the sharing facility is not in effect and the
+  truncation is admitted, so an open reader's next READ re-anchors and meets the empty file (the at end condition).
 - and the OS handle carries NO buffer of its own when the posture admits another writer, because
   `StreamReader.DiscardBufferedData` reaches only the reader's own characters: with the generation in place and
   a 4096-byte `FileStream` underneath, a sibling's REWRITE was STILL invisible, since `FileStream.Seek` reuses

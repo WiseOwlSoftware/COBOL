@@ -346,6 +346,69 @@ public sealed class SharingFacilityEditionTests
         finally { FileHarness.TryDelete(host); }
     }
 
+    /// <summary>A sibling OPEN OUTPUT truncates the file an open INPUT connector has read ahead of (admitted at COBOL-85, where
+    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§14.9.30.4 GR21 c), and
+    /// the truncated file holds none, so it is the at end condition ('10') whether or not the truncating connector has written
+    /// anything yet. Fails on a reader serving its read-ahead of records the file no longer holds. The control arm writes first:
+    /// the reader, positioned after its first record, finds the new second record, never one of the old ones.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader(bool writeAfterTruncating)
+    {
+        string host = FileHarness.Tmp($"pb670-truncated-{writeAfterTruncating}");
+        try
+        {
+            FileHarness.Seed(host, FileOrg.Sequential, Enumerable.Range(1, 50).Select(i => $"O{i:D3}").ToArray());
+            var reg = new FileRegistry();
+            foreach (string name in new[] { "A", "B" })
+                FileHarness.Register(reg, name, host, FileOrg.Sequential, sharing: null, edition: Cobol85);
+            FileHarness.Open(reg, "A", FileOpenMode.Input);
+            Assert.Equal("00", FileHarness.ReadNext(reg, "A", out _));        // fills the read-ahead with the later records too
+
+            FileHarness.Open(reg, "B", FileOpenMode.Output);
+            Assert.Equal("00", reg.Status("B"));                              // admitted: no sharing facility at 85
+            Assert.Equal(0, new FileInfo(host).Length);                       // …and it truncated
+
+            if (writeAfterTruncating)
+            {
+                Assert.Equal("00", FileHarness.Write(reg, "B", FileOrg.Sequential, 1, "NEW1"));
+                Assert.Equal("00", FileHarness.Write(reg, "B", FileOrg.Sequential, 2, "NEW2"));
+                Assert.Equal("00", FileHarness.ReadNext(reg, "A", out string found));   // the reader had read record 1 already
+                Assert.Equal(FileHarness.Rec(2, "NEW2"), found);
+            }
+            else
+                Assert.Equal(FileStatusCode.AtEnd, FileHarness.ReadNext(reg, "A", out _));
+            reg.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>The sibling arms of <see cref="AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader"/>: a keyed
+    /// store (RELATIVE, INDEXED) reads the store afresh at every statement, so an open reader's next READ meets the truncated
+    /// store's empty file the same way (§14.9.30.4 GR21, the at end condition).</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void AtCobol85_ASiblingOutputThatTruncatesAKeyedStoreIsHeardByAnOpenReader(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"pb670-truncated-{org}");
+        try
+        {
+            FileHarness.Seed(host, org, Enumerable.Range(1, 50).Select(i => $"O{i:D3}").ToArray());
+            var reg = new FileRegistry();
+            foreach (string name in new[] { "A", "B" })
+                FileHarness.Register(reg, name, host, org, sharing: null, edition: Cobol85);
+            FileHarness.Open(reg, "A", FileOpenMode.Input);
+            Assert.Equal("00", FileHarness.ReadNext(reg, "A", out _));
+            FileHarness.Open(reg, "B", FileOpenMode.Output);
+            Assert.Equal("00", reg.Status("B"));
+            Assert.Equal(FileStatusCode.AtEnd, FileHarness.ReadNext(reg, "A", out _));
+            reg.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
     /// <summary>The controls of <see cref="AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten"/>: from
     /// 2002 the posture is fixed at OPEN by the sharing mode, so a clause-less OUTPUT (NO OTHER) buffers whether or not a sibling
     /// could exist, and SHARING WITH ALL OTHER releases every record at once, alone or not.</summary>
