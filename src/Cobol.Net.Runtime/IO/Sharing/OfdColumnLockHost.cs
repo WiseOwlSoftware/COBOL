@@ -21,7 +21,10 @@ internal sealed class OfdColumnLockHost : IColumnLockHost
     /// <summary>The byte a column is published on. ⛔ A WIRE VALUE (see <see cref="RunUnitFileLock.WireNumber"/>).</summary>
     private static long ByteOf(ExistingSharingColumn column) => HostRegionLocks.RegionBase + RunUnitFileLock.WireNumber(column);
 
-    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+    /// <inheritdoc/>
+    /// <remarks><paramref name="owesWrites"/> is not published: the share mode of this host is one advisory <c>flock</c> that
+    /// no writable handle refuses a reader of (<see cref="HostFile.ShareModesAreMandatory"/>), so no share mode yields.</remarks>
+    public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
         IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
     {
         hold = null;
