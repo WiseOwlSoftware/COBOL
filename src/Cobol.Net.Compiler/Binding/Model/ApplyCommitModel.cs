@@ -9,9 +9,10 @@ namespace CobolNet.Binding.Model;
 /// <see cref="FileModel.SubjectToApplyCommit"/>, the antecedent of the claimed clauses' syntax rules.
 /// <see cref="Items"/> is every data item the clause saves at COMMIT and restores at ROLLBACK: the identifier-1
 /// operands (SR3) and, after them, the items SR9 makes "automatically subject to the APPLY COMMIT clause" — each listed
-/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (§14.9.7.4 GR5, §14.9.36.4 GR3:
+/// file's FILE STATUS item, its LINAGE data-names and its RECORD clause's DEPENDING item (COMMIT, §14.9.7.4 GR5:
 /// "This includes the file status data items and data-items specified in the linage or record clauses of the file
-/// descriptions"). An item appears once, whichever way it arrived.</para>
+/// descriptions"; ROLLBACK, §14.9.36.4 GR3: "It also includes the file status data items and data-items specified in the
+/// linage or record clauses of the file descriptions"). An item appears once, whichever way it arrived.</para>
 /// </summary>
 public sealed class ApplyCommitModel
 {
@@ -20,9 +21,10 @@ public sealed class ApplyCommitModel
 
     /// <summary>⛔ THE FILES THE CLAUSE PUTS UNDER COMMIT CONTROL — the keyed ones. A SEQUENTIAL operand is refused
     /// (COBOLNET1709, docs/CONFORMANCE.md §4 item 2; kb/Work PB3340); under <c>--permissive</c> the refusal is a warning
-    /// and the declined operand is simply absent: never activated, committed, rolled back or told of a refusal. The one
-    /// statement of that rule: the activation, the statements' own-file arms and the EC binding all read it.</summary>
-    public IEnumerable<FileModel> CommitControlledFiles => Files.Where(f => !f.IsSequential);
+    /// and the declined operand is simply absent: never activated, committed, rolled back or told of a refusal. The rule
+    /// is <see cref="FileModel.IsCommitControlled"/>; the activation, the statements' own-file arms and the EC binding
+    /// read this list of it.</summary>
+    public IEnumerable<FileModel> CommitControlledFiles => Files.Where(f => f.IsCommitControlled);
 
     /// <summary>The identifier-1 operands as written, resolved post-build (<c>DataBinder.ResolveApplyCommit</c>): the
     /// data division is not bound when the I-O-CONTROL paragraph is.</summary>
