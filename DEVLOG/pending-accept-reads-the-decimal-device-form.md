@@ -37,6 +37,8 @@ scaling, the inverse over DISPLAY's own text), their expected values from the su
 conformance suite runs programs with standard input closed, so the golden the note named could not carry input; the C#
 tests pipe it. `kb/Work/PB3513` landed with `closes_rows: []` (it implements an owner decision and claims no inventory row).
 
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 10,366/18,195 · Unit 34,911/35,562 · Characterization 5/36 cases ran` (run `000001-20261023T172913Z`; the five new `AcceptDifferentialTests` and the eight `NumericDisplayDecimalTests.Accept_*` rows Passed in leg 1).
+
 **Self-review.** Architecture: one reader beside its inverse, one façade method, the option read in the one emitter file;
 no second spelling of the form. Full code: the reader implements the cited rules and the measured survey; sibling arms agree.
 Performance: the reader allocates nothing beyond the transferred window. Duplication: none. Comment and silent-failure
