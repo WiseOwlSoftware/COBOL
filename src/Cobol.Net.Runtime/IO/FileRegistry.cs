@@ -202,6 +202,7 @@ public sealed class FileRegistry
         CloseIfOpen(cobolName);
         Retire(cobolName);   // what a CLOSE under commit control kept stays the COMMIT's and the ROLLBACK's (PB3484)
         _connectorShares.Remove(cobolName);
+        _shareBeforeCommitControl.Remove(cobolName);
     }
 
     /// <summary>A connector is about to leave <see cref="_files"/> (displaced, or dropped with its object) after its CLOSE, or to
@@ -1078,8 +1079,32 @@ public sealed class FileRegistry
     {
         if (Require(name) is not KeyedConnector keyed)
             throw MisroutedVerb("APPLY COMMIT (the sequential journal is kb/Work PB3340)", name, Require(name));
+        _shareBeforeCommitControl.TryAdd(name, _connectorShares.TryGetValue(name, out var declared) ? declared : null);
         keyed.CommitControlled = true;
         _connectorShares[name] = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
+    }
+
+    /// <summary>The file control entry's own record-locking posture of each connector put under commit control
+    /// (<see cref="RegisterCommitControl"/>), which <see cref="ReleaseCommitControl"/> puts back; null when the entry
+    /// declared none (<see cref="ImplementorDefaultShare"/>).</summary>
+    private readonly Dictionary<string, ConnectorShare?> _shareBeforeCommitControl = new(CobolNames.Comparer);
+
+    /// <summary>⛔ TAKE A FILE CONNECTOR OUT OF COMMIT CONTROL — the inverse of <see cref="RegisterCommitControl"/>, run when
+    /// the last APPLY COMMIT clause naming it is DEACTIVATED (kb/Work PB3541; <see cref="TransactionControl"/>): §14.9.7.4
+    /// GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled
+    /// runtime elements"</i>, and §14.9.36.4 GR6 for the ROLLBACK. From then on the file is no longer "specified in" an
+    /// active clause, so its changes are no longer the next ROLLBACK's (§14.9.36.4 GR3: <i>"All files and data-items
+    /// referenced in active APPLY COMMIT clauses are restored"</i>), §14.6.13.1.3 item 8 no longer applies to it, and
+    /// §9.1.16's implicit AUTOMATIC posture gives way to the file control entry's own. The COMMIT or ROLLBACK that
+    /// deactivates the clause has already ended the file's transaction and given back what its CLOSE kept; a transaction
+    /// whose rollback the medium refused stays owed, found by its open transaction id and not by this flag
+    /// (<see cref="TransactionHolders"/>).</summary>
+    internal void ReleaseCommitControl(string name)
+    {
+        if (_files.TryGetValue(name, out var c) && c is KeyedConnector keyed) keyed.CommitControlled = false;
+        if (!_shareBeforeCommitControl.Remove(name, out var declared)) return;
+        if (declared is { } share) _connectorShares[name] = share;
+        else _connectorShares.Remove(name);
     }
 
     /// <summary>Whether <paramref name="name"/>'s connector is under commit control — "a file subject to an active APPLY
