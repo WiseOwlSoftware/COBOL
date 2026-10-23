@@ -74,4 +74,4 @@ to the sequential operand, §7 DOC-A.1-28, COBOLNET1579 struck everywhere; the s
 A.3 items 6-7; the README summary; VCR row 39 anchored to the new construct `apply-commit-clause-2023`; the files,
 validation and data-model designs; plan §0. Register: PB3338 and PB1096 landed; PB3330 unblocked.
 
-**Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN` at 171ef15bb (run 20261022T234659Z-e0f6c1).
+**Gate.** Wave 1154: `LEG 1 ONLY (batched gating, PB2515): GREEN` at 5cdb38b69 (run 20261023T004812Z-d80e58; Conformance 10,490/18,151, Unit 34,849/35,408, Characterization 5/36 in leg 1), after two audit reds the change itself exposed: the ledger renderer's hand-kept verdict classes lacked NEEDS-OWNER-DECISION (now read from the schema's `resolves` flag), and `differential_fuzz.py`'s self-test still expected COMMIT and ROLLBACK among the declined seeds.
