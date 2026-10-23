@@ -36,19 +36,27 @@ internal interface IColumnLockHost
     /// the replacement, and <paramref name="supersedes"/> must not be disposed by the caller (the host may have reused
     /// it as <paramref name="hold"/>). On a refusal or an unavailable lock <paramref name="supersedes"/> is exactly as it
     /// was, still held (kb/Work PB3483: a connector's re-OPEN after a CLOSE under commit control must keep the file lock
-    /// the CLOSE kept until the COMMIT or ROLLBACK, §14.9.7.4 GR4, whatever the re-OPEN meets).</para></summary>
-    RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+    /// the CLOSE kept until the COMMIT or ROLLBACK, §14.9.7.4 GR4, whatever the re-OPEN meets).</para>
+    /// <para>⛔ <paramref name="owesWrites"/> is the one fact about the holder that no Table 19 column carries (kb/Work PB3499):
+    /// its connector is open in the INPUT mode with a handle open for WRITING, because its transaction still owes its COMMIT
+    /// or ROLLBACK (2.2.1.10 in docs/rearchitecture/DESIGN-runtime-library.md). It is published with the column, as one
+    /// request, for as long as the hold stands (a superseding request carries its own value), and a host with mandatory share
+    /// modes alone carries it: it is what lets a SHARING WITH READ ONLY request's share mode yield to that handle and to no
+    /// other writer (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, <see cref="IPublishedColumn.AnotherOwesWrites"/>).
+    /// A host whose share modes are advisory has no share mode to yield and ignores it.</para></summary>
+    RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
         IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold);
 }
 
-/// <summary>A published Table 19 column that can also be asked who else holds one (kb/Work PB3482). Only a host whose share
-/// modes are mandatory needs the question — <see cref="FileConnector.Open"/> asks it on its second attempt — so only that
-/// host's hold (<see cref="HandleColumnLockHost"/>) is one; the other hosts' holds are plain <see cref="IDisposable"/>s and
-/// <see cref="RunUnitFileLock.AnotherInputOpenerHolds"/> answers false for them.</summary>
+/// <summary>A published hold that can also be asked whether another holder owes writes (kb/Work PB3482, PB3499). Only a host
+/// whose share modes are mandatory needs the question — <see cref="FileConnector.Open"/> asks it on its second attempt — so only
+/// that host's hold (<see cref="HandleColumnLockHost"/>) is one; the other hosts' holds are plain <see cref="IDisposable"/>s and
+/// <see cref="RunUnitFileLock.AnotherOwesWrites"/> answers false for them.</summary>
 internal interface IPublishedColumn : IDisposable
 {
-    /// <summary>Does a holder other than this one hold <paramref name="column"/>? False once the column was given back.</summary>
-    bool AnotherHolds(ExistingSharingColumn column);
+    /// <summary>Does a holder other than this one owe writes (<see cref="IColumnLockHost.Establish"/>'s <c>owesWrites</c>)?
+    /// False once the hold was given back.</summary>
+    bool AnotherOwesWrites();
 
     /// <summary>Is the hold itself an open handle on the physical file? Such a handle is the connector's OWN, and a probe
     /// that every outstanding handle refuses (<see cref="HostFile.IsHeldByAnother"/>) meets it as if it were another's

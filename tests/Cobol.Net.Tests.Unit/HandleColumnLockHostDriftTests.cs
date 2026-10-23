@@ -109,12 +109,12 @@ public sealed class HandleColumnLockHostDriftTests
         try
         {
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out var kept));
-            Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(FileSharing.ReadOnly, FileOpenMode.IO));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(FileSharing.ReadOnly, FileOpenMode.IO, owesWrites: false));
             Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
             Assert.True(kept.Revert());
 
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var other));
-            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept.Amend(FileSharing.AllOther, FileOpenMode.Output));   // OUTPUT refuses every column
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept.Amend(FileSharing.AllOther, FileOpenMode.Output, owesWrites: false));   // OUTPUT refuses every column
             other!.Dispose();
             Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));   // still kept
             kept.Dispose();
@@ -138,12 +138,12 @@ public sealed class HandleColumnLockHostDriftTests
         {
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var other));
-            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(FileSharing.NoOther, FileOpenMode.IO));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(FileSharing.NoOther, FileOpenMode.IO, owesWrites: false));
             Assert.True(kept.HoldsAHandle);   // the holder is still there
             other!.Dispose();
             Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out _));   // the kept column refuses a writer
 
-            Assert.Equal(RunUnitFileLock.Outcome.Held, kept.Amend(FileSharing.NoOther, FileOpenMode.IO));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, kept.Amend(FileSharing.NoOther, FileOpenMode.IO, owesWrites: false));
             Assert.False(kept.HoldsAHandle);
             using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // the share mode's own handle opens
 
@@ -218,41 +218,119 @@ public sealed class HandleColumnLockHostDriftTests
         }
     }
 
-    /// <summary>The question a share mode needs answered to yield (<see cref="RunUnitFileLock.AnotherInputOpenerHolds"/>, kb/Work
-    /// PB3482): is there ANOTHER holder of an INPUT column — only an INPUT opener can owe writes. A holder never counts itself
-    /// (its own column's range is asked around its own byte), a column given back is not held, and a holder of a column that
-    /// is not an INPUT column is no answer to it.</summary>
+    /// <summary>The question a share mode needs answered to yield (<see cref="RunUnitFileLock.AnotherOwesWrites"/>, kb/Work
+    /// PB3482, PB3499): does ANOTHER holder owe writes — is it an INPUT opener whose handle stands open for writing. A reader
+    /// that merely holds an INPUT column does not, however many hold one (the proxy this replaced asked "does another INPUT
+    /// opener hold a column", and an unrelated reader answered yes). A holder never counts itself (the owed-writes range is
+    /// asked around its own byte), a lock given back is not held and asks nothing, and the state follows a superseding request:
+    /// the byte is carried when the new request owes writes too, published when only it does, given back when only the
+    /// superseded one did, and <see cref="RunUnitFileLock.Revert"/> publishes the superseded state again.</summary>
     [Fact]
-    public void AnInputOpenerIsSeenByAnotherHolderAndOnlyByAnother()
+    public void AHolderThatOwesWritesIsSeenByAnotherHolderAndOnlyByAnother()
     {
         if (!OperatingSystem.IsWindows()) return;
         var (dir, file) = NewFile();
         try
         {
-            // READ ONLY INPUT beside READ ONLY INPUT (Table 19: Normal open) — each asks around its own byte of the one column.
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var a));
-            Assert.False(a!.AnotherInputOpenerHolds());   // itself is no other
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var b));
-            Assert.True(a.AnotherInputOpenerHolds());
-            Assert.True(b!.AnotherInputOpenerHolds());
-            b.Dispose();
-            Assert.False(a.AnotherInputOpenerHolds());    // given back
-            Assert.False(b.AnotherInputOpenerHolds());    // and a lock given back asks nothing
-            a.Dispose();
-            Assert.False(a.AnotherInputOpenerHolds());
+            // INPUT readers owe nothing, however many hold an INPUT column (Table 19: ALL OTHER input beside ALL OTHER input is a normal open).
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var a));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var b));
+            Assert.False(a!.AnotherOwesWrites());
+            Assert.False(b!.AnotherOwesWrites());
 
-            // ALL OTHER: a writer (I-O) is no INPUT opener; an INPUT one beside it is.
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var x));
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var writer));
-            Assert.False(x!.AnotherInputOpenerHolds());
-            Assert.True(writer!.AnotherInputOpenerHolds());   // the writer sees the INPUT opener
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var y));
-            Assert.True(x.AnotherInputOpenerHolds());
-            y!.Dispose();
-            writer.Dispose();
-            x.Dispose();
+            // A kept lock's INPUT re-OPEN that owes its transaction's writes: seen by both readers, not by itself.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var k));
+            Assert.False(a.AnotherOwesWrites());                  // the I-O opener the CLOSE kept owes none yet
+            Assert.Equal(RunUnitFileLock.Outcome.Held, k!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: true));
+            Assert.True(a.AnotherOwesWrites());
+            Assert.True(b.AnotherOwesWrites());
+            Assert.False(k.AnotherOwesWrites());                  // itself is no other
+
+            // A second owing holder: each sees the other; one that stops owing (its transaction ended, a replacement under
+            // another mode) is no longer seen, and a Revert publishes what it replaced.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var k2));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, k2!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: true));
+            Assert.True(k.AnotherOwesWrites());
+            Assert.True(k2.AnotherOwesWrites());
+            Assert.Equal(RunUnitFileLock.Outcome.Held, k2.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites: false));
+            Assert.False(k.AnotherOwesWrites());                  // k2 stopped owing
+            Assert.True(k2.AnotherOwesWrites());                  // and k still does
+            Assert.True(k2.Revert());
+            Assert.True(k.AnotherOwesWrites());                   // the superseded state, owing, is published again
+            Assert.True(a.AnotherOwesWrites());
+
+            // A superseding request that is refused publishes nothing: the owed-writes byte it added goes back with it.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var k3));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, k3!.Amend(FileSharing.AllOther, FileOpenMode.Output, owesWrites: true));   // OUTPUT refuses every column
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var probe));
+            k.Dispose();
+            k2.Dispose();
+            Assert.False(probe!.AnotherOwesWrites());             // nobody owes writes now: not k3's refused request
+            Assert.False(a.AnotherOwesWrites());
+            Assert.False(k.AnotherOwesWrites());                  // a lock given back asks nothing
+            k3.Dispose();
+            probe.Dispose();
+            b.Dispose();
+            a.Dispose();
+            Assert.False(a.AnotherOwesWrites());
+
+            // A column taken afresh carries it too (a connector whose kept handle published no column: the other arm of
+            // FileConnector.TakeRunUnitFileLock), seen by a reader beside it and not by itself.
+            Assert.Equal(RunUnitFileLock.Outcome.Held,
+                RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var fresh, owesWrites: true));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var reader));
+            Assert.False(fresh!.AnotherOwesWrites());
+            Assert.True(reader!.AnotherOwesWrites());
+            fresh.Dispose();
+            Assert.False(reader.AnotherOwesWrites());
+            reader.Dispose();
         }
         finally { Clean(dir); }
+    }
+
+    /// <summary>The owed-writes byte is one fact about the holder and changes no answer of the table: for every request, a
+    /// holder that owes writes (an INPUT re-OPEN under ALL OTHER) refuses it exactly as the same holder that owes none does
+    /// (§14.9.27.4 GR4, Table 19 is the arbiter between connectors).</summary>
+    [Theory]
+    [MemberData(nameof(EveryRequest))]
+    public void OwingWritesChangesNoAnswerOfTheTable(FileSharing sharing, FileOpenMode mode)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            RunUnitFileLock.Outcome Answer(bool owesWrites)
+            {
+                Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var kept));
+                Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(FileSharing.AllOther, FileOpenMode.Input, owesWrites));
+                var outcome = RunUnitFileLock.Take(Host, file, sharing, mode, out var requested);
+                requested?.Dispose();
+                kept.Dispose();
+                return outcome;
+            }
+            Assert.Equal(Answer(owesWrites: false), Answer(owesWrites: true));
+        }
+        finally { Clean(dir); }
+    }
+
+    public static TheoryData<FileSharing, FileOpenMode> EveryRequest()
+    {
+        var data = new TheoryData<FileSharing, FileOpenMode>();
+        foreach (var sharing in Table19.StandardModes)
+            foreach (var mode in Enum.GetValues<FileOpenMode>())
+                data.Add(sharing, mode);
+        return data;
+    }
+
+    /// <summary>The owed-writes range lies right past the last column's range, so no column's byte is ever one of its bytes and
+    /// no owed-writes byte one of a column's (a WIRE VALUE between Windows run units, <see cref="HostRegionLocks.OwedWritesRangeStart"/>).</summary>
+    [Fact]
+    public void TheOwedWritesRangeLiesPastEveryColumnsRange()
+    {
+        long last = Enum.GetValues<ExistingSharingColumn>().Max(column => HostRegionLocks.ColumnRangeStart(column));
+        Assert.Equal(HostRegionLocks.OwedWritesRangeStart, last + HostRegionLocks.ColumnRangeWidth);
+        foreach (var column in Enum.GetValues<ExistingSharingColumn>())
+            Assert.True(HostRegionLocks.ColumnRangeStart(column) + HostRegionLocks.ColumnRangeWidth <= HostRegionLocks.OwedWritesRangeStart);
     }
 
     /// <summary>⛔ CONTENTION BETWEEN PUBLISHERS AND TESTERS NEVER MAKES THE HOST UNAVAILABLE. A tester's shared request over a
@@ -336,7 +414,7 @@ public sealed class HandleColumnLockHostDriftTests
 
                 // The held column replaced by the one whose range the outsider holds: the request is unavailable and the kept
                 // column stands (it refuses a READ ONLY I-O request, whose own range the outsider does not hold).
-                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept!.Amend(sharing, mode));
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept!.Amend(sharing, mode, owesWrites: false));
                 Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
                 Assert.True(kept.Revert());   // nothing was amended: the restore is a no-op
                 Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
