@@ -337,7 +337,7 @@ public sealed class SequentialJournalTests : IDisposable
     {
         var access = Enum.Parse<JournalAccess>(accessName);
         var expected = Enum.Parse<JournalConflict>(expectedName);
-        var other = new JournalContent(0, JournalStart.Present, CommittedLength: 8, [new RewriteImage(0, 0, Bytes("C1__"))], null, JournalDecision.Open);
+        var other = new JournalContent(0, JournalStart.Present, committedLength: 8, [new RewriteImage(0, 0, Bytes("C1__"))], null, JournalDecision.Open);
         Assert.Equal(expected, SequentialJournal.Test([new OtherTransaction(0, other)], access, ordinal, offset));
     }
 
