@@ -201,6 +201,16 @@ internal static class HostRegionLocks
     internal static long ColumnRangeStart(ExistingSharingColumn column) =>
         ColumnRegionBase + RunUnitFileLock.WireNumber(column) * ColumnRangeWidth;
 
+    /// <summary>The first byte of the OWED-WRITES range (<see cref="HandleColumnLockHost"/>, kb/Work PB3499): the range beside
+    /// the last column's, of the same width. A holder whose connector is open in the INPUT mode with a handle open for
+    /// WRITING (an INPUT re-OPEN under an active APPLY COMMIT clause while its transaction stands, 2.2.1.10) holds exclusively
+    /// ONE byte of it, chosen as a column's byte is, for as long as that handle stands; "does any holder OTHER than me hold
+    /// one" is then the exact question a host share mode needs answered to yield to a writer
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>). ⛔ A WIRE VALUE between Windows run units, like the columns'
+    /// ranges (five of them, <see cref="RunUnitFileLock.WireNumber"/>):
+    /// <c>HandleColumnLockHostDriftTests.TheOwedWritesRangeLiesPastEveryColumnsRange</c> holds it past every column's range.</summary>
+    internal const long OwedWritesRangeStart = ColumnRegionBase + 5 * ColumnRangeWidth;
+
     // ── The host ──────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE ONE CHOICE OF HOST, made once: the per-handle expression where the process shape carries it
@@ -218,7 +228,7 @@ internal static class HostRegionLocks
     internal static RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) =>
         (Forced.Value ?? HostOfThisProcess).Open(handle, hostPath, writable);
 
-    /// <summary>⛔ A WITNESS SEAM, as <see cref="RunUnitFileLock.Take(IColumnLockHost?, string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>
+    /// <summary>⛔ A WITNESS SEAM, as <see cref="RunUnitFileLock.Take(IColumnLockHost?, string, FileSharing, FileOpenMode, out RunUnitFileLock?, bool)"/>
     /// is for the file lock: every connector opened on this async flow, until the scope is disposed, gets its endpoint
     /// from <paramref name="host"/>, so the lock-file host can be held to the same record-lock scenarios as the host of
     /// the machine on a machine that is not a Mac. Scoped to the calling flow, so parallel tests do not see each
