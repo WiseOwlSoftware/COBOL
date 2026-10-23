@@ -45,5 +45,8 @@ CONFORMANCE.md DOC-A.1-123 and DOC-A.1-179 are corrected: they had both said "up
 formed on the SDIDI whatever its operands". One golden is re-derived: `14.9.12-DIVIDE/l1_divide_remainder_backmultiply_size_error` had pinned the checked multiply's
 size error for a REMAINDER back-multiply of VALUE about 10**12 (unscaled about 10**40). It is now
 `OVF=NONE BQ=999999999999.98999999900000 BR=000000000000.000000000`, computed from §14.9.12.4 GR7 and §14.7.5 case 5.
-No inventory row moved state. GR-14.7.5-5 (`CobolNum.MulChecked` retired as a witness) and GR-14.9.12.4-7 are
+`14.7.5-SIZE-ERROR-phrase-and-size-error/pb91_native_overflow_outside_arithmetic` made its native overflows from
+products of two `FUNCTION ABS(A)` values (A = 10**20 - 1). Under the new rule that product is exact, so its overflow
+legs now add 1 to HIGHEST-ALGEBRAIC of a `PIC S9(19) COMP-5` item (2**127 - 1), a sum no Int128 intermediate holds.
+The expected statuses are unchanged, and a new R8 leg pins the ABS product as TRUE. No inventory row moved state. GR-14.7.5-5 (`CobolNum.MulChecked` retired as a witness) and GR-14.9.12.4-7 are
 restated through batches, and the rules' other rows were already OK and gain witnesses.
