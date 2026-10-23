@@ -16,7 +16,10 @@ learning this." A sentence in CLAUDE.md or memory was already there and was skip
 
 Read-only and mechanical roles (refuter, adjudicator, clerk, locator, Explore, general-purpose) pass rule 2; rule 1
 applies to Workflow always. Exit 2 blocks the call and returns stderr to the agent. Anything unparseable passes (a
-hook must never wedge a session).
+hook must never wedge a session), but a practices check that does not ANSWER in time REFUSES the call (kb/Work
+PB3536): it used to pass it, so under a loaded host an unchecked spec went through, which is exactly what rule 2 is for
+(test_dispatch_guard.py's "unchecked rendered spec" case went red inside a gate and green alone, 2026-10-22). A refusal
+wedges nothing: the dispatch is re-issued.
 
 The hook writes NOTHING (kb/Work PB3186). Its rule 3 once recorded every admitted write-capable dispatch in the
 dispatch ledger from a scrape of every note id the prompt and the files it named mentioned, with the union of their
@@ -50,6 +53,11 @@ sys.stderr.reconfigure(encoding="utf-8")
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 CHECK = REPO / ".claude" / "skills" / "workstream" / "check_practices.py"
+#: How long the practices check may take before the dispatch is REFUSED (never passed): under the hook's own 90 s.
+#: A hang guard, not a verdict: the self-test sets CHECK_WAIT_ENV so that the check's own verdict decides each case,
+#: and plants a tiny value to see the refusal on expiry.
+CHECK_WAIT_ENV = "COBOL_DISPATCH_CHECK_WAIT_S"
+CHECK_WAIT_S = float(os.environ.get(CHECK_WAIT_ENV) or 60)
 TEMPLATES = REPO / ".claude" / "skills" / "workstream" / "templates"
 JUDGMENT_ROLES = {"cobol-implementer", "cobol-finisher"}
 LOADED = re.compile(
@@ -106,9 +114,13 @@ if tool == "Agent":
               "practices get dropped (MANDATORY-PRACTICES O1, O9).")
     cmd = [sys.executable, str(CHECK)] + ([str(p) for p in specs] if specs else [])
     try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
-    except (OSError, subprocess.SubprocessError):
-        sys.exit(0)
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=CHECK_WAIT_S, encoding="utf-8",
+                             errors="replace")
+    except subprocess.TimeoutExpired:
+        block(f"check_practices.py gave no verdict within {CHECK_WAIT_S:g} s (a loaded host), so this brief is unchecked "
+              "and the dispatch is refused: re-issue it (kb/Work PB3536 — an unchecked brief is never let through)")
+    except OSError:
+        sys.exit(0)  # no interpreter to run the check at all: the environment is broken, and a hook never wedges
     if "=== PRACTICES CHECK: GREEN ===" not in out.stdout:
         block("check_practices.py is not GREEN over this brief:\n" + (out.stdout + out.stderr)[-1500:])
 
