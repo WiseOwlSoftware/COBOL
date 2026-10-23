@@ -233,6 +233,11 @@ internal sealed partial class EcBinder
         // only a directive naming no file enables it (review finding w1154a R1-3).
         new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
+        // §14.6.13.1.3 item 8's ROLLBACK (kb/Work PB3544): a fatal status on a file under commit control executes "a
+        // ROLLBACK statement", which raises EC-FLOW-ROLLBACK under §14.9.36.4 GR2 when the input-output statement runs in
+        // a SORT or MERGE input or output procedure or under a recursive runtime element. The SORT and MERGE statements
+        // themselves never reach item 8 (item 2: "the rules for those statements apply").
+        new(s => s is not (BoundSort or BoundMerge) && IoFilesOf(s).Any(f => f.IsCommitControlled), ["EC-FLOW-ROLLBACK"]),
         new(s => s is BoundReturn, ["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN", "EC-SORT-MERGE-ACTIVE"]),
         // The SORT / MERGE statements themselves (kb/Work PB1036). PRECISE: every raise is CobolSort's, at the point
         // the verb's rule names. A name the statement's shape cannot raise is not asked (a SORT with no USING releases

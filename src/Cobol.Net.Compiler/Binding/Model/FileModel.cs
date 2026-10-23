@@ -569,6 +569,13 @@ public sealed class FileModel
     /// MODE clause the rejection demands (kb/Work PB319).</para></summary>
     public bool SubjectToApplyCommit { get; set; }
 
+    /// <summary>The file is under commit control at run time: the subject of an APPLY COMMIT clause and of a keyed
+    /// organization — the declined SEQUENTIAL operand (COBOLNET1709, kb/Work PB3340) is absent from the clause. The one
+    /// statement of the fact <see cref="ApplyCommitModel.CommitControlledFiles"/>, §14.6.13.1.3 item 8's emission
+    /// (<c>SequentialIoEmitter.Item8Applies</c>) and its EC-FLOW-ROLLBACK declaration (<c>EcBinder.NodeKindRaises</c>)
+    /// read.</summary>
+    public bool IsCommitControlled => SubjectToApplyCommit && !IsSequential;
+
     /// <summary>The LINAGE clause's logical-page model (ISO §13.18.34), or null when the FD has no LINAGE clause.
     /// Its presence generates the file's LINAGE-COUNTER register (§8.4.3.14 / §13.18.34 GR7a) and enables the
     /// WRITE END-OF-PAGE phrases (§14.9.51 SR19). Data-name operands resolve post-build in
