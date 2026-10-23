@@ -60,8 +60,15 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > truncated quotient on the exact 256-bit form (`CobolWide.DivTruncated`, for an exact wide operand too), because the
 > lane is a representation and must not change the value (PB3538's review finding R1-1: an intrinsic's value, of unknown
 > bound, took the SDIDI's round-to-odd and `FUNCTION INTEGER(X) / 7 * 7` was 2.000000 beside `X / 7 * 7`'s 1.999999);
-> only a bound past 77, a final-transfer quotient over a wide operand and a floating-point edited resultant take the
-> SDIDI by ROUND-TO-ODD (`CobolDec.DivToOdd`, 34 significant digits whatever the value's magnitude). Depth therefore changes neither a nested quotient's
+> past 77 digits, and beside an SDIDI-carried operand (a product of two intrinsic values, 39 + 39 digits; a float
+> literal; a power — `CombineCore` routes a nested quotient with such an operand to `Divide`), the SAME truncated
+> quotient on the SDIDI, held to its 34 significant digits by round-to-odd (`CobolDec.DivTruncatedToOdd`), so a
+> quotient of at most 34 digits is exact there too (review finding R2-1: the SDIDI's own quotient of the exact value
+> made the product above it round back up, and `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` was 2.000000).
+> Every lane carries `NumX.Precision` (the SDIDI's scale is 0, so its products, sums and quotients state the operands'
+> fraction digits explicitly), so the next quotient's working scale does not depend on the lane either. Only a
+> final-transfer quotient over a wide operand and a floating-point edited resultant take the SDIDI's own
+> `CobolDec.DivToOdd` (the exact quotient, round-to-odd, rounded once at the receiver). Depth therefore changes neither a nested quotient's
 > precision nor its lane (`NestedQuotientPrecisionDriftTests` compiles each quotient-crossing shape at depth 2 and
 > 16 and requires the same kernel scales), and the only size errors left are a zero divisor and a VALUE outside the
 > range where it lands. The truncating quotient with exact operations above it follows GnuCOBOL (`cob_decimal_div`
@@ -1112,8 +1119,8 @@ clause text and fails if a new member is silently exempted.
    rounding the exact value for a receiver of ≤ 32 digit positions). Two consumers take it EXACT through `keepWide`: a
    several-receiver COMPUTE's one initial evaluation (snapshotted as a `CobolWide`, settled per receiver) and a relation
    (`CobolWide.Compare`); `ExactWideSettlementDriftTests` closes that list. A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
-   (GnuCOBOL's own divide is inexact, numeric.c:2259-2261; a NESTED one is `CobolWide.DivTruncated`, D2) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` /
-   `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
+   (GnuCOBOL's own divide is inexact, numeric.c:2259-2261; a NESTED one is `CobolWide.DivTruncated`, or past 77 digits
+   `CobolDec.DivTruncatedToOdd`, D2) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` / `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter
    multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §14.7.7 r2 a) caps the COMPOSITE — stored a
    wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEAN / MEDIAN /

@@ -189,3 +189,4 @@ static CobolNet.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in Cobol
 static CobolNet.Runtime.CobolNum.DisplayDecimal(string! image, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolWide.DivTruncated(CobolNet.Runtime.CobolWide a, int aScale, CobolNet.Runtime.CobolWide b, int bScale, int resultScale) -> CobolNet.Runtime.CobolWide
+static CobolNet.Runtime.CobolDec.DivTruncatedToOdd(CobolNet.Runtime.CobolDec a, CobolNet.Runtime.CobolDec b, int scale) -> CobolNet.Runtime.CobolDec

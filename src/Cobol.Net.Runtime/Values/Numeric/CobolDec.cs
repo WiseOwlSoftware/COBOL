@@ -808,23 +808,85 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // a short numerator over a long denominator wants scaleUp = 34 + digits(den) − digits(num) + 1, up to 73
         // for a 1-digit numerator and a 38-digit denominator. The multiplier used to be CAPPED at 10^38 while the
         // result exponent still subtracted the UNCAPPED scaleUp, so `100000 / 123456789012345678901234567890`
-        // (scaleUp 59) answered 0 under STANDARD-DECIMAL where 8.1E-25 is owed — wrong by 10^(scaleUp − 38). The
-        // scale is applied in two exact steps: first inside the numerator's own Int128 headroom
-        // (k = 38 − digits(num), exact), then the remainder through the 256-bit product — which is at most 10^36
-        // (scaleUp − k = digits(den) − 3 ≤ 36 for a ≤39-digit divisor), so the second factor always fits.
+        // (scaleUp 59) answered 0 under STANDARD-DECIMAL where 8.1E-25 is owed — wrong by 10^(scaleUp − 38).
+        // ScaledQuotient applies it in full, in two exact steps.
         UInt128 num = UAbs(a.Sig);
-        int scaleUp = Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
-        // ⛔ A 39-DIGIT NUMERATOR HAS NO HEADROOM (kb/Work PB2633 - found when Pow10.AsWide stopped answering 1 for -1):
-        // an Int128 significand reaches 1.7E+38, so 38 - digits(num) is -1 there, and `AsWide(-1)` multiplied by 1
-        // while the second factor below still counted that -1 as an extra step, scaling the quotient 10 times too
-        // far. The first step is clamped to zero; the second then carries the whole pre-scale (≤ 36 for a ≤39-digit divisor).
-        int k = Math.Max(0, Math.Min(scaleUp, 38 - DigitCount(num)));
-        num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38 (k = 0 above it)
-        var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(scaleUp - k));   // scaleUp − k ≤ 36
-        var (q, rem) = DivRem256(hi, lo, den);
+        int scaleUp = PreScale(num, den);
+        var (q, rem) = ScaledQuotient(num, scaleUp, den);
 
         // q < 10^37 by construction → fits Int128. Round to 34 digits, folding the division remainder into sticky.
         return Round34Wide(0, q, negative, a.Exp - scaleUp - b.Exp, mode, extraSticky: rem != 0, jam: jam);
+    }
+
+    /// <summary>The pre-scale <see cref="Div"/> gives the numerator so the integer quotient has 34–36 significant
+    /// digits.</summary>
+    private static int PreScale(UInt128 num, UInt128 den) => Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
+
+    /// <summary>The integer quotient and remainder of <paramref name="num"/> × 10^<paramref name="up"/> by
+    /// <paramref name="den"/>, for any <paramref name="up"/> from 0 to <see cref="PreScale"/>'s (the quotient then has at
+    /// most 36 digits, inside <see cref="DivRem256"/>'s precondition).</summary>
+    private static (UInt128 Quotient, UInt128 Remainder) ScaledQuotient(UInt128 num, int up, UInt128 den)
+    {
+        // The scale is applied in two exact steps: first inside the numerator's own Int128 headroom
+        // (k = 38 − digits(num), exact), then the remainder through the 256-bit product — which is at most 10^36
+        // (up − k ≤ digits(den) − 3 ≤ 36 for a ≤39-digit divisor), so the second factor always fits.
+        // ⛔ A 39-DIGIT NUMERATOR HAS NO HEADROOM (kb/Work PB2633 - found when Pow10.AsWide stopped answering 1 for -1):
+        // an Int128 significand reaches 1.7E+38, so 38 - digits(num) is -1 there, and `AsWide(-1)` multiplied by 1
+        // while the second factor below still counted that -1 as an extra step, scaling the quotient 10 times too
+        // far. The first step is clamped to zero; the second then carries the whole pre-scale.
+        int k = Math.Max(0, Math.Min(up, 38 - DigitCount(num)));
+        num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38 (k = 0 above it)
+        var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(up - k));         // up − k ≤ 36
+        return DivRem256(hi, lo, den);
+    }
+
+    /// <summary>⛔ A NESTED NATIVE QUOTIENT ON THE SDIDI (kb/Work PB3538 review finding R2-1; CONFORMANCE.md DOC-A.1-123):
+    /// the quotient TRUNCATED at <paramref name="scale"/> fraction digits — the one rule a nested native quotient has on
+    /// every lane (the scaled <c>CobolNum.Divide</c> at that scale, <see cref="CobolWide.DivTruncated"/>) — then held to
+    /// the SDIDI's 34 significant digits by ROUND-TO-ODD (<see cref="MulToOdd"/>'s reduction). A truncated quotient of at
+    /// most 34 digits is therefore EXACT, and the lane never changes the value: `2 / 7 * 7` at a working scale of 20 is
+    /// 1.99999999999999999996 whether the 2 is an item, an intrinsic's value or a product the compiler could not bound.
+    /// <see cref="DivToOdd"/> rounds the EXACT quotient to 34 digits instead, and the product above it rounded back up to
+    /// 2. Only the digits of the truncated quotient count: a remainder below 10^-<paramref name="scale"/> is not part of
+    /// the value and never makes it inexact. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5
+    /// case 2), checked or not.</summary>
+    public static CobolDec DivTruncatedToOdd(CobolDec a, CobolDec b, int scale)
+    {
+        if (b.Sig == 0) throw CobolSizeError.ZeroDivide();
+        if (a.Sig == 0) return new CobolDec(0, 0);
+        bool negative = (a.Sig < 0) ^ (b.Sig < 0);
+        UInt128 num = UAbs(a.Sig), den = UAbs(b.Sig);
+        int scaleUp = PreScale(num, den);
+        int exp = a.Exp - scaleUp - b.Exp;                  // the exponent of Div's 34–36-digit quotient
+        if (exp >= -scale)
+        {
+            // The truncated quotient has at least as many digits as Div's: its 34-digit truncation is Div's, and it is
+            // inexact when a dropped digit of Div's quotient, or a digit of the remainder ABOVE 10^-scale, is nonzero.
+            var (q, rem) = ScaledQuotient(num, scaleUp, den);
+            return Round34Wide(0, q, negative, exp, CobolRounding.Truncation,
+                extraSticky: RemainderReaches(rem, den, exp + scale), jam: true);
+        }
+        // The truncated quotient has fewer digits than Div's: form it exactly at 10^-scale.
+        int up = a.Exp - b.Exp + scale;                     // below scaleUp, so ScaledQuotient's bounds hold
+        UInt128 truncated;
+        if (up >= 0) truncated = ScaledQuotient(num, up, den).Quotient;
+        else if (-up > 38) truncated = 0;                   // the divisor × 10^-up is at least 10^39, past any significand
+        else
+        {
+            var (hi, lo) = Mul128(den, (UInt128)Pow10.AsWide(-up));
+            truncated = hi != 0 ? 0 : num / lo;
+        }
+        return Round34Wide(0, truncated, negative, -scale, CobolRounding.Truncation, jam: true);
+    }
+
+    /// <summary>Does the remainder <paramref name="rem"/> of a division by <paramref name="den"/> carry a nonzero digit in
+    /// the next <paramref name="places"/> decimal places of the quotient — is ⌊rem × 10^places / den⌋ nonzero?</summary>
+    private static bool RemainderReaches(UInt128 rem, UInt128 den, int places)
+    {
+        if (rem == 0 || places <= 0) return false;
+        if (places > 38) return true;                       // rem ≥ 1 and 10^39 exceeds any divisor
+        var (hi, lo) = Mul128(rem, (UInt128)Pow10.AsWide(places));
+        return hi != 0 || lo >= den;
     }
 
     /// <summary>Algebraic comparison (−1/0/+1) — exact: equal orders of magnitude align within the wide range;

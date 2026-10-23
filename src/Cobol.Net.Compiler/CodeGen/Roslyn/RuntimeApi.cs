@@ -734,6 +734,12 @@ internal static class RuntimeApi
     public static string DecDivToOdd(string leftOperand, string rightOperand) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.DivToOdd)}({leftOperand}, {rightOperand})";
 
+    /// <summary>A NESTED native quotient formed on the SDIDI — <c>CobolDec.DivTruncatedToOdd</c>: the quotient truncated at
+    /// <paramref name="resultScale"/>, held to 34 digits by round-to-odd, the same value the scaled and wide lanes form
+    /// (kb/Work PB3538 review finding R2-1).</summary>
+    public static string DecDivTruncatedToOdd(string leftOperand, string rightOperand, int resultScale) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.DivTruncatedToOdd)}({leftOperand}, {rightOperand}, {resultScale})";
+
     // ── The EXACT WIDE intermediate (CobolWide, kb/Work PB1900) — one spelling per operation, so the renderer never
     //    writes the runtime type's member names out for itself.
 

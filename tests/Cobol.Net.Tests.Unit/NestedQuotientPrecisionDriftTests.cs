@@ -57,6 +57,9 @@ public sealed class NestedQuotientPrecisionDriftTests
             sb.AppendLine($"    COMPUTE {r} = {Chain("(F / B)", "*", "(F / B)")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("FUNCTION INTEGER(A) / B", "/", "B")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("(FUNCTION MOD(A 9) * A / B)", "*", "(A / B)")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B", "/", "B")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("(F * FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B)", "*", "(A / B)")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("2.0E0 / B", "/", "B")}.");
         }
         sb.AppendLine($"    IF {Chain("A / B", "/", "B")} > 0 DISPLAY \"GT\" END-IF.");
         sb.AppendLine("    STOP RUN.");
@@ -79,12 +82,16 @@ public sealed class NestedQuotientPrecisionDriftTests
         finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
     }
 
-    /// <summary>The fifth argument (the result scale) of every truncating division kernel call in <paramref name="cs"/>,
-    /// each kernel with its argument count.</summary>
+    /// <summary>The result-scale argument of every truncating division kernel call in <paramref name="cs"/>, each kernel
+    /// with its argument count and that argument's position.</summary>
     private static SortedSet<int> DivisionScales(string cs)
     {
         var scales = new SortedSet<int>();
-        foreach (var (call, arity) in new[] { ("CobolNum.Divide(", 6), ("CobolNum.DivideOrThrow(", 6), ("CobolWide.DivTruncated(", 5) })
+        foreach (var (call, arity, scaleAt) in new[]
+                 {
+                     ("CobolNum.Divide(", 6, 4), ("CobolNum.DivideOrThrow(", 6, 4), ("CobolWide.DivTruncated(", 5, 4),
+                     ("CobolDec.DivTruncatedToOdd(", 3, 2),
+                 })
             for (int at = cs.IndexOf(call, StringComparison.Ordinal); at >= 0; at = cs.IndexOf(call, at + 1, StringComparison.Ordinal))
             {
                 var args = new List<string>();
@@ -102,7 +109,7 @@ public sealed class NestedQuotientPrecisionDriftTests
                     }
                 }
                 Assert.True(args.Count == arity, $"a {call} call with {args.Count} arguments: the kernel's shape changed");
-                scales.Add(int.Parse(args[4], System.Globalization.CultureInfo.InvariantCulture));
+                scales.Add(int.Parse(args[scaleAt], System.Globalization.CultureInfo.InvariantCulture));
             }
         return scales;
     }
@@ -143,5 +150,40 @@ public sealed class NestedQuotientPrecisionDriftTests
             """);
         Assert.Contains("CobolWide.DivTruncated(", cs);
         Assert.DoesNotContain("CobolDec.DivToOdd(", cs);
+    }
+
+    /// <summary>⛔ PAST 77 DIGITS, AND BESIDE AN SDIDI-CARRIED OPERAND, THE NESTED QUOTIENT IS STILL THE TRUNCATED ONE (review
+    /// finding R2-1). A product of two intrinsic values (39 + 39 digits) or of an intrinsic value and a 20-digit item, whose
+    /// quotient then needs 79, passes the wide form; a float literal is SDIDI-carried. Each nested quotient is
+    /// <c>CobolDec.DivTruncatedToOdd</c> at the same working scale the other lanes use — never the SDIDI's own quotient
+    /// (<c>CobolDec.Div</c> at the INTERMEDIATE ROUNDING mode, or <c>CobolDec.DivToOdd</c> of the exact value), whose 34th
+    /// digit the product above it rounded back up to 2.</summary>
+    [Fact]
+    public void ANestedQuotientOnTheSdidi_IsTheTruncatedQuotientAtTheWorkingScale()
+    {
+        string cs = EmitCSharp("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3538S.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A   PIC 9 VALUE 2.
+            01 B   PIC 9 VALUE 7.
+            01 Y20 PIC 9(20) VALUE 1.
+            01 R4  PIC S9(9)V9(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                COMPUTE R4 = FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B * B.
+                COMPUTE R4 = FUNCTION INTEGER(A) * Y20 / B * B.
+                COMPUTE R4 = FUNCTION INTEGER(A) * FUNCTION MOD(3 2) / B / B * B * B.
+                COMPUTE R4 = 2.0E0 / B * B.
+                IF FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B * B < 2 DISPLAY "LT" END-IF.
+                STOP RUN.
+            """);
+        Assert.Contains("CobolDec.DivTruncatedToOdd(", cs);
+        Assert.DoesNotContain("CobolDec.DivToOdd(", cs);
+        Assert.DoesNotContain("CobolDec.Div(", cs);
+        // Receiver scale 4 + 14 guard digits; the relation has no receiver, so 0 + 14.
+        Assert.True(DivisionScales(cs).SetEquals(new[] { 14, 18 }),
+            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where every lane owes 18 (receiver) and 14 (relation)");
     }
 }
