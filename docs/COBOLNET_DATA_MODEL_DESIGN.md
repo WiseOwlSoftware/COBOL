@@ -1022,10 +1022,12 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   (`OoClassTable.LeafCarried`) carries its fillers AFTER its members, one string of boolean positions per entry of
   `FillersOf` (`RecordStructEmitter.EmitLeafMethods`) or of `WindowFillersOf` (`PlaceRenderer.CellLeaves`, a pad's gaps
   back to back), which enumerate the same positions in the same order (kb/Work PB3598). A run holding an OCCURS DEPENDING table has its
-  tail measured at the table's MAXIMUM count (the stored field holds the positions past the maximum extent; at a smaller
-  count the filler that ends the current extent's last character lies in the first unused occurrence's storage, and a
-  receiving store splices at that CHARACTER, `OdoTail.KeepUnused`). Not stored yet: a dynamic-capacity bit table's element
-  padding, and the in-range part of an ODO run's tail for INITIALIZE ... WITH FILLER. Concatenating the subordinate bit strings — and taking their SUM as the width — is right
+  tail measured at the table's MAXIMUM count (the stored field holds the positions past the maximum extent, which no
+  occurrence owns; at a smaller count the filler that ends the current extent's last character lies in the first unused
+  occurrence's storage and is that occurrence's bits as well: an ordinary group's receiving store takes the character whole
+  from the sender, a variable-length group's `OdoTail.KeepUnused` keeps the unused occurrence's bits, an open question,
+  kb/Work PB3598). Not stored yet: a dynamic-capacity bit table's element padding, and the in-range part of an ODO run's
+  tail for INITIALIZE ... WITH FILLER. Concatenating the subordinate bit strings — and taking their SUM as the width — is right
   only while every member is "immediately following … an item of the same level"; a member whose LEVEL NUMBER
   differs starts at the next byte, and `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2). 03 B2 PIC 1(2).` measured
   `DISPLAY BG` = four positions against `FUNCTION LENGTH(BG)` = ten, the two reading the same group through
