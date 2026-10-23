@@ -71,8 +71,18 @@ equals the driver's. The first exclusion form passed `:!STATUS.md` to `git add`,
 names an ignored path, so on a real worktree the measured tree was None (nothing reusable, every handed gate ENDED):
 the probe on this worktree caught it, and the arm now ignores STATUS.md as this repository does. Run three times, the
 driver's self-test went red twice in the scope-reuse arm: run names carried the start to the second, so two gates of
-one second sorted by their random nonce and "the newest earlier run" was sometimes the older one. Names now carry the
-microsecond (the second-only form still matches), with an arm that starts twenty runs in one second.
+one second sorted by their random nonce and "the newest earlier run" was sometimes the older one. The first fix carried
+the stamp to the microsecond, and the merge queue bounced it (PR #415, merge-group run 39888287569): on the Windows
+runner three runs started in the same microsecond, and the new arm sorted them by nonce again. The local gate never saw
+it because this host's clock advanced between starts. A clock orders nothing finer than its resolution, so a run is now
+named `<n>-<UTC stamp>`, where n is one past every run in the run root, taken under the run root's lock. The reuse rule,
+the plan's newest earlier run and the pruning all read that number. The arm stops the clock for twenty runs, then turns
+it back for three more, so a clock-ordered name is red on every host; a second arm races eight threads for numbers. A
+run named before the numbers is older than every numbered one. The sweep found one sibling. The landing lane named an
+attempt by its UTC microsecond and the branch, so a launch and its retry in one clock tick took ONE file name, and the
+retry's record overwrote the first. An attempt now takes a number the same way, under the tick lock, and an arm with a
+stopped clock proves the two records. plan_wave's reports sort by wave, then mtime, then name (kb/Work PB3528), a total
+order; landing_measure sums its runs and orders none.
 
 **Merged with main's PB3527.** Main had made a held gate lock `BUSY` with exit 3 and every NOT RUN carries a classified
 cause. `--await`'s PENDING moved to exit 4, the lock refusal is BUSY written to the detached run's verdict file, a
