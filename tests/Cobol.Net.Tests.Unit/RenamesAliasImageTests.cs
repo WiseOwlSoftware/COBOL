@@ -80,16 +80,49 @@ public sealed class RenamesAliasImageTests
         Assert.False(Item(d, "R-B").StoreAsImage);
     }
 
+    /// <summary>⛔ THE LEAF'S CLASS DOES NOT DECIDE (kb/Work PB3563, review round 1): a numeric leaf that is the
+    /// canonical member of a REDEFINES class is promoted by the alias exactly as the leaf of a plain group is, because
+    /// arm (4) of the promotion union (the elementary character channel) once skipped every class member while arm (3)
+    /// (the whole group) never did. ISO 13.18.45.4 GR2 and 14.9.25.4 GR4 do not exempt a redefined item.</summary>
+    [Theory]
+    [InlineData("MOVE \"XXXXXXX\" TO R-AC")]
+    [InlineData("DISPLAY R-AC")]
+    public void ThroughAlias_OverARedefinedNumericLeaf_PromotesIt(string statement)
+    {
+        var d = BindFull(statement, data: RedefinedData);
+        Assert.True(Item(d, "R-B").StoreAsImage, $"'{statement}' left the REDEFINES-class leaf R-B on a native carrier");
+    }
+
+    /// <summary>The elementary twin of the same rule, no alias involved: a group MOVE into a REDEFINES-class numeric
+    /// receiver is a character channel (14.9.25.4 GR4) and promotes that receiver.</summary>
+    [Fact]
+    public void GroupMoveIntoARedefinedNumericReceiver_PromotesIt()
+    {
+        var d = BindFull("MOVE SAVE-GROUP TO R-B", data: RedefinedData);
+        Assert.True(Item(d, "R-B").StoreAsImage);
+    }
+
+    private const string RedefinedData = """
+        01 R.
+           05 R-A PIC X(2) VALUE "AB".
+           05 R-B PIC 9(3) VALUE 123.
+           05 R-B2 REDEFINES R-B PIC 9V99.
+           05 R-C PIC X(2) VALUE "CD".
+        66 R-AC RENAMES R-A THROUGH R-C.
+        01 SAVE-GROUP.
+           05 SAVE-1 PIC X(3) VALUE "ABC".
+        """;
+
     private static DataItem Item(DataBinder d, string name) => d.ByName[name][0];
 
-    private static DataBinder BindFull(string statement, string extraData = "")
+    private static DataBinder BindFull(string statement, string extraData = "", string? data = null)
     {
         string src = $"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. TRENAMES.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
-            {Data}
+            {data ?? Data}
             {extraData}
             PROCEDURE DIVISION.
             MAIN-PARA.
