@@ -3207,7 +3207,7 @@ already-derivable coverage; none change the pipeline.
   handles `--self-test`, or a file named `test_*.py`/`test_*.ps1`), in parallel, each with a private `COBOL_COORD_DIR`
   and git global config; `--built` runs the ones that read the built test assemblies; `--list` prints what it found.
   The gate runs it as its `SELF-TESTS` audit, the Linux gate as legs `selftests`/`selftests-built`, and CI in its
-  `audits`, `greenfield-unit` and `windows-build-test` jobs (kb/Work PB2563; `SelfTestDiscoveryDriftTests`). A
+  `audits`, `greenfield-unit` and `windows-self-tests` jobs (kb/Work PB2563; `SelfTestDiscoveryDriftTests`). A
   self-test that cannot run on one platform says so in its header (`# SELF-TEST-PLATFORM: windows — <reason>`).
   `--reuse` (the implementer gate's) reports a self-test REUSED while everything its recorded PASS read is unchanged;
   every other run records; each self-test that runs takes a place in one machine-wide budget, and a hung one is HANG,
