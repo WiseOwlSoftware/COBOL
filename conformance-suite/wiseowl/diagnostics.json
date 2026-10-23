@@ -18215,6 +18215,24 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3564-group-move-keeps-bit-filler-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3598-odo-bit-run-tail-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3597-initialize-with-filler-replacing-boolean-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb586-level88-literal-out-of-range": {
   "refuse-at": [
    "85",
@@ -22816,5 +22834,11 @@
    "2023"
   ],
   "expect": "COBOLNET1511"
+ },
+ "pb3586-function-returning-usage-bit-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
  }
 }
