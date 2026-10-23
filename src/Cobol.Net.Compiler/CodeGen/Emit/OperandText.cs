@@ -346,7 +346,7 @@ internal static class OperandText
     /// significand's digits, the standard states no representation for a literal (§14.9.25.4 GR4 preserves the sender's, and a
     /// literal has none), so rule 1's precedence for implementor latitude takes GnuCOBOL's, measured against cobc 3.2.0
     /// (kb/Work PB3570, review R1-1). It is also the only form that is no text expansion of the exponent
-    /// (<see cref="CobolNet.Common.NumericLiteral.TryUnscaledParts"/>: <c>1.0E+6144</c> must not become 6145 characters).</summary>
+    /// (<see cref="CobolNet.Common.NumericLiteral.TryUnscaledParts"/>: a literal with a large exponent must not become thousands of characters).</summary>
     private static string LiteralDigits(string canonicalText)
     {
         string significand = canonicalText.TrimStart('+', '-');
