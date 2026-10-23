@@ -22822,5 +22822,17 @@
    "2023"
   ],
   "expect": "COBOLNET1511"
+ },
+ "pb3570_numeric_literal_group_formal_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3587_content_group_formal_usage_values_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
  }
 }
