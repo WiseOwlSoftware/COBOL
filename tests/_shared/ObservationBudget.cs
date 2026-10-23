@@ -26,12 +26,12 @@ namespace CobolNet.Tests.Shared;
 /// </para>
 /// <para>
 /// The unit stays the design's floor for one program: 120 s, against a recorded cost of at most 9.3 s for one suite
-/// test's compile AND run (run.py's <c>seconds</c>, 2026-10-22, 32 logical processors) and 7 s for the costliest
+/// test's compile AND run (run.py's <c>seconds</c>, 2026-10-22, 32 logical processors) and 7.0 s and 3.8 s for the two
 /// single-program tests the shared gate timings name in PB3108 (RelationPairShapeTests, ActivationResourcesTests),
-/// so it carries a multiple of 13 to 30 for load. <c>COBOLNET_RUN_TIMEOUT_MS</c> sets it.
+/// so it carries a multiple of 13 to 32 for load. <c>COBOLNET_RUN_TIMEOUT_MS</c> sets it.
 /// </para>
 /// </remarks>
-internal readonly record struct ObservationBudget
+internal sealed class ObservationBudget
 {
     /// <summary>The harness unit: the budget of one process doing one job (compile one program, run one program, run
     /// one script). Default 120 000 ms; <c>COBOLNET_RUN_TIMEOUT_MS</c> overrides it.</summary>

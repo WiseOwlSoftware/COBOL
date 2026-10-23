@@ -90,7 +90,10 @@ public sealed class ConformanceSuiteRunnerDriftTests
             string manifest = Path.Combine(dir, "manifest.json");
             if (!edition.All(char.IsAsciiDigit) || !File.Exists(manifest)) continue;
             using var doc = JsonDocument.Parse(File.ReadAllText(manifest));
-            yield return (edition, doc.RootElement.GetProperty("tests").GetArrayLength());
+            int tests = doc.RootElement.GetProperty("tests").GetArrayLength();
+            // An edition suite with no test runs nothing in a whole run, and run.py refuses a run over nothing (exit 2):
+            // skip it here; a test the in-process side has at that edition then reads "only in-process".
+            if (tests > 0) yield return (edition, tests);
         }
     }
 
