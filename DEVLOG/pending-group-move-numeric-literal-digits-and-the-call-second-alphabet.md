@@ -42,3 +42,12 @@ lane all answer correctly; a universal-receiver INVOKE is BY REFERENCE only (COB
 CONTENT. Rows: none claimed, none closed (GR-14.9.25.4-4 and GR-14.2.3-9 were already CONFORMS).
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,899 · Unit 1,042 · Characterization 31 … Conformance 10,418/18,317 · Unit 34,618/35,660 · Characterization 5/36 cases ran (skipped 0)` (run 000002-20261023T214754Z; the first, 000001, was red on the two `RuntimeAbiPinDriftTests` only). The twelve conformance rows of the new goldens passed in leg 1 (`leg-1-Conformance.trx`); semgrep `verify.py` PASS with no count raised. Self-review: the throw in `LiteralDigits` and the INVOKE group arm are unreachable for legal source (an arithmetic expression into a group formal is refused COBOLNET0828 at bind); no comment lies about a fold the probes did not measure.
+
+**Landing finisher (Linux gate RED, exit 5).** Two reds that leg 1 on Windows never planned. (1) Every `EmittedCSharpSnapshotTests`
+case: the snapshots recorded call ABI 1 beside the tokenized runtime version, and the bump to 2 reaches no test through code impact,
+which is the hole PB1099's finisher closed for the runtime version alone. The snapshot test now substitutes `{CALL-ABI}` too, only where
+the emitted value equals `RuntimeAbi.CallAbi` (an emitter stamping any other ABI still diffs), and the 14 snapshots were re-recorded with
+`COBOLNET_UPDATE_SNAPSHOTS=1`; their only change is the two stamp lines. (2) `9.3.6-Method-invocation/pb1113_content_compute_move_regime`
+still expected PB1113's sign-keeping `-12` for `BY CONTENT -12` into a group formal; under D-B4 (§14.9.25.4 4), owner decision) both
+lanes store the digits only, `[12  ]`, and its header now derives that. The whole Linux conformance population (18,341) had no other red,
+so no other golden encodes the superseded rule.
