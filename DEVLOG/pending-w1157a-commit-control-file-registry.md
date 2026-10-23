@@ -19,3 +19,15 @@ share). A transaction whose rollback the medium refused stays owed: the registry
 the flag. Witnesses: `TransactionControlTests.A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s`
 (COMMIT and ROLLBACK arms, RELATIVE and INDEXED) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
 RED on a mutant that skips the release. DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
+
+**PB3492 re-probed and settled; PB3340 not started (the group SPLIT at the note boundary).** On this branch's build a RELATIVE
+file under APPLY COMMIT answers '62' to a DELETE FILE after its CLOSE (its own kept handle read as another holder's by
+`HostFile.IsHeldByAnother`), and the re-probe found a sibling with the same root: an OPEN OUTPUT of an existing keyed file
+after a COMMIT, then a ROLLBACK, leaves the file empty (`RECORD 1 ABSENT`), because `KeyedConnector.Recreate` ends the kept
+transaction when the creation lands. The owner question PB3492 carried is answered by the standard: the NOTE under §14.9.10.4
+GR15 says such files *"can still be deleted, however if they are, then in the event of a rollback they will be restored"*, and
+GR15's conflict is a file *"locked by another file connector"*. DESIGN-runtime-library.md 2.2.2.14 now settles the shape: the
+keyed organizations' two capture verbs ride PB3340's journal (the before file copied through the kept handle, the `K`
+record, then the creation or the removal; ROLLBACK restores the before file and rolls back the run unit's transaction inside
+it), and it records the one primitive the journal design assumes and the runtime lacks, a directory sync, for the
+`IHostMedium` seam to own.
