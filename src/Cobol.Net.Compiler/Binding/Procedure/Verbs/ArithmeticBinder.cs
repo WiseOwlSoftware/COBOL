@@ -16,8 +16,8 @@ using Core = CobolParserCore;
 /// formats (ADD/SUBTRACT Format 3) retarget <see cref="CorrespondingBinder"/> via the host accessor. The shared
 /// receiving machinery — BindSizeError/BuildSizeError, Receivers, RoundingOf, ResolveReceiving — and the
 /// expression spine (BindExpr) RIDE THE HOST until 10q (ExpressionBinder), when those edges flip; the remaining
-/// host edges flip at 10t. Boolean-channel edges (BindBoolExpr / Gr3Width / SoleDataRef) go to
-/// <see cref="ConditionBinder"/> (statics direct, the instance via the host forwarder — 10o deviation (a)).
+/// host edges flip at 10t. Boolean-channel edges (BindBoolExpr / IsSoleBooleanOperand /
+/// BindSoleBooleanOperand) go to <see cref="ConditionBinder"/> through the host's <c>Cond</c> accessor.
 /// The COBOLNET1511 Format-2 SR bodies stay in-binder pending the 10t pure-lift sweep (10o deviation (b)).
 /// </summary>
 internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
@@ -256,30 +256,31 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         bool receiverBoolean = compute.computeStore()
             .Any(s => s.receivingIdentifier().dataReference() is { } r
                 && ctx.Refs.Probe(r) is { Item.OperandPic.Category: PicCategory.Boolean });
-        bool rhsBoolean = ConditionBinder.SoleDataRef(expr) is { } d && ctx.Refs.Probe(d) is { Item.OperandPic.Category: PicCategory.Boolean };
+        // The sole right-hand operand is classified and bound by the ONE reader the boolean expression's own leaf
+        // uses (ConditionBinder.IsSoleBooleanOperand / BindSoleBooleanOperand: a category-boolean data reference, a
+        // boolean constant-name or a boolean function-identifier, each through enclosing parentheses, §8.8.2; kb/Work
+        // PB3565). This arm used to read an unparenthesized data reference only, so `COMPUTE B8 = FUNCTION
+        // BOOLEAN-OF-INTEGER(5, 8)`, `COMPUTE B8 = (C8)` and `COMPUTE B8 = BOOLEAN-CONSTANT` were refused.
+        bool rhsBoolean = host.Cond.IsSoleBooleanOperand(expr);
         if (receiverBoolean || rhsBoolean)
         {
-            BoundBoolExpr rerouted;
-            var sole = ConditionBinder.SoleDataRef(expr) is { } sd && ctx.Refs.Probe(sd) is not null
-                ? host.Expr.ResolveSending(sd) : null;
-            if (sole is { Place: null })
-                rerouted = sole.BoolError(ctx.Edition);   // the resolver's own answer (kb/Work PB1030)
-            else if (sole?.Place is { } sp
-                && (sp is RefModPlace rm2 ? rm2.Category : sp.Item.OperandPic?.Category) is PicCategory.Boolean)
-                rerouted = new BoundBoolRef(sp);
-            else
-            {
-                // The PB68 sweep's sixth site (kb/Work PB157): this arm built the error NODE without the
-                // DIAGNOSTIC, so `COMPUTE B = N + 1` compiled clean and threw at run time.
-                ctx.Edition.Error("COBOLNET1511", $"a boolean COMPUTE receiver takes a boolean expression, "
-                    + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
-                rerouted = BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
-                    + "(ISO §14.9.8 Format 2)");
-            }
+            // Not a sole identifier (`COMPUTE B = N + 1`): the PB68 sweep's sixth site (kb/Work PB157) — this arm
+            // built the error NODE without the DIAGNOSTIC, so the statement compiled clean and threw at run time.
+            var rerouted = host.Cond.BindSoleBooleanOperand(expr) ?? RefuseNonBooleanComputeOperand(expr);
             return BuildComputeBoolean(compute, rerouted);
         }
         var rhs = host.Expr.BindExpr(expr);
         return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
+    }
+
+    /// <summary>The refusal of a boolean COMPUTE whose right-hand operand is no boolean expression (ISO §14.9.8
+    /// Format 2 / §8.8.2): the diagnostic AND the error node, so the statement never compiles clean.</summary>
+    private BoundBoolExpr RefuseNonBooleanComputeOperand(Core.ArithmeticExpressionContext expr)
+    {
+        ctx.Edition.Error("COBOLNET1511", $"a boolean COMPUTE receiver takes a boolean expression, "
+            + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
+        return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
+            + "(ISO §14.9.8 Format 2)");
     }
 
     /// <summary>The <c>booleanExpression</c> parse tree reduced to a sole figurative ZERO (<c>[ALL]
