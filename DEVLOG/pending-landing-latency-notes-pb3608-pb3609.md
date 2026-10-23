@@ -4,7 +4,7 @@ The owner asked how to get pending branches to main efficiently. Measured at ~16
 merge queue empty, and of the 20 branches the survey printed IN FLIGHT, 13 were already merged (PB3609: the survey's
 180-minute age guard labels a merged branch IN FLIGHT; it should guard only deletion). About six were truly unlanded, and
 the ones that were finished waited for a reviewer: the loop reviews only inside an `enqueue` unit, and units run one at a
-time for an hour or more, while the landing lane starts a landing within three minutes (PB3608: a review lane beside the
+time for an hour or more, while the landing lane starts a landing within its five-minute tick (PB3608: a review lane beside the
 landing lane). Two PB3340 branches with no shared history were found the same way; the Mythos lane kept the loop's
 (`worktree-wf_f6f89a51-99e-1`) and PB3340's note records it.
 
