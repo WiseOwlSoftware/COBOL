@@ -285,7 +285,7 @@ public sealed class ClosesRowsBackLinkDriftTests
         }
 
         // …and the OTHER engine, RUN rather than assumed.
-        var run = PythonInstrument.Run(TestRepo.Scripts("spec", "work.py"), "parity", "--json");
+        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "work.py"), "parity", "--json");
         string? line = run.Stdout.Split('\n').Select(l => l.Trim())
             .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
         Assert.True(line is not null,

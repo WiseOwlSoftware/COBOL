@@ -108,7 +108,7 @@ public sealed class ProcessObservationDriftTests
     {
         // A short budget so the test costs ~2×1s rather than 2×120s; the retry path is exercised either way.
         var ex = Assert.Throws<HarnessNonObservationException>(
-            () => ProcessObserver.ObserveOrThrow(RunsForever(), timeoutMs: 1_000));
+            () => ProcessObserver.ObserveOrThrow(RunsForever(), budget: OneSecond));
         Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
         Assert.Contains("NOT a value mismatch", ex.Message, StringComparison.Ordinal);
         // Both attempts must be reported — a single-attempt message would mean the retry never ran.
@@ -121,7 +121,7 @@ public sealed class ProcessObservationDriftTests
     public void AProcessThatCannotStart_RaisesAsALaunchFailure()
     {
         var psi = new ProcessStartInfo(Path.Combine(Path.GetTempPath(), "cobolnet-no-such-exe-" + Guid.NewGuid().ToString("N")));
-        var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveOrThrow(psi, timeoutMs: 1_000));
+        var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveOrThrow(psi, budget: OneSecond));
         Assert.Contains("LaunchFailed", ex.Message, StringComparison.Ordinal);
     }
 
@@ -129,7 +129,7 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void Observe_ReportsATimeoutWithoutThrowing()
     {
-        var obs = ProcessObserver.Observe(RunsForever(), null, 1_000);
+        var obs = ProcessObserver.Observe(RunsForever(), null, OneSecond);
         Assert.Equal(ProcessOutcome.TimedOut, obs.Outcome);
         // ⛔ And it is EMPTY on purpose: the partial stdout of a killed run is exactly what must never reach a
         // comparison. If this ever starts returning content, the A12 defect is back.
@@ -196,7 +196,7 @@ public sealed class ProcessObservationDriftTests
         try
         {
             var attempts = new WritingAttempts(run, touchBig: false);
-            var obs = ProcessObserver.ObserveWithRetry("probe", 1, run, attempts.Attempt);
+            var obs = ProcessObserver.ObserveWithRetry("probe", OneSecond, run, attempts.Attempt);
 
             Assert.Equal(2, attempts.Calls);
             Assert.Equal(0, obs.ExitCode);   // 9 = the retry found what the killed attempt created
@@ -222,7 +222,7 @@ public sealed class ProcessObservationDriftTests
         {
             var attempts = new WritingAttempts(run, touchBig: true);
             var ex = Assert.Throws<HarnessNonObservationException>(
-                () => ProcessObserver.ObserveWithRetry("probe", 1, run, attempts.Attempt));
+                () => ProcessObserver.ObserveWithRetry("probe", OneSecond, run, attempts.Attempt));
 
             Assert.Equal(1, attempts.Calls);   // the retry is not made
             Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
@@ -243,7 +243,7 @@ public sealed class ProcessObservationDriftTests
         try
         {
             var attempts = new WritingAttempts(run, touchBig: false);
-            var obs = ProcessObserver.ObserveWithRetry("probe", 1, runDirectory: null, attempts.Attempt);
+            var obs = ProcessObserver.ObserveWithRetry("probe", OneSecond, runDirectory: null, attempts.Attempt);
 
             Assert.Equal(9, obs.ExitCode);
             Assert.True(File.Exists(Path.Combine(run, "created.txt")));
@@ -261,7 +261,7 @@ public sealed class ProcessObservationDriftTests
         {
             int calls = 0;
             string? createdSeenByRetry = null;
-            var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveWithRetry("probe", 1, run, () =>
+            var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveWithRetry("probe", OneSecond, run, () =>
             {
                 if (++calls == 1) File.WriteAllText(Path.Combine(run, "created.txt"), "x");
                 else createdSeenByRetry = File.Exists(Path.Combine(run, "created.txt")).ToString();
@@ -305,6 +305,107 @@ public sealed class ProcessObservationDriftTests
         Assert.Contains("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);").Value, StringComparison.Ordinal);
     }
 
+    // ── The budget rule (kb/Work PB3108) ─────────────────────────────────────────────────────────────────────
+    //
+    // The budget scales with the work a process was started to do: one unit for the process, one per serial round of
+    // its children. The two observation tests below put ONE slow child (it sleeps about 3 s) under a 1 s unit: as one
+    // process it is killed (it cannot exit in 1 s, so that direction holds on any host), and as a process stated to run
+    // children it gets at least the harness unit, so that direction is exactly as robust as every observation the
+    // harness makes. Neither direction is a time expectation of this test.
+
+    /// <summary>The unit these tests choose: short, so a child that never finishes costs about 2×1 s.</summary>
+    private static readonly ObservationBudget OneSecond = ObservationBudget.For(1_000, children: 0, parallel: 1, "a probe");
+
+    /// <summary>The rule as a table: units = 1 + ceil(children / parallel), and the budget is units × unit. The
+    /// 78-process row is the conformance suite's run.py at 8 jobs (39 tests, two processes each, 2026-10-22).</summary>
+    [Theory]
+    [InlineData(0, 1, 1)]
+    [InlineData(1, 1, 2)]
+    [InlineData(1, 8, 2)]
+    [InlineData(8, 8, 2)]
+    [InlineData(9, 8, 3)]
+    [InlineData(24, 8, 4)]
+    [InlineData(78, 8, 11)]
+    [InlineData(78, 1, 79)]
+    [InlineData(2_000, 8, 251)]
+    public void TheBudget_ScalesWithTheWork(int children, int parallel, long units)
+    {
+        var budget = ObservationBudget.For(1_000, children, parallel, "a table row");
+        Assert.Equal(units, budget.Units);
+        Assert.Equal(units * 1_000, budget.Ms);
+        Assert.Contains($"{units} unit(s) of 1000 ms", budget.ToString(), StringComparison.Ordinal);
+        Assert.Contains("a table row", budget.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>The edges of the rule: one process is one harness unit; a budget past an int clamps (WaitForExit takes
+    /// an int) rather than wrapping to a negative wait; and a parallelism below one, a negative child count, a unit
+    /// below one or a budget that names no work is refused.</summary>
+    [Fact]
+    public void TheBudget_IsOneUnitForOneProcess_ClampsAtItsLimit_AndRefusesNonsense()
+    {
+        Assert.Equal(ObservationBudget.UnitMs, ObservationBudget.OneProcess.Ms);
+        Assert.Equal(1, ObservationBudget.OneProcess.Units);
+        Assert.Equal(int.MaxValue, ObservationBudget.For(int.MaxValue, children: int.MaxValue, parallel: 1, "huge").Ms);
+        Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: 1, parallel: 0, "x"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: -1, parallel: 1, "x"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(0, children: 0, parallel: 1, "x"));
+        Assert.Throws<ArgumentException>(() => ObservationBudget.For(1_000, children: 0, parallel: 1, " "));
+    }
+
+    /// <summary>A slow process stated to run children is observed: its budget is at least the harness unit.</summary>
+    [Fact]
+    public void ASlowProcess_UnderTheBudgetOfItsWork_IsObserved()
+    {
+        var work = ObservationBudget.For(1_000, children: Math.Max(1, ObservationBudget.UnitMs / 1_000), parallel: 1,
+            "a stand-in for a script that runs one child after another");
+        Assert.True(work.Ms > ObservationBudget.UnitMs);
+        var obs = ProcessObserver.ObserveOrThrow(SleepsAFewSeconds(), budget: work);
+        Assert.Equal(ProcessOutcome.Completed, obs.Outcome);
+        Assert.Equal(0, obs.ExitCode);
+    }
+
+    /// <summary>
+    /// ⛔ The same slow process under ONE unit is a non-observation, and its report carries what PB3108 asked for: the
+    /// budget, the work it covered, the process's own processor time and the host's load across each attempt.
+    /// </summary>
+    [Fact]
+    public void ASlowProcess_UnderOneUnit_IsANonObservationThatNamesItsWorkAndTheHostLoad()
+    {
+        var ex = Assert.Throws<HarnessNonObservationException>(
+            () => ProcessObserver.ObserveOrThrow(SleepsAFewSeconds(), budget: OneSecond));
+        Assert.Contains("budget  : 1000 ms for a probe (1 unit(s) of 1000 ms", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("of processor time itself", ex.Message, StringComparison.Ordinal);
+        Assert.Contains($"host: {Environment.ProcessorCount} logical processor(s)", ex.Message, StringComparison.Ordinal);
+        if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
+            Assert.Contains("% busy across the attempt", ex.Message, StringComparison.Ordinal);
+        if (OperatingSystem.IsLinux())
+            Assert.Contains("load average", ex.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>The load line's arithmetic, and its honest arm: the busy share is 1 - idle/total across the two
+    /// samples, and a host with no reading says so instead of reporting a number.</summary>
+    [Fact]
+    public void TheHostLoadLine_IsTheBusyShareAcrossTheAttempt_OrSaysItHasNone()
+    {
+        Assert.Contains("75 % busy across the attempt",
+            HostLoad.Describe(new HostCpuTimes(Idle: 100, Total: 1_000), new HostCpuTimes(Idle: 125, Total: 1_100)),
+            StringComparison.Ordinal);
+        Assert.Contains("processor use not readable on this host", HostLoad.Describe(null, null), StringComparison.Ordinal);
+        if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
+            Assert.NotNull(HostLoad.Sample());
+    }
+
+    /// <summary>A non-observation names the command a caller built with <c>ArgumentList</c>: before PB3108 the log read a
+    /// bare <c>python</c> for every script, run.py included.</summary>
+    [Fact]
+    public void TheCommandLine_IncludesAnArgumentList()
+    {
+        var psi = new ProcessStartInfo("python");
+        foreach (string a in new[] { "run.py", "--out", "a b" }) psi.ArgumentList.Add(a);
+        Assert.Equal("python run.py --out \"a b\"", ProcessObserver.CommandLine(psi));
+        Assert.Equal("cmd.exe /c exit", ProcessObserver.CommandLine(new ProcessStartInfo("cmd.exe", "/c exit")));
+    }
+
     private static readonly System.Text.RegularExpressions.Regex RunsDotnet =
         new(@"new ProcessStartInfo\(\s*""dotnet""", System.Text.RegularExpressions.RegexOptions.Compiled);
 
@@ -326,6 +427,9 @@ public sealed class ProcessObservationDriftTests
 
     /// <summary>A process that writes one marker line to stdout and exits.</summary>
     private static ProcessStartInfo Echoes(string marker) => Shell($"echo {marker}", $"echo {marker}");
+
+    /// <summary>A process that sleeps about 3 s and exits 0: longer than one 1 s unit on any host.</summary>
+    private static ProcessStartInfo SleepsAFewSeconds() => Shell("ping -n 4 127.0.0.1 >nul", "sleep 3");
 
     /// <summary>A process that does not finish within any budget this test would set.</summary>
     private static ProcessStartInfo RunsForever() =>
