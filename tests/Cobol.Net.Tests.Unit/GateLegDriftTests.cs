@@ -93,7 +93,11 @@ public sealed class GateLegDriftTests
     /// <c>LEG 1 ONLY (batched gating, PB2515)</c>, never a plain GREEN; and the
     /// audits' fail-fast (kb/Work PB2523): a red audit stops the gate before the build;
     /// and the audits run before the gate slot is taken (kb/Work PB2524); and every gate publishes its
-    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527). ⛔ This test does
+    /// measured durations to the shared timings store a fresh worktree's plan reads (kb/Work PB2527); and a gate
+    /// outlives its caller and is gated once per measured tree (kb/Work PB3536): it runs DETACHED and is followed, it
+    /// survives a tree kill of its follower, `--await` reads its verdict file (PENDING, DIED), and a re-gate of an
+    /// unchanged tree answers from a recorded GREEN, never from a RED, another tree, another base or a narrower
+    /// scope. ⛔ This test does
     /// not run the self-test (kb/Work PB2882): the runner runs it in every gate and CI job, and this holds that each arm
     /// is still DECLARED (<see cref="SelfTestArmSource"/>); run a second time under the harness's fixed 120 s budget it
     /// took 311 s, retried, in train 1058's lander gate.
@@ -133,6 +137,16 @@ public sealed class GateLegDriftTests
                      "a second gate in the same worktree is REFUSED",
                      "a defect in the driver still ends in ONE verdict line",
                      "the gate lock is per worktree",
+                     "the measured tree is the working tree's content",
+                     "a re-gate of an unchanged tree answers from the recorded GREEN",
+                     "a chain of reuses names the run that MEASURED the tree",
+                     "a re-gate of a CHANGED tree runs the gate",
+                     "a RED is never reused",
+                     "a LEG 1 ONLY GREEN never answers a gate under the scope whole",
+                     "a gate whose tree changed WHILE it ran is never reused",
+                     "--await reads the verdict file",
+                     "build-local's gate runs DETACHED and is followed",
+                     "a detached gate OUTLIVES its follower's tree kill",
                  });
     }
 

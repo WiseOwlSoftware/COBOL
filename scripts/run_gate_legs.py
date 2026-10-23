@@ -2,8 +2,10 @@
 """run_gate_legs.py — THE GATE DRIVER: the ordered gate (kb/Work PB1708, PB1721, PB3022;
 docs/rearchitecture/DESIGN-test-build-ci.md §3.14.1, §3.14.3–3.14.4, §3.14.6, §3.17.3).
 
-    python scripts/run_gate_legs.py [--base <sha>]   # the plan, leg 1, fail-fast, a gate slot
+    python scripts/run_gate_legs.py [--base <sha>]          # the gate, DETACHED, its output followed to the verdict
+    python scripts/run_gate_legs.py --await <run> [--wait-s N]  # a gate's verdict, read from its run directory
     python scripts/run_gate_legs.py --self-test
+    (python scripts/run_gate_legs.py --run <run> [--base <sha>] is the detached gate itself; never run it by hand)
 
 Called by `scripts/build-local.ps1` and `scripts/build-local.sh`, which only set the process priority. Ordering changes
 WHEN a case runs, never WHETHER (owner, 2026-09-28: "order, don't skip").
@@ -51,8 +53,28 @@ It is GREEN only when every leg ran, every leg is green, every population is exa
 the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or `…: RED` instead, whenever the
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
 
-Exit codes: 0 GREEN (or LEG 1 ONLY: GREEN) · 1 RED (or RED/INCOMPLETE, LEG 1 ONLY: RED, or the build failed) · 2 NOT
-RUN (the lock is held, the shared gate settings are malformed, the population could not be listed).
+⛔ A GATE OUTLIVES ITS CALLER, AND A MEASURED TREE IS GATED ONCE (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12).
+  * DETACHED: `build-local` makes the run directory, starts the gate itself (`--run <run>`) through scripts/detached.py
+    (the one launch that outlives its caller's tree kill) with its output in `<run>/gate.log` and its pid in
+    `<run>/gate.pid`, and FOLLOWS it: the log is echoed as it grows and the caller exits with the gate's own exit code
+    once `<run>/verdict.json` is written. Killing the caller (a workflow agent's return kills the process tree of every
+    background command it started: wave 1150 group A's finisher gate died mid-audit with no verdict) leaves the gate
+    running to its verdict, and `--await <run>` reads it: the verdict line and exit code once the verdict file is there,
+    `DIED` (exit 2) when the gate's process is gone without one, `PENDING` (exit 3) when `--wait-s` passes first. The
+    rolling wave awaits a gate an agent hands it this way (status GATE-PENDING), never the log's tail. To stop a gate,
+    end the process `gate.pid` names.
+  * REUSED: every verdict file records the HEAD and the TREE the gate measured (the working tree's content, uncommitted
+    and untracked files included, ignored ones not: `Host.measured_tree`) at its start and again at its end, the base it
+    planned against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree
+    whose tree did not change while it ran, under a scope that run covered (a `LEG 1 ONLY` GREEN covers the scope
+    `leg1`; a plain GREEN covers both), answers from that record WITHOUT running anything, and says so in its verdict
+    line (`… GREEN — REUSED: …`, naming the run that measured it) — the self-test reuse rule (kb/Work PB2914, PB3022)
+    extended to the gate. A RED is never reused, and a landing's gate on a merged head (another tree) always runs.
+
+Exit codes: 0 GREEN (or LEG 1 ONLY: GREEN, reused or run) · 1 RED (or RED/INCOMPLETE, LEG 1 ONLY: RED, or the build
+failed) · 2 NOT RUN (the lock is held, the shared gate settings are malformed, the population could not be listed) or
+DIED (`--await`, or the follower: the gate's process ended with no verdict) · 3 PENDING (`--await`: no verdict within
+`--wait-s`).
 """
 from __future__ import annotations
 
@@ -87,6 +109,7 @@ from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Setting, Slot,  # noqa: E402
                        drop_git_local_env, git_common_dir, slot_dir)
+from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, check as check_population,  # noqa: E402
                              list_population, scrubbed_env, synthetic_listing, synthetic_trx)
 
@@ -101,6 +124,15 @@ RUN_DIR = re.compile(r"\d{8}T\d{6}Z-[0-9a-f]{6}")
 KEEP_RUNS = 5
 LOCK_NAME = "cobol-gate.lock"
 VERDICT_FILE = "verdict.json"
+#: A run directory's other fixed names (kb/Work PB3536): the gate process's pid, and its output when it runs detached.
+PID_FILE = "gate.pid"
+LOG_FILE = "gate.log"
+#: `--await`'s answer while the gate still runs, and its default window (under a tool call's 10-minute limit).
+AWAIT_PENDING = "=== GATE AWAIT: PENDING"
+AWAIT_PENDING_EXIT = 3
+AWAIT_WAIT_S = 540
+#: The verdict record's schema: 3 adds the measured head, tree (start and end), base, exit code and reuse (PB3536).
+RECORD_SCHEMA = 3
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -241,6 +273,33 @@ class Host:
 
     def default_base(self) -> str:
         return self.git("merge-base", "HEAD", "origin/main")
+
+    def head(self) -> str | None:
+        try:
+            return self.git("rev-parse", "HEAD")
+        except (subprocess.CalledProcessError, OSError):
+            return None
+
+    def measured_tree(self) -> str | None:
+        """THE TREE A GATE MEASURES (kb/Work PB3536): the git tree id of the WORKING TREE — every tracked file as it is on
+        disk, every untracked file git does not ignore, no ignored one — written through a private copy of the index,
+        so the worktree's own index is never touched. None when git cannot say (then nothing is reused)."""
+        try:
+            index = Path(self.git("rev-parse", "--git-path", "index"))
+            index = index if index.is_absolute() else self.repo / index
+            with tempfile.TemporaryDirectory(prefix="gate-tree-") as tmp:
+                private = Path(tmp) / "index"
+                if index.exists():
+                    shutil.copyfile(index, private)
+                env = {**os.environ, "GIT_INDEX_FILE": str(private)}
+                for argv in (["add", "-A", "--", "."], ["write-tree"]):
+                    p = subprocess.run(["git", *argv], cwd=self.repo, env=env, capture_output=True, text=True,
+                                       encoding="utf-8", errors="replace")
+                    if p.returncode != 0:
+                        return None
+                return p.stdout.strip() or None
+        except (subprocess.CalledProcessError, OSError):
+            return None
 
     def _captured(self, cmd: list[str], spawn: Spawn, live: "_Live | None" = None) -> tuple[int | None, str, float]:
         """Run `cmd` under this interpreter to its end: (exit code, its output, seconds). With `live` — one `audits()`
@@ -411,6 +470,106 @@ def leg_env(handshake: dict[str, str]) -> dict[str, str]:
     return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake}
 
 
+# ── a run directory: the gate's pid, its verdict record, and the one way to wait for it (kb/Work PB3536) ──────────
+
+
+def write_pid(run: Path, pid: int) -> None:
+    (run / PID_FILE).write_text(json.dumps({"pid": pid}) + "\n", encoding="utf-8", newline="\n")
+
+
+def read_pid(run: Path) -> int | None:
+    try:
+        return int(json.loads((run / PID_FILE).read_text(encoding="utf-8"))["pid"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def read_record(run: Path) -> dict | None:
+    """The run's verdict record, or None while it has none (a verdict file is written whole, once, at the end)."""
+    try:
+        rec = json.loads((run / VERDICT_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return rec if isinstance(rec, dict) and "verdict" in rec and "line" in rec else None
+
+
+def _record_exit(rec: dict) -> int:
+    """A record's exit code; a record written before schema 3 carries none, so it is derived from its verdict."""
+    if isinstance(rec.get("exit_code"), int):
+        return rec["exit_code"]
+    v = str(rec.get("verdict", ""))
+    return 0 if v == "GREEN" or v == f"{LEG1_ONLY}: GREEN" else 2 if v == "NOT RUN" else 1
+
+
+def watch(run: Path, wait_s: float | None, echo: Callable[[str], None] | None = None,
+          alive: Callable[[int], bool] = _pid_alive, poll_s: float = 0.5) -> tuple[int, str]:
+    """THE ONE WAY TO WAIT FOR A GATE (kb/Work PB3536): its run directory's VERDICT FILE, never a log's tail.
+    Returns (exit code, verdict line): the record's own once `verdict.json` is there; DIED (2) when the process
+    `gate.pid` names is gone without one; PENDING (3) once `wait_s` passes (None: no limit); NOT RUN (2) when there is
+    no such run directory. `echo` (the follower) is handed the run's `gate.log` line by line as it grows, to its end."""
+    log, offset, t = run / LOG_FILE, 0, time.monotonic()
+
+    def drain(final: bool = False) -> None:
+        nonlocal offset
+        if echo is None:
+            return
+        try:
+            data = log.read_bytes()[offset:]
+        except OSError:
+            return
+        cut = len(data) if final else data.rfind(b"\n") + 1
+        for line in data[:cut].decode("utf-8", errors="replace").splitlines():
+            echo(line)
+        offset += cut
+
+    if not run.is_dir():
+        return 2, f"{VERDICT}NOT RUN — no gate run directory {run} ==="
+    while True:
+        drain()
+        rec = read_record(run)
+        pid = read_pid(run)
+        if rec is not None:
+            # the gate writes its record, then prints the line and exits: the follower echoes its output to the end
+            while echo is not None and pid is not None and alive(pid):
+                drain()
+                time.sleep(poll_s)
+            drain(final=True)
+            return _record_exit(rec), str(rec["line"])
+        if pid is not None and not alive(pid):
+            if (rec := read_record(run)) is not None:  # it wrote the record and ended between the two reads
+                continue
+            drain(final=True)
+            return 2, (f"{VERDICT}DIED — the gate process {pid} ended with no verdict (run {run}; its output: "
+                       f"{log}) ===")
+        if wait_s is not None and time.monotonic() - t >= wait_s:
+            who = (f"the gate process {pid} is running" if pid is not None else
+                   f"no {PID_FILE} names its process (one not started yet, or a run from before kb/Work PB3536, which "
+                   "cannot be told from a dead one)")
+            return AWAIT_PENDING_EXIT, f"{AWAIT_PENDING} — no verdict in {run} after {wait_s:.0f} s; {who}; await it again ==="
+        time.sleep(poll_s)
+
+
+def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], list[str]],
+                      say: Callable[[str], None]) -> int:
+    """`build-local`'s gate (kb/Work PB3536): make the run directory, start the gate DETACHED in it (scripts/detached.py:
+    it outlives this process and whatever kills this process's tree), name it, and follow it to its verdict. Returns the
+    gate's exit code. `argv_for(run)` is the gate's command line; the self-test plants its own."""
+    run = new_run()
+    try:
+        pid = spawn_detached(argv_for(run), run / LOG_FILE, cwd=REPO)
+    except OSError as e:
+        say(f"{VERDICT}NOT RUN — the gate could not be started detached: {e} ===")
+        return 2
+    if read_pid(run) is None:
+        write_pid(run, pid)
+    say(f"build-local: the gate runs DETACHED (pid {pid}, run directory {run}): it outlives this process; "
+        f"`python scripts/run_gate_legs.py --await {run}` reads its verdict (kb/Work PB3536)")
+    code, line = watch(run, None, echo=say)
+    if not (run / LOG_FILE).exists() or line not in (run / LOG_FILE).read_text(encoding="utf-8", errors="replace"):
+        say(line)  # a verdict the gate's own output does not carry (DIED): the caller's last line is still the verdict
+    return code
+
+
 # ── the gate ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 
@@ -448,13 +607,29 @@ class Outcome:
     timings_store: str = ""  # what the publish to the shared timings store did (kb/Work PB2527)
     #: Work running BESIDE the gate's critical path (`Gate._beside`), joined once before the verdict: (name, future).
     beside: list[tuple[str, concurrent.futures.Future]] = field(default_factory=list)
+    #: WHAT THE GATE MEASURED (kb/Work PB3536): the commit, the working tree at the start and at the end, the base it
+    #: planned against; and, for a reused verdict, the run that measured it.
+    head: str | None = None
+    tree: str | None = None
+    tree_end: str | None = None
+    base: str | None = None
+    reused_from: str | None = None
+    reused_detail: str | None = None  # the measuring gate's own verdict detail, carried along a chain of reuses
 
 
 class Gate:
     def __init__(self, host: Host, run_root: Path, base: str | None = None,
-                 say: Callable[[str], None] = lambda s: print(s, flush=True)):
-        self.host, self.run_root, self.base, self.say = host, run_root, base, say
+                 say: Callable[[str], None] = lambda s: print(s, flush=True), run_dir: Path | None = None):
+        """`run_dir`: the run directory a detached gate's launcher made (`--run`); None makes a fresh one."""
+        self.host, self.run_root, self.base, self.say, self.run_dir = host, run_root, base, say, run_dir
         self._pool: concurrent.futures.ThreadPoolExecutor | None = None  # `run` owns it for the work `_beside` starts
+        self._base_sha: str | None = None
+
+    def _base(self) -> str:
+        """The change's cut point, resolved once: `--base`, else the merge base with origin/main (raises when none)."""
+        if self._base_sha is None:
+            self._base_sha = self.base or self.host.default_base()
+        return self._base_sha
 
     # The verdict line and exit code are decided here, once, for every path through the gate.
     def _finish(self, out: Outcome, run: Path | None, verdict: str, detail: str, code: int) -> Outcome:
@@ -470,17 +645,22 @@ class Gate:
     def run(self) -> Outcome:
         out = Outcome()
         started = time.monotonic()
-        label = f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')})"
+        run = self.run_dir
+        if run is not None:  # a detached gate: its pid, before anything can fail, so `--await` can tell it from a death
+            write_pid(run, os.getpid())
+        label = (f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')}"
+                 + (f", run {run}" if run is not None else "") + ")")
         lock_path = self.host.lock_path()
         lock = ExclusiveLock.try_take(lock_path, label)
         if lock is None:
-            return self._finish(out, None, "NOT RUN", f"another gate holds this worktree's gate lock ({lock_path}): "
-                                f"{ExclusiveLock.holder(lock_path) or '(no label)'}", 2)
+            return self._finish(out, run, "NOT RUN", f"another gate holds this worktree's gate lock ({lock_path}): "
+                                f"{ExclusiveLock.holder(lock_path) or '(no label)'} — `python scripts/run_gate_legs.py "
+                                "--await <its run>` reads its verdict", 2)
         with lock:
             try:
                 out.scope, setting = self.host.implementer_scope()
             except ValueError as e:  # malformed shared gate settings stop the gate, with the reason
-                return self._finish(out, None, "NOT RUN", str(e), 2)
+                return self._finish(out, run, "NOT RUN", str(e), 2)
             if setting is not None and setting.until is not None:
                 out.scope_until = setting.until.isoformat()
             # The pool the work BESIDE the critical path runs in (`_beside`); leaving it waits for that work, so no
@@ -488,12 +668,51 @@ class Gate:
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(BESIDE), thread_name_prefix="beside") as pool:
                 self._pool = pool
                 try:
-                    return self._gate(out, label, started)
+                    if run is None:
+                        run = self.new_run()
+                        write_pid(run, os.getpid())
+                    self.say(f"build-local: gate, run directory {run}")
+                    out.head, out.tree = self.host.head(), self.host.measured_tree()
+                    try:
+                        out.base = self._base()
+                    except Exception:  # noqa: BLE001 — no base: no plan (`_plan` names why), and nothing is reused
+                        out.base = None
+                    if (prior := self.reusable(run, out)) is not None:
+                        return self._reused(out, run, started, *prior)
+                    return self._gate(out, label, started, run)
                 except Exception as e:  # noqa: BLE001 — a defect in the driver still ends in a verdict line, never
                     # silence: every caller BLOCKS on that line (MANDATORY-PRACTICES P2), so a traceback alone would
                     # hang it.
                     self.say(traceback.format_exc().rstrip())
-                    return self._finish(out, None, "NOT RUN", f"the gate driver failed: {type(e).__name__}: {e}", 2)
+                    return self._finish(out, run, "NOT RUN", f"the gate driver failed: {type(e).__name__}: {e}", 2)
+
+    def reusable(self, current: Path, out: Outcome) -> tuple[Path, dict] | None:
+        """THE GATE'S REUSE RULE (kb/Work PB3536; the self-test reuse rule of kb/Work PB2914/PB3022 extended to the
+        gate): the newest earlier run of this worktree whose verdict file is GREEN (exit 0) for THIS tree — measured at
+        its start and unchanged at its end — against THIS base, under a scope it covers (a `LEG 1 ONLY` GREEN covers
+        `leg1` only; a plain GREEN ran every planned leg and covers both). None when the tree could not be measured or
+        no run qualifies: a RED is never reused, and another tree (a landing's merged head) always runs."""
+        if not out.tree:
+            return None
+        for p in reversed(self._runs()):
+            rec = read_record(p) if p != current else None
+            if (rec is not None and rec.get("exit_code") == 0 and rec.get("tree") == out.tree
+                    and rec.get("tree_end") == out.tree and rec.get("base") == out.base
+                    and (not rec.get("leg1_only") or out.scope == "leg1")):
+                return p, rec
+        return None
+
+    def _reused(self, out: Outcome, run: Path, started: float, prior: Path, rec: dict) -> Outcome:
+        """Answer from a recorded GREEN (`reusable`): no audit, slot, build or leg runs, and the line says so. Along a
+        chain of reuses the line names the run that MEASURED the tree and that run's own verdict detail."""
+        out.tree_end, out.reused_from = out.tree, rec.get("reused_from") or prior.name
+        out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
+        out.scope_until, out.leg1_only, out.plan_note = rec.get("scope_until"), bool(rec.get("leg1_only")), rec.get("plan", "")
+        out.timings["wall_s"] = round(time.monotonic() - started, 1)  # this gate's own seconds (landing_measure.py)
+        return self._finish(out, run, str(rec["verdict"]),
+                            f"REUSED (kb/Work PB3536): tree {out.tree[:12]} at head {(out.head or '?')[:12]} was gated "
+                            f"in run {out.reused_from} and has not changed since, so nothing ran (run {run.name}); "
+                            f"that gate: {out.reused_detail}", 0)
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -523,7 +742,7 @@ class Gate:
                 self.say(line)
             out.reasons += reds
 
-    def _new_run(self) -> Path:
+    def new_run(self) -> Path:
         self.run_root.mkdir(parents=True, exist_ok=True)
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         run = self.run_root / f"{stamp}-{secrets.token_hex(3)}"
@@ -546,9 +765,7 @@ class Gate:
             if p != current:
                 shutil.rmtree(p, ignore_errors=True)
 
-    def _gate(self, out: Outcome, label: str, started: float) -> Outcome:
-        run = self._new_run()
-        self.say(f"build-local: gate, run directory {run}")
+    def _gate(self, out: Outcome, label: str, started: float, run: Path) -> Outcome:
         # ⛔ THE AUDITS AND THE CORPUS FETCH RUN BEFORE THE GATE SLOT IS TAKEN (kb/Work PB2524). They read only the
         # tree — no build output, no test result — so they need nothing the slot rations (concurrent builds and test
         # legs, DESIGN-test-build-ci §3.14.6). Inside the slot they were 35-45 % of its hold (~230 s of serial Python
@@ -633,6 +850,7 @@ class Gate:
         if plan is not None:
             self._check_identity(out, plan, digest, binaries, listings, run)
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
+        out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
         self._prune(run)
         return self._verdict(out, run, plan, legs)
 
@@ -640,7 +858,7 @@ class Gate:
         """The order plan. No plan input, a stale one or a broken one gives ONE leg in the plain order (§3.14.1) —
         named, never a skip."""
         try:
-            base = self.base or self.host.default_base()
+            base = self._base()
             previous = self.previous_run(run)
             plan, digest = self.host.plan(listings, base, previous, run / "plan.json")
         except Exception as e:  # noqa: BLE001 — ANY planning failure falls back to the whole population in one leg
@@ -818,7 +1036,9 @@ class Gate:
         return self._finish(out, run, "GREEN", detail, 0)
 
     def _record(self, out: Outcome, run: Path) -> dict:
-        return {"schema": 2, "verdict": out.verdict, "line": out.line, "reasons": out.reasons,
+        return {"schema": RECORD_SCHEMA, "verdict": out.verdict, "line": out.line, "exit_code": out.exit_code,
+                "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
+                "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "slot": out.slot, "plan_sha256": out.plan_sha256, "plan": out.plan_note, "stopped": out.stopped,
                 "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only,
                 "legs": {str(leg): names for leg, names in out.legs_invoked.items()},
@@ -847,9 +1067,12 @@ class FakeHost(Host):
             "Characterization": ([1], ["N.Char.A", "N.Char.B"], [])}
 
     def __init__(self, root: Path, lock: Path, plant: set[str] = frozenset(), plan_fails: bool = False,
-                 scope: str | None = None):
+                 scope: str | None = None, trees: list[str | None] | None = None, base: str = "0" * 40):
+        """`trees`: the working tree the gate measures, call by call (its start, then its end; the last value
+        repeats); `base`: the planted cut point."""
         super().__init__(root)
         self.root, self._lock, self.plant, self.plan_fails, self.scope = root, lock, set(plant), plan_fails, scope
+        self.trees, self.base_sha = list(trees or ["tree-1"]), base
         self.slots_taken = 0
         self.audited = self.built = False
         self.events: list[str] = []  # the order the gate drove the host in: audits, fetch, slot, build
@@ -876,7 +1099,13 @@ class FakeHost(Host):
         return self.scope, Setting(self.scope, dt.datetime(2999, 1, 1, tzinfo=dt.timezone.utc), "planted", "t", "t")
 
     def default_base(self) -> str:
-        return "0" * 40
+        return self.base_sha
+
+    def head(self) -> str | None:
+        return "head-1"
+
+    def measured_tree(self) -> str | None:
+        return self.trees.pop(0) if len(self.trees) > 1 else self.trees[0]
 
     def audits(self, spawn, say) -> list[str]:
         self.audited = True
@@ -1247,6 +1476,151 @@ def self_test() -> int:
         arm("the gate lock is per worktree: the main checkout and a linked worktree lock different files",
             a != b and a.parent == (repo / ".git").resolve() and b.parent.parent == (repo / ".git" / "worktrees").resolve(),
             f"{a} vs {b}")
+
+        # THE MEASURED TREE (kb/Work PB3536): the working tree's content, through a private index.
+        (repo / ".gitignore").write_text("ignored.txt\n", encoding="utf-8", newline="\n")
+        (repo / "tracked.txt").write_text("one\n", encoding="utf-8", newline="\n")
+        for argv in (["add", "-A"], ["commit", "-q", "-m", "tracked"]):
+            subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
+        real = Host(repo)
+        index_before = (repo / ".git" / "index").read_bytes()
+        t0 = real.measured_tree()
+        (repo / "tracked.txt").write_text("two\n", encoding="utf-8", newline="\n")
+        t_edit = real.measured_tree()
+        (repo / "tracked.txt").write_text("one\n", encoding="utf-8", newline="\n")
+        (repo / "untracked.txt").write_text("new\n", encoding="utf-8", newline="\n")
+        t_new = real.measured_tree()
+        (repo / "untracked.txt").unlink()
+        (repo / "ignored.txt").write_text("noise\n", encoding="utf-8", newline="\n")
+        t_ignored = real.measured_tree()
+        committed = real.git("rev-parse", "HEAD^{tree}")
+        arm("the measured tree is the working tree's content: an edit or an untracked file changes it, an ignored file "
+            "does not, a clean tree measures as its commit's tree, and the worktree's index is untouched",
+            t0 == committed and t_edit not in (None, t0) and t_new not in (None, t0, t_edit) and t_ignored == t0
+            and (repo / ".git" / "index").read_bytes() == index_before, f"{t0} {t_edit} {t_new} {t_ignored} {committed}")
+
+        # THE GATE'S REUSE RULE (kb/Work PB3536): a re-gate of an unchanged tree answers from the recorded GREEN.
+        def regate(d: Path, **fake) -> tuple[Outcome, FakeHost]:
+            fake.setdefault("scope", "leg1")
+            host = FakeHost(d, d / "gate.lock", **fake)
+            sink.clear()
+            return Gate(host, d / "runs", say=sink.append).run(), host
+
+        d = root / "reuse"
+        d.mkdir()
+        first, _ = regate(d)
+        again, h2 = regate(d)
+        third, h3 = regate(d)
+        rec2 = read_record(d / "runs" / sorted(p.name for p in (d / "runs").iterdir())[1])
+        arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
+            "verdict line says REUSED and names the run that measured it, exit 0",
+            first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
+            and h2.events == [] and h2.slots_taken == 0 and not again.runs and "REUSED (kb/Work PB3536)" in again.line
+            and again.reused_from is not None and again.reused_from in again.line
+            and rec2 is not None and rec2["reused_from"] == again.reused_from and rec2["exit_code"] == 0,
+            f"{again.line} {h2.events}")
+        arm("a chain of reuses names the run that MEASURED the tree and its own verdict, never a reuse of a reuse",
+            third.reused_from == again.reused_from and third.line.count("REUSED") == 1 and h3.events == [], third.line)
+        changed, hc = regate(d, trees=["tree-2"])
+        arm("a re-gate of a CHANGED tree runs the gate (audits, slot, build, legs)",
+            "REUSED" not in changed.line and hc.events[:4] == ["audits", "fetch", "slot", "build"]
+            and changed.verdict == f"{LEG1_ONLY}: GREEN", f"{changed.line} {hc.events}")
+        d = root / "reuse-red"
+        d.mkdir()
+        regate(d, plant={"red-leg1"})
+        red_again, hr = regate(d)
+        arm("a RED is never reused: the same tree is gated again",
+            "REUSED" not in red_again.line and "build" in hr.events, red_again.line)
+        d = root / "reuse-scope"
+        d.mkdir()
+        regate(d)
+        whole_after_leg1, hw = regate(d, scope="whole")
+        leg1_after_whole, hl = regate(d)
+        arm("a LEG 1 ONLY GREEN never answers a gate under the scope whole; a plain GREEN answers the scope leg1",
+            "REUSED" not in whole_after_leg1.line and "build" in hw.events and whole_after_leg1.verdict == "GREEN"
+            and "REUSED" in leg1_after_whole.line and leg1_after_whole.verdict == "GREEN" and hl.events == [],
+            f"{whole_after_leg1.line} | {leg1_after_whole.line}")
+        d = root / "reuse-moved"
+        d.mkdir()
+        edited, _ = regate(d, trees=["tree-1", "tree-edited"])
+        after_edit, he = regate(d)
+        rebased, hb = regate(d, base="1" * 40)
+        arm("a gate whose tree changed WHILE it ran is never reused, and another base (a landing's merged main) runs",
+            edited.tree == "tree-1" and edited.tree_end == "tree-edited" and "REUSED" not in after_edit.line
+            and "build" in he.events and "REUSED" not in rebased.line and "build" in hb.events,
+            f"{after_edit.line} | {rebased.line}")
+
+        # THE ONE WAY TO WAIT FOR A GATE (kb/Work PB3536): its run directory's verdict file.
+        d = root / "await"
+        d.mkdir()
+        done = d / "done"
+        done.mkdir()
+        (done / VERDICT_FILE).write_text(json.dumps({"verdict": "RED", "line": f"{VERDICT}RED — planted ===",
+                                                     "exit_code": 1}), encoding="utf-8", newline="\n")
+        live = d / "live"
+        live.mkdir()
+        write_pid(live, os.getpid())  # this process: alive for the whole arm
+        dead_proc = subprocess.Popen([sys.executable, "-c", "pass"])
+        dead_proc.wait()
+        dead = d / "dead"
+        dead.mkdir()
+        write_pid(dead, dead_proc.pid)
+        got = {n: watch(d / n, 0) for n in ("done", "live", "dead", "missing")}
+        arm("--await reads the verdict file (its line and exit code), PENDING (exit 3) while the gate's process runs, "
+            "DIED (exit 2) when it is gone without a verdict, NOT RUN (exit 2) with no run directory",
+            got["done"] == (1, f"{VERDICT}RED — planted ===")
+            and got["live"][0] == AWAIT_PENDING_EXIT and got["live"][1].startswith(AWAIT_PENDING)
+            and got["dead"][0] == 2 and got["dead"][1].startswith(f"{VERDICT}DIED")
+            and got["missing"][0] == 2 and got["missing"][1].startswith(f"{VERDICT}NOT RUN"), str(got))
+
+        # The follower and the detached gate, as real processes: a planted gate that prints, waits for a go file,
+        # writes its verdict file and exits 1.
+        def planted_gate(run: Path, go: Path | None = None) -> list[str]:
+            wait = f"g = pathlib.Path({str(go)!r})\nwhile not g.exists(): time.sleep(0.05)\n" if go else ""
+            return [sys.executable, "-c", "import json, pathlib, time\n"
+                    f"r = pathlib.Path({str(run)!r})\nprint('PLANTED-GATE-OUTPUT', flush=True)\n{wait}"
+                    f"line = {VERDICT!r} + 'LEG 1 ONLY (batched gating, PB2515): RED — planted ==='\n"
+                    "(r / 'verdict.json').write_text(json.dumps({'verdict': 'x', 'line': line, 'exit_code': 1}))\n"
+                    "print(line, flush=True)\n"]
+        d = root / "follow"
+        d.mkdir()
+        heard: list[str] = []
+        runs = iter([d / "r1"])
+
+        def make() -> Path:
+            r = next(runs)
+            r.mkdir()
+            return r
+        code = launch_and_follow(make, planted_gate, heard.append)
+        arm("build-local's gate runs DETACHED and is followed: its output echoed, the caller's exit code the gate's, "
+            "the verdict line last",
+            code == 1 and "PLANTED-GATE-OUTPUT" in heard and heard[-1].startswith(f"{VERDICT}LEG 1 ONLY")
+            and read_pid(d / "r1") is not None, str(heard))
+        # a follower killed mid-gate (an agent's return kills its background commands' tree) leaves the gate running:
+        # its verdict lands in the run directory, where --await reads it
+        go, run2 = d / "go", d / "r2"
+        follower = subprocess.Popen([sys.executable, "-c", "\n".join([
+            "import pathlib, sys",
+            f"sys.path.insert(0, {str(REPO / 'scripts')!r})",
+            "import run_gate_legs as g",
+            f"run = pathlib.Path({str(run2)!r})",
+            "def make():",
+            "    run.mkdir()",
+            "    return run",
+            f"sys.exit(g.launch_and_follow(make, lambda r: {planted_gate(run2, go)!r}, print))"])],
+            stdout=subprocess.DEVNULL, start_new_session=os.name != "nt")
+        t = time.monotonic()
+        while read_pid(run2) is None and time.monotonic() - t < 120:  # a hang guard: the arm names what it never saw
+            time.sleep(0.05)
+        gate_pid = read_pid(run2)
+        _stop_tree(follower)
+        follower.wait()
+        survived = gate_pid is not None and _pid_alive(gate_pid)
+        go.touch()
+        handed = watch(run2, 120)
+        arm("a detached gate OUTLIVES its follower's tree kill and its verdict is read from the run directory",
+            survived and handed == (1, f"{VERDICT}LEG 1 ONLY (batched gating, PB2515): RED — planted ==="),
+            f"survived {survived}; {handed}")
     finally:
         for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
             for f in files:
@@ -1259,6 +1633,10 @@ def self_test() -> int:
     return 0 if not failed else 1
 
 
+def print_flush(line: str) -> None:
+    print(line, flush=True)
+
+
 def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
@@ -1267,12 +1645,25 @@ def main() -> int:
         pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", help="the change's cut point (default: git merge-base HEAD origin/main)")
+    ap.add_argument("--await", dest="await_run", metavar="RUN", help="read a gate's verdict from its run directory: "
+                    "the line and exit code; DIED (2) or PENDING (3) when it has none (kb/Work PB3536)")
+    ap.add_argument("--wait-s", type=float, default=AWAIT_WAIT_S, help=f"--await: how long to wait for the verdict "
+                    f"(default {AWAIT_WAIT_S}, under a tool call's 10-minute limit)")
+    ap.add_argument("--run", metavar="RUN", help="(the detached gate itself, started by build-local; not by hand)")
     ap.add_argument("--self-test", action="store_true", help="fire every arm on planted inputs (DESIGN §3.14.4 (3))")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
-    host = Host()
-    return Gate(host, REPO / RUN_ROOT, base=args.base).run().exit_code
+    if args.await_run:
+        code, line = watch(Path(args.await_run), args.wait_s)
+        print(line, flush=True)
+        return code
+    if args.run:
+        return Gate(Host(), REPO / RUN_ROOT, base=args.base, run_dir=Path(args.run)).run().exit_code
+    gate = Gate(Host(), REPO / RUN_ROOT, base=args.base)
+    return launch_and_follow(gate.new_run, lambda run: [sys.executable, str(Path(__file__).resolve()), "--run",
+                                                        str(run), *(["--base", args.base] if args.base else [])],
+                             print_flush)
 
 
 if __name__ == "__main__":
