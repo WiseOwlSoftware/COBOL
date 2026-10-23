@@ -1489,6 +1489,17 @@ their places; what each does changes:
   whole-store model's `KeyedStoreTable`): one store — the handle's page I/O, the page cache, the ledger and the trees —
   attached by every connector of the run unit over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach`
   on the last CLOSE), so a sibling's change is visible instantly because there is one cache and one set of trees.
+  **A path names a physical file only at the instant it is asked (kb/Work PB3533).** Each entry also remembers the host's
+  identity of the file its store was opened on (`HostFile.IdentityOf` of the attaching handle: `st_dev`/`st_ino` from
+  `statx` on Linux, the volume serial number and the 128-bit file id of `FILE_ID_INFO` on Windows; `IO/Sharing/HostFileIdentity.cs`,
+  the runtime's one `statx` binding), and a connector attaching through a handle on ANOTHER file at the path — the first one
+  removed or renamed away and another made there outside the run unit, which Linux permits under an open handle — gets a store
+  of its own: the path's entry becomes the new file's, the old store stays its connectors' alone, and `Detach` is by store, so
+  their CLOSEs leave the new entry alone. COMMIT and ROLLBACK tell a file's transaction by its store, never its path
+  (`FileRegistry.TransactionHolders`), so both files' transactions are reached. Where either identity is unknown (a host this
+  binding was not written for, such as macOS; a file system with no file ids; a store opened with no file), the path decides,
+  as before. The Table 19 arbitration and the record-lock table (`PhysicalFileTable`) are still keyed by the path alone, so two
+  physical files at one path in a run unit are arbitrated, and their record locks held, as one file's there.
   *As built (kb/Work PB3333-PB3335):* the entry is a `KeyedStore` (`IO/KeyedStore.cs`), a `RelativeStore` or an
   `IndexedStore` — the run unit's page I/O (`Store.RunUnitPageMedium`: the attached connectors' own handles, each its §9.1.15 file lock, a
   writable one used whenever one is attached, so no second handle is ever taken), one `PagedFile` (the pages, the page cache
@@ -2009,6 +2020,26 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   be (2.2.1.16's row). The same decision
   stands where the kept file is not there at the re-OPEN (an absent OPTIONAL file on INPUT or I-O, removed outside the run unit): the
   kept state belonged to that file and ends, after the new handle is taken, never beside it.
+  **And where the path names ANOTHER physical file** (kb/Work PB3533): the kept file was removed or renamed away outside the run
+  unit and another made at its path, which Linux permits whatever the kept handle's share mode. The `KeptFile` carries the host's
+  identity of the file it was kept on (`KeptFile.Identity`, from the CLOSE's handle), and the OPEN that finds a PRESENT file at
+  the path asks first, before the write probe, the file lock and the organization's body read any of the kept state, whether the
+  path still names that file (`FileConnector.EndWhatWasKeptOfAnotherFile` → `KeptFile.IsOfTheFileAt`: the same path and, where the
+  host can tell, the same identity, `HostFile.IdentityAt`). When it does not, the kept state ENDS there (`ReleaseKept`) and the
+  OPEN is an ordinary OPEN of the file the path names, whatever it goes on to answer: §14.9.27.4 GR25's *"the file is not
+  affected"* is about that file, and the kept one is not it, so a '39' or a '61' of the new file ends it too (the absent arm's
+  rule "after the new handle is taken" exists because there the new file does not exist until the handle creates it; here it
+  already does). It ENDS rather than being retired to the registry as an ASSIGN USING to another path retires it (PB3494)
+  because the run unit holds one physical file per path in `PhysicalFileTable`: retired record locks of the old file would stand
+  against the new file's records, and its file lock against the new file's OPENs. Its transaction is left as a death leaves
+  it, in the file it was made in: a renamed file's next writable OPEN rolls it back (2.2.1.6 R6 step 5). The kept file's
+  identity cannot pass to the new one meanwhile, because the kept handle, or the descriptor of the column lock kept with it,
+  keeps the kept file alive; where the host has no identity to give, the path decides as before. The registry's
+  `KeyedConnector.KeptIsOfAnotherPath` (the ASSIGN USING case) stays a comparison of paths. Witnesses:
+  `CommitRollbackRuntimeTests.A_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept` (removed and renamed,
+  INPUT and I-O, both organizations), `...An_unsuccessful_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept`
+  ('39', '61') and `...Two_connectors_on_a_path_whose_file_was_replaced_each_reach_their_own_file` (2.2.1.7's store table); on
+  Windows the kept handle's share mode admits no delete, so the host refuses the replacement and each witness checks that.
   (4) HOLDINGS and UNDO keys are ordered by the FILE'S key orders (`HoldingsKeyOrder`, kb/Work PB3485), never by their
   bytes: a record holding compares its identity through the prime tree's order and a value holding its alternate key number
   and then the value through that key's order, so two key images the file's collating sequence makes equal (§12.4.5.12.4
