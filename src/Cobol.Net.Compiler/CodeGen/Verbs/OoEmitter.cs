@@ -1750,7 +1750,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // unconverted move (kb/Work PB3562): its storage image crosses, not its operand text.
                 string read = a.Source is { } gsp
                     ? a.ByContent
-                        ? a.Formal is { IsGroup: true, IsAsIfElementary: false } && OperandText.CarrierDiffersFromStorage(gsp)
+                        ? CallEmitter.IsPlainGroupFormal(a.Formal) && OperandText.CarrierDiffersFromStorage(gsp)
                             ? OperandText.NonElementaryMoveSender(new BoundFieldOperand(gsp), Num, "INVOKE argument")
                             : CallEmitter.CallContentRead(gsp)
                         : CallEmitter.CallStringRead(gsp)

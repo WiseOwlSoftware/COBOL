@@ -1061,7 +1061,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// character copy of the cell - so the cell must hold the sender's storage image, not its operand text. A bit or
     /// national group is the as-if-elementary formal <see cref="IsMovedFormal"/> takes.</summary>
     private static DataItem? GroupFormal(BoundCallArg a) =>
-        !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { IsGroup: true, IsAsIfElementary: false } f ? f : null;
+        !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { } f && IsPlainGroupFormal(f) ? f : null;
+
+    /// <summary>The formal a BY CONTENT argument is moved into as GR4's unconverted group move: a group that is not a bit or
+    /// national group (those are "treated as elementary items in the MOVE statement", so <see cref="IsMovedFormal"/> takes
+    /// them). ONE answer for the CALL and function lanes (<see cref="GroupFormal"/>) and the INVOKE lane (kb/Work PB3562).</summary>
+    internal static bool IsPlainGroupFormal(DataItem f) => f is { IsGroup: true, IsAsIfElementary: false };
 
     /// <summary>⛔ THE ONE TEST OF WHICH FORMALS §14.2.3 GR9's MOVE LEG FILLS (see <see cref="MovedFormal"/>) — asked by the
     /// activating element's compile-time MOVE and by the activated unit's registration (<see cref="RegisteredFormal"/>), so
