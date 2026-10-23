@@ -806,17 +806,17 @@ CobolNet.Runtime.DialectBehaviors.Row.Behavior.get -> CobolNet.Runtime.DialectBe
 CobolNet.Runtime.DialectBehaviors.Row.Behavior.init -> void
 CobolNet.Runtime.DialectBehaviors.Row.ChangedIn.get -> int
 CobolNet.Runtime.DialectBehaviors.Row.ChangedIn.init -> void
-CobolNet.Runtime.DialectBehaviors.Row.Deconstruct(out CobolNet.Runtime.DialectBehavior Behavior, out string! Id, out int ChangedIn, out int VcrRow, out string! SpecRef, out string! AnnexRef, out string! Title) -> void
+CobolNet.Runtime.DialectBehaviors.Row.Deconstruct(out CobolNet.Runtime.DialectBehavior Behavior, out string! Id, out int ChangedIn, out string! VcrRow, out string! SpecRef, out string! AnnexRef, out string! Title) -> void
 CobolNet.Runtime.DialectBehaviors.Row.Equals(CobolNet.Runtime.DialectBehaviors.Row other) -> bool
 CobolNet.Runtime.DialectBehaviors.Row.Id.get -> string!
 CobolNet.Runtime.DialectBehaviors.Row.Id.init -> void
 CobolNet.Runtime.DialectBehaviors.Row.Row() -> void
-CobolNet.Runtime.DialectBehaviors.Row.Row(CobolNet.Runtime.DialectBehavior Behavior, string! Id, int ChangedIn, int VcrRow, string! SpecRef, string! AnnexRef, string! Title) -> void
+CobolNet.Runtime.DialectBehaviors.Row.Row(CobolNet.Runtime.DialectBehavior Behavior, string! Id, int ChangedIn, string! VcrRow, string! SpecRef, string! AnnexRef, string! Title) -> void
 CobolNet.Runtime.DialectBehaviors.Row.SpecRef.get -> string!
 CobolNet.Runtime.DialectBehaviors.Row.SpecRef.init -> void
 CobolNet.Runtime.DialectBehaviors.Row.Title.get -> string!
 CobolNet.Runtime.DialectBehaviors.Row.Title.init -> void
-CobolNet.Runtime.DialectBehaviors.Row.VcrRow.get -> int
+CobolNet.Runtime.DialectBehaviors.Row.VcrRow.get -> string!
 CobolNet.Runtime.DialectBehaviors.Row.VcrRow.init -> void
 CobolNet.Runtime.Exceptions.ArgumentSubstitute
 CobolNet.Runtime.Exceptions.CheckingFlags
@@ -3488,7 +3488,7 @@ static CobolNet.Runtime.IO.FileConnector.FitRecord(string! s, int width, bool na
 static CobolNet.Runtime.IO.FileLockPosture.AccessOf(CobolNet.Runtime.IO.FileOpenMode mode) -> System.IO.FileAccess
 static CobolNet.Runtime.IO.FileLockPosture.AdmitsAnotherWriter(System.IO.FileShare share) -> bool
 static CobolNet.Runtime.IO.FileLockPosture.OfSharingMode(CobolNet.Runtime.IO.FileSharing sharing) -> System.IO.FileShare
-static CobolNet.Runtime.IO.FileRegistry.ImplementorDefaultSharing(CobolNet.Runtime.IO.FileOpenMode mode) -> CobolNet.Runtime.IO.FileSharing
+static CobolNet.Runtime.IO.FileRegistry.ImplementorDefaultSharing(CobolNet.Runtime.IO.FileOpenMode mode, int edition) -> CobolNet.Runtime.IO.FileSharing
 static CobolNet.Runtime.IO.FileRegistry.RetryLoop(System.Func<CobolNet.Runtime.IO.RetryAttempt>! attempt, CobolNet.Runtime.IO.FileRetryKind kind, long amount, CobolNet.Runtime.IO.FileConnector? waiter = null) -> string!
 static CobolNet.Runtime.IO.FileStatusCode.ForDeleteFileFailure(System.IO.IOException! ex) -> string!
 static CobolNet.Runtime.IO.FileStatusCode.ForWriteFailure(System.IO.IOException! ex) -> string!
