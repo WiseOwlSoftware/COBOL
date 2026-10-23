@@ -84,13 +84,13 @@ public sealed class HostWitnessTraitDriftTests
     [Fact]
     public void TheSweepTrait_IsExactlyDriftRulesTreeWideSweeps_AndThePlannerSeesEveryTrait()
     {
-        ProcessObservation sweeps = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"), "--sweeps");
+        ProcessObservation sweeps = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "drift_rules.py"), "--sweeps");
         Assert.True(sweeps.ExitCode == 0, $"drift_rules.py --sweeps failed (exit {sweeps.ExitCode}):\n{sweeps.Stdout}{sweeps.Stderr}");
         var expected = sweeps.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains(nameof(HostWitnessTraitDriftTests), expected); // the population check: it reads scripts/
 
-        ProcessObservation scan = PythonInstrument.Run(TestRepo.Scripts("gate_plan.py"), "--traits");
+        ProcessObservation scan = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"), "--traits");
         Assert.True(scan.ExitCode == 0, $"gate_plan.py --traits failed (exit {scan.ExitCode}):\n{scan.Stdout}{scan.Stderr}");
         using var json = System.Text.Json.JsonDocument.Parse(scan.Stdout);
         var scanned = json.RootElement.EnumerateObject()

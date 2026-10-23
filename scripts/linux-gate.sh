@@ -31,7 +31,8 @@
 #     clone that is an ordinary Linux repository.
 # The clone builds COMMITTED HEAD: commit before running it. Uncommitted tracked changes are counted and reported.
 #
-# Output: TestResults/linux-gate/<leg>.log (+ .trx) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
+# Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
+# non-observations) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 # Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
@@ -277,7 +278,11 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   start=$(date +%s)
   # Scrubbed (kb/Work PB1718): a gate-leg handshake or VSTest* variable inherited from the caller would narrow the run
   # to PART of its assembly while it exits 0. The one statement of that rule is test_population.py.
-  ( cd "$snap" && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
+  # The harness's observation log (every retry and non-observation of a child process, with its budget, its work and
+  # the host's load: tests/_shared/ProcessObservation.cs) goes beside the leg's log, never to a temp file every gate on
+  # the host appends to (kb/Work PB3108).
+  ( cd "$snap" && export COBOLNET_HARNESS_LOG="$out/$leg.observations.log" \
+      && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))

@@ -86,6 +86,6 @@ public sealed class ArchReviewFleetDriftTests
     {
         string path = TestRepo.Scripts("arch", script);
         Assert.True(File.Exists(path), $"the R2 fleet instrument is missing: {path}");
-        return PythonInstrument.Run(path, arg);
+        return PythonInstrument.Run(ObservationBudget.OneProcess, path, arg);
     }
 }

@@ -479,7 +479,9 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   cache) and `ConformanceSuite` (the manifest, generated once per test process into a directory of its own by the new
   `generate.py --out`; the adapter's diagnostic pattern and the profile, read rather than restated, since
   `config.py` validates them at the audit). `ConformanceSuiteRunnerDriftTests` runs `run.py` through the WiseOwl
-  adapter on the same generated suites and names every test whose verdict differs, and holds `CutRunner.Normalize`
+  adapter on the same generated suites, once per edition suite with `--jobs` stated, each run bounded by the work it
+  does (`ObservationBudget.ForChildren`, kb/Work PB3108: one harness unit per round of its compiles and runs, never one
+  program's budget for the whole suite), and names every test whose verdict differs, and holds `CutRunner.Normalize`
   and `run.py`'s `normalize()` to `harness/normalization-fixture.json`. Two corrections to this design, written
   above and in §4: the verdict drift test runs `run.py` itself (§5), and a refusal's manifest entry carries the
   test's declared files, so the refused program compiles as the suite compiles it. The WiseOwl adapter pins a
