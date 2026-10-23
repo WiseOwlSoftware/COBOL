@@ -56,6 +56,19 @@ internal static class OoEnvironmentRules
                     + "definition, not in the class definition's own environment division",
             }, "§12.4.3 SR1");
 
+        // §12.4.6.3.3 SR6 (and §9.1.18.6: "APPLY COMMIT clauses … are not permitted in factory and object classes") —
+        // a factory or instance definition may carry an I-O-CONTROL paragraph, which no program binder reads, so the
+        // clause is refused here; a program's own is DataBinder.BindApplyCommitClause's (kb/Work PB3338).
+        if (kind is OoDefinition.Factory or OoDefinition.Instance)
+            foreach (var clause in environment.inputOutputSection()?.ioControlParagraph()?.ioControlClause() ?? [])
+                if (clause.applyCommitClause() is { } apply)
+                {
+                    using var _ = edition.At(apply);
+                    edition.Error(DiagnosticCatalog.ApplyCommitClauseRule, $"APPLY COMMIT: {what} writes the clause — "
+                        + "ISO §12.4.6.3.3 SR6: \"This clause shall not be specified in a class, factory, or interface "
+                        + "definition.\"");
+                }
+
         if (kind is not (OoDefinition.Factory or OoDefinition.Instance or OoDefinition.Interface)) return;
         foreach (var paragraph in environment.configurationSection()?.configurationParagraph() ?? [])
         {

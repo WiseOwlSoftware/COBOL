@@ -10,9 +10,9 @@
       *> box of 145.21-175.84, 100% cover) and COMMIT one at 96.8%, while ON's box 228.49-243.51 has
       *> NO rule in its band at all. 8.3.2.4.3 therefore makes `APPLY COMMIT F` a conforming spelling
       *> of the clause, and the grammar's own comment claimed the opposite until family 3 measured it.
-      *> WHY THIS IS A NEGATIVE CASE. The APPLY COMMIT clause is the DECLINED COMMIT/ROLLBACK feature
-      *> (Annex A.4.3 item 2), and 4.2.7 makes non-support conformant only when it is DIAGNOSED -
-      *> COBOLNET1709 is that diagnosis. The ON-less spelling must draw the SAME refusal the written
+      *> WHY THIS IS A NEGATIVE CASE. F is SEQUENTIAL, and APPLY COMMIT on a sequential file is still
+      *> refused by name (COBOLNET1709, kb/Work PB3340): kb/Work PB3338 provides the clause for RELATIVE
+      *> and INDEXED files only. The ON-less spelling must draw the SAME refusal the written
       *> spelling draws; the diagnostic code is what proves the clause was RECOGNIZED rather than
       *> mis-parsed, because a program the parser could not read would report COBOL0001 instead.
       *> reject-at names 2023 ALONE, and that is not an omission: the whole commit-and-rollback
