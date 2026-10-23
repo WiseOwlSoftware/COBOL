@@ -1935,6 +1935,186 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>Leave an ABANDONED transaction on <paramref name="host"/>, as the <c>abnormal-always</c> row above does: a
+    /// run unit under commit control changes records 7 and 1, ends abnormally with every rollback refused by the medium
+    /// ('30'), and ends (its implicit CLOSE refused the same), so the transaction stands "as a death leaves it" (2.2.1.10)
+    /// for the next writable OPEN's dead-owner step. The run unit's connectors are opened through <paramref name="forced"/>
+    /// when one is named.</summary>
+    private static void Abandon(string host, FileOrg org, IRegionLockHost? forced = null)
+    {
+        int refusals = 0;
+        KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+            write: page => refusals > 0 && page >= MetaPage.MetaPages ? new IOException("refused by the host") : null);
+        FileRegistry a;
+        try
+        {
+            using (forced is null ? null : HostRegionLocks.Forcing(forced)) a = Open(host, org, commit: true);
+        }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        Assert.Equal("00", Write(a, org, 7, "A007"));
+        Assert.Equal("00", Rewrite(a, org, 1, "X001"));
+        refusals = 1;
+        a.EndTransactions(abnormal: true);
+        Assert.Equal("30", a.Status("F"));
+        Assert.NotEqual(0ul, a.TransactionOf("F"));
+        a.CloseAll();
+        refusals = 0;
+    }
+
+    /// <summary>⛔ AN ABANDONED TRANSACTION IS ROLLED BACK BY THE NEXT WRITABLE OPEN WHILE ANOTHER COPY OF ITS OWNER'S HANDLE
+    /// LIVES (kb/Work PB3549; §9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous
+    /// commit or, if none, the beginning of the run unit are rolled back"</i>, and <i>"all file and record locks are then
+    /// released"</i>): the kept file's liveness byte is unlocked by its give-back (<c>KeptFile.GiveBack</c>, the endpoint's
+    /// disposal), never left to the handle's close. A <c>fork</c> in another thread holds a copy of every descriptor until
+    /// its <c>exec</c>, and while it does a lock left to the close stands, so the next writable OPEN read the dead owner as
+    /// ALIVE and left its transaction in the file (the intermittent Linux red of
+    /// <see cref="A_transaction_whose_rollback_was_refused_is_never_committed"/> in a parallel run). The copy is made here
+    /// deterministically, for every handle the abandoning run unit opens (<see cref="DescriptionCopyingHost"/>), and kept
+    /// open until the file has been settled.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_abandoned_transaction_is_rolled_back_while_a_copy_of_its_owners_handle_lives(FileOrg org)
+    {
+        string host = Tmp($"pb3549-copy-{org}");
+        var copies = new DescriptionCopyingHost(HostRegionLocks.HostOfThisProcess);
+        try
+        {
+            Seed(host, org);
+            Abandon(host, org, copies);
+            Assert.True(copies.Copied > 0 || !(OperatingSystem.IsLinux() || OperatingSystem.IsWindows()),
+                "a copy of the abandoning run unit's handle lives while the file is settled");
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally
+        {
+            copies.Dispose();
+            TryDelete(host);
+        }
+    }
+
+    /// <summary>The same row UNDER LOAD (kb/Work PB3549's stress harness): round after round, a transaction is abandoned
+    /// while another thread starts child processes without pause — every one a real <c>fork</c> holding a copy of every
+    /// descriptor until its <c>exec</c> — and then <see cref="ParallelOpeners"/> run units OPEN the file I-O at once, racing
+    /// for its dead-owner step: the first to take the store mutex rolls the transaction back (§9.1.18.5), and every OPEN,
+    /// whichever it is, finds no transaction left once it is open; the file reads as it was seeded.</summary>
+    [Fact]
+    public void An_abandoned_transaction_is_rolled_back_by_parallel_writable_opens_while_child_processes_start()
+    {
+        const int Rounds = 6;
+        var churn = new ChildProcessChurn();
+        try
+        {
+            for (int round = 0; round < Rounds; round++)
+            {
+                string host = Tmp($"pb3549-stress-{round}");
+                try
+                {
+                    Seed(host, FileOrg.Indexed);
+                    Abandon(host, FileOrg.Indexed);
+                    var failures = new System.Collections.Concurrent.ConcurrentQueue<Exception>();
+                    using var start = new Barrier(ParallelOpeners);
+                    var openers = Enumerable.Range(0, ParallelOpeners).Select(i => new Thread(() =>
+                    {
+                        try
+                        {
+                            start.SignalAndWait();
+                            var writer = Open(host, FileOrg.Indexed, commit: false, name: $"S{i}");
+                            AssertNoTransactionLeft(writer, $"S{i}");
+                            writer.CloseAll();
+                        }
+                        catch (Exception e) { failures.Enqueue(e); }
+                    })).ToList();
+                    openers.ForEach(t => t.Start());
+                    openers.ForEach(t => t.Join());
+                    Assert.Empty(failures);
+                    Assert.Equal(Seeded(), Contents(host, FileOrg.Indexed));
+                }
+                finally { TryDelete(host); }
+            }
+        }
+        finally { churn.Dispose(); }
+        Assert.Null(churn.Failure);
+        Assert.True(churn.Started > 0, "child processes were started while the rounds ran");
+    }
+
+    /// <summary>How many run units OPEN the file at once in the stress harness.</summary>
+    private const int ParallelOpeners = 4;
+
+    /// <summary>A thread that starts a trivial child process again and again until disposed (the stress harness's
+    /// forks); the first start is awaited, so the rounds begin with the churn running.</summary>
+    private sealed class ChildProcessChurn : IDisposable
+    {
+        private readonly Thread _thread;
+        private readonly ManualResetEventSlim _first = new();
+        private volatile bool _stop;
+        private int _started;
+
+        internal ChildProcessChurn()
+        {
+            _thread = new Thread(Run) { IsBackground = true, Name = "pb3549-fork-churn" };
+            _thread.Start();
+            _first.Wait();
+        }
+
+        /// <summary>How many children were started.</summary>
+        internal int Started => Volatile.Read(ref _started);
+
+        /// <summary>What stopped the churn early, or null.</summary>
+        internal Exception? Failure { get; private set; }
+
+        private void Run()
+        {
+            try
+            {
+                while (!_stop)
+                {
+                    using var child = System.Diagnostics.Process.Start(OperatingSystem.IsWindows()
+                        ? new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c exit 0") { UseShellExecute = false, CreateNoWindow = true }
+                        : new System.Diagnostics.ProcessStartInfo("/bin/sh", "-c true") { UseShellExecute = false });
+                    child?.WaitForExit();
+                    Interlocked.Increment(ref _started);
+                    _first.Set();
+                }
+            }
+            catch (Exception e) { Failure = e; }
+            finally { _first.Set(); }
+        }
+
+        public void Dispose()
+        {
+            _stop = true;
+            _thread.Join();
+            _first.Dispose();
+        }
+    }
+
+    /// <summary>A region-lock host that delegates to its inner host and, for every handle it is given, makes a second handle
+    /// on the same open file (<see cref="DescriptionCopy"/>): the deterministic stand-in for a <c>fork</c> in another thread
+    /// that has not reached its <c>exec</c>. The copies live until the host is disposed.</summary>
+    private sealed class DescriptionCopyingHost(IRegionLockHost inner) : IRegionLockHost, IDisposable
+    {
+        private readonly List<Microsoft.Win32.SafeHandles.SafeFileHandle> _copies = [];
+
+        /// <summary>How many copies were made.</summary>
+        public int Copied { get { lock (_copies) return _copies.Count; } }
+
+        public RegionLocks Open(Microsoft.Win32.SafeHandles.SafeFileHandle handle, string hostPath, bool writable)
+        {
+            if (DescriptionCopy.Of(handle) is { } copy)
+                lock (_copies) _copies.Add(copy);
+            return inner.Open(handle, hostPath, writable);
+        }
+
+        public void Dispose()
+        {
+            lock (_copies)
+            {
+                foreach (var copy in _copies) copy.Dispose();
+                _copies.Clear();
+            }
+        }
+    }
+
     /// <summary>The run unit's own boundary (review lead R1-5): <see cref="RunUnit.Run"/>'s exception filter records how
     /// the run unit ended (<c>RunUnit.NoteEnding</c>) and its <see cref="RunUnit.Terminate"/> chooses by it — a body that
     /// returns, or ends by STOP RUN, ends NORMALLY and commits (§9.1.18.5's first sentence); one that a runtime failure
