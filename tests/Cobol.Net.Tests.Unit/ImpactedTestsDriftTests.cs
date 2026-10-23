@@ -101,7 +101,7 @@ public sealed class ImpactedTestsDriftTests
 
             string script = TestRepo.Scripts("spec", "impacted_tests.py");
             string plan = Path.Combine(dir, "tiers.json");
-            var mapped = PythonInstrument.Run(script, "--map", map, "--plan", plan, "src/Cobol.Net.Compiler/Mapped.cs");
+            var mapped = PythonInstrument.Run(ObservationBudget.OneProcess, script, "--map", map, "--plan", plan, "src/Cobol.Net.Compiler/Mapped.cs");
             Assert.Equal(0, mapped.ExitCode);
             Assert.DoesNotContain(FilterTerm, mapped.Stdout, StringComparison.Ordinal);
             Assert.Contains("impacted_tests: map exact", mapped.Stdout, StringComparison.Ordinal);
@@ -112,7 +112,7 @@ public sealed class ImpactedTestsDriftTests
                 Assert.Equal(0, tiers.RootElement.GetProperty("every_tier1").GetArrayLength());
             }
 
-            var unmapped = PythonInstrument.Run(script, "--map", map, "src/Cobol.Net.Compiler/NeverRecorded.cs");
+            var unmapped = PythonInstrument.Run(ObservationBudget.OneProcess, script, "--map", map, "src/Cobol.Net.Compiler/NeverRecorded.cs");
             Assert.Equal(0, unmapped.ExitCode);
             Assert.DoesNotContain(FilterTerm, unmapped.Stdout, StringComparison.Ordinal);
             Assert.Contains("never seen", unmapped.Stderr, StringComparison.Ordinal);

@@ -37,7 +37,7 @@ internal static class PythonInstrument
         {
             var psi = new ProcessStartInfo(exe);
             psi.ArgumentList.Add("--version");
-            if (ProcessObserver.Observe(psi, null, ProcessObserver.TimeoutMs).Outcome != ProcessOutcome.LaunchFailed) return exe;
+            if (ProcessObserver.Observe(psi, null, ObservationBudget.OneProcess).Outcome != ProcessOutcome.LaunchFailed) return exe;
         }
 
         throw new InvalidOperationException(
@@ -47,12 +47,18 @@ internal static class PythonInstrument
             + "determination sit under the wrong A.1 obligation for five days (kb/Work A11).");
     });
 
-    /// <summary>Run <c>scripts/&lt;segments&gt;</c> with <paramref name="args"/>, from the repo root.</summary>
+    /// <summary>Run <paramref name="script"/> with <paramref name="args"/>, from the repo root, within
+    /// <paramref name="budget"/>.</summary>
     /// <remarks>
     /// The script path is resolved through <see cref="TestRepo"/> and its existence is the CALLER's assertion —
     /// a missing script must fail as "this gate's subject is gone", not as a Python traceback.
+    /// <para>⛔ The caller states the budget, because only it knows the work (kb/Work PB3108): a script that reads the
+    /// tree and prints a verdict is <see cref="ObservationBudget.OneProcess"/>; one that runs a child per test
+    /// (<c>conformance-suite/harness/run.py</c>) states its children (<see cref="ObservationBudget.ForChildren"/>). The
+    /// two-runner drift test went RED on load alone at least eight times when run.py ran under one program's
+    /// budget.</para>
     /// </remarks>
-    internal static ProcessObservation Run(string script, params string[] args)
+    internal static ProcessObservation Run(ObservationBudget budget, string script, params string[] args)
     {
         var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };
         psi.ArgumentList.Add(script);
@@ -60,6 +66,6 @@ internal static class PythonInstrument
         // ProcessObserver decodes both streams as UTF-8; tell CPython to encode them that way rather than
         // falling back to the host ANSI code page, or a report's § and ⛔ read back mangled.
         psi.Environment["PYTHONIOENCODING"] = "utf-8";
-        return ProcessObserver.ObserveOrThrow(psi);
+        return ProcessObserver.ObserveOrThrow(psi, budget: budget);
     }
 }

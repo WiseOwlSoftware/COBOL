@@ -35,6 +35,13 @@ namespace CobolNet.Tests.Shared;
 /// is measurable rather than assumed — a silent retry would trade one blind spot for another.
 /// </para>
 /// <para>
+/// ⚖ ON THE BUDGET (kb/Work PB3108). An attempt is bounded by the work it was started to do, never by one fixed number:
+/// <see cref="ObservationBudget"/> gives one harness unit to a process plus one per serial round of the child processes
+/// it runs, so a script that compiles a whole suite is not killed by a budget sized for one program. A timeout reports
+/// the budget, the work it covered, the process's own processor time and the host's load across the attempt
+/// (<see cref="HostLoad"/>), so a reader can tell a starved process from a hung one.
+/// </para>
+/// <para>
 /// ⛔ A RETRY OF A PROGRAM THAT WRITES STARTS FROM THE FIRST ATTEMPT'S STATE, NOT FROM ITS WRECKAGE (kb/Work PB3388).
 /// "Nothing was learned on the first attempt" holds only for a child that left nothing behind. A compiled COBOL
 /// program killed at the budget has already created, appended to and rewritten files in its run directory, and a retry
@@ -72,16 +79,6 @@ internal sealed class HarnessNonObservationException(string message) : Exception
 internal static class ProcessObserver
 {
     /// <summary>
-    /// The per-process wall-clock budget. Raised from the historic 30s because that value was chosen for a
-    /// single run, not for a ~4,000-test suite that spawns a <c>dotnet</c> host per case on a loaded machine —
-    /// where process startup alone can eat a large fraction of it. Override with
-    /// <c>COBOLNET_RUN_TIMEOUT_MS</c>; a genuine hang still terminates, it just costs more before it does.
-    /// </summary>
-    public static int TimeoutMs { get; } =
-        int.TryParse(Environment.GetEnvironmentVariable("COBOLNET_RUN_TIMEOUT_MS"), out int ms) && ms > 0
-            ? ms : 120_000;
-
-    /// <summary>
     /// Where retries and non-observations are recorded, so the rate can be MEASURED across a run rather than
     /// inferred. §11 A12/A12d asked for a distribution; this is the file that supplies one.
     /// </summary>
@@ -95,8 +92,11 @@ internal static class ProcessObserver
 
     private static long _attempts, _retries, _nonObservations;
 
-    /// <summary>Attempt one observation. Never throws for a process-level failure — it REPORTS it.</summary>
-    public static ProcessObservation Observe(ProcessStartInfo psi, string? stdinText, int timeoutMs)
+    /// <summary>Attempt one observation within <paramref name="budget"/> (<see cref="ObservationBudget"/>: the work
+    /// the process was started to do). Never throws for a process-level failure — it REPORTS it, and a timeout's
+    /// report says how much processor time the process used and how loaded the host was across the attempt, so the
+    /// next reader can tell load from a hang (kb/Work PB3108).</summary>
+    public static ProcessObservation Observe(ProcessStartInfo psi, string? stdinText, ObservationBudget budget)
     {
         Interlocked.Increment(ref _attempts);
         psi.RedirectStandardOutput = true;
@@ -114,6 +114,7 @@ internal static class ProcessObserver
         // code page. BOM-less, or the first record of every run would begin with U+FEFF.
         psi.StandardInputEncoding = new System.Text.UTF8Encoding(false);
 
+        HostCpuTimes? hostAtStart = HostLoad.Sample();
         Process? proc;
         try
         {
@@ -122,11 +123,11 @@ internal static class ProcessObserver
         catch (Exception e)                                     // Win32Exception, IOException, …
         {
             return new ProcessObservation(ProcessOutcome.LaunchFailed, -1, "", "",
-                $"could not start '{psi.FileName} {psi.Arguments}': {e.GetType().Name}: {e.Message}");
+                $"could not start '{CommandLine(psi)}': {e.GetType().Name}: {e.Message}");
         }
         if (proc is null)
             return new ProcessObservation(ProcessOutcome.LaunchFailed, -1, "", "",
-                $"Process.Start returned null for '{psi.FileName} {psi.Arguments}'");
+                $"Process.Start returned null for '{CommandLine(psi)}'");
 
         using (proc)
         {
@@ -141,14 +142,17 @@ internal static class ProcessObserver
             catch (IOException) { /* the child closed stdin first — legitimate, and not our observation */ }
             try { proc.StandardInput.Close(); } catch (IOException) { /* same */ }
 
-            if (!proc.WaitForExit(timeoutMs))
+            if (!proc.WaitForExit(budget.Ms))
             {
+                // Read before the kill: what the process itself had used, and what the host was doing meanwhile.
+                string used = OwnProcessorTime(proc);
+                string host = HostLoad.Describe(hostAtStart, HostLoad.Sample());
                 try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
                 proc.WaitForExit(5_000);
                 // ⛔ The partial stdout is DELIBERATELY NOT RETURNED as output. Handing a caller a truncated
                 // report is what turned a contention timeout into a golden mismatch in the first place.
                 return new ProcessObservation(ProcessOutcome.TimedOut, -1, "", "",
-                    $"process did not exit within {timeoutMs} ms and was killed");
+                    $"process did not exit within {budget.Ms} ms and was killed; {used}; {host}");
             }
             return new ProcessObservation(ProcessOutcome.Completed, proc.ExitCode,
                 outTask.Result, errTask.Result, "");
@@ -160,17 +164,46 @@ internal static class ProcessObserver
     /// <see cref="HarnessNonObservationException"/> if the second attempt observes nothing either. Callers get
     /// a real exit code and real streams, or an exception — never a fabricated value.
     /// </summary>
+    /// <param name="budget">The work the process was started to do (<see cref="ObservationBudget"/>); null is
+    /// <see cref="ObservationBudget.OneProcess"/>, the budget of one program or one script. A process that runs child
+    /// processes of its own states them (<see cref="ObservationBudget.ForChildren"/>), kb/Work PB3108.</param>
     /// <param name="runDirectory">The directory the child reads and writes its files in, when it is a program under
     /// test (a compiled COBOL program run in its own scratch directory). Its state is captured before the first
     /// attempt and restored before a retry, so the retry measures the same input the first attempt had
     /// (<see cref="RunDirectoryState"/>, kb/Work PB3388). Leave it null for a tool run in a directory that is not
     /// the child's to own (git or python in the repository).</param>
-    public static ProcessObservation ObserveOrThrow(ProcessStartInfo psi, string? stdinText = null, int? timeoutMs = null,
-        string? runDirectory = null)
+    public static ProcessObservation ObserveOrThrow(ProcessStartInfo psi, string? stdinText = null,
+        ObservationBudget? budget = null, string? runDirectory = null)
     {
-        int budget = timeoutMs ?? TimeoutMs;
-        return ObserveWithRetry($"{psi.FileName} {psi.Arguments}", budget, runDirectory,
-            () => Observe(psi, stdinText, budget));
+        ObservationBudget within = budget ?? ObservationBudget.OneProcess;
+        return ObserveWithRetry(CommandLine(psi), within, runDirectory, () => Observe(psi, stdinText, within));
+    }
+
+    /// <summary>The command line as the log and the non-observation name it: <see cref="ProcessStartInfo.Arguments"/>
+    /// or, for a caller that built <see cref="ProcessStartInfo.ArgumentList"/>, that list (each argument quoted when it
+    /// holds a space). Reading <c>Arguments</c> alone logged a bare <c>python</c> for every script PythonInstrument
+    /// runs, so a non-observation of run.py did not say it was run.py (kb/Work PB3108).</summary>
+    internal static string CommandLine(ProcessStartInfo psi)
+    {
+        IEnumerable<string> args = psi.ArgumentList.Count > 0
+            ? psi.ArgumentList.Select(a => a.Contains(' ', StringComparison.Ordinal) ? $"\"{a}\"" : a)
+            : [psi.Arguments];
+        return string.Join(" ", args.Prepend(psi.FileName).Where(s => s.Length > 0));
+    }
+
+    /// <summary>The processor time the process itself has used (its children are not counted), for a timeout's report:
+    /// near the budget means it was spinning, near zero that it was blocked or starved.</summary>
+    private static string OwnProcessorTime(Process proc)
+    {
+        try
+        {
+            return string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                $"it had used {proc.TotalProcessorTime.TotalSeconds:0.0} s of processor time itself (its children not counted)");
+        }
+        catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException)
+        {
+            return $"its processor time is not readable ({e.GetType().Name})";
+        }
     }
 
     /// <summary>
@@ -180,10 +213,11 @@ internal static class ProcessObserver
     /// wall clock decides which attempt the test observes (kb/Work PB3022, PB1590).
     /// </summary>
     /// <param name="command">The command line, for the log and the non-observation message.</param>
-    /// <param name="budget">The per-attempt budget, reported in the message; the attempt enforces it.</param>
+    /// <param name="budget">The per-attempt budget and the work it covers, reported in the message; the attempt
+    /// enforces it.</param>
     /// <param name="runDirectory">See <see cref="ObserveOrThrow"/>.</param>
     /// <param name="attempt">One observation of the child.</param>
-    internal static ProcessObservation ObserveWithRetry(string command, int budget, string? runDirectory,
+    internal static ProcessObservation ObserveWithRetry(string command, ObservationBudget budget, string? runDirectory,
         Func<ProcessObservation> attempt)
     {
         var before = runDirectory is null ? null : RunDirectoryState.Capture(runDirectory);
@@ -213,7 +247,7 @@ internal static class ProcessObserver
             $"  command : {command}\n" +
             $"  attempt1: {first.Outcome} — {first.Detail}\n" +
             $"  attempt2: {second.Outcome} — {second.Detail}\n" +
-            $"  budget  : {budget} ms (set COBOLNET_RUN_TIMEOUT_MS to change)\n" +
+            $"  budget  : {budget}, per attempt\n" +
             $"  run so far: {Interlocked.Read(ref _attempts)} attempts, {Interlocked.Read(ref _retries)} retried, " +
             $"{Interlocked.Read(ref _nonObservations)} unobserved\n" +
             "  The process never finished, so NOTHING was learned about the program under test. Do not read\n" +

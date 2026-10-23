@@ -175,7 +175,7 @@ public sealed class GateLegDriftTests
     [Fact]
     public void Arm6_EveryDotnetTestCaller_ScrubsTheGateEnvironment()
     {
-        ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts(PopulationTool), "audit-callers");
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts(PopulationTool), "audit-callers");
 
         Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== CALLER AUDIT: CLEAN", StringComparison.Ordinal),
             "A `dotnet test` caller can run with a gate leg handshake (COBOLNET_GATE_*) or a VSTest*/"
@@ -291,7 +291,7 @@ public sealed class GateLegDriftTests
                 "names = json.load(open(sys.argv[1], encoding='utf-8'))",
                 "plan = json.load(open(sys.argv[2], encoding='utf-8'))",
                 "print(json.dumps([[gate_plan.name_key(n), gate_plan.leg_of(plan, 'Conformance', n)] for n in names]))");
-            var r = PythonInstrument.Run("-c", code, namesFile, planFile);
+            var r = PythonInstrument.Run(ObservationBudget.OneProcess, "-c", code, namesFile, planFile);
             Assert.True(r.ExitCode == 0, $"gate_plan.py could not be driven:\n{r.Stdout}{r.Stderr}");
             var python = JsonSerializer.Deserialize<JsonElement[][]>(r.Stdout.Trim())!;
             GateAssemblyPlan plan = GatePlan.Parse(File.ReadAllBytes(planFile), "Conformance");

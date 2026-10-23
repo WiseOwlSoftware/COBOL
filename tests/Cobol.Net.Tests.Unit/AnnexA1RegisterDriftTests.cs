@@ -45,7 +45,7 @@ public sealed class AnnexA1RegisterDriftTests
     {
         string script = TestRepo.Scripts("spec", "audit_annex_a1.py");
         Assert.True(File.Exists(script), $"the register audit is missing: {script}");
-        return PythonInstrument.Run(script, args);
+        return PythonInstrument.Run(ObservationBudget.OneProcess, script, args);
     }
 
     private static JsonElement JsonLineOf(ProcessObservation r)
