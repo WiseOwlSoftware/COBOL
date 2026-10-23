@@ -15,6 +15,13 @@ namespace CobolNet.Runtime.IO;
 /// the table is unconditional for the keyed organizations; sequential connectors keep their streams (the file system is
 /// their shared store). Across run units the FILE is the truth, and each run unit's store follows it through page 2
 /// (2.2.1.7). Owned by the <see cref="FileRegistry"/>; cleared at run-unit Reset.
+/// <para>⛔ A PATH NAMES A PHYSICAL FILE ONLY AT THE INSTANT IT IS ASKED (kb/Work PB3533). Each entry remembers the host's
+/// identity of the file its store was opened on (<see cref="HostFile.IdentityOf"/>, from the attaching connector's handle), and
+/// an attachment through a handle on ANOTHER file at the same path — the first one removed or renamed away and another made there
+/// outside the run unit, which Linux permits under an open handle — gets a store of its own: the path's entry becomes the new
+/// file's, and the old store stays its connectors' alone (they reach it through their own reference, and their
+/// <see cref="Detach"/> no longer touches the path's entry). Attaching to the live store would have read the removed file's
+/// records through the new file's connector.</para>
 /// </summary>
 internal sealed class StoreTable
 {
@@ -22,6 +29,9 @@ internal sealed class StoreTable
     {
         public required KeyedStore Store;
         public int Attached;
+        /// <summary>The host's identity of the physical file <see cref="Store"/> was opened on, or null while no attaching handle
+        /// has told it (an absent OPTIONAL file's store has no file) or the host cannot.</summary>
+        public PhysicalFileIdentity? Identity;
     }
 
     private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
@@ -30,29 +40,37 @@ internal sealed class StoreTable
     /// file takes the next one, so the stamps are the order of the run unit's open stores.</summary>
     private long _opened;
 
-    /// <summary>Make <paramref name="store"/> the run unit's for <paramref name="host"/>, stamped with its place in the order of
-    /// the open stores.</summary>
-    private T Enter<T>(string host, T store) where T : KeyedStore
+    /// <summary>Make <paramref name="store"/> the run unit's for <paramref name="host"/>, the physical file of
+    /// <paramref name="identity"/>, stamped with its place in the order of the open stores. An entry it displaces was of a file the
+    /// path no longer names (<see cref="NamesAnotherFile"/>).</summary>
+    private T Enter<T>(string host, PhysicalFileIdentity? identity, T store) where T : KeyedStore
     {
         store.OpenOrder = ++_opened;
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
+        _byHost[host] = new Entry { Store = store, Attached = 1, Identity = identity };
         return store;
     }
 
-    /// <summary>Attach to the store of organization <typeparamref name="T"/> for <paramref name="host"/>: the live store
-    /// when one exists (its trees are the truth — nothing is re-read), else a new store with no file, which the attaching
-    /// connector opens through its own handle (<see cref="KeyedStore.Open"/>; a failed OPEN detaches again).</summary>
-    public T Attach<T>(string host) where T : KeyedStore, new()
+    /// <summary>Whether <paramref name="identity"/>, the file an attaching handle is open on, is another physical file than the
+    /// one <paramref name="e"/>'s store was opened on: both known, and different.</summary>
+    private static bool NamesAnotherFile(Entry e, PhysicalFileIdentity? identity) =>
+        e.Identity is { } held && identity is { } now && held != now;
+
+    /// <summary>Attach to the store of organization <typeparamref name="T"/> for <paramref name="host"/>, through a handle on the
+    /// physical file of <paramref name="identity"/>: the live store when one exists for that file (its trees are the truth —
+    /// nothing is re-read), else a new store with no file, which the attaching connector opens through its own handle
+    /// (<see cref="KeyedStore.Open"/>; a failed OPEN detaches again).</summary>
+    public T Attach<T>(string host, PhysicalFileIdentity? identity) where T : KeyedStore, new()
     {
-        if (_byHost.TryGetValue(host, out var e))
+        if (_byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
         {
             if (e.Store is not T live)
                 throw new InvalidOperationException(
                     $"physical file '{host}' is open under two different organizations ({e.Store.GetType().Name} vs {typeof(T).Name}) — a compiler/registration defect (kb/Work PB143)");
             e.Attached++;
+            e.Identity ??= identity;
             return live;
         }
-        return Enter(host, new T());
+        return Enter(host, identity, new T());
     }
 
     /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §14.9.27.4 GR18: a new, EMPTY store
@@ -65,21 +83,23 @@ internal sealed class StoreTable
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
     /// silent emptying of records another connector is reading (the analogous impossible state in
     /// <see cref="Attach{T}"/> is answered the same way).</para></summary>
-    public T AttachCreated<T>(string host, T created) where T : KeyedStore
+    public T AttachCreated<T>(string host, PhysicalFileIdentity? identity, T created) where T : KeyedStore
     {
-        if (_byHost.TryGetValue(host, out var e))
+        if (_byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
                 + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "
                 + "arbitration defect (kb/Work PB754)");
-        return Enter(host, created);
+        return Enter(host, identity, created);
     }
 
-    /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry, so a later
-    /// OPEN opens the file again. Unbalanced detaches are ignored (a failed OPEN never attached).</summary>
-    public void Detach(string host)
+    /// <summary>Detach one connector from <paramref name="store"/>, its store for <paramref name="host"/>; the LAST detach drops
+    /// the entry, so a later OPEN opens the file again. A store the path's entry no longer holds (its file was replaced at the
+    /// path, <see cref="Attach{T}"/>) is its connectors' alone, and unbalanced detaches are ignored (a failed OPEN never
+    /// attached).</summary>
+    public void Detach(string host, KeyedStore store)
     {
-        if (!_byHost.TryGetValue(host, out var e)) return;
+        if (!_byHost.TryGetValue(host, out var e) || !ReferenceEquals(e.Store, store)) return;
         if (--e.Attached <= 0) _byHost.Remove(host);
     }
 
