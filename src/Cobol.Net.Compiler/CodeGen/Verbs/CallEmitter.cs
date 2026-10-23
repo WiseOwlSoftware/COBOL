@@ -938,9 +938,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // positions while its insertion positions keep their own characters.
             case { } sent when sent is not BoundPredefinedNull && MovedFormal(a) is { } record:
                 return MovedArgText($"ManagedPointer<string>.Cell({move.RecordValue(sent, record)})");
-            // ⛔ A national or boolean literal into a KNOWN GROUP formal is GR4's unconverted move, so it crosses as its
-            // storage image (kb/Work PB3562: OperandText.NonElementaryMoveSender, the one sending codec); into any other
-            // formal it crosses as its characters.
+            // ⛔ A national literal (usage national, §8.3.3.5.4 GR3 a)) into a KNOWN GROUP formal is GR4's unconverted move, so
+            // it crosses as its storage image (kb/Work PB3562: OperandText.NonElementaryMoveSender, the one sending codec);
+            // into any other formal it crosses as its characters.
             case BoundStringLiteral s:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + (GroupFormal(a) is not null ? OperandText.NonElementaryMoveSender(s, num, "CALL argument") : CsLiteral(s.Value))
