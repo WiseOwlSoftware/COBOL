@@ -1,4 +1,4 @@
-## A USAGE BIT RETURNING item delivers all its boolean positions to the caller (PB3586)
+## Entry 2420 — 2026-10-23 15:01 PDT — A USAGE BIT RETURNING item delivers all its boolean positions to the caller (PB3586)
 
 PB3586: a user-defined function whose RETURNING item is `PIC 1(8) USAGE BIT` returned all zeros to its caller (`MOVE FUNCTION UBIT(3) TO B8` showed `00000000` while the function's own DISPLAY showed `00001010`); the same function declared `PIC 1(8)` was right. The re-probe on a fresh build reproduced the note, and showed the same loss for a program: `CALL "SUBR2" RETURNING BB` returned `00000000`.
 
@@ -11,3 +11,4 @@ PB3586: a user-defined function whose RETURNING item is `PIC 1(8) USAGE BIT` ret
 **Goldens.** `cases/8.4.3.2-Function-identifier/pb3586_function_returning_usage_bit` (2002 and up; ISO 8.4.3.2.4 GR1 and 14.6.5, both checked with cite.py) moves an 8- and a 12-position function result to a `USAGE BIT` and a display-usage receiver, displays one, compares one, and repeats the case through `CALL ... RETURNING`. `pb3586-function-returning-usage-bit-85` is refused at 85 with COBOLNET0900. No inventory row changes: the rules were already CONFORMS and the note claimed none.
 
 **Branch review round 1.** The reviewer found the host-entry half of the fix untested (`HostEntryEmitter` takes `BoundaryImageWidth` for the `LandText` width and the detached RETURNING storage, so a `PIC 1(8) USAGE BIT` formal landed one position and threw). `HostEntryTests.AHost_PassesAnElementaryUsageBitItem_AsItsBooleanPositions_NotItsStorageOccupancy` now drives an 8- and a 12-position formal, an 8-position RETURNING item of a program and of a function, and a nine-character refusal through a compiled C# host; with the bit arm disabled it fails, with the fix it passes. `BoundaryImageWidth` now calls `BitLayout.IsBitLeaf` rather than spelling the test inline, and the 85 golden cites ISO 8.5.2.5 (checked with cite.py) for the boolean category.
+
