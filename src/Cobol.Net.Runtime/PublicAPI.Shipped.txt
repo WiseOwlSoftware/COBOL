@@ -1807,12 +1807,13 @@ CobolNet.Runtime.MethodReturn
 CobolNet.Runtime.MethodReturn.MethodReturn() -> void
 CobolNet.Runtime.ModuleStack
 CobolNet.Runtime.ModuleStack.ActivatingActivation.get -> long
+CobolNet.Runtime.ModuleStack.AnyRecursive.get -> bool
 CobolNet.Runtime.ModuleStack.CurrentActivation.get -> long
 CobolNet.Runtime.ModuleStack.ModuleStack() -> void
 CobolNet.Runtime.ModuleStack.Name(int kind) -> string!
 CobolNet.Runtime.ModuleStack.Pop() -> void
-CobolNet.Runtime.ModuleStack.Push(string! name, string! outermost, bool isNested) -> void
-CobolNet.Runtime.ModuleStack.PushMain(string! name) -> void
+CobolNet.Runtime.ModuleStack.Push(string! name, string! outermost, bool isNested, bool recursive) -> void
+CobolNet.Runtime.ModuleStack.PushMain(string! name, bool recursive) -> void
 CobolNet.Runtime.MoveLanding
 CobolNet.Runtime.MoveLanding.MoveLanding(System.Func<CobolNet.Runtime.MoveSending, string!>! Record) -> void
 CobolNet.Runtime.MoveSending

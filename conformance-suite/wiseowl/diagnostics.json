@@ -13931,6 +13931,25 @@
   ],
   "expect": "COBOLNET1970"
  },
+ "pb3540_commit_in_object_method": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1690"
+ },
+ "pb3540_rollback_in_factory_method": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1690"
+ },
+ "pb3540_commit_under_method_below_2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET1970"
+ },
  "pb3338_apply_commit_gr6_set_address": {
   "refuse-at": [
    "2023"
