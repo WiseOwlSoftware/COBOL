@@ -40,3 +40,5 @@ was red on exactly those two tests and nothing else.
 **Sweep.** Reference-modified national slices, a numeric item of usage national, a national group, the function values and the specifier
 lane all answer correctly; a universal-receiver INVOKE is BY REFERENCE only (COBOLNET0866); Format-1 CALL admits identifiers only BY
 CONTENT. Rows: none claimed, none closed (GR-14.9.25.4-4 and GR-14.2.3-9 were already CONFORMS).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,899 · Unit 1,042 · Characterization 31 … Conformance 10,418/18,317 · Unit 34,618/35,660 · Characterization 5/36 cases ran (skipped 0)` (run 000002-20261023T214754Z; the first, 000001, was red on the two `RuntimeAbiPinDriftTests` only). The twelve conformance rows of the new goldens passed in leg 1 (`leg-1-Conformance.trx`); semgrep `verify.py` PASS with no count raised. Self-review: the throw in `LiteralDigits` and the INVOKE group arm are unreachable for legal source (an arithmetic expression into a group formal is refused COBOLNET0828 at bind); no comment lies about a fold the probes did not measure.
