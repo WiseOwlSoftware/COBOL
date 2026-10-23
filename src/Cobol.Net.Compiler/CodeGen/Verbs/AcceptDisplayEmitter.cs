@@ -69,8 +69,10 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
     /// <summary>Format 1 — the device transfer (ISO §14.9.1.4 GR1–GR5). <c>AcceptSource.Device(n)</c> returns
     /// EXACTLY n characters (left-aligned, space-padded, excess ignored), so each receiver shape stores it whole:
     /// a character group distributes via <c>FromImage</c>; an elementary string field takes it directly; a native
-    /// numeric receiver converts via <c>ParseDisplay</c> (GR1 — conversion is implementor-defined; ours
-    /// decodes the zoned/separate-sign image per the receiver's profile, non-digits contributing no digit).</summary>
+    /// numeric receiver converts per the compile option <c>--numeric-display</c> (GR1 — conversion is
+    /// implementor-defined, kb/Work PB3513): <c>decimal</c> (the default) reads DISPLAY's own decimal form back
+    /// (<c>AcceptSource.DeviceNumeric</c>), <c>digits</c> decodes the zoned/separate-sign image per the receiver's
+    /// profile through <c>ParseDisplay</c>, non-digits contributing no digit.</summary>
     private void EmitAcceptDevice(Place target)
     {
         var w = ctx.Writer;
@@ -138,8 +140,13 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                 // ("the characters ARE the storage") — true only of the pre-V59 zoned windows; against a
                 // V59 byte-form window it spliced DisplayTextWidth characters into a StorageWidth window
                 // (PIC 9(4) COMP under REDEFINES: "1234" became the two bytes 31 32 = 12594).
-                string image = $"AcceptSource.Device({size})";
-                string value = ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item);
+                // The conversion is the form the compilation selected (--numeric-display, kb/Work PB3513, DOC-A.1-1): under
+                // `decimal` the inverse of DISPLAY's decimal form (CobolNum.ParseDeviceDecimal — a decimal point, a leading
+                // sign), under `digits` the digit window decoded as the item's own display image.
+                string converted = ctx.NumericDisplay is NumericDisplayForm.Decimal
+                    ? RuntimeApi.AcceptDeviceNumeric(item.ProfileName, size, num.UnitDecimalPointIsComma)
+                    : RuntimeApi.NumParseDisplay($"AcceptSource.Device({size})", item.ProfileName);
+                string value = ArithmeticEmitter.Narrow(converted, item);
                 w.Line(item.StoreAsImage || target is RedefViewPlace
                     ? PlaceRenderer.Write(target, RuntimeApi.NumFormatImage(value, item.ProfileName))
                     : PlaceRenderer.Write(target, value));
