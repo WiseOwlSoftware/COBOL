@@ -520,6 +520,8 @@ def gate_rows(run_dirs: list[str]) -> tuple[dict, list[dict]]:
         v = json.load(open(path, encoding="utf-8"))
         if v.get("verdict") != "GREEN":
             raise MeasurementError(f"{path} is {v.get('verdict')}: only a GREEN gate ran the whole population")
+        if v.get("reused_from"):  # kb/Work PB3536: a re-gate of an unchanged tree answers from a record, running nothing
+            raise MeasurementError(f"{path} REUSED the verdict of run {v['reused_from']} and ran nothing: pass that run")
         mode, t = v["scope"], v["timings"]
         # The gate's wall time includes its wait for a gate slot (other worktrees' gates), which measures the queue,
         # not the gate: the compared row is the time the gate itself ran.
@@ -826,6 +828,17 @@ def self_test() -> int:
         with open(path, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(render(base))
         case("round-trips the record", read_record(path) == json.loads(json.dumps(base)))
+    # a gate that REUSED a recorded verdict ran nothing (kb/Work PB3536): it is never a whole-population time
+    with tempfile.TemporaryDirectory() as tmp:
+        with open(os.path.join(tmp, "verdict.json"), "w", encoding="utf-8", newline="\n") as fh:
+            json.dump({"verdict": "GREEN", "reused_from": "20261022T000000Z-abcdef", "scope": "whole",
+                       "timings": {"wall_s": 1.0}}, fh)
+        try:
+            gate_rows([tmp])
+            refused = False
+        except MeasurementError as e:
+            refused = "REUSED" in str(e)
+    case("refuses a gate run that REUSED another run's verdict (it ran nothing)", refused)
     hot = bench_params(os.path.join("GeneratedCode", "GeneratedProgramBenchmarks.cs"))
     wit = witnesses()
     agree = set(wit) == set(hot) | {FLOOR_PROGRAM} and all(

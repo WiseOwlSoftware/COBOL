@@ -185,6 +185,31 @@ override sealed CobolNet.Runtime.IO.KeyedConnector.OpenCore(CobolNet.Runtime.IO.
 CobolNet.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
 CobolNet.Runtime.IO.FileRegistry.Commit() -> string?
 CobolNet.Runtime.IO.FileRegistry.Rollback() -> string?
+CobolNet.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
+CobolNet.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
+CobolNet.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.get -> bool
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.set -> void
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitError(string! detail) -> void
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.get -> bool
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.set -> void
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowCommitError(string! detail) -> void
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.get -> bool
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> void
+CobolNet.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowCommitChecking.get -> bool
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowCommitChecking.set -> void
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
+static CobolNet.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
+static CobolNet.Runtime.IO.CobolFile.ActivateApplyCommit(object! owner, string![]! keyedFiles, System.Action! save, System.Action! restore, System.Func<string!, bool>! storeStatus) -> bool
+static CobolNet.Runtime.IO.CobolFile.Commit() -> string?
+static CobolNet.Runtime.IO.CobolFile.RetireApplyCommit(object! owner) -> void
+static CobolNet.Runtime.IO.CobolFile.Rollback() -> string?
+static CobolNet.Runtime.IO.CobolFile.RollbackDueOnFatal(string! name, bool checkingEnabled) -> bool
+static CobolNet.Runtime.IO.CobolFile.RollbackOnFatal() -> void
+static CobolNet.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(string! name, string! statement) -> void
 static CobolNet.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolNum.DisplayDecimal(string! image, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
