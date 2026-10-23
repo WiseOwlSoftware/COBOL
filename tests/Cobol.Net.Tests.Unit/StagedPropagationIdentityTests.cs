@@ -29,8 +29,8 @@ public sealed class StagedPropagationIdentityTests
     public void TheActivatorTakesWhatItsCalleeStaged()
     {
         var (s, e) = NewRunUnitParts();
-        s.PushMain("MAIN");
-        s.Push("CALLEE", "CALLEE", false);
+        s.PushMain("MAIN", recursive: false);
+        s.Push("CALLEE", "CALLEE", false, recursive: false);
         e.SetPropagating("EC-USER-Q", fatal: false);   // the callee's GOBACK RAISING
         s.Pop();                                       // the activation returns
         Assert.True(e.TakeRaisedPropagation(AllOn, out var name, out _));
@@ -41,12 +41,12 @@ public sealed class StagedPropagationIdentityTests
     public void AStagingLeftByAPickupFreeActivator_IsNotTakenByAnotherActivation()
     {
         var (s, e) = NewRunUnitParts();
-        s.PushMain("MAIN");
-        s.Push("RAISE1", "K", false);
+        s.PushMain("MAIN", recursive: false);
+        s.Push("RAISE1", "K", false, recursive: false);
         e.SetPropagating("EC-USER-BZ", fatal: false);
         s.Pop();                                       // MAIN emits no pickup (EC-free) ...
-        s.Push("PROGB", "PROGB", false);               // ... and CALLs PROGB
-        s.Push("QUIET", "K", false);
+        s.Push("PROGB", "PROGB", false, recursive: false);               // ... and CALLs PROGB
+        s.Push("QUIET", "K", false, recursive: false);
         s.Pop();                                       // QUIET raised nothing
         Assert.False(e.TakeRaisedPropagation(AllOn, out _, out _));
     }
@@ -55,9 +55,9 @@ public sealed class StagedPropagationIdentityTests
     public void AStagingForAnIntermediateActivation_IsNotTakenByItsActivator()
     {
         var (s, e) = NewRunUnitParts();
-        s.PushMain("X");
-        s.Push("E", "E", false);
-        s.Push("R", "K", false);
+        s.PushMain("X", recursive: false);
+        s.Push("E", "E", false, recursive: false);
+        s.Push("R", "K", false, recursive: false);
         e.SetPropagating("EC-USER-BZ", fatal: false);
         s.Pop();                                       // R returns to E, which has no pickup
         s.Pop();                                       // E returns to X
@@ -68,11 +68,11 @@ public sealed class StagedPropagationIdentityTests
     public void TheObjectSlot_ObeysTheSameIdentity()
     {
         var (s, e) = NewRunUnitParts();
-        s.PushMain("MAIN");
-        s.Push("M", "K", false);
+        s.PushMain("MAIN", recursive: false);
+        s.Push("M", "K", false, recursive: false);
         e.SetPropagatingObject(null);
         s.Pop();
-        s.Push("OTHER", "OTHER", false);
+        s.Push("OTHER", "OTHER", false, recursive: false);
         Assert.False(e.TakePropagatedObject(out _));
         s.Pop();
         Assert.True(e.TakePropagatedObject(out _));    // MAIN, the activator, still can
@@ -82,7 +82,7 @@ public sealed class StagedPropagationIdentityTests
     public void TheMainProgramsStaging_HasNoActivator()
     {
         var (s, e) = NewRunUnitParts();
-        s.PushMain("MAIN");
+        s.PushMain("MAIN", recursive: false);
         e.SetPropagating("EC-USER-M", fatal: false);
         Assert.False(e.TakeRaisedPropagation(AllOn, out _, out _));
     }

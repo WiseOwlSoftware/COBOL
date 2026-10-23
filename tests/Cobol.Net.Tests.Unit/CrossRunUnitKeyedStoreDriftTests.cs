@@ -349,10 +349,34 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     public void CreatingAStoreAnotherConnectorHolds_IsADefect()
     {
         var table = new StoreTable();
-        table.Attach<RelativeStore>("pb754-host");
-        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", new RelativeStore()));
-        table.Detach("pb754-host");
-        Assert.Null(table.AttachCreated("pb754-host", new RelativeStore()).File);   // a store being created holds no file yet
+        var file = new PhysicalFileIdentity(1, 7);
+        var held = table.Attach<RelativeStore>("pb754-host", file);
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", file, new RelativeStore()));
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", null, new RelativeStore()));
+        table.Detach("pb754-host", held);
+        Assert.Null(table.AttachCreated("pb754-host", file, new RelativeStore()).File);   // a store being created holds no file yet
+    }
+
+    /// <summary>⛔ ONE STORE PER PHYSICAL FILE, NOT PER PATH (kb/Work PB3533): an attachment through a handle on another physical
+    /// file at the same path (the first removed or renamed away and another made there outside the run unit) gets a store of its
+    /// own, and so does a creation there; the store of the file the path no longer names stays its holder's, whose detach leaves
+    /// the path's entry alone. Where the host cannot tell a file (no identity on either side), the path decides as before.</summary>
+    [Fact]
+    public void AFileMadeAtAPathSinceGetsAStoreOfItsOwn()
+    {
+        var table = new StoreTable();
+        PhysicalFileIdentity removed = new(1, 7), madeSince = new(1, 8);
+        var old = table.Attach<RelativeStore>("pb3533-host", removed);
+        Assert.Same(old, table.Attach<RelativeStore>("pb3533-host", removed));
+        Assert.Same(old, table.Attach<RelativeStore>("pb3533-host", null));
+        var current = table.Attach<RelativeStore>("pb3533-host", madeSince);
+        Assert.NotSame(old, current);
+        Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
+        foreach (var _ in Enumerable.Range(0, 3)) table.Detach("pb3533-host", old);   // the old store's holders leave: the path's entry stays
+        Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
+        var created = table.AttachCreated("pb3533-host", new PhysicalFileIdentity(1, 9), new RelativeStore());
+        Assert.NotSame(current, created);
+        Assert.Same(created, table.Attach<RelativeStore>("pb3533-host", null));
     }
 
     /// <summary>No connector empties a keyed store itself. Emptying is the store's CREATION, done in one place:
