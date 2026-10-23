@@ -2604,6 +2604,20 @@ fixed-file-attribute catalog consulted at every OPEN and does not cover a journa
 open, as the lock files of `SidecarLockFiles` exist only while a holder lives. The shapes the owner rejected are kept in
 2.2.2.11 with what each loses.
 
+**What is built (kb/Work PB3340, in progress).** The journal itself — `IO/Sharing/SequentialJournal.cs`: the three files, the
+drawing of the id, the record format with its CRC-32C framing and torn-tail rule, R1 to R5, COMMIT's three regions, the
+idempotent ROLLBACK, the settle, the entry step (`Enter`), the lock test's journal arm (`Test`) and the entry mutex
+(`EntryMutex`, `HostRegionLocks.EntryMutexByte` through `SidecarRegionLocks.WithoutHandle` on every host) — runs over the
+`IHostMedium` seam (`IO/Sharing/IHostMedium.cs`): every operation the protocol makes on the operating environment, the
+restore of the physical file and its sync at a COMMIT included, with `HostMedium` the production medium (each role a
+`HostFile` role: `OpenJournalFile`, `OpenRestoreHandle`, `SyncDirectory`, whose per-host determination is
+`IO/Sharing/HostDirectory.cs`). `SequentialJournalTests` executes 2.2.2.12's rows over real files through the
+fault-injecting medium (`tests/Cobol.Net.Tests.Unit/Journal/FaultingHostMedium.cs`): a refusal, a kill and four power-loss
+shapes (every unsynced write lost; every one kept; the data file's kept and the journal's lost, the case each write-ahead
+rule exists for; the converse) at every operation, each followed by the next entry. The SEQUENTIAL connector does not drive
+the journal yet: its kept handle, the verb hooks of 2.2.2.4 to 2.2.2.9 and the compiler's acceptance of the sequential
+operand (COBOLNET1709 still refuses it) are the rest of PB3340.
+
 **2.2.2.1 What the standard requires, and what it leaves to the implementor.** §9.1.18.2: *"Apart from sort-merge files and
 report writer files, any type of file on a mass storage device may be specified"* — and §12.4.5.9.3 SR1 names the organization
 outright: the implicit lock posture of a file under APPLY COMMIT applies *"including for sequential files"*. So a SEQUENTIAL
@@ -2645,7 +2659,7 @@ size — §14.9.35.4 GR16 refuses a record sequential replacement whose byte cou
 record being replaced"* with '44', and GR17 c) space-fills a shorter line sequential record to the replaced line's length
 (`OverwriteInPlace`, the ONE in-place overwrite); (c) an OPEN OUTPUT of an EXISTING file TRUNCATES it to nothing (§14.9.27.4
 GR18: *"After the creation of the file, the file contains no records"*; `OpenWriter(FileMode.Create)`); (d) a DELETE FILE
-(§14.9.10 format 2) REMOVES a closed file; (e) a CREATION — an OPEN OUTPUT of an ABSENT file (GR18: *"the successful execution
+(§14.9.10.2, format 2) REMOVES a closed file; (e) a CREATION — an OPEN OUTPUT of an ABSENT file (GR18: *"the successful execution
 of the OPEN statement creates the file"*), and an OPEN EXTEND or I-O of an absent OPTIONAL file (GR17: *"the OPEN statement
 creates the file. This creation takes place as if the following statements were executed in the order shown"* — an OPEN
 OUTPUT and a CLOSE — and *"the I-O status value associated with file-name-1 is set to '05'"*; `OpenWriter(FileMode.Append)`,
@@ -3052,7 +3066,7 @@ m records, one truncation when a > 0 and one sync, never a byte of another conne
 **2.2.2.14 The keyed organizations' two CAPTURE verbs ride the same journal (kb/Work PB3492; DESIGN, settled 2026-10-23
 by wave 1157 group A, not yet implemented).** 2.2.2.2's (c) and (d) are not sequential verbs: an OPEN OUTPUT of an EXISTING
 relative or indexed file (§14.9.27.4 GR18: *"After the creation of the file, the file contains no records"*) and a DELETE FILE
-of one (§14.9.10 format 2) replace or remove the whole physical file, and 2.2.1.10's transaction cannot undo either, because
+of one (§14.9.10.2, format 2) replace or remove the whole physical file, and 2.2.1.10's transaction cannot undo either, because
 its before-images live IN the file the verb replaces. Measured on 07bfc3606 (the probe kb/Work PB3492 carries, a
 RELATIVE file under APPLY COMMIT): OPEN OUTPUT, WRITE record 1, CLOSE, COMMIT, OPEN OUTPUT, WRITE record 2, CLOSE, ROLLBACK reads record 1 ABSENT, where
 §14.9.36.4 GR3 restores the file *"to the state they were in at the execution of the last COMMIT statement"* (the creation's
