@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3586 - the negative of pb3586_function_returning_usage_bit: a user-defined function whose RETURNING
-      *> item is PIC 1(8) USAGE BIT. Both the FUNCTION-ID paragraph (ISO 11.5) and the boolean data (ISO 8.5.2 category
-      *> boolean) are COBOL-2002 introductions; COBOL-85 has neither, so the gate names the edition.
+      *> item is PIC 1(8) USAGE BIT. Both the FUNCTION-ID paragraph (ISO 11.5) and the boolean data (ISO 8.5.2.5 Boolean
+      *> category) are COBOL-2002 introductions; COBOL-85 has neither, so the gate names the edition.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB3586N.
        DATA DIVISION.
