@@ -139,4 +139,129 @@ public sealed class NumericDisplayDecimalTests
         Assert.Equal("-1234", CobolNum.DisplayDecimal("123t", ascii, false));
         Assert.Equal("+1234", CobolNum.DisplayDecimal("1234", ascii, false));
     }
+
+    // ── ACCEPT reads the form back (kb/Work PB3513; ISO §14.9.1.4 GR1; DOC-A.1-1) ─────────────────────────────────────
+    // Every expected value is GnuCOBOL 3.2.0's own result for the same declaration and the same typed text
+    // (cobc -x -std=default, measured 2026-10-23 over 1,300 receiver and text pairs; the survey is in DOC-A.1-1), as
+    // an UNSCALED value: the PICTURE's digits with the scale implied. A character-form item is handed its own
+    // window (its digit count plus a SIGN SEPARATE position), a binary or packed one the whole record.
+
+    private static void Reads(Int128 unscaled, string text, NumProfile p, bool comma = false) =>
+        Assert.Equal(unscaled, CobolNum.ParseDeviceDecimal(text, p, comma));
+
+    [Fact]
+    public void Accept_reads_the_decimal_point_and_the_leading_sign()
+    {
+        NumProfile pic52 = Zoned(7, 2), spic52 = Zoned(7, 2, true);   // PIC 9(5)V99 and PIC S9(5)V99: window 7
+        Reads(1250, "00012.5", pic52);                  // what DISPLAY wrote ("00012.50"), cut to the 7-character window
+        Reads(1250, "12.5   ", pic52);
+        Reads(500, "5.     ", pic52);
+        Reads(50, ".5     ", pic52);
+        Reads(12500, "12 5   ", pic52);                 // a space inside the number is skipped: 125, then the scale
+        Reads(1256, "12.567 ", pic52);                  // the fraction keeps its first two digits: truncated, never rounded
+        Reads(3456700, "1234567", pic52);               // no point: the HIGH-order digits past the five integer positions are lost
+        Reads(1250, "-12.5  ", pic52);                  // an unsigned item takes the magnitude
+        Reads(-1250, "-12.5  ", spic52);
+        Reads(-1250, "  -12.5", spic52);
+        Reads(-1250, "- 12.5 ", spic52);                // spaces after the sign are skipped
+        Reads(500, "+ 5    ", spic52);
+        Reads(-1200, "-00012.", spic52);                // DISPLAY's "-00012.50" cut to its 7-character window: the .50 is lost
+        Reads(0, "-0     ", spic52);                    // there is no negative zero in a value
+    }
+
+    [Fact]
+    public void Accept_converts_a_text_that_is_not_a_number_to_zero_and_sets_nothing()
+    {
+        NumProfile spic52 = Zoned(7, 2, true);
+        Reads(0, "12.5-  ", spic52);                    // a TRAILING sign is not part of the form, not even for SIGN TRAILING SEPARATE
+        Reads(0, "12.5-  ", Zoned(6, 2, true, NumericSign.TrailingSeparate));
+        Reads(0, "--5    ", spic52);
+        Reads(0, "+-5    ", spic52);
+        Reads(0, "1.2.3  ", spic52);                    // a second decimal point
+        Reads(0, "12x    ", spic52);                    // a letter before the last digit position is filled
+        Reads(0, "12.5CR ", spic52);                    // ... and the "CR" of 12.5CR is such a letter: one fraction digit still wanted
+        Reads(0, "abc    ", spic52);
+        Reads(0, "       ", spic52);
+        Reads(0, "1e2    ", spic52);
+        Reads(0, ".      ", spic52);
+    }
+
+    /// <summary>A character-form item stops reading when its last digit position is filled, so what follows is never
+    /// examined; a binary or packed item reads the whole text, so the same trailing text is invalid there.</summary>
+    [Fact]
+    public void Accept_stops_a_character_item_at_its_last_position_and_reads_a_binary_item_whole()
+    {
+        NumProfile pic52 = Zoned(7, 2);
+        Reads(1250, "12.50CR", pic52);                  // both fraction positions filled: "CR" is never read
+        Reads(1256, "12.567CR", pic52);
+        Reads(12, "12x", Zoned(3, 0, true));            // PIC S9(3) window 3: "12x" fills two digits and the zero fill is the third
+        Reads(0, "1x2", Zoned(3, 0, true));
+        Reads(125, "12.5CR", Zoned(7, 1));              // PIC 9(6)V9: one fraction position, filled by the 5
+        Reads(0, "12.50CR", Binary(5, 2, false, NumericTruncation.DigitCount, 4));   // PIC 9(3)V99 COMP reads the whole record
+        Reads(0, "12x", Packed(7, 2, true));
+        Reads(1250, "12.50", Binary(5, 2, false, NumericTruncation.DigitCount, 4));
+        Reads(-1250, "-00012.50", Binary(5, 2, true, NumericTruncation.DigitCount, 4));   // not cut at 5 characters
+    }
+
+    [Fact]
+    public void Accept_keeps_the_low_order_digits_an_item_can_hold()
+    {
+        Reads(89000, "1234567890", Binary(5, 2, true, NumericTruncation.DigitCount, 4));    // PIC S9(3)V99 COMP: 890.00
+        Reads(6789000, "1234567890", Packed(7, 2, true));                                    // PIC S9(5)V99 COMP-3: 67890.00
+        Reads(123, "123", Zoned(3, 0));
+        Reads(1, "123", Zoned(3, -2));                  // PIC 9(3)PP given 123: its digits are the hundreds, so 100 holds 1
+    }
+
+    [Fact]
+    public void Accept_reads_a_p_scaled_item_by_value()
+    {
+        NumProfile leadingP = Packed(3, 5, false);       // PIC PP9(3) COMP-3
+        Reads(123, ".00123", leadingP);
+        Reads(123, "0.001239", leadingP);               // truncated at the fifth fraction digit
+        Reads(0, "12", leadingP);                       // the integer part is above every position
+        Reads(1, ".0000123", leadingP);                 // .00001: only the digits that fall inside the three positions
+        Reads(0, ".00", Zoned(3, 5));                   // a DISPLAY one is cut to its 3-character window first
+        Reads(-123, "-.00123", Packed(3, 5, true));
+    }
+
+    [Fact]
+    public void Accept_reads_the_separator_the_program_declares()
+    {
+        NumProfile pic52 = Zoned(7, 2);
+        Reads(1250, "12,5   ", pic52, comma: true);      // DECIMAL-POINT IS COMMA: the comma is the point ...
+        Reads(12500, "12.5   ", pic52, comma: true);     // ... and the period is the grouping separator, skipped
+        Reads(0, "1,5,7  ", pic52, comma: true);
+        Reads(12300, "1.2.3  ", pic52, comma: true);
+        Reads(1500, "1,5    ", pic52);                   // period mode: the comma is skipped, so 15
+    }
+
+    [Fact]
+    public void Accept_wraps_a_binary_capacity_item_to_its_container()
+    {
+        NumProfile comp5 = Binary(4, 0, true, NumericTruncation.BinaryCapacity, 2);          // PIC S9(4) COMP-5
+        Reads(722, "1234567890", comp5);                 // 1234567890 mod 65536: the container keeps every digit, then wraps
+        Reads(-32768, "32768", comp5);
+        Reads(-1, "-1", comp5);
+        Reads(0, "4294967296", Binary(9, 0, false, NumericTruncation.BinaryCapacity, 4));     // PIC 9(9) COMP-5
+        Reads(3728274254, "12345678901234567890123456789012345678", Binary(9, 0, false, NumericTruncation.BinaryCapacity, 4));
+        Reads(30000, "300", Binary(3, 2, true, NumericTruncation.BinaryCapacity, 2));        // PIC S9V99 COMP-5: its two-byte container holds 300.00
+    }
+
+    /// <summary>What DISPLAY writes, a whole-text read gives back: the inverse the option's name promises, for every item whose
+    /// decimal form carries its sign leading (SIGN TRAILING SEPARATE's trailing sign is not part of the readable form, and a
+    /// SIGNED ACCEPT window cuts DISPLAY's text at the item's own size, both documented in DOC-A.1-1).</summary>
+    [Fact]
+    public void Accept_inverts_the_display_form_over_the_whole_text()
+    {
+        (NumProfile p, Int128 v)[] rows =
+        [
+            (Zoned(7, 2), 1250), (Zoned(7, 2, true), 1250), (Zoned(7, 2, true), -1250), (Zoned(3, 0, true), -5),
+            (Zoned(5, 2, true, NumericSign.LeadingSeparate), -150), (Zoned(3, -2), 12), (Zoned(3, 5, true), -123),
+            (Binary(5, 2, true, NumericTruncation.DigitCount, 4), -150), (Packed(7, 2, false), 1250),
+            (Binary(4, 0, true, NumericTruncation.BinaryCapacity, 2), -300),
+        ];
+        foreach (var (p, v) in rows)
+            foreach (bool comma in new[] { false, true })
+                Assert.Equal(v, CobolNum.ParseDeviceDecimal(CobolNum.DisplayDecimal(v, p, comma), p, comma));
+    }
 }
