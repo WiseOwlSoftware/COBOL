@@ -1,0 +1,4 @@
+## Entry 2375 — 2026-10-22 17:17 PDT — The nemotron run's one defect: chained division overflows the intermediate carrier, filed as PB3538
+
+The aborted nemotron-3.5-bolt run of the third fuzz night produced one confirmed compiler defect. In `COMPUTE R = A / B / B / B / B` with A=8 and B=2, the standard requires `FOUR 0000` (8/2/2/2/2 = 0.5, truncated to the receiver) and exit 0; the compiler takes the ON SIZE ERROR branch where one is written, and without it ends the run unit with EC-SIZE-OVERFLOW (the quotient exceeds the native Int128 carrier). Each nested quotient's scale grows by the 14 guard digits of the previous one, so by the fourth division no value of 1 or more fits. PB3538 records the repro, the mechanism and the required fix: one bounded intermediate precision for every arithmetic arm, not a depth cap.
+
