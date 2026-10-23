@@ -34,8 +34,9 @@
 # Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
 # non-observations) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
-#   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN (…) ===
-# Exit 0 only on GREEN.
+#   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
+# Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
+# ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
 
 # ⛔ THE GATE PUTS ITSELF ON ITS HOST (kb/Work PB2999; owner 2026-10-11: "Why not simply require it to invoke using the
@@ -54,7 +55,7 @@ run_on_linux() {  # the script's own arguments
   host="$(uname -s)"
   [ "$host" = "Linux" ] && return 0
   if ! command -v wsl.exe >/dev/null 2>&1; then
-    echo "=== LINUX GATE: NOT RUN (this host is $host, not Linux, and has no WSL to run the gate on) ==="; exit 2
+    echo "=== LINUX GATE: NOT RUN [host] (this host is $host, not Linux, and has no WSL to run the gate on) ==="; exit 2
   fi
   here="$(cygpath -w "$(pwd)" 2>/dev/null || pwd)"
   echo "linux-gate: this host is $host, not Linux: running the gate under WSL (Ubuntu) in $here"
@@ -73,7 +74,7 @@ check_legs() {
       unit|characterization|conformance|guard) ;;
       *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard;" \
               "selftests always runs, and selftests-built with unit or conformance)"
-         echo "=== LINUX GATE: NOT RUN (bad arguments) ==="; exit 2 ;;
+         echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
   done
 }
@@ -84,7 +85,7 @@ check_legs() {
 # resolver runs in a subshell, so a host with none ends on this gate's verdict line (exit 2, as every NOT RUN does).
 resolve_py() {
   if ! PY="$(. "$(dirname "$0")/python-resolve.sh" && printf '%s' "$PY")"; then
-    echo "=== LINUX GATE: NOT RUN (python-resolve.sh found no runnable Python here — run scripts/wsl/setup-wsl.sh once) ==="
+    echo "=== LINUX GATE: NOT RUN [interpreter] (python-resolve.sh found no runnable Python here — run scripts/wsl/setup-wsl.sh once) ==="
     exit 2
   fi
 }
@@ -105,14 +106,14 @@ if [ "${1:-}" = "--self-test" ]; then
   check "the hand-off's status is WSL's" "$rc" "7"
   got="$( uname() { echo Darwin; }; PATH=/nonexistent; run_on_linux --nice; )"
   rc=$?
-  check "a host with no WSL is NOT RUN" "$got" "=== LINUX GATE: NOT RUN (this host is Darwin, not Linux, and has no WSL to run the gate on) ==="
+  check "a host with no WSL is NOT RUN" "$got" "=== LINUX GATE: NOT RUN [host] (this host is Darwin, not Linux, and has no WSL to run the gate on) ==="
   check "a host with no WSL exits 2, as every NOT RUN does" "$rc" "2"
   got="$( uname() { echo Linux; }; wsl.exe() { echo "handed off"; }; run_on_linux --nice; echo "stayed" )"
   check "a Linux host runs the gate itself" "$got" "stayed"
   got="$( legs=unit,selftests; check_legs; echo "accepted" )"
   rc=$?
   check "an unknown --legs name is NOT RUN (bad arguments) before anything runs" "$(echo "$got" | tail -1)" \
-        "=== LINUX GATE: NOT RUN (bad arguments) ==="
+        "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
   check "an unknown --legs name exits 2" "$rc" "2"
   got="$( legs=unit,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
   check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
@@ -125,7 +126,7 @@ if [ "${1:-}" = "--self-test" ]; then
   got="$( python3() { return 1; }; python() { return 1; }; PYTHON=""; resolve_py 2>/dev/null; echo "resolved $PY" )"
   rc=$?
   check "no runnable Python at the floor is NOT RUN, never a leg run on a wrong interpreter" "$got" \
-        "=== LINUX GATE: NOT RUN (python-resolve.sh found no runnable Python here — run scripts/wsl/setup-wsl.sh once) ==="
+        "=== LINUX GATE: NOT RUN [interpreter] (python-resolve.sh found no runnable Python here — run scripts/wsl/setup-wsl.sh once) ==="
   check "no runnable Python exits 2, as every NOT RUN does" "$rc" "2"
   if [ "$fails" -eq 0 ]; then echo "=== LINUX-GATE SELF-TEST: GREEN ==="; exit 0; fi
   echo "=== LINUX-GATE SELF-TEST: RED ($fails) ==="; exit 1
@@ -139,7 +140,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --legs) legs="$2"; shift 2 ;;
     --nice) nice_prefix=(nice -n 10); shift ;;   # an implementer's run yields the cores to the lander's
-    *) echo "linux-gate: unknown argument '$1'"; echo "=== LINUX GATE: NOT RUN (bad arguments) ==="; exit 2 ;;
+    *) echo "linux-gate: unknown argument '$1'"; echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
   esac
 done
 check_legs
@@ -147,16 +148,16 @@ check_legs
 [ -d "$HOME/.dotnet" ] && export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.local/bin:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 if ! command -v dotnet >/dev/null 2>&1; then
-  echo "=== LINUX GATE: NOT RUN (no .NET SDK in this Linux environment — run scripts/wsl/setup-wsl.sh once) ==="; exit 2
+  echo "=== LINUX GATE: NOT RUN [sdk] (no .NET SDK in this Linux environment — run scripts/wsl/setup-wsl.sh once) ==="; exit 2
 fi
 resolve_py
 # tooling_check.py's self-test parses every agent and skill frontmatter with PyYAML (kb/Work PB3097, branch review R3-1):
 # an interpreter without it is NOT RUN with the setup command, never a RED self-test leg.
 if ! "$PY" -c 'import yaml' >/dev/null 2>&1; then
-  echo "=== LINUX GATE: NOT RUN ($PY, $(command -v "$PY"), has no PyYAML — run scripts/wsl/setup-wsl.sh once) ==="; exit 2
+  echo "=== LINUX GATE: NOT RUN [interpreter] ($PY, $(command -v "$PY"), has no PyYAML — run scripts/wsl/setup-wsl.sh once) ==="; exit 2
 fi
 if [ ! -f Cobol.Net.sln ]; then
-  echo "=== LINUX GATE: NOT RUN (not at a repository root: $(pwd)) ==="; exit 2
+  echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 tree="$(pwd)"
 
@@ -174,7 +175,7 @@ winroot="$(wslpath -w "$tree" 2>/dev/null)"
 case "$winroot" in
   [A-Za-z]:\\*)
     if ! command -v git.exe >/dev/null 2>&1; then
-      echo "=== LINUX GATE: NOT RUN (the tree $winroot is on a Windows drive and Windows git (git.exe) is not reachable" \
+      echo "=== LINUX GATE: NOT RUN [tree] (the tree $winroot is on a Windows drive and Windows git (git.exe) is not reachable" \
            "from WSL: enable WSL interop, or Linux git re-hashes the whole tree across /mnt — kb/Work PB2880) ==="; exit 2
     fi
     wgit() { git.exe --no-optional-locks -C "$winroot" "$@"; }
@@ -187,7 +188,7 @@ head="$(wgit rev-parse HEAD 2>/dev/null | tr -d '\r')"
 common="$(wgit rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
 [ -n "$common" ] && common="$(wpath "$common")"
 if [ -z "$head" ] || [ -z "$common" ]; then
-  echo "=== LINUX GATE: NOT RUN (cannot read this tree's HEAD and git directory: $tree) ==="; exit 2
+  echo "=== LINUX GATE: NOT RUN [tree] (cannot read this tree's HEAD and git directory: $tree) ==="; exit 2
 fi
 dirty="$(wgit status --porcelain --untracked-files=no 2>/dev/null | tr -d '\r' | grep -v ' STATUS.md$' | wc -l)"
 # TRIPWIRE (group G's, kb/Work PB1719): nothing below may write to the REAL repository. The clone makes that true by
@@ -202,7 +203,7 @@ snap="$HOME/linux-gate/$(basename "$tree")"
 rm -rf "$snap"
 if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$snap" > "$out/clone.log" 2>&1 \
    || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
-  echo "=== LINUX GATE: NOT RUN (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
+  echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
 fi
 # The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without
 # it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery

@@ -33,6 +33,11 @@ stay as an earlier call left them, because no single tool sees the whole life of
   pre_queue_reds the pull request's OWN runs (event `pull_request`, its head branch) that FAILED before the queue took
                 it (kb/Work PB3096): a red there never reaches a merge group, so `bounces` cannot see it; `complete`
                 counts them, and a branch with no pull-request run at all stays null (UNMEASURED), never 0
+  stalls        the pull request was handed to the queue but was NOT in it past the landing lane's grace (kb/Work
+                PB3527): one entry per stalled read of the lane's queue watch, {read: its number, 1 first, cause: one
+                of STALL_CAUSES, act: what the watch did (one of STALL_ACTS), ok: whether GitHub took it, at}. A stall
+                is not a bounce: `bounces` counts failed merge-group runs, which `complete` re-reads from GitHub, and a
+                stalled pull request never reached a merge group (the lane writes them, `record_stall`)
   ci_wall_s     the successful merge-group run's wall time (`complete`)
   local_gate_s  the seconds of every local gate the landing worktree ran (the sum of its verdict.json `timings.wall_s`)
 A field never observed stays null and `summary` says how many landings lack it: a MISSING observation is not a zero.
@@ -72,6 +77,13 @@ EVIDENCE_MD = EVIDENCE_DIR / "2026-10-11-pipeline-measurement-2026-10-10.md"
 WORKFLOW = "build-and-test.yml"
 SCHEMA = 1
 CAUSES = ("cluster-defect", "load-timing", "conflict", "infrastructure")
+#: Why the landing lane's queue watch read a pull request as stalled (land_lane.py, kb/Work PB3527): a required
+#: check-run that never resolved although its job completed (PR #385, 2026-10-22), the checks resolved but the pull
+#: request still not in the queue, or the pull request no longer open with the branch not on main.
+STALL_CAUSES = ("stuck-check-run", "not-queued", "closed")
+#: What the watch did on that read: re-ran the stuck check's run, closed, reopened and re-queued the pull request, or
+#: alerted the operator (the read after the last remedy; it acts no more).
+STALL_ACTS = ("rerun", "requeue", "alert")
 STAMPS = ("done", "review_clean", "enqueued", "merged")      # in the order a landing passes them
 UNMEASURED = "UNMEASURED"
 #: The line each cluster commit of a lander's train carries (`Report: <path>`), written by the retired train applier
@@ -156,6 +168,11 @@ def validate(rec: dict) -> dict:
         raise ValueError("--bounce-causes without --bounces: say how many bounces the causes name")
     if rec.get("bounces") is not None and len(rec["bounce_causes"]) > rec["bounces"]:
         raise ValueError(f"{len(rec['bounce_causes'])} bounce cause(s) name more than the {rec['bounces']} bounce(s)")
+    for s in rec["stalls"]:
+        if not isinstance(s, dict) or not isinstance(s.get("read"), int) or s["read"] < 1 \
+                or s.get("cause") not in STALL_CAUSES or s.get("act") not in STALL_ACTS or not s.get("at"):
+            raise ValueError(f"stall {s!r} is not {{read >= 1, cause in {STALL_CAUSES}, act in {STALL_ACTS}, at}}")
+        _when(s["at"])
     return rec
 
 
@@ -164,10 +181,14 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
     are kept and `done` only moves earlier: a re-enqueue after a bounce is the same landing, still waiting."""
     rec = {"schema": SCHEMA, "pr": patch["pr"], "branch": None, "changes": 1, "done": None, "review_clean": None,
            "enqueued": None, "merged": None, "bounces": None, "bounce_causes": [], "pre_queue_reds": None,
-           "done_each": [], "ci_wall_s": None,
+           "done_each": [], "stalls": [], "ci_wall_s": None,
            "local_gate_s": None, "local_gate_runs": None, "note": "", **(existing or {})}
     for k, v in patch.items():
-        if v is None or (k in ("bounce_causes", "done_each") and not v):
+        if v is None or (k in ("bounce_causes", "done_each", "stalls") and not v):
+            continue
+        if k == "stalls":   # each read is recorded once, whatever patch repeats it: a list that only grows
+            have = {s.get("read") for s in rec["stalls"] if isinstance(s, dict)}
+            rec["stalls"] = [*rec["stalls"], *(s for s in v if s.get("read") not in have)]
             continue
         if k in ("enqueued", "done_each") and rec.get(k):
             continue
@@ -183,6 +204,13 @@ def record(path: pathlib.Path, patch: dict) -> dict:
     new = patch_record(old, patch)
     _write_all(path, [*(r for r in recs if r is not old), new])
     return new
+
+
+def record_stall(path: pathlib.Path, pr: int, branch: str, read: int, cause: str, act: str, ok: bool,
+                 at: str | None = None) -> dict:
+    """One stalled read of the landing lane's queue watch on pull request `pr` (kb/Work PB3527; `stalls` above)."""
+    return record(path, {"pr": pr, "branch": branch,
+                         "stalls": [{"read": read, "cause": cause, "act": act, "ok": ok, "at": at or now_iso()}]})
 
 
 # ── the figures ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -226,6 +254,10 @@ def after_figures(recs: list[dict]) -> dict:
                       "unattributed": sum(r["bounces"] - len(r["bounce_causes"]) for r in counted)}
     seen = [r["pre_queue_reds"] for r in landed if r.get("pre_queue_reds") is not None]
     out["pre_queue_reds"] = {"n": len(seen), "total": sum(seen)}
+    reads = [s for r in landed for s in r.get("stalls") or []]
+    out["stalls"] = {"landings": sum(1 for r in landed if r.get("stalls")), "reads": len(reads),
+                     "causes": {c: sum(s["cause"] == c for s in reads) for c in STALL_CAUSES},
+                     "alerts": sum(s["act"] == "alert" for s in reads)}
     ci = [r["ci_wall_s"] / 60 for r in landed if r.get("ci_wall_s") is not None]
     out["ci_wall"] = {"n": len(ci), "median": median(ci), "p90": percentile(ci, 90)} if ci else None
     gate = [r["local_gate_s"] / 60 for r in landed if r.get("local_gate_s") is not None]
@@ -302,6 +334,13 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
     rows.append(("pull-request reds before the queue per landing",
                  (f"{pq['total'] / pq['n']:.2f} ({pq['total']} in {pq['n']} landing(s))" if pq["n"] else UNMEASURED)
                  + (f"; {a['landings'] - pq['n']} landing(s) UNMEASURED" if pq["n"] and a["landings"] > pq["n"] else ""),
+                 f"{UNMEASURED} (a train opened no pull request)"))
+    st = a["stalls"]
+    stall_causes = ", ".join(f"{c} {n}" for c, n in st["causes"].items() if n)
+    rows.append(("queue stalls (handed to the queue, not in it past the grace)",
+                 (f"{st['landings']} of {a['landings']} landing(s), {st['reads']} stalled read(s)"
+                  + (f": {stall_causes}" if stall_causes else "") + (f"; {st['alerts']} alert(s)" if st["alerts"] else ""))
+                 if a["landings"] else UNMEASURED,
                  f"{UNMEASURED} (a train opened no pull request)"))
     ci = a["ci_wall"]
     rows.append(("merge-group CI wall, minutes",
@@ -593,12 +632,15 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "saying what its minutes measure",
         "freeze waits for a landing, refuses to rewrite the frozen copy, and the evidence figures are in the evidence file",
         "complete counts the pull request's own failed runs before the queue on its head branch (pre_queue_reds), and a "
-        "branch with no pull-request run stays UNMEASURED, never 0")
+        "branch with no pull-request run stays UNMEASURED, never 0",
+        "a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete "
+        "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls")
 
 
 def _self_test(tmp: pathlib.Path) -> list[str]:
     fails: list[str] = []
-    patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, headline_arm, freeze_arm, prequeue_arm = ARMS
+    (patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, headline_arm, freeze_arm, prequeue_arm,
+     stall_arm) = ARMS
     path = tmp / FILE
     z = "2026-10-12T"
 
@@ -744,6 +786,37 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     record(down, {"pr": 20, "branch": "b20", "enqueued": t("10:00")})
     if complete(down, gh_down, say=seen_lines.append) != 2 or read_all(down)[0]["merged"] is not None:
         fails.append(f"{prequeue_arm}: a failed pull-request listing completed the record: {read_all(down)[0]}")
+    # queue stalls (kb/Work PB3527): the landing lane's queue watch, one entry per stalled read, never a bounce
+    stalls = tmp / "stalls.jsonl"
+    record(stalls, {"pr": 385, "branch": "b385", "enqueued": "2026-10-22T18:44:50Z"})
+    record_stall(stalls, 385, "b385", 1, "stuck-check-run", "rerun", True, "2026-10-22T19:00:00Z")
+    record_stall(stalls, 385, "b385", 1, "stuck-check-run", "rerun", True, "2026-10-22T19:00:00Z")   # repeated: kept once
+    record_stall(stalls, 385, "b385", 2, "not-queued", "requeue", True, "2026-10-22T19:20:00Z")
+    refused = []
+    for bad_stall in ({"read": 0, "cause": "stuck-check-run", "act": "rerun", "at": "2026-10-22T19:00:00Z"},
+                      {"read": 3, "cause": "flake", "act": "rerun", "at": "2026-10-22T19:00:00Z"},
+                      {"read": 3, "cause": "closed", "act": "retry", "at": "2026-10-22T19:00:00Z"},
+                      {"read": 3, "cause": "closed", "act": "alert", "at": "2026-10-22T19:00:00"}):
+        try:
+            record(stalls, {"pr": 385, "stalls": [bad_stall]})
+            refused.append(False)
+        except ValueError:
+            refused.append(True)
+
+    def gh_merged(args: list[str]) -> tuple[int, str, str]:
+        if args[:2] == ["pr", "view"]:
+            return 0, json.dumps({"state": "MERGED", "mergedAt": "2026-10-22T20:06:51Z"}), ""
+        if args[:2] == ["run", "list"]:
+            return 0, json.dumps([] if "merge_group" in args else [{"conclusion": "success"}]), ""
+        return 1, "", "unrouted"
+    complete(stalls, gh_merged, say=lambda s: None)
+    s385 = read_all(stalls)[0]
+    stall_text = "\n".join(summarize(read_all(stalls), []))
+    if [(s["read"], s["cause"], s["act"]) for s in s385["stalls"]] != [(1, "stuck-check-run", "rerun"),
+                                                                       (2, "not-queued", "requeue")] \
+            or s385["bounces"] != 0 or s385["bounce_causes"] or refused != [True] * 4 \
+            or "1 of 1 landing(s), 2 stalled read(s): stuck-check-run 1, not-queued 1" not in stall_text:
+        fails.append(f"{stall_arm}: {s385} refused={refused}\n{stall_text}")
     # summary / headline
     record(path, {"pr": 17, "bounce_causes": ["cluster-defect"], "bounces": 1})
     trains = [{"gating": "batched", "started": "2026-10-10T10:00:00-07:00", "pushed": "2026-10-10T12:00:00-07:00",

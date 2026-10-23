@@ -1,0 +1,90 @@
+## Entry 2376 — 2026-10-22 17:41 PDT — PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing is read by its cause (a held lock is BUSY; a NOT RUN blocks only when the branch carries it)
+
+**Why.** On 2026-10-22 PR #385's `ci-gate` job completed success at 18:46:46Z while its check-run on the head commit
+stayed `in_progress` for 50 minutes; the merge queue was empty, the pull request BLOCKED, and nothing looked, because a
+landing ends at `=== ENQUEUE: ENQUEUED ===` and nothing after it checked that the pull request entered the queue. The
+owner (12:45 PDT): "Why did it get stuck? That is a process problem." The same hour `enqueue.py` read build-local's
+"NOT RUN — another gate holds this worktree's gate lock" as GATE RED (exit 5) and sent PB3511's branch to a finisher
+with nothing to fix.
+
+**Re-probe.** On this branch, before any change: a pull request with auto-merge on and not in the queue (PR #385's
+shape) read ENQUEUED in `prune_worktrees.py`, its evidence claiming "is in the merge queue" (`PullRequest.queued`
+counted auto-merge as queued); the held-lock verdict line was not GREEN to enqueue.py's own GREEN regex, so exit 5.
+Live, `queue_facts.py` reads the queue's own entries (PR #398 IN THE QUEUE at the time of the probe), and GitHub's
+check-runs for fb899d188e35 show the stuck one (120018552758) since resolved, beside the re-run's (120043423624).
+
+**Mechanism 1 — the queue watch.** `scripts/orchestrator/queue_facts.py` is the one reader of GitHub's facts, moved
+out of `prune_worktrees.py` with every caller changed: one GraphQL query for `mergeQueue(branch: "main")`'s entries and
+each open pull request into main (merge state, auto-merge time, the newest removal from the queue, the head's
+check-runs), and the jobs API only for a required context's (`ruleset.required_contexts`) unresolved check-run, so a
+check-run in progress whose job completed reads stuck. The landing lane's tick reads those facts once (before its
+fetch, so a pull request the queue merges in between is never missing from both) and watches every exit-0 attempt's
+pull request (`land_lane.watch_step`, a pure state machine; `watch_queue`): in the queue or merged ends it; a failed
+required check or a queue removal ends it as BOUNCED (the finisher's); past a 10-minute grace after the required
+checks' work ended, read 1 re-runs the stuck check's workflow run, read 2 closes, reopens and re-queues the pull
+request (`enqueue.rerun_check`, `enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that
+queues), and read 3 sends the operator a mailbox question and acts no more. Under a stop it reads and acts on nothing.
+Each read is recorded on the attempt and as a `stall` in `landing_measure.py` (cause and read number; a stall is not
+a bounce, since `bounces` counts failed merge-group runs and `complete` re-reads them, so a stall in `bounce_causes`
+would break the record's own consistency rule on the next completion). The branch survey gains NOT QUEUED (`--brief`
+lists it with how long it has waited, GitHub's facts and the watch), and a required check that failed before the queue
+reads BOUNCED, never ENQUEUED. The survey now tells an unobserved read (None, the git-only lifecycle) from an observed
+"no pull request open" ({}): the self-review found that an exit-0 attempt whose pull request was closed without
+merging read ENQUEUED ("no pull-request read says otherwise") although a read said otherwise; it reads NOT QUEUED now.
+The silent-failure lens found a second: an unresolved check-run whose job the jobs API could not read counted as
+"still running", so a jobs API that kept failing would have held the watch for ever; such a check now starts the clock
+at the enqueue and, past the grace, is a stalled read that names the unread job. A sleep loop in enqueue.py was rejected: a landing that waits holds its runner for the
+whole CI time, and a runner that died would leave its pull request unwatched.
+
+**Mechanism 2 — one verdict reader.** The gate driver's verdict for a held gate lock is now `BUSY`, exit 3: it
+measured nothing and nothing is wrong. `run_gate_legs.read_verdict` reads a verdict line as GREEN, BUSY, NOT RUN (with its
+cause) or RED, and
+`enqueue.py` reads through it: a BUSY gate ends `GATE BUSY`, exit 12, with no `BLOCKED:` report line, and the lane
+retries it at the same head once the worktree's gate lock is free (`land_lane.wait_free`, the retry-when-free class
+shared with exit 3, keyed by exit code in `WAITS`).
+
+**Tests.** Self-test arms: `land_lane.py` (queued, merged, stuck then cleared by the re-run, stuck then cleared by the
+reopen, the alert, a stop, unobserved facts, exit 12 held then free, the real lock probe), `queue_facts.py` (the queue's
+entries, stuck, the jobs API only for an unresolved required check, a red, offline), `enqueue.py` (the remedies and
+their guard, BUSY at land and in `run_gates`, the queued line), `landing_measure.py` (stalls), `run_gate_legs.py`
+(BUSY and the verdict reader), `prune_worktrees.py` (NOT QUEUED with its wait, the lane's ENQUEUED attempt with
+auto-merge off, a red before the queue, offline). The new arms are pinned in `LandingLaneDriftTests`,
+`LandingPipelineDriftTests`, `LandingMeasureDriftTests` and `GateLegDriftTests`. Docs: DESIGN-orchestrator-loop.md
+section 4.9 (step 4 and the table), DESIGN-test-build-ci.md sections 3.14.3 and 3.17.2, `units/enqueue.md` step 3,
+`units/resume.md`, MANDATORY-PRACTICES L12, the workstream landing reference, DOC_INDEX, session-probe.
+
+**Review round 1 (the finisher).** The branch reviewer recorded three blocking findings and two leads; all five
+are fixed here. R1-1: PB3526, the held-lock defect mechanism 2 fixed, stayed open, and its bar's sweep was missing:
+every other NOT RUN cause is now classified on purpose, as review round 2 corrected it (below). PB3526 is landed with this
+change. R1-3: the tick wrote each attempt record WHOLE from the copy it read before its slow survey, so a `collect` the
+enqueue unit made meanwhile was undone (the reviewer's probe: `collected` back to false and the enqueue unit asked
+again); an attempt record now has one writer, `land_lane.update`, which re-reads the record under its own lock and
+changes only the caller's fields (runner, reap, watch, launch, collect, all moved to it; the whole-record `save` is
+deleted). It also closes a sibling: reap could mark DIED a runner that wrote its rc between reap's read and its write.
+R1-4: `real_gh` raises `ruleset.Unobserved` on a 120 s timeout, and the remedies let it escape, so one hung GitHub call
+aborted the whole tick before any landing launched and, the read unsaved, every tick repeated it; `rerun_check` and
+`requeue` now answer (False, the unanswered step), the watch records a failed read and escalates, and the tick
+launches. R1-5 (lead): a pull request that conflicts with main (mergeStateStatus DIRTY) was treated as a propagation
+fault, re-run, reopened and then asked about; `queue_facts.PullRequest.conflicts` now ends the watch LEFT and makes the
+survey read BOUNCED, the finisher's. R1-2 (lead): the gate skill names BUSY and the NOT RUN causes. Both reviewer
+probes (`race.py`, `hang.py`) fail on the reviewed head and pass here; new self-test arms in `land_lane.py`,
+`enqueue.py`, `run_gate_legs.py`, `queue_facts.py` and `prune_worktrees.py` pin each.
+
+**Review round 2 (the finisher).** R2-1 (blocking): round 1's sweep read every NOT RUN as the environment's, so a
+landing whose merged tree broke its own gate driver (`run_gate_legs.py` raising in its plan step), its population
+listing or its verdict line ended `GATE NOT RUN`, exit 2, with no BLOCKED line, was retried once and then went to the
+operator as "an environment no finisher fixes", where the round-1 head had sent it to a finisher. Each cause is now
+classified ONCE, in `run_gate_legs.NOT_RUN_CAUSES`, and every gate prints it by tag, `NOT RUN [<cause>]` (build-local's
+two scripts, linux-gate.sh and the driver; the driver's self-test holds every printer to a known tag). ENVIRONMENT
+(`settings`, `interpreter`, `host`, `sdk`, `tree`) keeps exit 2. BRANCH (`driver`, `population`, `arguments`, and
+enqueue.py's own `verdict` and `unslotted`; a NOT RUN naming no known cause is `unclassified`, BRANCH) is measured on
+main at the same step: `enqueue.gate_main` runs the same gate row in a clean detached checkout of the origin/main the
+branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; main failing with
+the same cause is exit 2 (main's, the operator's), anything else blocks, exit 5 with a BLOCKED line naming the cause and
+main's reading, a finisher's. `read_verdict` returns a `Reading` (word and cause), and `run_gates` and `land` read it.
+
+**Gate** (run 20261022T235634Z-491905, at 5c6f442a5, review round 2): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,615 · Unit 1,280 · Characterization 31
+… ===`; `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 5c6f442a5)
+===`.
+
