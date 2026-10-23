@@ -845,7 +845,7 @@ public abstract class KeyedConnector : FileConnector
                     if (store.HolderOf(key, out ulong owner) != StoreStatus.Ok) return RetryAttempt.InRunUnit(FileStatusCode.PermanentError);
                     if (owner == 0 || owner == store.Transaction && CommitControlled) break;
                     if (owner == store.Transaction) return RetryAttempt.InRunUnit(FileStatusCode.RecordLocked);
-                    if (!KeyedStore.OwnerIsDead(regions, owner)) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
+                    if (!KeyedStore.MayRollBack(regions, owner)) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
                     // A dead owner's holding: an INPUT connector writes nothing and reads the file as it stands, dead
                     // transaction included (2.2.1.10: D.2.5's tolerated read); a writer rolls the owner back here.
                     if (!file.Writable) break;
