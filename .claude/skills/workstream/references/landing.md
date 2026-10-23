@@ -38,11 +38,21 @@
   skill's branch form, MANDATORY-PRACTICES I10, kb/Work PB3027); a `Review: CLEAN` stamp at its tip makes it WAITING TO
   LAND. With the loop STOPPED the attended session runs `enqueue.py land` by hand for its own branch, no agent needed.
 - **What a script cannot decide goes to ONE finisher (L12).** A conflict (exit 4), a red gate (5), a DEVLOG or oracle
-  refusal (6, 7), or a pull request the queue BOUNCED (`prune_worktrees.py` reads ENQUEUED and
-  BOUNCED from one GraphQL read of the open pull requests; offline the states are git-only) is the branch's own: one
+  refusal (6, 7), or a pull request the queue BOUNCED or whose required check failed before the queue
+  (`prune_worktrees.py` reads ENQUEUED, NOT QUEUED and BOUNCED from `queue_facts.py`, the one reader of GitHub's facts;
+  offline the states are git-only) is the branch's own: one
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
-  `landing_check.py` passes on the branch. A stop resolved with no new commit is landed again only when the enqueue
+  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, nothing ran,
+  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527). A gate NOT RUN (it
+  measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
+  (malformed gate settings, a host with no WSL, Python or SDK) is exit 2 with no BLOCKED line, retried once and a second
+  time the operator's handoff; a BRANCH cause (code the gated tree carries failed: the driver, the population listing,
+  no verdict line) is measured on main at the same step, and blocks like a red (exit 5, a finisher's) unless main fails
+  the same way (then exit 2, the operator's).
+  After `ENQUEUED` the
+  lane's QUEUE WATCH follows the pull request into the merge queue: a NOT QUEUED pull request past the grace gets a
+  re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the operator. A stop resolved with no new commit is landed again only when the enqueue
   unit re-arms it (`land_lane.py rearm <branch> --why ...`, kb/Work PB3103). A permission refusal of `enqueue.py land` is handed off,
   never retried or routed around: `READY-TO-LAND <worktree> <branch>` (L13).
 - **No landing takes a lease: the merge queue orders main (kb/Work PB2537, PB3023 review R1-1, PB3024).** Main
