@@ -481,6 +481,12 @@ public abstract class FileConnector
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
 
+    /// <summary>The OPEN found a PRESENT physical file at <see cref="HostPath"/> (<see cref="OpenOnce"/>, before the file lock
+    /// and the organization's body): what this connector's CLOSE under commit control kept, if it was kept on another physical
+    /// file than the one the path names now — the kept one removed or renamed away and another made at the path outside the
+    /// run unit — ends here (kb/Work PB3533). Only a keyed connector keeps anything (kb/Work PB3337).</summary>
+    private protected virtual void EndWhatWasKeptOfAnotherFile() { }
+
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
     /// open at all (FileLockPostureDriftTests measures that every Table-19-admitted pair does).
@@ -929,6 +935,11 @@ public abstract class FileConnector
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
+            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES ENDS HERE, before anything of this OPEN reads it (kb/Work
+            // PB3533): the write probe, the file lock the CLOSE kept and the organization's kept handle and store all belong to
+            // the physical file the CLOSE was on, and a present file that is not that one was made at the path after it was
+            // removed or renamed away outside the run unit.
+            if (presence is FilePresence.Present) EndWhatWasKeptOfAnotherFile();
             // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
             // execution of the OPEN statement when the file connector is matched with the file and the file
             // exists, the attributes of the file connector as specified in the file control paragraph and the
