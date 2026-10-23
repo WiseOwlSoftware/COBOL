@@ -37,4 +37,4 @@ one-argument `ImplementorDefaultSharing` was changed at every caller (no overloa
 question)" sentence in `pb143_shared_visibility`, PB322's open observation now answered here. Silent failures: the status mapping of a host refusal is the only place
 a new value could hide, and it is pinned both ways.
 
-Gate: see the report (`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` line).
+Gate: first run 000001-20261023T223458Z RED on two unit rows of my own GR5 test (a 5-character payload in an 8-byte record), fixed; run 000002-20261023T223918Z: `LEG 1 ONLY (batched gating, PB2515): GREEN` at aedca289b, the golden `SuiteTest_IsNoWorseThanItsVerdictAllows(edition: "85", id: "pb670_cobol85_no_sharing_facility")` Passed; Linux (unit, conformance, self-tests): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD aedca289b) ===`.
