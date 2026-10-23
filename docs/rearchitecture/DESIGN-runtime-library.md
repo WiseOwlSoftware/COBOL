@@ -2991,6 +2991,41 @@ write and one sync of the record, and the retirement's three deletes and directo
 adds one directory listing and nothing else; a rollback of a transaction with m rewritten records and a appended ones writes
 m records, one truncation when a > 0 and one sync, never a byte of another connector's record.
 
+**2.2.2.14 The keyed organizations' two CAPTURE verbs ride the same journal (kb/Work PB3492; DESIGN, settled 2026-10-23
+by wave 1157 group A, not yet implemented).** 2.2.2.2's (c) and (d) are not sequential verbs: an OPEN OUTPUT of an EXISTING
+relative or indexed file (§14.9.27.4 GR18: *"After the creation of the file, the file contains no records"*) and a DELETE FILE
+of one (§14.9.10 format 2) replace or remove the whole physical file, and 2.2.1.10's transaction cannot undo either, because
+its before-images live IN the file the verb replaces. Measured on 07bfc3606 (the probe kb/Work PB3492 carries, a
+RELATIVE file under APPLY COMMIT): OPEN OUTPUT, WRITE record 1, CLOSE, COMMIT, OPEN OUTPUT, WRITE record 2, CLOSE, ROLLBACK reads record 1 ABSENT, where
+§14.9.36.4 GR3 restores the file *"to the state they were in at the execution of the last COMMIT statement"* (the creation's
+`Recreate` ends the kept transaction when it lands, above, so nothing is left to roll back); and a DELETE FILE after the CLOSE
+answers '62', its own kept handle read as another holder's by `HostFile.IsHeldByAnother` (`FileRegistry.DeleteFile`'s retry
+loop), where the NOTE under §14.9.10.4 GR15 says *"Such files can still be deleted, however if they are, then in the event of a
+rollback they will be restored to the state they were in at the last commit or, if none, the start of the run unit"* and GR15's
+own conflict is a file *"locked by another file connector"*, which the connector's own kept handle is not. **The NOTE settles
+the question kb/Work PB3492 put to the owner** (refuse, roll back and delete, or delete and keep the transaction): the delete
+proceeds and the transaction stands, so a ROLLBACK restores the file and a COMMIT keeps it deleted. No owner decision is
+needed. **The shape:** both verbs CAPTURE exactly as R4 orders it for a sequential file: under the entry mutex the journal is
+begun (START `P`), the physical file's bytes are copied through the KEPT handle (or the connector's own handle when it is open)
+into `txn-<id>.before` and synced, the lock directory synced, the `K` record (`O` or `D`, the length) appended and synced, and
+only then the keyed creation (`KeyedConnector.Recreate`) runs or the kept handle is closed and the file removed. The kept
+state does not end with the creation: its transaction moves into the capture, since the before file holds the file AS IT
+STOOD, the run unit's uncommitted changes and their UNDO pages included. ROLLBACK restores the before file (2.2.2.7 step 1)
+and then rolls back the run unit's own transaction inside the restored file (its TRANSACTIONS tree still names it, so it is
+2.2.1.10's ROLLBACK of a file the run unit holds, run on the restored store before the journal's `D R`); COMMIT promotes
+nothing on the replaced or removed file beyond its sync (2.2.2.6 region 1), and the decision `D C` makes the replacement
+permanent, the captured transaction going with the before file. The entry step of 2.2.2.8 therefore runs at a keyed
+connector's writable OPEN and DELETE FILE too (one directory listing), and a dead owner's capture is settled there before
+2.2.1.10's dead-owner step reads the restored store. **Order of work:** PB3340 builds the journal (2.2.2.4 to 2.2.2.9) and its
+`IHostMedium` seam; the keyed capture is the same journal's second client, landed with it or right after it, with 2.2.1.16's
+OPEN OUTPUT rows and a DELETE FILE row amended to the capture. **One primitive the design assumes and the runtime lacks:** a
+DIRECTORY SYNC (2.2.2.5 R1 and R4, 2.2.2.6 (1) and (3), 2.2.2.7 (2)). .NET has no API for it: on Linux it is `open(dir,
+O_RDONLY)` and `fsync` (the two-argument `open` is safe to declare, since the mode argument is read only with `O_CREAT`), on
+macOS `fsync` does not reach the medium and `F_FULLFSYNC` goes through the variadic `fcntl` that `SidecarLockFiles` avoids for
+Apple's arm64 ABI, and on Windows a directory's entries are journaled by NTFS and a directory handle opened with
+`FILE_FLAG_BACKUP_SEMANTICS` can be flushed. The `IHostMedium` seam owns it, as one role with its determination per host
+recorded in docs/CONFORMANCE.md beside DOC-A.1-75.
+
 #### 2.2.3 The sequential frame index — bounded memory for the backward READ and a count that stores nothing (kb/Work PB3350)
 
 ⛔ **STATUS.** IMPLEMENTED (kb/Work PB3350, in the SORT and file I/O campaign PB3353; designed 2026-10-19 by the Mythos lane,
