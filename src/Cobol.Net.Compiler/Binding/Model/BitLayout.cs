@@ -231,8 +231,11 @@ internal static class BitLayout
     /// <list type="bullet">
     ///   <item><see cref="BitFillerKind.RunTail"/> — the positions after the LAST member of a run, up to the byte the next
     ///     item (or the end of the record) starts on. Present only where the group has something to measure them against:
-    ///     a bit group's own extent is exact (its NOTE), so no tail follows its LAST run; and not for a run whose
-    ///     extent depends on a run-time count (an OCCURS DEPENDING member).</item>
+    ///     a bit group's own extent is exact (its NOTE), so no tail follows its LAST run. For a run that holds an OCCURS
+    ///     DEPENDING table it is the tail of the run at its MAXIMUM count: at a smaller count the positions that complete
+    ///     the current extent's last character are the first bits of the first unused occurrence (which a receiving store
+    ///     takes from the sender, <c>OdoTail.KeepUnused</c>), and the positions beyond the maximum extent are the stored
+    ///     field (kb/Work PB3598).</item>
     ///   <item><see cref="BitFillerKind.TablePad"/> — the positions §13.18.1.4 GR2 puts BETWEEN the occurrences of an
     ///     ALIGNED table, or of a table whose elements hold an ALIGNED member (<see cref="StrideBits"/> &gt;
     ///     <see cref="WidthBits"/>): every occurrence but the last is padded to its stride.</item>
@@ -272,8 +275,8 @@ internal static class BitLayout
 
     /// <summary>The implicit filler positions of <paramref name="owner"/> in member order, wherever they are stored: the
     /// padding between the occurrences of a strided table (§13.18.1.4 GR2) and the tail after each run whose extent is a
-    /// compile-time count. A run holding a member whose extent is a run-time count (an OCCURS DEPENDING table) has a tail
-    /// that moves with it and has none here.</summary>
+    /// compile-time count; a run holding an OCCURS DEPENDING table is measured at its maximum count (see
+    /// <see cref="FillersOf"/>).</summary>
     private static List<FillerPosition> FillerPositions(DataItem owner)
     {
         var found = new List<FillerPosition>();
@@ -293,7 +296,7 @@ internal static class BitLayout
             if (HasTablePad(c))
                 found.Add(new(BitFillerKind.TablePad, c, at + WidthBits(c), WidthBits(c),
                     (c.Occurs!.Value - 1) * (StrideBits(c) - WidthBits(c))));
-            if (runs.RunLedBy(c) is not { } run || !HasFixedTail(run)) continue;
+            if (runs.RunLedBy(c) is not { } run) continue;
             int runBits = 0;
             foreach (var m in run) runBits += RunBits(m);
             int tail;
@@ -334,15 +337,6 @@ internal static class BitLayout
                 : new WindowFiller(p.Subject, BitFiller.GapItem(p.Subject, p.Subject.ClassBitOffset + WidthBits(p.Subject), StrideBits(p.Subject) - WidthBits(p.Subject)),
                     Gaps: p.Subject.Occurs!.Value - 1));
         return items;
-    }
-
-    /// <summary>Whether a run's trailing filler has a fixed position: a run holding a member whose extent is a run-time
-    /// count (an OCCURS DEPENDING table) has a tail that moves with the count, and no fixed place to store or address.</summary>
-    private static bool HasFixedTail(IReadOnlyList<DataItem> run)
-    {
-        foreach (var m in run)
-            if (m.OccursSpec?.DependingName is not null) return false;
-        return true;
     }
 
     /// <summary>Whether <paramref name="table"/> has stored padding BETWEEN its occurrences (§13.18.1.4 GR2): more than one
