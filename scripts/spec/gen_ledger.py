@@ -123,12 +123,28 @@ TREND = COORD_DIR / "ledger-trend.json"
 
 TITLE = "WiseOwl COBOL Completion Ledger"
 
-#: Verdicts that RESOLVE a row — the row still needs a spec-derived witness to close, but no further
-#: adjudication. Mirrors `inventory-schema.json`'s `resolves` flag; kept as a literal here because this script
-#: only ever READS, and importing the schema loader would drag the inventory validator into a renderer.
-RESOLVING = ("CONFORMS", "DOCUMENTED-NON-SUPPORT")
-#: Verdicts that name a DEFECT — the rows `DefectiveRowCoverageDriftTests` requires a live `kb/Work` note to own.
-DEFECTIVE = ("PARTIAL", "NOT-IMPLEMENTED", "DIVERGES")
+#: The verdict vocabulary's one home (`verdicts`, each with its `resolves` flag).
+SCHEMA = REPO / "tests/version-matrix/inventory-schema.json"
+
+
+def verdict_classes(schema: pathlib.Path = SCHEMA) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """(RESOLVING, DEFECTIVE), read from the schema's `resolves` flag — the same derivation
+    `DefectiveRowCoverageDriftTests` makes (`TraceabilityInventory.DefectiveVerdicts`).
+
+    ⛔ READ, NOT COPIED (kb/Work PB3338, wave 1154). Until then both tuples were literals "mirroring" the flag, and
+    the first row ever verdicted NEEDS-OWNER-DECISION (a non-resolving verdict the literal lacked) made the hero bands
+    stop partitioning the inventory and the ledger stop rendering. Plain JSON, not the schema loader: this renderer
+    never needs the inventory validator."""
+    verdicts = json.loads(schema.read_text(encoding="utf-8"))["verdicts"]
+    return (tuple(v for v, d in verdicts.items() if d["resolves"]),
+            tuple(v for v, d in verdicts.items() if not d["resolves"]))
+
+
+#: Verdicts that RESOLVE a row — the row still needs a spec-derived witness to close, but no further adjudication.
+#: Verdicts that name a DEFECT (or a question) — the rows `DefectiveRowCoverageDriftTests` requires a live `kb/Work`
+#: note to own.
+RESOLVING, DEFECTIVE = verdict_classes()
+NL = chr(10)
 
 #: Display names for the clause buckets — the top-level clause titles of ISO/IEC 1989:2023 exactly as
 #: specs/ISO_COBOL.md prints them (`## N Title`). Presentation only — a clause missing from this map still renders,
@@ -933,6 +949,19 @@ def render_pacing(pacing: dict | None, burn: dict | None) -> str:
   </div>"""
 
 
+def defective_rows(verdict: collections.Counter) -> str:
+    """One table row per DEFECTIVE verdict, in the schema's order: a new non-resolving verdict renders with no edit."""
+    out = []
+    for v in DEFECTIVE:
+        if v == "NEEDS-OWNER-DECISION":
+            close, pill = "No — needs the owner's answer", '<span class="pill warn">QUESTION</span>'
+        else:
+            close = "No — needs a fix"
+            pill = f'<span class="pill {"crit" if v == "DIVERGES" else "warn"}">OPEN</span>'
+        out.append(f'        <tr><td>{e(v)}</td><td class="r num">{n(verdict[v])}</td><td>{close}</td><td>{pill}</td></tr>')
+    return NL.join(out)
+
+
 def render(ctx: dict) -> str:
     inv, wk, a1, cf, bat, cp = (ctx["inv"], ctx["work"], ctx["a1"], ctx["conf"], ctx["battery"], ctx["suite"])
     head, pts, plan, pacing, rem = ctx["head"], ctx["trend"], ctx["plan"], ctx["pacing"], ctx["remaining"]
@@ -977,8 +1006,7 @@ def render(ctx: dict) -> str:
         pc_unadj=f'{100.0 * inv["unadjudicated"] / inv["rows"]:.1f}',
         conforms_closed=n(inv["conforms_closed"]), conforms_owed=n(inv["conforms_owed"]),
         dns_closed=n(inv["dns_closed"]), dns_owed=n(inv["dns_owed"]),
-        v_partial=n(inv["verdict"]["PARTIAL"]), v_notimpl=n(inv["verdict"]["NOT-IMPLEMENTED"]),
-        v_diverges=n(inv["verdict"]["DIVERGES"]),
+        defective_rows=defective_rows(inv["verdict"]),
         doc_rows=n(inv["doc_rows"]), doc_verdicted=n(inv["doc_verdicted"]), doc_closed=n(inv["doc_closed"]),
         clause_rows=clause_rows(inv["buckets"]),
         work_items=n(wk["items"]), work_open=n(wk["status"]["open"]),
@@ -1161,9 +1189,7 @@ TEMPLATE = """<title>{title}</title>
         <tr><td>DOCUMENTED-NON-SUPPORT — closed</td><td class="r num">{dns_closed}</td><td>Closed</td><td class="dim">D13's licence: a recorded determination with its witness</td></tr>
         <tr><td>CONFORMS — witness owed</td><td class="r num">{conforms_owed}</td><td>Yes, once a golden lands</td><td class="dim">no compiler change stands between these and closed</td></tr>
         <tr><td>DOCUMENTED-NON-SUPPORT — witness owed</td><td class="r num">{dns_owed}</td><td>Yes, once witnessed</td><td class="dim">stamped by the A.4 derived-verdict selectors, one per <em>Not claimed</em> module</td></tr>
-        <tr><td>PARTIAL</td><td class="r num">{v_partial}</td><td>No — needs a fix</td><td><span class="pill warn">OPEN</span></td></tr>
-        <tr><td>NOT-IMPLEMENTED</td><td class="r num">{v_notimpl}</td><td>No — needs a fix</td><td><span class="pill warn">OPEN</span></td></tr>
-        <tr><td>DIVERGES</td><td class="r num">{v_diverges}</td><td>No — needs a fix</td><td><span class="pill crit">OPEN</span></td></tr>
+{defective_rows}
         <tr><td>Not yet adjudicated</td><td class="r num">{unadjudicated}</td><td>—</td><td class="dim">unaudited territory</td></tr>
       </tbody>
       <tfoot><tr><td>Total</td><td class="r num">{rows}</td><td colspan="2">{closed} OK · {gap} GAP · {adjudicated} adjudicated · of {doc_rows} Annex A.1 DOC rows, {doc_verdicted} carry a verdict and {doc_closed} have closed</td></tr></tfoot>

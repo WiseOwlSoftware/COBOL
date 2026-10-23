@@ -55,6 +55,9 @@ COORD.mkdir()
 # a gate run inside a loop unit (an enqueue unit's finisher has COBOL_LOOP_UNIT=enqueue) made the "attended session" case a loop
 # unit and turned this self-test red on a correct hook (kb/Work PB2702).
 ENV = {k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"COBOL_COORD_DIR": str(COORD)}
+# The practices check's verdict decides every case, never the clock (kb/Work PB3536): under a loaded gate the hook's 60 s
+# hang guard expired on the "unchecked rendered spec" case, and the hook then PASSED it (red in a gate, green alone).
+ENV["COBOL_DISPATCH_CHECK_WAIT_S"] = "86400"
 
 
 def blocked(payload: dict) -> bool:
@@ -64,6 +67,13 @@ def blocked(payload: dict) -> bool:
 
 
 fails = [(n, e) for n, p, e in CASES if blocked(p) != e]
+# a practices check that gives no verdict in time REFUSES the dispatch (never passes it): a planted 1 us wait expires
+# before the check can start, on a brief that would otherwise pass
+expired = subprocess.run([sys.executable, str(HOOK)], capture_output=True, text=True, timeout=180,
+                         input=json.dumps(agent("cobol-implementer", f"Follow {BRIEF}", WITH_SKILL)),
+                         env=dict(ENV, COBOL_DISPATCH_CHECK_WAIT_S="0.000001"))
+if not (expired.returncode == 2 and "gave no verdict within" in expired.stderr):
+    fails.append(("a practices check with no verdict in time refuses the dispatch", True))
 # kb/Work PB3186: the hook writes NO dispatch ledger. Its retired rule 3 recorded every note id an admitted dispatch's
 # prompt (and the files it named) mentioned, with the union of their file sets; the ledger is the planner's and the spec
 # renderer's alone (plan_wave.record_dispatch, through make_dispatch_specs.py).
@@ -112,6 +122,6 @@ fails += [(n, e) for n, p, env, e in STOP_CASES if blocked_env(p, env) != e]
 fails += [(n, e) for n, p, env, e in STOP_CASES_AFTER if blocked_env(p, env) != e]
 for n, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {n}")
-TOTAL = len(CASES) + len(STOP_CASES) + len(STOP_CASES_AFTER) + len(WRITES_NONE)
+TOTAL = len(CASES) + len(STOP_CASES) + len(STOP_CASES_AFTER) + len(WRITES_NONE) + 1  # + the expired check
 print(f"dispatch guard self-test: {TOTAL - len(fails)}/{TOTAL} cases OK")
 sys.exit(1 if fails else 0)

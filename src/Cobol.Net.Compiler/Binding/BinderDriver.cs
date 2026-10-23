@@ -286,9 +286,12 @@ internal sealed class BinderDriver
         // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must
         // cover both. A class-only file program (M2-OO-1i — an OBJECT/FACTORY file with no program-unit file)
         // needs it too, or the generated <c>CobolFile.Register</c>/OPEN in the class body has no CobolNet.Runtime.IO
-        // import (CS0103).
+        // import (CS0103). So does a file-less unit whose statements carry EC-I-O checking: its __IoCheckEc reads
+        // CobolFile too, and a COMMIT or ROLLBACK raises EC-I-O-PERMANENT-ERROR for a refused file of ANOTHER element's
+        // APPLY COMMIT clause in an element that describes no file (kb/Work PB3338, review finding w1154a R1-3).
         bool anyFiles = units.Any(u => u.Data.Files.Count > 0)
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
+            || units.Any(u => u.Bound.Ec is { HasIoChecked: true })
             || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0)
             // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
             || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
@@ -662,6 +665,7 @@ internal sealed class BinderDriver
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
+            UnitIsRecursive = unit.Recursive,   // §12.4.6.3.3 SR5 (kb/Work PB3338)
             // §8.4.6.6 / §8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the
             // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
             ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),

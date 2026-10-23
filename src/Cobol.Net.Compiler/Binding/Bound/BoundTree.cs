@@ -1507,12 +1507,15 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
     }
 }
 
-/// <summary>COMMIT / ROLLBACK (ISO §14.9.7 / §14.9.36; kb/Work PB137): the transaction facility is the
-/// documented A.3 items-6/7 non-support, and with no APPLY COMMIT clause GR1 makes each statement
-/// CONTINUE-equivalent — but the node carries its IDENTITY, so §14.9.7.3/§14.9.36.3 SR2's SORT/MERGE
-/// procedure ban is enforceable in the cross-pass where the old payload-free BoundNop made the statement
-/// indistinguishable from CONTINUE forever.</summary>
-public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
+/// <summary>COMMIT / ROLLBACK (ISO §14.9.7 / §14.9.36; kb/Work PB137, PB3338). The statement acts on every active APPLY
+/// COMMIT clause of the run unit (§14.9.7.1), so its effect is the runtime's; the node carries its IDENTITY, so
+/// §14.9.7.3/§14.9.36.3 SR2's SORT/MERGE procedure ban is enforceable in the cross-pass, and <paramref name="Files"/>:
+/// the files of THIS element's clause under commit control (<see cref="ApplyCommitModel.CommitControlledFiles"/>).
+/// A COMMIT or ROLLBACK the medium refuses raises EC-I-O-PERMANENT-ERROR for the refused file (docs/CONFORMANCE.md §5,
+/// A.4.3 (a)), so these are the statement's I-O files: <c>EcBinder.IoFilesOf</c> gives each its (EC-I-O, file) pairs,
+/// and checking enabled for one of them reaches the statement's exception processing (kb/Work PB3338, review finding
+/// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).</summary>
+public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel> Files) : BoundStatement;
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19.4 GR4 in an IF's THEN phrase and GR6 in its ELSE phrase — ONE
 /// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also

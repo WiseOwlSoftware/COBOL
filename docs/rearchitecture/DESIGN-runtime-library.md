@@ -313,9 +313,10 @@ admits a reader or a writer (`AdmitsAnotherRunUnit`: READ ONLY or ALL OTHER) rel
 never WHETHER they exist (before PB643 the areas were the host handle's 4,096-byte buffer in one posture and the reader's default buffer
 in the other, so RESERVE had no one place to land). `OpenConnectorStore(path, mode, access, share)` is a
 RELATIVE or INDEXED connector's long-lived store handle (kb/Work PB771, below), UNBUFFERED: the store is read and
-written positionally (kb/Work PB2660), and every byte of it passes through the connector's own areas,
-`KeyedConnector._areas`, allocated by the OPEN that takes the handle (kb/Work PB2693 — before it the areas were the
-handle's stream buffer, which no store byte passed through). `OpenAuxiliary(path, mode, access)` is a short-lived
+written positionally, one 4,096-byte page per call (kb/Work PB2660), and every page passes through the run unit's
+page cache for the physical file, whose capacity the OPEN that attaches the connector raises to at least the
+connector's areas, one page each (`KeyedConnector.Attach` → `KeyedStore.AttachHandle`, 2.2.1.13; docs/CONFORMANCE.md
+DOC-A.1-164). `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
 the §14.9.27.4 GR10 store-header read and the varying framing's parse check — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
@@ -696,7 +697,22 @@ if another handle holds the byte — publish then test, as `RunUnitFileLock` doe
 lock EXCLUSIVELY (`RegionLocks.ExclusiveNeedsWritableHandle`): `LockFileEx` takes an exclusive lock through a
 read-only handle, and its locks are per handle, so a test through the handle that holds the byte shared meets its own
 hold and answers held with nobody else holding it; a lock file has no such limit and holds exclusively whatever the
-connector's access. The region map: `RegionBase` = 2^62; the five
+connector's access. ⛔ **AN ENDPOINT GIVES EVERY BYTE BACK EXPLICITLY, NEVER BY THE CLOSE OF ITS HANDLE (kb/Work PB3549).**
+Every host keeps the endpoint's own map of the bytes it holds (holds do not stack: a byte held at least as strongly already
+is held at once, and one release gives it back), and the endpoint's disposal unlocks each of them through the handle while
+the handle is still open; every owner of an endpoint (the keyed connector's CLOSE and abandoned OPEN, the sequential
+connector's, a kept handle's give-back, `KeptFile.GiveBack`) disposes it BEFORE it closes the handle. The close is no release a
+successor can rely on: a Linux open-file-description lock lives until every descriptor on the description is closed, and a
+`fork` in another thread (a `CALL "SYSTEM"`, any child process the host program starts) holds a copy of every descriptor
+until its `exec`; Windows documents that the time it takes to unlock a closed handle's locks *"depends upon available system
+resources"*. A transaction's liveness byte left to the close was read as a LIVE owner by the next writable OPEN, whose
+dead-owner step left the abandoned transaction standing (an intermittent red in a parallel Linux run; reproduced
+deterministically by a second handle on the same open file, `tests/_shared/DescriptionCopy.cs`). The Windows column holder
+(`HandleColumnLockHost`) unlocks its byte before it closes its handle for the same reason, and the OFD column host already
+did. The model is `scripts/models/kept_liveness_model.py` (a self-test every gate and CI runs): the give-back under every
+fork and exec interleaving, the probe's transient answers, a live owner never rolled back, and a watchdog of mutations (the
+disposal that unlocks nothing, the close before the disposal, an interrupted or transiently refused probe read as unavailable,
+an unknowable owner read as dead) each RED on the row it names. The region map: `RegionBase` = 2^62; the five
 Table 19 column bytes at +0..+4 (`RunUnitFileLock`); the store mutex at +0x100; the LOCK-PRESENCE byte at +0x101,
 held shared by every handle that holds at least one published record lock, so a statement asks that one byte
 (`PhysicalFileTable.AnotherRunUnitHoldsLocks`) before it pays for a record identity, a SHA-256 and a record byte; the
@@ -1818,7 +1834,12 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   — a record statement's or an OPEN's (R6 step 5), in any run unit, under the mutex, whether or not other run units hold the
   file open — when page 2's transactions root is not empty, the TRANSACTIONS tree is read, each transaction of ANOTHER run
   unit has its liveness byte probed (this run unit's own are alive by construction), and every transaction whose byte is
-  free is rolled back by the ROLLBACK statement above before the entering statement proceeds. *Finding R3-1: the round-2
+  free is rolled back by the ROLLBACK statement above before the entering statement proceeds. The probe has THREE answers,
+  read in one place (`KeyedStore.OwnerOf`, `OwnerLiveness`; kb/Work PB3549): free is DEAD, held is ALIVE, and a host that
+  cannot carry the lock is UNKNOWABLE, which the dead-owner step and the lock test read as alive (nothing is rolled back on a
+  guess). A transient host failure is never the third answer: the host asks again before it answers (`OfdRegionLocks.Classify`
+  repeats an interrupted call, `EINTR`, for as long as it recurs, and a refused lock record, `ENOLCK`, up to four calls in
+  all; the lock-file host's publication and observation are bounded the same way). *Finding R3-1: the round-2
   text ran the step only at the next writable OPEN and rested the rollback's safety on the transaction's locks, which a
   dead owner no longer holds; between the death and that OPEN a live writer not under commit control changed the dead
   transaction's records and took its freed unique values with no lock refusing it, and the later rollback restored
@@ -2015,12 +2036,47 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   the same CONNECTOR being half-covered) changes records without before-images; the run unit's ROLLBACK restores only what its
   covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
   independent file connectors that are not specified in APPLY COMMIT clauses"* describes.
-- **The compiler half** (PB3338): accept the I-O-CONTROL APPLY COMMIT clause (§12.4.6.3.3 syntax rules 1-11; the period rule
-  `ParagraphPeriods` already prints), register each listed file connector and data item with the run unit, emit COMMIT and
-  ROLLBACK as registry calls, route the fatal-exception and abnormal-termination paths to the file-only rollback, and save at
-  COMMIT / restore at ROLLBACK the listed data items, the file status items and the LINAGE and RECORD clause items (§14.9.7.4
-  GR5, §14.9.36.4 GR3's second sentence), with EC-FLOW-COMMIT / EC-FLOW-ROLLBACK / EC-FLOW-APPLY-COMMIT where §9.1.18.7 raises
-  them (the catalog already lists them). Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
+- **The compiler half** (PB3338), as built. The binder accepts the clause for a RELATIVE or INDEXED file
+  (`DataBinder.BindApplyCommitClause`, then `ResolveApplyCommit` once the data division is bound: §12.4.6.3.3 SR1-SR10,
+  one diagnostic, COBOLNET4709; SR6 for a factory or instance definition is `OoEnvironmentRules`'), and the claimed
+  clauses' antecedent family (LOCK MODE, SAME, OPEN sharing, READ/REWRITE lock phrases, UNLOCK) refuses its forbidden
+  shapes in its own right (COBOLNET2974). The run unit's half of the statements is `TransactionControl`: each element
+  instance's activated clause is a PARTICIPANT whose emitted `__CommitSave` / `__CommitRestore` copy its data items (the
+  listed identifiers and SR9's file status, LINAGE and RECORD DEPENDING items) to and from an image the instance keeps,
+  saved at activation (a ROLLBACK before the first COMMIT restores the state at activation, §14.9.36.4 GR3) and at every
+  COMMIT that succeeds (§14.9.7.4 GR5); a canceled element or a returned INITIAL program RETIRES its participant (no
+  longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6). COMMIT and ROLLBACK
+  are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
+  describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
+  the element that describes it, and handed to that file's exception processing. §14.6.13.1.3 item 8's ROLLBACK is ONE
+  rule (`SequentialIoEmitter.Item8Applies`, kb/Work PB3542-PB3544), which every hook arm consumes: it is asked at the
+  raise (`CobolFile.RollbackDueOnFatal`: checking for the raised condition not enabled, the status fatal, the file under
+  commit control; asked before the declarative, whose own CLOSE would replace the status) and run after the declarative
+  and before a RESUME transfers control or DOC-A.1-103 ends the run unit (`CobolFile.RollbackOnFatal`); never on a SORT
+  or MERGE implicit transfer (item 2) nor after an ON EXCEPTION phrase that processes the condition (item 1). It is the
+  ROLLBACK statement's general rules, so in a SORT input or output procedure it raises EC-FLOW-ROLLBACK (§14.9.36.4 GR2;
+  every input-output statement on a file under commit control declares the condition, `EcBinder.NodeKindRaises`); its
+  own refusal is not told to the program, and `TransactionControl.HasStatusItem` is a question that stores nothing (the
+  refusal recorded whether a FILE STATUS item was told). `Item8RollbackSiteDriftTests` pins the one site. The statement's
+  node carries the files of its own element's clause under commit control (`BoundCommitRollback.Files`, read from
+  `ApplyCommitModel.CommitControlledFiles`, the one statement of "a declined SEQUENTIAL operand is absent"), and they are
+  its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through
+  `__IoCheckEc` exactly as at any input-output statement; a refused file of ANOTHER element has no file description
+  here, so its condition is declared with no file and only a directive naming no file enables it
+  (`SequentialIoEmitter.EmitForeignFileIoCheck`), and with no declarative qualifying DOC-A.1-103 decides
+  (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
+  CLOSE. A refused COMMIT saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
+  statements are CONTINUE wherever they run. EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are read at the statement's entry;
+  EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4, Table 13's *"Invocation of a runtime element with an APPLY COMMIT clause in
+  effect by a runtime element for which commit and rollback is not permitted"*) is the ACTIVATING element's: the CALL
+  declares it, its guard sets the flag, `ProgramTable.CallProgram` latches it before the callee's checking scope opens
+  (`ExceptionEngine.ActivatorFlowApplyCommit`), and the activation raises under the latch. With checking off a
+  forbidden statement is not executed and a forbidden activation leaves the clause inactive. Witnesses:
+  `TransactionControlTests` (the refusing medium at every operation of a COMMIT, two files, item 8, the flow
+  conditions, retirement), `CommitRollbackRefusalWitnessTests` (the same refusals through a COMPILED program: the
+  own-file and foreign-file arms in every combination of a USE procedure, a FILE STATUS clause and EC-I-O checking,
+  and item 8 after an ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
+  activation latch through compiled CALLs) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
   that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
 
@@ -2918,7 +2974,7 @@ with the second run unit at every boundary; the expected state in every row is I
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
-**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the facility is declined today (COBOLNET1709).
+**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the sequential operand of an APPLY COMMIT clause is refused by name today (COBOLNET1709; kb/Work PB3338 provides the keyed organizations).
 Kept, unchanged in contract: every verb arm of `SequentialConnector`, `OverwriteInPlace` as the one in-place overwrite,
 `ReleaseRecord` as the one release, `SharedAppendStream`, the region map (one new byte kind, `EntryMutexByte`, in 2.2.1.8's
 map, expressed by `SidecarRegionLocks` on every host), `SidecarLockFiles`' holder, probe and retirement rules (the holder file

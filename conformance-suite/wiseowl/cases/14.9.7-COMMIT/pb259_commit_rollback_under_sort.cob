@@ -1,32 +1,19 @@
 *>--- conformance-case
 *> id: pb259_commit_rollback_under_sort
-*> rules: [GR-14.9.7.4-2, GR-14.9.36.4-2]
+*> rules: [GR-14.9.7.4-1, GR-14.9.36.4-1]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB259 — the DYNAMIC half of §14.9.7.4 GR2 / §14.9.36.4 GR2
-      *> under the declined commit and rollback facility. GR2: "If this
-      *> statement is attempted to be executed under the control of a
-      *> recursive runtime element or a file SORT or MERGE statement, then
-      *> the exception condition EC-FLOW-COMMIT is set to exist" (and
-      *> EC-FLOW-ROLLBACK for ROLLBACK). §9.1.18.7 states the same pair.
-      *> The facility is the OPTIONAL module of Annex A.4.3 (items 1, 4
-      *> and 5), recorded Not claimed in docs/CONFORMANCE.md §5, and A.4.1
-      *> makes its "exception conditions" optional with it; §14.6.13.1.1:
-      *> "The implementor is not required to raise any exception
-      *> conditions for level-3 exception-names" of such an element. The
-      *> STATIC reach of GR2 (a COMMIT/ROLLBACK written inside the SORT
-      *> procedure's own range) is rejected at bind time, COBOLNET1690
-      *> (negative/pb137-commit-in-sort-proc). This golden pins the
-      *> DYNAMIC reach: HELPER lies OUTSIDE both procedure ranges and is
-      *> PERFORMed from them while the SORT is active, so it compiles
-      *> (COBOLNET1579 at each site) and each statement behaves as
-      *> CONTINUE, which with no active APPLY COMMIT clause is its whole
-      *> effect (§14.9.7.4 GR1, §14.9.36.4 GR1). Under EC-ALL checking a
-      *> raised EC-FLOW-COMMIT (Fatal, §14.6.13.1.6) would end the run;
-      *> the declined posture raises none, so EXCEPTION-STATUS stays
-      *> blank and the SORT completes in key order.
+*> kb/Work PB259, PB3338 - COMMIT and ROLLBACK under an active SORT with NO active APPLY COMMIT clause.
+*> ISO 14.9.7.4 GR1 and 14.9.36.4 GR1: "If this statement is executed when there is no active APPLY COMMIT clause,
+*> then it has the same effect as a CONTINUE statement with no additional phrases."
+*> GR1 is asked before GR2 (EC-FLOW-COMMIT / EC-FLOW-ROLLBACK under a SORT or MERGE): with no clause there is no
+*> transaction for the statement to act on, so it continues. HELPER lies outside both procedure ranges (the
+*> static reach, a COMMIT written inside the procedures, is 14.9.7.3 SR2's refusal, COBOLNET1690) and is
+*> PERFORMed from them while the SORT is active. Under EC-ALL checking no condition is raised, so
+*> EXCEPTION-STATUS stays blank and the SORT completes in key order. The same statements under an ACTIVE clause
+*> raise the conditions: unit:TransactionControlTests.Commit_and_rollback_under_an_active_sort_raise_ec_flow_or_change_nothing.
        >>TURN EC-ALL CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB259SRT.
