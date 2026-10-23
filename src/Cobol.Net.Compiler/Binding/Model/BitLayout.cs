@@ -225,19 +225,21 @@ internal static class BitLayout
     /// filler item is DATA OF THE GROUP — a group move, a READ of a record or a MOVE of a literal to the group writes it
     /// and the next DISPLAY, comparison or WRITE of the group reads it back — so its positions need a home of their own:
     /// one hidden string of boolean positions per entry of this list, a field of the OWNER's record struct (a REDEFINES
-    /// class's shared string backing already holds them: its window is the bytes themselves).
+    /// class's shared string backing already holds them: its window is the bytes themselves, <see cref="WindowFillersOf"/>).
     /// <para>Two shapes of position are filler, and every composer of the group's bits (the packed run image, the
     /// elementary bit face of a bit group, the compile-time VALUE slicer) reads THIS list:</para>
     /// <list type="bullet">
     ///   <item><see cref="BitFillerKind.RunTail"/> — the positions after the LAST member of a run, up to the byte the next
     ///     item (or the end of the record) starts on. Present only where the group has something to measure them against:
     ///     a bit group's own extent is exact (its NOTE), so no tail follows its LAST run; and not for a run whose
-    ///     extent depends on a run-time count (an OCCURS DEPENDING member) or that a REDEFINES class stores
-    ///     (<see cref="BitFiller"/> documents why).</item>
+    ///     extent depends on a run-time count (an OCCURS DEPENDING member).</item>
     ///   <item><see cref="BitFillerKind.TablePad"/> — the positions §13.18.1.4 GR2 puts BETWEEN the occurrences of an
     ///     ALIGNED table, or of a table whose elements hold an ALIGNED member (<see cref="StrideBits"/> &gt;
     ///     <see cref="WidthBits"/>): every occurrence but the last is padded to its stride.</item>
-    /// </list></summary>
+    /// </list>
+    /// <para>The list holds the positions that have a field: not the ones a Tier-B REDEFINES class stores (a REDEFINES
+    /// area, an EXTERNAL or BASED record, a LINKAGE area), whose bits are bytes of the class's one string backing
+    /// (<see cref="WindowFillersOf"/>).</para></summary>
     public static IReadOnlyList<BitFiller> FillersOf(DataItem owner) => FillerLists.GetValue(owner, ComputeFillersOf);
 
     /// <summary>The list per owner, computed once: the codec asks it for every run and every strided table of a group, and a
@@ -247,14 +249,36 @@ internal static class BitLayout
 
     private static IReadOnlyList<BitFiller> ComputeFillersOf(DataItem owner)
     {
-        if (!owner.IsGroup) return [];
+        // The serial names are given in list order, which is the owner's member order: deterministic for the emitter's
+        // field declaration and for every composer that asks this method again.
+        int serial = 0;
+        return FillerPositions(owner).Where(p => !p.InClass)
+            .Select(p => new BitFiller(p.Kind, p.Subject, FillerFieldStem + serial++, p.StartBit, p.Bits)).ToList();
+    }
+
+    /// <summary>One implicit filler position of an owner, wherever it is stored (<see cref="FillerPositions"/>):
+    /// <paramref name="StartBit"/> is relative to the owner (meaningful for a bit group), <paramref name="RelBit"/> to the
+    /// first bit of <paramref name="Subject"/> (the run's leader or the table), and <paramref name="InClass"/> says a Tier-B
+    /// REDEFINES class stores it (a REDEFINES area, an EXTERNAL or BASED record, a LINKAGE area): its bits are bytes of the
+    /// class's one string backing, so it has no hidden field and <see cref="WindowFillersOf"/> addresses it.</summary>
+    private readonly record struct FillerPosition(BitFillerKind Kind, DataItem Subject, int StartBit, int RelBit, int Bits, bool InClass);
+
+    private static bool InTierBClass(DataItem item) => item.Class is { Tier: RedefinesTier.StringCanonical };
+
+    /// <summary>The implicit filler positions of <paramref name="owner"/> in member order, wherever they are stored: the
+    /// padding between the occurrences of a strided table (§13.18.1.4 GR2) and the tail after each run whose extent is a
+    /// compile-time count. A run holding a member whose extent is a run-time count (an OCCURS DEPENDING table) has a tail
+    /// that moves with it and has none here.</summary>
+    private static List<FillerPosition> FillerPositions(DataItem owner)
+    {
+        var found = new List<FillerPosition>();
+        if (!owner.IsGroup) return found;
         var children = owner.Children;
         var runs = RunsOf(children);
-        if (ReferenceEquals(runs, BitRunMap.Empty)) return [];
+        if (ReferenceEquals(runs, BitRunMap.Empty)) return found;
         bool bitOwner = owner.GroupUsage is GroupUsage.Bit;
         int phase = bitOwner ? PhaseOf(owner) : 0;
         var starts = bitOwner ? ChildStarts(owner) : null;
-        var found = new List<(BitFillerKind Kind, DataItem Subject, int StartBit, int Bits)>();
         for (int i = 0; i < children.Count; i++)
         {
             var c = children[i];
@@ -262,10 +286,12 @@ internal static class BitLayout
             int at = starts?[i] ?? 0;
             // The padding between the occurrences of a strided table (§13.18.1.4 GR2).
             if (HasTablePad(c))
-                found.Add((BitFillerKind.TablePad, c, at + WidthBits(c), (c.Occurs!.Value - 1) * (StrideBits(c) - WidthBits(c))));
-            if (runs.RunLedBy(c) is not { } run || !StoresTail(run)) continue;
+                found.Add(new(BitFillerKind.TablePad, c, at + WidthBits(c), WidthBits(c),
+                    (c.Occurs!.Value - 1) * (StrideBits(c) - WidthBits(c)), InTierBClass(c)));
+            if (runs.RunLedBy(c) is not { } run || !HasFixedTail(run)) continue;
             int runBits = 0;
-            foreach (var m in run) runBits += RunBits(m);
+            bool inClass = false;
+            foreach (var m in run) { runBits += RunBits(m); inClass |= InTierBClass(m); }
             int tail;
             if (bitOwner)
             {
@@ -280,11 +306,44 @@ internal static class BitLayout
                 tail = starts[next] - end;
             }
             else tail = RoundUpToByte(runBits) - runBits;
-            if (tail > 0) found.Add((BitFillerKind.RunTail, run[0], at + runBits, tail));
+            if (tail > 0) found.Add(new(BitFillerKind.RunTail, run[0], at + runBits, runBits, tail, inClass));
         }
-        // The serial names are given in list order, which is the owner's member order: deterministic for the emitter's
-        // field declaration and for every composer that asks this method again.
-        return found.Select((f, k) => new BitFiller(f.Kind, f.Subject, FillerFieldStem + k, f.StartBit, f.Bits)).ToList();
+        return found;
+    }
+
+    /// <summary>⛔ THE IMPLICIT FILLER OF A GROUP A TIER-B CLASS STORES, AS ONE ELEMENTARY BIT ITEM PER GAP (ISO §8.5.1.6.3,
+    /// kb/Work PB3564 review R2-1). In a REDEFINES area, an EXTERNAL or BASED record or a LINKAGE area the group's bits,
+    /// filler included, are bytes of the class's string backing, so <see cref="FillersOf"/> has no field for them; a
+    /// statement that treats the filler as the items §8.5.1.6.3 says it is (INITIALIZE ... WITH FILLER, §14.9.20.4 5) a) 2.)
+    /// addresses each gap as a window of the backing (<see cref="BitFiller.GapItem"/>). A strided table's pad is one item per
+    /// gap (n - 1 of them: each is its own item in the standard), a run's tail is one. Empty for an owner the class does
+    /// not store.</summary>
+    public static IReadOnlyList<DataItem> WindowFillersOf(DataItem owner)
+    {
+        var items = new List<DataItem>();
+        if (!InTierBClass(owner)) return items;
+        foreach (var p in FillerPositions(owner))
+        {
+            if (!p.InClass) continue;
+            if (p.Kind is BitFillerKind.RunTail)
+            {
+                items.Add(BitFiller.GapItem(p.Subject, p.Subject.ClassBitOffset + p.RelBit, p.Bits));
+                continue;
+            }
+            int width = WidthBits(p.Subject), stride = StrideBits(p.Subject);
+            for (int k = 0; k < p.Subject.Occurs!.Value - 1; k++)
+                items.Add(BitFiller.GapItem(p.Subject, p.Subject.ClassBitOffset + k * stride + width, stride - width));
+        }
+        return items;
+    }
+
+    /// <summary>Whether a run's trailing filler has a fixed position: a run holding a member whose extent is a run-time
+    /// count (an OCCURS DEPENDING table) has a tail that moves with the count, and no fixed place to store or address.</summary>
+    private static bool HasFixedTail(IReadOnlyList<DataItem> run)
+    {
+        foreach (var m in run)
+            if (m.OccursSpec?.DependingName is not null) return false;
+        return true;
     }
 
     /// <summary>Whether <paramref name="table"/> has stored padding BETWEEN its occurrences (§13.18.1.4 GR2): more than one
@@ -310,16 +369,6 @@ internal static class BitLayout
         foreach (var f in FillersOf(owner))
             if (f.Kind is BitFillerKind.TablePad && ReferenceEquals(f.Subject, table)) return f;
         return null;
-    }
-
-    /// <summary>Whether a run's trailing filler is stored: a run holding a member whose extent is a run-time count (an
-    /// OCCURS DEPENDING table) has a tail that moves with the count, and a run holding a member a REDEFINES class
-    /// stores has its bits in the class's string backing (the member's window), neither of which has one fixed field.</summary>
-    private static bool StoresTail(IReadOnlyList<DataItem> run)
-    {
-        foreach (var m in run)
-            if (m.OccursSpec?.DependingName is not null || m.Class is { Tier: RedefinesTier.StringCanonical }) return false;
-        return true;
     }
 
     /// <summary>The bits the §8.5.1.6.3 run <paramref name="item"/> CONTINUES places before it: the
@@ -652,6 +701,21 @@ internal sealed record BitFiller(BitFillerKind Kind, DataItem Subject, string Fi
         CsName = Field,
         Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: Bits, Digits: 0, Scale: 0, Signed: false),
         Parent = Subject.Parent,
+    };
+
+    /// <summary>⛔ ONE GAP OF A TIER-B CLASS'S IMPLICIT FILLER AS THE ELEMENTARY BIT DATA ITEM §8.5.1.6.3 SAYS IT IS: a nameless
+    /// boolean item of <paramref name="bits"/> positions that starts <paramref name="classBit"/> bits into the class's one
+    /// string backing (<see cref="DataItem.ClassBitOffset"/>), so the ordinary view cursor and window builder address it
+    /// like any other bit member of the class (<see cref="BitLayout.WindowFillersOf"/>). It is in no <c>Children</c> list.</summary>
+    public static DataItem GapItem(DataItem subject, int classBit, int bits) => new()
+    {
+        Level = subject.Level,
+        CsName = "",
+        Pic = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: bits, Digits: 0, Scale: 0, Signed: false),
+        Parent = subject.Parent,
+        Class = subject.Class,
+        ClassBitOffset = classBit,
+        ClassOffset = classBit / BitLayout.BitsPerCharacter,
     };
 }
 

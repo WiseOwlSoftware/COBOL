@@ -1009,8 +1009,14 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   m positions is read back whole. Each entry is also the elementary boolean item §8.5.1.6.3 describes
   (`BitFiller.Item`, in no `Children` list), which is how `INITIALIZE ... WITH FILLER` reaches it (§14.9.20.4 5) a) 2.:
   the ordinary place cursor and implicit MOVE, ZEROES by default; a bare INITIALIZE leaves it). A REDEFINES class, an
-  EXTERNAL / BASED record and a LINKAGE area need no field: their shared string holds the bits (and so the list is empty
-  there and WITH FILLER leaves them, a registered lead). Not stored yet: a run holding an OCCURS DEPENDING table, a dynamic-capacity bit
+  EXTERNAL / BASED record and a LINKAGE area need no field: their shared string holds the bits, so the list holds no
+  position such a class stores and `BitLayout.WindowFillersOf(owner)` names each GAP of them (one `RunTail` item, one
+  item per gap between the occurrences of a strided table) as a `BitFiller.GapItem` — an elementary bit item with a
+  `ClassBitOffset` in the class's backing — which `INITIALIZE ... WITH FILLER` receives through the class's `ViewCursor`
+  like any other bit member of the class (ZEROES by default, or the REPLACING BOOLEAN sender to each gap). The record-struct
+  lane holds a table's pad as ONE string of every gap, so a REPLACING BOOLEAN sender over it is refused at run time by
+  name (a registered lead). Not stored yet: the tail of a run in a record-struct group that holds the canonical of a
+  Tier-B class (the record is not itself in the class, the tail lies past the class's backing), a run holding an OCCURS DEPENDING table, a dynamic-capacity bit
   table's element padding, a leaf-vector-carried strong group (its filler is the receiver's own). Concatenating the subordinate bit strings — and taking their SUM as the width — is right
   only while every member is "immediately following … an item of the same level"; a member whose LEVEL NUMBER
   differs starts at the next byte, and `01 BG GROUP-USAGE BIT. 05 B1 PIC 1(2). 03 B2 PIC 1(2).` measured
