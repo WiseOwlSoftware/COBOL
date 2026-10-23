@@ -189,18 +189,18 @@ public sealed class OpenTable19Tests
     {
         foreach (var mode in Enum.GetValues<FileOpenMode>())
             Assert.Equal(mode == FileOpenMode.Input ? FileSharing.ReadOnly : FileSharing.NoOther,
-                         FileRegistry.ImplementorDefaultSharing(mode));
+                         FileRegistry.ImplementorDefaultSharing(mode, 2023));
 
         foreach (var exM in Enum.GetValues<FileOpenMode>())
             foreach (var incM in Enum.GetValues<FileOpenMode>())
                 Assert.Equal(!(exM == FileOpenMode.Input && incM == FileOpenMode.Input),
-                    Table19.Conflicts((FileRegistry.ImplementorDefaultSharing(incM), incM),
-                                      (FileRegistry.ImplementorDefaultSharing(exM), exM)));
+                    Table19.Conflicts((FileRegistry.ImplementorDefaultSharing(incM, 2023), incM),
+                                      (FileRegistry.ImplementorDefaultSharing(exM, 2023), exM)));
 
         foreach (var (otherS, otherM) in EveryConnectorState())
             foreach (var mode in Enum.GetValues<FileOpenMode>().Where(m => m != FileOpenMode.Input))
             {
-                var dflt = (FileRegistry.ImplementorDefaultSharing(mode), mode);
+                var dflt = (FileRegistry.ImplementorDefaultSharing(mode, 2023), mode);
                 Assert.True(Table19.Conflicts(dflt, (otherS, otherM)));   // refused by every existing connector
                 Assert.True(Table19.Conflicts((otherS, otherM), dflt));   // and refuses every incoming one
             }

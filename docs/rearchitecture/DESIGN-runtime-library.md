@@ -416,6 +416,21 @@ share one file were refused by the host, the second OPEN answering '30' — a st
 §9.1.13.9 item produces — and its mirror, measured across processes, had a `SHARING WITH NO OTHER` connector
 admit a foreign append to a file the program had declared exclusive.)
 
+**The whole of the above is the COBOL-2002 FILE SHARING FACILITY, and a COBOL-85 program has none of it (kb/Work PB670, owner
+2026-10-23, option (i); `DialectBehavior.FileSharingFacility`, VCR row 7.39).** File sharing and record locking is an optional
+module (Annex A.4.7), §A.4.1 makes its rules and its I-O status values optional with it, and its clauses are 2002 introductions, so
+at `--std 85` (`FileConnector.Edition`, baked into the connector at registration) `FileConnector.SharingFacilityInEffect` is false and
+the runtime asks the question in ONE place per job: `SharedOpenAttempt` does not run the Table 19 loop, and the connector's default
+mode (`ImplementorDefaultSharing(mode, edition)`) is ALL OTHER — §9.1.15's "a mode completely specified by the implementor", standing for
+the one that restricts nobody, whose host share mode (`FileShare.ReadWrite`) admits every sibling handle of the run unit in every open
+mode; `FileConnector.Open` takes no `RunUnitFileLock` (a column lock would refuse an in-process sibling like any other holder: the
+OFD and handle locks do not know a process's own descriptors), and a host refusal by a process outside the run unit answers `'30'`
+(§9.1.13.6 item 1), because `'61'` is a status the 1985 edition does not define. Every pair of opens is therefore a normal open, and
+the engines meet the states Table 19 used to keep out: a keyed `OPEN OUTPUT` beside connectors that hold the file creates the new store
+and `StoreTable.AttachCreated(…, arbitrated: false)` makes it the path's (the holders keep the store they have; what they find in the file
+is the engine's own word, an at-end `'10'` for a created file with no records, §14.9.27.4 GR18). From 2002 the guard of PB754 stays loud
+(`arbitrated: true` throws on a creation beside a holder).
+
 **The §9.1.15 FILE LOCK AGAINST OTHER RUN UNITS is Table 19 itself: `RunUnitFileLock` (`IO/Sharing/`), taken by
 `FileConnector.Open` (kb/Work PB833).** The share mode above is what a process that takes part in no protocol
 meets, and it cannot be the whole of §9.1.15's *"preventing other run units from opening that file with
