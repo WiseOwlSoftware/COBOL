@@ -261,9 +261,12 @@ internal static class OperandText
     /// <para>The compiler already owned the right answer, in the OTHER direction: the group-sender arm deposits
     /// the pinned representation bytes of exactly these items, through <see cref="AsStorageImage"/>'s per-shape
     /// recipes. This is that one codec, so the two arms of the group move cannot answer the same question
-    /// differently (feedback_two_arm_dispatch). A LITERAL or figurative sender keeps the operand text: it has no
-    /// internal representation to preserve — GR4's own first sentence names "a literal OR an elementary item" as
-    /// the sending side, and §8.3.3.6.4 GR2 sizes a figurative from the receiver.</para>
+    /// differently (feedback_two_arm_dispatch). A literal or function value whose usage is DISPLAY (an alphanumeric,
+    /// numeric or boolean literal, a numeric or alphanumeric function value) and a figurative sender keep the operand
+    /// text: the text IS their representation - GR4's own first sentence names "a literal OR an elementary item" as the
+    /// sending side, and §8.3.3.6.4 GR2 sizes a figurative from the receiver. A value of usage NATIONAL (a national
+    /// literal or function) or usage BIT (a boolean function) has a representation of its own, UTF-16BE pairs or packed
+    /// bits, that the text is not: see the last arm.</para>
     /// <para>A <c>BoundCurrentRecord</c> also keeps <see cref="AsString"/>, which routes it to
     /// <see cref="CurrentRecordImage"/> — the record-area STORAGE image sliced to §13.18.43.4 GR16's byte count,
     /// i.e. this same channel plus the rule only that operand has (kb/Work PB327/PB339).</para></summary>
@@ -273,8 +276,32 @@ internal static class OperandText
         // never read back into it, so a strongly-typed group with a class pointer/object leaf sends its storage
         // image - the leaf's 8 positions (a pointer's storage image, kb/Work PB1071) - under §14.9.25.4 GR4.
         BoundFieldOperand f => AsStorageImage(f.Place, context, transfer: true),
-        _ => AsString(op, num, deSign: false),
+        // ⛔ A LITERAL OR FUNCTION VALUE OF USAGE NATIONAL OR BIT IS THE OTHER SENDER WITH A REPRESENTATION OF ITS OWN (kb/Work
+        // PB3562): a national item sends its UTF-16BE pairs and a usage-bit item its packed bits (the field arm above), so
+        // a value of the same usage sends the same bytes. `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G` deposited the
+        // '0'/'1' TEXT (00110001) where a usage-bit sender deposits 11111111, and `MOVE N"EF" TO G` the two ALPHANUMERIC
+        // bytes 'E' 'F' where `MOVE NI TO G` deposits 00 45 00 46. The usage is the ONE reader of an operand's static usage,
+        // IntrinsicArgumentRules.StaticUsageOf (§15.2 2) "Boolean functions have an implicit usage bit", §15.2 3) national
+        // functions usage national, §8.3.3.5.4 GR3 a) a national literal "usage NATIONAL"); a boolean LITERAL is DISPLAY
+        // there too - its characters are "boolean character[s], '0' or '1', from the computer's coded character set"
+        // (§8.3.3.4.3 SR2) - so it keeps its text (docs/CONFORMANCE.md D-B3). A MOVE's zero-length literal never gets here:
+        // §14.9.25.4 GR2/GR3 make it the figurative SPACE / ZERO (MoveClassifier.Sender); at a CALL it is an empty image
+        // either way.
+        _ => IntrinsicArgumentRules.StaticUsageOf(op) switch
+        {
+            Usage.National => RuntimeApi.NatBytes(AsString(op, num, deSign: false)),
+            Usage.Bit => RuntimeApi.BitsPackAll(AsString(op, num, deSign: false)),
+            _ => AsString(op, num, deSign: false),
+        },
     };
+
+    /// <summary>True when an operand place's operand carrier (<see cref="AsString"/>'s text, '0'/'1' per boolean position
+    /// or one character per national position) is NOT its storage image (<see cref="AsStorageImage"/>'s packed bits or
+    /// UTF-16BE pairs): an item of USAGE BIT or USAGE NATIONAL (a bit or national group included, §13.18.29.4 GR1 b) /
+    /// GR2 b)), or a reference-modified slice of one - the usage asked of the ONE static-usage reader. The CALL and INVOKE
+    /// boundaries ask it to send such an argument to a plain-group formal as GR4's unconverted move (kb/Work PB3562).</summary>
+    public static bool CarrierDiffersFromStorage(Place p) =>
+        IntrinsicArgumentRules.StaticUsageOf(new BoundFieldOperand(p)) is Usage.National or Usage.Bit;
 
     /// <summary>⛔ THE ONE-WAY STRING CHANNEL FOR A READ-ONLY CONSUMER OF A GROUP'S CHARACTERS (kb/Work PB244, PB1901):
     /// <see cref="AsString"/>, except that a strongly-typed group holding a class pointer/object leaf — a legal
@@ -385,6 +412,10 @@ internal static class OperandText
             { Category: PicCategory.National } => PlaceRenderer.Read(p),
             // A USAGE BIT leaf packs its own carrier (an elementary operand is a run of one — §8.5.1.6.3's
             // shared-byte runs exist only INSIDE a group image, which the group arm above owns).
+            // A RUN-TIME-LENGTH carrier (§8.5.1.10.4: a function result's or a reference-modified slice's intermediate,
+            // which has no PICTURE length) packs every position it currently holds.
+            { Category: PicCategory.Boolean, Usage: Usage.Bit } when p.Item.IsDynamicLength =>
+                RuntimeApi.BitsPackAll(PlaceRenderer.Read(p)),
             { Category: PicCategory.Boolean, Usage: Usage.Bit } pic =>
                 RuntimeApi.BitsPack(PlaceRenderer.Read(p), pic.Length.ToString()),
             // Display-form boolean, alphanumeric, edited: the carrier IS the storage, one char per byte.
