@@ -4,11 +4,13 @@ namespace CobolNet.Runtime;
 
 /// <summary>
 /// ⛔ AN SDIDI VALUE WITH THE FRACTION DIGITS ITS OPERANDS CARRY, WHEN ONLY THE RUN TIME KNOWS THEM (kb/Work PB3538 review
-/// finding R3-1; numeric design D2; CONFORMANCE.md DOC-A.1-123). A NESTED native quotient is truncated at the working
-/// scale <see cref="CobolNum.NestedQuotientScale"/> derives from its operands' PRECISION, and the compiler knows that
+/// findings R3-1 and R4-1; numeric design D2; CONFORMANCE.md DOC-A.1-123). A NESTED native quotient is truncated at the
+/// working scale <see cref="CobolNum.NestedQuotientScale"/> derives from its operands' PRECISION, and the compiler knows that
 /// precision for every operand except an SDIDI value whose fraction digits are a run-time fact: a NUMVAL value, a power
-/// formed on the SDIDI, a function's returned value. Such a value's precision is its VALUE's own
-/// (<see cref="Own"/>, <see cref="CobolDec.FractionDigits"/>), and this pair carries it through the sums, differences,
+/// formed on the SDIDI, a function's returned value. Such a value's precision is the places it is HELD at
+/// (<see cref="Own"/>, <see cref="CobolDec.FractionDigits"/>): a NUMVAL value's written places (`NUMVAL ("2.50")` has 2, as
+/// `2.50` does), a computed value's as its operation formed it — never a count of the value's significant digits, which
+/// dropped the trailing zero (R4-1). This pair carries it through the sums, differences,
 /// products, negations and quotients above it by the same rules the compiler applies to a known precision (the larger for
 /// a sum, difference or quotient, the sum for a product), so a quotient's precision is never its guard digits and the
 /// working scale does not grow with the expression's depth. Before it, such an operand was given the precision 0, and
@@ -21,7 +23,7 @@ namespace CobolNet.Runtime;
 /// <param name="Precision">The fraction digits its operands carry (never a quotient's guard digits).</param>
 public readonly record struct CobolDecWithPrecision(CobolDec Value, int Precision)
 {
-    /// <summary>A value whose precision is its own fraction digits (<see cref="CobolDec.FractionDigits"/>).</summary>
+    /// <summary>A value whose precision is the fraction digits it is held at (<see cref="CobolDec.FractionDigits"/>).</summary>
     public static CobolDecWithPrecision Own(CobolDec value) => new(value, CobolDec.FractionDigits(value));
 
     /// <summary>The sum at the INTERMEDIATE ROUNDING <paramref name="mode"/> (<see cref="CobolDec.Add"/>); the larger

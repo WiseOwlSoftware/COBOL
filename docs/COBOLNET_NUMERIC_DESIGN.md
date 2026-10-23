@@ -69,18 +69,30 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > made the product above it round back up, and `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` was 2.000000).
 > Every lane carries `NumX.Precision` (the SDIDI's scale is 0, so its products, sums and quotients state the operands'
 > fraction digits explicitly), so the next quotient's working scale does not depend on the lane either. ⛔ **An SDIDI
-> value's precision is the fraction digits of its VALUE, never the placeholder 0 of its scale** (review finding R3-1):
-> a floating-point literal's is known at compile time (`CobolDec.FractionDigits` of its exact value, so `1.0E-15` has
-> the 15 of `0.000000000000001` and `2.0E0` the 0 of `2`); a NUMVAL value's, a power's formed on the SDIDI and a
-> function's result's only at run time (`NumX.RuntimePrecision`). A nested quotient over such a value, and every sum,
+> value's precision is the fraction digits it is WRITTEN or DECLARED at, never the placeholder 0 of its scale and never
+> a count that depends on its value** (review findings R3-1 and R4-1; `CobolDec.FractionDigits`, the places the value
+> is HELD at, `-Exp`): a floating-point literal's is its written scale, known at compile time (the significand's places
+> less the exponent: `2.50E0` has the 2 of `2.50` and of a `PIC 9V99` item, `1.0E-15` the 16 of
+> `0.0000000000000010`); a NUMVAL-family value's is its argument's written places, known only at run time
+> (`NUMVAL ("2.50")` has 2, because the family lifts its argument EXACTLY at the parsed scale); and a value an
+> operation formed, a function's returned value or a power formed on the SDIDI, has the places its result is held at
+> (an exact sum or product keeps its operands', the larger or the sum; a result the SDIDI rounded holds its 34
+> significant digits), also known only at run time (`NumX.RuntimePrecision`). So the NOTATION never changes the
+> precision: `2.50`, `2.50E0`, `NUMVAL ("2.50")` and a `PIC 9V99` item all truncate a quotient at 16 places with no
+> receiver. Counting the value's SIGNIFICANT fraction digits instead dropped the trailing zero, so
+> `IF 2.50E0 / 3 * 1000000000000000 > 833333333333333` was NOT GREATER where the `2.50` spelling is GREATER (R4-1,
+> `pb3538_written_precision`); the written scale still decides, as it does for a fixed-point operand and in
+> GnuCOBOL's `cob_decimal`, so `2.5E0` and `2.5` truncate one place sooner than `2.50`. A binary64 approximation
+> lifted to the SDIDI (a floating-math function's value, NUMVAL-F under native arithmetic, §15.69.4 2)) has no written
+> scale: it is held at the places of its shortest round-trip decimal. A nested quotient over such a value, and every sum,
 > difference, product and negation between it and that quotient, is then also spelled as a `CobolDecWithPrecision`
 > (the value paired with its operands' precision, `NumX.WithPrecision`: an alternative spelling of the same
 > evaluation, never a second one), whose `DivTruncatedToOdd` applies `NestedQuotientScale` to the carried precision and
 > carries that precision, not the working scale, upward. Given 0, `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0`
 > and `IF 1.0E-15 / 2 > 0` were NOT GREATER (the quotient truncated at 14 places). The precision is bounded by the
-> value's significance (an SDIDI value has at most 34 significant digits), never by a scale chosen without it, and it
-> does not grow with depth (`pb3538_runtime_precision_quotients`, `pb3538_float_literal_precision`,
-> `CobolDecWithPrecisionTests`). Only a
+> significand (a significand the SDIDI has rounded has at most 34 digits, so the places end at most 33 past the leading
+> digit), never by a scale chosen without it, and it does not grow with depth (`pb3538_runtime_precision_quotients`,
+> `pb3538_float_literal_precision`, `pb3538_written_precision`, `CobolDecWithPrecisionTests`). Only a
 > final-transfer quotient over a wide operand and a floating-point edited resultant take the SDIDI's own
 > `CobolDec.DivToOdd` (the exact quotient, round-to-odd, rounded once at the receiver). Depth therefore changes neither a nested quotient's
 > precision nor its lane (`NestedQuotientPrecisionDriftTests` compiles each quotient-crossing shape at depth 2 and

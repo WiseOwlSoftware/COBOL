@@ -746,7 +746,7 @@ internal static class RuntimeApi
     // ── An SDIDI value WITH THE PRECISION its operands carry, when only the run time knows it (CobolDecWithPrecision,
     //    kb/Work PB3538 review finding R3-1) — the form a nested quotient reads the precision of.
 
-    /// <summary>An SDIDI value whose precision is its own fraction digits — <c>CobolDecWithPrecision.Own</c>.</summary>
+    /// <summary>An SDIDI value whose precision is the fraction digits it is held at — <c>CobolDecWithPrecision.Own</c>.</summary>
     public static string DecOwnPrecision(string value) =>
         $"{nameof(CobolDecWithPrecision)}.{nameof(CobolDecWithPrecision.Own)}({value})";
 

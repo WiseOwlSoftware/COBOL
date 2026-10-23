@@ -557,20 +557,21 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return sig == 1 && exp == 0;
     }
 
-    /// <summary>The value's FRACTION DIGITS: the decimal places of <paramref name="value"/> once trailing zeros are dropped
-    /// (0 for an integer). A property of the VALUE, never of its representation: 2.0E0 and 2, 5 × 10^-16 and 5.000 × 10^-16
-    /// have the same. It is the precision a NESTED native quotient gives an SDIDI operand whose precision the compiler
-    /// cannot know (<see cref="CobolDecWithPrecision.Own"/>), and the compiler computes the same for a floating-point literal
-    /// (kb/Work PB3538 review finding R3-1). An SDIDI value has at most 34 significant digits, so its last fraction digit is
-    /// at most 33 places past its leading one: the precision is bounded by the value's significance, never by a scale.</summary>
-    public static int FractionDigits(CobolDec value)
-    {
-        if (value.Sig == 0) return 0;
-        UInt128 sig = UAbs(value.Sig);
-        int exp = value.Exp;
-        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
-        return exp < 0 ? -exp : 0;
-    }
+    /// <summary>The value's FRACTION DIGITS: the decimal places <paramref name="value"/> is HELD at, <c>-Exp</c> (0 for an
+    /// exponent of 0 or more). ⛔ THE WRITTEN OR DECLARED SCALE, NEVER A COUNT THAT DEPENDS ON THE VALUE (kb/Work PB3538 review
+    /// findings R3-1 and R4-1; numeric design D2; CONFORMANCE.md DOC-A.1-123). An operand lifted EXACTLY keeps the scale it
+    /// was written or declared at: a floating-point literal its significand's places less its exponent (`2.50E0` is
+    /// 250 × 10^-2, so 2, the 2 of `2.50` and of a <c>PIC 9V99</c> item; `1.0E-15` has the 16 of `0.0000000000000010`), a
+    /// NUMVAL-family value its argument's written places (`NUMVAL ("2.50")` has 2), an item lifted to the SDIDI its
+    /// declared scale. A value an operation formed (a function's returned value, a power formed on the SDIDI) has the places
+    /// its result is held at: an exact sum or product keeps its operands' (the larger, the sum), and a result the SDIDI
+    /// rounded holds its 34 significant digits. It is the precision a NESTED native quotient gives an SDIDI operand whose
+    /// precision the compiler cannot know (<see cref="CobolDecWithPrecision.Own"/>), and the compiler computes the same for
+    /// a floating-point literal. Counting the value's SIGNIFICANT fraction digits instead dropped a trailing zero, so
+    /// `2.50E0` and `NUMVAL ("2.50")` had 1 where `2.50` has 2, and a quotient over them was truncated one place sooner
+    /// (R4-1). A significand the SDIDI has rounded has at most 34 digits, so the precision ends at most 33 places past the
+    /// leading digit: it is bounded by the significand, never by the expression's depth.</summary>
+    public static int FractionDigits(CobolDec value) => value.Exp < 0 ? -value.Exp : 0;
 
     /// <summary>The negation of <paramref name="value"/>, its operand evaluated once (the renderer spelled it
     /// <c>new CobolDec(-(x).Sig, (x).Exp)</c>, which evaluated the operand expression twice).</summary>

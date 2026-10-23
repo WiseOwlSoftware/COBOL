@@ -8,9 +8,10 @@
       *> is truncated at the documented native precision (CONFORMANCE.md
       *> DOC-A.1-123: the receiver's or the operands' fraction digits,
       *> whichever is more, plus 14). A NUMVAL value or a power has the
-      *> precision of its VALUE, which only the run time knows; it was
-      *> given 0, so a quotient of 10**-15 was truncated at 14 places,
-      *> to zero. 8.8.4.2.4 compares the algebraic values "by the
+      *> precision it is held at, which only the run time knows (a
+      *> NUMVAL value its argument's written places, finding R4-1); it
+      *> was given 0, so a quotient of 10**-15 was truncated at 14
+      *> places, to zero. 8.8.4.2.4 compares the algebraic values "by the
       *> rules of native arithmetic"; 8.8.1.2 3) evaluates left to
       *> right; 14.7.4.3 2) truncates into R (6 fraction digits).
       *>   NUMVAL 1E-15 has 15 fraction digits, w = 29: 5E-16 > 0;
