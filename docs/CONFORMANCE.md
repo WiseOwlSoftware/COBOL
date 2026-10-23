@@ -2197,6 +2197,13 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
    and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
    of this edition). Processor-dependent; not provided. The statements are accepted-inert with **COBOLNET1578**.
+   Inert is the BEHAVIOUR, not the source: every operand that is an identifier is still resolved (the FROM, GIVING and
+   RETURNING operands, the `CONTINUE AFTER` expression, a `RAISING EXCEPTION` exception-name through the one
+   exception-name funnel) and the statements of the ON EXCEPTION / NOT ON EXCEPTION phrases are bound as the
+   statements they are, so an undefined name there is the ordinary error (kb/Work PB3568). The `TO` operand is the one
+   operand NOT resolved: Format 1 names a message-server-name, a processor-defined name that is no data item
+   (§14.9.38.3 SR2), and the grammar cannot tell it from Format 2's message-tag. Pinned by
+   `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand` and its siblings.
    They are a COBOL-2023 introduction, and below `--std 2023` the edition pass answers **COBOLNET0900**
    (`async-messaging-2023`) and the facility is not named: §8.9 reserves RECEIVE and SEND at COBOL-85 too, for the
    '85 communication module, so the 2023 formats are recognized at every edition and gated on introduction, never
@@ -2238,7 +2245,15 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    addition (E.3.2 item 2), so below `--std 2023` `APPLY` and `COMMIT` are user-defined words and the clause draws
    the ordinary introduction gate instead.
 3. **VALIDATE facility** (§14.9.50, §13.16–13.18, F.2 item 5 / **Annex A.4.14**), in full:
-   * the `VALIDATE` **statement** (§14.9.50): accepted-inert with **COBOLNET1580**.
+   * the `VALIDATE` **statement** (§14.9.50): accepted-inert with **COBOLNET1580**. Its OPERANDS are still
+     identifiers (kb/Work PB3568): declining the facility declines its behaviour, never §14.9.50.3's syntax rules, so
+     every identifier-1 is resolved (an undefined name is the ordinary **COBOLNET1639**) and screened against SR1
+     (reference-modified, or not described in the file, linkage, local-storage or working-storage section,
+     **COBOLNET4777**), SR2 (class index, object or pointer, **COBOLNET4778**; the message-tag class has no item to
+     refuse while USAGE MESSAGE-TAG is itself refused, item 1), SR4 (a 66-level entry) and SR5 (ANY LENGTH),
+     **COBOLNET4779**. SR3 reads a `VALIDATE-STATUS` clause, which the decline below refuses by name (COBOLNET1708), and SR6 is **COBOLNET1607**.
+     Pinned by `conformance:cases/14.9.50-VALIDATE/pb3568-validate-*` and the control
+     `conformance:wiseowl/cases/14.9.50-VALIDATE/pb3568-validate-legal-operands-inert`.
    * the **validation clauses** of the §13.16.2 *validation-clauses* group — `CLASS` (§13.18.11), `DEFAULT`
      (§13.18.17), `DESTINATION` (§13.18.18), `INVALID` (§13.18.31), `PRESENT WHEN` **format 2** (§13.18.41),
      `VARYING`'s validation leg (§13.18.64), `VALIDATE-STATUS` / `VAL-STATUS` (§13.18.62) — and the `VALUE`
