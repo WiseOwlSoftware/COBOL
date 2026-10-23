@@ -355,8 +355,8 @@ seeds the storage it shares), and a condition-name under a CONSTANT RECORD was l
 
 **⛔ §13.18.63.3 SR2/SR3 ARE ALL-FORMATS RULES, AND ONE FUNNEL ASKS THEM FOR EVERY FORMAT** (kb/Work PB208,
 PB586). `DataBinder.ScreenValueLiteral` is the ONE literal screen — SR2's class half (`ValidateValueCategory`),
-its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**: a literal written with EITHER sign, `+5`
-as `-5`, is a signed literal §8.3.3.3.2 SR2 and an unsigned subject refuses it, kb/Work PB3567), SR6's edition gate — and every VALUE
+its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**, kb/Work PB3567: a literal written with EITHER
+sign, `+5` as `-5`, is a signed literal and an unsigned subject refuses it), SR6's edition gate — and every VALUE
 literal of every format now takes it: format 1's item VALUE, format 2's per-occurrence literals, format 3's
 literal-2, both ends of a THROUGH range and literal-4 (the conditional variable's picture as the subject,
 §13.18.63.4 GR19), and format 4's report-section literals. Format 3 used to call the class half directly, so
