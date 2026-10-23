@@ -254,9 +254,9 @@ public sealed class SharingFacilityEditionTests
             Assert.Equal("00", reg.Status("Q"));
             Assert.Equal("00", FileHarness.Delete(reg, "Q", org, 1));
             Assert.Equal("23", FileHarness.Read(reg, "P", org, 1, out _));   // GR5: no longer accessible through any connector
-            Assert.Equal("00", FileHarness.Write(reg, "P", org, 3, "THREE"));
+            Assert.Equal("00", FileHarness.Write(reg, "P", org, 3, "3333"));
             Assert.Equal("00", FileHarness.Read(reg, "Q", org, 3, out string image));
-            Assert.Equal(FileHarness.Rec(3, "THREE"), image);
+            Assert.Equal(FileHarness.Rec(3, "3333"), image);
             reg.Close("P");
             reg.Close("Q");
             Assert.Equal("00", reg.Status("P"));
