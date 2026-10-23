@@ -321,7 +321,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/verify_publishable.py
       # One line ending, LF (kb/Work PB3029): no tracked text file's blob or checkout holds a CR, and every Python writer
-      # states newline=. Here it guards the INDEX (a commit made outside git's attributes); windows-build-test runs it
+      # states newline=. Here it guards the INDEX (a commit made outside git's attributes); windows-self-tests runs it
       # again over a Windows checkout, the bytes `core.autocrlf` used to turn CRLF.
       - name: Line endings — LF in every tracked text file, index and checkout (line_endings.py --check)
         if: ${{ !cancelled() }}
@@ -330,7 +330,7 @@ jobs:
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the
       # local gate (run_gate_legs.py AUDITS) and a leg of linux-gate.sh. A Windows-only self-test is reported NOT RUN here
-      # with its reason and runs in windows-build-test; one that reads the built assemblies runs in greenfield-unit.
+      # with its reason and runs in windows-self-tests; one that reads the built assemblies runs in greenfield-unit.
       - name: Script self-tests — every self-test under scripts/ and conformance-suite/harness/, discovered (self_tests.py)
         if: ${{ !cancelled() }}
         run: python3 scripts/self_tests.py
