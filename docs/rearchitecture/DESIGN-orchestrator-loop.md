@@ -498,8 +498,10 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
    idempotent: for every WAITING TO LAND row in survey order, every
    branch whose last attempt the lane may retry with its tip still that attempt's end head, and every branch the
    enqueue unit re-armed at its current tip (a BOUNCED one included), `land_lane.decide` says
-   whether to start `enqueue.py land <branch> --worktree <wt>`, DETACHED (its own process group, out of the
-   supervisor's job where Windows allows it, and on Windows its own console with no window, `CREATE_NO_WINDOW`,
+   whether to start `enqueue.py land <branch> --worktree <wt>`, DETACHED through `scripts/detached.py`, the one
+   launch that outlives its caller (a launcher that exits at once, so no tree kill of the tick reaches the runner,
+   kb/Work PB3536; its own process group or session, out of the supervisor's job where Windows allows it, and on
+   Windows its own console with no window, `CREATE_NO_WINDOW`,
    which every program it starts inherits: under `DETACHED_PROCESS` each of them opened a window that took the
    desktop's focus, kb/Work PB3117), its output in `logs\land-lane-<branch>-<stamp>.log`:
 

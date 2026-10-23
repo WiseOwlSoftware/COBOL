@@ -157,6 +157,15 @@ re-run). Here, additionally:
   `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every leg's full log, trx and identity record, the plan and `verdict.json` (timings, first red, slot).
+- **The gate outlives its caller and is gated once per measured tree** (kb/Work PB3536; DESIGN-test-build-ci.md
+  §3.14.12). `build-local` starts the gate DETACHED in its run directory (`gate.log`, `gate.pid`, `verdict.json`) and
+  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/run_gate_legs.py --await
+  <run> [--worktree W] [--wait-s N]` reads that verdict (its line and exit code; a process that died with none is
+  `NOT RUN [verdict]` exit 2, a gate still running `PENDING` exit 4; a relative `<run>` is W's run). A re-gate of a
+  tree an earlier gate in the worktree measured GREEN (the harness's `.claude/settings.local.json` edit, STATUS.md and
+  TestResults/ are no part of a measured tree: coord.NEVER_WORK), against the same base and under a scope it covered, answers at
+  once `… GREEN — REUSED (kb/Work PB3536): … that gate: …`, naming the run that measured it; a RED is never reused.
+  An agent at its TURN CAP with its gate running hands it to the wave (status `GATE-PENDING`, MANDATORY-PRACTICES P2).
 
 ## Read the failure before diagnosing it
 
