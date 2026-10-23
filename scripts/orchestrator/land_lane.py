@@ -18,8 +18,10 @@ the merge queue, no implementer ran. The supervisor (`orchestrate.ps1`) now runs
 minutes while any unit runs, so a branch lands within its own gate and CI time of being ready.
 
 STATE, all under `<coord>/land-lane/` (the coordination directory, never a worktree):
-  attempts/<id>.json  one per `enqueue.py land` run: branch, head (its tip at launch), worktree, argv, log
-                      (`<coord>/logs/land-lane-<branch>-<stamp>.log`), runner pid, and once it ends rc, the log's
+  attempts/<id>.json  one per `enqueue.py land` run, <id> = `<n>-<UTC stamp>-<branch>` (n: the attempt NUMBER, one
+                      past every attempt, taken under the tick lock; the order of attempts, never the clock, kb/Work
+                      PB3536): branch, head (its tip at launch), worktree, argv, log
+                      (`<coord>/logs/land-lane-<id>.log`), runner pid, and once it ends rc, the log's
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
                       pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
                       unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
@@ -157,12 +159,26 @@ def _slug(branch: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "-", branch).strip("-") or "branch"
 
 
+#: An attempt's file name starts with its NUMBER (`launch`); one named before the numbers starts with its UTC stamp.
+ATTEMPT_NUMBER = re.compile(r"(\d{6,})-")
+
+
+def attempt_order(path: pathlib.Path) -> tuple[int, str]:
+    """The order of an attempt file: its number, then its name. The number, never the clock, is the order a branch's
+    attempts were launched in: a stamp orders nothing finer than the clock's resolution (on a CI runner three runs of
+    the gate driver started in one microsecond, kb/Work PB3536), and two launches of one branch in one clock tick took
+    ONE file name, the second record overwriting the first. A file named before the numbers is number 0, older than
+    every numbered one."""
+    m = ATTEMPT_NUMBER.match(path.name)
+    return (int(m[1]) if m else 0), path.name
+
+
 def attempts(cdir: pathlib.Path, unreadable: list[str] | None = None) -> list[dict[str, Any]]:
-    """Every attempt, oldest first (ids sort by their UTC stamp). A file that is not an attempt record is left out and
-    its path appended to `unreadable`, which the tick and `status` say (a lost record could relaunch its branch)."""
+    """Every attempt, oldest first (`attempt_order`). A file that is not an attempt record is left out and its path
+    appended to `unreadable`, which the tick and `status` say (a lost record could relaunch its branch)."""
     d = lane_dir(cdir) / ATTEMPTS
     out = []
-    for p in sorted(d.glob("*.json")) if d.is_dir() else []:
+    for p in sorted(d.glob("*.json"), key=attempt_order) if d.is_dir() else []:
         try:
             rec = coord.read_json(p, None)
         except ValueError:
@@ -732,12 +748,15 @@ def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str,
 
 def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str,
            start: Callable[[list[str], pathlib.Path], int], argv: list[str] | None = None) -> dict[str, Any]:
+    """Start one attempt. Only `tick` calls it, under the tick lock, so the attempt's NUMBER (one past every attempt
+    recorded; `attempt_order`) is taken by one process at a time and names one attempt."""
     now = _now()
-    stamp = now.strftime("%Y%m%dT%H%M%S%fZ")
-    aid = f"{stamp}-{_slug(row['name'])}"
-    path = lane_dir(cdir) / ATTEMPTS / f"{aid}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    log = cdir / "logs" / f"land-lane-{_slug(row['name'])}-{stamp}.log"
+    d = lane_dir(cdir) / ATTEMPTS
+    d.mkdir(parents=True, exist_ok=True)
+    n = max((attempt_order(p)[0] for p in d.glob("*.json")), default=0) + 1
+    aid = f"{n:06d}-{now:%Y%m%dT%H%M%SZ}-{_slug(row['name'])}"
+    path = d / f"{aid}.json"
+    log = cdir / "logs" / f"land-lane-{aid}.log"
     rec = {"id": aid, "branch": row["name"], "head": row["tip"], "worktree": row["worktree"], "why": why,
            "argv": argv or [sys.executable, str(HERE / "enqueue.py"), "land", row["name"], "--worktree", row["worktree"]],
            "cwd": str(repo), "log": str(log), "started": now.isoformat(timespec="seconds"), "pid": None,
@@ -1104,6 +1123,31 @@ def self_test() -> int:
                str(f4.started))
         expect("the repeated exit is STOPPED: the enqueue unit's", any(
             r.startswith("stopped landings: w3a") for r in agent_work(c4).reasons), str(agent_work(c4).reasons))
+
+        # 4b. a branch's attempts are ordered by their NUMBERS, never the clock (kb/Work PB3536): with the clock STOPPED,
+        #     a launch and its retry in one clock tick are two records, in launch order. A stamp-named id gave both ONE
+        #     file name, and the retry's record overwrote the first.
+        c4b = fresh("one-tick")
+        stopped_at = dt.datetime(2026, 10, 23, 2, 21, 9, 187360, dt.timezone.utc)
+        real_now = _now
+        globals()["_now"] = lambda: stopped_at
+        try:
+            f4b = Fake([row("w3b", "WAITING TO LAND", "m1")])
+            first4b = f4b.tick(c4b)
+            finish(c4b, "w3b", 9, "NOT QUEUED (exit 9, above)")
+            f4b.live.clear()
+            again4b = f4b.tick(c4b)
+        finally:
+            globals()["_now"] = real_now
+        (lane_dir(c4b) / ATTEMPTS / "20261022T225440187360Z-w3b.json").write_text(
+            json.dumps({"id": "20261022T225440187360Z-w3b", "branch": "w3b", "head": "m0", "rc": 2}),
+            encoding="utf-8", newline="\n")   # an attempt named before the numbers
+        atts4b = [(a["id"], a.get("rc")) for a in attempts(c4b)]
+        expect("a launch and its retry in one stopped clock tick are two attempts, ordered by their numbers; one named "
+               "before the numbers is the oldest",
+               first4b == ["w3b"] and again4b == ["w3b"] and [i for i, _ in atts4b] == [
+                   "20261022T225440187360Z-w3b", "000001-20261023T022109Z-w3b", "000002-20261023T022109Z-w3b"]
+               and [rc for _, rc in atts4b] == [2, 9, None], str(atts4b))
 
         # 5. a runner that died with no rc is DIED, then retried once.
         c5 = fresh("died")

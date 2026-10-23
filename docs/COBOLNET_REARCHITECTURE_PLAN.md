@@ -3192,7 +3192,7 @@ already-derivable coverage; none change the pipeline.
 - CLI probe (from a scratchpad dir): `cobol.exe <src.cob> --std 85|2002|2014|2023 -o out.dll --run`.
 - The gate, one command with ONE shape (kb/Work PB3022): `pwsh scripts/build-local.ps1 -Priority BelowNormal` (a
   landing's at Normal priority); bash `scripts/build-local.sh`. There is no mode and no filter. The driver is `scripts/run_gate_legs.py` (`--self-test` proves every arm); each
-  gate writes a fresh run directory `TestResults/build-local/<UTC stamp>-<nonce>/` (listings, `plan.json`, every
+  gate writes a fresh run directory `TestResults/build-local/<n>-<UTC stamp>/`, n its number in the worktree (listings, `plan.json`, every
   leg's log, trx and identity record, `verdict.json` with the timings and the first red; the newest five are kept)
   and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|LEG 1 ONLY (batched gating, PB2515):
   GREEN|RED|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line (under the default scope `leg1`, `LEG 1 ONLY …`).

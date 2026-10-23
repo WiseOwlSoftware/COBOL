@@ -503,7 +503,9 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
    kb/Work PB3536; its own process group or session, out of the supervisor's job where Windows allows it, and on
    Windows its own console with no window, `CREATE_NO_WINDOW`,
    which every program it starts inherits: under `DETACHED_PROCESS` each of them opened a window that took the
-   desktop's focus, kb/Work PB3117), its output in `logs\land-lane-<branch>-<stamp>.log`:
+   desktop's focus, kb/Work PB3117), its output in `logs\land-lane-<id>.log`, `<id>` being `<n>-<UTC stamp>-<branch>`
+   with n the attempt's number, one past every attempt, taken under the tick lock (the order of a branch's attempts is
+   their numbers', never the clock's, kb/Work PB3536):
 
 | The branch's last attempt | The lane |
 |---|---|

@@ -1156,10 +1156,15 @@ kb/Work PB2914). One gate:
    main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
    the branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; then exit
    2, the operator's).
-2. A fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/`: the plan, every trx, every identity record
+2. A fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>/`: the plan, every trx, every identity record
    and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
    next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
-   store, step 6); the driver keeps the last five.
+   store, step 6); the driver keeps the last five. "Newest" is the run's NUMBER `n`, one past every run in the run
+   root, taken under the run root's lock (`runs.lock`) when the run directory is made, so the order of runs is the
+   order they started in and never the clock's: a stamp orders nothing finer than the clock's resolution, and on a CI
+   runner three runs started in the same microsecond (kb/Work PB3536, merge-group run 39888287569). The reuse rule
+   (3.14.12) and the pruning read the same order; a run named before the numbers (`<stamp>-<nonce>`) is older than
+   every numbered one.
 3. The audits — FIRST, since none needs a build or a test result, and FAIL-FAST: a red audit ends
    the gate `RED — <audit> RED — fail-fast: the audits run before the slot and the build and NO LEG RAN` in seconds
    (kb/Work PB2523: four of wave 1034's eight first-run implementer reds were audit-only, each reported after a whole

@@ -90,7 +90,6 @@ import hashlib
 import json
 import os
 import re
-import secrets
 import shutil
 import signal
 import subprocess
@@ -127,11 +126,16 @@ LEG1_ONLY = "LEG 1 ONLY (batched gating, PB2515)"
 #: Who runs the leg 2 a `leg1` gate leaves: the whole-population regression net (kb/Work PB3015, PB3022, §3.17.2).
 LEG2_OWNER = "CI's whole-population run"
 RUN_ROOT = Path("TestResults") / "build-local"
-#: A run directory's name: its start, UTC to the MICROSECOND, then a nonce. Names sort in start order, which "the
-#: newest earlier run" (the plan's reds and timings, the reuse rule, the pruning) reads: to the second only, two gates
-#: of one second sorted by their random nonce, and the reuse rule answered from the OLDER run (its self-test, 2 runs
-#: in 3, PB3536 review finisher). A name of the second-only form (`…T%H%M%SZ-…`, before it) still matches.
-RUN_DIR = re.compile(r"\d{8}T\d{6}(?:\.\d{6})?Z-[0-9a-f]{6}")
+#: A run directory's name: `<n>-<UTC start, to the second>Z`, where n is the run's NUMBER in its run root, one more
+#: than every run there, taken under the run root's lock (`Gate.new_run`). THE ORDER OF RUNS IS THE ORDER OF THEIR
+#: NUMBERS (`run_order`), and "the newest earlier run" reads it: the plan's reds and timings, the reuse rule, the
+#: pruning. Never the clock's: a stamp orders nothing finer than the clock's resolution, and on a CI runner three runs
+#: started in the same MICROSECOND, so a stamp-and-nonce name sorted by its random nonce (kb/Work PB3536, merge-group
+#: run 39888287569). A run named before the numbers (`<stamp>Z-<nonce>`) is older than every numbered run, and is still
+#: read and pruned.
+RUN_DIR = re.compile(r"(?P<n>\d{6,})-\d{8}T\d{6}Z|\d{8}T\d{6}Z-[0-9a-f]{6}")
+RUNS_LOCK = "runs.lock"
+RUNS_LOCK_WAIT_S = 60.0  # the lock is held for one directory listing and one mkdir; a minute means a hung holder
 KEEP_RUNS = 5
 LOCK_NAME = "cobol-gate.lock"
 VERDICT_FILE = "verdict.json"
@@ -180,7 +184,8 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
     NotRunCause("sdk", ENVIRONMENT, "no .NET SDK in the Linux environment"),
     NotRunCause("tree", ENVIRONMENT, "the tree's git state could not be read or cloned (not at a repository root, no "
                                      "HEAD, no reachable Windows git, a failed clone)"),
-    NotRunCause("launch", ENVIRONMENT, "the host refused to start the gate's process detached (scripts/detached.py)"),
+    NotRunCause("launch", ENVIRONMENT, "the host refused to make the gate's run directory (an unwritable run root, or "
+                                       "its lock's holder hung) or to start its process detached (scripts/detached.py)"),
     NotRunCause("run", ENVIRONMENT, "`--await` was handed no gate run directory (none at that path: a wrong path, or a "
                                     "run pruned since)"),
     NotRunCause("driver", BRANCH, "the gate driver (run_gate_legs.py, the tree's own) failed"),
@@ -694,7 +699,11 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
     """`build-local`'s gate (kb/Work PB3536): make the run directory, start the gate DETACHED in it (scripts/detached.py:
     it outlives this process and whatever kills this process's tree), name it, and follow it to its verdict. Returns the
     gate's exit code. `argv_for(run)` is the gate's command line; the self-test plants its own."""
-    run = new_run()
+    try:
+        run = new_run()
+    except OSError as e:  # an unwritable run root, or a hung holder of its lock (Gate.new_run): still a verdict line
+        say(f"{VERDICT}{NOT_RUN_CAUSES['launch'].verdict} — the gate's run directory could not be made: {e} ===")
+        return 2
     try:
         pid = spawn_detached(argv_for(run), run / LOG_FILE, cwd=REPO)
     except OSError as e:
@@ -757,11 +766,23 @@ class Outcome:
     reused_detail: str | None = None  # the measuring gate's own verdict detail, carried along a chain of reuses
 
 
+def run_order(name: str) -> tuple[int, str]:
+    """The order of a run directory's name (RUN_DIR): its number, then the name. A run named before the numbers has
+    number 0, so it is older than every numbered run (and such runs are ordered among themselves by their stamps)."""
+    m = RUN_DIR.fullmatch(name)
+    if m is None:
+        raise ValueError(f"{name!r} is not a run directory's name (RUN_DIR)")
+    return int(m["n"] or 0), name
+
+
 class Gate:
     def __init__(self, host: Host, run_root: Path, base: str | None = None,
-                 say: Callable[[str], None] = lambda s: print(s, flush=True), run_dir: Path | None = None):
-        """`run_dir`: the run directory a detached gate's launcher made (`--run`); None makes a fresh one."""
+                 say: Callable[[str], None] = lambda s: print(s, flush=True), run_dir: Path | None = None,
+                 now: Callable[[], dt.datetime] = lambda: dt.datetime.now(dt.timezone.utc)):
+        """`run_dir`: the run directory a detached gate's launcher made (`--run`); None makes a fresh one. `now`: the
+        UTC clock a new run's name shows, never its order (`new_run`); the self-test stops it and turns it back."""
         self.host, self.run_root, self.base, self.say, self.run_dir = host, run_root, base, say, run_dir
+        self.now = now
         self._pool: concurrent.futures.ThreadPoolExecutor | None = None  # `run` owns it for the work `_beside` starts
         self._base_sha: str | None = None
 
@@ -885,15 +906,29 @@ class Gate:
             out.reasons += reds
 
     def new_run(self) -> Path:
+        """A fresh run directory, numbered one past every run in the run root (RUN_DIR). The number is taken under the
+        run root's lock, so two gates starting at once (two `build-local` launches in one worktree: the second ends
+        BUSY at the gate lock, but its run directory is made before that) never share one, and the order of runs is
+        the order they were made in, whatever the clock reads. TimeoutError (an OSError) when the lock stays held for
+        RUNS_LOCK_WAIT_S: its holder hung."""
         self.run_root.mkdir(parents=True, exist_ok=True)
-        stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")   # RUN_DIR: names sort in start order
-        run = self.run_root / f"{stamp}-{secrets.token_hex(3)}"
-        run.mkdir()
+        lock_path = self.run_root / RUNS_LOCK
+        deadline = time.monotonic() + RUNS_LOCK_WAIT_S
+        while (lock := ExclusiveLock.try_take(lock_path, f"new run (pid {os.getpid()})")) is None:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"the run root's lock {lock_path} stayed held for {RUNS_LOCK_WAIT_S:.0f} s, by "
+                                   f"{ExclusiveLock.holder(lock_path) or '(no label)'}")
+            time.sleep(0.01)
+        with lock:
+            runs = self._runs()
+            run = self.run_root / f"{(run_order(runs[-1].name)[0] if runs else 0) + 1:06d}-{self.now():%Y%m%dT%H%M%SZ}"
+            run.mkdir()
         return run
 
     def _runs(self) -> list[Path]:
-        return sorted(p for p in self.run_root.iterdir() if p.is_dir() and RUN_DIR.fullmatch(p.name)) \
-            if self.run_root.is_dir() else []
+        """Every run directory in the run root, oldest first (`run_order`)."""
+        return sorted((p for p in self.run_root.iterdir() if p.is_dir() and RUN_DIR.fullmatch(p.name)),
+                      key=lambda p: run_order(p.name)) if self.run_root.is_dir() else []
 
     def previous_run(self, current: Path) -> Path | None:
         """The newest EARLIER run that reached a verdict and kept a trx: the plan's timings and reds."""
@@ -1379,7 +1414,7 @@ def self_test() -> int:
         arm("the verdict line is the last line, and counts every assembly's discovered cases",
             sink[-1] == o.line and "Conformance 6/6" in o.line and "Unit 4/4" in o.line
             and "Characterization 2/2" in o.line and len(o2) == 1, o.line)
-        runs = sorted(p.name for p in (root / "green" / "runs").iterdir())
+        runs = sorted(p.name for p in (root / "green" / "runs").iterdir() if p.name != RUNS_LOCK)  # its run numbers' lock
         rec = json.loads((root / "green" / "runs" / runs[0] / VERDICT_FILE).read_text(encoding="utf-8"))
         arm("the run directory is fresh and holds the verdict file, the plan, every trx, log and identity record",
             len(runs) == 1 and RUN_DIR.fullmatch(runs[0]) is not None and rec["verdict"] == "GREEN"
@@ -1742,12 +1777,38 @@ def self_test() -> int:
         third, h3 = regate(d)
         # the record of the second gate, read by its own name
         rec2 = read_record(d / "runs" / again.line.rsplit("(run ", 1)[1].split(")", 1)[0])
-        ordered = Gate(FakeHost(d, d / "gate.lock"), root / "names", say=sink.append)
-        made = [ordered.new_run().name for _ in range(20)]   # one second holds them all
-        arm("run names sort in START order, however many start in one second (the newest earlier run is the plan's, "
-            "the reuse rule's and the pruning's)",
-            [p.name for p in ordered._runs()] == made and all(RUN_DIR.fullmatch(n) for n in made)
-            and RUN_DIR.fullmatch("20261022T225440Z-2797b8") is not None, made)
+        # THE ORDER OF RUNS IS THEIR NUMBERS', NEVER THE CLOCK'S (merge-group run 39888287569: on a CI runner three
+        # runs started in one microsecond and the stamp-and-nonce names sorted by nonce). The clock here is STOPPED for
+        # twenty runs and then TURNED BACK, so a clock-ordered name is red on every host.
+        (root / "names").mkdir()
+        (root / "names" / "20261022T225440Z-2797b8").mkdir()   # a run named before the numbers
+        ticks = iter([dt.datetime(2026, 10, 23, 2, 21, 9, 187360, dt.timezone.utc)] * 20
+                     + [dt.datetime(2026, 10, 23, 1, 0, 0, tzinfo=dt.timezone.utc)] * 3)
+        ordered = Gate(FakeHost(d, d / "gate.lock"), root / "names", say=sink.append, now=lambda: next(ticks))
+        made = [ordered.new_run().name for _ in range(23)]
+        arm("runs are ordered by the number each takes at its start, never by the clock: twenty started in one "
+            "stopped instant and three more after the clock turned back are the newest, in the order they started, "
+            "and a run named before the numbers is the oldest (the plan's newest earlier run, the reuse rule's, the "
+            "pruning's)",
+            [p.name for p in ordered._runs()] == ["20261022T225440Z-2797b8", *made]
+            and [run_order(n)[0] for n in made] == list(range(1, 24)) and all(RUN_DIR.fullmatch(n) for n in made)
+            and made[-1].endswith("-20261023T010000Z"), str(made))
+        # two gates starting AT ONCE never take one number: eight threads, five runs each, on the stopped clock
+        racing = Gate(FakeHost(d, d / "gate.lock"), root / "racing", say=sink.append,
+                      now=lambda: dt.datetime(2026, 10, 23, 2, 21, 9, tzinfo=dt.timezone.utc))
+        start = threading.Barrier(8)
+        took: dict[int, list[int]] = {}
+
+        def race(i: int) -> None:
+            start.wait()
+            took[i] = [run_order(racing.new_run().name)[0] for _ in range(5)]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            list(pool.map(race, range(8)))
+        numbers = sorted(n for ns in took.values() for n in ns)
+        arm("gates starting at once each take their own number, under the run root's lock, and each one's runs are "
+            "ordered as it made them",
+            numbers == list(range(1, 41)) and all(ns == sorted(ns) for ns in took.values())
+            and len(racing._runs()) == 40, str(took))
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
@@ -1853,6 +1914,15 @@ def self_test() -> int:
             "the verdict line last",
             code == 1 and "PLANTED-GATE-OUTPUT" in heard and heard[-1].startswith(f"{VERDICT}LEG 1 ONLY")
             and read_pid(d / "r1") is not None, str(heard))
+        refused: list[str] = []
+
+        def unmade() -> Path:
+            raise TimeoutError("the run root's lock stayed held")
+        code = launch_and_follow(unmade, planted_gate, refused.append)
+        arm("a run directory that cannot be made (an unwritable run root, a hung holder of its lock) still ends in a "
+            "verdict line, NOT RUN [launch], exit 2, and starts no gate",
+            code == 2 and refused[-1].startswith(f"{VERDICT}{NOT_RUN_CAUSES['launch'].verdict} — ")
+            and "PLANTED-GATE-OUTPUT" not in refused, str(refused))
         # a follower killed mid-gate (an agent's return kills its background commands' tree) leaves the gate running:
         # its verdict lands in the run directory, where --await reads it
         go, run2 = d / "go", d / "r2"
