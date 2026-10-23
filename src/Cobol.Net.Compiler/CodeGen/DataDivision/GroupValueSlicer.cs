@@ -339,6 +339,27 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             }
             else parts.Add($"{c.CsName} = {SliceBitInit(c, BitWindow(area, at, per), depth)}");
         }
+        // ⛔ THE IMPLICIT FILLER IS PART OF THE AREA THE VALUE INITIALIZES (§13.18.63.4 GR5 — "the group area is initialized
+        // without consideration for the individual elementary or group items contained within this group", kb/Work
+        // PB3564): each stored filler takes the positions the area holds where it lies, the compile-time twin of what
+        // FromBits stores into it.
+        foreach (var filler in BitLayout.FillersOf(item))
+        {
+            if (filler.Kind is BitFillerKind.RunTail)
+            {
+                parts.Add($"{filler.Field} = {EmitText.CsLiteral(BitWindow(area, filler.StartBit, filler.Bits).Text)}");
+                continue;
+            }
+            // The pads between the occurrences of a strided table: one gap after another, composed once per run of gaps
+            // that repeat so the text does not grow with the occurrence count (kb/Work PB1722).
+            var table = filler.Subject;
+            int n = table.Occurs!.Value, per = BitLayout.WidthBits(table), stride = BitLayout.StrideBits(table), pad = stride - per;
+            int first = filler.StartBit;
+            var gaps = OccurrenceRunEmit.RunsOfRepeats(n - 1, area.PeriodFor(stride),
+                (a, b) => area.SameWindow(first + (a - 1) * stride, first + (b - 1) * stride, pad));
+            parts.Add($"{filler.Field} = " + OccurrenceRunEmit.Image(gaps,
+                o => EmitText.CsLiteral(BitWindow(area, first + (o - 1) * stride, pad).Text)));
+        }
         return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
     }
 
