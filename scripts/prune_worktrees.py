@@ -783,13 +783,30 @@ def contained(rows: list[Row], repo=REPO) -> None:
     train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
     the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
     carriers = [c for c in rows if c.report and c.tip and c.state in CARRIER_STATES]
+    candidates = []
     for r in rows:
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
         if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES \
                 or (r.state == 'DECISION' and r.report is not None and not findings):
             continue
-        c = next((c for c in carriers if c.tip != r.tip
-                  and git('merge-base', '--is-ancestor', r.tip, c.tip, cwd=repo).returncode == 0), None)
+        candidates.append(r)
+    if not candidates:
+        return
+    # ONE git process per carrier, never one per (candidate, carrier) pair (kb/Work PB3583: the pairwise
+    # `merge-base --is-ancestor` was 1,746 of the 4,636 git processes of this script's self-test, 168 s of CI's Windows
+    # self-test job). A candidate is not MERGED (LANDED_CONTENT, above: classify() reads `--is-ancestor <its branch>
+    # origin/main`), so its tip is no ancestor of origin/main, and it is an ancestor of a carrier's tip exactly when it
+    # is one of the commits that tip has beyond origin/main. With no origin/main (a repository that never fetched one)
+    # nothing is excluded: every commit of the carrier's tip.
+    main = git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/main^{commit}', cwd=repo).stdout.strip()
+    beyond = {}
+    for c in carriers:
+        listed = git('rev-list', c.tip, *([f'^{main}'] if main else []), cwd=repo)
+        if listed.returncode != 0:  # an empty set here would read every candidate as uncontained, silently
+            raise RuntimeError(f'git rev-list {c.tip} failed ({listed.returncode}): {listed.stderr.strip()}')
+        beyond[c.tip] = set(listed.stdout.split())
+    for r in candidates:
+        c = next((c for c in carriers if c.tip != r.tip and r.tip in beyond[c.tip]), None)
         if c:
             r.state, r.carrier = 'IN FLIGHT', c.name
             r.why = f'contained in {c.name} ({c.state}): its work lands through that branch; ' + evidence(r)

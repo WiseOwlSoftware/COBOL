@@ -1,0 +1,9 @@
+G1 move 66,67
+G1 bare 2,33
+G1 with 1,33
+G2 move 66,67
+G2 bare 2,33
+G2 with 1,33
+G3 move 66,67
+G3 bare 2,33
+G3 with 1,33

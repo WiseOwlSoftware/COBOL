@@ -760,27 +760,6 @@ jobs:
         env:
           COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
-      # Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's
-      # test_orchestrate_*.ps1 and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563).
-      # After the test legs, so a red self-test never hides their results.
-      # Windows has no system IANA time-zone database, so Python's zoneinfo (scripts/orchestrator/budget.py) needs the
-      # tzdata package; the local hosts carry it (2026.4) and the runner's Python does not, so every orchestrator
-      # self-test went red here and green locally (train 1037t, run 37748130457). Pinned to the local version. PyYAML
-      # likewise: tooling_check.py's self-test parses every agent role and skill frontmatter (kb/Work PB3097).
-      - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
-      - name: Script self-tests on Windows (self_tests.py)
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: python scripts/self_tests.py
-      # The one line ending over a WINDOWS checkout (kb/Work PB3029): `.gitattributes` makes it LF whatever the runner's
-      # `core.autocrlf`, so the bytes these legs compiled and compared are the bytes the Linux jobs read.
-      - name: Line endings on a Windows checkout (line_endings.py --check)
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: python scripts/line_endings.py --check
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -791,6 +770,37 @@ jobs:
             TestResults/${{ runner.os }}-build-test/harness-observations.log
           if-no-files-found: ignore
           retention-days: 14
+
+  # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
+  # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ITS OWN JOB, beside
+  # windows-build-test (kb/Work PB3581): the default phase never builds (self_tests.py BUILD), so it waits for no build,
+  # and as a step after windows-build-test's test legs it was 7.4 of that job's 16.5 minutes, the merge queue's longest
+  # job (merge group run 40004159292: 440 s; the next job ended four minutes earlier). ──
+  windows-self-tests:
+    name: Windows script self-tests
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+      # Windows has no system IANA time-zone database, so Python's zoneinfo (scripts/orchestrator/budget.py) needs the
+      # tzdata package; the local hosts carry it (2026.4) and the runner's Python does not, so every orchestrator
+      # self-test went red here and green locally (train 1037t, run 37748130457). Pinned to the local version. PyYAML
+      # likewise: tooling_check.py's self-test parses every agent role and skill frontmatter (kb/Work PB3097).
+      - name: Python packages for the script self-tests (tzdata, pyyaml, pinned)
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check --no-input tzdata==2026.4 pyyaml==6.0.3
+      - name: Script self-tests on Windows (self_tests.py)
+        shell: pwsh
+        run: python scripts/self_tests.py
+      # The one line ending over a WINDOWS checkout (kb/Work PB3029): `.gitattributes` makes it LF whatever the runner's
+      # `core.autocrlf`, so the bytes the Windows jobs compile and compare are the bytes the Linux jobs read.
+      - name: Line endings on a Windows checkout (line_endings.py --check)
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: python scripts/line_endings.py --check
 
   # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
   # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
@@ -807,7 +817,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test]
+    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests]
     runs-on: ubuntu-26.04
     steps:
       - name: Verdict

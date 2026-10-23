@@ -601,7 +601,7 @@
    "2014",
    "2023"
   ],
-  "expect": "a signed (negative) numeric literal in the VALUE clause requires a signed"
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
  },
  "ca34_value_range_over": {
   "refuse-at": [
@@ -4925,6 +4925,94 @@
    "2023"
   ],
   "expect": "COBOLNET1607: a VALIDATE naming more than one identifier shall not appear within an exception-checking PERFORM"
+ },
+ "pb3568-validate-undefined-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-ITEM' is not defined"
+ },
+ "pb3568-validate-ref-modified-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4777"
+ },
+ "pb3568-validate-report-item-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4777"
+ },
+ "pb3568-validate-pointer-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-index-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-object-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4778"
+ },
+ "pb3568-validate-66-level-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4779"
+ },
+ "pb3568-validate-any-length-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4779"
+ },
+ "pb3568-receive-undefined-operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-BUF' is not defined"
+ },
+ "pb3568-receive-undefined-in-exception-phrase": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-MSG' is not defined"
+ },
+ "pb3568-send-undefined-from-operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1639: 'NOSUCH-OUT' is not defined"
+ },
+ "pb3568-send-unknown-raising-name": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET0711"
  },
  "pb1160-resume-in-when-in-global-declarative": {
   "refuse-at": [
@@ -17588,6 +17676,31 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3566-numeric-edited-value-zero-below-2023": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3567-value-plus-float-literal-unsigned-subject": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
+ },
+ "pb3567-value-plus-literal-unsigned-subject": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "a signed numeric literal in the VALUE clause requires a signed"
+ },
  "pb563-validate-value-format5-no-connective": {
   "refuse-at": [
    "2002",
@@ -18097,6 +18210,24 @@
   "expect": "COBOLNET1627"
  },
  "pb584-mixed-bit-group-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3564-group-move-keeps-bit-filler-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3598-odo-bit-run-tail-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3597-initialize-with-filler-replacing-boolean-below-2002": {
   "refuse-at": [
    "85"
   ],
@@ -22675,5 +22806,39 @@
    "2023"
   ],
   "expect": "COBOLNET4709"
+ },
+ "pb3562_group_move_function_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET1502"
+ },
+ "pb3565-compute-boolean-function-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET1502"
+ },
+ "pb3565-compute-boolean-receiver-numeric-function": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1511"
+ },
+ "pb3565-compute-numeric-receiver-boolean-function": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1511"
+ },
+ "pb3586-function-returning-usage-bit-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
  }
 }
