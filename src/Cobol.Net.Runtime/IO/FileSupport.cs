@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.InteropServices;
+
 namespace CobolNet.Runtime.IO;
 
 /// <summary>The mode a file connector is opened in (ISO/IEC 1989:2023 §14.9.27 OPEN).</summary>
@@ -667,6 +669,58 @@ public static class HostFile
     public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
         new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
 
+    /// <summary>⛔ THE SIXTH ROLE: a TRANSIENT file of a sequential file's transaction journal in the file's lock directory
+    /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.4; kb/Work PB3340) — the RECORD <c>txn-&lt;id&gt;.journal</c> and the
+    /// BEFORE FILE <c>txn-&lt;id&gt;.before</c>. It is not a physical file: no file connector names it and nothing a program reads
+    /// is in it. ⛔ Its share mode admits every other reader, writer and deleter, because the record of a LIVE transaction is
+    /// read by every other run unit's lock test and entry step (its holdings, its decision) while its owner appends to it, and
+    /// a retirement renames or deletes it while a tester may still hold it (<see cref="SidecarLockFiles.Retire"/>).
+    /// UNBUFFERED (<c>bufferSize: 1</c>): every append is handed to the operating environment at once, so the sync that
+    /// follows it (<see cref="FileStream.Flush(bool)"/>) is the write-ahead point the rules R1 to R5 name.</summary>
+    internal static FileStream OpenTransient(string path, FileMode mode, FileAccess access) =>
+        new(path, mode, access, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, FileOptions.None);
+
+    /// <summary>⛔ THE DIRECTORY SYNC (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.5 R1 and R4, 2.2.2.6 (1) and (3),
+    /// 2.2.2.7 (2); kb/Work PB3340, PB3492): make the creations and removals of names in <paramref name="directory"/> durable,
+    /// so that a file created and synced is not absent after a power loss and a file removed does not return. .NET has no
+    /// API for it, and the determination per host is recorded in docs/CONFORMANCE.md beside DOC-A.1-75:
+    /// <list type="bullet">
+    /// <item><b>Linux and macOS</b> — <c>open(directory, O_RDONLY)</c> and <c>fsync</c> on the descriptor. The two-argument
+    /// <c>open</c> is safe to declare on Apple's arm64 too: the variadic mode argument is read only with <c>O_CREAT</c>, and
+    /// no variadic argument is passed. On macOS <c>fsync</c> orders the directory's metadata in the kernel without forcing
+    /// the drive's cache (<c>F_FULLFSYNC</c> is reached only through the variadic <c>fcntl</c> that
+    /// <see cref="SidecarLockFiles"/> avoids), the same reach <see cref="FileStream.Flush(bool)"/> has there.</item>
+    /// <item><b>Windows</b> — nothing to call: NTFS and ReFS journal every creation and removal of a name, and the next
+    /// <c>FlushFileBuffers</c> of any file on the volume forces that journal through the point it was written at, so the
+    /// sync of the record or of the physical file the protocol makes after each directory sync carries it.</item>
+    /// </list>
+    /// Throws <see cref="IOException"/> when the host refuses the sync; the caller treats it as a refused sync.</summary>
+    internal static void SyncDirectory(string directory)
+    {
+        if (OperatingSystem.IsWindows()) return;
+        int fd = NativeOpenDirectory(directory, UnixReadOnly);
+        if (fd < 0)
+            throw new IOException($"the directory '{directory}' could not be opened to be synced (errno {Marshal.GetLastPInvokeError()})");
+        try
+        {
+            if (NativeFsync(fd) != 0)
+                throw new IOException($"the sync of the directory '{directory}' was refused (errno {Marshal.GetLastPInvokeError()})");
+        }
+        finally { _ = NativeClose(fd); }
+    }
+
+    /// <summary><c>O_RDONLY</c>, 0 on every Unix this runtime runs on.</summary>
+    private const int UnixReadOnly = 0;
+
+    [DllImport("libc", EntryPoint = "open", SetLastError = true)]
+    private static extern int NativeOpenDirectory([MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags);
+
+    [DllImport("libc", EntryPoint = "fsync", SetLastError = true)]
+    private static extern int NativeFsync(int fd);
+
+    [DllImport("libc", EntryPoint = "close", SetLastError = true)]
+    private static extern int NativeClose(int fd);
+
     /// <summary>⛔ THE FIFTH ROLE: a SORT/MERGE statement's temporary RUN file (kb/Work PB3339; docs/CONFORMANCE.md §3
     /// D-SWK) — a NEW file in <paramref name="directory"/> that no COBOL file connector names and no other handle may
     /// share, written and read back through this one handle (<see cref="SortRunFile"/>). It never outlives the handle:
@@ -723,11 +777,17 @@ public static class HostFile
     /// literal here (kb/Work PB2758): a writer whose record locks are published to other run units through this
     /// handle reads as well as writes (<c>SequentialConnector.HostAccess</c>, kb/Work PB2692).</para></summary>
     public static Stream OpenConnectorWriteStream(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
+        WriteStreamOf(mode, access, share, (hostMode, options) => new FileStream(hostPath, hostMode, access,
+            share, bufferSize: 1, options));
+
+    /// <summary>⛔ THE ONE DECISION OF <see cref="OpenConnectorWriteStream"/> — the repositioning <see cref="SharedAppendStream"/>
+    /// or the plain stream, the host mode and the position — over a handle <paramref name="open"/> takes with the host mode and
+    /// options it is given, so a medium that opens its own handles (the fault-injecting test medium of
+    /// docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.12, <see cref="IHostMedium"/>) gets the same write stream.</summary>
+    internal static Stream WriteStreamOf(FileMode mode, FileAccess access, FileShare share, Func<FileMode, FileOptions, FileStream> open) =>
         FileLockPosture.AdmitsAnotherWriter(share)
-            ? new SharedAppendStream(new FileStream(hostPath, HostWriteMode(mode, access), access,
-                share, bufferSize: 1, FileOptions.None))
-            : AtEndWhenAppending(new FileStream(hostPath, HostWriteMode(mode, access), access,
-                share, bufferSize: 1, FileOptions.SequentialScan), mode);
+            ? new SharedAppendStream(open(HostWriteMode(mode, access), FileOptions.None))
+            : AtEndWhenAppending(open(HostWriteMode(mode, access), FileOptions.SequentialScan), mode);
 
     /// <summary>The <see cref="FileMode"/> a write stream is opened with: .NET refuses <see cref="FileMode.Append"/>
     /// for any access but bare <see cref="FileAccess.Write"/>, so a writer that also reads (kb/Work PB2692) opens the

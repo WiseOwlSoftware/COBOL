@@ -234,5 +234,14 @@ internal static class SidecarLockFiles
             Retire(path);    // a name the first Retire could not take (the host refused the rename) goes once nothing holds it
             RetireDirectory(directory);
         }
+
+        /// <summary>⛔ A DEATH, FOR A WITNESS (DESIGN-runtime-library.md 2.2.2.12; kb/Work PB3340): the descriptor closes as the
+        /// operating environment closes a killed process's, so the lock goes and the NAME STAYS, for the next tester to find
+        /// <see cref="HostFile.LockFileState.Dead"/> and sweep.</summary>
+        internal void DropAsADeathDoes()
+        {
+            _stream?.Dispose();
+            _stream = null;
+        }
     }
 }
