@@ -22800,5 +22800,27 @@
    "85"
   ],
   "expect": "COBOLNET1502"
+ },
+ "pb3565-compute-boolean-function-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET1502"
+ },
+ "pb3565-compute-boolean-receiver-numeric-function": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1511"
+ },
+ "pb3565-compute-numeric-receiver-boolean-function": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1511"
  }
 }
