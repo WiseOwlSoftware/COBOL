@@ -25,7 +25,7 @@ public sealed class RenderedViewsDriftTests
         string script = TestRepo.Scripts("rendered_views.py");
         Assert.True(File.Exists(script), $"the registry of rendered views is missing: {script}");
 
-        ProcessObservation r = PythonInstrument.Run(script, "--tree");
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, script, "--tree");
         Assert.True(r.ExitCode == 0,
             "a rendered view is tracked, not gitignored, or a tracked doc declares itself generated without a row in "
             + $"scripts/rendered_views.py VIEWS:\n{r.Stdout}\n{r.Stderr}");

@@ -54,7 +54,10 @@ concurrency:
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
 # red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
 # artifact name carries both; a Conformance shard's is test-results-<OS>-conformance-<shard>, the exact pattern
-# the conformance-population job downloads.
+# the conformance-population job downloads. Each such step also sets COBOLNET_HARNESS_LOG to
+# <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
+# retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
+# non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
 #
 # ⛔ NO JOB SETS A VARIABLE THAT NARROWS A TEST RUN (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): the gate's leg
 # handshake COBOLNET_GATE_*, or VSTest* / RunSettingsFilePath, which MSBuild imports from the environment as the
@@ -459,6 +462,8 @@ jobs:
             --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
           dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
@@ -513,10 +518,14 @@ jobs:
           dotnet build tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj
           dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
       - name: Greenfield unit tests
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
       # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
@@ -529,7 +538,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ runner.os }}-unit
-          path: TestResults/${{ runner.os }}-unit/*.trx
+          path: |
+            TestResults/${{ runner.os }}-unit/*.trx
+            TestResults/${{ runner.os }}-unit/harness-observations.log
           if-no-files-found: ignore
           retention-days: 14
 
@@ -596,6 +607,8 @@ jobs:
             --configuration Release --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
           dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release \
@@ -691,13 +704,16 @@ jobs:
         env:
           COBOLNET_NIST_STD: "2023"
           COBOLNET_NIST_PERMISSIVE: "1"
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ runner.os }}-inv1-strong
-          path: TestResults/${{ runner.os }}-inv1-strong/*.trx
+          path: |
+            TestResults/${{ runner.os }}-inv1-strong/*.trx
+            TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
           if-no-files-found: ignore
           retention-days: 14
 
@@ -737,8 +753,12 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Greenfield unit tests
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
+        env:
+          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
       # Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's
       # test_orchestrate_*.ps1 and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563).
@@ -766,7 +786,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ runner.os }}-build-test
-          path: TestResults/${{ runner.os }}-build-test/*.trx
+          path: |
+            TestResults/${{ runner.os }}-build-test/*.trx
+            TestResults/${{ runner.os }}-build-test/harness-observations.log
           if-no-files-found: ignore
           retention-days: 14
 

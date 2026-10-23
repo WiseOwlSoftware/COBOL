@@ -28,8 +28,22 @@ this per WAITING TO LAND branch, and an agent is dispatched only for what a scri
      the exit is 4: a finisher resolves it.
   3. THE GATE on the merged head, every host in GATES, each under the shared gate slot (the cap of 3, so concurrent
      enqueues queue there and never beyond it; build-local takes its own, every other row runs under `gate_slot.py
-     run`, and no row runs while one would run outside it, kb/Work PB3104): a verdict that is not GREEN (or no verdict
-     line) is exit 5, the report gains `BLOCKED: <host> gate … at enqueue — <verdict>`. A green head is recorded in
+     run`, and no row runs while one would run outside it, kb/Work PB3104): each verdict line is read by the gate
+     driver's one reader (`run_gate_legs.read_verdict`). BUSY — another gate holds the worktree's gate lock: it measured
+     nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527: on 2026-10-22 it was read as a red and
+     sent PB3511's branch to a finisher with nothing to fix); the landing lane lands it again once the lock is free.
+     NOT RUN [<cause>] — the gate measured nothing — is read with its cause's class from the driver's ONE
+     classification (run_gate_legs.NOT_RUN_CAUSES; kb/Work PB3526, review R2-1 of wave 1150), never re-derived here.
+     An ENVIRONMENT cause (malformed shared gate settings, a host with no WSL, Python or SDK, a tree git cannot read) is
+     exit 2 (usage or state) with NO report line: the lane retries it once, and a second at the head is the operator's
+     handoff, never a finisher's. A BRANCH cause (a failure of code the gated tree carries: the gate driver, the
+     population listing, no verdict line at all, a gate row refused for running outside the slot, the gate script's
+     arguments) is measured against MAIN at the same step (`gate_main`: the same row in a clean checkout of the
+     origin/main the branch merged, once per main head and host, recorded in MAIN_RUNS): main failing with the same
+     cause is exit 2 with no report line (main's defect, the operator's); otherwise, main unmeasurable included, it
+     blocks like a red, exit 5, the report gaining `BLOCKED: enqueue — the <host> gate was NOT RUN … by code the branch
+     carries ([<cause>] …); main … reads …`, and goes to a finisher. Any other verdict that is not GREEN is exit 5, the
+     report gains `BLOCKED: <host> gate … at enqueue — <verdict>`. A green head is recorded in
      the worktree's git directory (`enqueue-gated`); a later run whose head differs from it only by commits that are
      main's, clean merges or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule) is not gated again.
   4. MAIN AGAIN, then the stamp, then `queue` (below). Main moves while a branch gates (the queue merges other pull
@@ -76,14 +90,23 @@ lands, and two such landings queued together bounced each other; the oracle's ba
 change's base commit, made on demand by scripts/arch/compare_oracle.py, and nothing is committed.
 
 Exit: 0 queued or nothing to land · 2 usage or state (a dirty worktree, no branch, HEAD behind main, a check could not
-run, main still moving after CATCH_UP merges) · 3/6 a landing check refused (above) · 4 bringing main in conflicted ·
-5 a gate is not GREEN · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
+run, a gate was NOT RUN for a cause in the environment or one main shares, main still moving after CATCH_UP merges) ·
+3/6 a landing check refused (above) · 4 bringing main in conflicted · 5 a gate is not GREEN (a red, or a NOT RUN of
+code the branch carries that main does not share) · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
-11 the branch is not reviewed at its tip (`land` only; above).
+11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
+gate lock (`land` only; nothing ran, nothing is red; above).
+
+AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
+checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
+kb/Work PB3527) follows it into the merge queue on every tick and, when it stalls, applies `rerun_check` and then
+`requeue` (below: this is the only file that queues a pull request) before it alerts the operator.
 """
 from __future__ import annotations
 
 import argparse
+import datetime as dt
+import json
 import os
 import pathlib
 import re
@@ -106,10 +129,15 @@ EXIT_GATE = 5
 EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
+EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
 # How many times `land` brings a moved main in after its gate before it gives up (exit 2): main moves under a gate
 # about once per landing the queue merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
 VERDICT = "=== ENQUEUE: "
+# The line `queue` prints once the pull request is queued, and its one reader (land_lane.py records the number, so its
+# queue watch can follow the pull request into the merge queue: kb/Work PB3527).
+QUEUED = "ENQUEUED pr={number} sha={sha} branch={branch} url={url}"
+QUEUED_LINE = re.compile(r"^ENQUEUED pr=(?P<pr>\d+) sha=(?P<sha>\S+) branch=(?P<branch>\S+) url=(?P<url>\S+)\s*$")
 # The lanes MANDATORY-PRACTICES I10 does not review: they write no fix-lane report, change no compiled program's source
 # (the registrar's and the clerk's notes; the golden lane's spec-derived goldens, which the gate runs), and their briefs
 # name themselves with `land --lane <lane>`. Every other branch lands only under a CLEAN review stamp (review_gate).
@@ -146,7 +174,13 @@ GATES_WINDOWS = (GateRow("Windows", ("pwsh", "-NoProfile", "-File", "scripts/bui
                          SLOT_OWN),
                  GateRow("Linux", ("bash", "scripts/linux-gate.sh", "--nice"), "=== LINUX GATE: ", SLOT_WRAP))
 GATES_LINUX = (GateRow("Linux", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: ", SLOT_OWN),)
-GREEN = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
+
+
+def host_gates() -> tuple[GateRow, ...]:
+    """This host's gate rows: GATES_WINDOWS on Windows, else GATES_LINUX (run_gates' and gate_main's default)."""
+    return GATES_WINDOWS if os.name == "nt" else GATES_LINUX
+
+
 GATED_MARK = "enqueue-gated"     # in the worktree's git directory: the head this script last gated GREEN
 # (the check's name, its command under scripts/, its refusal's exit code here, whether it takes --base, whether its
 # every non-zero is a refusal). A refusal is the script's exit 1; any other non-zero is "could not run", except for
@@ -273,7 +307,7 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
         say(f"⛔ enqueue: gh pr merge --auto #{number} failed (exit {rc}): {(out + err).strip()} — the pull request is "
             "open but NOT queued; re-run once the cause is fixed.")
         return EXIT_GITHUB
-    say(f"ENQUEUED pr={number} sha={sha} branch={branch} url={url}")
+    say(QUEUED.format(number=number, sha=sha, branch=branch, url=url))
     # 5. Measure it (kb/Work PB3028). The pull request IS queued: a record that cannot be written is a loud warning,
     # never a failed landing and never silence.
     if measure is not None:
@@ -285,8 +319,52 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
     return 0
 
 
+# ── the queue watch's remedies (kb/Work PB3527) ──────────────────────────────────────────────────────────────────
+# The landing lane's queue watch (land_lane.py) follows each pull request this script queued into GitHub's merge queue
+# and, when one is not in it past the grace, applies these, one per stalled read: they live HERE because this is the
+# only file that queues a pull request (LandingPipelineDriftTests), behind the same ACTIVE guard as `queue`.
+# THEIR CONTRACT IS AN ANSWER, NEVER AN EXCEPTION (kb/Work PB3527 review R1-4): GitHub that gives no answer
+# (ruleset.Unobserved: gh missing, or silent past its timeout) is (False, why), so the watch records a FAILED read and
+# escalates on the next one, and the tick that runs the watch goes on to launch its landings. A raised Unobserved aborted
+# the whole tick before any landing started, and since the read was never saved every tick repeated the same remedy.
+def rerun_check(repo: str, run_id: int, *, gh: Gh) -> tuple[bool, str]:
+    """Re-run the workflow run whose required check-run is stuck (its job completed, its check-run never resolved, PR
+    #385 on 2026-10-22): the re-run reports a fresh check-run on the same head commit. (ok, what GitHub said)."""
+    try:
+        rc, out, err = gh(["run", "rerun", str(run_id), "-R", repo])
+    except ruleset.Unobserved as exc:
+        return False, f"gh run rerun {run_id}: GitHub gave no answer ({exc})"
+    return rc == 0, (out + err).strip() or f"gh run rerun {run_id}: exit {rc}"
+
+
+def requeue(repo: str, number: int, *, gh: Gh, state: Callable[[], tuple[str, str]]) -> tuple[bool, str]:
+    """Close and reopen the pull request (GitHub re-evaluates its head commit and runs its pull-request checks again)
+    and queue it again with auto-merge, as `queue` does: what cleared PR #385 when a re-run did not. Refused, touching
+    nothing, while the merge queue is not ACTIVE (queue's guard), or when its state cannot be read. (ok, what
+    happened; a step GitHub did not answer names itself, and a pull request left closed by it is the next read's: no
+    open pull request ALERTS the operator at once)."""
+    step = "the merge queue's state (ruleset.py check)"
+    try:
+        st, detail = state()
+        if st != ruleset.ACTIVE:
+            return False, f"the merge queue is not ACTIVE (ruleset: {st} — {detail}): nothing closed or re-queued"
+        for verb in ("close", "reopen"):
+            step = f"gh pr {verb} #{number}"
+            rc, out, err = gh(["pr", verb, str(number), "-R", repo])
+            if rc != 0:
+                return False, f"gh pr {verb} #{number} failed (exit {rc}): {(out + err).strip()}"
+        step = f"gh pr merge --auto #{number}"
+        rc, out, err = gh(["pr", "merge", str(number), "--auto", "-R", repo])
+    except ruleset.Unobserved as exc:
+        return False, f"{step}: GitHub gave no answer ({exc})"
+    if rc != 0 and "already" not in (out + err).lower():
+        return False, f"#{number} reopened but gh pr merge --auto failed (exit {rc}): {(out + err).strip()}"
+    return True, f"#{number} closed, reopened and queued again with auto-merge"
+
+
 # ── land: the whole step for one branch ─────────────────────────────────────────────────────────────────────────
-Gate = Callable[[pathlib.Path], list[tuple[str, bool, str]]]
+# [(host, its Reading (run_gate_legs: GREEN, BUSY, NOT RUN with its cause, RED), its verdict line)]: run_gates
+Gate = Callable[[pathlib.Path], list[tuple[str, "run_gate_legs.Reading", str]]]
 
 
 def worktree_of(repo: pathlib.Path, branch: str) -> pathlib.Path | None:
@@ -340,14 +418,20 @@ def gate_argv(row: GateRow, wt: pathlib.Path, label: str) -> list[str]:
             "--label", f"{label}: {row.host} gate", "--", *row.command]
 
 
-def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
-    """Each host's gate in order, fail-fast: [(host, green, its verdict line or why there is none)]. The output goes to
-    `<worktree>/TestResults/enqueue/<host>-gate.log`; only the verdict line decides (never the exit code alone). No row
-    runs while any row of `gates` would run outside the shared gate slot (`unslotted`, kb/Work PB3104)."""
-    gates = gates if gates is not None else (GATES_WINDOWS if os.name == "nt" else GATES_LINUX)
+def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, "run_gate_legs.Reading", str]]:
+    """Each host's gate in order, fail-fast: [(host, its Reading, its verdict line or why there is none)]. The output
+    goes to `<worktree>/TestResults/enqueue/<host>-gate.log`; only the verdict line decides, read by the gate driver's
+    one reader (`run_gate_legs.read_verdict`), and GREEN needs exit 0 too. BUSY (another gate holds the worktree's gate
+    lock, kb/Work PB3527) and NOT RUN (the gate measured nothing, kb/Work PB3526) are neither a pass nor a red; a NOT
+    RUN's cause, and the class that decides whether it blocks, is the driver's one classification (NOT_RUN_CAUSES).
+    A gate that printed no verdict line is NOT RUN [verdict] (the tree's gate script died first: BRANCH). No row runs
+    while any row of `gates` would run outside the shared gate slot (`unslotted`, kb/Work PB3104): that refusal ran
+    nothing, and is NOT RUN [unslotted] (it reads the tree's own gate driver: BRANCH)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its verdict's vocabulary and its reader)
+    gates = gates if gates is not None else host_gates()
     if refused := unslotted(gates, wt):
-        return [(refused[0][0], False, "REFUSED — no gate ran: a gate row would run outside the shared gate slot "
-                                       "(kb/Work PB3104): " + "; ".join(f"{h}: {why}" for h, why in refused))]
+        return [(refused[0][0], run_gate_legs.not_run("unslotted"), "REFUSED — no gate ran: a gate row would run outside "
+                 "the shared gate slot (kb/Work PB3104): " + "; ".join(f"{h}: {why}" for h, why in refused))]
     logs = wt / "TestResults" / "enqueue"
     logs.mkdir(parents=True, exist_ok=True)
     # A LANDING gate (kb/Work PB3103): its gate slot is served before every waiting implementer gate's (gate_slot.py
@@ -355,7 +439,7 @@ def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
     # build-local's driver and `gate_slot.py run` both read the class from this environment.
     env = {**os.environ, gate_slot.CLASS_ENV: gate_slot.LANDING}
     label = f"enqueue {_git(wt, 'branch', '--show-current').stdout.strip() or wt.name}"
-    out: list[tuple[str, bool, str]] = []
+    out: list[tuple[str, str, str]] = []
     for row in gates:
         host, prefix = row.host, row.prefix
         log = logs / f"{host.lower()}-gate.log"
@@ -365,14 +449,83 @@ def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
         lines = [ln.strip() for ln in log.read_bytes().decode("utf-8", errors="replace").splitlines()
                  if ln.strip().startswith(prefix)]
         if not lines:
-            out.append((host, False, f"no `{prefix.strip()}` line (exit {rc}; {log})"))
+            out.append((host, run_gate_legs.not_run("verdict"), f"no `{prefix.strip()}` line (exit {rc}; {log}): the "
+                                                                "gate measured nothing"))
             return out
         verdict = lines[-1]
-        green = rc == 0 and bool(GREEN.match(verdict[len(prefix):]))
-        out.append((host, green, verdict))
-        if not green:
+        reading = run_gate_legs.read_verdict(verdict[len(prefix):])
+        green = reading == run_gate_legs.GREEN_READING
+        out.append((host, run_gate_legs.RED_READING if green and rc != 0 else reading, verdict))
+        if out[-1][1] != run_gate_legs.GREEN_READING:
             return out
     return out
+
+
+class MainRun(NamedTuple):
+    """How main's own tree fared at the gate a branch-carried NOT RUN stopped (kb/Work PB3526, review R2-1 of wave
+    1150): main's head, its Reading and verdict line, and HOW it was measured (now, or the recorded run of that head)."""
+    sha: str
+    reading: "run_gate_legs.Reading"
+    line: str
+    how: str
+
+
+MainGate = Callable[[pathlib.Path, str, str], "MainRun | None"]   # (worktree, host, main's sha): gate_main
+#: The last main run per host, in the repository's common git dir (every worktree's, so every landing reads it): a
+#: landing at the same main head reads it instead of gating main again.
+MAIN_RUNS = "enqueue-main-gate.json"
+
+
+def gate_main(wt: pathlib.Path, host: str, sha: str, *, rows=None, say: Say = print) -> MainRun | None:
+    """THE MAIN COMPARISON for a branch-carried NOT RUN (NOT_RUN_CAUSES' BRANCH class): `host`'s gate row on MAIN'S
+    OWN tree at `sha` (the origin/main the branch merged), read by the same reader. A cause main shares at the same step
+    is not the branch's. Measured once per main head and host, in a clean detached checkout of `sha` (a temporary
+    worktree, removed after; its gate log kept as `<host>-main-gate.log` beside the branch's) and recorded in MAIN_RUNS;
+    a later landing at the same head reads the record. None when main could not be checked out or `host` has no row:
+    the caller then blocks the branch, and the finisher attributes the stop (a stop already on main is reported, not
+    fixed, finisher-brief.md)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the driver's Reading and its classification)
+    row = next((r for r in (rows if rows is not None else host_gates()) if isinstance(r, GateRow) and r.host == host),
+               None)
+    common = _git(wt, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()
+    if row is None or not common:
+        return None
+    record = pathlib.Path(common) / MAIN_RUNS
+    try:
+        runs = json.loads(record.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        runs = {}
+    runs = runs if isinstance(runs, dict) else {}
+    rec = runs.get(host)
+    if isinstance(rec, dict) and rec.get("main") == sha and isinstance(rec.get("line"), str):
+        cause = run_gate_legs.NOT_RUN_CAUSES.get(rec.get("cause") or "")
+        return MainRun(sha, run_gate_legs.Reading(str(rec.get("word")), cause), rec["line"],
+                       f"the recorded main run of {rec.get('at', '?')}")
+    probe = pathlib.Path(tempfile.mkdtemp(prefix="enqueue-main-"))
+    added = _git(wt, "worktree", "add", "--detach", "--quiet", str(probe), sha)
+    if added.returncode != 0:
+        say(f"enqueue: could not check main {sha[:12]} out to measure it: {added.stderr.strip()}")
+        shutil.rmtree(probe, ignore_errors=True)
+        return None
+    try:
+        say(f"enqueue: measuring main at {sha[:12]}: the {host} gate in a clean checkout of it ({probe})")
+        _, reading, line = run_gates(probe, gates=(row,))[0]
+        log = probe / "TestResults" / "enqueue" / f"{host.lower()}-gate.log"
+        if log.is_file():
+            kept = wt / "TestResults" / "enqueue" / f"{host.lower()}-main-gate.log"
+            kept.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(log, kept)
+    finally:
+        if _git(wt, "worktree", "remove", "--force", str(probe)).returncode != 0:
+            shutil.rmtree(probe, ignore_errors=True)
+            _git(wt, "worktree", "prune")
+    at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    runs[host] = {"main": sha, "word": reading.word, "cause": reading.cause.tag if reading.cause else None,
+                  "line": line, "at": at}
+    tmp = record.with_name(f"{MAIN_RUNS}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(runs, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    os.replace(tmp, record)
+    return MainRun(sha, reading, line, "measured now in a clean checkout of main")
 
 
 def record_blocked(branch: str, wt: pathlib.Path, line: str, say: Say,
@@ -470,13 +623,17 @@ def gated_covers(wt: pathlib.Path, mark: pathlib.Path, head: str, base: str) -> 
 
 def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: Gh,
          state: Callable[[], tuple[str, str]], checks: Callable[[pathlib.Path, str, str], int],
-         gates: Gate = run_gates, stamp: Callable[[pathlib.Path, str], int] | None = None,
+         gates: Gate = run_gates, on_main: MainGate | None = None,
+         stamp: Callable[[pathlib.Path, str], int] | None = None,
          blocked: Callable[[str, pathlib.Path, str], None] | None = None,
          review: Callable[[str, pathlib.Path, str], str | None] = review_gate,
          measure: Callable[[pathlib.Path, str, int], None] | None = None,
          lane: str | None = None, dry_run: bool = False, say: Say = print) -> int:
     """THE landing step (module doc); the collaborators are parameters so the self-test drives every exit arm.
-    `measure(worktree, branch, pr)` writes the queued pull request's landing record (kb/Work PB3028; `queue` step 5)."""
+    `measure(worktree, branch, pr)` writes the queued pull request's landing record (kb/Work PB3028; `queue` step 5).
+    `on_main(worktree, host, main_sha)` measures main at the step a branch-carried NOT RUN stopped (gate_main)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's Reading and its one NOT RUN classification)
+
     def end(rc: int, outcome: str) -> int:
         say(f"{VERDICT}{outcome} ({branch}) ===")
         return rc
@@ -525,9 +682,38 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         say(f"enqueue: {head[:12]} is covered by the head an earlier enqueue run gated GREEN ({mark}); not gated again")
     else:
         results = gates(wt)
-        for host, green, line in results:
+        for host, _, line in results:
             say(f"enqueue: {host} gate: {line}")
-        bad = next(((h, line) for h, g, line in results if not g), None) if results else ("(none)", "no gate ran")
+        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
+        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
+        if busy := next(((h, line) for h, r, line in results if r == run_gate_legs.BUSY_READING), None):
+            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
+                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
+        # A gate that measured nothing (kb/Work PB3526) blocks only when its cause is code the gated tree carries and
+        # main, measured at the same step, does not fail the same way: the class is the driver's one classification
+        # (run_gate_legs.NOT_RUN_CAUSES), read here, never re-derived.
+        if not results:
+            return end(2, f"GATE NOT RUN (none) on {head[:12]} — no gate row ran (GATES is empty): nothing measured")
+        stopped = next(((h, r, line) for h, r, line in results if r.word == run_gate_legs.NOT_RUN), None)
+        if stopped and not stopped[1].branch_carried:
+            return end(2, f"GATE NOT RUN ({stopped[0]}) on {head[:12]} — the gate measured nothing, for a cause in the "
+                          f"environment ([{stopped[1].cause.tag}]: no finisher fixes it): {stopped[2]}")
+        if stopped:
+            host, reading, line = stopped
+            main_sha = _git(wt, "rev-parse", base).stdout.strip()
+            ran = (on_main or (lambda w, h, sha: gate_main(w, h, sha, say=say)))(wt, host, main_sha)
+            if ran is not None and ran.reading.cause == reading.cause:
+                return end(2, f"GATE NOT RUN ({host}) on {head[:12]} — [{reading.cause.tag}] fails on main "
+                              f"{main_sha[:12]} the same way at the same step ({ran.how}): not the branch's, the "
+                              f"operator's: {line}")
+            on_main_said = (f"main {main_sha[:12]} reads {ran.reading.word}"
+                            f"{f' [{ran.reading.cause.tag}]' if ran.reading.cause else ''} there ({ran.how})"
+                            if ran is not None else f"main {main_sha[:12]} could not be measured (above)")
+            blocked(branch, wt, f"BLOCKED: enqueue — the {host} gate was NOT RUN on {head[:12]} by code the branch "
+                                f"carries ([{reading.cause.tag}]: {reading.cause.what}); {on_main_said}: {line}")
+            return end(EXIT_GATE, f"GATE NOT RUN, BRANCH-CARRIED ({host}) on {head[:12]} — [{reading.cause.tag}]; "
+                                  f"{on_main_said}")
+        bad = next(((h, line) for h, r, line in results if r != run_gate_legs.GREEN_READING), None)
         if bad:
             blocked(branch, wt, f"BLOCKED: enqueue — the {bad[0]} gate is not GREEN on {head[:12]}: {bad[1]}")
             return end(EXIT_GATE, f"GATE RED ({bad[0]}) on {head[:12]}")
@@ -567,6 +753,7 @@ def _stamp(wt: pathlib.Path, branch: str) -> int:
 
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's one verdict reader and its Readings)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -665,6 +852,65 @@ def self_test() -> int:
                                 say=lines.append))
         expect("GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",
                fails9 == [EXIT_GITHUB] * 3, str(fails9))
+
+        # The queue watch's remedies (kb/Work PB3527): a re-run of the stuck check's workflow run, then close, reopen and
+        # auto-merge again, behind queue's own ACTIVE guard; every call names the repository.
+        def remedy_gh(log: list[list[str]], fail: str = "", merge_says: str = "") -> Gh:
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                log.append(list(args))
+                if fail and args[:2] == ["pr", fail]:
+                    return 1, "", f"refused ({fail})"
+                if args[:2] == ["pr", "merge"] and merge_says:
+                    return 1, "", merge_says
+                return 0, "", ""
+            return gh
+        rlog: list[list[str]] = []
+        ok_rerun = rerun_check("o/r", 39834070835, gh=remedy_gh(rlog))
+        qlog: list[list[str]] = []
+        ok_requeue = requeue("o/r", 385, gh=remedy_gh(qlog), state=active)
+        idle: list[list[str]] = []
+        refused = requeue("o/r", 385, gh=remedy_gh(idle), state=lambda: (ruleset.DRIFT, "x"))
+        closefail: list[list[str]] = []
+        stopped = requeue("o/r", 385, gh=remedy_gh(closefail, fail="close"), state=active)
+        already = requeue("o/r", 385, gh=remedy_gh([], merge_says="pull request is already queued"), state=active)
+        expect("the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
+               "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
+               "failed close stops before anything else (kb/Work PB3527)",
+               ok_rerun[0] and rlog == [["run", "rerun", "39834070835", "-R", "o/r"]]
+               and ok_requeue[0] and [a[:3] for a in qlog] == [["pr", "close", "385"], ["pr", "reopen", "385"],
+                                                               ["pr", "merge", "385"]]
+               and qlog[2][3] == "--auto" and all(a[-2:] == ["-R", "o/r"] for a in qlog)
+               and not refused[0] and not idle and not stopped[0] and len(closefail) == 1 and already[0],
+               f"{ok_rerun} {rlog} {ok_requeue} {qlog} {refused} {idle} {stopped} {closefail} {already}")
+
+        def silent_gh(log: list[list[str]], at: str) -> Gh:
+            """gh that answers until the call `at` (its first two words), which gives no answer (real_gh's timeout)."""
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                log.append(list(args))
+                if " ".join(args[:2]) == at:
+                    raise ruleset.Unobserved(f"`gh {at}` gave no answer in 120 s")
+                return 0, "", ""
+            return gh
+
+        def silent_state() -> tuple[str, str]:
+            raise ruleset.Unobserved("`gh api` gave no answer in 120 s")
+        hung_rerun = rerun_check("o/r", 39834070835, gh=silent_gh([], "run rerun"))
+        reopen_log: list[list[str]] = []
+        hung_reopen = requeue("o/r", 385, gh=silent_gh(reopen_log, "pr reopen"), state=active)
+        unread: list[list[str]] = []
+        hung_state = requeue("o/r", 385, gh=silent_gh(unread, ""), state=silent_state)
+        expect("the queue watch's remedies ANSWER when GitHub gives none (gh's timeout: ruleset.Unobserved), never "
+               "raise: (False, the step that went unanswered), so the tick that runs them still launches its landings "
+               "(kb/Work PB3527 review R1-4); a queue state that cannot be read touches nothing",
+               hung_rerun[0] is False and "gh run rerun 39834070835: GitHub gave no answer" in hung_rerun[1]
+               and hung_reopen[0] is False and hung_reopen[1].startswith("gh pr reopen #385: GitHub gave no answer")
+               and [a[:2] for a in reopen_log] == [["pr", "close"], ["pr", "reopen"]]
+               and hung_state[0] is False and "merge queue's state" in hung_state[1] and not unread,
+               f"{hung_rerun} {hung_reopen} {reopen_log} {hung_state} {unread}")
+        m = QUEUED_LINE.match(QUEUED.format(number=17, sha="ab12", branch="fix", url="https://github.com/o/r/pull/17"))
+        expect("the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
+               bool(m) and m.group("pr") == "17" and m.group("branch") == "fix"
+               and any(QUEUED_LINE.match(ln) for ln in lines), str(m))
 
         seen_m: list[tuple[str, int]] = []
 
@@ -773,9 +1019,12 @@ def self_test() -> int:
                 return 0
             return stamp
 
-        def gates_of(results: list[tuple[str, bool, str]], ran: list[int]) -> Gate:
-            return lambda w: ran.append(1) or list(results)
-        green = [("Windows", True, "=== BUILD-LOCAL GATE: GREEN ==="), ("Linux", True, "=== LINUX GATE: GREEN ===")]
+        def gates_of(results: list[tuple[str, str]], ran: list[int]) -> Gate:
+            """A planted gate: each (host, verdict line) read by the gate driver's one reader, as run_gates reads it."""
+            rows = [(h, run_gate_legs.read_verdict(line.split("GATE: ", 1)[1]), line) for h, line in results]
+            return lambda w: ran.append(1) or list(rows)
+        win_green, linux_green = "=== BUILD-LOCAL GATE: GREEN ===", "=== LINUX GATE: GREEN ==="
+        green = [("Windows", win_green), ("Linux", linux_green)]
         absent = lambda: (ruleset.ABSENT, "no ruleset")   # noqa: E731
         notes: list[str] = []
         record = lambda b, w, line: notes.append(line)    # noqa: E731
@@ -832,13 +1081,116 @@ def self_test() -> int:
                and lines[-1].startswith(VERDICT + "QUEUE NOT ACTIVE"), f"{rc_inactive} {lines[-1:]}")
 
         ran, stamped = [], []
-        rc_red = run_land(gates=gates_of([("Windows", True, "G"), ("Linux", False, "=== LINUX GATE: RED (x) ===")], ran),
+        rc_red = run_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: RED (x) ===")], ran),
                           stamped=stamped)
         expect("land: main is MERGED in (the branch's commits kept), and a host's red gate is exit 5 with the host "
                "named in the report, before any stamp",
                rc_red == EXIT_GATE and ran and not stamped and "Linux" in notes[-1]
                and _git(lw, "merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0
                and _git(lw, "merge-base", "--is-ancestor", fix_tip, "HEAD").returncode == 0, f"{rc_red} {notes[-1:]}")
+
+        # kb/Work PB3527: PB3511's branch, 2026-10-22 12:30 — the Windows gate found another gate holding the
+        # worktree's gate lock, and the landing read that as a red and sent the branch to a finisher.
+        held_line = ("=== BUILD-LOCAL GATE: BUSY — another gate holds this worktree's gate lock (E:\\x\\cobol-gate.lock): "
+                     "gate E:\\x (pid 356316, since 2026-10-22 12:30:29); nothing ran, nothing is red: re-run once it "
+                     "ends ===")
+        ran, stamped, notes[:] = [], [], []
+        rc_busy = run_land(gates=gates_of([("Windows", held_line)], ran), stamped=stamped)
+        expect("land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
+               "no stamp, nothing queued (kb/Work PB3527)",
+               rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
+               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)"), f"{rc_busy} {notes} {lines[-1:]}")
+
+        # kb/Work PB3526: a gate that measured nothing (the Linux host has no .NET SDK; or no verdict line at all) is
+        # exit 2 with no report line: the lane retries it once and a second is the operator's, never a finisher's.
+        ran, stamped, notes[:] = [], [], []
+        mains: list[tuple[str, str]] = []
+        rc_nr = run_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: NOT RUN [sdk] (no .NET SDK "
+                                                                          "in this Linux environment) ===")], ran),
+                         stamped=stamped, on_main=lambda w, h, sha: mains.append((h, sha)))
+        nr_line = lines[-1]
+        rc_none = run_land(gates=gates_of([], ran), stamped=stamped)
+        expect("land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
+               "2, never a red: no report line, no stamp, nothing queued, main not measured (kb/Work PB3526)",
+               rc_nr == 2 and rc_none == 2 and ran and not stamped and not notes and not mains
+               and nr_line.startswith(VERDICT + "GATE NOT RUN (Linux)") and "no .NET SDK" in nr_line
+               and "[sdk]" in nr_line, f"{rc_nr} {rc_none} {notes} {nr_line} {mains}")
+
+        # Review R2-1 of wave 1150: a NOT RUN of code the gated tree CARRIES (the merged run_gate_legs.py raising in its
+        # plan step) blocks like a red and goes to a finisher, unless main fails the same way at the same step.
+        crashed = ("=== BUILD-LOCAL GATE: NOT RUN [driver] — the gate driver failed: TypeError: plan() missing 1 "
+                   "required positional argument ===")
+        main_sha = sh(lw, "rev-parse", "origin/main")
+
+        def main_reads(line: str | None, how: str = "measured now in a clean checkout of main"):
+            def gate(w: pathlib.Path, host: str, sha: str) -> MainRun | None:
+                mains.append((host, sha))
+                return None if line is None else MainRun(sha, run_gate_legs.read_verdict(line.split("GATE: ", 1)[1]),
+                                                         line, how)
+            return gate
+        ran, stamped, notes[:], mains[:] = [], [], [], []
+        rc_branch = run_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
+                             on_main=main_reads(win_green))
+        branch_line = lines[-1]
+        expect("land: a BRANCH-carried NOT RUN (the tree's own gate driver failed) on a main that passes the same gate "
+               "is exit 5 with a BLOCKED line naming the cause and main's reading: a finisher's (review R2-1)",
+               rc_branch == EXIT_GATE and not stamped and mains == [("Windows", main_sha)] and len(notes) == 1
+               and notes[0].startswith("BLOCKED: enqueue — the Windows gate was NOT RUN") and "[driver]" in notes[0]
+               and f"main {main_sha[:12]} reads GREEN" in notes[0] and "measured now" in notes[0]
+               and branch_line.startswith(VERDICT + "GATE NOT RUN, BRANCH-CARRIED (Windows)"),
+               f"{rc_branch} {mains} {notes} {branch_line}")
+        ran, stamped, notes[:], mains[:] = [], [], [], []
+        rc_shared = run_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
+                             on_main=main_reads(crashed.replace("TypeError", "TypeError (main)"),
+                                                "the recorded main run of 2026-10-22T22:00:00Z"))
+        shared_line = lines[-1]
+        ran2, notes_other = [], []
+        rc_other = run_land(gates=gates_of([("Windows", crashed)], ran2), stamped=stamped,
+                            on_main=main_reads("=== BUILD-LOCAL GATE: NOT RUN [population] — the population could not "
+                                               "be listed: x ==="))
+        notes_other, notes[:] = list(notes), []
+        expect("land: a BRANCH-carried NOT RUN that main fails the SAME way at the same step (its cause) is exit 2 with "
+               "no report line, naming how main was measured: main's defect is the operator's, not the branch's; a "
+               "DIFFERENT cause on main still blocks (review R2-1)",
+               rc_shared == 2 and shared_line.startswith(VERDICT + "GATE NOT RUN (Windows)")
+               and "fails on main" in shared_line and "the recorded main run of" in shared_line
+               and rc_other == EXIT_GATE and len(notes_other) == 1 and "[population]" in notes_other[0]
+               and not stamped, f"{rc_shared} {shared_line} {rc_other} {notes_other}")
+        ran, stamped, notes[:], mains[:] = [], [], [], []
+        rc_unmeasured = run_land(gates=gates_of([("Windows", "=== BUILD-LOCAL GATE: NOT RUN — an older gate's line "
+                                                              "naming no cause ===")], ran),
+                                 stamped=stamped, on_main=main_reads(None))
+        expect("land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried, and main that could not be measured "
+               "leaves it blocked: exit 5, the finisher attributes it (review R2-1)",
+               rc_unmeasured == EXIT_GATE and len(notes) == 1 and "[unclassified]" in notes[0]
+               and "could not be measured" in notes[0] and mains, f"{rc_unmeasured} {notes}")
+        notes[:] = []
+
+        # gate_main itself, on this scratch repository: a clean detached checkout of main runs the row, is removed, and
+        # the result is recorded; a second landing at the same main head reads the record and runs nothing.
+        marker = root / "main-gate-ran.txt"
+        driver_crash = GateRow("Probe", (sys.executable, "-c", "import pathlib, sys; "
+                                         f"pathlib.Path({str(marker)!r}).write_text(pathlib.Path('a.txt').read_text()); "
+                                         "print('=== PROBE GATE: NOT RUN [driver] — the gate driver failed: X ==='); "
+                                         "sys.exit(2)"), "=== PROBE GATE: ", SLOT_WRAP)
+        said: list[str] = []
+        first = gate_main(lw, "Probe", main_sha, rows=(driver_crash,), say=said.append)
+        main_a = marker.read_text(encoding="utf-8") if marker.exists() else None
+        marker.unlink(missing_ok=True)
+        again = gate_main(lw, "Probe", main_sha, rows=(driver_crash,), say=said.append)
+        common = pathlib.Path(sh(lw, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+        kept_log = lw / "TestResults" / "enqueue" / "probe-main-gate.log"
+        probes = [ln for ln in sh(lw, "worktree", "list", "--porcelain").splitlines()
+                  if ln.startswith("worktree ") and "enqueue-main-" in ln]
+        expect("gate_main: main is measured in a clean checkout of its head (main's own a.txt), its reading read by the "
+               "one reader, the checkout removed, the gate log kept beside the branch's, and the run recorded; the "
+               "next landing at the same main head reads the record and runs nothing (review R2-1)",
+               first is not None and first.reading == run_gate_legs.not_run("driver") and first.how.startswith(
+                   "measured now") and main_a == sh(lw, "show", f"{main_sha}:a.txt") and not probes
+               and kept_log.is_file() and (common / MAIN_RUNS).is_file()
+               and again is not None and again.reading == first.reading and again.how.startswith("the recorded main run")
+               and not marker.exists() and gate_main(lw, "Nowhere", main_sha, rows=(driver_crash,)) is None,
+               f"{first} {again} main_a={main_a!r} probes={probes} said={said}")
 
         prs, log, ran = [], [], []
         measured: list[tuple[pathlib.Path, str, int]] = []
@@ -864,7 +1216,8 @@ def self_test() -> int:
 
         # kb/Work PB3023 review R1-2, the reviewer's repro: the queue merges another pull request while this branch gates
         gated_tip, ran, log = own_commit("f.txt"), [], []
-        rc_moved = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("g.txt", "g") or green)
+        rc_moved = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("g.txt", "g")
+                            or gates_of(green, [])(w))
         head = sh(lw, "rev-parse", "HEAD")
         ran_rerun: list[int] = []
         run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran_rerun))
@@ -878,7 +1231,7 @@ def self_test() -> int:
 
         clash_after, ran, log, notes[:] = own_commit("h.txt"), [], [], []
         rc_late = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("h.txt", "main's h")
-                           or green)
+                           or gates_of(green, [])(w))
         expect("land: a conflict bringing the moved main in after the gate is exit 4: the merge is aborted, the branch "
                "unchanged, the report told, and nothing pushed or queued",
                rc_late == EXIT_CONFLICT and ran == [1] and not log and sh(lw, "rev-parse", "HEAD") == clash_after
@@ -962,7 +1315,7 @@ def self_test() -> int:
                                   f" + os.environ.get({gate_slot.CLASS_ENV!r}, 'none'))"), "=== PROBE GATE: ", SLOT_WRAP)
         got = run_gates(wt, gates=(probe,))
         expect("the gate at enqueue is a LANDING gate: its slot is served before waiting implementer gates "
-               "(kb/Work PB3103, gate_slot.py CLASS_ENV)", got and got[0][1] and got[0][2].endswith(
+               "(kb/Work PB3103, gate_slot.py CLASS_ENV)", got and got[0][1] == run_gate_legs.GREEN_READING and got[0][2].endswith(
                    f"class {gate_slot.LANDING}"), str(got))
         probe_log = (wt / "TestResults" / "enqueue" / "probe-gate.log").read_text(encoding="utf-8", errors="replace")
         took, ran_at = probe_log.find("gate-slot: took slot"), probe_log.find("=== PROBE GATE: ")
@@ -974,6 +1327,22 @@ def self_test() -> int:
                and linux_argv[1:3] == [str(HERE.parent / "gate_slot.py"), "run"]
                and linux_argv[linux_argv.index("--") + 1:] == ["bash", "scripts/linux-gate.sh", "--nice"],
                f"took={took} ran={ran_at} {linux_argv}")
+
+        def says(text: str, rc: int) -> GateRow:
+            return GateRow("Probe", (sys.executable, "-c", f"print({text!r}); raise SystemExit({rc})"),
+                           "=== PROBE GATE: ", SLOT_WRAP)
+        busy_run = run_gates(wt, gates=(says("=== PROBE GATE: BUSY — another gate holds this worktree's gate lock ===",
+                                             3),))
+        lying = run_gates(wt, gates=(says("=== PROBE GATE: GREEN — but the exit says otherwise ===", 1),))
+        silent = run_gates(wt, gates=(says("python: command not found", 127),))
+        expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
+               "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527); a gate that printed no verdict "
+               "line measured nothing: NOT RUN (kb/Work PB3526)",
+               [r[1] for r in busy_run] == [run_gate_legs.BUSY_READING]
+               and [r[1] for r in lying] == [run_gate_legs.RED_READING]
+               and [r[1] for r in silent] == [run_gate_legs.not_run("verdict")] and silent[0][1].branch_carried
+               and "measured nothing" in silent[0][2],
+               f"{busy_run} {lying} {silent}")
 
         repo_root = HERE.parent.parent
         every_row = unslotted(GATES_WINDOWS + GATES_LINUX, repo_root)
@@ -1002,7 +1371,7 @@ def self_test() -> int:
         expect("gate rows: a planted unslotted row (a bare row, an unknown slot, a script claiming its own slot without "
                "the driver, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
                refused == [True, True, True] and no_acquire and not acquires and not marker.exists()
-               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Planted", False)
+               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Planted", run_gate_legs.not_run("unslotted"))
                and blocked_run[0][2].startswith("REFUSED"),
                f"{refused} no_acquire={no_acquire} acquires={acquires} marker={marker.exists()} {blocked_run}")
 

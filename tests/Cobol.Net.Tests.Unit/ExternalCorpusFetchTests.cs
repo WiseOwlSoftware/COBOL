@@ -48,7 +48,7 @@ public sealed class ExternalCorpusFetchTests
             psi.ArgumentList.Add("-NoProfile");
             psi.ArgumentList.Add("-Command");
             psi.ArgumentList.Add("exit 0");
-            if (ProcessObserver.Observe(psi, null, ProcessObserver.TimeoutMs).Outcome != ProcessOutcome.LaunchFailed) return exe;
+            if (ProcessObserver.Observe(psi, null, ObservationBudget.OneProcess).Outcome != ProcessOutcome.LaunchFailed) return exe;
         }
 
         throw new InvalidOperationException(
