@@ -741,8 +741,8 @@ is exactly *[ALL on the OPEN]* OR *[phrase omitted AND the SELECT says ALL]*; th
 `FileModel.SubjectToApplyCommit`, set by `DataBinder.BindIoControl` from the I-O-CONTROL APPLY COMMIT clause
 (§12.4.6.3). The exemption is load-bearing rather than decorative: §12.4.5.9.3 SR1 forbids writing a LOCK MODE
 clause *"for a file that is the subject of an APPLY COMMIT clause"*, so without it SR8 would demand the one
-clause another rule forbids and such a program could not be written at all. It is reachable today — COBOLNET1709
-declines the clause but is `PermissiveInert`, so `--permissive` compiles the program.
+clause another rule forbids and such a program could not be written at all. It is reachable in both lanes: the
+clause is accepted for a RELATIVE or INDEXED file (kb/Work PB3338).
 
 **Why the file control entry cannot host it.** A second copy lived in `DataBinder.BindFileControl` and had to
 drop the antecedent, because a SELECT sees no OPEN statement and the I-O-CONTROL paragraph is not bound until
@@ -757,7 +757,7 @@ copy of it can only be a paraphrase, because a declaration cannot see the statem
 `conformance:cases/14.9.27-OPEN/pb316-open-sharing-all-no-lockmode` (disjunct 2) pin it holding.
 `conformance:OpenSharingLockModeTests` carries the two assertions no `.cob` corpus can make — that ONE violation
 draws exactly ONE diagnostic (a substring-matching `.err` is blind to a duplicate, which is how the second copy
-survived), and the APPLY COMMIT exemption, which needs the permissive axis.
+survived), and the APPLY COMMIT exemption over a RELATIVE file.
 
 **SR8's antecedent family is enforced in its own right (kb/Work PB666).** The same fact, `SubjectToApplyCommit`,
 is the antecedent of six syntax rules of CLAIMED clauses and statements: §12.4.5.9.3 SR1 (LOCK MODE), §12.4.6.4.3
@@ -2702,9 +2702,9 @@ is what the traceability inventory refuses to close a DOCUMENTED-NON-SUPPORT row
 carries the full printed general format (rendered from the PDF, not read off the OCR) purely so the binder
 can name what it saw.
 
-The severity is the point of difference from `COBOLNET1560/1578/1579/1580`, which ACCEPT their facility inert
-and warn. Those facilities are **additive** — a program means what it says with the screen, message, commit
-or validate behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
+The severity is the point of difference from `COBOLNET1578/1580`, which ACCEPT their facility inert
+and warn. Those facilities are **additive** — a program means what it says with the message or validate
+behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
 (§13.18.24.4 GR1 — external media format), an inert SELECT WHEN selects the wrong record description entry
 (§13.18.51.4 GR1/GR2, with the §9.1.13.7 rule-5 status-45 path), and the FILE phrase carries its own
 implicit-record model (§14.9.51.4 GR8, §14.9.35.4 GR9) that a whole-record-area write does not implement.

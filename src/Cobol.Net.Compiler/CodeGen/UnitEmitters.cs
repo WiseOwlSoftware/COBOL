@@ -38,6 +38,7 @@ internal sealed class UnitEmitters
     public KeyedIoEmitter KeyedIo { get; }
     public SequentialIoEmitter SeqIo { get; }
     public SortEmitter Sort { get; }
+    public TransactionEmitter Transactions { get; }
     public ReportWriterEmitter ReportWriter { get; }
     public ControlFlowEmitter ControlFlow { get; }
     public CallEmitter Call { get; }
@@ -70,12 +71,13 @@ internal sealed class UnitEmitters
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
+        Transactions = new TransactionEmitter(Ctx, Refs, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
         Sort = new SortEmitter(Ctx, Refs, dispatchState, SeqIo, Move, Arith, Ec);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move, Cond, dispatchState);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set, Brackets);
         Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move, dispatchState, Ptr, Brackets);
         Statements = new StatementEmitter(this, oo, dispatchState);
-        Dispatch = new DispatchEmitter(Ctx, dispatchState, ecState, AlterSwitch, ReportWriter, SeqIo, Ec, Statements);
+        Dispatch = new DispatchEmitter(Ctx, dispatchState, ecState, AlterSwitch, ReportWriter, SeqIo, Ec, Statements, Transactions);
 
         // The cyclic edges (statement lists nest arbitrarily inside verb phrases; EcEmitChecked re-enters
         // EmitStatement; KeyedIo consumes SequentialIo's file-I/O common services although SeqIo's ctor

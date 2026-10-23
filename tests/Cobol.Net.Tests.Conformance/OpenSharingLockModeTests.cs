@@ -14,9 +14,10 @@ namespace CobolNet.Tests.Conformance;
 /// <para>⛔ WHY THESE ARE xUnit FACTS AND NOT CORPUS ENTRIES. (1) The negative corpus matches its <c>.err</c>
 /// file as a SUBSTRING of the diagnostic stream, so it is blind to the rule being reported TWICE — which is
 /// exactly what happened while SR8 was written down in two places, and exactly the drift a future re-addition
-/// would reintroduce. Only a COUNT catches it. (2) The APPLY COMMIT exemption is reachable only under
-/// <c>--permissive</c> (COBOLNET1709 declines the clause but is <c>PermissiveInert</c>), and neither corpus
-/// runner has a permissive axis — <c>EditionHarness.CompileFull(…, permissive: true)</c> is the only seam.</para>
+/// would reintroduce. Only a COUNT catches it. (2) The APPLY COMMIT exemption and its control arm must be the SAME
+/// program but for the I-O-CONTROL paragraph, which a pair of corpus files cannot guarantee. The file is RELATIVE: the
+/// APPLY COMMIT clause is accepted for a keyed file (kb/Work PB3338) and still refused for a SEQUENTIAL one
+/// (COBOLNET1709, kb/Work PB3340).</para>
 ///
 /// <para>The behaviour these guard is pinned from the other side by <c>conformance:cases/14.9.27-OPEN/pb319_sr8_antecedent</c>
 /// (the antecedent falsified by a non-ALL phrase and by a file never opened),
@@ -35,7 +36,7 @@ public sealed class OpenSharingLockModeTests
                INPUT-OUTPUT SECTION.
                FILE-CONTROL.
                    SELECT F1 ASSIGN TO "pb319t.dat"
-                       ORGANIZATION IS SEQUENTIAL
+                       ORGANIZATION IS RELATIVE
                        SHARING WITH ALL OTHER.
                {(applyCommit ? "I-O-CONTROL." : "")}
                    {(applyCommit ? "APPLY COMMIT ON F1." : "")}
@@ -74,14 +75,13 @@ public sealed class OpenSharingLockModeTests
     /// <summary>SR8's leading conjunct: a file SUBJECT TO AN APPLY COMMIT clause is exempt. The exemption is not
     /// decorative — §12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an
     /// APPLY COMMIT clause", so without the exemption SR8 would demand the one clause another rule forbids and
-    /// the program could not be written at all. Reachable because COBOLNET1709 is <c>PermissiveInert</c>: under
-    /// <c>--permissive</c> the declined clause is a warning and the program compiles.</summary>
+    /// the program could not be written at all. Reachable in the strict lane since kb/Work PB3338 accepted the clause
+    /// for a keyed file.</summary>
     [Fact]
     public void ApplyCommitFile_IsExemptFromSr8()
     {
-        var (ok, errors, warnings) = EditionHarness.CompileFull(
-            Violation("PB319APC", applyCommit: true), 2023, permissive: true);
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1709");   // the clause WAS seen and declined
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Violation("PB319APC", applyCommit: true), 2023);
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1709");   // the clause is accepted, not declined
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1512");
         Assert.True(ok, "§14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
             + string.Join("\n", errors));
@@ -90,12 +90,11 @@ public sealed class OpenSharingLockModeTests
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL. Byte-for-byte the same program as the exemption fact
     /// minus its I-O-CONTROL paragraph, compiled the same way: without the APPLY COMMIT clause the file is not
     /// exempt and SR8 fires. Without this leg the fact above would pass just as well against a compiler that had
-    /// simply stopped enforcing SR8 under <c>--permissive</c>.</summary>
+    /// simply stopped enforcing SR8.</summary>
     [Fact]
-    public void WithoutTheApplyCommitClause_TheSameProgramIsRejectedUnderPermissive()
+    public void WithoutTheApplyCommitClause_TheSameProgramIsRejected()
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(
-            Violation("PB319NAP", applyCommit: false), 2023, permissive: true);
+        var (ok, errors, _) = EditionHarness.CompileFull(Violation("PB319NAP", applyCommit: false), 2023);
         Assert.False(ok, "no APPLY COMMIT clause, so SR8's leading conjunct holds and the rule applies");
         Assert.Equal(1, Count1512(errors));
     }

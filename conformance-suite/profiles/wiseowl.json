@@ -15,6 +15,7 @@
     "2023"
   ],
   "modules": {
+    "A.4.3": "docs/CONFORMANCE.md §5, A.4.3 Commit and rollback: Partial",
     "A.4.4": "docs/CONFORMANCE.md §5, A.4.4 Dynamic capacity tables: Claimed",
     "A.4.5": "docs/CONFORMANCE.md §5, A.4.5 DYNAMIC LENGTH elementary items: Partial",
     "A.4.6": "docs/CONFORMANCE.md §5, A.4.6 Extended letters: Claimed",
@@ -28,6 +29,8 @@
     "A.3-1": "docs/CONFORMANCE.md §2, A.3 item 1: Claimed",
     "A.3-3": "docs/CONFORMANCE.md §2, A.3 item 3: Claimed",
     "A.3-5": "docs/CONFORMANCE.md §2, A.3 item 5: Claimed",
+    "A.3-6": "docs/CONFORMANCE.md §2, A.3 item 6–7: Partial",
+    "A.3-7": "docs/CONFORMANCE.md §2, A.3 item 6–7: Partial",
     "A.3-9": "docs/CONFORMANCE.md §2, A.3 item 9: Claimed",
     "A.3-10": "docs/CONFORMANCE.md §2, A.3 item 10: Claimed",
     "A.3-11": "docs/CONFORMANCE.md §2, A.3 item 11: Claimed",

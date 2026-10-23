@@ -28,7 +28,7 @@ internal static class EcNameResolution
     /// only level-3 is legal (the RAISE/RAISING contexts — checked BEFORE the introduction gate so the level
     /// error keeps priority for a level-2 name of a later family); COBOLNET0878 when the name's family postdates
     /// the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §15.33 width advisory AND the
-    /// declined-facility postures (the EC-SCREEN / EC-VALIDATE / commit-and-rollback refusals, the EC-MCS
+    /// declined-facility postures (the EC-SCREEN / EC-VALIDATE refusals, the EC-MCS
     /// accept-inert warning), and returns false when it refused.
     /// <para>⛔ <paramref name="level3"/> is the RAISING SITE, not a bool, because the rule it enforces has a
     /// DIFFERENT ordinal in each of the three statements that reach here (EXIT §14.9.14.3 SR3 · GOBACK
@@ -146,17 +146,6 @@ internal static class EcNameResolution
         // NOTE records the whole family as obsolete).
         new("EC-VALIDATE", DiagnosticCatalog.DeclinedModuleExceptionName, "the VALIDATE facility", "ISO Annex A.4.14 item 10; §14.9.50",
             "docs/CONFORMANCE.md §4 item 3"),
-        // Annex A.4.3 item 3 — the three commit-and-rollback conditions, all COBOL-2023 additions (Annex E.3.2
-        // item 2). NOT a bare "EC-FLOW" prefix: EC-FLOW is a live level-2 family whose OTHER level-3 names
-        // (EC-FLOW-GLOBAL-EXIT, EC-FLOW-RELEASE, EC-FLOW-RETURN, EC-FLOW-USE, …) belong to facilities this
-        // compiler DOES implement — declining them would reject legal source (feedback_spec_fidelity: check
-        // the siblings).
-        new("EC-FLOW-APPLY-COMMIT", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §12.4.6.3",
-            "docs/CONFORMANCE.md §4 item 2"),
-        new("EC-FLOW-COMMIT", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §14.9.7",
-            "docs/CONFORMANCE.md §4 item 2"),
-        new("EC-FLOW-ROLLBACK", DiagnosticCatalog.DeclinedModuleExceptionName, "the commit and rollback facility", "ISO Annex A.4.3 item 3; §14.9.36",
-            "docs/CONFORMANCE.md §4 item 2"),
     ];
 
     /// <summary>The declined module owning <paramref name="name"/>, or null. Prefix-matched so a family's
@@ -181,7 +170,7 @@ internal static class EcNameResolution
     /// COBOL-2002 word limit rejects it first), so no edition guard is needed. One advisory per spelling —
     /// the same name legitimately appears at TURN + RAISE + USE in one program.</summary>
     /// <returns><see langword="false"/> when the name was REFUSED (a declined module whose row's descriptor
-    /// <see cref="EditionContext.Refuses"/> it: EC-SCREEN always, EC-VALIDATE and the three commit-and-rollback
+    /// <see cref="EditionContext.Refuses"/> it: EC-SCREEN always, EC-VALIDATE
     /// names unless the compile is <c>--permissive</c>) — every caller must treat that as an unresolved name. An
     /// accepted row (EC-MCS, and the PermissiveInert rows under <c>--permissive</c>) is named and returns
     /// <see langword="true"/>.</returns>

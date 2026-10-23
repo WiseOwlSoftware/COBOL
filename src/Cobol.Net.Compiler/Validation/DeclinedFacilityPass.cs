@@ -9,7 +9,7 @@ using CobolNet.Runtime;
 namespace CobolNet.Validation;
 
 /// <summary>
-/// THE ONE PLACE A DECLINED ANNEX-A.4 OPTIONAL ELEMENT IS REFUSED BY NAME (COBOLNET1708 / COBOLNET1709) — a
+/// THE ONE PLACE A DECLINED ANNEX-A.4 OPTIONAL ELEMENT IS REFUSED BY NAME (COBOLNET1708) — a
 /// sibling to <see cref="VersionConformancePass"/> and <see cref="FlagConformancePass"/>, run right after them
 /// from <c>BinderDriver</c>.
 ///
@@ -41,9 +41,8 @@ namespace CobolNet.Validation;
 /// the same seam every
 /// removed construct uses, and the program compiles with the declined element simply ABSENT: a level-88 whose
 /// only content was the format-5 VALID phrase keeps its ordinary format-3 reading, an unnamed format-4 entry
-/// contributes nothing, and an <c>APPLY COMMIT</c> clause is ignored — which is the truthful outcome, because
-/// there is no transaction manager for it to configure. That is the migration mode's documented bargain, not a
-/// silent wrong answer: the warning names the facility at every site.</para>
+/// contributes nothing. That is the migration mode's documented bargain, not a silent wrong answer: the warning
+/// names the facility at every site.</para>
 /// </summary>
 internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollowingVisitor(edition)
 {
@@ -58,8 +57,8 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     public static void Run(GroupBindContext group, EditionContext edition)
     {
         // Below COBOL-2002 no declined-facility node can exist: every entry into CobolDeclined.g4 is behind an
-        // {is2002()}? / {is2023()}? left-edge predicate (kb/Work PB2291 records them, and finds them construct gates
-        // rather than §8.9 word status for CLASS, DESTINATION, INVALID, VARYING and APPLY COMMIT). Skipping the walk
+        // {is2002()}? left-edge predicate (kb/Work PB2291 records them, and finds them construct gates
+        // rather than §8.9 word status for CLASS, DESTINATION, INVALID and VARYING). Skipping the walk
         // there is not an optimization that could hide a diagnostic — it is the same fact the predicates state, and
         // it keeps a pure COBOL-85 compile byte-for-byte free of this pass.
         if (edition.DialectLevel < 2002) return;
@@ -67,11 +66,10 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     }
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: every declined construct this pass refuses is a DATA
-    /// DIVISION clause or an ENVIRONMENT DIVISION (I-O-CONTROL) clause, so the procedure body — much the largest
-    /// part of a real compilation unit — cannot contain one. The declined STATEMENTS (VALIDATE §14.9.50, COMMIT
-    /// §14.9.7, ROLLBACK §14.9.36, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
+    /// DIVISION clause, so the procedure body — much the largest part of a real compilation unit — cannot contain
+    /// one. The declined STATEMENTS (VALIDATE §14.9.50, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
     /// (<c>StatementBinder.BindUnsupportedFacility</c>, the recognize-and-name warning band — mandated by
-    /// §4.2.6 ¶3 for the Annex A.3 halves, MCS and COMMIT/ROLLBACK, and a documented §4.2.7 choice for the
+    /// §4.2.6 ¶3 for the Annex A.3 half, MCS, and a documented §4.2.7 choice for the
     /// Annex A.4.14 VALIDATE statement; kb/Work PB709), because they DO have a bound
     /// node — an inert one — and the program is expected to keep running.
     /// <para>⚠ VERIFIED AGAINST THE GRAMMAR, not assumed, because the skip would be a SILENT hole if any data
@@ -91,7 +89,6 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     {
         typeof(CobolParserCore.ValidationClauseContext),
         typeof(CobolParserCore.ValidateValidPhraseContext),
-        typeof(CobolParserCore.ApplyCommitClauseContext),
     };
 
     /// <summary>The declined construct enclosing <paramref name="node"/>, or null. ⛔ THE ONE ANSWER to "is this
@@ -145,20 +142,6 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
             "the VALUE clause's content-validation entry (ISO §13.18.63 format 5 — the "
             + $"'{(ctx.VALID() is not null ? "VALID" : "INVALID")}' phrase; §13.16.2 format 4, Annex A.4.14 "
             + "item 7); the ordinary condition-name VALUE formats 1, 3 and 4 are unaffected");
-        return null;
-    }
-
-    /// <summary>The I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3) — Annex A.4.3 item 2, the DECLINED commit
-    /// and rollback facility's declaration half. Refusing it is what keeps the rest of that decline coherent:
-    /// with no clause ever accepted, no APPLY COMMIT clause is ever ACTIVE, which is exactly the state
-    /// §14.9.7.4 GR1 / §14.9.36.4 GR1 give COMMIT and ROLLBACK their CONTINUE behaviour in — the behaviour
-    /// <c>conformance:cases/14.9.7-COMMIT/pb137_commit_inert</c> already pins.</summary>
-    public override object? VisitApplyCommitClause(CobolParserCore.ApplyCommitClauseContext ctx)
-    {
-        _edition.Declined(DiagnosticCatalog.ApplyCommitClauseUnsupported,
-            "the I-O-CONTROL APPLY COMMIT clause (ISO §12.4.6.3; Annex A.4.3 item 2) — the COMMIT and ROLLBACK "
-            + "statements themselves are accepted and behave as CONTINUE (COBOLNET1579; §14.9.7.4 GR1 / "
-            + "§14.9.36.4 GR1), which is precisely what having no active APPLY COMMIT clause means");
         return null;
     }
 

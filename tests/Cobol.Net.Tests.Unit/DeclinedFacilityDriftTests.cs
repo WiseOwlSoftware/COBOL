@@ -76,8 +76,8 @@ public sealed class DeclinedFacilityDriftTests
         // every other fact below vacuously green.
         Assert.True(rules.Count >= 8, $"CobolDeclined.g4 parsed to only {rules.Count} rules — the rule scanner "
             + "is broken, and every obligation derived from it would be vacuously satisfied");
-        Assert.True(entries.Count >= 3, $"only {entries.Count} entry-point rule(s) found — expected at least "
-            + "validationClause, validateValidPhrase and applyCommitClause");
+        Assert.True(entries.Count >= 2, $"only {entries.Count} entry-point rule(s) found — expected at least "
+            + "validationClause and validateValidPhrase (applyCommitClause left the file with kb/Work PB3338)");
     }
 
     /// <summary>⛔ THE OBLIGATION. Every entry-point rule of the declined-facility grammar has a
@@ -109,7 +109,7 @@ public sealed class DeclinedFacilityDriftTests
             .OrderBy(n => n, StringComparer.Ordinal).ToList();
         var fromPass = CobolNet.Validation.DeclinedFacilityPass.DeclinedConstructRoots.Select(t => t.Name)
             .OrderBy(n => n, StringComparer.Ordinal).ToList();
-        Assert.True(fromGrammar.Count >= 3, "the entry-point scan found too few rules to compare");
+        Assert.True(fromGrammar.Count >= 2, "the entry-point scan found too few rules to compare");
         Assert.Equal(fromGrammar, fromPass);
     }
 

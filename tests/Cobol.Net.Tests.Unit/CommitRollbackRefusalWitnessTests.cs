@@ -1,0 +1,512 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.Loader;
+using CobolNet.Frontend.Preprocessor;
+using CobolNet.Runtime;
+using CobolNet.Runtime.IO;
+using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
+using CobolNet.Tests.Unit.Store;
+using Xunit;
+
+namespace CobolNet.Tests.Unit;
+
+/// <summary>
+/// ⛔ A COMMIT OR ROLLBACK THE MEDIUM REFUSES, AND §14.6.13.1.3 ITEM 8, THROUGH A COMPILED PROGRAM (kb/Work PB3338, review
+/// findings w1154a R1-1 and R1-3; the owner's standing rule, MANDATORY-PRACTICES I11: the exception paths of file I/O are
+/// tested as fully as its success paths). <see cref="Store.TransactionControlTests"/> drives the run unit's half with a
+/// hand-written clause; these compile the program, so the EMITTED half is checked: <c>TransactionEmitter.EmitStatement</c>'s
+/// own-file arm (the FILE STATUS store, the file's exception processing, item 8's ROLLBACK, in that order) and its
+/// foreign-file arm (another element's file), and the item 8 line <c>SequentialIoEmitter.EmitUseHook</c> appends to every
+/// input-output statement on a file under commit control. Each runs in both keyed organizations, with every combination
+/// of a USE procedure and a FILE STATUS clause, and with EC-I-O checking enabled with no declarative and with a
+/// declarative for the condition.
+///
+/// <para>The refusal comes from 2.2.1.12's fault-injecting medium (<see cref="RefusingPageMedium"/> through
+/// <c>KeyedStore.MediumObserver</c>, per async flow), so the program is activated in THIS process through its generated
+/// .NET host entry (the module's <c>Call</c>), as <see cref="KeyedClosePermanentErrorWitnessTests"/> does. The medium
+/// refuses the first page write the statement makes: <see cref="Probe"/> counts, through the registry on a copy of the
+/// same file, the writes the OPEN I-O and the WRITE make, and asserts that refusing the next one makes the COMMIT (or the
+/// ROLLBACK) answer the file with '30', before the program runs.</para>
+///
+/// <para><b>Every expected value is derived from the rules, not observed.</b> COMMIT and ROLLBACK have no I-O status
+/// (§9.1.13.1 names the statements that set it), so what a refused one raises is the implementor's, and
+/// docs/CONFORMANCE.md §5, A.4.3 determination (a) makes it: <i>"a COMMIT or ROLLBACK the medium refuses raises the fatal
+/// EC-I-O-PERMANENT-ERROR for the refused file, with '30' in that file's FILE STATUS item, and with checking off item 8's
+/// ROLLBACK follows"</i>. Item 8 (§14.6.13.1.3): <i>"if there is a fatal exception condition for a file subject to an
+/// active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i>; that ROLLBACK restores the
+/// files and the data items to the last COMMIT, here the activation (§14.9.36.4 GR3: <i>"the state they were in at the
+/// execution of the last COMMIT statement or the start of the run unit"</i>), and the data items include the FILE STATUS
+/// item (§12.4.6.3.3 SR9; §14.9.36.4 GR3: <i>"This includes the file status data items"</i>), so after item 8 the FILE
+/// STATUS item holds its value at activation, '--', and W its value 'INIT'. The USE procedure runs before item 8 (it is
+/// the condition's exception processing; item 8 is the hook's last step), so it sees '30' and 'CHGD'. With checking not
+/// enabled the run unit continues when a FILE STATUS clause or a USE procedure covers the statement and terminates
+/// abnormally when neither does (DOC-A.1-103); with checking enabled the run unit terminates abnormally, with no
+/// declarative by §14.6.13.1.3 rule 7 and after a declarative for the condition by rule 5, whose trace entry is then the
+/// last. An abnormal termination's rollback restores the files (§14.6.12, §9.1.18.5), so in every case the record the
+/// program wrote is absent from the file afterwards: the refused COMMIT committed nothing.</para>
+/// </summary>
+public sealed class CommitRollbackRefusalWitnessTests : CobolNetTestBase
+{
+    /// <summary>What covers the statement: as <see cref="KeyedClosePermanentErrorWitnessTests.Cover"/>, with EC-I-O checking
+    /// enabled either with a FILE STATUS clause alone or with a declarative for the condition
+    /// (<c>USE AFTER EXCEPTION CONDITION EC-I-O</c>), which notes FUNCTION EXCEPTION-STATUS.</summary>
+    public enum Cover { UseAndFileStatus, UseOnly, FileStatusOnly, Neither, CheckingWithFileStatusOnly, CheckingWithExceptionUse }
+
+    private static bool HasFileStatus(Cover c) => c is not (Cover.UseOnly or Cover.Neither);
+    private static bool HasFileUse(Cover c) => c is Cover.UseAndFileStatus or Cover.UseOnly;
+    private static bool Checking(Cover c) => c is Cover.CheckingWithFileStatusOnly or Cover.CheckingWithExceptionUse;
+    private static bool Continues(Cover c) => !Checking(c) && (HasFileUse(c) || HasFileStatus(c));
+
+    private delegate void Entry(ref string trace);
+
+    /// <summary>The writes every store the run unit opens hands to its medium, counted together; the
+    /// <paramref name="refuse"/>-th is refused (0: none).</summary>
+    private static Func<IPageMedium, IPageMedium> RefusingTheNthWrite(int refuse, Action? counted = null)
+    {
+        int seen = 0;
+        return inner => new RefusingPageMedium(inner, write: _ =>
+        {
+            counted?.Invoke();
+            return ++seen == refuse ? new IOException("refused by the host (test)") : null;
+        });
+    }
+
+    private string Seeded(string tag, FileOrg org)
+    {
+        string host = Path.Combine(TempDir, $"{tag}.dat");
+        FileHarness.Seed(host, org, ["AAAA", "BBBB"]);
+        return host;
+    }
+
+    /// <summary>The precondition, measured through the registry on a copy of the file, never assumed: the writes of the
+    /// activation's OPEN I-O and the WRITE of record 3, and that refusing the next one refuses the statement with '30'.
+    /// Returns the write to refuse.</summary>
+    private int Probe(string host, FileOrg org, bool commit)
+    {
+        int Writes(int refuse, out string? refused, out string status)
+        {
+            string copy = Path.Combine(TempDir, $"{Path.GetFileNameWithoutExtension(host)}-probe{refuse}.dat");
+            File.Copy(host, copy);
+            var unit = new RunUnit();
+            FileHarness.Register(unit.Files, "F", copy, org, sharing: null);
+            Assert.True(unit.Transactions.Activate(this, ["F"], () => { }, () => { }, _ => false));
+            int writes = 0;
+            KeyedStore.MediumObserver.Value = RefusingTheNthWrite(refuse, () => writes++);
+            try
+            {
+                FileHarness.Open(unit.Files, "F", FileOpenMode.IO);
+                Assert.Equal("00", unit.Files.Status("F"));
+                Assert.Equal("00", FileHarness.Write(unit.Files, "F", org, 3, "CCCC"));
+                int before = writes;
+                refused = commit ? unit.Transactions.Commit() : unit.Transactions.Rollback();
+                status = unit.Files.Status("F");
+                return before;
+            }
+            finally
+            {
+                KeyedStore.MediumObserver.Value = null;
+                unit.Files.CloseAll();
+            }
+        }
+        int nth = Writes(0, out var none, out _) + 1;
+        Assert.Null(none);
+        Writes(nth, out var refusedFile, out var refusedStatus);
+        Assert.Equal("F", refusedFile);
+        Assert.Equal("30", refusedStatus);
+        return nth;
+    }
+
+    private static string Select(string host, FileOrg org, bool fileStatus) =>
+        $"""
+        SELECT KF ASSIGN TO "{host}"
+            ORGANIZATION {(org == FileOrg.Relative ? "RELATIVE" : "INDEXED")} ACCESS DYNAMIC
+            {(org == FileOrg.Relative ? "RELATIVE KEY K" : "RECORD KEY KFK")}{(fileStatus ? " FILE STATUS FS" : "")}.
+        """;
+
+    private const string Fd = """
+        FD KF.
+        01 KFR.
+           05 KFK PIC X(4).
+           05 KFD PIC X(4).
+        """;
+
+    private static string Note(string what, params string[] items) =>
+        $"STRING \"{what}\" {string.Concat(items.Select(i => $"\" \" {i} "))}\";\" DELIMITED BY SIZE INTO LG WITH POINTER P.";
+
+    /// <summary>OPEN I-O, WRITE record 3 and change W: the transaction the refused statement leaves uncommitted.</summary>
+    private static string Changes(FileOrg org) =>
+        $"""
+        OPEN I-O KF.
+        {Note("OPEN", "FS")}
+        MOVE "0003CCCC" TO KFR.
+        {(org == FileOrg.Relative ? "MOVE 3 TO K." : "CONTINUE.")}
+        WRITE KFR.
+        {Note("WRITE", "FS")}
+        MOVE "CHGD" TO W.
+        """;
+
+    /// <summary>OPEN INPUT, READ record 3 (absent after a rollback) and CLOSE: a fresh connector, because the refused
+    /// statement left the file in permanent error until its CLOSE (DESIGN-runtime-library.md 2.2.1.10, "What the program is
+    /// told").</summary>
+    private static string Reread(FileOrg org) =>
+        $"""
+        OPEN INPUT KF.
+        {Note("REOPEN", "FS")}
+        {(org == FileOrg.Relative ? "MOVE 3 TO K." : "MOVE \"0003\" TO KFK.")}
+        READ KF INVALID KEY {Note("READ", "FS", "\"ABSENT\"").TrimEnd('.')} NOT INVALID KEY {Note("READ", "FS", "KFR").TrimEnd('.')} END-READ.
+        CLOSE KF.
+        {Note("CLOSE2", "FS")}
+        """;
+
+    private const string Storage = """
+        01 FS PIC XX VALUE "--".
+        01 W PIC X(4) VALUE "INIT".
+        01 K PIC 9(4).
+        01 XS PIC X(31).
+        01 P PIC 999 VALUE 1.
+        """;
+
+    /// <summary>The note of a USE procedure: the FILE STATUS item and W as it ran; a declarative for the condition also
+    /// notes FUNCTION EXCEPTION-STATUS.</summary>
+    private static string UseNote(string tag, bool exceptionStatus, bool items = true) =>
+        exceptionStatus
+            ? $"MOVE FUNCTION EXCEPTION-STATUS TO XS.\nSTRING \"{tag} \" {(items ? "FS \" \" W \" \" " : "")}DELIMITED BY SIZE XS DELIMITED BY SPACE \";\" DELIMITED BY SIZE INTO LG WITH POINTER P."
+            : Note(tag, "FS", "W");
+
+    private static string Declaratives(string use, string note) =>
+        $"DECLARATIVES.\nERR-S SECTION.\n    {use}\nERR-P.\n{note}\nEND DECLARATIVES.\nMAIN-S SECTION.\n";
+
+    /// <summary>One element with APPLY COMMIT ON KF W executing the refused statement itself (the own-file arm).</summary>
+    private static string OwnFileProgram(string id, string host, FileOrg org, string verb, Cover cover)
+    {
+        string declaratives = HasFileUse(cover) ? Declaratives("USE AFTER STANDARD ERROR PROCEDURE ON KF.", UseNote("USE", false))
+            : cover == Cover.CheckingWithExceptionUse ? Declaratives("USE AFTER EXCEPTION CONDITION EC-I-O.", UseNote("USE", true))
+            : "";
+        return $"""
+            {(Checking(cover) ? ">>TURN EC-I-O CHECKING ON\n" : "")}IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+            {Select(host, org, HasFileStatus(cover))}
+            I-O-CONTROL.
+                APPLY COMMIT ON KF W.
+            DATA DIVISION.
+            FILE SECTION.
+            {Fd}
+            WORKING-STORAGE SECTION.
+            {Storage}
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            PROCEDURE DIVISION USING LG.
+            {declaratives}MAIN-P.
+            {Changes(org)}
+            {verb}.
+            {Note(verb, "FS", "W")}
+            CLOSE KF.
+            {Note("CLOSE", "FS")}
+            {Reread(org)}
+            GOBACK.
+            END PROGRAM {id}.
+            """;
+    }
+
+    /// <summary>The trace the rules give (see the class summary).</summary>
+    private static string[] OwnFileExpected(string verb, Cover cover)
+    {
+        bool fs = HasFileStatus(cover);
+        string ok = fs ? "00" : "--";
+        string[] before = [$"OPEN {ok}", $"WRITE {ok}"];
+        // The declarative runs before item 8's ROLLBACK and before the run unit's fate is decided. A refused COMMIT saved
+        // nothing, so W is still the program's CHGD; a refused ROLLBACK has restored the items already (§14.9.36.4 GR3:
+        // every file but the refused one was rolled back, and the program is told of that one by its status).
+        string w = verb == "COMMIT" ? "CHGD" : "INIT";
+        string[] use = HasFileUse(cover) ? [$"USE {(fs ? "30" : "--")} {w}"]
+            : cover == Cover.CheckingWithExceptionUse ? [$"USE 30 {w} EC-I-O-PERMANENT-ERROR"]
+            : [];
+        if (!Continues(cover)) return [.. before, .. use];
+        return [.. before, .. use, $"{verb} -- INIT", .. Reopened(fs)];
+    }
+
+    /// <summary>The CLOSE of the connector the refusal left in permanent error, then a fresh OPEN INPUT that finds record 3
+    /// absent: item 8's ROLLBACK (or the run unit's) removed it.</summary>
+    private static string[] Reopened(bool fileStatus)
+    {
+        string ok = fileStatus ? "00" : "--";
+        return [$"CLOSE {ok}", $"REOPEN {ok}", $"READ {(fileStatus ? "23" : "--")} ABSENT", $"CLOSE2 {ok}"];
+    }
+
+    public static TheoryData<FileOrg, string, Cover> OwnFileCases()
+    {
+        var data = new TheoryData<FileOrg, string, Cover>();
+        foreach (var org in FileHarness.KeyedOrgs)
+            foreach (var verb in new[] { "COMMIT", "ROLLBACK" })
+                foreach (var cover in Enum.GetValues<Cover>())
+                    data.Add(org, verb, cover);
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(OwnFileCases))]
+    public void A_refused_commit_or_rollback_of_the_elements_own_file_is_told_raised_and_rolled_back_by_item_8(
+        FileOrg org, string verb, Cover cover)
+    {
+        string id = $"CR{(org == FileOrg.Relative ? "R" : "I")}{verb[0]}{(int)cover}";
+        string host = Seeded(id, org);
+        int refuse = Probe(host, org, verb == "COMMIT");
+        var (trace, ended) = Run(id, OwnFileProgram(id, host, org, verb, cover), refuse);
+        Assert.Equal(OwnFileExpected(verb, cover), trace);
+        AssertEnding(ended, Continues(cover), cover == Cover.Neither ? $"({verb})" : null);
+        AssertRecordAbsent(host, org);
+    }
+
+    // ── The foreign-file arm: the refused file is another element's ──────────────────────────────────────────────────
+
+    /// <summary>What covers a refused file of ANOTHER element's clause, in the element executing the statement: the
+    /// describing element's FILE STATUS clause (no checking), nothing, EC-I-O checking by a directive naming no file in the
+    /// executing element with the FILE STATUS clause, or with a declarative for the condition there.</summary>
+    public enum ForeignCover { StatusItem, Nothing, CheckingWithStatusItem, CheckingWithExceptionUse }
+
+    private static bool ForeignChecking(ForeignCover c) => c is ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse;
+
+    /// <summary>The element <c>id</c> with APPLY COMMIT ON KF W calls its contained <c>id</c>S, which has no clause and
+    /// executes the statement; the TURN directive, when present, precedes the contained program, so it governs only that
+    /// program's statements (§7.3.25.4 GR5/GR6).</summary>
+    private static string ForeignProgram(string id, string host, FileOrg org, string verb, ForeignCover cover)
+    {
+        string declaratives = cover == ForeignCover.CheckingWithExceptionUse
+            ? Declaratives("USE AFTER EXCEPTION CONDITION EC-I-O.", UseNote("SUSE", true, items: false))
+            : "";
+        return $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+            {Select(host, org, cover != ForeignCover.Nothing)}
+            I-O-CONTROL.
+                APPLY COMMIT ON KF W.
+            DATA DIVISION.
+            FILE SECTION.
+            {Fd}
+            WORKING-STORAGE SECTION.
+            {Storage}
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            PROCEDURE DIVISION USING LG.
+            MAIN-P.
+            {Changes(org)}
+            CALL "{id}S" USING LG P.
+            {Note("CALL", "FS", "W")}
+            CLOSE KF.
+            {Note("CLOSE", "FS")}
+            {Reread(org)}
+            GOBACK.
+            {(ForeignChecking(cover) ? ">>TURN EC-I-O CHECKING ON\n" : "")}IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}S.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 XS PIC X(31).
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            01 P PIC 999.
+            PROCEDURE DIVISION USING LG P.
+            {declaratives}S-P.
+            {verb}.
+            {Note(verb)}
+            GOBACK.
+            END PROGRAM {id}S.
+            END PROGRAM {id}.
+            """;
+    }
+
+    private static string[] ForeignExpected(string verb, ForeignCover cover)
+    {
+        string ok = cover == ForeignCover.Nothing ? "--" : "00";
+        string[] before = [$"OPEN {ok}", $"WRITE {ok}"];
+        return cover switch
+        {
+            // The describing element stored '30' (TransactionControl.Refused), so DOC-A.1-103 continues; item 8 restores.
+            ForeignCover.StatusItem => [.. before, verb, "CALL -- INIT", .. Reopened(fileStatus: true)],
+            ForeignCover.CheckingWithExceptionUse => [.. before, "SUSE EC-I-O-PERMANENT-ERROR"],
+            _ => before,
+        };
+    }
+
+    public static TheoryData<FileOrg, string, ForeignCover> ForeignCases()
+    {
+        var data = new TheoryData<FileOrg, string, ForeignCover>();
+        foreach (var org in FileHarness.KeyedOrgs)
+            foreach (var verb in new[] { "COMMIT", "ROLLBACK" })
+                foreach (var cover in Enum.GetValues<ForeignCover>())
+                    data.Add(org, verb, cover);
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(ForeignCases))]
+    public void A_refused_commit_or_rollback_of_another_elements_file_is_raised_under_the_executing_elements_checking(
+        FileOrg org, string verb, ForeignCover cover)
+    {
+        string id = $"CF{(org == FileOrg.Relative ? "R" : "I")}{verb[0]}{(int)cover}";
+        string host = Seeded(id, org);
+        int refuse = Probe(host, org, verb == "COMMIT");
+        var (trace, ended) = Run(id, ForeignProgram(id, host, org, verb, cover), refuse);
+        Assert.Equal(ForeignExpected(verb, cover), trace);
+        AssertEnding(ended, cover == ForeignCover.StatusItem, cover == ForeignCover.Nothing ? $"({verb})" : null);
+        AssertRecordAbsent(host, org);
+    }
+
+    // ── Item 8 after an ordinary input-output statement ──────────────────────────────────────────────────────────────
+
+    /// <summary>§14.6.13.1.3 item 8 after a READ of the closed file ('47', EC-I-O-LOGIC-ERROR: fatal, §9.1.13.1) — the line
+    /// <c>EmitUseHook</c> appends for a file under commit control: the CLOSE kept the transaction (kb/Work PB3480), and the
+    /// ROLLBACK removes record 3 and restores W and the FILE STATUS item to the activation's 'INIT' and '--'.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_fatal_status_of_an_ordinary_statement_on_a_file_under_commit_control_rolls_back_by_item_8(FileOrg org)
+    {
+        string id = $"CO{(org == FileOrg.Relative ? "R" : "I")}";
+        string host = Seeded(id, org);
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+            {Select(host, org, fileStatus: true)}
+            I-O-CONTROL.
+                APPLY COMMIT ON KF W.
+            DATA DIVISION.
+            FILE SECTION.
+            {Fd}
+            WORKING-STORAGE SECTION.
+            {Storage}
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            PROCEDURE DIVISION USING LG.
+            MAIN-P.
+            {Changes(org)}
+            CLOSE KF.
+            {Note("CLOSE", "FS", "W")}
+            READ KF NEXT RECORD END-READ.
+            {Note("READ47", "FS", "W")}
+            {Reread(org)}
+            GOBACK.
+            END PROGRAM {id}.
+            """;
+        var (trace, ended) = Run(id, source, refuse: 0);
+        Assert.Null(ended);
+        Assert.Equal(["OPEN 00", "WRITE 00", "CLOSE 00 CHGD", "READ47 -- INIT", "REOPEN 00", "READ 23 ABSENT", "CLOSE2 00"], trace);
+        AssertRecordAbsent(host, org);
+    }
+
+    public static TheoryData<FileOrg> Orgs() => [.. FileHarness.KeyedOrgs];
+
+    // ── The declined SEQUENTIAL operand under --permissive (review finding w1154a R1-4) ──────────────────────────────
+
+    /// <summary>A SEQUENTIAL operand is refused (COBOLNET1709, docs/CONFORMANCE.md §4 item 2); under <c>--permissive</c>
+    /// the refusal is a warning and the operand is absent from the clause, so a ROLLBACK, which leaves the file alone, does
+    /// not restore its FILE STATUS item either (§12.4.6.3.3 SR9 makes the item subject to the clause only through the
+    /// file): after the AT END the item keeps '10' while the connector is at its end.</summary>
+    [Fact]
+    public void A_declined_sequential_operand_puts_neither_the_file_nor_its_status_item_under_commit_control()
+    {
+        const string id = "CSQ";
+        string host = Path.Combine(TempDir, "csq.dat");
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT SQ ASSIGN TO "{host}" ORGANIZATION SEQUENTIAL FILE STATUS FS.
+            I-O-CONTROL.
+                APPLY COMMIT ON SQ W.
+            DATA DIVISION.
+            FILE SECTION.
+            FD SQ.
+            01 SQR PIC X(4).
+            WORKING-STORAGE SECTION.
+            {Storage}
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            PROCEDURE DIVISION USING LG.
+            MAIN-P.
+            OPEN OUTPUT SQ.
+            CLOSE SQ.
+            OPEN INPUT SQ.
+            MOVE "CHGD" TO W.
+            COMMIT.
+            READ SQ AT END CONTINUE END-READ.
+            {Note("READ", "FS")}
+            MOVE "LATE" TO W.
+            ROLLBACK.
+            {Note("ROLLBACK", "FS", "W")}
+            CLOSE SQ.
+            GOBACK.
+            END PROGRAM {id}.
+            """;
+        var (trace, ended) = Run(id, source, refuse: 0, permissive: true);
+        Assert.Null(ended);
+        Assert.Equal(["READ 10", "ROLLBACK 10 CHGD"], trace);
+    }
+
+    // ── The harness ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Compile the program and activate it through its host entry in a flow of its own, over a medium that
+    /// refuses the <paramref name="refuse"/>-th write (0: none): its trace (one entry per note) and the run unit's ending.</summary>
+    private (string[] trace, RunUnitEndedException? ended) Run(string id, string source, int refuse, bool permissive = false)
+    {
+        string src = Path.Combine(TempDir, $"{id}.cob"), dll = Path.Combine(TempDir, $"{id}.dll");
+        File.WriteAllText(src, source);
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, Permissive: permissive,
+            SourceFormat: InitialReferenceFormat.Auto));
+        Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
+        var call = AssemblyLoadContext.Default.LoadFromAssemblyPath(dll).GetTypes()
+            .Single(t => t.Name == id && t.GetMethod("Call") is not null).GetMethod("Call")!;
+        var entry = call.CreateDelegate<Entry>();
+        string trace = new(' ', 240);
+        RunUnitEndedException? ended = null;
+        Task.Run(() =>
+        {
+            KeyedStore.MediumObserver.Value = RefusingTheNthWrite(refuse);
+            try { entry(ref trace); }
+            catch (RunUnitEndedException e) { ended = e; }
+            finally { KeyedStore.MediumObserver.Value = null; }
+        }).GetAwaiter().GetResult();
+        return (trace.TrimEnd().TrimEnd(';').Split(';'), ended);
+    }
+
+    /// <summary>The run unit continued, or ended abnormally on EC-I-O-PERMANENT-ERROR (with <paramref name="statement"/>
+    /// in DOC-A.1-103's message when nothing covered the status).</summary>
+    private static void AssertEnding(RunUnitEndedException? ended, bool continues, string? statement)
+    {
+        if (continues)
+        {
+            Assert.Null(ended);
+            return;
+        }
+        Assert.NotNull(ended);
+        Assert.True(ended.Abnormal, ended.Message);
+        Assert.Contains("EC-I-O-PERMANENT-ERROR", ended.Message);
+        if (statement is not null) Assert.Contains(statement, ended.Message);
+    }
+
+    /// <summary>Record 3, which the program wrote and never committed, is absent from the file.</summary>
+    private static void AssertRecordAbsent(string host, FileOrg org)
+    {
+        var reader = new FileRegistry();
+        FileHarness.Register(reader, "R", host, org);
+        FileHarness.Open(reader, "R", FileOpenMode.Input);
+        try
+        {
+            Assert.Equal("00", reader.Status("R"));
+            Assert.NotEqual("00", FileHarness.Read(reader, "R", org, 3, out _));
+            Assert.Equal("00", FileHarness.Read(reader, "R", org, 2, out var image));
+            Assert.Equal("0002BBBB", image);
+        }
+        finally { reader.CloseAll(); }
+    }
+}

@@ -4,22 +4,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> THE WITNESS FOR SR-14.9.35.3-5, one of the seven vacuously-satisfied rules kb/Work PB371 raised (owner
-*> decision 2026-09-02: CONFORMS, witnessed by the refusal of the antecedent).
+*> THE WITNESS FOR SR-14.9.35.3-5.
 *> THE RULE (ISO 14.9.35.3 SR5): "If the rewrite file is subject to an APPLY COMMIT clause, neither the WITH
 *> LOCK phrase nor the WITH NO LOCK phrase shall be specified."
-*> REWRITE and its lock phrases are CLAIMED; the APPLY COMMIT clause is Annex A.4.3 item 2 and is refused by
-*> name (COBOLNET1709), so no compilable program reaches the antecedent.
-*> ⚠ A DIFFERENT A.4 DECLINE LIVES IN THE SAME STATEMENT and is NOT what this fixture pins: REWRITE's FILE
-*> phrase is Annex A.4.13 item 2 and draws COBOLNET1706. This fixture writes `REWRITE record-name`, the
-*> mandatory alternative, so the only decline it can draw is the APPLY COMMIT clause's.
+*> SINCE kb/Work PB3338 THE ANTECEDENT IS REACHABLE: the APPLY COMMIT clause (Annex A.4.3 item 2) is accepted for
+*> a RELATIVE or INDEXED file, so this program, written in the rule's OWN forbidden shape over a RELATIVE file, is
+*> refused by the rule itself (COBOLNET2974, DataBinder.ScreenApplyCommitSubject) in the strict lane and under
+*> --permissive alike (ApplyCommitSubjectRuleTests). Until PB3338 the row was recorded CONFORMS as vacuously
+*> satisfied (kb/Work PB371, owner 2026-09-02) and this fixture pinned the clause's decline; a SEQUENTIAL file
+*> under APPLY COMMIT is still refused by name (COBOLNET1709, kb/Work PB3340), which is why the file here is
+*> RELATIVE: a sequential file would draw that refusal and witness nothing about this rule.
+*> REWRITE's FILE phrase is a different decline (Annex A.4.13 item 2); this fixture writes `REWRITE record-name`,
+*> the mandatory alternative, so the only refusal it can draw is SR5's.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. APCREWRL.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F ASSIGN TO "apcrewrl.dat"
-               ORGANIZATION IS SEQUENTIAL.
+               ORGANIZATION IS RELATIVE.
        I-O-CONTROL.
            APPLY COMMIT ON F.
        DATA DIVISION.
