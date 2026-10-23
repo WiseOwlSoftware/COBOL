@@ -43,8 +43,11 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
 
     /// <summary>Give a kept handle back: off <paramref name="store"/>'s medium under the store mutex its endpoint holds, the
     /// liveness byte it may hold going with it (<see cref="KeyedStore.LivenessGoneWith"/>: what a death does — taken again
-    /// by a re-OPEN, else the dead-owner step's to settle), then the endpoint and the handle disposed. The attachment is
-    /// untouched.</summary>
+    /// by a re-OPEN, else the dead-owner step's to settle), then the endpoint disposed, which unlocks every byte it holds,
+    /// the liveness byte among them, while the handle is still open, and only then the handle closed: a byte left to the
+    /// close outlives it wherever another copy of the handle lives (a <c>fork</c> not yet at its <c>exec</c>), and the next
+    /// writable OPEN would read the abandoned transaction's owner as alive (<see cref="HandleRegionLocks"/>; kb/Work
+    /// PB3549). The attachment is untouched.</summary>
     internal static void GiveBack(KeyedStore store, KeptHandle kept)
     {
         try
