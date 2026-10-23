@@ -96,7 +96,9 @@ entry whose cached mtime is not older than the index file's. Git for Windows com
 in the cached entry's second keeps the entry's size and mtime. With the reference moved forward, `add -A` kept the old
 blob, and 13 of 200 such edits under eight parallel loops went unseen. A gate that reuses a GREEN on that tree would
 have skipped a changed tree. The copy is now `shutil.copy2`, which keeps the mtime (0 of 200). A new arm pins one past
-second on the entry, the index and the edit, so it fails every time `copyfile` comes back, whatever the load.
+second on the entry, the index and the edit, so on Windows it fails every time `copyfile` comes back, whatever the load
+(Git for Windows compares whole seconds; Linux git also checks the sub-second ctime and sees the edit either way, so only
+the Windows gate guards this regression).
 
 Rows: none (process-only, `closes_rows: []` with its reason).
 
