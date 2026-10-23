@@ -40,3 +40,10 @@ that owes writes.
 
 **Rows.** No inventory row is claimed or closed (`closes_rows: []` with its reason). Docs: DESIGN-runtime-library.md (the Windows
 host bullet, 2.2.1.8's byte map, the DETERMINATION, 2.2.1.10 As built (3)) and CONFORMANCE.md DOC-A.1-75.
+
+**Gates.** Windows: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000001-20261023T172205Z`, head
+243a3e429). Linux, the host-I/O group's own run: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 243a3e429) ===`.
+
+**Self-review** (pr-test-analyzer, silent-failure-hunter, comment-analyzer): the one silent-failure shape on the path, an
+unobservable or exhausted owed-writes range, answers "does not owe" (the share mode does not yield, '61'), never the other way;
+the first draft's `Take` assumed a fresh lock owes nothing, which the NO OTHER-close arm falsified, so both arms now carry it.
