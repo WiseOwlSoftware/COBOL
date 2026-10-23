@@ -1646,8 +1646,12 @@ internal static class RuntimeApi
     /// <summary>The ROLLBACK statement — <c>CobolFile.Rollback</c>; the refused file's connector name or null.</summary>
     public static string Rollback() => $"{TransactionFacade}.{nameof(CobolFile.Rollback)}()";
 
-    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK after a fatal status — <c>CobolFile.RollbackOnFatal</c>.</summary>
-    public static string RollbackOnFatal(string name) => $"{TransactionFacade}.{nameof(CobolFile.RollbackOnFatal)}({name})";
+    /// <summary>§14.6.13.1.3 item 8's question, asked at the raise — <c>CobolFile.RollbackDueOnFatal</c>.</summary>
+    public static string RollbackDueOnFatal(string name, string checkingEnabled) =>
+        $"{TransactionFacade}.{nameof(CobolFile.RollbackDueOnFatal)}({name}, {checkingEnabled})";
+
+    /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK statement — <c>CobolFile.RollbackOnFatal</c>.</summary>
+    public static string RollbackOnFatal() => $"{TransactionFacade}.{nameof(CobolFile.RollbackOnFatal)}()";
 
     /// <summary>A refused COMMIT/ROLLBACK on another element's file with no FILE STATUS item — <c>CobolFile.TerminateOnRefusalWithoutStatusItem</c>.</summary>
     public static string TerminateOnRefusalWithoutStatusItem(string name, string verbLiteral) =>
