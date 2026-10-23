@@ -273,7 +273,7 @@ public sealed class DerivedVerdictDriftTests
 
     // ── The determinations ────────────────────────────────────────────────────────────────────────────────────
     // One fact per declined module. They are separate [Fact]s on purpose: a single loop over every selector
-    // would report the first failure and hide the rest, and these six modules fail for unrelated reasons.
+    // would report the first failure and hide the rest, and the declined modules fail for unrelated reasons.
 
     [Fact]
     public void NoStandardBinaryConditionedRow_Diverges() =>
@@ -284,11 +284,6 @@ public sealed class DerivedVerdictDriftTests
     public void NoScreenHandlingConditionedRow_Diverges() =>
         AssertHeldAtTheDerivedVerdict("screen-handling-only",
             "Annex A.4.2 ACCEPT/DISPLAY screen handling is Not claimed (CONFORMANCE.md §5, §4 item 4)");
-
-    [Fact]
-    public void NoCommitAndRollbackConditionedRow_Diverges() =>
-        AssertHeldAtTheDerivedVerdict("commit-and-rollback-only",
-            "Annex A.4.3 commit and rollback is Not claimed (CONFORMANCE.md §5, §4 item 2)");
 
     [Fact]
     public void NoFormatOrSelectWhenConditionedRow_Diverges() =>
@@ -492,63 +487,6 @@ public sealed class DerivedVerdictDriftTests
         // And the clause arm must not have widened past its own paths (the dotless collision).
         Assert.DoesNotContain("GR-13.18.40.4-1", ids);   // PICTURE, inside "13.18.4" only under a raw prefix
         Assert.DoesNotContain("SR-13.18.30.3-1", ids);   // HIGHLIGHT SR1 is real; §13.18.30 is not §13.18.3
-    }
-
-    [Fact]
-    public void TheCommitRollbackSelector_IsStillSharp()
-    {
-        var (ids, _) = Select("commit-and-rollback-only");
-        Assert.InRange(ids.Count, 15, 50);   // 25 when it landed; 40 with the prose paragraph rows (PB284)
-
-        // ⛔ THE PROSE CONCEPT CLAUSES (kb/Work PB284 part 3). §9.1.18 is Annex A.4.3 item 1 whole, so each of its
-        // paragraph rows is the module's own; §9.1.17 is the definition of the unit it delimits; and exactly the two
-        // §9.1.16 paragraphs whose whole content is COMMIT's or ROLLBACK's effect on locks are in.
-        foreach (string id in (string[])["GR-9.1.18.1-p1", "GR-9.1.18.3-p1", "GR-9.1.18.5-p1", "GR-9.1.18.7-p1",
-                                         "GR-9.1.18.7-p2", "GR-9.1.17-p1", "GR-9.1.16-p7", "GR-9.1.16-p8"])
-            Assert.Contains(id, ids);
-        // The rest of §9.1.16 is the CLAIMED record-locking facility and its LOCK/UNLOCK prohibition (SR-12.4.5.9.3-1
-        // carries the same decision as CONFORMS); selecting any of it would document claimed locking as declined.
-        foreach (string id in (string[])["GR-9.1.16-p1", "GR-9.1.16-p2", "GR-9.1.16-p3", "GR-9.1.16-p4",
-                                         "GR-9.1.16-p5", "SR-9.1.16-p6", "GR-9.1.16-p9"])
-            Assert.DoesNotContain(id, ids);
-        // COMMIT's general format records by its LIVE surface, exactly like ROLLBACK's (the PB284 row).
-        Assert.DoesNotContain("FMT-14.9.7.2", ids);
-
-        // Clause arm: seven §12.4.6.3 rules say only "this clause" and a text-only predicate drops all of them.
-        Assert.Contains("SR-12.4.6.3.3-1", ids);
-        // Clause arm, EC half: the APPLY COMMIT clause's own GR6 (EC-FLOW-APPLY-COMMIT) is module functionality and
-        // stays IN. The selector carries no EC-FLOW exclusion at all (kb/Work PB259 dropped the anchored one); if
-        // this drops out, an exclusion keyed on the EC-FLOW names came back and is reaching the clause arm.
-        Assert.Contains("GR-12.4.6.3.4-6", ids);
-        // Text arm: the module's own functionality stated inside the MANDATORY §14.6.11. Note the PLURAL.
-        Assert.Contains("GR-14.6.11-1", ids);
-        // The closest call in the set — see the entry's $selector for why "separately" settles it.
-        Assert.Contains("SR-12.4.6.3.3-10", ids);
-        // The APPLY COMMIT clause is refused by name whole, so its general format is declined with it (kb/Work
-        // R43 / PB1099 Q2); the COMMIT/ROLLBACK statements are accepted inert and their formats stay OUT.
-        Assert.Contains("FMT-12.4.6.3.2", ids);
-        Assert.DoesNotContain("FMT-14.9.36.2", ids);
-
-        // ⛔ FOUR ROWS THAT ARE IMPLEMENTED AND GOLDEN-COVERED (kb/Work PB137). If any returns, an exclusion was
-        // dropped and shipped code is being documented as unsupported.
-        foreach (string id in (string[])["SR-14.9.7.3-1", "SR-14.9.7.3-2", "GR-14.9.7.4-1", "GR-14.9.36.4-7"])
-            Assert.DoesNotContain(id, ids);
-        // Each statement's GR2 SETS EC-FLOW-COMMIT / EC-FLOW-ROLLBACK, the declined module's own condition, so
-        // nothing survives it (kb/Work PB259 settled both). If either drops out, an EC-FLOW exclusion came back.
-        foreach (string id in (string[])["GR-14.9.7.4-2", "GR-14.9.36.4-2"])
-            Assert.Contains(id, ids);
-        // FMT-14.9.36.2 would be wrong as non-support — ROLLBACK IS a recognized, accepted-inert statement in the
-        // shipped grammar. Excluded by KIND on the statement arm, not by matching "^<pre": that rendering proxy
-        // leaks on 56 of 322 FMT rows. (The REFUSED clause's own format, FMT-12.4.6.3.2, is in — asserted above.)
-        Assert.DoesNotContain("FMT-14.9.36.2", ids);
-        // ⛔ AND THE SCOPE STOPS AT THE MODULE'S OWN CLAUSES. These name APPLY COMMIT only as an antecedent; with
-        // the module absent they are VACUOUSLY SATISFIED, which is not the same fact as unsupported, and their
-        // verdicts speak about UNLOCK / sharing / LOCK MODE — facilities A.4.7 CLAIMS.
-        foreach (string id in (string[])["SR-14.9.47.3-2", "GR-9.1.15-3", "SR-12.4.5.9.3-1"])
-            Assert.DoesNotContain(id, ids);
-        // ⚖ DOC-A.1-28's SUBJECT is the module itself ("Commit and rollback (interaction with other facilities and
-        // languages)", §9.1.18), so owner decision R42 (2026-09-24) withdraws it through the Annex A.1 arm.
-        Assert.Contains("DOC-A.1-28", ids);
     }
 
     [Fact]

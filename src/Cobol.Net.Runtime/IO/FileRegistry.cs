@@ -1082,6 +1082,10 @@ public sealed class FileRegistry
         _connectorShares[name] = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
     }
 
+    /// <summary>Whether <paramref name="name"/>'s connector is under commit control — "a file subject to an active APPLY
+    /// COMMIT clause" (§14.6.13.1.3 item 8, <see cref="TransactionControl.RollbackOnFatal"/>).</summary>
+    internal bool IsCommitControlled(string name) => _files.TryGetValue(name, out var c) && c is KeyedConnector { CommitControlled: true };
+
     /// <summary>The id of the run unit's open transaction on <paramref name="name"/>'s physical file, 0 while none (the
     /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
     internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;

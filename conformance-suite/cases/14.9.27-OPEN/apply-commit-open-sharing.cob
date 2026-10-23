@@ -4,28 +4,27 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> THE WITNESS FOR SR-14.9.27.3-7, one of the seven vacuously-satisfied rules kb/Work PB371 raised (owner
-*> decision 2026-09-02: CONFORMS, witnessed by the refusal of the antecedent).
+*> THE WITNESS FOR SR-14.9.27.3-7.
 *> THE RULE (ISO 14.9.27.3 SR7): "The sharing phrase shall not be specified for a file subject to an APPLY
 *> COMMIT clause."
-*> ⚠ THE PHRASE ORDER IS THE PRINTED ONE and is easy to get wrong: 14.9.27.2 Format 1 is
-*> `OPEN { {mode} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } ... } ...` - the
-*> sharing phrase precedes the FILE LIST, not the file name. A fixture written `OPEN INPUT F SHARING ...`
-*> draws a bare COBOL0001 and would have "witnessed" the refusal by accident, which is not a witness at all.
-*> The OPEN statement and its SHARING phrase are CLAIMED and supported; the APPLY COMMIT clause is Annex
-*> A.4.3 item 2 and is refused by name (COBOLNET1709). Writing both is the rule's own forbidden shape, and it
-*> cannot compile - so no OPEN in this implementation can violate SR7.
-*> ⚠ SR-14.9.27.3-8 IS NOT WITNESSED HERE and must not be read into this fixture. Its antecedent is the
-*> COMPLEMENT - "When file-name-1 is NOT subject to an APPLY COMMIT clause" - which is the ONLY state this
-*> implementation has, so its content is live and it carries its own (DIVERGES) verdict.
+*> SINCE kb/Work PB3338 THE ANTECEDENT IS REACHABLE: the APPLY COMMIT clause (Annex A.4.3 item 2) is accepted for
+*> a RELATIVE or INDEXED file, so this program, written in the rule's OWN forbidden shape over a RELATIVE file, is
+*> refused by the rule itself (COBOLNET2974, DataBinder.ScreenApplyCommitSubject) in the strict lane and under
+*> --permissive alike (ApplyCommitSubjectRuleTests). Until PB3338 the row was recorded CONFORMS as vacuously
+*> satisfied (kb/Work PB371, owner 2026-09-02) and this fixture pinned the clause's decline; a SEQUENTIAL file
+*> under APPLY COMMIT is still refused by name (COBOLNET1709, kb/Work PB3340), which is why the file here is
+*> RELATIVE: a sequential file would draw that refusal and witness nothing about this rule.
+*> THE PHRASE ORDER IS THE PRINTED ONE: 14.9.27.2 Format 1 is `OPEN { {mode} [ sharing-phrase ] [ retry-phrase ]
+*> { file-name-1 [ WITH NO REWIND ] } ... } ...` - the sharing phrase precedes the FILE LIST. The file control
+*> entry writes no LOCK MODE clause, so the only refusal this program can draw is SR7's (12.4.5.9.3 SR1 forbids
+*> LOCK MODE for such a file and has its own fixture, apply-commit-lock-mode).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. APCOPENS.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F ASSIGN TO "apcopens.dat"
-               ORGANIZATION IS SEQUENTIAL
-               LOCK MODE IS AUTOMATIC.
+               ORGANIZATION IS RELATIVE.
        I-O-CONTROL.
            APPLY COMMIT ON F.
        DATA DIVISION.

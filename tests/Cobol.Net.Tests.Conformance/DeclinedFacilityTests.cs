@@ -78,35 +78,28 @@ public sealed class DeclinedFacilityTests
         EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1580");
     }
 
-    /// <summary>ISO §14.9.7 / §14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are
-    /// recognized and NAMED, and behave as CONTINUE (§14.9.7.4 GR1 / §14.9.36.4 GR1: "If this statement is
-    /// executed when there is no active APPLY COMMIT clause, then it has the same effect as a CONTINUE
-    /// statement"). With COBOLNET1709 refusing every APPLY COMMIT clause, "no active APPLY COMMIT clause" is
-    /// the ONLY state this implementation has, so that CONTINUE behaviour is the facility's COMPLETE behaviour.
-    /// <para>Covering witness for GR-14.9.7.4-3/-4/-5, GR-14.9.36.4-3/-4/-5/-6 and GR-14.6.11-1 (the implicit
-    /// COMMIT at normal run-unit termination, which quantifies over the necessarily-empty set of active APPLY
-    /// COMMIT clauses). The runtime half — a bare COMMIT and ROLLBACK actually running as CONTINUE — is
-    /// <c>conformance:cases/14.9.7-COMMIT/pb137_commit_inert</c>.</para>
-    /// <para>⚠ The count is asserted per SITE, not per program: an emit that moved to a once-per-program guard
-    /// would still satisfy "contains COBOLNET1579" and would stop naming the second statement.</para></summary>
+    /// <summary>ISO §14.9.7 / §14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are the
+    /// run unit's commit control (kb/Work PB3338): with no APPLY COMMIT clause written they compile clean, with no
+    /// facility warning, and behave as CONTINUE (§14.9.7.4 GR1 / §14.9.36.4 GR1: "If this statement is executed when
+    /// there is no active APPLY COMMIT clause, then it has the same effect as a CONTINUE statement"). The runtime half
+    /// is <c>conformance:cases/14.9.7-COMMIT/pb137_commit_inert</c>.</summary>
     [Fact]
-    public void CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite()
+    public void CommitAndRollback_CompileCleanWithoutAFacilityWarning()
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(
             Prologue + "\n           COMMIT.\n           ROLLBACK.\n           STOP RUN.\n", 2023);
-        Assert.True(ok, "COMMIT/ROLLBACK are accepted-inert (§4.2.6 ¶3), never a compile error: "
+        Assert.True(ok, "COMMIT/ROLLBACK are provided (kb/Work PB3338), never a compile error: "
             + string.Join("\n", errors));
-        Assert.Equal(2, warnings.Count(w => w.Contains("COBOLNET1579", StringComparison.Ordinal)));
+        Assert.Empty(warnings);
     }
 
     /// <summary>The edition arm for commit and rollback: the facility is a COBOL-2023 addition (Annex E.3.2
-    /// item 2) and §8.9 reserves COMMIT and ROLLBACK at 2023 only, so at <c>--std 2014</c> the words are
-    /// user-defined and no facility warning may appear. The failure this catches is a <c>facilityWord</c>
-    /// predicate that stopped consulting the per-edition reservation table.</summary>
+    /// item 2) and §8.9 reserves COMMIT and ROLLBACK at 2023 only, so at <c>--std 2014</c> the word is a
+    /// user-defined word a data-name may be. The failure this catches is a reservation that leaked below 2023.</summary>
     [Fact]
-    public void CommitAt2014_IsAUserWord_AndDrawsNoFacilityWarning()
+    public void CommitAt2014_IsAUserWord()
     {
-        var (_, _, warnings) = EditionHarness.CompileFull("""
+        var (ok, errors, _) = EditionHarness.CompileFull("""
                    IDENTIFICATION DIVISION.
                    PROGRAM-ID. DCLC14.
                    DATA DIVISION.
@@ -117,14 +110,13 @@ public sealed class DeclinedFacilityTests
                        STOP RUN.
 
                """, 2014);
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1579");
+        Assert.True(ok, string.Join("\n", errors));
     }
 
     /// <summary>The <c>--permissive</c> arm of the declined-optional-element band. All three codes route
     /// through the ONE <c>EditionContext.Removed</c> severity seam, so the migration mode downgrades them to
     /// warnings and the program compiles with the declined element simply absent — the same seam every removed
-    /// construct uses. Asserted on the APPLY COMMIT clause because it is the one whose strict refusal is a
-    /// whole I-O-CONTROL clause rather than a data item.</summary>
+    /// construct uses. Asserted on a §13.16.2 validation clause (DEFAULT).</summary>
     [Fact]
     public void DeclinedBand_IsAWarningUnderPermissive()
     {
