@@ -68,10 +68,13 @@ internal static class StorageFormPass
         //     move's receiver, a BY REFERENCE crossing, a CALL RETURNING receiver (UsageCollectionPass). A native
         //     carrier holds a VALUE, so content with no numeric reading could not survive in it; the leaf
         //     stores its storage image instead, the one representation that holds every content. A REDEFINES
-        //     class member keeps its tier's classification (the bind-time image facts' same exclusion).
+        //     class member is promoted exactly as arm (3) promotes the class member of a whole group: Classify
+        //     arm (2) reads the same union, so a Tier-B view becomes CharImage(Numeric) and a Tier-A alias forwards
+        //     to its canonical's promoted form (kb/Work PB3563: a filter here left a REDEFINES-class numeric leaf
+        //     native, and a character channel into it converted the characters).
         foreach (var d in ctx.AllBindersAndInterfaces())
             foreach (var item in d.CharacterChannelItems)
-                if (item.Class is null && IsImagePromotable(item))
+                if (IsImagePromotable(item))
                     promoted.Add(item);
         // (5) THE §14.6.2.3.2 ACTION-1 BACKGROUND (owner decision kb/Work R53; kb/Work PB1134): an OPTIONS
         //     INITIALIZE clause sets "the storage allocated for the implied or associated sections" to the
