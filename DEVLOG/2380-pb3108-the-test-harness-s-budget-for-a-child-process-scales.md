@@ -1,4 +1,4 @@
-## PB3108: the test harness's budget for a child process scales with the work it was started to do
+## Entry 2380 — 2026-10-22 18:41 PDT — PB3108: the test harness's budget for a child process scales with the work it was started to do
 
 **The defect.** The test harness bounded every child process it observed by one fixed 120 s, sized for one program
 (compile it, or run it). The conformance suite's two-runner drift test,
@@ -50,3 +50,4 @@ run.py parallelism formula is stated once in the drift test and passed to run.py
 `CiHarnessLogDriftTests`, which reads one file (`drift_rules.py` maps the workflow to it as a specific rule); the trait
 went. Re-gate, run 20261023T010839Z-e8c3f5: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, with
 every added case passed and the two-runner drift test passing in 1 min 21 s while the leg's observation log read the host 96 to 99 % busy.
+
