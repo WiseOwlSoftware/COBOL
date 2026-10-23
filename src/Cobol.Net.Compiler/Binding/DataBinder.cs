@@ -2786,11 +2786,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
     /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
     /// truncating store — only the new categories get the strict check).</summary>
-    /// <summary>True when <paramref name="raw"/> is a numeric literal (optional sign, digits, one decimal point —
-    /// the floating-point form's significand likewise, ISO §8.3.3.3.3: the exponent cannot make a zero significand
-    /// nonzero) whose value is NOT zero — the VCR 86 gate subject (ISO §13.18.63 SR6 exempts the literal-zero forms
-    /// at all editions, so <c>0</c>/<c>0.00</c> return false; a quoted/national/figurative VALUE is not numeric).</summary>
-    private static bool IsNonZeroNumericLiteral(string raw)
+    /// <summary>How a VALUE operand's text reads as a numeric literal (optional sign, digits, one decimal point —
+    /// ISO §8.3.3.3.2 fixed-point; the floating-point form's significand likewise, §8.3.3.3.3: the exponent cannot
+    /// make a zero significand nonzero): <see cref="NumericLiteralMagnitude.NotNumeric"/> for a quoted, national,
+    /// boolean or figurative operand, else whether the value is zero.</summary>
+    private static NumericLiteralMagnitude MagnitudeOfNumericLiteral(string raw)
     {
         string t = raw.Trim();
         if (t.IndexOfAny(['E', 'e']) is > 0 and var ePos && NumericLiteral.IsFloatingPointForm(t)) t = t[..ePos];
@@ -2798,13 +2798,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool sawDigit = false, anyNonZero = false, sawDot = false;
         foreach (char c in t)
         {
-            if (c == '.') { if (sawDot) return false; sawDot = true; continue; }
-            if (!char.IsAsciiDigit(c)) return false;
+            if (c == '.') { if (sawDot) return NumericLiteralMagnitude.NotNumeric; sawDot = true; continue; }
+            if (!char.IsAsciiDigit(c)) return NumericLiteralMagnitude.NotNumeric;
             sawDigit = true;
             if (c != '0') anyNonZero = true;
         }
-        return sawDigit && anyNonZero;
+        return !sawDigit ? NumericLiteralMagnitude.NotNumeric
+            : anyNonZero ? NumericLiteralMagnitude.NonZero : NumericLiteralMagnitude.Zero;
     }
+
+    /// <summary>What <see cref="MagnitudeOfNumericLiteral"/> found: no numeric literal at all, the literal zero (any
+    /// of its integer and decimal spellings) or a nonzero numeric literal.</summary>
+    private enum NumericLiteralMagnitude { NotNumeric, Zero, NonZero }
 
     /// <summary>The numeric-literal FORM test (§8.3.3.3.2 fixed-point: an optional sign, digits, at most one decimal
     /// point, at least one digit) — the shape a permissive digits-only alphanumeric VALUE must have to be stored as a
@@ -2876,7 +2881,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         raw = ValidateValueCategory(pic, raw, where, subject);
         // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §13.18.63.3 SR2/SR3): a numeric
         // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
-        // leading/trailing nonzero digit (SR2), and a negative literal requires a signed subject (SR3). The
+        // leading/trailing nonzero digit (SR2), and a signed literal (either sign) requires a signed subject (SR3). The
         // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
         // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
         // out-of-range native field (COBOLNET1625). A NUMERIC-EDITED subject's numeric literal rides the same check
@@ -2919,9 +2924,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// rule that admits a numeric literal on a numeric-edited subject, and Annex E.3.3 item 43 DATES it: "VALUE
     /// clause, numeric-edited items and numeric literals. It is now permitted to allow numeric-edited data items
     /// to be assigned values specified as numeric literals." A COBOL-2023 addition, so below 2023 a numeric-edited
-    /// VALUE required an alphanumeric or national edited-image literal (§13.18.63.3 SR7). SR6 exempts "the
-    /// figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero" at ALL editions
-    /// (Annex E.2 item 28 / VCR 35), so only a NON-ZERO numeric literal is gated.</para>
+    /// VALUE required an alphanumeric or national edited-image literal (§13.18.63.3 SR7). EVERY numeric literal
+    /// is gated, the literal zero (<c>0</c>, <c>0.0</c>) included (kb/Work PB3566, overturning PB921's reading): the
+    /// last sentence of SR6, "the integer and decimal forms of the literal zero may also be specified for either
+    /// format", separates the fixed-point from the floating-point formats INSIDE the 2023 permission and is no
+    /// all-edition exemption, and the one zero a numeric-edited item had before 2023 was the FIGURATIVE constant
+    /// ZERO (Annex E.2 item 28), which is no numeric literal and stays accepted at every edition.</para>
     ///
     /// <para>⛔ <b>Why it is a method and not four call sites.</b> SR6 was written down TWICE: its literal-FORM
     /// half (fixed-point vs floating-point) sat in <see cref="ValidateValueCategory"/>, which the item VALUE, the
@@ -2953,7 +2961,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <param name="where">The diagnostic subject phrase (an item, a condition-name, or a report entry).</param>
     private void ScreenNumericEditedNumericLiteral(PicInfo pic, string raw, string where)
     {
-        if (pic.Category is PicCategory.NumericEdited && IsNonZeroNumericLiteral(raw))
+        if (pic.Category is PicCategory.NumericEdited && MagnitudeOfNumericLiteral(raw) is not NumericLiteralMagnitude.NotNumeric)
             ConstructRegistry.Check(Edition.Edition, Edition.Sink,
                 Constructs.ValueNumericLiteralNumericEdited2023, where);
     }
@@ -3062,7 +3070,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "numeric literal but the item is a fixed-point numeric-edited item — literals for fixed-point formats "
                     + "shall be specified as fixed-point (ISO §13.18.63.3 SR6)");
                 return CobolNet.Common.NumericLiteral.ExpandFloatingPoint(raw);
-            case PicCategory.NumericEdited when pic.IsFloatEdited && isNumeric && !isFloatLit && IsNonZeroNumericLiteral(raw):
+            case PicCategory.NumericEdited when pic.IsFloatEdited && isNumeric && !isFloatLit && MagnitudeOfNumericLiteral(raw) is NumericLiteralMagnitude.NonZero:
                 Edition.Error(DiagnosticCatalog.ValueEditedLiteralForm, $"{where}: the VALUE literal {raw} is a fixed-point "
                     + "numeric literal but the item is a floating-point numeric-edited item — its VALUE shall be a "
                     + "floating-point literal, ZERO, or the literal zero (ISO §13.18.63.3 SR6)");
@@ -3283,7 +3291,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// nonzero digit above the high exponent is a leading-nonzero truncation, one below the low exponent a
     /// trailing-nonzero truncation. Zero (and a literal whose only nonzero digits are outside the tested span) is
     /// handled naturally: a literal of value zero is always representable and skipped. A picture-less numeric item
-    /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's negative-into-unsigned test is
+    /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's signed-literal-into-unsigned test is
     /// independent of the digit range. A COMP-5 / fixed-width binary item's Digits equals the decimal width of its
     /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value (its full
     /// binary-capacity range is a separate discipline, not SR2's PICTURE range).
@@ -3295,8 +3303,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (edited ? pic.DigitPositions <= 0 && !pic.IsFloatEdited : pic.Digits <= 0) return;   // picture-less numeric (INDEX) — no digit positions
         string t = raw.Trim();
         if (t.Length == 0) return;
-        bool neg = t[0] == '-';
-        if (neg || t[0] == '+') t = t[1..];
+        bool signedLiteral = t[0] is '-' or '+';   // §8.3.3.3.2 2): a literal written with a sign is a signed literal
+        if (signedLiteral) t = t[1..];
         // A plain numeric literal is a digit run with at most one decimal point (the floating-point form of
         // §8.3.3.3.3 — significand E exponent — reaches only a floating-point numeric-edited subject here: a
         // fixed-point subject's ValidateValueCategory expanded it to its exact value first); figurative words, quoted
@@ -3316,8 +3324,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // SR3 (ISO §13.18.63.3, ISO_COBOL.md:22914): a signed numeric literal requires a signed numeric subject or "a
         // numeric-edited data item with a representation of a sign" (an editing sign symbol +, -, CR or DB — the
-        // floating-point form's significand sign included). Scoped to a NEGATIVE literal (the sign-losing case) — a
-        // leading '+' into an unsigned item is the common harmless idiom (+5 == 5, no data loss) and is not rejected.
+        // floating-point form's significand sign included). EVERY signed literal is refused by an unsigned subject, '+'
+        // as '-' (kb/Work PB3567): §8.3.3.3.2 2) makes a literal written with a sign a signed literal whatever its value, and
+        // SR3 has no sign-value carve-out ("+5 == 5, no data loss" was the CA34 implementer's latitude call, not the rule).
         // (a floating-point edited mask's exponent '+' is NOT a representation of the value's sign — only the
         // significand's own sign symbol is, CobolEdit.FloatMask.SigSign.)
         bool signBearing = pic.IsFloatEdited ? CobolEdit.FloatMask.Parse(mask, pic.DecimalPointIsComma).SigSign != '\0'
@@ -3328,10 +3337,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : edited
             ? mask.Any(c => c is '+' or '-') || CobolNames.Contains(mask, "CR") || CobolNames.Contains(mask, "DB")
             : pic.Signed;
-        if (neg && !signBearing)
+        if (signedLiteral && !signBearing)
         {
-            Edition.Error("COBOLNET1625", $"{where}: a signed (negative) numeric literal in the VALUE clause "
-                + "requires a signed numeric or sign-bearing numeric-edited subject (ISO §13.18.63.3 SR3)");
+            Edition.Error("COBOLNET1625", $"{where}: a signed numeric literal in the VALUE clause "
+                + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO §13.18.63.3 SR3)");
             return;
         }
 

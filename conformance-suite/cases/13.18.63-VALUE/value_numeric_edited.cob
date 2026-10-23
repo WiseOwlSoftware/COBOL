@@ -9,10 +9,9 @@
       *> item 28 + E.3.3 item 43). VCR 35: a figurative ZERO on a numeric-edited item
       *> is now treated as the numeric literal zero and EDITED per PICTURE (no longer
       *> the left-justified "0000000") — and BLANK WHEN ZERO now effects the init
-      *> (NOTE 2), so NE-BWZ initializes to spaces. The integer/decimal forms of the
-      *> literal zero (NE-LIT0) are edited at all editions (SR6 exemption). VCR 86: a
-      *> non-zero numeric literal VALUE (NE-NUM) is a 2023 capability, edited per the
-      *> MOVE rules.
+      *> (NOTE 2), so NE-BWZ initializes to spaces. VCR 86: a numeric literal VALUE
+      *> (NE-NUM, and the literal zero NE-LIT0 - kb/Work PB3566) is a 2023 capability,
+      *> edited per the MOVE rules.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NUMED-VAL.
        DATA DIVISION.

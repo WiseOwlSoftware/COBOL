@@ -80,7 +80,8 @@
       *>       usage national"). 13.18.63.3 SR8: "When a numeric-edited data description includes the
       *>       BLANK WHEN ZERO clause and the VALUE clause uses either an alphanumeric or national
       *>       literal, the BLANK WHEN ZERO clause has no effect on initialization" - so NBZ, seeded
-      *>       from N"  0", keeps [  0]; NBZN, seeded from the NUMERIC literal 0, is blanked by SR8's
+      *>       from N"  0", keeps [  0]; NBZN, STORED from the NUMERIC literal 0 by a MOVE (a numeric literal VALUE on a
+      *>       numeric-edited item is a COBOL-2023 permission, Annex E.3.3 item 43), is blanked by SR8's
       *>       NOTE 2 and 13.18.8.4 GR1: [   ]. After MOVE 0 the clause applies to both: [   ] / [   ].
       *>
       *> GL    13.18.60.4 GR1 - "If the USAGE clause is specified or implied at a group level, it
@@ -129,7 +130,7 @@
        01 NED   PIC ZZ9 USAGE NATIONAL VALUE N"  7".
        01 NBOOL PIC 1(4) USAGE NATIONAL VALUE B"1010".
        01 NBZ   PIC ZZ9 USAGE NATIONAL BLANK WHEN ZERO VALUE N"  0".
-       01 NBZN  PIC ZZ9 USAGE NATIONAL BLANK WHEN ZERO VALUE 0.
+       01 NBZN  PIC ZZ9 USAGE NATIONAL BLANK WHEN ZERO.
        01 GRP   USAGE NATIONAL.
           05 GL PIC 9(3) VALUE 12.
        01 GSGN  USAGE NATIONAL SIGN IS LEADING SEPARATE.
@@ -150,6 +151,7 @@
            DISPLAY "NED=[" NED "]"
            DISPLAY "NBOOL=[" NBOOL "]"
            DISPLAY "NBZ=[" NBZ "]"
+           MOVE 0 TO NBZN
            DISPLAY "NBZN=[" NBZN "]"
            DISPLAY "GL=[" GL "]"
       *> 13.18.49.4 GR1/GR3/GR5 - the SAME AS subject is the target's whole description, ancestor

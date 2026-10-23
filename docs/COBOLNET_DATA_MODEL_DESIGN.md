@@ -355,7 +355,8 @@ seeds the storage it shares), and a condition-name under a CONSTANT RECORD was l
 
 **⛔ §13.18.63.3 SR2/SR3 ARE ALL-FORMATS RULES, AND ONE FUNNEL ASKS THEM FOR EVERY FORMAT** (kb/Work PB208,
 PB586). `DataBinder.ScreenValueLiteral` is the ONE literal screen — SR2's class half (`ValidateValueCategory`),
-its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**), SR6's edition gate — and every VALUE
+its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**: a literal written with EITHER sign, `+5`
+as `-5`, is a signed literal §8.3.3.3.2 SR2 and an unsigned subject refuses it, kb/Work PB3567), SR6's edition gate — and every VALUE
 literal of every format now takes it: format 1's item VALUE, format 2's per-occurrence literals, format 3's
 literal-2, both ends of a THROUGH range and literal-4 (the conditional variable's picture as the subject,
 §13.18.63.4 GR19), and format 4's report-section literals. Format 3 used to call the class half directly, so
@@ -1231,9 +1232,14 @@ refused and the format-3 spelling `01 X PIC ZZ9.99. 88 X-TEN VALUE 10.` was ACCE
 image, while a format-4 report entry `03 COLUMN 1 PIC ZZ9.99 VALUE 10.` — a format SR6 NAMES — was accepted and
 printed it, because a report entry's VALUE operands pass through neither screen. Both halves now live in
 `DataBinder.ScreenNumericEditedNumericLiteral`, asked from `ValidateValueCategory` (formats 1, 2, 3 and the group
-VALUE) and from `DataBinder.Reports.cs` once the printable item's picture is settled (format 4). SR6's zero
-exemption — "the figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero" — is
-edition-free and is the screen's own complement. **DETERMINATION:** SR6's text enumerates formats 1, 2 and 4 and
+VALUE) and from `DataBinder.Reports.cs` once the printable item's picture is settled (format 4). **EVERY numeric
+literal is gated, the literal zero (`0`, `0.0`) included** (kb/Work PB3566, which overturned PB921's first reading):
+SR6's last sentence — "the integer and decimal forms of the literal zero may also be specified for either format" —
+separates the fixed-point from the floating-point formats INSIDE the 2023 permission and is no all-edition
+exemption, and the one zero a numeric-edited item had before 2023 was the FIGURATIVE constant ZERO (Annex E.2 item
+28), which is no numeric literal and stays accepted at every edition: the screen asks
+`DataBinder.MagnitudeOfNumericLiteral(raw) is not NotNumeric`, and the floating-point subject's fixed-point-zero
+exemption (`ValidateValueCategory`'s form arm) asks the same classifier for `NonZero`. **DETERMINATION:** SR6's text enumerates formats 1, 2 and 4 and
 omits format 3; the omission is read as naming the DATA-ITEM formats rather than as excluding the condition-name
 one, because §13.18.63.4 GR19 gives a condition-name "the characteristics of ... its conditional variable",
 §14.9.39.4 GR6 places the literal "according to the rules for the VALUE clause" (i.e. SR6's conversion), and
