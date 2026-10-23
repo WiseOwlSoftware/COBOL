@@ -343,10 +343,13 @@ public sealed class SequentialConnector : FileConnector
     /// <para>An over-length LINE SEQUENTIAL record's unread remainder (§14.9.30.4 GR15 / NOTE 3) is untouched
     /// on purpose: it is part of a record ALREADY made available, and <c>_lineByteOffset</c> is already past
     /// its physical line, so re-anchoring neither loses it nor re-reads it.</para>
-    /// <para>⛔ A TRUNCATING SIBLING CANNOT ARISE, so no rule is written for one: every cell of Table 19's two
-    /// OUTPUT request rows is <i>Unsuccessful open</i> (§14.9.27.4; §9.1.13.9 1) e) — <i>"An attempt is made to
-    /// open a physical file in the output mode and the physical file is currently open by another file
-    /// connector"</i>), so nothing may truncate this file while this connector holds it open.</para>
+    /// <para>⛔ A TRUNCATING SIBLING ANNOUNCES ITSELF LIKE A RELEASE. From COBOL-2002 none arises: every cell of
+    /// Table 19's two OUTPUT request rows is <i>Unsuccessful open</i> (§14.9.27.4; §9.1.13.9 1) e) — <i>"An attempt
+    /// is made to open a physical file in the output mode and the physical file is currently open by another file
+    /// connector"</i>), so nothing may truncate this file while this connector holds it open. At COBOL-85 the file
+    /// sharing facility is not in effect, so that OPEN OUTPUT is admitted and truncates (<see cref="OpenCore"/> bumps
+    /// the generation through <see cref="NoteRelease"/>): the next READ re-anchors and finds the file as it stands,
+    /// which holds no record (§14.9.30.4 GR21).</para>
     /// <para>⛔ ACROSS RUN UNITS THERE IS NO GENERATION TO COMPARE, SO A READER THAT MAY MEET ANOTHER RUN UNIT'S
     /// WRITER RE-ANCHORS AT EVERY FRAME (kb/Work PB2692). The release generation is one run unit's memory; a
     /// writer in another run unit releases records this run unit never hears of, and its REWRITE of a record
@@ -1143,6 +1146,12 @@ public sealed class SequentialConnector : FileConnector
                     // so the first record released is ordinal 1. (§9.1.15 item 3 does not admit output as a
                     // concurrent mode, so no other connector is numbering against this file at the time.)
                     if (SharedPhysical is { } outShared) outShared.ReleasedOrdinal = 0;
+                    // …and the truncation is a change to the medium that every sibling reader's read-ahead must hear of
+                    // (§14.9.30.4 GR21 c: the record selected is an existing record in the physical file). Table 19
+                    // refuses an OUTPUT against an open sibling, so none exists from 2002; at COBOL-85 nothing is
+                    // refused (FileSharingFacility), a reader may hold records that this file no longer holds, and the
+                    // generation is the one channel a sibling of this run unit listens on (EnsureReaderCoherent).
+                    NoteRelease();
                     break;
 
                 case FileOpenMode.Extend:
