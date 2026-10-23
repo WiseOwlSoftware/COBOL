@@ -1,4 +1,4 @@
-## PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing is read by its cause (a held lock is BUSY; a NOT RUN blocks only when the branch carries it)
+## Entry 2376 — 2026-10-22 17:41 PDT — PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing is read by its cause (a held lock is BUSY; a NOT RUN blocks only when the branch carries it)
 
 **Why.** On 2026-10-22 PR #385's `ci-gate` job completed success at 18:46:46Z while its check-run on the head commit
 stayed `in_progress` for 50 minutes; the merge queue was empty, the pull request BLOCKED, and nothing looked, because a
@@ -87,3 +87,4 @@ main's reading, a finisher's. `read_verdict` returns a `Reading` (word and cause
 gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,615 · Unit 1,280 · Characterization 31
 … ===`; `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 5c6f442a5)
 ===`.
+
