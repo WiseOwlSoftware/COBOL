@@ -6,8 +6,9 @@
 //
 // Annex A.4.1: "An implementation shall accept the syntax and provide the functionality for an optional
 // element only when support for that language element is claimed by the implementor." WiseOwl COBOL claims no
-// support for the VALIDATE facility (A.4.14) or for commit and rollback (A.4.3) — docs/CONFORMANCE.md §5 —
-// so their syntax is REFUSED. The obligation this file discharges is that the refusal NAME THE FACILITY.
+// support for the VALIDATE facility (A.4.14) — docs/CONFORMANCE.md §5 —
+// so its syntax is REFUSED. (Commit and rollback, A.4.3, was declined here until kb/Work PB3338 built it on the
+// keyed store engine; its APPLY COMMIT clause is CobolIO.g4's `applyCommitClause` now.) The obligation this file discharges is that the refusal NAME THE FACILITY.
 // MEASURED before this file existed, at EVERY edition: `05 A PIC X(4) DEFAULT IS "AB".` →
 // `COBOL0001: no viable alternative at input 'DEFAULT'`; `05 A PIC X(4) DESTINATION IS B.` → the same, on
 // DESTINATION; `05 A PIC 9(4) INVALID WHEN A = 0.` → `COBOL0307: unexpected 'INVALID'`. A user learned their
@@ -19,7 +20,7 @@
 // that 0901 to the CLAUSE position; the measurement says otherwise, and the truth was worse — a wholly
 // generic error.) That is the same gap kb/Work PB100 closed for the locale module and kb/Work PB137 / Wave H
 // closed for the VALIDATE, COMMIT and ROLLBACK *statements*; this file closes it for the DATA DIVISION and
-// I-O-CONTROL halves, which is where 17 of A.4.3's 25 conditioned rules and 56 of A.4.14's 73 live.
+// DATA DIVISION half, which is where 56 of A.4.14's 73 conditioned rules live.
 //
 // ⛔ THE PARSE IS DELIBERATELY PERMISSIVE INSIDE THE DECLINED CONSTRUCT, EXACT AT ITS EDGES. The licence is
 // §4.2.7 and A.4.1, NOT §4.2.6 (kb/Work PB709): §4.2.6's "it is not required to diagnose syntax errors within
@@ -45,13 +46,12 @@
 //   (b) A CONSTRUCT GATE — a D7 defect. The arms whose words have NO other reading below the introducing edition:
 //       CLASS, DESTINATION, INVALID and VARYING are reserved at all four editions (MEASURED against
 //       tests/version-matrix/reserved-words.json; CLASS because §12.3.7's SPECIAL-NAMES CLASS clause has always
-//       existed), and the data-description CLASS clause (§13.18.11) arrived with VALIDATE at COBOL-2002; APPLY is
-//       §8.10 context-sensitive (a keyword only in the I-O-CONTROL paragraph) and no edition before 2023 has an
-//       APPLY clause there, so `APPLY COMMIT` has no other reading below 2023 either. Below its introduction such a
-//       construct does not exist, and the gate refuses it with a bare COBOL0001 where D7 wants the conformance pass
-//       to name the edition (COBOLNET0900). (kb/Work PB375 stated (a) for CLASS; the measurement says (b).)
-// The three edition numbers that carry (b) (dataDescriptionClause's and valueClause's is2002, ioControlClause's
-// is2023) are recorded as D7 defects in EditionReadDriftTests, to be replaced by a word-status read of the arm's
+//       existed), and the data-description CLASS clause (§13.18.11) arrived with VALIDATE at COBOL-2002. Below its
+//       introduction such a construct does not exist, and the gate refuses it with a bare COBOL0001 where D7 wants
+//       the conformance pass to name the edition (COBOLNET0900). (kb/Work PB375 stated (a) for CLASS; the
+//       measurement says (b).)
+// The edition numbers that carry (b) (dataDescriptionClause's and valueClause's is2002) are recorded as D7 defects
+// in EditionReadDriftTests, to be replaced by a word-status read of the arm's
 // leading word plus a conformance-pass gate once constructs.json can carry a construct that is refused by name AT
 // its introduction (a declined row). Until then the gates stay — a (b) gate is not removable as redundant, because
 // without it the construct would be reported as the declined facility at an edition that never had it.
@@ -226,21 +226,4 @@ validateStatusStage
 // this format; the entry-name slot is already optional in dataDescriptionEntry, so no change is needed for it.
 validateValidPhrase
     : (IS | ARE)? (VALID | INVALID) (WHEN condition)?
-    ;
-
-// ── A.4.3 item 2: the I-O-CONTROL paragraph's APPLY COMMIT clause.
-// ISO §12.4.6.3.2 — APPLY COMMIT [ON] [ [ file-name-1 ] [ identifier-1 ] ] …
-// ⛔ THIS COMMENT USED TO SAY "APPLY, COMMIT AND ON ARE ALL UNDERLINED", AND THAT WAS FALSE (kb/Work PB695
-// family 3). MEASURED on printed page 363 / folio 333: APPLY's box 145.21–175.84 carries a rule at
-// 143.99–177.13 (100% cover) and COMMIT's 180.64–224.64 one at 182.04–225.22 (96.8%), while ON's box
-// 228.49–243.51 has NO horizontal rule in its band at all — the nearest ends 3.3 pt to its left. ON is
-// therefore an OPTIONAL WORD (§8.3.2.4.3) and `APPLY COMMIT F1` reached COBOL0001 instead of the documented
-// COBOLNET1709 refusal. A declined construct's grammar must be EXACT at its edges (§4.2.6) precisely so the
-// refusal names the feature rather than the syntax.
-// The operand list is a repetition of an all-optional pair, i.e. syntactically any mix of file-names and
-// identifiers; both arrive as dataReference here (file-name-1 and identifier-1 are indistinguishable without
-// the symbol table, and §12.4.6.3.3 SR1-SR4, which would tell them apart, are optional WITH the declined
-// module). COMMIT stays the required anchor, so the clause can never match on APPLY alone.
-applyCommitClause
-    : APPLY COMMIT ON? dataReference+
     ;

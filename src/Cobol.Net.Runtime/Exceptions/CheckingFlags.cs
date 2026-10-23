@@ -169,6 +169,19 @@ public struct CheckingFlags
     /// (§14.9.32.4 GR1; kb/Work PB349).</summary>
     public bool FlowRelease;
 
+    /// <summary>EC-FLOW-COMMIT — a COMMIT statement executed under the control of a recursive runtime element or a
+    /// file SORT or MERGE statement (§14.9.7.4 GR2, §9.1.18.7; kb/Work PB3338).</summary>
+    public bool FlowCommit;
+
+    /// <summary>EC-FLOW-ROLLBACK — a ROLLBACK statement executed under the control of a recursive runtime element or a
+    /// file SORT or MERGE statement (§14.9.36.4 GR2, §9.1.18.7; kb/Work PB3338).</summary>
+    public bool FlowRollback;
+
+    /// <summary>EC-FLOW-APPLY-COMMIT — a runtime element containing an APPLY COMMIT clause activated under the control
+    /// of a recursive runtime element or a file SORT or MERGE (§12.4.6.3.4 GR3/GR4, which spell the name
+    /// "EC-FLOW-APPLY"; Table 13's EC-FLOW-APPLY-COMMIT row is the one that describes it; kb/Work PB3338).</summary>
+    public bool FlowApplyCommit;
+
     /// <summary>EC-FLOW-RETURN — a RETURN executed other than within the range of an output procedure being
     /// executed by a MERGE or SORT statement that references its file-name-1 (§14.9.34.4 GR1; kb/Work PB349).</summary>
     public bool FlowReturn;

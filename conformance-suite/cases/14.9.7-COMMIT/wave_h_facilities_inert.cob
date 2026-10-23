@@ -5,13 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> Wave H — the ISO §4.2.6 ¶3 recognize-and-name band. MCS (SEND/RECEIVE), COMMIT/ROLLBACK and
-      *> VALIDATE are facilities COBOL.NET does not implement: MCS and commit/rollback are PROCESSOR-DEPENDENT
-      *> (§4.2.6, Annex A.3 items 4 and 6-7) and VALIDATE is OPTIONAL (§4.2.7, A.4.14) and, at 2023, also
-      *> OBSOLETE (§4.2.13, F.2 item 5). §4.2.6 ¶3 nonetheless makes the compile-time WARNING MECHANISM
-      *> mandatory, and §14.6.13.1.1 licenses raising no exception condition for them.
-      *> This golden pins the resulting posture: the program COMPILES, RUNS, and the facilities are INERT —
-      *> named warnings COBOLNET1578/1579/1580 go to the non-failing compile channel (not stdout), so the
+      *> Wave H — the ISO §4.2.6 ¶3 recognize-and-name band. MCS (SEND/RECEIVE) and VALIDATE are
+      *> facilities COBOL.NET does not implement: MCS is PROCESSOR-DEPENDENT (§4.2.6, Annex A.3 item 4) and
+      *> VALIDATE is OPTIONAL (§4.2.7, A.4.14) and, at 2023, also OBSOLETE (§4.2.13, F.2 item 5). §4.2.6 ¶3
+      *> nonetheless makes the compile-time WARNING MECHANISM mandatory, and §14.6.13.1.1 licenses raising
+      *> no exception condition for them. COMMIT and ROLLBACK are PROVIDED since kb/Work PB3338; with no
+      *> APPLY COMMIT clause active each has "the same effect as a CONTINUE statement" (§14.9.7.4 GR1,
+      *> §14.9.36.4 GR1), so they draw no warning and the output is unchanged.
+      *> This golden pins the resulting posture: the program COMPILES, RUNS, and the statements are INERT —
+      *> the named warnings COBOLNET1578/1580 go to the non-failing compile channel (not stdout), so the
       *> observable behaviour is simply that the surrounding statements execute normally.
       *> Before Wave H each of these was a GENERIC parse error, which satisfied neither the warning
       *> obligation nor the project's never-a-silent-wrong-answer rule.

@@ -223,6 +223,11 @@ internal sealed partial class EcBinder
         // writes. RELEASE's record size is §13.18.43.4 GR14 b) / GR19 b); the -ACTIVE rule for a RELEASE in an output
         // procedure / a RETURN in an input procedure is §14.9.40.4 GR10 / GR13, §14.9.24.4 GR8.
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
+        // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
+        // EC-FLOW-ROLLBACK at the statement's entry (§14.9.7.4 GR2, §14.9.36.4 GR2); the refused file's EC-I-O condition
+        // is its own exception processing (the I-O hook), as for any input-output statement.
+        new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT"]),
+        new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK"]),
         new(s => s is BoundReturn, ["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN", "EC-SORT-MERGE-ACTIVE"]),
         // The SORT / MERGE statements themselves (kb/Work PB1036). PRECISE: every raise is CobolSort's, at the point
         // the verb's rule names. A name the statement's shape cannot raise is not asked (a SORT with no USING releases
@@ -238,8 +243,11 @@ internal sealed partial class EcBinder
         new(s => s is BoundContinueAfter, ["EC-CONTINUE-LESS-THAN-ZERO"]),
         // CALL: the EC-PROGRAM family, the EC-EXTERNAL trio (§14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point,
         // §14.8.4) and the activation's resources (§14.9.4.4 GR3c / §8.4.3.2.4 GR6c; kb/Work PB2659 — PRECISE: an
-        // ACTIVATION raises it, so it is not in ProgramNames, which a CANCEL queries too).
-        new(s => s is BoundCallProgram, [.. ProgramNames, .. ExternalNames, "EC-PROGRAM-RESOURCES"]),
+        // ACTIVATION raises it, so it is not in ProgramNames, which a CANCEL queries too). EC-FLOW-APPLY-COMMIT likewise
+        // (kb/Work PB3338): the activated element's APPLY COMMIT clause raises it at its activation, under the CALL's
+        // checking (§12.4.6.3.4 GR3/GR4; Table 13: "Invocation … by a runtime element for which commit and rollback is
+        // not permitted").
+        new(s => s is BoundCallProgram, [.. ProgramNames, .. ExternalNames, "EC-PROGRAM-RESOURCES", "EC-FLOW-APPLY-COMMIT"]),
         // A USER-FUNCTION activation is a DIFFERENT raise: a locate miss is EC-FUNCTION-NOT-FOUND (§8.4.3.2.4 GR6b).
         new(s => s is BoundCallProgram { IsFunction: true }, FunctionActivationNames),
         // PRECISE: only an activation THROUGH a function-pointer can find the pointer NULL (§8.4.3.2.4 GR6c; PB847).

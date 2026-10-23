@@ -662,6 +662,7 @@ internal sealed class BinderDriver
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
+            UnitIsRecursive = unit.Recursive,   // §12.4.6.3.3 SR5 (kb/Work PB3338)
             // §8.4.6.6 / §8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the
             // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
             ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),
