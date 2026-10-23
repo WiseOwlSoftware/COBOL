@@ -42,4 +42,8 @@ product, a relation, and depth-10 chains of 8 / 2 and 1 / 3 into scale-4 and sca
 values come from §8.8.1.2 3) and §14.7.4.3 2). `NestedQuotientPrecisionDriftTests` compiles every quotient-crossing shape
 at depth 2 and depth 16 and requires the same division-kernel scales. On the base tree it was red, with scales up to 228.
 CONFORMANCE.md DOC-A.1-123 and DOC-A.1-179 are corrected: they had both said "up to 14 guard digits" and "a QUOTIENT is
-formed on the SDIDI whatever its operands". No inventory row moved; the rules' rows were already OK and gain witnesses.
+formed on the SDIDI whatever its operands". One golden is re-derived: `14.9.12-DIVIDE/l1_divide_remainder_backmultiply_size_error` had pinned the checked multiply's
+size error for a REMAINDER back-multiply of VALUE about 10**12 (unscaled about 10**40). It is now
+`OVF=NONE BQ=999999999999.98999999900000 BR=000000000000.000000000`, computed from §14.9.12.4 GR7 and §14.7.5 case 5.
+No inventory row moved state. GR-14.7.5-5 (`CobolNum.MulChecked` retired as a witness) and GR-14.9.12.4-7 are
+restated through batches, and the rules' other rows were already OK and gain witnesses.
