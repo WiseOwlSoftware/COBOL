@@ -595,6 +595,14 @@ internal static class PlaceRenderer
             }
             else parts.Add(c.IsGroup ? CellLeaves(at, depth + 1) : $"(object?)({LeafCarrierRead(at.ToPlace())})");
         }
+        // The implicit filler after the members (§8.5.1.6.3, kb/Work PB3598): one string of boolean positions per entry, the
+        // record struct's `__bf` field in `RecordStructEmitter.EmitLeafMethods` — a table's pad as every gap back to back.
+        foreach (var filler in BitLayout.WindowFillersOf(cur.Item))
+        {
+            if (filler.Gaps == 0) { parts.Add($"(object?)({Read(FillerGap(cur, filler, null).ToPlace())})"); continue; }
+            string k = $"__lk{depth}";
+            parts.Add($"(object?)string.Concat(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, {filler.Gaps}), {k} => {Read(FillerGap(cur, filler, new PositionLocal(k)).ToPlace())}))");
+        }
         return $"new object?[] {{ {string.Join(", ", parts)} }}";
     }
 
@@ -628,7 +636,25 @@ internal static class PlaceRenderer
                     ? $"{{ {CellLeavesStore(at, slot, depth + 1)} }}"
                     : LeafCarrierWrite(at.ToPlace(), $"({c.ElementType}){slot}!"));
         }
+        // The inverse of the filler entries CellLeaves appends: a table's pad takes its gaps from the entry in turn.
+        foreach (var filler in BitLayout.WindowFillersOf(cur.Item))
+        {
+            string slot = $"{v}[{i++}]";
+            if (filler.Gaps == 0) { stmts.Add(Write(FillerGap(cur, filler, null).ToPlace(), $"(string){slot}!")); continue; }
+            int bits = filler.Item.Pic!.Length;
+            stmts.Add($"for (int {k} = 1; {k} <= {filler.Gaps}; {k}++) {{ "
+                + Write(FillerGap(cur, filler, new PositionLocal(k)).ToPlace(), $"((string){slot}!).Substring(({k} - 1) * {bits}, {bits})") + " }");
+        }
         return string.Join(" ", stmts);
+    }
+
+    /// <summary>The cursor at the implicit filler <paramref name="filler"/> of the cell-backed group at <paramref name="cur"/> — at
+    /// gap <paramref name="gap"/> (1-based) of a table's pad, null for a run's tail (<see cref="WindowFiller"/>).</summary>
+    private static PlaceCursor FillerGap(PlaceCursor cur, WindowFiller filler, Position? gap)
+    {
+        var at = gap is null ? cur : cur.Child(filler.Subject)?.Indexed(gap);
+        return at?.Child(filler.Item) ?? throw new InvalidOperationException(
+            $"no cursor reaches the implicit filler of '{cur.Item.CobolName}' (kb/Work PB3598)");
     }
 
     /// <summary>The <c>CobolDynTable</c> of the cell-backed dynamic-capacity table member at <paramref name="at"/> (its
