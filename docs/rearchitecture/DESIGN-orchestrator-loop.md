@@ -1040,7 +1040,7 @@ each part declares in its header (`# SELF-TEST-PLATFORM: windows — …`).
 each `test_*.py`/`test_*.ps1` and each script that handles `--self-test` under `scripts/` and runs them all in parallel,
 each with a private `COBOL_COORD_DIR`, so none touches the live coordination directory. It is one of the gate driver's
 audits (`run_gate_legs.py` `AUDITS`, before the gate slot), a leg of `linux-gate.sh`, and a step of CI's `audits` job
-(Linux) and `windows-build-test` job (Windows, where the Windows-only parts run); a self-test for the other platform is
+(Linux) and `windows-self-tests` job (Windows, where the Windows-only parts run); a self-test for the other platform is
 reported `NOT RUN on <platform>` with its declared reason, never skipped silently. An implementer gate reuses the
 recorded PASS of a self-test whose inputs its change left unchanged, so these long parts run there only when a change
 touches what they read (kb/Work PB2914; DESIGN-test-build-ci.md §3.14.10). `test_plan_wave.py` imports
