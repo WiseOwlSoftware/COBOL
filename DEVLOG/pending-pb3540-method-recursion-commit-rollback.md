@@ -37,4 +37,4 @@ states the one rule and drops the known gap.
 memory ("recursive program, function or method") and the check caught it (the text is "recursive source element"). No other
 reader of the old table query existed. An unbalanced `Pop` stays a no-op on an empty stack and the count cannot go negative.
 
-**Gate.** GATE_VERDICT_LINE
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at f5c659a2d (run `000001-20261023T171506Z`): Conformance 10,515/18,197, Unit 34,981/35,568, Characterization 5/36 cases ran in leg 1; the seven new conformance cases (three goldens at 2023, two refusals at 2023, the below-2023 refusal at 2002 and 2014) and the eleven new unit cases passed. The Linux gate is the landing's.
