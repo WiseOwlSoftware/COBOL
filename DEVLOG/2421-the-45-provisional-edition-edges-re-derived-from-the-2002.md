@@ -1,4 +1,4 @@
-## The 45 provisional edition edges re-derived from the 2002 and 2009 committee texts: 40 confirmed, 4 wrong (two new defects), 1 unverified
+## Entry 2421 — 2026-10-23 15:14 PDT — The 45 provisional edition edges re-derived from the 2002 and 2009 committee texts: 40 confirmed, 4 wrong (two new defects), 1 unverified
 
 Two read-only adjudicators re-derived every constructs.json edge labelled provisional or derived-not-quoted from the
 archived 2002 and 2009 committee texts. Forty edges are confirmed with a quoted sentence, one cannot be quoted without
@@ -7,3 +7,4 @@ a 1985 text, and four are wrong: two were already filed as PB3600 and PB3601, an
 at 2002 and 2014 by its own syntax rule. PB3606 records that `cite.py --check` passed a symbol-led quotation against
 the wrong rule, and PB3607 covers replacing the provisional labels with the quoted evidence. PB3602 is closed and no
 code changed.
+
