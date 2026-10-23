@@ -83,5 +83,7 @@ branch merged, once per main head and host, recorded in the common git dir's `en
 the same cause is exit 2 (main's, the operator's), anything else blocks, exit 5 with a BLOCKED line naming the cause and
 main's reading, a finisher's. `read_verdict` returns a `Reading` (word and cause), and `run_gates` and `land` read it.
 
-**Gate** (run 20261022T221903Z-7338fd, at ad9ea2dc6): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
-GREEN — leg 2 left to CI's whole-population run: Conformance 7,494 · Unit 1,231 · Characterization 31 … ===`.
+**Gate** (run 20261022T235634Z-491905, at 5c6f442a5, review round 2): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 7,615 · Unit 1,280 · Characterization 31
+… ===`; `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 5c6f442a5)
+===`.
