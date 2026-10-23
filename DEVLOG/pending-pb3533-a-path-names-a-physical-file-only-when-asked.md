@@ -36,3 +36,5 @@ commit.
 outside party replacing a file mid-run). Witnesses: `CommitRollbackRuntimeTests` (re-OPEN after removal or rename, INPUT and
 I-O, both organizations; its '39' and '61' refusals; two connectors on a replaced path), `PhysicalFileIdentityDriftTests`
 (the identity primitives on both hosts), `CrossRunUnitKeyedStoreDriftTests` (the store table). No inventory row re-verdicted.
+
+**Gates.** Windows (run 000003-20261023T173714Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ... Conformance 10,427/18,190 · Unit 34,885/35,565 · Characterization 5/36 cases ran ...`, the thirteen added or changed cases among them. Linux (`--legs unit,conformance`): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 97a867292) ===`.
