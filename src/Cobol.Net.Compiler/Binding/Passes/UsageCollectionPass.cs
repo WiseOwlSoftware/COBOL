@@ -392,6 +392,7 @@ internal static class UsageCollectionPass
         /// (<c>StorageFormPass.Classify</c>; kb/Work PB2004) — names the item whose storage it reaches.</summary>
         private void Channel(Place? place)
         {
+            if (place is RenamesPlace alias) { AliasImage(alias); return; }
             if (place is null or RedefViewPlace || place.Item.IsGroup) return;
             channels.Add(place.Item);
         }
@@ -403,7 +404,26 @@ internal static class UsageCollectionPass
         /// <c>MOVE SPACES TO DT (1)</c> read back <c>000</c> where the element held spaces).</summary>
         private void P(Place? place)
         {
+            if (place is RenamesPlace alias) { AliasImage(alias); return; }
             if (place?.Item is { IsGroup: true } g) set.Add(g);
+        }
+
+        /// <summary>⛔ A LEVEL-66 RENAMES ... THROUGH ALIAS IS A GROUP OPERAND TOO (kb/Work PB3563). ISO §13.18.45.4 GR2 —
+        /// "data-name-1 defines an alphanumeric group item that includes all elementary items starting with
+        /// data-name-2 …" — so every operand position of the alias is a whole-group position
+        /// (<see cref="MoveClassifier"/> already answers so for a MOVE), and §14.9.25.4 GR4 makes a group move "an
+        /// alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of
+        /// internal representation to another". The alias is not STRUCTURALLY a group — <see cref="DataItem.IsGroup"/>
+        /// is false for a 66, which has no children — so <see cref="P"/> dropped it and the numeric leaves it spans kept
+        /// a native value carrier, which converted the characters stored through the alias (<c>MOVE "XXXXXXX" TO
+        /// R-AC</c> over <c>X(2) 9(3) X(2)</c> left <c>XX000XX</c>). The alias composes its span from
+        /// <see cref="RenamesPlace.Leaves"/>, each the place of one spanned ELEMENTARY item, so the leaves are exactly
+        /// what a group's recursion would have reached: they join the elementary character-channel set that
+        /// <c>StorageFormPass</c> promotes through the one eligibility test, and the bind-time
+        /// <c>NumericImagePlace</c> wraps around them render as the identity over an image carrier.</summary>
+        private void AliasImage(RenamesPlace alias)
+        {
+            foreach (var leaf in alias.Leaves) channels.Add(leaf.Item);
         }
     }
 }
