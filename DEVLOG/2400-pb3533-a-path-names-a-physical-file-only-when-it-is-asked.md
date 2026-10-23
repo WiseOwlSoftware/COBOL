@@ -1,4 +1,4 @@
-## PB3533: a path names a physical file only when it is asked - the kept state and the store table tell a replaced file by its host identity
+## Entry 2400 — 2026-10-23 11:29 PDT — PB3533: a path names a physical file only when it is asked - the kept state and the store table tell a replaced file by its host identity
 
 **The defect (kb/Work PB3533, a review lead of PB3493/PB3494).** What a CLOSE under commit control keeps was matched to its
 physical file by the path alone, and so was the run unit's store table. On Linux a file can be removed (or renamed away)
@@ -38,3 +38,4 @@ I-O, both organizations; its '39' and '61' refusals; two connectors on a replace
 (the identity primitives on both hosts), `CrossRunUnitKeyedStoreDriftTests` (the store table). No inventory row re-verdicted.
 
 **Gates.** Windows (run 000003-20261023T173714Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ... Conformance 10,427/18,190 · Unit 34,885/35,565 · Characterization 5/36 cases ran ...`, the thirteen added or changed cases among them. Linux (`--legs unit,conformance`): `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 97a867292) ===`.
+
