@@ -37,4 +37,6 @@ re-verdicted CONFORMS with restated statements; no row closed (GAP 74). No diagn
 Self-review (test analyzer, silent-failure hunter, comment analyzer): the new expected values come from §13.18.40.5 rule 7
 and Table 8 and §13.18.63.3 SR8 NOTE 2, the signed-subject golden reads values back through comparisons so it does not
 pin an implementor-defined sign image, and two stale comments ("negative literal" in `ValidateNumericValue`'s remarks) were
-corrected. Gate: GATE-VERDICT-PENDING.
+corrected. Gate (run 000002-20261023T173202Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance
+10,553 of 18,207, Unit 34,701 of 35,559, Characterization 5 of 36 ran; the first gate, run 000001, stopped RED on the
+citations audit, which read a section reference in a design-doc sentence and was reworded).
