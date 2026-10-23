@@ -1,4 +1,4 @@
-## A boolean function or a national literal moved to a group now deposits its usage-bit or UTF-16BE representation (PB3562)
+## Entry 2405 — 2026-10-23 12:14 PDT — A boolean function or a national literal moved to a group now deposits its usage-bit or UTF-16BE representation (PB3562)
 
 `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G`, with `G` an alphanumeric group of eight one-bit items (a USAGE clause at a
 group level applies only to the elementary items, §13.18.60.4 1)), stored 00110001 where an elementary USAGE BIT item holding
@@ -46,3 +46,4 @@ copying it, and the INVOKE and CALL lanes share one formal predicate. Full code:
 relation, STRING, a dynamic-length receiver, a reference-modified value) were probed unchanged after the temporary's usage
 changed. Duplication: `CarrierDiffersFromStorage` restates the two conditions of `AsStorageImage`'s slice arm (national,
 bit); it is the one new restatement and names that arm.
+
