@@ -89,7 +89,7 @@ The unifying invariant across all four: **typed-native only** — values travel 
 compile/runtime split is clean and, in the edited path, exemplary reuse:
 
 - The renderers **emit calls** into the value kernels; they do not re-derive value math. `NumericRenderer` emits
-  `CobolNum.Divide`/`Rescale`/`MulChecked`, `CobolDec.Add/Sub/Mul/Div`, `System.Math.Pow`; trivial `+/-/*` are inline
+  `CobolNum.Divide`/`Rescale`/`AddChecked`, `CobolDec.Add/Sub/Mul/Div`, `System.Math.Pow`; trivial `+/-/*` are inline
   native operators — a reasonable "inline the cheap, delegate the hard (round/divide/store)" division of labor.
 - **Compile-time invocation of the runtime for constants (reuse, not dup).** `FieldEmitter` calls the *runtime*
   `CobolEdit.Format(...)` at compile time to bake an edited VALUE literal into a C# string constant
