@@ -26,10 +26,16 @@ skill section 2), never from what the script does:
      cannot open (gone, a directory in its place) or whose content is not records (a torn last line, a byte-order mark,
      a record SCHEMA tears): no verdict is read from it, the CLI exits 0 with verdict TORN, and it is never read as
      capped;
-  4. the reviews' leads reach the wave's result.
+  4. the reviews' leads reach the wave's result;
+  5. a GATE HANDED TO THE WAVE (kb/Work PB3536): an agent that returns GATE-PENDING with its gate's run directory is
+     awaited through the gate's own reader (`run_gate_legs.py --await`, run for real here on planted run directories):
+     GREEN continues as DONE (the finished test, then the review), RED goes to a gate finisher whose branch is then
+     reviewed, a run that never writes a verdict ends STALLED after the await windows, and a review finisher's
+     GATE-PENDING settles the same way before the next review round.
 No clock decides anything: each stub agent yields to the event loop once and returns its scripted result.
 """
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -48,7 +54,14 @@ import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 const src = readFileSync(process.argv[2], 'utf8').replace(/^export const meta/m, 'const meta')
 const scenario = JSON.parse(readFileSync(process.argv[3], 'utf8'))
-const [python, reviewFindings] = [process.argv[4], process.argv[5]]
+const [python, reviewFindings, runGateLegs] = [process.argv[4], process.argv[5], process.argv[6]]
+// the one mechanical agent of awaitGate runs the REAL `run_gate_legs.py --await` on the run directory its prompt names
+// (kb/Work PB3536): the wave and every other reader of a gate read one verdict file through one function
+function gateAwaitAgent(prompt) {
+  const [, run, wait] = /--await "([^"]+)" --wait-s (\S+)/.exec(prompt)
+  const p = spawnSync(python, [runGateLegs, '--await', run, '--wait-s', wait], { encoding: 'utf8' })
+  return { exit: p.status, line: (p.stdout || p.stderr || '').trim().split(/\r?\n/).pop() || '' }
+}
 // the one mechanical agent of lastVerdict runs the REAL reader on the findings file its prompt names (kb/Work PB3381
 // review R3-1): the wave and the survey read one file through one function, so the harness does not script it
 function lastVerdictAgent(prompt) {
@@ -67,6 +80,7 @@ async function agent(prompt, opts) {
   let res
   if (label.startsWith('finished-')) res = { exit: 0, line: '=== REPORT: FINISHED ===' }
   else if (label.startsWith('last-verdict-')) res = lastVerdictAgent(prompt)
+  else if (label.startsWith('gate-await-')) res = gateAwaitAgent(prompt)
   else {
     const q = queues[label]
     if (!q || !q.length) throw new Error('no scripted result for ' + label)
@@ -142,7 +156,7 @@ def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = No
         (scratch / "review-w9-a.jsonl").mkdir()
     (tmp / f"{name}.json").write_text(json.dumps(scenario), encoding="utf-8", newline="\n")
     p = subprocess.run(["node", str(tmp / "harness.mjs"), str(tmp / "wave.js"), str(tmp / f"{name}.json"),
-                        sys.executable, str(HERE / "review_findings.py")],
+                        sys.executable, str(HERE / "review_findings.py"), str(HERE.parent / "run_gate_legs.py")],
                        capture_output=True, text=True, encoding="utf-8")
     if p.returncode != 0:
         fails.append(f"{name}: node exited {p.returncode}: {p.stderr.strip()[-800:]}")
@@ -324,6 +338,62 @@ def main() -> int:
             rp = (pr.get("w9b-review-r1") or [""])[0]
             check(f"3a' {name}: the successor's reviewer reviews the predecessor's content and records those findings again",
                   "record again here each of those findings that still holds" in rp and "do not record them again" not in rp, rp)
+
+        # 5. A GATE HANDED TO THE WAVE (kb/Work PB3536). Planted run directories: a GREEN verdict, a RED one, and one
+        #    whose gate process (this test's own, alive throughout) never writes a verdict.
+        runs = tmp / "gate-runs"
+
+        def gate_run(name: str, verdict: str | None, exit_code: int = 0) -> str:
+            run = runs / name
+            run.mkdir(parents=True)
+            (run / "gate.pid").write_text(json.dumps({"pid": os.getpid()}), encoding="utf-8", newline="\n")
+            if verdict:
+                (run / "verdict.json").write_text(json.dumps({"verdict": verdict, "line": f"=== BUILD-LOCAL GATE: {verdict} — planted ===",
+                                                             "exit_code": exit_code}), encoding="utf-8", newline="\n")
+            return str(run)
+
+        def pending(branch: str, head: str, run: str) -> dict:
+            return {**impl(branch, head, "GATE-PENDING"), "gate_run": run, "gate_verdict": "pending"}
+
+        solo = [{"letter": "A", "lead": "PB1", "notes": "PB1", "codes": "C1"}]
+        gate_args = {"gate_await_wait_s": 0, "gate_await_windows": 2}
+        green_run = gate_run("green", "LEG 1 ONLY (batched gating, PB2515): GREEN")
+        r = run(tmp, "gate-green", {"args": args(solo, **gate_args), "agents": {
+            "impl-A-PB1": [pending("bA", "a1", green_run)], "w9a-review-r1": [review("CLEAN", "a1")]}})
+        ev, res = r["events"], {x["letter"]: x for x in r["out"]["results"]}
+        check("5: GATE-PENDING -> GREEN: the wave awaits the handed gate's verdict file, then the finished test and the "
+              "review run as for DONE, and the branch is ready",
+              at(ev, "end:gate-await-implementer-1") < at(ev, "start:finished-implementer") < at(ev, "start:w9a-review-r1") < 10 ** 9
+              and [x["branch"] for x in r["out"]["ready"]] == ["bA"] and res["A"].get("status") == "DONE"
+              and res["A"].get("claimed") == "GATE-PENDING" and "GREEN — planted" in (res["A"].get("gate_verdict") or ""),
+              (ev, res.get("A")))
+        red_run = gate_run("red", "LEG 1 ONLY (batched gating, PB2515): RED", 1)
+        r = run(tmp, "gate-red", {"args": args(solo, **gate_args), "agents": {
+            "impl-A-PB1": [pending("bA", "a1", red_run)], "gatefix-A-r1": [impl("bA3", "a3")],
+            "w9a-review-r1": [review("CLEAN", "a3")]}})
+        ev, pr = r["events"], r["prompts"]
+        gp = (pr.get("gatefix-A-r1") or [""])[0]
+        check("5: GATE-PENDING -> RED: a gate finisher merges the branch and is told the gate's verdict, and ITS branch "
+              "is reviewed (never the red head)",
+              at(ev, "end:gate-await-implementer-1") < at(ev, "start:gatefix-A-r1") < at(ev, "start:w9a-review-r1") < 10 ** 9
+              and "git merge bA" in gp and red_run in gp and "RED — planted" in gp
+              and [x["branch"] for x in r["out"]["ready"]] == ["bA3"], (ev, gp))
+        stuck_run = gate_run("stuck", None)
+        r = run(tmp, "gate-stuck", {"args": args(solo, **gate_args), "agents": {
+            "impl-A-PB1": [pending("bA", "a1", stuck_run)]}})
+        ev, res = r["events"], {x["letter"]: x for x in r["out"]["results"]}
+        check("5: a handed gate that never writes a verdict ends STALLED after the await windows: never reviewed, "
+              "never re-gated by the wave",
+              res["A"].get("status") == "STALLED" and sum(e.startswith("start:gate-await-") for e in ev) == 2
+              and not any(e.startswith("start:w9a-review") or e.startswith("start:gatefix") for e in ev)
+              and not r["out"]["ready"], (ev, res.get("A")))
+        r = run(tmp, "gate-review-finisher", {"args": args(solo, **gate_args), "agents": {
+            "impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 1)],
+            "fix-A-r1": [pending("bA2", "a2", green_run)], "w9a-review-r2": [review("CLEAN", "a2")]}})
+        ev = r["events"]
+        check("5: a review finisher's GATE-PENDING settles the same way before the next review round",
+              at(ev, "end:gate-await-review finisher round 1-1") < at(ev, "start:w9a-review-r2") < 10 ** 9
+              and [x["branch"] for x in r["out"]["ready"]] == ["bA2"], ev)
 
         # 3b. an unfinished predecessor settles when it returns: its successor starts at once and merges what it left
         r = run(tmp, "split", {"args": args(groups), "agents": {

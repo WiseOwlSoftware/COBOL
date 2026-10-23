@@ -142,7 +142,11 @@ FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "re
 MAKE_SPECS = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.py"
 PB = re.compile(r"\bPB\d+\b")
 REPORT_NAME = re.compile(r"^w(?P<wave>\d+)(?P<letter>[a-z0-9]*)-(?P<lead>PB\d+)-report\.md$")
-STATUS_WORD = re.compile(r"^\**(?:Status:\**)?\s*\**\s*(?P<s>DONE|SPLIT|DISCHARGED|BLOCKED|NOT STARTED)\b", re.I)
+STATUS_WORD = re.compile(r"^\**(?:Status:\**)?\s*\**\s*(?P<s>DONE|SPLIT|DISCHARGED|BLOCKED|NOT STARTED|GATE-PENDING)\b",
+                         re.I)
+#: A GATE-PENDING report's gate run (kb/Work PB3536): `Gate run: <run directory>`, read at a field position like
+#: BRANCH_FIELD (the start of a header line, or after the template's ` · ` separator).
+GATE_RUN = re.compile(r"(?im)(?:^|·)[ \t]*\**gate run:\**\s*`?([^\s`*]+)")
 BRANCH = re.compile(r"\b(worktree-[A-Za-z0-9_][A-Za-z0-9_.\-]*[A-Za-z0-9_])")
 #: The header's own branch FIELD — `Branch: x` (the O11 header) or `**branch:** `x`` (the report template) — which
 #: names exactly the report's branch, read at a FIELD POSITION only: the start of a header line or right after the
@@ -239,15 +243,43 @@ class Report:
     head: str | None
     review: Review | None = None
     base: str | None = None
+    gate_run: str | None = None   # GATE-PENDING: the run directory of the gate its agent handed over (kb/Work PB3536)
 
     @property
     def finished(self) -> bool:
         """THE ONE "FINISHED REPORT" PREDICATE (kb/Work PB3181): DONE, or DISCHARGED with branch work (a HEAD past its
-        base: the note's retirement and its DEVLOG entry). The rolling wave asks it through `--finished` before it
-        reviews a return, and the branch survey (prune_worktrees.lifecycle) admits only such a report to the landing
-        states. A SPLIT, BLOCKED or NOT STARTED report, or a header with no status line, is unfinished."""
-        return self.status == "DONE" or (self.status == "DISCHARGED" and bool(self.head)
-                                         and not same_commit(self.head, self.base))
+        base: the note's retirement and its DEVLOG entry), or GATE-PENDING whose handed gate is GREEN at its HEAD
+        (`gate_state`, kb/Work PB3536). The rolling wave asks it through `--finished` before it reviews a return, and
+        the branch survey (prune_worktrees.lifecycle) admits only such a report to the landing states. A SPLIT, BLOCKED
+        or NOT STARTED report, a GATE-PENDING one whose gate is not GREEN, or a header with no status line, is
+        unfinished."""
+        return (self.status == "DONE"
+                or (self.status == "DISCHARGED" and bool(self.head) and not same_commit(self.head, self.base))
+                or (self.status == "GATE-PENDING" and self.gate_state == "GREEN"))
+
+    @functools.cached_property
+    def gate_state(self) -> str:
+        """The gate a GATE-PENDING report's agent handed over at its turn cap (kb/Work PB3536), read from its run
+        directory through the gate's ONE reader (`run_gate_legs.watch`, no wait): GREEN — its verdict record is GREEN
+        (exit 0) for this report's HEAD and measured that commit's own tree, unchanged while it ran; RUNNING — no
+        verdict yet and the gate's process lives (or names none yet); ENDED — any other end (RED, NOT RUN, DIED, a
+        GREEN of another head or tree), or no run named: a finisher's work. NONE for any other status."""
+        if self.status != "GATE-PENDING":
+            return "NONE"
+        if not self.gate_run or not self.head:
+            return "ENDED"
+        import run_gate_legs  # noqa: PLC0415  (scripts/: the gate's own reader; heavy, so only for this status)
+        run = pathlib.Path(self.gate_run)
+        code, _ = run_gate_legs.watch(run, 0)
+        if code == run_gate_legs.AWAIT_PENDING_EXIT:
+            return "RUNNING"
+        rec = run_gate_legs.read_record(run) if code == 0 else None
+        if not rec or not same_commit(str(rec.get("head") or ""), self.head):
+            return "ENDED"
+        p = subprocess.run(["git", "-C", str(REPO), "rev-parse", f"{rec['head']}^{{tree}}"], capture_output=True,
+                           text=True, encoding="utf-8", errors="replace")
+        committed = p.stdout.strip() if p.returncode == 0 else None
+        return "GREEN" if committed and rec.get("tree") == rec.get("tree_end") == committed else "ENDED"
 
 
 def same_commit(a: str | None, b: str | None) -> bool:
@@ -372,7 +404,8 @@ def parse_report(p: pathlib.Path) -> Report | None:
     return Report(p, int(m.group("wave")), f"w{m.group('wave')}{m.group('letter')}", m.group("lead"), status,
                   [m.group("lead")],
                   bool(re.search(r"(?i)not\s+started", text)), b.group(1) if b else None, w.group(1) if w else None,
-                  header_sha(HEAD, unstamped), parse_review(text), header_sha(BASE, unstamped))
+                  header_sha(HEAD, unstamped), parse_review(text), header_sha(BASE, unstamped),
+                  (g.group(1) if (g := GATE_RUN.search(unstamped)) else None))
 
 
 def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | None = None) -> list[Report]:
@@ -1191,7 +1224,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and "
                             f"branch {r.branch} has commits since that no review covers: one cobol-reviewer reviews "
                             f"them (the enqueue unit's diff-only re-review), never a finisher")
-        elif r.status in FINISH_STATUSES or (cls in LANDED_CLASSES and r.not_started) or findings(r, cls):
+        elif r.gate_state == "RUNNING":
+            # A GATE HANDED TO THE WAVE (kb/Work PB3536): its agent returned GATE-PENDING at its turn cap and the gate
+            # still runs, detached; the wave awaits its verdict, and a GREEN one makes the report finished. A finisher
+            # now would re-run the same gate at the same head (wave 1150 group A).
+            waiting[nid] = (f"its gate is still running (run {r.gate_run}): the wave that dispatched {r.slug} awaits "
+                            f"the verdict; a GREEN one finishes the report, any other end plans a finisher")
+        elif (r.status in FINISH_STATUSES or r.gate_state == "ENDED" or (cls in LANDED_CLASSES and r.not_started)
+              or findings(r, cls)):
             if drain and not findings(r, cls) and (why := drained(r.branch, cls)):
                 waiting[nid] = why
             else:
