@@ -37,10 +37,17 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class NumericEditedValueEditionGateDriftTests
 {
-    /// <summary>Every general format of the VALUE clause that §13.18.63.3 SR6 reaches, each carrying a NON-ZERO
-    /// numeric literal on a numeric-edited subject — the exact construct Annex E.3.3 item 43 introduced.</summary>
+    /// <summary>Every general format of the VALUE clause that §13.18.63.3 SR6 reaches, each carrying a numeric
+    /// literal on a numeric-edited subject — the exact construct Annex E.3.3 item 43 introduced. The literal zero
+    /// is a numeric literal like any other (kb/Work PB3566): SR6's last sentence ("the integer and decimal forms
+    /// of the literal zero may also be specified for either format") separates the fixed-point from the
+    /// floating-point formats inside the 2023 permission and exempts nothing below it.</summary>
     public static TheoryData<string, string> GatedFormats() => new()
     {
+        { "FORMAT1-item-zero", Data("       01  X  PIC ZZ9 VALUE 0.\r\n") },
+        { "FORMAT1-item-decimal-zero", Data("       01  X  PIC ZZ9.99 VALUE 0.0.\r\n") },
+        { "FORMAT1-item-float-edited-zero", Data("       01  X  PIC -9.9(3)E+99 VALUE 0.\r\n") },
+        { "FORMAT3-condition-name-zero", Data("       01  X  PIC ZZ9.\r\n           88  X-ZERO  VALUE 0.\r\n") },
         { "FORMAT1-item", Data("       01  X  PIC ZZ9.99 VALUE 10.\r\n") },
         { "FORMAT2-table", Data("       01  T.\r\n"
             + "           05  E  PIC ZZ9.99 OCCURS 2 VALUE 10 FROM (1) TO (2).\r\n") },
@@ -71,15 +78,13 @@ public sealed class NumericEditedValueEditionGateDriftTests
         => Assert.DoesNotContain(Bind(label + "2023", src, 2023),
             d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
 
-    /// <summary>The literals SR6 does NOT gate, at the LOWEST edition — the screen's complement. SR6 exempts
-    /// "the figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero" at all
-    /// editions, and §13.18.63.3 SR7's alphanumeric/national edited image was always the pre-2023 spelling, so
-    /// none of these may be refused at COBOL-85.</summary>
+    /// <summary>The operands SR6's edition does NOT gate, at the LOWEST edition — the screen's complement: the
+    /// figurative constant ZERO or ZEROES (no numeric literal; Annex E.2 item 28 changed only its stored image at
+    /// 2023) and §13.18.63.3 SR7's alphanumeric/national edited image, which was always the pre-2023 spelling.
+    /// None of these may be refused at COBOL-85.</summary>
     [Theory]
     [InlineData("EDITED-IMAGE", "       01  X  PIC ZZ9.99 VALUE \" 10.00\".\r\n")]
     [InlineData("COND-EDITED-IMAGE", "       01  X  PIC ZZ9.99.\r\n           88  X-TEN  VALUE \" 10.00\".\r\n")]
-    [InlineData("LITERAL-ZERO", "       01  X  PIC ZZ9 VALUE 0.\r\n")]
-    [InlineData("COND-LITERAL-ZERO", "       01  X  PIC ZZ9.\r\n           88  X-ZERO  VALUE 0.\r\n")]
     [InlineData("FIGURATIVE-ZERO", "       01  X  PIC ZZ9 VALUE ZERO.\r\n")]
     [InlineData("COND-FIGURATIVE-ZERO", "       01  X  PIC ZZ9.\r\n           88  X-ZERO  VALUE ZERO.\r\n")]
     [InlineData("NOT-NUMERIC-EDITED", "       01  X  PIC 9(3) VALUE 10.\r\n")]
