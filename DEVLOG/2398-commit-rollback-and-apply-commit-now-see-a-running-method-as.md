@@ -1,4 +1,4 @@
-## COMMIT, ROLLBACK and APPLY COMMIT now see a running method as a recursive runtime element (PB3540)
+## Entry 2398 — 2026-10-23 10:54 PDT — COMMIT, ROLLBACK and APPLY COMMIT now see a running method as a recursive runtime element (PB3540)
 
 **What was wrong.** ISO §8.6.6 makes every method recursive ("Functions and methods are always recursive."), and §14.9.7.4 GR2,
 §14.9.36.4 GR2, §12.4.6.3.4 GR3 and §9.1.18.7 raise EC-FLOW-COMMIT, EC-FLOW-ROLLBACK and EC-FLOW-APPLY-COMMIT for a statement or
@@ -38,3 +38,4 @@ memory ("recursive program, function or method") and the check caught it (the te
 reader of the old table query existed. An unbalanced `Pop` stays a no-op on an empty stack and the count cannot go negative.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at f5c659a2d (run `000001-20261023T171506Z`): Conformance 10,515/18,197, Unit 34,981/35,568, Characterization 5/36 cases ran in leg 1; the seven new conformance cases (three goldens at 2023, two refusals at 2023, the below-2023 refusal at 2002 and 2014) and the eleven new unit cases passed. The Linux gate is the landing's.
+
