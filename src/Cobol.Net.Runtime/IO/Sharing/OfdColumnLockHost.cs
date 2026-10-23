@@ -75,7 +75,8 @@ internal sealed class OfdColumnLockHost : IColumnLockHost
         region.Dispose();
     }
 
-    /// <summary>The published column: closing the description releases every region it holds. Idempotent.</summary>
+    /// <summary>The published column: disposing it unlocks every protocol byte, then closes the description (<see cref="Give"/>).
+    /// Idempotent.</summary>
     private sealed class Held(SafeFileHandle region, ExistingSharingColumn own) : IDisposable
     {
         private SafeFileHandle? _region = region;

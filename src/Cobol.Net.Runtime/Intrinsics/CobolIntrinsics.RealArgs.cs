@@ -168,7 +168,7 @@ public static partial class CobolIntrinsics
     public static CobolDec PowNativeDec(CobolDec b, Int128 e)
     {
         CheckPowRule6(Int128.Sign(b.Sig), (double)e);
-        if (b.Sig == 0) return new CobolDec(0, 0);   // rule 6a held: the exponent is positive
+        if (b.Sig == 0) return CobolDec.ZeroPower(b, e);   // rule 6a held: the exponent is positive; zero at scale × n
         if (e == 0) return CobolDec.From(1, 0);
         Int128 n = Int128.Abs(e);
         CobolDec power = PowMagnitudeToOdd(b, n);

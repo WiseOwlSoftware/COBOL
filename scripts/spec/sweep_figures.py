@@ -29,6 +29,7 @@ import argparse
 import collections
 import io
 import contextlib
+import difflib
 import pathlib
 import re
 import sys
@@ -420,7 +421,7 @@ def main() -> int:
             if lines[a:b] == repl:
                 stats["already_current"] += 1
                 continue
-            edits.append((a, b, repl))
+            edits.append((a, b, repl, clause, pno, fmt))
             stats["replaceable"] += 1
 
     print(f"figures generated                : {stats['figures']}")
@@ -441,12 +442,25 @@ def main() -> int:
         if len(problems) > args.limit:
             print(f"  … and {len(problems) - args.limit} more")
 
+    # NAME EVERY DRIFTED FIGURE, with the change `--apply` would make. A count alone sent the reader of a red
+    # check hunting for which figure moved and how (kb/Work PB3530: the one drifted figure was found by hand),
+    # and the diff is the evidence a reviewer needs to tell a renderer regression from a stale transcription.
+    if (args.report or args.check) and edits:
+        print(f"\ndrifted from the generated form ({len(edits)}):")
+        for a, b, repl, clause, pno, fmt in edits[:args.limit]:
+            lbl = f" Format {fmt}" if fmt else ""
+            print(f"  §{clause}{lbl} (folio {pno - 30}), {SPEC_MD.name} lines {a + 1}-{b}")
+            for line in difflib.unified_diff(lines[a:b], repl, "transcription", "generated", n=0, lineterm=""):
+                print(f"    {line}")
+        if len(edits) > args.limit:
+            print(f"  … and {len(edits) - args.limit} more")
+
     if args.apply:
         if not edits:
             print("\nnothing to apply")
             return 0
         out = list(lines)
-        for a, b, repl in sorted(edits, reverse=True):
+        for a, b, repl, *_ in sorted(edits, key=lambda e: e[0], reverse=True):
             out[a:b] = repl
         SPEC_MD.write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
         print(f"\napplied {len(edits)} figure(s) to {SPEC_MD}")

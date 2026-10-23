@@ -1,0 +1,4 @@
+## Entry 2394 — 2026-10-23 05:00 PDT — The agent definitions name the GATE-PENDING handoff (PB3536 follow-up)
+
+MANDATORY-PRACTICES P2 and the implementer dispatch spec carry one exception to "never end your turn while a job runs": an agent that reaches its turn cap with its own gate still running on a committed head hands the gate over as GATE-PENDING. The two agent definitions did not say so. An agent reads its definition before any spec, and `cobol-implementer` said only that the turn cap means `SPLIT`, which contradicts step 4 of the spec. Both `.claude/agents/cobol-implementer.md` and `.claude/agents/cobol-finisher.md` now state the exception in one sentence: the STATUS.md `GATE:` line, the `Status: GATE-PENDING` header with `Gate run`, and the `gate_run` and `head` return fields. The rule itself lives in P2, the dispatch spec and kb/Work PB3536.
+

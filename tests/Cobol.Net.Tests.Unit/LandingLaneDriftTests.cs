@@ -37,14 +37,15 @@ public sealed class LandingLaneDriftTests
         @"\benqueue unit (?:then |only )?(?:lands|re-runs)\b(?! nothing)|landed by the enqueue unit|re-runs? enqueue\.py"
         + @"|(?:finished|DONE) work is the enqueue unit's", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    /// <summary>Tracked paths that record history rather than describe the current pipeline (CLAUDE.md rule 6), and the
-    /// test sources (this file names the pattern).</summary>
-    private static readonly string[] History = ["DEVLOG/", "kb/", "adjudication/", "specs/", "tests/"];
+    /// <summary>The files that describe the current pipeline: the whole tree but the paths that record history
+    /// (CLAUDE.md rule 6) and the test sources (this file names the pattern). Declared (kb/Work PB3531), so the
+    /// drift-rule index names this class for each of them.</summary>
+    private static readonly TreeScope Current = new(Under: [""], Except: ["DEVLOG/", "kb/", "adjudication/", "specs/", "tests/"]);
 
-    /// <summary>The tracked files, outside <see cref="History"/>, with a line in the retired wording, as <c>path:line</c>.</summary>
+    /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="Current"/>) with a line in the
+    /// retired wording, as <c>path:line</c>.</summary>
     internal static IReadOnlyList<string> RetiredWordingSites(string root, IEnumerable<string> tracked) =>
-        [.. tracked.Where(p => !History.Any(h => p.StartsWith(h, StringComparison.Ordinal)))
-                   .Where(p => File.Exists(Path.Combine(root, p)))
+        [.. tracked.Where(p => File.Exists(Path.Combine(root, p)))
                    .SelectMany(p => File.ReadLines(Path.Combine(root, p))
                        .Select((line, i) => (line, i))
                        .Where(x => RetiredLandingWording.IsMatch(x.line))
@@ -63,6 +64,47 @@ public sealed class LandingLaneDriftTests
         Match m = Regex.Match(script, @"^function " + Regex.Escape(name) + @"\b.*?(?=^function |\z)",
             RegexOptions.Multiline | RegexOptions.Singleline);
         return m.Success ? m.Value : "";
+    }
+
+    /// <summary>THE QUEUE WATCH (kb/Work PB3527; DESIGN-orchestrator-loop.md section 4.9 step 4): a landing that ends
+    /// ENQUEUED has only handed its pull request to the queue, and PR #385 waited 50 minutes outside it behind a
+    /// check-run that never resolved. <c>land_lane.py --self-test</c> drives the watch over stubbed GitHub facts
+    /// (queued, merged, stuck then cleared by the re-run, stuck then cleared by the reopen, the alert, a stop), and
+    /// <c>queue_facts.py --self-test</c> the one reader of those facts; this holds every arm still declared, and that the
+    /// lane retries a GATE BUSY (exit 12) once the worktree's gate lock is free.</summary>
+    [Fact]
+    public void TheQueueWatch_AndItsReader_DeclareEveryArm()
+    {
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "land_lane.py"), new[]
+        {
+            "queue watch: under a stop it reads but acts on nothing (no re-run, no requeue, no alert)",
+            "queue watch: GitHub's facts unobserved this tick: nothing is read and nothing is done",
+            "queue watch: a pull request in the queue ends the watch QUEUED; one whose branch's work is on main "
+                + "ends it MERGED; a required check that failed ends it LEFT (BOUNCED: the finisher's); none acted on",
+            "queue watch: a stuck check-run inside the grace is only watched; a pull request with no open pull "
+                + "request and its work not on main ALERTS at once (closed by hand)",
+            "queue watch: past the grace, read 1 of a stuck check-run re-runs its workflow run and records the "
+                + "stall (cause stuck-check-run, read 1); a check whose job still runs is not stalled",
+            "queue watch: stuck, then cleared by the re-run: the pull request enters the queue and the watch ends",
+            "queue watch: read 2 (still stuck one grace after the re-run) closes, reopens and re-queues the pull "
+                + "request, recorded as read 2",
+            "queue watch: stuck, then cleared by the reopen: in the queue, the watch ends with no third read",
+            "queue watch: a third stalled read ALERTS the operator (one mailbox question naming the pull request and "
+                + "the remedies tried) and the watch acts no more, however long it stays out",
+            "queue watch: with no check-run at all the clock starts at the enqueue",
+            "queue watch: a check-run whose job the jobs API could not read never holds the watch for ever",
+            "exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work",
+            "exit 12 once the gate lock is free: retried at the same head",
+            "wait_free for exit 12 reads the gate driver's own lock of the worktree",
+        });
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "queue_facts.py"), new[]
+        {
+            "auto-merge on is NOT in the queue",
+            "a required check-run in progress whose Actions job completed is STUCK (PR #385's propagation fault)",
+            "only an unresolved required check-run asks the jobs API",
+            "a job the jobs API cannot read leaves the check-run unknown, never stuck",
+            "offline, a gh failure or a malformed answer is None (a non-observation), never {}",
+        });
     }
 
     [Fact]
@@ -105,7 +147,7 @@ public sealed class LandingLaneDriftTests
     [Trait("Sweep", "tree")]
     public void NoCurrentFile_SaysTheEnqueueUnitLands()
     {
-        IReadOnlyList<string> tracked = TrackedTree.Files();
+        IReadOnlyList<string> tracked = TrackedTree.Files(Current);
         Assert.True(tracked.Count >= 1000, $"`git ls-files` reported only {tracked.Count} paths — the sweep would scan nothing");
         IReadOnlyList<string> sites = RetiredWordingSites(TestRepo.Root, tracked);
         Assert.True(sites.Count == 0,
@@ -138,7 +180,7 @@ public sealed class LandingLaneDriftTests
                 "the enqueue unit's `rearm` lands it again.",
             ]);
             File.WriteAllText(Path.Combine(dir, "kb", "note.md"), "before PB3103 the enqueue unit lands it.");
-            var sites = RetiredWordingSites(dir, ["brief/stale.md", "brief/current.md", "kb/note.md"]);
+            var sites = RetiredWordingSites(dir, new[] { "brief/stale.md", "brief/current.md", "kb/note.md" }.Where(Current.Holds));
             Assert.Equal(new[] { "brief/stale.md:1", "brief/stale.md:2", "brief/stale.md:3", "brief/stale.md:4" }, sites);
         }
         finally

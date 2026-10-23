@@ -68,10 +68,14 @@
   <!-- THE ONE up-to-date decision for the generated parser (kb/Work PB2719, PB2730): Generated/ is regenerated when
        it is absent or any generation input is newer than it — a grammar, the generator script, the jar, or the stamp.
        The generator keeps no staleness check of its own and takes every single-sourced value as a parameter.
-       BeforeTargets="CoreCompile" so generation completes before csc runs; the generated .cs files are added to
-       Compile in case they were missing during the SDK's initial globbing (a fresh checkout, after dotnet clean). -->
+       A SECOND BUILD OF THE SAME TREE IS A NO-OP (kb/Work PB3529): the SDK hashes @(Compile) into
+       CoreCompileInputs.cache in _GenerateCompileDependencyCache, between BeforeCompile and CoreCompile, and
+       recompiles when the hash moves. So this target runs BeforeTargets="BeforeCompile", never "CoreCompile" (after
+       the hash, a fresh build's cache lacked the generated files the next build's glob finds), and it places them in
+       Compile the same way on every build (the ItemGroup below). Otherwise the next build recompiled this project and
+       every one above it and replaced the `cobol` apphost under a test running it. -->
   <Target Name="EnsureGeneratedFiles"
-          BeforeTargets="CoreCompile"
+          BeforeTargets="BeforeCompile"
           DependsOnTargets="WriteAntlrGenerationStamp"
           Inputs="@(AntlrGrammar);$(AntlrGenerator);$(AntlrJar);$(AntlrGenerationStamp)"
           Outputs="Generated/CobolLexer.cs;Generated/CobolParserCore.cs;Generated/CobolParserCoreVisitor.cs;Generated/CobolParserCoreBaseVisitor.cs">
@@ -83,9 +87,14 @@
     <Exec Command="pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/$(AntlrGenerator)&quot; -PackageName $(AntlrNamespace) -JarPath &quot;$(MSBuildProjectDirectory)/$(AntlrJar)&quot; -OutputDir &quot;$(MSBuildProjectDirectory)/Generated&quot;"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
 
-    <!-- Add generated files to compilation in case they were missing during initial globbing -->
+    <!-- The generated files join Compile HERE, at the end of the list, on every build: removed from wherever the SDK's
+         glob put them (nowhere on a fresh checkout, the middle of the list on a warm tree) and added back. The SDK
+         hashes @(Compile) IN ORDER, so a fresh build that appended them and a warm build that globbed them in place
+         hashed different lists over the same files (kb/Work PB3529). MSBuild runs this ItemGroup when it skips the
+         target as up to date too (output inference). -->
     <ItemGroup>
-      <Compile Include="Generated\*.cs" Exclude="@(Compile)" />
+      <Compile Remove="Generated/*.cs" />
+      <Compile Include="Generated/*.cs" />
     </ItemGroup>
   </Target>
 

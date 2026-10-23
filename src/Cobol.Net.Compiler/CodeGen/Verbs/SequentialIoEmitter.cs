@@ -53,107 +53,216 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <paramref name="successArm"/> is a call from a statement's SUCCESS branch (a sequential READ, whose failure
     /// branch owns the plain hook): only the EC bridge can raise there, so nothing is emitted without an EC-I-O
     /// mask.</para></summary>
+    /// <para>⛔ §14.6.13.1.3 ITEM 8's ROLLBACK is the one rule <see cref="Item8Applies"/>,
+    /// <see cref="EmitItem8Question"/> and <see cref="EmitItem8Rollback"/> state (kb/Work PB3542, PB3543, PB3544): every
+    /// arm below asks its question before the declarative dispatch and runs the ROLLBACK after it, before a RESUME
+    /// transfers control or DOC-A.1-103 ends the run unit.</para>
     public UseHookResult EmitUseHook(FileModel file, string verb, bool atEndHandled = false, bool invalidKeyHandled = false,
         bool onExceptionHandled = false, string? notNormalLabel = null, bool verbDisposes = false,
         string? useCompletedVar = null, bool successArm = false)
     {
-        var w = ctx.Writer;
-        if (successArm && ec.IoMaskFor(file) == 0) return default;
-        // verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). verbDisposes
-        // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§14.6.13.1.3 2) precedes 5)/7)), so
-        // it must not end the run unit; useCompletedVar, where the verb's rule turns on it, declares a bool that is
-        // true when an applicable procedure ran and completed normally (§14.9.24.4 GR7 a), GR12 a)/b)). A
-        // not-normal completion never reaches the declaration: the notNormalLabel jump and the RESUME transfer
-        // above it have already left.
-        void Completed(string expr, string? into = null)
-        {
-            if ((into ?? useCompletedVar) is { } name) w.Line($"bool {name} = {expr};   // an applicable USE procedure ran and completed normally");
-        }
-        // §14.6.13.1.2 #1: a declarative that executes a RESUME does not complete normally. The ≥ 0 arm above
-        // each of these already leaves the statement (a transfer of control), so the arm this adds is the
-        // RESUME AT NEXT STATEMENT one, which otherwise falls through into the rest of the enclosing statement.
-        void NotNormal(int id)
-        {
-            if (notNormalLabel is null) return;
-            w.Line($"if (DispatchResult.TerminatesSortMerge(__ior{id})) goto {notNormalLabel};"
-                + "   // the procedure did not complete normally (§14.6.13.1.2 #1) — the SORT/MERGE statement ends (§14.9.33.4 GR2 a) 1.; §14.9.24.4 GR7, GR12)");
-        }
-        if (ec.IoMaskFor(file) is not 0 and var mask)
-        {
-            int id = ctx.Names.NextEc();
-            // The literals travel whenever ANY pair for this file carries WITH LOCATION; __locMask decides
-            // PER RAISED NAME inside __IoCheckEc (§15.32.3 r1 per-condition — kb/Work R06).
-            int locMask = ec.IoLocMaskFor(file);
-            var (stmt, loc) = locMask != 0
-                ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
-                : ("null", "null");
-            w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
-                + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc}"
-                + $"{(verbDisposes ? ", __verbRule: true" : "")});");
-            w.Line(dispatch.ResumeTransfer($"__ior{id}"));
-            NotNormal(id);
-            Completed($"__ior{id} == DispatchResult.Normal || __ior{id} == DispatchResult.HandledNonfatal");
-            // Checking enabled for THIS status's condition has already terminated (or dispatched) inside __IoCheckEc;
-            // what reaches here with NoHandler is a status whose condition is not enabled. Under __verbRule an
-            // ENABLED fatal condition with no procedure returns NoHandler too (the verb disposes of it, §14.6.13.1.3
-            // 2)), so a SORT/MERGE transfer adds the "not enabled" half an explicit statement gets from that throw.
-            string noHandler = $"__ior{id} == DispatchResult.NoHandler";
-            string notEnabled = $"({mask} & ExceptionCatalog.IoBit({RuntimeApi.FileIoConditionName(FileKeyExpr(file))} ?? \"\")) == 0";
-            return new UseHookResult(notNormalLabel is not null, $"__ior{id} == DispatchResult.Normal",
-                Uncovered(verbDisposes ? $"{noHandler} && {notEnabled}" : noHandler));
-        }
-        if (!dispatch.UseDecls) { Completed("false"); return new UseHookResult(false, null, Uncovered(null)); }
-        // An ON EXCEPTION phrase is the statement's own handler for EVERY unsuccessful family (§14.9.10.4
-        // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op.
-        if (onExceptionHandled) { Completed("false"); return default; }
-        if (ecState.Active)
-        {
-            // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
-            // __IoCheckEc arm (the old void call discarded it, swallowing RESUME AT — kb/Work PB141).
-            int id = ctx.Names.NextEc();
-            w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
-            w.Line(dispatch.ResumeTransfer($"__ior{id}"));
-            NotNormal(id);
-            Completed($"__ior{id} == DispatchResult.Normal");
-            return new UseHookResult(notNormalLabel is not null, null, Uncovered($"__ior{id} == DispatchResult.NoHandler"));
-        }
-        // The non-EC form cannot report a resume action, and it does not need to: RESUME is a §14.9.33 statement
-        // of the EC model, so a group without it has no declarative that can end in one. It answers only whether
-        // a procedure ran (and, returning, completed normally) — discarded except by the SORT/MERGE transfers.
-        string call = $"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")})";
-        string? ranVar = useCompletedVar;
-        if (ranVar is null && file.FileStatusName is null)
-        {
-            // The termination below turns on whether a procedure ran, so the answer is captured rather than discarded.
-            ranVar = $"__ran{ctx.Names.NextEc()}";
-            Completed(call, ranVar);
-        }
-        else if (useCompletedVar is not null) Completed(call);
-        else w.Line($"{call};");
-        return new UseHookResult(false, null, Uncovered(ranVar is null ? null : $"!{ranVar}"));
+        return Hook();
 
-        // ⛔ A FATAL I-O STATUS WITH NEITHER A FILE STATUS CLAUSE NOR AN APPLICABLE USE PROCEDURE TERMINATES THE RUN
-        // UNIT (kb/Work PB322 E, Annex A.1 item 103, docs/CONFORMANCE.md DOC-A.1-103). §9.1.13.1 leaves the action
-        // after a fatal exception condition to the implementor — "The implementor may either continue or terminate the
-        // execution of the run unit" — and CLAUDE.md rule 1 takes GnuCOBOL's, whose default error handler ends the run
-        // unit when the file has no FILE STATUS clause (cobc/codegen.c). A program that wrote a FILE STATUS clause sees
-        // the status and carries on; so does one with an applicable USE procedure (`noProcedure` is the C# test that
-        // none ran), and a statement's own ON EXCEPTION phrase covers every family (§14.9.10.4 GR20 c): the early
-        // return above). The test is on the STATUS VALUE (§9.1.13.1 fatal classes) and the CLAUSE, both fixed per
-        // file at compile time, so a program whose files all carry FILE STATUS emits nothing new.
-        // ⛔ A SORT/MERGE IMPLICIT TRANSFER (`verbDisposes`) ASKS THE SAME QUESTION (kb/Work PB2700). Each as-if
-        // statement is performed "as if" that statement "had been executed" (§14.9.40.4 GR12, GR15; §14.9.24.4 GR7,
-        // GR12), so §9.1.13.1's action for its fatal status is the one the explicit statement gets; the verb's rules
-        // say what becomes of the SORT/MERGE when the run unit continues. The verb's disposition
-        // (SortEmitter.EmitDisposition) emits the termination AFTER its one rule that continues past a status nothing
-        // covers (the GIVING WRITE's boundary), so for it this hook RETURNS the condition rather than emitting it.
-        UncoveredFatal? Uncovered(string? noProcedure)
+        // Item 8's question where no EC-I-O name is enabled for the file at this statement (checking not enabled), or
+        // null — nothing emitted — where item 8 cannot apply.
+        string? Item8Question() => Item8Applies(file, verbDisposes, onExceptionHandled, successArm)
+            ? EmitItem8Question(FileKeyExpr(file), "false")
+            : null;
+
+        // The hook proper: every arm ends in its UseHookResult (the parameters are the method's own).
+        UseHookResult Hook()
         {
-            if (file.FileStatusName is not null || onExceptionHandled || successArm) return null;
-            if (verbDisposes) return new UncoveredFatal(noProcedure);
-            EmitUncoveredFatalTermination(file, verb, noProcedure);
+            var w = ctx.Writer;
+            if (successArm && ec.IoMaskFor(file) == 0) return default;
+            // verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). verbDisposes
+            // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§14.6.13.1.3 2) precedes 5)/7)), so
+            // it must not end the run unit; useCompletedVar, where the verb's rule turns on it, declares a bool that is
+            // true when an applicable procedure ran and completed normally (§14.9.24.4 GR7 a), GR12 a)/b)). A
+            // not-normal completion never reaches the declaration: the notNormalLabel jump and the RESUME transfer
+            // above it have already left.
+            void Completed(string expr, string? into = null)
+            {
+                if ((into ?? useCompletedVar) is { } name) w.Line($"bool {name} = {expr};   // an applicable USE procedure ran and completed normally");
+            }
+            // §14.6.13.1.2 #1: a declarative that executes a RESUME does not complete normally. The ≥ 0 arm above
+            // each of these already leaves the statement (a transfer of control), so the arm this adds is the
+            // RESUME AT NEXT STATEMENT one, which otherwise falls through into the rest of the enclosing statement.
+            void NotNormal(int id)
+            {
+                if (notNormalLabel is null) return;
+                w.Line($"if (DispatchResult.TerminatesSortMerge(__ior{id})) goto {notNormalLabel};"
+                    + "   // the procedure did not complete normally (§14.6.13.1.2 #1) — the SORT/MERGE statement ends (§14.9.33.4 GR2 a) 1.; §14.9.24.4 GR7, GR12)");
+            }
+            if (ec.IoMaskFor(file) is not 0 and var mask)
+            {
+                int id = EmitIoCheckEc(FileKeyExpr(file), file, mask, atEndHandled, invalidKeyHandled, onExceptionHandled,
+                    verbDisposes, successArm);
+                NotNormal(id);
+                Completed($"__ior{id} == DispatchResult.Normal || __ior{id} == DispatchResult.HandledNonfatal");
+                // Checking enabled for THIS status's condition has already terminated (or dispatched) inside __IoCheckEc;
+                // what reaches here with NoHandler is a status whose condition is not enabled. Under __verbRule an
+                // ENABLED fatal condition with no procedure returns NoHandler too (the verb disposes of it, §14.6.13.1.3
+                // 2)), so a SORT/MERGE transfer adds the "not enabled" half an explicit statement gets from that throw.
+                string noHandler = $"__ior{id} == DispatchResult.NoHandler";
+                string notEnabled = $"!{CheckingEnabled(FileKeyExpr(file), mask)}";
+                return new UseHookResult(notNormalLabel is not null, $"__ior{id} == DispatchResult.Normal",
+                    Uncovered(verbDisposes ? $"{noHandler} && {notEnabled}" : noHandler));
+            }
+            if (!dispatch.UseDecls)
+            {
+                EmitItem8Rollback(Item8Question());   // no declarative: the question and the ROLLBACK are adjacent
+                Completed("false");
+                return new UseHookResult(false, null, Uncovered(null));
+            }
+            // An ON EXCEPTION phrase is the statement's own handler for EVERY unsuccessful family (§14.9.10.4
+            // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op (item 1
+            // processes the condition, so item 8 is never reached: Item8Applies).
+            if (onExceptionHandled) { Completed("false"); return default; }
+            if (ecState.Active)
+            {
+                // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
+                // __IoCheckEc arm (the old void call discarded it, swallowing RESUME AT — kb/Work PB141).
+                string? item8 = Item8Question();
+                int id = ctx.Names.NextEc();
+                w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+                EmitItem8Rollback(item8);
+                w.Line(dispatch.ResumeTransfer($"__ior{id}"));
+                NotNormal(id);
+                Completed($"__ior{id} == DispatchResult.Normal");
+                return new UseHookResult(notNormalLabel is not null, null, Uncovered($"__ior{id} == DispatchResult.NoHandler"));
+            }
+            // The non-EC form cannot report a resume action, and it does not need to: RESUME is a §14.9.33 statement
+            // of the EC model, so a group without it has no declarative that can end in one. It answers only whether
+            // a procedure ran (and, returning, completed normally) — discarded except by the SORT/MERGE transfers.
+            string call = $"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")})";
+            string? plainItem8 = Item8Question();
+            string? ranVar = useCompletedVar;
+            if (ranVar is null && file.FileStatusName is null)
+            {
+                // The termination below turns on whether a procedure ran, so the answer is captured rather than discarded.
+                ranVar = $"__ran{ctx.Names.NextEc()}";
+                Completed(call, ranVar);
+            }
+            else if (useCompletedVar is not null) Completed(call);
+            else w.Line($"{call};");
+            EmitItem8Rollback(plainItem8);
+            return new UseHookResult(false, null, Uncovered(ranVar is null ? null : $"!{ranVar}"));
+
+            // ⛔ A FATAL I-O STATUS WITH NEITHER A FILE STATUS CLAUSE NOR AN APPLICABLE USE PROCEDURE TERMINATES THE RUN
+            // UNIT (kb/Work PB322 E, Annex A.1 item 103, docs/CONFORMANCE.md DOC-A.1-103). §9.1.13.1 leaves the action
+            // after a fatal exception condition to the implementor — "The implementor may either continue or terminate the
+            // execution of the run unit" — and CLAUDE.md rule 1 takes GnuCOBOL's, whose default error handler ends the run
+            // unit when the file has no FILE STATUS clause (cobc/codegen.c). A program that wrote a FILE STATUS clause sees
+            // the status and carries on; so does one with an applicable USE procedure (`noProcedure` is the C# test that
+            // none ran), and a statement's own ON EXCEPTION phrase covers every family (§14.9.10.4 GR20 c): the early
+            // return above). The test is on the STATUS VALUE (§9.1.13.1 fatal classes) and the CLAUSE, both fixed per
+            // file at compile time, so a program whose files all carry FILE STATUS emits nothing new.
+            // ⛔ A SORT/MERGE IMPLICIT TRANSFER (`verbDisposes`) ASKS THE SAME QUESTION (kb/Work PB2700). Each as-if
+            // statement is performed "as if" that statement "had been executed" (§14.9.40.4 GR12, GR15; §14.9.24.4 GR7,
+            // GR12), so §9.1.13.1's action for its fatal status is the one the explicit statement gets; the verb's rules
+            // say what becomes of the SORT/MERGE when the run unit continues. The verb's disposition
+            // (SortEmitter.EmitDisposition) emits the termination AFTER its one rule that continues past a status nothing
+            // covers (the GIVING WRITE's boundary), so for it this hook RETURNS the condition rather than emitting it.
+            UncoveredFatal? Uncovered(string? noProcedure)
+            {
+                if (file.FileStatusName is not null || onExceptionHandled || successArm) return null;
+                if (verbDisposes) return new UncoveredFatal(noProcedure);
+                EmitUncoveredFatalTermination(file, verb, noProcedure);
+                return null;
+            }
+        }
+    }
+
+    /// <summary>The EC-I-O raise of one statement on one file: the <c>__IoCheckEc</c> call under the statement's mask for
+    /// the file and the transfer a declarative's RESUME asks for. Returns the call's id (<c>__ior</c>id). The literals
+    /// travel whenever ANY pair for the file carries WITH LOCATION; <c>__locMask</c> decides PER RAISED NAME inside
+    /// <c>__IoCheckEc</c> (§15.32.3 r1 per-condition — kb/Work R06). Item 8's question is asked before the call, under
+    /// the statement's own checking for the raised name, and its ROLLBACK runs after it, before the transfer
+    /// (<see cref="Item8Applies"/>; <paramref name="file"/> null is another element's file, whose commit control only
+    /// the runtime knows).</summary>
+    private int EmitIoCheckEc(string fileKey, FileModel? file, int mask, bool atEnd, bool invalidKey, bool onException,
+        bool verbDisposes, bool successArm)
+    {
+        var w = ctx.Writer;
+        string? item8 = Item8Applies(file, verbDisposes, onException, successArm)
+            ? EmitItem8Question(fileKey, CheckingEnabled(fileKey, mask))
+            : null;
+        int id = ctx.Names.NextEc();
+        int locMask = ec.IoLocMaskFor(file);
+        var (stmt, loc) = locMask != 0
+            ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
+            : ("null", "null");
+        w.Line($"int __ior{id} = __IoCheckEc({fileKey}, {(atEnd ? "true" : "false")}, "
+            + $"{(invalidKey ? "true" : "false")}, {(onException ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc}"
+            + $"{(verbDisposes ? ", __verbRule: true" : "")});");
+        EmitItem8Rollback(item8);
+        w.Line(dispatch.ResumeTransfer($"__ior{id}"));
+        return id;
+    }
+
+    /// <summary>The C# test that checking for the EC-I-O condition the file's last operation raised is enabled at this
+    /// statement: the raised name's bit in the statement's <paramref name="mask"/> for the file — the
+    /// <c>__en</c> the generated <c>__IoCheckEc</c> computes for the same status.</summary>
+    private static string CheckingEnabled(string fileKey, int mask) =>
+        $"(({mask} & ExceptionCatalog.IoBit({RuntimeApi.FileIoConditionName(fileKey)} ?? \"\")) != 0)";
+
+    /// <summary>⛔ §14.6.13.1.3 ITEM 8's ROLLBACK — THE ONE RULE, written once (kb/Work PB3542, PB3543, PB3544).
+    /// <i>"If checking for the exception condition is not enabled, the implementor defines whether or not execution will
+    /// continue … However, if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause,
+    /// then a ROLLBACK statement is executed unconditionally."</i> Its three parts, each a place in the hook:
+    /// <list type="bullet">
+    /// <item><b>Where it can apply</b> (this method, compile-time facts): never on a SORT/MERGE implicit transfer
+    /// (<paramref name="verbDisposes"/>; item 2, <i>"If the executed statement is a MERGE or SORT statement, then the
+    /// rules for those statements apply"</i>, so item 8 is never reached), never where the statement's ON EXCEPTION
+    /// phrase processes the condition (item 1; §14.9.10.4 GR20 c)), never on a success arm (no fatal status), and on an
+    /// explicit statement only for a keyed file the element's clause names. <paramref name="file"/> null is another
+    /// element's file (a refused COMMIT or ROLLBACK, <see cref="EmitForeignFileIoCheck"/>): the runtime decides.</item>
+    /// <item><b>The question</b> (<see cref="EmitItem8Question"/>), asked at the RAISE, before any declarative runs:
+    /// checking for the condition not enabled (an enabled one is items 4-7's: the run unit terminates, whose §14.6.12
+    /// rollback is the termination's, or a RESUME continues with no ROLLBACK, item 4 NOTE 1, item 5 NOTE 2), the status
+    /// fatal, the file under commit control. Asked later, a declarative's own CLOSE of the file would have replaced the
+    /// status the condition was raised for.</item>
+    /// <item><b>The ROLLBACK</b> (<see cref="EmitItem8Rollback"/>), after the declarative (item 3 sends the fatal EC-I-O
+    /// condition to §9.1.13's rules first) and BEFORE a RESUME transfers control or DOC-A.1-103 ends the run unit, so
+    /// no exit from the hook skips it.</item>
+    /// </list></summary>
+    private static bool Item8Applies(FileModel? file, bool verbDisposes, bool onExceptionHandled, bool successArm) =>
+        !verbDisposes && !onExceptionHandled && !successArm && (file is null || file.IsCommitControlled);
+
+    /// <summary>Item 8's question (<see cref="Item8Applies"/>), asked at the raise: declares and returns the bool that the
+    /// ROLLBACK is due. <paramref name="checkingEnabled"/> is the C# test that checking for the raised condition is
+    /// enabled at the statement.</summary>
+    private string EmitItem8Question(string fileKey, string checkingEnabled)
+    {
+        string due = $"__item8_{ctx.Names.NextEc()}";
+        ctx.Writer.Line($"bool {due} = {RuntimeApi.RollbackDueOnFatal(fileKey, checkingEnabled)};   // ISO §14.6.13.1.3 item 8, asked at the raise");
+        return due;
+    }
+
+    /// <summary>Item 8's ROLLBACK (<see cref="Item8Applies"/>): after the declarative, before any transfer; nothing when
+    /// <paramref name="due"/> is null (item 8 cannot apply).</summary>
+    private void EmitItem8Rollback(string? due)
+    {
+        if (due is not null) ctx.Writer.Line($"if ({due}) {RuntimeApi.RollbackOnFatal()};   // ISO §14.6.13.1.3 item 8");
+    }
+
+    /// <summary>⛔ A FATAL I-O STATUS ON A FILE THIS ELEMENT DOES NOT DESCRIBE (kb/Work PB3338, review finding w1154a
+    /// R1-3): the file of another element's APPLY COMMIT clause whose COMMIT or ROLLBACK the medium refused, named at run
+    /// time by <paramref name="fileKeyExpr"/>. Its EC-I-O condition is raised through <c>__IoCheckEc</c> when checking for
+    /// it is enabled at the statement by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no file;
+    /// §7.3.25.4 GR6/GR8 scope a FILE phrase to the files it names, all of this element). Item 8's ROLLBACK is emitted in
+    /// both arms (<see cref="Item8Applies"/>). Returns the C# test that no declarative qualified, or null when checking is
+    /// not enabled.</summary>
+    public string? EmitForeignFileIoCheck(string fileKeyExpr)
+    {
+        if (ec.IoMaskFor(null) is not (not 0 and var mask))
+        {
+            EmitItem8Rollback(EmitItem8Question(fileKeyExpr, "false"));   // no declarative: question and ROLLBACK adjacent
             return null;
         }
+        int id = EmitIoCheckEc(fileKeyExpr, null, mask, atEnd: false, invalidKey: false, onException: false,
+            verbDisposes: false, successArm: false);
+        return $"__ior{id} == DispatchResult.NoHandler";
     }
 
     /// <summary>⛔ THE ONE RENDERING OF DOC-A.1-103's ABNORMAL TERMINATION (kb/Work PB322 E, PB2700): a FATAL I-O status

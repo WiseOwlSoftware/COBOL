@@ -553,7 +553,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. Budget `COBOLNET_RUN_TIMEOUT_MS` (default 120 s); every retry and non-observation is appended to `COBOLNET_HARNESS_LOG` so the rate is measurable. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `COBOLNET_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `COBOLNET_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`), the Linux gate (`linux-gate.sh`'s `test_leg`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory, and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
 | `scripts/guard-compiler.sh` | ⭐ **THE one answer to "which compiler is this gate measuring?"** (kb/Work/PB750): `cobol`. `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure does not contain `Cobol.Net.Compiler`. Earned by the guards hard-coding the legacy CLI, so `guard NIST: 353 MATCH` measured the ORACLE for the whole rearchitecture and battery #58's NC215A wrong answer was invisible to it. `--self-test` (discovered by `scripts/self_tests.py`, and run by `guard-verify.sh` too) proves the refusal fires on synthetic manifests. |
@@ -890,6 +890,9 @@ acceptance (§3.14.9) records the time to the first red of every implementer gat
   gate lock and the population check, for an implementer's commit, a re-gate after a fix and a landing alike. The
   lander's former mode (no plan, ONE whole-population leg, no slot) is deleted: it was 7–53 min, 8 of 15 RED under
   load, on 2026-10-10. The battery and CI do not use the driver.
+- **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
+  run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
+  from the recorded GREEN, saying `REUSED`.
 
 #### 3.14.2 The plan: `scripts/gate_plan.py`
 
@@ -934,7 +937,27 @@ because the raw name is not stable (`b7`):
   Windows leg 1 never checked the two tiers; two branches on 2026-10-16 gated GREEN there over a trait drift (a new
   sweep without the trait, a non-sweep with it) that the landing's whole-population Linux unit leg found (kb/Work
   PB2730's finisher). A tier the gate does not check at every gate is a tier on trust.
-  `TIER_ORDER = ("0a", "0h", "0c", "0u", "1", "2", "3")`.
+  **Tier 0d — the governing drift tests** (kb/Work PB3531): every case whose class the drift-rule index
+  (`scripts/spec/drift_rules.py`) says governs a file the diff changes, specifically or as a tree-wide sweep that reads
+  it — the rules an implementer is told to honor before it edits the file (MANDATORY-PRACTICES P11). Gathered from the
+  diff alone (`impacted_tests.Reach.drift_tests`), with or without a map, and checked before 0c; always leg 1, exempt
+  from the budget and the cap, so a dear sweep over a changed file runs there too. Why: a sweep of the COMMITTED tree
+  (`TrackedTree.Files`) once filtered `git ls-files` in code and named no path, so the index never listed it; one of
+  them (`CatalogCoverageDriftTests`, 44 s recorded) scans every tracked script, PB3523's branch edited one, the Windows
+  gate left the case in leg 2 (dear, so not 0c) and the landing's Linux unit leg found the red. Such a sweep now reads
+  the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
+  `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
+  `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
+  49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
+  change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
+  classes, 3,057–4,227 s, floor 224 s (`OperandClassScreenDriftTests`). The recorded seconds of these drift tests are
+  contention-inflated (the nine classes this change touched ran their 60 cases in 2 s on an idle host against about
+  430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
+  118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
+  the gate run just before it on another branch, on the same host and the same shared timings.
+  `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
   gate. Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
@@ -1115,11 +1138,33 @@ unchanged, every self-test takes a place in one machine-wide budget, and a hung 
 kb/Work PB2914). One gate:
 1. **The worktree's gate lock** — an exclusive OS lock on `<worktree git dir>/cobol-gate.lock`, held from before the
    build to the verdict. A second gate in the same worktree REFUSES at once, naming the holder's pid: its build would
-   otherwise overwrite the binaries between the first gate's legs.
-2. A fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/`: the plan, every trx, every identity record
+   otherwise overwrite the binaries between the first gate's legs. Its verdict is `BUSY` (exit 3), neither RED nor
+   NOT RUN: it measured nothing and nothing is wrong, so a caller waits for the lock (kb/Work PB3527: the landing read
+   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY, NOT RUN with its
+   cause, or RED). NOT RUN (exit 2) is a gate that measured nothing; it prints `NOT RUN [<cause>]`, and
+   `run_gate_legs.NOT_RUN_CAUSES` classifies each cause ONCE (kb/Work PB3526; review R2-1 of wave 1150). ENVIRONMENT
+   (outside the code the gated tree carries; no finisher fixes it): `[settings]` malformed shared gate settings, at the
+   start or while the gate queued; `[interpreter]` no runnable Python, or one without PyYAML; `[host]` no WSL; `[sdk]`
+   no .NET SDK in the Linux environment; `[tree]` the tree's git state unreadable or its clone failed. BRANCH (a failure
+   of code the gated tree carries: a landing gates the branch merged with main and runs that tree's own scripts):
+   `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
+   `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
+   `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
+   BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
+   its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
+   retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
+   main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
+   the branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; then exit
+   2, the operator's).
+2. A fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>/`: the plan, every trx, every identity record
    and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
    next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
-   store, step 6); the driver keeps the last five.
+   store, step 6); the driver keeps the last five. "Newest" is the run's NUMBER `n`, one past every run in the run
+   root, taken under the run root's lock (`runs.lock`) when the run directory is made, so the order of runs is the
+   order they started in and never the clock's: a stamp orders nothing finer than the clock's resolution, and on a CI
+   runner three runs started in the same microsecond (kb/Work PB3536, merge-group run 39888287569). The reuse rule
+   (3.14.12) and the pruning read the same order; a run named before the numbers (`<stamp>-<nonce>`) is older than
+   every numbered one.
 3. The audits — FIRST, since none needs a build or a test result, and FAIL-FAST: a red audit ends
    the gate `RED — <audit> RED — fail-fast: the audits run before the slot and the build and NO LEG RAN` in seconds
    (kb/Work PB2523: four of wave 1034's eight first-run implementer reds were audit-only, each reported after a whole
@@ -1138,7 +1183,8 @@ kb/Work PB2914). One gate:
    IN-PROCESS over one loaded standard (kb/Work PB2525: one `cite.py` process per citation was 75 of its 79 s).
 4. The gate slot (every gate, section 3.14.6), timed as `slot_wait_s` — taken BEFORE the build, so the
    cap bounds the builds too. The lock order is always worktree lock, then slot, so no two gates can wait on each
-   other in a cycle. Shared gate settings that turn malformed while a gate queues stop it `NOT RUN`, with the reason.
+   other in a cycle. Shared gate settings that turn malformed while a gate queues stop it `NOT RUN [settings]`, with
+   the reason.
    Then the solution build and the binaries' SHA-256 record — per assembly, the test assembly and every product
    assembly beside it, the set each identity record names.
 5. `--list-tests` per assembly (the three concurrently), the plan — any planning failure, like no plan input, gives
@@ -1599,7 +1645,8 @@ So every gate script runs ONE interpreter, resolved by PROBING each candidate, i
 and its PowerShell twin `scripts/python-resolve.ps1`, dot-sourced by `build-local.ps1`. Each sets `PY`; the script then
 runs `"$PY"` (bash) or `& $PY` (PowerShell). A script with a verdict line of its own keeps it: `build-local.sh` and
 `linux-gate.sh` source the resolver in a subshell and `build-local.ps1` catches the twin's terminating error, so a host
-with no runnable Python ends `=== BUILD-LOCAL GATE: NOT RUN — … ===` or `=== LINUX GATE: NOT RUN (…) ===`, exit 2, as
+with no runnable Python ends `=== BUILD-LOCAL GATE: NOT RUN [interpreter] — … ===` or `=== LINUX GATE: NOT RUN
+[interpreter] (…) ===`, exit 2, as
 every other NOT RUN does. `linux-gate.sh --self-test` drives the resolver through that path with stand-in interpreters
 (a `python3` below the floor is passed over, `$PYTHON` is probed first, none is NOT RUN with exit 2). Only a provisioner
 that installs the interpreter itself (`scripts/cloud/setup-env.sh`, `scripts/wsl/setup-wsl.sh`: `uv python install`)
@@ -1612,6 +1659,69 @@ that runs `$PY` sources its shell's resolver; and the two resolvers probe the sa
 same floor probe. Before PB3197 the gate's own entry points bypassed the resolver (bare `python` in both
 `build-local` twins; `command -v python3 || command -v python`, no probe and no floor, in `linux-gate.sh`), so
 `bash scripts/build-local.sh` died `python: command not found` (exit 127, no verdict line) on a python3-only host.
+
+#### 3.14.12 A gate outlives its caller, and a measured tree is gated once (kb/Work PB3536)
+
+**The defect it removes.** A workflow agent's return kills the process TREE of every background command it started
+(the harness walks the tree; the agent's shell is in no job object). Measured 2026-10-22 on wave 1150 group A: the
+review finisher reached its turn cap while its gate ran, its return killed the gate mid-audit (run
+`20261022T225440Z-2797b8`: no verdict, its log stopping in the audits), the wave read the return as SPLIT, and the only
+path was a second finisher whose whole job was to re-run the same gate at the same head. Owner, ~16:50 PDT: "Reruning
+these simply wastes tokens: but the workflow returned before its gate finished, so it needs the gate re-run at its
+head and a round-2 review. - we should have the failure in the first place". The bar: the gate's result is PERSISTED
+and AWAITED by the orchestrator, never left to an agent's turn budget.
+
+**1. Detached, and followed.** `run_gate_legs.py` (what `build-local.ps1` and `.sh` run) makes the run directory and
+starts the gate itself (`--run <run>`) through `scripts/detached.py`, THE one launch that outlives its caller: a
+launcher that starts the target and exits at once, so no walk of the caller's tree reaches it (Windows: its own
+process group and a console with no window, out of the caller's job where the job allows it; POSIX: its own session).
+The landing lane starts its runners through the same function (§DESIGN-orchestrator-loop 4.9). The run directory
+holds `gate.log` (the gate's whole output), `gate.pid` and, at the end, `verdict.json`. The caller FOLLOWS it: it
+echoes the log as it grows and exits with the gate's own exit code once the verdict file is written, so every caller
+that blocks on the `=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees exactly what it saw before. A
+caller that is killed leaves the gate running to its verdict. To stop a gate, end the process `gate.pid` names.
+
+**2. One way to wait: the verdict file.** `run_gate_legs.watch` — the CLI `run_gate_legs.py --await <run> [--worktree
+W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
+there; `NOT RUN [verdict]` (exit 2, BRANCH) when the process `gate.pid` names DIED without one; PENDING (exit 4: exit 3
+is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
+directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
+that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
+wave's await (`--worktree`, the agent's worktree) and `plan_wave.Report.gate_state` (the report's Worktree field) both
+read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
+`plan_wave.Report.gate_state` all read through `watch`.
+
+**3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
+head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
+`Status: GATE-PENDING` and `Gate run: <run>` (MANDATORY-PRACTICES P2's one exception). The rolling wave
+(`wf_rolling_wave.js` `settleGate`) awaits the run inside the agent's own ceiling, one window at a time (one mechanical
+`cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
+as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
+finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
+also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
+is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
+gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
+
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 3) carries the HEAD, the TREE the gate
+measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
+as on disk, untracked files git does not ignore — written through a private copy of the index that keeps the index
+file's own mtime, git's racy-git reference: an edit in the cached entry's own second keeps its size and mtime, and only
+that reference makes git re-read such an entry by content; a path
+`coord.NEVER_WORK` names measures at HEAD's content, so the harness's edit of the TRACKED `.claude/settings.local.json`
+in every agent worktree is no difference and a GREEN at a clean commit measures as that commit's own tree, the tree
+`gate_state` checks: review R1-2 of wave 1152), the base it planned
+against and its exit code. A gate whose tree and base equal those of an earlier GREEN run in this worktree whose tree
+did not change while it ran, under a scope that run covered (a `LEG 1 ONLY` GREEN covers `leg1`; a plain GREEN covers
+both), takes the worktree's gate lock, answers from that record WITHOUT running an audit, a slot, a build or a leg, and
+says so: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — REUSED (kb/Work PB3536): tree … at head
+… was gated in run <the measuring run> and has not changed since, so nothing ran (run <this run>); that gate: … ===`.
+It is the self-test reuse rule (§3.14.10) extended to the gate, keyed on what was measured rather than on a branch or
+a head: a RED is never reused, and the landing's gate on the merged head (another tree, another base) always runs.
+A reused record carries its own seconds (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
+
+**What it would have saved on 2026-10-22.** The wave journals of the day name one rerun of this shape (wave 1150 group
+A, PB3527: a whole finisher dispatched to re-run the gate its predecessor's return killed, plus the second review
+round it waited on); with the gate detached and handed over, the wave awaits the verdict and goes straight to round 2.
 
 ### 3.15 THE LOCAL LINUX GATE — CI's Linux legs under WSL before a push (kb/Work PB1732)
 
@@ -1675,7 +1785,8 @@ other agents add and remove worktrees of the shared repository while it runs.)
 PB3029, §3.17.4). Before it, `core.autocrlf=true` checked a script out CRLF in every fresh Windows worktree, and bash
 died at its first line (`set: -: invalid option`).
 
-**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN ===` line naming the HEAD it tested. NOT RUN is never green.
+**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested. NOT RUN is never
+green; its cause's class is `run_gate_legs.NOT_RUN_CAUSES`' (§3.14.3 item 1).
 
 **Which legs run (MANDATORY-PRACTICES I8, L10): all four, at every landing** — and at an implementer gate only while
 the owner has set the implementer scope to `whole`; under batched gating (kb/Work PB2515, the default) the Linux gate
@@ -1877,7 +1988,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
    again, and the queue lands by merge commit anyway (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves); run the ONE local gate on the
-   merged head (§3.17.3; exit 5 on a red, the host named; a commit gated GREEN, or a head that differs from it only
+   merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
+   gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
+   PB3527; a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an
+   ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5 like a red;
+   a commit gated GREEN, or a head that differs from it only
    by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
    rule — is not gated again on a re-run); bring main in AGAIN when it moved during the gate, without a second gate
    (review R1-2, corrected at implementation: the queue merges other pull requests while a branch gates, `queue` takes
@@ -1887,7 +2002,10 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed) and `landing_check.py` (the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
-   whole population, no waiting for CI. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
+   whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
+   (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
+   and the head's required check-runs (`queue_facts.py`) and, past a 10-minute grace, re-runs a stuck check, then
+   closes, reopens and re-queues the pull request, then asks the operator. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
    gate at enqueue adds CI's Linux legs under WSL (`linux-gate.sh --nice`), run under `gate_slot.py run` as a
    landing ticket of the same shared gate slot (§3.14.6; kb/Work PB3104: run bare, seven concurrent landings ran seven
    uncapped WSL gates and load alone turned five RED); then that row goes. A HOST-I-O group (a file of its set under
@@ -1951,7 +2069,7 @@ only whole-population run.
   Windows first (no clone), Linux second; a Linux-only red names its host in the verdict line. Until this lands, the
   land units keep today's whole-leg WSL gate (operator steer, 2026-10-11 12:37).
 - **LANDED (kb/Work PB3022) — tier 0h, host-only witnesses, and tier 0c, the cheap tree-wide sweeps** (§3.14.2's
-  tiers; `TIER_ORDER = 0a, 0h, 0c, 0u, 1, 2, 3`; the race witnesses are the Unit classes that drive the sharing
+  tiers; `TIER_ORDER = 0a, 0h, 0c, 0d, 0u, 1, 2, 3`, tier 0d since kb/Work PB3531; the race witnesses are the Unit classes that drive the sharing
   layer's host types from concurrent workers, the sweeps are `drift_rules.py --sweeps`). The design as decided: every
   test case whose class carries the xUnit trait `Host` with a value naming a property CI's runners lack (`ReFS` today)
   is in leg 1 at every gate, whatever the diff. Membership is DERIVED from the trait, never listed; a drift test asserts
@@ -1966,8 +2084,9 @@ only whole-population run.
   match timeouts became `RegexOptions.NonBacktracking` (linear, so no clock); the two generators' bounded
   `WaitForExit(n)` after their streams' EOF became the unbounded wait (and left `ProcessObservationDriftTests`'
   exemptions); the interpreter probes take the harness budget. `NoWallClockAssertionDriftTests.NoTestSetsALiteralTimeLimit`
-  fails on a new literal limit in any shape. What remains is the ONE harness budget (`ProcessObserver.TimeoutMs`,
-  120 s, `COBOLNET_RUN_TIMEOUT_MS`), a hang guard whose expiry is a named non-observation, never a value.
+  fails on a new literal limit in any shape. What remains is the ONE harness budget rule (`ObservationBudget`,
+  kb/Work PB3108: one 120 s unit, `COBOLNET_RUN_TIMEOUT_MS`, per serial step of the work the process was started to
+  do), a hang guard whose expiry is a named non-observation, never a value.
 
 #### 3.17.4 Conflict-free landing files — the tree holds SOURCES, views are RENDERED (PB3025, PB3026)
 

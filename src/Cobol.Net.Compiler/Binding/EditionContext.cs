@@ -353,8 +353,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// but SOME declines do have an INERT reading, and whether this one does is the descriptor's
     /// <see cref="DiagnosticDescriptor.PermissiveInert"/> fact, read in <see cref="Refuses"/> and nowhere else. The
     /// axis is whether an accepted element could change the answer the source states. A decline whose sibling
-    /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOLNET1580, the A.4.3 APPLY COMMIT
-    /// clause beside COBOLNET1579) can be tolerated under <c>--permissive</c> and bound to a no-op. A declined
+    /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOLNET1580) can be tolerated under
+    /// <c>--permissive</c> and bound to a no-op, and so can a SEQUENTIAL file in an A.4.3 APPLY COMMIT clause
+    /// (COBOLNET1709), which then stays outside commit control while the clause's keyed files are under it. A declined
     /// module's exception-name (COBOLNET1710) is tolerated too, but it RESOLVES as an ordinary exception-name:
     /// no statement of the declined facility sets its condition (§14.6.13.1.1), so only a RAISE of the name
     /// raises it, exactly as written (§14.9.29.4 GR1), and its USE declarative or WHEN phrase then runs — an

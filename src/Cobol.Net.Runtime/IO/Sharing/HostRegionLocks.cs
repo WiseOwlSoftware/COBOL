@@ -54,7 +54,8 @@ internal abstract class RegionLocks(bool writable) : IDisposable
     /// waiting for a conflicting holder to give it back when <paramref name="wait"/>; otherwise a conflicting holder
     /// answers <see cref="RegionLockResult.Held"/> at once. A SHARED hold exists because Linux refuses an exclusive lock
     /// through a descriptor that is not open for writing: a reader holds the store mutex shared (it never changes the
-    /// store), which every exclusive request and every <see cref="HeldByAnother"/> test still sees.</summary>
+    /// store), which every exclusive request and every <see cref="HeldByAnother"/> test still sees. Holds do not stack: a
+    /// byte this endpoint already holds at least as strongly is Ok at once, and one <see cref="Release"/> gives it back.</summary>
     internal abstract RegionLockResult Hold(long offset, bool exclusive, bool wait);
 
     /// <summary>Does a holder OTHER than this endpoint hold <paramref name="offset"/>, in any mode? Nothing is kept.
@@ -65,8 +66,9 @@ internal abstract class RegionLocks(bool writable) : IDisposable
     /// <summary>Give back <paramref name="offset"/>. Giving back a byte this endpoint does not hold is a no-op.</summary>
     internal abstract void Release(long offset);
 
-    /// <summary>Give back everything this endpoint holds. Idempotent. The connector's handle is not the endpoint's to
-    /// close.</summary>
+    /// <summary>Give back everything this endpoint holds, explicitly — never left to the close of the handle, which the
+    /// endpoint's owner closes only after this (kb/Work PB3549). Idempotent. The connector's handle is not the endpoint's
+    /// to close.</summary>
     public abstract void Dispose();
 }
 
@@ -114,6 +116,26 @@ internal static class HostRegionLocks
     /// action are one step to every other run unit (kb/Work PB2660).</summary>
     internal const long StoreMutexByte = RegionBase + 0x100;
 
+    /// <summary>Take the store mutex through <paramref name="endpoint"/>, waiting for another run unit's statement: exclusive
+    /// through a writable handle, shared through an <c>OPEN INPUT</c> connector's read-only one (a reader never changes the
+    /// store, and Linux refuses an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). Null when
+    /// the host cannot carry the lock, and the caller then has no protection against another run unit's writer but the file
+    /// lock (docs/CONFORMANCE.md DOC-A.1-75). The one way the mutex is taken (review finding R1-3 of kb/Work PB3494).</summary>
+    internal static RegionLocks? HoldStoreMutex(RegionLocks endpoint) =>
+        endpoint.Hold(StoreMutexByte, exclusive: endpoint.Writable, wait: true) == RegionLockResult.Ok ? endpoint : null;
+
+    /// <summary>⛔ THE ONE STORE-MUTEX HOLD AROUND A BODY that is not a record statement — an OPEN's adoption or creation, a
+    /// CLOSE's promotion, a COMMIT or a ROLLBACK, a kept handle given back — through <paramref name="endpoint"/>
+    /// (<see cref="HoldStoreMutex"/>), released whatever the body does; a null endpoint (a NO OTHER connector, which has
+    /// nobody to exclude, or a kept handle given back early) runs the body without it. A live connector and the state a
+    /// CLOSE under commit control kept both come here, so the two arms never disagree on the mutex's rule.</summary>
+    internal static T InStoreMutex<T>(RegionLocks? endpoint, Func<T> body)
+    {
+        var holder = endpoint is null ? null : HoldStoreMutex(endpoint);
+        try { return body(); }
+        finally { holder?.Release(StoreMutexByte); }
+    }
+
     /// <summary>⭐ "Some connector of this run unit holds a record lock on this file": held SHARED by every endpoint
     /// that has published at least one record lock, for as long as it holds one. A run unit that wants to know
     /// whether ANY other run unit may hold a record lock asks this one byte (<see cref="RegionLocks.HeldByAnother"/>)
@@ -153,8 +175,10 @@ internal static class HostRegionLocks
 
     /// <summary>⛔ THE BYTE THAT SAYS A TRANSACTION'S OWNER IS ALIVE (2.2.1.8, 2.2.1.10; kb/Work PB3337): one byte per
     /// transaction id, <c>2^62 + 2^61 + (id mod 2^60)</c>, held EXCLUSIVELY through the owner's writable handle for the
-    /// life of the transaction. The operating environment releases it with the handle when the owner dies (the lock-file
-    /// host deletes a dead holder's file), so "is this transaction's owner alive" is one test of one byte, by the same
+    /// life of the transaction. The owner's endpoint unlocks it explicitly when it gives the handle back
+    /// (<see cref="RegionLocks.Dispose"/>, never left to the handle's close: kb/Work PB3549), and the operating environment
+    /// releases it with the handle when the owner dies (the lock-file host deletes a dead holder's file), so "is this
+    /// transaction's owner alive" is one test of one byte, by the same
     /// primitive the record locks use. A transaction's own locks are NOT here: they are its HOLDINGS, pages of the file,
     /// which must outlive the handle (finding R4-1).</summary>
     internal static long TransactionLivenessByte(ulong transaction) =>

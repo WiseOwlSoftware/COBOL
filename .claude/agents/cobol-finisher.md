@@ -21,7 +21,7 @@ Non-negotiables:
   exit 11; MANDATORY-PRACTICES I10, L9, L12; kb/Work PB3103). A stop you resolved with no commit of your own is said so
   in the report with its cause, and the enqueue unit re-arms it (`land_lane.py rearm`). Never open, queue or merge a
   pull request by hand, never push to main (kb/Work PB3023).
-- Never `git stash`; checkpoint with commits and `STATUS.md`.
+- Never `git stash`; checkpoint with commits and `STATUS.md`. The one exception at your turn cap: with your OWN gate still running on your committed head and nothing uncommitted, hand the gate over instead of stopping: STATUS.md `GATE: pending in <run>`, the report's Status line `Status: GATE-PENDING` with `Gate run: <run>`, and return status GATE-PENDING with `gate_run` and `head` (the rolling wave awaits the run's verdict; MANDATORY-PRACTICES P2, kb/Work PB3536); never before the cap, and never for a gate that is not yours.
 
 Why these settings (kb/Work PB3023, DESIGN-test-build-ci.md section 3.17.5): the lander role retired with the train;
 what a script cannot decide at the landing is one branch's conflict or red, a smaller job than a train (turn cap 160).

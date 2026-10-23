@@ -10,8 +10,8 @@ namespace CobolNet.CodeGen;
 /// scale (the division/power working scale, ISO §8.8.1/§14.7.4), its INTEGER-DIGIT CAPACITY (the float
 /// quantization headroom — see <see cref="FloatWorkingScale"/>), whether it is a floating-point receiver (the
 /// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and whether the statement runs under ON
-/// SIZE ERROR / EC-SIZE checking (a division renders the checked <c>DivideOrThrow</c>, a product
-/// <c>MulChecked</c>; ISO §14.7.5). Passed BY PARAMETER into every public numeric-render entry — replacing the
+/// SIZE ERROR / EC-SIZE checking (a division renders the checked <c>DivideOrThrow</c>, a sum
+/// <c>AddChecked</c>; ISO §14.7.5). Passed BY PARAMETER into every public numeric-render entry — replacing the
 /// four mutable <c>EmitContext.Target*</c>/<c>InSizeErrorContext</c> fields whose manual set/reset discipline
 /// was the H1 staleness hazard (a receiver-less render inheriting the PREVIOUS statement's receiver). A site with
 /// no receiver in scope passes <see cref="None"/> (scale 0, no capacity, fixed-point, truncation, unchecked).
@@ -220,13 +220,15 @@ internal readonly record struct ReceiverContext(
     /// (feedback_two_arm_dispatch).
     /// </para>
     /// <para>
-    /// The obvious repair — give the nested arm guard digits the way <c>NumericRenderer.Divide</c>'s nested arm
+    /// The obvious repair — give the nested arm guard digits, as <c>NumericRenderer.Divide</c>'s nested arm
     /// does — is WRONG, and measurably so: a landing does not know how many multiplications sit above it, so a
-    /// guarded scale ACCUMULATES. At <c>DivGuardDigits</c>'s 14 a nested float operand would land at scale 23,
+    /// guarded scale ACCUMULATES. At <c>CobolNum.NestedQuotientGuardDigits</c>'s 14 a nested float operand would land at scale 23,
     /// and <c>FUNCTION SQRT(10) * FUNCTION SQRT(10)</c> would multiply two scale-23 operands into a scale-46
     /// product — past the <see cref="IntermediateDigits"/> carrier, where the unchecked no-phrase store WRAPS.
-    /// <c>Divide</c> can afford a guard because it clamps against ITS OWN radix alignment, which it knows; a
-    /// landing has no such bound. Keeping the binary64 removes the question instead of tuning it: the value IS
+    /// <c>Divide</c> can afford a guard only because it adds the guard to its operands' PRECISION, never to an
+    /// intermediate's scale, and falls to the SDIDI when its digit bound passes the carrier (kb/Work PB3538: the
+    /// guard it once added to the dividend's scale compounded with depth exactly this way); a float landing has
+    /// no such bound. Keeping the binary64 removes the question instead of tuning it: the value IS
     /// then the same object a <c>COMP-2</c> item holds, <c>CombineCore</c>'s <c>Real</c> lane evaluates the whole
     /// expression in IEEE binary64 (numeric design D16, on §8.8.1.3's "implementor-defined method of evaluating
     /// an arithmetic expression, an arithmetic statement, the SUM clause, and all integer and numeric

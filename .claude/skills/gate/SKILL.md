@@ -52,8 +52,10 @@ Characterization. The ORDER PLAN (`scripts/gate_plan.py`) puts in leg 1 the test
 reds (tier 0a), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
 witnesses CI's NTFS runners may not reproduce (tier 0h, whatever the diff) — the cheap tree-wide sweeps, every class
 carrying `[Trait("Sweep", "tree")]` whose cases are cheap (tier 0c: the bookkeeping reds a population run used to
-find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022) and the cheapest
-cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
+find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022), every drift
+test the drift-rule index says governs a file the change touches, whatever its cost (tier 0d, kb/Work PB3531: what
+`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included) and the
+cheapest cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
 exists — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
 publishes to after its legs, so a fresh worktree is timed too (kb/Work PB2527). The test hosts run Server GC (kb/Work
 PB2526). Each leg runs the three assemblies concurrently.
@@ -149,9 +151,21 @@ re-run). Here, additionally:
   it. To capture the status in the same call, append `; echo "EXIT=$?"`; read-only commands may follow that.
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`,
   `RED/INCOMPLETE` (stopped after leg 1 under the scope `whole`), `LEG 1 ONLY (batched gating, PB2515): GREEN|RED`
-  (leg 1 ran, leg 2 is CI's — never a whole-population GREEN), `BUILD FAILED` or `NOT RUN` (the lock was held, the
-  shared gate settings are malformed, the population could not be listed) — block on that line, never on the exit code. The run directory it names holds
+  (leg 1 ran, leg 2 is CI's — never a whole-population GREEN), `BUILD FAILED`, `BUSY` (exit 3: another gate holds
+  this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
+  2: it measured nothing; the cause's class is `run_gate_legs.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
+  block on that line, never on the exit code. The run directory it names holds
   every leg's full log, trx and identity record, the plan and `verdict.json` (timings, first red, slot).
+- **The gate outlives its caller and is gated once per measured tree** (kb/Work PB3536; DESIGN-test-build-ci.md
+  §3.14.12). `build-local` starts the gate DETACHED in its run directory (`gate.log`, `gate.pid`, `verdict.json`) and
+  follows it, so killing the caller leaves the gate running to its verdict; `python scripts/run_gate_legs.py --await
+  <run> [--worktree W] [--wait-s N]` reads that verdict (its line and exit code; a process that died with none is
+  `NOT RUN [verdict]` exit 2, a gate still running `PENDING` exit 4; a relative `<run>` is W's run). A re-gate of a
+  tree an earlier gate in the worktree measured GREEN (the harness's `.claude/settings.local.json` edit, STATUS.md and
+  TestResults/ are no part of a measured tree: coord.NEVER_WORK), against the same base and under a scope it covered, answers at
+  once `… GREEN — REUSED (kb/Work PB3536): … that gate: …`, naming the run that measured it; a RED is never reused.
+  An agent at its TURN CAP with its gate running hands it to the wave (status `GATE-PENDING`, MANDATORY-PRACTICES P2).
 
 ## Read the failure before diagnosing it
 
