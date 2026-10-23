@@ -731,7 +731,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// arm is <see cref="CombineNative"/>, and it owes the SAME size-error rules (kb/Work PB1147, PB1581; the
     /// two-arm shape). Where checking is enabled (<see cref="Checked"/>) each operation is the checked runtime twin
     /// of the scaled carrier's: a zero divisor is EC-SIZE-ZERO-DIVIDE (§14.7.5 case 2, as <c>DivideOrThrow</c>), and
-    /// a result outside binary64 is EC-SIZE-OVERFLOW / -UNDERFLOW (case 5, as <c>MulChecked</c>/<c>AddChecked</c>).
+    /// a result outside binary64 is EC-SIZE-OVERFLOW / -UNDERFLOW (case 5, as <c>AddChecked</c>/<c>SubChecked</c>).
     /// Unchecked, the sum, difference and product are the bare IEEE operators, exactly as the scaled lane's unchecked
     /// operators wrap; the QUOTIENT is <c>CobolFloat.Div</c>, because a zero divisor is case 2 whether or not checking
     /// is enabled — the same rule <c>CobolNum.Divide</c> and <c>CobolDec.Div</c> keep (kb/Work PB1605; the bare

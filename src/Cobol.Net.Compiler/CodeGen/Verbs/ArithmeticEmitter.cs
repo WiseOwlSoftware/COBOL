@@ -440,7 +440,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             ecState.SizeErrEcVar = ecnVar;
         }
         ecState.SizeErrVar = flag;
-        using (w.Block("try")) emitStores(true);   // checked renders: DivideOrThrow / MulChecked (§14.7.5)
+        using (w.Block("try")) emitStores(true);   // checked renders: DivideOrThrow / AddChecked / SubChecked (§14.7.5)
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
         // statement's size error condition (ISO §14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
