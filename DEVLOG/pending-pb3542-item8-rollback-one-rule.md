@@ -36,9 +36,12 @@ STATUS item the ROLLBACK had just restored. It now reads what `Refused` recorded
 `14.6.13.1.3-Fatal-exception-conditions/pb3542_item8_before_resume_at_procedure`, `pb3542_item8_asked_at_the_raise`,
 `pb3542_item8_not_after_an_on_exception_phrase`, `pb3543_item8_not_with_checking_enabled`,
 `pb3543_item8_not_after_a_when_phrase`, `pb3544_item8_not_on_a_sort_transfer`, and
-`14.9.36-ROLLBACK/pb3544_item8_rollback_in_sort_procedure_ec_flow` and `_unchecked`. Unit:
+`14.9.36-ROLLBACK/pb3544_item8_rollback_in_sort_procedure_ec_flow` and `_unchecked`, and for the other two controls
+§14.9.36.4 GR2 names, `pb3544_item8_rollback_in_merge_output_procedure_ec_flow` (a MERGE output procedure) and
+`pb3544_item8_rollback_under_recursive_element_unchecked` (a recursive runtime element in the call chain). Unit:
 `TransactionControlTests.Item_8_is_not_due_when_checking_for_the_condition_is_enabled` and
-`Item_8_under_an_active_sort_raises_ec_flow_rollback_or_rolls_nothing_back`; the existing item 8 cases now drive the
+`Item_8_under_a_forbidding_control_raises_ec_flow_rollback_or_rolls_nothing_back` (an input procedure, an output
+procedure and a recursive element, checking on and off); the existing item 8 cases now drive the
 question and the ROLLBACK as the emitted code does. `Item8RollbackSiteDriftTests` pins the one site: the question and the
 ROLLBACK are written only by `SequentialIoEmitter`, their runtime entry points are named only by `RuntimeApi`, and every
 SORT/MERGE transfer hook passes `verbDisposes: true`.

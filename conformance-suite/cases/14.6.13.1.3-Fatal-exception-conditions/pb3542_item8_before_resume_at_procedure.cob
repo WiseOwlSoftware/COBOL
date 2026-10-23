@@ -18,7 +18,7 @@
       *> Checking is NOT enabled, so the READ of RELF while it is open OUTPUT ('47', fatal) runs the
       *> USE procedure (9.1.13) and then item 8's ROLLBACK, whatever the procedure ends in. Expected:
       *> the procedure sees '47'; at P2, WS-COUNT and FS are back to the 0001 and '00' the COMMIT
-      *> saved (14.9.36.4 GR3: "This includes the file status data items"), and record 2, written
+      *> saved (14.9.36.4 GR3: "It also includes the file status data items"), and record 2, written
       *> after the COMMIT, is gone. The defect let RESUME AT P2 jump past the ROLLBACK (0002, '47',
       *> record 2 present).
        IDENTIFICATION DIVISION.
