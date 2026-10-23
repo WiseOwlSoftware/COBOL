@@ -3195,7 +3195,7 @@ already-derivable coverage; none change the pipeline.
   gate writes a fresh run directory `TestResults/build-local/<UTC stamp>-<nonce>/` (listings, `plan.json`, every
   leg's log, trx and identity record, `verdict.json` with the timings and the first red; the newest five are kept)
   and prints one `=== BUILD-LOCAL GATE: GREEN|RED|RED/INCOMPLETE|LEG 1 ONLY (batched gating, PB2515):
-  GREEN|RED|BUILD FAILED|NOT RUN — … ===` line (under the default scope `leg1`, `LEG 1 ONLY …`).
+  GREEN|RED|BUILD FAILED|BUSY|NOT RUN [<cause>] — … ===` line (under the default scope `leg1`, `LEG 1 ONLY …`).
   ⛔ Any OTHER filtered `dotnet test` you run or script goes through `scripts/filter_population.py` first (PB708,
   PB751/PB752 — vstest answers an unmatched filter with a passing run of zero tests); add `--allow-build` when the
   run itself is what builds the project.
