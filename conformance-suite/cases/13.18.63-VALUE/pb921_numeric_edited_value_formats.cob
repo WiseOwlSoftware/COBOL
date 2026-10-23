@@ -25,9 +25,11 @@
       *>      and the fraction is 00. A = [ 10.00]. 8.8.4.5.3 then makes A-TEN true right after the SET.
       *>   B  format 3 with the ALPHANUMERIC edited image instead - SR7's spelling, legal at EVERY edition and
       *>      untouched by the edition screen (the screen asks about a NUMERIC literal only). B = [ 10.00].
-      *>   C  format 3 with the literal ZERO. SR6 exempts "the figurative constant ZERO or ZEROES and the integer
-      *>      and decimal forms of the literal zero" at all editions, so this is NOT gated. PIC ZZ9 holding 0
-      *>      suppresses both leading zeros and prints the 9 position: C = [  0].
+      *>   C  format 3 with the literal zero. It is a numeric literal like any other (kb/Work PB3566: SR6's last
+      *>      sentence, "the integer and decimal forms of the literal zero may also be specified for either
+      *>      format", exempts nothing below 2023, see pb3566-numeric-edited-value-zero-below-2023), so it is
+      *>      legal here at 2023. PIC ZZ9 holding 0 suppresses both leading zeros and prints the 9 position:
+      *>      C = [  0].
       *>   D  format 4 (report-section) over PIC ZZ9.99, the same conversion into a printable item, read back
       *>      through a LINE SEQUENTIAL view of the report file: D = [ 10.00].
        IDENTIFICATION DIVISION.

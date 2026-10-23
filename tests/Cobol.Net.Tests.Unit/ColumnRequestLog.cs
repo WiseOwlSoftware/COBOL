@@ -16,8 +16,8 @@ internal sealed class ColumnRequestLog
 {
     /// <summary>One request: the column it published and whether it replaced a lock the connector already held (an
     /// <see cref="RunUnitFileLock.Amend"/> or a <see cref="RunUnitFileLock.Revert"/>, not a first
-    /// <see cref="RunUnitFileLock.Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>).</summary>
-    public readonly record struct Request(ExistingSharingColumn Own, bool Replaces);
+    /// <see cref="RunUnitFileLock.Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?, bool)"/>).</summary>
+    public readonly record struct Request(ExistingSharingColumn Own, bool Replaces, bool OwesWrites = false);
 
     private readonly List<Request> _requests = [];
 
@@ -45,12 +45,12 @@ internal sealed class ColumnRequestLog
 
     private sealed class Host(IColumnLockHost inner, ColumnRequestLog log) : IColumnLockHost
     {
-        public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
+        public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
             IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
         {
             log.Before?.Invoke(log._requests.Count);
-            log._requests.Add(new Request(own, supersedes is not null));
-            return inner.Establish(hostPath, own, refused, supersedes, out hold);
+            log._requests.Add(new Request(own, supersedes is not null, owesWrites));
+            return inner.Establish(hostPath, own, owesWrites, refused, supersedes, out hold);
         }
     }
 }

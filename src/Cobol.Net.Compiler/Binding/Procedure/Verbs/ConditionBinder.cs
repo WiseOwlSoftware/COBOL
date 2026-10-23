@@ -131,9 +131,31 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a boolean expression "
                 + "(ISO §8.8.2)");
         }
-        // A sole data reference to a category-boolean item — through the enclosing parentheses, as the routing
+        // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
-        if (ConditionOperandExpression(vo) is { } expr && SoleDataRef(expr) is { } dref)
+        if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
+        ctx.Edition.Error("COBOLNET1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
+            + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
+            + "(ISO §8.8.2)");
+        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{vo.GetText()}'");
+    }
+
+    /// <summary>The ONE binding of a boolean operand that is a SOLE identifier — a data reference to a
+    /// category-boolean item, a boolean constant-name, or a function-identifier whose result is class boolean —
+    /// through the parentheses that enclose the whole of it ("a boolean expression enclosed in parentheses" is a
+    /// boolean expression, ISO §8.8.2; <see cref="SoleOperand.Unparenthesized"/>), or null when the expression is
+    /// neither (a literal, a figurative and an operator-bearing expression are the caller's). Its two callers are
+    /// <see cref="BindBoolOperandValue"/>, the leaf of every boolean expression, and COMPUTE's Format 1 to Format 2
+    /// reroute (<c>ArithmeticBinder.BindCompute</c>), whose sole right-hand operand parses as an arithmetic
+    /// expression and must be classified and bound exactly as the same words are inside a boolean expression
+    /// (kb/Work PB3565: the reroute read only an unparenthesized data reference, so a sole boolean function, a
+    /// parenthesised boolean item and a boolean constant-name were each refused with COBOLNET1511 on legal
+    /// source). <see cref="IsSoleBooleanOperand"/> is the diagnostic-free routing predicate over the same three
+    /// arms.</summary>
+    internal BoundBoolExpr? BindSoleBooleanOperand(Core.ArithmeticExpressionContext? whole)
+    {
+        if (SoleOperand.Unparenthesized(whole) is not { } expr) return null;
+        if (SoleDataRef(expr) is { } dref)
         {
             // A constant-name is NOT a data item: "the effect of specifying constant-name-1 … is as if literal-1 … were
             // written where constant-name-1 is written" (§13.10.4 GR1), and it "may be used anywhere that a format
@@ -162,7 +184,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // data item": a function-identifier IS an identifier (§8.4.3.1.2) referencing a temporary data item
         // (§8.4.3.2.4 GR1) whose category is the function's type (§15.13.1 BOOLEAN-OF-INTEGER; kb/Work PB68 — it
         // fell to the 1511 default below, "not a valid boolean operand", on legal source).
-        if (ConditionOperandExpression(vo) is { } fexpr && SoleFunctionCall(fexpr) is { } fc)
+        if (SoleFunctionCall(expr) is { } fc)
         {
             var bound = host.Intrinsic.BindIntrinsic(fc);
             if (bound is BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } bic) return new BoundBoolCall(bic);
@@ -176,10 +198,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{fc.GetText()}'");
         }
-        ctx.Edition.Error("COBOLNET1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
-            + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
-            + "(ISO §8.8.2)");
-        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{vo.GetText()}'");
+        return null;
     }
 
     /// <summary>True when a <c>comparisonOperand</c> / <c>valueOperand</c> is a BOOLEAN-valued operand — a
@@ -199,16 +218,24 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // like the equivalent single B"…" literal it folds to (GR3). ClassOf is diagnostic-free — the fold
         // (and its SR diagnostics) happens exactly once, on the bind path this predicate selects.
         if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce, ctx.Data.LiteralEnv) is PicCategory.Boolean;
+        return IsSoleBooleanOperand(vo.arithmeticExpression());
+    }
+
+    /// <summary>The routing predicate of <see cref="BindSoleBooleanOperand"/>, diagnostic-free and over the same
+    /// three arms: a boolean constant-name, a data reference to a category-boolean item, a function-identifier whose
+    /// result is boolean — each through the parentheses that enclose the whole of the expression.</summary>
+    internal bool IsSoleBooleanOperand(Core.ArithmeticExpressionContext? whole)
+    {
         // Through the enclosing parentheses: "a boolean expression enclosed in parentheses" is a boolean expression
         // (§8.8.2) — `(BW)` is the boolean item BW (kb/Work PB1464; ConditionOperandExpression).
         // A BOOLEAN constant-name is the boolean literal it substitutes (§13.10.4 GR1; kb/Work PB3191): asked BEFORE
         // the probe, as the operand binder (ExpressionBinder.FieldOperand) asks its alias before the resolution.
         // The alias question is the ONE literal-alias resolution (LiteralAliasResolutionDriftTests): it records at most
         // the §8.3.2.2 use the bind of the same word records again, so asking it here stays diagnostic-free.
-        if (ConditionOperandExpression(vo) is { } kx && SoleDataRef(kx) is { } kref
-            && host.Expr.LiteralAliasOf(kref) is { } kalias)
+        if (SoleOperand.Unparenthesized(whole) is not { } sole) return false;
+        if (SoleDataRef(sole) is { } kref && host.Expr.LiteralAliasOf(kref) is { } kalias)
             return kalias.Constant is { Category: PicCategory.Boolean };
-        if (ConditionOperandExpression(vo) is { } expr && SoleDataRef(expr) is { } dref
+        if (SoleDataRef(sole) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
             // ProbeResult.OperandCategory IS the one category reader for a probed reference (kb/Work PB157 +
             // PB221): §8.4.3.3.4 GR6 for a ref-modified reference, else DataItem.OperandPic, so a bit group
@@ -220,7 +247,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return p.OperandCategory is PicCategory.Boolean;
         // A sole FUNCTION-keyword reference whose result is boolean, through the enclosing parentheses like the arms
         // above (§8.8.2: "a boolean expression enclosed in parentheses" — kb/Work PB1928).
-        return ConditionOperandExpression(vo) is { } fx && SoleFunctionCall(fx) is { } sfc && IsBooleanFunction(sfc);
+        return SoleFunctionCall(sole) is { } sfc && IsBooleanFunction(sfc);
     }
 
     /// <summary>True when a function-identifier's result is boolean, asked diagnostic-free in the bind path's own

@@ -1,0 +1,6 @@
+## Entry 2417 — 2026-10-23 14:18 PDT — The 51 open analyses swept: 19 closed, 26 re-filed as defects, 5 kept, 2 owner questions
+
+Five read-only Opus adjudicators went through the 51 open `analysis` notes in `kb/Work/` against main e7cf38ce4, one slice each, with every spec citation checked by `cite.py --check`. The sweep took about 1.09 million tokens and 50 minutes. Eighteen notes were closed on the evidence (PB1576 was closed with them because its own text says it closes with PB3101, which has landed). Twenty-six were re-filed as `defect` notes with the adjudicator's severity, harm flags, rule, repro and code site.
+
+The defects are mostly three kinds. Six are silent wrong answers (PB547, PB493, PB1014, PB1606, PB637, PB3246). Several are under-rejections or rejected legal source in the binder and validators (PB538, PB494, PB539, PB1615, PB1601, PB1319, PB2282, PB1626, PB3280). Three are citation-only or process-only (PB498, PB2469, PB2556), and PB1046 and PB380 are process-only because they change a diagnostic's wording or a cache size, not a program's result. Five notes stay analyses. PB296 and PB670 are untouched and wait for an owner decision. No inventory row, code or golden changed; the row flips the sweep proposes are left to a registrar pass.
+

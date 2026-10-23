@@ -897,6 +897,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // stays omitted and is never read (§8.8.4.8.4 GR1c, §14.9.4.4 GR12).
             if (MovedFormal(a) is { } record)
                 return MovedArgText(Forwarded(probe, $"ManagedPointer<string>.Cell({move.RecordValue(new BoundFieldOperand(p), record)})"));
+            // ⛔ …AND A KNOWN GROUP FORMAL's is GR4's non-elementary MOVE (kb/Work PB3562): "no conversion of data from one
+            // form of internal representation to another", so a USAGE BIT or USAGE NATIONAL elementary argument crosses as
+            // its STORAGE image (packed bits, UTF-16BE pairs), the one codec a MOVE to the group uses
+            // (OperandText.NonElementaryMoveSender), not as its operand text, which the formal's text adapter would copy
+            // as the characters '0' / '1' / one byte per national position.
+            if (GroupFormal(a) is not null && OperandText.CarrierDiffersFromStorage(p))
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, $"ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(new BoundFieldOperand(p), num, "CALL argument")})")}, {meta})";
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
             // call initiation; the mode rides the wire so the arg is honest about which rule produced it
@@ -931,8 +938,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // positions while its insertion positions keep their own characters.
             case { } sent when sent is not BoundPredefinedNull && MovedFormal(a) is { } record:
                 return MovedArgText($"ManagedPointer<string>.Cell({move.RecordValue(sent, record)})");
+            // ⛔ A national literal (usage national, §8.3.3.5.4 GR3 a)) into a KNOWN GROUP formal is GR4's unconverted move, so
+            // it crosses as its storage image (kb/Work PB3562: OperandText.NonElementaryMoveSender, the one sending codec);
+            // into any other formal it crosses as its characters.
             case BoundStringLiteral s:
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), null)";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
+                    + (GroupFormal(a) is not null ? OperandText.NonElementaryMoveSender(s, num, "CALL argument") : CsLiteral(s.Value))
+                    + "), null)";
             // ⛔ ONE NUMERIC-ARGUMENT FUNNEL for both non-place arms (kb/Work PB263 + PB264). A numeric literal
             // reaches this switch in EITHER bound shape — BY CONTENT and a bare Format-2 argument bind it as
             // BoundNumericLiteral, while BY VALUE binds it as a BoundComputedOperand wrapping a BoundNumLiteral
@@ -956,7 +968,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // elementary data item" of the function's category, so it crosses exactly as a nonnumeric literal of
             // that category does: its character image, through the ONE string channel (OperandText.AsString).
             case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } } sc:
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.AsString(sc, num)}), null)";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
+                    // …and a KNOWN GROUP formal takes a national or boolean function value as GR4's unconverted move does, its
+                    // storage image (kb/Work PB3562 - the same codec as the literal arm above and a MOVE to the group).
+                    + (GroupFormal(a) is not null ? OperandText.NonElementaryMoveSender(sc, num, "CALL argument") : OperandText.AsString(sc, num))
+                    + "), null)";
             case BoundComputedOperand expr:
             {
                 // A GENUINE runtime expression snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY
@@ -1039,6 +1055,19 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static DataItem? MovedFormal(BoundCallArg a) =>
         !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { } f && IsMovedFormal(f) ? f : null;
 
+    /// <summary>The KNOWN plain-group formal a BY CONTENT argument is moved into (kb/Work PB3562), or null. A group is not
+    /// <see cref="IsMovedFormal"/>'s: its record is filled by §14.9.25.4 GR4's move "as if it were an alphanumeric to
+    /// alphanumeric elementary move, except that there is no conversion", which the formal's text adapter performs as a
+    /// character copy of the cell - so the cell must hold the sender's storage image, not its operand text. A bit or
+    /// national group is the as-if-elementary formal <see cref="IsMovedFormal"/> takes.</summary>
+    private static DataItem? GroupFormal(BoundCallArg a) =>
+        !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { } f && IsPlainGroupFormal(f) ? f : null;
+
+    /// <summary>The formal a BY CONTENT argument is moved into as GR4's unconverted group move: a group that is not a bit or
+    /// national group (those are "treated as elementary items in the MOVE statement", so <see cref="IsMovedFormal"/> takes
+    /// them). ONE answer for the CALL and function lanes (<see cref="GroupFormal"/>) and the INVOKE lane (kb/Work PB3562).</summary>
+    internal static bool IsPlainGroupFormal(DataItem f) => f is { IsGroup: true, IsAsIfElementary: false };
+
     /// <summary>⛔ THE ONE TEST OF WHICH FORMALS §14.2.3 GR9's MOVE LEG FILLS (see <see cref="MovedFormal"/>) — asked by the
     /// activating element's compile-time MOVE and by the activated unit's registration (<see cref="RegisteredFormal"/>), so
     /// the two lanes of one crossing cannot disagree about which formals they move into (kb/Work PB2587; the
@@ -1120,7 +1149,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static int? FigurativeFillWidth(DataItem? formal) =>
         formal is null || formal.IsAnyLength || formal.IsDynamicLength ? null
         : formal.IsElementary
-            ? formal.Pic is { Category: not PicCategory.Numeric } && formal.ImageWidth > 0 ? formal.ImageWidth : null
+            ? formal.Pic is { Category: not PicCategory.Numeric } && BoundaryImageWidth(formal) is > 0 and var window ? window : null
         : VariableLengthCompatibility.IsVariableLength(formal) ? null
         : BoundaryImageWidth(formal);
 
@@ -1415,9 +1444,15 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>The character width of a formal's TEXT crossing — the unit <see cref="CallStringRead"/> measures it
     /// in: a bit / national group's as-if position count (kb/Work PB1166), else its record image width. ONE
-    /// answer for the CALL callee's carrier window and the INVOKE argument / copy-out windows.</summary>
+    /// answer for the CALL callee's carrier window and the INVOKE argument / copy-out windows.
+    /// <para>⛔ An ELEMENTARY <c>USAGE BIT</c> item crosses as its boolean POSITIONS too (kb/Work PB3586), exactly as a bit
+    /// group does: <see cref="DataItem.ImageWidth"/> is its OCCUPANCY (<c>ceil(n/8)</c> storage characters,
+    /// <c>BitLayout.Characters</c>), so a <c>PIC 1(8) USAGE BIT</c> RETURNING item stated length 1 and the delivery fitted
+    /// its eight-position result to one position: the caller read all zeros.</para></summary>
     internal static int BoundaryImageWidth(DataItem item) =>
-        item.IsAsIfElementary ? item.AsIfPic!.Length : item.ImageWidth;
+        item.IsAsIfElementary ? item.AsIfPic!.Length
+        : BitLayout.IsBitLeaf(item) ? item.Pic!.Length
+        : item.ImageWidth;
 
     /// <summary>The character window of an ELEMENTARY string-carried formal — its carrier's width: the PICTURE's
     /// length for every character category, and for an image-stored NUMERIC formal its storage image

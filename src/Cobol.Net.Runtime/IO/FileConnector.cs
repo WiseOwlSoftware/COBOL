@@ -371,8 +371,9 @@ public abstract class FileConnector
         // column refuses this OPEN's as another holder's, and releasing it to get out of its way left the file unlocked for
         // an instant, and again when the OPEN was unsuccessful (kb/Work PB3483). A refusal leaves it exactly as the CLOSE left
         // it (§14.9.27.4 GR25).
+        bool owesWrites = OwesWrites(mode, existedBeforeBody);
         if (KeptFileLock is { } kept)
-            switch (kept.Amend(HostSharing, mode))
+            switch (kept.Amend(HostSharing, mode, owesWrites))
             {
                 case RunUnitFileLock.Outcome.Refused: return FileStatusCode.FileSharingConflict;
                 case RunUnitFileLock.Outcome.Held:
@@ -381,7 +382,7 @@ public abstract class FileConnector
                     return null;
                 default: return null;   // this host cannot hold the lock now: the kept one stands, and ends with the success
             }
-        return RunUnitFileLock.Take(HostPath, HostSharing, mode, out _runUnitLock) == RunUnitFileLock.Outcome.Refused
+        return RunUnitFileLock.Take(HostPath, HostSharing, mode, out _runUnitLock, owesWrites) == RunUnitFileLock.Outcome.Refused
             ? FileStatusCode.FileSharingConflict
             : null;
     }
@@ -438,6 +439,24 @@ public abstract class FileConnector
     /// other run unit can hold the file while it stands (<see cref="TakeRunUnitFileLock"/>).</summary>
     private protected virtual bool KeptHandleExcludesEveryOpen => false;
 
+    /// <summary>⛔ DOES THE HANDLE THIS OPEN IN <paramref name="mode"/> HOLDS STAND OPEN FOR WRITING THOUGH THE MODE IS INPUT
+    /// (kb/Work PB3499)? That is an INPUT opener that still owes its transaction's writes (2.2.1.10 in
+    /// docs/rearchitecture/DESIGN-runtime-library.md): the one connector Table 19 admits beside a READ ONLY request while a
+    /// share mode cannot (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>). It is published with the connector's column
+    /// (<see cref="RunUnitFileLock.Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?, bool)"/>,
+    /// <see cref="RunUnitFileLock.Amend"/>), so another run unit's second attempt yields to this handle and to no other writer
+    /// (<see cref="RunUnitFileLock.AnotherOwesWrites"/>). The column is taken BEFORE the body, so a lock a kept column is
+    /// replaced by is published with the fact at once, never an instant after (the handle a CLOSE under commit control kept is
+    /// already open for writing): <see cref="WillTakeWritableHandle"/> says what the body will take, and after the body
+    /// <see cref="FileLock"/> says what it took.</summary>
+    private bool OwesWrites(FileOpenMode mode, bool existedBeforeBody) =>
+        mode is FileOpenMode.Input && (existedBeforeBody ? WillTakeWritableHandle(mode) : FileLock is { CanWrite: true });
+
+    /// <summary>Will the OPEN body of this organization take a handle open for writing in <paramref name="mode"/>, when it
+    /// takes the access its own mode implies (<see cref="HostAccess"/>) except for what a CLOSE under commit control kept
+    /// (<see cref="OwesWrites"/>)? Only a keyed connector keeps a handle (kb/Work PB3337); false for every other.</summary>
+    private protected virtual bool WillTakeWritableHandle(FileOpenMode mode) => false;
+
     /// <summary>The OPEN replaced <see cref="KeptFileLock"/> by its own: the connector holds that lock now, and the
     /// organization's kept state no longer does.</summary>
     private protected virtual void TakeKeptFileLockOver() { }
@@ -461,6 +480,12 @@ public abstract class FileConnector
     /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
+
+    /// <summary>The OPEN found a PRESENT physical file at <see cref="HostPath"/> (<see cref="OpenOnce"/>, before the file lock
+    /// and the organization's body): what this connector's CLOSE under commit control kept, if it was kept on another physical
+    /// file than the one the path names now — the kept one removed or renamed away and another made at the path outside the
+    /// run unit — ends here (kb/Work PB3533). Only a keyed connector keeps anything (kb/Work PB3337).</summary>
+    private protected virtual void EndWhatWasKeptOfAnotherFile() { }
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
@@ -910,6 +935,11 @@ public abstract class FileConnector
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
+            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES ENDS HERE, before anything of this OPEN reads it (kb/Work
+            // PB3533): the write probe, the file lock the CLOSE kept and the organization's kept handle and store all belong to
+            // the physical file the CLOSE was on, and a present file that is not that one was made at the path after it was
+            // removed or renamed away outside the run unit.
+            if (presence is FilePresence.Present) EndWhatWasKeptOfAnotherFile();
             // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
             // execution of the OPEN statement when the file connector is matched with the file and the file
             // exists, the attributes of the file connector as specified in the file control paragraph and the
@@ -1005,12 +1035,13 @@ public abstract class FileConnector
         if (!_openMode)
         {
             // The column is read BEFORE it is given back: held means Table 19 admitted this request against every other run
-            // unit's connector, so a '61' that the host's share mode alone made is the posture over-restricting — when a
-            // connector that can owe writes is there to be admitted (an INPUT opener), and not a program outside the protocol.
+            // unit's connector, so a '61' that the host's share mode alone made is the posture over-restricting only when the
+            // writer that refused it is a connector's that owes writes (an INPUT opener whose transaction stands, which it
+            // published with its column), and not a reader beside the request or a program outside the protocol (kb/Work PB3499).
             refusedAfterTheColumnWasHeld = s == FileStatusCode.FileSharingConflict && _runUnitLock is { } column
                 && !ownedWritesAdmitted && HostFile.ShareModesAreMandatory
                 && FileLockPosture.WhenOwedWritesAreAdmitted(HostSharing) != FileLockPosture.OfSharingMode(HostSharing)
-                && column.AnotherInputOpenerHolds();
+                && column.AnotherOwesWrites();
             try { AbandonOpen(); }
             catch (IOException) { }   // the status above stands (§14.9.27.4 GR25 — the unsuccessful OPEN's own)
             // §9.1.15 — only a SUCCESSFUL opening establishes the lock; §14.9.27.4 GR25 — what a CLOSE under commit

@@ -190,6 +190,11 @@ public abstract class KeyedConnector : FileConnector
     /// (<see cref="StoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
     private protected abstract KeyedStore AttachStore(bool create);
 
+    /// <summary>The host's identity of the physical file this connector's handle is open on (<see cref="HostFile.IdentityOf"/>), or
+    /// null with no handle: what the run unit's table tells one physical file at the path from another by (<see cref="StoreTable"/>,
+    /// kb/Work PB3533). Asked once per attachment.</summary>
+    private protected PhysicalFileIdentity? HandleIdentity => _handle is { } handle ? HostFile.IdentityOf(handle) : null;
+
     /// <summary>A new, EMPTY store of this organization that no table and no connector holds yet: the store an <c>OPEN OUTPUT</c>
     /// over a file its connector's CLOSE under commit control kept is created in beside the kept one (<see cref="Recreate"/>).</summary>
     private protected abstract KeyedStore NewStore();
@@ -300,10 +305,8 @@ public abstract class KeyedConnector : FileConnector
         // (§9.1.15). The handle that stands writable while the transaction does leaves the one case a share mode cannot say, an
         // INPUT opener that owes its transaction's writes, to the OPEN that meets it: a SHARING WITH READ ONLY request is
         // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
-        // (FileConnector.Open, kb/Work PB3482).
-        var access = _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0
-            ? FileAccess.ReadWrite
-            : HostAccess(Mode);
+        // (FileConnector.Open, kb/Work PB3482), which the connector's column says by owing writes (FileConnector.OwesWrites, kb/Work PB3499).
+        var access = HandleAccess(Mode);
         try { TakeFileLock(create, access); }
         catch (IOException refusal) when (HostFile.IsSharingRefusal(refusal) && _kept is { Handle: { } kept, Adopted: false })
         {
@@ -323,6 +326,18 @@ public abstract class KeyedConnector : FileConnector
         }
         return null;
     }
+
+    /// <summary>⛔ THE ACCESS THE HANDLE OF AN OPEN IN <paramref name="mode"/> TAKES, in ONE place for the two questions that depend
+    /// on it (kb/Work PB3499): <see cref="Lock"/>, which opens the handle with it, and <see cref="WillTakeWritableHandle"/>, which
+    /// the file lock publishes as "owes writes" when the mode is INPUT (<c>FileConnector.OwesWrites</c>). While the run unit's transaction on the file STANDS and the
+    /// handle a CLOSE under commit control kept is WRITABLE, the re-OPEN's handle is writable whatever its mode
+    /// (<see cref="Lock"/>'s determination); otherwise it takes <see cref="HostAccess"/> of its own mode and no more.</summary>
+    private FileAccess HandleAccess(FileOpenMode mode) =>
+        _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0 ? FileAccess.ReadWrite : HostAccess(mode);
+
+    /// <inheritdoc/>
+    private protected sealed override bool WillTakeWritableHandle(FileOpenMode mode) =>
+        HandleAccess(mode).HasFlag(FileAccess.Write);
 
     /// <summary>The handle this OPEN took from <see cref="_kept"/> to try a share mode it refused (<see cref="Lock"/>), until
     /// the OPEN succeeds (<see cref="CarryKeptOver"/>) or <see cref="AbandonOpen"/> takes it back.</summary>
@@ -485,7 +500,7 @@ public abstract class KeyedConnector : FileConnector
         // A failed re-OPEN after a CLOSE under commit control leaves the attachment the CLOSE kept as it was (§14.9.27.4
         // GR25, "the file is not affected"): it is still the kept one's, until the COMMIT or ROLLBACK.
         if (_kept is not null) return status;
-        SharedStores?.Detach(HostPath);
+        SharedStores?.Detach(HostPath, store);
         _attached = false;
         ForgetStore();
         return status;
@@ -572,7 +587,8 @@ public abstract class KeyedConnector : FileConnector
             if (CloseKeepsLocks)
             {
                 _kept = new KeptFile(new KeptHandle(_store!, _handle!, _regions!, _store!.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, HostShare),
-                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, Physical, AttachedStore, SharedStores, Restoring);
+                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, AttachedStore, SharedStores,
+                    Restoring);
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
             else
@@ -712,9 +728,26 @@ public abstract class KeyedConnector : FileConnector
         return kept;
     }
 
-    /// <summary>Whether the kept state is of a physical file other than <see cref="FileConnector.HostPath"/> now: the connector was
-    /// associated with another file since its CLOSE (<see cref="TakeKept"/>).</summary>
-    internal bool KeptIsOfAnotherFile => _kept is { } kept && !HostFile.PhysicalFileComparer.Equals(kept.HostPath, HostPath);
+    /// <summary>Whether the kept state is of a physical file at another path than <see cref="FileConnector.HostPath"/> now: the
+    /// connector was associated with another file since its CLOSE, and the kept one is still there, under its own path, for the
+    /// COMMIT and the ROLLBACK (<see cref="TakeKept"/>). A kept file the SAME path no longer names (removed or renamed away
+    /// outside the run unit) is the OPEN's to end instead (<see cref="EndWhatWasKeptOfAnotherFile"/>).</summary>
+    internal bool KeptIsOfAnotherPath => _kept is { } kept && !HostFile.PhysicalFileComparer.Equals(kept.HostPath, HostPath);
+
+    /// <inheritdoc/>
+    /// <remarks>⛔ THE DECISION OF kb/Work PB3493 FOR A KEPT FILE THAT IS NOT THERE, made where the path names ANOTHER physical
+    /// file (kb/Work PB3533): the kept state belonged to the file that was removed or renamed away outside the run unit, nothing
+    /// of its store describes the file the path names now, and the run unit's tables hold one physical file per path
+    /// (<see cref="StoreTable"/>, <c>PhysicalFileTable</c>), so the kept state cannot stand beside an OPEN of the new one: it
+    /// ENDS (<see cref="ReleaseKept"/>: its record locks, its handle, its file lock and its attachment are given back), and the
+    /// OPEN is an ordinary OPEN of the file at the path. A transaction it held is left as a death leaves it, in the file it was
+    /// made in (DESIGN-runtime-library.md 2.2.1.10). It ends whatever this OPEN goes on to answer: §14.9.27.4 GR25's
+    /// <i>"the file is not affected"</i> is about the file the path names, and the kept one is not it. A connector that
+    /// inherited the kept state of the connector it replaced (<see cref="InheritKept"/>) meets the same question here.</remarks>
+    private protected sealed override void EndWhatWasKeptOfAnotherFile()
+    {
+        if (_kept is { } kept && !kept.IsOfTheFileAt(HostPath)) ReleaseKept();
+    }
 
     /// <summary>The connector's re-OPEN SUCCEEDED (<see cref="OpenCore"/>): what its CLOSE under commit control kept is this
     /// OPEN's now — the attachment and the transaction's liveness byte were carried on by <see cref="Attach"/>, so the kept
@@ -870,11 +903,12 @@ public abstract class KeyedConnector : FileConnector
     internal override bool HoldingsMayExist => AttachedStore.File is { } file && !file.Meta.HoldingsRoot.IsNone;
 
     /// <summary>The run unit's transaction on this connector's physical file, if this connector is attached to its store.</summary>
-    internal ulong OpenTransaction => _attached ? AttachedStore.Transaction : 0;
+    internal ulong OpenTransaction => TransactionStore?.Transaction ?? 0;
 
-    /// <summary>The place of the store this connector is attached to in the run unit's order of open stores
-    /// (<see cref="KeyedStore.OpenOrder"/>), which COMMIT and ROLLBACK follow.</summary>
-    internal long StoreOpenOrder => AttachedStore.OpenOrder;
+    /// <summary>The run unit's store of the physical file this connector is attached to (its transaction, and its place in the
+    /// run unit's order of open stores, <see cref="KeyedStore.OpenOrder"/>, which COMMIT and ROLLBACK follow), or null while it is
+    /// not attached: what <c>FileRegistry.TransactionHolders</c> tells one file's transaction from another's by (kb/Work PB3533).</summary>
+    internal KeyedStore? TransactionStore => _attached ? AttachedStore : null;
 
     /// <summary>The witnesses' seam (<see cref="KeyedStore.ReleaseLivenessForWitness"/>).</summary>
     internal void ReleaseLivenessForWitness()
