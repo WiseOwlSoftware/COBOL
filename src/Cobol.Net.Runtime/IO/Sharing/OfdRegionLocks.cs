@@ -28,9 +28,9 @@ namespace CobolNet.Runtime.IO;
 /// first <c>F_OFD_GETLK</c> says: <c>EINVAL</c> (a kernel before 3.15, or a host whose <c>fcntl</c> number 36 is
 /// something else), <c>ENOLCK</c>/<c>EOPNOTSUPP</c> (a filesystem without byte-range locks) and a missing
 /// <c>libc</c> (Windows, where <see cref="FileShare"/> is mandatory and per-access already) all answer
-/// <see cref="Unavailable"/>, and the connector then has exactly the file lock its <see cref="FileShare"/> gives.
+/// <see cref="RegionLockResult.Unavailable"/>, and the connector then has exactly the file lock its <see cref="FileShare"/> gives.
 /// The constants are the Linux x86-64/arm64 values and <c>struct flock</c> is the 64-bit layout; any other
-/// process shape is <see cref="Unavailable"/> without a call being made.</para>
+/// process shape is <see cref="RegionLockResult.Unavailable"/> without a call being made.</para>
 /// </summary>
 internal static class OfdRegionLocks
 {
