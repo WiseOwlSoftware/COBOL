@@ -94,3 +94,24 @@ now carries `NumX.Precision`. An outermost quotient with an SDIDI operand keeps 
 after), `CobolDecTruncatedQuotientTests` (a BigInteger oracle, the Int128 lane's agreement, a remainder below the scale
 that must not jam), and a `NestedQuotientPrecisionDriftTests` fact for the SDIDI shapes (and their scales at depth 16)
 pin it.
+
+Branch review round 3 (finding R3-1) found that round 2's precision sweep gave an SDIDI value whose fraction digits the
+compiler cannot know the precision 0, its placeholder scale. A floating-point literal, a NUMVAL value and a power are
+such values, so a quotient over 10**-15 was truncated at 14 places, to zero: `IF 1.0E-15 / 2 > 0` and
+`IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0` were NOT GREATER on the branch and GREATER on main, while
+`0.000000000000001 / 2` and an item of PIC V9(15) were GREATER (the reviewer's probe `scratchpad/w1153/rev-a3/q1.cob`).
+The literal's notation changed its value. The fix states the rule once and makes it a rule about the value's own digits.
+`CobolNum.NestedQuotientScale` (runtime) is the one working-scale rule, `max(receiver scale, precision) + 14`, applied by
+the compiler at compile time and by the new `CobolDecWithPrecision` at run time. An SDIDI value's precision is the
+fraction digits of its VALUE (`CobolDec.FractionDigits`): a float literal's at compile time, so `1.0E-15` carries the 15
+digits of `0.000000000000001` and `2.0E0` the 0 of `2`; a NUMVAL value's, a power's and a function result's at run time.
+A nested quotient over such a value, and every sum, difference, product and negation between it and that quotient, is
+also spelled as a `CobolDecWithPrecision` (the value paired with its operands' precision; `NumX.WithPrecision` is an
+alternative spelling of the same evaluation, never a second one), whose quotient carries the precision, not its working
+scale, upward, so the scale does not grow with depth: `FUNCTION NUMVAL ("2") / T / T` equals `X / T / T`.
+`NumX.FractionPrecision` now refuses a Dec of run-time precision, so a reader that would have taken 0 fails loudly. The
+sweep fixed the Dec `Negate`, which evaluated its operand twice (`CobolDec.Negate`). The goldens
+`pb3538_runtime_precision_quotients` (85 to 2023: NUMVAL, a power, depth, a product, a negation, a sum, two receivers,
+a zero divisor) and `pb3538_float_literal_precision` (2002 to 2023), `CobolDecWithPrecisionTests` and two
+`NestedQuotientPrecisionDriftTests` additions (NUMVAL shapes at depth 2 and 16; the literal's scale 29 and the run-time
+quotients) pin it.
