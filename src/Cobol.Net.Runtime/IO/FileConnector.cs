@@ -902,6 +902,36 @@ public abstract class FileConnector
     {
         refusedAfterTheColumnWasHeld = false;
         if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §9.1.13.1 (kb/Work PB1541) before '41'
+        // ⛔ THE ENTRY STEP RUNS BEFORE THE PRESENCE PROBE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3340): settling a dead
+        // run unit's transaction can create or remove the physical file (a creation rolled back removes it, a DELETE FILE rolled
+        // back restores it), so the presence every rule below reads is the presence AFTER it. An entry refused by a live
+        // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
+        string? entered;
+        try { entered = EnterPhysicalFile(mode); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { entered = FileStatusCode.PermanentError; }
+        if (entered is not null)
+        {
+            LeaveEntry();
+            (Mode, ModeKnown) = (mode, true);   // a FAILED open still records the attempted mode (GR6b "being opened")
+            return Status = entered;
+        }
+        try { return OpenOnceEntered(mode, ownedWritesAdmitted, out refusedAfterTheColumnWasHeld); }
+        finally { LeaveEntry(); }
+    }
+
+    /// <summary>The organization's ENTRY STEP at an OPEN in <paramref name="mode"/>, run before the presence probe
+    /// (<see cref="OpenOnce"/>): the failing I-O status, or null to proceed. Only a sequential file has one
+    /// (<c>SequentialConnector</c>, DESIGN-runtime-library.md 2.2.2.8: the transaction journals of its lock directory); a
+    /// statement-long hold it takes (the entry mutex) is given back by <see cref="LeaveEntry"/> when the OPEN ends.</summary>
+    private protected virtual string? EnterPhysicalFile(FileOpenMode mode) => null;
+
+    /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not.</summary>
+    private protected virtual void LeaveEntry() { }
+
+    /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
+    private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
+    {
+        refusedAfterTheColumnWasHeld = false;
         _ownedWritesAdmitted = ownedWritesAdmitted;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
