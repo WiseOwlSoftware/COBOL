@@ -1,4 +1,4 @@
-## A gate outlives its caller, the wave awaits a gate its agent hands over, and a measured tree is gated once (PB3536)
+## Entry 2382 — 2026-10-22 19:08 PDT — A gate outlives its caller, the wave awaits a gate its agent hands over, and a measured tree is gated once (PB3536)
 
 Wave 1150's group A review finisher reached its turn cap while its gate ran, returned SPLIT, and the wave's only path
 was a second finisher whose whole job was to re-run the same gate at the same head. The owner, ~16:50 PDT: "Reruning
@@ -80,3 +80,4 @@ dead gate is `NOT RUN [verdict]`, and two ENVIRONMENT causes are new: `launch` (
 gate) and `run` (no run directory). A record from before schema 3 takes its exit code through `read_verdict`.
 
 Rows: none (process-only, `closes_rows: []` with its reason).
+
