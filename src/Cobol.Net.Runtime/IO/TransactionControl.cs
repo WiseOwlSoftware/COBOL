@@ -22,11 +22,13 @@ namespace CobolNet.Runtime.IO;
 /// </summary>
 internal sealed class TransactionControl(FileRegistry files, ModuleStack modules, SortFileTable sorts, ExceptionEngine exceptions)
 {
-    /// <summary>One activated APPLY COMMIT clause: the element instance that activated it, the emitted image copies,
-    /// and the FILE STATUS store of the element's own files (<see cref="StoreStatus"/>).</summary>
-    private sealed class Participant(object owner, Action save, Action restore, Func<string, bool> storeStatus)
+    /// <summary>One activated APPLY COMMIT clause: the element instance that activated it, the file connectors it put
+    /// under commit control, the emitted image copies, and the FILE STATUS store of the element's own files
+    /// (<see cref="StoreStatus"/>).</summary>
+    private sealed class Participant(object owner, string[] files, Action save, Action restore, Func<string, bool> storeStatus)
     {
         public object Owner { get; } = owner;
+        public string[] Files { get; } = files;
         public Action Save { get; } = save;
         public Action Restore { get; } = restore;
         public Func<string, bool> StoreStatus { get; } = storeStatus;
@@ -82,7 +84,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         }
         foreach (var name in keyedFiles) files.RegisterCommitControl(name);
         save();
-        _participants.Add(new Participant(owner, save, restore, storeStatus));
+        _participants.Add(new Participant(owner, keyedFiles, save, restore, storeStatus));
         return true;
     }
 
@@ -112,7 +114,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
             return null;
         }
         if (files.Commit() is { } refused) return Refused(refused);
-        _participants.RemoveAll(p => p.Retired);
+        DeactivateRetired();
         foreach (var p in _participants) p.Save();
         return null;
     }
@@ -184,6 +186,24 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     {
         foreach (var p in _participants)
             if (!p.Retired) p.Restore();
+        DeactivateRetired();
+    }
+
+    /// <summary>⛔ DEACTIVATE the retired clauses — §14.9.7.4 GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT
+    /// clauses in exited initial programs and canceled runtime elements"</i>, and §14.9.36.4 GR6 for the ROLLBACK — and take
+    /// out of commit control every file connector a deactivated clause named that no remaining active clause names
+    /// (<see cref="FileRegistry.ReleaseCommitControl"/>; kb/Work PB3541): §12.4.6.3.4 GR5 makes a clause active only
+    /// until that deactivation, so the file's later changes are no ROLLBACK's and §14.6.13.1.3 item 8 no longer applies to
+    /// it. An EXTERNAL file connector another active clause still names stays under commit control through that clause.</summary>
+    private void DeactivateRetired()
+    {
+        List<string>? named = null;
+        foreach (var p in _participants)
+            if (p.Retired) (named ??= []).AddRange(p.Files);
+        if (named is null) return;
         _participants.RemoveAll(p => p.Retired);
+        foreach (var name in named)
+            if (!_participants.Exists(p => Array.Exists(p.Files, f => CobolNames.Same(f, name))))
+                files.ReleaseCommitControl(name);
     }
 }

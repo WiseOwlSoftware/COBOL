@@ -2103,7 +2103,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   listed identifiers and SR9's file status, LINAGE and RECORD DEPENDING items) to and from an image the instance keeps,
   saved at activation (a ROLLBACK before the first COMMIT restores the state at activation, §14.9.36.4 GR3) and at every
   COMMIT that succeeds (§14.9.7.4 GR5); a canceled element or a returned INITIAL program RETIRES its participant (no
-  longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6). COMMIT and ROLLBACK
+  longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6), and the deactivation
+  takes each file connector the clause named that no remaining active clause names OUT of commit control
+  (`FileRegistry.ReleaseCommitControl`, the inverse of `RegisterCommitControl`, putting back the file control entry's own
+  lock posture; kb/Work PB3541): the file's later changes are no ROLLBACK's and item 8 no longer applies to it. COMMIT and ROLLBACK
   are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
   describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
   the element that describes it, and handed to that file's exception processing. §14.6.13.1.3 item 8's ROLLBACK is ONE
