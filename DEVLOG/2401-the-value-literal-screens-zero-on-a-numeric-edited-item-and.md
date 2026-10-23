@@ -1,4 +1,4 @@
-## The VALUE literal screens: zero on a numeric-edited item and a plus sign on an unsigned one (PB3566, PB3567, PB3555)
+## Entry 2401 — 2026-10-23 11:29 PDT — The VALUE literal screens: zero on a numeric-edited item and a plus sign on an unsigned one (PB3566, PB3567, PB3555)
 
 Wave 1157 group D, three notes in `DataBinder`, two of them from the third fuzz night (`fuzz-20261022-163846`).
 
@@ -52,3 +52,4 @@ not the screen: it now keeps whichever sign was written (`+1.5E+0` becomes `+1.5
 COBOL-2002 feature, so 85 refuses them for that reason first) and `pb3567_value_signed_float_literal_signed_subject`
 (signed subjects keep the exact value at 2002 to 2023). The lead (R1-2) is fixed too: the NBZN comments in
 `pb646_national_form_numeric_2002/_2014` now cite §13.18.8.4 GR1 alone, since NBZN no longer has a VALUE clause there.
+
