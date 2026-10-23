@@ -253,15 +253,18 @@ of an unsupported facility.
   alphanumeric receiver already drops the sign by GR6 a) ("the operational sign is not moved"), so the group move now
   agrees with it. WiseOwl COBOL sends the digits of the literal's value, in the order written, with neither sign nor
   decimal point: `MOVE -456 TO G`, `MOVE +456 TO G` and `MOVE 456 TO G` store 456, `MOVE -4.56 TO G` stores 456,
-  `MOVE -0.05 TO G` stores 005 (leading zeros are digits), and a floating-point literal sends the digits of its exact
-  value (`1.5E+3` sends 1500, §8.3.3.3.3 GR5); the group then aligns left with space fill or truncation to the right
+  `MOVE -0.05 TO G` stores 005 (leading zeros are digits), and a floating-point literal sends the digits of its
+  SIGNIFICAND as written, never its exponent nor the digits of its scaled value (`1.5E+3` sends 15, `12.0E+2` sends 120,
+  `0.5E-1` sends 05, each measured against cobc 3.2.0; the same value written `0.05` sends 005, so the digits follow the
+  notation, as GnuCOBOL's literal data does, and `1.0E+6144` does not become 6145 characters); the group then aligns left with space fill or truncation to the right
   (§14.6.8.5). The same characters cross a CALL ... AS NESTED or INVOKE BY CONTENT argument into a plain-group formal
   (§14.2.3 GR9, "otherwise, a MOVE statement"). This supersedes kb/Work PB1113's determination, which kept the literal's
   own characters, sign included. Not covered: the value of a numeric FUNCTION, which is a computed value rather than a
   literal and keeps its signed rendering (`MOVE FUNCTION MIN(N 3) TO G` stores `-15`; a call the compiler folds to a
   literal keeps it too, so the answer never depends on whether the call could be folded); an ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already
   gives. Written once, in `OperandText.NonElementaryMoveSender`; witnessed by
-  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move` and
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move`,
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_floating_literal_group_move` and
   `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3570_numeric_literal_group_formal`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).

@@ -338,16 +338,21 @@ internal static class OperandText
     public static string? StorageImageIfDiffers(BoundOperand op, NumericRenderer num, string context) =>
         RepresentationDiffersFromText(op) ? NonElementaryMoveSender(op, num, context) : null;
 
-    /// <summary>The characters a numeric LITERAL sends to a group (<see cref="NonElementaryMoveSender"/>): the digits of its
-    /// value, in the order written, with neither the sign nor the decimal point. <paramref name="canonicalText"/> is the
-    /// literal's canonical dot-decimal text (<see cref="BoundNumericLiteral.Text"/>); a floating-point literal sends the digits
-    /// of its exact value (<c>1.5E+3</c> sends 1500, §8.3.3.3.3 GR5), the same pair every literal reader decomposes it to.</summary>
+    /// <summary>The characters a numeric LITERAL sends to a group (<see cref="NonElementaryMoveSender"/>): the digits it was
+    /// written with, in the order written, with neither the sign nor the decimal point (kb/Work PB3570, D-B4).
+    /// <paramref name="canonicalText"/> is the literal's canonical dot-decimal text (<see cref="BoundNumericLiteral.Text"/>).
+    /// ⛔ A FLOATING-POINT literal sends the digits of its SIGNIFICAND as written - <c>1.5E+3</c> sends 15, <c>12.0E+2</c> sends
+    /// 120, <c>0.5E-1</c> sends 05 - and never the exponent nor the digits of its scaled value: GnuCOBOL's literal data is the
+    /// significand's digits, the standard states no representation for a literal (§14.9.25.4 GR4 preserves the sender's, and a
+    /// literal has none), so rule 1's precedence for implementor latitude takes GnuCOBOL's, measured against cobc 3.2.0
+    /// (kb/Work PB3570, review R1-1). It is also the only form that is no text expansion of the exponent
+    /// (<see cref="CobolNet.Common.NumericLiteral.TryUnscaledParts"/>: <c>1.0E+6144</c> must not become 6145 characters).</summary>
     private static string LiteralDigits(string canonicalText)
     {
-        if (!CobolNet.Common.NumericLiteral.TryUnscaledParts(canonicalText, out string digits, out int scale))
-            throw new InvalidOperationException($"the numeric literal '{canonicalText}' is not a canonical literal: the binder rejects it before code generation");
-        digits = digits.TrimStart('-', '+');
-        return scale < 0 ? digits + new string('0', -scale) : digits;
+        string significand = canonicalText.TrimStart('+', '-');
+        int exponent = significand.IndexOfAny(['E', 'e']);
+        if (exponent >= 0) significand = significand[..exponent];
+        return significand.Replace(".", "", StringComparison.Ordinal);
     }
 
     /// <summary>⛔ THE ONE-WAY STRING CHANNEL FOR A READ-ONLY CONSUMER OF A GROUP'S CHARACTERS (kb/Work PB244, PB1901):

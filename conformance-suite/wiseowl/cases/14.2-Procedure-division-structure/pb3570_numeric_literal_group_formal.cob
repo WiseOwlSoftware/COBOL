@@ -25,7 +25,9 @@
 *>   C:2  BY CONTENT +456   -> [456  ]
 *>   C:3  BY CONTENT 456    -> [456  ] (unsigned, the control)
 *>   C:4  BY CONTENT -4.56  -> [456  ] (sign and decimal point are not digits)
-*>   I:1..I:4 the same four literals through INVOKE -> the same four records.
+*>   C:5  BY CONTENT 1.5E+3 -> [15   ] (a floating-point literal sends its significand digits as written,
+*>        D-B4 and pb3570_floating_literal_group_move; not 1500)
+*>   I:1..I:5 the same five literals through INVOKE -> the same five records.
 *> Before the fix C:1 and I:1 showed [-456 ], C:2 and I:2 [+456 ] and C:4 and I:4 [-4.56].
 IDENTIFICATION DIVISION.
 CLASS-ID. PB3570K INHERITS FROM BASE.
@@ -63,11 +65,13 @@ MAIN.
     CALL "PB3570X" AS NESTED USING BY CONTENT +456
     CALL "PB3570X" AS NESTED USING BY CONTENT 456
     CALL "PB3570X" AS NESTED USING BY CONTENT -4.56
+    CALL "PB3570X" AS NESTED USING BY CONTENT 1.5E+3
     INVOKE PB3570K "NEW" RETURNING O
     INVOKE O "MX" USING BY CONTENT -456
     INVOKE O "MX" USING BY CONTENT +456
     INVOKE O "MX" USING BY CONTENT 456
     INVOKE O "MX" USING BY CONTENT -4.56
+    INVOKE O "MX" USING BY CONTENT 1.5E+3
     STOP RUN.
 
 IDENTIFICATION DIVISION.
