@@ -80,7 +80,10 @@ internal static class ProcessObserver
 {
     /// <summary>
     /// Where retries and non-observations are recorded, so the rate can be MEASURED across a run rather than
-    /// inferred. §11 A12/A12d asked for a distribution; this is the file that supplies one.
+    /// inferred. §11 A12/A12d asked for a distribution; this is the file that supplies one. The local gate
+    /// (<c>scripts/run_gate_legs.py</c>), the Linux gate (<c>scripts/linux-gate.sh</c>) and every CI test step set
+    /// <c>COBOLNET_HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX, so a
+    /// non-observation on any of them can be read afterwards (kb/Work PB3108; <c>CiHarnessLogDriftTests</c>).
     /// </summary>
     public static string LogPath { get; } =
         Environment.GetEnvironmentVariable("COBOLNET_HARNESS_LOG")
@@ -284,6 +287,9 @@ internal static class ProcessObserver
     {
         try
         {
+            // A gate or CI step names a log in its results directory, which may not exist until the run writes its
+            // first result (dotnet test creates --results-directory when it writes the TRX, at the end).
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(LogPath))!);
             File.AppendAllText(LogPath,
                 $"{DateTime.UtcNow:O}\t{Environment.ProcessId}\t{line}{Environment.NewLine}", Encoding.UTF8);
         }
