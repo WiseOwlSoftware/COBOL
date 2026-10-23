@@ -2086,7 +2086,7 @@ public static class DiagnosticCatalog
         "COBOLNET1625", "value-numeric-out-of-range", EditionSeverity.Error,
         "A fixed-point numeric VALUE literal is not a permissible value in the range the PICTURE indicates: it is "
         + "not representable in the subject without truncation of a leading or trailing nonzero digit (SR2), or a "
-        + "negative literal seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
+        + "signed literal (written with a '+' or a '-') seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
         + "than silently mis-stored as an out-of-range native value.",
         "ISO §13.18.63.3 SR2/SR3");
     // 1626 — the character-operand USAGE syntax rules of INSPECT / STRING / UNSTRING (DA7). These constructs were
