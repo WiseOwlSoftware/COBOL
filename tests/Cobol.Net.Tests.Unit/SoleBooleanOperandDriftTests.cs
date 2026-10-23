@@ -22,7 +22,6 @@ namespace CobolNet.Tests.Unit;
 /// <c>SoleFunctionCall</c> itself again. It cannot see a host that calls the pair and ignores the answer; the
 /// golden <c>pb3565_compute_boolean_sole_identifier</c> covers the behaviour.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class SoleBooleanOperandDriftTests
 {
     private static string Source(string file) => StripComments(File.ReadAllText(
