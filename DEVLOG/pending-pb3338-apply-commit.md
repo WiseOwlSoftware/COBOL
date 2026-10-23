@@ -98,4 +98,10 @@ positive control after the SORT) and `pb3338_ec_flow_apply_commit_under_recursiv
 passing (SR9's implicit items come only from the files under commit control, so a declined SEQUENTIAL operand's FILE
 STATUS item is no longer restored by a ROLLBACK that leaves the file alone; witnessed in the same test class); R1-5,
 R1-6, R1-7 left for the clerk. Batch `w1154a-pb3338-review-r1` adds the new witnesses to GR-12.4.6.3.4-3/-4/-5 and
-GR-14.6.13.1.3-8 (no verdict changes; GAP 74).
+GR-14.6.13.1.3-8 (no verdict changes; GAP 74). The first gate was RED on two things the fix exposed: a file-less element's COMMIT under
+EC-ALL now generates `__IoCheckEc`, which names `CobolFile`, and `BinderDriver`'s `anyFiles` (which decides the
+`CobolNet.Runtime.IO` using) did not count an EC-I-O-checked unit (CS0103 in `pb259_commit_rollback_recursive`); and
+CONFORMANCE prose had cited the row key DOC-A.1-103 instead of "A.1 item 103". Gate: `LEG 1 ONLY (batched gating,
+PB2515): GREEN` at 24bd70d98 (run 20261023T015612Z-86b5dc; Conformance 10,554/18,153, Unit 34,902/35,452,
+Characterization 5/36 in leg 1). Linux: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
+24bd70d98) ===`.
