@@ -19,7 +19,6 @@ namespace CobolNet.Tests.Unit;
 /// source produces it, and the next arm added to either switch would inherit it. These assert the SHAPE
 /// (feedback_two_arm_dispatch; CLAUDE.md rule 5 — pair the structure with a drift test).
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class Gr4GroupDecisionDriftTests
 {
     private static string Classifier() => StripComments(File.ReadAllText(
