@@ -120,8 +120,8 @@ kb/Reference/
 kb/Grammar/
 # RENDERED VIEWS (kb/Work PB3026; scripts/rendered_views.py is the ONE registry; DESIGN-test-build-ci.md section 3.17.4):
 # the tree holds SOURCES, derived indexes are rendered on demand and never committed, because two queued pull requests
-# that each regenerate one collide, and a copy nobody regenerates goes stale. `RenderedViewsDriftTests` and CI's
-# `audits` job fail when a registered output is tracked or missing from this list.
+# that each regenerate one collide, and a copy nobody regenerates goes stale. `rendered_views.py --check` (the gate's
+# `RENDERED VIEWS` audit and CI's `audits` job) fails when a registered output is tracked or missing from this list.
 # The conformance burn-down over the traceability inventory (scripts/spec/gen_conformance_notes.py). The inventory
 # JSON is the SSOT and IS tracked; these notes are its Dataview-queryable projection.
 kb/Conformance/
