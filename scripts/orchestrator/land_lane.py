@@ -139,6 +139,12 @@ SURVEY_MAX_AGE_MIN = 30
 # The classes of a finished attempt (classify). STOPPED and DONE-to-collect are the enqueue unit's; the rest the lane's.
 DONE, FREE, ONCE, HALTED, STOPPED = "done", "retry-when-free", "retry-once", "halt", "stopped"
 RETRYABLE = (FREE, ONCE, HALTED)
+#: The survey states in which the queue owns the branch: its pull request is IN the merge queue (ENQUEUED, at whatever
+#: head the queue took: a push would eject it), handed to the queue AT the branch's tip (NOT QUEUED), or its work is on
+#: main (LANDED, by content). The queue watch follows the first two and the lane starts no landing in any of them, a
+#: re-arm included (rearm_hold). prune_worktrees.lifecycle reads NOT QUEUED only for a pull request at the tip, so a
+#: tip past an older pull-request head reads by its report and lands here (kb/Work PB3275, PB3628; review lead R1-2).
+QUEUE_OWNED = ("ENQUEUED", "NOT QUEUED", "LANDED")
 VERDICT_LINE = re.compile(r"^" + re.escape(VERDICT) + r"(?P<outcome>.*?)(?: \((?P<branch>[^()]*)\))? ===\s*$")
 
 Say = Callable[[str], None]
@@ -748,17 +754,14 @@ def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str,
         last = atts[-1]
         if branch in seen or r is None or not finished(last) or classify(last) not in RETRYABLE:
             continue
-        if r["state"] in ("STOPPED", "ENQUEUED", "NOT QUEUED", "BOUNCED", "LANDED") or r["tip"] != last.get("end_head") \
+        if r["state"] in ("STOPPED", "BOUNCED", *QUEUE_OWNED) or r["tip"] != last.get("end_head") \
                 or not r["worktree"]:
             continue
         out.append(r)
         seen.add(branch)
     for branch, rec in (rearmed or {}).items():
-        r = named.get(branch)
-        if branch in seen or r is None or not r["worktree"] or r["state"] in ("ENQUEUED", "NOT QUEUED", "LANDED"):
-            continue
-        if r["tip"] == rec.get("head"):
-            out.append(r)
+        if branch not in seen and not rearm_hold(rec, named.get(branch)):
+            out.append(named[branch])
     return out
 
 
@@ -939,6 +942,29 @@ def outcome(a: dict[str, Any]) -> str:
     return "DIED" if a.get("outcome") == "DIED" else f"pid {a.get('pid')}"
 
 
+def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
+    """Why the next tick does NOT land a pending re-arm, read from the survey's row for the branch, or '' when it does:
+    THE re-arm predicate, which `candidates` and the status line (`rearm_effect`) both ask, so the status line cannot
+    promise a landing the lane never starts (kb/Work PB3628 and its review lead R1-1: a hand-kept copy dropped the
+    worktree arm)."""
+    if row is None:
+        return "the branch is not in the last survey; the next tick drops the re-arm"
+    if row.get("tip") != rec.get("head"):
+        return (f"the branch moved to {str(row.get('tip'))[:12]}; the next tick drops the re-arm (a new head goes "
+                "through review)")
+    if not row.get("worktree"):
+        return "the survey names no worktree for it, so the next tick does NOT land it (the re-arm waits for one)"
+    if row.get("state") in QUEUE_OWNED:
+        return (f"the survey reads it {row['state']}: the queue owns its pull request, so the next tick does NOT land "
+                "it (the queue watch acts on it)")
+    return ""
+
+
+def rearm_effect(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
+    """What the next tick does with a pending re-arm (rearm_hold, the one predicate)."""
+    return rearm_hold(rec, row) or "the next tick lands it again at this head"
+
+
 def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str]:
     lane = view(cdir)
     age = lane.survey_age_min(now)
@@ -955,8 +981,9 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
            f"{' · HALTED: ' + lane.halt if lane.halt else ''} ==="]
     out += [f"UNREADABLE       {p}: not a lane record (inspect it; its branch may be landed again, or wait)"
             for p in lane.unreadable]
-    out += [f"{'REARMED':16} {b} @{str(r.get('head'))[:12]}: {r.get('why') or '-'} — the next tick lands it again at "
-            f"this head (re-armed {r.get('at')})" for b, r in sorted(lane.rearms.items())]
+    rows = {r.get("name"): r for r in lane.rows}
+    out += [f"{'REARMED':16} {b} @{str(r.get('head'))[:12]}: {r.get('why') or '-'} — {rearm_effect(r, rows.get(b))} "
+            f"(re-armed {r.get('at')})" for b, r in sorted(lane.rearms.items())]
     order = {"running": 0, STOPPED: 1, HALTED: 2, FREE: 3, ONCE: 3, DONE: 4}
     for a, cls in sorted(lane.latest, key=lambda t: (order.get(t[1], 9), t[0]["branch"])):
         mark = " [collected]" if a.get("collected") else ""
@@ -1337,6 +1364,40 @@ def self_test() -> int:
         rearm(c12b, "w11a", "reviewed CLEAN at y1", say=said.append, tip_for=lambda wt: "y1")
         expect("an UNREVIEWED exit 11 waits, then a reviewer's CLEAN stamp plus rearm lands it at the same head",
                stopped_first and f12b.tick(c12b) == ["w11a"], f"{f12b.started} {f12b.said}")
+        # 12c. kb/Work PB3628: the stranded branch's shape. PR #467 bounced, a finisher fixed the branch locally (a new
+        #      tip, reviewed CLEAN) and the enqueue unit re-armed it, but the survey read it NOT QUEUED (auto-merge was on
+        #      at the pull request's OLD head), a state no reader acts on, and nothing launched for hours. The survey now
+        #      reads such a branch WAITING TO LAND (prune_worktrees' self-test pins that rule on the real lifecycle), and
+        #      the lane lands it; a branch the survey does read NOT QUEUED (its pull request AT the tip) stays the queue
+        #      watch's even when re-armed, and the status line says so instead of promising a landing.
+        c12c = fresh("rearm-not-queued")
+        f12c = Fake([row("w12a", "WAITING TO LAND", "p1"), row("w12b", "WAITING TO LAND", "q1")])
+        f12c.tick(c12c)
+        finish(c12c, "w12a", 0, "ENQUEUED", end_head="p1")      # PR #467: queued at p1, then bounced (ci-gate failed)
+        finish(c12c, "w12b", 0, "ENQUEUED", end_head="q1")
+        f12c.live.clear()
+        collect(c12c, ["w12a", "w12b"], say=lambda s: None)
+        f12c.rows = [row("w12a", "WAITING TO LAND", "p2"), row("w12b", "NOT QUEUED", "q1")]   # w12a: the finisher's p2
+        rearm(c12c, "w12a", "finisher 2 fixed the bounce, reviewed CLEAN at p2", say=said.append, tip_for=lambda wt: "p2")
+        rearm(c12c, "w12b", "re-armed by hand", say=said.append, tip_for=lambda wt: "q1")
+        expect("a re-armed branch the survey reads WAITING TO LAND at the finisher's new tip is launched, and one the "
+               "survey reads NOT QUEUED (its pull request at the tip, the queue watch's) is not",
+               f12c.tick(c12c) == ["w12a"], f"{f12c.started} {f12c.said}")
+        status = status_lines(c12c)    # after the tick: the survey it wrote is the one the status line reads
+        expect("the status line of a re-armed NOT QUEUED branch does not promise a landing, and names why",
+               any(ln.startswith("REARMED") and "w12b" in ln and "does NOT land it" in ln and "NOT QUEUED" in ln
+                   for ln in status), "\n".join(status))
+        # the one re-arm predicate (rearm_hold, review lead R1-1): every arm that keeps candidates() from launching a
+        # re-arm is the arm the status line names, the worktree arm included, and only a launchable one is promised
+        rec12 = {"head": "r1"}
+        arms = {"launch": row("w12c", "WAITING TO LAND", "r1"), "no worktree": {**row("w12c", "WAITING TO LAND", "r1"),
+                                                                              "worktree": ""},
+                "queue": row("w12c", "ENQUEUED", "r1"), "moved": row("w12c", "WAITING TO LAND", "r2"), "gone": None}
+        agree = {k: (bool(candidates([r] if r else [], [], {}, {"w12c": rec12})),
+                     rearm_effect(rec12, r) == "the next tick lands it again at this head") for k, r in arms.items()}
+        expect("candidates() launches a re-arm exactly when the status line promises it (no worktree: neither)",
+               agree == {"launch": (True, True), **{k: (False, False) for k in arms if k != "launch"}}
+               and "no worktree" in rearm_effect(rec12, arms["no worktree"]), str(agree))
 
         # 14. THE QUEUE WATCH (kb/Work PB3527): each pull request the lane queued, followed into the merge queue from a
         #     stubbed reader of GitHub's facts, on a planted clock; PR #385's shape is a ci-gate check-run in progress
