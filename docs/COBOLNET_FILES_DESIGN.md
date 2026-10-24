@@ -249,7 +249,13 @@ sign of another run unit. So every attempt returns a `RetryAttempt` (its status 
 `RetryLoop` reads the holder from it and never infers it from the status digits. The record-lock table belongs to
 the run unit, so a record conflict is always held inside it. A file-sharing conflict is inside when another connector
 of this run unit has the file open (Table 19's '61', `OpenByAnotherConnector`'s '62') and outside when the host
-refused (`FileConnector.Open`'s '61', `HostFile.IsHeldByAnother`'s '62'). The rules that follow:
+refused (`FileConnector.Open`'s '61', `HostFile.IsHeldByAnother`'s '62') — unless the run unit itself holds the file
+against the request: a file lock or handle a CLOSE under commit control KEPT (it stands until the COMMIT or ROLLBACK,
+§14.9.7.4 GR4), whose Table 19 column refuses it, or the run unit's own transaction on a sequential file
+(DESIGN-runtime-library.md 2.2.2.8). The host reports those too, so the attempt asks the registry
+(`FileRegistry.RunUnitRefusesOpen` for an OPEN, `FileRegistry.DeleteFileHeld` for a DELETE FILE; kb/Work PB3340), and a
+journal holding met by a WRITE, REWRITE or READ is inside when it is the run unit's own transaction
+(`SequentialJournal.Holdings.Conflict`). The rules that follow:
 - **GR3, FOREVER**, re-attempts while the holder is outside, waiting `FileRegistry.RetryInterval` (100 ms) before
   each re-attempt, until the operation completes. Against an inside holder it makes one re-check and stops, because
   that wait could never end. This is the deadlock item 109 names for a record, and the conflict's own status for a
@@ -763,8 +769,9 @@ survived), and the APPLY COMMIT exemption over a RELATIVE file.
 is the antecedent of six syntax rules of CLAIMED clauses and statements: §12.4.5.9.3 SR1 (LOCK MODE), §12.4.6.4.3
 SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN's sharing phrase), §14.9.30.3 SR5 and
 §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2 (UNLOCK). kb/Work PB371 recorded them CONFORMS
-"witnessed by the refusal of the antecedent", but that refusal (COBOLNET1709) is `PermissiveInert`, so under
-`--permissive` every forbidden shape compiled clean. They now report through ONE helper,
+"witnessed by the refusal of the antecedent", but that refusal (the since-retired COBOLNET1709; kb/Work PB3338 and
+PB3340 made the clause accepted for every organization) was `PermissiveInert`, so under `--permissive` every forbidden
+shape compiled clean. They now report through ONE helper,
 `DataBinder.ScreenApplyCommitSubject` (COBOLNET2974), each caller quoting its own rule: the LOCK MODE arm as the
 APPLY COMMIT clause records the fact (the file control entries are bound first), SR11 after the whole I-O-CONTROL
 paragraph (an APPLY COMMIT clause may follow the SAME clause), SR7 in `BindOpen` beside SR8, the lock phrases in
