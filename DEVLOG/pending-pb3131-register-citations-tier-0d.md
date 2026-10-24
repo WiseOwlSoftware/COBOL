@@ -48,10 +48,12 @@ inventory's classes on a real code-location of the file it deleted. The four lan
 The lead R1-2 is fixed too: a patch header whose path holds a space ends in a TAB, and a quoted one is C-unquoted.
 Seven new self-test arms are pinned in `ImpactedTestsDriftTests`.
 
-The PB3603 form, which main folded into this note during the review, is not closed. A kb/Work-only diff still leaves
-`ClosesRowsBackLinkDriftTests` and `DefectiveRowCoverageDriftTests` in leg 2, because they read kb/Work through the
-shared `WorkRegister` reader. Following the shared readers would fix it for about 11 s a gate. The same rule would
-also add about 400 test-seconds to every gate that adds a golden, through `SuiteManifest`. That trade is left to the
-campaign, so the note stays `half`.
+The PB3603 form, which main folded into this note during the review, was closed on main by PB3247 while this branch
+waited to land: the drift-rule index now reads the helper classes a drift test reads the tree through, so a
+kb/Work-only diff puts `ClosesRowsBackLinkDriftTests` and `DefectiveRowCoverageDriftTests` in tier 0d (measured on
+the merged tree). The landing's merge of main kept both mechanisms. The branch's hand-extended `HELPERS` table gave
+way to main's `test_repo`, which reads TestRepo's helpers from its source. The two type-declaration regexes became
+one `TYPE_DECL`, and `data_files` reads registers reached through a helper, as `governing` does. All three forms
+are closed, so the note is `landed`.
 
 Gate: see the report (`w20261026d-PB3131-report.md`).

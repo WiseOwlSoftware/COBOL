@@ -31,6 +31,7 @@ namespace CobolNet.Tests.Unit;
 /// the sending, ref-mod, function-argument and SEARCH ALL arms) and the two negatives
 /// <c>pb877-subscript-on-non-table-item</c> / <c>pb877-subscript-count-mismatch</c>.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class SubscriptAdmissionDriftTests
 {
     private static string Src(params string[] parts) => Path.Combine([TestRepo.Root, "src", .. parts]);

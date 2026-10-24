@@ -20,6 +20,7 @@ namespace CobolNet.Tests.Unit;
 /// <para>⚠ It asserts the SHAPE it found before comparing, so a transcription reformat that breaks the scrape
 /// fails loudly instead of silently comparing nothing (the vacuous-pass trap).</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class EvaluateOperandCombinationsDriftTests
 {
     private static readonly string[] ObjectRowLabels =

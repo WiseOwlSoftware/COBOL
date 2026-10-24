@@ -14,12 +14,12 @@ WHEN a case runs, never WHETHER (owner, 2026-09-28: "order, don't skip").
 implementer's, a re-gate after a fix, a landing's — makes the order plan (scripts/gate_plan.py), holds a GATE SLOT
 (scripts/gate_slot.py) from before the build to the verdict, so at most N gates build or test at once,
 repository-wide, runs its audits BEFORE it queues for the slot (kb/Work PB2524), and runs leg 1 FAIL-FAST. Leg 1 is
-the change's own tests and goldens and the previous gate's reds (tier 0a), the host-only witnesses (tier 0h: the
-Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap tree-wide sweeps (tier 0c), the
-drift tests the drift-rule index says govern a changed file or a register citing what the change removes (tier 0d,
-kb/Work PB3531, PB3131) and the cheapest cases the
-change reaches; so a re-gate after a fix runs leg 1 again — seconds for a bookkeeping fix, never a
-population run. The local whole-population run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
+the change's own tests and goldens and the previous gates' reds, either host's (tier 0a, kb/Work PB3155), the
+host-only witnesses (tier 0h: the Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap
+tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file or a register citing
+what the change removes (tier 0d, kb/Work PB3531, PB3131) and the cheapest cases the change reaches; so a re-gate
+after a fix runs leg 1 again — seconds for a bookkeeping fix, never a population run. The local whole-population
+run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
 2026-10-10); CI's merge-group run is the whole-population regression net.
 Its SCOPE is a shared gate setting (gate_slot.py, read once at the start): `leg1` (the coded default, batched gating,
 kb/Work PB2515) runs leg 1 only and names every leg-2 case NOT RUN, and its verdict line says
@@ -34,7 +34,8 @@ ONE GATE, in this order (§3.14.3):
   2. a fresh RUN DIRECTORY `TestResults/build-local/<n>-<UTC stamp>Z/` (n = the run's number in its run root, taken under
      `runs.lock`, so start order never depends on the clock) holding the listings, the plan, every trx,
      log and identity record, and the verdict file — nothing at a fixed name, so no earlier gate's file is read as
-     this one's; the newest earlier run holding a verdict gives the plan its timings and reds; five are kept;
+     this one's; the newest earlier run holding a verdict gives the plan its timings and reds, and the worktree's
+     newest Linux gate run (TestResults/linux-gate/, gate_plan.previous_gates) its Linux reds; five are kept;
   3. the audits (the one list below, run CONCURRENTLY; one of them is every script self-test, found by
      scripts/self_tests.py — kb/Work PB2563), FAIL-FAST: a red audit ends the gate RED right there, with no leg run
      (kb/Work PB2523) — then the GnuCOBOL corpus, by the ONE rule scripts/external_corpus.py (kb/Work PB2611). Both
@@ -560,11 +561,12 @@ class Host:
         """The order plan (DESIGN §3.14.2), written to `out`; returns (plan, the SHA-256 of the file's bytes)."""
         impacted_tests.HEAD = None  # the worktree, uncommitted edits included, against its cut point
         analysis = impacted_tests.analyse(base)
-        own, reds = (gate_plan.read_previous_run(previous) if previous is not None
-                     else (gate_plan.Timings("none"), set()))
+        # REDS from this worktree's own previous gates on BOTH hosts (kb/Work PB3155): its previous run here and the
+        # Linux gate's newest run (the one a landing runs after this gate), so a finisher's re-gate after a landing's
+        # Linux red runs that red in leg 1 (tier 0a).
+        own, reds = gate_plan.previous_gates(self.repo, previous)
         # TIMINGS from the shared store every gate publishes to (kb/Work PB2527), so a FRESH worktree runs leg 2
         # longest first too; this worktree's own previous run only before any gate on this machine has published.
-        # REDS only ever from this worktree's own previous run.
         shared = gate_plan.read_shared_timings(gate_plan.timings_store(git_common_dir(self.repo)))
         timings = shared if shared else own
         # TRAITS from the test sources (kb/Work PB3022): the host-only witnesses (tier 0h) and the cheap sweeps (0c).
@@ -1338,7 +1340,7 @@ class FakeHost(Host):
         if self.plan_fails:
             raise RuntimeError("planted: the impact analysis crashed")
         plan = {"schema": 1, "base": base, "map": None, "map_state": "none", "every_tier1": ["planted"],
-                "constants": {}, "timings": "none",
+                "constants": {}, "timings": "none", "reds": {},
                 "assemblies": {a: {"legs": legs, "leg1": l1, "leg2": l2, "stats": {
                     "cases": len(self.POPULATION[a]), "tiers": {}, "leg1_cases": len(l1), "leg1_seconds": 0,
                     "recorded_seconds": 0, "leg1_floor_seconds": 0, "leg1_floor_collection": None,

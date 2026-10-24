@@ -12,6 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// the run-time resolver (<c>ProgramTable.ResolveVisible</c>). The bind-time table used to admit every COMMON child
 /// of every ancestor, so a CALL the resolver would never satisfy compiled clean.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ProgramNameScopeDriftTests
 {
     private sealed record P(string Name, P? Container);
