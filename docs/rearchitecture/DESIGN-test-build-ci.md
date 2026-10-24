@@ -1794,7 +1794,10 @@ and one `git log --stdin <tips> --not <base>`: every commit the tips reach beyon
 date and subject, so `on_base`, `beyond`, `is_ancestor`, the count ahead and the subjects are read from memory; a tip
 that names no commit raises, never reads "on the base"), `diff_names` / `diff_patches` (one `diff-tree --stdin
 --always` over `<commit> <parent>` pairs: one header per pair in input order, empty diffs included) and `object_ids`
-(one `cat-file --batch-check` over `<rev>:<path>`). The survey reads every branch's tip and last commit from one
+(one `cat-file --batch-check` over `<rev>:<path>`), `tree_entries` / `blobs` (one `cat-file --batch` each: the files of many
+`<rev>:<dir>` trees, then the content of the distinct object ids they name, so a note two commits share is read once;
+`gen_ledger.measure_commits` measures every commit since the trend's last point from these two processes, kb/Work PB3315).
+The survey reads every branch's tip and last commit from one
 `for-each-ref` and every row's ancestry (MERGED, ahead, the review's coverage, `contained`, `carrying_findings`) from
 one graph; the landing check charges each commit through the two batched diffs and reads `depends` from the graph; the
 in-flight sets read each worktree with one `status` and every unmerged branch from one `for-each-ref --no-merged`;
@@ -2400,7 +2403,10 @@ demand and not committed.
   session start), `docs/DIAGNOSTICS.md` (`gen-diagnostics-doc.ps1`, rendered by `DiagnosticRegistryDriftTests`), the
   `kb/Reference` and `kb/Grammar` vault views, and the ledger page (rendered into the coordination directory). A new
   generated index is one row there plus a `.gitignore` entry. `rendered_views.py --check` is the gate's `RENDERED VIEWS`
-  audit and a step of CI's `audits` job, and enforces per
+  audit (it runs before the slot, so its cost is every gate's: the ledger view's `--check` walked every commit since
+  the trend's last recorded point at five git processes each, 20-28 minutes with ten gates running, and now measures
+  them all through two, `gen_ledger.measure_commits`, whose self-test holds the process count constant in the number of
+  commits: kb/Work PB3315) and a step of CI's `audits` job, and enforces per
   view: not tracked (`git ls-files` ∩ outputs = ∅), gitignored when inside the tree, its generator's own `--check` renders
   it in memory (a drift test with no `<summary>`, an inventory the burn-down cannot read, a plan the ledger cannot read),
   plus a sweep that no tracked `docs/` or `kb/` markdown declares itself generated without a row. Nothing compares a view
