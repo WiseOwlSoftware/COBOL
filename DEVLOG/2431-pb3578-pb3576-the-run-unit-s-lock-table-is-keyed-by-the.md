@@ -1,4 +1,4 @@
-## PB3578, PB3576: the run unit's lock table is keyed by the physical file, and a kept state gives all its record locks back
+## Entry 2431 — 2026-10-23 20:09 PDT — PB3578, PB3576: the run unit's lock table is keyed by the physical file, and a kept state gives all its record locks back
 
 Group A3 (wave 20261024), the keyed connector's kept-state root. Two notes, one root: what a CLOSE under commit control keeps (the handle, the file lock, the
 record locks, the transaction) belongs to a PHYSICAL FILE, and the run unit's tables named that file by its path or by the registry's publication of it.
@@ -57,3 +57,4 @@ Conformance 8,764 · Unit 953 · Characterization 31 … Conformance 9,563/18,32
 only with "No space left on device" while other fleets filled the WSL disk, which also turned 22 `CobolFileLockTests` red). `python scripts/semgrep/verify.py`: PASS.
 
 **Finisher gate.** `TestResults/build-local/000001-20261024T020019Z` (head `3b437aa59`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 9,920/18,343 - Unit 34,905/35,841 - Characterization 5/36 cases ran); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 3b437aa59) ===`; `python scripts/semgrep/verify.py`: PASS.
+
