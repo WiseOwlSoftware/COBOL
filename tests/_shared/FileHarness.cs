@@ -107,25 +107,27 @@ public static partial class FileHarness
     /// <paramref name="sharing"/> is null: the NO OTHER default). With <paramref name="alternateKey"/> an INDEXED file also
     /// has an alternate key WITH DUPLICATES over the payload (positions 5-8), so a record is two trees' entries. Every
     /// connector on one physical file declares the SAME attributes, because §14.9.27.4 GR10 compares them at each
-    /// OPEN.</summary>
+    /// OPEN. <paramref name="edition"/> is the ISO edition the declaring program was compiled for (the CLI's
+    /// <c>--std</c>), which a connector reads for each behaviour that differs by edition (<c>DialectBehaviors</c>).</summary>
     public static void Register(FileRegistry reg, string name, string host, FileOrg org,
         FileSharing? sharing = FileSharing.AllOther, FileLockMode lockMode = FileLockMode.Manual, bool optional = false,
-        KeyedAccess access = KeyedAccess.Dynamic, bool alternateKey = false)
+        KeyedAccess access = KeyedAccess.Dynamic, bool alternateKey = false, int edition = 2023)
     {
         Assert.True(!alternateKey || org == FileOrg.Indexed, "only an INDEXED file has an alternate key");
         Declared.GetOrCreateValue(reg)[name] = org == FileOrg.Sequential ? KeyedAccess.Sequential : access;
         switch (org)
         {
             case FileOrg.Sequential:
-                reg.Register(name, host, recordWidth: 8, lineSequential: false, optional: optional, varyMin: -1, varyMax: -1);
+                reg.Register(name, host, recordWidth: 8, lineSequential: false, optional: optional, varyMin: -1, varyMax: -1,
+                    edition: edition);
                 break;
             case FileOrg.Relative:
                 reg.RegisterRelative(name, host, recordWidth: 8, optional: optional, accessMode: (int)access,
-                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
+                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1, edition: edition);
                 break;
             case FileOrg.Indexed:
                 reg.RegisterIndexed(name, host, recordWidth: 8, optional: optional, accessMode: (int)access,
-                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
+                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1, edition: edition);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(org), org, "a new organization owes its arm here");
