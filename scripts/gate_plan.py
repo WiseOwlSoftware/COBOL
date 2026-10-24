@@ -637,7 +637,7 @@ def write_plan(plan: dict, out: Path) -> str:
 
 def self_test() -> int:
     """Drive every arm on planted inputs (feedback_prove_the_watchdog_fails)."""
-    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     failures = 0
 
     def check(label: str, ok: bool, detail: object = "") -> None:
@@ -900,6 +900,9 @@ def self_test() -> int:
 
     # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
     # writes none, and a row whose results directory its tool never names are each a finding.
+    # The process is isolated from the caller's repository first, because the code under test (audit_trx_writers)
+    # runs `git ls-files` itself, in this process (scratch_repo.isolate's contract).
+    isolate()
     with tempfile.TemporaryDirectory() as tmp:
         scratch = ScratchRepo.init(Path(tmp) / "repo")
         repo = scratch.path
