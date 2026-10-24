@@ -1,4 +1,4 @@
-## A landing's Linux reds are tier 0a of the worktree's next gate (PB3155, PB3184)
+## Entry 2434 — 2026-10-23 20:34 PDT — A landing's Linux reds are tier 0a of the worktree's next gate (PB3155, PB3184)
 
 **The defect.** Tier 0a, "red at the previous gate", took its reds only from build-local's own previous run
 (`gate_plan.read_previous_run`, fed by `run_gate_legs.Host.plan`). The landing's Linux gate (`scripts/linux-gate.sh`,
@@ -49,3 +49,4 @@ gate's `selftests` and `guard` legs write no trx, and a self-test whose inputs c
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,360 · Unit 1,369 · Characterization 31 … — Conformance 9,983/18,343 · Unit 34,455/35,824 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … run 000002-20261024T021714Z) ===`; the new `GateLegDriftTests.EveryTrxWriter_IsARedSourceOfThePlan_OrSaysWhyNot` ran in
 leg 1 and passed.
+
