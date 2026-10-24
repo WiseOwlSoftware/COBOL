@@ -1,3 +1,4 @@
-## PB3661: an unreadable trx sinks the gate's order plan, the error names no file, and the file is gone by the verdict
+## Entry 2487 — 2026-10-24 16:05 PDT — PB3661: an unreadable trx sinks the gate's order plan, the error names no file, and the file is gone by the verdict
 
 Filed PB3661 from the resume unit's re-gate of `worktree-wf_1973801d-4fe-29` (run 000005). The gate printed "the order plan could not be made — no plan (ParseError: not well-formed (invalid token): line 104295, column 36)" and ran the whole population in one leg (GREEN on both hosts, so nothing was lost but the plan). The plan parses only trx files, and the previous build-local run's all parse, so the bad file was the Linux gate's earlier trx in `TestResults/linux-gate/`. The gate's own Linux half emptied that directory before the verdict, and none of the 108 trx files now on disk is malformed, so the cause is unknown. The note gives the fix: name the file, as `test_population.read_trx` already does, and use one trx reader for both; keep an unreadable trx in the run directory; and pin, with a self-test, what an unreadable side source costs the plan.
+
