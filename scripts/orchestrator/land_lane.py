@@ -63,6 +63,8 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
        exit 3 — the landing check's STOP: the branch shares a file with earlier-dispatched in-flight work (kb/Work
                 PB2701)                                            retried at this head once `landing_check.py` passes
                                                                    on the branch (the overlap is gone); never as is
+       exit 13 — another `land` of the branch runs (kb/Work     retried at this head once the worktree's land lock
+                PB3310; nothing ran, nothing red)           is free (`wait_free`); never the enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock (kb/Work PB3527; nothing ran, nothing red)   is free (`wait_free`); never the enqueue unit's
        exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
@@ -114,7 +116,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
+from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT,
+                     land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
@@ -128,16 +131,19 @@ EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch share
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock"}
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock",
+         EXIT_LAND_BUSY: "the worktree's land lock"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
 # The classes of a finished attempt (classify). STOPPED and DONE-to-collect are the enqueue unit's; the rest the lane's.
 DONE, FREE, ONCE, HALTED, STOPPED = "done", "retry-when-free", "retry-once", "halt", "stopped"
 RETRYABLE = (FREE, ONCE, HALTED)
-#: The survey states in which a pull request AT the branch's tip is the queue's (in it, handed to it, or merged): the
-#: queue watch follows it and the lane starts no landing there, a re-arm included. prune_worktrees.lifecycle reads
-#: NOT QUEUED only for a pull request at the tip, so one left at an older head never lands here (kb/Work PB3628).
+#: The survey states in which the queue owns the branch: its pull request is IN the merge queue (ENQUEUED, at whatever
+#: head the queue took: a push would eject it), handed to the queue AT the branch's tip (NOT QUEUED), or its work is on
+#: main (LANDED, by content). The queue watch follows the first two and the lane starts no landing in any of them, a
+#: re-arm included (rearm_hold). prune_worktrees.lifecycle reads NOT QUEUED only for a pull request at the tip, so a
+#: tip past an older pull-request head reads by its report and lands here (kb/Work PB3275, PB3628; review lead R1-2).
 QUEUE_OWNED = ("ENQUEUED", "NOT QUEUED", "LANDED")
 VERDICT_LINE = re.compile(r"^" + re.escape(VERDICT) + r"(?P<outcome>.*?)(?: \((?P<branch>[^()]*)\))? ===\s*$")
 
@@ -384,10 +390,22 @@ def gate_lock_free(worktree: str) -> tuple[bool, str]:
     """Whether the worktree's gate lock (the gate driver's own: run_gate_legs.Host.lock_path) is free now: taken and
     released at once (an OS lock, freed when its holder dies, so a lock that reads held is a live gate)."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    return lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+
+
+def land_lock_free(worktree: str) -> tuple[bool, str]:
+    """Whether the worktree's land lock (enqueue.py's own: land_lock_path, kb/Work PB3310) is free now: no other `land`
+    of its branch runs."""
+    return lock_free(lambda: land_lock_path(pathlib.Path(worktree)), f"the land lock of {worktree}")
+
+
+def lock_free(locate: Callable[[], pathlib.Path], what: str) -> tuple[bool, str]:
+    """Whether the OS lock at `locate()` is free now: taken and released at once (an OS lock is freed when its holder
+    dies, so a lock that reads held is a live holder)."""
     try:
-        path = run_gate_legs.Host(pathlib.Path(worktree)).lock_path()
+        path = locate()
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
-        return False, f"the gate lock of {worktree} could not be located ({exc})"
+        return False, f"{what} could not be located ({exc})"
     lock = ExclusiveLock.try_take(path, f"land_lane.py probe (pid {os.getpid()})")
     if lock is None:
         return False, f"held by {ExclusiveLock.holder(path) or '(no label)'}"
@@ -397,9 +415,11 @@ def gate_lock_free(worktree: str) -> tuple[bool, str]:
 
 def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free."""
+    branch; exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock is free."""
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree)
+    if rc == EXIT_LAND_BUSY:
+        return land_lock_free(worktree)
     return landing_check_free(worktree)
 
 
@@ -740,11 +760,8 @@ def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str,
         out.append(r)
         seen.add(branch)
     for branch, rec in (rearmed or {}).items():
-        r = named.get(branch)
-        if branch in seen or r is None or not r["worktree"] or r["state"] in QUEUE_OWNED:
-            continue
-        if r["tip"] == rec.get("head"):
-            out.append(r)
+        if branch not in seen and not rearm_hold(rec, named.get(branch)):
+            out.append(named[branch])
     return out
 
 
@@ -854,7 +871,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 revi
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free)",
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free; exit 13: the worktree's land lock is free)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -925,18 +942,27 @@ def outcome(a: dict[str, Any]) -> str:
     return "DIED" if a.get("outcome") == "DIED" else f"pid {a.get('pid')}"
 
 
-def rearm_effect(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
-    """What the next tick does with a pending re-arm, read from the last survey's row for the branch (the status line
-    once said "the next tick lands it again" of a branch the lane would never start: kb/Work PB3628)."""
+def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
+    """Why the next tick does NOT land a pending re-arm, read from the survey's row for the branch, or '' when it does:
+    THE re-arm predicate, which `candidates` and the status line (`rearm_effect`) both ask, so the status line cannot
+    promise a landing the lane never starts (kb/Work PB3628 and its review lead R1-1: a hand-kept copy dropped the
+    worktree arm)."""
     if row is None:
         return "the branch is not in the last survey; the next tick drops the re-arm"
     if row.get("tip") != rec.get("head"):
         return (f"the branch moved to {str(row.get('tip'))[:12]}; the next tick drops the re-arm (a new head goes "
                 "through review)")
+    if not row.get("worktree"):
+        return "the survey names no worktree for it, so the next tick does NOT land it (the re-arm waits for one)"
     if row.get("state") in QUEUE_OWNED:
-        return (f"the survey reads it {row['state']}: the queue owns its pull request at this head, so the next tick "
-                "does NOT land it (the queue watch acts on it)")
-    return "the next tick lands it again at this head"
+        return (f"the survey reads it {row['state']}: the queue owns its pull request, so the next tick does NOT land "
+                "it (the queue watch acts on it)")
+    return ""
+
+
+def rearm_effect(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
+    """What the next tick does with a pending re-arm (rearm_hold, the one predicate)."""
+    return rearm_hold(rec, row) or "the next tick lands it again at this head"
 
 
 def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str]:
@@ -1125,6 +1151,18 @@ def self_test() -> int:
         after = wait_free(EXIT_GATE_BUSY, str(lock_wt))
         expect("wait_free for exit 12 reads the gate driver's own lock of the worktree: held names its holder, then free",
                while_held[0] is False and "pid 356316" in while_held[1] and after == (True, ""), f"{while_held} {after}")
+        # exit 13 (kb/Work PB3310): another `land` of the branch runs; the lane waits on the worktree's land lock, which
+        # is enqueue.py's own (land_lock_path), exactly as it waits on the gate driver's for exit 12.
+        land_held = ExclusiveLock.try_take(land_lock_path(lock_wt), "enqueue.py land x (pid 356317)")
+        try:
+            land_while_held = wait_free(EXIT_LAND_BUSY, str(lock_wt))
+        finally:
+            land_held.release()
+        land_after = wait_free(EXIT_LAND_BUSY, str(lock_wt))
+        expect("wait_free for exit 13 reads enqueue.py's own land lock of the worktree: held names its holder, then free; "
+               "the exit is a retry-when-free class, never the enqueue unit's",
+               land_while_held[0] is False and "pid 356317" in land_while_held[1] and land_after == (True, "")
+               and classify({"rc": EXIT_LAND_BUSY}) == FREE, f"{land_while_held} {land_after}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")
@@ -1349,6 +1387,17 @@ def self_test() -> int:
         expect("the status line of a re-armed NOT QUEUED branch does not promise a landing, and names why",
                any(ln.startswith("REARMED") and "w12b" in ln and "does NOT land it" in ln and "NOT QUEUED" in ln
                    for ln in status), "\n".join(status))
+        # the one re-arm predicate (rearm_hold, review lead R1-1): every arm that keeps candidates() from launching a
+        # re-arm is the arm the status line names, the worktree arm included, and only a launchable one is promised
+        rec12 = {"head": "r1"}
+        arms = {"launch": row("w12c", "WAITING TO LAND", "r1"), "no worktree": {**row("w12c", "WAITING TO LAND", "r1"),
+                                                                              "worktree": ""},
+                "queue": row("w12c", "ENQUEUED", "r1"), "moved": row("w12c", "WAITING TO LAND", "r2"), "gone": None}
+        agree = {k: (bool(candidates([r] if r else [], [], {}, {"w12c": rec12})),
+                     rearm_effect(rec12, r) == "the next tick lands it again at this head") for k, r in arms.items()}
+        expect("candidates() launches a re-arm exactly when the status line promises it (no worktree: neither)",
+               agree == {"launch": (True, True), **{k: (False, False) for k in arms if k != "launch"}}
+               and "no worktree" in rearm_effect(rec12, arms["no worktree"]), str(agree))
 
         # 14. THE QUEUE WATCH (kb/Work PB3527): each pull request the lane queued, followed into the merge queue from a
         #     stubbed reader of GitHub's facts, on a planted clock; PR #385's shape is a ci-gate check-run in progress

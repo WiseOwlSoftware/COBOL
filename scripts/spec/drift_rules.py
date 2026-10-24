@@ -37,8 +37,7 @@ declaration this reads equal to the value the compiler builds (`--scopes`), and 
 declared field of a drift test.
 
 A test that reads the tree through a HELPER CLASS names no path either (kb/Work PB3247: ConstantNameLiteralPositionDriftTests
-reads the corpus through SuiteManifest, ClosesRowsBackLinkDriftTests the register through WorkRegister, and a golden or
-a note governed neither). So the index reads every top-level type a drift test uses by name, in its own test project or
+reads the corpus through SuiteManifest, and a golden governed no test). So the index reads every top-level type a drift test uses by name, in its own test project or
 tests/_shared (`Sources`), and the test governs, transitively, every path those helpers name (`Sources.inherited`; the
 per-file query says `— through <helper>`). Those paths govern a changed file but never make a class a sweep
 (`is_sweep`). TestRepo's path helpers are read from tests/_shared/TestRepo.cs (`test_repo`), never copied here, and a
@@ -70,8 +69,8 @@ from dataclasses import dataclass
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 #: THE repo-root locator every test project shares. Its path helpers are READ FROM ITS SOURCE (`test_repo`), never
-#: copied here: the hand copy this replaced lacked `Kb`, so no drift test reading kb/Work through it governed a note
-#: (kb/Work PB3247).
+#: copied here: the hand copy this replaced lacked a helper (`Kb`, then), so no drift test reading kb/Work through it
+#: governed a note (kb/Work PB3247).
 TEST_REPO = "tests/_shared/TestRepo.cs"
 #: `X(params string[] segments) => Path.Combine([Root, .. segments])`: the helper rooted at the repository itself.
 ROOT_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*params\s+string\[\]\s+segments\s*\)\s*=>\s*"
@@ -860,7 +859,7 @@ def self_test():
         planted = {
             "tests/_shared/Corpus.cs": "internal static class Corpus\n{\n    internal static string Root { get; } = "
                                        "TestRepo.Suite();\n    internal sealed class Nested { }\n}\n",
-            "tests/_shared/Notes.cs": 'internal static class Notes\n{\n    internal static string Dir => TestRepo.Kb("Work");\n}\n',
+            "tests/_shared/Notes.cs": 'internal static class Notes\n{\n    internal static string Dir => TestRepo.Nist("cases");\n}\n',
             "tests/P/Chain.cs": "internal static class Chain\n{\n    internal static object Of => Corpus.Root;\n}\n",
             "tests/Q/Chain.cs": 'internal static class Chain\n{\n    static string D => TestRepo.Docs("OTHER.md");\n}\n',
             "tests/P/ReadsCorpusDriftTests.cs": drift("ReadsCorpusDriftTests", "    object X => Chain.Of;"),
@@ -869,7 +868,7 @@ def self_test():
                                                     '    string B => TestRepo.SuiteFile("g1", "g1.out");'),
             "tests/P/CommentOnlyDriftTests.cs": drift("CommentOnlyDriftTests", "    // Corpus.Root is not read here"),
             "tests/P/OwnPathDriftTests.cs": drift("OwnPathDriftTests",
-                                                  '    string X => TestRepo.Kb("Work", note + ".md");\n'
+                                                  '    string X => TestRepo.Nist("cases", note + ".txt");\n'
                                                   '    string Y => TestRepo.Src(["Proj", "Dir", .. parts]);\n'
                                                   '    string Z => Path.Combine(TestRepo.Root, "specs", "S.md");\n'
                                                   '    string W => Path.Combine([TestRepo.Root, "docs", "D", .. p]);'),
@@ -897,14 +896,14 @@ def self_test():
                                                       '    IEnumerable<string> B => names.Select(Src);'),
             "tests/P/BlindDriftTests.cs": drift("BlindDriftTests", '    string A(string tree) => TestRepo.At(tree);'),
             "conformance-suite/cases/1.2-Clause/g1.cob": "", "conformance-suite/cases/1.2-Clause/g1.out": "",
-            "kb/Work/N1.md": "", "docs/OTHER.md": "", "src/Proj/Dir/A.cs": ""}
+            "tests/nist/cases/N1.txt": "", "docs/OTHER.md": "", "src/Proj/Dir/A.cs": ""}
         for rel, text in planted.items():
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             (root / rel).write_text(text, encoding="utf-8", newline="\n")
         shutil.copy(ROOT / TEST_REPO, root / TEST_REPO)
         repo = test_repo(root)
-        check("TestRepo's helpers are read from its source, `Kb` among them, and every one is readable",
-              repo["helpers"].get("Kb") == "kb" and repo["helpers"].get("VersionMatrix") == "tests/version-matrix"
+        check("TestRepo's helpers are read from its source, `Nist` among them, and every one is readable",
+              repo["helpers"].get("Nist") == "tests/nist" and repo["helpers"].get("VersionMatrix") == "tests/version-matrix"
               and repo["case"] and repo["beside"] and not repo["unread"], repo)
         rows = index(root)
         by = {r["test"]: r for r in rows}
@@ -914,7 +913,7 @@ def self_test():
         check("a helper's path is inherited through a helper chain: a suite golden governs the class (tier 0d)",
               "ReadsCorpusDriftTests" in gov("conformance-suite/cases/1.2-Clause/g1.cob"),
               by["ReadsCorpusDriftTests"]["through"])
-        check("a path read through TestRepo.Kb governs a kb/Work note", "ReadsNotesDriftTests" in gov("kb/Work/N1.md"),
+        check("a path read through TestRepo.Nist governs a file under it", "ReadsNotesDriftTests" in gov("tests/nist/cases/N1.txt"),
               by["ReadsNotesDriftTests"]["through"])
         check("a helper of another test project is not this project's (tests/Q/Chain.cs reads docs/OTHER.md)",
               "ReadsCorpusDriftTests" not in gov("docs/OTHER.md"), by["ReadsCorpusDriftTests"]["through"])
@@ -928,7 +927,7 @@ def self_test():
               by["NamesCaseDriftTests"]["paths"])
         check("a call's path stops at its first argument that is not a literal, a collection expression included, and "
               "Path.Combine(TestRepo.Root, ...) is the root helper written out",
-              by["OwnPathDriftTests"]["paths"] == ["kb/Work", "src/Proj/Dir", "specs/S.md", "docs/D"],
+              by["OwnPathDriftTests"]["paths"] == ["tests/nist/cases", "src/Proj/Dir", "specs/S.md", "docs/D"],
               by["OwnPathDriftTests"]["paths"])
         check("a nested call, a class constant and a bare Path.Combine of a tree root each spell their path (a local "
               "temp path spells none)", sorted(by["SpelledDriftTests"]["paths"]) ==

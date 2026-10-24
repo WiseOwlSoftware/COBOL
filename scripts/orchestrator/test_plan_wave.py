@@ -2066,6 +2066,33 @@ check("PB3528 R1-1: a one-sided meeting between two finishers chains them; neith
        sum(1 for g in dl3.values() if g.after) == 1),
       (["PB5", "PB9"], True, True))
 
+# PB3625: THE REPORT ORDER IS A CLOCK, NEVER A WAVE NUMBER. The loop numbers its waves by date (20261024) and the Mythos
+# lane serially (1157), so ordering by the integer wave ranked every date-numbered report above every serial one: a
+# SPLIT report of the old branch (w20261024a, 15:12) stayed PB5's newest beside a DONE report (w1157a, 19:49) of a branch
+# that CONTAINS it, and the planner planned a finisher that would redo work already on the other branch. The report
+# written later is the newest in either direction; the wave number only breaks a tie (the same-time reports above).
+O_REPORTS = {k: TMP / f"reports-3625{k}" for k in ("a", "b")}
+for k, d in O_REPORTS.items():
+    d.mkdir()
+    for name, status, branch in (("w20261024a-PB5-report.md", "SPLIT", "worktree-old-1"),
+                                 ("w1157a-PB5-report.md", "DONE", "worktree-new-2")):
+        (d / name).write_text(f"{status}\n# PB5 group\n**Status:** {status} · **branch:** `{branch}` · **HEAD:** `6666666ff`\n\n"
+                              "## Reproduced?\n", encoding="utf-8", newline="\n")
+    for name, when in (("w20261024a-PB5-report.md", 1_000_000_000), ("w1157a-PB5-report.md", 1_000_003_600)):
+        # "a": the serial DONE is written an hour AFTER the date-numbered SPLIT; "b": an hour BEFORE it
+        t = when if k == "a" else 1_000_000_000 + 1_000_003_600 - when
+        os.utime(d / name, (t, t))
+order = {k: [r.path.name for r in pw.load_reports(d)] for k, d in O_REPORTS.items()}
+check("PB3625: reports are read oldest first by write time, whichever lane's wave number is larger",
+      order, {"a": ["w20261024a-PB5-report.md", "w1157a-PB5-report.md"],
+              "b": ["w1157a-PB5-report.md", "w20261024a-PB5-report.md"]})
+po = {k: pw.plan(notes, [cl(F_BIND, "PB5")], [], pw.load_reports(d), lambda b: "UNLANDED", {}, RULES,
+                 budget_points=100) for k, d in O_REPORTS.items()}
+check("PB3625: a later serial-wave DONE report supersedes the date-wave SPLIT report: no finisher of the SPLIT branch",
+      [b for g in po["a"]["groups"] if g.kind == "finisher" and "PB5" in g.notes for b in g.continues], [])
+check("PB3625: the converse holds: a SPLIT report written after the DONE one is the note's newest and gets its finisher",
+      [b for g in po["b"]["groups"] if g.kind == "finisher" and "PB5" in g.notes for b in g.continues], ["worktree-old-1"])
+
 for f in fails:
     print("FAIL:", f)
 print(f"plan_wave self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")
