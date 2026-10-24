@@ -119,6 +119,13 @@ public sealed class SequentialCommitControlTests
         return dir;
     }
 
+    /// <summary>Remove a row's directory; a handle a failed row left open must not hide the row's own failure.</summary>
+    private static void TryDeleteDirectory(string dir)
+    {
+        try { Directory.Delete(dir, recursive: true); }
+        catch (IOException) { }
+    }
+
     private static byte[]? State(string f) => File.Exists(f) ? File.ReadAllBytes(f) : null;
 
     private static string Show(byte[]? state) => state is null ? "<absent>" : Encoding.Latin1.GetString(state);
@@ -165,7 +172,7 @@ public sealed class SequentialCommitControlTests
                 AssertNoLitter(f);
                 (handed, synced) = before == after ? (int.MaxValue, int.MaxValue) : (u.Handed, u.Synced);
             }
-            finally { Directory.Delete(dir, recursive: true); }
+            finally { TryDeleteDirectory(dir); }
         }
         foreach (var fault in new[] { FaultHostMedium.Fault.Refuse, FaultHostMedium.Fault.Die, FaultHostMedium.Fault.Power, FaultHostMedium.Fault.PowerKeepingData })
             for (int n = 1; n <= total; n++)
@@ -377,7 +384,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1Y2C3", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
     }
 
     [Fact]
@@ -405,7 +412,7 @@ public sealed class SequentialCommitControlTests
             a.Reg.CloseAll();
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
     }
 
     [Fact]
@@ -435,7 +442,47 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2B1", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
+    }
+
+    [Fact]
+    public void A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds()
+    {
+        // 2.2.2.3: a transaction holds every record it appended (those at or past its L) — beside the records its READs lock
+        // under the implicit AUTOMATIC WITH LOCK ON MULTIPLE RECORDS posture (§9.1.16), which are region locks; under SHARING
+        // WITH ALL OTHER another run unit's READ of a held record answers '51' (§9.1.13.8 1)), and of any other record '00'.
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2C3", Encoding.Latin1);
+            var a = new Unit(f, covered: true, sharing: FileSharing.AllOther);
+            Ok(a.Open(FileOpenMode.Extend));
+            Ok(a.Write("X4"));                 // a holds the end: every record at or past its L (6)
+            var b = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            Ok(b.Open(FileOpenMode.Input));
+            foreach (string expected in new[] { "C1", "C2", "C3" })
+            {
+                Ok(b.Read(out string record));
+                Assert.Equal(expected, record);
+            }
+            Assert.Equal("51", b.Read(out _)); // record 4: a's own append, held by its live transaction
+            Assert.Equal("51", b.Read(out _)); // still held: the refused READ moved nothing (§14.9.30.4 GR10)
+            OkRollback(a);
+            Assert.Equal("10", b.Read(out _)); // the ROLLBACK removed it: at end (§14.9.30.4 GR21 e))
+            Ok(a.Write("X5"));
+            OkCommit(a);
+            Ok(b.Close());                     // after the at end condition a READ is '46' (§9.1.13.7 6)): read it afresh
+            Ok(b.Open(FileOpenMode.Input));
+            string committed = "";
+            for (int n = 0; n < 4; n++) Ok(b.Read(out committed));
+            Assert.Equal("X5", committed);     // the COMMIT made it the file's, and released it
+            b.Reg.CloseAll();
+            a.Reg.CloseAll();
+            Assert.Equal("C1C2C3X5", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { TryDeleteDirectory(dir); }
     }
 
     [Fact]
@@ -463,7 +510,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
     }
 
     [Fact]
@@ -489,7 +536,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1X1", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
     }
 
     [Fact]
@@ -511,6 +558,6 @@ public sealed class SequentialCommitControlTests
             Assert.DoesNotContain(medium.Log, op => op.Contains("txn-", StringComparison.Ordinal) || op.StartsWith("syncdir", StringComparison.Ordinal));
             Assert.False(Directory.Exists(SequentialJournal.DirectoryOf(f)));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { TryDeleteDirectory(dir); }
     }
 }
