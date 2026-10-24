@@ -112,6 +112,7 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import external_corpus  # noqa: E402
 import gate_plan  # noqa: E402
 import impacted_tests  # noqa: E402
+import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Setting, Slot,  # noqa: E402
@@ -283,6 +284,8 @@ AUDITS = (
     ("RULE CATALOG", ["scripts/spec/extract_rule_catalog.py", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
+    # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
+    ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
     ("SELF-TESTS", ["scripts/self_tests.py"]),
     # kb/Work PB1957 row 44, the CI invariant: CI's `audits` job ran these two and the gate did not, so train 1067's
     # PR 9 went RED in CI on a `blocked: true` the work register refuses, behind a GREEN gate.
@@ -395,6 +398,16 @@ class Host:
 
     def default_base(self) -> str:
         return self.git("merge-base", "HEAD", "origin/main")
+
+    def lane(self, base: str | None, tree: str | None) -> inert_lane.Lane:
+        """The change's lane: what `tree` (the measured working tree) changes against `base`, classified by THE one
+        classification (scripts/inert_lane.py). No base or no tree, or a change git cannot list, is the full lane."""
+        if not base or not tree:
+            return inert_lane.Lane(False, "no base or no measured tree: the full lane")
+        try:
+            return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
+        except (subprocess.CalledProcessError, OSError) as e:
+            return inert_lane.Lane(False, f"the change could not be listed ({e}): the full lane")
 
     def head(self) -> str | None:
         try:
@@ -777,6 +790,9 @@ class Outcome:
     base: str | None = None
     reused_from: str | None = None
     reused_detail: str | None = None  # the measuring gate's own verdict detail, carried along a chain of reuses
+    #: The change's lane (scripts/inert_lane.py, kb/Work PB2878): `inert` (no test reads it: the audits, then the
+    #: verdict) or `full`; None until the audits passed.
+    lane: str | None = None
 
 
 def run_order(name: str) -> tuple[int, str]:
@@ -970,6 +986,18 @@ class Gate:
             out.reasons += audit_reds
             return self._finish(out, run, "RED", f"{'; '.join(audit_reds)} — fail-fast: the audits run before the "
                                 f"slot and the build and NO LEG RAN; fix the audit and re-gate (run {run.name})", 1)
+        lane = self.host.lane(out.base, out.tree)
+        out.lane = lane.name
+        self.say(f"build-local: {lane.name} lane (scripts/inert_lane.py) — {lane.reason}")
+        if lane.inert:
+            # ⭐ THE INERT LANE (kb/Work PB2878; DESIGN-test-build-ci.md §3.18): every changed path is one NO TEST reads
+            # (the classification the CI `changes` job and the Linux gate use, proved by the inotify watch of every
+            # Linux test run), so no slot, build or leg can measure anything about it; the audits above, which read it,
+            # were the gate. GREEN under either scope: there is no leg 2 left unrun, so the record covers both.
+            out.tree_end = self.host.measured_tree()
+            verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
+            return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are "
+                                f"GREEN, and no slot, build or test leg ran (run {run.name})", 0)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
         t = time.monotonic()
         try:
@@ -1231,7 +1259,7 @@ class Gate:
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "slot": out.slot, "plan_sha256": out.plan_sha256, "plan": out.plan_note, "stopped": out.stopped,
-                "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only,
+                "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only, "lane": out.lane,
                 "legs": {str(leg): names for leg, names in out.legs_invoked.items()},
                 "runs": [vars(r) for r in out.runs], "timings": out.timings, "not_run": out.not_run,
                 "timings_store": out.timings_store,
@@ -1291,6 +1319,12 @@ class FakeHost(Host):
 
     def default_base(self) -> str:
         return self.base_sha
+
+    def lane(self, base, tree):
+        """The planted lane: `inert` plants a change no test reads; the classification itself is inert_lane.py's
+        self-test."""
+        return (inert_lane.Lane(True, "planted: all 2 changed path(s) are inert") if "inert" in self.plant
+                else inert_lane.Lane(False, "planted: the full lane"))
 
     def head(self) -> str | None:
         return "head-1"
@@ -1533,6 +1567,18 @@ def self_test() -> int:
             and gate("order")[1].events == ["audits", "fetch", "slot", "build", "post-build self-tests",
                                                            "publish"],
             str(h.events))
+        o, h = gate("inert", plant={"inert"}, scope=None)
+        arm("a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN under the leg1 scope, with "
+            "no fetch, slot, build or leg, the lane recorded",
+            o.verdict == f"{LEG1_ONLY}: GREEN" and o.exit_code == 0 and "INERT LANE (kb/Work PB2878)" in o.line
+            and h.events == ["audits"] and not h.built and not o.runs and o.lane == "inert" and not o.leg1_only
+            and read_verdict(o.line[len(VERDICT):]) == GREEN_READING, f"{o.line} {h.events}")
+        o, h = gate("inert-whole", plant={"inert"})
+        arm("the inert lane under the `whole` scope is a plain GREEN: no leg 2 is left unrun",
+            o.verdict == "GREEN" and o.exit_code == 0 and h.events == ["audits"], o.line)
+        o, h = gate("inert-audit", plant={"inert", "audit"})
+        arm("a red audit is RED in the inert lane too: the audits ARE the inert lane's gate",
+            o.verdict == "RED" and o.exit_code == 1 and h.events == ["audits"] and o.lane is None, o.line)
         o, h = gate("post-build", plant={"post-build"})
         arm("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the legs and "
             "makes the gate RED after them, its output printed whole",

@@ -886,6 +886,13 @@ class Schema:
         """The verdicts that can close a GAP — everything else leaves the row open by construction."""
         return {v for v, d in self.verdicts.items() if d["resolves"]}
 
+    @property
+    def defective(self) -> set[str]:
+        """The verdicts that leave a rule outstanding (`resolves` false) — DERIVED from the flag, never listed, so a
+        verdict added to the schema extends `work_inventory.py`'s coverage check with no edit there. An EMPTY verdict
+        is in neither set: a row nobody adjudicated is not settled, and not a known defect either."""
+        return {v for v, d in self.verdicts.items() if not d["resolves"]}
+
     def requires(self, verdict: str) -> list[str]:
         return list(self.verdicts[verdict]["requires"])
 
