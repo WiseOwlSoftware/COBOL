@@ -23,13 +23,14 @@ namespace CobolNet.Tests.Unit;
 /// missed one (DESIGN-test-build-ci.md sections 3.13 and 3.14.2).
 /// </para>
 /// <para>
-/// Five facts are pinned. (1) Each script's own <c>--self-test</c> drives every arm by name — an arm deleted from it
+/// Six facts are pinned. (1) Each script's own <c>--self-test</c> drives every arm by name — an arm deleted from it
 /// is red here. (2) Through the REAL command line, against a map this test writes, a mapped change is TIERED (the
 /// <c>--plan</c> file shows it) and nothing it prints is a vstest filter: the gate runs the whole population in
 /// ordered legs, and M13 deleted the filter line and <c>--plus</c> with every caller (kb/Work PB1721). (3) An unmapped file puts every test in tier 1 and says why.
 /// (4) <c>NameKey</c> strips <c>_P&lt;k&gt;</c> from a class segment, so that suffix must mean exactly "partition k
 /// of a <c>TestPartitioning</c> family": every class so named in <c>tests/</c> is one. (5) Every product project
-/// under <c>src/</c> is compiled with the probe and instrumented.
+/// under <c>src/</c> is compiled with the probe and instrumented. (6) The C# member reader that tells tier 0a which
+/// test methods a diff edits reads every source of the gated test projects right (kb/Work PB3190).
 /// </para>
 /// </remarks>
 [Trait("Sweep", "tree")]
@@ -44,7 +45,16 @@ public sealed class ImpactedTestsDriftTests
         AssertSelfTest(TestRepo.Scripts("spec", "impacted_tests.py"),
             "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file puts every test in tier 1",
             "a known file no test executed", "an ambient-only file", "a grammar file", "a props file",
-            "a runtime data file", "an added test method is named for tier 0a",
+            "a runtime data file", "a new file's test methods are all tier 0a",
+            // kb/Work PB3190: an EDITED test method is tier 0a too, read from a real diff
+            "tier 0a holds an edited test method: a changed line inside an existing test body",
+            "tier 0a holds an edited test method: a line deleted from an existing test body",
+            "tier 0a holds an edited test method: an added data row of an existing theory",
+            "tier 0a holds an edited test method: a changed [MemberData] source",
+            "tier 0a holds an edited test method: a changed helper is no test's own change",
+            "tier 0a holds an edited test method: a comment line added inside a test body",
+            "a source whose braces do not balance once lexed puts every test method it names in tier 0a",
+            "a replayed deletion of a test file names no test",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
             "a changed static constructor", "no map for the base puts every test in tier 1",
             "a documentation-only older map is used", "a STALE map is returned for its durations");
@@ -56,7 +66,8 @@ public sealed class ImpactedTestsDriftTests
         AssertSelfTest(TestRepo.Scripts("gate_plan.py"),
             "NameKey strips the partition suffix", "NameKey never touches a theory's arguments",
             "tier 1: the cheapest cases fill leg 1 within LEG_ONE_BUDGET", "the collection cap",
-            "tier 0a: an added test method, a touched golden and a previous red", "tiers 2 and 3 never enter leg 1",
+            "tier 0a: an added or edited test method, a touched golden and a previous red",
+            "tiers 2 and 3 never enter leg 1",
             "tier 0u: unknown cases are charged the median", "a partition-renamed row keeps its timing",
             "no map: every case is tier 1", "a stale map", "no timings: leg 1 is tier 0a alone",
             "an empty leg 1 makes the assembly one leg", "an assembly whose whole recorded time fits the collection cap",
@@ -68,6 +79,35 @@ public sealed class ImpactedTestsDriftTests
             "a published gate's durations time a fresh worktree's plan",
             "timed from the store, leg 2 starts with the longest collection",
             "a malformed store is refused on read and REPLACED (named) on publish");
+    }
+
+    /// <summary>
+    /// THE C# MEMBER READER READS THE WHOLE TEST TREE RIGHT (kb/Work PB3190): tier 0a takes a test method whose
+    /// lines a diff touches, so <c>scripts/spec/cs_members.py</c> must find every test method's span. Its self-test
+    /// drives its arms on planted sources, and <c>impacted_tests.py --audit-members</c> reads every source of the gated
+    /// test projects and fails on a file whose code braces do not balance once lexed or whose
+    /// <c>[Fact]</c>/<c>[Theory]</c> attributes do not each open a test member: new C# syntax the lexer misreads is
+    /// a red here, never an edited test silently left out of leg 1.
+    /// </summary>
+    [Fact]
+    public void TheMemberReader_FindsEveryTestMethodOfTheGatedTestProjects()
+    {
+        AssertSelfTest(TestRepo.Scripts("spec", "cs_members.py"),
+            "the lexer blanks strings", "a test method spans its attribute block through its body's closing brace",
+            "a theory spans its data attributes and names its [MemberData] source",
+            "an expression-bodied data member, a helper and a property with an initializer are members, never tests",
+            "a nested type's test method is read", "a tuple return type does not hide the method's name",
+            "a class and a nested class are containers, not members", "a hunk touches a member",
+            "a hunk touches no member it does not reach", "the audit's balance",
+            "the audit names a file whose braces do not balance");
+
+        var r = PythonInstrument.Run(ObservationBudget.OneProcess,
+            TestRepo.Scripts("spec", "impacted_tests.py"), "--audit-members");
+
+        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== CS MEMBERS AUDIT: CLEAN", StringComparison.Ordinal),
+            "scripts/spec/cs_members.py misreads a source of a gated test project, so the gate's tier 0a cannot tell "
+            + "which test methods a diff edits there: teach the lexer the syntax it names (and plant it in its "
+            + $"self-test).\n(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
     }
 
     [Fact]
