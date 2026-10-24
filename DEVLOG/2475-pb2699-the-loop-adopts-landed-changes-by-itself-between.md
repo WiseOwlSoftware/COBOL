@@ -1,4 +1,4 @@
-## PB2699: the loop adopts landed changes by itself, between units, once CI is green on them
+## Entry 2475 — 2026-10-24 13:42 PDT — PB2699: the loop adopts landed changes by itself, between units, once CI is green on them
 
 The loop plans from one main checkout, and every landing is pushed from a worktree, so the checkout fell one landing
 behind origin/main with each merge. Wave 1042 planned from a register seven commits old, wave 1079 ran a planner older
@@ -43,3 +43,4 @@ between that commit and the checkout now, in every outcome. `test_adopt_main.py`
 
 Sweep: the other readers of the checkout (`work.py`, `alloc.py`, `next_unit.py`) are called by the supervisor and the
 units after the adoption, so they read the adopted tree; only `plan_wave.py` plans from it and carries the guard.
+
