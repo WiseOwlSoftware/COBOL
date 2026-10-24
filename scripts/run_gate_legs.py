@@ -53,6 +53,14 @@ ONE GATE, in this order (§3.14.3):
      (`<git common dir>/cobol-gate-timings/`, gate_plan.py, kb/Work PB2527), the IDENTITY check (each
      leg host's record names this plan's digest and the binaries step 3 hashed), then the verdict line:
      `=== BUILD-LOCAL GATE: GREEN — Conformance 9,317/9,317 · Unit … cases ran (skipped 0) in 2 legs · … ===`.
+  7. ⭐ THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; owner 2026-10-23, DESIGN §3.17.3), on a Windows host only
+     and only after a green Windows half: the SAME plan's legs the Windows half ran, in a WSL clone of the committed
+     HEAD, by `bash scripts/linux-gate.sh --legs targeted --plan <this run's plan.json>` (the clone is built there and
+     runs `--plan-leg`: no audits, no build, no slot of its own — this gate still holds ITS slot). A red Linux half
+     makes the gate RED and names the host; one that measured nothing (no WSL, no SDK, a full disk) ends the gate NOT RUN
+     with the Linux gate's own cause. The verdict file records it (`linux`: verdict, the committed `tree` it measured),
+     beside `head_tree`: that record is the landing's evidence that the branch was "tested locally" (enqueue.py
+     `tested_locally`), and a reused answer needs it. A Linux host's own legs are the Linux half; the inert lane has none.
 It is GREEN only when every leg ran, every leg is green, every population is exact and every identity matches. Under
 the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or `…: RED` instead, whenever the
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
@@ -124,6 +132,12 @@ from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, Population
                              list_population, scrubbed_env, synthetic_listing, synthetic_trx)
 
 VERDICT = "=== BUILD-LOCAL GATE: "
+#: The Linux half's verdict prefix (scripts/linux-gate.sh), which `read_verdict` reads like this driver's own.
+LINUX_VERDICT = "=== LINUX GATE: "
+#: The verdict line of `--plan-leg` (`plan_leg`: an existing plan's legs, run in a Linux clone), which linux-gate.sh turns
+#: into its own `=== LINUX GATE: ` line.
+PLAN_LEG_VERDICT = "=== PLAN LEG: "
+LINUX_LEG_LOG = "linux-leg.log"
 #: The verdict prefix of a gate that ran leg 1 only under the `leg1` scope (kb/Work PB2515): never a whole-population
 #: GREEN, and never mistaken for one — `GATE: GREEN` does not match it.
 LEG1_ONLY = "LEG 1 ONLY (batched gating, PB2515)"
@@ -245,6 +259,15 @@ def read_verdict(text: str) -> Reading:
         tag = _NOT_RUN_TAG.match(text)
         return Reading(NOT_RUN, NOT_RUN_CAUSES.get(tag.group(1), UNCLASSIFIED) if tag else UNCLASSIFIED)
     return RED_READING
+
+
+@dataclass(frozen=True)
+class LinuxLeg:
+    """The Linux half of the targeted leg (kb/Work PB3612): the Linux gate's reading of its own verdict line, that line,
+    and the log it wrote in the run directory."""
+    reading: Reading
+    line: str
+    log: str
 
 
 #: A run directory's other fixed names (kb/Work PB3536): the gate process's pid, and its output when it runs detached.
@@ -414,6 +437,38 @@ class Host:
             return self.git("rev-parse", "HEAD")
         except (subprocess.CalledProcessError, OSError):
             return None
+
+    def head_tree(self) -> str | None:
+        """The git tree id of HEAD's commit: what the Linux half measures (it clones the COMMITTED head), and what the
+        working tree the Windows half measures must equal for the gate to attest the commit (None when git cannot say)."""
+        try:
+            return self.git("rev-parse", "HEAD^{tree}")
+        except (subprocess.CalledProcessError, OSError):
+            return None
+
+    def runs_linux_leg(self) -> bool:
+        """Whether this host runs the LINUX HALF of the targeted leg itself, in a WSL clone of HEAD (kb/Work PB3612; owner
+        2026-10-23): a Windows host does. On a Linux host this gate's own legs are the Linux half."""
+        return os.name == "nt"
+
+    def linux_leg(self, run: Path, plan: Path | None, legs: list[int], spawn: Spawn) -> LinuxLeg:
+        """The Linux half: the SAME plan's `legs`, run in a WSL clone of the committed HEAD by `scripts/linux-gate.sh
+        --legs targeted` (the clone is built there and runs this driver's `--plan-leg`), the whole output to `run`'s
+        LINUX_LEG_LOG. Its verdict line is read by `read_verdict`, like every gate's. No plan (`plan` None) is the whole
+        population in one leg, as this gate runs it."""
+        where = "none" if plan is None else Path(os.path.relpath(plan, self.repo)).as_posix()
+        cmd = ["bash", "scripts/linux-gate.sh", "--legs", "targeted", "--plan", where, "--plan-legs",
+               ",".join(map(str, legs)), "--nice"]
+        log = run / LINUX_LEG_LOG
+        with open(log, "wb") as fh:
+            rc = subprocess.run(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT, **spawn()).returncode
+        lines = [ln.strip() for ln in log.read_bytes().decode("utf-8", errors="replace").splitlines()
+                 if ln.strip().startswith(LINUX_VERDICT)]
+        if not lines:
+            return LinuxLeg(not_run("verdict"), f"no `{LINUX_VERDICT.strip()}` line (exit {rc}; {log}): the Linux half "
+                                                "measured nothing", log.name)
+        reading = read_verdict(lines[-1][len(LINUX_VERDICT):])
+        return LinuxLeg(RED_READING if reading == GREEN_READING and rc != 0 else reading, lines[-1], log.name)
 
     def measured_tree(self) -> str | None:
         """THE TREE A GATE MEASURES (kb/Work PB3536): the git tree id of the WORKING TREE — every tracked file as it is on
@@ -793,6 +848,11 @@ class Outcome:
     #: The change's lane (scripts/inert_lane.py, kb/Work PB2878): `inert` (no test reads it: the audits, then the
     #: verdict) or `full`; None until the audits passed.
     lane: str | None = None
+    #: The Linux half of the targeted leg (kb/Work PB3612), when this host ran it: {verdict, cause, line, log, legs, tree}
+    #: where `tree` is the committed HEAD's tree the Linux clone measured. None: it ran none (a Linux host, the inert
+    #: lane, or a Windows half that was red first).
+    linux: dict | None = None
+    head_tree: str | None = None
 
 
 def run_order(name: str) -> tuple[int, str]:
@@ -864,6 +924,7 @@ class Gate:
                         write_pid(run, os.getpid())
                     self.say(f"build-local: gate, run directory {run}")
                     out.head, out.tree = self.host.head(), self.host.measured_tree()
+                    out.head_tree = self.host.head_tree()
                     try:
                         out.base = self._base()
                     except Exception:  # noqa: BLE001 — no base: no plan (`_plan` names why), and nothing is reused
@@ -890,9 +951,18 @@ class Gate:
             rec = read_record(p) if p != current else None
             if (rec is not None and rec.get("exit_code") == 0 and rec.get("tree") == out.tree
                     and rec.get("tree_end") == out.tree and rec.get("base") == out.base
-                    and (not rec.get("leg1_only") or out.scope == "leg1")):
+                    and (not rec.get("leg1_only") or out.scope == "leg1") and self._linux_attested(rec, out)):
                 return p, rec
         return None
+
+    def _linux_attested(self, rec: dict, out: Outcome) -> bool:
+        """A recorded GREEN answers for this gate only if it carries what this gate measures (kb/Work PB3612): on a host
+        that runs the Linux half, a GREEN Linux half of the COMMITTED tree this head has (the Linux clone measures HEAD,
+        the Windows half the working tree); the inert lane runs none."""
+        if not self.host.runs_linux_leg() or rec.get("lane") == "inert":
+            return True
+        linux = rec.get("linux") or {}
+        return linux.get("verdict") == "GREEN" and out.head_tree is not None and linux.get("tree") == out.head_tree
 
     def _reused(self, out: Outcome, run: Path, started: float, prior: Path, rec: dict) -> Outcome:
         """Answer from a recorded GREEN (`reusable`): no audit, slot, build or leg runs, and the line says so. Along a
@@ -900,6 +970,7 @@ class Gate:
         out.tree_end, out.reused_from = out.tree, rec.get("reused_from") or prior.name
         out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
         out.scope_until, out.leg1_only, out.plan_note = rec.get("scope_until"), bool(rec.get("leg1_only")), rec.get("plan", "")
+        out.lane, out.linux = rec.get("lane"), rec.get("linux")  # a chain of reuses keeps what the first run measured
         out.timings["wall_s"] = round(time.monotonic() - started, 1)  # this gate's own seconds (landing_measure.py)
         return self._finish(out, run, str(rec["verdict"]),
                             f"REUSED (kb/Work PB3536): tree {out.tree[:12]} at head {(out.head or '?')[:12]} was gated "
@@ -1068,10 +1139,51 @@ class Gate:
         self._publish_timings(out, run, listings)
         if plan is not None:
             self._check_identity(out, plan, digest, binaries, listings, run)
+        if not (reds or out.reasons or out.identity or out.stopped) and self.host.runs_linux_leg():
+            # FAIL FAST, Windows first (kb/Work PB3022 item 10, PB3612): the Linux half runs only on a Windows half that
+            # is green, under the slot this gate still holds.
+            if (stop := self._linux_leg(out, run, plan, sorted(to_run), spawn)) is not None:
+                out.tree_end = self.host.measured_tree()
+                if stop.reading == BUSY_READING:
+                    return self._finish(
+                        out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
+                        "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
+                        f"once it ends; the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))} "
+                        f"(run {run.name})", EXIT_BUSY)
+                return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
+                                    f"the Linux half of the targeted leg was NOT RUN ({stop.line}); the Windows half ran "
+                                    f"leg(s) {', '.join(map(str, sorted(to_run)))} (run {run.name})", 2)
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
         self._prune(run)
         return self._verdict(out, run, plan, legs)
+
+    def _linux_leg(self, out: Outcome, run: Path, plan: dict | None, legs: list[int], spawn: Spawn) -> LinuxLeg | None:
+        """THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): the plan's `legs`, the
+        legs the Windows half just ran, in a WSL clone of the committed HEAD (`Host.linux_leg`), printed here and recorded
+        in `out.linux`. A red is a reason (the verdict is RED and names the host); a NOT RUN, which measured nothing, is
+        returned so the gate ends NOT RUN with the Linux gate's own cause; a BUSY (another Linux gate of this worktree
+        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red."""
+        t = time.monotonic()
+        self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
+                 "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
+        leg = self.host.linux_leg(run, run / "plan.json" if plan is not None else None, legs, spawn)
+        out.timings["linux_leg_s"] = round(time.monotonic() - t, 1)
+        log = run / leg.log
+        if log.is_file():
+            for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
+                self.say(line)
+        cause = leg.reading.cause
+        out.linux = {"verdict": leg.reading.word, "cause": cause.tag if cause else None, "line": leg.line,
+                     "log": leg.log, "legs": legs, "tree": out.head_tree}
+        if leg.reading == GREEN_READING:
+            return None
+        if leg.reading == BUSY_READING:
+            return leg
+        if leg.reading.word == NOT_RUN:
+            return leg if cause else LinuxLeg(not_run("unclassified"), leg.line, leg.log)
+        out.reasons.append("LINUX HALF RED")
+        return None
 
     def _plan(self, out: Outcome, listings: dict[str, Counter], run: Path) -> tuple[dict | None, str | None]:
         """The order plan. No plan input, a stale one or a broken one gives ONE leg in the plain order (§3.14.1) —
@@ -1233,6 +1345,7 @@ class Gate:
         skipped = sum(p.skipped for p in pops.values())
         n_legs = len(legs)
         detail = (f"{tally} cases ran (skipped {skipped:,}) in {len(out.legs_invoked)} of {n_legs} leg(s)"
+                  + (f" · Linux half (WSL clone of HEAD) {out.linux['verdict']}" if out.linux else "")
                   + (f" · {out.slot}" if out.slot else "") + f" ({out.plan_note}; run {run.name})")
         reds = [f"{r.asm} leg {r.leg} RED" for r in out.runs if r.red]
         problems = reds + out.reasons + [f"{a} POPULATION {'NOT EXACT' if not pops[a].stopped_early else 'STOPPED'}"
@@ -1257,6 +1370,7 @@ class Gate:
     def _record(self, out: Outcome, run: Path) -> dict:
         return {"schema": RECORD_SCHEMA, "verdict": out.verdict, "line": out.line, "exit_code": out.exit_code,
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
+                "head_tree": out.head_tree, "linux": out.linux,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "slot": out.slot, "plan_sha256": out.plan_sha256, "plan": out.plan_note, "stopped": out.stopped,
                 "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only, "lane": out.lane,
@@ -1266,6 +1380,54 @@ class Gate:
                 "identity": out.identity,
                 "populations": {a: {"discovered": p.discovered, "ran": p.ran, "skipped": p.skipped, "exact": p.exact}
                                 for a, p in out.populations.items()}}
+
+
+def plan_leg(host: Host, plan_arg: str, legs: list[int], results: Path, say: Callable[[str], None] = print) -> int:
+    """THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): the legs `legs` of an
+    EXISTING plan (`plan_arg`: the Windows half's plan.json, or `none` for the whole population in one leg), run
+    against the solution already built in `host.repo` (scripts/linux-gate.sh builds its clone once, then calls this).
+    No audits, no build, no slot, no timings publish: the Windows half ran them in the gate that holds the slot. What
+    it keeps is what makes the Windows half sound, with the same code: each leg through the one handshake
+    (`Gate._run_leg`, `leg_env`), the population check and the identity check against THIS clone's listing and
+    binaries (a case the plan never heard of runs in leg 1; a planned case this host lacks is not a drop). Results go
+    to `results`. Prints `=== PLAN LEG: GREEN|RED — … ===`; exit 0 only on GREEN."""
+    results.mkdir(parents=True, exist_ok=True)
+    plan = digest = None
+    if plan_arg != "none":
+        copy = results / "plan.json"
+        shutil.copyfile(plan_arg, copy)  # the identity records land beside the plan: the Windows run's stay untouched
+        digest, plan = _sha256(copy), json.loads(copy.read_text(encoding="utf-8"))
+    out = Outcome()
+    gate = Gate(host, results, say=say)
+    try:
+        binaries = host.binaries()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(GATED_ASSEMBLIES)) as pool:
+            listed = dict(zip(GATED_ASSEMBLIES, pool.map(lambda a: host.listing(a, _no_slot), GATED_ASSEMBLIES)))
+    except PopulationError as e:
+        say(f"{PLAN_LEG_VERDICT}RED — the population could not be listed: {e} ===")
+        return 1
+    listings = {asm: names for asm, (names, _) in listed.items()}
+    planned = gate._legs(plan)
+    to_run = {leg: planned[leg] for leg in legs if leg in planned}
+    started = time.monotonic()
+    for leg, assemblies in to_run.items():
+        out.legs_invoked[leg] = assemblies
+        gate._run_leg(out, leg, assemblies, results, plan, digest, _no_slot, started)
+    gate._check_populations(out, listings, planned, results)
+    if plan is not None:
+        gate._check_identity(out, plan, digest, binaries, listings, results)
+    problems = ([f"{r.asm} leg {r.leg} RED" for r in out.runs if r.red] + out.reasons
+                + [f"{a} POPULATION NOT EXACT" for a, p in out.populations.items() if not p.exact and not p.stopped_early]
+                + ([f"{len(out.identity)} IDENTITY MISMATCH(ES)"] if out.identity else []))
+    if not to_run:
+        problems.append(f"the plan has none of the leg(s) {', '.join(map(str, legs))}")
+    tally = " · ".join(f"{a} {out.populations[a].ran:,}/{out.populations[a].discovered:,}" if a in out.populations
+                       else f"{a} UNMEASURED" for a in GATED_ASSEMBLIES)
+    what = (f"leg(s) {', '.join(map(str, to_run))} of plan {plan['sha256'][:12]}" if plan is not None
+            else "the whole population in one leg, no plan")
+    say(f"{PLAN_LEG_VERDICT}{'RED — ' + '; '.join(problems) + ' — ' if problems else 'GREEN — '}{what}: {tally} cases ran "
+        "===")
+    return 1 if problems else 0
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1292,6 +1454,7 @@ class FakeHost(Host):
         super().__init__(root)
         self.root, self._lock, self.plant, self.plan_fails, self.scope = root, lock, set(plant), plan_fails, scope
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
+        self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
         self.audited = self.built = False
         self.events: list[str] = []  # the order the gate drove the host in: audits, fetch, slot, build
@@ -1328,6 +1491,32 @@ class FakeHost(Host):
 
     def head(self) -> str | None:
         return "head-1"
+
+    def head_tree(self) -> str | None:
+        return self.committed_tree
+
+    def runs_linux_leg(self) -> bool:
+        """The planted Linux half: a plant naming `linux` (`linux`, `linux-red`, `linux-sdk`, `linux-silent`,
+        `linux-busy`) makes this a Windows host that runs it; none plants a Linux host (its own legs are the Linux
+        half)."""
+        return any(p.startswith("linux") for p in self.plant)
+
+    def linux_leg(self, run, plan, legs, spawn) -> LinuxLeg:
+        self.events.append(f"linux {plan.name if plan else 'none'} legs {','.join(map(str, legs))}")
+        if "linux-silent" in self.plant:
+            (run / LINUX_LEG_LOG).write_text("PLANTED-LINUX-NOISE\n", encoding="utf-8", newline="\n")
+            return LinuxLeg(not_run("verdict"), "no `=== LINUX GATE: ` line", LINUX_LEG_LOG)
+        if "linux-sdk" in self.plant:
+            line = f"{LINUX_VERDICT}NOT RUN [sdk] (no .NET SDK in this Linux environment) ==="
+        elif "linux-busy" in self.plant:
+            line = (f"{LINUX_VERDICT}BUSY — another Linux gate of this tree is running (pid 4242); this run touched "
+                    "nothing ===")
+        elif "linux-red" in self.plant:
+            line = f"{LINUX_VERDICT}RED (failed or not run: unit; HEAD head-1; logs in TestResults/linux-gate/) ==="
+        else:
+            line = f"{LINUX_VERDICT}GREEN (targeted legs {','.join(map(str, legs))}; HEAD head-1) ==="
+        (run / LINUX_LEG_LOG).write_text(f"PLANTED-LINUX-LEG-OUTPUT\n{line}\n", encoding="utf-8", newline="\n")
+        return LinuxLeg(read_verdict(line[len(LINUX_VERDICT):].removesuffix(" ===")), line, LINUX_LEG_LOG)
 
     def measured_tree(self) -> str | None:
         return self.trees.pop(0) if len(self.trees) > 1 else self.trees[0]
@@ -1924,6 +2113,102 @@ def self_test() -> int:
             and "build" in he.events and "REUSED" not in rebased.line and "build" in hb.events,
             f"{after_edit.line} | {rebased.line}")
 
+        # THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612): on a host that runs it, the same plan's legs in a WSL
+        # clone of HEAD, after a green Windows half and under the slot the gate holds.
+        d = root / "linux-half"
+        d.mkdir()
+        lin, hl = regate(d, plant={"linux"})
+        def newest(dd: Path) -> Path:
+            return Gate(FakeHost(dd, dd / "gate.lock"), dd / "runs")._runs()[-1]
+        lrec = read_record(newest(d))
+        arm("the Linux half runs the SAME plan's legs after the Windows half's, inside the slot, prints its output, and "
+            "is recorded with the committed tree it measured (the evidence enqueue.py reads)",
+            lin.verdict == f"{LEG1_ONLY}: GREEN" and lin.exit_code == 0
+            and hl.events[-2:] == ["publish", "linux plan.json legs 1"] and hl.slots_taken == 1
+            and "Linux half (WSL clone of HEAD) GREEN" in lin.line and any("PLANTED-LINUX-LEG-OUTPUT" in l for l in sink)
+            and lrec["linux"]["verdict"] == "GREEN" and lrec["linux"]["tree"] == lrec["head_tree"] == "tree-1"
+            and lrec["linux"]["legs"] == [1], lin.line)
+        again_l, h_again = regate(d, plant={"linux"})
+        windows_only, h_win = regate(d)
+        no_half = root / "linux-half-old"
+        no_half.mkdir()
+        regate(no_half)                      # a record from a host that ran no Linux half (or before this rule)
+        old_rec, h_old = regate(no_half, plant={"linux"})
+        arm("a recorded GREEN answers a re-gate only when it carries the Linux half this gate measures: a record with "
+            "one is reused (the Linux half not run again), one without is not; a Linux host reuses a record as before",
+            "REUSED" in again_l.line and "linux" not in " ".join(h_again.events) and h_again.events == []
+            and "REUSED" in windows_only.line and "REUSED" not in old_rec.line and "build" in h_old.events
+            and old_rec.linux and old_rec.linux["verdict"] == "GREEN", f"{again_l.line} | {old_rec.line}")
+        d2 = root / "linux-half-stale"
+        d2.mkdir()
+        first_l, _ = regate(d2, plant={"linux"})
+        stale_rec = newest(d2)
+        tampered = {**read_record(stale_rec), "linux": {**first_l.linux, "tree": "tree-of-another-head"}}
+        (stale_rec / VERDICT_FILE).write_text(json.dumps(tampered), encoding="utf-8", newline="\n")
+        stale, h_stale = regate(d2, plant={"linux"})
+        arm("a recorded Linux half is reused only for the committed tree the re-gate has (the Linux clone measures "
+            "HEAD, the Windows half the working tree): a record naming another HEAD tree is run again",
+            "REUSED" not in stale.line and any(e.startswith("linux ") for e in h_stale.events), stale.line)
+        o, h = gate("linux-win-red", plant={"linux", "red-leg1"})
+        arm("FAIL FAST, Windows first: a red Windows half never starts the Linux clone",
+            o.exit_code == 1 and o.linux is None and not any(e.startswith("linux ") for e in h.events), o.line)
+        o, h = gate("linux-red", plant={"linux-red"})
+        arm("a red Linux half is a RED gate that names the host, exit 1, with the Windows half's tally in the line",
+            o.exit_code == 1 and "LINUX HALF RED" in o.line and o.linux["verdict"] == "RED"
+            and o.verdict == "RED" and "Conformance 6/6" in o.line, o.line)
+        o, h = gate("linux-sdk", plant={"linux-sdk"})
+        o_silent, _ = gate("linux-silent", plant={"linux-silent"})
+        arm("a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause (exit 2), never "
+            "GREEN and never a red of the change: its NOT RUN [sdk]; a Linux gate that printed no verdict line is "
+            "NOT RUN [verdict]",
+            o.exit_code == 2 and o.verdict == "NOT RUN [sdk]" and o.linux["verdict"] == NOT_RUN
+            and o_silent.exit_code == 2 and o_silent.verdict == "NOT RUN [verdict]", f"{o.line} | {o_silent.line}")
+        o, h = gate("linux-busy", plant={"linux-busy"})
+        arm("a BUSY Linux half (another Linux gate of this worktree runs: linux-gate.sh's one gate per tree, kb/Work "
+            "PB3310) ends the gate BUSY with BUSY's own exit, never RED: the one verdict reader reads its line as BUSY",
+            o.exit_code == EXIT_BUSY and o.verdict == BUSY and o.linux["verdict"] == BUSY
+            and "LINUX HALF RED" not in o.line and read_verdict(o.line[len(VERDICT):]) == BUSY_READING, o.line)
+        o, h = gate("linux-inert", plant={"linux", "inert"}, scope=None)
+        arm("the inert lane runs no Linux half (no test reads the change), and its record is reused with no Linux half",
+            o.exit_code == 0 and o.lane == "inert" and o.linux is None and not any(e.startswith("linux ") for e in h.events),
+            o.line)
+        o, h = gate("linux-leg1-of-whole", plant={"linux"})
+        arm("under the `whole` scope the Linux half runs both legs the Windows half ran",
+            o.exit_code == 0 and h.events[-1] == "linux plan.json legs 1,2" and o.linux["legs"] == [1, 2], str(h.events))
+
+        # plan_leg, the Linux clone's command: the legs of an EXISTING plan against the built tree, the same code
+        # (`Gate._run_leg`, the population and identity checks) as the Windows half.
+        d = root / "plan-leg"
+        d.mkdir()
+        ph = FakeHost(d, d / "gate.lock")
+        pl, digest = ph.plan({a: Counter(ph.POPULATION[a]) for a in GATED_ASSEMBLIES}, "0" * 40, None, d / "plan.json")
+        sink.clear()
+        rc1 = plan_leg(ph, str(d / "plan.json"), [1], d / "out1", sink.append)
+        v1 = [l for l in sink if l.startswith(PLAN_LEG_VERDICT)]
+        handed = ph.envs.get((1, "Conformance"), {})
+        sink.clear()
+        h12 = FakeHost(d, d / "gate.lock")
+        h12.plan_obj = pl
+        rc12 = plan_leg(h12, str(d / "plan.json"), [1, 2], d / "out2", sink.append)
+        v12 = [l for l in sink if l.startswith(PLAN_LEG_VERDICT)]
+        sink.clear()
+        bad_host = FakeHost(d, d / "gate.lock", plant={"digest"})
+        bad_host.plan_obj = pl
+        rc_bad = plan_leg(bad_host, str(d / "plan.json"), [1, 2], d / "out3", sink.append)
+        arm("plan_leg runs the named legs of an existing plan: leg 1 alone is GREEN with the rest named NOT RUN (the "
+            "population stopped early), legs 1 and 2 are GREEN and exact, the plan is copied beside the results, every "
+            "leg host gets the handshake naming the COPY, and an identity mismatch is RED",
+            rc1 == 0 and len(v1) == 1 and "GREEN" in v1[0] and "leg(s) 1 of plan" in v1[0]
+            and rc12 == 0 and "GREEN" in v12[0] and "Conformance 6/6" in v12[0]
+            and (d / "out1" / "plan.json").read_bytes() == (d / "plan.json").read_bytes()
+            and handed.get("COBOLNET_GATE_PLAN") == str((d / "out1" / "plan.json").resolve())
+            and handed.get("COBOLNET_GATE_PLAN_SHA256") == digest and rc_bad == 1, f"{v1} {v12} {rc_bad}")
+        sink.clear()
+        rc_none = plan_leg(FakeHost(d, d / "gate.lock"), "none", [1], d / "out4", sink.append)
+        arm("plan_leg without a plan runs the whole population in its one leg with no handshake",
+            rc_none == 0 and any("no plan" in l and "GREEN" in l for l in sink if l.startswith(PLAN_LEG_VERDICT)),
+            str(sink[-1:]))
+
         # THE ONE WAY TO WAIT FOR A GATE (kb/Work PB3536): its run directory's verdict file.
         d = root / "await"
         d.mkdir()
@@ -2054,10 +2339,20 @@ def main() -> int:
     ap.add_argument("--wait-s", type=float, default=AWAIT_WAIT_S, help=f"--await: how long to wait for the verdict "
                     f"(default {AWAIT_WAIT_S}, under a tool call's 10-minute limit)")
     ap.add_argument("--run", metavar="RUN", help="(the detached gate itself, started by build-local; not by hand)")
+    ap.add_argument("--plan-leg", metavar="PLAN", help="(the Linux half of the targeted leg, run by scripts/linux-gate.sh in "
+                    "its built clone; kb/Work PB3612) run the --plan-legs of an existing plan file, or `none` for the "
+                    "whole population in one leg, against the solution already built here: no audits, build or slot")
+    ap.add_argument("--plan-legs", default="1", metavar="N[,N]", help="--plan-leg: which legs of the plan (default 1)")
+    ap.add_argument("--results", metavar="DIR", help="--plan-leg: where the legs' trx, logs and identity records go")
     ap.add_argument("--self-test", action="store_true", help="fire every arm on planted inputs (DESIGN §3.14.4 (3))")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.plan_leg:
+        if not args.results:
+            ap.error("--plan-leg needs --results")
+        return plan_leg(Host(), args.plan_leg, [int(n) for n in args.plan_legs.split(",")], Path(args.results),
+                        print_flush)
     if args.await_run:
         code, line = watch(resolve_run(args.await_run, args.worktree), args.wait_s)
         print(line, flush=True)
