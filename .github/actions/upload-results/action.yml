@@ -1,0 +1,72 @@
+# ⛔ THE ONE WAY A JOB OF THIS REPOSITORY UPLOADS AN ARTIFACT (kb/Work PB3140; CiArtifactDriftTests).
+#
+# A job's verdict is its tests'. Its artifacts (TRX, population listing, shard log, harness observation log) are what
+# a red is read from afterwards, so every caller runs this step `if: ${{ always() }}`: a red job uploads them too.
+# A bare `actions/upload-artifact` step under `always()` made the ARTIFACT SERVICE part of the verdict: merge-group run
+# 38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard, then its upload failed
+# with `Failed to CreateArtifact: Unable to make request: ETIMEDOUT`; the job went red, `ci-gate` failed and the
+# merge queue removed a pull request whose every test had passed.
+#
+# So an upload is TRIED three times (30 s, then 90 s apart; a retry overwrites any artifact a failed attempt left
+# half-made), and when all three fail the step WARNS and passes: losing a diagnostic never decides a verdict. An
+# artifact a verdict does depend on (a conformance shard's trx and listing, which `conformance-population` reads
+# through ./.github/actions/download-results) is checked by the job that consumes it: that job finds it missing and
+# fails there, naming it.
+name: Upload results
+description: Upload a job's test results as an artifact, retried; a lost upload warns and never fails the job.
+inputs:
+  name:
+    description: The artifact's name.
+    required: true
+  path:
+    description: The file, directory or glob (one per line) to upload.
+    required: true
+runs:
+  using: composite
+  steps:
+    # `always()` on every step: the caller already chose to run this after a failure, and an attempt's own
+    # condition must not re-read the JOB's status (which a red test step has made `failure`).
+    - id: attempt1
+      if: ${{ always() }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ignore
+        retention-days: 14
+    - if: ${{ always() && steps.attempt1.outcome == 'failure' }}
+      shell: bash
+      env:
+        ARTIFACT: ${{ inputs.name }}
+      run: echo "::warning::upload of artifact '$ARTIFACT' failed (attempt 1 of 3); retrying in 30 s" && sleep 30
+    - id: attempt2
+      if: ${{ always() && steps.attempt1.outcome == 'failure' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ignore
+        retention-days: 14
+        overwrite: true
+    - if: ${{ always() && steps.attempt2.outcome == 'failure' }}
+      shell: bash
+      env:
+        ARTIFACT: ${{ inputs.name }}
+      run: echo "::warning::upload of artifact '$ARTIFACT' failed (attempt 2 of 3); retrying in 90 s" && sleep 90
+    - id: attempt3
+      if: ${{ always() && steps.attempt2.outcome == 'failure' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: ignore
+        retention-days: 14
+        overwrite: true
+    - if: ${{ always() && steps.attempt3.outcome == 'failure' }}
+      shell: bash
+      env:
+        ARTIFACT: ${{ inputs.name }}
+      run: echo "::warning::artifact '$ARTIFACT' was NOT uploaded (3 attempts failed); the job's verdict is its tests', and a job that reads this artifact fails on its absence"

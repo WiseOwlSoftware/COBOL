@@ -99,6 +99,21 @@ on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The ni
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
 
+**⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
+results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
+can be read without a re-run. Every upload goes through ONE step, the composite action `.github/actions/upload-results`:
+it tries the upload three times (30 s, then 90 s apart; each retry `overwrite: true`), and when all three fail it warns
+and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a conformance shard's
+trx and listing, is checked by the job that reads it: `conformance-population` downloads through
+`.github/actions/download-results` (three attempts; only the third failure fails the step), and a shard whose upload
+was lost is absent from the union it checks, so the guard fails there and names the missing cases. Before this, a bare
+`actions/upload-artifact` step under `always()` made the artifact service part of the verdict: merge-group run
+38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard, its upload failed on
+`ETIMEDOUT`, and the merge queue removed the pull request. No workflow names the raw upload or download action; the
+drift test holds every step, and both actions' retry shape, to this rule. (`actions/cache` needs no such step: a
+cache restore or save that fails only warns. The one network fetch a job makes itself, the GnuCOBOL testsuite on a
+cache miss, retries the same way inside `scripts/fetch-gnucobol-tests.ps1`: three attempts before it fails.)
+
 **⛔ `ci-gate` is a REQUIRED status check on `main`** (owner decision 2026-09-06, question 23; `kb/Work/PB796`),
 with `enforce_admins: true` — an administrator exemption would be worthless when every push to this repository is
 made with the owner's credentials. It is the terminal job: `if: always()`, `needs:` every other job, and it PASSES
@@ -949,7 +964,22 @@ because the raw name is not stable (`b7`):
   the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
   `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
+  a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
+  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
+  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
+  test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
+  (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
+  class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
+  every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
+  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
+  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
+  spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
+  the `Sweep` trait).
+  **Measured cost** (the Unit assembly, the
   shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
   49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
   change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173

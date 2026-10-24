@@ -91,7 +91,7 @@ public sealed class FilterPopulationGuardDriftTests
     private static bool AssertsPopulationByShardUnion(string text)
         => text.Contains(PopulationTool + " list", StringComparison.Ordinal)
         && text.Contains("trx;LogFileName=", StringComparison.Ordinal)
-        && text.Contains("upload-artifact", StringComparison.Ordinal);
+        && text.Contains(CiArtifactDriftTests.UploadAction, StringComparison.Ordinal);
 
     /// <summary>The one population check every whole-assembly run shares (kb/Work PB1718).</summary>
     private const string PopulationTool = "scripts/test_population.py";
@@ -168,7 +168,7 @@ public sealed class FilterPopulationGuardDriftTests
         var checking = SplitJobs(File.ReadAllLines(workflow), "build-and-test.yml")
             .Select(j => (j.Name, Code: CodeOnly(j.Body)))
             .Where(j => j.Code.Contains(PopulationTool + " check", StringComparison.Ordinal)
-                     && j.Code.Contains("download-artifact", StringComparison.Ordinal))
+                     && j.Code.Contains(CiArtifactDriftTests.DownloadAction, StringComparison.Ordinal))
             .ToList();
 
         Assert.True(checking.Count > 0,
