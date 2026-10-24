@@ -2055,7 +2055,7 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   `N1 PIC 9(4)` holding `1234` and `N2 PIC 9(3)` redefining its last three digits, `MOVE N2 TO N1` gives `0000`
   (the snapshot `0234` is not produced); `MOVE C1 TO C2` with `C1 PIC X(5)` holding `12345` and `C2 PIC 9(3)` over
   its first three characters gives `04545`. **Scope — only where the overlap is a compile-time fact.** The compiler
-  decides at bind time (`MoveOverlap.Classify`, carried on `MoveStore.Prefill`): both operands lie in one storage
+  decides at bind time (`MoveOverlap.Classify`, carried on `MoveStore.Overlap`): both operands lie in one storage
   area (a REDEFINES class, or one record) and every offset and length is a constant (`StorageExtent`). An operand
   under OCCURS, a dynamic or variable-length item, a NATIONAL or BIT operand and a reference modification with a
   run-time bound are not provably overlapping and keep the snapshot; a MOVE that cannot overlap emits exactly what it
@@ -2073,7 +2073,7 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   afterwards, so a receiver that overlaps the sign position can end as a negative zero (`100p`); WiseOwl COBOL
   stores a positive zero (`1000`). The digits agree, only the sign position of a zero result differs, and the
   default SIGN encodings differ anyway. Implemented in `MoveOverlap` (classification), `StorageExtent` (the overlap
-  fact, on `RecordLayout.OffsetInRecord`'s walk) and `MoveEmitter.EmitOverlapPrefill` (the one rendering), held by
+  fact, on `RecordLayout.OffsetInRecord`'s walk) and `MoveEmitter.EmitOverlapStore` (the one rendering), held by
   `MoveOverlapDriftTests`. Witness: `conformance:cases/14.6.10-Overlapping-operands/pb1907_overlap_move` (`JUST`, `JUST-SELF`, `JUST-GRP`, `JUST-IN`,
   `JUST-LEAD`, `NUM-MOVE`, `NUM-SELF`, `ALNUM-NUM`, `SLICE-NUM`, `NUM-NUM`, `NUM-SCALE`). Every line of that golden
   was also run through a GnuCOBOL 3.2.0 built from `tests/external/gnucobol-3.2.tar.xz`, and the two outputs are
