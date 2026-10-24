@@ -445,7 +445,10 @@ def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = git_batc
     if not tip:
         return None
     if graph is None:
-        graph = Ancestry.read(repo, [tip], base)
+        try:
+            graph = Ancestry.read(repo, [tip], base)
+        except git_batch.GitError:   # a tip git cannot read: no review covers it
+            return None
     elif graph.base != base:
         raise ValueError(f'unreviewed_since: the graph excludes {graph.base}, not {base}')
     full, head = graph.sha(reviewed), graph.sha(tip)
