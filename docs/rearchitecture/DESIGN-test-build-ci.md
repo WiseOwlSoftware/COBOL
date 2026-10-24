@@ -1007,10 +1007,15 @@ because the raw name is not stable (`b7`):
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
 no BOM, sorted keys, no insignificant whitespace):
 `{"schema": 1, "base", "map", "map_state", "timings", "every_tier1": [reasons], "constants": {LEG_ONE_BUDGET, …},
+"reds": {<source label>: {"keys": n, "listed": n}, …},
 "assemblies": {"Conformance": {"legs": [1, 2] | [1] | [2], "leg1": [key, …], "leg2": [key, …], "stats": {…}}, …},
 "sha256": …}`. `leg1` and `leg2` are in RANK order — a key's rank is its position, leg 1's list first — so the rank
 needs no second structure; `legs` names the legs the driver invokes the assembly for; `stats` is for people (tier
-counts, leg-1 cases, seconds and floor, the one-leg reason). `sha256` is the SHA-256 of the canonical JSON of every
+counts, leg-1 cases, seconds and floor, the one-leg reason); `reds` names the two sources whose reds are tier 0a
+(build-local's previous run under its timings label, `previous run: none` when there is none; the Linux gate's newest
+run as `linux gate <its results directory>`; `gate_plan.previous_gates`) with how many red keys each gave and how
+many of them name a case discovered here (`{"keys": 0, "listed": 0}` for a source that left none). Every plan the gate
+driver or the CLI writes carries both, and the plan summary prints them. `sha256` is the SHA-256 of the canonical JSON of every
 other field: the plan's identity on the verdict line and in the identity records. The handshake digest
 `COBOLNET_GATE_PLAN_SHA256` is the SHA-256 of the file's BYTES, which `gate_plan.py` prints as its last stdout line.
 **The leg function:** `LegOf(case) = 1` if `NameKey(case.DisplayName)` is a
