@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population planned into two legs, leg 1 run fail-fast inside a gate slot, the same for an implementer's commit, a re-gate after a fix and a landing; CI's merge-group run is the whole-population net), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
+description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population planned into two legs, leg 1 run fail-fast inside a gate slot, the same for an implementer's commit and a re-gate after a fix, its Linux half run inside it; a landing reads its record and gates nothing; CI's merge-group run is the whole-population net), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
 ---
 
 > ⛔ **BASE SKILL FIRST.** Invoke `brent-tools:test-gate` (Skill tool) before reading on. If the plugin is not loaded
@@ -89,20 +89,22 @@ PB2526). Each leg runs the three assemblies concurrently.
   worktree, ~25 min at BelowNormal, inside a gate slot), never per commit (kb/Work PB1709). With no map, or a stale
   one, the gate still runs everything — the order is plainer, never the population smaller.
 - **An implementer is done on `LEG 1 ONLY (batched gating, PB2515): GREEN`** (a plain GREEN only while the owner sets
-  the scope `whole`, and then it runs CI's Linux legs under WSL, MANDATORY-PRACTICES I8, `bash scripts/linux-gate.sh
-  --nice`).
+  the scope `whole`). On Windows that one verdict covers BOTH hosts (owner 2026-10-23, kb/Work PB3612; MANDATORY-PRACTICES
+  I8): after the Windows legs are green, the gate runs the SAME plan's legs in a WSL clone of your COMMITTED HEAD (`bash
+  scripts/linux-gate.sh --legs targeted`, under the slot it holds) and its line says `Linux half (WSL clone of HEAD)
+  GREEN`. COMMIT BEFORE YOU GATE: the clone tests HEAD, and the record (`verdict.json`: `linux`, `head_tree`) counts only
+  when the tree it measured is the head's. `bash scripts/linux-gate.sh --nice` (CI's whole Linux legs, ~6 min) is the tool
+  that reproduces a Linux CI red on this box, not a step of any change's gate.
 
-## Per landing — the same gate on the landing's head
+## Per landing — the landing reads the record; it gates nothing (owner 2026-10-23, kb/Work PB3612)
 
-```
-pwsh scripts/build-local.ps1 *> <log>
-```
-
-The one gate, at Normal priority, on the train's (or branch's) rebased head: leg 1 holds every cluster's own tests,
-the previous reds, the host-only witnesses and the cheap sweeps. Until the targeted leg also runs under WSL (kb/Work
-PB3022 item 10), the landing keeps `bash scripts/linux-gate.sh` (MANDATORY-PRACTICES L10; from any shell: on a host
-that is not Linux it runs itself under WSL, kb/Work PB2999). CI's required `ci-gate` runs the whole population on both
-operating systems before `main` moves.
+A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
+locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
+worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 13, UNTESTED) a tip none of them covers
+GREEN with its Linux half (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
+merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
+bringing main in changed a file the branch also changes, the one gate runs once on the merged head
+(`pwsh scripts/build-local.ps1` at Normal priority, MANDATORY-PRACTICES L2).
 
 **Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 
