@@ -988,6 +988,29 @@ because the raw name is not stable (`b7`):
   430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
   118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
   the gate run just before it on another branch, on the same host and the same shared timings.
+  **A register's citations** (kb/Work PB3131): a drift test that reads a REGISTER by name — the traceability
+  inventory's code-locations (`src/.../File.cs#Member`) and test-refs (`unit:Class.Method`), docs/CONFORMANCE.md's
+  pins — and checks that its citations resolve is broken by a diff that never touches the register: one that deletes a
+  cited member, renames a cited test or deletes a cited file. Tier 0d therefore also holds every class that governs a
+  register citing what the diff REMOVES: `impacted_tests.removals` reads one `git diff -U0` (a deleted file; the
+  identifiers on removed lines that the file's new text lacks; the types it declares) and `drift_rules.citing` looks
+  each up in every non-C# file a drift test names, indexed once per plan by the three citation shapes (`Citations`).
+  Four landings on 2026-10-14..17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a
+  Windows leg 1 that left the class in leg 2 by its cost (4-6 s a case, over `SWEEP_CHEAP_SECONDS`); replayed with no
+  map, each of the four commits (611bdb3a2, 684d01b4b, 1a473341f, c3c6879ab) now names the class, with the citation it
+  breaks, at a plan cost of about 2-5 s. **A deletion is matched precisely**, because tier 0d sits outside the leg-1
+  budgets (branch review R1-1 of PB3131 measured one prose comment in a deleted file promoting 102 classes): a type
+  is one a C# line DECLARES (`TYPE_DECL`, a line's first token after its modifiers, never a comment, string or prose
+  word), deleting one file of a `partial` type deletes no type, and a deleted type breaks a dotted name only where a
+  member follows it (`Harness.Opens`, never `Program.cs` or `SourceKind.Program`); a deleted file breaks a path
+  citation only when the citation, resolved against the tree before the change (`TreeFiles`: the files whose path ends
+  with the citation's, or a golden pin's `<edition>/<test>` by name), names no file the change keeps, so
+  `docs/README.md` survives deleting `docs/sub/README.md` and a bare word is no path. Of the six most recent
+  file-deleting commits on main, five then promote nothing beyond their governed classes, and the sixth (cf9c85914)
+  promotes the inventory's classes on a real break: its code-location
+  `src/Cobol.Net.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
+  its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
+  outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
   compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its

@@ -1,9 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Text.RegularExpressions;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
-using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -13,7 +11,8 @@ namespace CobolNet.Tests.Unit;
 /// relation condition" — for numeric operands §8.8.4.2.4's algebraic value. An UNSIGNED 16-byte binary key holds
 /// [0, 2^128), and the signed Int128 decode lane returns every value at or above 2^127 as a NEGATIVE number, so
 /// both SORT forms need the unsigned lane: the runtime key column (Format 1 and MERGE) and the emitted table
-/// comparer (Format 2), which now decodes through the ONE windowed reader instead of a private copy.</summary>
+/// comparer (Format 2), which now decodes through the ONE windowed reader instead of a private copy (the source
+/// half, that no other CodeGen site decodes an image, is <see cref="NumericImageDecodeSiteDriftTests"/>).</summary>
 public sealed class SortNumericKeyLaneTests
 {
     private static NumProfile Binary(int width, bool signed) => new()
@@ -50,43 +49,5 @@ public sealed class SortNumericKeyLaneTests
         while (CobolSort.Return(name, out string rec)) order.Add(rec[16..]);
         CobolSort.Close(name);
         Assert.Equal(expected, order);
-    }
-
-    /// <summary>The source half: no CodeGen file but the ones named here decodes a numeric IMAGE through a
-    /// runtime lane of its own. <c>NumericRenderer.WindowedNum</c> is THE reader of a windowed leaf's value;
-    /// the table-SORT comparer used to carry a private SIGNED-only copy of it (kb/Work PB186), so a future
-    /// lane added to the one reader never reached it. Each other file listed decodes for a different job and
-    /// says why at its call site: the codecs that BUILD the image (a record struct's, and a .NET host's published
-    /// record's, which decodes the image the activated program left for its host, DESIGN-external-repository §4.3), the
-    /// alphanumeric-rendering channel (whose
-    /// own three-lane dispatch is <c>OperandText.NonTextBytes</c>), and two STORE-side re-derivations
-    /// (INSPECT's sign, SET's INDEX augment) that are not sending reads of a numeric value, and the OPTIONS INITIALIZE
-    /// background (InitialStateBackground), which seeds a native float carrier from its fill image (kb/Work PB1134).</summary>
-    [Fact]
-    public void OnlyTheNamedSites_DecodeANumericImage()
-    {
-        string codegen = TestRepo.Src("Cobol.Net.Compiler", "CodeGen");
-        Assert.True(Directory.Exists(codegen), $"CodeGen moved: {codegen} is not a directory.");
-        var allowed = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "RuntimeApi.cs", "NumericRenderer.cs", "OperandText.cs", "GroupImageCodec.cs", "InspectEmitter.cs",
-            "SetEmitter.cs", "InitialStateBackground.cs", "PublishedRecordEmitter.cs",
-        };
-        var decode = new Regex(@"\bNumParseImage(U128|Float|U)?\(", RegexOptions.Compiled);
-        var offenders = new List<string>();
-        foreach (string file in Directory.EnumerateFiles(codegen, "*.cs", SearchOption.AllDirectories))
-        {
-            if (allowed.Contains(Path.GetFileName(file))) continue;
-            string[] lines = File.ReadAllLines(file);
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string code = lines[i].TrimStart();
-                if (code.StartsWith("//", StringComparison.Ordinal)) continue;
-                if (decode.IsMatch(code)) offenders.Add($"{Path.GetRelativePath(codegen, file)}:{i + 1}: {code}");
-            }
-        }
-        Assert.True(offenders.Count == 0,
-            "A numeric image is decoded outside the named sites — read a windowed leaf's value through "
-            + "NumericRenderer.WindowedNum (kb/Work PB186):\n" + string.Join("\n", offenders));
     }
 }

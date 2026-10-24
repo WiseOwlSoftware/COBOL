@@ -55,7 +55,10 @@ witnesses CI's NTFS runners may not reproduce (tier 0h, whatever the diff) — t
 carrying `[Trait("Sweep", "tree")]` whose cases are cheap (tier 0c: the bookkeeping reds a population run used to
 find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022), every drift
 test the drift-rule index says governs a file the change touches, whatever its cost (tier 0d, kb/Work PB3531: what
-`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included, and a test reading the file through a helper class such as `SuiteManifest`, kb/Work PB3247) and the
+`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included, a test
+reading the file through a helper class such as `SuiteManifest` (kb/Work PB3247), and the classes of a register — the
+traceability inventory, docs/CONFORMANCE.md — that cites a member, test or file the change removes, kb/Work PB3131)
+and the
 cheapest cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
 exists — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
 publishes to after its legs, so a fresh worktree is timed too (kb/Work PB2527). The test hosts run Server GC (kb/Work

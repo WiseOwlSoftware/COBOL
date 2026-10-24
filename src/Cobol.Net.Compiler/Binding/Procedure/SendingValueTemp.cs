@@ -185,13 +185,19 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         bool integer = IntrinsicResultType.IsIntegerOperand(c);
         if (integer && use.AsText) return IntegerFunctionValuePic;
         var receivers = use.Receivers;
-        if (c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic))
-            return Binary64ReturnedValuePic;
+        if (IsBinary64Approximation(c)) return Binary64ReturnedValuePic;
         if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
         if (FloatingPointNumericSet(receivers)) return WidestFloatEditedPic();
         if (integer) return IntegerIntermediatePic;
         return receivers is { Count: > 0 } ? ShapedPic(receivers) : use.AsText ? FunctionValuePic : ValueOperandPic;
     }
+
+    /// <summary>True when <paramref name="c"/> is a function whose returned value the renderer produces as a binary64
+    /// (<see cref="FunctionValueLane.ReturnsBinary64"/>): always an implementor-defined APPROXIMATION (§15.4.1 last ¶;
+    /// the renderer flags every such value <c>NumX.Approximate</c>), so the intermediate that holds it says so
+    /// (<see cref="DataItem.HoldsApproximation"/>, kb/Work PB1606).</summary>
+    private bool IsBinary64Approximation(BoundOperand c) =>
+        c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic);
 
     /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
     /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
@@ -379,6 +385,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // default rather than being stamped with a bound no rule gives it (kb/Work PB463).
         temp.IsDynamicLength = model.DynLimit > 0;
         if (model.FunctionValue) temp.FunctionValueSeparator = ctx.Data.DecimalSeparator;   // PB2507: the unit's spelling of the literal form
+        temp.HoldsApproximation = model.Approximation;   // PB1606: every read of it is the returned value's read
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
         // The store is a plain BoundMove, NOT a re-entry into MoveBinder.BindMoveOf: the statement's own syntax
@@ -553,8 +560,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>The intermediate result item's description: the cloned model plus, for a run-time-length
     /// carrier, its §8.5.1.10 limit (0 = a fixed-length clone). Null when the operand is not materialized.
     /// <paramref name="FunctionValue"/> marks the §15.4 temporary of a NUMERIC function's returned value, whose
-    /// character image is DOC-A.1-92's literal form (<see cref="DataItem.FunctionValueSeparator"/>).</summary>
-    private readonly record struct TempModel(DataItem Item, int DynLimit, bool FunctionValue = false);
+    /// character image is DOC-A.1-92's literal form (<see cref="DataItem.FunctionValueSeparator"/>);
+    /// <paramref name="Approximation"/> marks the binary64 intermediate of a float-family value
+    /// (<see cref="DataItem.HoldsApproximation"/>).</summary>
+    private readonly record struct TempModel(DataItem Item, int DynLimit, bool FunctionValue = false, bool Approximation = false);
 
     /// <summary>⛔ THE ONE description derivation — every <see cref="BoundOperand"/> leaf is named, so a leaf
     /// added tomorrow is a COMPILE error here rather than a silent fall-through to "no hoist" (the
@@ -641,10 +650,16 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // IntrinsicResultType reader) is described at scale 0, so the literal form carries no fraction digits — the
         // form the function itself renders. It used to be the 30-digit image of FunctionValuePic, left-justified:
         // `MOVE FUNCTION INTEGER(N) TO A B` stored 0000 in both where `MOVE FUNCTION INTEGER(N) TO A` stores 3.
+        // ⛔ AND A BINARY64 INTERMEDIATE OF AN APPROXIMATION IS READ AS ONE (kb/Work PB1606): the cell is a float item to
+        // the renderer, which reads a float item by its exact value, so `MOVE FUNCTION PI TO W1 W2` (floating-point
+        // edited) showed the binary expansion where `MOVE FUNCTION PI TO W3` shows the shortest round-trip decimal.
         if (cat is PicCategory.Numeric)
+        {
+            var pic = IntermediatePic(c, use);
             return new TempModel(
-                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = IntermediatePic(c, use) },
-                DynLimit: 0, FunctionValue: true);
+                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = pic },
+                DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c));
+        }
         return CharacterCarrier("__SENDVAL-FNS", "__sendvalFns", cat, CharacterUsage(cat), FunctionTextLimit);
     }
 

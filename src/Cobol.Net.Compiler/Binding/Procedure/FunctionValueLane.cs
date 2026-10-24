@@ -218,7 +218,8 @@ internal static class FunctionValueLane
             if (place is RefModPlace || place.DenotedItem is null) return Carrier.Exact(true);
             var item = place.Item;
             if (item.Pic is not { } pic) return Carrier.Exact(true);
-            if (pic.IsFloat) return new Carrier(CarrierKind.Real);
+            // A frozen float-family value (kb/Work PB1606) is the approximation it was, never a float item's content.
+            if (pic.IsFloat) return new Carrier(item.HoldsApproximation ? CarrierKind.ApproximateReal : CarrierKind.Real);
             if (!item.StoreAsImage && pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true })
                 return new Carrier(CarrierKind.Dec);
             // The renderer states the digit bound of an exact numeric item it reads as a value (a windowed or image-decoded
