@@ -276,6 +276,10 @@ public sealed class MoveLanding(Func<MoveSending, string> Record) : CarrierLandi
 /// <param name="Unscaled">The fixed-point value, unscaled.</param>
 /// <param name="Scale">The fixed-point value's fraction scale.</param>
 /// <param name="Real">The value of a floating-point sender, null for a fixed-point one.</param>
+/// <param name="Approximate">⛔ <see cref="Real"/> is an ENGINE'S APPROXIMATION (a function's returned value, a non-integer power;
+/// <c>NumX.Approximate</c>), not a floating-point DATA ITEM's content (kb/Work PB1606): its value is its shortest round-trip
+/// decimal (<see cref="CobolDec.FromApproximation"/>) - 0.3, not the binary expansion 0.29999999999999998 - exactly as a local
+/// MOVE of the same function value edits it.</param>
 /// <param name="StorageImage">⛔ THE SECOND ALPHABET (kb/Work PB3587): the sender's REPRESENTATION - the UTF-16BE pairs of a USAGE
 /// NATIONAL item or value, the packed bits of a USAGE BIT one - when that is not its <paramref name="Characters"/> (one
 /// character a position). An elementary formal reads the characters; a PLAIN-GROUP formal's record is filled by §14.9.25.4
@@ -283,7 +287,7 @@ public sealed class MoveLanding(Func<MoveSending, string> Record) : CarrierLandi
 /// (<see cref="CobolArgAdapt.Text"/>). The activating element cannot choose between them - it does not see the formal - and
 /// the activated unit can. Null when the characters ARE the representation.</param>
 public readonly record struct MoveSending(string Characters, bool Group = false, bool Fill = false, bool Numeric = false,
-    Int128 Unscaled = default, int Scale = 0, double? Real = null, string? StorageImage = null)
+    Int128 Unscaled = default, int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false)
 {
     /// <summary>The value aligned at <paramref name="scale"/> — §14.6.8.2's alignment, which truncates (a MOVE has no
     /// ROUNDED phrase).</summary>
@@ -296,7 +300,8 @@ public readonly record struct MoveSending(string Characters, bool Group = false,
     /// <c>CobolEdit.FormatFloatStore(double, ...)</c>), and a FIXED-POINT sender's own decimal digits at its own scale
     /// (§14.6.8.4 rule 1: "the algebraic value of the sending operand"). It is never routed through binary64: the fixed
     /// value 0.3 as a double is 0.299999999999999988897769753748..., and the receiver's mask would show that noise.</summary>
-    public CobolDec ExactValue => Real is { } r ? CobolDec.FromBinary64ToOdd(r) : CobolDec.From(Unscaled, Scale);
+    public CobolDec ExactValue => Real is not { } r ? CobolDec.From(Unscaled, Scale)
+        : Approximate ? CobolDec.FromApproximation(r) : CobolDec.FromBinary64ToOdd(r);
 }
 
 /// <summary>
@@ -810,15 +815,17 @@ public static class CobolArgAdapt
     /// fixed-point value sends the characters a MOVE of an intrinsic function's value sends (<see cref="CobolNum.FormatFunctionText"/>
     /// without its sign, §14.9.25.4 GR6 a)) and its algebraic value; a binary64 one its display form
     /// (<see cref="CobolFloat.Display"/>) and its value; a character value its characters, and - when the value is of usage
-    /// national or bit - its representation too, by <paramref name="storageImage"/> (<see cref="MoveSending.StorageImage"/>).</summary>
-    public static CobolArg WithValueSending(CobolArg arg, Func<string, string>? storageImage = null) => arg with
+    /// national or bit - its representation too, by <paramref name="storageImage"/> (<see cref="MoveSending.StorageImage"/>).
+    /// <paramref name="approximate"/> states that a binary64 cell is an engine's approximation (a function's returned value),
+    /// which only the activating element knows (<see cref="MoveSending.Approximate"/>, kb/Work PB1606).</summary>
+    public static CobolArg WithValueSending(CobolArg arg, Func<string, string>? storageImage = null, bool approximate = false) => arg with
     {
         Sending = arg.Carrier switch
         {
             // storageImage is stated when the value's usage is NATIONAL or BIT (a national or boolean function): its characters
             // are then not its representation, and the compiler names the codec from the value's usage (kb/Work PB3587).
             ManagedPointer<string> s => new MoveSending(s.Value ?? "", StorageImage: storageImage?.Invoke(s.Value ?? "")),
-            ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value),
+            ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value, Approximate: approximate),
             var c when ReadNumericCell(c) is { } v =>
                 new MoveSending(CobolNum.FormatFunctionText(v, arg.Scale, deSign: true), Numeric: true, Unscaled: v, Scale: arg.Scale),
             _ => null,

@@ -18,6 +18,8 @@
       *>      whose WiseOwl COBOL image is its shortest round-trip decimal (docs/CONFORMANCE.md, section 3), 0.3, and a MOVE
       *>      edits it -> +3.0000000000000000E-01 (the binary64's expansion, 0.29999999999999998..., is the image of no
       *>      value the program wrote).
+      *>      The same function value passed BY CONTENT to the float-edited formal (review round 2, finding R2-1) is the
+      *>      sending operand of the same GR9 MOVE, so the formal holds the same +3.0000000000000000E-01.
       *>   FH FLOAT-LONG 0.5 is exactly 0.5 -> +5.0000000000000000E-01.
       *>   F3 FLOAT-LONG 0.3 IS the binary64 0.299999999999999988897769753748..., a floating-point DATA ITEM read by its
       *>      exact value (the PB1606 rule): truncated to 17 digits -> +2.9999999999999998E-01.
@@ -44,6 +46,7 @@ MAIN.
     CALL PB1606P USING BY CONTENT W
     MOVE FUNCTION SQRT (X) TO FE
     DISPLAY "MOVE SQRT=" FE
+    CALL PB1606P USING BY CONTENT FUNCTION SQRT (X)
     CALL PB1606P USING BY CONTENT FH
     CALL PB1606P USING BY CONTENT F3
     STOP RUN.

@@ -76,3 +76,19 @@ assertion and a drift test on both. Sibling sweep: `COMPUTE FE = FUNCTION SQRT (
 `CobolIntrinsics.FromDouble` at scale 19 (the scaled quantizer) and truncates the double's expansion, as it did before this
 branch; that is a separate defect of the quantizer, reported as a lead. The R1-2 lead (the exact formatter's cost, about 4 us
 a lift) is left for the clerk: neither CobolDec.cs nor CobolEdit.Float.cs changed in this round.
+
+**Review round 2 (R2-1, fixed).** Round 1's approximation arm covered the local MOVE only. A function's returned value passed
+BY CONTENT (`CALL AP2P USING BY CONTENT FUNCTION SQRT (X)`) reaches the activation boundary as a bare binary64 cell, and
+`CobolArgAdapt.WithValueSending` built its `MoveSending` with `Real` alone, so `ExactValue` read it by its exact binary value
+(`+2.9999999999999998E-01`) where the same GR9 MOVE written locally edits `+3.0000000000000000E-01`. The cell cannot say
+whether its double is a floating-point data item's content or an engine's approximation; only the activating element knows,
+from the `NumX` it rendered. `MoveSending` gains `Approximate`, `WithValueSending` and `RuntimeApi.ArgWithValueSending` take
+`approximate`, and `CallEmitter.ArgCarrierText` reports `x.Approximate` of the computed-operand arm to `WithMoveSending`.
+`ExactValue` reads an Approximate sender by `CobolDec.FromApproximation`. The golden
+`pb1606_fixed_sender_float_edited_formal` gains `CALL PB1606P USING BY CONTENT FUNCTION SQRT (X)` (`+3.0000000000000000E-01`),
+and `BoundaryItemLandingTests` and `FloatItemSdidiLiftDriftTests` pin the flag, the call site and the one new runtime caller of
+`FromApproximation`. Sibling sweep: the other producers of a `Real` sender are a floating-point data item and a float literal
+(both exact binary, correct), and a float-item expression `BY CONTENT (F3 + 0)` is not Approximate (probed: it keeps the exact
+binary value, as the arithmetic store does). A CALL's function value into a FIXED-point numeric-edited formal truncates the
+binary expansion (`0.29999` for PIC 9.9(5)), exactly as the local `MOVE FUNCTION SQRT (X) TO E2` does on this branch and on
+main; that is the scaled quantizer lead of round 1, reported again.

@@ -2389,8 +2389,8 @@ internal static class RuntimeApi
 
     /// <summary>An argument evaluated into its cell, with its sending operand read back from that cell —
     /// <see cref="CobolArgAdapt.WithValueSending"/> (kb/Work PB2587).</summary>
-    public static string ArgWithValueSending(string arg, string? storageImage) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)})";
+    public static string ArgWithValueSending(string arg, string? storageImage, bool approximate = false) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)}{(approximate ? ", approximate: true" : "")})";
 
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>
