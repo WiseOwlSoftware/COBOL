@@ -122,11 +122,28 @@ public sealed class LandingLaneDriftTests
             "Start-LaneTick must start the tick as a background process and never wait for it: the event loop reads the "
             + "unit's stream, ticks the startup watchdog and checks STOP (kb/Work PB2590)");
 
+        // ONE lane timer, Step-Lane, which the supervisor calls wherever it waits or loops (kb/Work PB3639): the lane spends
+        // no tokens, so it ticks whether or not an LLM unit runs.
+        string step = FunctionBody(script, "Step-Lane");
+        Assert.True(step.Length > 0, "orchestrate.ps1 has no `function Step-Lane`: the lane has no timer of its own (kb/Work PB3639)");
+        Assert.Matches(@"\bStart-LaneTick\b", step);
+        Assert.Contains("LandLaneSeconds", step, StringComparison.Ordinal);
+
         string unit = FunctionBody(script, "Invoke-Unit");
         Assert.True(unit.Length > 0, "orchestrate.ps1 has no `function Invoke-Unit`; re-point this test");
-        int calls = Regex.Matches(unit, @"^\s*Start-LaneTick\b", RegexOptions.Multiline).Count;
-        Assert.True(calls >= 2, $"Invoke-Unit starts the lane {calls} time(s): it must tick as the unit starts and on "
+        int calls = Regex.Matches(unit, @"^\s*Step-Lane\b", RegexOptions.Multiline).Count;
+        Assert.True(calls >= 2, $"Invoke-Unit steps the lane {calls} time(s): it must tick as the unit starts and on "
             + "-LandLaneSeconds while it runs");
+
+        // The waits with no unit: a budget hold and a failure backoff sleep in Wait-Until, and the loop between two units
+        // steps the lane itself. Without these the lane stops whenever no unit runs (the stall survey's LANE_TICK_UNIT_BOUND).
+        string wait = FunctionBody(script, "Wait-Until");
+        Assert.True(wait.Length > 0, "orchestrate.ps1 has no `function Wait-Until`; re-point this test");
+        Assert.Matches(@"\bStep-Lane\b", wait);
+        Assert.True(wait.IndexOf("Test-Stop", StringComparison.Ordinal) < wait.IndexOf("Step-Lane", StringComparison.Ordinal),
+            "Wait-Until must check STOP before it steps the lane: no tick starts once STOP exists (kb/Work PB3639)");
+        string loop = script[script.LastIndexOf("while ($true) {", StringComparison.Ordinal)..];
+        Assert.Matches(@"\{ Step-Lane \}", loop);
         Assert.Matches(@"\[int\]\$LandLaneSeconds\s*=\s*[1-9]\d*", script);
     }
 

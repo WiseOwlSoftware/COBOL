@@ -15,7 +15,8 @@ the moment it is ready, while whatever unit runs keeps running (kb/Work PB3103; 
 when the loop's NEXT `enqueue` unit started, after the whole wave ended: wave 1069's group D was stamped Review CLEAN at
 12:34 PDT and E and F by 13:05, and all three idled while G and H ran; then, while the enqueue unit gated and waited on
 the merge queue, no implementer ran. The supervisor (`orchestrate.ps1`) now runs `tick` in the BACKGROUND every few
-minutes while any unit runs, so a branch lands within its own gate and CI time of being ready.
+minutes for as long as it lives (while a unit runs, between units, through a budget hold and a failure backoff: the lane spends no
+tokens, kb/Work PB3639), so a branch lands within its own gate and CI time of being ready.
 
 STATE, all under `<coord>/land-lane/` (the coordination directory, never a worktree):
   attempts/<id>.json  one per `enqueue.py land` run, <id> = `<n>-<UTC stamp>-<branch>` (n: the attempt NUMBER, one
@@ -134,7 +135,7 @@ EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved un
 WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock",
          EXIT_LAND_BUSY: "the worktree's land lock"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
-# -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
+# -LandLaneSeconds, 300 by default, for as long as it lives, unit or no unit, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
 # The classes of a finished attempt (classify). STOPPED and DONE-to-collect are the enqueue unit's; the rest the lane's.
 DONE, FREE, ONCE, HALTED, STOPPED = "done", "retry-when-free", "retry-once", "halt", "stopped"
