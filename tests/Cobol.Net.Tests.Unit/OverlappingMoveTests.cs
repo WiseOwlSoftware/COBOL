@@ -127,4 +127,34 @@ public sealed class OverlappingMoveTests
             Zoned(6, 0, true, enc: SignEncoding.Ibm), Packed(5, 0, true));
         Assert.Equal(Bytes(0x20, 0x00, 0x6D), receiver);
     }
+
+    [Fact]
+    public void DisplayToPacked_ATrailingPReceiver_CountsTheStoredDigitsNotThePPositions()
+    {
+        // 9(6) holding 123456 into 9(3)PP PACKED-DECIMAL (digits 3, scale -2) over bytes 4 to 5: libcob 0x23 0x3F. The
+        // first sender digit that fits the receiver is the SECOND (offset 6 - (3 + 2) = 1); counting the P positions as
+        // digits put it at offset 3 and gave 0x00 0x6F (the review finding R1-1 of the PB1910 round-1 review).
+        string area = Area("123456");
+        string receiver = OverlappingMove.DisplayToPacked("123456", area.Substring(3, 2), 3, Zoned(6, 0, false), Packed(3, -2, false));
+        Assert.Equal(Bytes(0x23, 0x3F), receiver);
+    }
+
+    [Fact]
+    public void DisplayToPacked_ATrailingPSender_CountsTheStoredDigitsNotThePPositions()
+    {
+        // 9(4)PP holding 123400 ("1234", scale -2) into 9(5) PACKED-DECIMAL over bytes 2 to 4: libcob 00 00 0F.
+        string area = Area("1234");
+        string receiver = OverlappingMove.DisplayToPacked("1234", area.Substring(1, 3), 1, Zoned(4, -2, false), Packed(5, 0, false));
+        Assert.Equal(Bytes(0x00, 0x00, 0x0F), receiver);
+    }
+
+    [Fact]
+    public void PackedToDisplay_ATrailingPSender_KeepsTheStoredDigitsAndTheirScale()
+    {
+        // 9(3)PP PACKED-DECIMAL holding 12300 (bytes 12 3F) into 9(4) over bytes 2 to 5: 2300, the two digits of the
+        // sender that fall inside the receiver's positions followed by zeros; the P positions are not digits.
+        string sender = Bytes(0x12, 0x3F);
+        string receiver = OverlappingMove.PackedToDisplay(sender, Area(sender).Substring(1, 4), 1, Packed(3, -2, false), Zoned(4, 0, false));
+        Assert.Equal("2300", receiver);
+    }
 }

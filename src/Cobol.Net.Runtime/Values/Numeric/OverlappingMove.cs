@@ -35,8 +35,8 @@ public static class OverlappingMove
         var (m, s0, r0) = Lay(sender, receiver, receiverAt);
         var s = new Zoned(s0, from);
         int sign = SignOf(m, s, adjust: true);
-        int digits1 = from.FractionDigits >= 0 ? from.Digits : from.Digits + from.FractionDigits;
-        int digits2 = to.FractionDigits >= 0 ? to.Digits : to.Digits + to.FractionDigits;
+        int digits1 = from.Digits;   // the stored digit positions: a P position stores nothing, it is in the scale alone
+        int digits2 = to.Digits;
         bool noSignNibble = to.ByteForm == NumericByteForm.PackedNoSign;
 
         // The receiver digit position the first transferred digit lands on, and the first sender digit that fits.
@@ -97,7 +97,7 @@ public static class OverlappingMove
         var r = new Zoned(r0, to);
         bool noSignNibble = from.ByteForm == NumericByteForm.PackedNoSign;
         int scale = from.FractionDigits;
-        int digits = scale >= 0 ? from.Digits : from.Digits + scale;
+        int digits = from.Digits;   // stored digit positions; the P positions are in the scale alone
         int d = s0, dEnd = s0 + sender.Length - 1;
         var buff = new List<char>();
 

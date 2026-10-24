@@ -42,8 +42,10 @@ public enum MoveKind
 /// marking — reads the same answer instead of re-deriving it (kb/Work PB425; feedback_one_rule_one_place).</summary>
 public readonly record struct MoveStore(BoundOperand Sender, MoveKind Kind, MoveSenderOrigin Origin)
 {
-    /// <summary>What the store does to the RECEIVER before it reads the sender, when the two STATICALLY overlap
-    /// (<see cref="MoveOverlap"/>, ISO §14.6.10 1) / Annex A.2 item 36 — undefined, so documented; kb/Work PB1907).
+    /// <summary>What the store does when the sender and receiver STATICALLY overlap (<see cref="MoveOverlap"/>, ISO
+    /// §14.6.10 1) / Annex A.2 item 36 — undefined, so documented; kb/Work PB1907, PB1910): either it prepares the
+    /// RECEIVER before the ordinary store reads the sender (<see cref="OverlapStoreKind.LeadingSpaces"/>) or it IS the
+    /// whole store, the runtime's in-place conversion (<see cref="OverlapStore.IsInPlace"/>).
     /// <see cref="OverlapStore.None"/> for every MOVE whose operands cannot be proven to overlap. An init-only
     /// property, not a positional member, so the three-element deconstruction the emitter is pinned to
     /// (<c>ZeroLengthSubstitutionDriftTests</c>) is unchanged.</summary>

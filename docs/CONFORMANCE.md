@@ -2099,13 +2099,13 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   C standard leaves undefined and whose result depends on the C library, not on a rule. (v) Under the IBM convention
   only (`-fsign=EBCDIC`), a signed overpunched DISPLAY sender into a BINARY receiver that covers the sender's sign byte:
   the library re-punches that byte after the binary store; the ASCII convention, which is GnuCOBOL's default, has no
-  such step and agrees with the snapshot. Implemented in `MoveOverlap` (classification), `StorageExtent` (the overlap
+  such step and agrees with the snapshot. (vi) A P-scaled operand whose digit positions share no decimal position with the other operand's, in a DISPLAY-to-PACKED-DECIMAL move (`9(6)` into `PP9(3) PACKED-DECIMAL`, `PP9(4)` into `9(5) PACKED-DECIMAL`): `cob_move_display_to_packed` then reads the bytes past the sender (storing their nibbles) or writes past the receiver (corrupting the storage after it). That is not a conversion any rule describes, so the snapshot stands (`MoveOverlap.SharesADigitPosition`; `PP-OUT`, `PP-LOW`). Where the windows do share a position the library counts the STORED digits (a P position stores no byte, it moves the scale), and the in-place algorithm agrees with it (`PP-TAIL`, `PP-SEND`, `PP-PACK`; a 320-case P-scaled matrix, every DISPLAY and PACKED-DECIMAL sender and receiver shape at five offsets, differs from the library only in (iv) and in this disjoint case). Implemented in `MoveOverlap` (classification), `StorageExtent` (the overlap
   fact, on `RecordLayout.OffsetInRecord`'s walk), `MoveEmitter.EmitOverlapStore` (the one rendering) and
   `OverlappingMove` (the four algorithms), held by `MoveOverlapDriftTests` and `OverlappingMoveTests`. Witnesses:
   `conformance:cases/14.6.10-Overlapping-operands/pb1907_overlap_move` (`JUST`, `JUST-SELF`, `JUST-GRP`, `JUST-IN`,
   `JUST-LEAD`, `NUM-MOVE`, `NUM-SELF`, `ALNUM-NUM`, `SLICE-NUM`, `NUM-NUM`, `NUM-SCALE`) and
   `conformance:cases/14.6.10-Overlapping-operands/pb1910_overlap_in_place_move` (`PK-HEAD`, `PK-TAIL`, `SMEAR-N`,
-  `SMEAR-X`, `SMEAR-X4`, `P-SIGN`). Every line of those goldens, and a matrix of 1,260 sender-by-receiver-by-offset
+  `SMEAR-X`, `SMEAR-X4`, `P-SIGN`, `PP-TAIL`, `PP-SEND`, `PP-PACK`, `PP-OUT`, `PP-LOW`). Every line of those goldens, and a matrix of 1,260 sender-by-receiver-by-offset
   cases over unsigned, signed, separate-sign, scaled, PACKED-DECIMAL and alphanumeric senders and DISPLAY, PACKED-DECIMAL
   and BINARY receivers, was also run through GnuCOBOL 3.2.0 (`cobc -std=cobol2014`, ASCII and `-fsign=EBCDIC`), and the
   outputs are identical except for the families (iii) to (v) and three pairs whose NON-overlapping control already differs in representation.

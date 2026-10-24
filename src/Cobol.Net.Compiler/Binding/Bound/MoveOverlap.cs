@@ -64,7 +64,7 @@ public readonly record struct OverlapStore(OverlapStoreKind Kind, int Positions 
 ///   <item><b>PACKED-DECIMAL receiver from a numeric DISPLAY sender</b> (<c>cob_move_display_to_packed</c>): the
 ///     receiver is cleared, then written one digit pair at a time (<see cref="OverlapStoreKind.DisplayToPacked"/>).</item>
 /// </list>
-/// <para>The three in-place families are ONE runtime algorithm each (<c>OverlappingMove</c>) because their result
+/// <para>The four in-place families are ONE runtime algorithm each (<c>OverlappingMove</c>) because their result
 /// depends on the ORDER the library writes and reads in, not on a rule that can be stated ("receiver zero, then
 /// convert" is right only where the receiver lies at or left of the sender's digits; a receiver to the right smears
 /// the sender's first digit across it). The classification below chooses the algorithm; the emitter calls it.</para>
@@ -108,6 +108,7 @@ public static class MoveOverlap
         if (pic.Usage is Usage.Packed)
             return kind is MoveKind.Convert && pic.Category is PicCategory.Numeric && !pic.IsFloat
                    && (target is RedefViewPlace || target.Item.StoreAsImage) && IsNumericDisplayItem(from)
+                   && SharesADigitPosition(from.Item.Pic!, pic)
                 ? new OverlapStore(OverlapStoreKind.DisplayToPacked, ReceiverAt: to.Start - fromExtent.Start)
                 : OverlapStore.None;
 
@@ -134,6 +135,18 @@ public static class MoveOverlap
 
         return OverlapStore.None;
     }
+
+    /// <summary>True when the sender's digit positions and the receiver's share at least one decimal position — the
+    /// positions run from <c>10^-Scale</c> up through <c>10^(Digits-Scale-1)</c>, so a P position moves the window and
+    /// adds no digit. <c>cob_move_display_to_packed</c> walks the receiver's bytes by the sender's digit offset, and
+    /// where the two windows are disjoint that offset lies outside one operand or the other: the library then reads
+    /// the bytes past the sender (<c>PIC 9(6)</c> into <c>PIC PP9(3) PACKED-DECIMAL</c> stores the neighbouring
+    /// bytes' nibbles) or writes past the receiver (<c>PIC PP9(4)</c> into <c>PIC 9(5) PACKED-DECIMAL</c> corrupts
+    /// the storage after it). That is not a conversion any rule describes and the arena the runtime lays out does
+    /// not contain it, so the snapshot stands (kb/Work PB1910); the other three families guard the same case inside
+    /// <c>store_common_region</c> and stay in their operands.</summary>
+    private static bool SharesADigitPosition(PicInfo sender, PicInfo receiver) =>
+        Math.Max(-sender.Scale, -receiver.Scale) < Math.Min(sender.Digits - sender.Scale, receiver.Digits - receiver.Scale);
 
     private static bool IsCharacterPositioned(Place p, StorageExtent e) =>
         p is RefModPlace r ? IsCharacterPositioned(r.Inner, StorageExtent.Of(r.Inner) ?? e)
