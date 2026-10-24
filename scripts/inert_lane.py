@@ -21,20 +21,22 @@ inert directory is not inert) are non-empty and every one is inert. The inert la
 on every event, in every lane; they are where a citation, a register note or a DEVLOG entry is checked) and no build
 and no test leg: no test reads the change, so no test can turn red on it. Every other change is the FULL lane.
 
-THE PROOF (`watch`, the drift test the classification needs). Every whole-assembly test run on Linux — CI's Linux test
-steps and the landing's Linux gate — runs under an inotify watch of every inert path (directories included, so a test
-that LISTS an inert directory is caught too), through this module: a test that opens an inert path, directly or
-through a script it runs, turns the run RED naming the path. So the day a test starts reading an inert path, the
+THE PROOF (`watch`, the drift test the classification needs). Every whole-assembly `dotnet test` run on Linux — CI's
+Linux test steps and the landing's Linux gate — runs under an inotify watch of every inert path (directories included,
+so a test that LISTS an inert directory is caught too), through this module: a test that opens an inert path, directly
+or through a script it runs, turns the run RED naming the path. So the day a test starts reading an inert path, the
 change that made it read it is red until that path leaves INERT (or gains a READ entry naming its reader). A watch
 that overflows its queue proves nothing and is RED. The watch has no Windows twin (Windows has no open events); the
 Linux runs are the whole population on every code change (the landing's Linux gate and CI's merge group).
 
-What is NOT inert, and why (measured 2026-10-23 by deleting each candidate and running the three assemblies): `docs/`
-(SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc; twenty Unit and Conformance classes read
-CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md), `.claude/` and the root `*.md` files (GateLegDriftTests
-walks them for mode names; ArchReviewFleetDriftTests reads the briefs; SelfTestDiscoveryDriftTests classifies the
-scripts there), `kb/Work/` (the READ entry below). The conflict-marker sweep, which read every tracked file, became an
-audit (scripts/conflict_markers.py) so that it no longer made every path a test input.
+What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and running the three assemblies on Windows;
+then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every
+doc; twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
+`.claude/` and the root `*.md` files (GateLegDriftTests walks them for mode names, ArchReviewFleetDriftTests reads the
+briefs, SelfTestDiscoveryDriftTests classifies the scripts there); `kb/` and `.obsidian/` (LandingPipelineDriftTests'
+`Current` sweep reads every tracked file but the history paths, and the register drift tests read every `kb/Work/`
+note); the `tools/claude-skills` pin. The conflict-marker sweep, which read every tracked file, became an audit
+(scripts/conflict_markers.py) so that it no longer made every path a test input.
 """
 from __future__ import annotations
 
@@ -45,36 +47,15 @@ import struct
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 
-#: ⛔ THE INERT ENTRIES — a directory prefix ending in `/`, or one exact path — each with who reads it. Nothing a test
-#: reads belongs here; `watch` proves it on every Linux test run. An entry that names no tracked path is stale
-#: (`check`, held by InertLaneDriftTests).
-INERT: dict[str, str] = {
-    "DEVLOG/": "the development log: read by scripts/devlog.py (CI's devlog step, the landing checks) and by people",
-    "kb/": "the knowledge base and the work register: read by scripts/spec/work.py check (an audit) and by people",
-    ".obsidian/": "the settings of the note viewer the owner reads kb/ with",
-    "tools/claude-skills": "the public skills submodule's pin: read by check_practices.py (the FLEET PRACTICES audit)",
-}
-#: ⛔ THE READ ENTRIES — under an inert entry, but a test reads them, so a change to one is the full lane. Each names its
-#: readers, so the entry leaves when they do.
-READ: dict[str, str] = {
-    "kb/Work/": "ClosesRowsBackLinkDriftTests and DefectiveRowCoverageDriftTests read every note through "
-                "tests/_shared/WorkRegister.cs (the register-inventory cross-checks)",
-}
-
 
 def _under(path: str, entry: str) -> bool:
+    """`path` lies under `entry`: a directory prefix ending in `/`, or one exact path (and anything below it)."""
     return path.startswith(entry) if entry.endswith("/") else path == entry or path.startswith(entry + "/")
-
-
-def is_inert(path: str) -> bool:
-    """Whether the repo-relative POSIX `path` (a directory may end in `/`) is inert: under an INERT entry, under no READ
-    entry."""
-    return any(_under(path, e) for e in INERT) and not any(_under(path, e) for e in READ)
 
 
 @dataclass(frozen=True)
@@ -87,15 +68,55 @@ class Lane:
         return "inert" if self.inert else "full"
 
 
-def classify(paths: list[str]) -> Lane:
-    """The lane of a change whose changed paths are `paths`."""
-    if not paths:
-        return Lane(False, "no changed path: an empty diff is not evidence that no test reads the change")
-    read = [p for p in paths if not is_inert(p)]
-    if read:
-        return Lane(False, f"{len(read)} of {len(paths)} changed path(s) may be read by a test, e.g. {read[0]}")
-    return Lane(True, f"all {len(paths)} changed path(s) are inert (under {', '.join(sorted({e for p in paths for e in INERT if _under(p, e)}))}): "
-                      "no test reads them")
+@dataclass(frozen=True)
+class Classification:
+    """INERT entries (each: who reads it, never a test) and READ entries under them (each: the tests that read it)."""
+    inert: dict[str, str]
+    read: dict[str, str] = field(default_factory=dict)
+
+    def is_inert(self, path: str) -> bool:
+        """Whether the repo-relative POSIX `path` (a directory may end in `/`) is inert: under an INERT entry, under no
+        READ entry."""
+        return any(_under(path, e) for e in self.inert) and not any(_under(path, e) for e in self.read)
+
+    def classify(self, paths: list[str]) -> Lane:
+        """The lane of a change whose changed paths are `paths`."""
+        if not paths:
+            return Lane(False, "no changed path: an empty diff is not evidence that no test reads the change")
+        read = [p for p in paths if not self.is_inert(p)]
+        if read:
+            return Lane(False, f"{len(read)} of {len(paths)} changed path(s) may be read by a test, e.g. {read[0]}")
+        under = sorted({e for p in paths for e in self.inert if _under(p, e)})
+        return Lane(True, f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads them")
+
+    def watch_dirs(self, root: Path) -> list[str]:
+        """The directories to watch: the directory every inert tracked FILE lies in, and an inert tracked path that is
+        itself a directory (a submodule's gitlink). A watched directory reports an open of a file in it, named, and an
+        open of the directory itself (a listing), unnamed; so no directory above the inert ones is watched, and the many
+        opens there (the repository root's) never reach the watch."""
+        dirs: set[str] = set()
+        for p in tracked(root):
+            if self.is_inert(p):
+                dirs.add(p if (root / p).is_dir() else p.rpartition("/")[0])
+        return sorted(d for d in dirs if (root / d).is_dir())
+
+    def check(self, root: Path) -> list[str]:
+        """Every INERT and READ entry names at least one tracked path, and every READ entry lies under an INERT one."""
+        paths = tracked(root)
+        bad = [f"the {kind} entry {e!r} names no tracked path: remove it, or correct it" for kind, entries in
+               (("INERT", self.inert), ("READ", self.read)) for e in entries if not any(_under(p, e) for p in paths)]
+        bad += [f"the READ entry {e!r} lies under no INERT entry" for e in self.read
+                if not any(_under(e, i) for i in self.inert)]
+        return bad
+
+
+#: ⛔ THE CLASSIFICATION. Nothing a test reads is INERT; `watch` proves it on every Linux test run, and an entry that
+#: names no tracked path is stale (`check`, held by InertLaneDriftTests). A READ entry, when one is needed, lies under
+#: an INERT entry and names the tests that read it: the path is then the full lane until they stop.
+CLASSIFICATION = Classification(inert={
+    "DEVLOG/": "the development log: read by scripts/devlog.py (CI's devlog step, the landing checks, its self-test's "
+               "lint of every entry) and by people",
+})
 
 
 def changed(root: Path, base: str, head: str = "HEAD") -> list[str]:
@@ -110,15 +131,6 @@ def tracked(root: Path) -> list[str]:
     return [p for p in out.decode("utf-8").split("\0") if p]
 
 
-def check(root: Path) -> list[str]:
-    """Every INERT and READ entry names at least one tracked path, and every READ entry lies under an INERT one."""
-    paths = tracked(root)
-    bad = [f"the {kind} entry {e!r} names no tracked path: remove it, or correct it" for kind, entries in
-           (("INERT", INERT), ("READ", READ)) for e in entries if not any(_under(p, e) for p in paths)]
-    bad += [f"the READ entry {e!r} lies under no INERT entry" for e in READ if not any(_under(e, i) for i in INERT)]
-    return bad
-
-
 # ── the watch (Linux inotify, through ctypes: no package to install on a CI runner or in WSL) ────────────────────────
 
 IN_OPEN = 0x00000020
@@ -128,25 +140,14 @@ EVENT = struct.Struct("iIII")
 WATCH_VERDICT = "=== INERT WATCH: "
 
 
-def watch_dirs(root: Path) -> list[str]:
-    """The directories to watch: the directory every inert tracked FILE lies in, and an inert tracked path that is itself
-    a directory (a submodule's gitlink). A watched directory reports an open of a file in it, named, and an open of the
-    directory itself (a listing), unnamed; so no directory above the inert ones is watched, and the many opens there
-    (the repository root's) never reach the watch."""
-    dirs: set[str] = set()
-    for p in tracked(root):
-        if is_inert(p):
-            dirs.add(p if (root / p).is_dir() else p.rpartition("/")[0])
-    return sorted(d for d in dirs if (root / d).is_dir())
-
-
 class Watch:
-    """An inotify watch of `dirs` under `root`, recording every OPEN of an inert path (`hits`) and any queue overflow."""
+    """An inotify watch of `dirs` under `root`, recording every OPEN of a path `c` calls inert (`hits`) and any queue
+    overflow (`overflow`), which leaves the watch unable to say nothing was read."""
 
-    def __init__(self, root: Path, dirs: list[str]):
+    def __init__(self, root: Path, dirs: list[str], c: Classification):
         import ctypes
         import ctypes.util
-        self.root, self.hits, self.overflow = root, set(), False
+        self.c, self.hits, self.overflow = c, set(), False
         self.libc = ctypes.CDLL(ctypes.util.find_library("c") or "libc.so.6", use_errno=True)
         self.fd = self.libc.inotify_init1(os.O_NONBLOCK | os.O_CLOEXEC)
         if self.fd < 0:
@@ -155,7 +156,8 @@ class Watch:
         for d in dirs:
             w = self.libc.inotify_add_watch(self.fd, str(root / d).encode(), IN_OPEN)
             if w < 0:
-                raise OSError(ctypes.get_errno(), f"inotify_add_watch failed on {d or '.'} (raise fs.inotify.max_user_watches?)")
+                os.close(self.fd)
+                raise OSError(ctypes.get_errno(), f"inotify_add_watch failed on {d} (raise fs.inotify.max_user_watches?)")
             self.wd[w] = d
 
     def drain(self, timeout: float) -> None:
@@ -175,10 +177,8 @@ class Watch:
                 d = self.wd.get(wd)
                 if d is None:
                     continue
-                path = "/".join(x for x in (d, name) if x)
-                if mask & IN_ISDIR:
-                    path += "/"
-                if path and is_inert(path):
+                path = "/".join(x for x in (d, name) if x) + ("/" if mask & IN_ISDIR else "")
+                if self.c.is_inert(path):
                     self.hits.add(path)
             timeout = 0
 
@@ -186,25 +186,29 @@ class Watch:
         os.close(self.fd)
 
 
-def watch(root: Path, command: list[str], events: Path | None, say=print) -> int:
+def watch(root: Path, command: list[str], events: Path | None, say=print, c: Classification = CLASSIFICATION) -> int:
     """Run `command` under a watch of the inert paths: its exit code when non-zero, else 1 when it opened an inert path
-    or the watch overflowed, else 0. The verdict line names what was read."""
+    or the watch overflowed, else 0. The verdict line names what was read; `events` (written empty once the watch is
+    installed: the readiness mark a caller waiting on it reads) receives every path read, one per line."""
     if not sys.platform.startswith("linux"):
-        say(f"{WATCH_VERDICT}NOT RUN — inotify is Linux's; this host is {sys.platform}")
+        say(f"{WATCH_VERDICT}NOT RUN — inotify is Linux's; this host is {sys.platform} ===")
         return 2
-    dirs = watch_dirs(root)
-    w = Watch(root, dirs)
+    dirs = c.watch_dirs(root)
+    w = Watch(root, dirs, c)
     say(f"inert watch: {len(dirs)} director(ies) under {root} watched while `{' '.join(command)}` runs")
     if events is not None:
-        events.write_text("", encoding="utf-8", newline="\n")  # the readiness mark a caller waiting on the watch reads
-    child = subprocess.Popen(command)
+        events.write_text("", encoding="utf-8", newline="\n")
     try:
-        while child.poll() is None:
-            w.drain(0.5)
-        w.drain(0.2)
+        child = subprocess.Popen(command)
+        try:
+            while child.poll() is None:
+                w.drain(0.5)
+            w.drain(0.2)
+        finally:
+            if child.poll() is None:
+                child.kill()
+                child.wait()
     finally:
-        if child.poll() is None:
-            child.kill()
         w.close()
     rc = child.returncode
     hits = sorted(w.hits)
@@ -218,8 +222,10 @@ def watch(root: Path, command: list[str], events: Path | None, say=print) -> int
     if hits:
         for h in hits[:40]:
             say(f"    opened: {h}")
+        if len(hits) > 40:
+            say(f"    … and {len(hits) - 40} more{f' (all in {events})' if events else ''}")
         say(f"{WATCH_VERDICT}RED — {len(hits)} inert path(s) were opened while the tests ran, so the inert lane would "
-            "skip a test that reads them: give each its READ entry in scripts/inert_lane.py naming its reader, or make "
+            "skip a test that reads them: give each a READ entry in scripts/inert_lane.py naming its reader, or make "
             "the reader an audit (kb/Work PB2878) ===")
         return rc or 1
     say(f"{WATCH_VERDICT}GREEN — no inert path was opened ({len(dirs)} director(ies) watched; command exit {rc}) ===")
@@ -237,19 +243,23 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    expect("a DEVLOG entry and a kb page are inert", [is_inert("DEVLOG/2428-x.md"), is_inert("kb/Spec/x.md"),
-                                                      is_inert("kb/Work.base")], [True, True, True])
-    expect("a register note is READ, not inert, and so is the register's directory",
-           [is_inert("kb/Work/PB1.md"), is_inert("kb/Work/")], [False, False])
-    expect("the pin is inert, a file under the submodule's name too; a sibling with a longer name is not",
-           [is_inert("tools/claude-skills"), is_inert("tools/claude-skills/x"), is_inert("tools/claude-skills-x")],
-           [True, True, False])
-    expect("code, tests, docs, briefs and the root files are not inert",
-           [is_inert(p) for p in ("src/a.cs", "tests/b.cs", "docs/CONFORMANCE.md", ".claude/skills/x/SKILL.md",
-                                   "CLAUDE.md", "DEVLOG", "kbx/y")], [False] * 7)
-    expect("an empty change is the full lane", classify([]).inert, False)
-    expect("a DEVLOG-and-kb change is the inert lane", classify(["DEVLOG/pending-x.md", "kb/Spec/y.md"]).name, "inert")
-    expect("one path a test may read makes the change full", classify(["DEVLOG/a.md", "kb/Work/PB1.md"]).name, "full")
+    real = CLASSIFICATION
+    expect("the classification: a DEVLOG entry is inert; code, tests, docs, briefs, the register, the knowledge base, "
+           "the root files and the skills pin are not",
+           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "src/a.cs", "tests/b.cs", "docs/CONFORMANCE.md",
+                                        ".claude/skills/x/SKILL.md", "kb/Work/PB1.md", "kb/Spec/x.md", "CLAUDE.md",
+                                        "tools/claude-skills", "DEVLOG", "DEVLOGX/a.md")],
+           [True] + [False] * 10)
+    # The mechanics, on a planted classification with a READ entry.
+    c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
+    expect("a path under an INERT entry is inert; under a READ entry it is not, nor its directory",
+           [c.is_inert("DEVLOG/a.md"), c.is_inert("kb/Spec/x.md"), c.is_inert("kb/Work.base"),
+            c.is_inert("kb/Work/PB1.md"), c.is_inert("kb/Work/")], [True, True, True, False, False])
+    expect("an exact-path entry covers that path and below it, never a sibling with a longer name",
+           [c.is_inert("tools/pin"), c.is_inert("tools/pin/x"), c.is_inert("tools/pin-x")], [True, True, False])
+    expect("an empty change is the full lane", c.classify([]).inert, False)
+    expect("an all-inert change is the inert lane", c.classify(["DEVLOG/pending-x.md", "kb/Spec/y.md"]).name, "inert")
+    expect("one path a test may read makes the change full", c.classify(["DEVLOG/a.md", "kb/Work/PB1.md"]).name, "full")
     with tempfile.TemporaryDirectory(prefix="inert-lane-") as d:
         root = Path(d)
 
@@ -268,28 +278,28 @@ def self_test() -> int:
         git("mv", "src/a.cs", "DEVLOG/a.cs")
         git("commit", "-q", "-m", "rename")
         expect("a code file renamed INTO an inert directory shows both names, so the change is full",
-               (sorted(changed(root, base)), classify(changed(root, base)).name), (["DEVLOG/a.cs", "src/a.cs"], "full"))
-        expect("the watch covers every directory an inert tracked path lies in, the register's excluded",
-               watch_dirs(root), ["DEVLOG", "kb/Spec"])
+               (sorted(changed(root, base)), c.classify(changed(root, base)).name),
+               (["DEVLOG/a.cs", "src/a.cs"], "full"))
+        expect("the watch covers the directory of every inert tracked file, none above them, the READ ones excluded",
+               c.watch_dirs(root), ["DEVLOG", "kb/Spec"])
+        expect("check: an entry naming no tracked path is stale, and so is a READ entry under no INERT one",
+               len(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}).check(root)), 3)
         if sys.platform.startswith("linux"):
-            reader = [sys.executable, "-c", "import sys; open(sys.argv[1]).read()"]
-            lister = [sys.executable, "-c", "import os, sys; os.listdir(sys.argv[1])"]
-            silent: list[str] = []
+            py = [sys.executable, "-c"]
+            out: list[str] = []
             expect("a command that reads an inert file is RED, naming it",
-                   (watch(root, reader + [str(root / "DEVLOG" / "0001-x.md")], None, silent.append) != 0,
-                    any("opened: DEVLOG/0001-x.md" in s for s in silent)), (True, True))
-            silent.clear()
+                   (watch(root, py + [f"open({str(root / 'DEVLOG' / '0001-x.md')!r}).read()"], None, out.append, c) != 0,
+                    any("opened: DEVLOG/0001-x.md" in s for s in out)), (True, True))
+            out.clear()
             expect("a command that LISTS an inert directory is RED",
-                   (watch(root, lister + [str(root / "kb" / "Spec")], None, silent.append) != 0,
-                    any("opened: kb/Spec/" in s for s in silent)), (True, True))
-            silent.clear()
-            expect("a read of a file renamed into an inert directory is caught beside a READ path's",
-                   watch(root, [sys.executable, "-c", f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); "
-                                f"open({str(root / 'DEVLOG' / 'a.cs')!r})"], None, silent.append), 1)
-            silent.clear()
-            expect("a command that reads nothing inert is GREEN and keeps its own exit code",
-                   watch(root, [sys.executable, "-c", f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); "
-                                "raise SystemExit(3)"], None, silent.append), 3)
+                   (watch(root, py + [f"import os; os.listdir({str(root / 'kb' / 'Spec')!r})"], None, out.append, c) != 0,
+                    any("opened: kb/Spec/" in s for s in out)), (True, True))
+            out.clear()
+            events = root / "events.txt"
+            expect("a command that reads only a READ path and code is GREEN, keeps its own exit code, and leaves an "
+                   "empty events file",
+                   (watch(root, py + [f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); raise SystemExit(3)"],
+                          events, out.append, c), events.read_text(encoding="utf-8")), (3, ""))
         else:
             print(f"  skip the inotify arms: this host is {sys.platform} (they run in CI's audits job and the Linux gate)")
     print(f"=== INERT LANE SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
@@ -318,7 +328,7 @@ def main(argv: list[str]) -> int:
     args = ap.parse_args(argv)
     if args.cmd == "classify":
         try:
-            lane = classify(changed(args.root, args.base, args.head))
+            lane = CLASSIFICATION.classify(changed(args.root, args.base, args.head))
         except (subprocess.CalledProcessError, OSError) as e:
             lane = Lane(False, f"the change could not be listed ({e}): the full lane")
         print(f"lane={lane.name}")
@@ -328,12 +338,13 @@ def main(argv: list[str]) -> int:
         if not command:
             ap.error("watch needs a command after --")
         return watch(args.root.resolve(), command, args.events)
-    bad = check(args.root)
+    bad = CLASSIFICATION.check(args.root)
     for b in bad:
         print(f"    {b}")
-    n = sum(1 for p in tracked(args.root) if is_inert(p))
+    n = sum(1 for p in tracked(args.root) if CLASSIFICATION.is_inert(p))
     print(f"=== INERT LANE CHECK: {'RED — ' + str(len(bad)) + ' stale entr(ies)' if bad else 'GREEN'} — "
-          f"{n} tracked inert path(s) under {len(INERT)} INERT entr(ies), {len(READ)} READ ===")
+          f"{n} tracked inert path(s) under {len(CLASSIFICATION.inert)} INERT entr(ies), "
+          f"{len(CLASSIFICATION.read)} READ ===")
     return 1 if bad else 0
 
 
