@@ -1,4 +1,4 @@
-## Commit and rollback for sequential files: the transaction journal (PB3340)
+## Entry 2439 — 2026-10-23 22:31 PDT — Commit and rollback for sequential files: the transaction journal (PB3340)
 
 **PB3340 (wave 1157, group A, the finisher).** §9.1.18.2 admits *"any type of file on a mass storage device"* except sort-merge
 and report files, and the runtime gave commit and rollback to the keyed organizations only: the compiler refused a SEQUENTIAL
@@ -158,3 +158,4 @@ c44a069c2's tree (the base) and main, so main's own later changes (PB3576, PB357
 then reverse-applied the abandoned journal's hunks and deleted its five files (no forwarder: this branch's `IO/IHostMedium.cs`,
 `Sharing/SequentialJournal.cs` and `FaultHostMedium.cs` are the one seam, journal and medium). Verified by
 `git diff <the pre-merge head>` over src, tests, conformance-suite and docs: only main's changes differ.
+
