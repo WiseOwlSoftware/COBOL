@@ -919,9 +919,10 @@ def self_test_r2():
 def stage(root):
     """The self-test's scratch tree as a git repository with every file staged: `work.named_missing_paths` reads the
     git index, so a planted file exists for it only once staged."""
-    if not os.path.isdir(os.path.join(root, ".git")):
-        subprocess.run(["git", "-C", root, "init", "-q"], check=True)
-    subprocess.run(["git", "-C", root, "add", "-A"], check=True)
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    repo = ScratchRepo(root) if os.path.isdir(os.path.join(root, ".git")) else ScratchRepo.init(root)
+    repo.git("add", "-A")
 
 
 def self_test():

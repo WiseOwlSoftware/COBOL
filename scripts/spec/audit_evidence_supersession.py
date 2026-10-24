@@ -307,8 +307,9 @@ def self_test() -> int:
     a check. Each arm below is run twice — once on a document built to break it, once on the same document with
     the marker in place — because either half alone is compatible with a checker that always says the same thing.
     """
-    import subprocess
     import tempfile
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     rules = {"realRule": [("Fake.g4", 10, 12)]}
     banner = f"FROZEN — a refuted claim carries {MARKER_KEY}."
     marker = {"note": "PB712", "date": "2026-09-06", "why": "refuted"}
@@ -324,7 +325,7 @@ def self_test() -> int:
     ok = True
     with tempfile.TemporaryDirectory() as d:
         root = pathlib.Path(d)
-        subprocess.run(["git", "-C", d, "init", "-q"], check=True)   # the path arm reads the git index
+        scratch = ScratchRepo.init(root)   # the path arm reads the git index
         p = root / "case.json"
         for kind, doc, silencer in cases:
             p.write_text(json.dumps(doc, indent=1), encoding="utf-8", newline="\n")
@@ -342,7 +343,7 @@ def self_test() -> int:
         # or the `path` arm fires first and "gates nothing" would pass for the wrong reason.
         (root / "src" / "Cobol.Net.Frontend" / "Grammar" / "Core").mkdir(parents=True, exist_ok=True)
         (root / "src" / "Cobol.Net.Frontend" / "Grammar" / "Core" / "Fake.g4").write_text("", encoding="utf-8", newline="\n")
-        subprocess.run(["git", "-C", d, "add", "-A"], check=True)
+        scratch.git("add", "-A")
         p.write_text(json.dumps({BANNER_KEY: banner,
                                  "e": ["src/Cobol.Net.Frontend/Grammar/Core/Fake.g4:900 — realRule"]}, indent=1),
                      encoding="utf-8", newline="\n")
