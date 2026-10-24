@@ -2008,6 +2008,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   but a column another run unit holds and Table 19 refuses the request is a conflict the host still sees, so
   `HandleColumnLockHost.Unpublishable` tests the refused columns (the asker's own bytes left out) before it answers and
   an exhausted publication beside such a holder is `Refused`, '61' (`...IsRefusedByAHeldColumnTable19Refuses`; PB3518).
+  `Publish` tells the two ways to fail apart (`RegionLockResult.Held`: every try collided; `Unavailable`: the handle or
+  filesystem carries no byte-range lock) and only the first goes on to test the refused columns: a handle that cannot lock
+  cannot test either, and is `Unavailable`, never a '61' no other connector contradicts
+  (`...AHandleThatCarriesNoLockIsUnavailable...`; PB3518 review round 1).
   A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN

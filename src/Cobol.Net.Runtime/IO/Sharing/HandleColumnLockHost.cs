@@ -91,8 +91,8 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             if (previous is not null && previous.Own == own) publishedByte = previous.Byte;   // the column stands as it is
             else
             {
-                publishedByte = Publish(handle, HostRegionLocks.ColumnRangeStart(own));
-                if (publishedByte < 0) return Unpublishable(handle, refused, OwnBytes(previous, own, -1));
+                var columnTaken = Publish(handle, HostRegionLocks.ColumnRangeStart(own), out publishedByte);
+                if (columnTaken != RegionLockResult.Ok) return Unpublishable(handle, columnTaken, refused, OwnBytes(previous, own, -1));
                 added = publishedByte;
             }
 
@@ -102,8 +102,8 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             long owedByte = owesWrites ? supersededOwed : -1;
             if (owesWrites && owedByte < 0)
             {
-                owedByte = Publish(handle, HostRegionLocks.OwedWritesRangeStart);
-                if (owedByte < 0) return Unpublishable(handle, refused, OwnBytes(previous, own, added));
+                var owedTaken = Publish(handle, HostRegionLocks.OwedWritesRangeStart, out owedByte);
+                if (owedTaken != RegionLockResult.Ok) return Unpublishable(handle, owedTaken, refused, OwnBytes(previous, own, added));
                 addedOwed = owedByte;
             }
 
@@ -161,31 +161,45 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// goes on with the share modes alone), yet a column another run unit has already published and Table 19 refuses this
     /// request is a conflict this host CAN see, so it is <see cref="RunUnitFileLock.Outcome.Refused"/> exactly as after a
     /// publication (§9.1.13.9 1)'s '61'). The converse never holds: no request is refused for failing to publish. The
-    /// same two answers as <see cref="SidecarColumnLockHost"/> gives a lock directory this user may not write.</summary>
+    /// same two answers as <see cref="SidecarColumnLockHost"/> gives a lock directory this user may not write.
+    /// <para><paramref name="failed"/> says WHY the publication failed. <see cref="RegionLockResult.Held"/> is an exhausted
+    /// publication on a handle that carries locks, so the columns are there to be seen. <see cref="RegionLockResult.Unavailable"/>
+    /// is a handle or filesystem that carries no byte-range lock (<see cref="IColumnLockHost.Establish"/>: a host failure to
+    /// publish or test is Unavailable): the test of the refused columns fails the same way, and its "an unobservable
+    /// holder is a holder" answer would refuse an OPEN no other connector contradicts, so nothing is tested.</para></summary>
     [SupportedOSPlatform("windows")]
-    private static RunUnitFileLock.Outcome Unpublishable(SafeFileHandle handle, IReadOnlyList<ExistingSharingColumn> refused,
-        ReadOnlySpan<(ExistingSharingColumn Column, long Byte)> ownBytes) =>
-        AnotherHoldsARefusedColumn(handle, refused, ownBytes) ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
+    internal static RunUnitFileLock.Outcome Unpublishable(SafeFileHandle handle, RegionLockResult failed,
+        IReadOnlyList<ExistingSharingColumn> refused, ReadOnlySpan<(ExistingSharingColumn Column, long Byte)> ownBytes) =>
+        failed == RegionLockResult.Held && AnotherHoldsARefusedColumn(handle, refused, ownBytes)
+            ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
 
     /// <summary>Hold exclusively one byte of the range starting at <paramref name="rangeStart"/> (a column's, or the
-    /// owed-writes range) through <paramref name="handle"/>, chosen at random, and answer it; -1 when this host cannot (the
-    /// attempts ran out, or the handle carries no lock).</summary>
+    /// owed-writes range) through <paramref name="handle"/>, chosen at random: <see cref="RegionLockResult.Ok"/> with the
+    /// byte in <paramref name="published"/>; <see cref="RegionLockResult.Held"/> when every try collided with a holder or a
+    /// tester; <see cref="RegionLockResult.Unavailable"/> when the handle carries no lock. The last two leave
+    /// <paramref name="published"/> -1.</summary>
     [SupportedOSPlatform("windows")]
-    private static long Publish(SafeFileHandle handle, long rangeStart)
+    private static RegionLockResult Publish(SafeFileHandle handle, long rangeStart, out long published) =>
+        Publish(rangeStart, candidate => WindowsByteRangeLocks.Lock(handle, candidate, 1, exclusive: true, wait: false), out published);
+
+    /// <summary>The publication loop over <paramref name="tryLock"/> (one exclusive byte at a candidate): see
+    /// <see cref="Publish(SafeFileHandle, long, out long)"/>.</summary>
+    internal static RegionLockResult Publish(long rangeStart, Func<long, RegionLockResult> tryLock, out long published)
     {
+        published = -1;
         for (int attempt = 0; attempt < PublishAttempts; attempt++)
         {
             // A tester's shared request over the range lasts microseconds: the first retries yield, the later ones wait
             // a millisecond, so a run of tries cannot all fall inside one tester's instant.
             if (attempt > 0) { if (attempt < 8) Thread.Yield(); else Thread.Sleep(1); }
             long candidate = rangeStart + Random.Shared.NextInt64(HostRegionLocks.ColumnRangeWidth);
-            switch (WindowsByteRangeLocks.Lock(handle, candidate, 1, exclusive: true, wait: false))
+            switch (tryLock(candidate))
             {
-                case RegionLockResult.Ok: return candidate;
-                case RegionLockResult.Unavailable: return -1;
+                case RegionLockResult.Ok: published = candidate; return RegionLockResult.Ok;
+                case RegionLockResult.Unavailable: return RegionLockResult.Unavailable;
             }
         }
-        return -1;
+        return RegionLockResult.Held;
     }
 
     /// <summary>A superseding request under SHARING WITH NO OTHER (see the class remarks): test every column it refuses

@@ -499,6 +499,45 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ A HANDLE THAT CARRIES NO BYTE-RANGE LOCK IS UNAVAILABLE, NEVER REFUSED, WHATEVER IS HELD (kb/Work PB3518, review
+    /// round 1): <see cref="IColumnLockHost.Establish"/> answers <i>a host failure to publish or test</i> as
+    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, and §9.1.13.9 1) makes '61' another file connector's conflict, which a
+    /// filesystem that cannot lock proves nothing of. The publication loop tells the two failures apart
+    /// (<see cref="RegionLockResult.Unavailable"/> at the first try, <see cref="RegionLockResult.Held"/> only when every one of
+    /// its tries collided), and only the second goes on to look at the held columns: with a READ ONLY INPUT holder that
+    /// Table 19 refuses a SHARING WITH ALL OTHER I-O request (§14.9.27.4), the exhausted publication is Refused and the
+    /// unlockable handle is Unavailable.</summary>
+    [Fact]
+    public void AHandleThatCarriesNoLockIsUnavailableWhileAnExhaustedPublicationBesideAHolderIsRefused()
+    {
+        int tries = 0;
+        Assert.Equal(RegionLockResult.Unavailable, HandleColumnLockHost.Publish(0, _ => { tries++; return RegionLockResult.Unavailable; }, out var none));
+        Assert.Equal((1, -1L), (tries, none));   // a handle that carries no lock is not retried
+        tries = 0;
+        Assert.Equal(RegionLockResult.Held, HandleColumnLockHost.Publish(0, _ => { tries++; return RegionLockResult.Held; }, out none));
+        Assert.True(tries > 1);   // an exhausted publication chose another byte each time
+        Assert.Equal(-1L, none);
+        Assert.Equal(RegionLockResult.Ok, HandleColumnLockHost.Publish(100, candidate => { tries = (int)candidate; return RegionLockResult.Ok; }, out var at));
+        Assert.Equal(tries, at);
+
+        if (!OperatingSystem.IsWindows()) return;   // the rest is Windows byte-range locks
+        var (dir, file) = NewFile();
+        try
+        {
+            var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.IO);
+            var row = Table19.Row(sharing, mode);
+            var refused = Enum.GetValues<ExistingSharingColumn>().Where(column => Table19.Cell(row, column) == OpenSharingOutcome.UnsuccessfulOpen).ToArray();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            using (var probe = HostFile.OpenColumnHolder(file))
+            {
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, HandleColumnLockHost.Unpublishable(probe, RegionLockResult.Held, refused, []));
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, HandleColumnLockHost.Unpublishable(probe, RegionLockResult.Unavailable, refused, []));
+            }
+            kept!.Dispose();
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>⛔ AN OWED-WRITES BYTE THAT CANNOT BE PUBLISHED FAILS THE WHOLE REQUEST AND TAKES BACK THE COLUMN BYTE IT ALREADY
     /// ADDED (kb/Work PB3499, review round 1, MANDATORY-PRACTICES I11 exception path): the request publishes its column first
     /// and the owed-writes byte second, so an outside program that holds the whole owed-writes range exclusively collides every
