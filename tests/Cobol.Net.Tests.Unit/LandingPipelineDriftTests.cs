@@ -44,9 +44,11 @@ public sealed class LandingPipelineDriftTests
 
     /// <summary>The files that PERFORM the landing: the whole tree but the paths that describe it (design docs, the work
     /// register, the history, frozen evidence and adjudication records, the spec, and the test sources, as this file
-    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them.</summary>
+    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them. The
+    /// knowledge base and the vault's settings are set aside whole: a sweep that read them made the vault a test input
+    /// (kb/Work PB2878).</summary>
     private static readonly TreeScope NotNarrative = new(Under: [""],
-        Except: ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
+        Except: ["docs/", "kb/", ".obsidian/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
 
     private const string TheGuardedStep = "scripts/orchestrator/enqueue.py";
 
@@ -155,11 +157,14 @@ public sealed class LandingPipelineDriftTests
     private static readonly TreeScope RetiredOracleRecords = new(Under: ["docs/rearchitecture/evidence/arch-oracle/"]);
 
     /// <summary>The files that describe the current landing (DESIGN-test-build-ci.md §3.17.8): the whole tree but the
-    /// paths that keep the HISTORY, where a retired name is a fact about the past (the DEVLOG, frozen evidence, the work
-    /// register and adjudication records). This file names the retired scripts to forbid them, and is set aside by
-    /// <see cref="FilesNamingARetiredScript"/>. Declared (kb/Work PB3531).</summary>
+    /// paths that keep the HISTORY, where a retired name is a fact about the past (the DEVLOG, frozen evidence, the
+    /// knowledge base with its work register, and adjudication records). This file names the retired scripts to forbid
+    /// them, and is set aside by <see cref="FilesNamingARetiredScript"/>. Declared (kb/Work PB3531). The knowledge base
+    /// (<c>kb/</c>, with the Obsidian settings in <c>.obsidian/</c>) is set aside whole, as the sibling sweeps set it aside:
+    /// a sweep that read every note of it made the vault a test input, and no register-only change could then skip the
+    /// test legs (kb/Work PB2878).</summary>
     private static readonly TreeScope Current = new(Under: [""],
-        Except: ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/Work/", "adjudication/"]);
+        Except: ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/", ".obsidian/", "adjudication/"]);
 
     private const string ThisFile = "tests/Cobol.Net.Tests.Unit/LandingPipelineDriftTests.cs";
 
@@ -225,7 +230,8 @@ public sealed class LandingPipelineDriftTests
         string dir = ScratchDirectory.Create("landing-retired-");
         try
         {
-            string[] files = ["scripts/x.py", "skill/SKILL.md", "fine.md", "DEVLOG/0001-x.md", "kb/Work/PB1.md", ThisFile];
+            string[] files = ["scripts/x.py", "skill/SKILL.md", "fine.md", "DEVLOG/0001-x.md", "kb/Work/PB1.md",
+                              "kb/Compiler/Pipeline.md", ".obsidian/app.json", ThisFile];
             foreach (string f in files)
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dir, f))!);
             File.WriteAllText(Path.Combine(dir, "scripts/x.py"), "# run by push-main.sh");
@@ -233,6 +239,8 @@ public sealed class LandingPipelineDriftTests
             File.WriteAllText(Path.Combine(dir, "fine.md"), "land with `enqueue.py land`; the former direct-push landing script");
             File.WriteAllText(Path.Combine(dir, "DEVLOG/0001-x.md"), "train_apply.py landed it");
             File.WriteAllText(Path.Combine(dir, "kb/Work/PB1.md"), "push-main.sh held the lease");
+            File.WriteAllText(Path.Combine(dir, "kb/Compiler/Pipeline.md"), "push-main.sh held the lease");
+            File.WriteAllText(Path.Combine(dir, ".obsidian/app.json"), "push-main.sh");
             File.WriteAllText(Path.Combine(dir, ThisFile), "push-main.sh");
             Assert.Equal(new[] { "scripts/x.py", "skill/SKILL.md" }, FilesNamingARetiredScript(dir, files.Where(Current.Holds)));
         }
