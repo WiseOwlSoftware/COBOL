@@ -53,6 +53,12 @@ public sealed class ImpactedTestsDriftTests
             "tier 0a holds an edited test method: a changed [MemberData] source",
             "tier 0a holds an edited test method: a changed helper is no test's own change",
             "tier 0a holds an edited test method: a comment line added inside a test body",
+            // PB3190 review R1-1: a string's lines are code, read from the lexed source, never from a line regex
+            "tier 0a holds an edited test method: a raw-string line that looks like a comment",
+            "tier 0a holds an edited test method: a blank line inserted into a test's raw string",
+            "tier 0a holds an edited test method: a deleted verbatim-string line that starts `--`",
+            "a comment-looking line deleted from a string literal between methods is a declaration change",
+            "a real comment line deleted between methods reaches nothing",
             "a source whose braces do not balance once lexed puts every test method it names in tier 0a",
             "a replayed deletion of a test file names no test",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
@@ -98,7 +104,8 @@ public sealed class ImpactedTestsDriftTests
             "an expression-bodied data member, a helper and a property with an initializer are members, never tests",
             "a nested type's test method is read", "a tuple return type does not hide the method's name",
             "a class and a nested class are containers, not members", "a hunk touches a member",
-            "a hunk touches no member it does not reach", "the audit's balance",
+            "a hunk touches no member it does not reach", "code lines: a string literal's every line",
+            "the audit's balance",
             "the audit names a file whose braces do not balance");
 
         var r = PythonInstrument.Run(ObservationBudget.OneProcess,

@@ -31,11 +31,22 @@ changed theory data source left its classes "already tier 0a", which the code di
 (`--head`) of a commit that deletes a test file crashed the analysis, because it read the file at the head where it
 no longer exists (`19c9289af` replayed). A deleted file now names no test, and a self-test arm pins it.
 
+**Branch review R1-1, fixed.** The first version decided "a hunk of blank and comment lines" with a line regex, so a
+hunk inside a test's raw string, its embedded COBOL program, counted as a comment edit when its lines started `*` or
+`//` or were blank, and the test stayed out of tier 0a. Moving the `*>` indicator line of
+`ExceptionPerformSourceFormatScopeTests.AutoDetectedFixedForm_IsRestoredAtEndPerform` one column gave no edited test.
+Now `cs_members.code_lines` answers which lines carry code: every line a string literal touches, a blank one included,
+and any line with a character outside a comment. `parse_hunks` takes both sides' texts and flags each hunk line, and
+`Hunk.trivial`, `method_ids` and `inserted_members` read the flags; the line regex is deleted. The method level had the
+same leak: a comment-looking line deleted from a class-level raw string was not a declaration change. `parse_hunks` also
+dropped a content line starting `--` or `++` as a file header, which shifted the line numbers of the rest of the hunk;
+it no longer does.
+
 **Tests.** `cs_members.py --self-test` (11 arms: every string form, spans, data sources, nested types, a tuple return
 type, hunk touch rules, the audit firing on an unbalanced file and on an orphan attribute). `impacted_tests.py
 --self-test` gains seven arms over a real `git diff --no-index -U0`: an edited body line, a deleted body line, an added
 `[InlineData]` row, a changed `[MemberData]` source, a changed helper (not tier 0a), a comment line (not tier 0a) and
-an unbalanced source (every test). `ImpactedTestsDriftTests` pins them all by name.
+an unbalanced source (every test). `ImpactedTestsDriftTests` pins them all by name. The review fix adds a `code_lines` arm to `cs_members.py` and five arms to `impacted_tests.py` (a `*>` raw-string line, a blank line in a raw string, a deleted `--` verbatim line, and the method level's string-line and comment-line deletions), each red against the old code.
 
 **Design.** `DESIGN-test-build-ci.md` sections 3.14.2 (tier 0a) and 3.13 now say an edited test method is tier 0a by its own
 span, never its file's; the M11 correction (a whole changed test file is not tier 0a) still stands. An edited harness,
