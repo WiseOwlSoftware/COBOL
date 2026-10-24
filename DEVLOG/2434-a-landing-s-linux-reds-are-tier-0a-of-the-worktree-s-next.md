@@ -50,3 +50,12 @@ gate's `selftests` and `guard` legs write no trx, and a self-test whose inputs c
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,360 · Unit 1,369 · Characterization 31 … — Conformance 9,983/18,343 · Unit 34,455/35,824 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … run 000002-20261024T021714Z) ===`; the new `GateLegDriftTests.EveryTrxWriter_IsARedSourceOfThePlan_OrSaysWhyNot` ran in
 leg 1 and passed.
 
+**The merge queue bounced the first pull request (#467)** before it entered the queue: CI's `audits` job (run
+40058938921) failed `scripts/scratch_repo.py --self-test`, two findings at the trx writers audit's self-test
+(`gate_plan.py`: INIT, a self-test creating its repository with `git init`; SPAWN, a self-test starting git itself).
+PB3584's fixture audit had landed on main in the meantime, and the landing's merge of main put it beside this branch's
+self-test, which built its scratch repository by hand. The self-test now builds it with `ScratchRepo.init`, writes the
+planted tools through the fixture, and calls `isolate()` first, because the code under test (`audit_trx_writers`)
+runs `git ls-files` itself. The design's plan file format (DESIGN-test-build-ci.md section 3.14.2) now lists the
+plan's `"reds"` field (branch review lead R1-1).
+

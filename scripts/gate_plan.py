@@ -894,18 +894,18 @@ def self_test() -> int:
 
     # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
     # writes none, and a row whose results directory its tool never names are each a finding.
+    # The scratch repository is the one fixture's (kb/Work PB3584), and the process is isolated from the caller's
+    # repository first, because the code under test (audit_trx_writers) runs `git ls-files` itself.
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    isolate()
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
         planted = {"scripts/run_gate_legs.py": f"{TRX_LOGGER_MARK}x  # {TRX_WRITERS['scripts/run_gate_legs.py'][0]}",
                    "scripts/linux-gate.sh": f"--logger {TRX_LOGGER_MARK}unit.trx  # writes somewhere else",
                    "scripts/new_gate.sh": f"--logger {TRX_LOGGER_MARK}new.trx", "scripts/reader.py": "no logger"}
-        for rel, text in planted.items():
-            (repo / rel).parent.mkdir(parents=True, exist_ok=True)
-            (repo / rel).write_text(text + "\n", encoding="utf-8", newline="\n")
-        git_ = ["git", "-c", "user.name=gate-plan", "-c", "user.email=gate-plan@invalid",
-                "-c", "init.defaultBranch=main"]
-        for argv in (["init", "-q"], ["add", "-A"]):
-            subprocess.run(git_ + argv, cwd=repo, check=True, capture_output=True)
+        scratch = ScratchRepo.init(repo)
+        scratch.write({rel: text + "\n" for rel, text in planted.items()})
+        scratch.git("add", "-A")
         seen, bad = audit_trx_writers(repo)
         findings = "\n".join(bad)
         check("the trx writers audit: a writer with no row, a row whose tool is gone and a row whose results "
