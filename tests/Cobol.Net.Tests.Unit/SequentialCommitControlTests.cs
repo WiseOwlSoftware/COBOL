@@ -726,6 +726,189 @@ public sealed class SequentialCommitControlTests
         finally { TryDeleteDirectory(dir); }
     }
 
+    /// <summary>F's bytes as they stand while connectors hold it open for writing (a reader that shares with them).</summary>
+    private static byte[] ReadBesideTheWriters(string f)
+    {
+        using var read = new FileStream(f, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var copy = new MemoryStream();
+        read.CopyTo(copy);
+        return copy.ToArray();
+    }
+
+    /// <summary>A medium that REFUSES every <paramref name="operation"/> (a <c>kind name</c> log entry) while <paramref name="armed"/>
+    /// answers true: the refusal of 2.2.2.12, kept up across a statement's retry.</summary>
+    private static FaultHostMedium Refusing(string operation, Func<bool> armed, Action? onEntryMutex = null) => new()
+    {
+        BeforeOperation = op =>
+        {
+            if (op == operation && armed()) throw new IOException($"the test medium refused {op}");
+        },
+        OnEntryMutex = onEntryMutex,
+    };
+
+    /// <summary>⛔ A TRANSACTION WHOSE ROLLBACK THE MEDIUM REFUSED IS NEVER COMMITTED (review finding R1-3 of kb/Work PB3340;
+    /// §14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement"</i>; design 2.2.2.7,
+    /// the keyed rule of 2.2.1.10 (5) in its one place, <c>FileRegistry.CommitHolder</c>): C1C2 replaced by an OPEN OUTPUT (the
+    /// capture), X1 written, CLOSE, and a ROLLBACK whose restore the medium refuses at the copy of the before file into F, which
+    /// its truncation has already emptied ('30'; the program does not test it). The run unit's normal termination (its implicit
+    /// COMMIT, §14.6.11 1)) or a program COMMIT is refused while the rollback is owed — the COMMIT '30', the file's name returned —
+    /// and the ROLLBACK that follows restores C1C2; committed, F stayed empty and the before file was retired with it.</summary>
+    [Theory]
+    [InlineData("termination")]
+    [InlineData("commit")]
+    public void A_transaction_whose_rollback_the_medium_refused_is_never_committed(string next)
+    {
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            bool refuse = false;
+            var medium = Refusing("write f.dat", () => refuse);
+            var u = new Unit(f, covered: true, medium);
+            Ok(u.Open(FileOpenMode.Output));
+            Ok(u.Write("X1"));
+            Ok(u.Close());
+            refuse = true;
+            Assert.Equal(Unit.N, u.Reg.Rollback());
+            Assert.Equal("30", u.Reg.Status(Unit.N));
+            refuse = false;
+            Assert.Equal("", File.ReadAllText(f, Encoding.Latin1));   // the restore stopped after its truncation: the rollback is owed
+            if (next == "commit")
+            {
+                Assert.Equal(Unit.N, u.Reg.Commit());   // refused before it touches the medium
+                Assert.Equal("30", u.Reg.Status(Unit.N));
+                Assert.Equal("", File.ReadAllText(f, Encoding.Latin1));
+                Assert.Null(u.Reg.Rollback());          // the owed rollback, run again, restores
+                Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            }
+            u.Reg.CloseAll();   // the implicit COMMIT of a normal termination: refused while owed, and the ROLLBACK it falls back on restores
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { TryDeleteDirectory(dir); }
+    }
+
+    /// <summary>⛔ A REFUSED ROLLBACK CLOSES THE HANDLE IT OPENED FOR THE PURPOSE (review finding R1-5 of kb/Work PB3340; design
+    /// 2.2.2.7): C1C2 extended by X1 (START P, L = 4) and CLOSEd; a ROLLBACK refused at the truncation to L leaves the transaction
+    /// owed, and the clause then deactivated (kb/Work PB3541's owed case) leaves no covered connector on the file, so the next
+    /// ROLLBACK reaches F through a handle of the medium opened for it — refused at the truncation again, it closes that handle
+    /// (a Windows handle opened without delete sharing, left to the finalizer, refused the owed rollback's own START A removal
+    /// and another run unit's exclusive OPEN); the third ROLLBACK restores C1C2.</summary>
+    [Fact]
+    public void A_refused_rollback_closes_the_handle_it_opened_for_the_purpose()
+    {
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            bool refuse = false;
+            var medium = Refusing("setlength f.dat", () => refuse);
+            var u = new Unit(f, covered: true, medium);
+            Ok(u.Open(FileOpenMode.Extend));
+            Ok(u.Write("X1"));
+            Ok(u.Close());
+            refuse = true;
+            Assert.NotNull(u.Reg.Rollback());
+            u.Reg.ReleaseCommitControl(Unit.N);
+            Assert.NotNull(u.Reg.Rollback());
+            Assert.Contains("aux f.dat", medium.Log);   // the second rollback reached F through a handle opened for it
+            Assert.Equal(0, medium.LiveAuxiliaryHandles);
+            refuse = false;
+            Assert.Null(u.Reg.Rollback());
+            Assert.Equal(0, medium.LiveAuxiliaryHandles);
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            u.Reg.CloseAll();
+            Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { TryDeleteDirectory(dir); }
+    }
+
+    /// <summary>⛔ A DEAD TRANSACTION WHOSE FILE IS SHORTER THAN ITS COMMITTED LENGTH IS SETTLED (review finding R1-4 of kb/Work
+    /// PB3340; design 2.2.2.7, §9.1.18.5 for the terminations the runtime cannot see): L counts what the operating environment
+    /// was handed, another connector's released and never synced appends included, and a power loss takes those; the external
+    /// truncation below stands for it (F loses the bytes past C1, the killed run unit's X1 with them). None of the transaction's
+    /// appends survived, so the next writable OPEN settles it leaving F as it stands — the settle used to refuse a truncation
+    /// that would extend F, and every later writable OPEN answered '30' until an administrator removed the lock directory.</summary>
+    [Fact]
+    public void A_dead_transaction_whose_file_is_shorter_than_its_committed_length_is_settled()
+    {
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium();
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));             // L = 4
+            }
+            medium.Kill();
+            using (var cut = new FileStream(f, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete)) cut.SetLength(2);
+            var b = new Unit(f, covered: false);
+            Ok(b.Open(FileOpenMode.Extend));   // its entry step settles the dead transaction first
+            Ok(b.Write("B1"));
+            b.Reg.CloseAll();
+            Assert.Equal("C1B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { TryDeleteDirectory(dir); }
+    }
+
+    /// <summary>⛔ AN UNCOVERED WRITER'S RECORD IS NEVER CUT BY A TRANSACTION THAT BEGINS DURING ITS WRITE (review finding R1-1 of
+    /// kb/Work PB3340; design 2.2.2.3, <c>SequentialConnector.UncoveredChangeGuard</c>; §14.9.51.4 GR19, <i>"the added records
+    /// follow the records present in the physical file when it was opened"</i>, and GR12's release): run unit B, no APPLY COMMIT,
+    /// and run unit A, APPLY COMMIT ON F, both OPEN EXTEND under SHARING WITH ALL OTHER. A's first WRITE is run at the instant
+    /// B's WRITE releases its record to the medium (the fault-injecting medium's <c>BeforeOperation</c> seam), and B waits until
+    /// A's WRITE has either finished or asked for the entry mutex while B holds it. B's lock test and release are one step under
+    /// the mutex, so A's transaction begins after B's record is in F and its L counts it: B's next WRITE meets A's END holding
+    /// ('51'), and A's ROLLBACK leaves B1. Tested outside the mutex, A began, read L = 2 and appended before B's bytes landed past
+    /// it, and A's ROLLBACK truncated B's record away.</summary>
+    [Fact]
+    public async Task An_uncovered_writers_record_is_never_cut_by_a_transaction_that_begins_during_its_write()
+    {
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1", Encoding.Latin1);
+            int aAsked = 0, bAsked = 0;
+            var a = new Unit(f, covered: true, new FaultHostMedium { OnEntryMutex = () => Interlocked.Exchange(ref aAsked, 1) },
+                sharing: FileSharing.AllOther);
+            Ok(a.Open(FileOpenMode.Extend));
+            Task<string>? aWrite = null;
+            var bMedium = new FaultHostMedium
+            {
+                OnEntryMutex = () => Interlocked.Exchange(ref bAsked, 1),
+                BeforeOperation = op =>
+                {
+                    if (op != "write f.dat" || aWrite is not null) return;
+                    aWrite = Task.Run(() => a.Write("X1"));
+                    SpinWait.SpinUntil(() => aWrite.IsCompleted || (Volatile.Read(ref aAsked) == 1 && Volatile.Read(ref bAsked) == 1));
+                },
+            };
+            var b = new Unit(f, covered: false, bMedium, sharing: FileSharing.AllOther);
+            Ok(b.Open(FileOpenMode.Extend));
+            Interlocked.Exchange(ref bAsked, 0);   // only the WRITE's own hold counts
+            Ok(b.Write("B1"));
+            Assert.NotNull(aWrite);
+            Ok(await aWrite!);   // A's first change waited for B's release: its L counts B1
+            Assert.Equal("51", b.Write("B2"));       // A's transaction holds the end of the file
+            OkRollback(a);
+            Assert.Equal("C1B1", Encoding.Latin1.GetString(ReadBesideTheWriters(f)));
+            Ok(b.Write("B2"));
+            b.Reg.CloseAll();
+            a.Reg.CloseAll();
+            Assert.Equal("C1B1B2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { TryDeleteDirectory(dir); }
+    }
+
     [Fact]
     public void A_file_not_under_commit_control_pays_one_listing_per_writable_open_and_nothing_per_write()
     {

@@ -140,3 +140,41 @@ older than three hours were pruned, and the leak is a lead in the report.
 Gates at a18dc8b55: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
 run: Conformance 8,632 · Unit 922 · Characterization 31 ...` (run 000004-20261024T013348Z) and `=== LINUX GATE: GREEN (legs
 selftests unit characterization conformance guard selftests-built; HEAD a18dc8b55) ===`.
+
+### Branch review round 1, answered (review finisher w1157a2)
+
+The branch review found three blocking defects and three leads; each is fixed at its root with a case that fails without
+the fix (all five measured red on the unfixed source, green after).
+
+- **R1-3 (high): a sequential transaction whose ROLLBACK the medium refused was COMMITTED by the next COMMIT or by a normal
+  termination's implicit one.** The keyed store refused this (`KeyedStore.RollbackOwed`); the sequential journal had no owed
+  state, so a half-run restore (F emptied by a capture's truncation, the copy refused) was made permanent and the before file
+  retired. The rule is lifted into the ONE place both engines meet, the registry's transaction control:
+  `FileRegistry.CommitHolder` refuses the COMMIT of any transaction in `_rollbackOwed`, which a refused ROLLBACK and a COMMIT
+  left UNACKNOWLEDGED or reversed and not rolled back each enter (a COMMIT refused before its decision does not: the
+  transaction is intact for a declarative's retry), and only a completed ROLLBACK (or the transaction's end by another path)
+  leaves. `KeyedStore._rollbackRefused` and its
+  `RollbackOwed` are deleted. Witness `unit:SequentialCommitControlTests.A_transaction_whose_rollback_the_medium_refused_is_never_committed`
+  (termination and program-COMMIT rows), beside the keyed `A_transaction_whose_rollback_was_refused_is_never_committed`.
+- **R1-1 (medium): an uncovered writer under SHARING WITH ALL OTHER tested for a journal outside the entry mutex**, so another
+  run unit's covered WRITE could begin and read its L between the test and the write, and its ROLLBACK cut the uncovered record.
+  `SequentialConnector.UncoveredChangeGuard`: the lock test and the WRITE or REWRITE, through the RELEASE, are one step under the
+  entry mutex (held by `JournalLockTest`'s `EntryMutexUse.UntilTheRelease`, given to the caller as a `using`); a host that cannot
+  hold the mutex proceeds without it, DOC-A.1-75's waiting-hold rule. The REWRITE arm is the sibling (a transaction that began
+  between test and overwrite imaged the record ahead of the uncovered bytes). Witness
+  `An_uncovered_writers_record_is_never_cut_by_a_transaction_that_begins_during_its_write`: the covered WRITE is run at the
+  uncovered one's release through the fault-injecting medium's new `BeforeOperation` seam.
+- **R1-2 (medium): docs/CONFORMANCE.md claimed A.4.3 while kb/Work PB3492 (keyed ROLLBACK after OPEN OUTPUT or DELETE FILE)
+  is open.** A.4.3 and A.3 items 6-7 are Partial again, with the scope stated in every place that claims it: complete for the
+  sequential organizations, the keyed half pending PB3492, named in the row.
+- **R1-4 (lead): a dead transaction whose file is shorter than its L was never settled** (every later writable OPEN '30'): L
+  counts another connector's released, unsynced appends, which a power loss takes. None of the transaction's appends can then
+  survive, so the rollback leaves F as it stands. Witness `A_dead_transaction_whose_file_is_shorter_than_its_committed_length_is_settled`.
+- **R1-5 (lead): a refused ROLLBACK leaked the handle it opened for the purpose.** It is now a `using`, and the duplicate
+  `FileRegistry.ClosedFileData` is deleted in favour of `SequentialJournal.AuxiliaryData` (one class for the purpose handle).
+  Witness `A_refused_rollback_closes_the_handle_it_opened_for_the_purpose` (`FaultHostMedium.LiveAuxiliaryHandles`).
+- **R1-6 (lead): inventory prose.** Batch `adjudication/w1157a2r1-pb3340/batch.json` restates the 32 rows whose present prose
+  still said COBOLNET1709 refuses a sequential operand (`rows changed 32 · GAP 53 -> 53`); two rows whose CONFORMS rested on that
+  refusal's vacuity (GR-14.9.10.4-7, GR-14.9.51.4-11) go to the registrar for re-adjudication.
+
+Design 2.2.1.10 (5), 2.2.2.3, 2.2.2.7 and 2.2.2.13 state the rules as built.

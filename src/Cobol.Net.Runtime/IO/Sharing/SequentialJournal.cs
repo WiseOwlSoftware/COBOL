@@ -431,7 +431,14 @@ internal sealed class SequentialJournal
     /// transaction's rollback truncates, to its own L, and two transactions never append at once), F synced and its directory
     /// synced; START <c>A</c> — F removed (the owner's handle released first) and its directory synced; (3) <c>D R</c> appended
     /// and synced, so a journal a power loss resurrects after its before file went is retired and never rolled back again.
-    /// The retirement is the caller's.</summary>
+    /// The retirement is the caller's.
+    /// <para>⛔ F SHORTER THAN L IS LEFT AS IT STANDS (review finding R1-4 of kb/Work PB3340). In a run of the protocol F is
+    /// never shorter (the model asserts it at every rollback), but L is read from the operating environment's view of F, which
+    /// counts another connector's appends that were released and never synced (an uncovered writer's CLOSE flushes, it does
+    /// not sync); a power loss then takes them, and F ends shorter than L. None of the transaction's appends, which all lie
+    /// past L, survived, so there is nothing to truncate, and a truncation to L would EXTEND F with zero bytes. Refusing
+    /// instead left the dead transaction unsettled for good: every later writable OPEN, DELETE FILE and covered first change
+    /// of the file answered '30' until an administrator removed the lock directory.</para></summary>
     private static void RollBack(IHostMedium medium, string hostPath, string directory, int id, Contents contents, IJournalData data,
         FileStream record)
     {
@@ -456,12 +463,7 @@ internal sealed class SequentialJournal
                 f.Position = image.Offset;
                 f.Write(image.Bytes);
             }
-            if (contents.CommittedLength is long committed)
-            {
-                if (f.Length < committed)
-                    throw new IOException($"'{hostPath}' holds {f.Length} bytes, fewer than the committed length {committed} transaction {id} recorded: a truncation would extend it");
-                f.SetLength(committed);
-            }
+            if (contents.CommittedLength is long committed && f.Length >= committed) f.SetLength(committed);
             f.Flush(flushToDisk: true);
             medium.SyncDirectory(FileDirectoryOf(hostPath));
         }
@@ -725,10 +727,11 @@ internal sealed class SequentialJournal
         medium.RetireDirectory(directory);
     }
 
-    /// <summary>The physical file as a dead owner's settle reaches it: a short-lived writable handle of the entering run unit,
+    /// <summary>The physical file as a dead owner's settle reaches it — a short-lived writable handle of the entering run unit,
     /// opened for the purpose (2.2.2.7: <i>"the entering run unit's own writable handle, opened for the purpose, when the owner is
-    /// dead"</i>) and closed with the settle.</summary>
-    private sealed class AuxiliaryData(IHostMedium medium, string hostPath) : IJournalData, IDisposable
+    /// dead"</i>) and closed with the settle — and as the owner's own ROLLBACK reaches it once no covered connector holds the
+    /// file (<c>FileRegistry.RollbackSequential</c>), closed with that rollback whatever it did.</summary>
+    internal sealed class AuxiliaryData(IHostMedium medium, string hostPath) : IJournalData, IDisposable
     {
         private FileStream? _handle;
 

@@ -292,11 +292,13 @@ public sealed partial class SequentialConnector : IJournalData
     /// whose transaction stands writes <c>L</c> at its first append and nothing after. A connector whose file lock admits another
     /// run unit's writer (<c>SHARING WITH ALL OTHER</c>) meets every other live transaction's END holding: '51'. Every lock test
     /// is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Returns the failing status, or null; throws on
-    /// a refusal (R5: '30').</summary>
-    private string? JournalAppend()
+    /// a refusal (R5: '30'). <paramref name="release"/> is what the caller holds until its record is RELEASED to the operating
+    /// environment (<see cref="UncoveredChangeGuard"/>), null when nothing is.</summary>
+    private string? JournalAppend(out IDisposable? release)
     {
+        release = null;
         bool sharing = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (!CommitControlled) return sharing ? JournalLockTest(null, EveryHolding, underMutex: false) : null;
+        if (!CommitControlled) return sharing ? UncoveredChangeGuard(EveryHolding, out release) : null;
         var journal = Journal;
         if (journal is null || _fileRemoved) return JournalLockTest(journal?.Id, EveryHolding, underMutex: true, BeginAppending);
         if (sharing && JournalLockTest(journal.Id, EveryHolding, underMutex: false) is { } held) return held;
@@ -336,12 +338,13 @@ public sealed partial class SequentialConnector : IJournalData
     /// record's current bytes are journaled and synced before they are overwritten, the first time the record is rewritten. A
     /// connector whose file lock admits another run unit's writer meets every other live transaction's holding of the record:
     /// '51'. Every lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Returns the failing
-    /// status, or null; throws on a refusal (R5: '30').</summary>
-    private string? JournalImage(Stream stream, long anchor, int length)
+    /// status, or null; throws on a refusal (R5: '30'). <paramref name="release"/> is <see cref="JournalAppend"/>'s.</summary>
+    private string? JournalImage(Stream stream, long anchor, int length, out IDisposable? release)
     {
+        release = null;
         bool sharing = FileLockPosture.AdmitsAnotherWriter(HostShare);
         bool HoldsTheRecord(SequentialJournal.Holding h) => h.HoldsRecordAt(anchor);
-        if (!CommitControlled) return sharing ? JournalLockTest(null, HoldsTheRecord, underMutex: false) : null;
+        if (!CommitControlled) return sharing ? UncoveredChangeGuard(HoldsTheRecord, out release) : null;
         var journal = Journal;
         if (journal is null)
         {
@@ -387,17 +390,64 @@ public sealed partial class SequentialConnector : IJournalData
     /// under it, so no other transaction begins between the test and the change — and gives it back before any wait, so a
     /// waiting statement never keeps another run unit's entry step out. Returns '51' (a RETRY's exhaustion status: '51', or
     /// FOREVER's '52' for the run unit's own holding), or null when the statement proceeds; throws on a refusal (R5: '30').</summary>
-    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, bool underMutex, Action? proceed = null)
+    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, bool underMutex, Action? proceed = null) =>
+        JournalLockTest(ownId, held, underMutex ? EntryMutexUse.ForTheAttempt : EntryMutexUse.None, proceed, out _);
+
+    /// <summary>How one attempt of the journal lock test holds the entry mutex.</summary>
+    private enum EntryMutexUse
+    {
+        /// <summary>Not at all: a covered connector whose own transaction stands (no other can begin beside it), or a READ.</summary>
+        None,
+
+        /// <summary>For the attempt and the first change it runs, then given back (a covered connector's first change).</summary>
+        ForTheAttempt,
+
+        /// <summary>For the attempt and, on success, KEPT for the caller until its record is released (<see cref="UncoveredChangeGuard"/>);
+        /// where this host cannot hold it, the attempt proceeds without it (DOC-A.1-75's waiting hold).</summary>
+        UntilTheRelease,
+    }
+
+    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, EntryMutexUse use, Action? proceed,
+        out RegionLocks? kept)
     {
         int? runUnitsOwn = Transactions.Of(HostPath)?.Id;
+        RegionLocks? keep = null;
         string status = FileRegistry.RetryLoop(() =>
         {
-            using var mutex = underMutex ? Transactions.HoldEntryMutex(HostPath) : null;
-            if (SequentialJournal.Enter(Medium, HostPath, ownId, mutex).Conflict(held, runUnitsOwn) is { } conflict) return conflict;
-            proceed?.Invoke();
-            return RetryAttempt.InRunUnit(FileStatusCode.Success);
+            var mutex = use switch
+            {
+                EntryMutexUse.ForTheAttempt => Transactions.HoldEntryMutex(HostPath),
+                EntryMutexUse.UntilTheRelease => Transactions.TryHoldEntryMutex(HostPath),
+                _ => null,
+            };
+            try
+            {
+                if (SequentialJournal.Enter(Medium, HostPath, ownId, mutex).Conflict(held, runUnitsOwn) is { } conflict) return conflict;
+                proceed?.Invoke();
+                if (use == EntryMutexUse.UntilTheRelease) (keep, mutex) = (mutex, null);
+                return RetryAttempt.InRunUnit(FileStatusCode.Success);
+            }
+            finally { mutex?.Dispose(); }   // given back before any wait and on a refusal, so a waiting statement keeps no one out
         }, StatementRetry.Kind, StatementRetry.Amount, waiter: this);
+        kept = keep;
         return status == FileStatusCode.Success ? null : status;
+    }
+
+    /// <summary>⛔ THE CHANGE OF A CONNECTOR NO APPLY COMMIT NAMES, UNDER A FILE LOCK THAT ADMITS ANOTHER RUN UNIT'S WRITER (2.2.2.3;
+    /// review finding R1-1 of kb/Work PB3340): its lock test AND its change are one step under the entry mutex, which
+    /// <paramref name="release"/> holds until the caller has RELEASED the record to the operating environment (§14.9.51.4 GR12,
+    /// §14.9.35.4 GR4). A test made outside it left a gap: another run unit's covered WRITE could begin its transaction and read
+    /// its committed length L between this test and this write, so the record landed at or past L, outside every holding, and
+    /// that transaction's ROLLBACK (or the settle after its death) truncated it away: a record of a connector with no transaction,
+    /// which GR19 (<i>"the added records follow the records present in the physical file when it was opened"</i>) and GR12 keep.
+    /// Under the mutex a transaction begins either before the test, which then meets its END holding ('51', the RETRY phrase
+    /// applying), or after the release, whose bytes its L then counts. A REWRITE is the same step: a transaction that begins
+    /// before its release cannot image the record ahead of this connector's bytes, so its rollback never writes the change away.</summary>
+    private string? UncoveredChangeGuard(Func<SequentialJournal.Holding, bool> held, out IDisposable? release)
+    {
+        string? status = JournalLockTest(null, held, EntryMutexUse.UntilTheRelease, proceed: null, out var kept);
+        release = kept;
+        return status;
     }
 
     // ── What the registry's COMMIT and ROLLBACK ask of the connector (2.2.2.6, 2.2.2.7) ──────────────────────────────
