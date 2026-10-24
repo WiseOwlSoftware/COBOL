@@ -1,4 +1,4 @@
-## A numeric literal sent to a group stores its digits, and a CALL that cannot see its formal sends both alphabets (PB3570, PB3587)
+## Entry 2427 — 2026-10-23 17:26 PDT — A numeric literal sent to a group stores its digits, and a CALL that cannot see its formal sends both alphabets (PB3570, PB3587)
 
 Two notes, one root: the channels that send a value into a plain group each decided the sender's characters for themselves, and
 the answers had drifted from `OperandText.NonElementaryMoveSender`, the one codec ISO 14.9.25.4 GR4 ("no conversion of data from one
@@ -51,3 +51,4 @@ the emitted value equals `RuntimeAbi.CallAbi` (an emitter stamping any other ABI
 still expected PB1113's sign-keeping `-12` for `BY CONTENT -12` into a group formal; under D-B4 (§14.9.25.4 4), owner decision) both
 lanes store the digits only, `[12  ]`, and its header now derives that. The whole Linux conformance population (18,341) had no other red,
 so no other golden encodes the superseded rule.
+
