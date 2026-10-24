@@ -3,7 +3,8 @@
 # driver, scripts/run_gate_legs.py, which holds this worktree's gate lock, runs the audits (before any slot, kb/Work
 # PB2524), takes a gate slot, runs the solution build, lists the population, plans the order and runs leg 1 of it —
 # the change's own tests, the previous gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps
-# (tier 0c), the drift tests that govern a changed file (tier 0d) and the cheapest cases the change reaches — then
+# (tier 0c), the drift tests that govern a changed file, or a register citing what the change removes (tier 0d), and
+# the cheapest cases the change reaches — then
 # checks that population and prints
 # `=== BUILD-LOCAL GATE: … ===`.
 # ⛔ THE GATE OUTLIVES THIS COMMAND (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12): the driver starts the gate

@@ -258,3 +258,8 @@ CobolNet.Runtime.MoveSending.Approximate.init -> void
 CobolNet.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage, out bool Approximate) -> void
 CobolNet.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false) -> void
 static CobolNet.Runtime.CobolArgAdapt.WithValueSending(CobolNet.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> CobolNet.Runtime.CobolArg
+CobolNet.Runtime.OverlappingMove
+static CobolNet.Runtime.OverlappingMove.AlphanumericToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile to, bool decimalPointIsComma) -> string!
+static CobolNet.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
+static CobolNet.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
+static CobolNet.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
