@@ -20,7 +20,9 @@ namespace CobolNet.Tests.Unit;
 /// another made at its path outside the run unit is another physical file under the same path, which a host that unlinks a file
 /// under an open handle (Linux) permits. The host's own identity (<see cref="HostFile.IdentityOf"/>, <see cref="HostFile.IdentityAt"/>)
 /// tells them apart where a handle holds the first one: the run unit's store table and the state a CLOSE under commit control
-/// kept compare it beside the path.</para>
+/// kept compare it beside the path, and Table 19's arbitration and the record-lock table find their state BY it
+/// (<c>PhysicalFileTable.For</c>, kb/Work PB3576), keeping the path as the key for a file that is absent or whose identity the host
+/// cannot tell.</para>
 /// </summary>
 public sealed class PhysicalFileIdentityDriftTests
 {
