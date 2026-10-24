@@ -865,6 +865,86 @@ public sealed class CommitRollbackRuntimeTests
         return outcome;
     }
 
+    /// <summary>⛔ THE TWO-ATTEMPT OPEN OVER A KEPT HANDLE AND ITS RECORD LOCKS (kb/Work PB3501; §9.1.15 2), <i>"The sharing with read
+    /// only mode restricts concurrent access to a physical file through file connectors other than this one, to input mode"</i>;
+    /// §14.9.6.4 GR9, <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks
+    /// associated with the file connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>;
+    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §9.1.16, <i>"While
+    /// locked by a given file connector, a record is not accessible to another file connector in the same or a different run
+    /// unit"</i>): run unit A, under commit control, changes a record, is CLOSEd and re-OPENed INPUT, so it holds the writable
+    /// handle its transaction owes writes through (kb/Work PB3482). Run unit B, under commit control and SHARING WITH READ ONLY,
+    /// OPENs I-O beside it (a normal open, Table 19; the host's share mode refuses it, so the OPEN is made again with the share
+    /// mode that admits an INPUT opener's owed writes, <c>FileLockPosture.WhenOwedWritesAreAdmitted</c>), READs one record (its
+    /// record lock), REWRITEs another (its transaction) and is CLOSEd, keeping a writable handle, its Table 19 column, the record
+    /// lock and the transaction's liveness byte. B's re-OPEN INPUT is refused by the host on its first attempt after the kept
+    /// handle was given back and the new one tried; the unsuccessful attempt takes the kept handle again with its record locks
+    /// (<c>KeyedConnector.RetakeKeptHandle</c>, kb/Work PB3483), and the second attempt succeeds and rehomes them again
+    /// (<c>KeyedConnector.Attach</c>). Whichever half regressed - the retake not republishing the locks, or the give-back left set
+    /// between the attempts - a third run unit would READ the record B locked with '00' where §9.1.16 owes it '51', and the record B changed
+    /// with '00' where its transaction's holding owes '51' (DOC-A.1-152). The COMMIT then makes both readable ('00') and the
+    /// record B changed holds B's value; the column requests of the re-OPEN are the two attempts' (replace, restore, replace) on
+    /// a host whose share modes are mandatory and one (replace) elsewhere, where the first attempt is admitted.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_two_attempt_reopen_over_a_kept_handle_keeps_the_record_locks_it_was_closed_with(FileOrg org)
+    {
+        string host = Tmp($"pb3501-twice-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("F"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: true, name: "B", sharing: FileSharing.ReadOnly);
+            b.RegisterSharing("B", FileSharing.ReadOnly, FileLockMode.Automatic, multiple: true);
+            var log = new ColumnRequestLog();
+            var (kept, own) = (Table19.Column(FileSharing.ReadOnly, FileOpenMode.IO), Table19.Column(FileSharing.ReadOnly, FileOpenMode.Input));
+            using (log.Install())
+            {
+                b.OpenStatic("B", FileOpenMode.IO);
+                Assert.Equal("00", b.Status("B"));
+                Assert.Equal("00", Read(b, org, 2, out _, name: "B"));
+                Assert.Equal("00", Rewrite(b, org, 3, "B003", name: "B"));
+                ulong id = b.TransactionOf("B");
+                Assert.NotEqual(0ul, id);
+                b.Close("B");
+                Assert.Equal("00", b.Status("B"));
+                log.Clear();
+                b.OpenStatic("B", FileOpenMode.Input);
+                Assert.Equal("00", b.Status("B"));
+                Assert.Equal(id, b.TransactionOf("B"));
+            }
+            Assert.Equal(HostFile.ShareModesAreMandatory ? [(own, true), (kept, true), (own, true)] : [(own, true)],
+                log.Requests.Select(r => (r.Own, r.Replaces)));
+
+            // C takes part in record locking (a LOCK MODE clause, which SHARING WITH ALL OTHER requires of a file not under APPLY COMMIT, §14.9.27.3 SR8), so it meets B's.
+            var c = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
+            Assert.Equal("51", Read(c, org, 2, out _, name: "C"));
+            Assert.Equal("51", Read(c, org, 3, out _, name: "C"));
+            Assert.Equal("00", Read(c, org, 1, out var untouched, name: "C"));
+            Assert.Equal(Rec(1, "A001"), untouched);
+
+            Assert.Null(b.Commit());
+            Assert.Equal("00", Read(c, org, 2, out _, name: "C"));
+            Assert.Equal("00", Read(c, org, 3, out var changed, name: "C"));
+            Assert.Equal(Rec(3, "B003"), changed);
+            c.CloseAll();
+            b.CloseAll();
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            var expected = Seeded();
+            expected[3] = Rec(3, "B003");
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §9.1.13.9 1), <i>"A file
     /// sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is
     /// already open by another file connector in a manner that conflicts with this request"</i>; §14.9.27.4 GR25, <i>"If the
@@ -1077,6 +1157,52 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
             c.CloseAll();
             b.CloseAll();
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The other caller of the retake (kb/Work PB3497; <c>KeyedConnector.HeldByAnotherHandle</c>, the OPEN OUTPUT's probe for a
+    /// handle on the file): the kept handle is given back for the instant of the question, another run unit's handle answers
+    /// it ('61', §9.1.13.9 1) e)), and the medium refuses the retake's read of the store the give-back left without a file
+    /// ('30', §9.1.13.6 item 1). The handle is kept all the same (§14.9.27.4 GR25), so a third run unit meets the record lock the
+    /// CLOSE kept ('51', §14.9.6.4 GR9; §9.1.16) and the transaction's holding ('51'), and the connector's re-OPEN, which reads
+    /// the store again, is the transaction's and ends at the ROLLBACK.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_output_refused_by_another_run_unit_with_the_medium_refusing_the_retake_keeps_the_kept_state(FileOrg org)
+    {
+        string host = Tmp($"pb3497-output-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            bool armed = false;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Read(a, org, 1, out _));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.PagedStoreOf("F")!.DropCache();
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            armed = true;
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("61", a.Status("F"));
+            armed = false;
+            Assert.Equal(id, a.TransactionOf("F"));
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Read(c, org, 1, out _, name: "C"));
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            c.CloseAll();
+            b.CloseAll();
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
             Assert.Null(a.Rollback());
             a.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
@@ -2437,6 +2563,75 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal("00", Read(b, org, 1, out _, name: "B"));
             b.CloseAll();
             a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A RE-OPEN WHOSE KEPT HANDLE CANNOT BE STORE-ADOPTED AGAIN STILL LEAVES WHAT THE CLOSE KEPT STANDING (kb/Work PB3497;
+    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9,
+    /// <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file
+    /// connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16, <i>"While locked by a
+    /// given file connector, a record is not accessible to another file connector in the same or a different run unit"</i>):
+    /// A, under commit control and SHARING WITH ALL OTHER, READs record 1 (its record lock) and WRITEs record 7 (its
+    /// transaction), and is CLOSEd. Its re-OPEN I-O under SHARING WITH NO OTHER takes a handle the kept one's share mode refuses,
+    /// so the kept handle is given back (and with it, the store's last handle: the store has no file) and the new one taken -
+    /// and the medium refuses the adoption's first read ('30', §9.1.13.6 item 1). The OPEN's unsuccessful end retakes the kept
+    /// handle (<c>KeyedConnector.RetakeKeptHandle</c>), and the medium refuses the retake's read of the store too, so the retake
+    /// cannot adopt the store again - the case the first fix of PB3483 left without the handle, its record locks unpublished and
+    /// its transaction's liveness byte free. The handle is kept all the same: the medium, which answers again, is not what the
+    /// CLOSE kept. Another run unit's READ of record 1 answers '51' and so does its READ and its REWRITE of the record the
+    /// transaction wrote (the dead-owner step of its writable OPEN found the owner alive and rolled nothing back), its OPEN
+    /// SHARING WITH NO OTHER is refused '61' (§9.1.13.9 1)), and A's re-OPEN, which reads the store again, is the transaction's
+    /// and ends at a ROLLBACK that restores the file. A host that enforces share modes per handle (Windows) is the one that
+    /// takes the retake; elsewhere the kept handle is never given back and the case passes through the OPEN's own refusal.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_whose_kept_handle_cannot_adopt_the_store_again_leaves_what_the_close_kept_standing(FileOrg org)
+    {
+        string host = Tmp($"pb3497-retake-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            bool armed = false;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Read(a, org, 1, out _));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.PagedStoreOf("F")!.DropCache();
+            armed = true;
+            a.OpenShared("F", FileOpenMode.IO, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            Assert.Equal("30", a.Status("F"));
+            armed = false;
+            Assert.Equal(id, a.TransactionOf("F"));
+            var b = Open(host, org, commit: false, name: "B");   // its dead-owner step: A's liveness byte is held
+            Assert.Equal("51", Read(b, org, 1, out _, name: "B"));
+            Assert.Equal("00", Read(b, org, 2, out _, name: "B"));
+            Assert.Equal("51", Read(b, org, 7, out _, name: "B"));
+            Assert.Equal("51", Rewrite(b, org, 7, "B007", name: "B"));
+            b.CloseAll();
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            // The medium answers again: the re-OPEN reads the store, and is the transaction's.
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 7, out var own));
+            Assert.Equal(Rec(7, "A007"), own);
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));
+            d.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
         }
         finally { TryDelete(host); }
