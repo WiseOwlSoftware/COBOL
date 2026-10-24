@@ -27,7 +27,9 @@ B4 (the INTO store reaches the sender) and B5 (a two-character `ALL` delimiter);
 call shape only. `docs/CONFORMANCE.md` D-UNS2 lost its "one documented difference from GnuCOBOL" sentence and now states the order; the string-ops
 design and the compiler design carry the new signatures.
 
-**Rows.** PB1909 claimed no inventory row (`closes_rows: []` with its reason); GR-14.9.48.4-18 was already closed by PB1907.
+**Rows.** PB1909 claimed no inventory row (`closes_rows: []` with its reason); GR-14.9.48.4-18 was already closed by PB1907. The first gate went red
+on `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`: that row's code-location still named the deleted `MatchedDelimiterIndex`.
+A `record_verdicts` batch retired that witness, added `UnstringSkipRun` and `UnstringExtract` and two test witnesses, and restated the row's notes (GAP 63 to 63).
 
 **Self-review.** Architecture: one rule in one place (the run is `UnstringSkipRun`'s alone, the position is the kernel's alone). Silent failure: the skip's
 `matched` bounds guard that quietly did nothing was removed so a mismatched flag array is loud; a zero-length live delimiter is the one deliberate no-op
