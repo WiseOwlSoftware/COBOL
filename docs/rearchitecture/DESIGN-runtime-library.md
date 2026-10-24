@@ -2010,7 +2010,11 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN
   attaches its own, so the liveness byte is held by a live run unit again before any other run unit's dead-owner step can
   find it free (`KeyedConnector.RetakeKeptHandle`, run by `AbandonOpen` for every unsuccessful ending after the swap: another
-  run unit's refusal of the new handle, a refused adoption, a torn page met while positioning; PB3483). The OPEN's
+  run unit's refusal of the new handle, a refused adoption, a torn page met while positioning; PB3483). The retake's own
+  attach reads the store again when the give-back left it without a file, and a medium that refuses that read does not cost the
+  kept state its handle: the liveness byte and the record locks are carried to the retaken handle without a page read
+  (`KeyedConnector.CarryKeptHoldings`, the half of the attach the retake keeps whatever the adoption answers; PB3497), and
+  the store stays unadopted until the connector's next OPEN reads it. The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
   writable handle the re-OPEN takes asks the same question. So is the OPEN OUTPUT probe (`FileConnector.HeldByAnotherHandle`):
   the kept handle is the connector's own, not *"another file connector"* (§9.1.13.9 1) e)); the keyed connector gives it back for
@@ -2052,7 +2056,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   share-mode window) takes them off the host with its own handle (`PhysicalFileTable.Unpublish`), leaves them in this run unit's
   table and publishes them again through the kept handle when `KeyedConnector.RetakeKeptHandle` takes it again
   (`PhysicalFileTable.Republish`), whose endpoint becomes their owner (`KeptFile.Endpoint`; the OPEN OUTPUT probe's retake moves
-  them there through the attach's `Rehome`); a refused retake leaves them in the table alone, where the COMMIT or ROLLBACK
+  them there through the attach's `Rehome`); a retake the host refuses leaves them in the table alone, where the COMMIT or ROLLBACK
   ends them like any unpublished lock (§14.9.27.4 GR25). **What a connector holds past its CLOSE belongs to the physical file, not to the
   connector** (kb/Work PB3484, PB3494). A connector that leaves the registry holding it - displaced by the re-registration of its
   element after a CANCEL (`CloseDisplaced`), or dropped with its object (`CloseAndDrop`) - or that an ASSIGN USING associates with ANOTHER
