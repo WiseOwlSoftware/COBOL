@@ -1,4 +1,4 @@
-## A change that breaks a register's citation runs the register's drift tests in leg 1 (PB3131)
+## Entry 2449 — 2026-10-24 01:29 PDT — A change that breaks a register's citation runs the register's drift tests in leg 1 (PB3131)
 
 kb/Work PB3131 (wave 20261026 group D, part of the PB1957 gate-overhead campaign). Four landings between 2026-10-14
 and 2026-10-17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a Windows leg 1 that
@@ -57,3 +57,4 @@ one `TYPE_DECL`, and `data_files` reads registers reached through a helper, as `
 are closed, so the note is `landed`.
 
 Gate: see the report (`w20261026d-PB3131-report.md`).
+
