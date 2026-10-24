@@ -677,6 +677,69 @@ try:
 finally:
     prune_worktrees.main_names, prune_worktrees.classify = _saved
 
+# 6d. A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974). Wave 1053's SPLIT reports each covered one branch carrying several
+#     notes; wave 1055's finishers were recorded in the dispatch ledger under only some of each branch's notes, and the
+#     wave 1056 plan made a second finisher, over the SAME branch, for the notes the ledger did not name. A report's
+#     notes now wait together while an unanswered dispatch holds any of them, through the real ledger and reader.
+UN = TMP / "unit"
+UN_REPORTS = UN / "reports"
+UN_REPORTS.mkdir(parents=True)
+UN_NOTES = {n: pw.Note(n, "open", "tooling", f"{n} — a defect in tooling", [], "", 8) for n in
+            ("PB301", "PB302", "PB303", "PB304", "PB311", "PB312", "PB313")}
+UN_CL = [cl("scripts/a.py", "PB301", "PB302", "PB303"), cl("scripts/b.py", "PB304", "PB311", "PB312", "PB313")]
+pw.record_dispatch(UN, "1053", [{"letter": "b", "notes": ["PB301", "PB302", "PB303"], "files": ["scripts/a.py"]}],
+                   lambda i: False)
+(UN_REPORTS / "w1053b-PB301-report.md").write_text(
+    "SPLIT\n# w1053b\n**branch:** `worktree-wf_un-1` · **HEAD:** `3333333cc`\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+returned(UN_REPORTS)
+
+
+def un_plan(held, unlanded=None, drain=False, reports_dir=UN_REPORTS):
+    return pw.plan(UN_NOTES, UN_CL, [], pw.load_reports(reports_dir, UN), lambda b: "UNLANDED", unlanded or {}, RULES,
+                   budget_points=100, held=held, drain=drain)
+
+
+un_all = un_plan({})
+check("PB2974: a SPLIT report's three notes are ONE finisher over its branch",
+      [(g.kind, g.notes, g.continues) for g in un_all["groups"] if "PB301" in g.notes],
+      [("finisher", ["PB301", "PB302", "PB303"], ["worktree-wf_un-1"])])
+# wave 1055's finisher: the ledger names PB302 alone (a chunk of the report's notes), and it has not reported
+pw.record_dispatch(UN, "1055", [{"letter": "a", "notes": ["PB302"], "files": ["scripts/a.py"]}], lambda i: False)
+un_held = pw.held_by_dispatch(UN, pw.load_reports(UN_REPORTS, UN), lambda i: False)
+check("PB2974: the ledger holds the one note its dispatch named", un_held, {"PB302": "dispatch w1055a"})
+for drain in (False, True):
+    mode = "drain" if drain else "normal"
+    un_p = un_plan(un_held, drain=drain)
+    check(f"PB2974 {mode}: no finisher for the report's other notes while one of them is held",
+          [g.notes for g in un_p["groups"] if {"PB301", "PB302", "PB303"} & set(g.notes)], [])
+    check(f"PB2974 {mode}: the held note names its dispatch, the others name the held note and its dispatch",
+          ("held by dispatch w1055a" in un_p["waiting"]["PB302"],
+           [("PB302 of the same report is held by dispatch w1055a" in un_p["waiting"][i]) for i in ("PB301", "PB303")]),
+          (True, [True, True]))
+# ... only a note the report owns holds it: another cluster's notes are planned as before
+check("PB2974: notes of no held report are planned beside it",
+      sorted(i for g in un_plan(un_held)["groups"] for i in g.notes), ["PB304", "PB311", "PB312", "PB313"])
+# ... and the dispatch's own report releases the report's notes together (the finisher group takes all three again)
+(UN_REPORTS / "w1055a-PB302-report.md").write_text(
+    "SPLIT\n# w1055a\n**branch:** `worktree-wf_un-2` · **HEAD:** `4444444dd`\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+returned(UN_REPORTS)
+check("PB2974: once the dispatch has reported nothing is held", pw.held_by_dispatch(UN, pw.load_reports(UN_REPORTS, UN),
+                                                                                lambda i: False), {})
+# the UNLANDED-branch arm: a branch whose commit subjects name three notes is one unit as well, and past the cap too
+UB = {"worktree-wf_ub-1": ["PB311", "PB312", "PB313"]}
+ub_p = un_plan({"PB312": "dispatch w1055b"}, unlanded=UB, reports_dir=UN / "none")
+check("PB2974: an unlanded branch with a held note plans no finisher for its other notes",
+      ([g.notes for g in ub_p["groups"] if {"PB311", "PB313"} & set(g.notes)],
+       [("PB312 of branch worktree-wf_ub-1 is held by dispatch w1055b" in ub_p["waiting"][i]) for i in ("PB311", "PB313")]),
+      ([], [True, True]))
+UB_MANY = {f"PB{n}": pw.Note(f"PB{n}", "open", "tooling", f"PB{n} — a defect in tooling", [], "", 8)
+           for n in range(400, 400 + RULES["wave"]["max_notes_per_group"] + 2)}
+ub_ids = sorted(UB_MANY, key=pw.work.id_order)
+ub_many = pw.plan(UB_MANY, [cl("scripts/c.py", *ub_ids)], [], [], lambda b: "UNLANDED", {"worktree-wf_ub-2": ub_ids}, RULES,
+                  budget_points=1000)
+check("PB2974: an unlanded branch's notes past the cap stay ONE finisher over the branch, never a cluster beside it",
+      [(g.kind, g.notes, g.continues) for g in ub_many["groups"]], [("finisher", ub_ids, ["worktree-wf_ub-2"])])
+
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
 CFG77 = {"wave": "77", "base": "abc", "scratch": str(TMP), "stop_file": str(coord.fleet_stop(TMP, "w77"))}

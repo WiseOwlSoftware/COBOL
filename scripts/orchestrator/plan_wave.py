@@ -30,7 +30,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
    FOR REVIEW, a diff-only re-review, and waits, kb/Work PB3394), a `status: half` note, and an UNLANDED branch
    (prune_worktrees.classify) whose commit subjects
    name an open note with no report. One finisher group per predecessor; its `pred` names the predecessor report and
-   branch. The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
+   branch. A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974): its notes are never split between two agents, at the cap or
+   by a dispatch, so when an unanswered dispatch (item 1) holds ANY note of a report or of an unlanded branch, that
+   dispatch is finishing the branch and every other note of it waits with the holder named. The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
    note that exists only on its own branch, read from there) is decided by the same rule as an open note: its newest
    report naming it, on any branch (its review finisher's later report supersedes the FINDINGS one); a FINDINGS
    branch that another DONE branch merely contains still gets its finisher, whose pred names that carrier (kb/Work
@@ -135,6 +137,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE.parent / "spec"))
+import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
@@ -1220,6 +1223,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
+    held = held or {}
     review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
     wave_rules = rules["wave"]
     cap = wave_rules["max_notes_per_group"]
@@ -1315,10 +1319,22 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
 
     taken: set[str] = {i for ids in awaiting.values() for i in ids} | set(waiting)
     # A note an unreported dispatch holds is another agent's, or a planned wave's not launched yet (kb/Work PB2806).
-    for nid in sorted(leads & set(held or {}) - taken, key=work.id_order):
+    for nid in sorted(leads & set(held) - taken, key=work.id_order):
         waiting[nid] = (f"held by {held[nid]}, which has no report yet: re-planning it would dispatch the same work "
                         f"twice (plan_wave.py --release that dispatch if it was aborted)")
         taken.add(nid)
+    # A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974). A finisher CONTINUES its report's one branch (below), so the notes
+    # that branch carries are never split between two agents: when an unanswered dispatch holds ANY of a report's notes,
+    # that dispatch is already finishing the branch (its group is recorded with only the notes it was planned for), and
+    # a finisher for the report's other notes would cherry-pick the same branch again (wave 1056's first plan re-dispatched
+    # three wave-1053 branches that wave 1055's finishers were finishing). The whole report waits, naming the holder.
+    for ids in finisher_by_rep.values():
+        if holder := next(((i, held[i]) for i in sorted(ids, key=work.id_order) if i in held), None):
+            for nid in sorted(set(ids) - taken, key=work.id_order):
+                waiting[nid] = (f"{holder[0]} of the same report is held by {holder[1]}, which has no report yet: that "
+                                f"dispatch is finishing the branch, and a finisher for {nid} would cherry-pick the same "
+                                f"commits again (plan_wave.py --release that dispatch if it was aborted)")
+                taken.add(nid)
     # A note that needs a frontier model under the owner's per-dispatch approval is never planned (MANDATORY-PRACTICES
     # P1): an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's choice.
     for nid in sorted(leads - taken, key=work.id_order):
@@ -1357,16 +1373,28 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                                 continues=list(on_branch)))
             taken |= set(chunk)
     for branch, ids in sorted(unlanded.items()):
-        ids = [i for i in ids if i not in taken and i not in newest]
+        unreported = [i for i in ids if i not in newest]
+        # THE BRANCH IS ONE UNIT here too (kb/Work PB2974): a note of it that an unanswered dispatch holds means that
+        # dispatch is finishing the branch, so the branch's other notes wait with it, never a second finisher.
+        if holder := next((i for i in unreported if i in held), None):
+            for nid in (i for i in unreported if i not in taken):
+                waiting[nid] = (f"{holder} of branch {branch} is held by {held[holder]}, which has no report yet: that "
+                                f"dispatch is finishing the branch, and a finisher for {nid} would cherry-pick the "
+                                f"same commits again (plan_wave.py --release that dispatch if it was aborted)")
+                taken.add(nid)
+            continue
+        ids = [i for i in unreported if i not in taken]
         if ids and drain and (why := drained(branch, "UNLANDED")):
             waiting.update({i: why for i in ids})
             taken |= set(ids)
             continue
         if ids:
-            groups.append(Group("finisher", ids[:cap], note_file.get(ids[0], ""),
-                                sorted({f for i in ids[:cap] for f in note_files.get(i, [])}),
-                                pred=finisher_pred(None, branch, "UNLANDED", ids[:cap]), continues=[branch]))
-            taken |= set(ids[:cap])
+            # ONE finisher per branch, its notes never split at the cap (as for a report's, above): the notes past the
+            # cap would be planned again as clusters, redoing the work this finisher cherry-picks.
+            groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
+                                sorted({f for i in ids for f in note_files.get(i, [])}),
+                                pred=finisher_pred(None, branch, "UNLANDED", ids), continues=[branch]))
+            taken |= set(ids)
 
     def rows(ids: list[str]) -> int:
         return sum(len(notes[i].rows) for i in ids if i in notes)
@@ -1704,6 +1732,8 @@ def main(argv: list[str] | None = None) -> int:
                     "(review findings, and unlanded unfinished branches no DONE branch carries); never a cluster or a "
                     "note no report started (kb/Work PB3150)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-stale", action="store_true", help="plan from a checkout BEHIND the commit the loop adopted "
+                    "(adopt_main.py); without it the planner refuses and names both shas (kb/Work PB2699)")
     ap.add_argument("--release", metavar="SEL", help="drop the dispatch-ledger entries of an ABORTED dispatch and exit: "
                     "a wave (1040), a group (1040a) or a note id (PB2249); exit 1 when nothing matched")
     ap.add_argument("--finished", metavar="REPORT", help="is this fix-lane report FINISHED (Report.finished: DONE, or "
@@ -1738,6 +1768,12 @@ def main(argv: list[str] | None = None) -> int:
                                a.stop_file and coord.fleet_stop_problem(a.stop_file),
                                a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
         print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
+    # A STALE CHECKOUT PLANS FROM A STALE REGISTER AND RUNS A STALE PLANNER (kb/Work PB2699: wave 1042 planned seven commits
+    # behind; wave 1079 ran a planner older than the one main carried). The supervisor fast-forwards the checkout before
+    # each unit (adopt_main.py); a planner whose checkout lacks the adopted commit refuses, naming both shas.
+    if not a.allow_stale and (stale := adopt_main.require_current(REPO, coord.coord_dir(a.coord))):
+        print(f"⛔ {stale}")
         return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
