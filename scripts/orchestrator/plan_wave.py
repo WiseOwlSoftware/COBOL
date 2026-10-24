@@ -54,7 +54,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
 9. --drain (the owner's drain: "do not schedule new work items but continue all necessary work to get in-process work
    to main", 2026-10-13; kb/Work PB3150) plans only the finishers of STARTED work: every review-FINDINGS finisher, a
    SPLIT or NOT STARTED report's finisher only while its branch holds unlanded work that no other DONE branch carries
-   (`git merge-base --is-ancestor`: unfinished work a finished branch merged lands with that branch), and an unlanded
+   (the local branches' graph, `git_batch.Ancestry.is_ancestor`: unfinished work a finished branch merged lands with
+   that branch), and an unlanded
    branch's finisher on the same terms; never a cluster, a half note's open half, or a note a report left NOT
    started (each waits, with the reason). Every finisher's pred says so.
 
