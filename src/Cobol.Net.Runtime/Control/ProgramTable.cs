@@ -452,6 +452,9 @@ public sealed class ProgramTable
         {
             Activate(name, callerPath: null, args, returning, notFoundEc, siteArgMismatchChecking, programSpecifiers,
                 siteSizeTruncationChecking);
+            // §14.9.40.4 GR17 at the host boundary, the one activating site that emits no pickup of its own (kb/Work PB1177,
+            // PB3246: the emitted sites ask it after their pickup, CallEmitter.EmitActivationReturned).
+            _owner.SortFiles.AfterActivationReturn();
         }
         catch (Exception e) when (e is StopRun || EndsRunUnitAbnormally(e)) { ending = e; }
         if (ending is null) return;
@@ -616,10 +619,14 @@ public sealed class ProgramTable
             transferred = true;         // GR3g — control is transferred to the called program
             inst.Call(args, returning);
             returned = true;
-            // §14.9.40.4 GR17 for a USE procedure of the activated element that ended in EXIT PROGRAM or GOBACK (a
-            // completion that is not normal, §14.6.13.1.2 1)) while a SORT whose range activated it is active: the
-            // activation has returned, and the SORT is terminated here, in the activator (kb/Work PB1177).
-            _owner.SortFiles.AfterActivationReturn();
+            // ⛔ NO §14.9.40.4 GR17 QUESTION HERE (kb/Work PB3246). A USE procedure of the activated element that ended in
+            // EXIT PROGRAM or GOBACK while a SORT whose range activated it is active terminates that SORT in the
+            // ACTIVATOR (SortFileTable.AfterActivationReturn) - but only AFTER the activator has taken what the return
+            // staged: a GOBACK ... RAISING condition is raised in the activating element "after the result, if any, of the
+            // activated element is returned" (§14.9.18.4 GR1 b)), by the pickup the activating statement emits. Asked
+            // here, the termination left before that pickup could run, and the staged condition was raised at the
+            // activator's NEXT, unrelated activation. Every emitted activating site (CallEmitter.EmitActivationReturned, the one
+            // tail of the CALL and INVOKE lanes) asks it after its pickup; the host boundary asks it below.
         }
         // ⛔ A FILTER, NEVER A CATCH-AND-RETHROW (kb/Work PB2659). A catch block runs on top of the stack the condition
         // was thrown from, so a `throw;` inside it starts a NESTED dispatch there: a condition crossing N activation

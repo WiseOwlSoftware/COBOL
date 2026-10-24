@@ -136,8 +136,10 @@ public sealed class SortFileTable
     /// SORT whose range activated the element was active, that statement is terminated now, in the activator: the
     /// return has done what a return does (the BY REFERENCE copy-out, the RETURNING delivery), and the
     /// <see cref="SortTerminationSignal"/> unwinds the rest of the range to the statement's landing as a completion
-    /// that is not normal. Asked by <c>ProgramTable.CallProgram</c> after every CALL and function activation, and by
-    /// every INVOKE site after its RETURNING delivery (<c>OoEmitter.EmitInvocationReturned</c>).</summary>
+    /// that is not normal. Asked by every emitted activating site AFTER the return has been picked up completely - the
+    /// RETURNING delivery and the propagation pickup of a <c>GOBACK ... RAISING</c> the same activation staged
+    /// (§14.9.18.4 GR1 b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
+    /// <c>CallEmitter.EmitActivationReturned</c>), and the host boundary (<c>ProgramTable.CallFromHost</c>).</summary>
     internal void AfterActivationReturn()
     {
         if (_exitTerminated is not { } name) return;
