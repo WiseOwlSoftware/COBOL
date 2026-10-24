@@ -1,0 +1,109 @@
+{
+ "batch": "w1157a-pb3340-sequential-journal",
+ "records": [
+  {
+   "rule-id": "GR-9.1.16-p7",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): COMMIT releases the record locks of every file under commit control, keyed and sequential alike (the sequential connectors' READ locks and kept handles with them, FileRegistry.ReleaseAllKept). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.16-p8",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): ROLLBACK releases the record locks of every file under commit control, keyed and sequential alike (FileRegistry.ReleaseAllKept after the sequential rollback, RollbackSequential). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.17-p1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Commit_then_more_then_rollback",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): The logical unit of work is the run unit's changes since the last COMMIT, per file: a keyed file's transaction in its store, a sequential file's in its journal (SequentialTransactions, one per physical file, in the one order of the run unit's open files). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.18.1-p1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): The facility is provided for every organization: keyed files in the store engine, sequential files (record sequential, line sequential, the print stream) in the transaction journal. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.18.2-p1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): Every file 9.1.18.2 admits may be named: the SEQUENTIAL operand is accepted (COBOLNET1709 retired); sort-merge and report files are refused (SR2, COBOLNET4709). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.18.3-p1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit; unit:SequentialJournalTests.First_write_under_extend_then_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): COMMIT makes the changes permanent: a sequential file is synced, its directory synced and the decision D C synced before the retirement (2.2.2.6), so the state survives a later abnormal termination; witnessed under a death and a power loss at every operation. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-12.4.6.3.4-1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:CommitRollbackRefusalWitnessTests.A_sequential_operand_puts_the_file_and_its_status_item_under_commit_control",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): The files the clause names, of every organization, and the data items are subject to the facility: TransactionEmitter registers every file of the clause (ApplyCommitModel.Files) and FileRegistry.RegisterCommitControl accepts a sequential connector. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-14.6.11-1",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): Normal termination commits every file under commit control, sequential included (FileRegistry.CloseAll -> EndTransactions -> Commit). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-14.9.7.4-3",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): COMMIT permanently applies the changes of every file in the active clauses, sequential included (FileRegistry.CommitSequential), and deactivates the retired clauses. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-14.9.7.4-4",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): A sequential file closed under commit control keeps its handle and file lock until the COMMIT, which releases it (SequentialConnector.KeepHeld / ReleaseKept), as a keyed file's does. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5)."
+  },
+  {
+   "rule-id": "GR-9.1.18.4-p1",
+   "verdict": "PARTIAL",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Rewrite_then_rewrite_again_then_rollback; unit:SequentialJournalTests.Append_then_capture_then_rollback_restores_the_before_file_and_truncates_to_L",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): ROLLBACK restores every sequential file (the journal's images, its committed length, its before file; 2.2.2.7) and the keyed files' records; NOT YET a keyed file replaced by an OPEN OUTPUT or removed by a DELETE FILE since the last COMMIT (kb/Work PB3492: the keyed capture verbs ride the journal, design 2.2.2.14, not implemented)."
+  },
+  {
+   "rule-id": "GR-9.1.18.5-p1",
+   "verdict": "PARTIAL",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): Normal termination commits; abnormal termination rolls back every sequential file (the runtime's own path and, for a kill or a power loss, the next writable OPEN's entry step) and the keyed files' records; NOT YET a keyed file replaced or removed since the last COMMIT (kb/Work PB3492)."
+  },
+  {
+   "rule-id": "GR-14.9.36.4-3",
+   "verdict": "PARTIAL",
+   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+   "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Delete_file_then_recreate_then_rollback_restores_the_file; unit:SequentialCommitControlTests.A_creation_rolled_back_removes_the_file",
+   "editions": "2023",
+   "notes": "kb/Work PB3340 (wave 1157): Every sequential file is restored to the state at the last COMMIT (appends truncated, rewritten records restored, an OPEN OUTPUT's or DELETE FILE's capture restored, a creation removed) and the data items with it; NOT YET a keyed file replaced by an OPEN OUTPUT or removed by a DELETE FILE since the last COMMIT (kb/Work PB3492)."
+  }
+ ]
+}
