@@ -20,5 +20,13 @@ of other clusters still plan, the dispatch's own report releases the hold, an un
 no finisher for the rest, and a branch past the cap stays one finisher. The section fails on the old code. The design
 doc's planner step 1 and the module docstring name the rule.
 
+Branch review round 1 (R1-1, blocking): the hold was keyed per arm, so a half note beside an open note on one
+unlanded branch (the half-cluster arm ran before the unlanded hold) and a SPLIT report beside unreported notes its
+branch carries still split one branch between two agents, held or not. Re-keyed by the BRANCH: `plan()` builds each
+branch's unit (the report finisher sets and the unreported notes `unlanded` names) and one holder holds the whole unit;
+the half arm plans only half notes on no unlanded branch, the unlanded arm takes a branch's half notes (the half record
+first in its pred), and a report's finisher takes the unreported notes of its own branch. Self-test 6d gains six checks
+(half plus open note on one branch, held, the report plus unreported notes, held, drain).
+
 Not closed: telling a live agent's lock on a SPLIT branch from a recent touch (the note's 2026-10-16 paragraph) needs
 a lock-only signal that the branch survey does not expose; the ledger hold is the signal a dispatched finisher leaves.

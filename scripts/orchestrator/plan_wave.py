@@ -31,8 +31,10 @@ cost the orchestrator a hand-written groups.json; this computes it.
    (prune_worktrees.classify) whose commit subjects
    name an open note with no report. One finisher group per predecessor; its `pred` names the predecessor report and
    branch. A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974): its notes are never split between two agents, at the cap or
-   by a dispatch, so when an unanswered dispatch (item 1) holds ANY note of a report or of an unlanded branch, that
-   dispatch is finishing the branch and every other note of it waits with the holder named. The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
+   by a dispatch, so one finisher continues each branch, taking the notes its report names AND the notes no report
+   names that the branch carries (a half note's WIP, its commit subjects), and when an unanswered dispatch (item 1)
+   holds ANY note of a branch's unit that dispatch is finishing the branch and every other note of it waits with the
+   holder named. The unit is keyed by the BRANCH, never by arm (branch review R1-1). The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
    note that exists only on its own branch, read from there) is decided by the same rule as an open note: its newest
    report naming it, on any branch (its review finisher's later report supersedes the FINDINGS one); a FINDINGS
    branch that another DONE branch merely contains still gets its finisher, whose pred names that carrier (kb/Work
@@ -1317,23 +1319,33 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         elif cls not in LANDED_CLASSES:
             awaiting.setdefault(r.branch or str(r.path), []).append(nid)
 
+    rep_by_path = {r.path: r for r in reports}
     taken: set[str] = {i for ids in awaiting.values() for i in ids} | set(waiting)
     # A note an unreported dispatch holds is another agent's, or a planned wave's not launched yet (kb/Work PB2806).
     for nid in sorted(leads & set(held) - taken, key=work.id_order):
         waiting[nid] = (f"held by {held[nid]}, which has no report yet: re-planning it would dispatch the same work "
                         f"twice (plan_wave.py --release that dispatch if it was aborted)")
         taken.add(nid)
-    # A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974). A finisher CONTINUES its report's one branch (below), so the notes
-    # that branch carries are never split between two agents: when an unanswered dispatch holds ANY of a report's notes,
-    # that dispatch is already finishing the branch (its group is recorded with only the notes it was planned for), and
-    # a finisher for the report's other notes would cherry-pick the same branch again (wave 1056's first plan re-dispatched
-    # three wave-1053 branches that wave 1055's finishers were finishing). The whole report waits, naming the holder.
-    for ids in finisher_by_rep.values():
-        if holder := next(((i, held[i]) for i in sorted(ids, key=work.id_order) if i in held), None):
+    # A BRANCH'S WORK IS ONE UNIT (kb/Work PB2974). A finisher CONTINUES one branch (below), so the notes that branch
+    # carries are never split between two agents, whichever arm names them: a report's finisher set, or a note of the
+    # branch no report names (a half note's WIP, an unlanded branch's commit subjects). When an unanswered dispatch holds
+    # ANY note of a branch's unit, that dispatch is already finishing the branch (its group is recorded with only the
+    # notes it was planned for), and a finisher for the unit's other notes would cherry-pick the same branch again
+    # (wave 1056's first plan re-dispatched three wave-1053 branches that wave 1055's finishers were finishing). The whole
+    # unit waits, naming the holder. ONE rule keyed by the BRANCH, never by arm (branch review R1-1: a rule per arm left
+    # the half-cluster arm, and a report beside unreported notes of its own branch, splitting the branch).
+    units: dict[str, list[str]] = {}         # "branch X" (a report with no branch: "report <file>") -> its notes
+    for path, ids in finisher_by_rep.items():
+        rep_branch = rep_by_path[path].branch
+        units.setdefault(f"branch {rep_branch}" if rep_branch else f"report {path.name}", []).extend(ids)
+    for b, ids in unlanded.items():
+        units.setdefault(f"branch {b}", []).extend(i for i in ids if i not in newest)
+    for unit, ids in sorted(units.items()):
+        if holder := next(((i, held[i]) for i in sorted(set(ids), key=work.id_order) if i in held), None):
             for nid in sorted(set(ids) - taken, key=work.id_order):
-                waiting[nid] = (f"{holder[0]} of the same report is held by {holder[1]}, which has no report yet: that "
-                                f"dispatch is finishing the branch, and a finisher for {nid} would cherry-pick the same "
-                                f"commits again (plan_wave.py --release that dispatch if it was aborted)")
+                waiting[nid] = (f"{holder[0]} of {unit} is held by {holder[1]}, which has no report yet: that dispatch "
+                                f"is finishing the branch, and a finisher for {nid} would cherry-pick the same commits "
+                                f"again (plan_wave.py --release that dispatch if it was aborted)")
                 taken.add(nid)
     # A note that needs a frontier model under the owner's per-dispatch approval is never planned (MANDATORY-PRACTICES
     # P1): an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's choice.
@@ -1342,7 +1354,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             waiting[nid] = "needs the owner's approval of a frontier model for this dispatch (P1): ask in the attended session"
             taken.add(nid)
     groups: list[Group] = []
-    rep_by_path = {r.path: r for r in reports}
+    half_ids = {n["id"] for c in half_clusters for n in c["notes"]}
+
+    def branch_work_pred(branch: str, ids: list[str]) -> str:
+        """The resume instruction for notes no report names that a branch carries: a half note's record first."""
+        halves = [i for i in ids if i in half_ids]
+        return ((f"{', '.join(halves)} {'is' if len(halves) == 1 else 'are'} `status: half`: read each "
+                 f"note's record of the landed half and its kb/Work history before touching code; finish the open half "
+                 f"at its root. " if halves else "") + branch_resume(branch, ids))
+
     for path, ids in finisher_by_rep.items():
         rep = rep_by_path[path]
         ids = sorted(set(ids) - taken, key=lambda s: int(s[2:]))
@@ -1351,39 +1371,35 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         # ONE finisher per report: it CONTINUES the report's one branch, so its notes are never split at the cap (a
         # second chunk would be a second agent re-answering on the same branch what the first answered; the notes a
         # branch closes beyond its dispatch, add_closed_notes, can exceed the cap: branch review R2-2).
+        # THE BRANCH IS ONE UNIT (kb/Work PB2974, branch review R1-1): the notes no report names that the same branch
+        # carries (a half note's WIP, its commit subjects) join this finisher, never a second one over the branch.
+        extra = ([i for i in sorted(unlanded.get(rep.branch, []), key=work.id_order) if i not in newest and i not in taken]
+                 if ids and rep.branch else [])
         if ids:
+            pred = finisher_pred(rep, rep.branch, cls, ids, carried_by=by)
+            if extra:
+                pred += " " + branch_work_pred(rep.branch, extra)
+            ids += extra
             groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
                                 sorted({f for i in ids for f in note_files.get(i, [])}),
-                                pred=finisher_pred(rep, rep.branch, cls, ids, carried_by=by),
-                                continues=[b for b in (rep.branch, by) if b]))
+                                pred=pred, continues=[b for b in (rep.branch, by) if b]))
             taken |= set(ids)
-    # A half note may also sit on an unlanded branch (a killed wave's WIP): its group carries that branch's resume
-    # instruction too, or the finisher starts over from main and the branch's work is lost (wave 1018's plan).
-    branch_of = {i: b for b, ids in sorted(unlanded.items()) for i in ids if i not in newest}
+    # A half note may also sit on an unlanded branch (a killed wave's WIP): the branch's finisher (below) takes it with
+    # the branch's other notes and carries its resume instruction, or the finisher starts over from main and the
+    # branch's work is lost (wave 1018's plan). The half arm here plans only a half note that sits on no such branch:
+    # a branch has ONE finisher (kb/Work PB2974, branch review R1-1).
+    on_branch = {i for b, ids in unlanded.items() for i in ids if i not in newest}
     for c in (half_clusters if not drain else []):  # `status: half` notes, clustered by fix_clusters.py --open-status half
-        chunk = [n["id"] for n in c["notes"] if n["id"] not in taken][:cap]
+        chunk = [n["id"] for n in c["notes"] if n["id"] not in taken and n["id"] not in on_branch][:cap]
         if chunk:
-            on_branch = {b: [i for i in unlanded[b] if i in chunk]
-                         for b in sorted({branch_of[i] for i in chunk if i in branch_of})}
             groups.append(Group("finisher", chunk, c["file"], list(c.get("files", [])),
                                 pred=("FINISH-FIRST: " + ", ".join(chunk) + (" is" if len(chunk) == 1 else " are") +
                                       " `status: half`: read each note's record of the landed half and its kb/Work "
-                                      "history before touching code; finish the open half at its root." +
-                                      "".join(" " + branch_resume(b, ids) for b, ids in on_branch.items())),
-                                continues=list(on_branch)))
+                                      "history before touching code; finish the open half at its root.")))
             taken |= set(chunk)
-    for branch, ids in sorted(unlanded.items()):
-        unreported = [i for i in ids if i not in newest]
-        # THE BRANCH IS ONE UNIT here too (kb/Work PB2974): a note of it that an unanswered dispatch holds means that
-        # dispatch is finishing the branch, so the branch's other notes wait with it, never a second finisher.
-        if holder := next((i for i in unreported if i in held), None):
-            for nid in (i for i in unreported if i not in taken):
-                waiting[nid] = (f"{holder} of branch {branch} is held by {held[holder]}, which has no report yet: that "
-                                f"dispatch is finishing the branch, and a finisher for {nid} would cherry-pick the "
-                                f"same commits again (plan_wave.py --release that dispatch if it was aborted)")
-                taken.add(nid)
-            continue
-        ids = [i for i in unreported if i not in taken]
+    # a branch carrying a half note first (the half arm's place before this change), then by name
+    for branch, ids in sorted(unlanded.items(), key=lambda kv: (not any(i in half_ids for i in kv[1]), kv[0])):
+        ids = [i for i in ids if i not in newest and i not in taken]   # the held unit is already `taken` (above)
         if ids and drain and (why := drained(branch, "UNLANDED")):
             waiting.update({i: why for i in ids})
             taken |= set(ids)
@@ -1393,7 +1409,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             # cap would be planned again as clusters, redoing the work this finisher cherry-picks.
             groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
                                 sorted({f for i in ids for f in note_files.get(i, [])}),
-                                pred=finisher_pred(None, branch, "UNLANDED", ids), continues=[branch]))
+                                pred=("FINISH-FIRST: " + branch_work_pred(branch, ids)), continues=[branch]))
             taken |= set(ids)
 
     def rows(ids: list[str]) -> int:
