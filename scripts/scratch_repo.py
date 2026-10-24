@@ -53,6 +53,7 @@ Python file under live_tools.ROOTS but this one,
           over the code under test's own (prune_worktrees.py's `g` over `git`); so is a standalone self-test's own
           top-level git runner. A function there that calls a subject with a fixed git command
           (devlog.py's `landing` over `commit_files`) is a case, no finding.
+  EMPTY   an audit that read no self-test code at all is a finding: a net over nothing is no net.
 Calling the code under test's own git functions from a self-test's body is no finding: that is the subject under test.
 """
 from __future__ import annotations
@@ -133,9 +134,10 @@ def isolate() -> None:
 
 
 class ScratchRepo:
-    """A scratch git repository (or a linked worktree of one) at `path`. `options` are git's own `-c name=value`
-    arguments, given to every command THIS object runs and to no other process (line_endings.py's `core.autocrlf=false`:
-    the code under test must still read the host's own setting)."""
+    """A scratch git repository (or a linked worktree of one) at `path`; constructed directly on an existing path, it
+    drives one a self-test did not create (test_plan_wave.py READS the checkout's own HEAD through it, never writes).
+    `options` are git's own `-c name=value` arguments, given to every command THIS object runs and to no other process
+    (line_endings.py's `core.autocrlf=false`: the code under test must still read the host's own setting)."""
 
     def __init__(self, path: Path | str, options: Sequence[str] = ()):
         self.path = Path(path)
@@ -153,8 +155,7 @@ class ScratchRepo:
         repo = cls(path, options)
         repo.path.mkdir(parents=True, exist_ok=True)
         repo.git("init", "-q", *(["--bare"] if bare else []), "-b", branch, str(repo.path), cwd=repo.path)
-        with (repo.path / ("config" if bare else ".git/config")).open("a", encoding="utf-8", newline="\n") as f:
-            f.write(config_text(REPO_CONFIG))
+        repo._configure(repo.path / ("config" if bare else ".git/config"))
         return repo
 
     @classmethod
@@ -163,9 +164,17 @@ class ScratchRepo:
         to the clone's own config file, as `init` does."""
         repo = cls(path, options)
         repo.git("clone", "-q", str(source), str(repo.path), cwd=Path(path).parent)
-        with (repo.path / ".git" / "config").open("a", encoding="utf-8", newline="\n") as f:
-            f.write(config_text(REPO_CONFIG))
+        repo._configure(repo.path / ".git" / "config")
         return repo
+
+    @staticmethod
+    def _configure(config: Path) -> None:
+        """Append REPO_CONFIG to the config file git just wrote. A missing file raises: appending would CREATE one git
+        never reads, and every setting would be silently absent."""
+        if not config.is_file():
+            raise ScratchRepoError(f"git wrote no config file at {config}: the fixture's settings would not apply")
+        with config.open("a", encoding="utf-8", newline="\n") as f:
+            f.write(config_text(REPO_CONFIG))
 
     def origin(self, path: Path | str, name: str = "origin") -> "ScratchRepo":
         """A bare repository at `path` (with the fixture's settings: a push runs maintenance in the RECEIVING
@@ -310,7 +319,11 @@ def _inits(node: ast.AST) -> bool:
 
 def audit_source(rel: str, source: str) -> list[str]:
     """The audit's findings for ONE file (module docstring): `<rel>:<line>: <ARM>: <what>`."""
-    tree = ast.parse(source, filename=rel)
+    return _audit_tree(rel, ast.parse(source, filename=rel))[0]
+
+
+def _audit_tree(rel: str, tree: ast.Module) -> tuple[list[str], int]:
+    """(the findings, the number of self-test scopes read) for one parsed file."""
     standalone = Path(rel).name.startswith("test_")
     runners = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
                and _runs_any_git(n)}
@@ -344,19 +357,25 @@ def audit_source(rel: str, source: str) -> list[str]:
                     and node.name in runners:
                 found.add((node.lineno, f"HELPER: {node.name} runs git in a standalone self-test; drive git "
                                         f"through ScratchRepo"))
-    return [f"{rel}:{line}: {what}" for line, what in sorted(found)]
+    return [f"{rel}:{line}: {what}" for line, what in sorted(found)], len(named)
 
 
 def audit(repo: Path = REPO) -> list[str]:
-    """Every finding of every tracked Python file under live_tools.ROOTS but this one."""
+    """Every finding of every tracked Python file under live_tools.ROOTS but this one, and one more when it read no
+    self-test code at all: a net over nothing (no tracked file listed, a scope rule that matches nothing) is no net."""
     out = subprocess.run(["git", "ls-files", "-z", "--", *live_tools.ROOTS], cwd=repo, check=True,
                          capture_output=True, env=scrubbed_env()).stdout
     findings: list[str] = []
+    scopes = 0
     for rel in sorted(p for p in out.decode("utf-8").split("\0") if p.endswith(".py") and p != THIS):
         path = repo / rel
         if not path.is_file():      # deleted in the working tree, not yet in the index: nothing to read
             continue
-        findings += audit_source(rel, path.read_text(encoding="utf-8"))
+        found, read = _audit_tree(rel, ast.parse(path.read_text(encoding="utf-8"), filename=rel))
+        findings += found
+        scopes += read
+    if scopes == 0:
+        findings.append(f"{repo}: EMPTY: the audit read no self-test code under {', '.join(live_tools.ROOTS)}")
     return findings
 
 
@@ -452,6 +471,9 @@ def self_test() -> int:
         check("audit: the code under test's git, and a self-test CALLING it, are no finding",
               arms("scripts/x.py", "def git(*a):\n    subprocess.run(['git', *a])\n"
                                    "def self_test():\n    head = git('rev-parse', 'HEAD')\n") == [])
+        empty = ScratchRepo.init(tmp / "empty")
+        check("audit EMPTY: a tree with no self-test code is RED, never a green over nothing",
+              any(": EMPTY: " in f for f in audit(empty.path)))
         check("audit: a self-test using the fixture is no finding",
               arms("scripts/x.py", "def self_test():\n    r = ScratchRepo.init(p)\n    r.git('status')\n") == [])
     finally:
