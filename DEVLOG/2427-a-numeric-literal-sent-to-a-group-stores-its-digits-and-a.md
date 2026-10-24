@@ -33,7 +33,8 @@ one-line group-adapter read disabled, the Format-1 and specifier legs of the PB3
 (measured). Unit: `GroupMoveSenderChannelDriftTests` (the shape), `MoveSendingStorageImageTests` (the adapters).
 
 **Version pins.** `MoveSending` and `CobolArgAdapt.WithValueSending` changed shape (the shipped surface, no shim left behind), so the
-runtime major is 15; a new caller states `StorageImage` and an old callee would ignore it, so the call ABI is 2 (it is also a constant in
+runtime major is 16 (main had raised it to 15 for its own surface change while this branch was in flight, so merging
+main in raised it again; pull request #460 bounced on that pin); a new caller states `StorageImage` and an old callee would ignore it, so the call ABI is 2 (it is also a constant in
 the shipped surface list, which is why the surface hash moved with it). `RuntimeAbiPinDriftTests` re-pinned both pairs; the first gate
 was red on exactly those two tests and nothing else.
 

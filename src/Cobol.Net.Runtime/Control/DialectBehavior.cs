@@ -19,7 +19,8 @@ namespace CobolNet.Runtime;
 /// a)/b) (the open-mode USE tier) failed that test and is NOT a member: the 1985 edition's own validation suite
 /// requires the opposite of what a gate would have produced (NIST CCVS SQ122A/SQ136A/SQ137A/SQ138A/SQ148A).
 /// Item 22 below passes it — "the rule itself stated that the first record would be retrieved".</para>
-/// <para>Each member names one row of <c>docs/VERSION_CHANGE_REFERENCE.md</c> Table 1 whose action is
+/// <para>Each member names one row of <c>docs/VERSION_CHANGE_REFERENCE.md</c> — Table 1 for a 2014 to 2023 change,
+/// Table 7 for an earlier window (its edge derived, as that table says) — whose action is
 /// <c>gate-behavior-by-dialect</c>. The row's <c>&lt;!-- gate:… --&gt;</c> marker is this member's
 /// <see cref="DialectBehaviors.Row.Id"/>, which is how the drift test
 /// (<c>DialectBehaviorRegistryDriftTests</c>) proves the two registers still agree — a member with no row, or a
@@ -55,6 +56,24 @@ public enum DialectBehavior
     /// implementor's documented mode (docs/CONFORMANCE.md DOC-A.1-29). The consumer is
     /// <c>CobolNet.Frontend.Expressions.CompileTimeArithmetic.For</c> — kb/Work PB1592.</summary>
     CompileTimeArithmeticImplementorDefined = 1,
+
+    /// <summary>ISO/IEC 1989:2023 §9.1.15 / §14.9.27.4 Table 19 — the FILE SHARING facility (Annex A.4.7, an OPTIONAL
+    /// module): the sharing mode, the file lock "thereby preventing other run units from opening that file with
+    /// incompatible sharing rules", the OPEN arbitration of Table 19 and the file sharing conflict condition whose I-O
+    /// status is '61' (§9.1.13.9 item 1). It passes the admission test above the other way round: not by an Annex E
+    /// item (Annex E is the 2014 to 2023 window) but by §A.4.1, <i>"Any associated syntax rules, general rules, other
+    /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
+    /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOLNET0900</c> below 2002), so a COBOL-85
+    /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> a file connector therefore
+    /// has the implementor-defined sharing mode §9.1.15 allows ("a mode completely specified by the implementor", which
+    /// need not be one of the three): <b>no mode restricts another connector</b>. Two connectors of one run unit open the
+    /// same physical file in any combination of modes and every OPEN answers '00' (the owner's determination of
+    /// 2026-10-23, kb/Work PB670, option (i): it is GnuCOBOL's measured <c>-std=cobol85</c> behaviour, and it produces no
+    /// status the 1985 edition does not define); a host refusal by a process outside the run unit answers '30'. The edge
+    /// is DERIVED (docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.39). Consumers: <c>FileRegistry.SharedOpenAttempt</c>
+    /// (the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
+    /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
+    FileSharingFacility = 2,
 }
 
 /// <summary>
@@ -70,23 +89,30 @@ public static class DialectBehaviors
     /// <param name="Id">The kebab identifier, identical to the owning VCR row's <c>&lt;!-- gate:… --&gt;</c>
     /// marker.</param>
     /// <param name="ChangedIn">The FIRST edition whose rules state the NEW behaviour.</param>
-    /// <param name="VcrRow">The <c>docs/VERSION_CHANGE_REFERENCE.md</c> Table 1 row number.</param>
+    /// <param name="VcrRow">The <c>docs/VERSION_CHANGE_REFERENCE.md</c> change-table row number as the ledger prints it:
+    /// <c>29</c> for a Table 1 row (the 2014 to 2023 window Annex E itemizes), <c>7.39</c> for a Table 7 row (any
+    /// earlier window).</param>
     /// <param name="SpecRef">The normative clause the rule is written in.</param>
-    /// <param name="AnnexRef">The informative Annex E item that records the change.</param>
+    /// <param name="AnnexRef">The informative annex item that records the change: an Annex E item for a 2023 change,
+    /// the Annex A.4 optional module for a facility an earlier edition does not have.</param>
     /// <param name="Title">A one-line statement of what changed.</param>
-    public readonly record struct Row(DialectBehavior Behavior, string Id, int ChangedIn, int VcrRow,
+    public readonly record struct Row(DialectBehavior Behavior, string Id, int ChangedIn, string VcrRow,
         string SpecRef, string AnnexRef, string Title);
 
     private static readonly Row[] Table =
     [
         new(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, "indexed-read-previous-after-open-at-end", 2023,
-            29, "14.9.30.4 GR21 d) 3", "E.2 item 22",
+            "29", "14.9.30.4 GR21 d) 3", "E.2 item 22",
             "READ ... PREVIOUS immediately after an OPEN on an INDEXED file raises the at end condition; "
             + "before 2023 the rule made the first existing record available"),
         new(DialectBehavior.CompileTimeArithmeticImplementorDefined, "compile-time-arithmetic-mode", 2023,
-            12, "7.3.6.3 GR2", "E.2 item 6",
+            "12", "7.3.6.3 GR2", "E.2 item 6",
             "compile-time arithmetic expressions are evaluated in the implementor-defined mode; before 2023 the "
             + "standard prescribed standard arithmetic (the mode E.2 item 21 removed)"),
+        new(DialectBehavior.FileSharingFacility, "file-sharing-facility", 2002,
+            "7.39", "9.1.15", "A.4.7",
+            "a file connector's sharing mode restricts other connectors, and Table 19 arbitrates every OPEN with '61', "
+            + "only from COBOL-2002; at COBOL-85 the facility is not in effect and no connector restricts another"),
     ];
 
     static DialectBehaviors()
