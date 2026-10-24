@@ -561,8 +561,9 @@ public abstract class KeyedConnector : FileConnector
     /// <para>⛔ The record locks the CLOSE kept (§14.9.6.4 GR9) are part of that state: the retaken handle's endpoint becomes
     /// the one they are published through (<see cref="KeptFile.Endpoint"/>) — <see cref="Attach"/> moves to it those the given-back
     /// endpoint still names, and <paramref name="unpublished"/>, the ones <see cref="AbandonOpen"/> took off this OPEN's own
-    /// handle, are published through it again (<see cref="PhysicalFileTable.Republish"/>). A refused retake leaves them in
-    /// this run unit's table alone, until the COMMIT or the ROLLBACK.</para>
+    /// handle, are published through it again (<see cref="PhysicalFileTable.Republish"/>). A retake the HOST refuses leaves them in
+    /// this run unit's table alone, until the COMMIT or the ROLLBACK; one whose store the MEDIUM refuses to adopt again keeps the
+    /// handle and carries them all the same (<see cref="CarryKeptHoldings"/>, kb/Work PB3497).</para>
     /// <para>The instant between the give-back and this retake cannot be closed on a host whose share modes are per handle: a
     /// handle that refuses the new one is a handle the new one cannot be beside. Another run unit that opened in that instant
     /// holds a handle the kept share mode refuses, so the retake is refused too and the kept state is left without its
@@ -580,19 +581,30 @@ public abstract class KeyedConnector : FileConnector
             (_store, _handle, _regions, _coherent) = (stream, handle, HostRegionLocks.Open(handle, HostPath, writable: stream.CanWrite),
                 FileLockPosture.AdmitsAnotherRunUnit(gone.Share));
             stream = null;   // the connector's now
-            if (Attach(create: false) is null)
-            {
-                var regions = _regions;
-                if (unpublished is { Count: > 0 } && Physical is { } physical)
-                    InStoreMutex(() =>
-                    {
-                        PhysicalFileTable.Republish(physical, unpublished, regions);
-                        return StoreStatus.Ok;
-                    });
-                _kept = _kept with { Handle = new KeptHandle(_store, _handle, regions, gone.Access, gone.Share), Endpoint = regions };
-                (_store, _handle, _regions, _coherent) = (null, null, null, false);
-                retaken = true;
-            }
+            // ⛔ THE HANDLE IS RETAKEN WHETHER OR NOT THE MEDIUM LETS THE STORE BE ADOPTED AGAIN (kb/Work PB3497): the giving
+            // back detached the store's last handle, so Attach reads its pages anew, and a medium that refuses that read
+            // (§9.1.13.6 item 1) fails the Attach before it carries the holdings across. What the CLOSE kept is a handle's —
+            // the share mode that is the file lock, the transaction's liveness byte, the record locks — and none of it
+            // depends on a page read, so the unsuccessful OPEN leaves it standing all the same (§14.9.27.4 GR25; §14.9.6.4
+            // GR9): without the liveness byte another run unit's writable OPEN would roll back a transaction whose owner
+            // lives, and without the endpoint its READ of a record the CLOSE kept locked would answer '00'. The store stays
+            // unadopted (no file) until the connector's next OPEN reads it again.
+            if (Attach(create: false) is not null)
+                InStoreMutex(() =>
+                {
+                    CarryKeptHoldings(AttachedStore);
+                    return StoreStatus.Ok;
+                });
+            var regions = _regions;
+            if (unpublished is { Count: > 0 } && Physical is { } physical)
+                InStoreMutex(() =>
+                {
+                    PhysicalFileTable.Republish(physical, unpublished, regions);
+                    return StoreStatus.Ok;
+                });
+            _kept = _kept with { Handle = new KeptHandle(_store, _handle, regions, gone.Access, gone.Share), Endpoint = regions };
+            (_store, _handle, _regions, _coherent) = (null, null, null, false);
+            retaken = true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         finally
@@ -639,15 +651,25 @@ public abstract class KeyedConnector : FileConnector
             // The run unit's open transaction keeps its liveness byte through this handle from here: the kept one's moves,
             // or one given back with it is taken again, inside this mutex hold, so no other run unit's probe ever finds it
             // free (2.2.1.10).
-            store.HoldLivenessThrough(_regions!);
-            // ... and so do the record locks a CLOSE under commit control kept (§14.9.6.4 GR9): they move to the new handle's
-            // endpoint here, before the kept one is given back and takes every byte it holds with it.
-            if (_kept is { Adopted: false } carried && Physical is { } physical)
-                PhysicalFileTable.Rehome(physical, carried.Endpoint, _regions!);
+            CarryKeptHoldings(store);
             return status;
         });
         if (create) _openChangedFile |= store.FileReplaced;
         return Failed(opened);
+    }
+
+    /// <summary>⛔ THE HOST-LEVEL HOLDINGS A CLOSE UNDER COMMIT CONTROL KEPT MOVE TO THIS CONNECTOR'S HANDLE (§14.9.6.4 GR9; §14.9.7.4
+    /// GR4; 2.2.1.10): the run unit's open transaction keeps its liveness byte through this handle from here — the kept one's
+    /// moves, or one given back with it is taken again — and so do the record locks the CLOSE kept: they move to the new
+    /// handle's endpoint, before the kept one is given back and takes every byte it holds with it. The caller holds the store
+    /// mutex, so no other run unit's probe, lock test or draw finds a byte free in between. Neither step reads the store's
+    /// pages: they hold with the handle alone, which is why <see cref="RetakeKeptHandle"/> takes them whether or not the medium
+    /// lets the store be adopted again.</summary>
+    private void CarryKeptHoldings(KeyedStore store)
+    {
+        store.HoldLivenessThrough(_regions!);
+        if (_kept is { Adopted: false } carried && Physical is { } physical)
+            PhysicalFileTable.Rehome(physical, carried.Endpoint, _regions!);
     }
 
     /// <summary>⛔ <c>OPEN OUTPUT</c> OVER THE FILE ITS CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT (§14.9.27.4 GR18, <i>"the
