@@ -40,6 +40,10 @@ stay as an earlier call left them, because no single tool sees the whole life of
                 stalled pull request never reached a merge group (the lane writes them, `record_stall`)
   ci_wall_s     the successful merge-group run's wall time (`complete`)
   local_gate_s  the seconds of every local gate the landing worktree ran (the sum of its verdict.json `timings.wall_s`)
+  landing_gate_runs  how many of those gates the LANDING ran itself (`enqueue.py land`): 0 under the rule of 2026-10-23
+                (a branch is gated once, at its head, by its implementer; the merge with main is the merge queue's to
+                test, kb/Work PB3612), 1 when bringing main in changed a file the branch also changes or the lane gates
+                nowhere else; null for a landing recorded before that rule or by hand, and `summary` says so
 A field never observed stays null and `summary` says how many landings lack it: a MISSING observation is not a zero.
 
 `summary` prints the after column (this file) beside the before column (the retired train records, then the frozen
@@ -153,7 +157,7 @@ def validate(rec: dict) -> dict:
         if tb < ta:
             raise ValueError(f"pull request {rec['pr']}: {kb} {rec[kb]} is before {ka} {rec[ka]} "
                              f"(a landing passes {' → '.join(STAMPS)})")
-    for k in ("bounces", "pre_queue_reds", "local_gate_runs"):
+    for k in ("bounces", "pre_queue_reds", "local_gate_runs", "landing_gate_runs"):
         if rec.get(k) is not None and rec[k] < 0:
             raise ValueError(f"--{k.replace('_', '-')} {rec[k]} is negative")
     for k in ("ci_wall_s", "local_gate_s"):
@@ -180,7 +184,7 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
     rec = {"schema": SCHEMA, "pr": patch["pr"], "branch": None, "changes": 1, "done": None, "review_clean": None,
            "enqueued": None, "merged": None, "bounces": None, "bounce_causes": [], "pre_queue_reds": None,
            "done_each": [], "stalls": [], "ci_wall_s": None,
-           "local_gate_s": None, "local_gate_runs": None, "note": "", **(existing or {})}
+           "local_gate_s": None, "local_gate_runs": None, "landing_gate_runs": None, "note": "", **(existing or {})}
     for k, v in patch.items():
         if v is None or (k in ("bounce_causes", "done_each", "stalls") and not v):
             continue
@@ -260,6 +264,8 @@ def after_figures(recs: list[dict]) -> dict:
     out["ci_wall"] = {"n": len(ci), "median": median(ci), "p90": percentile(ci, 90)} if ci else None
     gate = [r["local_gate_s"] / 60 for r in landed if r.get("local_gate_s") is not None]
     out["local_gate"] = {"n": len(gate), "median": median(gate), "total": sum(gate)} if gate else None
+    own = [r["landing_gate_runs"] for r in landed if r.get("landing_gate_runs") is not None]
+    out["landing_gates"] = {"n": len(own), "total": sum(own), "ungated": sum(1 for n in own if n == 0)} if own else None
     return out
 
 
@@ -351,6 +357,13 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
                  (f"median {g['median']:.1f}, total {g['total']:.0f} ({g['n']} landing(s))" if g else UNMEASURED),
                  f"{EVIDENCE['gate_minutes'] / EVIDENCE['clusters_landed']:.1f} in the landers' gates per landed change "
                  f"({EVIDENCE['gate_pct']} % of {EVIDENCE['lander_minutes']} lander minutes)"))
+    lg = a["landing_gates"]
+    rows.append(("gates the landing ran itself, per landing (PB3612)",
+                 (f"{lg['total'] / lg['n']:.2f} ({lg['total']} in {lg['n']} landing(s); {lg['ungated']} ran none)"
+                  + (f"; {a['landings'] - lg['n']} landing(s) UNMEASURED" if a["landings"] > lg["n"] else ""))
+                 if lg else UNMEASURED,
+                 "1 or more: the whole-leg gate on both hosts at every landing, again whenever main moved while it waited "
+                 "(PB3140: 3 runs, 4,615 s)"))
     w = max(len(r[0]) for r in rows)
     return [f"{'':<{w}}  AFTER (merge queue, this file)  |  BEFORE (retired trains, 2026-10-10 evidence)"] + \
            [f"{k:<{w}}  {x}  |  {y}" for k, x, y in rows]
@@ -464,7 +477,8 @@ def local_gate(worktree: pathlib.Path) -> tuple[float, int] | None:
 
 
 def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr: int, reports_dir: pathlib.Path,
-                    changes: int | None = None, enqueued: str | None = None, git: Git | None = None) -> dict:
+                    changes: int | None = None, enqueued: str | None = None, git: Git | None = None,
+                    landing_gates: int | None = None) -> dict:
     """What `enqueue.py queue` can record the moment a pull request is queued: the branch, the enqueue time, each
     carried change's finish (`done_times`, run in the landing worktree) and the local gate seconds from the worktree's
     verdict.json files. `changes` defaults to the changes found (one per lead note), else 1."""
@@ -473,7 +487,8 @@ def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr:
     each = done_times(branch, reports_dir, at, git or git_runner(worktree))
     return record(path, {"pr": pr, "branch": branch, "changes": changes or len(each) or None, "enqueued": at,
                          "done": each[0] if each else None, "done_each": each,
-                         "local_gate_s": round(g[0], 1) if g else None, "local_gate_runs": g[1] if g else None})
+                         "local_gate_s": round(g[0], 1) if g else None, "local_gate_runs": g[1] if g else None,
+                         "landing_gate_runs": landing_gates})
 
 
 def complete(path: pathlib.Path, gh: Gh, only: int | None = None, say: Say = print) -> int:
@@ -592,6 +607,7 @@ def parser() -> argparse.ArgumentParser:
     r.add_argument("--ci-wall-s", type=float)
     r.add_argument("--local-gate-s", type=float)
     r.add_argument("--local-gate-runs", type=int)
+    r.add_argument("--landing-gate-runs", type=int, help="how many of the local gates the landing itself ran")
     r.add_argument("--note")
     c = sub.add_parser("complete", help="read merge time, bounces, pre-queue reds and CI wall from GitHub for unmerged "
                                         "records")
@@ -607,7 +623,8 @@ def parser() -> argparse.ArgumentParser:
 def patch_from_args(a: argparse.Namespace) -> dict:
     p = {"pr": a.pr, "branch": a.branch, "changes": a.changes, "bounces": a.bounces,
          "pre_queue_reds": a.pre_queue_reds, "ci_wall_s": a.ci_wall_s,
-         "local_gate_s": a.local_gate_s, "local_gate_runs": a.local_gate_runs, "note": a.note,
+         "local_gate_s": a.local_gate_s, "local_gate_runs": a.local_gate_runs,
+         "landing_gate_runs": a.landing_gate_runs, "note": a.note,
          "bounce_causes": [c.strip() for c in a.bounce_causes.split(",") if c.strip()] if a.bounce_causes else []}
     for k in STAMPS:
         v = getattr(a, k)
@@ -621,7 +638,8 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "done is each carried change's earliest DONE report by its HEAD commit's time, never a report file's time: a "
         "finisher keeps its predecessor's, a train's changes come from its Report lines, nothing after the queue or "
         "already on main counts",
-        "local gate seconds are the sum of every verdict.json in the worktree",
+        "local gate seconds are the sum of every verdict.json in the worktree, and the gates the landing ran itself are "
+        "recorded apart (0 or 1; null for a landing that predates the rule, said UNMEASURED, never 0)",
         "complete reads the merge time, counts only failed merge-group runs as bounces and takes the CI wall of the "
         "successful run",
         "summary sets the after column beside the before column, names unattributed bounces and says UNMEASURED for a "
@@ -739,6 +757,21 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     (bad / "verdict.json").write_text("{}", encoding="utf-8", newline="\n")
     if local_gate(wt) != (300.5, 2) or local_gate(tmp / "nowhere") is not None:
         fails.append(f"{gate_arm}: {local_gate(wt)}")
+    # the gates the LANDING ran itself (kb/Work PB3612): 0 or 1 recorded, null for a landing that predates the rule
+    lg_recs = [patch_record(None, {"pr": n, "branch": f"b{n}", "enqueued": t("10:00"), "merged": t("11:00"),
+                                   "landing_gate_runs": runs_n}) for n, runs_n in ((71, 0), (72, 1), (73, None))]
+    lg_text = "\n".join(summarize(lg_recs, []))
+    try:
+        patch_record(None, {"pr": 74, "branch": "b74", "landing_gate_runs": -1})
+        lg_refused = False
+    except ValueError:
+        lg_refused = True
+    if (after_figures(lg_recs)["landing_gates"] != {"n": 2, "total": 1, "ungated": 1} or not lg_refused
+            or "0.50 (1 in 2 landing(s); 1 ran none); 1 landing(s) UNMEASURED" not in lg_text
+            or after_figures(lg_recs[2:])["landing_gates"] is not None
+            or patch_from_args(parser().parse_args(["record", "--pr", "5", "--landing-gate-runs", "0"]))
+            ["landing_gate_runs"] != 0):
+        fails.append(f"{gate_arm}: landing gates {after_figures(lg_recs)['landing_gates']} refused={lg_refused}\n{lg_text}")
     # complete
     runs = [{"headBranch": "gh-readonly-queue/main/pr-17-aaa", "conclusion": "failure", "startedAt": t("10:40").replace("-07:00", "Z"),
              "updatedAt": t("11:00").replace("-07:00", "Z")},

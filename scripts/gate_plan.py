@@ -257,8 +257,8 @@ def read_previous_run(run: Path) -> tuple[Timings, set[str]]:
 #:   * the gate itself (run_gate_legs.py): its newest earlier run under TestResults/build-local/, chosen by
 #:     `run_gate_legs.Gate.previous_run` and handed to `previous_gates` (the CLI's `--previous-run`), gives the plan
 #:     its timings and reds;
-#:   * the Linux gate (linux-gate.sh: CI's Linux legs under WSL, which a landing runs right after the Windows gate,
-#:     enqueue.py GATES_WINDOWS) leaves its newest run's trx files in TestResults/linux-gate/ (it empties the directory
+#:   * the Linux gate (linux-gate.sh: the Linux half of the local gate, which run_gate_legs.py runs right after the
+#:     Windows legs, or CI's whole Linux legs run by hand to reproduce a CI red) leaves its newest run's trx files in TestResults/linux-gate/ (it empties the directory
 #:     first): they give the plan its REDS only, since another host's durations would mis-time this host's plan;
 #:   * the comprehensive battery (battery.sh) runs in its own detached worktree at a batch head (MANDATORY-PRACTICES
 #:     B1), never as a branch's gate, so no re-gate follows it.
