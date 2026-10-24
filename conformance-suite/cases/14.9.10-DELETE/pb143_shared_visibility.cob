@@ -24,8 +24,10 @@
       *> DOC-A.1-131), so Table 19 refuses that pair '61'; the pair that
       *> Table 19 admits is the one both connectors DECLARE, and SHARING
       *> (with the LOCK MODE clause 14.9.27.3 SR8 couples to it) is a
-      *> COBOL-2002 clause. The COBOL-85 posture of two clause-less
-      *> connectors is kb/Work PB670 (an owner question).
+      *> COBOL-2002 clause. At COBOL-85 two clause-less connectors are
+      *> not arbitrated at all (kb/Work PB670, DOC-A.1-77: every OPEN
+      *> is a normal open), and GR5's visibility holds there too
+      *> (SharingFacilityEditionTests, unit).
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
