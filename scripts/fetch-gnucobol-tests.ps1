@@ -274,12 +274,24 @@ function Test-Archive {
 if ($Force -and (Test-Path $ArcPath)) { Remove-Item $ArcPath -Force }
 
 if (-not (Test-Archive)) {
-    Write-Host "downloading $Url ..."
-    try {
-        Invoke-WebRequest -Uri $Url -OutFile $ArcPath -MaximumRedirection 5
-    } catch {
-        Write-FetchFailure "download of $Url failed: $($_.Exception.Message)"
-        exit 1
+    # A transient network failure is not a verdict (kb/Work PB3140: CI fetches this on a cache miss, and a failed
+    # fetch fails the job): three attempts, 15 s then 45 s apart. `-MaximumRetryCount` alone would not do: it retries
+    # only an HTTP error status, never a connection that times out.
+    $delays = @(15, 45)
+    for ($attempt = 1; ; $attempt++) {
+        Write-Host "downloading $Url (attempt $attempt of $($delays.Count + 1)) ..."
+        try {
+            Invoke-WebRequest -Uri $Url -OutFile $ArcPath -MaximumRedirection 5
+            break
+        } catch {
+            Remove-Item $ArcPath -Force -ErrorAction SilentlyContinue
+            if ($attempt -gt $delays.Count) {
+                Write-FetchFailure "download of $Url failed after $attempt attempts: $($_.Exception.Message)"
+                exit 1
+            }
+            Write-Warning "download of $Url failed (attempt $attempt): $($_.Exception.Message); retrying in $($delays[$attempt - 1]) s"
+            Start-Sleep -Seconds $delays[$attempt - 1]
+        }
     }
     if (-not (Test-Archive)) {
         Remove-Item $ArcPath -Force -ErrorAction SilentlyContinue
