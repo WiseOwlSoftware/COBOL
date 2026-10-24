@@ -1,4 +1,4 @@
-## PB3439 retired: the Linux gate's reds already feed the next plan (PB3155 and PB3184)
+## Entry 2461 — 2026-10-24 10:20 PDT — PB3439 retired: the Linux gate's reds already feed the next plan (PB3155 and PB3184)
 
 PB3439 (filed 2026-10-19) said `gate_plan.read_previous_run` reads only the Windows gate's run directory, so a red found
 only by the landing's Linux gate is not a previous red and the finisher's re-gate leaves it in leg 2.
@@ -14,3 +14,4 @@ host; a Linux gate with no Failed outcome) add no red.
 
 Nothing to fix. The note flips to `retired` with `closes_rows: []` (process tooling, no inventory row). No code, golden
 or diagnostic code changed, so no gate beyond `work.py check` applies.
+
