@@ -862,9 +862,12 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
    PB3027: the landing step never fixes a finding; the finisher's `pred` names the findings file and asks for every
    finding answered by its id) that COVERS the branch tip (`prune_worktrees.stamp_covers`, the branch survey's own
-   coverage rule, read through `review_coverage` over the survey's tips: the stamp names the tip, or every commit
-   since is mechanical; a stamp at an older head followed by real commits is WAITING FOR REVIEW, a diff-only
-   re-review, and the note waits, named, never a group: kb/Work PB3394): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
+   coverage rule, read through `prune_worktrees.Coverage.review` over the survey's tips: the stamp names the tip, or
+   every commit since is mechanical; a stamp at an older head followed by real commits is WAITING FOR REVIEW, a
+   diff-only re-review, and the note waits, named, never a group: kb/Work PB3394; where the REPORT does not cover the
+   tip either (commits after its HEAD that no report describes), the survey reads the branch IN FLIGHT or a DECISION,
+   never WAITING FOR REVIEW, and the planner says so from `Coverage.report`, the survey's own `report_since`: kb/Work
+   PB3446): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
    the fix lane cannot see (a `process_only` note, or an owner task's note that exists only on its own branch, read
    from that branch: `branch_lead_notes`) is decided by the same rule as an open note: its newest report naming it, on
    any branch, so its review finisher's later report on the finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`)
