@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import codecs
 import fnmatch
 import gzip
 import json
@@ -534,12 +535,29 @@ def removed_lines(diff: str) -> dict[str, list[str]]:
         if line.startswith("diff --git "):
             path, header = None, True
         elif header and line.startswith("--- "):
-            path = line[6:] if line.startswith("--- a/") else None
+            path = header_path(line[4:])
         elif line.startswith("@@"):
             header = False
         elif path and not header and line.startswith("-"):
             removed.setdefault(path, []).append(line[1:])
     return removed
+
+
+def header_path(field: str) -> str | None:
+    """The old path a patch's `--- ` header names (`field`, the header after `--- `), or None for `/dev/null`. git ends
+    the field with a TAB when the path holds a space (`docs/GnuCOBOL extensions.md`), and quotes it C-style when the
+    path holds a quote, a backslash or a control character (PB3131 review R1-2)."""
+    field = field.rstrip("\t")
+    if len(field) > 1 and field[0] == field[-1] == '"':
+        field = codecs.escape_decode(field[1:-1].encode("utf-8"))[0].decode("utf-8", errors="replace")
+    return field[2:] if field.startswith("a/") else None
+
+
+def tree_before(base: str) -> list[str]:
+    """The paths of `base`'s tree: what a register's path citation resolved against before the change."""
+    out = subprocess.run(["git", "-c", "core.quotePath=false", "ls-tree", "-r", "-z", "--name-only", base], cwd=REPO,
+                         check=True, capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
+    return [p for p in out.split("\0") if p]
 
 
 def removals(changes: list[tuple[str, str]], base: str | None) -> list[drift_rules.Removal]:
@@ -578,7 +596,9 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
         rows = drift_rules.index()
         reach.drift_tests |= drift_rules.governed(rows, [path for _, path in changes])
         cited: dict[tuple[str, str], list[str]] = {}
-        for cls, at in drift_rules.citing(rows, removals(changes, base)).items():
+        removed = removals(changes, base)
+        tree = tree_before(base) if base and any(r.deleted for r in removed) else None
+        for cls, at in drift_rules.citing(rows, removed, tree=tree).items():
             cited.setdefault(at, []).append(cls)
         for (data, cite), classes in sorted(cited.items()):
             reach.drift_tests.update(classes)
@@ -791,9 +811,15 @@ def self_test() -> int:
     rows = [{"test": "RegisterDriftTests", "file": "tests/U/RegisterDriftTests.cs", "rule": "", "scopes": [],
              "paths": ["docs/register.json"]}]
     register = ('{"code-location": "src/P/Binder.cs#Bind; src/P/Binder.cs#Outer.Inner", '
-                '"test-ref": "unit:TurnTests.UnknownName_IsDiagnosed; conformance:cases/7.3-X/old_case"}')
+                '"test-ref": "unit:TurnTests.UnknownName_IsDiagnosed; conformance:cases/7.3-X/old_case", '
+                '"note": "a record is two trees, which is the test of docs/README.md and scripts/test.py; see '
+                'unit:Harness.Opens, SourceKind.Program and the golden 2023/old_pin"}')
     planted_data = {"docs/register.json": register}
-    citing = lambda removals: drift_rules.citing(rows, removals, planted_data.__getitem__)  # noqa: E731
+    planted_tree = ["src/P/Binder.cs", "tests/U/TurnTests.cs", "tests/U/Harness.cs", "tests/U/Store.cs",
+                    "conformance-suite/cases/7.3-X/old_case.cob", "conformance-suite/cases/7.3-X/old_case.out",
+                    "conformance-suite/cases/7.3-X/old_pin.cob", "docs/README.md", "docs/sub/README.md",
+                    "scripts/foo/test.py", "src/X/Program.cs"]   # no scripts/test.py: its directory holds none
+    citing = lambda removals: drift_rules.citing(rows, removals, planted_data.__getitem__, planted_tree)  # noqa: E731
     real_files, drift_rules.data_files = drift_rules.data_files, lambda rs: {"docs/register.json": ["RegisterDriftTests"]}
     try:
         for label, removal, want in [
@@ -810,11 +836,34 @@ def self_test() -> int:
             ("a deleted suite test a register cites by its stem names the register's drift test (tier 0d)",
              drift_rules.removal_of("conformance-suite/cases/7.3-X/old_case.cob", ["       PROGRAM-ID. OLD."], None),
              "conformance:cases/7.3-X/old_case"),
+            ("a deleted suite test a pin cites as <edition>/<test> names the register's drift test (tier 0d)",
+             [drift_rules.removal_of("conformance-suite/cases/7.3-X/old_pin.cob", ["       PROGRAM-ID. PIN."], None)],
+             "2023/old_pin"),
+            ("a deleted type a register cites as Class.Member names the register's drift test (tier 0d)",
+             [drift_rules.removal_of("tests/U/Harness.cs", ["public sealed class Harness", "{", "}"], None)],
+             "Harness.Opens"),
+            # PB3131 review R1-1: a deleted file's comments and strings declared `is` and `which` as types, and its
+            # stem matched any whole word, so one deletion promoted nearly every register's class into tier 0d.
+            ("a deleted file's comments and strings declare no type: its prose words are no citation",
+             [drift_rules.removal_of("tests/U/Store.cs", ["/// so a record is two trees", '    Fail("record which");',
+                                                          "public sealed class Store { }"], None)],
+             None),
+            ("a deleted file's common stem (test.py, README.md) breaks no citation of another file of that name",
+             [drift_rules.removal_of("scripts/foo/test.py", ["def test(): pass"], None),
+              drift_rules.removal_of("docs/sub/README.md", ["# A test"], None)],
+             None),
+            ("a deleted type is no citation where a dotted name ENDS with it (an enum value of another type)",
+             [drift_rules.removal_of("src/X/Program.cs", ["public static class Program", "{", "}"], None)],
+             None),
+            ("deleting one file of a partial type deletes no type: its Class.Member citations stand",
+             [drift_rules.removal_of("tests/U/Harness.Part.cs", ["public sealed partial class Harness", "{", "}"],
+                                     None)],
+             None),
             ("a removal no register cites names no drift test",
              drift_rules.removal_of("src/P/Binder.cs", ["    void Helper() { }"], "class Binder { void Bind() { } }"),
              None),
         ]:
-            got = citing([removal])
+            got = citing(removal if isinstance(removal, list) else [removal])
             check(label, (got == {} if want is None else got == {"RegisterDriftTests": ("docs/register.json", want)}),
                   got)
         diff = "\n".join(["diff --git a/src/P/Binder.cs b/src/P/Binder.cs", "--- a/src/P/Binder.cs",
@@ -824,6 +873,13 @@ def self_test() -> int:
         got = removed_lines(diff)
         check("a diff's removed lines are read per file, a removed `-- a/x` line among them, an added file's none",
               got == {"src/P/Binder.cs": ["    void Bind() { }", "-- a/not/a/header"]}, got)
+        # PB3131 review R1-2: git ends a header with a TAB when its path holds a space, and C-quotes an odd path.
+        diff = "\n".join(["diff --git a/docs/A b.md b/docs/A b.md", "--- a/docs/A b.md\t", "+++ /dev/null",
+                          "@@ -1 +0,0 @@", "-gone", 'diff --git "a/docs/q\\"t.md" "b/docs/q\\"t.md"',
+                          '--- "a/docs/q\\"t.md"', '+++ "b/docs/q\\"t.md"', "@@ -1 +1 @@", "-old", "+new"])
+        got = removed_lines(diff)
+        check("a header path holding a space (git's trailing TAB) or C-quoted by git is the file's path",
+              got == {"docs/A b.md": ["gone"], 'docs/q"t.md': ["old"]}, got)
         check("a change that removes nothing a citation can name carries no removal",
               drift_rules.removal_of("src/P/Binder.cs", ["    x = 1;"], "class Binder { void M() { x = 2; } }") is None,
               "removal_of")
@@ -832,7 +888,7 @@ def self_test() -> int:
         real_removals, real_citing = removals, drift_rules.citing
         removals = lambda changes, base: [drift_rules.Removal("src/P/Binder.cs", False, frozenset({"Bind"}),  # noqa: E731
                                                               frozenset({"Binder"}))]
-        drift_rules.citing = lambda rs, rm, read=None: real_citing(rows, rm, planted_data.__getitem__)  # noqa: E731
+        drift_rules.citing = lambda rs, rm, read=None, tree=None: real_citing(rows, rm, planted_data.__getitem__)  # noqa: E731
         try:
             reach = Reach()
             reach_of(None, [("M", "src/P/Binder.cs")], "b" * 40, reach)

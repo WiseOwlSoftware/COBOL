@@ -33,4 +33,25 @@ MANDATORY-PRACTICES I1, and the gate scripts' headers.
 gap, not a register citation. It belongs to the PB2696 family and goes back as a lead. A removed identifier that still
 appears elsewhere in its file, for example in a comment, is not seen.
 
+**Branch review, round 1.** The reviewer replayed the six most recent file-deleting commits on main and found the
+deletion arm far too loose (R1-1). Two causes. `removal_of` took a "type" from any `record`/`class` word in the
+removed text, comments and strings included, so a deleted file whose doc comment said "a record is" made `is` a
+citation. And a deleted file's stem matched any whole word, so deleting a `test.py` or `README.md` matched prose. One
+deletion promoted up to 102 classes into tier 0d, which sits outside the leg-1 budgets. The finisher fixed both:
+- A type is now a C# declaration at a line start (`TYPE_DECL`). Deleting one file of a `partial` type deletes no type.
+- A deleted type breaks only a `Type.Member` dotted name.
+- A deleted file breaks a path citation only when the citation, resolved against the tree before the change
+  (`TreeFiles`), names no file the change keeps.
+
+Five of the six commits now promote nothing beyond their governed classes. The sixth, cf9c85914, promotes the
+inventory's classes on a real code-location of the file it deleted. The four landing stops still name their class.
+The lead R1-2 is fixed too: a patch header whose path holds a space ends in a TAB, and a quoted one is C-unquoted.
+Seven new self-test arms are pinned in `ImpactedTestsDriftTests`.
+
+The PB3603 form, which main folded into this note during the review, is not closed. A kb/Work-only diff still leaves
+`ClosesRowsBackLinkDriftTests` and `DefectiveRowCoverageDriftTests` in leg 2, because they read kb/Work through the
+shared `WorkRegister` reader. Following the shared readers would fix it for about 11 s a gate. The same rule would
+also add about 400 test-seconds to every gate that adds a golden, through `SuiteManifest`. That trade is left to the
+campaign, so the note stays `half`.
+
 Gate: see the report (`w20261026d-PB3131-report.md`).

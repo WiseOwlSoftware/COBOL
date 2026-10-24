@@ -968,8 +968,19 @@ because the raw name is not stable (`b7`):
   Four landings on 2026-10-14..17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a
   Windows leg 1 that left the class in leg 2 by its cost (4-6 s a case, over `SWEEP_CHEAP_SECONDS`); replayed with no
   map, each of the four commits (611bdb3a2, 684d01b4b, 1a473341f, c3c6879ab) now names the class, with the citation it
-  breaks, at a plan cost of about 2-5 s. A removed identifier that survives elsewhere in its file (in a comment) is
-  not seen; a register outside the drift tests' named files is not read.
+  breaks, at a plan cost of about 2-5 s. **A deletion is matched precisely**, because tier 0d sits outside the leg-1
+  budgets (branch review R1-1 of PB3131 measured one prose comment in a deleted file promoting 102 classes): a type
+  is one a C# line DECLARES (`TYPE_DECL`, a line's first token after its modifiers, never a comment, string or prose
+  word), deleting one file of a `partial` type deletes no type, and a deleted type breaks a dotted name only where a
+  member follows it (`Harness.Opens`, never `Program.cs` or `SourceKind.Program`); a deleted file breaks a path
+  citation only when the citation, resolved against the tree before the change (`TreeFiles`: the files whose path ends
+  with the citation's, or a golden pin's `<edition>/<test>` by name), names no file the change keeps, so
+  `docs/README.md` survives deleting `docs/sub/README.md` and a bare word is no path. Of the six most recent
+  file-deleting commits on main, five then promote nothing beyond their governed classes, and the sixth (cf9c85914)
+  promotes the inventory's classes on a real break: its code-location
+  `src/Cobol.Net.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
+  its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
+  outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
