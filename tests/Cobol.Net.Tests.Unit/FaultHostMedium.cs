@@ -51,6 +51,10 @@ internal sealed class FaultHostMedium : IHostMedium
     /// <summary>Whether the fault fired.</summary>
     internal bool Fired { get; private set; }
 
+    /// <summary>The lock directory refuses its listing to this process (the host a directory of mode 000 hides it on): every
+    /// <see cref="ListNames"/> raises <see cref="UnauthorizedAccessException"/>.</summary>
+    internal bool RefusesListing { get; init; }
+
     /// <summary>Every counted operation, in order: its kind and its file's name.</summary>
     internal List<string> Log { get; } = [];
 
@@ -79,6 +83,39 @@ internal sealed class FaultHostMedium : IHostMedium
         foreach (var holder in _holders) holder.DropAsADeathDoes();
         foreach (var stream in _streams) stream.Dispose();
         foreach (var mutex in _mutexes) mutex.Dispose();
+        foreach (var column in _columns) column.Dispose();
+    }
+
+    /// <summary>The Table 19 column locks established while <see cref="OwnColumnLocks"/> was installed.</summary>
+    private readonly List<IDisposable> _columns = [];
+
+    /// <summary>⛔ A KILL ALSO DROPS THE RUN UNIT'S TABLE 19 COLUMN LOCKS, as a death closes their descriptors. The column lock is
+    /// not the medium's (<see cref="RunUnitFileLock"/> establishes it through <see cref="IColumnLockHost"/>), so a run unit that
+    /// is to die holds its column locks through this medium while the returned scope is installed
+    /// (<see cref="RunUnitFileLock.HostObserver"/>, the pattern of <c>ColumnRequestLog</c>) and <see cref="Kill"/> gives them
+    /// back. Without it, a host whose column lock is a lock of its own (an open file description's on Linux) kept the dead run
+    /// unit's column, and the next run unit's OPEN met it as a live holder's ('61'), which no death leaves behind. A host whose
+    /// share mode is the file lock (Windows, under NO OTHER) takes no column, and the stream <see cref="Kill"/> closes is it.</summary>
+    internal IDisposable OwnColumnLocks()
+    {
+        RunUnitFileLock.HostObserver.Value = inner => new OwningHost(inner, this);
+        return new ColumnScope();
+    }
+
+    private sealed class ColumnScope : IDisposable
+    {
+        public void Dispose() => RunUnitFileLock.HostObserver.Value = null;
+    }
+
+    private sealed class OwningHost(IColumnLockHost inner, FaultHostMedium medium) : IColumnLockHost
+    {
+        public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
+            IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
+        {
+            var outcome = inner.Establish(hostPath, own, owesWrites, refused, supersedes, out hold);
+            if (hold is not null && !medium._dead) medium._columns.Add(hold);
+            return outcome;
+        }
     }
 
     /// <summary>Every file the medium touched keeps only what was synced (the bytes of its last sync; its name only when a
@@ -164,6 +201,7 @@ internal sealed class FaultHostMedium : IHostMedium
     public IReadOnlyList<string> ListNames(string directory, string prefix)
     {
         if (_dead) throw new Death();
+        if (RefusesListing) throw new UnauthorizedAccessException($"the test medium refuses the listing of {directory}");
         return HostMedium.Production.ListNames(directory, prefix);
     }
 

@@ -2919,7 +2919,11 @@ sequence** run by the entering connector of ANY run unit through ITS writable ha
 readable and F writable by that run unit: a journal this process may not read is a holder it cannot observe (the
 determination of DOC-A.1-75 for a lock file applies): the statement's lock test answers '51' and a writable OPEN of F answers
 '61', loudly, until the owner or an administrator removes the `.wolk-*` directory — a refusal, where a silent grant would lose
-a dead run unit's rollback.
+a dead run unit's rollback. A lock directory this process may not even LIST (on Linux, the directory of F at mode 000 hides
+it, and F with it) is no holder known to conflict: the entry step lacks the authority it needs, so a writable OPEN answers
+'37' (§9.1.13.6 6) b), *"insufficient authority exists to access the file"*) and a covered DELETE FILE '37' (§14.9.10.4 GR16)
+— the answer the OPEN's own presence probe gives such a file (`Holdings.Unlistable`; measured by the Linux gate, whose
+`FileAuthorityPresenceTests` met the '61' first).
 
 **2.2.2.8 The entry step, and what a file not under APPLY COMMIT pays.** At every WRITABLE OPEN of a sequential file (OUTPUT,
 EXTEND, I-O; any posture, any run unit, covered or not), at every DELETE FILE, and at a covered connector's first change —
@@ -3057,6 +3061,7 @@ with the second run unit at every boundary; the expected state in every row is I
 | every row × the COMMIT's regions | F synced · directory synced · `D C` written · `D C` synced · the retirement's deletes | region 1: unsuccessful, F at the previous COMMIT after item 8's rollback; region 2: success, the retirement completed by the next entry or the holder's own; region 3: reversed and rolled back, or marked and settled by the next entry — never a third state |
 | every row × the second run unit | append · rewrite of ordinal 0 · rewrite of ordinal 1 · truncate · DELETE FILE · read; plain, and covered with COMMIT, with ROLLBACK, and left open across the rest of the first's program and then committed, rolled back, killed, or appending and then committed or rolled back; at every medium operation and every statement boundary of the first | '51' to a WRITE while any transaction lives; '51' to a REWRITE of a held ordinal and '00' to one below L the first did not touch, which the first's ROLLBACK leaves (I2); '61' to an OPEN OUTPUT, a DELETE FILE and every writable OPEN of a REPLACED file; a read sees F as it stands; the first run unit's death after the second's statement is settled before the second's next change |
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
+| a lock directory this process may not list | a writable OPEN · a covered DELETE FILE | '37', F unchanged (`unit:SequentialCommitControlTests.A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks`) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
 **2.2.2.13 What the design deletes, keeps and measures.** Deleted: the refusal of the sequential operand of an APPLY COMMIT clause, COBOLNET1709 (retired, never reallocated), with `FileModel.IsCommitControlled` and `ApplyCommitModel.CommitControlledFiles`, which only narrowed the clause to its keyed files: every file the clause names is under commit control.

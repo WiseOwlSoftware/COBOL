@@ -643,6 +643,32 @@ public sealed class SequentialCommitControlTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks(bool covered)
+    {
+        // §9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §14.9.10.4 GR16 for the DELETE FILE). The
+        // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
+        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25).
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            File.WriteAllText(f, "C1", Encoding.Latin1);
+            var u = new Unit(f, covered, new FaultHostMedium { RefusesListing = true });
+            Assert.Equal("37", u.Open(FileOpenMode.Extend));
+            Assert.Equal("37", u.Open(FileOpenMode.Output));
+            if (covered) Assert.Equal("37", u.DeleteFile());   // the covered DELETE FILE's entry step (the uncovered one runs none)
+            Ok(u.Open(FileOpenMode.Input));                     // an OPEN INPUT runs no entry step
+            Ok(u.Read(out string record));
+            Assert.Equal("C1", record);
+            u.Reg.CloseAll();
+            Assert.Equal("C1", File.ReadAllText(f, Encoding.Latin1));
+        }
+        finally { TryDeleteDirectory(dir); }
+    }
+
     [Fact]
     public void A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open()
     {
@@ -653,14 +679,17 @@ public sealed class SequentialCommitControlTests
         {
             File.WriteAllText(f, "C1C2", Encoding.Latin1);
             var medium = new FaultHostMedium();
-            var a = new Unit(f, covered: true, medium);
-            Ok(a.Open(FileOpenMode.IO));
-            Ok(a.Read(out _));
-            Ok(a.Rewrite("Y1"));
-            Ok(a.Close());
-            Ok(a.Open(FileOpenMode.Extend));
-            Ok(a.Write("X1"));
-            medium.Kill();                     // the run unit is killed: its handles and its holder go, nothing is rolled back
+            using (medium.OwnColumnLocks())
+            {
+                var a = new Unit(f, covered: true, medium);
+                Ok(a.Open(FileOpenMode.IO));
+                Ok(a.Read(out _));
+                Ok(a.Rewrite("Y1"));
+                Ok(a.Close());
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));
+            }
+            medium.Kill();                     // the run unit is killed: its handles, holder and file lock go, nothing is rolled back
             Assert.StartsWith("Y1C2", File.ReadAllText(f, Encoding.Latin1), StringComparison.Ordinal);   // its REWRITE reached the file
             var b = new Unit(f, covered: false);
             Ok(b.Open(FileOpenMode.Extend));   // its entry step settles the dead transaction first
