@@ -103,8 +103,9 @@ dotnet test tests/Cobol.Net.Tests.Unit --no-build
 dotnet test tests/Cobol.Net.Tests.Conformance --no-build --filter "FullyQualifiedName~NistDifferentialTests"
 ```
 
-On Windows, `bash scripts/linux-gate.sh` runs CI's Linux legs under WSL before you push. It clones the committed
-HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do.
+On Windows, `bash scripts/linux-gate.sh` runs CI's Linux legs under WSL to reproduce a Linux red. It clones the committed
+HEAD into the Linux filesystem and builds and tests it there, the way CI's Ubuntu jobs do; `build-local` runs the Linux
+half of its own plan the same way (`--legs targeted`).
 
 The test populations:
 

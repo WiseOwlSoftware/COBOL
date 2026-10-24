@@ -38,7 +38,7 @@
   `prune_worktrees.py --brief` lists it WAITING FOR REVIEW until ONE read-only `cobol-reviewer` stamps it (the `review`
   skill's branch form, MANDATORY-PRACTICES I10, kb/Work PB3027); a `Review: CLEAN` stamp at its tip makes it WAITING TO
   LAND. With the loop STOPPED the attended session runs `enqueue.py land` by hand for its own branch, no agent needed.
-- **What a script cannot decide goes to ONE finisher (L12).** A conflict (exit 4), a red gate (5), a DEVLOG or oracle
+- **What a script cannot decide goes to ONE finisher (L12).** A conflict (exit 4), an untested tip (13: no recorded GREEN local gate covers it), a red gate (5), a DEVLOG or oracle
   refusal (6, 7), or a pull request the queue BOUNCED or whose required check failed before the queue
   (`prune_worktrees.py` reads ENQUEUED, NOT QUEUED and BOUNCED from `queue_facts.py`, the one reader of GitHub's facts;
   offline the states are git-only) is the branch's own: one

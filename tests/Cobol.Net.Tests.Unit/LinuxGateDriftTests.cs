@@ -124,4 +124,38 @@ public sealed class LinuxGateDriftTests
         Assert.True(direct.Count == 0, "scripts/linux-gate.sh runs git on the tree outside wgit: "
             + string.Join(" | ", direct.Select(l => l.Trim())));
     }
+
+    /// <summary>
+    /// ⛔ THE LINUX HALF OF THE LOCAL GATE IS ONE COMMAND, AND BOTH ENDS SPELL IT THE SAME WAY (kb/Work PB3612, owner
+    /// 2026-10-23): <c>scripts/run_gate_legs.py</c> (<c>Host.linux_leg</c>) starts <c>bash scripts/linux-gate.sh --legs
+    /// targeted --plan &lt;plan.json&gt; --plan-legs &lt;n&gt; --nice</c> after a green Windows half, under the slot it holds,
+    /// and <c>linux-gate.sh</c> answers with a <c>=== LINUX GATE: </c> line that the driver reads with its one verdict
+    /// reader; <c>linux-gate.sh</c> in turn runs the driver's <c>--plan-leg</c> in its built clone, so the legs of the
+    /// Windows half's plan run on Linux through the same handshake, population check and identity check.
+    /// </summary>
+    /// <remarks>
+    /// The driver's self-test plants the Linux half (<c>FakeHost.linux_leg</c>), and the script's self-test checks its
+    /// argument rules; neither runs the other. A flag renamed on one side is therefore red here, never first found by a
+    /// gate that reports <c>NOT RUN [arguments]</c> to an implementer on a Windows host.
+    /// </remarks>
+    [Fact]
+    public void TheDriversLinuxHalf_AndTheLinuxGatesTargetedMode_AgreeOnTheirArguments()
+    {
+        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
+
+        Assert.Contains("\"bash\", \"scripts/linux-gate.sh\", \"--legs\", \"targeted\", \"--plan\"", driver);
+        Assert.Contains("\"--plan-legs\"", driver);
+        Assert.Contains("\"--nice\"", driver);
+        Assert.Matches(new Regex(@"^\s*--plan\)", RegexOptions.Multiline), gate);
+        Assert.Matches(new Regex(@"^\s*--plan-legs\)", RegexOptions.Multiline), gate);
+        Assert.Matches(new Regex(@"^\s*targeted\)", RegexOptions.Multiline), gate);
+        Assert.Contains("scripts/run_gate_legs.py --plan-leg", gate);
+        Assert.Contains("add_argument(\"--plan-leg\"", driver);
+        Assert.Contains("add_argument(\"--plan-legs\"", driver);
+        Assert.Contains("add_argument(\"--results\"", driver);
+        Assert.Contains("LINUX_VERDICT = \"=== LINUX GATE: \"", driver);
+        Assert.Contains("PLAN_LEG_VERDICT = \"=== PLAN LEG: \"", driver);
+        Assert.Contains("=== PLAN LEG: ", gate);
+    }
 }

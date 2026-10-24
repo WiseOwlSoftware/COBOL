@@ -44,7 +44,7 @@ A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381, MANDATORY
 (`group_files`: its `file_set`, or, when that is empty, the set its notes declare) holds a file under HOST_IO
 (`src/Cobol.Net.Runtime/IO/`: the connectors, the keyed-store engine, the host file medium) is `host_io`, and its spec's
 LINUX GATE paragraph tells the implementer to run CI's Linux unit and conformance legs from WSL after the Windows gate
-is GREEN; every other group keeps the batched-gating paragraph (the landing's Linux gate). Wave 1118 measured why:
+is GREEN; every other group keeps the paragraph that says the targeted Linux half is inside its own gate. Wave 1118 measured why:
 PB3333 was DONE at 08:50, reviewed CLEAN at 11:07 and refused at its landing at 11:26 because 31 NIST RL programs
 differ on Linux, which no earlier gate had run.
 """
@@ -63,15 +63,15 @@ PB = re.compile(r'\bPB\d+\b')
 
 #: The host file I/O layer (module docstring): a group that changes a file under it is a host-I-O group.
 HOST_IO = 'src/Cobol.Net.Runtime/IO/'
-#: The LINUX GATE paragraph of a spec ({linux_gate} in the template), by `host_io`. Every other group's: under batched
-#: gating the Linux legs are the landing's (MANDATORY-PRACTICES I8, L10).
+#: The LINUX GATE paragraph of a spec ({linux_gate} in the template), by `host_io`. Every other group's: the targeted
+#: Linux half runs inside the implementer's own gate (MANDATORY-PRACTICES I8, L10; kb/Work PB3612).
 LINUX_GATE = {
-    False: "LINUX GATE (I8, PB1732): with a `LEG 1 ONLY` verdict (batched gating, the default) the Linux gate is the "
-           "landing's (`enqueue.py land`): skip it and report `LINUX GATE: the lander's (batched gating)`. Only with a "
-           "plain `GREEN` verdict (the owner set the scope to `whole`): after the Windows gate is green and COMMITTED, "
-           "run `bash scripts/linux-gate.sh --nice` at your worktree's root, from any shell (on a host that is not Linux "
-           "it runs itself under WSL, kb/Work PB2999) (all four of CI's Linux legs, ~6 min) and quote its "
-           "`=== LINUX GATE:` line in your report.",
+    False: "LINUX GATE (I8, PB1732, PB3612): the Linux half of the targeted leg runs INSIDE your gate (owner 2026-10-23): "
+           "after the Windows legs are green, `build-local` runs the same plan's legs in a WSL clone of your COMMITTED HEAD "
+           "(`linux-gate.sh --legs targeted`, under the slot it holds), and your verdict line says `Linux half (WSL clone of "
+           "HEAD) GREEN`. So COMMIT BEFORE YOU GATE (the clone tests HEAD, and the gate's record counts only when the tree it "
+           "measured is the head's), and report `LINUX GATE: inside your gate (the targeted Linux half)`. A red Linux half is "
+           "yours to root-cause and fix like a Windows red. `enqueue.py land` gates nothing again: it reads your gate's record.",
     True: "LINUX GATE (I8, PB1732; HOST-I-O GROUP, kb/Work PB3381): your group changes the host file I/O layer "
           f"(`{HOST_IO}`: the connectors, the keyed-store engine, the host file medium), whose behaviour differs by "
           "host, so CI's Linux legs that cover it run at YOUR gate, not first at the landing (wave 1118: PB3333 was "
@@ -83,8 +83,8 @@ LINUX_GATE = {
           "bash -c 'until grep -q \"=== LINUX GATE: \" \"<log>\"; do sleep 5; done'`, re-issued until it prints); "
           "quote that line in your report. (With a plain `GREEN` verdict, the owner's `whole` scope, run all four legs "
           "instead: `bash scripts/linux-gate.sh --nice`.) A RED is yours to root-cause and fix like a Windows red: a "
-          "platform difference is a defect, never a per-OS golden. The landing still runs all of CI's Linux legs "
-          "(`enqueue.py land`).",
+          "platform difference is a defect, never a per-OS golden. CI's merge group still runs all of CI's Linux legs "
+          "on the merge.",
 }
 
 

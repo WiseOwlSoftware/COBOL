@@ -25,4 +25,4 @@ Non-negotiables:
 
 Why these settings (kb/Work PB3023, DESIGN-test-build-ci.md section 3.17.5): the lander role retired with the train;
 what a script cannot decide at the landing is one branch's conflict or red, a smaller job than a train (turn cap 160).
-Effort `high` and a 1-hour prompt cache, because the finisher waits on a gate and on enqueue.py's gates.
+Effort `high` and a 1-hour prompt cache, because the finisher waits on a gate.
