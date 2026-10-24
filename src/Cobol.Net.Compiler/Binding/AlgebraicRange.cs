@@ -163,46 +163,82 @@ internal static class AlgebraicRanges
     /// largest page size that item can hold, its all-nines. The data-name is read from its RESOLVED item
     /// (<see cref="LinageOperand.Item"/>, qualified per §8.4.2.2 — kb/Work PB489), never re-looked-up by its bare
     /// name.</item>
-    /// <item>LINE-COUNTER / PAGE-COUNTER — the standard gives no size, and WiseOwl COBOL's documented shape is
-    /// PIC 9(18), the all-nines of the runtime's long carrier (CONFORMANCE.md §3, "the counter registers'
-    /// declared capacity").</item>
+    /// <item>LINE-COUNTER / PAGE-COUNTER — the standard gives no size and no usage, so the owner's latitude order
+    /// (CLAUDE.md rule 1) takes GnuCOBOL's: an unsigned 32-bit binary integer (<c>CB_USAGE_UNSIGNED_INT</c>,
+    /// cobc/tree.c <c>build_report</c>), capacity 4,294,967,295 (kb/Work PB1746; docs/CONFORMANCE.md §3, "the counter
+    /// registers' declared description"). It is <see cref="PicInfo.ReportCounterItem"/>, read here and nowhere
+    /// else.</item>
     /// </list>
-    /// ⛔ THE ONE STATEMENT OF THE REGISTERS' CAPACITY: the §15.43/§15.58/§15.83 algebraic folds and the §8.8.4.4.4
-    /// GR3 g)/l)/m) class conditions both ask it here, so a HIGHEST-ALGEBRAIC of the register and an
-    /// <c>IS FARTHEST-FROM-ZERO</c> test of it cannot name two different values.</summary>
-    internal static AlgebraicRange? OfCounterRegister(Bound.BoundExpr register) =>
-        CounterCapacity(register) is { } capacity ? UnsignedCounter(capacity) : null;
+    /// ⛔ THE ONE STATEMENT OF THE REGISTERS' DESCRIPTION: the §15.43/§15.58/§15.83 algebraic folds, the §8.8.4.4.4
+    /// GR3 g)/l)/m) class conditions, the character image, the LENGTH / BYTE-LENGTH folds and the usage screens
+    /// (STRING / UNSTRING / the §8.8.4.2.5 relation) all ask <see cref="DescribeCounter"/>, so a HIGHEST-ALGEBRAIC of
+    /// the register, an <c>IS FARTHEST-FROM-ZERO</c> test of it and its DISPLAY image cannot describe three
+    /// different items.</summary>
+    internal static AlgebraicRange? OfCounterRegister(Bound.BoundExpr register) => DescribeCounter(register)?.Range;
 
     /// <summary>True for a COUNTER REGISTER read — LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER — which the binder
     /// carries as a computed operand (the register is runtime state, never storage) although the standard makes it a
     /// DATA ITEM: "a temporary unsigned integer data item of class and category numeric" (§8.4.3.14.4 GR1 /
     /// §8.4.3.15.4 GR1), referable "in any context where an integer data item may appear" (§8.4.3.15.3 SR1). Every
     /// consumer that asks "is this an integer data item" or "what is its character image" asks HERE (kb/Work PB1153,
-    /// PB1199, PB1318), so a new register is one arm of <see cref="CounterCapacity"/>, not one per consumer.</summary>
-    internal static bool IsCounterRegister(Bound.BoundExpr e) => CounterCapacity(e) is not null;
+    /// PB1199, PB1318), so a new register is one arm of <see cref="DescribeCounter"/>, not one per consumer.</summary>
+    internal static bool IsCounterRegister(Bound.BoundExpr e) => DescribeCounter(e) is not null;
 
-    /// <summary>The number of digit positions of a counter register's implicit description — the unsigned integer
-    /// item <c>PIC 9(d)</c> whose all-nines is the declared capacity (docs/CONFORMANCE.md, "the counter registers'
-    /// declared capacity"): the digits of the LINAGE page size, and 18 for LINE-/PAGE-COUNTER. It sizes the register's
-    /// character image, exactly as an integer data item's PICTURE sizes its own (§14.9.25.4 GR6's numeric-integer
-    /// sender; §8.8.4.2.5's "number of digits in the integer"). <c>null</c> for any other expression.</summary>
-    internal static int? CounterRegisterDigits(Bound.BoundExpr e) => CounterCapacity(e)?.Length;
+    /// <summary>The number of digit positions of a counter register's implicit description: the digits of the LINAGE
+    /// page size (a <c>PIC 9(d)</c> item whose all-nines is its capacity) and 10 for LINE-/PAGE-COUNTER (the decimal
+    /// width of 2³²−1). It sizes the register's character image, exactly as an integer data item's description sizes
+    /// its own (§14.9.25.4 GR6's numeric-integer sender; §8.8.4.2.5's "number of digits in the integer"). <c>null</c>
+    /// for any other expression.</summary>
+    internal static int? CounterRegisterDigits(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Digits;
 
-    /// <summary>⛔ THE ONE STATEMENT of a register's capacity, as its all-nines-or-literal text — both
-    /// <see cref="OfCounterRegister"/> and <see cref="CounterRegisterDigits"/> read it, so the class conditions,
-    /// the algebraic folds and the character image cannot disagree about one register.</summary>
-    private static string? CounterCapacity(Bound.BoundExpr register) => register switch
+    /// <summary>The register's size in BYTES — what FUNCTION LENGTH / BYTE-LENGTH report (§15.50.4 r3 / §15.14.4 r1):
+    /// one byte per digit for LINAGE-COUNTER's DISPLAY item, 4 for LINE-/PAGE-COUNTER's 32-bit binary one.
+    /// <c>null</c> for any other expression.</summary>
+    internal static int? CounterRegisterByteLength(Bound.BoundExpr e) => DescribeCounter(e) is { Pic: var pic }
+        ? pic.Usage is Usage.Display ? pic.Length : pic.StorageWidth
+        : null;
+
+    /// <summary>True when the register is an item "described implicitly … as usage display or national" — the
+    /// antecedent of STRING's and UNSTRING's SR1 (§14.9.43.3, §14.9.48.3) and of §8.8.4.2.5's numeric integer operand.
+    /// LINAGE-COUNTER is (its size is the page size's digits, a DISPLAY description); LINE-/PAGE-COUNTER are not
+    /// (kb/Work PB1746). <c>null</c> for any other expression.</summary>
+    internal static bool? CounterRegisterIsUsageDisplay(Bound.BoundExpr e) =>
+        DescribeCounter(e) is { Pic.Usage: var usage } ? usage is Usage.Display : null;
+
+    /// <summary>The usage of the register's implicit description, for a diagnostic. <c>null</c> for any other
+    /// expression.</summary>
+    internal static Usage? CounterRegisterUsage(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Usage;
+
+    /// <summary>A register's implicit data description (<paramref name="Pic"/>) and the extremes it permits.</summary>
+    private readonly record struct CounterDescription(PicInfo Pic, AlgebraicRange Range);
+
+    /// <summary>⛔ THE ONE STATEMENT of a register's description — every consumer above reads it, so the class
+    /// conditions, the algebraic folds, the character image, the byte length and the usage screens cannot
+    /// disagree about one register.</summary>
+    private static CounterDescription? DescribeCounter(Bound.BoundExpr register) => register switch
     {
-        Bound.BoundLinageCounterRef lc => LinagePageCapacity(lc.File),
-        Bound.BoundReportCounterRef => ReportCounterCapacity,
+        Bound.BoundLinageCounterRef lc => LinageCounter(lc.File),
+        Bound.BoundReportCounterRef => ReportCounter.Value,
         _ => null,
     };
 
-    /// <summary>The documented LINE-COUNTER / PAGE-COUNTER capacity, PIC 9(18) (see <see cref="OfCounterRegister"/>).</summary>
-    private const string ReportCounterCapacity = "999999999999999999";
+    /// <summary>LINE-COUNTER / PAGE-COUNTER: <see cref="PicInfo.ReportCounterItem"/> and the extremes of that
+    /// description (kb/Work PB1746) — folded from the description, never written a second time.</summary>
+    private static readonly Lazy<CounterDescription> ReportCounter = new(() =>
+    {
+        var pic = PicInfo.ReportCounterItem();
+        return new CounterDescription(pic, Of(pic)!.Value);
+    });
 
-    private static AlgebraicRange UnsignedCounter(string capacity) =>
-        new(capacity, FarthestNegative: null, Nearest: "1", Zero: "0");
+    /// <summary>LINAGE-COUNTER: the unsigned DISPLAY integer <c>PIC 9(d)</c> whose all-nines (or literal) is the page
+    /// size (§8.4.3.14.4 GR1 — "whose size is equal to the page size specified in the LINAGE clause").</summary>
+    private static CounterDescription LinageCounter(FileModel file)
+    {
+        string capacity = LinagePageCapacity(file);
+        int digits = capacity.Length;
+        var pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false);
+        return new CounterDescription(pic, new AlgebraicRange(capacity, FarthestNegative: null, Nearest: "1", Zero: "0"));
+    }
 
     private static string LinagePageCapacity(FileModel file)
     {
@@ -210,8 +246,8 @@ internal static class AlgebraicRanges
         if (body?.Literal is { } lit) return lit.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (body?.Item?.Pic is { Digits: > 0 } p) return new string('9', p.Digits);
         // An unresolved page-size operand was already reported by its own resolution (DataBinder.ResolveLinage);
-        // the register is still a long-carried counter, so its carrier's bound stands in for the missing size.
-        return ReportCounterCapacity;
+        // the register still has a value, so the report counters' capacity stands in for the missing size.
+        return ReportCounter.Value.Range.Farthest;
     }
 
     /// <summary>The extremes of a numeric or integer FUNCTION's returned value (§8.5.2.12 items 6–7) — the

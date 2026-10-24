@@ -10550,6 +10550,51 @@
   ],
   "expect": "parameter-name 'SQRT': the intrinsic-function-name is identified in a function-specifier"
  },
+ "pb1746-linage-counter-unstring-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1651"
+ },
+ "pb1746-line-counter-string-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb1746-page-counter-alphanumeric-relation": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb1746-page-counter-string-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb1746-page-counter-unstring-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1651"
+ },
  "pb1758-fixed-author-at-2014": {
   "refuse-at": [
    "2002",
