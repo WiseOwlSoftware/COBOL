@@ -426,9 +426,22 @@ def parse_report(p: pathlib.Path) -> Report | None:
                   (g.group(1) if (g := GATE_RUN.search(unstamped)) else None))
 
 
+def report_order(r: Report) -> tuple[float, int, str]:
+    """THE ONE ORDER OF FIX-LANE REPORTS, oldest first (kb/Work PB3625): the report's write time, then its wave number,
+    then its file name. Every reader that takes "the newest report" (the planner's `newest`, the branch survey's
+    `newest_report`, the landing check's `report_of`, the landing measure's chain) reads this order through
+    `load_reports`. The wave number is a name, not a clock: two lanes number their waves differently (date-numbered
+    20261024 against serial 1157), so ordering by it first made a superseded report outrank a later one. `next_wave`
+    takes the highest wave number for a different job (a number nobody has used) and is right to ignore time."""
+    return (r.path.stat().st_mtime, r.wave, r.path.name)
+
+
 def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | None = None) -> list[Report]:
-    """The reports in `reports_dir`, oldest first: by wave, then modification time, then file name. The name makes the
-    order TOTAL: two reports of one wave written within one file-system tick tie on the first two keys, and a tie left
+    """The reports in `reports_dir`, oldest first: by WRITE TIME, then wave, then file name (`report_order`). The wave
+    number is no order across lanes (kb/Work PB3625: the loop's waves are date-numbered, 20261024, the Mythos lane's
+    serial, 1157, so every date-numbered report outranked every serial one and a superseded SPLIT report stayed a
+    note's newest beside a later DONE one), so it only breaks a tie. The name makes the
+    order TOTAL: two reports written within one file-system tick tie on the first two keys, and a tie left
     to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
     newest report, the order finishers are planned in and which of two chained finishers is the successor differed
     between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
@@ -441,7 +454,7 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
     for r in reps:
         r.notes = answered_notes(r, groups)
-    return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime, r.path.name))
+    return sorted(reps, key=report_order)
 
 
 def local_branches() -> tuple[set[str], "git_batch.Ancestry"]:
