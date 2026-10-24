@@ -52,4 +52,8 @@ describes the per-gate directory, the reaping and NOT RUN [disk]. Merging main b
 old shapes, now converted too: `scripts/git_batch.py`'s self-test (`scratch_dir`, `remove_tree`), and
 `SequentialJournalTests` and `SequentialCommitControlTests` (`ScratchDirectory.Create` and `Remove`; the latter's own
 `NewDirectory` and `TryDeleteDirectory` wrappers deleted). Main had moved the journal tests out of `Journal/`, so the
-branch's edit of the old file went with it.
+branch's edit of the old file went with it. The merged tree's gate then caught `HarnessLog.Record` dropping a line
+whenever two appends met: `ScratchDirectoryTests` read back no SCRATCH-LEFT line while the process-observation tests
+recorded beside it. The appends now take turns in the host and wait for another writer, a line still unwritten goes to
+standard error marked lost, and `HarnessLog.ReadAll` reads beside the writers; `HarnessLogTests` (32 writers and a
+reader) lost 754 of 800 lines against the old append and none against the new one.
