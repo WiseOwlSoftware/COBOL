@@ -1653,6 +1653,37 @@ public sealed class CommitRollbackRuntimeTests
         }
     }
 
+    /// <summary>⛔ A FILE MADE AFTER ANOTHER WAS REMOVED MAY BE GIVEN THE REMOVED FILE'S NUMBER, AND IS STILL THE FILE ITS CONNECTOR
+    /// OPENED (review R1-1 of kb/Work PB3576; §9.1.13.9 1) a), a file opened by one connector with SHARING WITH NO OTHER refuses
+    /// another connector's OPEN; §9.1.13.9 2), DELETE FILE of a file open by another connector is '62'): F OPENs OUTPUT (creating
+    /// the file), CLOSEs and DELETEs the file, then OPENs OUTPUT again. A host that gives a freed file number to the next file made
+    /// (Linux ext4) gives the new file the number the first file's state still claimed. Connector G of the run unit then meets F's
+    /// Table 19 entry at once: DELETE FILE is '62' and OPEN INPUT is '61', as they are beside any other open connector.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_file_made_with_the_number_of_a_removed_file_is_met_by_the_connector_that_made_it(FileOrg org)
+    {
+        string host = Tmp($"pb3576-number-{org}");
+        try
+        {
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: false, name: "F", FileSharing.NoOther);
+            Declare(a, host, org, commit: false, name: "G", FileSharing.NoOther);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            a.Close("F");
+            Assert.Equal("00", a.DeleteFile("F"));
+            Assert.False(File.Exists(host));
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("62", a.DeleteFile("G"));
+            a.OpenStatic("G", FileOpenMode.Input);
+            Assert.Equal("61", a.Status("G"));
+            a.CloseAll();
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ THE LOCKS A RETIRED KEPT STATE HOLDS ARE THE OLD FILE'S, AND THE COMMIT GIVES THEM BACK WITH IT (kb/Work PB3576,
     /// PB3578; §9.1.16, <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>): on a host
     /// whose region locks answer unavailable for record bytes, F, under commit control, READs record 2 (the lock is in this run

@@ -1548,7 +1548,10 @@ their places; what each does changes:
   first was removed or renamed away has a state of its own (none of the first file's Table 19 entries, file locks or record locks),
   and the first file reached under its new name meets them all. A path finds a state only while the file is absent (the state an
   OPEN OUTPUT or an OPTIONAL creation gets, which learns its file once the handle exists) or where the host cannot tell files
-  apart, as before. A connector's record statements use the state its last OPEN arbitrated (`FileConnector.Physical`, never a path
+  apart, as before. A host may give the number of a removed file to the next file made (Linux ext4 does, at once), so a state no
+  connector has open yields its identity when the OPEN that made a file learns the same one (`Learn`; a state a connector has
+  open keeps it, its handle keeps its file alive): the connector that made the file and every later OPEN or DELETE FILE of the
+  path then meet one state. A connector's record statements use the state its last OPEN arbitrated (`FileConnector.Physical`, never a path
   lookup), so a file replaced under an open connector keeps its own locks; the run unit's record-lock ceiling (§12.4.5.9.4 GR7) counts
   every state. Witnesses: `PhysicalFileTableIdentityTests` (every host) and `CommitRollbackRuntimeTests.Two_connectors_on_a_path_whose_file_was_replaced_meet_none_of_each_others_locks` (Linux).
   *As built (kb/Work PB3333-PB3335):* the entry is a `KeyedStore` (`IO/KeyedStore.cs`), a `RelativeStore` or an

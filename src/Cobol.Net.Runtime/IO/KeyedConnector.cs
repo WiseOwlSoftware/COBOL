@@ -695,7 +695,7 @@ public abstract class KeyedConnector : FileConnector
     /// ROLLBACK or the run unit's end (<see cref="ReleaseKept"/>), or the connector's next successful OPEN of the SAME physical
     /// file, which carries it on (<see cref="CarryKeptOver"/>). It belongs to the physical file, not to this connector: an
     /// ASSIGN USING that associates the connector with another file (<c>FileConnector.Associate</c>) or a replacement of the
-    /// connector hands it to the registry (<see cref="TakeKept"/>).</summary>
+    /// connector hands it to the registry (<see cref="RetireKept"/>).</summary>
     private KeptFile? _kept;
 
     /// <summary>Give a kept handle back (<see cref="KeptFile.GiveBack"/>) off the store this connector is attached to.</summary>
@@ -769,8 +769,9 @@ public abstract class KeyedConnector : FileConnector
         _kept = null;
         try
         {
-            // Nothing is published through a kept endpoint a successful re-OPEN reached Attach with (Attach moved it all); an OPEN
-            // that never attached (an absent OPTIONAL file) leaves the locks here, and they end with the handle.
+            // Nothing is published through a kept endpoint a successful re-OPEN reached Attach with (Attach moved it all). An OPEN
+            // that never attached - an absent OPTIONAL file, a file the path no longer names - holds no kept state here: the OPEN
+            // retired it to the registry before its body (RetireWhatWasKeptOfAnotherFile), so it ends with the COMMIT.
             if (!kept.Adopted && Physical is { } physical) PhysicalFileTable.ReleaseThrough(physical, kept.Endpoint);
             if (kept.Handle is { } handle && !kept.Adopted) GiveBack(handle);
         }
