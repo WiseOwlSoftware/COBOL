@@ -1,4 +1,4 @@
-## PB1014 and PB3246: a BY CONTENT boolean argument is stored by the MOVE's store, and an activation's tail picks up before it terminates a SORT
+## Entry 2446 — 2026-10-24 01:14 PDT — PB1014 and PB3246: a BY CONTENT boolean argument is stored by the MOVE's store, and an activation's tail picks up before it terminates a SORT
 
 Wave 20261027, group B (both notes name `OoEmitter.cs` and the `CallEmitter.cs` tail it shares).
 
@@ -50,3 +50,4 @@ nested activations terminate nothing; the declarative runs to its end, then the 
 the reviewer's probes now agree. Determination recorded in the design doc: a RESUME AT procedure-name taken by the pickup's
 declarative leaves the statement before the termination is acted on, so that transfer supersedes the request (GR1 b) puts the
 raise, and so the declarative's choice of where control goes, first).
+
