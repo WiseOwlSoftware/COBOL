@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Globalization;
 using CobolNet.Editions;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
@@ -718,12 +717,22 @@ public static partial class ConditionalCompilationProcessor
                 // GR4 — the value is obtained from the operating environment by an implementor-defined method
                 // (DOC-A.1-49, docs/CONFORMANCE.md): the environment variable named by the compilation-variable-name in
                 // its canonical upper-case spelling — a COBOL word is case-insensitive (§8.3.1), so two spellings of
-                // one name read ONE variable (kb/Work PB1533). A value that parses as a fixed-point numeric literal is
-                // numeric, else alphanumeric. Unavailable ⇒ NOT defined.
+                // one name read ONE variable (kb/Work PB1533). What the text IS — a numeric literal's spelling, one quoted
+                // literal, any other text, or no value — is DefineParameterValue's (kb/Work PB1626); a numeric or quoted value
+                // is then evaluated as the literal it spells, by the path a literal written in the directive takes, so the
+                // value, the digit capacity and the screening are that path's. Unavailable ⇒ NOT defined.
                 string? env = ParameterText(name, inputs);
-                CtValue? pv = env is null ? null
-                    : decimal.TryParse(env, NumberStyles.Number, CultureInfo.InvariantCulture, out var num)
-                        ? CtValue.Numeric(CtNumeric.FromDecimal(num), env) : CtValue.Alphanumeric(env);
+                CtValue? pv = null;
+                switch (env is null ? ParameterValueForm.NoValue : DefineParameterValue.Classify(env))
+                {
+                    case ParameterValueForm.Alphanumeric:
+                        pv = CtValue.Alphanumeric(env!);
+                        break;
+                    case ParameterValueForm.NumericLiteral or ParameterValueForm.QuotedLiteral:
+                        if (EvaluateOperandText(env!, evaluator, diag, $">>DEFINE {name} AS PARAMETER") is not { } literal) return null;
+                        pv = literal;
+                        break;
+                }
                 // SR2 applies to the PARAMETER alternative like every other (kb/Work PB1367): without OVERRIDE, a name
                 // already defined may be redefined only to the SAME value, and "no value" is not the same value.
                 if (pv is null && !over && defines.ContainsKey(name)) diag.Report1618(name);
