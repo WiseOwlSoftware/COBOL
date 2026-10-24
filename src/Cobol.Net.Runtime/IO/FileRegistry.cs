@@ -1685,7 +1685,7 @@ public sealed class FileRegistry
     /// <paramref name="mode"/>) (kb/Work PB3340; §14.7.9.3 GR3 and kb/Work PB1163: a RETRY waits only for a holder outside the
     /// run unit, the one kind that can release while the statement runs; DOC-A.1-109)? Through what a CLOSE under commit
     /// control kept, whose Table 19 column refuses the request (<see cref="RunUnitHoldsAgainst"/>), or through its own
-    /// transaction on a sequential file (<see cref="OwnTransactionRefuses"/>). A writable OPEN only meets the latter: an OPEN
+    /// transaction on a sequential file (<see cref="OwnTransactionRefuses"/>), which only a writable OPEN meets: an OPEN
     /// INPUT runs no entry step.</summary>
     private bool RunUnitRefusesOpen(string name, FileConnector c, FileSharing sharing, FileOpenMode mode)
     {

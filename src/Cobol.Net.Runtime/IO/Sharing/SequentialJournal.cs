@@ -20,7 +20,7 @@ namespace CobolNet.Runtime.IO;
 /// it then stands (the before file) and ends the base phase: from then on the file is REPLACED and nothing more is journaled.
 /// A transaction whose first change is a CREATION is replaced from the start, with no before file (START <c>A</c>), and its
 /// rollback removes the file.</para>
-/// <para><b>The record (2.2.2.4), little-endian.</b> A HEADER of <see cref="HeaderBytes"/> bytes — magic <c>WOLJ</c>, the format
+/// <para><b>The record (2.2.2.4), little-endian.</b> A HEADER of <see cref="JournalHeaderBytes"/> bytes — magic <c>WOLJ</c>, the format
 /// (4), the transaction id (8), the START (<c>P</c> present, <c>A</c> absent), three bytes of zero, a CRC-32C of the 20 before
 /// it — then RECORDS, each its kind byte, its payload and a CRC-32C of both: <c>L</c> (the length 8), at most one; <c>R</c>
 /// (ordinal 8, offset 8, length 4, the bytes), one per rewritten record of the base phase; <c>K</c> (<c>O</c> or <c>D</c>, the
@@ -62,7 +62,7 @@ internal sealed class SequentialJournal
     private const uint Format = 1;
 
     /// <summary>⛔ A WIRE VALUE: the length of the record's header.</summary>
-    internal const int HeaderBytes = 24;
+    internal const int JournalHeaderBytes = 24;
 
     /// <summary>⛔ A WIRE VALUE: the record's magic.</summary>
     private static ReadOnlySpan<byte> Magic => "WOLJ"u8;
@@ -177,7 +177,7 @@ internal sealed class SequentialJournal
         try
         {
             record = medium.OpenTransient(Path.Combine(directory, RecordName(id)), FileMode.CreateNew, FileAccess.ReadWrite);
-            Span<byte> header = stackalloc byte[HeaderBytes];
+            Span<byte> header = stackalloc byte[JournalHeaderBytes];
             Magic.CopyTo(header);
             BinaryPrimitives.WriteUInt32LittleEndian(header[4..], Format);
             BinaryPrimitives.WriteInt64LittleEndian(header[8..], id);
@@ -481,7 +481,7 @@ internal sealed class SequentialJournal
     {
         record.Position = 0;
         var reader = new BufferedStream(record, 64 * 1024);
-        Span<byte> header = stackalloc byte[HeaderBytes];
+        Span<byte> header = stackalloc byte[JournalHeaderBytes];
         if (!Fill(reader, header) || !header[..4].SequenceEqual(Magic)
             || BinaryPrimitives.ReadUInt32LittleEndian(header[4..]) != Format
             || BinaryPrimitives.ReadUInt32LittleEndian(header[20..]) != PageHeader.Crc32C(header[..20])

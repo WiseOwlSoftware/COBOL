@@ -584,7 +584,10 @@ public sealed class StoreCoherenceTests
     /// about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
     /// Behaviourally: a <c>SHARING WITH NO OTHER</c> sequential writer keeps its record in its input-output area until the
     /// CLOSE, while a <c>SHARING WITH READ ONLY</c> or <c>SHARING WITH ALL OTHER</c> one hands each record over at its
-    /// WRITE.</summary>
+    /// WRITE. The files are counted by the CLASS they declare, so a partial class's second file (the sequential connector's
+    /// commit-control half, <c>SequentialConnector.CommitControl.cs</c>, kb/Work PB3340) is its class's: its kept handle asks
+    /// <see cref="FileLockPosture.AdmitsAnotherRunUnit"/> as the keyed connector's does, and its journal's lock test asks
+    /// <see cref="FileLockPosture.AdmitsAnotherWriter"/> as the shared append stream does.</summary>
     [Fact]
     public void The_keyed_store_asks_about_any_run_unit_and_the_sequential_release_about_any_other_connector()
     {
@@ -592,10 +595,11 @@ public sealed class StoreCoherenceTests
         static bool Asks(string file, string predicate) => File.ReadAllLines(file)
             .Any(l => l.Contains($"FileLockPosture.{predicate}(", StringComparison.Ordinal)
                 && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
+        static string ClassFile(string file) => Path.GetFileName(file).Split('.')[0] + ".cs";   // a partial class's files are its class's
         var runUnit = Directory.EnumerateFiles(io, "*.cs", SearchOption.AllDirectories)
-            .Where(f => Asks(f, "AdmitsAnotherRunUnit")).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
+            .Where(f => Asks(f, "AdmitsAnotherRunUnit")).Select(ClassFile).Distinct().Order(StringComparer.Ordinal).ToList();
         var writer = Directory.EnumerateFiles(io, "*.cs", SearchOption.AllDirectories)
-            .Where(f => Asks(f, "AdmitsAnotherWriter")).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
+            .Where(f => Asks(f, "AdmitsAnotherWriter")).Select(ClassFile).Distinct().Order(StringComparer.Ordinal).ToList();
         Assert.Equal(["KeyedConnector.cs", "SequentialConnector.cs"], runUnit);
         Assert.Equal(["FileSupport.cs", "SequentialConnector.cs"], writer);
 

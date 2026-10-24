@@ -191,8 +191,6 @@ item, and a unit test (`ReadmeDeclinedSummaryDriftTests`) fails when this list a
 
 - The Message Control System (A.3 item 4) compiles with the warning §4.2.6 requires for a processor-dependent element
   (COBOLNET1578), and the program runs with the facility inert; the MESSAGE-TAG usage (COBOLNET1943) is refused.
-- Commit and rollback (A.3 items 6–7, A.4.3) is provided for RELATIVE and INDEXED files; a SEQUENTIAL or LINE
-  SEQUENTIAL file named in an APPLY COMMIT clause is refused (COBOLNET1709).
 - The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §4.2.7 (COBOLNET1580); the
   facility's data-division clauses (COBOLNET1708) and its EC-VALIDATE exception names (COBOLNET1710) are refused.
 - Screen handling (A.4.2; COBOLNET1560, COBOLNET1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOLNET1705) and

@@ -34,19 +34,22 @@ public sealed class FrameDecoderDriftTests
         "ReadFrame", "ReadExtentTable", "EncodeFrameHead",
     };
 
-    /// <summary>The paged keyed store's OWN field decoders (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work
-    /// PB3331, PB3332), by file and member: the page header's <c>self</c>, <c>next</c> and checksum, a POINTER's page
-    /// number, and a B+ tree LEAF entry's value length and overflow reference's total length. They are a second FORMAT's
-    /// fixed fields, not a frame word: a frame the paged store carries in a leaf value is decoded by
-    /// <c>RecordFraming.ReadFrame</c> like every other (kb/Work PB3333). Each home must still exist, so a moved or
-    /// deleted one (PB3332 deleted the interim LEDGER and FREE payloads' two) is a red here rather than a silently widened
-    /// exemption.</summary>
+    /// <summary>The OWN field decoders of the two other formats, by file and member. The paged keyed store's
+    /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work PB3331, PB3332): the page header's <c>self</c>,
+    /// <c>next</c> and checksum, a POINTER's page number, and a B+ tree LEAF entry's value length and overflow reference's
+    /// total length. The sequential transaction journal's (2.2.2.4; kb/Work PB3340): its record header's format word and
+    /// checksum, and each unit's checksum. They are other FORMATS' fixed fields, not a frame word: a frame the paged store
+    /// carries in a leaf value is decoded by <c>RecordFraming.ReadFrame</c> like every other (kb/Work PB3333), and the journal
+    /// carries record images as bytes, never frames. Each home must still exist, so a moved or deleted one (PB3332 deleted the
+    /// interim LEDGER and FREE payloads' two) is a red here rather than a silently widened exemption.</summary>
     private static readonly HashSet<(string File, string Member)> PageLayoutHomes =
     [
         ("PageHeader.cs", "Decode"),
         ("PageHeader.cs", "ChecksumHolds"),
         ("PagePointer.cs", "Read"),
         ("BTree.cs", "DecodeNode"),
+        ("SequentialJournal.cs", "ReadRecord"),
+        ("SequentialJournal.cs", "Whole"),
     ];
 
     /// <summary>Every member that reads frames, by file — the selector's population, so the reach test measures

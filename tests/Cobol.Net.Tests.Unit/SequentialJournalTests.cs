@@ -374,7 +374,7 @@ public sealed class SequentialJournalTests
             Assert.Equal("WOLJ", Encoding.ASCII.GetString(bytes, 0, 4));
             Assert.Equal(1u, BitConverter.ToUInt32(bytes, 4));
             Assert.Equal((byte)'P', bytes[16]);
-            Assert.Equal(SequentialJournal.HeaderBytes + 13 + 1 + 20 + 2 + 4, bytes.Length);   // header, L, R(2 bytes)
+            Assert.Equal(SequentialJournal.JournalHeaderBytes + 13 + 1 + 20 + 2 + 4, bytes.Length);   // header, L, R(2 bytes)
             var whole = SequentialJournal.ReadRecord(new MemoryStream(bytes))!;
             Assert.Equal(4, whole.CommittedLength);
             Assert.Equal([(1L, 2L, "C2")], whole.Images.Select(i => (i.Ordinal, i.Offset, Encoding.Latin1.GetString(i.Bytes))));
