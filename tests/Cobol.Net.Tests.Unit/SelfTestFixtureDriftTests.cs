@@ -13,6 +13,8 @@ namespace CobolNet.Tests.Unit;
 /// signing, written into each repository's own config) and its checking (a failed fixture command raises with git's
 /// message) hold for every self-test at once; <c>scratch_repo.py --audit</c> finds a self-test that spawns git, creates
 /// a repository or wraps its subject's git runner around it, and no other script carries a copy of the fixture's rules.
+/// Every self-test's scratch directory is made by <c>scratch_dir</c> and removed by <c>remove_tree</c>, read-only git
+/// objects included, on every way out of its process (the audit's SCRATCH arm, kb/Work PB3194).
 /// </summary>
 /// <remarks>
 /// Until PB3584 fifteen self-tests <c>git init</c>-ed their own repositories and seven defined a git helper of their
@@ -62,6 +64,9 @@ public sealed class SelfTestFixtureDriftTests
             "audit INIT: a top-level function only self-test code reaches is read by the INIT arm",
             "audit: the code under test's git, and a self-test CALLING it, are no finding",
             "audit EMPTY: a tree with no self-test code is RED, never a green over nothing",
+            "audit SCRATCH: a self-test's tempfile.mkdtemp and rmtree(ignore_errors=True) are findings",
+            "remove_tree: a read-only file (git writes its objects so) goes with its directory",
+            "scratch_dir: its directory, read-only entries included, is removed when the process ends by",
         ]);
 
     /// <summary>The tracked Python scripts the text nets read; fewer than a hundred means the listing is broken and the

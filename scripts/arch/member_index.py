@@ -138,6 +138,10 @@ def record(repo: Path = REPO, out_dir: Path | None = None) -> Path:
                        "--scope", str(work / "scope.json"), "--member-index", str(work / "raw.json")], repo,
                       work / "host.log")
     raw = json.loads((work / "raw.json").read_text(encoding="utf-8"))
+    # Read: the work directory goes (kb/Work PB3194). A failed step above raised naming its log in it, which stays.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    remove_tree(work)
     blobs = tracked_blobs(repo)
     if raw.get("schema") != SCHEMA:
         raise SystemExit(f"⛔ member_index --record: the host wrote schema {raw.get('schema')}, this script reads {SCHEMA}")
@@ -361,8 +365,8 @@ def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict]
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
-    root = Path(tempfile.mkdtemp(prefix="member-index-test-"))
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    root = scratch_dir("member-index-test-")
     for f in ("src/A/Binder.cs", "src/A/Binder.Oo.cs", "src/A/Use.cs", "src/B/Emit.cs", "tests/T.cs", "src/A/Sym.cs"):
         (root / f).parent.mkdir(parents=True, exist_ok=True)
         (root / f).write_text("// " + f, encoding="utf-8", newline="\n")

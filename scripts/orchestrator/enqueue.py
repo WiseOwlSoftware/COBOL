@@ -754,7 +754,7 @@ def _stamp(wt: pathlib.Path, branch: str) -> int:
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's one verdict reader and its Readings)
-    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -762,7 +762,7 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    root = pathlib.Path(tempfile.mkdtemp(prefix="enqueue-selftest-"))
+    root = scratch_dir("enqueue-selftest-")
     try:
         scratch = ScratchRepo.init(root / "wt")
         wt = scratch.path
@@ -1383,7 +1383,7 @@ def self_test() -> int:
                and sorted(p.name for p in (bounced / "DEVLOG").iterdir()) == ["1994-kept.md"],
                f"rc={rc} files={sorted(p.name for p in (bounced / 'DEVLOG').iterdir())}")
     finally:
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
     print(f"=== enqueue.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

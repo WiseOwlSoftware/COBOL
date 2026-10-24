@@ -73,7 +73,6 @@ import pathlib
 import re
 import subprocess
 import sys
-import tempfile
 from typing import Any, Callable
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -337,9 +336,9 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
 # ── self-test: plants an out-of-set edit and a two-branch overlap in a scratch repository ───────────────────────
 def self_test() -> int:
     sys.path.insert(0, str(HERE.parent))
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, isolate, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     isolate()   # the subject's own git (check's port) runs in this process: never on the caller's repository
-    root = pathlib.Path(tempfile.mkdtemp(prefix="landing-check-"))
+    root = scratch_dir("landing-check-")
     scratch = ScratchRepo.init(root / "repo")
     repo, cdir = scratch.path, root / "coord"
     cdir.mkdir()

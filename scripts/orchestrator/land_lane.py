@@ -105,10 +105,8 @@ import json
 import os
 import pathlib
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from typing import Any, Callable
 
@@ -968,7 +966,7 @@ def collect(cdir: pathlib.Path, branches: list[str], say: Say = print) -> int:
 
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
-    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -976,7 +974,7 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    root = pathlib.Path(tempfile.mkdtemp(prefix="land-lane-selftest-"))
+    root = scratch_dir("land-lane-selftest-")
     try:
         def fresh(name: str) -> pathlib.Path:
             c = root / name
@@ -1517,7 +1515,7 @@ def self_test() -> int:
                     os.chmod(os.path.join(dirpath, name), 0o600)
                 except OSError:
                     pass
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
     print(f"=== land_lane.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

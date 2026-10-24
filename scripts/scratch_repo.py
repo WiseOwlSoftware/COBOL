@@ -60,8 +60,10 @@ from __future__ import annotations
 
 import argparse
 import ast
+import atexit
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -131,6 +133,35 @@ def isolate() -> None:
     test runs git itself (in-process), so neither the fixture nor the subject can act on the caller's repository."""
     for name in local_env_vars():
         os.environ.pop(name, None)
+
+
+def remove_tree(path: Path | str) -> None:
+    """Remove a scratch directory WHOLE, read-only entries included, and say so when it cannot (kb/Work PB3194).
+
+    git writes its objects read-only, which `shutil.rmtree` cannot delete on Windows, and `ignore_errors=True` hid
+    that: every self-test that built a scratch repository left its objects in the machine-wide temp directory, 4,600
+    directories and 5 GB on one host by 2026-10-23. Here a refused entry is made writable (with its directory) and
+    removed again; what still cannot go (a file another process holds open) is printed, never swallowed. A path
+    already gone is no error."""
+    def writable(func, entry, _exc):   # rmtree's onexc
+        os.chmod(os.path.dirname(entry), stat.S_IRWXU)
+        os.chmod(entry, stat.S_IWRITE | stat.S_IREAD)
+        func(entry)
+    if not os.path.lexists(path):
+        return
+    try:
+        shutil.rmtree(path, onexc=writable)
+    except OSError as e:
+        print(f"scratch_repo: could not remove the scratch directory {path}: {e}", file=sys.stderr)
+
+
+def scratch_dir(prefix: str) -> Path:
+    """A directory of this run's own in the machine-wide temp directory, removed (`remove_tree`) when this process
+    exits, whatever the way out: a return, a raised exception, sys.exit. THE way a self-test makes its scratch, so none
+    leaves it behind (the audit's SCRATCH arm, kb/Work PB3194); a self-test may still remove it sooner."""
+    path = Path(tempfile.mkdtemp(prefix=prefix))
+    atexit.register(remove_tree, path)
+    return path
 
 
 class ScratchRepo:
@@ -317,6 +348,22 @@ def _inits(node: ast.AST) -> bool:
     return isinstance(node, ast.Call) and any(_is_str(a, "init") for a in node.args[:2])
 
 
+def _scratch_leak(node: ast.AST) -> str | None:
+    """The SCRATCH arm (kb/Work PB3194): a scratch directory made in the machine-wide temp directory with
+    `tempfile.mkdtemp` (no `dir=`: one inside a directory the self-test already owns goes with it), which nothing
+    removes on every way out, or a removal through `shutil.rmtree(..., ignore_errors=True)`, which leaves git's
+    read-only objects behind on Windows and says nothing."""
+    if not isinstance(node, ast.Call):
+        return None
+    name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+    keywords = {k.arg: k.value for k in node.keywords}
+    if name == "mkdtemp" and "dir" not in keywords:
+        return "SCRATCH: a self-test makes its scratch with tempfile.mkdtemp; use scratch_dir (removed at exit)"
+    if name == "rmtree" and isinstance(keywords.get("ignore_errors"), ast.Constant) and keywords["ignore_errors"].value:
+        return "SCRATCH: rmtree(ignore_errors=True) leaves git's read-only objects behind on Windows; use remove_tree"
+    return None
+
+
 def audit_source(rel: str, source: str) -> list[str]:
     """The audit's findings for ONE file (module docstring): `<rel>:<line>: <ARM>: <what>`."""
     return _audit_tree(rel, ast.parse(source, filename=rel))[0]
@@ -340,6 +387,9 @@ def _audit_tree(rel: str, tree: ast.Module) -> tuple[list[str], int]:
         for node in ast.walk(scope):
             if _inits(node):
                 found.add((node.lineno, "INIT: a self-test creates a repository itself; use ScratchRepo.init"))
+            leak = _scratch_leak(node)
+            if leak:
+                found.add((node.lineno, leak))
             if _is_spawn(node):
                 argv = node.args[0] if node.args else next((k.value for k in node.keywords if k.arg == "args"), None)
                 if argv is not None and any(_is_git_argv(n) or (isinstance(n, ast.Name) and n.id in git_names)
@@ -389,7 +439,7 @@ def self_test() -> int:
         if not ok:
             fails.append(name)
 
-    tmp = Path(tempfile.mkdtemp(prefix="scratch-repo-selftest-"))
+    tmp = scratch_dir("scratch-repo-selftest-")
     saved = {k: os.environ.get(k) for k in ("GIT_DIR", "GIT_WORK_TREE")}
     try:
         # A caller's GIT_DIR (a hook, a linked worktree's environment) must never reach a fixture command.
@@ -476,13 +526,39 @@ def self_test() -> int:
               any(": EMPTY: " in f for f in audit(empty.path)))
         check("audit: a self-test using the fixture is no finding",
               arms("scripts/x.py", "def self_test():\n    r = ScratchRepo.init(p)\n    r.git('status')\n") == [])
+        check("audit SCRATCH: a self-test's tempfile.mkdtemp and rmtree(ignore_errors=True) are findings; mkdtemp "
+              "inside a directory it owns, and scratch_dir with remove_tree, are not",
+              arms("scripts/x.py", "def self_test():\n    t = Path(tempfile.mkdtemp(prefix='x-'))\n"
+                                   "    u = tempfile.mkdtemp(dir=t)\n    shutil.rmtree(t, ignore_errors=True)\n"
+                                   "    v = scratch_dir('y-')\n    remove_tree(v)\n") == ["SCRATCH", "SCRATCH"]
+              and arms("scripts/test_x.py", "TMP = pathlib.Path(tempfile.mkdtemp())\n") == ["SCRATCH"])
+
+        # remove_tree and scratch_dir (kb/Work PB3194): git's read-only objects go too, on every way out of a process.
+        ro = tmp / "ro"
+        (ro / "objects").mkdir(parents=True)
+        (ro / "objects" / "pack").write_bytes(b"x")
+        os.chmod(ro / "objects" / "pack", stat.S_IREAD)
+        remove_tree(ro)
+        remove_tree(ro)   # already gone: no error
+        check("remove_tree: a read-only file (git writes its objects so) goes with its directory", not ro.exists())
+        ways = {"a return": "pass", "a raised exception": "raise RuntimeError('boom')", "sys.exit(3)": "sys.exit(3)"}
+        for way, end in ways.items():
+            child = subprocess.run(
+                [sys.executable, "-c", "import os, stat, sys; sys.path.insert(0, sys.argv[1]); import scratch_repo; "
+                 "p = scratch_repo.scratch_dir('scratch-dir-check-'); (p / 'obj').write_bytes(b'x'); "
+                 "os.chmod(p / 'obj', stat.S_IREAD); print(p, flush=True); " + end, str(Path(__file__).parent)],
+                capture_output=True, text=True, encoding="utf-8")
+            made = Path(child.stdout.strip()) if child.stdout.strip() else None
+            check(f"scratch_dir: its directory, read-only entries included, is removed when the process ends by {way}",
+                  made is not None and made.name.startswith("scratch-dir-check-") and not made.exists(),
+                  f"made={made} rc={child.returncode} stderr={child.stderr.strip()[-200:]}")
     finally:
         for k, v in saved.items():
             if v is None:
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
 
     findings = audit(REPO)
     for f in findings:
