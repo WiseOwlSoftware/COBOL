@@ -108,7 +108,7 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   loop's landing lane's (`land_lane.py`, kb/Work PB3103), which lands each with `scripts/orchestrator/enqueue.py land`
   (main merged in, the gate on both hosts under the gate slot, the DEVLOG stamp, the landing checks, one pull request
   into the merge queue); the `enqueue` unit handles the reviews, the finishers, the re-arms and the leads.
-- **Same-file successors.** A file with more open notes than the cluster cap (`fix_clusters.py` caps at 5) becomes
+- **Same-file successors.** A file with more open notes than the cluster cap (`model_rules.json` `wave.max_notes_per_group`, the cap `plan_wave.py` hands `fix_clusters.py`) becomes
   two or more groups, and each later one declares `after: '<predecessor letter>'`. The successor waits until its
   predecessor is SETTLED (its review loop ended: CLEAN, FINDINGS n, STOPPED, NO-RESULT or STALE; or it returned
   unfinished), merges the predecessor's FINAL branch (the review finisher's, when one ran: the reviewed head), and

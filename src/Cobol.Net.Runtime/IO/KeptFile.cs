@@ -32,8 +32,19 @@ internal sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, Regi
 /// </summary>
 internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLock? FileLock, RegionLocks Endpoint,
     string HostPath, PhysicalFileIdentity? Identity, PhysicalFileTable.State? Physical, string LockOwner, KeyedStore Store,
-    StoreTable? Table, RestoringTreesFactory Restoring)
+    StoreTable? Table, RestoringTreesFactory Restoring, IKeyOrder HoldingsOrder)
 {
+    /// <summary>⛔ The ROLLBACK of a capture restored the physical file this state was kept on from its before file (2.2.2.14; kb/Work
+    /// PB3492): the store adopts it again and rolls back, as a dead owner's, the run unit's transaction the before file holds
+    /// (<see cref="KeyedStore.AdoptRestored"/>) through <paramref name="through"/>, the handle the journal restored it through:
+    /// the kept one, or — a DELETE FILE gave that back to remove the file — one opened for the restore.</summary>
+    internal StoreStatus AdoptRestored(FileStream through) =>
+        Store.AdoptRestored(through.SafeFileHandle, ReferenceEquals(Handle?.Stream, through) ? Handle!.Regions : null, HostPath,
+            Restoring, HoldingsOrder);
+
+    /// <summary>The kept handle's stream when it is writable: the handle a capture's ROLLBACK restores the file through.</summary>
+    internal FileStream? WritableStream => Handle?.Stream is { CanWrite: true } stream ? stream : null;
+
     /// <summary>⛔ WHETHER <paramref name="hostPath"/> NAMES THE PHYSICAL FILE THIS STATE WAS KEPT ON, NOW (kb/Work PB3533): the same
     /// path (<see cref="HostFile.PhysicalFileComparer"/>) and, where the host can tell, the same file
     /// (<see cref="HostFile.IdentityAt"/>) — false for a file made at the path after the kept one was removed or renamed away outside
