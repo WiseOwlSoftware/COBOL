@@ -217,6 +217,14 @@ public static class MoveTable16
         if (sender is BoundFieldOperand f && ShapeRefusal(f.Place.Item, receiver) is { } itemKeyed)
             return itemKeyed;
 
+        // ⚠ PAGE-COUNTER / LINE-COUNTER ARE NOT SR8's SENDERS, BY DESIGN (kb/Work PB1746, review R1-1). SR8 keys on "a data
+        // item described with usage binary-char, -short, -long or -double" — a USAGE clause a program wrote. A report counter
+        // is a register (a BoundComputedOperand, never a BoundFieldOperand) whose §8.4.3.15.4 GR1 description names
+        // "unsigned integer data items of class and category numeric" and NO usage: the unsigned 32-bit shape
+        // (PicInfo.ReportCounterItem) is the implementor's latitude, not a usage clause, so only Table 16's numeric-integer
+        // row judges the move and MOVE PAGE-COUNTER TO an alphanumeric item is legal. The usage-keyed rules that speak of
+        // "described implicitly or explicitly" (STRING §14.9.43.3 SR1, §8.8.4.2.5) DO read the implicit usage.
+
         // §14.9.25.3 SR6 / SR7 — the figurative-constant rules, written ONCE in the runtime (MoveValidity.FigurativeRefusal)
         // because the activation relations ask them too, of a figurative argument BY CONTENT (kb/Work PB3101).
         // ⚠ `ALL ZERO` IS the figurative constant ZERO and IS refused by SR6: §8.3.3.6.2 Format 1 prints ALL as an

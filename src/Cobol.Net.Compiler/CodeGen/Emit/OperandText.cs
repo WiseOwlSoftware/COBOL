@@ -78,8 +78,9 @@ internal static class OperandText
         // operand because it is runtime state, but §8.4.3.14.4 GR1 / §8.4.3.15.4 GR1 make it "a temporary unsigned
         // integer data item of class and category numeric", and §8.4.3.15.3 SR1 admits it "in any context where an
         // integer data item may appear". So its image is an unsigned integer ITEM's: its digits, zero-filled to the
-        // register's implicit PIC 9(d) (AlgebraicRanges.CounterRegisterDigits — the documented capacity), exactly the
-        // image FieldAsString gives an unsigned PIC 9(d) item. Unsigned, so deSign has nothing to drop. These used to
+        // digit count of the register's implicit description (AlgebraicRanges.CounterRegisterDigits: LINAGE-COUNTER's
+        // PIC 9(d), 10 for LINE-/PAGE-COUNTER's 32-bit binary integer — kb/Work PB1746), exactly the image
+        // FieldAsString gives an unsigned integer item of that many digits. Unsigned, so deSign has nothing to drop. These used to
         // reach the visitor's loud computed arm and abort at run time (kb/Work PB1153, PB1199, PB1318).
         : op is BoundComputedOperand { Expr: var reg } && AlgebraicRanges.CounterRegisterDigits(reg) is { } regDigits
             ? RuntimeApi.NumFormatUnsignedDisplay(num.Render(reg, ReceiverContext.None).Expr, regDigits)
