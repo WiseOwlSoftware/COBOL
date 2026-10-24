@@ -44,6 +44,16 @@ per-file query says `— through <helper>`). Those paths govern a changed file b
 (`is_sweep`). TestRepo's path helpers are read from tests/_shared/TestRepo.cs (`test_repo`), never copied here, and a
 suite test it names by a literal id governs that program specifically. `--self-test` fires each arm on a planted tree.
 
+A call's path is what its arguments SPELL (kb/Work PB3112, `path_expr`): string literals, `TestRepo.Root`, a class
+constant (`const string` / `static readonly string`, never a local or a parameter), a collection expression, a nested
+`Path.Combine(..)` or `TestRepo.X(..)`, read with balanced parentheses and up to the first argument it cannot spell. A
+bare `Path.Combine("src", ..)` of a tree root reads that path too. A method that wraps one read (`Read(params string[]
+parts) => File.ReadAllText(TestRepo.At(parts))`) is read at its CALLERS: each spells the path, and the body's own
+directory read is replaced by theirs unless some use of the wrapper (a method group) spells none. A test that reads the
+repository and spells no path at all (`TestRepo.At(tree)` from a theory's parameter) governs no file, so `--check` refuses
+it: spell the path with literals. This closes the last way a drift test could read the tree unseen, the gap that left a
+Linux-only red to the landing's gate.
+
 A drift test that reads a REGISTER — a data file it names, such as the traceability inventory or docs/CONFORMANCE.md —
 and checks that the register's citations resolve is broken by a change that never touches the register: one that
 deletes a member a code-location names, renames a test a test-ref names, or deletes a file. `citing` answers that
@@ -76,11 +86,23 @@ BESIDE_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+id\s*,\s*str
 #: The trees `s_suiteCases` files a test id under: `s_suiteCases = new(() => new[] { Suite("cases"), ... }`.
 CASE_TREES = re.compile(r"\bs_suiteCases\s*=\s*new\([^{]*\{([^}]*)\}")
 PUBLIC_STRING = re.compile(r"\bpublic\s+static\s+string\s+(\w+)\s*\(")
-#: A helper call: `TestRepo.X(args)` in a test, `X(args)` inside TestRepo itself.
-CALL = re.compile(r"\bTestRepo\.(\w+)\(([^()]*)\)")
+#: Where a test writes a repo path: a helper call `TestRepo.X(` (`X(` inside TestRepo itself: `BARE_CALL`) or a
+#: `Path.Combine(`. The arguments are read with balanced parentheses (`path_args`), never by a regex over them: an
+#: argument is itself a call (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, kb/Work PB3112).
+HELPER_OPEN = re.compile(r"\bTestRepo\.(\w+)\(")
+COMBINE_OPEN = re.compile(r"\bPath\.Combine\(")
+CALL_OPEN = re.compile(HELPER_OPEN.pattern + "|" + COMBINE_OPEN.pattern)
+#: What follows `Path.Combine(` when it is the root helper written out: `TestRepo.Root`, or `[TestRepo.Root`.
+ROOTED = re.compile(r"\s*\[?\s*TestRepo\.Root\b")
+#: An expression-bodied method taking only strings: `string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));`
+WRAPPER = re.compile(r"\b(\w+)\(\s*((?:params\s+)?string(?:\[\])?\s+\w+(?:\s*,\s*(?:params\s+)?string(?:\[\])?\s+\w+)*)\s*\)"
+                     r"\s*=>\s*")
 BARE_CALL = re.compile(r"(?<![\w.])(\w+)\(([^()]*)\)")
-#: `Path.Combine(TestRepo.Root, "a", "b")` (or `Path.Combine([TestRepo.Root, "a", ...])`): the root helper written out.
-ROOT_COMBINE = re.compile(r"\bPath\.Combine\(\s*\[?\s*TestRepo\.Root\s*,([^()\]]*)\]?\s*\)")
+#: A string the source fixes: `const string X = ..;`, `static readonly string X = ..;`, `static string X => ..;`. Never
+#: a local or a parameter (`string script = TestRepo.Scripts(..)` in one method is another method's parameter `script`):
+#: `Sources.constants` reads only what the language makes constant for the whole class.
+STRING_DECL = re.compile(r"\b(?:const|static)\s+(?:readonly\s+)?string\s+(\w+)\s*(?:\{\s*get;\s*\}\s*)?(?:=>|=)\s*")
+STRING_LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
 #: A C# type DECLARATION (one rule, two readers): its indent (group 1), its modifiers (group 2) and its name (group 3),
 #: matched only at a line start, so a comment (`// so a record is two trees`), a string ("record which of the two") or
 #: prose declares no type. Every test source uses a file-scoped namespace, so a TOP-LEVEL type (the helper classes a
@@ -154,27 +176,78 @@ def test_repo(root=ROOT):
 
 
 def prefixed(helpers, name, args):
-    """The repo-relative path a prefix helper call names: its prefix and its string-literal arguments; None when `name`
-    is no prefix helper."""
+    """The repo-relative path a prefix helper call names (`args` is its argument text): its prefix and the segments its
+    arguments spell (`path_join`); None when `name` is no prefix helper."""
     if name not in helpers:
         return None
-    return "/".join(([helpers[name]] if helpers[name] else []) + leading_literals(args)).strip("/")
+    return "/".join(([helpers[name]] if helpers[name] else []) + path_join(split_top(args), {}, helpers)[0]).strip("/")
 
 
-def leading_literals(args):
-    """The string-literal arguments of a call, up to the first argument that is not one: `"Work", note + ".md"` reads
-    under kb/Work, never a file `kb/Work/.md` (EcRaiseSiteRegistryDriftTests' `TestRepo.Kb("Work", note + ".md")`).
-    A collection expression is its elements: `["Cobol.Net.Compiler", "CodeGen", .. parts]` reads under its two."""
-    out = []
-    args = args.strip()
-    if args.startswith("[") and args.endswith("]"):
-        args = args[1:-1]
-    for arg in re.findall(r'(?:"(?:[^"\\]|\\.)*"|[^,"])+', args):
-        m = re.fullmatch(r'\s*"([^"\\]+)"\s*', arg)
-        if not m:
-            break
-        out.append(m.group(1))
-    return out
+def split_top(text):
+    """`text` (the inside of a call or a collection expression) split at the commas that sit outside every string
+    literal, parenthesis, bracket and brace."""
+    parts, depth, start, i = [], 0, 0, 0
+    while i < len(text):
+        c = text[i]
+        if c == '"':
+            i += 1
+            while i < len(text) and text[i] != '"':
+                i += 2 if text[i] == "\\" else 1
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "," and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+        i += 1
+    if text[start:].strip() or parts:
+        parts.append(text[start:])
+    return parts
+
+
+def path_args(text, i):
+    """(the arguments of the call whose `(` ends just before `i`, the index after its `)`); ([], -1) when unclosed."""
+    end = _closing(text, i)
+    return (split_top(text[i:end]), end + 1) if end >= 0 else ([], -1)
+
+
+def path_expr(expr, consts, helpers):
+    """(segments, complete) of the repo-relative path an expression spells. A string literal is one segment;
+    `TestRepo.Root` is the repository itself (no segment); a name is the constant the source gave it (`consts`); a
+    collection expression and `Path.Combine(..)` join their elements; a `TestRepo.X(..)` call is its prefix and its
+    arguments. Anything else, and everything after it, is not spelled: the segments stop there and `complete` is False
+    (`"Work", note + ".md"` reads under kb/Work, never a file `kb/Work/.md`; `["a", "b", .. parts]` reads under its
+    leading literals)."""
+    expr = expr.strip()
+    if m := STRING_LITERAL.fullmatch(expr):
+        return [m.group(1)], True
+    if expr == "TestRepo.Root":
+        return [], True
+    if re.fullmatch(r"\w+", expr):
+        return consts.get(expr, ([], False))
+    if expr.startswith("[") and expr.endswith("]"):
+        return path_join(split_top(expr[1:-1]), consts, helpers)
+    if m := COMBINE_OPEN.match(expr) or HELPER_OPEN.match(expr):
+        args, after = path_args(expr, m.end())
+        if after == len(expr):
+            segs, complete = path_join(args, consts, helpers)
+            if m.re is COMBINE_OPEN:
+                return segs, complete
+            if m.group(1) in helpers:
+                return [s for s in helpers[m.group(1)].split("/") if s] + segs, complete
+    return [], False
+
+
+def path_join(args, consts, helpers):
+    """(the segments of `args` joined, whether every one was spelled): `path_expr` of each, up to the first that is not."""
+    segs = []
+    for a in args:
+        s, complete = path_expr(a, consts, helpers)
+        segs += s
+        if not complete:
+            return segs, False
+    return segs, True
 
 
 def rule_of(text):
@@ -230,21 +303,79 @@ class Sources:
                         self._cases.setdefault(f.stem, f.relative_to(self.root).as_posix())
         return self._cases.get(test_id)
 
+    def constants(self, text):
+        """{name: (segments, complete)} of the strings a source spells as a repo path: `static readonly string
+        GrammarDir = Path.Combine("src", ..)` read by `Path.Combine(TestRepo.Root, GrammarDir)` (kb/Work PB3112). Two
+        passes, so a constant may name a later one; a name declared twice to different values names nothing."""
+        helpers, consts, ambiguous = self.repo["helpers"], {}, set()
+        for _ in range(2):
+            for m in STRING_DECL.finditer(text):
+                value = path_expr(text[m.end():_statement_end(text, m.end())], consts, helpers)
+                if not value[0]:
+                    continue
+                if consts.get(m.group(1), value) != value:
+                    ambiguous.add(m.group(1))
+                consts[m.group(1)] = value
+        return {n: v for n, v in consts.items() if n not in ambiguous}
+
+    def reads(self, text):
+        """[(the repo path, the call's source text)] of every repo read a source spells with a call: a TestRepo helper
+        (a conformance-suite test by its literal id included), `Path.Combine(TestRepo.Root, ..)` (the root helper
+        written out) or a `Path.Combine("src", ..)` of a tree root. The path is "" when no segment of it is spelled
+        (`TestRepo.At(tree)`, `Path.Combine(TestRepo.Root, rel)`): a read the index cannot place (`unresolved`)."""
+        helpers, consts, calls = self.repo["helpers"], self.constants(text), []
+        for m in CALL_OPEN.finditer(text):
+            args, after = path_args(text, m.end())
+            if after < 0:
+                continue
+            p = None
+            segs, _ = path_join(args, consts, helpers)
+            if m.group(1) is None:   # Path.Combine(..)
+                rooted = ROOTED.match(text, m.end()) is not None
+                joined = "/".join(segs)
+                if rooted or (len(segs) > 1 and re.fullmatch(TREE_ROOTS, joined.split("/")[0])):
+                    p = joined
+            elif m.group(1) in helpers:
+                p = "/".join(([helpers[m.group(1)]] if helpers[m.group(1)] else []) + segs)
+            elif m.group(1) in self.repo["case"] or m.group(1) in self.repo["beside"]:
+                program = self.case(segs[0]) if segs else None
+                p = program if program and m.group(1) in self.repo["case"] else (
+                    str(pathlib.PurePosixPath(program).parent / segs[1]) if program and len(segs) > 1 else None)
+            if p is not None:
+                calls.append((m.start(), after, p.strip("/")))
+        # A method that wraps one read, `static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`,
+        # spells the path at its CALLERS (`Read("src", "Cobol.Net.Compiler", "X.cs")`): a caller reads the wrapper's path
+        # (what its body spells before the parameter) and its own arguments. The body's own read, a directory the
+        # callers narrow, is replaced by theirs (kb/Work PB3112: V59ImagePredicateDriftTests read CallEmitter.cs unseen).
+        wrapped, out = {}, []
+        for w in WRAPPER.finditer(text):
+            end = _statement_end(text, w.end())
+            names = [a.split()[-1] for a in w.group(2).split(",")]
+            inside = [c for c in calls if w.end() <= c[0] < end   # a parameter the read's own path carries
+                      and any(re.search(r"\b" + n + r"\b", text[c[0]:c[1]]) for n in names)]
+            if inside:
+                wrapped[w.group(1)] = (w.start(), end, inside[0][2])
+        sites: dict[str, int] = {}
+        for m in re.finditer(r"(?<![\w.])(" + "|".join(map(re.escape, wrapped)) + r")\(", text) if wrapped else []:
+            start, end, prefix = wrapped[m.group(1)]
+            args, after = path_args(text, m.end())
+            if after >= 0 and not start <= m.start() < end and not text[m.end():].lstrip().startswith(("string", "params")):
+                sites[m.group(1)] = sites.get(m.group(1), 0) + 1
+                segs, _ = path_join(args, consts, helpers)
+                out.append(("/".join(([prefix] if prefix else []) + segs).strip("/"), text[m.start():after]))
+        # The body's own read stands unless every use of the wrapper is a call that spells its path: a method group
+        # (`files.Select(Read)`) or a `nameof` is a use whose path nobody spells.
+        code = COMMENT.sub("", text)
+        narrowed = {n for n, k in sites.items() if len(re.findall(r"(?<![\w.])" + re.escape(n) + r"\b", code)) == k + 1}
+        for start, after, p in calls:
+            if not any(wrapped[n][0] <= start < wrapped[n][1] for n in narrowed):
+                out.append((p, text[start:after]))
+        return out
+
     def paths_of(self, text):
-        """The repo paths a source names itself: TestRepo helper calls (a conformance-suite test by its literal id
-        included) and repo-relative string literals."""
+        """The repo paths a source names itself: its calls' paths (`reads`) and repo-relative string literals."""
         seen = []
-        for name, args in CALL.findall(text):
-            p = prefixed(self.repo["helpers"], name, args)
-            if p is None and (name in self.repo["case"] or name in self.repo["beside"]):
-                lits = re.findall(r'"([^"]+)"', args)
-                program = self.case(lits[0]) if lits else None
-                p = program if program and name in self.repo["case"] else (
-                    str(pathlib.PurePosixPath(program).parent / lits[1]) if program and len(lits) > 1 else None)
-            if p and p not in seen:
-                seen.append(p)
-        for args in ROOT_COMBINE.findall(text):
-            p = "/".join(leading_literals(args))
+        for p, _ in self.reads(text):
             if p and p not in seen:
                 seen.append(p)
         for lit in LITERAL.findall(text):
@@ -252,6 +383,10 @@ class Sources:
             if lit not in seen:
                 seen.append(lit)
         return seen
+
+    def unresolved(self, rel):
+        """The calls of the source `rel` that read a repo path of which no segment is spelled (`reads`)."""
+        return [" ".join(call.split())[:80] for p, call in self.reads(scopes_of(self.text(rel))[1]) if not p]
 
     def own(self, rel):
         """The paths the source `rel` names itself, its TreeScope declarations blanked out (`scopes_of`)."""
@@ -311,6 +446,26 @@ def _closing(text, i):
     return -1
 
 
+def _statement_end(text, i):
+    """The index of the `;` that ends the statement starting at `i` (outside every string, parenthesis, bracket and
+    brace), else the end of the text."""
+    depth = 0
+    while i < len(text):
+        c = text[i]
+        if c == '"':
+            i += 1
+            while i < len(text) and text[i] != '"':
+                i += 2 if text[i] == "\\" else 1
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == ";" and depth <= 0:
+            return i
+        i += 1
+    return len(text)
+
+
 def scopes_of(text):
     """Every TreeScope a test source declares, as [{"name", "under", "except", "kinds"}] (an omitted argument is None;
     a declaration that is not literal named arguments carries an "error"), and the source with the declarations blanked
@@ -360,7 +515,8 @@ def owners(scope):
 
 def index(root=ROOT, sources=None):
     """One row per drift test: its class, file, rule, the paths it names ("paths"), the paths it reads only through a
-    helper class ("through": {path: helper source}) and its declared scopes."""
+    helper class ("through": {path: helper source}), its declared scopes and the calls that read a repo path of which
+    no segment is spelled ("unresolved", `Sources.reads`)."""
     sources = sources or Sources(root)
     rows = []
     for f in drift_files(root):
@@ -368,8 +524,16 @@ def index(root=ROOT, sources=None):
         text = sources.text(rel)
         m = CLASS.search(text)
         rows.append({"test": m.group(1) if m else f.stem, "file": rel, "rule": rule_of(text),
-                     "paths": sources.own(rel), "through": sources.inherited(rel), "scopes": scopes_of(text)[0]})
+                     "paths": sources.own(rel), "through": sources.inherited(rel), "scopes": scopes_of(text)[0],
+                     "unresolved": sources.unresolved(rel)})
     return rows
+
+
+def blind(rows):
+    """The drift tests that read the repository and name nothing the index can place: every call they read with spells
+    no path segment (`TestRepo.At(tree)`), they read no helper class's paths and they declare no scope. Such a test
+    governs no file, so the gate leaves it to the cost cap and its red reaches the Linux gate (kb/Work PB3112)."""
+    return [r for r in rows if r["unresolved"] and not reads(r) and not readable(r)]
 
 
 def reads(row):
@@ -700,6 +864,26 @@ def self_test():
                                                   '    string Y => TestRepo.Src(["Proj", "Dir", .. parts]);\n'
                                                   '    string Z => Path.Combine(TestRepo.Root, "specs", "S.md");\n'
                                                   '    string W => Path.Combine([TestRepo.Root, "docs", "D", .. p]);'),
+            # kb/Work PB3112: a path spelled by a nested call, a class constant, a bare Path.Combine of a tree root, and
+            # a method that wraps one read (its callers spell the path; one that only passes arguments on is no wrapper).
+            "tests/P/SpelledDriftTests.cs": drift("SpelledDriftTests",
+                                                  '    const string Owner = "Owner.cs";\n'
+                                                  '    static readonly string GrammarDir = Path.Combine("src", "Proj", "Grammar");\n'
+                                                  '    string A => File.ReadAllText(TestRepo.Src(Path.Combine("Proj", "Dir")));\n'
+                                                  '    string B => Path.Combine(TestRepo.Root, GrammarDir);\n'
+                                                  '    string C => TestRepo.Src("Proj", "Dir", Owner);\n'
+                                                  '    string D => Path.Combine("docs", "OTHER.md");\n'
+                                                  '    string E(string script) => Path.Combine(Path.GetTempPath(), script);'),
+            "tests/P/WrapperDriftTests.cs": drift("WrapperDriftTests",
+                                                  '    static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));\n'
+                                                  '    static string Go(params string[] args) => Run(TestRepo.Scripts("tool.py"), args);\n'
+                                                  '    string A => Read("src", "Proj", "Dir", "A.cs");\n'
+                                                  '    string B => Go("--check");'),
+            "tests/P/MethodGroupDriftTests.cs": drift("MethodGroupDriftTests",
+                                                      '    static string Src(params string[] p) => TestRepo.Src(["Proj", .. p]);\n'
+                                                      '    string A => Src("Dir", "A.cs");\n'
+                                                      '    IEnumerable<string> B => names.Select(Src);'),
+            "tests/P/BlindDriftTests.cs": drift("BlindDriftTests", '    string A(string tree) => TestRepo.At(tree);'),
             "conformance-suite/cases/1.2-Clause/g1.cob": "", "conformance-suite/cases/1.2-Clause/g1.out": "",
             "kb/Work/N1.md": "", "docs/OTHER.md": "", "src/Proj/Dir/A.cs": ""}
         for rel, text in planted.items():
@@ -734,6 +918,20 @@ def self_test():
               "Path.Combine(TestRepo.Root, ...) is the root helper written out",
               by["OwnPathDriftTests"]["paths"] == ["kb/Work", "src/Proj/Dir", "specs/S.md", "docs/D"],
               by["OwnPathDriftTests"]["paths"])
+        check("a nested call, a class constant and a bare Path.Combine of a tree root each spell their path (a local "
+              "temp path spells none)", sorted(by["SpelledDriftTests"]["paths"]) ==
+              ["docs/OTHER.md", "src/Proj/Dir", "src/Proj/Dir/Owner.cs", "src/Proj/Grammar"],
+              by["SpelledDriftTests"]["paths"])
+        check("a wrapper's callers spell its path, and the wrapper's own directory read is replaced by theirs; a "
+              "method that only passes its arguments on is no wrapper",
+              sorted(by["WrapperDriftTests"]["paths"]) == ["scripts/tool.py", "src/Proj/Dir/A.cs"],
+              by["WrapperDriftTests"]["paths"])
+        check("a wrapper also used as a method group keeps its own directory read (nobody spells that use)",
+              sorted(by["MethodGroupDriftTests"]["paths"]) == ["src/Proj", "src/Proj/Dir/A.cs"],
+              by["MethodGroupDriftTests"]["paths"])
+        check("a test that reads the repo and names nothing the index can place is blind (`--check` fails on it); "
+              "one that spells a path is not", [r["test"] for r in blind(rows)] == ["BlindDriftTests"],
+              [r["test"] for r in blind(rows)])
         check("a path read only through a helper never makes the class a sweep (the Sweep trait follows its own scan)",
               not is_sweep(by["ReadsCorpusDriftTests"]) and not is_sweep(by["ReadsNotesDriftTests"]),
               [r["test"] for r in rows if is_sweep(r)])
@@ -804,6 +1002,13 @@ def main(argv):
         unreadable = [f"{r['test']}.{sc['name']}: {sc['error']}" for r in rows for sc in r["scopes"] if "error" in sc]
         if unreadable:
             print(f"{len(unreadable)} TreeScope declaration(s) the index cannot read:\n  " + "\n  ".join(unreadable))
+            return 1
+        # A test that reads the repo and names nothing the index can place governs no file (kb/Work PB3112).
+        unplaced = [f"{r['test']}: {'; '.join(r['unresolved'][:2])}" for r in blind(rows)]
+        if unplaced:
+            print(f"{len(unplaced)} drift test(s) read a repo path the index cannot place and name no other - spell the "
+                  "path with literals (TestRepo.Src(\"a\", \"b\"), a constant, a wrapper's callers), so the gate can plan "
+                  "the test for a change to it:\n  " + "\n  ".join(unplaced))
             return 1
         # A TestRepo helper the index cannot read leaves every test calling it governing nothing (kb/Work PB3247).
         unread = test_repo()["unread"]

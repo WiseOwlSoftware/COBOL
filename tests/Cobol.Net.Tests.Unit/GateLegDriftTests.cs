@@ -178,7 +178,9 @@ public sealed class GateLegDriftTests
                 .Concat(Directory.EnumerateDirectories(dir)
                     .Where(d => !skipped.Contains(Path.GetFileName(d))).SelectMany(Walk))
             : [];
-        var files = new[] { ".claude", ".github", "scripts", "docs", "tests" }.SelectMany(d => Walk(TestRepo.At(d)))
+        // Each tree is spelled by its own call, so the drift-rule index names this test for a change under any of them.
+        var files = new[] { TestRepo.At(".claude"), TestRepo.At(".github"), TestRepo.Scripts(), TestRepo.Docs(), TestRepo.Tests() }
+            .SelectMany(Walk)
             .Concat(Directory.EnumerateFiles(TestRepo.Root, "*.md")
                 .Where(f => Path.GetFileName(f) != "STATUS.md"))  // a worktree's gitignored checkpoint (the history, DEVLOG/, is not walked)
             .ToList();
