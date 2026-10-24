@@ -425,13 +425,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private string WithMoveSending(BoundCallArg a, string built)
     {
         if (a.Omitted || a.Mode is not CobolPassMode.Content || a.Formal is not null) return built;
-        if (a.ContentBool is not null || a.Value is BoundComputedOperand) return RuntimeApi.ArgWithValueSending(built);
+        // A boolean expression's value is its '0'/'1' text, a boolean literal's too (docs/CONFORMANCE.md D-B3); a boolean or national
+        // FUNCTION value (usage bit / national, StaticUsageOf) also states its representation (kb/Work PB3587).
+        if (a.ContentBool is not null) return RuntimeApi.ArgWithValueSending(built, null);
+        if (a.Value is BoundComputedOperand computed) return RuntimeApi.ArgWithValueSending(built, OperandText.StorageImageConverter(computed));
         string? sending = a.Place is { } p ? PlaceSending(p) : a.Value switch
         {
             BoundStringLiteral or BoundNumericLiteral => ElementarySending(a.Value),
-            BoundFigurative f => RuntimeApi.MoveSendingNew(FigurativeArgumentImage(f, null, ctx.Data), fill: true,
+            // A figurative constant has no usage of its own: its characters are what it sends (image: null).
+            BoundFigurative f => RuntimeApi.MoveSendingNew(FigurativeArgumentImage(f, null, ctx.Data), image: null, fill: true,
                 value: f.Kind == 'Z' ? ("0", 0) : null),
-            BoundAllLiteral all => RuntimeApi.MoveSendingNew(FigurativeArgumentImage(all, null, ctx.Data), fill: true),
+            BoundAllLiteral all => RuntimeApi.MoveSendingNew(FigurativeArgumentImage(all, null, ctx.Data), image: null, fill: true),
             _ => null,
         };
         return sending is null ? built : $"({built} with {{ Sending = {sending} }})";
@@ -447,7 +451,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             return null;
         var op = new BoundFieldOperand(p);
         string sending = MoveClassifier.IsGroupSender(op)
-            ? RuntimeApi.MoveSendingNew(OperandText.NonElementaryMoveSender(op, num, "CALL argument"), group: true)
+            // A group's characters ARE its storage image (GR4): the one alphabet, so image: null.
+            ? RuntimeApi.MoveSendingNew(OperandText.NonElementaryMoveSender(op, num, "CALL argument"), image: null, group: true)
             : ElementarySending(op);
         return callState.WholeFormalProbe(p) is { } probe ? $"({OmittedTest(probe)} ? null : {sending})" : sending;
     }
@@ -459,21 +464,24 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static bool HasNoBoundaryImage(Place p) => p.Item.IsGroup && !p.BoundaryImageCapable && p is not RedefViewPlace;
 
     /// <summary>An elementary sender's characters as a MOVE sends them, and the value of a numeric or numeric-edited one
-    /// (§14.9.25.4 GR5's de-editing is the numeric read's own) — see <see cref="WithMoveSending"/>.</summary>
+    /// (§14.9.25.4 GR5's de-editing is the numeric read's own) — see <see cref="WithMoveSending"/>. A sender of usage national
+    /// or bit states its representation beside its characters (<see cref="OperandText.StorageImageIfDiffers"/>): the activated
+    /// unit sends the characters to an elementary formal and the representation to a plain-group formal (kb/Work PB3587).</summary>
     private string ElementarySending(BoundOperand op)
     {
         string chars = OperandText.AsString(op, num, deSign: true);
+        string? image = OperandText.StorageImageIfDiffers(op, num, "CALL argument");
         bool numeric = op switch
         {
             BoundNumericLiteral => true,
             BoundFieldOperand f => f.Place.DenotedItem?.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
             _ => false,
         };
-        if (!numeric) return RuntimeApi.MoveSendingNew(chars);
+        if (!numeric) return RuntimeApi.MoveSendingNew(chars, image);
         NumX x = num.AsNum(op, ReceiverContext.None, SendingRef.MoveToNumeric);
-        return x.Real ? RuntimeApi.MoveSendingNew(chars, real: x.Expr)
-            : x.Dec ? RuntimeApi.MoveSendingNew(chars)
-            : RuntimeApi.MoveSendingNew(chars, value: (x.Expr, x.Scale));
+        return x.Real ? RuntimeApi.MoveSendingNew(chars, image, real: x.Expr)
+            : x.Dec ? RuntimeApi.MoveSendingNew(chars, image)
+            : RuntimeApi.MoveSendingNew(chars, image, value: (x.Expr, x.Scale));
     }
 
     /// <summary>⛔ THE ACTIVATING ELEMENT'S §14.2.3 GR9/GR10 COMPUTE (kb/Work PB640) — wrapped around EVERY
@@ -952,11 +960,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // carrier and a scale EACH. They disagreed, so ONE rule ("a numeric literal argument crosses with
             // its exact value") produced three different wrong answers depending on how it was spelled.
             // ⛔ …EXCEPT INTO A KNOWN FORMAL OF ANOTHER CATEGORY (kb/Work PB1113): an elementary one took the MOVE leg
-            // above, and a GROUP formal is §14.9.25.4 GR4's non-elementary move — "as if it were an alphanumeric to
-            // alphanumeric elementary move … no conversion": the literal's own characters, as the written
-            // `MOVE -12 TO G` and the INVOKE lane store them (the numeric cell crossed as the overpunched "1K").
+            // above, and a GROUP formal is §14.9.25.4 GR4's non-elementary move - "as if it were an alphanumeric to
+            // alphanumeric elementary move ... no conversion" - so the literal crosses as a MOVE of it to the group stores
+            // it: the digits of its value, through the one sending codec (kb/Work PB3570, OperandText.NonElementaryMoveSender;
+            // docs/CONFORMANCE.md D-B4), as the written `MOVE -12 TO G` and the INVOKE lane store them (the numeric cell
+            // crossed as the overpunched "1K").
             case BoundNumericLiteral n when a.Formal is { IsGroup: true }:
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(n.Text)}), null)";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(n, num, "CALL argument")}), null)";
             case BoundNumericLiteral n:
                 return NumericArgText(a.Mode, n.Text, ctx.SignEncoding);
             case BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } ct:
