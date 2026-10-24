@@ -332,6 +332,12 @@ jobs:
       - name: Line endings — LF in every tracked text file, index and checkout (line_endings.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/line_endings.py --check
+      # No tracked file carries an unresolved merge conflict (kb/Work PB735). An AUDIT since the inert lane (kb/Work
+      # PB2878): as a Unit test that read every tracked file it made every path one a test reads, and it never ran in CI
+      # on a change whose matrix was skipped.
+      - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/conflict_markers.py --check
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the

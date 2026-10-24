@@ -917,7 +917,7 @@ def self_test() -> int:
     # through its declared TreeScope, and names no path (kb/Work PB3531).
     _, reach = tiers_for(["scripts/differential_fuzz.py"])
     check("a changed file names every drift test the index says governs it, a sweep of the committed tree included "
-          "(tier 0d)", {"CatalogCoverageDriftTests", "ConflictMarkerDriftTests"} <= reach.drift_tests
+          "(tier 0d)", "CatalogCoverageDriftTests" in reach.drift_tests
           and "NulByteDriftTests" not in reach.drift_tests, sorted(reach.drift_tests))
     # A file a scope sets aside BY NAME is the rule's owner, which the sweep does not read: the class still governs it
     # (PB3531 review R1-1 — the general-format heading pattern lives in spec_headings.py).
