@@ -62,7 +62,7 @@ public sealed class FileLockPostureDriftTests
         Mode.NoOther => FileSharing.NoOther,
         Mode.ReadOnly => FileSharing.ReadOnly,
         Mode.AllOther => FileSharing.AllOther,
-        _ => FileRegistry.ImplementorDefaultSharing(open),
+        _ => FileRegistry.ImplementorDefaultSharing(open, 2023),
     };
 
     public static TheoryData<Mode, FileOpenMode, Mode, FileOpenMode, FileOrg> EveryPair()

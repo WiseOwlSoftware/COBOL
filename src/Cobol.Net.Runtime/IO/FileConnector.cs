@@ -258,6 +258,37 @@ public abstract class FileConnector
     /// <c>--std 2023</c>.</para></summary>
     public int Edition { get; set; } = 2023;
 
+    /// <summary>⛔ IS THE FILE SHARING FACILITY IN EFFECT FOR THIS CONNECTOR'S PROGRAM (kb/Work PB670)? It is a COBOL-2002
+    /// module (<see cref="DialectBehavior.FileSharingFacility"/>; Annex A.4.7, optional), so at <c>--std 85</c> it is not:
+    /// no sharing mode restricts another connector, the Table 19 arbitration of the OPEN (§14.9.27.4) is not asked, no file
+    /// lock is established against other run units (§9.1.15) and the file sharing conflict status '61' (§9.1.13.9 item 1)
+    /// is never produced. THE ONE READ of the behaviour for the connector and the registry: the arbitration and the
+    /// default mode (<c>FileRegistry.SharedOpenAttempt</c>), the cross-run-unit lock and a host refusal's status
+    /// (<see cref="Open"/>) all ask this and never an inline edition comparison.</summary>
+    internal bool SharingFacilityInEffect => DialectBehaviors.IsActive(DialectBehavior.FileSharingFacility, Edition);
+
+    /// <summary>⛔ MUST THIS CONNECTOR'S RELEASES AND READS ACCOUNT FOR ANOTHER FILE CONNECTOR RIGHT NOW (kb/Work PB670
+    /// review R1-1)? Where the file sharing facility is in effect, the sharing mode's file lock is the answer and it is
+    /// fixed at OPEN (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c> may meet a
+    /// sibling at any moment, in this run unit or another, so every WRITE is released to the medium). At COBOL-85 the
+    /// default mode restricts nobody (<c>FileRegistry.ImplementorDefaultSharing</c>) but no run unit is guaranteed to see
+    /// another's records (§A.4.1: the facility's rules are optional with it), so only a file connector that IS open beside
+    /// this one, in this run unit, is owed anything: the posture a program that names no sharing clause has at 2002, where
+    /// its OUTPUT buffers until the area fills or the file closes. Paying a flush per record and a seek per READ for a
+    /// sibling that may never come measured a 5x WRITE and a 1.6x READ slowdown on every <c>--std 85</c> file.
+    /// ⛔ THE SIBLING THAT ARRIVES LATER is owed the records already buffered: the registry asks every connector open on
+    /// the file to <see cref="ReleaseBufferedRecords"/> before the incoming OPEN's body runs.</summary>
+    internal bool OtherConnectorsMayShare =>
+        FileLockPosture.AdmitsAnotherRunUnit(HostShare) && (SharingFacilityInEffect || Physical is { Open.Count: > 1 });
+
+    /// <summary>⛔ HAND THE RECORDS THIS CONNECTOR HAS BUFFERED TO THE MEDIUM (§14.9.51.4 GR12, "releases a logical record
+    /// to the operating environment"), because a sibling file connector is about to open the same physical file at
+    /// COBOL-85 (<see cref="OtherConnectorsMayShare"/>; <c>FileRegistry.SharedOpenAttempt</c>). A connector that buffers
+    /// nothing does nothing. Never throws: a host refusal is held and reported by this connector's own next WRITE or its
+    /// CLOSE ('34' or '30', <see cref="FileStatusCode.ForWriteFailure"/>), because the opener's OPEN is not the
+    /// statement that failed to store those bytes.</summary>
+    internal virtual void ReleaseBufferedRecords() { }
+
     /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §14.9.10.4 GR5's "removed
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused
@@ -297,12 +328,20 @@ public abstract class FileConnector
     /// <c>OpenCore</c> reads them, so assigning afterwards would open every stream on the PREVIOUS open's
     /// answer).</summary>
     /// <param name="physical">The physical file's shared state — every connector gets it.</param>
+    /// <param name="lockOwner">The connector's registry name, which the physical file's record-lock table holds its locks under (<see cref="LockOwner"/>).</param>
     /// <param name="locksRecords">Whether this open's connector SETS record locks (<c>FileRegistry.RecordLocksSetUnder</c>: a LOCK MODE clause under a mode other than NO OTHER). A registered SHARING posture alone is NOT participation.</param>
-    internal void AssociatePhysical(PhysicalFileTable.State physical, bool locksRecords)
+    internal void AssociatePhysical(PhysicalFileTable.State physical, string lockOwner, bool locksRecords)
     {
         Physical = physical;
+        LockOwner = lockOwner;
         _locksRecords = locksRecords;
     }
+
+    /// <summary>⛔ THE NAME THE RUN UNIT'S RECORD-LOCK TABLE HOLDS THIS CONNECTOR'S LOCKS UNDER (<see cref="PhysicalFileTable"/>
+    /// keys an owner by the connector's registry name): the connector does not know it from its own construction, and what a
+    /// CLOSE under commit control keeps must be able to give its record locks back without the registry (kb/Work PB3578), so the
+    /// registry hands it down with the physical file's state at every OPEN (<see cref="AssociatePhysical"/>).</summary>
+    internal string LockOwner { get; private set; } = "";
 
     /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
     /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run
@@ -360,6 +399,9 @@ public abstract class FileConnector
     /// the body created it, when the connector's own handle would make the OUTPUT question answer yes.</param>
     private string? TakeRunUnitFileLock(FileOpenMode mode, bool existedBeforeBody)
     {
+        // §9.1.15's file lock belongs to the file sharing facility, which COBOL-85 does not have (A.4.1: the facility's
+        // rules and I-O status values are optional with it): no lock, no column, no '61' (kb/Work PB670).
+        if (!SharingFacilityInEffect) return null;
         if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HeldByAnotherHandle())
             return FileStatusCode.FileSharingConflict;
         // ⛔ A KEPT HANDLE THAT EXCLUDES EVERY OTHER OPEN (a CLOSE under SHARING WITH NO OTHER, KeptHandleExcludesEveryOpen)
@@ -497,11 +539,14 @@ public abstract class FileConnector
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
 
-    /// <summary>The OPEN found a PRESENT physical file at <see cref="HostPath"/> (<see cref="OpenOnce"/>, before the file lock
-    /// and the organization's body): what this connector's CLOSE under commit control kept, if it was kept on another physical
-    /// file than the one the path names now — the kept one removed or renamed away and another made at the path outside the
-    /// run unit — ends here (kb/Work PB3533). Only a keyed connector keeps anything (kb/Work PB3337).</summary>
-    private protected virtual void EndWhatWasKeptOfAnotherFile() { }
+    /// <summary>The OPEN has probed <see cref="HostPath"/> and found it <paramref name="presence"/> Present or Absent
+    /// (<see cref="OpenOnce"/>, before the file lock and the organization's body): what this connector's CLOSE under commit control
+    /// kept, if it was kept on another physical file than the one the path names now — the kept one removed or renamed away
+    /// outside the run unit, and another made at the path or none (kb/Work PB3533) — is handed to the registry, which keeps it
+    /// for the COMMIT, the ROLLBACK and the run unit's end as it keeps the state of a connector associated with another file
+    /// (kb/Work PB3576). A keyed connector's kept state carries its transaction (kb/Work PB3337); a sequential one's kept handle
+    /// carries none, its journal being the registry's (kb/Work PB3340), so it is given back.</summary>
+    private protected virtual void RetireWhatWasKeptOfAnotherFile(FilePresence presence) { }
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
@@ -981,11 +1026,12 @@ public abstract class FileConnector
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
-            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES ENDS HERE, before anything of this OPEN reads it (kb/Work
-            // PB3533): the write probe, the file lock the CLOSE kept and the organization's kept handle and store all belong to
-            // the physical file the CLOSE was on, and a present file that is not that one was made at the path after it was
-            // removed or renamed away outside the run unit.
-            if (presence is FilePresence.Present) EndWhatWasKeptOfAnotherFile();
+            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES LEAVES THIS CONNECTOR HERE, before anything of this OPEN reads
+            // it (kb/Work PB3533, PB3576): the write probe, the file lock the CLOSE kept and the organization's kept handle and
+            // store all belong to the physical file the CLOSE was on, and the path now names another file (made after the kept one
+            // was removed or renamed away outside the run unit) or none. The kept state is not ended with it: the physical file
+            // still exists unless it was removed, and the COMMIT still reaches what the run unit changed in it.
+            if (presence is FilePresence.Present or FilePresence.Absent) RetireWhatWasKeptOfAnotherFile(presence);
             // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
             // execution of the OPEN statement when the file connector is matched with the file and the file
             // exists, the attributes of the file connector as specified in the file control paragraph and the
@@ -1050,7 +1096,12 @@ public abstract class FileConnector
         // conflicts with this request". A connector of THIS run unit is refused by the Table 19 arbiter before
         // the body runs (FileRegistry's '61'); a connector of ANOTHER run unit is visible only as the host's own
         // refusal, and the host says which refusal it is (kb/Work PB860 — every organization answered '30').
-        catch (IOException e) when (HostFile.IsSharingRefusal(e)) { s = FileStatusCode.FileSharingConflict; }
+        // Where the facility is not in effect (COBOL-85) '61' is a status the edition does not define, so a process outside
+        // the run unit that holds the file is the operating environment's refusal and nothing more: §9.1.13.6 item 1's '30'.
+        catch (IOException e) when (HostFile.IsSharingRefusal(e))
+        {
+            s = SharingFacilityInEffect ? FileStatusCode.FileSharingConflict : FileStatusCode.PermanentError;
+        }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
         // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can

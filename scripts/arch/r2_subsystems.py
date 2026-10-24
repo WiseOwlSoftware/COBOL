@@ -303,6 +303,8 @@ def write_design(repo: Path = REPO):
 
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     ok = True
 
     def arm(name, cond):
@@ -336,11 +338,7 @@ def self_test():
     arm("the design render names every subsystem", all("`%s`" % s["key"] in render_design() for s in TABLE))
     arm("a document without the markers fails the design check", design_block("no markers") is None)
     with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run(["git", "-C", tmp, "init", "-q"], check=True)
-        Path(tmp, "a.txt").write_bytes(b"1\n2\n3")
-        Path(tmp, "b.txt").write_bytes(b"")
-        subprocess.run(["git", "-C", tmp, "add", "-A"], check=True)
-        subprocess.run(["git", "-C", tmp, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "t"], check=True)
+        ScratchRepo.init(tmp).commit("t", {"a.txt": b"1\n2\n3", "b.txt": b""})
         blobs = tree_blobs("HEAD", Path(tmp))
         arm("physical lines are read from the commit's blobs", tree_lines(blobs, Path(tmp)) == {"a.txt": 3, "b.txt": 0})
         arm("only the blobs asked for are read", tree_lines({"a.txt": blobs["a.txt"]}, Path(tmp)) == {"a.txt": 3})
