@@ -139,8 +139,8 @@ def remove_tree(path: Path | str) -> None:
     """Remove a scratch directory WHOLE, read-only entries included, and say so when it cannot (kb/Work PB3194).
 
     git writes its objects read-only, which `shutil.rmtree` cannot delete on Windows, and `ignore_errors=True` hid
-    that: every self-test that built a scratch repository left its objects in the machine-wide temp directory, 4,600
-    directories and 5 GB on one host by 2026-10-23. Here a refused entry is made writable (with its directory) and
+    that: every self-test that built a scratch repository left its objects in the machine-wide temp directory, 7,359
+    directories (0.75 GB) on one host by 2026-10-23. Here a refused entry is made writable (with its directory) and
     removed again; what still cannot go (a file another process holds open) is printed, never swallowed. A path
     already gone is no error."""
     def writable(func, entry, _exc):   # rmtree's onexc

@@ -1641,7 +1641,7 @@ temp directory and registers `remove_tree` for the process's exit, so a return, 
 remove it; `remove_tree` makes a refused entry writable and removes it again, and prints what still cannot go. Before
 it, three self-tests never removed their scratch and the rest called `shutil.rmtree(..., ignore_errors=True)`, which on
 Windows cannot delete the read-only files git writes its objects as and says nothing: one host's temp directory held
-about 4,600 such directories (5 GB) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
+7,359 such directories (0.75 GB of files) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
 outside a directory it already owns, and any `rmtree(ignore_errors=True)` in self-test code.
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
