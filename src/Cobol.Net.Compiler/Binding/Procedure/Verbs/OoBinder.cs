@@ -1513,7 +1513,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     Err($"nonnumeric literal argument {literalText} for formal '{formal.CobolName}': {tErr}");
                     return null;
                 }
-                return new BoundInvokeArg(formal, null, null, textLit.Value, WriteBack: false, ByContent: true);
+                // The BOUND literal crosses, category and all (kb/Work PB3587): a national literal is usage NATIONAL, which the
+                // emitter's group arm reads through the one sending codec.
+                return new BoundInvokeArg(formal, null, null, textLit, WriteBack: false, ByContent: true);
             case BoundNumericLiteral numLit:
                 if (host.Params.ContentConformanceReason(formal, LiteralArg(numLit)) is { } nErr)
                 {
@@ -1524,10 +1526,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // formal, rule 2d's MOVE for any other — the emitter stores it through the receiving category's ONE
                 // MOVE store (kb/Work PB1113: it used to cross as its digit TEXT, which was right only for an
                 // unsigned integer into PIC X — `-5` keeps no sign there, §14.9.25.4 GR6, and `12.5` edits into a
-                // numeric-edited mask). A GROUP formal keeps the character copy §14.9.25.4 GR4 makes a group move.
-                return formal.IsGroup
-                    ? new BoundInvokeArg(formal, null, null, numLit.Text, WriteBack: false, ByContent: true)
-                    : new BoundInvokeArg(formal, null, numLit.Text, null, WriteBack: false, ByContent: true);
+                // numeric-edited mask). A GROUP formal is §14.9.25.4 GR4's group move, which the emitter sends through the one
+                // sending codec as the digits of the literal (kb/Work PB3570; docs/CONFORMANCE.md D-B4).
+                return new BoundInvokeArg(formal, null, numLit.Text, null, WriteBack: false, ByContent: true);
             case BoundPredefinedNull:
                 // ⛔ NULL IS AN IDENTIFIER, identifier-5 (kb/Work PB1137 + PB1630): §8.4.3.1.3 SR7 lists the
                 // predefined-object references among the identifier formats, §8.4.3.7.3 SR2 describes the NULL object

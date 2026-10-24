@@ -419,7 +419,11 @@ adapter's character copy), and ONE receiving half fills it (`MoveEmitter.Charact
   element states the SENDING half of the MOVE for each BY CONTENT argument (`CobolArg.Sending`, a `MoveSending`
   rendered by `CallEmitter.WithMoveSending` from the argument's description — its characters as a MOVE sends them,
   the group / figurative-fill flags and the algebraic value a numeric-edited receiver edits; an evaluated expression
-  is read back from its cell, `CobolArgAdapt.WithValueSending`), the activated unit registers the RECEIVING half
+  is read back from its cell, `CobolArgAdapt.WithValueSending`; and, for a sender of usage national or bit — an
+  item, a national literal, a national or boolean function — its REPRESENTATION beside its characters,
+  `MoveSending.StorageImage`: an elementary formal reads the characters, but a plain-group formal's record is
+  filled by GR4's move *"with no conversion"*, so `CobolArgAdapt.Text` hands such a formal the image — the one
+  alphabet choice only the activated unit can make; kb/Work PB3587), the activated unit registers the RECEIVING half
   as a compiled record builder (`BoundaryItem.Landing` = `MoveLanding`, rendered by `MoveEmitter.MovedRecord` from
   the formal's own description), and `ProgramTable.LandArguments` applies it for exactly the BY CONTENT arguments
   whose program the element has a program-specifier for — GR9's FIRST regime still crosses *"without conversion"*.

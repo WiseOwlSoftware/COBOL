@@ -2357,11 +2357,15 @@ internal static class RuntimeApi
     public static string MoveSendingBinary64(string sending) => $"{sending}.{nameof(MoveSending.Binary64)}";
 
     /// <summary>A sending operand the activating element states for its argument (<see cref="MoveSending"/>; kb/Work PB2587):
-    /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.</summary>
-    public static string MoveSendingNew(string characters, bool group = false, bool fill = false,
+    /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.
+    /// <para>⛔ <paramref name="image"/> IS REQUIRED, AND NULL IS AN ANSWER (kb/Work PB3587): it is the sender's representation
+    /// when that is not its characters (<see cref="MoveSending.StorageImage"/>; <c>OperandText.StorageImageIfDiffers</c>), so a
+    /// producer of a sending operand cannot be written without deciding whether a plain-group formal reads something else.</para></summary>
+    public static string MoveSendingNew(string characters, string? image, bool group = false, bool fill = false,
         (string Unscaled, int Scale)? value = null, string? real = null)
     {
         var parts = new List<string> { characters };
+        if (image is not null) parts.Add($"{nameof(MoveSending.StorageImage)}: {image}");
         if (group) parts.Add($"{nameof(MoveSending.Group)}: true");
         if (fill) parts.Add($"{nameof(MoveSending.Fill)}: true");
         if (value is not null || real is not null) parts.Add($"{nameof(MoveSending.Numeric)}: true");
@@ -2372,8 +2376,8 @@ internal static class RuntimeApi
 
     /// <summary>An argument evaluated into its cell, with its sending operand read back from that cell —
     /// <see cref="CobolArgAdapt.WithValueSending"/> (kb/Work PB2587).</summary>
-    public static string ArgWithValueSending(string arg) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg})";
+    public static string ArgWithValueSending(string arg, string? storageImage) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)})";
 
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>

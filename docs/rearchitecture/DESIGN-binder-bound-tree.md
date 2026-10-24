@@ -354,7 +354,10 @@ receiving side is how the two sides came to disagree (kb/Work PB430).
 directions** — `OperandText.NonElementaryMoveSender`, called by the group-receiver and group-sender arms of
 `MoveEmitter` alike. For a field operand it is `AsStorageImage`, the per-shape storage recipes (zoned, radix-2,
 BCD, IEEE, UTF-16BE national, packed bits); for a literal or figurative it is the operand text, which has no
-internal representation to preserve. The operand *text* is the wrong reader for that clause on an elementary
+internal representation to preserve — except that a numeric literal sends its DIGITS only (no sign, no decimal point:
+docs/CONFORMANCE.md D-B4, kb/Work PB3570), and a national or boolean value (a national literal, a national or boolean
+function) sends the UTF-16BE pairs or packed bits its usage has (D-B3, kb/Work PB3562), which the call boundary also
+carries beside the characters when it cannot see the formal (`MoveSending.StorageImage`, kb/Work PB3587). The operand *text* is the wrong reader for that clause on an elementary
 sender: it renders a COMP-3 item as its zoned DISPLAY digits, which is the conversion the clause forbids and
 also occupies the wrong number of character positions.
 
