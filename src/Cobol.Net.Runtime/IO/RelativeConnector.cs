@@ -351,6 +351,7 @@ public sealed class RelativeConnector : KeyedConnector
             return Status = locked;                                        // '51' (RETRY: §14.9.51.4 GR16)
         if (reevaluate) return Write(image, length, extents);              // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        if (FileRemovedByRollback) return WriteCreatingTheFileAgain(() => Write(image, length, extents));   // 2.2.2.14 (R1-2)
         var written = _st.Insert(slot, frame, Entered, out bool inserted, TransactionFor(RelativeStore.Key(slot), beforeImage: null));
         if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))

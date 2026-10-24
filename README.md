@@ -197,9 +197,6 @@ item, and a unit test (`ReadmeDeclinedSummaryDriftTests`) fails when this list a
   WRITE FILE and REWRITE FILE (A.4.13, COBOLNET1706) are refused with errors, which is how Annex A.4.1 reads for an
   optional module whose support is not claimed.
 - ARITHMETIC IS STANDARD-BINARY (A.3 item 2) is refused (COBOLNET0806).
-- Commit and rollback (A.3 items 6–7, A.4.3) is provided for every file §9.1.18.2 admits and complete for SEQUENTIAL and LINE
-  SEQUENTIAL files; for RELATIVE and INDEXED files a ROLLBACK does not yet restore a file an OPEN OUTPUT replaced or a DELETE
-  FILE removed since the last COMMIT (kb/Work PB3492).
 - FLOAT-BINARY-128 (A.3 item 17, which leaves the FLOAT-BINARY clause of A.3 item 12 partial) and the standard decimal
   floating-point usages (A.3 items 19 and 20–21) have no conforming .NET type and are refused (COBOLNET1564); the
   FLOAT-DECIMAL clause (A.3 item 13) compiles with a warning (COBOLNET2424).

@@ -111,7 +111,11 @@ internal static class SidecarLockFiles
         for (int attempt = 0; attempt < PublishAttempts; attempt++)
         {
             if (attempt > 0) Pause(attempt);
-            HostFile.CreateLockDirectory(directory);
+            try { HostFile.CreateLockDirectory(directory); }
+            catch (DirectoryNotFoundException) when (!HostFile.ContainingDirectoryExists(directory))
+            {
+                return null;   // the physical file's own directory is not there: nothing beside it can be held (CreateLockDirectory)
+            }
             var id = Guid.NewGuid();
             string pending = Path.Combine(directory, PendingPrefix + id.ToString("N"));
             FileStream? stream = null;
