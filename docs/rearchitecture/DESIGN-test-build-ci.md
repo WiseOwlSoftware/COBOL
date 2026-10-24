@@ -978,7 +978,26 @@ because the raw name is not stable (`b7`):
   helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
   collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
   spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
-  the `Sweep` trait).
+  the `Sweep` trait). A call's path is what its arguments SPELL, read by one evaluator with balanced parentheses
+  (kb/Work PB3112, `drift_rules.path_expr`): literals, `TestRepo.Root`, a class constant (`const string`,
+  `static readonly string`; never a local or a parameter, which is another method's), a nested `Path.Combine(..)` or
+  `TestRepo.X(..)`, up to the first argument it cannot spell. 62 of the 391 drift tests read a path the earlier
+  single-level regex missed (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
+  GrammarDir)`, `Path.Combine("src", ..)`; five grammar-scanning classes governed no grammar file). A method that wraps
+  one read (`Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`) is read at its CALLERS, whose
+  literals spell the path (only the arguments bound to the parameters the body's path carries: for
+  `AssertDeclares(string script, params string[] cases)` the `script`, never the `cases`); the body's own directory read is replaced by theirs unless some use of the wrapper (a method
+  group, `nameof`) spells none. That narrowing is exact, so three classes that were read as sweeps of `src` or
+  `scripts/spec` are specific to the files they name and lose the `Sweep` trait, and one (`LevelNumberArmDriftTests`,
+  which enumerates `src/Cobol.Net.Compiler`) gains it. A drift test that reads the repo and spells no path at all
+  (`TestRepo.At(tree)` from a theory's parameter) governs no file, so `drift_rules.py --check` refuses it
+  (`blind`): spell the trees with literals. With that check the index sees every read a drift test makes, and the
+  tier-0c cost cap (instances three to five of PB3112: a load-skewed sample, a case never re-timed) decides only the
+  ORDER of a sweep the diff cannot reach, so the timings store needs no change.
+  **Measured cost of PB3112's change** (shared store, 2026-10-24, contention-inflated as below): a grammar edit
+  governs 74 -> 78 classes, leg 1 476 -> 581 s (`SendingOperandDriftTests` 76 s and `ArithmeticOperandRoleDriftTests`
+  24 s join); a compiler emitter or binder edit 130 -> 128 and 125 -> 124 classes, 357 -> 346 s and 404 -> 404 s; a
+  golden-adding, test-editing, script-editing or `docs/CONFORMANCE.md` diff is unchanged (18, 17, 13 and 31 classes).
   **Measured cost** (the Unit assembly, the
   shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
   49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
@@ -1072,10 +1091,15 @@ because the raw name is not stable (`b7`):
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
 no BOM, sorted keys, no insignificant whitespace):
 `{"schema": 1, "base", "map", "map_state", "timings", "every_tier1": [reasons], "constants": {LEG_ONE_BUDGET, …},
+"reds": {<source label>: {"keys": n, "listed": n}, …},
 "assemblies": {"Conformance": {"legs": [1, 2] | [1] | [2], "leg1": [key, …], "leg2": [key, …], "stats": {…}}, …},
 "sha256": …}`. `leg1` and `leg2` are in RANK order — a key's rank is its position, leg 1's list first — so the rank
 needs no second structure; `legs` names the legs the driver invokes the assembly for; `stats` is for people (tier
-counts, leg-1 cases, seconds and floor, the one-leg reason). `sha256` is the SHA-256 of the canonical JSON of every
+counts, leg-1 cases, seconds and floor, the one-leg reason); `reds` names the two sources whose reds are tier 0a
+(build-local's previous run under its timings label, `previous run: none` when there is none; the Linux gate's newest
+run as `linux gate <its results directory>`; `gate_plan.previous_gates`) with how many red keys each gave and how
+many of them name a case discovered here (`{"keys": 0, "listed": 0}` for a source that left none). Every plan the gate
+driver or the CLI writes carries both, and the plan summary prints them. `sha256` is the SHA-256 of the canonical JSON of every
 other field: the plan's identity on the verdict line and in the identity records. The handshake digest
 `COBOLNET_GATE_PLAN_SHA256` is the SHA-256 of the file's BYTES, which `gate_plan.py` prints as its last stdout line.
 **The leg function:** `LegOf(case) = 1` if `NameKey(case.DisplayName)` is a

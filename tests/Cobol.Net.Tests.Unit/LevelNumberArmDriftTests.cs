@@ -25,6 +25,7 @@ namespace CobolNet.Tests.Unit;
 /// level-number, or a new section that hosts a data description entry, fails this test until <c>LevelNumberPass</c>
 /// names it — which is what makes the NEXT arm automatic instead of the next silent hole.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class LevelNumberArmDriftTests
 {
     private static string PassSource => File.ReadAllText(TestRepo.Src(Path.Combine(
