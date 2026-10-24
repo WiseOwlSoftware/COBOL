@@ -106,6 +106,9 @@ import sharedfile  # this directory's: the one Windows share-retry rule for file
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
 import self_test_inputs as inputs  # this directory's: what a self-test read, and the tracer that records it
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
+# this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
+# the private global config and every self-test's environment share (kb/Work PB3584)
+from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE, ScratchRepo, config_text, scrubbed_env
 
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
@@ -234,7 +237,7 @@ def classify(rel: str, text: str) -> SelfTest | None:
 
 def tracked_scripts(repo: Path) -> list[str]:
     out = subprocess.run(["git", "ls-files", "-z", "--", *live_tools.ROOTS], cwd=repo, check=True, capture_output=True,
-                         env=_scrubbed_env(os.environ)).stdout
+                         env=scrubbed_env()).stdout
     return sorted(p for p in out.decode("utf-8").split("\0") if p.endswith((".py", ".sh", ".ps1")))
 
 
@@ -258,31 +261,13 @@ def discover(repo: Path = REPO) -> list[SelfTest]:
 
 # ── running ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-_GIT_LOCAL_ENV: list[str] | None = None
-
-
-def _git_local_env_vars() -> list[str]:
-    global _GIT_LOCAL_ENV
-    if _GIT_LOCAL_ENV is None:
-        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
-        _GIT_LOCAL_ENV = subprocess.run(["git", "rev-parse", "--local-env-vars"], check=True, capture_output=True,
-                                        text=True, encoding="utf-8", env=env, cwd=tempfile.gettempdir()).stdout.split()
-    return _GIT_LOCAL_ENV
-
-
-def _scrubbed_env(base: dict[str, str]) -> dict[str, str]:
-    """`base` without git's repository-selection variables (kb/Work PB1719)."""
-    drop = set(_git_local_env_vars())
-    return {k: v for k, v in base.items() if k not in drop}
-
-
 def ensure_submodule(repo: Path, say) -> str | None:
     """Fetch the public-skills submodule when this checkout lacks it. Returns the failure, if any."""
     if (repo / SUBMODULE / "skills").is_dir():
         return None
     say(f"self-tests: fetching the {SUBMODULE} submodule (absent in this checkout)")
     r = subprocess.run(["git", "submodule", "update", "--init", SUBMODULE], cwd=repo, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace", env=_scrubbed_env(os.environ))
+                       encoding="utf-8", errors="replace", env=scrubbed_env())
     if r.returncode != 0 or not (repo / SUBMODULE / "skills").is_dir():
         return f"`git submodule update --init {SUBMODULE}` failed (exit {r.returncode}): {r.stderr.strip()}"
     return None
@@ -304,33 +289,15 @@ class Result:
     waited: float = 0.0       # seconds it waited for a budget place before it ran (kb/Work PB3061)
 
 
-#: The git identity every self-test commits under, from its private global config (`private_git_config`).
-GIT_IDENTITY = ("self-test", "self-test@localhost")
-
-
-#: What the private global config sets besides the identity: NO AUTOMATIC MAINTENANCE. git starts `git maintenance run
-#: --auto --detach` after a commit, a merge, a fetch and (in the receiving repository) a push; in git 2.55 (CI's
-#: runner, WSL) that background process packs refs (`pack-refs --all --prune --auto`) and repacks (`repack -d -l`,
-#: `multi-pack-index write`) in the very scratch repository a self-test is still building and surveying. Measured: one
-#: prune_worktrees self-test run started 60 of them, and 15 of its own git commands (switch, add, commit) ran while one
-#: did. A self-test's repository is then changed by a process it neither started nor waits for, at a moment that
-#: differs on every run and every host. It was the one such actor in the fixture when merge-group run 39193754708 read
-#: a fixture branch MERGED, an ancestor of main it was built not to be, on the CI runner while every local run passed
-#: (kb/Work PB1957, the CI invariant). `gc.auto = 0` keeps an older git's `gc --auto` out the same way.
-GIT_NO_AUTO_MAINTENANCE = (("maintenance", "auto", "false"), ("gc", "auto", "0"))
-
-
 def private_git_config(scratch: Path) -> Path:
-    """A private global git config holding only an identity and GIT_NO_AUTO_MAINTENANCE. A self-test that commits in a
+    """A private global git config holding only an identity and NO_AUTO_MAINTENANCE. A self-test that commits in a
     scratch repository then behaves the same on a developer's machine (whose global config names a user, an editor,
     credential helpers) and on a CI runner (whose global config names no user, so `git commit` fails), and no git
     process it did not start changes that repository under it: local == CI, the CI invariant (kb/Work PB1957). The
     system config (Git for Windows' core.autocrlf) is left as it is, as on every host."""
     cfg = scratch / "gitconfig"
-    lines = ["[user]", f"\tname = {GIT_IDENTITY[0]}", f"\temail = {GIT_IDENTITY[1]}"]
-    for section, key, value in GIT_NO_AUTO_MAINTENANCE:
-        lines += [f"[{section}]", f"\t{key} = {value}"]
-    cfg.write_text("\n".join([*lines, ""]), encoding="utf-8", newline="\n")
+    cfg.write_text(config_text((("user", "name", IDENTITY[0]), ("user", "email", IDENTITY[1]),
+                                *NO_AUTO_MAINTENANCE)), encoding="utf-8", newline="\n")
     return cfg
 
 
@@ -517,7 +484,7 @@ class Runner:
     def run_one(self, test: SelfTest, scratch: Path, git_config: Path, tracer: Path, why: str = "") -> Result:
         coord = Path(tempfile.mkdtemp(prefix="coord-", dir=scratch))
         trace = Path(tempfile.mkdtemp(prefix="trace-", dir=scratch))
-        env = _scrubbed_env(os.environ)
+        env = scrubbed_env()
         env.update(COBOL_COORD_DIR=str(coord), GIT_CONFIG_GLOBAL=str(git_config), PYTHONIOENCODING="utf-8",
                    PYTHONUTF8="1")
         env = inputs.traced_env(env, tracer, trace, self.repo)
@@ -731,15 +698,14 @@ def self_test() -> int:
         (root / "scripts" / "elsewhere.py").write_text(
             f"# SELF-TEST-PLATFORM: {other} — planted\nimport sys\nif '--self-test' in sys.argv: sys.exit(1)\n",
             encoding="utf-8", newline="\n")
-        env = _scrubbed_env(os.environ)
-        for cmd in (["init", "-q"], ["add", "-A"]):
-            subprocess.run(["git", *cmd], cwd=root, check=True, capture_output=True, env=env)
+        scratch = ScratchRepo.init(root)
+        scratch.git("add", "-A")
         tests = discover(root)
         check("arm: discovery finds the planted tree's three self-tests", [t.path for t in tests],
               ["scripts/elsewhere.py", "scripts/test_green.py", "scripts/test_red.py"])
         for planted, body in (("broken.py", b"def (:\n"), ("latin1.py", b"# caf\xe9\n")):
             (root / "scripts" / planted).write_bytes(body)
-            subprocess.run(["git", "add", "-A"], cwd=root, check=True, capture_output=True, env=env)
+            scratch.git("add", "-A")
             try:
                 discover(root)
                 check(f"arm: a tracked script discovery cannot read ({planted}) fails discovery, never drops out",
@@ -748,7 +714,7 @@ def self_test() -> int:
                 check(f"arm: a tracked script discovery cannot read ({planted}) fails discovery, never drops out",
                       f"scripts/{planted}" in str(e), True)
             (root / "scripts" / planted).unlink()
-            subprocess.run(["git", "add", "-A"], cwd=root, check=True, capture_output=True, env=env)
+            scratch.git("add", "-A")
         said: list[str] = []
         runner = Runner(root, this_platform(), said.append)
         saved = os.environ.get("GIT_DIR")
@@ -768,8 +734,8 @@ def self_test() -> int:
               bool(coord) and Path(coord).name.startswith("coord-") and coord != os.environ.get("COBOL_COORD_DIR"),
               True)
         check("arm: each self-test commits under the private global config's identity, never the caller's",
-              f"user={GIT_IDENTITY[0]}" in by["scripts/test_green.py"].output.splitlines(), True)
-        check("arm: no self-test's git starts automatic maintenance behind it (GIT_NO_AUTO_MAINTENANCE)",
+              f"user={IDENTITY[0]}" in by["scripts/test_green.py"].output.splitlines(), True)
+        check("arm: no self-test's git starts automatic maintenance behind it (NO_AUTO_MAINTENANCE)",
               [l for l in by["scripts/test_green.py"].output.splitlines() if l.startswith(("maintenance.", "gc."))],
               ["maintenance.auto=false", "gc.auto=0"])
         check("arm: a failing self-test is RED", (by["scripts/test_red.py"].state, by["scripts/test_red.py"].rc), (RED, 1))
@@ -825,9 +791,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         for name, body in bodies.items():
             (root / "scripts" / name).write_text(body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8", newline="\n")
         (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
-        env = _scrubbed_env(os.environ)
-        for cmd in (["init", "-q"], ["add", "-A"]):
-            subprocess.run(["git", *cmd], cwd=root, check=True, capture_output=True, env=env)
+        ScratchRepo.init(root).git("add", "-A")
         found = {t.path.rsplit("/", 1)[-1]: t for t in discover(root)}
         tests = [found[n] for n in sorted(bodies)]
         plat = this_platform()
