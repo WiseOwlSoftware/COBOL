@@ -714,7 +714,7 @@ for drain in (False, True):
           [g.notes for g in un_p["groups"] if {"PB301", "PB302", "PB303"} & set(g.notes)], [])
     check(f"PB2974 {mode}: the held note names its dispatch, the others name the held note and its dispatch",
           ("held by dispatch w1055a" in un_p["waiting"]["PB302"],
-           [("PB302 of the same report is held by dispatch w1055a" in un_p["waiting"][i]) for i in ("PB301", "PB303")]),
+           [("PB302 of branch worktree-wf_un-1 is held by dispatch w1055a" in un_p["waiting"][i]) for i in ("PB301", "PB303")]),
           (True, [True, True]))
 # ... only a note the report owns holds it: another cluster's notes are planned as before
 check("PB2974: notes of no held report are planned beside it",
@@ -739,6 +739,49 @@ ub_many = pw.plan(UB_MANY, [cl("scripts/c.py", *ub_ids)], [], [], lambda b: "UNL
                   budget_points=1000)
 check("PB2974: an unlanded branch's notes past the cap stay ONE finisher over the branch, never a cluster beside it",
       [(g.kind, g.notes, g.continues) for g in ub_many["groups"]], [("finisher", ub_ids, ["worktree-wf_ub-2"])])
+# THE BRANCH, NOT THE ARM, IS THE UNIT (branch review R1-1): a half note and an open note on one unlanded branch, and a
+# SPLIT report beside unreported notes its branch carries, are ONE finisher over the branch, and one held note holds all
+BU_NOTES = {n: pw.Note(n, "open", "tooling", f"{n} — a defect in tooling", [], "", 8)
+            for n in ("PB501", "PB502", "PB601", "PB602", "PB605")}
+BU_CL = [cl("scripts/d.py", "PB502")]
+BU_HALF = [cl("scripts/d.py", "PB501")]
+BU_X = {"worktree-wf_x-1": ["PB501", "PB502"]}
+
+
+def bu_plan(held, unlanded, reports=(), clusters=BU_CL, half=BU_HALF, drain=False):
+    return pw.plan(BU_NOTES, clusters, half, list(reports), lambda b: "UNLANDED", unlanded, RULES, budget_points=100,
+                   held=held, drain=drain)
+
+
+check("PB2974 (R1-1): a half note and an open note of one unlanded branch are ONE finisher over it",
+      [(g.kind, g.notes, g.continues) for g in bu_plan({}, BU_X)["groups"]],
+      [("finisher", ["PB501", "PB502"], ["worktree-wf_x-1"])])
+bu_h = bu_plan({"PB502": "dispatch w1055a"}, BU_X)
+check("PB2974 (R1-1): the half note waits with the branch's held note, naming its dispatch",
+      ([g.notes for g in bu_h["groups"]], "PB502 of branch worktree-wf_x-1 is held by dispatch w1055a" in bu_h["waiting"]["PB501"]),
+      ([], True))
+check("PB2974 (R1-1): a half note of a branch no note of which is held is a finisher with the half record and the branch",
+      [("FINISH-FIRST: PB501 is `status: half`" in g.pred, "worktree-wf_x-1" in g.pred) for g in bu_plan({}, BU_X)["groups"]],
+      [(True, True)])
+BU_REP = UN / "bu-reports"
+BU_REP.mkdir()
+(BU_REP / "w1056a-PB601-report.md").write_text(
+    "SPLIT\n# w1056a\n**branch:** `worktree-wf_y-1` · **HEAD:** `5555555ee`\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+returned(BU_REP)
+BU_Y = {"worktree-wf_y-1": ["PB601", "PB602", "PB605"]}
+BU_CL2 = [cl("scripts/e.py", "PB601", "PB602", "PB605")]
+bu_reps = pw.load_reports(BU_REP, UN)
+bu_r = bu_plan({}, BU_Y, bu_reps, BU_CL2, [])
+check("PB2974 (R1-1): a report's finisher takes the unreported notes its own branch carries, ONE finisher",
+      [(g.kind, g.notes, g.continues, "PB602, PB605" in g.pred) for g in bu_r["groups"]],
+      [("finisher", ["PB601", "PB602", "PB605"], ["worktree-wf_y-1"], True)])
+bu_rh = bu_plan({"PB602": "dispatch w1055a"}, BU_Y, bu_reps, BU_CL2, [])
+check("PB2974 (R1-1): ... and a held unreported note of that branch holds the report's note too",
+      ([g.notes for g in bu_rh["groups"]], "PB602 of branch worktree-wf_y-1 is held by dispatch w1055a" in bu_rh["waiting"]["PB601"],
+       "PB602 of branch worktree-wf_y-1 is held by dispatch w1055a" in bu_rh["waiting"]["PB605"]), ([], True, True))
+bu_rd = bu_plan({}, BU_Y, bu_reps, BU_CL2, [], drain=True)
+check("PB2974 (R1-1): the drain plans the report's finisher over the branch's notes as well",
+      [g.notes for g in bu_rd["groups"]], [["PB601", "PB602", "PB605"]])
 
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
