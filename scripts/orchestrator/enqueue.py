@@ -754,6 +754,7 @@ def _stamp(wt: pathlib.Path, branch: str) -> int:
 # ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's one verdict reader and its Readings)
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -763,23 +764,16 @@ def self_test() -> int:
 
     root = pathlib.Path(tempfile.mkdtemp(prefix="enqueue-selftest-"))
     try:
-        def sh(cwd: pathlib.Path, *args: str) -> str:
-            r = _git(cwd, *args)
-            if r.returncode != 0:
-                raise RuntimeError(f"git {' '.join(args)}: {r.stderr}")
-            return r.stdout.strip()
-
-        origin, wt = root / "origin.git", root / "wt"
-        sh(root, "init", "--quiet", "--bare", "-b", "main", str(origin))
-        sh(root, "init", "--quiet", "-b", "main", str(wt))
+        scratch = ScratchRepo.init(root / "wt")
+        wt = scratch.path
         (wt / "a.txt").write_text("one", encoding="utf-8", newline="\n")
-        sh(wt, "add", "a.txt")
-        sh(wt, "commit", "--quiet", "-m", "base")
-        sh(wt, "remote", "add", "origin", str(origin))
-        sh(wt, "push", "--quiet", "origin", "main")
-        sh(wt, "switch", "--quiet", "-c", "land-train")
+        scratch.git("add", "a.txt")
+        scratch.git("commit", "--quiet", "-m", "base")
+        scratch.origin(root / "origin.git")
+        scratch.git("push", "--quiet", "origin", "main")
+        scratch.git("switch", "--quiet", "-c", "land-train")
         (wt / "a.txt").write_text("two", encoding="utf-8", newline="\n")
-        sh(wt, "commit", "--quiet", "-am", "the landing")
+        scratch.git("commit", "--quiet", "-am", "the landing")
         body = root / "body.txt"
         body.write_text("forensic message", encoding="utf-8", newline="\n")
 
@@ -810,7 +804,7 @@ def self_test() -> int:
                        checks=lambda s, b: ran_checks.append(s) or 0, say=lines.append)
             refused_all &= rc == EXIT_QUEUE_NOT_ACTIVE and not log and not ran_checks
             touched += log
-        remote_branches = sh(wt, "ls-remote", "--heads", "origin")
+        remote_branches = scratch.git("ls-remote", "--heads", "origin")
         expect("the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) refuses with exit 8 before anything is checked, pushed "
                "or opened", refused_all and "land-train" not in remote_branches, f"{touched} {remote_branches}")
 
@@ -821,14 +815,14 @@ def self_test() -> int:
                                 checks=lambda s, b, code=code: code, say=lines.append), log))
         expect("a landing check's refusal stops the queue with its own exit code and opens nothing",
                [c for c, _ in codes] == [6, 7, 3] and all(not log for _, log in codes)
-               and "land-train" not in sh(wt, "ls-remote", "--heads", "origin"), str(codes))
+               and "land-train" not in scratch.git("ls-remote", "--heads", "origin"), str(codes))
 
         prs: list[str] = []
         log = []
         rc = queue(wt, "Train 9: subject", str(body), gh=fake_gh(prs, log), state=active, checks=passing,
                    say=lines.append)
-        head = sh(wt, "rev-parse", "HEAD")
-        pushed = sh(wt, "ls-remote", "origin", "refs/heads/land-train").split()[:1]
+        head = scratch.git("rev-parse", "HEAD")
+        pushed = scratch.git("ls-remote", "origin", "refs/heads/land-train").split()[:1]
         verbs = [a[:2] for a in log]
         expect("an ACTIVE queue pushes the branch, opens one pull request and queues it with --auto",
                rc == 0 and pushed == [head] and verbs == [["pr", "list"], ["pr", "create"], ["pr", "merge"]]
@@ -836,14 +830,14 @@ def self_test() -> int:
                f"rc={rc} pushed={pushed} log={log} last={lines[-1:]}")
 
         (wt / "a.txt").write_text("three", encoding="utf-8", newline="\n")
-        sh(wt, "commit", "--quiet", "--amend", "-am", "the landing, rebased")   # the branch moves: a forced push
+        scratch.git("commit", "--quiet", "--amend", "-am", "the landing, rebased")   # the branch moves: a forced push
         log = []
         rc = queue(wt, "Train 9: subject", str(body), gh=fake_gh(prs, log), state=active, checks=passing,
                    say=lines.append)
-        head = sh(wt, "rev-parse", "HEAD")
+        head = scratch.git("rev-parse", "HEAD")
         expect("a re-run reuses the branch's open pull request, moves its head and queues it again",
                rc == 0 and [a[:2] for a in log] == [["pr", "list"], ["pr", "merge"]]
-               and sh(wt, "ls-remote", "origin", "refs/heads/land-train").split()[:1] == [head], f"rc={rc} {log}")
+               and scratch.git("ls-remote", "origin", "refs/heads/land-train").split()[:1] == [head], f"rc={rc} {log}")
 
         fails9 = []
         for verb in ("list", "create", "merge"):
@@ -929,20 +923,20 @@ def self_test() -> int:
                and any("landing record was NOT written (disk full)" in w for w in warn)
                and rc_refused == EXIT_QUEUE_NOT_ACTIVE, f"{rc_ok} {seen_m} {rc_broken} {warn} {rc_refused}")
 
-        sh(wt, "switch", "--quiet", "main")
+        scratch.git("switch", "--quiet", "main")
         (wt / "b.txt").write_text("main moved", encoding="utf-8", newline="\n")
-        sh(wt, "add", "b.txt")
-        sh(wt, "commit", "--quiet", "-m", "main moves")
-        sh(wt, "push", "--quiet", "origin", "main")
+        scratch.git("add", "b.txt")
+        scratch.git("commit", "--quiet", "-m", "main moves")
+        scratch.git("push", "--quiet", "origin", "main")
         rc_at_main = queue(wt, "T", str(body), gh=fake_gh([], []), state=active, checks=passing, say=lines.append)
-        sh(wt, "switch", "--quiet", "land-train")
+        scratch.git("switch", "--quiet", "land-train")
         log = []
         rc_beside = queue(wt, "T", str(body), gh=fake_gh([], log), state=active, checks=passing, say=lines.append)
         expect("HEAD beside origin/main is refused (main brought in first), and HEAD on main is refused before any "
                "check",
                rc_beside == 2 and not log and rc_at_main == 2, f"beside={rc_beside} at_main={rc_at_main}")
 
-        sh(wt, "switch", "--quiet", "-c", "at-main", "origin/main")
+        scratch.git("switch", "--quiet", "-c", "at-main", "origin/main")
         rc_nothing = queue(wt, "T", str(body), gh=fake_gh([], []), state=active, checks=passing, say=lines.append)
         rc_title = queue(wt, " ", str(body), gh=fake_gh([], []), state=active, checks=passing, say=lines.append)
         expect("HEAD at origin/main has nothing to land; an empty title or body is a usage error",
@@ -971,39 +965,39 @@ def self_test() -> int:
 
         # The migrating landing (kb/Work PB3023 review R1-3): the base holds the monolithic DEVLOG.md, the branch adds
         # the whole history as files plus its own one entry; the pull request is titled from that one (devlog.check's).
-        mig = root / "mig"
-        sh(root, "init", "--quiet", "-b", "main", str(mig))
+        migr = ScratchRepo.init(root / "mig")
+        mig = migr.path
         hist = {10: "## Entry 10 — 2026-03-01 — oldest\n\nold body\n\n", 11: "## Entry 11 — 2026-03-02 — older\n\nb\n\n"}
         (mig / "DEVLOG.md").write_text("# Log\n\n" + hist[11] + hist[10], encoding="utf-8", newline="\n")
-        sh(mig, "add", "DEVLOG.md")
-        sh(mig, "commit", "--quiet", "-m", "the monolith")
-        sh(mig, "switch", "--quiet", "-c", "migrating")
-        sh(mig, "rm", "--quiet", "DEVLOG.md")
+        migr.git("add", "DEVLOG.md")
+        migr.git("commit", "--quiet", "-m", "the monolith")
+        migr.git("switch", "--quiet", "-c", "migrating")
+        migr.git("rm", "--quiet", "DEVLOG.md")
         (mig / "DEVLOG").mkdir()
         (mig / "DEVLOG" / "0010-oldest.md").write_text(hist[10], encoding="utf-8", newline="\n")
         (mig / "DEVLOG" / "0011-older.md").write_text(hist[11], encoding="utf-8", newline="\n")
         (mig / "DEVLOG" / "0012-pb7-the-migration.md").write_text(
             "## Entry 12 — 2026-10-12 09:00 PDT — PB7: the migration\n\nWhy it moved.\n", encoding="utf-8", newline="\n")
-        sh(mig, "add", "DEVLOG")
-        sh(mig, "commit", "--quiet", "-m", "split the log")
+        migr.git("add", "DEVLOG")
+        migr.git("commit", "--quiet", "-m", "split the log")
         mig_title, mig_body = pull_request_text(mig, "main", "migrating")
         expect("land: the migrating landing (the whole history added as files) titles its pull request from its ONE new "
                "entry, the landing rule's own (devlog.landing_entries)",
                mig_title == "DEVLOG 12: PB7: the migration" and "Why it moved." in mig_body, f"{mig_title!r}")
 
         # ── land (kb/Work PB3023): a branch `fix` in its own worktree, cut before main moved twice ──────────────────
-        sh(wt, "switch", "--quiet", "main")
-        sh(wt, "reset", "--quiet", "--hard", "origin/main")
-        lw = root / "fix-wt"
-        sh(wt, "worktree", "add", "--quiet", "-b", "fix", str(lw), "main")
+        scratch.git("switch", "--quiet", "main")
+        scratch.git("reset", "--quiet", "--hard", "origin/main")
+        fix = scratch.worktree(root / "fix-wt", branch="fix", start="main")
+        lw = fix.path
         (lw / "c.txt").write_text("the fix", encoding="utf-8", newline="\n")
-        sh(lw, "add", "c.txt")
-        sh(lw, "commit", "--quiet", "-m", "the fix")
+        fix.git("add", "c.txt")
+        fix.git("commit", "--quiet", "-m", "the fix")
         (wt / "d.txt").write_text("main moves again", encoding="utf-8", newline="\n")
-        sh(wt, "add", "d.txt")
-        sh(wt, "commit", "--quiet", "-m", "main moves again")
-        sh(wt, "push", "--quiet", "origin", "main")
-        fix_tip = sh(lw, "rev-parse", "HEAD")
+        scratch.git("add", "d.txt")
+        scratch.git("commit", "--quiet", "-m", "main moves again")
+        scratch.git("push", "--quiet", "origin", "main")
+        fix_tip = fix.git("rev-parse", "HEAD")
 
         def stamper(calls: list[str]):
             def stamp(w: pathlib.Path, b: str) -> int:
@@ -1014,8 +1008,8 @@ def self_test() -> int:
                         pending.unlink()
                     (w / "DEVLOG" / "0042-pb1-the-fix.md").write_text(
                         "## Entry 42 — 2026-10-11 14:00 PDT — PB1: the fix\n\nWhy it was wrong.\n", encoding="utf-8", newline="\n")
-                    sh(w, "add", "DEVLOG")
-                    sh(w, "commit", "--quiet", "-m", "DEVLOG 42: stamp the entry")
+                    ScratchRepo(w).git("add", "DEVLOG")
+                    ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 42: stamp the entry")
                 return 0
             return stamp
 
@@ -1040,36 +1034,36 @@ def self_test() -> int:
         def main_moves(name: str, text: str) -> None:
             """Another landing reaches main (the queue merged it): a commit on origin's main."""
             (wt / name).write_text(text, encoding="utf-8", newline="\n")
-            sh(wt, "add", name)
-            sh(wt, "commit", "--quiet", "-m", f"main moves: {name}")
-            sh(wt, "push", "--quiet", "origin", "main")
+            scratch.git("add", name)
+            scratch.git("commit", "--quiet", "-m", f"main moves: {name}")
+            scratch.git("push", "--quiet", "origin", "main")
 
         def own_commit(name: str) -> str:
             (lw / name).write_text(f"the branch's {name}", encoding="utf-8", newline="\n")
-            sh(lw, "add", name)
-            sh(lw, "commit", "--quiet", "-m", f"the branch's {name}")
-            return sh(lw, "rev-parse", "HEAD")
+            fix.git("add", name)
+            fix.git("commit", "--quiet", "-m", f"the branch's {name}")
+            return fix.git("rev-parse", "HEAD")
 
         (lw / "stray.txt").write_text("uncommitted", encoding="utf-8", newline="\n")
         ran: list[int] = []
         rc_dirty = run_land(gates=gates_of(green, ran))
         (lw / "stray.txt").unlink()
         expect("land: a dirty worktree is refused (exit 2) before anything is fetched, merged or gated",
-               rc_dirty == 2 and not ran and sh(lw, "rev-parse", "HEAD") == fix_tip
+               rc_dirty == 2 and not ran and fix.git("rev-parse", "HEAD") == fix_tip
                and lines[-1].startswith(VERDICT + "REFUSED"), f"{rc_dirty} {lines[-1:]}")
 
         (lw / "d.txt").write_text("the branch's own d", encoding="utf-8", newline="\n")       # main added d.txt too: a conflict
-        sh(lw, "add", "d.txt")
-        sh(lw, "commit", "--quiet", "-m", "a clash")
-        clash_tip = sh(lw, "rev-parse", "HEAD")
+        fix.git("add", "d.txt")
+        fix.git("commit", "--quiet", "-m", "a clash")
+        clash_tip = fix.git("rev-parse", "HEAD")
         ran = []
         rc_conflict = run_land(gates=gates_of(green, ran))
         expect("land: a conflict bringing main in is exit 4: the merge is aborted, the branch unchanged, the report "
                "told which files, and nothing gated",
-               rc_conflict == EXIT_CONFLICT and not ran and sh(lw, "rev-parse", "HEAD") == clash_tip
+               rc_conflict == EXIT_CONFLICT and not ran and fix.git("rev-parse", "HEAD") == clash_tip
                and not dirty_paths(lw) and notes and "d.txt" in notes[-1] and notes[-1].startswith("BLOCKED:"),
                f"{rc_conflict} {notes[-1:]}")
-        sh(lw, "reset", "--quiet", "--hard", fix_tip)
+        fix.git("reset", "--quiet", "--hard", fix_tip)
 
         ran, stamped = [], []
         rc_inactive = [run_land(state=st, gates=gates_of(green, ran), stamped=stamped)
@@ -1077,7 +1071,7 @@ def self_test() -> int:
         expect("land: the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) is exit 8 before anything is merged, gated, "
                "stamped or pushed: main takes only queued pull requests (kb/Work PB3023 review R1-1)",
                rc_inactive == [EXIT_QUEUE_NOT_ACTIVE] * 3 and not ran and not stamped
-               and sh(lw, "rev-parse", "HEAD") == fix_tip and "fix" not in sh(wt, "ls-remote", "--heads", "origin")
+               and fix.git("rev-parse", "HEAD") == fix_tip and "fix" not in scratch.git("ls-remote", "--heads", "origin")
                and lines[-1].startswith(VERDICT + "QUEUE NOT ACTIVE"), f"{rc_inactive} {lines[-1:]}")
 
         ran, stamped = [], []
@@ -1086,8 +1080,8 @@ def self_test() -> int:
         expect("land: main is MERGED in (the branch's commits kept), and a host's red gate is exit 5 with the host "
                "named in the report, before any stamp",
                rc_red == EXIT_GATE and ran and not stamped and "Linux" in notes[-1]
-               and _git(lw, "merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0
-               and _git(lw, "merge-base", "--is-ancestor", fix_tip, "HEAD").returncode == 0, f"{rc_red} {notes[-1:]}")
+               and fix.run("merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0
+               and fix.run("merge-base", "--is-ancestor", fix_tip, "HEAD").returncode == 0, f"{rc_red} {notes[-1:]}")
 
         # kb/Work PB3527: PB3511's branch, 2026-10-22 12:30 — the Windows gate found another gate holding the
         # worktree's gate lock, and the landing read that as a red and sent the branch to a finisher.
@@ -1120,7 +1114,7 @@ def self_test() -> int:
         # plan step) blocks like a red and goes to a finisher, unless main fails the same way at the same step.
         crashed = ("=== BUILD-LOCAL GATE: NOT RUN [driver] — the gate driver failed: TypeError: plan() missing 1 "
                    "required positional argument ===")
-        main_sha = sh(lw, "rev-parse", "origin/main")
+        main_sha = fix.git("rev-parse", "origin/main")
 
         def main_reads(line: str | None, how: str = "measured now in a clean checkout of main"):
             def gate(w: pathlib.Path, host: str, sha: str) -> MainRun | None:
@@ -1178,15 +1172,15 @@ def self_test() -> int:
         main_a = marker.read_text(encoding="utf-8") if marker.exists() else None
         marker.unlink(missing_ok=True)
         again = gate_main(lw, "Probe", main_sha, rows=(driver_crash,), say=said.append)
-        common = pathlib.Path(sh(lw, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+        common = pathlib.Path(fix.git("rev-parse", "--path-format=absolute", "--git-common-dir"))
         kept_log = lw / "TestResults" / "enqueue" / "probe-main-gate.log"
-        probes = [ln for ln in sh(lw, "worktree", "list", "--porcelain").splitlines()
+        probes = [ln for ln in fix.git("worktree", "list", "--porcelain").splitlines()
                   if ln.startswith("worktree ") and "enqueue-main-" in ln]
         expect("gate_main: main is measured in a clean checkout of its head (main's own a.txt), its reading read by the "
                "one reader, the checkout removed, the gate log kept beside the branch's, and the run recorded; the "
                "next landing at the same main head reads the record and runs nothing (review R2-1)",
                first is not None and first.reading == run_gate_legs.not_run("driver") and first.how.startswith(
-                   "measured now") and main_a == sh(lw, "show", f"{main_sha}:a.txt") and not probes
+                   "measured now") and main_a == fix.git("show", f"{main_sha}:a.txt") and not probes
                and kept_log.is_file() and (common / MAIN_RUNS).is_file()
                and again is not None and again.reading == first.reading and again.how.startswith("the recorded main run")
                and not marker.exists() and gate_main(lw, "Nowhere", main_sha, rows=(driver_crash,)) is None,
@@ -1218,15 +1212,15 @@ def self_test() -> int:
         gated_tip, ran, log = own_commit("f.txt"), [], []
         rc_moved = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("g.txt", "g")
                             or gates_of(green, [])(w))
-        head = sh(lw, "rev-parse", "HEAD")
+        head = fix.git("rev-parse", "HEAD")
         ran_rerun: list[int] = []
         run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran_rerun))
         expect("land: main moving during the gate is merged in again WITHOUT a second gate and the branch is queued on "
                "the new main; a re-run on that head (a clean merge after the gated one) is not gated again",
                rc_moved == 0 and ran == [1] and not ran_rerun and lines[-1].startswith(VERDICT + "ENQUEUED")
-               and _git(lw, "merge-base", "--is-ancestor", "refs/remotes/origin/main", head).returncode == 0
-               and _git(lw, "merge-base", "--is-ancestor", gated_tip, head).returncode == 0
-               and sh(wt, "ls-remote", "origin", "refs/heads/fix").split()[:1] == [head]
+               and fix.run("merge-base", "--is-ancestor", "refs/remotes/origin/main", head).returncode == 0
+               and fix.run("merge-base", "--is-ancestor", gated_tip, head).returncode == 0
+               and scratch.git("ls-remote", "origin", "refs/heads/fix").split()[:1] == [head]
                and [a[:2] for a in log] == [["pr", "list"], ["pr", "merge"]], f"{rc_moved} {ran} {ran_rerun} {log}")
 
         clash_after, ran, log, notes[:] = own_commit("h.txt"), [], [], []
@@ -1234,60 +1228,60 @@ def self_test() -> int:
                            or gates_of(green, [])(w))
         expect("land: a conflict bringing the moved main in after the gate is exit 4: the merge is aborted, the branch "
                "unchanged, the report told, and nothing pushed or queued",
-               rc_late == EXIT_CONFLICT and ran == [1] and not log and sh(lw, "rev-parse", "HEAD") == clash_after
+               rc_late == EXIT_CONFLICT and ran == [1] and not log and fix.git("rev-parse", "HEAD") == clash_after
                and not dirty_paths(lw) and notes and "after the gate" in notes[-1] and "h.txt" in notes[-1],
                f"{rc_late} {ran} {log} {notes[-1:]}")
-        sh(lw, "reset", "--quiet", "--hard", head)
+        fix.git("reset", "--quiet", "--hard", head)
 
 
         # ── the review before the landing (MANDATORY-PRACTICES I10; kb/Work PB3023 review R1-4) ───────────────────
-        sh(wt, "fetch", "--quiet", "origin")
-        rw = root / "rev-wt"
-        sh(wt, "worktree", "add", "--quiet", "-b", "rev", str(rw), "origin/main")
+        scratch.git("fetch", "--quiet", "origin")
+        rev = scratch.worktree(root / "rev-wt", branch="rev", start="origin/main")
+        rw = rev.path
         (rw / "r.txt").write_text("the reviewed work", encoding="utf-8", newline="\n")
-        sh(rw, "add", "r.txt")
-        sh(rw, "commit", "--quiet", "-m", "the reviewed work")
+        rev.git("add", "r.txt")
+        rev.git("commit", "--quiet", "-m", "the reviewed work")
         rdir = root / "reports"
         rdir.mkdir()
         report = rdir / "w9a-PB1-report.md"
 
         def stamp_report(verdict: str) -> None:
             tail = " 1 w9a-review-r1 {} f.jsonl" if verdict == "FINDINGS" else " w9a-review-r1 {}"
-            report.write_text(f"Status: DONE\n**Review:** {verdict}{tail.format(sh(rw, 'rev-parse', 'HEAD'))}\n"
+            report.write_text(f"Status: DONE\n**Review:** {verdict}{tail.format(rev.git('rev-parse', 'HEAD'))}\n"
                               f"Branch: rev\n\n## Rows\n", encoding="utf-8", newline="\n")
         stamp_report("CLEAN")
         base_ref = "refs/remotes/origin/main"
         at_review = review_gate("rev", rw, base_ref, rdir)
         (wt / "m.txt").write_text("main moves after the review", encoding="utf-8", newline="\n")
-        sh(wt, "switch", "--quiet", "main")
-        sh(wt, "add", "m.txt")
-        sh(wt, "commit", "--quiet", "-m", "main moves after the review")
-        sh(wt, "push", "--quiet", "origin", "main")
-        sh(rw, "fetch", "--quiet", "origin")
-        sh(rw, "merge", "--quiet", "--no-edit", base_ref)
+        scratch.git("switch", "--quiet", "main")
+        scratch.git("add", "m.txt")
+        scratch.git("commit", "--quiet", "-m", "main moves after the review")
+        scratch.git("push", "--quiet", "origin", "main")
+        rev.git("fetch", "--quiet", "origin")
+        rev.git("merge", "--quiet", "--no-edit", base_ref)
         (rw / "DEVLOG").mkdir()
         (rw / "DEVLOG" / "pending-rev.md").write_text("## PB1: rev\n\nWhy.\n", encoding="utf-8", newline="\n")
-        sh(rw, "add", "DEVLOG")
-        sh(rw, "commit", "--quiet", "-m", "the entry")
+        rev.git("add", "DEVLOG")
+        rev.git("commit", "--quiet", "-m", "the entry")
         mechanical_only = review_gate("rev", rw, base_ref, rdir)
         expect("review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main and a "
                "DEVLOG-only commit is still reviewed",
                at_review is None and mechanical_only is None, f"{at_review} / {mechanical_only}")
 
         (wt / "m2.txt").write_text("main moves again", encoding="utf-8", newline="\n")
-        sh(wt, "add", "m2.txt")
-        sh(wt, "commit", "--quiet", "-m", "main moves again")
-        sh(wt, "push", "--quiet", "origin", "main")
-        sh(rw, "fetch", "--quiet", "origin")
-        sh(rw, "merge", "--quiet", "--no-commit", base_ref)
+        scratch.git("add", "m2.txt")
+        scratch.git("commit", "--quiet", "-m", "main moves again")
+        scratch.git("push", "--quiet", "origin", "main")
+        rev.git("fetch", "--quiet", "origin")
+        rev.git("merge", "--quiet", "--no-commit", base_ref)
         (rw / "r.txt").write_text("a hand edit inside the merge", encoding="utf-8", newline="\n")
-        sh(rw, "add", "r.txt")
-        sh(rw, "commit", "--quiet", "--no-edit")
+        rev.git("add", "r.txt")
+        rev.git("commit", "--quiet", "--no-edit")
         hand_merge = review_gate("rev", rw, base_ref, rdir) or ""
-        sh(rw, "reset", "--quiet", "--hard", "HEAD~1")
+        rev.git("reset", "--quiet", "--hard", "HEAD~1")
         (rw / "fix.txt").write_text("a finisher's fix", encoding="utf-8", newline="\n")
-        sh(rw, "add", "fix.txt")
-        sh(rw, "commit", "--quiet", "-m", "a finisher's fix")
+        rev.git("add", "fix.txt")
+        rev.git("commit", "--quiet", "-m", "a finisher's fix")
         ran, notes[:] = [], []
         rc_unreviewed = run_land(branch="rev", wtree=rw, review=lambda b, w, base: review_gate(b, w, base, rdir),
                                  gates=gates_of(green, ran))
