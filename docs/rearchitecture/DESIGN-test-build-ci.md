@@ -1504,6 +1504,17 @@ ReadyToRun runtime for the programs the tests run.
 
 #### 3.14.6 The gate cap (M2)
 
+**Long holds are flagged, never killed (kb/Work PB3310).** The OS frees only a DEAD holder's slot, so a hung gate keeps
+its slot for as long as its process lives (2026-10-16: a Linux gate whose WSL clone was deleted under it held one of the
+three slots 6 h 40 min). Every released hold records its duration per kind (`gate_slot.hold_kind`: `gate`, `Linux gate`,
+`record_impact_map`) in `<git common dir>/cobol-gate-slots/holds.json` (the last 50 per kind); `gate_slot.py status` marks a
+held slot older than 5 times the median of its kind's recorded holds (at least 5 recorded) `LONG HOLD`, and the session
+probe prints those lines. The limit is the gates' own history, not a fixed one, and the flag is advice: the operator
+verifies the holder's pid before stopping anything. The Linux gate (`scripts/linux-gate.sh`) runs one gate per tree: a
+second run on a tree whose gate is running answers `=== LINUX GATE: BUSY ...` (exit 3) before it touches the tree's
+results, and `enqueue.py land` holds a per-worktree land lock (§3.17.2 step 3), so the overlap that produced the hang
+cannot start.
+
 `scripts/gate_slot.py` is ONE counting semaphore for the whole repository, served FIFO:
 - **Slots.** N lock files `<git common dir>/cobol-gate-slots/<k>.lock`, each held by an exclusive OS file lock
   (`LockFile` on Windows, `flock` on Linux), so a crashed holder releases its slot when it dies and no stale-pid
@@ -2215,7 +2226,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    origin/main --keep`); run the ONE local gate on the
    merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
    gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
-   PB3527; a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an
+   PB3527; exit 13, never a red, when another `land` of the branch holds the worktree's land lock
+   (`<git dir>/cobol-land.lock`, taken before the worktree is first read and released by every outcome: two runs on one
+   branch raced on the merge, the stamp and the gates' files, kb/Work PB3310); a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an
    ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5 like a red;
    a commit gated GREEN, or a head that differs from it only
    by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
