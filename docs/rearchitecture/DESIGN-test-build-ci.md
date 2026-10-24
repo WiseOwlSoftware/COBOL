@@ -1637,6 +1637,26 @@ over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs
 `"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
 maintenance settings) to that one file.
 
+**5. One git process per question kind, never one per object (kb/Work PB3582).** A Windows process start costs tens of
+milliseconds where Linux pays about one, so a script that asks git one question per branch, commit, pair or file is
+bounded by process creation: merge-group run 40004159292 summed the script self-tests at 1,444 s on CI's Windows runner
+and 144 s on Linux, and GIT_TRACE2 counted 3,048 git processes in `prune_worktrees.py`'s self-test, 1,471 in
+`landing_check.py`'s, 646 in `enqueue.py`'s and 363 in `devlog.py`'s, nearly all one question about one object. The
+same loops are the session probe's survey, the landing check and the planner's in-flight sets, so every session paid
+it. `scripts/git_batch.py` answers a whole list from one process each: `Ancestry` (one `cat-file --batch-check` resolve
+and one `git log --stdin <tips> --not <base>`: every commit the tips reach beyond origin/main with its parents, tree,
+date and subject, so `on_base`, `beyond`, `is_ancestor`, the count ahead and the subjects are read from memory; a tip
+that names no commit raises, never reads "on the base"), `diff_names` / `diff_patches` (one `diff-tree --stdin
+--always` over `<commit> <parent>` pairs: one header per pair in input order, empty diffs included) and `object_ids`
+(one `cat-file --batch-check` over `<rev>:<path>`). The survey reads every branch's tip and last commit from one
+`for-each-ref` and every row's ancestry (MERGED, ahead, the review's coverage, `contained`, `carrying_findings`) from
+one graph; the landing check charges each commit through the two batched diffs and reads `depends` from the graph; the
+in-flight sets read each worktree with one `status` and every unmerged branch from one `for-each-ref --no-merged`;
+the planner's classifier, carrier rule and `add_closed_notes` share one graph of the local branches. Each reader is
+held to the one-process-per-object form it replaces by `git_batch.py --self-test`, and `GitBatchDriftTests` keeps the
+per-object ancestry questions out of the survey, the landing check and the planner. Measured on the batched readers:
+1,246, 846, 510 and 286 processes for the same four self-tests.
+
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
 is a non-zero exit and a hang is bounded by the budget place, never by a clock. What the runner cannot see is an arm
