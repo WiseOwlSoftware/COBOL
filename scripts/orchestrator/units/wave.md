@@ -11,7 +11,9 @@ UNIT: wave.
 2. `python scripts/orchestrator/plan_wave.py --from-budget --borrow-days {BORROW_DAYS} --scratch '{SCRATCH}' --stop-file '{FLEET_STOP}'{CLUSTER_ARG}` plans the wave deterministically,
    renders the specs with make_dispatch_specs.py and runs check_practices.py, and only on GREEN reserves the codes and
    records the groups in the dispatch ledger (a RED plan reserves nothing and holds no note: fix the cause and re-run;
-   it refuses a scratch or stop file that is not an absolute path, kb/Work PB3114). Read its
+   it refuses a scratch or stop file that is not an absolute path, kb/Work PB3114, and a checkout behind the commit
+   the supervisor adopted, exit 2 naming both shas, kb/Work PB2699: never pass `--allow-stale`; end the unit with
+   outcome `failed` and that line in the handoff, the supervisor's next adoption fixes the checkout). Read its
    table. Change the plan only for a reason you write into the handoff; re-run it rather than editing groups.json.
    Under the owner's DRAIN (a steer or the last handoff names it) add `--drain`, never `--max-groups` alone: it plans
    only the finishers of started work (kb/Work PB3150).
