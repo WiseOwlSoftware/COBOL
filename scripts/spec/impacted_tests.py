@@ -720,6 +720,7 @@ def synthetic_map() -> dict:
 
 def self_test() -> int:
     """Prove each arm FIRES against a synthetic map (feedback_prove_the_watchdog_fails)."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     ix = MapIndex(synthetic_map())
     failures = 0
 
@@ -773,8 +774,9 @@ def self_test() -> int:
             a, b = Path(d) / "a.cs", Path(d) / "b.cs"
             a.write_text(before, encoding="utf-8", newline="\n")
             b.write_text(now, encoding="utf-8", newline="\n")
-            return parse_hunks(subprocess.run(["git", "diff", "--no-index", "-U0", "--no-color", str(a), str(b)],
-                                              capture_output=True, text=True, encoding="utf-8").stdout, before, now)
+            # `diff --no-index` exits 1 on a difference: the fixture's unchecked form, outside any repository
+            return parse_hunks(ScratchRepo(d).run("diff", "--no-index", "-U0", "--no-color", str(a), str(b)).stdout,
+                               before, now)
 
     def diff_of(after: list[str]) -> list[Hunk]:
         return diff_between(edited, after)

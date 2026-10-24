@@ -634,6 +634,7 @@ def write_plan(plan: dict, out: Path) -> str:
 
 def self_test() -> int:
     """Drive every arm on planted inputs (feedback_prove_the_watchdog_fails)."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     failures = 0
 
     def check(label: str, ok: bool, detail: object = "") -> None:
@@ -897,17 +898,13 @@ def self_test() -> int:
     # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
     # writes none, and a row whose results directory its tool never names are each a finding.
     with tempfile.TemporaryDirectory() as tmp:
-        repo = Path(tmp)
+        scratch = ScratchRepo.init(Path(tmp) / "repo")
+        repo = scratch.path
         planted = {"scripts/run_gate_legs.py": f"{TRX_LOGGER_MARK}x  # {TRX_WRITERS['scripts/run_gate_legs.py'][0]}",
                    "scripts/linux-gate.sh": f"--logger {TRX_LOGGER_MARK}unit.trx  # writes somewhere else",
                    "scripts/new_gate.sh": f"--logger {TRX_LOGGER_MARK}new.trx", "scripts/reader.py": "no logger"}
-        for rel, text in planted.items():
-            (repo / rel).parent.mkdir(parents=True, exist_ok=True)
-            (repo / rel).write_text(text + "\n", encoding="utf-8", newline="\n")
-        git_ = ["git", "-c", "user.name=gate-plan", "-c", "user.email=gate-plan@invalid",
-                "-c", "init.defaultBranch=main"]
-        for argv in (["init", "-q"], ["add", "-A"]):
-            subprocess.run(git_ + argv, cwd=repo, check=True, capture_output=True)
+        scratch.write({rel: text + "\n" for rel, text in planted.items()})
+        scratch.git("add", "-A")
         seen, bad = audit_trx_writers(repo)
         findings = "\n".join(bad)
         check("the trx writers audit: a writer with no row, a row whose tool is gone and a row whose results "
