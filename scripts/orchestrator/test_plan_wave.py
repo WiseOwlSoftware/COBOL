@@ -510,7 +510,7 @@ for drain in (False, True):
     check("a SPLIT report's branch IN FLIGHT is the SPLIT arm's (PB2974), not this rule's",
           any("PB6" in g.notes for g in pf2["groups"]), True)
 # kb/Work PB3394 (wave 1127's A, B and C): a FINDINGS stamp makes a finisher only when it COVERS the branch tip
-# (`review_covers`: prune_worktrees.review_coverage over the survey in plan_wave.main, the survey's own rule; the
+# (`review_covers`: prune_worktrees.Coverage.review over the survey in plan_wave.main, the survey's own rule; the
 # end-to-end case on a real git history is prune_worktrees.py --self-test's findings-moved and findings-stamped). A stamp
 # at an older head is WAITING FOR REVIEW, named in `waiting`, never a group, in either mode. Without a survey the
 # report's own HEAD stands for the tip: a report rewritten after the review (HEAD past the stamp) is not covered.

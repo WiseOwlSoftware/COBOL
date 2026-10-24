@@ -488,7 +488,8 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     number is no order across lanes (kb/Work PB3625: the loop's waves are date-numbered, 20261024, the Mythos lane's
     serial, 1157, so every date-numbered report outranked every serial one and a superseded SPLIT report stayed a
     note's newest beside a later DONE one), so it only breaks a tie. The name makes the
-    order TOTAL: two reports written within one file-system tick tie on the first two keys, and a tie left
+    order TOTAL: two reports of ONE wave written within one file-system tick tie on the first two keys (reports of
+    different waves written in one tick are ordered by the second), and a tie left
     to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
     newest report, the order finishers are planned in and which of two chained finishers is the successor differed
     between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
@@ -1431,6 +1432,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          carrier: Callable[[str], str | None] | None = None,
          owned: set[str] | None = None, locked: set[str] | None = None,
          review_covers: Callable[[Report], bool] | None = None,
+         report_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
          abandoned: set[str] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
@@ -1474,12 +1476,19 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     tips, the one coverage rule the branch survey's lifecycle reads; kb/Work PB3394). Only a FINDINGS stamp that covers
     the tip makes a review finisher; a stamp at an older head followed by real commits is WAITING FOR REVIEW (those
     commits are unreviewed, and the enqueue unit's diff-only re-review reads them, kb/Work PB3381): it is named in
-    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
+    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip.
+
+    `report_covers(report)`: the REPORT covers its branch's tip (prune_worktrees.report_since over the survey's tips,
+    the one coverage rule lifecycle() reads; kb/Work PB3446). The stale-stamp arm names the action lifecycle() takes:
+    WAITING FOR REVIEW (a reviewer reads the commits) only where the report covers the tip; where commits follow the
+    report that no report describes, lifecycle() reads the branch IN FLIGHT or a DECISION and no reviewer is
+    dispatched for it, so the arm says that instead. Without a survey the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
     locked = locked or set()
     held = held or {}
     review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
+    report_covers = report_covers or (lambda _r: True)
     replay = replay or (lambda _b: None)
     abandoned = abandoned or set()
     # AN ABANDONED BRANCH IS NEVER PLANNED FROM (kb/Work PB3170): the decision is recorded in kb/Work before the branch
@@ -1571,9 +1580,19 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             # branch survey reads it WAITING FOR REVIEW by the same coverage rule), very likely the answers to these
             # findings; one cobol-reviewer reads them (the enqueue unit's diff-only re-review, kb/Work PB3381). A
             # finisher would redo answered work on a branch whose author may still be committing (wave 1127's C).
-            waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and "
-                            f"branch {r.branch} has commits since that no review covers: one cobol-reviewer reviews "
-                            f"them (the enqueue unit's diff-only re-review), never a finisher")
+            if report_covers(r):
+                waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, "
+                                f"and branch {r.branch} has commits since that no review covers: one cobol-reviewer "
+                                f"reviews them (the enqueue unit's diff-only re-review), never a finisher")
+            else:
+                # ... but only where the REPORT covers the tip (kb/Work PB3446): lifecycle() reads a finished report
+                # followed by commits no report describes IN FLIGHT or a DECISION (a resumed agent rewrites its
+                # report), and no reviewer is dispatched for either, so naming one here promised an action that
+                # never happens. Neither is a finisher: the resumed agent may still be answering the findings.
+                waiting[nid] = (f"RESUMED: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and branch "
+                                f"{r.branch} has commits since {r.slug}'s HEAD that no report describes (lifecycle() "
+                                f"reads it IN FLIGHT or a DECISION, never WAITING FOR REVIEW): no reviewer and no "
+                                f"finisher is dispatched until its agent rewrites its report")
         elif r.gate_state == "RUNNING":
             # A GATE HANDED TO THE WAVE (kb/Work PB3536): its agent returned GATE-PENDING at its turn cap and the gate
             # still runs, detached; the wave awaits its verdict, and a GREEN one makes the report finished. A finisher
@@ -2243,23 +2262,27 @@ def main(argv: list[str] | None = None) -> int:
     states: dict[str, str] = {}
     owned: set[str] = set()
     locked: set[str] = set()
-    review_covers = None
+    review_covers = report_covers = None
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
         states, owned, locked = {r.name: r.state for r in rows}, prune_worktrees.owned(rows), prune_worktrees.locked(rows)
-        coverage = prune_worktrees.review_coverage(rows)   # the survey's own coverage rule, kb/Work PB3394
+        coverage = prune_worktrees.Coverage(rows)   # the survey's own coverage rules, kb/Work PB3394, PB3446
 
         def review_covers(rep: Report) -> bool:
-            return coverage(rep.review, rep.branch)
+            return coverage.review(rep.review, rep.branch)
+
+        def report_covers(rep: Report) -> bool:
+            return coverage.report(rep.head, rep.branch)
     busy = classify_inflight(raw, meta, reports, states, unlanded)
     if not a.no_branches:   # the units each worktree's and branch's actual diff touches in a shared file (PB3670)
         inflight_units(busy, meta, [cluster_claim(c) for c in clusters + half_clusters], prune_worktrees.git, REPO)
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned, locked=locked, review_covers=review_covers, replay=replay, abandoned=abandoned)
+             owned=owned, locked=locked, review_covers=review_covers, report_covers=report_covers, replay=replay,
+             abandoned=abandoned)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
