@@ -33,7 +33,7 @@
 # The clone builds COMMITTED HEAD: commit before running it. Uncommitted tracked changes are counted and reported.
 #
 # Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
-# non-observations) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
+# non-observations, copied in as the gate ends) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
 # Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
@@ -98,12 +98,13 @@ resolve_py() {
 # exhausted every inode on 2026-10-19 and 394 again on 2026-10-22, each time ending every Linux gate on the host until
 # someone deleted clones by hand. So ONE mechanism owns the gate's footprint:
 #  - each gate works in its OWN directory, GATES_ROOT/<tree>.<pid>, holding the clone (<tree>), the guard leg's
-#    scratch (guard-tmp, beside the clone, never inside it: kb/Work PB2989) and an `owner` file naming the gate's
-#    process (pid and start time, so a reused pid is not mistaken for it);
+#    scratch (guard-tmp, beside the clone, never inside it: kb/Work PB2989), each test leg's harness observation log
+#    (test_leg) and an `owner` file naming the gate's process (pid and start time, so a reused pid is not mistaken
+#    for it);
 #  - the gate removes that directory when it ends, on EVERY exit path: its verdict (GREEN, RED, NOT RUN after the
 #    clone) through the EXIT trap, and a signal through on_signal, which first ends the legs' process trees. What the
-#    gate keeps is what it already wrote to the tree's TestResults/linux-gate (every log, trx and the guard's
-#    forensics, guard_leg);
+#    gate keeps is what it wrote to the tree's TestResults/linux-gate (every log, trx and the guard's forensics,
+#    guard_leg) and the observation logs, which remove_gate copies there first;
 #  - a gate killed outright (SIGKILL, or WSL ending the session) runs no trap, so every gate first reaps
 #    (reap_gates): a directory whose owner is no longer running is removed at once, and one with no owner file (the
 #    layout before this mechanism, from a branch not yet merged with it) when it is this tree's or older than
@@ -196,6 +197,11 @@ begin_gate() {
 }
 remove_gate() {
   [ -n "${gate:-}" ] || return 0
+  # The legs' observation logs go to the tree's results first (test_leg says why they are written here); `out` is the
+  # tree's results directory, unset in the self-test.
+  if [ -n "${out:-}" ] && compgen -G "$gate/*.observations.log" > /dev/null; then
+    cp "$gate"/*.observations.log "$out/" || echo "linux-gate: could not copy the harness observation logs into $out"
+  fi
   rm -rf "$gate" || echo "linux-gate: could not remove this gate's directory $gate; the next gate on this host reaps it"
   gate=""
 }
@@ -289,23 +295,38 @@ if [ "${1:-}" = "--self-test" ]; then
   else
   # SYNCHRONIZED, NEVER TIMED (the owner's rule: no wall-clock limit in a test; review R1-1 of PB3194 found a 20 s
   # watchdog that failed a slow correct gate and 5 s polls that passed without testing). The leg's GRANDCHILD (a
-  # process under the background job, which only on_signal's /proc walk finds) sets its traps, starts a child of its
-  # own and only then says READY through a fifo: the gate blocks on that before it signals itself. The grandchild and
-  # its child hold the write end of a second fifo, HELD, which the arm reads to its end: end of file is the moment both
-  # have exited, so the arm waits for their exit itself. Its TERM trap records TERM. After the gate has exited (on_signal
-  # sent its TERMs and reaped its jobs), the arm sends the grandchild a PROBE, SIGVTALRM, whose trap records PROBE and
-  # ends it: so a grandchild the stop never reached ends too, and says so. A TERM sent before the probe is always the
-  # one handled: Linux delivers pending signals lowest number first (TERM 15, VTALRM 26) and bash runs pending traps in
-  # ascending order, and the TERM trap exits. A stop that does not end its jobs keeps on_signal's wait, and so this arm,
-  # from returning: the self-test runner reports it HANG (scripts/self_tests.py, a non-observation), never a pass.
+  # process under the background job, which only on_signal's /proc walk finds) starts a child of its own, BLOCKS TERM
+  # and the probe signal, and only then says READY through a fifo: the gate blocks on that before it signals itself.
+  # The grandchild and its child hold the write end of a second fifo, HELD, which the arm reads to its end: end of file
+  # is the moment both have exited, so the arm waits for their exit itself. After the gate has exited (on_signal sent
+  # its TERMs and reaped its jobs), the arm sends the grandchild a PROBE, SIGVTALRM, so a grandchild the stop never
+  # reached ends too, and says so. The grandchild takes the first of the two signals with sigwait and records TERM when
+  # TERM is that one or is still pending beside it, PROBE otherwise: a blocked signal is queued, never lost, so what it
+  # records is whether a TERM was ever sent to it, whatever the order its signals come in or the load the host is under.
+  # ⛔ It is NOT a bash trap: the grandchild was `bash -c` with a TERM trap, and under load bash did not run it before the
+  # probe's trap ended the shell, although on_signal had sent the TERM. Measured 2026-10-24: 2 of 256 runs of this arm,
+  # 32 at a time, recorded PROBE while on_signal's own record showed `kill -TERM` sent to the leg, the grandchild and
+  # its child with status 0 (the Linux gate's selftests leg at c89014b6b ran this arm beside the build, and so failed).
+  # The grandchild is Python, the one interpreter (resolve_py: NOT RUN [interpreter] without one, as the gate itself).
+  # A stop that does not end its jobs keeps on_signal's wait, and so this arm, from returning: the self-test runner
+  # reports it HANG (scripts/self_tests.py, a non-observation), never a pass.
+  resolve_py
   sync="$st_root.sync"
   mkdir -p "$sync" && mkfifo "$sync/ready" "$sync/held"
   got="$( ( begin_gate "$st_root" /e/trees/wt-signal; mkdir -p "$snap"
-            ( bash -c 'm=$0
-                       on_term() { echo TERM >> "$m"; exit 143; }
-                       on_probe() { echo PROBE >> "$m"; kill "$s" 2>/dev/null; exit 1; }
-                       trap on_term TERM; trap on_probe VTALRM
-                       sleep infinity & s=$!; echo "$$" > "$1"; wait "$s"' "$sync/marker" "$sync/ready" 3>"$sync/held" &
+            ( "$PY" -c '
+import os, signal, subprocess, sys
+marker, ready = sys.argv[1:3]
+under = subprocess.Popen(["sleep", "infinity"], pass_fds=(3,))
+signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGVTALRM})
+with open(ready, "w") as f:
+    print(os.getpid(), file=f)
+got = {signal.sigwait({signal.SIGTERM, signal.SIGVTALRM})} | signal.sigpending()
+with open(marker, "a") as f:
+    print("TERM" if signal.SIGTERM in got else "PROBE", file=f)
+under.kill()
+under.wait()
+' "$sync/marker" "$sync/ready" 3>"$sync/held" &
               wait ) &
             leg=$!
             read -r child < "$sync/ready"; echo "$leg $child" > "$sync/pids"
@@ -516,10 +537,16 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   start=$(date +%s)
   # Scrubbed (kb/Work PB1718): a gate-leg handshake or VSTest* variable inherited from the caller would narrow the run
   # to PART of its assembly while it exits 0. The one statement of that rule is test_population.py.
-  # The harness's observation log (every retry and non-observation of a child process, with its budget, its work and
-  # the host's load: tests/_shared/ProcessObservation.cs) goes beside the leg's log, never to a temp file every gate on
-  # the host appends to (kb/Work PB3108).
-  ( cd "$snap" && export COBOLNET_HARNESS_LOG="$out/$leg.observations.log" \
+  # The harness's observation log (tests/_shared/HarnessLog.cs: every retry and non-observation of a child process, with
+  # its budget, its work and the host's load, and every scratch directory a test could not remove) is this gate's own,
+  # never a temp file every gate on the host appends to (kb/Work PB3108). It is written in the gate's directory on the
+  # LINUX filesystem and copied to TestResults/linux-gate as the gate ends (remove_gate), never written there directly:
+  # that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file is not reliable.
+  # Measured 2026-10-24 under WSL on /mnt/e: one process appending (open, seek to the end, write, close) while another
+  # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
+  # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
+  # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
+  ( cd "$snap" && export COBOLNET_HARNESS_LOG="$gate/$leg.observations.log" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?
