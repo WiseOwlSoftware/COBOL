@@ -26,8 +26,8 @@ WHAT IT GUARANTEES, for every repository it creates and every command it runs:
               a linked worktree never acts on the caller's repository (kb/Work PB1719); `isolate()` drops them from the
               process's own environment for a self-test whose CODE UNDER TEST runs git itself.
   SETTINGS    `init` writes REPO_CONFIG into the new repository's own config file (no extra git process): one identity,
-              no automatic maintenance or `gc --auto` (scripts/self_tests.py GIT_NO_AUTO_MAINTENANCE's reason, kb/Work
-              PB1957) and no commit signing. Every git process in that repository reads it — the fixture's, the code
+              no automatic maintenance or `gc --auto` (NO_AUTO_MAINTENANCE carries the measurement, kb/Work PB1957)
+              and no commit signing. Every git process in that repository reads it — the fixture's, the code
               under test's, a linked worktree's — whoever runs the self-test: self_tests.py, CI, or a hand run.
   CHECKING    `git` raises ScratchRepoError with the command, the directory and git's own message when git fails (an
               unchecked fixture command once left a branch where the fixture never meant it, and a lifecycle FAIL on
@@ -39,10 +39,15 @@ WHAT IT GUARANTEES, for every repository it creates and every command it runs:
 THE AUDIT (`--audit`; `SelfTestFixtureDriftTests` runs it): in SELF-TEST CODE — every function whose name contains
 `self_test` or `selftest` and everything nested in it, and the whole of a standalone `test_*.py` — of every tracked
 Python file under live_tools.ROOTS but this one,
-  SPAWN   a git argv (a list or tuple literal whose first element is the string "git") is a finding: the self-test drives
-          git around the fixture;
-  INIT    a list or tuple literal whose first element is the string "init", or a call whose first or second argument
-          is the string "init", is a finding: a self-test creating a repository itself;
+  SPAWN   a `subprocess.<anything>(…)` call whose argv holds a GIT ARGV (a list or tuple literal whose first element is
+          the string "git") or a name the module binds to one (`git = ["git", "-c", …]`, then `git + argv`) is a
+          finding: the self-test starts git around the fixture (a git argv that is only data, an expected tuple, is
+          not);
+  INIT    a git argv holding the string "init", a list or tuple literal whose first element is "init"
+          (`for argv in (["init", "-q"], …)`), or a call whose first or second argument is "init" (`sh(root, "init")`)
+          is a finding: a self-test creating a repository itself. This arm also reads every top-level function that
+          ONLY self-test code refers to (file_census_notes.py's `stage`), which the other arms do not: such a function
+          may be the subject itself (sharedfile.py's `second_copies`, which only its self-test runs);
   HELPER  a function or lambda defined there whose body calls a GIT RUNNER of the same module (a top-level function
           whose git argv passes its arguments through, `["git", "-C", repo, *args]`) is a finding: a local git helper
           over the code under test's own (prune_worktrees.py's `g` over `git`); so is a standalone self-test's own
@@ -70,9 +75,16 @@ import live_tools  # noqa: E402  (this directory's: the one list of the live too
 #: scripts/self_tests.py's private global config, from this one place.
 IDENTITY = ("self-test", "self-test@localhost")
 
-#: NO AUTOMATIC MAINTENANCE (scripts/self_tests.py `private_git_config` carries the measurement): git starts
-#: `git maintenance run --auto --detach` after a commit, a merge, a fetch and a push, and in git 2.55 that background
-#: process packs refs and repacks the very scratch repository a self-test is still building and surveying.
+#: NO AUTOMATIC MAINTENANCE, in each scratch repository's config and in scripts/self_tests.py's private global config.
+#: git starts `git maintenance run --auto --detach` after a commit, a merge, a fetch and (in the receiving repository) a
+#: push; in git 2.55 (CI's runner, WSL) that background process packs refs (`pack-refs --all --prune --auto`) and
+#: repacks (`repack -d -l`, `multi-pack-index write`) in the very scratch repository a self-test is still building and
+#: surveying. Measured: one prune_worktrees self-test run started 60 of them, and 15 of its own git commands (switch,
+#: add, commit) ran while one did; run by hand, outside the runner's private global config, it started 74 (PB3584). A
+#: self-test's repository is then changed by a process it neither started nor waits for, at a moment that differs on
+#: every run and every host. It was the one such actor in the fixture when merge-group run 39193754708 read a fixture
+#: branch MERGED, an ancestor of main it was built not to be, on the CI runner while every local run passed (kb/Work
+#: PB1957, the CI invariant). `gc.auto = 0` keeps an older git's `gc --auto` out the same way.
 NO_AUTO_MAINTENANCE = (("maintenance", "auto", "false"), ("gc", "auto", "0"))
 
 #: What `init` writes into a new scratch repository's own config: the identity, no automatic maintenance, no signing
@@ -85,6 +97,15 @@ _LOCAL_ENV_VARS: list[str] | None = None
 
 class ScratchRepoError(RuntimeError):
     """A fixture git command failed: the message names the command, the directory and git's own output."""
+
+
+def config_text(entries: Sequence[tuple[str, str, str]]) -> str:
+    """`(section, key, value)` entries in git's config-file form: the text `init` appends to a scratch repository's
+    config and scripts/self_tests.py writes as its private global config."""
+    lines: list[str] = []
+    for section, key, value in entries:
+        lines += [f"[{section}]", f"\t{key} = {value}"]
+    return "\n".join([*lines, ""])
 
 
 def local_env_vars() -> list[str]:
@@ -132,12 +153,8 @@ class ScratchRepo:
         repo = cls(path, options)
         repo.path.mkdir(parents=True, exist_ok=True)
         repo.git("init", "-q", *(["--bare"] if bare else []), "-b", branch, str(repo.path), cwd=repo.path)
-        config = repo.path / ("config" if bare else ".git/config")
-        lines: list[str] = []
-        for section, key, value in REPO_CONFIG:
-            lines += [f"[{section}]", f"\t{key} = {value}"]
-        with config.open("a", encoding="utf-8", newline="\n") as f:
-            f.write("\n".join([*lines, ""]))
+        with (repo.path / ("config" if bare else ".git/config")).open("a", encoding="utf-8", newline="\n") as f:
+            f.write(config_text(REPO_CONFIG))
         return repo
 
     def origin(self, path: Path | str, name: str = "origin") -> "ScratchRepo":
@@ -158,24 +175,28 @@ class ScratchRepo:
 
     # ── running git ──────────────────────────────────────────────────────────────────────────────────────────────
     def run(self, *args: str, cwd: Path | str | None = None, input: str | bytes | None = None,
-            env: Mapping[str, str] | None = None, binary: bool = False) -> subprocess.CompletedProcess:
+            env: Mapping[str, str] | None = None, when: int | None = None,
+            binary: bool = False) -> subprocess.CompletedProcess:
         """THE ONE PLACE A SELF-TEST'S GIT PROCESS STARTS, unchecked: `git -C <cwd or path> <options> <args>` under the
-        scrubbed environment plus `env`, output captured."""
+        scrubbed environment plus `env`, output captured. `when` (seconds since the epoch) dates a commit or a merge
+        the command makes, as its author and its committer, for a self-test that orders commits by time."""
         where = Path(cwd) if cwd is not None else self.path
         environment = scrubbed_env()
         if env:
             environment.update(env)
+        if when is not None:
+            environment.update(GIT_AUTHOR_DATE=f"@{when} +0000", GIT_COMMITTER_DATE=f"@{when} +0000")
         argv = ["git", "-C", str(where), *self.options, *map(str, args)]
+        stdin = None if input is not None else subprocess.DEVNULL
         if binary:
-            return subprocess.run(argv, input=input, capture_output=True, env=environment, stdin=None
-                                  if input is not None else subprocess.DEVNULL)
-        return subprocess.run(argv, input=input, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                              env=environment, stdin=None if input is not None else subprocess.DEVNULL)
+            return subprocess.run(argv, input=input, stdin=stdin, capture_output=True, env=environment)
+        return subprocess.run(argv, input=input, stdin=stdin, capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", env=environment)
 
     def git(self, *args: str, cwd: Path | str | None = None, input: str | None = None,
-            env: Mapping[str, str] | None = None) -> str:
+            env: Mapping[str, str] | None = None, when: int | None = None) -> str:
         """A checked fixture command: its stdout, stripped; a failure raises ScratchRepoError with git's message."""
-        r = self.run(*args, cwd=cwd, input=input, env=env)
+        r = self.run(*args, cwd=cwd, input=input, env=env, when=when)
         if r.returncode != 0:
             raise ScratchRepoError(f"git {' '.join(map(str, args))} (in {cwd if cwd is not None else self.path}) "
                                    f"exited {r.returncode}: {(r.stderr or r.stdout).strip()}")
@@ -199,13 +220,11 @@ class ScratchRepo:
 
     def commit(self, message: str, files: Mapping[str, str | bytes | None] | None = None, *,
                cwd: Path | str | None = None, allow_empty: bool = False, when: int | None = None) -> None:
-        """Write `files`, stage everything (`add -A`) and commit it with `message`. `when` (seconds since the epoch)
-        dates the commit as its author and its committer, for a self-test that orders commits by time."""
+        """Write `files`, stage everything (`add -A`) and commit it with `message`, dated `when` (`run`)."""
         if files:
             self.write(files, cwd)
         self.git("add", "-A", cwd=cwd)
-        dated = {"GIT_AUTHOR_DATE": f"@{when} +0000", "GIT_COMMITTER_DATE": f"@{when} +0000"} if when else None
-        self.git("commit", "-q", *(["--allow-empty"] if allow_empty else []), "-m", message, cwd=cwd, env=dated)
+        self.git("commit", "-q", *(["--allow-empty"] if allow_empty else []), "-m", message, cwd=cwd, when=when)
 
 
 # ── the audit: self-test code drives git only through this fixture ──────────────────────────────────────────────────
