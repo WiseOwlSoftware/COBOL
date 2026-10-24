@@ -109,7 +109,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // function and its spelled-out EAE agree by construction — binary64 Math.Pow is not SDIDI arithmetic, and
         // routing these through RenderFloat gave receiver-DEPENDENT answers (§15.4.1's same-for-all-instances
         // rule) wrong from the third significant digit's ulp up. A float ARGUMENT lifts via DecOperand →
-        // CobolDec.FromDouble (§8.8.1.5.1), exactly as the landed exact-family lane does.
+        // CobolDec.FromBinary64 (§8.8.1.5.1), exactly as the landed exact-family lane does.
         // (An if-chain, deliberately NOT a `switch (sig.RuntimeMethod)`: IntrinsicRealArgDriftTests anchors its
         // exact-arm scan on the FIRST such switch, and these arms are not exact-family arms — a Real argument
         // lifts through DecOperand, so no `…Real` body exists or is needed.)
@@ -674,9 +674,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         //
         // ⛔ UNDER A STANDARD MODE THE RESULT CONVERTS IN, IT DOES NOT QUANTIZE (fix-queue PB56). The prose
         // family's returned value is an implementor-defined binary64 approximation in every mode (§15.4.1 last ¶),
-        // but under STANDARD-DECIMAL that approximation is CONTAINED IN an SDIDI (§15.4.1) — CobolDec.FromDouble,
-        // the §8.8.1.5.1 implementor-defined float→SDIDI conversion, defined here as the shortest round-trip
-        // identity — and lands at the receiver ONCE, instead of truncating to unscaled at a receiver-derived
+        // but under STANDARD-DECIMAL that approximation is CONTAINED IN an SDIDI (§15.4.1) — CobolDec.FromApproximation,
+        // its shortest round-trip decimal (an approximation is not a float data item, whose §8.8.1.5.1 conversion is
+        // the exact CobolDec.FromBinary64, kb/Work PB1606) — and lands at the receiver ONCE, instead of truncating to unscaled at a receiver-derived
         // working scale first (the triage rows RV-15.8.4-1 / RV-15.10.4-1 / RV-15.11.4-1 / RV-15.35.4-1 measured
         // the double quantization). RealResult stays inside the conversion: it is the NaN → EC-ARGUMENT-FUNCTION
         // raise site, so the screen fires identically in every mode and every receiver shape.
@@ -687,7 +687,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // read HERE and nowhere below (StandardModeReturnedValueContainerDriftTests proves the property over every
         // Float: true catalog row, so a new float function inherits it without anyone remembering to).
         return num.StandardDecimal
-            ? new NumX(RuntimeApi.DecFromDouble(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true)
+            ? new NumX(RuntimeApi.DecFromApproximation(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true)
             : RenderFloatNative(ic, call);
     }
 

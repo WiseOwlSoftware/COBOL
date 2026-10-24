@@ -441,8 +441,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// (<see cref="WithMoveSending"/>).</para></summary>
     private string ArgText(BoundCallArg a, bool describe, bool landsAtRunTime)
     {
-        string built = Described(LandedForFormal(a, ArgCarrierText(a)), a, describe);
-        return landsAtRunTime ? WithMoveSending(a, built) : built;
+        bool approximateReal = false;
+        string built = Described(LandedForFormal(a, ArgCarrierText(a, ref approximateReal)), a, describe);
+        return landsAtRunTime ? WithMoveSending(a, built, approximateReal) : built;
     }
 
     /// <summary>⛔ THE ACTIVATING ELEMENT'S HALF OF §14.2.3 GR9's MOVE AT A SITE THAT CANNOT SEE THE FORMAL (kb/Work PB2587):
@@ -463,13 +464,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// </list>
     /// Nothing for an argument with no MOVE to send — omitted, BY REFERENCE or BY VALUE, a pointer, an address-identifier,
     /// NULL — or whose formal the site knows (then it performed the MOVE itself, <see cref="MovedFormal"/>).</summary>
-    private string WithMoveSending(BoundCallArg a, string built)
+    private string WithMoveSending(BoundCallArg a, string built, bool approximateReal)
     {
         if (a.Omitted || a.Mode is not CobolPassMode.Content || a.Formal is not null) return built;
         // A boolean expression's value is its '0'/'1' text, a boolean literal's too (docs/CONFORMANCE.md D-B3); a boolean or national
         // FUNCTION value (usage bit / national, StaticUsageOf) also states its representation (kb/Work PB3587).
-        if (a.ContentBool is not null) return RuntimeApi.ArgWithValueSending(built, null);
-        if (a.Value is BoundComputedOperand computed) return RuntimeApi.ArgWithValueSending(built, OperandText.StorageImageConverter(computed));
+        if (a.ContentBool is not null) return RuntimeApi.ArgWithValueSending(built, null, approximate: false);
+        if (a.Value is BoundComputedOperand computed) return RuntimeApi.ArgWithValueSending(built, OperandText.StorageImageConverter(computed), approximateReal);
         string? sending = a.Place is { } p ? PlaceSending(p) : a.Value switch
         {
             BoundStringLiteral or BoundNumericLiteral => ElementarySending(a.Value),
@@ -845,7 +846,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument BEFORE the §14.2.3 GR9/GR10
     /// landing <see cref="LandedForFormal"/> wraps around it.</summary>
-    private string ArgCarrierText(BoundCallArg a)
+    /// <param name="a">The argument.</param>
+    /// <param name="approximateReal">Set when the argument is an expression whose binary64 value is an engine's APPROXIMATION
+    /// (a function's returned value; <c>NumX.Approximate</c>): the cell cannot say so, and the MOVE that sends it must read it
+    /// by its shortest round-trip decimal (<c>MoveSending.Approximate</c>, kb/Work PB1606).</param>
+    private string ArgCarrierText(BoundCallArg a, ref bool approximateReal)
     {
         // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument crosses as the NULL carrier —
         // CobolArgAdapt.Present answers false, the formal's adapters hand out the GR12 checked-raise carrier,
@@ -1061,7 +1066,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // Digits/Scale meta rides with it: a binary floating-point item has neither, and
                 // CobolArgAdapt's float arm reads the value itself.
                 if (x.Real)
+                {
+                    approximateReal = x.Approximate;
                     return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<double>.Cell((double)({x.Expr})), null)";
+                }
                 // ⛔ THE CELL IS Int128, NOT long, AND THE CONVERSION IS WIDENING (kb/Work PB264). This used to
                 // be `ManagedPointer<long>.Cell((long)(x.Expr))` — an UNCHECKED narrowing of a value that the
                 // DeU/Landed funnel above delivers on the Int128 lane, so an argument beyond 18 digits crossed

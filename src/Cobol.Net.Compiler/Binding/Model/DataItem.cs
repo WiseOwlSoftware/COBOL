@@ -978,6 +978,19 @@ public sealed class DataItem
         "a synthesized-temp discrimination (kb/Work PB1007, PB2507), set on the materialized temp, not a data description clause")]
     public char? FunctionValueSeparator { get; internal set; }
 
+    /// <summary>⛔ THIS FLOATING-POINT TEMPORARY HOLDS AN IMPLEMENTOR-DEFINED APPROXIMATION, NOT A FLOATING-POINT DATA
+    /// ITEM'S CONTENT (kb/Work PB1606): the binary64 intermediate result item a statement freezes a float-family
+    /// function's returned value into (<c>SendingValueTemp</c>, §14.9.25.4 GR1's "temp"). A binary64 cell cannot say
+    /// which of the two it holds, and the two read differently: a float data item by its exact value, an approximation by
+    /// its shortest round-trip decimal (<c>NumX.Approximate</c>, docs/CONFORMANCE.md). GR1 makes `MOVE a TO temp / MOVE
+    /// temp TO b` the single-receiver MOVE, so every read of the temporary reads the returned value: `MOVE FUNCTION PI TO
+    /// W1 W2` (PIC +9.9(20)E+99) stored +3.14159265358979311599E+00 in each where `MOVE FUNCTION PI TO W3` stores
+    /// +3.14159265358979300000E+00. Read by <c>NumericRenderer</c>'s float field read and <c>FunctionValueLane</c>'s
+    /// carrier of a place, the two readers of a float item as a value.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a synthesized-temp discrimination (kb/Work PB1606), set on the materialized temp, not a data description clause")]
+    public bool HoldsApproximation { get; internal set; }
+
     /// <summary>True for a group item (has children, no PICTURE).</summary>
     public bool IsGroup => Pic is null && Children.Count > 0;
 

@@ -124,15 +124,23 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   error until the EC model), then range-checks at the decimal128 bounds (§8.8.1.5.2 r2 — adjusted exponent
 >   > +6144 ⇒ EC-SIZE-OVERFLOW; below the 10⁻⁶¹⁷⁶ subnormal quantum the value re-rounds onto it, and a nonzero
 >   value that rounds to zero there ⇒ EC-SIZE-UNDERFLOW; the ONE `Clamp` in the `Round34Wide` funnel).
->   Fixed-point operands lift EXACTLY (≤31 digits ≤ 34); FLOAT operands convert via `CobolDec.FromDouble` —
->   the §8.8.1.5.1 implementor-defined conversion, defined as the SHORTEST round-trip decimal identity of the
->   IEEE value (≤17 digits ⇒ always exact in the significand; Infinity ⇒ EC-SIZE-OVERFLOW, NaN ⇒ the
->   invalid-operation EC-DATA-INCOMPATIBLE). The renderer routes `Combine`/`Power`/comparisons through
+>   Fixed-point operands lift EXACTLY (≤31 digits ≤ 34); a FLOAT DATA ITEM converts via
+>   `CobolDec.FromBinary64(d, mode)` — the §8.8.1.5.1 implementor-defined conversion, defined as the binary64's
+>   EXACT algebraic value (a double is always a terminating decimal) rounded ONCE to 34 digits under the
+>   INTERMEDIATE ROUNDING mode, because §8.8.1.5.2 r1 rounds "the operand value [that] cannot be expressed
+>   exactly in an SDIDI" by 11.9.11 (kb/Work PB1606): a COMP-2 holding 0.1 enters as
+>   0.1000000000000000055511151231257827, not 0.1, and under PROHIBITED an inexact one raises
+>   EC-SIZE-TRUNCATION; Infinity ⇒ EC-SIZE-OVERFLOW, NaN ⇒ the invalid-operation EC-DATA-INCOMPATIBLE. The
+>   same value is what a MOVE and a native landing see (PB623), so `COMPUTE D = F`, `COMPUTE D = F + 0` and `MOVE F TO D` store one value; a float item that is the WHOLE
+>   expression is converted at the store (`ArithmeticEmitter.StoreArith`), an operand beside an operator at
+>   `DecOperand`. An engine-produced APPROXIMATION (a §15.4.1 function's returned value, a non-integer power) is
+>   not a data item: it enters through `CobolDec.FromApproximation`, its SHORTEST round-trip decimal (at most 17
+>   digits; what a reader of `FUNCTION SIN (1)` expects). The renderer routes `Combine`/`Power`/comparisons through
 >   `CobolDec` when the mode is in effect (`NumX.Dec`; the mode branch runs BEFORE the D16 float branch);
 >   **exponentiation** is `CobolDec.Pow` (§8.8.1.5.4: integer exponents by square-and-multiply over `Mul` —
 >   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the
 >   §8.8.1.2 r6 / r4 EC-SIZE-EXPONENTIATION legs; a non-integer exponent is the r2e double approximation
->   converted through `FromDouble`). The receiver's ROUNDED applies only at the final transfer via the
+>   converted through `FromApproximation`). The receiver's ROUNDED applies only at the final transfer via the
 >   `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1). The final transfer has an UNCHECKED and a
 >   CHECKED form (PB74, 2026-08-17): `CobolDec.ToUnscaled` (MOVE / no-phrase store) keeps only the low-order
 >   digits of a magnitude past the Int128 carrier — the same high-order truncation the store then applies —
@@ -169,7 +177,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >     removed the COBOLNET0899 stage: ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate
 >     their inexact-division EAEs in SDIDI form (STANDARD-DEVIATION's root is the §15.4.1-last-¶ prose
 >     approximation, converted in per §8.8.1.5.1), and the prose family's binary64 results CONVERT in
->     (`CobolDec.FromDouble`) instead of truncating to unscaled at a receiver-derived working scale. Pinned by
+>     (`CobolDec.FromApproximation`) instead of truncating to unscaled at a receiver-derived working scale. Pinned by
 >     `pb56_dec_carrier_intrinsics` (golden) + `CobolIntrinsicsDecTests` (bodies + the exact-carrier agreement
 >     theory that keeps the all-fixed routing honest).
 >   · **MEDIAN and MIDRANGE wrapped on the EXACT path**, at one fifth the magnitude of MAX/MIN/SUM/RANGE,
@@ -356,9 +364,9 @@ Real` flag on the `NumX` carrier (parallel to `Dec`): a float leaf → `Real` Nu
 `NumericRenderer.Real(x)` gains a `Real` pass-through arm (the ONE double-conversion helper for all three carrier
 kinds); `Combine` takes the `Real` branch under NATIVE; `Negate`/`Power` get Real arms. **Under STANDARD /
 STANDARD-DECIMAL the mode branch runs FIRST** (P10 Step 12): a float operand converts into SDIDI form through
-`CobolDec.FromDouble` (the §8.8.1.5.1 implementor-defined conversion — the shortest round-trip decimal identity)
+`CobolDec.FromBinary64` (the §8.8.1.5.1 implementor-defined conversion — the binary64's exact value rounded once to 34 digits, kb/Work PB1606)
 and the operations are the SDIDI ones; comparisons likewise convert each operand not already in SDIDI form to
-it (a float via `CobolDec.FromDouble`) and compare in SDIDI (§8.8.4.2.4 — under standard-decimal arithmetic
+it (a float via `CobolDec.FromBinary64`) and compare in SDIDI (§8.8.4.2.4 — under standard-decimal arithmetic
 each operand not already a standard-decimal intermediate is converted to that form and the comparison is made
 between the two intermediates). Store to a FIXED receiver lands via a new
 `CobolFloat.ToScaled(double,scale,mode)` (double→unscaled Int128, rounded; ±Inf/overflow past the carrier
@@ -385,7 +393,7 @@ implementor-defined; goldens use exact binary fractions for cross-platform stabi
 arithmetic (the default), a native `double` comparison when either operand is `Real` (§8.8.4.2.4 — native
 arithmetic compares by native rules; IEEE NaN-unordered / ±0-equal fall out of C# — spec-conformant, no epsilon);
 under STANDARD / STANDARD-DECIMAL each operand not already in SDIDI form is converted to it (a `Real` via
-`CobolDec.FromDouble`) and the comparison is made in SDIDI (§8.8.4.2.4). The runtime file is `CobolFloat.cs`.
+`CobolDec.FromBinary64`) and the comparison is made in SDIDI (§8.8.4.2.4). The runtime file is `CobolFloat.cs`.
 
 **Floating-point LITERALS (§8.3.3.3.3).** A `FLOATLIT` lexer
 token — `( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+` (significand SHALL include a decimal point, §8.3.3.3.3

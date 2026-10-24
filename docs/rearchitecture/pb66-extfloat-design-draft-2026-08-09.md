@@ -386,8 +386,8 @@ changes no behaviour and no diagnostic.
 
 Given a sending value already in the engine's exact form `(Int128 unscaled, int scale)` — every fixed-point
 sender — the store is pure integer arithmetic (§6.2). Given a `double` sender (`COMP-1`/`COMP-2`/`FLOAT-*`), the
-value enters through the existing `CobolDec.FromDouble` (shortest round-trip decimal, ≤17 digits, exact) — the
-documented implementor conversion the standard-decimal path already uses.
+value enters through `CobolDec.FromBinary64ToOdd` (the binary64's exact value as a 38-digit round-to-odd significand, kb/Work PB1606) — the
+manner every float-to-fixed landing uses (CONFORMANCE.md, kb/Work PB623).
 
 ### D-EF8. The §14.9.25.4 GR6 4a "undefined" content is PINNED to the saturated extreme image.
 
@@ -541,7 +541,7 @@ not thirty — and each gets a golden in §13.
 |---|---|
 | fixed-point numeric (`DISPLAY`/`COMP`/`COMP-3`/`COMP-5`/`BINARY-*`) | already `(Int128 unscaled, int scale)` |
 | numeric literal | folded to the same pair |
-| floating-point usage (`COMP-1/2`, `FLOAT-SHORT/LONG/EXTENDED`, `FLOAT-BINARY-32/64`) | `CobolDec.FromDouble` |
+| floating-point usage (`COMP-1/2`, `FLOAT-SHORT/LONG/EXTENDED`, `FLOAT-BINARY-32/64`) | `CobolDec.FromBinary64ToOdd` |
 | fixed-point numeric-edited | the existing `CobolEdit.DeEdit` → `(Int128, MaskScale)` |
 | floating-point numeric-edited | `CobolEdit.DeEditFloat` → `CobolDec` |
 | alphanumeric / national | §14.9.25.4 GR6 item 3 — treated as an unsigned integer (existing `CobolNum.FromAlphanumeric`) |
