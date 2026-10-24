@@ -815,12 +815,19 @@ public sealed record PicInfo(
     /// GR1): "PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and
     /// category numeric, which are maintained for each report." UNSIGNED and scale 0, exactly as GR1 words it,
     /// so every receiving screen and conversion the compiler already owns treats an assignment to PAGE-COUNTER
-    /// (§8.4.3.15.3 SR1) like an assignment to any other unsigned integer item. USAGE BINARY over the engine's
-    /// native <c>long</c> carrier, capped at the 18 digits that carrier holds — the standard fixes no digit
-    /// count for a counter, and the engine's own range is this implementation's answer (kb/Work PB429).</summary>
-    public static PicInfo ReportCounterItem() =>
-        new(PicCategory.Numeric, Usage.Binary, Length: 18, Digits: 18, Scale: 0, Signed: false)
-        { SignKind = SignKindFor(Usage.Binary, signed: false, sign: null) };
+    /// (§8.4.3.15.3 SR1) like an assignment to any other unsigned integer item.
+    /// <para>⛔ THE ONE STATEMENT OF THE REGISTERS' DESCRIPTION (kb/Work PB1746, PB429): an UNSIGNED 32-bit binary
+    /// integer — the shape of <see cref="BinaryItem"/> for <c>BINARY-LONG UNSIGNED</c>, 10 digits, 4 bytes, capacity
+    /// 4,294,967,295. The standard gives the counters no size and no usage, so CLAUDE.md rule 1's latitude order takes
+    /// GnuCOBOL's, which declares both <c>CB_USAGE_UNSIGNED_INT</c> (cobc/tree.c <c>build_report</c>, surveyed with
+    /// cobc 3.2.0). <c>AlgebraicRanges.DescribeCounter</c> reads this profile for the extremes, the character image,
+    /// the byte length and the usage screens; <c>CobolReport.CounterModulus</c> is the runtime's twin of its 32 bits
+    /// and <c>ReportCounterDescriptionDriftTests</c> pins the two together.</para>
+    /// <para>⚠ THE SHAPE IS NOT A USAGE CLAUSE. The profile reuses <see cref="Usage.BinaryLong"/> for its width, but a
+    /// register is not "a data item described with usage binary-long": the usage-keyed rules that read an implicit
+    /// description (STRING §14.9.43.3 SR1, §8.8.4.2.5) refuse it, while §14.9.25.3 SR8 — keyed on a written usage — does
+    /// not (<c>MoveTable16.ShapeRefusal</c>), so <c>MOVE PAGE-COUNTER TO</c> an alphanumeric item stays legal.</para></summary>
+    public static PicInfo ReportCounterItem() => BinaryItem(Usage.BinaryLong, signed: false);
 
     /// <summary>The synthesized profile of a REPORT SECTION <b>sum counter</b> (ISO §13.18.54.4 GR1): "The sum
     /// counter is a conceptual data item that behaves as a data item of the category numeric. The number of
