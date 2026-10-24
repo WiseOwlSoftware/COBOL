@@ -63,7 +63,24 @@ public sealed class ImpactedTestsDriftTests
             "a replayed deletion of a test file names no test",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
             "a changed static constructor", "no map for the base puts every test in tier 1",
-            "a documentation-only older map is used", "a STALE map is returned for its durations");
+            "a documentation-only older map is used", "a STALE map is returned for its durations",
+            // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
+            // the change removes (kb/Work PB3131)
+            "a changed file names every drift test the index says governs it",
+            "a change to the file a sweep sets aside by name",
+            "a deleted member a register cites as path#member", "a member removed from a #Class.Member chain",
+            "a renamed test a register cites as Class.Method", "a deleted suite test a register cites by its stem",
+            "a deleted suite test a pin cites as <edition>/<test>", "a deleted type a register cites as Class.Member",
+            // the precision of a deletion (kb/Work PB3131 review R1-1, R1-2)
+            "a deleted file's comments and strings declare no type",
+            "a deleted file's common stem (test.py, README.md) breaks no citation of another file of that name",
+            "a deleted type is no citation where a dotted name ENDS with it",
+            "deleting one file of a partial type deletes no type",
+            "a removal no register cites names no drift test", "a change that removes nothing a citation can name",
+            "a diff's removed lines are read per file",
+            "a header path holding a space (git's trailing TAB) or C-quoted by git is the file's path",
+            "reach_of puts the drift test of a register citing a removed member in tier 0d",
+            "the real inventory: renaming a test it cites names SpecTraceabilityInventoryDriftTests");
     }
 
     [Fact]

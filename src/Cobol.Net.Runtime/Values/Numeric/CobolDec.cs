@@ -58,22 +58,105 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// (3.141592653589793238462643383279503; kb/Work R18 — the E sibling, same rule shape).</summary>
     public static readonly CobolDec Pi = new(Int128.Parse("3141592653589793238462643383279503"), -33);
 
-    /// <summary>Lift a FLOATING-POINT operand into SDIDI form — the ISO §8.8.1.5.1 implementor-defined
-    /// float→SDIDI conversion: the SHORTEST ROUND-TRIP decimal representation of the IEEE value (.NET "R" —
-    /// ≤17 significant digits, so it always fits the 34-digit significand EXACTLY and the conversion itself
-    /// never rounds; §8.8.1.5.2 r1's "cannot be expressed exactly" case does not arise). The shortest form
-    /// makes decimal-clean float values convert to their decimal identity (a COMP-2 holding 0.1 becomes the
-    /// SDIDI 0.1, not 0.1000000000000000055…). An infinite operand exceeds the decimal128 range
-    /// (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2); a NaN operand is the IEC 60559 'invalid operation' state
-    /// (EC-DATA-INCOMPATIBLE, §8.8.1.5.1).</summary>
-    public static CobolDec FromDouble(double d)
+    /// <summary>⛔ THE ONE LIFT OF A FLOATING-POINT DATA ITEM'S VALUE INTO THE SDIDI (kb/Work PB1606) — the ISO §8.8.1.5.1
+    /// implementor-defined conversion of a float-short / float-long / float-extended item, defined here as the
+    /// binary64's EXACT algebraic value rounded ONCE to the SDIDI's 34 significant digits under
+    /// <paramref name="mode"/> — the INTERMEDIATE ROUNDING mode, because §8.8.1.5.2 r1 says an operand value that "cannot be
+    /// expressed exactly in an SDIDI" is "rounded according to the rules in 11.9.11" and a binary64 is exactly the case
+    /// (NOTE 3 of that clause names it). A double is ±man·2^exp and therefore ALWAYS a terminating decimal (at most 767
+    /// significant digits), so "the operand value" is never in doubt: a COMP-2 holding 0.1 is
+    /// 0.1000000000000000055511151231257827021181583404541015625 and enters as 0.1000000000000000055511151231257827
+    /// (NEAREST-AWAY-FROM-ZERO); a value of 34 digits or fewer — 0.5, 0.25, every integer below 10^34 — enters unchanged;
+    /// and under PROHIBITED an inexact one is EC-SIZE-TRUNCATION (§11.9.11.2 r3d), as for every other operand.
+    /// This is the manner the program's other arithmetic reads a float item in — a MOVE and a native landing truncate or
+    /// round the EXACT value at the receiver's scale (<see cref="CobolFloat.TryExactScaled"/>, kb/Work PB623) — so
+    /// <c>COMPUTE D = F</c>, <c>COMPUTE D = F + 0</c> and <c>MOVE F TO D</c> agree on one value. They used not to: a lone
+    /// operand landed natively (the exact expansion) and an operand beside an operator converted through the shortest
+    /// round-trip decimal, which put <c>.1000000000000000055</c> and <c>.1000000000000000000</c> in one receiver for the same
+    /// item. An infinite operand exceeds the decimal128 range (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2); a NaN operand is the IEC
+    /// 60559 'invalid operation' state (EC-DATA-INCOMPATIBLE, §8.8.1.5.1).
+    /// <para>The digits come from the runtime's EXACT formatter (<c>"E766"</c>: .NET renders every digit of the double, not
+    /// a rounding of it). The first 38 become the significand (an <see cref="Int128"/> holds them), the rest only the
+    /// sticky bit, and <see cref="Round34"/> — the funnel every other lift ends in — does the rounding, so ties, PROHIBITED
+    /// and the range clamp are decided in ONE place.</para></summary>
+    public static CobolDec FromBinary64(double d, CobolRounding mode)
     {
-        if (double.IsNaN(d))
-            throw new CobolSizeError("NaN floating-point operand in standard-decimal arithmetic (ISO §8.8.1.5.1 — "
-                + "the IEC 60559 invalid-operation state)", "EC-DATA-INCOMPATIBLE");
-        if (double.IsInfinity(d))
-            throw new CobolSizeError("infinite floating-point operand exceeds the decimal128 range "
-                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+        RejectNonFinite(d);
+        if (d == 0) return new CobolDec(0, 0);
+        var (sig, exp, sticky) = ExactDigits(d);
+        // An EXACT expansion is held at the fewest places that carry it (0.5 is 5 × 10^-1, 12345 is 12345 × 10^0): the
+        // formatter's trailing zeros are padding, not places the value has, and the SDIDI's text image
+        // (DISPLAY FUNCTION ABS (F)) and its precision (FractionDigits) read the exponent.
+        if (!sticky)
+            while (sig % 10 == 0) { sig /= 10; exp++; }
+        return Round34(sig, exp, sticky, mode);
+    }
+
+    /// <summary>A binary64's EXACT value as a ROUND-TO-ODD <see cref="Int128"/> significand of 38 digits (kb/Work PB1606):
+    /// the first 38 digits of the expansion, made odd when anything nonzero was dropped, so a consumer that rounds to at
+    /// most 36 digits itself, in any §14.7.4.3 mode, and asks whether the value was exact (rule 7, PROHIBITED), sees the
+    /// double's own value on the same side of every boundary: the lowering argument <see cref="MulToOdd"/> and
+    /// <c>CobolEdit</c>'s unsigned-wide significand rest on. The floating-point numeric-edited store takes its sender
+    /// here, because a mask holds at most 31 digits and its rounding is the receiver's, not the SDIDI's. NOT an SDIDI
+    /// (it may hold more than 34 digits). The same non-finite rules as <see cref="FromBinary64"/>.</summary>
+    internal static CobolDec FromBinary64ToOdd(double d)
+    {
+        RejectNonFinite(d);
+        if (d == 0) return new CobolDec(0, 0);
+        var (sig, exp, sticky) = ExactDigits(d);
+        if (sticky && sig % 2 == 0) sig += sig < 0 ? -1 : 1;
+        return new CobolDec(sig, exp);
+    }
+
+    /// <summary>The exact expansion of a finite nonzero binary64, split at <see cref="ExactKeptDigits"/> digits: the signed
+    /// 38-digit significand, the power of ten of its last digit, and whether any digit below it is nonzero. The ONE reader
+    /// of the runtime's exact formatter, so <see cref="FromBinary64"/> and <see cref="FromBinary64ToOdd"/> cannot
+    /// disagree about the digits.</summary>
+    private static (Int128 Sig, int Exp, bool Sticky) ExactDigits(double d)
+    {
+        Span<char> text = stackalloc char[ExactTextLength];
+        if (!double.Abs(d).TryFormat(text, out int length, ExactFormat, System.Globalization.CultureInfo.InvariantCulture))
+            throw new InvalidOperationException("a binary64's exact decimal expansion did not fit its buffer");
+        text = text[..length];
+        // d.ddd…E±xxx: the digits without their point, and the power of ten of the leading one.
+        int e = text.IndexOf('E');
+        int exp10 = int.Parse(text[(e + 1)..], System.Globalization.NumberStyles.AllowLeadingSign,
+            System.Globalization.CultureInfo.InvariantCulture);
+        Int128 sig = 0;
+        bool sticky = false;
+        int kept = 0;
+        for (int i = 0; i < e; i++)
+        {
+            if (text[i] == '.') continue;
+            if (kept < ExactKeptDigits) { sig = sig * 10 + (text[i] - '0'); kept++; }
+            else sticky |= text[i] != '0';
+        }
+        return (d < 0 ? -sig : sig, exp10 - (ExactKeptDigits - 1), sticky);
+    }
+
+    /// <summary>The digits of a binary64's exact expansion that <see cref="FromBinary64"/> keeps as the significand: the
+    /// most a signed 128-bit carrier always holds (10^38 &lt; 2^127), four past the SDIDI's 34, so the round digit and the
+    /// tie test are in the significand and everything below it is one sticky bit.</summary>
+    private const int ExactKeptDigits = 38;
+
+    /// <summary>The exact formatter's precision: 766 digits after the leading one, 767 significant digits — the most any
+    /// binary64 has, so the text is the value itself and never a rounding of it. Its length is the point, 767 digits and
+    /// <c>E-324</c>, with room.</summary>
+    private const string ExactFormat = "E766";
+
+    private const int ExactTextLength = 780;
+
+    /// <summary>Lift a binary64 that is an IMPLEMENTOR-DEFINED APPROXIMATION, not a data item's content — a §15.4.1
+    /// function's returned value (the prose family, the non-integer power, STANDARD-DEVIATION's root), which the standard
+    /// leaves "implementor-defined" (§15.4.1) and whose digits past the 17th are the approximation's noise: the SHORTEST
+    /// ROUND-TRIP decimal of the IEEE value (.NET "R" — at most 17 significant digits, so it always fits the 34-digit
+    /// significand and the conversion itself never rounds). It is what a reader of <c>FUNCTION SIN (1)</c> expects
+    /// (0.8414709848078965, not the 34 digits of the double's binary expansion). A floating-point DATA ITEM is not an
+    /// approximation: its operand value is its exact binary value, lifted by <see cref="FromBinary64"/> (kb/Work PB1606).
+    /// The same non-finite rules as <see cref="FromBinary64"/>.</summary>
+    public static CobolDec FromApproximation(double d)
+    {
+        RejectNonFinite(d);
         if (d == 0) return new CobolDec(0, 0);
         // "R" = the shortest decimal string that round-trips the double: [-]digits[.digits][E±dd]. Parsed
         // directly to (significand, power-of-ten) — no decimal intermediary (decimal is 28-digit/limited-range).
@@ -96,6 +179,19 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             if (inFrac) frac++;
         }
         return new CobolDec(neg ? -sig : sig, exp10 - frac);
+    }
+
+    /// <summary>The two non-finite binary64 states under §8.8.1.5: an infinite operand exceeds the decimal128 range
+    /// (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2); a NaN operand is the IEC 60559 'invalid operation' state
+    /// (EC-DATA-INCOMPATIBLE, §8.8.1.5.1).</summary>
+    private static void RejectNonFinite(double d)
+    {
+        if (double.IsNaN(d))
+            throw new CobolSizeError("NaN floating-point operand in standard-decimal arithmetic (ISO §8.8.1.5.1 — "
+                + "the IEC 60559 invalid-operation state)", "EC-DATA-INCOMPATIBLE");
+        if (double.IsInfinity(d))
+            throw new CobolSizeError("infinite floating-point operand exceeds the decimal128 range "
+                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
     }
 
     /// <summary>True when the VALUE has a nonzero digit right of the decimal point — the SDIDI spelling of
@@ -281,7 +377,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     // ── §8.8.1.5.4 r2e — THE equivalent arithmetic expression, developed in SDIDI form ────────────────────────
     // ⛔ ONE DEVELOPMENT, TWO CALLERS (owner decision D-C, 2026-08-30; kb/Work PB167). Before this there were
-    // two r2e sites and they were two DIFFERENT approximations — `FromDouble(Math.Pow(…))` for a non-integer
+    // two r2e sites and they were two DIFFERENT approximations — `FromApproximation(Math.Pow(…))` for a non-integer
     // exponent and a `PowByLogs` binary64 log decomposition for the past-loop-bound integer escape — so the same
     // mathematical value could arrive by two roads with two answers. Both now enter here.
     //
