@@ -21,6 +21,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import plan_wave as pw  # noqa: E402
+sys.path.insert(0, str(HERE.parent))
+from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
@@ -1396,8 +1398,7 @@ check("meta carries a dispatch entry's notes, time and slug",
 STALE = TMP / "stale-repo"
 (STALE / "src").mkdir(parents=True)
 (STALE / "src" / "A.cs").write_text("// a" + NL, encoding="utf-8", newline="\n")
-for args in (["init", "-q"], ["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "c"]):
-    subprocess.run(["git", *args], cwd=STALE, check=True, capture_output=True)
+ScratchRepo.init(STALE).commit("c")
 try:
     pw.declared_sets(STALE, pw.IndexPolicy(TMP / "no-cache", regenerate=False))("**Moves or changes:** `N.T.M`")
     check("the planner refuses a tree no member index describes", "planned", "refused")
@@ -1504,8 +1505,7 @@ for rel, text in {"src/B/Session.cs": "public sealed class Session { public Grou
 # a build output and a stray file name the same type: the slice set reads the COMMITTED tree (PB1957, 2026-10-07)
 (SR / "src" / "B" / "Generated").mkdir(parents=True)
 (SR / "src" / "B" / "Generated" / "SessionParser.cs").write_text("class Session { }", encoding="utf-8", newline="\n")
-subprocess.run(["git", "-C", str(SR), "init", "-q"], check=True)
-subprocess.run(["git", "-C", str(SR), "add", "-A", "--", ":!src/B/Generated"], check=True)
+ScratchRepo.init(SR).git("add", "-A", "--", ":!src/B/Generated")
 (SR / "src" / "B" / "Stray.cs").write_text("class GroupRepo { }", encoding="utf-8", newline="\n")
 um = []
 sset = work.slice_file_set(SR, unmapped=um)
@@ -1605,9 +1605,8 @@ with tempfile.TemporaryDirectory() as td:
 # (no finisher re-runs it), and any other end plans a finisher.
 with tempfile.TemporaryDirectory() as td:
     gdir = pathlib.Path(td)
-    head = subprocess.run(["git", "-C", str(coord.REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-    tree = subprocess.run(["git", "-C", str(coord.REPO), "rev-parse", "HEAD^{tree}"], capture_output=True,
-                          text=True).stdout.strip()
+    checkout = ScratchRepo(coord.REPO)   # read only: the commit and tree this checkout is at
+    head, tree = checkout.git("rev-parse", "HEAD"), checkout.git("rev-parse", "HEAD^{tree}")
     ended = subprocess.Popen([sys.executable, "-c", "pass"])
     ended.wait()
 
@@ -1662,12 +1661,12 @@ with tempfile.TemporaryDirectory() as td:
     (hw / ".claude").mkdir(parents=True)
     (hw / ".claude" / "settings.local.json").write_text("{}\n", encoding="utf-8", newline="\n")
     (hw / "work.txt").write_text("work\n", encoding="utf-8", newline="\n")
-    hgit = ["git", "-c", "user.name=t", "-c", "user.email=t@invalid", "-c", "init.defaultBranch=main", "-C", str(hw)]
-    for argv in (["init", "-q"], ["add", "-A"], ["add", "-f", "--", ".claude/settings.local.json"],   # global excludes
-                 ["commit", "-q", "-m", "work"]):
-        subprocess.run(hgit + argv, check=True, capture_output=True)
+    harness = ScratchRepo.init(hw)
+    harness.git("add", "-A")
+    harness.git("add", "-f", "--", ".claude/settings.local.json")   # a user's global excludes may name it
+    harness.git("commit", "-q", "-m", "work")
     (hw / ".claude" / "settings.local.json").write_text('{"permissions": {}}\n', encoding="utf-8", newline="\n")
-    hhead = subprocess.run(hgit + ["rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    hhead = harness.git("rev-parse", "HEAD")
     htree = run_gate_legs.Host(hw).measured_tree()
     hrun = hw / "TestResults" / "build-local" / "20261023T000000Z-abcdef"
     hrun.mkdir(parents=True)

@@ -157,6 +157,16 @@ class ScratchRepo:
             f.write(config_text(REPO_CONFIG))
         return repo
 
+    @classmethod
+    def clone(cls, source: Path | str, path: Path | str, options: Sequence[str] = ()) -> "ScratchRepo":
+        """`git clone -q <source> <path>` (a second clone of a scratch origin: a lander's), then REPO_CONFIG appended
+        to the clone's own config file, as `init` does."""
+        repo = cls(path, options)
+        repo.git("clone", "-q", str(source), str(repo.path), cwd=Path(path).parent)
+        with (repo.path / ".git" / "config").open("a", encoding="utf-8", newline="\n") as f:
+            f.write(config_text(REPO_CONFIG))
+        return repo
+
     def origin(self, path: Path | str, name: str = "origin") -> "ScratchRepo":
         """A bare repository at `path` (with the fixture's settings: a push runs maintenance in the RECEIVING
         repository), added as this repository's remote `name`. Pushing is the caller's: what and when it pushes is the
@@ -399,6 +409,11 @@ def self_test() -> int:
               origin.git("rev-parse", "main") == repo.git("rev-parse", "main")
               and origin.git("config", "--get", "maintenance.auto") == "false"
               and repo.git("remote", "get-url", "origin") == str(origin.path))
+
+        lander = ScratchRepo.clone(origin.path, tmp / "lander")
+        check("clone: a second clone of the origin, with the fixture's settings",
+              lander.git("rev-parse", "HEAD") == repo.git("rev-parse", "main")
+              and lander.git("config", "--get", "gc.auto") == "0")
 
         wt = repo.worktree(tmp / "wt", branch="topic")
         wt.commit("on topic", {"c.txt": "c\n"}, when=1_000_000)
