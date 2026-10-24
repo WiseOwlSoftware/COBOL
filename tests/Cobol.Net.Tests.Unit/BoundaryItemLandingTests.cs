@@ -97,7 +97,9 @@ public sealed class BoundaryItemLandingTests
         // §14.6.8.2 4): aligned by decimal point, truncated — a MOVE has no ROUNDED phrase.
         Assert.Equal((Int128)1234, new MoveSending("12345", Numeric: true, Unscaled: 12345, Scale: 3).AtScale(2));
         Assert.Equal((Int128)123, new MoveSending("1.239", Numeric: true, Real: 1.239).AtScale(2));
-        Assert.Equal(12.5, new MoveSending("1250", Numeric: true, Unscaled: 1250, Scale: 2).Binary64);
+        Assert.Equal(CobolDec.From(1250, 2), new MoveSending("1250", Numeric: true, Unscaled: 1250, Scale: 2).ExactValue);
+        // A fixed-point sender is NOT read through binary64: 0.3 stays 3 x 10^-1, not 0.29999999999999998 (kb/Work PB1606).
+        Assert.Equal(CobolDec.From(3, 1), new MoveSending("0.3", Numeric: true, Unscaled: 3, Scale: 1).ExactValue);
     }
 
     [Fact]

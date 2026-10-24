@@ -367,6 +367,12 @@ internal static class RuntimeApi
     /// arithmetic store of a 16-byte unsigned COMP-5 item into a floating-point edited receiver).</summary>
     private static (string Store, string Try, string Args) FloatEditEntry(Emit.NumX value) => value.Carrier switch
     {
+        // An engine-produced approximation (a function's returned value, a non-integer power) is its SHORTEST ROUND-TRIP
+        // decimal - 0.3 is +3.0000000000000000E-01, not the binary expansion's +2.9999999999999998E-01 - exactly as
+        // beside an operator (CobolDec.FromApproximation, kb/Work PB1606); only a floating-point DATA ITEM is read by its
+        // exact binary value (the Binary64 arm below).
+        Emit.NumXCarrier.Binary64 when value.Approximate =>
+            (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), DecFromApproximation(value.Expr)),
         Emit.NumXCarrier.Binary64 or Emit.NumXCarrier.Sdidi =>
             (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), value.Expr),
         Emit.NumXCarrier.UnsignedWide =>
@@ -2360,8 +2366,8 @@ internal static class RuntimeApi
     /// <summary>The sending value aligned at <paramref name="scale"/> — <see cref="MoveSending.AtScale"/>.</summary>
     public static string MoveSendingAtScale(string sending, int scale) => $"{sending}.{nameof(MoveSending.AtScale)}({scale})";
 
-    /// <summary>The sending value as binary64 — <see cref="MoveSending.Binary64"/>.</summary>
-    public static string MoveSendingBinary64(string sending) => $"{sending}.{nameof(MoveSending.Binary64)}";
+    /// <summary>The sending value's exact decimal, for a floating-point edited receiver — <see cref="MoveSending.ExactValue"/>.</summary>
+    public static string MoveSendingExactValue(string sending) => $"{sending}.{nameof(MoveSending.ExactValue)}";
 
     /// <summary>A sending operand the activating element states for its argument (<see cref="MoveSending"/>; kb/Work PB2587):
     /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.

@@ -291,8 +291,12 @@ public readonly record struct MoveSending(string Characters, bool Group = false,
         ? CobolFloat.ToScaledUnchecked(r, scale, CobolRounding.Truncation)
         : CobolNum.Rescale(Unscaled, Scale, scale, CobolRounding.Truncation);
 
-    /// <summary>The value as binary64, for a floating-point edited receiver.</summary>
-    public double Binary64 => Real ?? CobolFloat.ScaledToDouble(Unscaled, Scale);
+    /// <summary>⛔ The sender's EXACT value, for a floating-point edited receiver (kb/Work PB1606): a floating-point sender's
+    /// binary value as the round-to-odd significand <see cref="CobolDec.FromBinary64ToOdd"/> reads it by (the manner of
+    /// <c>CobolEdit.FormatFloatStore(double, ...)</c>), and a FIXED-POINT sender's own decimal digits at its own scale
+    /// (§14.6.8.4 rule 1: "the algebraic value of the sending operand"). It is never routed through binary64: the fixed
+    /// value 0.3 as a double is 0.299999999999999988897769753748..., and the receiver's mask would show that noise.</summary>
+    public CobolDec ExactValue => Real is { } r ? CobolDec.FromBinary64ToOdd(r) : CobolDec.From(Unscaled, Scale);
 }
 
 /// <summary>

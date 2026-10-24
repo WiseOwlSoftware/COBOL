@@ -72,12 +72,34 @@ public sealed class FloatItemSdidiLiftDriftTests
         // floating-point numeric-edited sender by the exact value as a round-to-odd significand.
         var exact = Callers("Cobol.Net.Runtime", "CobolDec.FromBinary64(", "CobolDate.cs");
         Assert.True(exact.Count == 0, "A new runtime caller of CobolDec.FromBinary64 states its INTERMEDIATE ROUNDING mode itself: " + string.Join("; ", exact));
-        var odd = Callers("Cobol.Net.Runtime", "CobolDec.FromBinary64ToOdd(", "CobolEdit.Float.cs");
+        var odd = Callers("Cobol.Net.Runtime", "CobolDec.FromBinary64ToOdd(", "CobolEdit.Float.cs", "CallAbi.cs");
         Assert.True(odd.Count == 0, "FromBinary64ToOdd is the floating-point numeric-edited sender's form only: " + string.Join("; ", odd));
         // "R" formatting of a double is FromApproximation's alone inside CobolDec.
         var shortest = CodeLines("Cobol.Net.Runtime")
             .Where(l => l.File == "CobolDec.cs" && l.Line.Contains("ToString(\"R\"", StringComparison.Ordinal)).ToList();
         Assert.Single(shortest);
+    }
+
+    [Fact]
+    public void TheFloatingPointEditedSender_IsNeverAFixedPointValueThroughBinary64_NorAnApproximationByItsBinaryExpansion()
+    {
+        // The float-edited store (CobolEdit.FormatFloatStore(double, ...)) reads a binary64 by its EXACT binary value, which is
+        // right for a floating-point data item and wrong for any other value that reaches it as a double: a fixed-point
+        // sender at a CALL's activation boundary (0.3 would show as +2.9999999999999998E-01) and an engine approximation
+        // (a function's value). Each states its own exact form instead (kb/Work PB1606 review round 1, finding R1-1).
+        string move = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs"));
+        Assert.Contains("MoveSendingExactValue(sending)", move);
+        Assert.DoesNotContain("MoveSendingBinary64", move);
+        Assert.Null(typeof(CobolNet.Runtime.MoveSending).GetProperty("Binary64"));
+        Assert.True(typeof(CobolNet.Runtime.MoveSending).GetProperty("ExactValue") is not null,
+            "MoveSending hands a floating-point edited receiver its ExactValue, never a binary64 of a fixed-point sender");
+        string api = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Roslyn", "RuntimeApi.cs")).Replace("\r\n", "\n");
+        int entry = api.IndexOf("FloatEditEntry(Emit.NumX value) =>", StringComparison.Ordinal);
+        Assert.True(entry >= 0, "FloatEditEntry not found");
+        int approx = api.IndexOf("Emit.NumXCarrier.Binary64 when value.Approximate", entry, StringComparison.Ordinal);
+        int exact = api.IndexOf("Emit.NumXCarrier.Binary64 or Emit.NumXCarrier.Sdidi", entry, StringComparison.Ordinal);
+        Assert.True(approx > entry && approx < exact,
+            "FloatEditEntry must send an Approximate binary64 through DecFromApproximation BEFORE its exact-binary64 arm");
     }
 
     [Fact]

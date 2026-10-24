@@ -1319,7 +1319,11 @@ of an unsupported facility.
   receiver reads a binary64 sender the same exact way (`CobolDec.FromBinary64ToOdd`, a 38-digit round-to-odd
   significand, because the mask's rounding is the receiver's): `COMPUTE FE ROUNDED MODE IS PROHIBITED = F` with F =
   0.1 is the size error (the value is not representable in the mask), as it already was for a fixed-point
-  receiver. Witnesses: `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
+  receiver. That exact reading is for a floating-point DATA ITEM alone: a fixed-point sender (a BY CONTENT argument at
+  §14.2.3 GR9's activation boundary, `MoveSending.ExactValue`) is edited by its own decimal digits, and an
+  approximation (a function's returned value) by its shortest round-trip decimal (`CobolDec.FromApproximation`), so
+  neither shows the binary noise of a double (0.3 is `+3.0000000000000000E-01`, never `+2.9999999999999998E-01`).
+  Witnesses: `conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb1606_fixed_sender_float_edited_formal`, `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
   (every position, the rounding modes, the negative and the huge), `15.60.4-Returned-value-rule/arith_standard`,
   `_unassigned/pb3017_sdidi_divide_remainder_beyond_the_int128_carrier`, `CobolDecBinary64ConversionTests`.
 - **Floating-point numeric-edited receiver — the overflow, underflow, size-error and incompatible-content

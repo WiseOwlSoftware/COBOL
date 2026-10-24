@@ -246,3 +246,5 @@ static CobolNet.Runtime.CobolNum.NestedQuotientScale(int receiverScale, int prec
 *REMOVED*static CobolNet.Runtime.CobolDec.FromDouble(double d) -> CobolNet.Runtime.CobolDec
 static CobolNet.Runtime.CobolDec.FromApproximation(double d) -> CobolNet.Runtime.CobolDec
 static CobolNet.Runtime.CobolDec.FromBinary64(double d, CobolNet.Runtime.CobolRounding mode) -> CobolNet.Runtime.CobolDec
+*REMOVED*CobolNet.Runtime.MoveSending.Binary64.get -> double
+CobolNet.Runtime.MoveSending.ExactValue.get -> CobolNet.Runtime.CobolDec

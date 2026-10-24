@@ -62,3 +62,17 @@ was red on a missing `[Trait("Sweep", "tree")]` for the new tree-wide drift test
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000002-20261024T060205Z; Conformance
 9,938/18,354 · Unit 36,959/37,932 · Characterization 5/36 ran). Linux gate: the lander's (batched gating).
+
+**Review round 1 (R1-1, fixed).** The first cut made the floating-point numeric-edited store read EVERY binary64 it is handed
+by its exact binary value. That is right for a floating-point data item and wrong for two other values that reach the
+same overload as a double: a FIXED-POINT sender of a BY CONTENT argument at §14.2.3 GR9's activation boundary
+(`MoveSending.Binary64` was `CobolFloat.ScaledToDouble(Unscaled, Scale)`, so PIC 9V9 0.3 edited as
+`+2.9999999999999998E-01` where a local MOVE edits `+3.0000000000000000E-01`) and an engine approximation (a function's
+returned value: `MOVE FUNCTION SQRT (X) TO FE` with X = 0.09). `MoveSending.Binary64` is now `MoveSending.ExactValue`, a
+`CobolDec` (the fixed-point sender's own digits, a float sender's round-to-odd exact value), and `RuntimeApi.FloatEditEntry`
+sends an `Approximate` binary64 through `CobolDec.FromApproximation`, as the arithmetic lift does. Golden
+`14.6.8.4-.../pb1606_fixed_sender_float_edited_formal` (hand-derived; it fails on the first cut), a `MoveSending` unit
+assertion and a drift test on both. Sibling sweep: `COMPUTE FE = FUNCTION SQRT (X)` lands through
+`CobolIntrinsics.FromDouble` at scale 19 (the scaled quantizer) and truncates the double's expansion, as it did before this
+branch; that is a separate defect of the quantizer, reported as a lead. The R1-2 lead (the exact formatter's cost, about 4 us
+a lift) is left for the clerk: neither CobolDec.cs nor CobolEdit.Float.cs changed in this round.
