@@ -1,4 +1,4 @@
-## Under standard-decimal arithmetic a floating-point data item enters the intermediate through one conversion, its exact value rounded once under INTERMEDIATE ROUNDING (kb/Work PB1606)
+## Entry 2450 — 2026-10-24 01:55 PDT — Under standard-decimal arithmetic a floating-point data item enters the intermediate through one conversion, its exact value rounded once under INTERMEDIATE ROUNDING (kb/Work PB1606)
 
 **Why.** `ARITHMETIC IS STANDARD-DECIMAL`, `F1 USAGE FLOAT-LONG VALUE 0.1`: `COMPUTE F4 = F1` stored 0.1 and `COMPUTE F2 = F1 + 0`
 stored 0.09999999999999999; into `PIC V9(19)` the lone form stored `.1000000000000000055` and `F1 + 0` and `F1 * 1`
@@ -109,3 +109,4 @@ states `NumX.Approximate`, and `FunctionValueLane`'s place carrier answers `Appr
 `+2.9999999999999998E-01` twice before the fix). Sibling sweep: the multi-receiver COMPUTE snapshots the `NumX` itself and
 keeps the flag (probed: `+3.0E-01`); a frozen function argument and an EVALUATE subject share the same intermediate and now read
 it as the un-frozen value; fixed-point and float-item receivers of the intermediate do not read the flag (probed unchanged).
+
