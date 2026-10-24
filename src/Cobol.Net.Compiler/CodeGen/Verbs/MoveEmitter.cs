@@ -181,7 +181,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// other at the static offset <see cref="OverlapStore.ReceiverAt"/> and converted in the library's own order of
     /// reads and writes (<c>OverlappingMove</c>), and the receiver's image is written back. An image-backed
     /// receiver takes the image as it is; a NATIVE numeric DISPLAY receiver (the item a reference modification
-    /// moves into itself) decodes it through its own profile.</summary>
+    /// moves into itself) takes its carrier from it through <see cref="NumericRenderer.CarrierOfImage"/>.</summary>
     private void EmitInPlaceStore(Place target, Place from, OverlapStore overlap)
     {
         const string Context = "overlapping MOVE operand";
@@ -205,10 +205,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ctx.Writer.Line(PlaceRenderer.Write(target, stored));
             return;
         }
-        var pic = target.Item.Pic!;
-        var value = new NumX(RuntimeApi.NumParseImage(stored, toProfile, sending: false), pic.Scale);
-        ctx.Writer.Line(PlaceRenderer.Write(target,
-            ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(value, pic.Scale, toProfile, CobolRounding.Truncation), target.Item)));
+        // A native receiver takes its carrier from that image through THE ONE crossing decode, never a decode lane of
+        // its own (kb/Work PB186's named sites). The image is the receiver's own, so its value fits the receiver.
+        ctx.Writer.Line(PlaceRenderer.Write(target, NumericRenderer.CarrierOfImage(stored, target.Item)));
     }
 
     /// <summary>The bytes an overlapping operand occupies: a Tier-B view's window is its storage as it stands; every
