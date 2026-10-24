@@ -28,6 +28,12 @@ the half arm plans only half notes on no unlanded branch, the unlanded arm takes
 first in its pred), and a report's finisher takes the unreported notes of its own branch. Self-test 6d gains six checks
 (half plus open note on one branch, held, the report plus unreported notes, held, drain).
 
+Merged with kb/Work PB3170 (PR #509, the replayed-branch rule): a note riding on a branch that replays its own joins
+the REPLAYING branch's unit, so a dispatch holding any note of that branch holds the rider too, and the branch's one
+finisher takes its report's notes, the riders and the unreported notes it carries, naming the replayed commits once
+(`replay_clause`); the unlanded arm's one finisher names only the commits no other branch holds. Self-test (d) gains
+five composition checks.
+
 Not closed: telling a live agent's lock on a SPLIT branch from a recent touch (the note's 2026-10-16 paragraph) needs
 a lock-only signal that the branch survey does not expose; the ledger hold is the signal a dispatched finisher leaves.
 
