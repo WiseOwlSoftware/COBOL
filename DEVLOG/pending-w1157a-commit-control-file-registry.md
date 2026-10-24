@@ -18,10 +18,17 @@ back the file control entry's own lock posture (the registration now records it;
 share). A transaction whose rollback the medium refused stays owed: the registry finds it by its open transaction id, not by
 the flag. Witnesses: `TransactionControlTests.A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s`
 (COMMIT and ROLLBACK arms, RELATIVE and INDEXED), `A_deactivated_clause_gives_the_file_its_declared_lock_posture_back` (the
-entry's MANUAL posture back, RED on a mutant that keeps the AUTOMATIC share) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
-RED on a mutant that skips the release. DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
+entry's MANUAL posture back, RED on a mutant that keeps the AUTOMATIC share), the two refused arms
+`A_refused_rollback_that_deactivates_the_clause_leaves_the_files_transaction_owed` and
+`A_refused_commit_deactivates_nothing_and_item_8_restores_the_file_then_deactivates_the_clause` (a refused COMMIT leaves F
+under commit control, so §14.6.13.1.3 item 8's ROLLBACK restores it and only then deactivates the clause; RED on a mutant
+that runs the deactivation before the refusal check, branch review R1-1), and the golden
+`cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`, RED on a mutant that skips the release.
+DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
 
-**PB3492 re-probed and settled; PB3340 not started (the group SPLIT at the note boundary).** On this branch's build a RELATIVE
+**PB3492 re-probed and settled; PB3340 is not in this landing.** PB3340 (the sequential journal, steps 1-4 with its
+witnesses, docs and verdict batch) is implemented on its own branch, `w1157a-pb3340-sequential-journal`, and the loop's branch `worktree-wf_f6f89a51-99e-1` carries a second, partial implementation;
+the two are reconciled before either lands. On this branch's build a RELATIVE
 file under APPLY COMMIT answers '62' to a DELETE FILE after its CLOSE (its own kept handle read as another holder's by
 `HostFile.IsHeldByAnother`), and the re-probe found a sibling with the same root: an OPEN OUTPUT of an existing keyed file
 after a COMMIT, then a ROLLBACK, leaves the file empty (`RECORD 1 ABSENT`), because `KeyedConnector.Recreate` ends the kept
