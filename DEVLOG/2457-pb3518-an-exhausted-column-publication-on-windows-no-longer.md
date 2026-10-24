@@ -1,4 +1,4 @@
-## PB3518 — an exhausted column publication on Windows no longer hides a conflict Table 19 refuses
+## Entry 2457 — 2026-10-24 04:27 PDT — PB3518 — an exhausted column publication on Windows no longer hides a conflict Table 19 refuses
 
 The review of PB3498 flagged a witness (`HandleColumnLockHostDriftTests`) that asserted `Unavailable` for a SHARING WITH ALL OTHER I-O
 request while its own setup kept a READ ONLY INPUT column, which Table 19 (ISO 14.9.27.4) refuses that request against. Re-probed on a
@@ -26,3 +26,4 @@ handle that cannot lock, which ends the loop at the first try) and `Unpublishabl
 
 Self-review: the sidecar host's own exhausted `Publish` (it returns null for "the host takes no lock here" and for 12 lost races
 alike) still answers `Unavailable` without testing; that is reported as a lead because the two causes cannot be told apart at the call.
+
