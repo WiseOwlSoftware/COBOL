@@ -1403,7 +1403,8 @@ public sealed partial class SequentialConnector : FileConnector
         if (!_lineSequential && RecordHasCharacterWithoutByteImage(image.AsSpan(0, Math.Min(image.Length, len))))
             return Status = FileStatusCode.CharacterWithoutByteImage;   // '91' §9.1.13.11 (DOC-A.1-110)
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        if (JournalAppend() is { } held) return Status = held;   // '51': another transaction holds the end (2.2.2.3); R3 written
+        if (JournalAppend(out var appendStep) is { } held) return Status = held;   // '51': another transaction holds the end (2.2.2.3); R3 written
+        using var releaseStep = appendStep;   // an uncovered sharing writer's entry mutex, held through the release (UncoveredChangeGuard)
         // A LINE SEQUENTIAL record goes out as its characters alone: a line is plain text (§12.4.5.10.3 GR2), so
         // `extents` has nowhere to live and is deliberately not consulted by either line arm below — the READ splits
         // the line by the take step (docs/CONFORMANCE.md §3 D-FRA (x); kb/Work PB1563).
@@ -1503,7 +1504,8 @@ public sealed partial class SequentialConnector : FileConnector
         if (!_lineSequential && RecordHasCharacterWithoutByteImage(image.AsSpan(0, Math.Min(image.Length, len))))
             return Status = FileStatusCode.CharacterWithoutByteImage;   // '91' §9.1.13.11 (DOC-A.1-110)
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53' — as WriteRecord (kb/Work PB2848)
-        if (JournalAppend() is { } held) return Status = held;   // as WriteRecord (2.2.2.3, 2.2.2.10: the print stream is covered)
+        if (JournalAppend(out var appendStep) is { } held) return Status = held;   // as WriteRecord (2.2.2.3, 2.2.2.10: the print stream is covered)
+        using var releaseStep = appendStep;   // as WriteRecord
         _printControl = true;
         string text = TrimRecordEnd(IsVarying ? FitRecord(image, len, national) : image, national);
         // §14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
@@ -2069,7 +2071,8 @@ public sealed partial class SequentialConnector : FileConnector
         byte[] bytes = FileCharacterSet.Medium.GetBytes(ToMedium(content, national));
         // R2: the record's image is journaled, and synced, before the overwrite (DESIGN-runtime-library.md 2.2.2.5); '51'
         // when another transaction holds the record (2.2.2.3).
-        if (JournalImage(stream, anchor, framing.Length + bytes.Length) is { } held) return Status = held;
+        if (JournalImage(stream, anchor, framing.Length + bytes.Length, out var imageStep) is { } held) return Status = held;
+        using var releaseStep = imageStep;   // an uncovered sharing writer's entry mutex, held through the release (UncoveredChangeGuard)
         long resume = stream.Position;
         stream.Seek(anchor, SeekOrigin.Begin);
         stream.Write(framing);

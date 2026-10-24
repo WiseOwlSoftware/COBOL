@@ -2085,7 +2085,12 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   UNACKNOWLEDGED — is never committed (finding R1-4): a COMMIT, the program's or the implicit one of a run unit ending
   normally, is refused before it touches the medium and its caller rolls back again, so the abnormal ending's refused
   file-only ROLLBACK is retried by the implicit CLOSE and, still refused, left to the dead-owner step; a store left with no
-  writable handle refuses COMMIT and ROLLBACK ('30') rather than answering them.
+  writable handle refuses COMMIT and ROLLBACK ('30') rather than answering them. The rule is the run unit's registry's, ONE
+  place for every storage engine (`FileRegistry.CommitHolder` over the set of owed transactions; the sequential journal's
+  too, 2.2.2.7, review finding R1-3 of kb/Work PB3340): a refused ROLLBACK, and a COMMIT that left the transaction
+  UNACKNOWLEDGED or reversed and not yet rolled back, each make it owed (a COMMIT refused before its decision does not: the
+  transaction is intact, and a declarative's retry may commit it), and only a ROLLBACK that completes, or the transaction's
+  end by another path, takes it out.
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
   registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4,
   in the region), WRITE, REWRITE and DELETE hold the record they change and the unique key values they free (in the file;
@@ -2724,7 +2729,19 @@ finding R4-1 unchanged: no probe closes a window between itself and a test of a 
 liveness probe are read in the same step, and the holding is a durable record, never a region byte the operating environment
 releases with a dead handle. A WRITE's first change — the test, the drawing of the journal, the reading of L and its record
 — runs under the entry mutex as ONE step, so no other transaction begins on the file between the test and the header (the
-model's interleavings at every operation boundary are what hold this). **The RETRY phrase (§14.7.9.3 GR4 b), as built in
+model's interleavings at every operation boundary are what hold this). **So does the change of a connector no APPLY COMMIT
+names** under a posture that admits another writer (review finding R1-1; `SequentialConnector.UncoveredChangeGuard`): its
+lock test and its WRITE or REWRITE, through the RELEASE of the record to the operating environment, are one step under the
+entry mutex. Tested outside it, another run unit's covered WRITE could begin and read its L between the test and the write,
+so the uncovered record landed at or past L, outside every holding, and that transaction's ROLLBACK (or the settle after its
+death) cut it — a record GR19 and GR12 keep; under it a transaction begins either before the test, which meets its END
+holding ('51'), or after the release, whose bytes its L counts (and its image of a rewritten record holds the uncovered
+bytes). Where this host cannot hold the mutex (a lock directory the process may not create), the uncovered statement
+proceeds without it, DOC-A.1-75's rule for a waiting hold; a covered first change there is refused '30', so no transaction
+of this process begins beside it either. The price is the mutex's lock file per such statement, serializing the WRITEs of
+the uncovered writers that share one file across run units (`unit:SequentialCommitControlTests`
+`An_uncovered_writers_record_is_never_cut_by_a_transaction_that_begins_during_its_write`: the covered WRITE run at the
+uncovered one's release, through the fault-injecting medium's `BeforeOperation` seam). **The RETRY phrase (§14.7.9.3 GR4 b), as built in
 `SequentialConnector.JournalLockTest`):** every journal arm of the test — WRITE, REWRITE and READ, covered or not — is ONE
 attempt function under `FileRegistry.RetryLoop` with the statement's phrase, so a statement that meets a holding waits and
 attempts again exactly as one that meets a region lock does. Each attempt is a whole entry step (a dead owner met on a later
@@ -2902,8 +2919,20 @@ COMMIT (§9.1.16, §9.1.15's last sentence). Every step is idempotent and every 
 and reading open (or `R`, retired by the next settle), so the next entry runs the same sequence again from step 1; the model
 executes a refusal, a death and a power loss at every one of these operations and reads F equal to the state at the last
 COMMIT after each. A rollback the OWNER runs that is refused midway is OWED: the transaction stays open, its holder held, and
-the owner's next COMMIT or ROLLBACK, and its termination path, run the sequence again before anything else; a kill leaves it
-to the next entry. **The connector's own state after its run unit's ROLLBACK** (GR3 restores *"all file and record locks on
+the owner's next ROLLBACK, and its termination path, run the sequence again before anything else, and a COMMIT — the
+program's, or the implicit one of a normal termination — is REFUSED ('30', item 8's ROLLBACK following), never applied: the
+half-run restore a refused step leaves (F truncated by a capture's restore, images written back without the truncation to L)
+is never made permanent, and the before file is never retired under it (the keyed rule of 2.2.1.10 (5), held in the one
+place, `FileRegistry.CommitHolder`; review finding R1-3, witness `unit:SequentialCommitControlTests`
+`A_transaction_whose_rollback_the_medium_refused_is_never_committed`). A handle the owner's rollback opened for the purpose
+(no covered connector holds F) is closed whatever the rollback did, so a refused rollback never leaves one to refuse its own
+retry's START `A` removal (review finding R1-5); a kill leaves it to the next entry. **F shorter than L** (review finding
+R1-4): in a run of the protocol it cannot be, but L is read from the operating environment's view of F, which counts another
+connector's appends that were released and never synced (an uncovered writer's CLOSE flushes; it does not sync), and a power
+loss takes them; then none of the transaction's appends survived (they all lie past L), so step (2) truncates nothing and
+leaves F as it stands — a truncation would extend F with zero bytes, and a refusal left the dead transaction unsettled, every
+later writable OPEN answering '30' until an administrator removed the directory (witness
+`A_dead_transaction_whose_file_is_shorter_than_its_committed_length_is_settled`). **The connector's own state after its run unit's ROLLBACK** (GR3 restores *"all file and record locks on
 those files"* and the file, and leaves the open mode to the implementor): an OUTPUT or EXTEND writer's next WRITE lands at the
 restored end (its stream is repositioned at L, or at the restored file's end — a `SharedAppendStream` repositions at every
 write by construction), and when the rollback REMOVED the file (START `A`) the writer's next WRITE CREATES it again, as its
@@ -3075,7 +3104,8 @@ row the implementation adds and keeps green at every change to the protocol. Mea
 operation log: a covered WRITE adds zero journal operations after the transaction's first, which adds one append and one
 sync (R3); a covered REWRITE in the base phase adds one append and one sync; a capture adds one copy of F, two syncs and one directory sync; a COMMIT adds one sync of F, one directory sync, one
 write and one sync of the record, and the retirement's three deletes and directory sync; a writable OPEN of an uncovered file
-adds one directory listing and nothing else; a rollback of a transaction with m rewritten records and a appended ones writes
+adds one directory listing and nothing else, and its WRITE nothing under a posture that admits no other writer (under
+`SHARING WITH ALL OTHER`, one hold of the entry mutex through its release, 2.2.2.3's uncovered change); a rollback of a transaction with m rewritten records and a appended ones writes
 m records, one truncation when a > 0 and one sync, never a byte of another connector's record.
 
 **2.2.2.14 The keyed organizations' two CAPTURE verbs ride the same journal (kb/Work PB3492; DESIGN, settled 2026-10-23

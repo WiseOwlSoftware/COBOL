@@ -66,6 +66,14 @@ public sealed class FileRegistry
     /// <see cref="_retired"/> keeps a keyed connector's (DESIGN-runtime-library.md 2.2.2.9; kb/Work PB3340).</summary>
     private readonly List<SequentialConnector> _retiredSequential = [];
 
+    /// <summary>⛔ THE TRANSACTIONS A ROLLBACK IS OWED (one rule, one place, for every storage engine: the keyed store's and the
+    /// sequential journal's), each told by <see cref="TransactionHolder.Identity"/>: a ROLLBACK of it the medium refused, or a
+    /// COMMIT of it whose decision the medium may hold or may not (UNACKNOWLEDGED), or whose reversal is still to be rolled back.
+    /// A COMMIT refused before its decision owes nothing: the transaction is intact, and a later COMMIT (a declarative's retry,
+    /// when checking kept item 8's ROLLBACK from running) may commit it. <see cref="Commit"/> never commits one (<see cref="CommitHolder"/>); a ROLLBACK that
+    /// completes takes it out, and a transaction no holder reaches any more is taken out at the next COMMIT or ROLLBACK.</summary>
+    private readonly HashSet<(object Store, ulong Id)> _rollbackOwed = [];
+
     /// <summary>⛔ THE RUN UNIT'S HOST MEDIUM (<see cref="IHostMedium"/>; DESIGN-runtime-library.md 2.2.2.12): every sequential
     /// connector of the run unit and every transaction journal writes through it. The production medium is
     /// <see cref="HostMedium.Production"/>; a witness gives the fault-injecting one.</summary>
@@ -125,6 +133,7 @@ public sealed class FileRegistry
             _files.Clear();
             _retired.Clear();   // CloseAll gave back what they kept
             _retiredSequential.Clear();
+            _rollbackOwed.Clear();   // CloseAll ended every transaction it could; the rest are the dead-owner step's
             _locked.Clear();
             _instSeq = 0;
             while (_pendingObjectClose.TryDequeue(out _)) { }   // a new run unit starts with a clean queue
@@ -1295,32 +1304,15 @@ public sealed class FileRegistry
         {
             foreach (var c in covered) c.FlushForRollback();
             using var mutex = Sequential.HoldEntryMutex(journal.HostPath);
-            IJournalData data = covered.FirstOrDefault() is { } holder ? holder : new ClosedFileData(Medium, journal.HostPath);
-            if (!journal.Rollback(data)) return StoreStatus.PermanentError;
-            (data as IDisposable)?.Dispose();
+            // A handle opened for the purpose is closed whatever the rollback did (review finding R1-5): one left open past a
+            // refusal would refuse the owed rollback's own START A removal on Windows, and another run unit's exclusive OPEN.
+            using var opened = covered.Count == 0 ? new SequentialJournal.AuxiliaryData(Medium, journal.HostPath) : null;
+            if (!journal.Rollback(opened ?? (IJournalData)covered[0])) return StoreStatus.PermanentError;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return StoreStatus.PermanentError; }
         Sequential.End(journal);
         foreach (var c in covered) c.AfterRollback();
         return StoreStatus.Ok;
-    }
-
-    /// <summary>The physical file as the ROLLBACK of a transaction no covered connector holds any more reaches it: a short-lived
-    /// handle of the run unit's medium.</summary>
-    private sealed class ClosedFileData(IHostMedium medium, string hostPath) : IJournalData, IDisposable
-    {
-        private FileStream? _handle;
-
-        public FileStream Writable(bool create) =>
-            _handle ??= medium.OpenAuxiliary(hostPath, create ? FileMode.OpenOrCreate : FileMode.Open, FileAccess.ReadWrite);
-
-        public void Release()
-        {
-            _handle?.Dispose();
-            _handle = null;
-        }
-
-        public void Dispose() => Release();
     }
 
     /// <summary>One physical file's transaction of this run unit, the name it is told by and its file's place in the order of
@@ -1329,6 +1321,15 @@ public sealed class FileRegistry
     private readonly record struct TransactionHolder(string Name, KeyedConnector? Connector, KeptFile? Kept, long Order,
         SequentialJournal? Journal = null)
     {
+        /// <summary>The transaction itself, whoever holds it now: the sequential journal, or the keyed store and its id (a
+        /// connector's and the state its CLOSE kept reach one store, so a transaction keeps its identity across the two).</summary>
+        public (object Store, ulong Id) Identity =>
+            Journal is { } j ? (j, 0) : Connector is { } c ? (c.TransactionStore!, c.OpenTransaction) : (Kept!.Store, Kept.OpenTransaction);
+
+        /// <summary>Whether the transaction <paramref name="identity"/> named still stands: its journal not retired, or its store
+        /// still holding that id (a keyed COMMIT reversed is over, and its id may be drawn again).</summary>
+        public bool Stands((object Store, ulong Id) identity) => Journal is { } j ? !j.Retired : Identity == identity;
+
         public CommitOutcome Commit(FileRegistry registry) =>
             Journal is { } j ? registry.CommitSequential(j) : Connector is { } c ? c.CommitTransaction() : Kept!.CommitTransaction();
 
@@ -1356,14 +1357,40 @@ public sealed class FileRegistry
     /// are not committed; those before it are). Null when every file committed.</para></summary>
     public string? Commit()
     {
-        foreach (var holder in TransactionHolders())
-            if (holder.Commit(this) != CommitOutcome.Committed)
+        foreach (var holder in OwedTransactionHolders())
+            if (CommitHolder(holder) != CommitOutcome.Committed)
             {
                 TellPermanentError(holder.Name);
                 return holder.Name;
             }
         ReleaseCommitLocks();
         return null;
+    }
+
+    /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (§14.9.36.4 GR3, <i>"restored to the state they were in at
+    /// the execution of the last COMMIT statement"</i>; §14.6.13.1.3 item 8; DESIGN-runtime-library.md 2.2.1.10 and 2.2.2.7;
+    /// review findings R1-4 of kb/Work PB3337 and R1-3 of PB3340), for every storage engine in this one place: once a ROLLBACK of
+    /// it was refused, or its COMMIT left it UNACKNOWLEDGED or reversed and not rolled back (<see cref="_rollbackOwed"/>), the only statements the run unit executes
+    /// on it are ROLLBACKs. A later COMMIT, the program's or the implicit one of a run unit that then ends normally (§9.1.18.5),
+    /// is refused before it touches the medium, and its caller rolls back again: the changes a ROLLBACK was asked to undo — a
+    /// half-run restore among them — are never made permanent.</summary>
+    private CommitOutcome CommitHolder(TransactionHolder holder)
+    {
+        var identity = holder.Identity;   // read first: a keyed COMMIT that ends the transaction gives its id back
+        if (_rollbackOwed.Contains(identity)) return CommitOutcome.Refused;
+        var outcome = holder.Commit(this);
+        if (outcome is CommitOutcome.Unacknowledged or CommitOutcome.Reversed && holder.Stands(identity))
+            _rollbackOwed.Add(identity);   // a reversal already rolled back is over
+        return outcome;
+    }
+
+    /// <summary>This run unit's transactions (<see cref="TransactionHolders"/>), with <see cref="_rollbackOwed"/> brought to them:
+    /// a transaction no holder reaches any more (it ended, or the dead-owner step settled it) owes nothing.</summary>
+    private List<TransactionHolder> OwedTransactionHolders()
+    {
+        var holders = TransactionHolders();
+        if (_rollbackOwed.Count > 0) _rollbackOwed.IntersectWith(holders.Select(h => h.Identity));
+        return holders;
     }
 
     /// <summary>⛔ ROLLBACK (§14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are
@@ -1378,12 +1405,18 @@ public sealed class FileRegistry
     public string? Rollback()
     {
         string? refused = null;
-        foreach (var holder in TransactionHolders())
-            if (holder.Rollback(this) != StoreStatus.Ok)
+        foreach (var holder in OwedTransactionHolders())
+        {
+            var identity = holder.Identity;
+            if (holder.Rollback(this) == StoreStatus.Ok)
             {
-                TellPermanentError(holder.Name);
-                refused ??= holder.Name;
+                _rollbackOwed.Remove(identity);
+                continue;
             }
+            _rollbackOwed.Add(identity);
+            TellPermanentError(holder.Name);
+            refused ??= holder.Name;
+        }
         ReleaseCommitLocks();
         return refused;
     }

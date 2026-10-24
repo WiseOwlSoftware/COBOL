@@ -45,6 +45,21 @@ internal sealed class FaultHostMedium : IHostMedium
 
     internal FaultHostMedium(Fault fault = Fault.None, int target = 0) => (_fault, _target) = (fault, target);
 
+    /// <summary>Run before every counted operation with its log entry (<c>kind name</c>), before the fault is considered: the
+    /// seam a case uses to run another run unit's statement at an exact point of this one's (2.2.2.12's interleavings over
+    /// bytes), or to REFUSE every operation of a kind for as long as it chooses (an <see cref="IOException"/> it throws is the
+    /// medium's refusal: a ROLLBACK refused, and its retry refused again).</summary>
+    internal Action<string>? BeforeOperation { get; init; }
+
+    /// <summary>Run whenever the run unit asks for the entry mutex of a physical file, before it holds it.</summary>
+    internal Action? OnEntryMutex { get; init; }
+
+    /// <summary>The handles opened for a purpose (<see cref="OpenAuxiliary"/>) that are still open: a statement that opened one
+    /// closes it, whatever became of the statement.</summary>
+    internal int LiveAuxiliaryHandles => _auxiliary.Count(s => !s.Closed);
+
+    private readonly List<FaultFileStream> _auxiliary = [];
+
     /// <summary>The operations counted so far.</summary>
     internal int Operations => _operations;
 
@@ -62,6 +77,7 @@ internal sealed class FaultHostMedium : IHostMedium
     internal void Operation(string kind, string path)
     {
         if (_dead) throw new Death();
+        BeforeOperation?.Invoke($"{kind} {Path.GetFileName(path)}");
         _operations++;
         Log.Add($"{kind} {Path.GetFileName(path)}");
         if (Fired || _operations != _target) return;
@@ -178,8 +194,12 @@ internal sealed class FaultHostMedium : IHostMedium
     public Stream OpenConnectorWriteStream(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
         HostFile.WriteStreamOf(mode, access, share, (hostMode, options) => Open("open", hostPath, hostMode, access, share, options));
 
-    public FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
-        Open("aux", hostPath, mode, access, FileShare.ReadWrite, FileOptions.None);
+    public FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access)
+    {
+        var stream = Open("aux", hostPath, mode, access, FileShare.ReadWrite, FileOptions.None);
+        _auxiliary.Add((FaultFileStream)stream);
+        return stream;
+    }
 
     public FileStream OpenTransient(string path, FileMode mode, FileAccess access) =>
         Open("transient", path, mode, access, FileShare.ReadWrite | FileShare.Delete, FileOptions.None);
@@ -237,6 +257,7 @@ internal sealed class FaultHostMedium : IHostMedium
     public RegionLocks EntryMutex(string hostPath)
     {
         if (_dead) throw new Death();
+        OnEntryMutex?.Invoke();
         var mutex = HostMedium.Production.EntryMutex(hostPath);
         _mutexes.Add(mutex);
         return mutex;
@@ -250,6 +271,15 @@ internal sealed class FaultHostMedium : IHostMedium
 
         /// <summary>Set while an overridden member runs, so the base's own calls to another overridden member count once.</summary>
         private bool _inside;
+
+        /// <summary>Whether the handle was closed (disposed, by its owner or by a kill).</summary>
+        internal bool Closed { get; private set; }
+
+        protected override void Dispose(bool disposing)
+        {
+            Closed = true;
+            base.Dispose(disposing);
+        }
 
         private void Count(string kind)
         {

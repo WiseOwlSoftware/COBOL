@@ -50,11 +50,18 @@ internal sealed class SequentialTransactions(IHostMedium medium, Func<long> next
     /// waiting for another run unit's entry step: the returned endpoint holds it until disposed. A host that cannot hold it here (a
     /// lock directory this process may not create or list) is a refused first change: <see cref="IOException"/>, the statement's
     /// '30' (2.2.2.12: "a lock directory the process may not create — '30' at that statement (R1 refused), F unchanged").</summary>
-    internal RegionLocks HoldEntryMutex(string hostPath)
+    internal RegionLocks HoldEntryMutex(string hostPath) =>
+        TryHoldEntryMutex(hostPath)
+        ?? throw new IOException($"the entry mutex of '{hostPath}' cannot be held: its lock directory cannot be written here (DOC-A.1-75)");
+
+    /// <summary>The entry mutex as <see cref="HoldEntryMutex"/> holds it, or null where this host cannot hold it here: the WAITING
+    /// hold's rule for a connector whose statement changes no transaction (DOC-A.1-75: it <i>"proceeds without the cross-run-unit
+    /// mutex for that statement"</i>; <see cref="SequentialConnector"/>'s uncovered writer under <c>SHARING WITH ALL OTHER</c>).</summary>
+    internal RegionLocks? TryHoldEntryMutex(string hostPath)
     {
         var mutex = Medium.EntryMutex(hostPath);
         if (mutex.Hold(HostRegionLocks.EntryMutexByte, exclusive: true, wait: true) == RegionLockResult.Ok) return mutex;
         mutex.Dispose();
-        throw new IOException($"the entry mutex of '{hostPath}' cannot be held: its lock directory cannot be written here (DOC-A.1-75)");
+        return null;
     }
 }
