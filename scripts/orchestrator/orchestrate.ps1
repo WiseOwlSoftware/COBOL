@@ -97,6 +97,12 @@ $ErrorActionPreference = 'Stop'
 $LaunchParameters = @{} + $PSBoundParameters   # for the in-place restart (Restart-Supervisor)
 Set-StrictMode -Version Latest
 
+# The checkout's HEAD at the moment this process loaded its script (PowerShell reads it once, here). adopt_main.py compares
+# the supervisor's script at this commit with the checkout's NOW, so a restart follows a fast-forward made by anyone (the
+# attended session's `git merge --ff-only` after a ledger publish is owed too), not only the loop's own (kb/Work PB2699).
+$LoadedHead = [string](& git -C $RepoDir rev-parse HEAD 2>$null)
+if ($LASTEXITCODE -ne 0) { $LoadedHead = '' }
+
 $Here = $PSScriptRoot
 $Schema = Join-Path $Here 'handoff.schema.json'
 $UnitModel = @{ wave = 'opus'; campaign = 'opus'; enqueue = 'opus'; resume = 'opus'; meter = 'sonnet' }
@@ -237,7 +243,7 @@ function Start-LaneTick {
 # supervisor's own script, the supervisor restarts in place (below) so a landed process fix applies at the NEXT unit.
 function Invoke-AdoptMain {
     try {
-        $a = Invoke-Py @((Join-Path $Here 'adopt_main.py'), 'adopt', '--repo', $RepoDir, '--coord', $CoordDir, '--gh', $GhExe, '--json') | ConvertFrom-Json
+        $a = Invoke-Py @((Join-Path $Here 'adopt_main.py'), 'adopt', '--repo', $RepoDir, '--coord', $CoordDir, '--gh', $GhExe, "--loaded=$LoadedHead", '--json') | ConvertFrom-Json
         Say $a.line
         return $a
     } catch { Say "main not adopted (the loop continues on the checkout as it is): $_"; return $null }
