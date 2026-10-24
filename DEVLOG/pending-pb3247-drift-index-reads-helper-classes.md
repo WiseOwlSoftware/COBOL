@@ -47,3 +47,7 @@ gate_plan.py's tier docstring.
 
 **Self-review.** Architecture: one index, and the gate still asks only `governed`. Duplication: the copied helper table
 was a second copy of TestRepo, and it is gone. Performance: each source is read once and each use scan is memoized.
+
+**Gate** (run 000001-20261024T015348Z, head 84c6d1b09; leg 1 ran 205 Unit and 24 Conformance tier-0d cases, among them
+HostWitnessTraitDriftTests and TrackedTreeScopeDriftTests): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,336 · Unit 1,256 · Characterization 31`.
