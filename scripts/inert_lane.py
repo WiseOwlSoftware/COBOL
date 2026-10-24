@@ -129,15 +129,14 @@ WATCH_VERDICT = "=== INERT WATCH: "
 
 
 def watch_dirs(root: Path) -> list[str]:
-    """The directories to watch: every directory an inert tracked path lies in, and every inert directory itself and its
-    parent (an open of a directory is an event in the directory and, named, in its parent)."""
+    """The directories to watch: the directory every inert tracked FILE lies in, and an inert tracked path that is itself
+    a directory (a submodule's gitlink). A watched directory reports an open of a file in it, named, and an open of the
+    directory itself (a listing), unnamed; so no directory above the inert ones is watched, and the many opens there
+    (the repository root's) never reach the watch."""
     dirs: set[str] = set()
     for p in tracked(root):
-        if not is_inert(p):
-            continue
-        parts = p.split("/")
-        for i in range(len(parts)):
-            dirs.add("/".join(parts[:i]))
+        if is_inert(p):
+            dirs.add(p if (root / p).is_dir() else p.rpartition("/")[0])
     return sorted(d for d in dirs if (root / d).is_dir())
 
 
@@ -271,7 +270,7 @@ def self_test() -> int:
         expect("a code file renamed INTO an inert directory shows both names, so the change is full",
                (sorted(changed(root, base)), classify(changed(root, base)).name), (["DEVLOG/a.cs", "src/a.cs"], "full"))
         expect("the watch covers every directory an inert tracked path lies in, the register's excluded",
-               watch_dirs(root), ["", "DEVLOG", "kb", "kb/Spec"])
+               watch_dirs(root), ["DEVLOG", "kb/Spec"])
         if sys.platform.startswith("linux"):
             reader = [sys.executable, "-c", "import sys; open(sys.argv[1]).read()"]
             lister = [sys.executable, "-c", "import os, sys; os.listdir(sys.argv[1])"]

@@ -5,10 +5,10 @@ name: Build and Test
 # and a required check is satisfied per COMMIT — so a workflow that declines to START leaves the pushed sha with
 # no check at all and the protection blocks it FOREVER. `paths-ignore` and branch protection are therefore
 # mutually exclusive; measured 2026-09-06, the three docs-only pushes after train 21 produced NO run at all.
-# The saving the ignore list bought is kept, one layer down: the `changes` job below decides from the SAME path
-# list whether the MATRIX runs. A docs-only push still starts a run — but that run is `changes` + `audits` +
-# `ci-gate` and finishes in about a minute, so "docs-only pushes do not trigger CI/CD" holds in the sense that
-# costs anything. (`audits` is never skipped: a docs-only push is exactly where a wrong citation arrives.)
+# The saving the ignore list bought is kept, one layer down: the `changes` job below decides whether the MATRIX runs,
+# from THE INERT LANE (scripts/inert_lane.py, kb/Work PB2878): a change confined to paths no test reads still starts a
+# run, but that run is `changes` + `audits` + `ci-gate` and finishes in about a minute. (`audits` is never skipped: an
+# inert change is exactly where a wrong citation or a malformed register note arrives.)
 on:
   push:
     # `main` — the branch the protection guards, and the branch every instrument already reads
@@ -50,6 +50,11 @@ concurrency:
 # across cores (guard-fast.sh), and NuGet packages are cached. All jobs are independent gates — a failure in one
 # is never masked by another.
 #
+# ⛔ EVERY LINUX `dotnet test` STEP RUNS UNDER THE INERT WATCH (`python3 scripts/inert_lane.py watch -- dotnet test …`;
+# kb/Work PB2878, InertLaneDriftTests): a test that opens a path the inert lane classes as read by no test turns its step
+# RED naming the path, so the classification that lets an inert change skip this matrix stays true. The Windows steps
+# run the same tests and need no watch of their own (Windows has no open events).
+#
 # EVERY direct `dotnet test` step also writes a TRX log (--logger trx, --results-directory TestResults/<OS>-<job>/)
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
 # red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
@@ -71,11 +76,12 @@ concurrency:
 # is how CI scrubs; `python scripts/test_population.py audit-callers` (GateLegDriftTests arm 6) is red on one. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
 # output, not a `dotnet test` exit.
 jobs:
-  # ── ⛔ THE ONE PLACE THE DOC-ONLY PATH LIST LIVES. It used to be `paths-ignore` on the push trigger, where it
-  # decided whether the workflow RAN AT ALL — incompatible with a required status check (see the header). It now
-  # decides whether the MATRIX runs, inside a run that always happens, so every commit gets a `ci-gate` verdict
-  # and a docs-only commit still lands in seconds. There is exactly ONE copy of the list (here); the trigger no
-  # longer carries a second one for it to drift against (feedback_one_rule_one_place). ──
+  # ── ⛔ WHETHER THE MATRIX RUNS: THE INERT LANE (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A path list here used
+  # to decide it (`paths-ignore` on the trigger first, which left a sha with no check at all under the required status
+  # check, then a doc-only regex in this job); but that list was not a classification: `docs/` and `kb/Work/` are TEST
+  # INPUTS, so a change to them skipped the very tests that read them (kb/Work PB3603). The classification now has ONE
+  # home, scripts/inert_lane.py, which this job, the local gate and the landing's Linux gate all call, and which the
+  # inotify watch on every Linux test step below proves: a test that opens an inert path turns its step RED. ──
   changes:
     name: changes (does this commit need the matrix?)
     runs-on: ubuntu-26.04
@@ -100,7 +106,7 @@ jobs:
           # all `--name-only` reads — seconds, not a full clone with every historical blob.
           fetch-depth: 0
           filter: blob:none
-      - name: Decide — docs-only, or does the matrix have to run?
+      - name: Decide — the inert lane, or does the matrix have to run?
         id: decide
         shell: bash
         env:
@@ -115,12 +121,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
-          # ⛔ THE DOC-ONLY LIST — the set the retired `paths-ignore` block carried, plus the agent tooling that no
-          # matrix test reads or runs (2026-09-29): `.claude/` (skills, briefs, agent definitions, the settings that
-          # wire local hooks) and the `tools/claude-skills` submodule pin. The briefs ARE validated on every push, by
-          # the audits job's fleet-practices check, which is not behind `run_matrix`. A skills-and-pin commit used to
-          # run the full matrix (~11 min) for nothing.
-          IGNORE='^(DEVLOG/|PROMPT\.md|CLAUDE\.md|README\.md|docs/|kb/|\.claude/|tools/claude-skills$)'
           ZERO=0000000000000000000000000000000000000000
           code=true; verified=false; reason=""; BASE=""
           if [ "$EVENT" = "pull_request" ]; then
@@ -154,18 +154,16 @@ jobs:
             if [ -z "$BASE" ]; then
               reason="no usable base (before=${BEFORE:-<unset>}, ref=$REF) — the matrix runs"
             else
-              git diff --name-only "$BASE" "$SHA" > changed.txt
-              echo "--- changed paths ($BASE..$SHA) ---"; cat changed.txt
-              if [ ! -s changed.txt ]; then
-                # An empty diff is not evidence of a docs-only change, it is evidence of a no-op or a probe.
-                # Fail toward running (feedback_verdict_evidence_invariant: a MISSING observation is not a
-                # negative one).
-                reason="empty diff over $BASE..$SHA — the matrix runs; an empty diff is not a docs-only proof"
-              elif grep -Ev "$IGNORE" changed.txt > code.txt; then
-                reason="$(grep -c . code.txt) path(s) outside the doc-only list, e.g. $(head -1 code.txt)"
-              else
+              echo "--- changed paths ($BASE..$SHA) ---"; git diff --name-only --no-renames "$BASE" "$SHA"
+              # THE ONE CLASSIFICATION (scripts/inert_lane.py; kb/Work PB2878). An empty diff is the full lane: it is
+              # evidence of a no-op or a probe, never that no test reads the change (feedback_verdict_evidence_invariant).
+              lane_out="$(python3 scripts/inert_lane.py classify --base "$BASE" --head "$SHA")"
+              lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
+              if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
                 code=false
-                reason="every changed path is DEVLOG/ / PROMPT.md / CLAUDE.md / README.md / docs/ / kb/ / .claude/ / the tools/claude-skills pin — the matrix is skipped"
+                reason="inert lane over $BASE..$SHA: $lane_reason — the matrix is skipped"
+              else
+                reason="full lane over $BASE..$SHA: ${lane_reason:-$lane_out}"
               fi
             fi
           fi
@@ -249,8 +247,8 @@ jobs:
   # and battery phase -1. Every commit that never ran the local gate (a cloud registrar's, a golden lane's, any
   # docs-only landing) therefore reached main unaudited: FOURTEEN wrong or unqualified clause numbers did, and every
   # later wave-local verdict went RED on findings nobody in that wave had written. They run HERE, where `ci-gate`
-  # can refuse them, and NOT behind `run_matrix`: `kb/`, `docs/` and `CLAUDE.md` are exactly the doc-only paths,
-  # and they carry citations.
+  # can refuse them, and NOT behind `run_matrix`: `kb/` and `DEVLOG/` are the inert lane's paths, which skip the
+  # matrix, and they carry citations.
   # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
   # submodule holds only the PDF) — and only the standard library of the runner's python3, which also runs their
   # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
@@ -478,7 +476,7 @@ jobs:
           COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
-          dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
+          python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
             --filter "${{ matrix.filter }}" \
             --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
             2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
@@ -530,13 +528,13 @@ jobs:
       - name: Greenfield unit tests
         env:
           COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         env:
           COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
       # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
       # legs, so a red self-test never hides their results.
@@ -711,7 +709,7 @@ jobs:
           COBOLNET_NIST_STD: "2023"
           COBOLNET_NIST_PERMISSIVE: "1"
           COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
