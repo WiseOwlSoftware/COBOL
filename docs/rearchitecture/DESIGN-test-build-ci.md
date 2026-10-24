@@ -99,6 +99,21 @@ on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The ni
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
 
+**⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
+results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
+can be read without a re-run. Every upload goes through ONE step, the composite action `.github/actions/upload-results`:
+it tries the upload three times (30 s, then 90 s apart; each retry `overwrite: true`), and when all three fail it warns
+and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a conformance shard's
+trx and listing, is checked by the job that reads it: `conformance-population` downloads through
+`.github/actions/download-results` (three attempts; only the third failure fails the step), and a shard whose upload
+was lost is absent from the union it checks, so the guard fails there and names the missing cases. Before this, a bare
+`actions/upload-artifact` step under `always()` made the artifact service part of the verdict: merge-group run
+38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard, its upload failed on
+`ETIMEDOUT`, and the merge queue removed the pull request. No workflow names the raw upload or download action; the
+drift test holds every step, and both actions' retry shape, to this rule. (`actions/cache` needs no such step: a
+cache restore or save that fails only warns. The one network fetch a job makes itself, the GnuCOBOL testsuite on a
+cache miss, retries the same way inside `scripts/fetch-gnucobol-tests.ps1`: three attempts before it fails.)
+
 **⛔ `ci-gate` is a REQUIRED status check on `main`** (owner decision 2026-09-06, question 23; `kb/Work/PB796`),
 with `enforce_admins: true` — an administrator exemption would be worthless when every push to this repository is
 made with the owner's credentials. It is the terminal job: `if: always()`, `needs:` every other job, and it PASSES
