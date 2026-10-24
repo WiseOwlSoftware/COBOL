@@ -67,21 +67,32 @@ public static class NumericLiteral
         string t = text.Trim();
         int e = t.IndexOfAny(['E', 'e']);
         if (e <= 0 || e == t.Length - 1) return false;
-        return IsFixedPointForm(t[..e], allowPoint: true) && IsFixedPointForm(t[(e + 1)..], allowPoint: false);
+        return IsSignedDigitsForm(t[..e], allowPoint: true) && IsSignedDigitsForm(t[(e + 1)..], allowPoint: false);
+    }
 
-        static bool IsFixedPointForm(string s, bool allowPoint)
+    /// <summary>⛔ THE ONE fixed-point numeric literal SPELLING test — ISO §8.3.3.3.2, on the text exactly as given (no
+    /// trimming, no digit-count limit): at least one digit (rule 1), at most one sign and it the leftmost character
+    /// (rule 2), at most one decimal point and never as the rightmost character (rule 3). <c>7</c>, <c>-2.5</c> and
+    /// <c>+.5</c> are fixed-point numeric literals; <c>5.</c>, <c>1,000</c>, <c>+</c>, <c>1E5</c> and <c>" 7"</c> are not.
+    /// It is the FORM only — whether the digit count fits the edition's capacity (1 through 31 digits) is the
+    /// compile-time evaluator's, which reports it where the literal is used.</summary>
+    public static bool IsFixedPointLiteralForm(string text) => IsSignedDigitsForm(text, allowPoint: true) && !text.EndsWith('.');
+
+    /// <summary>An optional leading sign, then digits and (when <paramref name="allowPoint"/>) at most one decimal
+    /// point, with at least one digit — the shared body of a fixed-point significand, an exponent and the
+    /// fixed-point literal spelling (whose rightmost-point rule is <see cref="IsFixedPointLiteralForm"/>'s).</summary>
+    private static bool IsSignedDigitsForm(string s, bool allowPoint)
+    {
+        int i = 0;
+        if (i < s.Length && s[i] is '+' or '-') i++;
+        bool digit = false, point = false;
+        for (; i < s.Length; i++)
         {
-            int i = 0;
-            if (i < s.Length && s[i] is '+' or '-') i++;
-            bool digit = false, point = false;
-            for (; i < s.Length; i++)
-            {
-                if (char.IsAsciiDigit(s[i])) { digit = true; continue; }
-                if (s[i] == '.' && allowPoint && !point) { point = true; continue; }
-                return false;
-            }
-            return digit;
+            if (char.IsAsciiDigit(s[i])) { digit = true; continue; }
+            if (s[i] == '.' && allowPoint && !point) { point = true; continue; }
+            return false;
         }
+        return digit;
     }
 
     /// <summary>Which ISO §8.3.3.3.3 form rule a floating-point literal violates (kb/Work PB99), or None.</summary>
