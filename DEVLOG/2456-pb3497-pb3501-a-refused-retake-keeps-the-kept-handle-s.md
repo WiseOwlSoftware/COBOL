@@ -1,4 +1,4 @@
-## PB3497, PB3501: a refused retake keeps the kept handle's holdings, and the two-attempt re-OPEN over a kept handle is witnessed
+## Entry 2456 — 2026-10-24 04:27 PDT — PB3497, PB3501: a refused retake keeps the kept handle's holdings, and the two-attempt re-OPEN over a kept handle is witnessed
 
 Two review leads on the keyed connectors' re-OPEN under commit control, both a missing witness in
 `CommitRollbackRuntimeTests`; one of them showed a defect.
@@ -33,3 +33,4 @@ Mutation-checked (the rehome removed; the retake removed).
 Rows re-verdicted: none (both notes claim no inventory row). Found and not fixed: after the refused retake the kept state has a
 handle but its store has no file, so the program's own ROLLBACK or COMMIT before the connector's next OPEN is refused '30' though
 the medium answers again; the transaction itself is safe. Registered as a lead.
+
