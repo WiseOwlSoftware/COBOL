@@ -153,7 +153,7 @@ public static partial class CobolIntrinsics
             }
             if (fits) return CobolDec.From(b < 0 && (e & 1) != 0 ? -(Int128)acc : (Int128)acc, 0);
         }
-        return CobolDec.FromDouble(Math.Pow((double)b, (double)e));
+        return CobolDec.FromApproximation(Math.Pow((double)b, (double)e));
     }
 
     /// <summary>⛔ Native <c>**</c> of a SCALED or SDIDI-carried base to an INTEGER exponent (kb/Work PB2617) — the twin of

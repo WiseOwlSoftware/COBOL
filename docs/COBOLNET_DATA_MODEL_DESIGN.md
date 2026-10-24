@@ -1207,7 +1207,7 @@ mask's integer-digit count), round the dropped digits through the ONE `CobolNum.
 mode (TRUNCATION for a MOVE, §14.6.8.4 rule 2; the receiver's ROUNDED [MODE] for an arithmetic store, §14.7.4.3 rules
 3-10 — a carry out of the last digit renormalizes and the exponent is tested AFTER it, §14.7.5 case 3 "after … any
 applicable rounding specifications"; kb/Work PB2638), then render — no float on the store path (a binary64 sender enters
-through `CobolDec.FromDouble`). (8) the MOVE overflow "undefined" content is PINNED to the saturated extreme image
+through `CobolDec.FromBinary64ToOdd`, its exact value). (8) the MOVE overflow "undefined" content is PINNED to the saturated extreme image
 (all-nines significand at the maximum exponent, the value's sign) — a CONFORMANCE.md determination; MOVE
 underflow is the rule-8 zero image with no exception; the arithmetic store raises the size error on BOTH
 (receiver unchanged), and names EC-SIZE-TRUNCATION like every sibling receiver arm. (9) the §15.43.4 / §15.58.4 r1 well-formedness rule is enforced AT THE FUNCTION REFERENCE:

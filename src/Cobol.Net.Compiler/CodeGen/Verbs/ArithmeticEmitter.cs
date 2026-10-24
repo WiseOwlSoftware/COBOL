@@ -472,6 +472,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     public void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = ctx.Writer;
+        // ⛔ A LONE FLOATING-POINT OPERAND IS AN SDIDI TOO (kb/Work PB1606). Under a standard-decimal mode every operation
+        // yields the SDIDI, so a float ITEM reaches this funnel as a binary64 only when it is the whole expression
+        // (`COMPUTE R = F`, `ADD F GIVING R`): §8.8.1.5.1 makes standard-decimal the method of evaluating "an arithmetic
+        // expression, an arithmetic statement", and §8.8.1.5.2 r1 converts "any operand of an arithmetic expression", a
+        // lone one included. It lifts through the ONE conversion (CobolDec.FromBinary64) every other float operand uses,
+        // instead of landing natively where `F + 0` converted: the two statements then store one value.
+        if (num.StandardDecimal && value.Real)
+            value = new NumX(num.DecOperand(value), 0, Dec: true);
         // ⛔ ONE INITIAL EVALUATION, AND ONE §14.7.4.3 r7 GATE OVER IT, FOR EVERY FIXED-SCALE RECEIVER CATEGORY
         // (kb/Work PB654). Both halves used to live inside the plain-numeric arm alone, and both were wrong there.
         //
