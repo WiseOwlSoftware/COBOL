@@ -212,16 +212,6 @@ class ExclusiveLock:
         self.release()
 
 
-def drop_git_local_env() -> None:
-    """Make this process's git calls act on the repository their cwd names. A self-test that builds its OWN
-    repositories must call it first: a git hook exports GIT_DIR and GIT_INDEX_FILE (and linux-gate.sh exported GIT_DIR
-    and GIT_WORK_TREE until PB1732 moved it to a clone), and under either every `git init`/`commit`/`worktree add` acted on
-    the caller's REAL repository (measured 2026-09-29, wave 72 group G, kb/Work PB1719). Git names the variables."""
-    for name in subprocess.run(["git", "rev-parse", "--local-env-vars"], check=True, capture_output=True,
-                               text=True, encoding="utf-8").stdout.split():
-        os.environ.pop(name, None)
-
-
 def git_common_dir(repo: Path = REPO) -> Path:
     """The git common dir of the repository `repo` is a checkout of — one directory shared by the main checkout and
     every linked worktree, where the gate's shared state lives (the slots, the timings store)."""
@@ -830,9 +820,12 @@ def _wait_until(predicate: Callable[[], bool], what: str) -> None:
 
 
 def self_test() -> int:
-    # ⛔ HERMETIC: the self-test builds its OWN repositories (see drop_git_local_env); dropping the variables here also
-    # covers the gate children the arms start.
-    drop_git_local_env()
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
+    # ⛔ HERMETIC: the self-test builds its OWN repositories, and a git hook exports GIT_DIR and GIT_INDEX_FILE, under
+    # which every `git init`/`commit`/`worktree add` once acted on the caller's REAL repository (measured 2026-09-29,
+    # wave 72 group G, kb/Work PB1719); dropping the variables from this process also covers the gate children the
+    # arms start.
+    isolate()
     me = str(Path(__file__).resolve())
     py = sys.executable
     root = Path(tempfile.mkdtemp(prefix="gate-slot-selftest-"))
@@ -881,17 +874,13 @@ def self_test() -> int:
         return [py, "-c", f"open({str(log)!r},'a').write({name!r}+'\\n')"]
 
     try:
-        git = ["git", "-c", "user.name=gate-slot", "-c", "user.email=gate-slot@invalid", "-c", "init.defaultBranch=main"]
-
         def make_repo(name: str, one_slot: bool = True) -> tuple[Path, Path]:
             """A throwaway repository and one linked worktree of it: its own slot directory and settings. The queue
             arms prove FIFO, release and sharing on ONE slot, so they set cap 1 explicitly (`one_slot`); the arms
             about the coded defaults start with no settings file at all."""
-            repo, wt = root / name, root / f"{name}-linked"
-            repo.mkdir()
-            for argv in (["init", "-q"], ["commit", "-q", "--allow-empty", "-m", "self-test"],
-                         ["worktree", "add", "-q", "--detach", str(wt)]):
-                subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
+            scratch = ScratchRepo.init(root / name)
+            scratch.commit("self-test", allow_empty=True)
+            repo, wt = scratch.path, scratch.worktree(root / f"{name}-linked", detach=True).path
             if one_slot:
                 GateSettings.write(slot_dir(repo), "cap", 1, None, "self-test: the queue arms use one slot", "self-test")
             return repo, wt

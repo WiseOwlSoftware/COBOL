@@ -8,13 +8,16 @@ fast-forward lets it mark.
 Run: python scripts/orchestrator/test_ledger_state.py   (a fabricated repo and its bare origin in a temp directory)."""
 import json
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "spec"))
+sys.path.insert(0, str(HERE.parent))
 import gen_ledger  # noqa: E402
+from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
 
 TMP = pathlib.Path(tempfile.mkdtemp(prefix="ledger-state-test-"))
 REPO, COORD, ORIGIN, LANDER = TMP / "repo", TMP / "coord", TMP / "origin.git", TMP / "lander"
@@ -26,15 +29,11 @@ def check(name, got, want):
         fails.append(f"{name}: got {got!r}, want {want!r}")
 
 
-def git(*a, cwd=REPO):
-    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *a], cwd=cwd, check=True, capture_output=True)
-
-
-def land(msg, cwd=REPO):
-    """Commit the working tree and push it to main, as a landing does."""
-    git("add", ".", cwd=cwd)
-    git("commit", "-q", "-m", msg, cwd=cwd)
-    git("push", "-q", "origin", "main", cwd=cwd)
+def land(msg, at=None):
+    """Commit the working tree of `at` (the checkout, unless a lander's clone) and push it to main, as a landing does."""
+    clone = at or scratch
+    clone.commit(msg)
+    clone.git("push", "-q", "origin", "main")
 
 
 def run(cmd, *extra, acct="account1", want=0):
@@ -49,10 +48,8 @@ COORD.mkdir(parents=True)
 (COORD / "ledger-published.json").write_text(json.dumps({"stamp": "legacy", "published_at": "2026-10-07"}), encoding="utf-8", newline="\n")
 
 
-REPO.mkdir(parents=True)
-git("init", "-q", "--bare", "-b", "main", str(ORIGIN), cwd=TMP)
-git("init", "-q", "-b", "main")
-git("remote", "add", "origin", str(ORIGIN))
+scratch = ScratchRepo.init(REPO)
+scratch.origin(ORIGIN)
 input_file = REPO / "kb" / "Work" / "PB1.md"                     # kb/Work is one of gen_ledger.STAMP_PATHS
 check("kb/Work is an input of the page", "kb/Work" in gen_ledger.STAMP_PATHS, True)
 input_file.parent.mkdir(parents=True)
@@ -99,21 +96,22 @@ land("a census record")
 check("a census record no longer makes it owed", run("owed")["state"], "current")
 
 # kb/Work PB2987: a landing pushed from ANOTHER clone (a lander's worktree) while the checkout stays behind
-git("clone", "-q", str(ORIGIN), str(LANDER), cwd=TMP)
+lander = ScratchRepo.clone(ORIGIN, LANDER)
 (LANDER / "kb" / "Work" / "PB2.md").write_text("landed elsewhere", encoding="utf-8", newline="\n")
-land("a train landed from a lander's worktree", cwd=LANDER)
+land("a train landed from a lander's worktree", at=lander)
 s = run("owed")
 check("a landing pushed from another clone is owed (main's stamp, fetched)", s["state"], "owed")
 check("the stale checkout is named", (s["checkout_current"], s["checkout_stamp"] == s["published_stamp"]), (False, True))
 check("mark-published refuses a page rendered from the stale checkout", "merge --ff-only" in run("mark-published", want=2), True)
 check("still owed after the refusal", run("owed")["state"], "owed")
-git("merge", "-q", "--ff-only", "origin/main")
+scratch.git("merge", "-q", "--ff-only", "origin/main")
 run("mark-published")
 check("current once the checkout is fast-forwarded and marked", (run("owed")["state"], run("owed")["checkout_current"]),
       ("current", True))
 check("a main ref that names nothing is refused, never read as current",
       "names no commit" in run("owed", "--main-ref", "origin/no-such-branch", want=2), True)
 
+shutil.rmtree(TMP, ignore_errors=True)   # the scratch repository, its origin, the lander's clone and the coordination
 if fails:
     print("\n".join("FAIL: " + f for f in fails))
     sys.exit(1)
