@@ -75,7 +75,9 @@ OO mechanism (feedback_one_mechanism_per_job):
   CALL's NOT ON EXCEPTION test (GR3i) only when a USE AFTER EXCEPTION OBJECT declarative took it or the named arm
   raised it. The SAME pickup runs after every CALL and after every INVOKE of every form — Instance/Self/Super/Factory,
   UNIVERSAL, and New, whose `NEW OVERRIDE` is a user method that INVOKE SELF "NEW" reaches (kb/Work PB1582) — in the
-  one INVOKE tail `OoEmitter.EmitInvocationReturned`, after the §14.9.40.4 GR17 termination question (kb/Work PB1177).
+  one activation tail `CallEmitter.EmitActivationReturned`, BEFORE the §14.9.40.4 GR17 termination question (kb/Work
+  PB1177, PB3246: the termination unwinds the rest of a SORT's range, so asked first it left the staged condition to be
+  raised at the activator's next, unrelated activation).
   GR1b's result-before-exception ordering falls out of stage-then-`throw MethodReturn` + the entry catch
   delivering RETURNING/copy-outs before the site's pickup.
 - **Headers**: the PD-header RAISING phrase (§14.2.1 — `exception-name-1 | [FACTORY OF] object-class-name-1 |
@@ -763,8 +765,15 @@ terminates the run unit owes no copy-out). GOBACK / EXIT PROGRAM / STOP in the S
 own signals through the same `finally`. In ANOTHER element's declarative an EXIT PROGRAM or GOBACK is that element's
 return: `__RunUse` notes it with a declining filter on the return signal (`CobolSort.UseProcedureExited`), the return
 completes (copy-out, RETURNING), and the SORT is terminated in the activator (`SortFileTable.AfterActivationReturn`,
-asked by `ProgramTable.CallProgram` after every CALL and function activation and by every INVOKE site once
-§14.9.23.4 GR8 has placed the method's result, `OoEmitter.EmitInvocationReturned` — never in the method itself, whose
+asked by every activating site in `CallEmitter.EmitActivationReturned` — the one tail of a CALL, a function activation
+and every INVOKE form — once §14.9.23.4 GR8 has placed the result AND the propagation pickup has run, so a
+`GOBACK … RAISING` the same activation staged is raised in the activator before the SORT is terminated, never at its next
+activation (kb/Work PB3246; §14.9.18.4 GR1 b), §14.9.40.4 GR17). The request is the RETURNING activation's own: a site that
+emits a pickup TAKES it out of the run unit's pending slot before the pickup (`SortFileTable.TakeActivationReturnTermination`)
+and acts on it after (`TerminateAfterActivation`), because the pickup can run the activator's USE procedure and a CALL or
+INVOKE inside that declarative would otherwise consume it and cut the declarative short (review R1-1); a RESUME AT
+procedure-name taken by that declarative supersedes the request. The host boundary asks it in `ProgramTable.CallFromHost`
+— never in the method itself, whose
 result the termination would drop; the filter is in every EC-model `__RunUse` and in the EC-free one from the 2002 edition on, where GR17
 arrives). MERGE registers nothing — its rules (§14.9.24.4) carry no such sentence — so a statement of a MERGE output procedure is
 its own applicable statement and its RESUME AT NEXT STATEMENT continues the procedure (docs/CONFORMANCE.md §3). An

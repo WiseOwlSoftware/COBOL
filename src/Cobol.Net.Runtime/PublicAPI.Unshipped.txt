@@ -130,6 +130,8 @@ static CobolNet.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int act
 static CobolNet.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
 static CobolNet.Runtime.IO.CobolSort.UseProcedureExited(object! useScope) -> bool
 static CobolNet.Runtime.IO.CobolSort.AfterActivationReturn() -> void
+static CobolNet.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string?
+static CobolNet.Runtime.IO.CobolSort.TerminateAfterActivation(string? terminated) -> void
 static CobolNet.Runtime.Exceptions.SortTerminationSignal.EndsActivation(ref bool ended) -> bool
 const CobolNet.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
 static CobolNet.Runtime.MoveValidity.FigurativeRefusal(bool zero, bool booleanCharacters, CobolNet.Runtime.Table16Category receiver) -> string?
