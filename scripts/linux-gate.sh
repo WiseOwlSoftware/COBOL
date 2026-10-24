@@ -640,7 +640,9 @@ targeted_leg() {
       --results "$results" ) > "$out/targeted.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))
-  [ -d "$results" ] && cp -r "$results"/. "$out/" 2>/dev/null
+  if [ -d "$results" ] && ! cp -r "$results"/. "$out/"; then
+    echo "linux-gate: could not copy the targeted leg's results into $out (the next gate's plan reads its reds there)"
+  fi
   verdict="$(grep -E '^=== PLAN LEG: ' "$out/targeted.log" | tail -1)"
   if [ $rc -eq 0 ] && [[ "$verdict" == "=== PLAN LEG: GREEN"* ]]; then
     leg_status targeted GREEN; echo "leg targeted: GREEN in ${secs}s — $verdict"

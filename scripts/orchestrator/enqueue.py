@@ -692,11 +692,14 @@ def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
     A file a merge driver merges by key (merge_drivers.covered_by_driver) is no such merge, and one no test reads (the
     inert classification) cannot change a test: both are set aside."""
     import inert_lane  # noqa: PLC0415  (scripts/: THE one classification of a path no test reads)
-    mb = _git(wt, "merge-base", before, base).stdout.strip()
-
-    def changed(tip: str) -> set[str]:
-        return set(filter(None, _git(wt, "diff", "--name-only", "--no-renames", "-z", mb, tip).stdout.split(chr(0))))
-    shared = changed(before) & changed(base)
+    unreadable = ["(the two sides' changes could not be listed: git said no)"]   # never a silent "no overlap"
+    mb = _git(wt, "merge-base", before, base)
+    if mb.returncode != 0 or not mb.stdout.strip():
+        return unreadable
+    sides = [_git(wt, "diff", "--name-only", "--no-renames", "-z", mb.stdout.strip(), tip) for tip in (before, base)]
+    if any(s.returncode != 0 for s in sides):
+        return unreadable
+    shared = set(filter(None, sides[0].stdout.split(chr(0)))) & set(filter(None, sides[1].stdout.split(chr(0))))
     return sorted(f for f in shared if not merge_drivers.covered_by_driver(f) and not inert_lane.CLASSIFICATION.is_inert(f))
 
 
@@ -1526,9 +1529,12 @@ def self_test() -> int:
             (main_four.path / name).write_text("main" + chr(10), encoding="utf-8", newline="\n")
         main_four.git("commit", "--quiet", "-am", "main edits all four")
         overlap_four = merge_overlap(sw, sets.git("rev-parse", "HEAD"), main_four.git("rev-parse", "HEAD"))
+        overlap_unreadable = merge_overlap(sw, "0" * 40, main_four.git("rev-parse", "HEAD"))
         expect("merge_overlap: a file a merge driver merges by key (diagnostics.json, a work note) and one no test reads "
-               "(a DEVLOG entry) are no true textual merge; only source both sides changed is (kb/Work PB3612)",
-               overlap_four == ["src/code.cs"], str(overlap_four))
+               "(a DEVLOG entry) are no true textual merge; only source both sides changed is; a side git cannot list "
+               "is never read as no overlap (kb/Work PB3612)",
+               overlap_four == ["src/code.cs"] and len(overlap_unreadable) == 1 and "could not be listed" in overlap_unreadable[0],
+               f"{overlap_four} {overlap_unreadable}")
 
         # ── the review before the landing (MANDATORY-PRACTICES I10; kb/Work PB3023 review R1-4) ───────────────────
         scratch.git("fetch", "--quiet", "origin")
