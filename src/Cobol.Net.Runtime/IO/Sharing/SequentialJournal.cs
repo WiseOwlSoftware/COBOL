@@ -6,767 +6,755 @@ using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Runtime.IO;
 
-/// <summary>What a sequential transaction's physical file was at its begin (docs/rearchitecture/DESIGN-runtime-library.md
-/// 2.2.2.4: the header's START). ⛔ A WIRE VALUE.</summary>
-internal enum JournalStart : byte
-{
-    /// <summary>The file was present: the BASE phase, undone by the images and the committed length.</summary>
-    Present = (byte)'P',
-    /// <summary>The file was absent (the first change created it): REPLACED from the start, undone by removing the file.</summary>
-    Absent = (byte)'A',
-}
-
-/// <summary>The verb of a CAPTURE (2.2.2.2 (c) and (d)): the record <c>K</c>'s kind. ⛔ A WIRE VALUE.</summary>
-internal enum CaptureKind : byte
-{
-    /// <summary>An OPEN OUTPUT of an existing file, which truncates it (§14.9.27.4 GR18).</summary>
-    OpenOutput = (byte)'O',
-    /// <summary>A DELETE FILE (§14.9.10.2, format 2), which removes it.</summary>
-    DeleteFile = (byte)'D',
-}
-
-/// <summary>A transaction's decision, the record <c>D</c> (2.2.2.6, 2.2.2.7): the LAST whole one is the decision. ⛔ A WIRE VALUE.</summary>
-internal enum JournalDecision : byte
-{
-    /// <summary>No decision, or an unacknowledged COMMIT reversed (<c>D O</c>): the transaction is open.</summary>
-    Open = (byte)'O',
-    /// <summary>Committed: the retirement is all that is left.</summary>
-    Committed = (byte)'C',
-    /// <summary>Rolled back: the retirement is all that is left, and the journal is never rolled back again.</summary>
-    RolledBack = (byte)'R',
-}
-
-/// <summary>The phase of a live transaction (2.2.2.2).</summary>
-internal enum JournalPhase
-{
-    /// <summary>The file is the committed file with appends past its committed length and overwrites below it.</summary>
-    Base,
-    /// <summary>Every byte of the file is the transaction's own: after a capture, or from a creation.</summary>
-    Replaced,
-}
-
-/// <summary>The first image of one rewritten record (the record <c>R</c>): its ordinal, its byte offset and its bytes.</summary>
-internal readonly record struct RewriteImage(long Ordinal, long Offset, byte[] Bytes);
-
-/// <summary>A capture (the record <c>K</c>): its verb and the before file's length.</summary>
-internal readonly record struct JournalCapture(CaptureKind Kind, long Length);
-
-/// <summary>What a transaction's record says, as <see cref="SequentialJournal.Parse"/> reads it: its header and every whole
-/// record before the first torn one (2.2.2.4). A class, not a record: it is read, never compared, and the ordinal set a lock
-/// test builds on demand is no part of what it says.</summary>
-internal sealed class JournalContent(ulong id, JournalStart start, long? committedLength, IReadOnlyList<RewriteImage> images,
-    JournalCapture? capture, JournalDecision decision)
-{
-    /// <summary>The transaction id the header carries.</summary>
-    internal ulong Id { get; } = id;
-
-    /// <summary>The header's START.</summary>
-    internal JournalStart Start { get; } = start;
-
-    /// <summary>The committed length L (the record <c>L</c>), or null when the transaction never appended.</summary>
-    internal long? CommittedLength { get; } = committedLength;
-
-    /// <summary>The first image of each record the transaction rewrote in its BASE phase (the records <c>R</c>).</summary>
-    internal IReadOnlyList<RewriteImage> Images { get; } = images;
-
-    /// <summary>The capture (the record <c>K</c>), or null.</summary>
-    internal JournalCapture? Capture { get; } = capture;
-
-    /// <summary>The decision: the last whole record <c>D</c>, <see cref="JournalDecision.Open"/> when there is none.</summary>
-    internal JournalDecision Decision { get; } = decision;
-
-    /// <summary>Is the file REPLACED (2.2.2.2): created by the transaction, or captured?</summary>
-    internal bool Replaced => Start == JournalStart.Absent || Capture is not null;
-
-    /// <summary>Does the transaction HOLD the record at <paramref name="ordinal"/> (byte offset <paramref name="offset"/>):
-    /// the whole file once replaced, every ordinal it rewrote, and every record at or past its committed length (its own
-    /// appends) — 2.2.2.3's (R), (END) and (ALL)?</summary>
-    internal bool Holds(long ordinal, long offset) =>
-        Replaced || CommittedLength is { } length && offset >= length
-        || (_rewritten ??= [.. Images.Select(image => image.Ordinal)]).Contains(ordinal);
-
-    /// <summary>The ordinals the transaction rewrote, built at the first lock test that asks (a transaction may hold millions).</summary>
-    private HashSet<long>? _rewritten;
-}
-
-/// <summary>Another transaction on the file, as a statement's lock test meets it (2.2.2.3): its record's content, or null when
-/// the transaction is being born (a holder with no header yet) or its record cannot be read.</summary>
-internal readonly record struct OtherTransaction(ulong Id, JournalContent? Content);
-
-/// <summary>What a statement asks of the other transactions on its file (2.2.2.3, 2.2.2.8).</summary>
-internal enum JournalAccess
-{
-    /// <summary>A writable OPEN in the EXTEND or I-O mode.</summary>
-    Open,
-    /// <summary>An OPEN OUTPUT or a DELETE FILE, which needs no other transaction on the file at all.</summary>
-    Exclusive,
-    /// <summary>A WRITE: an append.</summary>
-    Write,
-    /// <summary>A READ not IGNORING LOCK, or a REWRITE, of one record.</summary>
-    Record,
-}
-
-/// <summary>The answer of the journal's lock test (2.2.2.3).</summary>
-internal enum JournalConflict
-{
-    /// <summary>Nothing another transaction holds: the statement proceeds.</summary>
-    None,
-    /// <summary>A record or the append point another transaction holds: I-O status '51' (§9.1.13.8 1)), RETRY applying.</summary>
-    RecordLocked,
-    /// <summary>The file another transaction holds: I-O status '61' (§9.1.13.9 1)) for an OPEN, '62' for a DELETE FILE.</summary>
-    FileLocked,
-}
-
-/// <summary>A physical file as a rollback restores it (2.2.2.7): through the owner's kept handle, or through a writable handle the
-/// settling run unit opens for the purpose (<see cref="RestoreTarget"/>).</summary>
-internal abstract class JournalTarget
-{
-    /// <summary>A writable handle on the file, or null when the file is absent.</summary>
-    internal abstract Stream? Writable();
-
-    /// <summary>Create the absent file and answer its writable handle.</summary>
-    internal abstract Stream Create();
-
-    /// <summary>Close every handle this target holds on the file and remove it.</summary>
-    internal abstract void Remove();
-}
-
-/// <summary>The target of a rollback run by a run unit that holds no handle on the file (a dead owner's, settled by the next
-/// entry): its handle opened through the medium on demand and closed when the settle ends.</summary>
-internal sealed class RestoreTarget(IHostMedium medium, string hostPath) : JournalTarget, IDisposable
-{
-    private Stream? _handle;
-
-    internal override Stream? Writable() =>
-        _handle ??= medium.Probe(hostPath) == FilePresence.Absent ? null : medium.OpenRestore(hostPath, create: false);
-
-    internal override Stream Create() => _handle = medium.OpenRestore(hostPath, create: true);
-
-    internal override void Remove()
-    {
-        _handle?.Dispose();
-        _handle = null;
-        medium.DeleteFile(hostPath);
-    }
-
-    public void Dispose()
-    {
-        _handle?.Dispose();
-        _handle = null;
-    }
-}
-
 /// <summary>
-/// ⛔ THE SEQUENTIAL ORGANIZATION'S TRANSACTION JOURNAL (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2; kb/Work PB3340):
-/// one run unit's open unit of work on one physical file F under an active APPLY COMMIT clause, kept in THREE transient files
-/// in F's lock directory (<see cref="SidecarLockFiles.LockDirectoryOf"/>) so a COMMIT, a ROLLBACK, abnormal termination and a
-/// KILLED or power-lost run unit all leave F at the state of the last COMMIT or at the state the COMMIT made durable, never a
-/// third (§9.1.18.3 to §9.1.18.5, §14.9.7.4 GR3, §14.9.36.4 GR3): <c>txn-&lt;id&gt;.live</c>, the HOLDER, whose lock is the
-/// owner's liveness; <c>txn-&lt;id&gt;.journal</c>, the RECORD, readable by every other run unit; and <c>txn-&lt;id&gt;.before</c>,
-/// the BEFORE FILE, F's bytes copied whole at a capture. F itself stays byte-identical to a file written with no transactions.
-/// <para>The protocol is the executable model's (<c>scripts/models/sequential_journal_model.py</c>, 2.2.2.12), operation for
-/// operation, through one <see cref="IHostMedium"/>: the five write-ahead rules (2.2.2.5) — R1 the header synced before the
-/// first change, R2 a rewritten record's image synced before the overwrite, R3 the committed length synced before the first
-/// append and nothing for a later one, R4 the capture's order (the before file, its sync, the directory's, then the
-/// <c>K</c> record and its sync, and only then the truncation or removal), R5 a refused sync of a handed-over record fatal —
-/// COMMIT's three regions (2.2.2.6), the idempotent ROLLBACK (2.2.2.7) and the settle the next entry runs (2.2.2.8). The
-/// caller holds the ENTRY MUTEX (<see cref="EntryMutex"/>) for <see cref="Begin"/>, <see cref="Capture"/>, a ROLLBACK and every
-/// entry step; the owner's own record writes — R2's and R3's, and a COMMIT's decision — need none, since only the owner
-/// writes its record while its holder lives.</para>
-/// <para><b>The record's format</b> (little-endian): a 24-byte HEADER — magic <c>WOLJ</c>, format 1 (2), the START (1), zero (1),
-/// the transaction id (8), zero (4), and the CRC-32C of the 20 bytes before it (4) — then RECORDS, each its kind, its payload and
-/// the CRC-32C of the two (4): <c>L</c> the committed length (8); <c>R</c> the ordinal (8), the offset (8), the length (4) and the
-/// bytes; <c>K</c> the capture's kind (1) and the before file's length (8); <c>D</c> the decision (1). A torn tail — a short
-/// record, a failed CRC, an unknown kind — ENDS the records: its step had not changed F when the death fell. ⛔ A WIRE VALUE: two
-/// runtime versions settle each other's journals.</para>
+/// ⛔ THE TRANSACTION JOURNAL OF A SEQUENTIAL FILE UNDER APPLY COMMIT (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2;
+/// kb/Work PB3340; the owner's decision of 2026-10-19, "option a approved"): ONE run unit's open unit of work on ONE physical
+/// file F, kept in THREE transient files in F's lock directory (<see cref="SidecarLockFiles.LockDirectoryOf"/>) —
+/// <c>txn-&lt;id&gt;.live</c>, the HOLDER, whose lock is the owner's liveness on every host; <c>txn-&lt;id&gt;.journal</c>, the
+/// RECORD, readable by every run unit while its owner lives; and <c>txn-&lt;id&gt;.before</c>, the BEFORE FILE a capture copies F
+/// into. F itself stays byte-identical to what a program with no transactions writes (2.2.2.4: a record sequential file plain
+/// bytes, a line sequential file plain text).
+/// <para><b>Two phases (2.2.2.2).</b> In the BASE phase the state at the last COMMIT is <see cref="CommittedLength"/> L — F's
+/// length at the transaction's FIRST append, read then and never at the begin (2.2.2.3) — and the first image of each record
+/// REWRITTEN that is not the transaction's own append. The first OPEN OUTPUT of an existing file or DELETE FILE CAPTURES F as
+/// it then stands (the before file) and ends the base phase: from then on the file is REPLACED and nothing more is journaled.
+/// A transaction whose first change is a CREATION is replaced from the start, with no before file (START <c>A</c>), and its
+/// rollback removes the file.</para>
+/// <para><b>The record (2.2.2.4), little-endian.</b> A HEADER of <see cref="JournalHeaderBytes"/> bytes — magic <c>WOLJ</c>, the format
+/// (4), the transaction id (8), the START (<c>P</c> present, <c>A</c> absent), three bytes of zero, a CRC-32C of the 20 before
+/// it — then RECORDS, each its kind byte, its payload and a CRC-32C of both: <c>L</c> (the length 8), at most one; <c>R</c>
+/// (ordinal 8, offset 8, length 4, the bytes), one per rewritten record of the base phase; <c>K</c> (<c>O</c> or <c>D</c>, the
+/// before file's length 8), at most one; and <c>D</c> (<c>C</c> committed, <c>O</c> open again after a reversal, <c>R</c>
+/// rolled back), the LAST whole one of which is the transaction's decision. A torn tail — a short record or a failed
+/// checksum — ends the records: each record is synced before the change it precedes, so F is as the records before it say.
+/// A torn header is litter with nothing to undo (R1: the header is synced before the first change).</para>
+/// <para><b>The write-ahead rules (2.2.2.5)</b>, held by <c>scripts/models/sequential_journal_model.py</c> at every operation
+/// and by this class's unit witnesses over the fault-injecting <see cref="IHostMedium"/>: R1 the header and the lock directory
+/// synced before the first change (<see cref="Begin"/>); R2 an <c>R</c> record synced before its overwrite
+/// (<see cref="NoteImage"/>); R3 the <c>L</c> record synced before the first append and nothing for later ones
+/// (<see cref="NoteFirstAppend"/>); R4 the before file, its sync, the directory sync, then the <c>K</c> record and its sync,
+/// and only then F truncated or removed (<see cref="Capture"/>); R5 a refused sync of a record handed to the operating
+/// environment is fatal — the statement answers '30' and item 8's ROLLBACK follows (the caller's).</para>
+/// <para><b>Who runs what.</b> The OWNER — the registry of the run unit whose transaction it is — begins it, writes its
+/// records, commits it (<see cref="Commit"/>) and rolls it back (<see cref="Rollback"/>). ANY run unit's ENTRY STEP
+/// (<see cref="Enter"/>) at a writable OPEN, a DELETE FILE or a covered connector's first change reads every live
+/// transaction's holdings from its record and SETTLES every dead one (2.2.2.8): litter deleted, a decided one retired, an open
+/// one rolled back through the entering run unit's own handle on F. Every step that changes F or the journal's names runs under
+/// the ENTRY MUTEX (<see cref="HostRegionLocks.EntryMutexByte"/>) the caller holds.</para>
 /// </summary>
 internal sealed class SequentialJournal
 {
-    private const uint Magic = 0x4A4C4F57;   // "WOLJ" little-endian
-    private const ushort Format = 1;
-    internal const int HeaderLength = 24;
-    private const int ChecksumBytes = 4;
-    private const string NamePrefix = "txn-";
-    private const string LiveSuffix = ".live";
+    // ── The wire values: two runtime versions must find each other's journals ─────────────────────────────────────
+
+    /// <summary>⛔ A WIRE VALUE: the prefix of every file of a transaction in the lock directory.</summary>
+    internal const string NamePrefix = "txn-";
+
+    /// <summary>⛔ A WIRE VALUE: the holder's suffix.</summary>
+    private const string HolderSuffix = ".live";
+
+    /// <summary>⛔ A WIRE VALUE: the record's suffix.</summary>
     private const string RecordSuffix = ".journal";
+
+    /// <summary>⛔ A WIRE VALUE: the before file's suffix.</summary>
     private const string BeforeSuffix = ".before";
 
-    /// <summary>The bytes a capture copies at a time.</summary>
-    private const int CopyChunk = 64 * 1024;
+    /// <summary>⛔ A WIRE VALUE: the record's format.</summary>
+    private const uint Format = 1;
+
+    /// <summary>⛔ A WIRE VALUE: the length of the record's header.</summary>
+    internal const int JournalHeaderBytes = 24;
+
+    /// <summary>⛔ A WIRE VALUE: the record's magic.</summary>
+    private static ReadOnlySpan<byte> Magic => "WOLJ"u8;
+
+    private const byte LengthKind = (byte)'L', ImageKind = (byte)'R', CaptureKind = (byte)'K', DecisionKind = (byte)'D';
+
+    /// <summary>The bytes of a record's checksum.</summary>
+    private const int ChecksumBytes = 4;
+
+    /// <summary>What F was at the transaction's first change (2.2.2.4's START).</summary>
+    internal enum StartState : byte
+    {
+        /// <summary><c>P</c>: F was present; the base phase begins.</summary>
+        Present = (byte)'P',
+
+        /// <summary><c>A</c>: F was absent, and the first change creates it; replaced from the start.</summary>
+        Absent = (byte)'A',
+    }
+
+    /// <summary>A transaction's decision, as its last whole <c>D</c> record says (none: <see cref="Open"/>).</summary>
+    internal enum Decision : byte
+    {
+        /// <summary>No decision, or <c>O</c>: open again after a reversal (2.2.2.6 region 3).</summary>
+        Open = (byte)'O',
+
+        /// <summary><c>C</c>: committed; its retirement is owed.</summary>
+        Committed = (byte)'C',
+
+        /// <summary><c>R</c>: rolled back; its retirement is owed, and it is never rolled back again.</summary>
+        RolledBack = (byte)'R',
+    }
+
+    /// <summary>The verb that captured F (2.2.2.4's <c>K</c> record).</summary>
+    internal enum CaptureVerb : byte
+    {
+        /// <summary><c>O</c>: an OPEN OUTPUT of an existing file.</summary>
+        OpenOutput = (byte)'O',
+
+        /// <summary><c>D</c>: a DELETE FILE.</summary>
+        DeleteFile = (byte)'D',
+    }
+
+    /// <summary>One <c>R</c> record: the first image of a rewritten record.</summary>
+    internal readonly record struct Image(long Ordinal, long Offset, byte[] Bytes);
+
+    /// <summary>A record as it stands on the medium (<see cref="ReadRecord"/>): the START, the <c>L</c>, the images, the capture
+    /// and the decision.</summary>
+    internal sealed record Contents(StartState Start, long? CommittedLength, IReadOnlyList<Image> Images, CaptureVerb? Capture,
+        long CapturedLength, Decision Decision)
+    {
+        /// <summary>The file is REPLACED: every byte of it is the transaction's own (2.2.2.2).</summary>
+        internal bool Replaced => Start == StartState.Absent || Capture is not null;
+    }
+
+    // ── The owner's transaction ──────────────────────────────────────────────────────────────────────────────────
 
     private readonly IHostMedium _medium;
     private readonly string _directory;
-    private readonly IDisposable _holder;
-    private readonly Stream _record;
-    private long _recordLength;
-    private readonly HashSet<long> _journaled = [];
+    private SidecarLockFiles.LockFileHolder? _holder;
+    private FileStream? _record;
+    private readonly HashSet<long> _imaged = [];
 
-    private SequentialJournal(IHostMedium medium, string hostPath, string directory, ulong id, JournalStart start,
-        IDisposable holder, Stream record, long recordLength)
+    private SequentialJournal(IHostMedium medium, string hostPath, string directory, int id, StartState start,
+        SidecarLockFiles.LockFileHolder holder, FileStream record)
     {
-        _medium = medium;
-        HostPath = hostPath;
-        _directory = directory;
-        Id = id;
-        Start = start;
-        Phase = start == JournalStart.Present ? JournalPhase.Base : JournalPhase.Replaced;
-        _holder = holder;
-        _record = record;
-        _recordLength = recordLength;
+        (_medium, HostPath, _directory, Id, Start, _holder, _record) = (medium, hostPath, directory, id, start, holder, record);
+        Replaced = start == StartState.Absent;
     }
 
-    /// <summary>The physical file.</summary>
+    /// <summary>The physical file's absolute host path.</summary>
     internal string HostPath { get; }
 
-    /// <summary>The transaction id, the number its three files carry.</summary>
-    internal ulong Id { get; }
+    /// <summary>The transaction's id: its files' names carry it.</summary>
+    internal int Id { get; }
 
-    /// <summary>The header's START.</summary>
-    internal JournalStart Start { get; }
+    /// <summary>What F was at the first change.</summary>
+    internal StartState Start { get; }
 
-    /// <summary>The phase (2.2.2.2).</summary>
-    internal JournalPhase Phase { get; private set; }
+    /// <summary>Whether the file is REPLACED: a creation, or a capture since (2.2.2.2).</summary>
+    internal bool Replaced { get; private set; }
 
-    /// <summary>The committed length L, written at the transaction's first append (R3); null until it appends.</summary>
+    /// <summary>L, the committed length the transaction's first append read (2.2.2.5 R3); null until it appends.</summary>
     internal long? CommittedLength { get; private set; }
 
-    /// <summary>The decision this owner last made durable: <see cref="JournalDecision.Committed"/> once a COMMIT's decision is
-    /// synced, so a retirement it could not finish is completed by the owner's next entry (2.2.2.6 region 2).</summary>
-    internal JournalDecision Decision { get; private set; } = JournalDecision.Open;
+    /// <summary>⛔ THE UNACKNOWLEDGED COMMIT (2.2.2.6 region 3): the decision's sync was refused and so was its reversal, so the
+    /// transaction's fate on the medium is unknown. The only statements this run unit then runs on F are item 8's ROLLBACK and
+    /// the termination path's, each of which repeats the reversal first (<see cref="Rollback"/>).</summary>
+    internal bool Unacknowledged { get; private set; }
 
-    // ── Names ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    /// <summary>The lock directory of the physical file at <paramref name="hostPath"/>.</summary>
+    internal static string DirectoryOf(string hostPath) => SidecarLockFiles.LockDirectoryOf(hostPath);
 
-    private static string Name(ulong id, string suffix) => NamePrefix + id.ToString(CultureInfo.InvariantCulture) + suffix;
+    private static string HolderName(int id) => NamePrefix + id.ToString(CultureInfo.InvariantCulture) + HolderSuffix;
+    private static string RecordName(int id) => NamePrefix + id.ToString(CultureInfo.InvariantCulture) + RecordSuffix;
+    private static string BeforeName(int id) => NamePrefix + id.ToString(CultureInfo.InvariantCulture) + BeforeSuffix;
 
-    private static string LivePath(string directory, ulong id) => Path.Combine(directory, Name(id, LiveSuffix));
+    /// <summary>The directory F's own name lives in, synced when F is created or removed.</summary>
+    private static string FileDirectoryOf(string hostPath) => Path.GetDirectoryName(Path.GetFullPath(hostPath))!;
 
-    private static string RecordPath(string directory, ulong id) => Path.Combine(directory, Name(id, RecordSuffix));
-
-    private static string BeforePath(string directory, ulong id) => Path.Combine(directory, Name(id, BeforeSuffix));
-
-    /// <summary>The transaction ids <paramref name="directory"/> names: every <c>txn-&lt;id&gt;.*</c> file, live or left over.</summary>
-    internal static IReadOnlyList<ulong> Ids(IHostMedium medium, string directory)
+    /// <summary>⛔ BEGIN a transaction on <paramref name="hostPath"/> (2.2.2.3, 2.2.2.5 R1): the lowest id with neither a holder nor
+    /// a record (<see cref="DrawId"/>; the entry step just settled every dead one under the same hold), the holder published and
+    /// held, the record created, the header written and SYNCED, the lock directory synced — before the first byte of F changes or
+    /// F is created. The caller holds the entry mutex and has run <see cref="Enter"/>. A refusal leaves no file behind and
+    /// throws: the statement answers '30'.</summary>
+    internal static SequentialJournal Begin(IHostMedium medium, string hostPath, StartState start)
     {
-        var ids = new SortedSet<ulong>();
-        foreach (string name in medium.List(directory, NamePrefix))
-        {
-            int dot = name.IndexOf('.', NamePrefix.Length);
-            if (dot > NamePrefix.Length
-                && ulong.TryParse(name.AsSpan(NamePrefix.Length, dot - NamePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out ulong id))
-                ids.Add(id);
-        }
-        return [.. ids];
-    }
-
-    // ── The record's format ──────────────────────────────────────────────────────────────────────────────────────────────
-
-    private static byte[] Header(ulong id, JournalStart start)
-    {
-        var header = new byte[HeaderLength];
-        BinaryPrimitives.WriteUInt32LittleEndian(header, Magic);
-        BinaryPrimitives.WriteUInt16LittleEndian(header.AsSpan(4), Format);
-        header[6] = (byte)start;
-        BinaryPrimitives.WriteUInt64LittleEndian(header.AsSpan(8), id);
-        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(20), PageHeader.Crc32C(header.AsSpan(0, 20)));
-        return header;
-    }
-
-    /// <summary>A record: its kind, <paramref name="payload"/> and the CRC-32C of the two.</summary>
-    private static byte[] Record(byte kind, ReadOnlySpan<byte> payload)
-    {
-        var record = new byte[1 + payload.Length + ChecksumBytes];
-        record[0] = kind;
-        payload.CopyTo(record.AsSpan(1));
-        BinaryPrimitives.WriteUInt32LittleEndian(record.AsSpan(1 + payload.Length), PageHeader.Crc32C(record.AsSpan(0, 1 + payload.Length)));
-        return record;
-    }
-
-    private static byte[] LengthRecord(long length)
-    {
-        Span<byte> payload = stackalloc byte[8];
-        BinaryPrimitives.WriteInt64LittleEndian(payload, length);
-        return Record((byte)'L', payload);
-    }
-
-    private static byte[] ImageRecord(long ordinal, long offset, ReadOnlySpan<byte> image)
-    {
-        var payload = new byte[20 + image.Length];
-        BinaryPrimitives.WriteInt64LittleEndian(payload, ordinal);
-        BinaryPrimitives.WriteInt64LittleEndian(payload.AsSpan(8), offset);
-        BinaryPrimitives.WriteInt32LittleEndian(payload.AsSpan(16), image.Length);
-        image.CopyTo(payload.AsSpan(20));
-        return Record((byte)'R', payload);
-    }
-
-    private static byte[] CaptureRecord(CaptureKind kind, long length)
-    {
-        Span<byte> payload = stackalloc byte[9];
-        payload[0] = (byte)kind;
-        BinaryPrimitives.WriteInt64LittleEndian(payload[1..], length);
-        return Record((byte)'K', payload);
-    }
-
-    private static byte[] DecisionRecord(JournalDecision decision) => Record((byte)'D', [(byte)decision]);
-
-    /// <summary>Read a record file's bytes: its header, or null when the header is short or torn (a header that never synced:
-    /// litter with nothing to undo, R1), and every whole record before the first torn one.</summary>
-    internal static JournalContent? Parse(ReadOnlySpan<byte> bytes)
-    {
-        if (bytes.Length < HeaderLength
-            || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != Magic
-            || BinaryPrimitives.ReadUInt16LittleEndian(bytes[4..]) != Format
-            || BinaryPrimitives.ReadUInt32LittleEndian(bytes[20..]) != PageHeader.Crc32C(bytes[..20]))
-            return null;
-        var start = (JournalStart)bytes[6];
-        if (start is not (JournalStart.Present or JournalStart.Absent)) return null;
-        ulong id = BinaryPrimitives.ReadUInt64LittleEndian(bytes[8..]);
-        long? length = null;
-        JournalCapture? capture = null;
-        var decision = JournalDecision.Open;
-        var images = new List<RewriteImage>();
-        int at = HeaderLength;
-        while (at < bytes.Length)
-        {
-            int payload = bytes[at] switch
-            {
-                (byte)'L' => 8,
-                (byte)'K' => 9,
-                (byte)'D' => 1,
-                (byte)'R' when at + 21 <= bytes.Length => 20 + BinaryPrimitives.ReadInt32LittleEndian(bytes[(at + 17)..]),
-                _ => -1,
-            };
-            if (payload < 0 || at + 1 + payload + ChecksumBytes > bytes.Length) break;   // a torn or unknown tail
-            var whole = bytes.Slice(at, 1 + payload);
-            if (BinaryPrimitives.ReadUInt32LittleEndian(bytes[(at + 1 + payload)..]) != PageHeader.Crc32C(whole)) break;
-            var body = whole[1..];
-            switch (whole[0])
-            {
-                case (byte)'L': length = BinaryPrimitives.ReadInt64LittleEndian(body); break;
-                case (byte)'K': capture = new JournalCapture((CaptureKind)body[0], BinaryPrimitives.ReadInt64LittleEndian(body[1..])); break;
-                case (byte)'D': decision = (JournalDecision)body[0]; break;
-                default:
-                    images.Add(new RewriteImage(BinaryPrimitives.ReadInt64LittleEndian(body), BinaryPrimitives.ReadInt64LittleEndian(body[8..]),
-                        body[20..].ToArray()));
-                    break;
-            }
-            at += 1 + payload + ChecksumBytes;
-        }
-        return new JournalContent(id, start, length, images, capture, decision);
-    }
-
-    /// <summary>Read transaction <paramref name="id"/>'s record from the medium, or null when it has none (or its header is torn).</summary>
-    internal static JournalContent? Read(IHostMedium medium, string directory, ulong id)
-    {
-        using var record = medium.OpenTransient(RecordPath(directory, id), writable: false);
-        if (record is null) return null;
-        var bytes = new byte[checked((int)medium.Length(record))];
-        int n = medium.Read(record, 0, bytes);
-        return Parse(bytes.AsSpan(0, n));
-    }
-
-    // ── The owner's statements ───────────────────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>BEGIN a transaction on <paramref name="hostPath"/> (R1), with the entry mutex held and the entry step run: the id
-    /// drawn (the lowest no file in the lock directory carries), the holder published, the record created and its header
-    /// written and SYNCED, and the lock directory synced — all before the first byte of the file changes. A refusal removes what
-    /// it made and throws what the host threw ('30' at the statement, the file unchanged).</summary>
-    internal static SequentialJournal Begin(IHostMedium medium, string hostPath, JournalStart start)
-    {
-        string directory = SidecarLockFiles.LockDirectoryOf(hostPath);
-        medium.CreateLockDirectory(directory);
-        ulong id = 0;
-        foreach (ulong taken in Ids(medium, directory))
-        {
-            if (taken != id) break;
-            id++;
-        }
-        IDisposable? holder = null;
-        Stream? record = null;
+        string directory = DirectoryOf(hostPath);
+        int id = DrawId(medium, directory);
+        var holder = medium.PublishHolder(directory, HolderName(id))
+            ?? throw new IOException($"the host cannot hold a transaction's holder in '{directory}' (DOC-A.1-75)");
+        FileStream? record = null;
         try
         {
-            holder = medium.PublishHolder(directory, Name(id, LiveSuffix))
-                ?? throw new IOException($"The host cannot hold a transaction's lock in '{directory}'.");
-            record = medium.CreateTransient(RecordPath(directory, id));
-            byte[] header = Header(id, start);
-            medium.Write(record, 0, header);
-            medium.Sync(record);
+            record = medium.OpenTransient(Path.Combine(directory, RecordName(id)), FileMode.CreateNew, FileAccess.ReadWrite);
+            Span<byte> header = stackalloc byte[JournalHeaderBytes];
+            Magic.CopyTo(header);
+            BinaryPrimitives.WriteUInt32LittleEndian(header[4..], Format);
+            BinaryPrimitives.WriteInt64LittleEndian(header[8..], id);
+            header[16] = (byte)start;
+            BinaryPrimitives.WriteUInt32LittleEndian(header[20..], PageHeader.Crc32C(header[..20]));
+            record.Write(header);
+            record.Flush(flushToDisk: true);
             medium.SyncDirectory(directory);
-            return new SequentialJournal(medium, hostPath, directory, id, start, holder, record, header.Length);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch
         {
             record?.Dispose();
-            try { medium.DeleteTransient(RecordPath(directory, id)); }
-            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }   // litter: a torn header, reaped by the next entry
-            holder?.Dispose();
+            medium.RetireName(Path.Combine(directory, RecordName(id)));
+            holder.Dispose();
             throw;
         }
+        return new SequentialJournal(medium, Path.GetFullPath(hostPath), directory, id, start, holder, record);
     }
 
-    /// <summary>Append <paramref name="record"/> to the record file and sync it when <paramref name="sync"/>. The record length
-    /// advances once the write is handed over, so a refused SYNC leaves the record claimed (it may be on the medium) and a
-    /// refused WRITE leaves its place to the next record.</summary>
-    private void Append(byte[] record, bool sync = true)
+    /// <summary>The lowest non-negative id with neither a holder nor a record in <paramref name="directory"/> (2.2.2.4): a dead
+    /// transaction's files were settled by the entry step just before, under the same hold of the entry mutex, so the smallest
+    /// id is free once the directory is clean, and no mint is needed because the files ARE the transaction's entry.</summary>
+    private static int DrawId(IHostMedium medium, string directory)
     {
-        _medium.Write(_record, _recordLength, record);
-        _recordLength += record.Length;
-        if (sync) _medium.Sync(_record);
+        var taken = new HashSet<int>();
+        foreach (string name in medium.ListNames(directory, NamePrefix))
+            if (IdOf(name) is int id && (name.EndsWith(HolderSuffix, StringComparison.Ordinal) || name.EndsWith(RecordSuffix, StringComparison.Ordinal)))
+                taken.Add(id);
+        int next = 0;
+        while (taken.Contains(next)) next++;
+        return next;
     }
 
-    /// <summary>R3: before the transaction's FIRST append, write the committed length <paramref name="fileLength"/> — F's length
-    /// read through the kept handle after the lock test found no other live transaction — and SYNC it; a later append, or one
-    /// in the REPLACED phase, writes nothing. Throws on a refusal (R5: fatal; the append never ran, so F is right either way).</summary>
-    internal void NoteAppend(long fileLength)
+    /// <summary>The id a transaction file's name carries, or null for a name that is not one.</summary>
+    private static int? IdOf(string name)
     {
-        if (Phase != JournalPhase.Base || CommittedLength is not null) return;
-        Append(LengthRecord(fileLength));
-        CommittedLength = fileLength;
+        if (!name.StartsWith(NamePrefix, StringComparison.Ordinal)) return null;
+        int dot = name.IndexOf('.', NamePrefix.Length);
+        return dot > NamePrefix.Length
+            && int.TryParse(name.AsSpan(NamePrefix.Length, dot - NamePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out int id)
+            ? id : null;
     }
 
-    /// <summary>Does a REWRITE of the record <paramref name="ordinal"/> at <paramref name="offset"/> need its image journaled (R2):
-    /// in the BASE phase, a record that is not the transaction's own append, not journaled yet?</summary>
+    /// <summary>⛔ R3 — THE FIRST APPEND WRITES L; NO APPEND WRITES MORE (2.2.2.5). <paramref name="length"/> is F's length read
+    /// through the writer's handle after the lock test found no other live transaction (2.2.2.3), so it is the committed length.
+    /// The <c>L</c> record is appended and SYNCED before the record is written; a later append, or one in the replaced phase,
+    /// writes nothing. Throws on a refusal (R5: '30', fatal).</summary>
+    internal void NoteFirstAppend(long length)
+    {
+        if (Replaced || CommittedLength is not null) return;
+        Span<byte> payload = stackalloc byte[8];
+        BinaryPrimitives.WriteInt64LittleEndian(payload, length);
+        Append(LengthKind, payload);
+        CommittedLength = length;   // handed over: the record may be on the medium, so the transaction's rollback truncates to it
+        _record!.Flush(flushToDisk: true);
+    }
+
+    /// <summary>Whether a REWRITE of the record numbered <paramref name="ordinal"/> at <paramref name="offset"/> needs its image
+    /// journaled (2.2.2.5 R2): the base phase only, a record that is not the transaction's own append (every offset before its
+    /// first append, one below L after it), and the first REWRITE of that record only.</summary>
     internal bool NeedsImage(long ordinal, long offset) =>
-        Phase == JournalPhase.Base && (CommittedLength is not { } length || offset < length) && !_journaled.Contains(ordinal);
+        !Replaced && (CommittedLength is not { } committed || offset < committed) && !_imaged.Contains(ordinal);
 
-    /// <summary>R2: before a REWRITE overwrites the record <paramref name="ordinal"/> in place, write its first image
-    /// <paramref name="image"/> (at byte <paramref name="offset"/>) and SYNC it; a record that needs none (<see cref="NeedsImage"/>)
-    /// writes nothing. Throws on a refusal (R5: fatal; the overwrite never ran).</summary>
-    internal void NoteRewrite(long ordinal, long offset, ReadOnlySpan<byte> image)
+    /// <summary>⛔ R2 — THE IMAGE BEFORE THE OVERWRITE (2.2.2.5): the record's current <paramref name="bytes"/> at
+    /// <paramref name="offset"/> appended as an <c>R</c> record and SYNCED before the overwrite. The ordinal is claimed as soon as
+    /// the record is handed over (it may be on the medium). Throws on a refusal (R5: '30', fatal; the overwrite never ran).</summary>
+    internal void NoteImage(long ordinal, long offset, ReadOnlySpan<byte> bytes)
     {
-        if (!NeedsImage(ordinal, offset)) return;
-        byte[] record = ImageRecord(ordinal, offset, image);
-        _medium.Write(_record, _recordLength, record);
-        _recordLength += record.Length;
-        _journaled.Add(ordinal);   // handed over: the image may be on the medium, so the ordinal stays claimed
-        _medium.Sync(_record);
+        byte[] payload = new byte[20 + bytes.Length];
+        BinaryPrimitives.WriteInt64LittleEndian(payload, ordinal);
+        BinaryPrimitives.WriteInt64LittleEndian(payload.AsSpan(8), offset);
+        BinaryPrimitives.WriteInt32LittleEndian(payload.AsSpan(16), bytes.Length);
+        bytes.CopyTo(payload.AsSpan(20));
+        Append(ImageKind, payload);
+        _imaged.Add(ordinal);
+        _record!.Flush(flushToDisk: true);
     }
 
-    /// <summary>R4: CAPTURE the file before an OPEN OUTPUT truncates it or a DELETE FILE removes it, in the BASE phase, with the
-    /// entry mutex held and no other connector's handle on the file: the before file created and F's bytes copied into it
-    /// through <paramref name="file"/> (the kept handle), the before file synced, the lock directory synced, THEN the <c>K</c>
-    /// record written and synced. Only after this returns may the caller truncate or remove F. The phase is REPLACED from here,
-    /// also when the <c>K</c> record's sync is refused (R5: it may be on the medium, so nothing more is journaled and item 8's
-    /// rollback follows); a refusal before the <c>K</c> is handed over deletes the before file (litter) and leaves the phase.</summary>
-    internal void Capture(CaptureKind kind, Stream file)
+    /// <summary>⛔ R4 — THE CAPTURE (2.2.2.5): under the entry mutex, with no other connector's handle on F, F's bytes are copied
+    /// through <paramref name="data"/> (the kept handle) into the before file, the before file SYNCED, the lock directory synced,
+    /// THEN the <c>K</c> record appended and SYNCED — and only then may the caller truncate F (an OPEN OUTPUT) or remove it (a
+    /// DELETE FILE). A COPY and never a rename: a handle follows the file it was opened on, so a rename would leave the file lock
+    /// on the before file and F's name unguarded (2.2.2.4). A refusal before the <c>K</c> is handed over deletes the before
+    /// file (F is intact) and throws; one after it throws with the transaction REPLACED, since the record may be on the medium
+    /// (R5: fatal, item 8's rollback reads the before file, which holds what F still holds).</summary>
+    internal void Capture(CaptureVerb verb, FileStream data)
     {
-        if (Phase != JournalPhase.Base) return;
-        string beforePath = BeforePath(_directory, Id);
+        if (Replaced) return;
+        string before = Path.Combine(_directory, BeforeName(Id));
         bool handed = false;
         try
         {
             long length;
-            using (var before = _medium.CreateTransient(beforePath))
+            using (var copy = _medium.OpenTransient(before, FileMode.Create, FileAccess.ReadWrite))
             {
-                length = _medium.Length(file);
-                var chunk = new byte[(int)Math.Min(CopyChunk, Math.Max(length, 1))];
-                for (long at = 0; at < length;)
-                {
-                    int n = _medium.Read(file, at, chunk.AsSpan(0, (int)Math.Min(chunk.Length, length - at)));
-                    if (n == 0) throw new IOException($"'{HostPath}' ended at byte {at} of the {length} its capture copies.");
-                    _medium.Write(before, at, chunk.AsSpan(0, n));
-                    at += n;
-                }
-                _medium.Sync(before);
+                long position = data.Position;
+                data.Position = 0;
+                data.CopyTo(copy);
+                data.Position = position;
+                length = copy.Length;
+                copy.Flush(flushToDisk: true);
             }
             _medium.SyncDirectory(_directory);
-            byte[] record = CaptureRecord(kind, length);
-            _medium.Write(_record, _recordLength, record);
-            _recordLength += record.Length;
+            Span<byte> payload = stackalloc byte[9];
+            payload[0] = (byte)verb;
+            BinaryPrimitives.WriteInt64LittleEndian(payload[1..], length);
+            Append(CaptureKind, payload);
             handed = true;
-            _medium.Sync(_record);
+            _record!.Flush(flushToDisk: true);
         }
-        catch (Exception e) when (!handed && e is IOException or UnauthorizedAccessException)
+        catch
         {
-            try { _medium.DeleteTransient(beforePath); }
-            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }   // litter the next settle reaps
+            if (handed) Replaced = true;
+            else _medium.RetireName(before);
             throw;
         }
-        finally
-        {
-            if (handed) Phase = JournalPhase.Replaced;
-        }
+        Replaced = true;
     }
 
-    /// <summary>The outcome of <see cref="Commit"/> (2.2.2.6).</summary>
-    internal enum CommitOutcome
+    /// <summary>Append one record — its kind, its payload and their checksum — to the owner's record. Not synced: the caller
+    /// syncs it at the point its rule names.</summary>
+    private void Append(byte kind, ReadOnlySpan<byte> payload)
     {
-        /// <summary>Region 2: the decision synced; committed, whatever became of the retirement.</summary>
-        Committed,
-        /// <summary>Region 1: refused before the decision was handed over; the transaction is intact, and the caller rolls it
-        /// back (item 8's ROLLBACK, '30').</summary>
-        Refused,
-        /// <summary>Region 3, reversed: the decision's sync was refused and <c>D O</c> made "not committed" durable; the caller
-        /// rolls the transaction back ('30').</summary>
-        Reversed,
-        /// <summary>Region 3, unknown: the reversal was refused too; the medium decides, the caller marks the file and touches it
-        /// only through a ROLLBACK that first repeats the reversal (<see cref="Reverse"/>).</summary>
-        Unknown,
+        byte[] unit = new byte[1 + payload.Length + ChecksumBytes];
+        unit[0] = kind;
+        payload.CopyTo(unit.AsSpan(1));
+        BinaryPrimitives.WriteUInt32LittleEndian(unit.AsSpan(1 + payload.Length), PageHeader.Crc32C(unit.AsSpan(0, 1 + payload.Length)));
+        _record!.Seek(0, SeekOrigin.End);
+        _record.Write(unit);
     }
 
-    /// <summary>COMMIT (2.2.2.6): (1) F synced through <paramref name="file"/> (null when F is absent: a DELETE FILE removed it) and
-    /// its directory synced; (2) THE DECISION, <c>D C</c> written and synced; (3) on success the retirement, whose refusal the
-    /// owner's next entry or the next run unit's completes. The regions are <see cref="CommitOutcome"/>'s.</summary>
-    internal CommitOutcome Commit(Stream? file)
+    private static void AppendDecision(FileStream record, Decision decision)
     {
-        bool handed = false;
+        Span<byte> unit = stackalloc byte[2 + ChecksumBytes];
+        unit[0] = DecisionKind;
+        unit[1] = (byte)decision;
+        BinaryPrimitives.WriteUInt32LittleEndian(unit[2..], PageHeader.Crc32C(unit[..2]));
+        record.Seek(0, SeekOrigin.End);
+        record.Write(unit);
+    }
+
+    /// <summary>⛔ COMMIT (2.2.2.6), in 2.2.1.10's three regions. (1) F synced through <paramref name="data"/> (null when F is absent:
+    /// a DELETE FILE removed it) — the caller flushed the writer's buffer — and F's directory synced, so a file the transaction
+    /// created or removed is created or removed on the medium too; (2) THE DECISION: <c>D C</c> appended and the record synced;
+    /// (3) the retirement. A refusal before the decision is handed over is <see cref="CommitOutcome.Refused"/> (region 1: the
+    /// transaction is intact, the COMMIT is unsuccessful and item 8's ROLLBACK restores from the journal). A refused sync of the
+    /// handed-over decision (region 3) REVERSES it — <c>D O</c> appended and synced, and the caller then rolls back
+    /// (<see cref="CommitOutcome.Reversed"/>) — or, when the reversal is refused too, marks the transaction
+    /// <see cref="Unacknowledged"/> and touches nothing (<see cref="CommitOutcome.Unacknowledged"/>). A decision synced is
+    /// <see cref="CommitOutcome.Committed"/> whatever becomes of the retirement: a journal left reading <c>C</c> is retired by the
+    /// next entry, or by its own owner's next entry step.</summary>
+    internal CommitOutcome Commit(FileStream? data)
+    {
+        var record = _record!;
         try
         {
-            if (file is not null) _medium.Sync(file);
-            _medium.SyncDirectory(FileDirectory);
-            byte[] record = DecisionRecord(JournalDecision.Committed);
-            _medium.Write(_record, _recordLength, record);
-            _recordLength += record.Length;
-            handed = true;
-            _medium.Sync(_record);
+            data?.Flush(flushToDisk: true);
+            _medium.SyncDirectory(FileDirectoryOf(HostPath));
+            AppendDecision(record, Decision.Committed);
         }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return CommitOutcome.Refused; }
+        try { record.Flush(flushToDisk: true); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            if (!handed) return CommitOutcome.Refused;
-            return Reverse() ? CommitOutcome.Reversed : CommitOutcome.Unknown;
+            try
+            {
+                AppendDecision(record, Decision.Open);
+                record.Flush(flushToDisk: true);
+            }
+            catch (Exception again) when (again is IOException or UnauthorizedAccessException)
+            {
+                Unacknowledged = true;
+                return CommitOutcome.Unacknowledged;
+            }
+            return CommitOutcome.Reversed;
         }
-        Decision = JournalDecision.Committed;
-        TryFinishRetirement();
+        try { Retire(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }   // region 2: the next entry completes it
         return CommitOutcome.Committed;
     }
 
-    /// <summary>Make "not committed" durable after an unacknowledged COMMIT (2.2.2.6 region 3): <c>D O</c> written and synced.
-    /// False when the host refused it.</summary>
-    internal bool Reverse()
+    /// <summary>⛔ THE OWNER'S ROLLBACK (2.2.2.7) under the entry mutex the caller holds: an unacknowledged COMMIT's reversal first
+    /// (<see cref="Unacknowledged"/>: <c>D O</c> appended and synced, or nothing at all is touched), then the one idempotent
+    /// sequence of <see cref="RollBack"/> from what the record says, through <paramref name="data"/>. Returns false when the
+    /// medium refused a step: the rollback is OWED, the transaction stays open and its holder held, and the next COMMIT,
+    /// ROLLBACK or termination runs it again before anything else.</summary>
+    internal bool Rollback(IJournalData data)
+    {
+        if (Retired) return true;
+        try
+        {
+            if (Unacknowledged)
+            {
+                AppendDecision(_record!, Decision.Open);
+                _record!.Flush(flushToDisk: true);
+                Unacknowledged = false;
+            }
+            var contents = ReadRecord(_record!) ?? throw new IOException($"the record of transaction {Id} on '{HostPath}' could not be read back");
+            RollBack(_medium, HostPath, _directory, Id, contents, data, _record!);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
+        // Rolled back: the record reads R, so a retirement the medium refuses is completed by the next entry (2.2.2.7 (3)).
+        try { Retire(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        return true;
+    }
+
+    /// <summary>The retirement (2.2.2.6 (3), 2.2.2.7 (4)): the before file, the record and the holder deleted in that order and
+    /// the lock directory synced; the directory goes with its last file (<see cref="SidecarLockFiles.LockFileHolder"/>).</summary>
+    private void Retire()
     {
         try
         {
-            Append(DecisionRecord(JournalDecision.Open));
-            return true;
+            _medium.RetireName(Path.Combine(_directory, BeforeName(Id)));
+            _record?.Dispose();
+            _record = null;
+            _medium.RetireName(Path.Combine(_directory, RecordName(Id)));
+            _medium.SyncDirectory(_directory);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
-    }
-
-    /// <summary>The owner's ROLLBACK (2.2.2.7), with the entry mutex held: the one settle sequence, run on its own journal
-    /// through <paramref name="target"/> (its kept handle). Throws when the host refuses a step: the rollback is then OWED, the
-    /// holder still held, and the owner's next COMMIT, ROLLBACK or termination runs it again.</summary>
-    internal void Rollback(JournalTarget target)
-    {
-        Settle(_medium, HostPath, _directory, Id, target, this);
-        Decision = JournalDecision.RolledBack;
-    }
-
-    /// <summary>Complete a retirement a COMMIT's region 2 could not finish; false when the host refused it again.</summary>
-    internal bool TryFinishRetirement()
-    {
-        try
+        finally
         {
-            Retire(_medium, _directory, Id, this);
-            return true;
+            // The holder goes whatever the deletions did: the decision is on the medium, so a dead holder's leftovers are the
+            // next entry's to retire, while a holder kept alive would read as a live transaction to every other run unit.
+            _record?.Dispose();
+            _record = null;
+            _holder?.Dispose();
+            _holder = null;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
     }
 
-    /// <summary>Is the retirement finished: the decision made and the holder given back?</summary>
-    internal bool Retired { get; private set; }
+    /// <summary>Whether the transaction is over: committed or rolled back and retired.</summary>
+    internal bool Retired => _holder is null;
 
-    /// <summary>The directory the physical file is in, synced at COMMIT and ROLLBACK so a creation or removal is durable.</summary>
-    private string FileDirectory => Path.GetDirectoryName(Path.GetFullPath(HostPath))!;
-
-    // ── The settle, the entry step and the lock test ─────────────────────────────────────────────────────────────────────
-
-    /// <summary>Finish transaction <paramref name="id"/> on <paramref name="hostPath"/> from what its record says, whoever runs it
-    /// (2.2.2.7, 2.2.2.8), with the entry mutex held: no record or a torn header is litter, a decision is a retirement to
-    /// complete, and an open transaction is rolled back through <paramref name="target"/> and then retired.
-    /// <paramref name="owner"/> is the journal when its own owner settles it, null for a dead owner's.</summary>
-    private static void Settle(IHostMedium medium, string hostPath, string directory, ulong id, JournalTarget target,
-        SequentialJournal? owner)
+    /// <summary>⛔ A DEATH, FOR A WITNESS: the holder and the record are closed as the operating environment closes a dead
+    /// process's handles — the holder's name is left for the next entry to find dead — and nothing is retired.</summary>
+    internal void AbandonAsADeathDoes()
     {
-        var content = Read(medium, directory, id);
-        if (content is { Decision: JournalDecision.Open })
-            Restore(medium, hostPath, directory, id, content, target, owner);
-        Retire(medium, directory, id, owner);
+        _record?.Dispose();
+        _record = null;
+        _holder?.DropAsADeathDoes();
+        _holder = null;
     }
 
-    /// <summary>The rollback's steps (1) to (3) (2.2.2.7): a whole capture restores F from the before file, and a before file with
-    /// none is litter; START P re-applies every image below F's length and truncates to L when the transaction appended, then
-    /// syncs F and its directory; START A removes F and syncs its directory; then <c>D R</c> is written and synced, so the
-    /// journal is never rolled back again. Every step is idempotent: a death between two leaves the journal reading open.</summary>
-    private static void Restore(IHostMedium medium, string hostPath, string directory, ulong id, JournalContent content,
-        JournalTarget target, SequentialJournal? owner)
+    // ── The rollback sequence, run by the owner or by whoever settles a dead owner's journal ─────────────────────────
+
+    /// <summary>⛔ THE ONE ROLLBACK SEQUENCE (2.2.2.7), idempotent at every step, run by the OWNER (<see cref="Rollback"/>) or by the
+    /// entering run unit for a dead owner (<see cref="Settle"/>): (1) a whole <c>K</c> — F is replaced by the before file, created
+    /// if absent and truncated if present, through <paramref name="data"/>; a before file with no whole <c>K</c> is litter (F was
+    /// never truncated, R4) and deleted; (2) START <c>P</c> — every image written back at its offset (one at or past F's end is
+    /// left to the truncation), F truncated to L when the record has one (F is never shorter than it: only an appending
+    /// transaction's rollback truncates, to its own L, and two transactions never append at once), F synced and its directory
+    /// synced; START <c>A</c> — F removed (the owner's handle released first) and its directory synced; (3) <c>D R</c> appended
+    /// and synced, so a journal a power loss resurrects after its before file went is retired and never rolled back again.
+    /// The retirement is the caller's.
+    /// <para>⛔ F SHORTER THAN L IS LEFT AS IT STANDS (review finding R1-4 of kb/Work PB3340). In a run of the protocol F is
+    /// never shorter (the model asserts it at every rollback), but L is read from the operating environment's view of F, which
+    /// counts another connector's appends that were released and never synced (an uncovered writer's CLOSE flushes, it does
+    /// not sync); a power loss then takes them, and F ends shorter than L. None of the transaction's appends, which all lie
+    /// past L, survived, so there is nothing to truncate, and a truncation to L would EXTEND F with zero bytes. Refusing
+    /// instead left the dead transaction unsettled for good: every later writable OPEN, DELETE FILE and covered first change
+    /// of the file answered '30' until an administrator removed the lock directory.</para></summary>
+    private static void RollBack(IHostMedium medium, string hostPath, string directory, int id, Contents contents, IJournalData data,
+        FileStream record)
     {
-        string fileDirectory = Path.GetDirectoryName(Path.GetFullPath(hostPath))!;
-        string beforePath = BeforePath(directory, id);
-        if (content.Capture is { } capture)
+        string before = Path.Combine(directory, BeforeName(id));
+        if (contents.Capture is not null)
         {
-            using var before = medium.OpenTransient(beforePath, writable: false)
-                ?? throw new InvalidDataException($"Journal {id} of '{hostPath}' names a capture whose before file is missing.");
-            if (medium.Length(before) != capture.Length)
-                throw new InvalidDataException($"Journal {id} of '{hostPath}' names a before file of {capture.Length} bytes; it holds {medium.Length(before)}.");
-            var file = target.Writable() ?? target.Create();
-            medium.SetLength(file, 0);
-            var chunk = new byte[(int)Math.Min(CopyChunk, Math.Max(capture.Length, 1))];
-            for (long at = 0; at < capture.Length;)
+            var f = data.Writable(create: true);
+            using var copy = medium.OpenTransient(before, FileMode.Open, FileAccess.Read);
+            if (copy.Length != contents.CapturedLength)
+                throw new IOException($"the before file of transaction {id} on '{hostPath}' holds {copy.Length} bytes where its capture recorded {contents.CapturedLength}");
+            f.SetLength(0);
+            f.Position = 0;
+            copy.CopyTo(f);
+        }
+        else medium.RetireName(before);
+        if (contents.Start == StartState.Present)
+        {
+            var f = data.Writable(create: false);
+            foreach (var image in contents.Images)
             {
-                int n = medium.Read(before, at, chunk.AsSpan(0, (int)Math.Min(chunk.Length, capture.Length - at)));
-                if (n == 0) throw new InvalidDataException($"The before file of journal {id} ended at byte {at}.");
-                medium.Write(file, at, chunk.AsSpan(0, n));
-                at += n;
+                if (image.Offset >= f.Length) continue;
+                f.Position = image.Offset;
+                f.Write(image.Bytes);
             }
+            if (contents.CommittedLength is long committed && f.Length >= committed) f.SetLength(committed);
+            f.Flush(flushToDisk: true);
+            medium.SyncDirectory(FileDirectoryOf(hostPath));
         }
-        else medium.DeleteTransient(beforePath);   // a copy whose K never synced: F was never truncated (R4)
-        if (content.Start == JournalStart.Present)
-        {
-            var file = target.Writable()
-                ?? throw new InvalidDataException($"Journal {id} says '{hostPath}' was present at its begin, and it is absent.");
-            long current = medium.Length(file);
-            foreach (var image in content.Images)
-                if (image.Offset < current) medium.Write(file, image.Offset, image.Bytes);
-            if (content.CommittedLength is { } length)
-            {
-                // Only an appending transaction truncates, to its own L, and two transactions never append at once (2.2.2.3).
-                if (current < length)
-                    throw new InvalidDataException($"'{hostPath}' holds {current} bytes, fewer than journal {id}'s committed length {length}.");
-                medium.SetLength(file, length);
-            }
-            medium.Sync(file);
-            medium.SyncDirectory(fileDirectory);
-        }
-        else if (medium.Probe(hostPath) != FilePresence.Absent)
-        {
-            target.Remove();   // the state at the last COMMIT had no file (§14.9.27.4 GR17's creation undone)
-            medium.SyncDirectory(fileDirectory);
-        }
-        var record = medium.OpenTransient(RecordPath(directory, id), writable: true)
-            ?? throw new InvalidDataException($"Journal {id} of '{hostPath}' vanished during its rollback.");
-        using (record)
-        {
-            // An owner writes at the end of what it handed over; a settler at the end of what the medium holds.
-            long at = owner?._recordLength ?? medium.Length(record);
-            byte[] decision = DecisionRecord(JournalDecision.RolledBack);
-            medium.Write(record, at, decision);
-            if (owner is not null) owner._recordLength = at + decision.Length;
-            medium.Sync(record);
-        }
-    }
-
-    /// <summary>The retirement (2.2.2.6 (3)): the before file, the record and a dead owner's holder deleted in that order and the
-    /// lock directory synced, so the deletions are durable before a live owner gives its holder back (the holder's disposal
-    /// retires its file and the directory with its last file); a holder a power loss resurrects with no record beside it is
-    /// litter the next entry reaps. A directory a sibling's CLOSE retired between the deletions and the sync has no entries left
-    /// to make durable.</summary>
-    private static void Retire(IHostMedium medium, string directory, ulong id, SequentialJournal? owner)
-    {
-        medium.DeleteTransient(BeforePath(directory, id));
-        owner?._record.Dispose();
-        medium.DeleteTransient(RecordPath(directory, id));
-        if (owner is null) medium.DeleteTransient(LivePath(directory, id));
-        try { medium.SyncDirectory(directory); }
-        catch (DirectoryNotFoundException) { }
-        if (owner is null) medium.RetireDirectory(directory);
         else
         {
-            owner._holder.Dispose();
-            owner.Retired = true;
+            data.Release();
+            medium.DeleteFile(hostPath);
+            medium.SyncDirectory(FileDirectoryOf(hostPath));
+        }
+        AppendDecision(record, Decision.RolledBack);
+        record.Flush(flushToDisk: true);
+    }
+
+    /// <summary>Read a record as it stands (2.2.2.4): null for a header that is short, of another magic or format, or whose
+    /// checksum fails — litter with nothing to undo; otherwise its contents up to the first torn record.</summary>
+    internal static Contents? ReadRecord(Stream record)
+    {
+        record.Position = 0;
+        var reader = new BufferedStream(record, 64 * 1024);
+        Span<byte> header = stackalloc byte[JournalHeaderBytes];
+        if (!Fill(reader, header) || !header[..4].SequenceEqual(Magic)
+            || BinaryPrimitives.ReadUInt32LittleEndian(header[4..]) != Format
+            || BinaryPrimitives.ReadUInt32LittleEndian(header[20..]) != PageHeader.Crc32C(header[..20])
+            || header[16] is not ((byte)StartState.Present or (byte)StartState.Absent))
+            return null;
+        var start = (StartState)header[16];
+        long? committed = null;
+        var images = new List<Image>();
+        CaptureVerb? capture = null;
+        long captured = 0;
+        var decision = Decision.Open;
+        while (NextRecord(reader) is { } unit)
+        {
+            var payload = unit.AsSpan(1, unit.Length - 1 - ChecksumBytes);
+            switch (unit[0])
+            {
+                case LengthKind: committed ??= BinaryPrimitives.ReadInt64LittleEndian(payload); break;
+                case ImageKind:
+                    images.Add(new Image(BinaryPrimitives.ReadInt64LittleEndian(payload), BinaryPrimitives.ReadInt64LittleEndian(payload[8..]),
+                        payload[20..].ToArray()));
+                    break;
+                case CaptureKind:
+                    capture ??= (CaptureVerb)payload[0];
+                    captured = BinaryPrimitives.ReadInt64LittleEndian(payload[1..]);
+                    break;
+                case DecisionKind: decision = (Decision)payload[0]; break;
+            }
+        }
+        return new Contents(start, committed, images, capture, captured, decision);
+    }
+
+    /// <summary>The next whole record, or null at the end or at a torn one (a short record, an unknown kind, a failed checksum).</summary>
+    private static byte[]? NextRecord(Stream reader)
+    {
+        int kind = reader.ReadByte();
+        int payload;
+        switch (kind)
+        {
+            case LengthKind: payload = 8; break;
+            case CaptureKind: payload = 9; break;
+            case DecisionKind: payload = 1; break;
+            case ImageKind:
+                Span<byte> head = stackalloc byte[20];
+                if (!Fill(reader, head)) return null;
+                int length = BinaryPrimitives.ReadInt32LittleEndian(head[16..]);
+                if (length < 0) return null;
+                byte[] image = new byte[1 + 20 + length + ChecksumBytes];
+                image[0] = ImageKind;
+                head.CopyTo(image.AsSpan(1));
+                return Fill(reader, image.AsSpan(21)) && Whole(image) ? image : null;
+            default: return null;
+        }
+        byte[] unit = new byte[1 + payload + ChecksumBytes];
+        unit[0] = (byte)kind;
+        return Fill(reader, unit.AsSpan(1)) && Whole(unit) ? unit : null;
+    }
+
+    /// <summary>Read exactly <paramref name="into"/>'s length, or false at the end of the record (a torn tail).</summary>
+    private static bool Fill(Stream reader, Span<byte> into) =>
+        reader.ReadAtLeast(into, into.Length, throwOnEndOfStream: false) == into.Length;
+
+    private static bool Whole(byte[] unit) =>
+        BinaryPrimitives.ReadUInt32LittleEndian(unit.AsSpan(unit.Length - ChecksumBytes)) == PageHeader.Crc32C(unit.AsSpan(0, unit.Length - ChecksumBytes));
+
+    // ── The entry step: live holdings read, dead transactions settled ───────────────────────────────────────────────
+
+    /// <summary>A live transaction's holdings as its record says them (2.2.2.3): the WHOLE file once replaced (or while its
+    /// header is not yet readable — a transaction being born, or a record this process may not read), the end of the file always,
+    /// every rewritten record's offset, and every offset at or past L once it has appended. <see cref="Id"/> is the transaction's
+    /// id in the lock directory (<see cref="NoId"/> when the directory itself cannot be listed): the lock test tells by it a
+    /// holding of the tester's own run unit, which no wait can release (<see cref="Holdings.Conflict"/>).</summary>
+    internal readonly record struct Holding(int Id, bool Whole, long? CommittedLength, IReadOnlySet<long> RewrittenOffsets,
+        IReadOnlySet<long> RewrittenOrdinals)
+    {
+        /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets this holding.</summary>
+        internal bool HoldsRecordAt(long offset) =>
+            Whole || RewrittenOffsets.Contains(offset) || (CommittedLength is long committed && offset >= committed);
+
+        /// <summary>Whether a backward READ of the record numbered <paramref name="ordinal"/>, which lies before
+        /// <paramref name="before"/>, meets this holding: a rewritten record is told by its ordinal, and the appended records past
+        /// L can lie before <paramref name="before"/> only when L does.</summary>
+        internal bool HoldsRecordBefore(long ordinal, long before) =>
+            Whole || RewrittenOrdinals.Contains(ordinal) || (CommittedLength is long committed && committed < before);
+    }
+
+    /// <summary>The id of a holding whose transaction is not known (a lock directory this process may not list).</summary>
+    internal const int NoId = -1;
+
+    /// <summary>What the entry step found: the holdings of every live transaction on the file other than the caller's own.</summary>
+    internal sealed class Holdings(IReadOnlyList<Holding> live, bool unlistable = false)
+    {
+        /// <summary>No live transaction other than the caller's.</summary>
+        internal static readonly Holdings None = new([]);
+
+        /// <summary>The lock directory cannot be listed by this process: whatever lives there holds the WHOLE file.</summary>
+        internal static readonly Holdings Unreadable = new([WholeFileOf(NoId)], unlistable: true);
+
+        /// <summary>Whether the lock directory could not be listed (<see cref="Unreadable"/>): the process lacks the authority
+        /// the entry step needs, which an OPEN answers as such ('37', §9.1.13.6 6) b)) rather than as a sharing conflict.</summary>
+        internal bool Unlistable { get; } = unlistable;
+
+        /// <summary>The live transactions' holdings.</summary>
+        internal IReadOnlyList<Holding> Live { get; } = live;
+
+        /// <summary>Whether any other transaction lives: it holds the end of the file, so a WRITE answers '51' (2.2.2.3).</summary>
+        internal bool Any => Live.Count > 0;
+
+        /// <summary>The '61' a writable OPEN or a DELETE FILE meets (2.2.2.8): any live transaction for an OPEN OUTPUT or a DELETE
+        /// FILE (<paramref name="exclusive"/>), a replaced one for any other writable OPEN; null when the OPEN may proceed.</summary>
+        internal string? RefusesOpen(bool exclusive) =>
+            Live.Any(h => exclusive || h.Whole) ? FileStatusCode.FileSharingConflict : null;
+
+        /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets a holding.</summary>
+        internal bool HoldsRecordAt(long offset) => Live.Any(h => h.HoldsRecordAt(offset));
+
+        /// <summary>⛔ THE LOCK TEST'S ANSWER (2.2.2.3: "held, '51' (RETRY applies)"): null when no holding <paramref name="held"/>
+        /// picks lives; otherwise the record operation conflict '51' (§9.1.13.8 1)), its holder OUTSIDE the run unit — a holder a
+        /// RETRY phrase waits for (§14.7.9.3 GR1 to GR3) — unless every such holding is the run unit's own transaction
+        /// <paramref name="runUnitsOwn"/>, met through a connector no APPLY COMMIT clause names, which cannot end while the
+        /// statement runs: a RETRY makes no wait for it, and FOREVER ends with the deadlock '52' (A.1 item 109).</summary>
+        internal RetryAttempt? Conflict(Func<Holding, bool> held, int? runUnitsOwn)
+        {
+            bool any = false, outside = false;
+            foreach (var holding in Live)
+                if (held(holding))
+                {
+                    any = true;
+                    outside |= holding.Id != runUnitsOwn;
+                }
+            return !any ? null
+                : outside ? RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked) : RetryAttempt.InRunUnit(FileStatusCode.RecordLocked);
         }
     }
 
-    /// <summary>⛔ THE ENTRY STEP (2.2.2.8), with the entry mutex held: list the file's transactions and, for each that is not one
-    /// of <paramref name="own"/>, probe its holder — held, a live transaction the statement's lock test then meets (answered);
-    /// free, SETTLED from its record through <paramref name="target"/> (a dead owner's rollback, or the retirement it did not
-    /// finish). An own journal whose COMMIT could not finish its retirement is finished here. A holder or a directory this
-    /// process may not observe is a live transaction with no readable content: the lock test refuses, loudly (2.2.2.7).</summary>
-    internal static IReadOnlyList<OtherTransaction> Enter(IHostMedium medium, string hostPath, IReadOnlyCollection<SequentialJournal> own,
-        Func<JournalTarget> target)
+    /// <summary>⛔ THE ENTRY STEP (2.2.2.8) on the physical file <paramref name="hostPath"/>: the lock directory listed for
+    /// transaction files, and for every id but <paramref name="ownId"/> (the caller's own transaction, when the caller is a
+    /// connector under commit control): its holder held → a live transaction, whose holdings are read from its record; its
+    /// holder free → SETTLED from its record (<see cref="Settle"/>) under the entry mutex — <paramref name="mutex"/> when the
+    /// caller holds it already, otherwise taken for that alone. A holder this process cannot observe, or a live record it cannot
+    /// read, holds the WHOLE file: a refusal, never a silent proceed (2.2.2.7: '51' or '61' until the owner or an administrator
+    /// removes the directory). A file NOT under APPLY COMMIT pays one listing of a directory that usually does not exist.</summary>
+    internal static Holdings Enter(IHostMedium medium, string hostPath, int? ownId, RegionLocks? mutex)
     {
-        string directory = SidecarLockFiles.LockDirectoryOf(hostPath);
-        var live = new List<OtherTransaction>();
-        IReadOnlyList<ulong> ids;
-        try { ids = Ids(medium, directory); }
-        catch (UnauthorizedAccessException) { return [new OtherTransaction(ulong.MaxValue, null)]; }
-        foreach (ulong id in ids)
+        string directory = DirectoryOf(hostPath);
+        IReadOnlyList<string> names;
+        try { names = medium.ListNames(directory, NamePrefix); }
+        catch (UnauthorizedAccessException) { return Holdings.Unreadable; }
+        if (names.Count == 0) return Holdings.None;
+        var ids = new SortedSet<int>();
+        foreach (string name in names)
+            if (IdOf(name) is int id && id != ownId) ids.Add(id);
+        var live = new List<Holding>();
+        List<int>? dead = null;
+        foreach (int id in ids)
         {
-            var mine = own.FirstOrDefault(j => j.Id == id && !j.Retired);
-            if (mine is not null)
-            {
-                if (mine.Decision != JournalDecision.Open) mine.TryFinishRetirement();
-                continue;
-            }
-            switch (medium.ProbeHolder(LivePath(directory, id)))
+            switch (medium.ProbeHolder(Path.Combine(directory, HolderName(id))))
             {
                 case HostFile.LockFileState.Live:
-                    live.Add(new OtherTransaction(id, ReadOrNull(medium, directory, id)));
+                    live.Add(HoldingOf(medium, id, Path.Combine(directory, RecordName(id))));
                     break;
                 case HostFile.LockFileState.Unobservable:
-                    live.Add(new OtherTransaction(id, null));
+                    live.Add(WholeFileOf(id));
                     break;
                 default:
-                    var restore = target();
-                    try { Settle(medium, hostPath, directory, id, restore, owner: null); }
-                    finally { (restore as IDisposable)?.Dispose(); }
+                    (dead ??= []).Add(id);
                     break;
             }
         }
-        return live;
+        if (dead is not null) SettleUnderMutex(medium, hostPath, directory, dead, mutex);
+        return live.Count == 0 ? Holdings.None : new Holdings(live);
     }
 
-    /// <summary>The lock test's view of the OTHER live transactions on the file, with no mutex held (2.2.2.8: the entry of a WRITE,
-    /// READ or REWRITE under a posture that admits another writer): the live ones answered, and whether any is DEAD — which the
-    /// caller then settles under the mutex (<see cref="Enter"/>) before the statement proceeds.</summary>
-    internal static IReadOnlyList<OtherTransaction> Observe(IHostMedium medium, string hostPath, IReadOnlyCollection<SequentialJournal> own,
-        out bool anyDead)
+    private static readonly IReadOnlySet<long> EmptyOffsets = new HashSet<long>();
+
+    /// <summary>The holding of the transaction <paramref name="id"/> whose record cannot be read: the whole file.</summary>
+    private static Holding WholeFileOf(int id) => new(id, true, null, EmptyOffsets, EmptyOffsets);
+
+    /// <summary>A live transaction's holding, read from its record; a record not yet readable (the transaction is being born, or
+    /// this process may not read it) holds the whole file.</summary>
+    private static Holding HoldingOf(IHostMedium medium, int id, string recordPath)
     {
-        anyDead = false;
-        string directory = SidecarLockFiles.LockDirectoryOf(hostPath);
-        var live = new List<OtherTransaction>();
-        IReadOnlyList<ulong> ids;
-        try { ids = Ids(medium, directory); }
-        catch (UnauthorizedAccessException) { return [new OtherTransaction(ulong.MaxValue, null)]; }
-        foreach (ulong id in ids)
+        try
         {
-            if (own.Any(j => j.Id == id && !j.Retired)) continue;
-            switch (medium.ProbeHolder(LivePath(directory, id)))
+            using var record = medium.OpenTransient(recordPath, FileMode.Open, FileAccess.Read);
+            if (ReadRecord(record) is not { } contents) return WholeFileOf(id);
+            return new Holding(id, contents.Replaced, contents.CommittedLength, contents.Images.Select(i => i.Offset).ToHashSet(),
+                contents.Images.Select(i => i.Ordinal).ToHashSet());
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return WholeFileOf(id); }
+    }
+
+    /// <summary>Settle the dead transactions <paramref name="ids"/> under the entry mutex: <paramref name="held"/> when the caller
+    /// holds it, otherwise taken (waiting) for that alone and given back.</summary>
+    private static void SettleUnderMutex(IHostMedium medium, string hostPath, string directory, List<int> ids, RegionLocks? held)
+    {
+        RegionLocks? taken = null;
+        try
+        {
+            if (held is null)
             {
-                case HostFile.LockFileState.Live: live.Add(new OtherTransaction(id, ReadOrNull(medium, directory, id))); break;
-                case HostFile.LockFileState.Unobservable: live.Add(new OtherTransaction(id, null)); break;
-                default: anyDead = true; break;
+                taken = medium.EntryMutex(hostPath);
+                if (taken.Hold(HostRegionLocks.EntryMutexByte, exclusive: true, wait: true) != RegionLockResult.Ok)
+                    throw new IOException($"the entry mutex of '{hostPath}' cannot be held here (DOC-A.1-75)");
+            }
+            foreach (int id in ids)
+            {
+                // Probed again under the mutex: an owner retiring its own transaction, or another settler, may have finished it.
+                var state = medium.ProbeHolder(Path.Combine(directory, HolderName(id)));
+                if (state is HostFile.LockFileState.Live or HostFile.LockFileState.Unobservable) continue;
+                Settle(medium, hostPath, directory, id);
             }
         }
-        return live;
+        finally { taken?.Dispose(); }
     }
 
-    private static JournalContent? ReadOrNull(IHostMedium medium, string directory, ulong id)
+    /// <summary>⛔ SETTLE a dead transaction (2.2.2.8), whoever runs it: no record, or a torn header → litter (the holder, a before
+    /// file, the record: deleted); the decision <c>C</c> or <c>R</c> → the retirement completed; open → the rollback of
+    /// <see cref="RollBack"/> through this run unit's own short-lived writable handle on F, then the retirement. The caller holds
+    /// the entry mutex. Throws when the medium refuses a step: the journal stays and the next entry runs the same sequence.</summary>
+    private static void Settle(IHostMedium medium, string hostPath, string directory, int id)
     {
-        try { return Read(medium, directory, id); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return null; }
-    }
-
-    /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST (2.2.2.3): what <paramref name="access"/> meets among the OTHER live
-    /// transactions <paramref name="others"/> — a WRITE meets any one ('51', the end of the file held by every live transaction);
-    /// a READ or REWRITE of the record <paramref name="ordinal"/> at <paramref name="offset"/> meets one that holds it ('51');
-    /// an OPEN OUTPUT or a DELETE FILE meets any one ('61'), a writable OPEN only a REPLACED one ('61'). A transaction whose
-    /// content cannot be read (being born, or unobservable) holds everything.</summary>
-    internal static JournalConflict Test(IReadOnlyList<OtherTransaction> others, JournalAccess access, long ordinal = 0, long offset = 0)
-    {
-        foreach (var other in others)
+        string recordPath = Path.Combine(directory, RecordName(id));
+        Contents? contents = null;
+        FileStream? record = null;
+        try
         {
-            switch (access)
+            try { record = medium.OpenTransient(recordPath, FileMode.Open, FileAccess.ReadWrite); }
+            catch (FileNotFoundException) { }
+            if (record is not null) contents = ReadRecord(record);
+            if (contents is { Decision: Decision.Open } open)
             {
-                case JournalAccess.Exclusive: return JournalConflict.FileLocked;
-                case JournalAccess.Write: return JournalConflict.RecordLocked;
-                case JournalAccess.Open when other.Content is not { Replaced: false }: return JournalConflict.FileLocked;
-                case JournalAccess.Record when other.Content is not { } content || content.Holds(ordinal, offset):
-                    return JournalConflict.RecordLocked;
+                using var data = new AuxiliaryData(medium, hostPath);
+                RollBack(medium, hostPath, directory, id, open, data, record!);
             }
         }
-        return JournalConflict.None;
+        finally { record?.Dispose(); }
+        medium.RetireName(Path.Combine(directory, BeforeName(id)));
+        medium.RetireName(recordPath);
+        medium.RetireName(Path.Combine(directory, HolderName(id)));
+        medium.SyncDirectory(directory);
+        medium.RetireDirectory(directory);
     }
 
-    // ── The entry mutex ──────────────────────────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>⛔ THE ENTRY MUTEX of a physical file (2.2.2.4; <see cref="HostRegionLocks.EntryMutexByte"/>), held exclusively
-    /// through a lock file in its lock directory on every host, waiting for another run unit's hold. Null when the host cannot
-    /// hold it there (a directory this process may not write): the caller then has no journal to begin either, and a covered
-    /// change answers '30' (R1 refused).</summary>
-    internal static IDisposable? EntryMutex(string hostPath)
+    /// <summary>The physical file as a dead owner's settle reaches it — a short-lived writable handle of the entering run unit,
+    /// opened for the purpose (2.2.2.7: <i>"the entering run unit's own writable handle, opened for the purpose, when the owner is
+    /// dead"</i>) and closed with the settle — and as the owner's own ROLLBACK reaches it once no covered connector holds the
+    /// file (<c>FileRegistry.RollbackSequential</c>), closed with that rollback whatever it did.</summary>
+    internal sealed class AuxiliaryData(IHostMedium medium, string hostPath) : IJournalData, IDisposable
     {
-        var endpoint = SidecarRegionLocks.WithoutHandle(hostPath);
-        if (endpoint.Hold(HostRegionLocks.EntryMutexByte, exclusive: true, wait: true) == RegionLockResult.Ok) return endpoint;
-        endpoint.Dispose();
-        return null;
+        private FileStream? _handle;
+
+        public FileStream Writable(bool create) =>
+            _handle ??= medium.OpenAuxiliary(hostPath, create ? FileMode.OpenOrCreate : FileMode.Open, FileAccess.ReadWrite);
+
+        public void Release()
+        {
+            _handle?.Dispose();
+            _handle = null;
+        }
+
+        public void Dispose() => Release();
     }
+}
+
+/// <summary>The physical file as a ROLLBACK reaches it (DESIGN-runtime-library.md 2.2.2.7): the owner's kept handle — or one
+/// opened for the purpose when a DELETE FILE closed it — or the entering run unit's own handle for a dead owner's journal.</summary>
+internal interface IJournalData
+{
+    /// <summary>A writable handle on F; <paramref name="create"/> creates F when it is absent (the restore of a capture).</summary>
+    FileStream Writable(bool create);
+
+    /// <summary>Close the handle before F is removed (a Windows handle not opened for deletion blocks the removal).</summary>
+    void Release();
 }

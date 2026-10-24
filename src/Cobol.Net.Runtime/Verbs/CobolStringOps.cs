@@ -6,8 +6,9 @@ namespace CobolNet.Runtime;
 /// The STRING (ISO/IEC 1989:2023 §14.9.43) and UNSTRING (§14.9.48) runtime kernels over the typed-native string
 /// substrate: values come in and go out as .NET <see cref="string"/>s; the POINTER item travels as a 1-based
 /// <c>ref long</c>. One <see cref="StringTransfer"/> call per STRING sending operand; one
-/// <see cref="UnstringExtract"/> call per UNSTRING receiving area — the emitter unrolls the operand lists and
-/// stores the receivers back through the compiler's established store paths.
+/// <see cref="UnstringExtract"/> call per UNSTRING receiving area (plus one <see cref="UnstringSkipRun"/> after its
+/// INTO store when the statement has an ALL delimiter) — the emitter unrolls the operand lists and stores the
+/// receivers back through the compiler's established store paths.
 /// </summary>
 public static class CobolStringOps
 {
@@ -50,21 +51,6 @@ public static class CobolStringOps
         return new string(chars);
     }
 
-    /// <summary>The position in <paramref name="delimiters"/> of the delimiter an examination matched, given the
-    /// occurrence <see cref="UnstringExtract"/> returned in its <c>delimiter</c> out-argument; −1 when that is empty
-    /// (the examination ended at the end of the sender, so nothing was matched). Exact, not a guess: the kernel
-    /// takes the earliest match and, on a same-position tie, the first listed, so an earlier entry holding the same
-    /// text would have matched at the same position and been chosen instead — the first entry equal to the matched
-    /// text IS the matched entry. Asked of the array the examination ran over, before anything overwrites it
-    /// (GR18, docs/CONFORMANCE.md D-UNS2).</summary>
-    public static int MatchedDelimiterIndex(string[] delimiters, string matched)
-    {
-        if (matched.Length == 0) return -1;
-        for (int d = 0; d < delimiters.Length; d++)
-            if (string.Equals(delimiters[d], matched, StringComparison.Ordinal)) return d;
-        return -1;
-    }
-
     /// <summary>
     /// Examine the UNSTRING sending field for ONE receiving area (§14.9.48.4 GR11) starting at the 1-based
     /// <paramref name="pointer"/> (GR11a; the caller has already established pointer ≥ 1 — the initiation
@@ -78,21 +64,26 @@ public static class CobolStringOps
     /// <para>Delimiter selection (GR9/GR10): a zero-length delimiter is ignored; every delimiter is applied in
     /// statement order and the EARLIEST match in the sender wins, a same-position tie going to the first listed;
     /// a multi-character delimiter matches only contiguous, in-order characters; when ALL delimiters are
-    /// zero-length the statement behaves as if DELIMITED were absent. With the ALL phrase, contiguous repeats of
-    /// the matched delimiter are consumed as one delimiting occurrence (GR7). With no (effective) delimiters,
+    /// zero-length the statement behaves as if DELIMITED were absent. The matched delimiter's position in the list
+    /// is returned in <paramref name="matched"/> (−1 when the examination ended at the end of the sender, so nothing
+    /// was matched) — exact, never guessed back from the text. Only ONE occurrence of the matched delimiter is
+    /// consumed here: with the ALL phrase the contiguous repeats (GR7) are consumed by
+    /// <see cref="UnstringSkipRun"/>, which the caller runs AFTER the receiving area's INTO store, because an
+    /// identifier delimiter that store overwrote governs the run (GR18, docs/CONFORMANCE.md D-UNS2). With no (effective) delimiters,
     /// exactly <paramref name="receiverSize"/> characters are examined — the receiving area's size in character
     /// positions, one less when its sign occupies a separate position (GR11b, computed by the binder) — or fewer
     /// when the sender ends first.</para>
-    /// <para>On return <paramref name="pointer"/> has advanced by every character examined INCLUDING the consumed
-    /// delimiter characters (GR13).</para>
+    /// <para>On return <paramref name="pointer"/> has advanced by every character examined INCLUDING the one
+    /// consumed delimiter occurrence (GR13).</para>
     /// </summary>
     public static int UnstringExtract(
-        string? source, string[] delimiters, bool[] allFlags, int receiverSize,
-        ref long pointer, out string field, out string delimiter)
+        string? source, string[] delimiters, int receiverSize,
+        ref long pointer, out string field, out string delimiter, out int matched)
     {
         source ??= "";
         field = "";
         delimiter = "";
+        matched = -1;
         int pos = (int)(pointer - 1);
         if (pos >= source.Length) return -1;                         // GR11g — sender exhausted: not acted upon
 
@@ -122,15 +113,8 @@ public static class CobolStringOps
                 extractLen = best - pos;
                 string del = delimiters[bestIdx];
                 delimiter = del;                                     // ONE occurrence for DELIMITER IN (GR7 / GR11d)
-                consumed = del.Length;
-                if (bestIdx < allFlags.Length && allFlags[bestIdx])
-                {
-                    int skip = best + del.Length;                    // GR7 ALL — contiguous repeats act as one
-                    while (skip + del.Length <= source.Length
-                           && string.CompareOrdinal(source, skip, del, 0, del.Length) == 0)
-                        skip += del.Length;
-                    consumed = skip - best;
-                }
+                matched = bestIdx;
+                consumed = del.Length;                               // the ALL repeats are UnstringSkipRun's (GR7)
             }
             else
                 extractLen = source.Length - pos;                    // GR11b — sender end ends the examination
@@ -139,5 +123,30 @@ public static class CobolStringOps
         field = source.Substring(pos, extractLen);
         pointer = pos + extractLen + consumed + 1;                    // GR13 — per character examined, delimiters included
         return extractLen;                                            // GR11e / GR4 — delimiter characters excluded
+    }
+
+    /// <summary>
+    /// Consume the contiguous repeats of an ALL delimiter after its first occurrence (§14.9.48.4 GR7: "one occurrence
+    /// or two or more contiguous occurrences of literal-1 … or the content of the data item referenced by
+    /// identifier-2 are treated as if they were only one occurrence"), starting at the 1-based
+    /// <paramref name="pointer"/> that <see cref="UnstringExtract"/> left just past that first occurrence. Run by the
+    /// emitter AFTER the receiving area's INTO store and BEFORE its DELIMITER IN and COUNT IN stores, over the
+    /// sender and the delimiter as that store left them (libcob <c>cob_unstring_into</c>: the repeat loop follows the
+    /// <c>cob_memcpy</c> into the receiving area and compares against the delimiter item's own storage), so an INTO
+    /// store into the delimiter or the sender changes the run (GR18, Annex A.2 item 61; D-UNS2). Does nothing for a
+    /// delimiter that is not an ALL delimiter (<paramref name="matched"/> −1, or its flag false) or one that is now
+    /// zero-length — an empty delimiter would match without end.
+    /// </summary>
+    public static void UnstringSkipRun(string? source, string[] delimiters, bool[] allFlags, int matched, ref long pointer)
+    {
+        if (matched < 0 || !allFlags[matched]) return;
+        source ??= "";
+        string del = delimiters[matched];
+        if (del.Length == 0) return;
+        int skip = (int)(pointer - 1);
+        while (skip + del.Length <= source.Length
+               && string.CompareOrdinal(source, skip, del, 0, del.Length) == 0)
+            skip += del.Length;
+        pointer = skip + 1;
     }
 }

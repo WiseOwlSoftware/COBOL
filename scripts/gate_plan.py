@@ -23,10 +23,11 @@ removed from its CLASS segment. A partitioned family (`TestPartitioning.Slice`) 
 suffix, the append leaves ONE unknown case (evidence `impact-map-pb1708/b7`).
 
 THE TIERS (per case; a key shared by several cases takes the lowest):
-  0a  a case of a test method the diff ADDS · a suite row whose test, its files or its keyed entry the diff changes ·
-      red at the previous gate of either host (`previous_gates`) — always leg 1 (an EDITED test or harness is tier 1
-      through the map: a whole changed test file would put every row of its theories here — 5,774 cases for 68b X,
-      evidence b4);
+  0a  a case of a test method the diff ADDS OR EDITS (`impacted_tests.tests_changed`, kb/Work PB3190: a hunk in its
+      attributes, declaration or body, or in its theory's `[MemberData]` source) · a suite row whose test, its files or
+      its keyed entry the diff changes · red at the previous gate of either host (`previous_gates`) — always leg 1 (an
+      edited HARNESS — a helper the tests call — is tier 1 through the map: a whole changed test file would put every
+      row of its theories here — 5,774 cases for 68b X, evidence b4);
   0h  a HOST-ONLY WITNESS (kb/Work PB3022; DESIGN-test-build-ci.md §3.17.3): its class carries the xUnit trait
       `[Trait("Host", v)]` with v in HOST_ONLY — a property of this host CI's runners lack (`ReFS`: the Windows
       file-system race witnesses, which CI's NTFS runners may not reproduce) — always leg 1, whatever the diff, and
@@ -39,9 +40,11 @@ THE TIERS (per case; a key shared by several cases takes the lowest):
       later whole-population run used to find;
   0d  a GOVERNING DRIFT TEST (kb/Work PB3531): its class is one the drift-rule index (`scripts/spec/drift_rules.py`)
       says governs a file the diff changes — specifically, or as a tree-wide sweep that reads it, a sweep of the
-      committed tree through its declared `TreeScope` included — gathered from the diff alone
-      (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the budgets and the cap:
-      the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the likeliest red, and a
+      committed tree through its declared `TreeScope` included, and a test that reads the file only through a helper
+      class (kb/Work PB3247: a golden governs the classes reading the corpus through `SuiteManifest`) — gathered from
+      the diff alone (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the
+      budgets and the cap: the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the
+      likeliest red, and a
       dear sweep (CatalogCoverageDriftTests' 44 s) was left in leg 2 by 0c and found only by the landing's Linux leg;
   0u  known to no timing source and to no map (genuinely new) — charged the assembly's median time and admitted to
       leg 1, in declaration order, within LEG_ONE_UNKNOWN_BUDGET; the overflow LEADS leg 2;
@@ -402,7 +405,7 @@ class Context:
     tiers: dict[str, int]                   # name key -> map tier (1..3), for this assembly
     map_known: set[str]                     # every name key the map recorded, in any assembly
     every_tier1: bool                       # the change cannot be attributed (no map, stale map, ...)
-    added_tests: set[str]                   # test methods the change adds
+    changed_tests: set[str]                 # test methods the change adds or edits (impacted_tests.tests_changed)
     goldens: set[str]                       # suite test ids the change touches (impacted_tests.suite_tests)
     reds: set[str]
     previous: Timings
@@ -432,7 +435,7 @@ SUITE_ID = 'id: '
 
 
 def tier_of(display: str, key: str, ctx: Context, per_case: float | None, has_timings: bool) -> str:
-    if (method_of(display) in ctx.added_tests or key in ctx.reds
+    if (method_of(display) in ctx.changed_tests or key in ctx.reds
             or any(f'({SUITE_ID}"{g}"' in display or f', {SUITE_ID}"{g}"' in display for g in ctx.goldens)):
         return "0a"
     cls = class_of(key)  # the class without its partition suffix: a trait is declared on the family
@@ -591,7 +594,7 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
             tiers[k] = min(tiers.get(k, 3), t)
         host, sweep = trait_sets(traits.get(asm, {}))
         ctx = Context(tiers=tiers, map_known=map_known, every_tier1=bool(analysis.reach.every_tier1),
-                      added_tests=analysis.reach.added_tests.get(asm, set()), goldens=analysis.reach.goldens,
+                      changed_tests=analysis.reach.changed_tests.get(asm, set()), goldens=analysis.reach.goldens,
                       reds=every_red, previous=previous, recorded=recorded,
                       collection_of_class=collection_of_class.get(asm, {}), host_classes=host, sweep_classes=sweep,
                       drift_classes=analysis.reach.drift_tests)
@@ -633,6 +636,7 @@ def write_plan(plan: dict, out: Path) -> str:
 
 def self_test() -> int:
     """Drive every arm on planted inputs (feedback_prove_the_watchdog_fails)."""
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     failures = 0
 
     def check(label: str, ok: bool, detail: object = "") -> None:
@@ -650,7 +654,7 @@ def self_test() -> int:
           name_key(ns + "Foo_Pbar.M") == ns + "Foo_Pbar.M" and name_key(ns + "Foo.M") == ns + "Foo.M")
 
     def ctx(**kw) -> Context:
-        base = dict(tiers={}, map_known=set(), every_tier1=False, added_tests=set(), goldens=set(), reds=set(),
+        base = dict(tiers={}, map_known=set(), every_tier1=False, changed_tests=set(), goldens=set(), reds=set(),
                     previous=Timings("none"), recorded=Timings("none"))
         base.update(kw)
         return Context(**base)
@@ -682,9 +686,10 @@ def self_test() -> int:
     t3 = timed([(d, 1.0) for d in cheap] + [(pole, 1000.0), (row, 500.0), (f"{ns}Changed.M", 400.0)])
     all3 = cheap + [pole, row, f"{ns}Changed.M"]
     k3 = {name_key(d) for d in all3}
-    p = plan_assembly(all3, ctx(previous=t3, map_known=k3, tiers={k: 3 for k in k3}, added_tests={"M"},
+    p = plan_assembly(all3, ctx(previous=t3, map_known=k3, tiers={k: 3 for k in k3}, changed_tests={"M"},
                                 goldens={"g1"}, reds={name_key(red)}))
-    check("tier 0a: an added test method, a touched golden and a previous red lead leg 1, exempt from the budget",
+    check("tier 0a: an added or edited test method, a touched golden and a previous red lead leg 1, exempt from the "
+          "budget",
           p["leg1"] == [name_key(red), f"{ns}Changed.M", name_key(row)]   # inside tier 0a, cheapest first
           and p["stats"]["tiers"]["0a"] == 3, p["leg1"])
     check("tiers 2 and 3 never enter leg 1 on the budget", p["stats"]["leg1_cases"] == 3, p["stats"])
@@ -709,7 +714,7 @@ def self_test() -> int:
     check("a stale map: every case tier 1, its durations still order leg 1",
           p["stats"]["tiers"]["1"] == 101 and p["stats"]["leg1_cases"] == 22, p["stats"])
     # no timings: leg 1 is tier 0a alone, ordered by tier.
-    p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(added_tests={"M"}))
+    p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}))
     check("no timings: leg 1 is tier 0a alone and nothing is tier 0u",
           p["leg1"] == [f"{ns}Changed.M"] and p["stats"]["tiers"]["0u"] == 0 and p["legs"] == [1, 2], p["stats"])
     # tier 0h: a host-only witness is leg 1 whatever the diff, its cost and the collection cap (kb/Work PB3022).
@@ -894,16 +899,15 @@ def self_test() -> int:
 
     # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
     # writes none, and a row whose results directory its tool never names are each a finding.
-    # The scratch repository is the one fixture's (kb/Work PB3584), and the process is isolated from the caller's
-    # repository first, because the code under test (audit_trx_writers) runs `git ls-files` itself.
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    # The process is isolated from the caller's repository first, because the code under test (audit_trx_writers)
+    # runs `git ls-files` itself, in this process (scratch_repo.isolate's contract).
     isolate()
     with tempfile.TemporaryDirectory() as tmp:
-        repo = Path(tmp)
+        scratch = ScratchRepo.init(Path(tmp) / "repo")
+        repo = scratch.path
         planted = {"scripts/run_gate_legs.py": f"{TRX_LOGGER_MARK}x  # {TRX_WRITERS['scripts/run_gate_legs.py'][0]}",
                    "scripts/linux-gate.sh": f"--logger {TRX_LOGGER_MARK}unit.trx  # writes somewhere else",
                    "scripts/new_gate.sh": f"--logger {TRX_LOGGER_MARK}new.trx", "scripts/reader.py": "no logger"}
-        scratch = ScratchRepo.init(repo)
         scratch.write({rel: text + "\n" for rel, text in planted.items()})
         scratch.git("add", "-A")
         seen, bad = audit_trx_writers(repo)

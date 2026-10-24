@@ -35,7 +35,7 @@
    "token": "APPLY",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "APPLY COMMIT clause (12.4.6.3, 2023): 8.10 context-sensitive ('I-O-CONTROL paragraph'), never 8.9-reserved, so a legal user word at every edition. Tokenized so the declined A.4.3 clause is recognized and named (COBOLNET1709) instead of drawing a generic parse error"
+   "note": "APPLY COMMIT clause (12.4.6.3, 2023): 8.10 context-sensitive ('I-O-CONTROL paragraph'), never 8.9-reserved, so a legal user word at every edition. Tokenized so the clause is recognized wherever the I-O-CONTROL paragraph admits it"
   },
   {
    "token": "ARITHMETIC",

@@ -102,8 +102,7 @@ semantics).
   `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
   `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOLNET1708 (the VALIDATE
   facility's §13.16.2 *validation-clauses* group and the §13.18.63 format-5 content-validation entry),
-  COBOLNET1709 (a SEQUENTIAL or LINE SEQUENTIAL file in the I-O-CONTROL `APPLY COMMIT` clause, §12.4.6.3, whose
-  keyed half A.4.3 provides; reported by `DataBinder.BindApplyCommitClause`, kb/Work PB3338), COBOLNET1710 (a declined module's
+  COBOLNET1710 (a declined module's
   exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
   `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
   `CursorFollowingVisitor`.

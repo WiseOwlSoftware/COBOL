@@ -14,13 +14,16 @@ namespace CobolNet.Tests.Unit;
 /// an UNSTRING whose sending or delimiter operand shares storage with a receiving, DELIMITER IN or COUNT IN
 /// operand undefined; WiseOwl COBOL runs it in place, as GnuCOBOL does (docs/CONFORMANCE.md D-UNS1/D-UNS2), so the
 /// emitter renders a re-read of the sender or of an identifier delimiter before each later receiving area.
-/// <para>Two properties keep that true as the compiler grows. (1) The decision is
+/// <para>Three properties keep that true as the compiler grows. (1) The decision is
 /// <c>StorageSharing.MayShare</c> and nothing in the UNSTRING emitter re-derives it from a record walk, so a new way
 /// of sharing storage is one edit there. (2) The re-read is paid only where the predicate says so: an UNSTRING over
 /// disjoint operands, or over a literal delimiter, emits the code it always did — which is also why the
 /// Characterization emit snapshots did not move. This class reads the EMITTED C#, over every arm of the predicate
 /// (same record, REDEFINES, LINKAGE) and over the operands that are never live (a literal, a function result), so a
-/// new arm that forgets the re-read fails here even if no golden crosses it.</para>
+/// new arm that forgets the re-read fails here even if no golden crosses it. (3) An ALL delimiter's run of repeats
+/// (GR7) is consumed by a kernel call AFTER the receiving area's INTO store (kb/Work PB1909, D-UNS2), preceded by a
+/// re-read of the sender and of the matched ALL delimiter under the same predicate, and rendered only where an ALL
+/// phrase was written.</para>
 /// </summary>
 public sealed class UnstringLiveReadDriftTests
 {
@@ -181,6 +184,72 @@ public sealed class UnstringLiveReadDriftTests
             """;
         string cs = EmitCSharp(Program(data, """UNSTRING FUNCTION UPPER-CASE(SND) DELIMITED BY "," INTO SND R2 END-UNSTRING"""));
         Assert.DoesNotMatch(SenderReread, cs);
+    }
+
+    /// <summary>The ALL run is a kernel call after the INTO store (D-UNS2), and only where an ALL delimiter was written.</summary>
+    private static readonly Regex SkipRun = new(@"CobolStringOps\.UnstringSkipRun\(", RegexOptions.Multiline);
+
+    /// <summary>The matched ALL delimiter's re-read ahead of that kernel call: an element assignment under the
+    /// matched-position test, which is not the next receiving area's unconditional re-read.</summary>
+    private static readonly Regex RunDelimiterReread = new(@"^\s*if \(__unsDi\d+_\d+ == \d+\) __unsDel\d+\[\d+\] = ", RegexOptions.Multiline);
+
+    [Fact]
+    public void NoAllDelimiter_RendersNoRunSkipAndNoAllFlags()
+    {
+        string cs = EmitCSharp(Program(Disjoint, "UNSTRING SND DELIMITED BY DLM INTO R1 R2 END-UNSTRING"));
+        Assert.DoesNotMatch(SkipRun, cs);
+        Assert.DoesNotContain("__unsAll", cs);
+    }
+
+    [Fact]
+    public void AllDelimiterOverDisjointOperands_RendersTheRunSkipAfterEachStoreAndNoReread()
+    {
+        string cs = EmitCSharp(Program(Disjoint, "UNSTRING SND DELIMITED BY ALL DLM INTO R1 R2 END-UNSTRING"));
+        Assert.Equal(2, SkipRun.Matches(cs).Count);
+        Assert.DoesNotMatch(SenderReread, cs);
+        Assert.DoesNotMatch(DelimiterReread, cs);
+        Assert.DoesNotMatch(RunDelimiterReread, cs);
+        // GR7's run follows the INTO store: the kernel call is rendered after the examination, never inside it.
+        Assert.True(cs.IndexOf("UnstringSkipRun(", StringComparison.Ordinal) > cs.IndexOf("UnstringExtract(", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AllLiteralDelimiter_RendersTheRunSkipAndNoReread()
+    {
+        string cs = EmitCSharp(Program(Disjoint, """UNSTRING SND DELIMITED BY ALL "," INTO R1 R2 END-UNSTRING"""));
+        Assert.Equal(2, SkipRun.Matches(cs).Count);
+        Assert.DoesNotMatch(DelimiterReread, cs);
+        Assert.DoesNotMatch(RunDelimiterReread, cs);
+    }
+
+    [Fact]
+    public void AllIdentifierDelimiterAnIntoStoreReaches_RereadsItBeforeTheRunSkip()
+    {
+        const string data = """
+            01 SND  PIC X(9) VALUE "a;;b;;c".
+            01 DLM  PIC X    VALUE ";".
+            01 R2   PIC X(3).
+            """;
+        string cs = EmitCSharp(Program(data, "UNSTRING SND DELIMITED BY ALL DLM INTO DLM R2 END-UNSTRING"));
+        Assert.Matches(RunDelimiterReread, cs);
+        Assert.True(RunDelimiterReread.Match(cs).Index < cs.IndexOf("UnstringSkipRun(", StringComparison.Ordinal),
+            "the delimiter is re-read before the run is measured against it");
+        Assert.DoesNotMatch(SenderReread, cs);
+    }
+
+    [Fact]
+    public void AllRunOverASenderAnIntoStoreReaches_RereadsTheSenderBeforeTheRunSkip()
+    {
+        const string data = """
+            01 REC.
+               05 F1 PIC X(4) VALUE "AAA,".
+               05 F2 PIC X(4) VALUE "BBB,".
+            01 R1   PIC X(8).
+            """;
+        string cs = EmitCSharp(Program(data, """UNSTRING REC DELIMITED BY ALL "," INTO F2 R1 END-UNSTRING"""));
+        // one re-read ahead of each of the two run skips and one ahead of the second area's examination (D-UNS1)
+        Assert.Equal(3, SenderReread.Matches(cs).Count);
+        Assert.DoesNotMatch(RunDelimiterReread, cs);
     }
 
     [Fact]
