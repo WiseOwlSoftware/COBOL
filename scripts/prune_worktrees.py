@@ -299,6 +299,57 @@ def carried(branch, lost, graph: Ancestry, repo=REPO, coord_dir: pathlib.Path | 
     return ''
 
 
+@dataclasses.dataclass(frozen=True)
+class Replay:
+    """How far OTHER unlanded branches replay one branch's commits (`replays`, kb/Work PB3170). `carrier`: the branch
+    that replays the most of them (a tie: the later report), among the outranking branches that are carried by nobody,
+    when those together replay EVERY commit (the branch's work rides on them; None otherwise). `fresh`: this branch's
+    commits (oldest first) that no outranking branch holds, in or out of a carried branch. `by`: (branch, how many of
+    this branch's commits it replays) for each outranking UNCARRIED branch that replays any (a carried one has no
+    finisher to name)."""
+    carrier: str | None
+    fresh: tuple[str, ...]
+    by: tuple[tuple[str, int], ...]
+
+
+def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int], graph: Ancestry) -> dict[str, Replay]:
+    """{branch: Replay} for each of `branches`, by PATCH EQUIVALENCE of the commits each holds beyond origin/main: a
+    commit is replayed on another branch when that branch holds the commit itself (a merge of it) or one with the same
+    patch id (a cherry-pick, which is what a planner's SPLIT successor does). `carriers` are the branches allowed to
+    carry work (the planner passes the unlanded branches that have a report); `rank` orders them for the tie.
+
+    ONE ORDER, NO CYCLES: a branch is carried only by branches that OUTRANK it, by (how many distinct patches it holds,
+    then rank, then name). Two branches that hold the same work cannot each carry the other, and the largest of a family
+    that replay one another carries nothing, so exactly one of them still does the work. A branch with no patch of its
+    own (every commit a merge or empty) has nothing to carry and is never carried. One batched read of the patch ids
+    of every commit (git_batch.patch_ids), never a `git cherry` per pair of branches (kb/Work PB3582)."""
+    names = sorted(set(branches) | set(carriers))
+    commits = {b: [c for c in reversed(graph.newest_first(graph.beyond(graph.sha(b) or b))) if len(graph.parents(c)) <= 1]
+               for b in names}
+    pid = git_batch.patch_ids(graph.repo, [c for cs in commits.values() for c in cs])
+    held = {b: frozenset(pid[c] for c in cs if c in pid) for b, cs in commits.items()}
+
+    def key(b: str) -> tuple[int, int, str]:
+        return len(held[b]), rank(b), b
+
+    # Highest key first, so every branch that outranks one is settled before it is read. A branch's carrier is always a
+    # branch carried by NOBODY (one that has a finisher), never a middle link of a successor chain (each SPLIT successor
+    # cherry-picks its predecessor: c-x, then a-mid, then b-top): naming a carried link strands the note on a branch
+    # that never lands on its own (review R1-1). Every patch of a carried branch is held by an uncarried one: the
+    # highest-keyed branch is uncarried, and a carried branch's patches are held by branches above it, by induction.
+    settled: dict[str, Replay] = {}
+    for b in sorted(names, key=key, reverse=True):
+        mine = [c for c in commits[b] if c in pid]
+        above = [c for c in carriers if c != b and held[c] and key(c) > key(b)]
+        everywhere = frozenset().union(*(held[c] for c in above))
+        fresh = tuple(x for x in mine if pid[x] not in everywhere)
+        counted = [(c, sum(1 for x in mine if pid[x] in held[c])) for c in above if settled[c].carrier is None]
+        by = tuple(sorted(((c, n) for c, n in counted if n), key=lambda t: (-t[1], t[0])))
+        best = max(by, key=lambda t: (t[1], key(t[0])), default=None)   # most replayed, then the LATER report
+        settled[b] = Replay(best[0] if mine and not fresh and best else None, fresh, by)
+    return {b: settled[b] for b in branches}
+
+
 def branch_graph(branches, repo=REPO) -> Ancestry:
     """THE ancestry every classify() of one pass reads (git_batch.Ancestry: one resolve and one `git log` for every
     branch, never a `merge-base` per branch, kb/Work PB3582)."""
@@ -1056,11 +1107,24 @@ def abandon_record(branch: str, work_dir: pathlib.Path) -> str | None:
     branches stopped refusing once `old` itself was deleted, because the next survey no longer knew `old` (kb/Work
     PB3161, review finding R1-1). None when no note says so (the owner's rule: the decision is recorded BEFORE the
     delete)."""
-    record = re.compile(branch_name(branch).pattern + RECORD_GAP + r'\babandoned\b', re.I)
+    return abandon_records([branch], work_dir).get(branch)
+
+
+def abandon_records(branches: list[str], work_dir: pathlib.Path) -> dict[str, str]:
+    """{branch: the kb/Work note that records its abandonment} for each of `branches` that has one: abandon_record's
+    rule for a whole list in ONE pass over the notes (the planner asks it of every unlanded branch, kb/Work PB3170, and
+    most notes never say the word)."""
+    records = {b: re.compile(branch_name(b).pattern + RECORD_GAP + r'\babandoned\b', re.I) for b in branches}
+    found: dict[str, str] = {}
     for p in sorted(work_dir.glob('*.md')):
-        if any(record.search(l) for l in p.read_text(encoding='utf-8', errors='replace').splitlines()):
-            return p.stem
-    return None
+        text = p.read_text(encoding='utf-8', errors='replace')
+        if 'abandoned' not in text.lower():
+            continue
+        lines = text.splitlines()
+        for b, record in records.items():
+            if b not in found and any(record.search(l) for l in lines):
+                found[b] = p.stem
+    return found
 
 
 def drop_remote(branch: str, tip: str, *, repo=REPO, say: Callable[[str], None] = print) -> None:
