@@ -1084,7 +1084,7 @@ def self_test() -> int:
             scratch.git('commit', '-q', '-m', msg, cwd=cwd)
 
         commit('src/A.cs', 'class Alpha {}\n', 'base')
-        origin = scratch.origin(tmp / 'origin.git').path
+        scratch.origin(tmp / 'origin.git')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
         # merged: an ancestor of main. landed-by-content: re-applied on main as a different commit.
