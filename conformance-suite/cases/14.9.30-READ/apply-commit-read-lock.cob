@@ -11,9 +11,8 @@
 *> a RELATIVE or INDEXED file, so this program, written in the rule's OWN forbidden shape over a RELATIVE file, is
 *> refused by the rule itself (COBOLNET2974, DataBinder.ScreenApplyCommitSubject) in the strict lane and under
 *> --permissive alike (ApplyCommitSubjectRuleTests). Until PB3338 the row was recorded CONFORMS as vacuously
-*> satisfied (kb/Work PB371, owner 2026-09-02) and this fixture pinned the clause's decline; a SEQUENTIAL file
-*> under APPLY COMMIT is still refused by name (COBOLNET1709, kb/Work PB3340), which is why the file here is
-*> RELATIVE: a sequential file would draw that refusal and witness nothing about this rule.
+*> satisfied (kb/Work PB371, owner 2026-09-02) and this fixture pinned the clause's decline. The file here is
+*> RELATIVE; the rule is the same for a SEQUENTIAL file, which APPLY COMMIT admits too (kb/Work PB3340).
 *> NOT to be confused with the neighbouring SR-14.9.30.3-4, whose antecedent is "If automatic locking has
 *> been specified for file-name-1" - a LOCK MODE condition with live content of its own.
        IDENTIFICATION DIVISION.

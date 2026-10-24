@@ -964,7 +964,22 @@ because the raw name is not stable (`b7`):
   the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
   `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
+  a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
+  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
+  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
+  test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
+  (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
+  class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
+  every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
+  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
+  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
+  spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
+  the `Sweep` trait).
+  **Measured cost** (the Unit assembly, the
   shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
   49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
   change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173

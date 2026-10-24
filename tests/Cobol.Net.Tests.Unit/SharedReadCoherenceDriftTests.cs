@@ -543,7 +543,11 @@ public sealed class SharedReadCoherenceDriftTests
         Assert.Contains("bufferSize: 1", read, StringComparison.Ordinal);
         Assert.DoesNotContain("AdmitsAnotherWriter", read, StringComparison.Ordinal);
         string write = Statement(support, "public static Stream OpenConnectorWriteStream(");
-        Assert.Equal(2, write.Split("bufferSize: 1").Length - 1);   // the plain arm AND the repositioning arm
+        // ONE unbuffered open, which both arms of the one decision (HostFile.WriteStreamOf) take — the plain arm AND the
+        // repositioning arm — and the decision opens nothing of its own (kb/Work PB3340: a medium hands it its own handles).
+        Assert.Equal(1, write.Split("bufferSize: 1").Length - 1);
+        string decision = Statement(support, "internal static Stream WriteStreamOf(");
+        Assert.DoesNotContain("new FileStream(", decision, StringComparison.Ordinal);
         string store = Statement(support, "public static FileStream OpenConnectorStore(");
         Assert.Contains("bufferSize: 1", store, StringComparison.Ordinal);
         foreach (string role in new[] { read, write, store })

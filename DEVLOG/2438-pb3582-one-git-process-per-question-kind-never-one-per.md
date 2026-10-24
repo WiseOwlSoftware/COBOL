@@ -1,4 +1,4 @@
-## PB3582: one git process per question kind, never one per object (scripts/git_batch.py)
+## Entry 2438 — 2026-10-23 21:45 PDT — PB3582: one git process per question kind, never one per object (scripts/git_batch.py)
 
 The script self-tests summed 1,444 s on CI's Windows runner and 144 s on Linux (merge-group run 40004159292). On this
 branch GIT_TRACE2 counted the git processes each hot self-test starts: `prune_worktrees.py` 3,048, `landing_check.py`
@@ -19,3 +19,4 @@ after: 1,246, 846, 510 and 286 git processes for the same four self-tests, all G
 holds each reader to the per-object command it replaces, and `GitBatchDriftTests` keeps per-object ancestry
 questions out of the survey, the landing check and the planner. The design is DESIGN-test-build-ci.md section 3.14.10
 item 5. No compiler behavior changed and no inventory row closed.
+
