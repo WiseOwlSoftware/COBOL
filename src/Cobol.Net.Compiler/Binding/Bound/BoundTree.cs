@@ -767,8 +767,14 @@ public sealed record BoundBoolError : BoundBoolExpr
 
 /// <summary>A boolean expression used as a RELATION operand (ISO §8.8.4.2.2) — the ONE carrier that lets a
 /// boolean expression sit in a <see cref="BoundRelational"/> beside another boolean operand (item↔item compares
-/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_one_mechanism_per_job).</summary>
-public sealed record BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand;
+/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_one_mechanism_per_job).
+/// <para><paramref name="AtItemWidth"/> is the SENDING form of a BY CONTENT boolean-expression-1 / boolean literal-2
+/// argument of a CALL or INVOKE (kb/Work PB1014): §14.8.2.3.3 2) d) makes the crossing "the same as for a MOVE statement
+/// with the argument as the sending operand", and the value that MOVE sends is taken at §8.8.2 rule 10's width — the largest
+/// boolean ITEM referenced (<see cref="CobolNet.CodeGen.Emit.BooleanRenderer.RenderAtItemWidth"/>), not the relation
+/// operand's unsized image. It lets the argument ride the one MOVE receiving store (<c>MoveEmitter.ConvertSource</c>)
+/// like every other sender, instead of a second store written beside it.</para></summary>
+public sealed record BoundBoolOperand(BoundBoolExpr Expr, bool AtItemWidth = false) : BoundOperand;
 
 // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────────────
 

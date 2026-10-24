@@ -819,11 +819,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // OoEmitter's INVOKE twin apply it. Digits/Scale are 0: this is character storage, not numeric meta.
         if (a.ContentBool is { } cb)
         {
-            string bv = BooleanRenderer.RenderAtItemWidth(cb, num);
-            // A known formal's record is filled by GR9's MOVE (kb/Work PB2587) through the one boolean-argument store
+            // A known formal's record is filled by GR9's MOVE (kb/Work PB2587, PB1014) through the one boolean-argument record
             // the INVOKE lane uses; with no formal known the value crosses as itself (GR9's first regime).
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
-                + $"{(a.Formal is { } bf ? BooleanArgumentRecord(bv, bf) : bv)}), null)";
+            string record = a.Formal is { } bf ? BooleanArgumentRecord(cb, bf) : BooleanRenderer.RenderAtItemWidth(cb, num);
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({record}), null)";
         }
         // ⛔ AN ADDRESS-IDENTIFIER CROSSES AS A DETACHED POINTER VALUE IN EVERY MODE (kb/Work PB239). §14.9.4.3
         // SR4 makes it a SENDING operand even BY REFERENCE and SR5 withholds the receiving role, so the carrier is
@@ -1092,24 +1091,32 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static string MovedArgText(string carrier) =>
         $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, {carrier}, null)";
 
-    /// <summary>⛔ THE RECORD OF A KNOWN FORMAL FILLED FROM A BOOLEAN VALUE (kb/Work PB46, PB2587) — the C# string expression
-    /// a BY CONTENT boolean-expression-1 or boolean literal-2 (<paramref name="value"/>, a '0'/'1' string) crosses as into
+    /// <summary>⛔ THE RECORD OF A KNOWN FORMAL FILLED FROM A BOOLEAN VALUE (kb/Work PB46, PB2587, PB1014) — the C# string
+    /// expression a BY CONTENT boolean-expression-1 or boolean literal-2 (<paramref name="value"/>) crosses as into
     /// <paramref name="formal"/>, for the CALL and function lanes (<see cref="ArgCarrierText"/>) and the INVOKE lane alike.
     /// <para>⛔ ANY LENGTH IS TESTED FIRST, AND THE ORDER IS THE WHOLE POINT. §13.18.2.3 SR1 admits the picture symbol '1'
     /// as well as 'N' and 'X', so a category-BOOLEAN formal can carry ANY LENGTH — and §13.18.2.4 GR1b then makes n "the
     /// length of the corresponding argument", not the one symbol its PICTURE spells (measured: `01 AL PIC 1 ANY LENGTH`
-    /// received B"1000" as B"1" while the category test came first). Otherwise §14.8.2.3.3 rule 2d makes the crossing the
-    /// MOVE store for the formal's category: a BOOLEAN receiver pads and truncates in boolean ZEROS (§14.6.8.6), an
-    /// ALPHANUMERIC one in spaces with the boolean characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of
-    /// class boolean, its boolean value shall be moved"), and a GROUP formal takes the characters as §14.9.25.4 GR4's
-    /// group move does — an alphanumeric copy to the group's image width, space-filled (kb/Work PB1113).</para></summary>
-    internal static string BooleanArgumentRecord(string value, DataItem formal)
+    /// received B"1000" as B"1" while the category test came first). Otherwise §14.8.2.3.3 rule 2d makes the crossing a MOVE
+    /// with the argument as its sending operand, so the value is that MOVE's sender (<see cref="BoundBoolOperand"/>, at
+    /// §8.8.2 rule 10's width) and the record is the MOVE's own (<see cref="MoveEmitter.RecordValue"/>): the one receiving
+    /// store of every category — a BOOLEAN receiver pads and truncates in boolean ZEROS (§14.6.8.6), an ALPHANUMERIC or
+    /// NATIONAL one in spaces with the boolean characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of class
+    /// boolean, its boolean value shall be moved"), an alphanumeric-edited or national-edited one EDITS them (GR6 —
+    /// `B"10"` into PIC XBX is "1 0"), and a JUSTIFIED one right-justifies — and a plain GROUP formal takes the characters
+    /// as §14.9.25.4 GR4's group move does, an alphanumeric copy to the group's image width, space-filled (kb/Work
+    /// PB1113). There is no second store of a boolean beside the MOVE's (PB1014: the hand-written one skipped the editing).
+    /// A NUMERIC formal never reaches here: §14.8.2.3.3 rule 2 a) refuses a boolean sender at bind (COBOLNET0828).</para></summary>
+    internal string BooleanArgumentRecord(BoundBoolExpr value, DataItem formal)
     {
-        int width = Math.Max(1, formal.Pic?.Length ?? 0);
-        return formal.IsGroup ? RuntimeApi.StrStore(value, $"{BoundaryImageWidth(formal)}")
-            : formal.IsAnyLength ? value
-            : formal.Pic!.Category is PicCategory.Boolean ? RuntimeApi.StrStoreBoolean(value, $"{width}", formal.Justified)
-            : ReceivingStore.Characters(formal, value, $"{width}");   // the ONE elementary character store (kb/Work PB871)
+        var sender = new BoundBoolOperand(value, AtItemWidth: true);
+        if (formal.IsAnyLength) return OperandText.AsString(sender, num);
+        if (IsPlainGroupFormal(formal))
+            return RuntimeApi.StrStore(OperandText.AsString(sender, num), $"{BoundaryImageWidth(formal)}");
+        return IsMovedFormal(formal)
+            ? move.RecordValue(sender, formal)
+            : throw new InvalidOperationException(
+                $"CallEmitter.BooleanArgumentRecord: a BY CONTENT boolean argument reached formal '{formal.CobolName}', which no MOVE fills (bind refuses it)");
     }
 
     /// <summary>⛔ THE ONE VALUE OF A FIGURATIVE-CONSTANT / ALL-LITERAL ARGUMENT (kb/Work PB1418 + PB1617) — the C#
