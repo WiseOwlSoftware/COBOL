@@ -52,8 +52,15 @@ were removed rather than listed:
   so a `kb/`-only change runs them exactly as any other. The C# twin, both tests, `TraceabilityInventory.cs` (their
   only user), `TestRepo.Kb` and `work.py parity` are deleted; the fixture stays, renamed
   `work-frontmatter-cases.json`, as `work.py --self-test`'s cases for the one remaining reader.
-- `LandingPipelineDriftTests.Current` (the retired-landing-script name sweep) sets `kb/` and `.obsidian/` aside as the
-  sibling sweeps do; no file of either named a retired script (measured).
+- `LandingPipelineDriftTests.Current` (the retired-landing-script name sweep) sets `kb/` and `.obsidian/` aside; so do
+  the other three tree sweeps that read every tracked file (LandingPipelineDriftTests.NotNarrative,
+  LandingLaneDriftTests.Current, LandingMeasureDriftTests.NotNarrative: the last three lacked `.obsidian/`). No file of
+  either named a retired script or the retired wording (measured by grep).
+- `RenderedViewsDriftTests` is deleted. It only ran `rendered_views.py --tree`, whose rule (c) reads the head of every
+  tracked `kb/` note, and the same rule is `rendered_views.py --check`: the gate's `RENDERED VIEWS` audit and a step of
+  CI's `audits` job, on every event. The `--tree` mode, whose one caller it was, went with it. This was the
+  second watch run's finding: the first with the register tests gone still opened 60 vault paths (57 notes from this
+  sweep, 3 `.obsidian/` files from the sweeps above).
 - `EcRaiseSiteRegistryDriftTests` no longer reads a note: it asked whether the note that built each activation-boundary
   name contained the text `status: landed`, a substring test (kb/Work PB3295: an open note quoting the text passed) beside
   the real evidence, that a raise site stages the name. The notes are named in the comment.

@@ -24,7 +24,8 @@ the generator needs the private PDF, which CI does not have), and a view DEFINIT
 query over the notes, not generated content).
 
 ONE REGISTRY, ONE RULE (rule 4: no hand list per consumer). `VIEWS` below is the only place a view is named. The
-gate's audits, CI's `audits` job and `RenderedViewsDriftTests` (Unit) all call `--check`, which enforces, per view:
+gate's audits and CI's `audits` job call `--check`, which enforces, per view (no test calls it: rule (c) reads the head
+of every tracked `kb/` note, and a test that did would make the vault a test input, kb/Work PB2878):
   (a) NOT TRACKED — `git ls-files` finds nothing at its output (the drift test the design names: tracked ∩ outputs = ∅);
   (b) GITIGNORED when its output is inside the tree — otherwise a render leaves the checkout dirty, and a dirty main
       checkout sends the orchestrator loop to `resume`;
@@ -73,7 +74,7 @@ def _py(script: str, *args: str) -> tuple[str, ...]:
 
 
 #: ⛔ THE ONE REGISTRY. A new generated index is ONE row here, a `.gitignore` entry for its output, and a `--check`
-#: on its generator; `RenderedViewsDriftTests` then holds it to the rule with nothing else to remember.
+#: on its generator; `--check` then holds it to the rule with nothing else to remember.
 VIEWS: tuple[View, ...] = (
     View("drift-rules", "docs/DRIFT_RULES.md",
          _py("scripts/spec/drift_rules.py", "--out", "{out}"),
@@ -270,9 +271,6 @@ def main(argv: list[str]) -> int:
     ap.add_argument("names", nargs="*", help="views to render or check (default: all)")
     ap.add_argument("--check", action="store_true",
                     help="exit non-zero when a view is tracked, not gitignored, or no longer renders")
-    ap.add_argument("--tree", action="store_true",
-                    help="--check without rendering: only the tree rules (tracked, gitignored, unregistered generated "
-                         "files), which is what RenderedViewsDriftTests asks")
     ap.add_argument("--list", action="store_true", help="print each view: name, output, generator")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
@@ -285,15 +283,15 @@ def main(argv: list[str]) -> int:
             print(f"{v.name:24} {v.out or '(outside the tree: the generator\'s own default)':32} "
                   f"{' '.join(v.render[1:3]) if v.render[0] == sys.executable else v.render[-1]}")
         return 0
-    if a.check or a.tree:
-        problems = tree_problems(views) + unregistered_problems(views) + ([] if a.tree else render_problems(views))
+    if a.check:
+        problems = tree_problems(views) + unregistered_problems(views) + render_problems(views)
         if problems:
             print(f"⛔ {len(problems)} RENDERED-VIEW PROBLEM(S) (scripts/rendered_views.py; DESIGN-test-build-ci.md §3.17.4):")
             for p in problems:
                 print(f"   {p}")
             return 1
-        print(f"rendered views OK — {len(views)} views, none tracked, every in-tree one gitignored, nothing unregistered"
-              + ("" if a.tree else ", every one renders"))
+        print(f"rendered views OK — {len(views)} views, none tracked, every in-tree one gitignored, nothing unregistered, "
+              "every one renders")
         return 0
     return render_all(to_render(a.names))
 

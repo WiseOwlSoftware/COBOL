@@ -2364,7 +2364,8 @@ demand and not committed.
   plus a sweep that no tracked `docs/` or `kb/` markdown declares itself generated without a row. Nothing compares a view
   with a copy on disk, so "absent" and "stale" no longer exist; a reader that needs a view (`phase_b_batch.py` reads the
   diagnostics table) refuses with the render command when it is absent, never reads an empty one as "no diagnostics".
-  `RenderedViewsDriftTests` asks the script's `--tree` mode, so the audit, CI and the test cannot disagree. NOT views, and
+  No test asks the script (a Unit test did until kb/Work PB2878: its tree sweep reads the head of every tracked `kb/` note,
+  and a test that read the vault made every note a test input), so the audit and CI are its only callers. NOT views, and
   tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must build with no pre-step; each
   has its own drift test), DATA extracted from the licensed standard (the generator needs the private PDF), the gating
   status block embedded in `VERSION_CHANGE_REFERENCE.md` (a region of a hand-written, anchor-checked document: one row per
@@ -2528,9 +2529,12 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
   now `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are
   audits: the gate's `WORK REGISTER` audit runs them before the slot, CI's `audits` job on every event, and they run on a
   `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
-  (the fixture stays as `work.py --self-test`'s cases). LandingPipelineDriftTests' `Current` retired-name sweep sets
-  `kb/` and `.obsidian/` aside as its sibling sweeps do, and EcRaiseSiteRegistryDriftTests no longer reads a note (the
-  raise site is its evidence), so no test reads the vault.
+  (the fixture stays as `work.py --self-test`'s cases). The tree sweeps of LandingPipelineDriftTests (two scopes),
+  LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` and `.obsidian/` aside whole, and EcRaiseSiteRegistryDriftTests
+  no longer reads a note (the raise site is its evidence). `RenderedViewsDriftTests`, which only ran
+  `rendered_views.py --tree` (rule (c) there reads the head of every tracked `kb/` note), is deleted: the same rule is
+  `rendered_views.py --check`, the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job, so no test reads the
+  vault.
 
 **Who calls it — every runner, no list of its own (the CI invariant).**
 
