@@ -217,7 +217,7 @@ public sealed class GateLegDriftTests
                  {
                      "scripts/battery.sh", "scripts/run_gate_legs.py", "scripts/gen-vcr.ps1",
                      "scripts/gen-diagnostics-doc.ps1", "scripts/spec/record_verdicts.py",
-                     "scripts/spec/record_impact_map.py", ".github/workflows/build-and-test.yml",
+                     "scripts/spec/record_impact_map.py", "scripts/abi_pin.py", ".github/workflows/build-and-test.yml",
                  })
         {
             Assert.True(r.Stdout.Contains("  site  " + site + "\n", StringComparison.Ordinal)
