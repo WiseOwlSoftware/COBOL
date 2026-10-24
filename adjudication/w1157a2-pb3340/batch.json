@@ -1,0 +1,26 @@
+{
+  "batch": "w1157a2-pb3340",
+  "records": [
+    {
+      "rule-id": "GR-9.1.18.2-p1",
+      "retire-witnesses": "conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit",
+      "retire-reason": "the refusal it pinned, COBOLNET1709 for a SEQUENTIAL operand of APPLY COMMIT, is retired by kb/Work PB3340 and the case is deleted; pb695-apply-commit-no-on and pb3340_sequential_file_under_apply_commit witness the operand accepted"
+    },
+    {
+      "rule-id": "GR-14.7.9.3-3",
+      "test-ref": "conformance:cases/14.7.9-RETRY/pb3340_retry_forever_own_run_unit_hold; unit:SequentialCommitControlTests.A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase"
+    },
+    {
+      "rule-id": "GR-14.7.9.3-4",
+      "test-ref": "conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths; unit:SequentialCommitControlTests.A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase; unit:SequentialCommitControlTests.An_open_or_delete_file_refused_by_what_this_run_unit_holds_is_not_waited_for"
+    },
+    {
+      "rule-id": "GR-9.1.13.8-2",
+      "test-ref": "unit:SequentialCommitControlTests.A_holding_of_this_run_units_own_transaction_is_not_waited_for; conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths"
+    },
+    {
+      "rule-id": "GR-9.1.16-p9",
+      "test-ref": "conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths; unit:SequentialCommitControlTests.A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds"
+    }
+  ]
+}
