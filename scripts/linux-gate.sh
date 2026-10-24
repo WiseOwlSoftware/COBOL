@@ -197,6 +197,9 @@ dirty="$(wgit status --porcelain --untracked-files=no 2>/dev/null | tr -d '\r' |
 repo_state() { printf '%s|%s' "$(wgit rev-parse HEAD 2>/dev/null)" "$(wgit config --get core.worktree 2>/dev/null)"; }
 state_before="$(repo_state)"
 
+# THE PLANNER READS THIS DIRECTORY (gate_plan.TRX_WRITERS, kb/Work PB3155): a case red in a trx file here is tier 0a of
+# this worktree's next gate, so a finisher's re-gate after a landing's Linux red runs it in leg 1. It holds only the
+# newest run: emptied first.
 out="$tree/TestResults/linux-gate"
 rm -rf "$out"; mkdir -p "$out"
 snap="$HOME/linux-gate/$(basename "$tree")"
