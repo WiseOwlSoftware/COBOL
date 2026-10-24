@@ -1892,7 +1892,7 @@ result. Run the long legs ONE AT A TIME.
   driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (before it queues, kb/Work
   PB2524), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
   discovered case of Conformance, Unit and Characterization and plans them ALL into two legs — the tests the change
-  adds and the previous gate's reds (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
+  adds and the previous gate's reds on either host (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
   cheapest cases the change reaches (the impact map's tiers) first — and runs leg 1 FAIL-FAST (batched gating), then
   checks each assembly's population against `--list-tests` and each leg host's identity record. Under the owner's
   scope `whole` it runs both legs, GREEN only when every leg ran; a red in leg 1 is then `RED/INCOMPLETE` with the
@@ -3219,7 +3219,7 @@ already-derivable coverage; none change the pipeline.
   cut point, then `gate_plan.py` (`NameKey`, tiers 0a/0u/1–3, the leg-1 budgets and collection cap). By hand:
   `python scripts/spec/impacted_tests.py --base <cut point> [--plan tiers.json]` prints the tiers (no filter), and
   `python scripts/gate_plan.py --out plan.json --list <Assembly>=<--list-tests output> … [--base <sha>]
-  [--previous-run <dir>]` writes a plan. Only the gate driver hands a test host the leg handshake
+  [--previous-run <dir>] [--worktree <dir>]` writes a plan (its tier-0a reds: both hosts' previous gates). Only the gate driver hands a test host the leg handshake
   (`COBOLNET_GATE_PLAN`, `COBOLNET_GATE_LEG`, `COBOLNET_GATE_PLAN_SHA256` — all three or none; one or two of them, or
   a stale plan, makes every case an execution error, so never export them by hand). Maps are recorded ON DEMAND:
   `python scripts/spec/record_impact_map.py [--commit <sha>]` (inside a gate slot; a detached worktree, a
