@@ -145,6 +145,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the coordination directory, the live-process probe)
 import git_batch  # noqa: E402  (scripts/: THE batched git reads, one process for many objects, kb/Work PB3582)
+import merge_drivers  # noqa: E402  (scripts/: the merge drivers, THE definition of a clean merge of main, kb/Work PB3610)
 from git_batch import Ancestry  # noqa: E402
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 from queue_facts import PullRequest  # noqa: E402
@@ -416,16 +417,15 @@ class Row:
 
 def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
     """The commits (beyond the graph's base) that change nothing a reviewer reads: a merge whose tree IS the clean merge
-    of its two parents (no hand resolution: what `enqueue.py land`'s own `git merge origin/main` makes), or a commit that
+    of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand resolution: what
+    `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610), or a commit that
     changes only DEVLOG/ (an entry, its stamp). Parents and trees come from the graph; every one-parent commit's files
     from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree` (kb/Work PB3582)."""
     out = set()
     for c in commits:
         parents = graph.parents(c)
-        if len(parents) == 2:
-            clean = git('merge-tree', '--write-tree', *parents, cwd=repo)
-            if clean.returncode == 0 and clean.stdout.split()[:1] == [graph.tree(c)]:
-                out.add(c)
+        if len(parents) == 2 and merge_drivers.is_drivers_merge(repo, parents, graph.tree(c)):
+            out.add(c)
     singles = [c for c in commits if len(graph.parents(c)) == 1]
     for c, paths in zip(singles, git_batch.diff_names(repo, [(c, graph.parents(c)[0]) for c in singles])):
         if paths and all(p.startswith('DEVLOG/') for p in paths):
