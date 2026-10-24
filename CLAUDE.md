@@ -129,7 +129,7 @@ tree-wide sweeps (`[Trait("Sweep", "tree")]`, tier 0c) and the cheapest reach â€
 ~11:20: "local testing confirms the targeted change; CI/CD ensures no regression on the remaining codebase"). A
 self-test whose inputs are unchanged since a recorded PASS is reused, never re-run, by every gate (kb/Work PB2914,
 PB3022). **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py land <branch>`** (kb/Work
-PB3023): it reads the record of the branch's local gate (it refuses a tip none covers, exit 13), merges origin/main in,
+PB3023): it reads the record of the branch's local gate (it refuses a tip none covers, exit 14), merges origin/main in,
 stamps the DEVLOG entry, runs the landing checks and queues one pull request in GitHub's merge queue (it refuses while
 the queue is not ACTIVE); there is no lander and no train. **A branch is gated locally ONCE, at its head (owner
 2026-10-23, kb/Work PB3612): leg 1 on Windows and the same plan's legs in a WSL clone of the committed head, under the

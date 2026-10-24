@@ -100,7 +100,7 @@ PB2526). Each leg runs the three assemblies concurrently.
 
 A branch is gated locally ONCE, at its head, by its implementer or finisher: that run is the whole definition of "tested
 locally". `enqueue.py land` does not gate the merge with main and does not gate again when main moves: it READS the
-worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 13, UNTESTED) a tip none of them covers
+worktree's newest `TestResults/build-local/*/verdict.json` runs and refuses (exit 14, UNTESTED) a tip none of them covers
 GREEN with its Linux half (a finisher gates the tip). The merge queue's `ci-gate` runs the whole population on the exact
 merge, on both operating systems, before `main` moves. One exception, the case a developer would also re-test: when
 bringing main in changed a file the branch also changes, the one gate runs once on the merged head

@@ -88,6 +88,17 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
 # The rule lives once, in prune_worktrees.py; the probe prints its --brief form and never recomputes it.
 & python scripts/prune_worktrees.py --brief 2>&1 | ForEach-Object { Write-Host "branch : $_" }
 
+# ⛔ A GATE SLOT HELD FAR PAST ITS KIND'S MEDIAN IS NAMED, NOT DISCOVERED (kb/Work PB3310): on 2026-10-16 a hung Linux gate
+# held one of the three slots for 6 h 40 min and the operator's peer session noticed it, not a tool. `gate_slot.py status`
+# flags a hold older than HOLD_LONG_FACTOR times the median of its kind's recorded holds (the gates' own history); the
+# probe only prints those lines. SURFACED, never a kill: verify the holder's pid first (feedback_verify_pid_before_kill).
+$slotStatus = & python scripts/gate_slot.py status 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "slots  : gate_slot.py status failed (exit $LASTEXITCODE) - long holds UNREAD: $(@($slotStatus)[0])"
+} else {
+    @($slotStatus) | Where-Object { "$_" -match 'LONG HOLD|NO LONG-HOLD FLAGS' } | ForEach-Object { Write-Host "slots  : ⛔ $("$_".Trim())" }
+}
+
 # ⛔ A DISABLED GATE MUST NOT BE INVISIBLE. Reported here because the probe is the one thing every session reads,
 # and "CI is off" is exactly the kind of live state that rots into a false sense of coverage
 # (feedback_green_gates_arent_evidence) — the battery is NOT a superset of CI: it is Windows/DEBUG only, so the

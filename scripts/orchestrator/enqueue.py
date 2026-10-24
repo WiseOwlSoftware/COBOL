@@ -11,6 +11,13 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
     python scripts/orchestrator/enqueue.py --self-test
 
 `land <branch>`, from any checkout (the branch's worktree is found by `git worktree list`, or named by --worktree):
+  0. THE LAND LOCK (kb/Work PB3310), before the worktree is read: one `land` of a branch at a time. The worktree's git
+     directory holds `cobol-land.lock`, an exclusive OS lock (freed when its holder dies, so a dead run never blocks
+     the branch) that a run holds until its outcome line. A second run, a hand-run `land` beside the landing lane's
+     (the loop's lane records only its own attempts) or two by hand, ends `=== ENQUEUE: REFUSED — another land of
+     <branch> runs (<holder>) ===` with exit 13 and nothing touched: it raced the first on the merge, the DEVLOG stamp,
+     the push and the gates' files, and on 2026-10-16 the loser's Linux gate deleted the winner's clone mid-test. It is
+     no red and no stop (no report line, no finisher): the lane retries it once the lock is free. A dry run takes none.
   1. The worktree must be clean (STATUS.md and the harness's settings.local.json aside): a landing carries only commits.
      THE QUEUE GUARD, before anything is merged or gated: `ruleset.py check` must report the merge queue ACTIVE, or the
      exit is 8 with the branch unchanged. Main accepts only queued pull requests (the ruleset binds administrators too),
@@ -39,7 +46,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      the worktree's newest gate verdict files must hold a GREEN run of the committed head's own tree (`head_tree`
      equals the `tree` it measured) with its Linux half GREEN (the inert lane has none), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
-     `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 13, UNTESTED, before anything is
+     `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
      merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
      landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
@@ -109,8 +116,9 @@ run, a gate was NOT RUN for a cause in the environment or one main shares, main 
 code the branch carries that main does not share) · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
 11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
-gate lock (`land` only; nothing ran, nothing is red; above) · 13 the branch is not TESTED at its tip: no recorded GREEN
-local gate covers it (`land` only; nothing merged; above).
+gate lock (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
+is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
+recorded GREEN local gate covers it (`land` only; nothing merged; step 3).
 
 AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
 checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
@@ -147,7 +155,14 @@ EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
 EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
-EXIT_UNTESTED = 13    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
+EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
+EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
+#: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
+#: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
+#: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
+#: runs on one branch race on the worktree (merge, DEVLOG stamp, push) and on everything the gates write: on 2026-10-16
+#: the second run's Linux gate deleted the first's clone mid-test, and the first held a gate slot for 6 h 40 min.
+LAND_LOCK_NAME = "cobol-land.lock"
 # How many times `land` brings a moved main in before it gives up (exit 2): main moves about once per landing the queue
 # merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
@@ -386,6 +401,15 @@ def worktree_of(repo: pathlib.Path, branch: str) -> pathlib.Path | None:
         elif line == f"branch refs/heads/{branch}" and path is not None:
             return path
     return None
+
+
+def land_lock_path(wt: pathlib.Path) -> pathlib.Path:
+    """The worktree's land lock (LAND_LOCK_NAME): in its own git directory, like the gate driver's gate lock. OSError
+    when git cannot name that directory."""
+    git = _git(wt, "rev-parse", "--absolute-git-dir")
+    if git.returncode != 0 or not git.stdout.strip():
+        raise OSError(f"git cannot name the git directory of {wt}: {git.stderr.strip()}")
+    return pathlib.Path(git.stdout.strip()) / LAND_LOCK_NAME
 
 
 @dataclasses.dataclass(frozen=True)
@@ -723,7 +747,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     `tested(worktree, head, base)` is the evidence a landing reads instead of a gate (`tested_locally`)."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's Reading and its one NOT RUN classification)
 
+    land_lock: list[gate_slot.ExclusiveLock] = []   # the worktree's land lock once taken; every outcome releases it
+
     def end(rc: int, outcome: str) -> int:
+        for held in land_lock:
+            held.release()
+        land_lock.clear()
         say(f"{VERDICT}{outcome} ({branch}) ===")
         return rc
 
@@ -776,11 +805,30 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         return None
     blocked = blocked or (lambda b, w, line: record_blocked(b, w, line, say))
     wt = worktree or worktree_of(repo, branch)
-    here = worktree_state(wt) if wt is not None else None
-    if here is None or here.branch != branch:
-        return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
     if branch == "main":
         return end(2, "REFUSED — main is not a branch to land")
+    if wt is None or not wt.is_dir():
+        return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
+    # 0. THE LAND LOCK (kb/Work PB3310), before the first read of the worktree: a second run on the branch would find the
+    # first one's merge half done ("dirty") and race it on the stamp, the push and the gates. It is its own outcome, exit
+    # 13: nothing ran, nothing is red, so no report line and no finisher; the landing lane retries it once the lock is
+    # free. A dry run changes nothing and takes none.
+    if not dry_run:
+        try:
+            lock_file = land_lock_path(wt)
+            lock = gate_slot.ExclusiveLock.try_take(
+                lock_file, f"enqueue.py land {branch} (pid {os.getpid()}, started "
+                           f"{dt.datetime.now().isoformat(timespec='seconds')})")
+        except (OSError, subprocess.SubprocessError) as e:
+            return end(2, f"REFUSED — the land lock of {wt} could not be taken ({e}): nothing ran")
+        if lock is None:
+            holder = gate_slot.ExclusiveLock.holder(lock_file) or "its holder wrote no label"
+            return end(EXIT_LAND_BUSY, f"REFUSED — another land of {branch} runs ({holder}): nothing ran and nothing is "
+                                       "red; landed again once its lock is free")
+        land_lock.append(lock)
+    here = worktree_state(wt)
+    if here is None or here.branch != branch:
+        return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
     if dirty := here.dirty:
         return end(2, f"REFUSED — the worktree {wt} has {len(dirty)} uncommitted path(s) ({dirty[0].strip()}): commit "
                       "or remove them; a landing carries only commits")
@@ -1233,7 +1281,7 @@ def self_test() -> int:
         # kb/Work PB3612: the landing does not gate; it reads the record of the implementer's gate.
         ran, stamped, notes[:] = [], [], []
         rc_untested = run_land(tested=unproved, gates=gates_of(green, ran), stamped=stamped)
-        expect("land: a tip no recorded GREEN local gate covers is exit 13, UNTESTED, before anything is merged: the "
+        expect("land: a tip no recorded GREEN local gate covers is exit 14, UNTESTED, before anything is merged: the "
                "report is told to send a finisher to gate it, the landing runs no gate, stamps nothing, and the branch "
                "is unchanged (kb/Work PB3612)",
                rc_untested == EXIT_UNTESTED and not ran and not stamped and fix.git("rev-parse", "HEAD") == fix_tip
@@ -1329,6 +1377,31 @@ def self_test() -> int:
                "no stamp, nothing queued (kb/Work PB3527)",
                rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
                and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)"), f"{rc_busy} {notes} {lines[-1:]}")
+
+        # kb/Work PB3310: a second `land` of a branch whose first still runs is REFUSED at the land lock (exit 13): it
+        # touches nothing (no gate, no stamp, no report line), a dry run takes no lock, and every outcome releases it.
+        ran, stamped, notes[:] = [], [], []
+        first = gate_slot.ExclusiveLock.try_take(land_lock_path(lw), "enqueue.py land fix (pid 4242, started 2026-10-24T11:00:00)")
+        try:
+            rc_second = run_land(gates=gates_of(green, ran), stamped=stamped)
+            second_line = lines[-1]
+            rc_dry_beside = run_land(dry_run=True)
+        finally:
+            first.release()
+        (lw / "stray.txt").write_text("uncommitted", encoding="utf-8", newline="\n")
+        rc_early = run_land(gates=gates_of(green, ran))      # ends early, REFUSED (dirty): its lock must be released
+        (lw / "stray.txt").unlink()
+        again = gate_slot.ExclusiveLock.try_take(land_lock_path(lw), "probe")
+        free_after = again is not None
+        if again is not None:
+            again.release()
+        expect("land: a second land of a branch whose first still runs is REFUSED at the land lock, exit 13, naming the "
+               "holder: nothing gated, stamped or reported (kb/Work PB3310); a dry run takes no lock; an early outcome "
+               "releases it",
+               rc_second == EXIT_LAND_BUSY and not ran and not stamped and not notes
+               and second_line.startswith(VERDICT + "REFUSED — another land of fix runs (enqueue.py land fix (pid 4242")
+               and rc_dry_beside == 0 and rc_early == 2 and free_after,
+               f"{rc_second} {second_line} {rc_dry_beside} {rc_early} {free_after} {notes}")
 
         # kb/Work PB3526: a gate that measured nothing (the Linux host has no .NET SDK; or no verdict line at all) is
         # exit 2 with no report line: the lane retries it once and a second is the operator's, never a finisher's.
@@ -1646,10 +1719,16 @@ def self_test() -> int:
                                               3),))
         lying = run_gates(wt, gates=(probe("=== PROBE GATE: GREEN — but the exit says otherwise ===", 1),))
         silent = run_gates(wt, gates=(probe("python: command not found", 127),))
+        # The line linux-gate.sh prints when another Linux gate of the tree runs (kb/Work PB3310), read from the script
+        # itself: it must be the one reader's BUSY, so the gate driver ends a gate whose Linux half prints it BUSY
+        # (run_gate_legs._linux_leg, kb/Work PB3612), which the landing answers with exit 12, never a red.
+        linux_busy = re.search(r'echo "=== LINUX GATE: (BUSY[^"]*)"', (HERE.parent / "linux-gate.sh").read_text(
+            encoding="utf-8")).group(1).replace("$other", "4242")
         expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
-               "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527); a gate that printed no verdict "
-               "line measured nothing: NOT RUN (kb/Work PB3526)",
-               [r[1] for r in busy_run] == [run_gate_legs.BUSY_READING]
+               "a red), the Linux gate's own BUSY line included (kb/Work PB3310), and a GREEN line with a non-zero exit "
+               "is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN (kb/Work PB3526)",
+               run_gate_legs.read_verdict(linux_busy) == run_gate_legs.BUSY_READING
+               and [r[1] for r in busy_run] == [run_gate_legs.BUSY_READING]
                and [r[1] for r in lying] == [run_gate_legs.RED_READING]
                and [r[1] for r in silent] == [run_gate_legs.not_run("verdict")] and silent[0][1].branch_carried
                and "measured nothing" in silent[0][2],
