@@ -23,11 +23,11 @@ namespace CobolNet.Tests.Conformance;
 [Trait("Sweep", "tree")]
 public sealed class CompiledProgramCacheDriftTests : IDisposable
 {
-    private readonly string _dir = CutRunner.NewTempDir("pb985");
+    private readonly string _dir = ScratchDirectory.Create("pb985");
 
     private string Store => Path.Combine(_dir, "store");
 
-    public void Dispose() => CutRunner.TryDelete(_dir);
+    public void Dispose() => ScratchDirectory.Remove(_dir);
 
     private string Write(string relative, string text)
     {

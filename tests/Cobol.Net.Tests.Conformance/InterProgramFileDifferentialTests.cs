@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -298,7 +299,7 @@ public sealed class InterProgramFileDifferentialTests
     [Fact]
     public void Call_SeparatelyCompiledSiblingModule_ResolvesAndAliases()
     {
-        string dir = CutRunner.NewTempDir("xasm");
+        string dir = ScratchDirectory.Create("xasm");
         try
         {
             CompileTo(XasmCaller, dir, "XASMC1");
@@ -307,7 +308,7 @@ public sealed class InterProgramFileDifferentialTests
             Assert.True(ok, detail);
             Assert.Equal("CALLER-START\nSUB-SEES=0010\nAFTER=0042", stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Without the sibling module the CALL still raises the EC-PROGRAM-NOT-FOUND surface (§14.9.4.4
@@ -315,7 +316,7 @@ public sealed class InterProgramFileDifferentialTests
     [Fact]
     public void Call_AbsentSiblingModule_StillNotFound()
     {
-        string dir = CutRunner.NewTempDir("xasmn");
+        string dir = ScratchDirectory.Create("xasmn");
         try
         {
             CompileTo(XasmCaller, dir, "XASMC1");
@@ -323,7 +324,7 @@ public sealed class InterProgramFileDifferentialTests
             Assert.False(ok, "a CALL to an absent program must terminate the run unit loudly (no exception phrase)");
             Assert.Contains("EC-PROGRAM-NOT-FOUND", detail);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── UDF-3: separately-compiled function prototypes (ISO §11.5 Format 2 / §8.13 / §12.3.8; greenfield-only) ──
@@ -377,7 +378,7 @@ public sealed class InterProgramFileDifferentialTests
     [Fact]
     public void Udf_SeparatelyCompiledPrototypeTarget_ResolvesCrossAssembly()
     {
-        string dir = CutRunner.NewTempDir("udfproto");
+        string dir = ScratchDirectory.Create("udfproto");
         try
         {
             CompileTo(UdfProtoCaller, dir, "UPROTOX", 2002);
@@ -386,7 +387,7 @@ public sealed class InterProgramFileDifferentialTests
             Assert.True(ok, detail);
             Assert.Equal("P=000049", stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>ISO §8.4.3.2.4 GR6b + Table 13 — with the SQUARER definition absent, the UDF locate miss raises
@@ -395,7 +396,7 @@ public sealed class InterProgramFileDifferentialTests
     [Fact]
     public void Udf_AbsentFunctionDefinition_RaisesFunctionNotFound()
     {
-        string dir = CutRunner.NewTempDir("udfproton");
+        string dir = ScratchDirectory.Create("udfproton");
         try
         {
             CompileTo(UdfProtoCaller, dir, "UPROTOX", 2002);
@@ -403,6 +404,6 @@ public sealed class InterProgramFileDifferentialTests
             Assert.False(ok, "a FUNCTION reference to an absent separately-compiled definition must terminate loudly");
             Assert.Contains("EC-FUNCTION-NOT-FOUND", detail);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

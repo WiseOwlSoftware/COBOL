@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -30,7 +31,7 @@ public sealed class SidecarColumnLockHostDriftTests
     /// <summary>A private directory holding one physical file, so the lock directory beside it is this test's alone.</summary>
     private static (string Directory, string File) NewFile()
     {
-        var dir = System.IO.Directory.CreateTempSubdirectory("pb2484-").FullName;
+        var dir = ScratchDirectory.Create("pb2484-");
         string file = Path.Combine(dir, "data.dat");
         System.IO.File.WriteAllText(file, "SEED");
         return (dir, file);
@@ -42,7 +43,7 @@ public sealed class SidecarColumnLockHostDriftTests
 
     private static void Clean(string directory)
     {
-        try { System.IO.Directory.Delete(directory, recursive: true); } catch (IOException) { }
+        ScratchDirectory.Remove(directory);
     }
 
     public static TheoryData<FileSharing, FileOpenMode, FileSharing, FileOpenMode> EveryPair()

@@ -56,10 +56,8 @@ import json
 import os
 import pathlib
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 from typing import Callable
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -873,11 +871,13 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
 
 
 def self_test() -> int:
-    d = pathlib.Path(tempfile.mkdtemp(prefix="landing-measure-"))
+    sys.path.insert(0, str(HERE.parent))
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    d = scratch_dir("landing-measure-")
     try:
         fails = _self_test(d)
     finally:
-        shutil.rmtree(d, ignore_errors=True)
+        remove_tree(d)
     for name in ARMS:
         bad = [f for f in fails if f.startswith(name)]
         print(f"  {'FAIL' if bad else 'PASS'}  {name}" + "".join(f"\n        {f}" for f in bad))

@@ -7,6 +7,7 @@ using CobolNet.Frontend.Preprocessor;
 using CobolNet.Runtime;
 using CobolNet.Runtime.Exceptions;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -300,7 +301,7 @@ public sealed class CobolTimingTests
     /// <c>Cobol.Net.Runtime</c> this test does, so the ambient observer sees its <c>CONTINUE AFTER</c> calls.</summary>
     private static List<int> RunObserved(string source, string assemblyName)
     {
-        string dir = Directory.CreateTempSubdirectory("pb1529e2e").FullName;
+        string dir = ScratchDirectory.Create("pb1529e2e");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -308,7 +309,7 @@ public sealed class CobolTimingTests
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, assemblyName + ".dll"), DialectLevel: 2023, CheckOnly: false, SourceFormat: InitialReferenceFormat.Auto));
             Assert.True(r.Success, "the program must compile: " + string.Join("; ", r.Errors));
-            var assembly = Assembly.LoadFrom(Path.Combine(dir, assemblyName + ".dll"));
+            var assembly = ScratchDirectory.LoadAssembly(Path.Combine(dir, assemblyName + ".dll"));
             Type program = assembly.GetTypes().Single(t => typeof(ICobolProgram).IsAssignableFrom(t) && !t.IsAbstract);
             var instance = (ICobolProgram)Activator.CreateInstance(program, nonPublic: true)!;
             return Observe(() =>
@@ -317,7 +318,7 @@ public sealed class CobolTimingTests
                 catch (StopRun) { }
             });
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Run <paramref name="act"/> with CONTINUE AFTER's suspension REPORTED instead of performed.</summary>

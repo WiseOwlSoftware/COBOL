@@ -5,6 +5,7 @@ using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
 using CnFrontend = CobolNet.Frontend.Frontend;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -201,8 +202,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
     [Fact]
     public void ThePerformInALibraryText_IsRestoredByTheLibraryTextsOwnWalker()
     {
-        string dir = Path.Combine(Path.GetTempPath(), $"pb1066sf_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb1066sf_");
         try
         {
             File.WriteAllText(Path.Combine(dir, "PB1066SF.cpy"), string.Join("\n",
@@ -222,7 +222,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
                 """, dir);
             Assert.Contains("\"CB-AFTER\"", tree.GetText(), StringComparison.Ordinal);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A program whose OWN syntax error sits after a handler's format directive reports that error — the
@@ -331,8 +331,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
     private static (CobolNet.Frontend.Generated.CobolParserCore.CompilationUnitContext? Tree, IReadOnlyList<string> Errors) TryParse(
         InitialReferenceFormat initial, string source, string? copyDir = null)
     {
-        string dir = Path.Combine(Path.GetTempPath(), $"pb1066s_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb1066s_");
         try
         {
             string path = Path.Combine(dir, "pb1066.cob");
@@ -343,6 +342,6 @@ public sealed class ExceptionPerformSourceFormatScopeTests
             var tree = frontend.Parse(path, diags);
             return (tree, diags.HasErrors ? [.. diags.Diagnostics.Select(d => d.Message)] : []);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

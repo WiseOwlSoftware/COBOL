@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -139,7 +140,7 @@ public sealed class NonCobolActivatorLinkageTests
     [Fact]
     public void ANetHost_CallsTheEntry_WhichGuaranteesLinkageAccessAndOmitsANullOptionalFormal()
     {
-        string dir = CutRunner.NewTempDir("a116host");
+        string dir = ScratchDirectory.Create("a116host");
         try
         {
             NonCobolElement.CompileCobol(dir, "A116LNK", Program);
@@ -162,6 +163,6 @@ public sealed class NonCobolActivatorLinkageTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

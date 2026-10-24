@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -79,7 +80,7 @@ public sealed class RunUnitHostConsoleTests
     [Fact]
     public void ARunUnitUnderAHost_WritesThroughTheHostsConsoleAndLeavesItAlone()
     {
-        string dir = CutRunner.NewTempDir("hcconsole");
+        string dir = ScratchDirectory.Create("hcconsole");
         try
         {
             NonCobolElement.CompileCobol(dir, "HCDISP", DisplayProgram);
@@ -93,6 +94,6 @@ public sealed class RunUnitHostConsoleTests
                 "stdout=0047 0072 00FC 00DF 0065 0020 20AC\n" +        // "Grüße €" reached the host's stdout writer whole
                 "stderr=0046 0065 0068 006C 0065 0072 0020 00DF", stdout); // "Fehler ß" reached its stderr writer whole
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

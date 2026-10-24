@@ -47,10 +47,24 @@ public static partial class FileHarness
     public static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"file-{tag}-{Guid.NewGuid():N}.dat");
 
     /// <summary>Delete the physical file. ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file
-    /// attributes are the store header INSIDE it, so deleting the data file deletes them.</summary>
+    /// attributes are the store header INSIDE it, so deleting the data file deletes them. A read-only file (a test that
+    /// made it unwritable) goes too; a file that does not exist is no error; a refusal (a handle another process holds) is
+    /// REPORTED, never swallowed (<see cref="HarnessLog.ReportLeft"/>, kb/Work PB3194). It never throws, so it can run in a
+    /// <c>finally</c> without replacing the test's own failure.</summary>
     public static void TryDelete(string host)
     {
-        try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        try
+        {
+            var file = new FileInfo(host);
+            if (!file.Exists) return;
+            if (file.IsReadOnly) file.IsReadOnly = false;
+            file.Delete();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            if (File.Exists(host))
+                HarnessLog.ReportLeft(host, e, "a file in the temp directory, left for the operating system's cleanup");
+        }
     }
 
     /// <summary>The LOCK MODE a declaration of <paramref name="sharing"/> needs and no more: §14.9.27.3 SR8 requires the

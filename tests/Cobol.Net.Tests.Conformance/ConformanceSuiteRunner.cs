@@ -50,7 +50,7 @@ internal static class ConformanceSuiteRunner
     internal static SuiteResult Judge(string edition, SuiteTest test)
     {
         if (WhyNotApplicable(edition, test) is { } why) return new(NotApplicable, why);
-        string work = CutRunner.NewTempDir("suite");
+        string work = ScratchDirectory.Create("suite");
         try
         {
             return test.Expect == "accept" ? Accept(edition, test, work) : Flagged(edition, test, work);
@@ -63,20 +63,20 @@ internal static class ConformanceSuiteRunner
         {
             return new(NoVerdict, $"the harness could not run it: {e.Message}");
         }
-        finally { CutRunner.TryDelete(work); }
+        finally { ScratchDirectory.Remove(work); }
     }
 
     /// <summary>Compile a refused program (<c>wiseowl/diagnostics.json</c>) at <paramref name="edition"/> as the suite
     /// compiles it (the ordinary compile, its declared files beside it), and return the compiler's result.</summary>
     internal static CompilerDriver.Result CompileRefusal(SuiteRefusal refusal, string edition)
     {
-        string work = CutRunner.NewTempDir("refuse");
+        string work = ScratchDirectory.Create("refuse");
         try
         {
             var (result, crash) = Compile(RefusalOptions(refusal, edition, work));
             return result ?? throw new SuiteHarnessException($"the compiler crashed on {refusal.Id} at {edition}: {crash}");
         }
-        finally { CutRunner.TryDelete(work); }
+        finally { ScratchDirectory.Remove(work); }
     }
 
     private static string? WhyNotApplicable(string edition, SuiteTest test)

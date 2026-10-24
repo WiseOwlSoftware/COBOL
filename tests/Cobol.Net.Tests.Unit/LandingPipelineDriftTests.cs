@@ -73,7 +73,7 @@ public sealed class LandingPipelineDriftTests
     [Fact]
     public void TheSweep_FindsAPlantedHandStep()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "landing-pipeline-" + Guid.NewGuid().ToString("N"));
+        string dir = ScratchDirectory.Create("landing-pipeline-");
         Directory.CreateDirectory(Path.Combine(dir, "brief"));
         try
         {
@@ -88,7 +88,7 @@ public sealed class LandingPipelineDriftTests
         }
         finally
         {
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 
@@ -222,7 +222,7 @@ public sealed class LandingPipelineDriftTests
     [Fact]
     public void TheRetirementSweep_FindsAPlantedName()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "landing-retired-" + Guid.NewGuid().ToString("N"));
+        string dir = ScratchDirectory.Create("landing-retired-");
         try
         {
             string[] files = ["scripts/x.py", "skill/SKILL.md", "fine.md", "DEVLOG/0001-x.md", "kb/Work/PB1.md", ThisFile];
@@ -238,7 +238,7 @@ public sealed class LandingPipelineDriftTests
         }
         finally
         {
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 
