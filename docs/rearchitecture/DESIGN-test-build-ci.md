@@ -961,7 +961,13 @@ because the raw name is not stable (`b7`):
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
-  gate. Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
+  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
+  a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
+  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184). Every live tool that writes a trx file into a
+  worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
+  own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
+  --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
+  and read GREEN (w1076a / PB2921). Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
   construction. ⚠ **Corrected by the M11 acceptance (kb/Work PB1717):** this tier first held every case DECLARED IN a
   changed test file. 68b X edits the corpus and continuity harnesses (`CorpusRunnerTests.cs`, `VersionMatrixTests.cs`),
   so that rule put 5,774 cases and 8,037 test-seconds in tier 0a, and its first red ran after **62.8 %** of the work
@@ -994,7 +1000,8 @@ because the raw name is not stable (`b7`):
   gate publishes to (section 3.14.3 step 6; kb/Work PB2527), so a FRESH worktree's plan is timed too — before it,
   every implementer gate ran in a fresh worktree and printed `timings none`, and its leg 2 ran in declaration order;
   the worktree's own previous run times the plan only while no gate on the machine has published. Reds always come
-  from the worktree's own previous run.
+  from the worktree's own previous gates (tier 0a, both hosts'), never from the store; the Linux gate's durations
+  never time the plan (another host's).
 
 **The plan file** (`plan.json` in the gate's run directory) holds, per assembly, the leg-1 KEYS, the leg-2 KEYS, the
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
