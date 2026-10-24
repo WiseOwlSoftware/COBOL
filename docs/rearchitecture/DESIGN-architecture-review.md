@@ -1807,7 +1807,7 @@ test keeps alive** and is deleted with the tests that test only it, as the findi
 reviewer applies the rule; a Sonnet wave executes (c).
 
 **The R3 size estimate, in the planner's units.** Every number below is `plan_wave.py --cluster PB2119 --dry-run`'s own
-output (an implementer GROUP is at most five notes on one file chain, `model_rules.json` `wave.max_notes_per_group`; a
+output (an implementer GROUP is at most `model_rules.json` `wave.max_notes_per_group` notes on one file chain, five when these counts were computed; a
 TRAIN is five groups, `wave.train_size`; the model is what `choose_model` routes), never a sum of targets. Because the
 planner groups NOTES (`plan_wave.py:217-221`), §8.3's step orders are notes, so these counts include them. The
 planner plans only what is unblocked and collides with nothing, and chains a note's successors inside one wave, so the

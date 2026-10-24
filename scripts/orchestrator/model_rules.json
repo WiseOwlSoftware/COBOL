@@ -251,7 +251,8 @@
     "_why": "plan_wave.py --cluster (kb/Work PB2120): a campaign note's code sites are whatever it names, so its notes are clustered over the whole tree, not .agent-fleet.json's src/Cobol.Net.* (which the fix lane keeps). Project files (.csproj, .props, .targets) are not sites: their dotted names (Cobol.Net.Cli.csproj) make fix_clusters read every `Cobol.Net` in a note as a Type.Member reference to the first one indexed (measured on PB2108, 2026-10-07). exclude_dir names directories that hold corpora or generated output, never a fix site: the GnuCOBOL corpus (tests/external), the conformance programs and goldens, gate run output, and the frozen evidence records under docs/."
   },
   "wave": {
-    "max_notes_per_group": 5,
+    "max_notes_per_group": 8,
+    "max_notes_per_group_source": "kb/Work PB3611 (2026-10-29): 5 until then. Turns an implementer used against the notes its report names, over the 314 reports with a turns figure in the coord reports directory (scratch/reports): 1 note 79 turns, 2 notes 94, 3 notes 108, 4 notes 117, 5 notes 130, 6 notes 150, a line of about 66 turns for the group plus 13 per note, so 8 notes is about 170 turns inside the 220-turn cap and 10 about 196, where reports begin to SPLIT (190). Wave 1157 made 11 branches for 15 notes and the landing rate is 1.5 per hour (landing_measure.py summary), so fewer, fuller same-file groups carry the work; a group that outgrows its turns SPLITs at a note boundary and a finisher takes the rest. cost.per_group_tokens and cost.per_note_tokens are unchanged: group_cost is linear in the notes, so the larger cap changes what one group costs, never what a note costs",
     "max_groups": 8,
     "max_groups_source": "waves 1011-1015 ran 5 to 7 groups; the budget is the governor, this bounds one wave's groups",
     "codes_per_group": 3,
