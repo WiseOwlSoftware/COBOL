@@ -1,4 +1,4 @@
-## PB3310: one land per branch, one Linux gate per tree, long slot holds flagged
+## Entry 2473 — 2026-10-24 13:16 PDT — PB3310: one land per branch, one Linux gate per tree, long slot holds flagged
 
 On 2026-10-16 two `enqueue.py land` runs of one branch overlapped. The second run's Linux gate deleted the first's WSL
 clone while its `dotnet test` was still running in it, the test hung for 6 h 40 min, and the first run held one of the
@@ -36,3 +36,4 @@ line read as BUSY from the script's own text); `land_lane.py --self-test` (exit 
 `linux-gate.sh --self-test` (BUSY with nothing created, another tree, an ended gate; run under WSL as well, where flock is
 real); `LandingPipelineDriftTests` and `GateSlotDriftTests` pin the order (lock before any read), the lane's and the Linux
 gate's answers and the arm list.
+
