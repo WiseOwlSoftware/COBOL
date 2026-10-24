@@ -1660,7 +1660,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             void Decl(string type, string value) => argValue = value;
             // BY CONTENT boolean-expression-1 / boolean literal-2 (§14.9.23.2; fix-queue PB46) — its OWN value
             // channel (D-B1: a '0'/'1' bit string), so it is rendered by the BOOLEAN renderer and stored by the
-            // string store, never through NumStore. FIRST in the chain because a boolean and an alphanumeric
+            // MOVE's receiving store (kb/Work PB1014), never through NumStore. FIRST in the chain because a boolean and an alphanumeric
             // formal are both string-CARRIED, and the string arm below reads a Source or a literal this
             // argument does not have.
             if (a.ContentBool is { } cb)
@@ -1668,7 +1668,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // §8.8.2 rule 10 — the value's length is the largest boolean ITEM referenced (literals only carry
                 // no item width, so the receiver's store fits them). The same width §14.9.8.4 GR3 states for a
                 // boolean COMPUTE, carried at run time by the ONE renderer EmitComputeBoolean uses (kb/Work PB589).
-                Decl("string", CallEmitter.BooleanArgumentRecord(BooleanRenderer.RenderAtItemWidth(cb, Num), a.Formal));
+                Decl("string", U.Call.BooleanArgumentRecord(cb, a.Formal));
             }
             // A figurative-constant / ALL-literal literal-2 (kb/Work PB1617): §14.2.3 GR9's MOVE into the method
             // formal's allocated record, filled to that record's character positions (§8.3.3.6.4 GR2) by the ONE
