@@ -788,7 +788,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    same-file successor merged its predecessor), its finisher merges that carrier instead of cherry-picking, because the
    commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not: only a
    newer report naming its lead answers its findings, so its `pred` names the carrier (which may land the branch's
-   commits first) and merges the `FINDINGS` branch alone (review R1-2). A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap of five.
+   commits first) and merges the `FINDINGS` branch alone (review R1-2). A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`

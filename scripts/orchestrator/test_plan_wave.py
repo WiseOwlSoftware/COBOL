@@ -125,7 +125,7 @@ check("awaiting landing", p["awaiting_landing"], {"worktree-wf_aaa-1": ["PB1"]})
 check("PB1 not planned", any("PB1" in g.notes for g in p["groups"]), False)
 check("unlanded branch without note", p["unlanded_without_note"], ["worktree-wf_eee-1"])
 
-# 2. finishers first: PB3 (split, landed predecessor) absorbs the notes of BOTH clusters on its file (cap 5), then
+# 2. finishers first: PB3 (split, landed predecessor) absorbs the notes of BOTH clusters on its file (the cap), then
 #    the half PB4, then the branch-only PB13
 FIN = ("PB3", "PB6", "PB7", "PB12")
 check("finisher order", order[:3], [list(FIN), ["PB4"], ["PB13"]])
