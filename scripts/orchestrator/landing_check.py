@@ -263,7 +263,11 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     # an answered dispatch (its report exists) is read through its branch, never its declared set (PB2795)
     busy = plan_wave.inflight_file_sets(git=git, repo=repo, coord_dir=coord_dir, meta=meta, terminal=terminal,
                                         reports=reports)
-    graph.extend(m["rev"] for m in meta.values() if m.get("rev"))   # ONE more read for every in-flight branch
+    # ONE more read for every in-flight branch git can read; one it cannot (an unborn worktree's zero HEAD) has no
+    # commit beyond the base, so depends() reads it as blocking nothing, as an empty worktree
+    revs = [m["rev"] for m in meta.values() if m.get("rev")]
+    known = graph.names(*revs)
+    graph.extend(r for r in revs if known[r])
 
     def contained(their_rev: str, files: set[str]) -> set[str]:
         """The files whose version on `their_rev` IS this landing's: a lander that re-committed or patched a member's
