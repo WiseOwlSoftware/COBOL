@@ -929,7 +929,7 @@ public sealed class FileRegistry
         // wait for ever on a statement GR13 has already answered '41'.
         else if (RetryLoop(() =>
                      OpenByAnotherConnector(name, c.HostPath) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
-                     : HostFile.IsHeldByAnother(c.HostPath) ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
+                     : HostFile.IsHeldByAnother(c.HostPath) ? DeleteFileHeld(name, c)
                      : RetryAttempt.InRunUnit(FileStatusCode.Success), retryKind, retryAmount) is var sharing
                  && sharing != FileStatusCode.Success)
             status = sharing;   // '62' GR15/§9.1.13.9 item 2 — the file is not deleted
@@ -997,7 +997,7 @@ public sealed class FileRegistry
                     SequentialJournal.Enter(Medium, path, Sequential.Of(path)?.Id, mutex).RefusesOpen(exclusive: true) is not null
                         ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
                     : OpenByAnotherConnector(name, path) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
-                    : covered.HeldByAnotherAtDelete() ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
+                    : covered.HeldByAnotherAtDelete() ? DeleteFileHeld(name, covered)
                     : RetryAttempt.InRunUnit(FileStatusCode.Success);
                 if (attempt.Status != FileStatusCode.Success) { mutex.Dispose(); mutex = null; }
                 return attempt;
@@ -1673,10 +1673,58 @@ public sealed class FileRegistry
                 status = linageStatus;
         }
         // A '61' from the connector's own OPEN is the host refusing the handle (FileConnector.Open's
-        // HostFile.IsSharingRefusal arm): the Table 19 arbiter above has already admitted this open against every
-        // connector of this run unit, so the holder is outside it and can release (kb/Work PB1163).
-        return new RetryAttempt(status, HolderOutsideRunUnit: status == FileStatusCode.FileSharingConflict);
+        // HostFile.IsSharingRefusal arm), a refused file lock, or the entry step's journal holding: the Table 19 arbiter
+        // above has already admitted this open against every OPEN connector of this run unit, so the holder is outside
+        // it and can release (kb/Work PB1163) — unless the run unit itself holds the file against this OPEN, through what
+        // a CLOSE under commit control kept or through its own transaction (RunUnitRefusesOpen), which no wait releases.
+        return new RetryAttempt(status,
+            HolderOutsideRunUnit: status == FileStatusCode.FileSharingConflict && !RunUnitRefusesOpen(name, c, sharing, mode));
     }
+
+    /// <summary>⛔ DOES THIS RUN UNIT ITSELF REFUSE AN OPEN of <paramref name="name"/> in (<paramref name="sharing"/>,
+    /// <paramref name="mode"/>) (kb/Work PB3340; §14.7.9.3 GR3 and kb/Work PB1163: a RETRY waits only for a holder outside the
+    /// run unit, the one kind that can release while the statement runs; DOC-A.1-109)? Through what a CLOSE under commit
+    /// control kept, whose Table 19 column refuses the request (<see cref="RunUnitHoldsAgainst"/>), or through its own
+    /// transaction on a sequential file (<see cref="OwnTransactionRefuses"/>). A writable OPEN only meets the latter: an OPEN
+    /// INPUT runs no entry step.</summary>
+    private bool RunUnitRefusesOpen(string name, FileConnector c, FileSharing sharing, FileOpenMode mode)
+    {
+        var row = Table19.Row(sharing, mode);
+        return RunUnitHoldsAgainst(name, c.HostPath, column => column is { } held && Table19.Cell(row, held) == OpenSharingOutcome.UnsuccessfulOpen)
+            || mode is not FileOpenMode.Input && OwnTransactionRefuses(c, exclusive: mode is FileOpenMode.Output);
+    }
+
+    /// <summary>⛔ THE RUN UNIT'S OWN HOLD ON A PHYSICAL FILE (§14.9.7.4 GR4: a file lock a CLOSE under commit control kept stands
+    /// until the COMMIT or ROLLBACK): whether what a CLOSE kept on the physical file at <paramref name="host"/> — by any connector
+    /// but <paramref name="name"/>, registered or retired (<see cref="Retire"/>) — still holds the file and its Table 19 column
+    /// (null when not known) is one <paramref name="refuses"/> picks.</summary>
+    private bool RunUnitHoldsAgainst(string name, string host, Func<ExistingSharingColumn?, bool> refuses)
+    {
+        foreach (var (other, x) in _files)
+            if (!CobolNames.Same(other, name) && !x.IsOpen && x.KeepsTheFile && HostFile.PhysicalFileComparer.Equals(x.HostPath, host)
+                && refuses(x.KeptColumn))
+                return true;
+        foreach (var s in _retiredSequential)
+            if (s.KeepsTheFile && HostFile.PhysicalFileComparer.Equals(s.HostPath, host) && refuses(s.KeptColumn)) return true;
+        foreach (var (_, kept) in _retired)
+            if (kept.HoldsTheFile && HostFile.PhysicalFileComparer.Equals(kept.HostPath, host) && refuses(kept.Column)) return true;
+        return false;
+    }
+
+    /// <summary>The run unit's own transaction on a SEQUENTIAL file refuses a writable OPEN, or with <paramref name="exclusive"/>
+    /// an OPEN OUTPUT or a DELETE FILE, of a connector that does not cover it (DESIGN-runtime-library.md 2.2.2.8: a replaced
+    /// transaction refuses every writable OPEN, and any live one an exclusive request); a covered connector's own transaction is
+    /// the one it changes the file in.</summary>
+    private bool OwnTransactionRefuses(FileConnector c, bool exclusive) =>
+        c is SequentialConnector { CommitControlled: false } && Sequential.Of(c.HostPath) is { } own && (exclusive || own.Replaced);
+
+    /// <summary>The holder of a DELETE FILE's sharing conflict the host reported ('62', §9.1.13.9 2)): this run unit's own when
+    /// it holds the file through what a CLOSE under commit control kept or through its own transaction — no RETRY wait releases
+    /// that (DOC-A.1-109) — otherwise another run unit, which can (kb/Work PB1163).</summary>
+    private RetryAttempt DeleteFileHeld(string name, FileConnector c) =>
+        RunUnitHoldsAgainst(name, c.HostPath, static _ => true) || OwnTransactionRefuses(c, exclusive: true)
+            ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
+            : RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing);
 
     /// <summary>⛔ THE ONE §12.4.5.9.4 GR6 SITE — <i>"Execution of any I-O statement except START releases any
     /// previously locked record in that file for that file connector"</i> — for all four governed record verbs.

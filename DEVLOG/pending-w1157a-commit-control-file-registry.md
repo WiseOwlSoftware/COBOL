@@ -95,8 +95,25 @@ recorded as superseded. Checking the 37 fault tests against MANDATORY-PRACTICES 
   the sequential holdings: the end of the file, a rewritten or appended record, the whole file once replaced.
 
 The program-level exception paths now have a golden of their own,
-`conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_holding_exception_paths`. Three connectors of one run unit that no
+`conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths` (filed under 14.7.9: the first gate refused it
+under 14.9.36, a clause none of its rules belongs to). Three connectors of one run unit that no
 APPLY COMMIT names meet a covered connector's transaction: G (USE declarative and FILE STATUS) gets '51', RETRY 2 TIMES '51',
 RETRY FOREVER '52', each after its declarative. H (FILE STATUS alone) gets READ '51' on the appended record, '00' on an
 unchanged one, READ IGNORING LOCK '00', REWRITE '51', OPEN OUTPUT '61' and DELETE FILE '62'. K (neither) continues past a
 refused WRITE (§14.6.13.1.4 4)). After the COMMIT, G's WRITE is '00'.
+
+**A RETRY FOREVER OPEN or DELETE FILE waited forever for its own run unit (sibling sweep, keyed files included).**
+Probing the OPEN arm of the same sweep: a CLOSE under commit control keeps the file lock (§14.9.7.4 GR4), so
+`OPEN EXTEND RETRY FOREVER G` beside a closed covered F on the same file never returned. That held for a sequential NO OTHER
+F, for a RELATIVE one (the keyed engine of PB3338, already on main), and for a replaced sequential transaction (its
+journal's '61'). `FileRegistry.SharedOpenAttempt` counted every '61' the host or the entry step reported as a holder outside
+the run unit, and the DELETE FILE arms did the same for `IsHeldByAnother`'s '62'. Both now ask the registry whether the run
+unit itself holds the file against the request: `RunUnitRefusesOpen` and `DeleteFileHeld`, over `RunUnitHoldsAgainst`.
+That covers what a CLOSE kept, registered or retired, by the Table 19 column of its file lock. Where the host publishes
+none (a NO OTHER handle's share mode is its lock), the column is the kept OPEN's, recorded once at the kept CLOSE
+(`FileConnector.KeptOpenColumn`, `KeptFile.OpenColumn`). `OwnTransactionRefuses` covers the run unit's own sequential
+transaction. Such a refusal is `InRunUnit`: FOREVER lands '61' or '62' at once, as DOC-A.1-109 already stated for a file
+held by another connector of the run unit. Witnesses: `unit:SequentialCommitControlTests.An_open_or_delete_file_refused_by_what_this_run_unit_holds_is_not_waited_for`
+(the NO OTHER row RED before the fix, its pause observer throwing instead of hanging) and
+`conformance:cases/14.7.9-RETRY/pb3340_retry_forever_own_run_unit_hold` (sequential, relative and replaced-journal holds:
+'61' and '62' at once, '00' after the COMMIT). DOC-A.1-109 and `docs/COBOLNET_FILES_DESIGN.md` D8 say so.

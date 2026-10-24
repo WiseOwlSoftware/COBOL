@@ -587,6 +587,62 @@ public sealed class SequentialCommitControlTests
         }
     }
 
+    public static TheoryData<FileSharing, bool> KeptHolds() => new()
+    {
+        { FileSharing.NoOther, false },   // the kept handle's file lock: Table 19's NO OTHER column refuses every OPEN
+        { FileSharing.AllOther, true },   // a replaced transaction (an OPEN OUTPUT of the file): its journal refuses a writable OPEN
+    };
+
+    [Theory]
+    [MemberData(nameof(KeptHolds))]
+    public void An_open_or_delete_file_refused_by_what_this_run_unit_holds_is_not_waited_for(FileSharing kept, bool replaced)
+    {
+        // §14.7.9.3 GR3 waits for a holder that can release (kb/Work PB1163); what a CLOSE under commit control kept stands until
+        // the COMMIT or ROLLBACK (§14.9.7.4 GR4), and the run unit's own transaction until its end, so neither releases while
+        // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§9.1.13.9 1)),
+        // on the DELETE FILE '62' (§9.1.13.9 2)) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        int pauses = 0;
+        var reg = new FileRegistry();
+        try
+        {
+            File.WriteAllText(f, "C1", Encoding.Latin1);
+            reg.Register("F", f, recordWidth: 2, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
+            reg.RegisterSharing("F", kept, LockModeRequiredBy(kept), multiple: false);
+            reg.RegisterCommitControl("F");
+            reg.Register("H", f, recordWidth: 2, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
+            reg.RegisterSharing("H", FileSharing.AllOther, LockModeRequiredBy(FileSharing.AllOther), multiple: false);
+            reg.OpenStatic("F", replaced ? FileOpenMode.Output : FileOpenMode.Extend);
+            Ok(reg.Status("F"));
+            Ok(reg.WriteShared("F", "X2", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
+            reg.Close("F");
+            Ok(reg.Status("F"));
+            FileRegistry.PauseObserver.Value = _ =>
+            {
+                if (++pauses > 3) throw new InvalidOperationException("the RETRY waits for a holder of its own run unit");
+            };
+            reg.OpenShared("H", FileOpenMode.Extend, hasSharingOverride: false, FileSharing.AllOther, FileRetryKind.Forever, 0,
+                OpenTapePhrase.None, f, assignDynamic: false, page: null);
+            Assert.Equal("61", reg.Status("H"));
+            Assert.Equal("62", reg.DeleteFile("H", FileRetryKind.Forever, 0));
+            Assert.Equal(0, pauses);
+            Assert.Null(reg.Commit());
+            reg.OpenShared("H", FileOpenMode.Extend, hasSharingOverride: false, FileSharing.AllOther, FileRetryKind.Forever, 0,
+                OpenTapePhrase.None, f, assignDynamic: false, page: null);
+            Ok(reg.Status("H"));
+            reg.CloseAll();
+            Assert.Equal(replaced ? "X2" : "C1X2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally
+        {
+            FileRegistry.PauseObserver.Value = null;
+            reg.CloseAll();
+            TryDeleteDirectory(dir);
+        }
+    }
+
     [Fact]
     public void A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open()
     {
