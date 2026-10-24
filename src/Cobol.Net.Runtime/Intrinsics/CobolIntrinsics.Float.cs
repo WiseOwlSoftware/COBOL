@@ -11,7 +11,7 @@ namespace CobolNet.Runtime;
 /// ARITHMETIC IS STANDARD / STANDARD-DECIMAL: their returned-value rules are prose approximations, NOT equivalent
 /// arithmetic expressions, so the value is implementor-defined in EVERY mode (§15.4.1 last paragraph), and a
 /// double result entering a standard-decimal expression converts through the one §8.8.1.5.2 r1 operand
-/// conversion (<c>CobolDec.FromDouble</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
+/// conversion (<c>CobolDec.FromApproximation</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
 /// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — under the standard modes they
 /// never reach this file: <c>IntrinsicRenderer.RenderDec</c> evaluates them on their <c>…Dec</c> bodies.</para>
 /// </summary>
