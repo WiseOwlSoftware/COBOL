@@ -71,3 +71,32 @@ until now and a positive case (its file OPTIONAL: a '35' on a file under commit 
 restore the very FILE STATUS item the program displays). Ten inventory rows go CONFORMS; the three ROLLBACK rows stay PARTIAL
 and move to PB3492, whose keyed capture (an OPEN OUTPUT or DELETE FILE of a keyed file, design 2.2.2.14) is the facility's last
 gap; its NEXT steps are in the note.
+
+**The resume on `w1157a-pb3340-sequential-journal` (wave 1157, group A, second implementer).** The STOP that parked this branch
+was lifted (the Mythos decision of 17:1x: PB3340 continues here, not on the loop's branch). origin/main merged with one
+conflict, in `kb/Work/PB3340.md` (main's 16:10 routing note against this branch's landed section): both kept, the routing
+recorded as superseded. Checking the 37 fault tests against MANDATORY-PRACTICES I11 found two defects, both fixed here:
+
+- **The RETRY phrase did not apply to the journal arm of the lock test.** Design 2.2.2.3 says "held, '51' (RETRY applies)",
+  and §14.7.9.3 GR4 b) attempts a record operation conflict again, but the WRITE, REWRITE and READ steps answered '51' at
+  the first attempt whatever the phrase said. Every journal arm is now ONE attempt function under `FileRegistry.RetryLoop`
+  (`SequentialConnector.JournalLockTest`). An attempt that needs the entry mutex (a covered connector's first change) takes it
+  for that attempt alone and gives it back before the wait. A holding of the run unit's OWN transaction, met through a connector
+  no APPLY COMMIT names, cannot end while the statement runs. The attempt is then `RetryAttempt.InRunUnit`: no wait, and RETRY
+  FOREVER ends with '52' (A.1 item 109), as for a region lock held inside the run unit. `SequentialJournal.Holding` carries its
+  transaction's id for that, and `Holdings.Conflict` is the one place a journal holding becomes '51'. Witnesses:
+  `unit:SequentialCommitControlTests.A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase`
+  (WRITE and READ: no phrase, two TIMES exhausted after two pauses, FOREVER completed by the holder's COMMIT on the third pause)
+  and `A_holding_of_this_run_units_own_transaction_is_not_waited_for` (TIMES '51' and FOREVER '52' with no pause). Both were
+  RED before the fix.
+- **`LockedRecordStatusProducersDriftTests` would have been RED**: the branch had added three '51' producers in
+  `SequentialConnector.CommitControl.cs` without re-adjudicating DOC-A.1-152. There is now one producer,
+  `SequentialJournal.Holdings.Conflict`. The drift test names it, and DOC-A.1-152 (with DOC-A.1-109's deadlock clause) states
+  the sequential holdings: the end of the file, a rewritten or appended record, the whole file once replaced.
+
+The program-level exception paths now have a golden of their own,
+`conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_holding_exception_paths`. Three connectors of one run unit that no
+APPLY COMMIT names meet a covered connector's transaction: G (USE declarative and FILE STATUS) gets '51', RETRY 2 TIMES '51',
+RETRY FOREVER '52', each after its declarative. H (FILE STATUS alone) gets READ '51' on the appended record, '00' on an
+unchanged one, READ IGNORING LOCK '00', REWRITE '51', OPEN OUTPUT '61' and DELETE FILE '62'. K (neither) continues past a
+refused WRITE (§14.6.13.1.4 4)). After the COMMIT, G's WRITE is '00'.
