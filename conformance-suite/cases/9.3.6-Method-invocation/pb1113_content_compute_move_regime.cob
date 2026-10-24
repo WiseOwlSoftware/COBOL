@@ -29,9 +29,13 @@
       *>      GR6 "the operational sign is not moved"      => [5   ]
       *>  G1  B"10" into a 4-character alphanumeric group: a group move
       *>      (GR4), the characters space-filled            => [10  ]
-      *>  G2  -12 into the same group: GR4 "as if it were an alphanumeric
-      *>      to alphanumeric elementary move ... no conversion" - the
-      *>      written MOVE -12 TO G stores the same         => [-12 ]
+      *>  G2  -12 into the same group: a group move (14.9.25.4 4)), and
+      *>      a numeric literal has no internal representation for it
+      *>      to preserve, so CONFORMANCE.md D-B4 (kb/Work PB3570, owner
+      *>      2026-10-23: GnuCOBOL's choice for this latitude) sends its
+      *>      digits only, the sign dropped as GR6 a) drops it for an
+      *>      elementary PIC X receiver (X1); PB1113's sign-keeping
+      *>      determination is superseded                 => [12  ]
       *>  A1  N3 PIC 9(3) = 123 into PIC N ANY LENGTH: rule 2c makes the
       *>      length match, rule 2d's Table 16 says integer -> national
       *>      Yes                                           => [123]
