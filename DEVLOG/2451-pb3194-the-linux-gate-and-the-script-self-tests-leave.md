@@ -1,4 +1,4 @@
-## PB3194: the Linux gate and the script self-tests leave nothing behind
+## Entry 2451 — 2026-10-24 02:40 PDT — PB3194: the Linux gate and the script self-tests leave nothing behind
 
 The owner asked why the Linux filesystem exhaustion was not fixed at its root when it first happened. PB3194 had been
 open since 2026-10-15: `scripts/linux-gate.sh` cloned every gated tree into `~/linux-gate/<tree>` (about 1 GB and
@@ -70,3 +70,4 @@ trap ended the shell. The gate's stop was right and only the witness failed. The
 both signals before READY, takes the first with `sigwait`, and records TERM when TERM is that one or still pending, so
 it records whether a TERM was ever sent. It was GREEN in 256 of 256 runs 32 at a time, and a mutant whose stop
 signals only its jobs is red.
+
