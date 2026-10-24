@@ -1,4 +1,4 @@
-## PB3662 filed: the landing lane stops a branch whose own gate is still running
+## Entry 2488 — 2026-10-24 16:08 PDT — PB3662 filed: the landing lane stops a branch whose own gate is still running
 
 After the 2026-10-24 reboot, the `resume` unit merged main into `worktree-wf_1973801d-4fe-29` (PB2974) to bring in the
 PB3612 gate and started a gate run. The landing lane launched `enqueue.py land` at the new head before that run had
@@ -9,3 +9,4 @@ case was exit 12 GATE BUSY, which the lane retries once the gate is free.
 
 PB3662 records the case and the bar for the fix. A live gate run that would cover the tip is a wait, and the lane retries
 that head once the run writes its verdict. One reader decides liveness: the gate driver's. Cluster PB1957.
+
