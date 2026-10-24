@@ -1,4 +1,4 @@
-## PB3640: the file-set partition cannot prevent same-function conflicts; two attempted rules abandoned
+## Entry 2478 — 2026-10-24 14:16 PDT — PB3640: the file-set partition cannot prevent same-function conflicts; two attempted rules abandoned
 
 Wave 20261030 ran PB3628 and PB3275 side by side, and both rewrote the NOT QUEUED rule in `prune_worktrees.lifecycle`,
 so PR #505 conflicted after PB3275 landed. The operator tried two planner rules on branch
@@ -14,3 +14,4 @@ cost, in PB1957 at tier 2: dispatch the conflict finisher the moment a landing s
 
 The same entry records the abandonment of PB2878 part 1's branch, `worktree-wf_0e51b14b-ced-2`. Part 2 carried its
 commits and landed both parts through PR #501.
+
