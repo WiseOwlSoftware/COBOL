@@ -71,7 +71,6 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                     if (__unsSrc1.Length != 0)
                     {
                         string[] __unsDel1 = { " " };
-                        bool[] __unsAll1 = { false };
                         long __unsPtr1 = 1;
                         long __unsPtr1__0 = __unsPtr1;
                         Int128 __unsTly1 = 0;
@@ -82,7 +81,7 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                         }
                         else
                         {
-                            long __unsCnt1_0 = CobolStringOps.UnstringExtract(__unsSrc1, __unsDel1, __unsAll1, 0, ref __unsPtr1, out var __unsFld1_0, out var __unsDlm1_0);
+                            long __unsCnt1_0 = CobolStringOps.UnstringExtract(__unsSrc1, __unsDel1, 0, ref __unsPtr1, out var __unsFld1_0, out var __unsDlm1_0, out var __unsDi1_0);
                             if (__unsCnt1_0 >= 0)
                             {
                                 __concept5_UNSTRING = CobolDynString.Store(__unsFld1_0, 1073741791);
@@ -93,7 +92,7 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                                 }
                                 __unsTly1 += 1;
                             }
-                            long __unsCnt1_1 = CobolStringOps.UnstringExtract(__unsSrc1, __unsDel1, __unsAll1, 0, ref __unsPtr1, out var __unsFld1_1, out var __unsDlm1_1);
+                            long __unsCnt1_1 = CobolStringOps.UnstringExtract(__unsSrc1, __unsDel1, 0, ref __unsPtr1, out var __unsFld1_1, out var __unsDlm1_1, out var __unsDi1_1);
                             if (__unsCnt1_1 >= 0)
                             {
                                 __concept5_UNSTRING = CobolDynString.Store(__unsFld1_1, 1073741791);
