@@ -3438,6 +3438,14 @@
   ],
   "expect": "COBOLNET0829"
  },
+ "pb1014-content-boolean-into-numeric-formal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0828"
+ },
  "pb1015-range-in-alphabet-85": {
   "refuse-at": [
    "85"

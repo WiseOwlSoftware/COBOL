@@ -1806,12 +1806,24 @@ internal static class RuntimeApi
     public static string SortUseProcedureExited(string useScope) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.UseProcedureExited)}({useScope})";
 
-    /// <summary>§14.9.40.4 GR17's question at an INVOKE site once the method has returned and its RETURNING item is
-    /// delivered — <c>CobolSort.AfterActivationReturn</c> (kb/Work PB1177; a CALL's is <c>ProgramTable.CallProgram</c>'s).
-    /// Fully qualified, as <see cref="SortTerminationSignalType"/> is: every INVOKE asks it, and a group whose classes
+    /// <summary>§14.9.40.4 GR17's question at an activating site (a CALL, an INVOKE) once the activation has returned, its
+    /// RETURNING item is delivered and its propagation pickup has run — <c>CobolSort.AfterActivationReturn</c> (kb/Work
+    /// PB1177, PB3246; emitted by <c>CallEmitter.EmitActivationReturned</c>, the one tail of the CALL and INVOKE lanes).
+    /// Fully qualified, as <see cref="SortTerminationSignalType"/> is: every activating site asks it, and a group whose classes
     /// declare no file has no <c>using</c> of the I-O namespace (the PB922 reason).</summary>
     public static string SortAfterActivationReturn { get; } =
         $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.AfterActivationReturn)}()";
+
+    /// <summary>The split form of <see cref="SortAfterActivationReturn"/> for a site that emits a propagation pickup (kb/Work
+    /// PB3246, review R1-1): <c>CobolSort.TakeActivationReturnTermination</c> takes THIS activation's request out of the run
+    /// unit's pending slot before the pickup can run a declarative that activates again.</summary>
+    public static string SortTakeActivationReturnTermination { get; } =
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TakeActivationReturnTermination)}()";
+
+    /// <summary>Act on the request <see cref="SortTakeActivationReturnTermination"/> took into the local <paramref name="taken"/>
+    /// - <c>CobolSort.TerminateAfterActivation</c>.</summary>
+    public static string SortTerminateAfterActivation(string taken) =>
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TerminateAfterActivation)}({taken})";
 
     /// <summary>The declining filter an activation's end notes a SORT termination with —
     /// <c>SortTerminationSignal.EndsActivation</c> over the local <paramref name="flag"/> (kb/Work PB1177).</summary>
