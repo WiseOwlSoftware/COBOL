@@ -57,3 +57,16 @@ whenever two appends met: `ScratchDirectoryTests` read back no SCRATCH-LEFT line
 recorded beside it. The appends now take turns in the host and wait for another writer, a line still unwritten goes to
 standard error marked lost, and `HarnessLog.ReadAll` reads beside the writers; `HarnessLogTests` (32 writers and a
 reader) lost 754 of 800 lines against the old append and none against the new one.
+
+The landing's Linux gate at c89014b6b was red twice, and both reds were this branch's. First, `HarnessLogTests` failed
+under WSL with ENODATA ("No data available") reading the log, which the Linux gate wrote into the Windows tree's
+`TestResults` over WSL's 9P mount. Measured there, one process appending while another re-read the file lost 8 to 14 of
+800 lines a run and its reads failed with ENODATA; on the Linux filesystem it lost none. So the Linux gate now writes
+each leg's observation log in its own directory on the Linux filesystem and copies it to `TestResults/linux-gate` as it
+ends. Second, R1-1's signal witness was wrong. Its grandchild was a `bash -c` with a TERM trap, and the self-test
+assumed a TERM sent before the probe is always the one handled. Instrumented and run 32 at a time, 2 of 256 runs
+recorded PROBE although `on_signal` had sent the TERM with status 0: bash had not run the TERM trap before the probe's
+trap ended the shell. The gate's stop was right and only the witness failed. The grandchild is now Python: it blocks
+both signals before READY, takes the first with `sigwait`, and records TERM when TERM is that one or still pending, so
+it records whether a TERM was ever sent. It was GREEN in 256 of 256 runs 32 at a time, and a mutant whose stop
+signals only its jobs is red.
