@@ -1,2 +1,5 @@
 B1 DLM=[;] D1=[;] P2=[a  ] D2=[;] P3=[b,c] T=03
-B2 D3=[a] Y2=[b;;;;c;  ] Y3=[zzz] T=02
+B2 D3=[a] Y2=[;b;;;;c; ] Y3=[zzz] T=02
+B3 D4=[a] Z2=[b  ] Z3=[zzz] T=02 P=06
+B4 REC=[a;a;b;;c;;xx] Y5=[a    ] Y6=[b    ] T=03
+B5 D6=[b ] A6=[a ] B6=[--c---] C6=[zzzzzz] T=03

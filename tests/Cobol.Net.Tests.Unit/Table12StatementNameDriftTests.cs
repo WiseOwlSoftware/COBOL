@@ -30,6 +30,7 @@ namespace CobolNet.Tests.Unit;
 /// <para>⚠ Both scrapes assert the SHAPE they found before comparing, so a transcription reformat or a grammar
 /// restructure fails loudly instead of silently comparing nothing (the vacuous-pass trap).</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class Table12StatementNameDriftTests
 {
     /// <summary>Grammar rules with no row in the 2023 Table 12, each with the reason its projected name is the

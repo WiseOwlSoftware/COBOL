@@ -452,8 +452,14 @@ public abstract class FileConnector
     {
         var kept = _runUnitLock;
         _runUnitLock = null;
+        KeptOpenColumn = Table19.Column(HostSharing, Mode);
         return kept;
     }
+
+    /// <summary>The Table 19 column of the OPEN whose state the last CLOSE under commit control kept
+    /// (<see cref="KeepRunUnitFileLock"/>): what the kept state holds the file in where the host publishes no file lock of its own
+    /// (a NO OTHER handle's share mode is its lock, <see cref="TakeRunUnitFileLock"/>).</summary>
+    private protected ExistingSharingColumn? KeptOpenColumn { get; private set; }
 
     /// <summary>Is the (present) physical file held open by a handle that is not THIS connector's own
     /// (<see cref="HostFile.IsHeldByAnother"/>)? A handle the connector's CLOSE kept (<see cref="HoldsKeptHandle"/>) is its
@@ -475,6 +481,16 @@ public abstract class FileConnector
     /// replaces it by its own (<see cref="TakeRunUnitFileLock"/>), which the kept one would otherwise refuse as another
     /// holder's.</summary>
     private protected virtual RunUnitFileLock? KeptFileLock => null;
+
+    /// <summary>⛔ WHAT THIS CLOSED CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT, AS TABLE 19 SEES IT (§14.9.7.4 GR4: its file lock
+    /// stands until the COMMIT or ROLLBACK): whether it still holds the file against another opener (a kept handle, or a
+    /// published kept file lock), and the column it holds it in — the kept file lock's, or, the host publishing none, the column
+    /// of the OPEN whose handle it kept. The registry reads them to tell a sharing conflict of the run unit's own from another
+    /// run unit's (<c>FileRegistry.RunUnitHoldsAgainst</c>).</summary>
+    internal bool KeepsTheFile => HoldsKeptHandle || KeptFileLock?.Column is not null;
+
+    /// <inheritdoc cref="KeepsTheFile"/>
+    internal ExistingSharingColumn? KeptColumn => KeptFileLock?.Column ?? (HoldsKeptHandle ? KeptOpenColumn : null);
 
     /// <summary>Whether this (closed) connector still holds a kept handle (<see cref="HoldsKeptHandle"/>) whose share mode
     /// refuses every other open of the file (<see cref="FileShare.None"/>: a CLOSE under SHARING WITH NO OTHER), so that no
@@ -528,7 +544,8 @@ public abstract class FileConnector
     /// kept, if it was kept on another physical file than the one the path names now — the kept one removed or renamed away
     /// outside the run unit, and another made at the path or none (kb/Work PB3533) — is handed to the registry, which keeps it
     /// for the COMMIT, the ROLLBACK and the run unit's end as it keeps the state of a connector associated with another file
-    /// (kb/Work PB3576). Only a keyed connector keeps anything (kb/Work PB3337).</summary>
+    /// (kb/Work PB3576). A keyed connector's kept state carries its transaction (kb/Work PB3337); a sequential one's kept handle
+    /// carries none, its journal being the registry's (kb/Work PB3340), so it is given back.</summary>
     private protected virtual void RetireWhatWasKeptOfAnotherFile(FilePresence presence) { }
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
@@ -946,6 +963,36 @@ public abstract class FileConnector
     {
         refusedAfterTheColumnWasHeld = false;
         if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §9.1.13.1 (kb/Work PB1541) before '41'
+        // ⛔ THE ENTRY STEP RUNS BEFORE THE PRESENCE PROBE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3340): settling a dead
+        // run unit's transaction can create or remove the physical file (a creation rolled back removes it, a DELETE FILE rolled
+        // back restores it), so the presence every rule below reads is the presence AFTER it. An entry refused by a live
+        // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
+        string? entered;
+        try { entered = EnterPhysicalFile(mode); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { entered = FileStatusCode.PermanentError; }
+        if (entered is not null)
+        {
+            LeaveEntry();
+            (Mode, ModeKnown) = (mode, true);   // a FAILED open still records the attempted mode (GR6b "being opened")
+            return Status = entered;
+        }
+        try { return OpenOnceEntered(mode, ownedWritesAdmitted, out refusedAfterTheColumnWasHeld); }
+        finally { LeaveEntry(); }
+    }
+
+    /// <summary>The organization's ENTRY STEP at an OPEN in <paramref name="mode"/>, run before the presence probe
+    /// (<see cref="OpenOnce"/>): the failing I-O status, or null to proceed. Only a sequential file has one
+    /// (<c>SequentialConnector</c>, DESIGN-runtime-library.md 2.2.2.8: the transaction journals of its lock directory); a
+    /// statement-long hold it takes (the entry mutex) is given back by <see cref="LeaveEntry"/> when the OPEN ends.</summary>
+    private protected virtual string? EnterPhysicalFile(FileOpenMode mode) => null;
+
+    /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not.</summary>
+    private protected virtual void LeaveEntry() { }
+
+    /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
+    private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
+    {
+        refusedAfterTheColumnWasHeld = false;
         _ownedWritesAdmitted = ownedWritesAdmitted;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
