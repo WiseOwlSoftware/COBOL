@@ -15,6 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// none of them. No other compiler file may compare an end marker's name, and no other file may report
 /// COBOLNET2793.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class EndMarkerRuleDriftTests
 {
     private const string Home = "EndMarkerPass.cs";

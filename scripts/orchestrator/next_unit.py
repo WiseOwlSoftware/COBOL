@@ -81,17 +81,17 @@ def repo_state(repo: pathlib.Path) -> str:
 
 def fresh_unlanded(repo: pathlib.Path, since: dt.datetime) -> list[str]:
     import prune_worktrees  # noqa: PLC0415  (classifies against origin/main by content; no fetch here)
-    names = None
-    out = []
+    fresh = []
     for b in git(repo, "branch", "--format=%(refname:short) %(committerdate:iso-strict)").stdout.splitlines():
         name, _, when = b.partition(" ")
-        if name == "main" or not when or dt.datetime.fromisoformat(when) <= since:
-            continue
-        # the repository it listed, never prune_worktrees' default (kb/Work PB2590: a supervisor under test reads a scratch one)
-        names = names if names is not None else prune_worktrees.main_names(repo)
-        if prune_worktrees.classify(name, names, repo)[0] == "UNLANDED":
-            out.append(name)
-    return out
+        if name != "main" and when and dt.datetime.fromisoformat(when) > since:
+            fresh.append(name)
+    if not fresh:
+        return []
+    # the repository it listed, never prune_worktrees' default (kb/Work PB2590: a supervisor under test reads a scratch
+    # one); ONE graph for every fresh branch, never a merge-base per branch (kb/Work PB3582)
+    names, graph = prune_worktrees.main_names(repo), prune_worktrees.branch_graph(fresh, repo)
+    return [b for b in fresh if prune_worktrees.classify(b, names, graph, repo)[0] == "UNLANDED"]
 
 
 def unit_history(cdir: pathlib.Path) -> list[dict]:

@@ -23,6 +23,7 @@ namespace CobolNet.Tests.Unit;
 /// <c>conformance-suite/cases/8.4.3.3-Reference-modification/pb1380_renames_ref_mod.cob</c>, <c>conformance-suite/cases/
 /// 7.3.23-REF-MOD-ZERO-LENGTH/pb1380_renames_ref_mod_zero_length.cob</c> and the negative <c>pb1380-renames-alias-binary-ref-mod</c>.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class RenamesPlaceBuilderDriftTests
 {
     private static readonly string SrcRoot = Path.Combine(TestRepo.Root, "src");
