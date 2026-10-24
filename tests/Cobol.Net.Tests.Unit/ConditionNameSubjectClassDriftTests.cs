@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -118,7 +119,7 @@ public sealed class ConditionNameSubjectClassDriftTests
     [MemberData(nameof(ClassPairs))]
     public void GroupAndElementaryConditionName_RenderTheSameComparisonRules(string klass, string decls, string tests)
     {
-        string dir = Directory.CreateTempSubdirectory("cndrift").FullName;
+        string dir = ScratchDirectory.Create("cndrift");
         try
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
@@ -138,7 +139,7 @@ public sealed class ConditionNameSubjectClassDriftTests
                 + $"'{elementary}'). ISO §8.8.4.5.3 GR2 + §8.8.4.2.1: the subject's CLASS decides the comparison, "
                 + "for a group as for an elementary item.");
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Every <c>CobolString.Compare(…)</c> argument list in the emitted PROCEDURE body, in source order,
@@ -210,7 +211,7 @@ public sealed class ConditionNameSubjectClassDriftTests
     /// draws (never their text or their line numbers, which legitimately differ between the two shapes).</summary>
     private static string CompileVerdict(string tag, string decls)
     {
-        string dir = Directory.CreateTempSubdirectory("cnscreen").FullName;
+        string dir = ScratchDirectory.Create("cnscreen");
         try
         {
             string src = Path.Combine(dir, "CNDRIFT.cob");
@@ -223,7 +224,7 @@ public sealed class ConditionNameSubjectClassDriftTests
                 .Distinct().Order(StringComparer.Ordinal);
             return $"{tag[..^2]} success={r.Success} codes=[{string.Join(",", codes)}]";
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>An argument list minus its FIRST argument — the collating / padding rules the two legs must

@@ -5,6 +5,7 @@ using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
 using CnFrontend = CobolNet.Frontend.Frontend;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -234,8 +235,7 @@ public sealed class ExceptionPerformDefineScopeTests
                    PROGRAM-ID. PB1066T.
                    PROCEDURE DIVISION.
             """ + "\n" + body + "\n" + "           STOP RUN.\n";
-        string dir = Path.Combine(Path.GetTempPath(), $"pb1066_{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb1066_");
         try
         {
             string path = Path.Combine(dir, "pb1066.cob");
@@ -253,6 +253,6 @@ public sealed class ExceptionPerformDefineScopeTests
             string branch = defined == undefined ? "NEITHER-OR-BOTH" : defined ? "ZZ-DEFINED" : "ZZ-UNDEFINED";
             return new Result(text, branch, diags.Diagnostics);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

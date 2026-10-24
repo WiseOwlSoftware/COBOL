@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -1886,7 +1887,7 @@ public sealed class ExceptionConditionConformanceTests
              // __EcDispatch, no Runtime.Exceptions using (checking OFF compiles to NOTHING, §7.3.25.4 GR1).
     public void ZeroScaffolding_EcFreeProgram_EmitsNoExceptionMachinery()
     {
-        string dir = CutRunner.NewTempDir("ec0");
+        string dir = ScratchDirectory.Create("ec0");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -1911,7 +1912,7 @@ public sealed class ExceptionConditionConformanceTests
             Assert.DoesNotContain("__IoCheckEc", generated);
             Assert.DoesNotContain("Runtime.Exceptions", generated);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── The §15.33 width collision (kb/Work R05 — Phase-B F6): r1 fixes EXCEPTION-STATUS at 31 characters

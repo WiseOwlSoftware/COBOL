@@ -81,13 +81,13 @@ internal static class SuiteManifest
 
     private static WiseOwlManifest LoadManifest()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Suite_" + Guid.NewGuid().ToString("N")[..8]);
+        string dir = ScratchDirectory.Create("CobolNet_Suite_");
         try
         {
             Generate(dir);
             return WiseOwlManifest.Parse(File.ReadAllText(Path.Combine(dir, "wiseowl", "manifest.json")));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
 }

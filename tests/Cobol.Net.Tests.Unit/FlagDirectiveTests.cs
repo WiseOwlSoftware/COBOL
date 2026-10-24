@@ -3,6 +3,7 @@
 using CobolNet.Binding;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -195,8 +196,7 @@ public sealed class FlagDirectiveTests
 
     internal static IReadOnlyList<string> CompileWarnings(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Flag_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Flag_");
         try
         {
             string src = Path.Combine(dir, "flag.cob");
@@ -206,7 +206,7 @@ public sealed class FlagDirectiveTests
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]

@@ -3,6 +3,7 @@
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -59,7 +60,7 @@ public sealed class ActivationResourcesTests
                 DISPLAY "NOT REACHED"
                 GOBACK.
             """;
-        string dir = CutRunner.NewTempDir("pb2659cl");
+        string dir = ScratchDirectory.Create("pb2659cl");
         try
         {
             CompileTo(source, dir, "PB2659CL");
@@ -71,7 +72,7 @@ public sealed class ActivationResourcesTests
             Assert.DoesNotContain("Stack overflow", stderr, StringComparison.Ordinal);
             Assert.Equal("WRITTEN BEFORE", File.ReadAllText(Path.Combine(dir, "pb2659cl.txt")).TrimEnd());
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The function arm (§8.4.3.2.4 GR6c): a user-defined function that references itself with no end.</summary>

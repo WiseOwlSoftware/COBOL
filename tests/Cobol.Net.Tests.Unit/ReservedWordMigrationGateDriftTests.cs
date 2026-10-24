@@ -4,6 +4,7 @@ using CobolNet;
 using CobolNet.Editions;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -140,7 +141,7 @@ public sealed class ReservedWordMigrationGateDriftTests
         var gate = CobolWordsDriftTests.DerivedGateSet();
         Assert.NotEmpty(gate);
 
-        string dir = Directory.CreateTempSubdirectory("pb792drift").FullName;
+        string dir = ScratchDirectory.Create("pb792drift");
         try
         {
             Assert.True(ProbeCompiles(dir, "CTL", "", 85, permissive: false),
@@ -177,7 +178,7 @@ public sealed class ReservedWordMigrationGateDriftTests
         }
         finally
         {
-            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort cleanup */ }
+            ScratchDirectory.Remove(dir);
         }
     }
 }

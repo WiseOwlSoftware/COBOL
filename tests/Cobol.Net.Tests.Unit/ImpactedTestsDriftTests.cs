@@ -73,8 +73,7 @@ public sealed class ImpactedTestsDriftTests
     [Fact]
     public void AMappedChange_IsTiered_AndNoFilterIsPrinted()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "impact-drift-" + Guid.NewGuid().ToString("N")[..12]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("impact-drift-");
         try
         {
             string map = Path.Combine(dir, "map.json.gz");
@@ -119,7 +118,7 @@ public sealed class ImpactedTestsDriftTests
         }
         finally
         {
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 

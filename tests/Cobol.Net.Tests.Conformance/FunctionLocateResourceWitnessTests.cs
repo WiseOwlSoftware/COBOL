@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -67,7 +68,7 @@ public sealed class FunctionLocateResourceWitnessTests
     [Fact]
     public void UnloadableSiblingModule_IsNotFound_NeverProgramResources()
     {
-        string dir = CutRunner.NewTempDir("l1frs1");
+        string dir = ScratchDirectory.Create("l1frs1");
         try
         {
             NonCobolElement.CompileCobol(dir, "L1FRSMA", Caller("L1FRSMA", "L1FRSZ"));
@@ -80,7 +81,7 @@ public sealed class FunctionLocateResourceWitnessTests
             Assert.Equal(0, exit);
             Assert.DoesNotContain("EC-PROGRAM-RESOURCES", stdout + stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -98,7 +99,7 @@ public sealed class FunctionLocateResourceWitnessTests
                 GOBACK.
             END FUNCTION L1FRSY.
             """;
-        string dir = CutRunner.NewTempDir("l1frs2");
+        string dir = ScratchDirectory.Create("l1frs2");
         try
         {
             NonCobolElement.CompileCobol(dir, "L1FRSMB", Caller("L1FRSMB", "L1FRSY"));
@@ -108,7 +109,7 @@ public sealed class FunctionLocateResourceWitnessTests
             Assert.Equal("R=0010", stdout);
             Assert.Equal(0, exit);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A sibling module that LOADS but whose registrar throws. DOC-A.1-89 lists it apart from the foreign
@@ -133,7 +134,7 @@ public sealed class FunctionLocateResourceWitnessTests
                 }
             }
             """;
-        string dir = CutRunner.NewTempDir("l1frs3");
+        string dir = ScratchDirectory.Create("l1frs3");
         try
         {
             NonCobolElement.CompileCobol(dir, "L1FRSMC", Caller("L1FRSMC", "L1FRSX"));
@@ -144,6 +145,6 @@ public sealed class FunctionLocateResourceWitnessTests
             Assert.Equal(0, exit);
             Assert.DoesNotContain("EC-PROGRAM-RESOURCES", stdout + stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

@@ -65,8 +65,7 @@ public sealed class CliDiagnosticEncodingTests
     [Fact]
     public void ADiagnosticsCitation_ReachesRedirectedOutput_AsUtf8_UnderAnOemConsoleCodePage()
     {
-        string work = Path.Combine(Path.GetTempPath(), "cobolnet-pb899-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(work);
+        string work = ScratchDirectory.Create("cobolnet-pb899-");
         try
         {
             // INITIAL + RECURSIVE on one PROGRAM-ID is rejected by COBOLNET0886, whose message carries the
@@ -137,7 +136,7 @@ public sealed class CliDiagnosticEncodingTests
         }
         finally
         {
-            try { Directory.Delete(work, recursive: true); } catch (IOException) { /* best effort */ }
+            ScratchDirectory.Remove(work);
         }
     }
 

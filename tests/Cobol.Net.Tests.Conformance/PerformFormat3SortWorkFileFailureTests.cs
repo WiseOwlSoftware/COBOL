@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -111,7 +112,7 @@ public sealed class PerformFormat3SortWorkFileFailureTests
     [Fact]   // the control: with a usable work directory the SORT spills, merges and returns every record in key order
     public void SortInWhen_WithAUsableWorkDirectory_SortsAndTheFinallyRuns()
     {
-        string dir = CutRunner.NewTempDir("f3swf");
+        string dir = ScratchDirectory.Create("f3swf");
         try
         {
             string work = Directory.CreateDirectory(Path.Combine(dir, "sortwork")).FullName;
@@ -122,13 +123,13 @@ public sealed class PerformFormat3SortWorkFileFailureTests
             Assert.Equal("IN-WHEN 35\nSORTED 00\nAFTER-OPEN\nFINALLY\nRANGE 00000001 00005000\nDONE", stdout);
             Assert.Empty(Directory.EnumerateFileSystemEntries(work));   // D-SWK (b): no run file outlives the statement
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]   // D-SWK (d): the missing work directory ends the run unit; the PERFORM's WHEN OTHER, FINALLY and what follows never run
     public void SortInWhen_WithAMissingWorkDirectory_StopsTheRunUnit_NoWhenOtherNoFinally()
     {
-        string dir = CutRunner.NewTempDir("f3swn");
+        string dir = ScratchDirectory.Create("f3swn");
         try
         {
             string missing = Path.Combine(dir, "no-such-directory");
@@ -140,6 +141,6 @@ public sealed class PerformFormat3SortWorkFileFailureTests
             // §14.9.40.4 GR15 a): the GIVING file is initiated only after the input procedure, so it was never opened
             Assert.False(File.Exists(GivingPath(dir)), "the stopped SORT left its GIVING file behind");
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -163,8 +164,7 @@ public sealed class ObjectRefDescriptorDriftTests
 
     private static (bool Ok, string Detail) Compile(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_ORD_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_ORD_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -173,6 +173,6 @@ public sealed class ObjectRefDescriptorDriftTests
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: 2002, SourceFormat: InitialReferenceFormat.Auto));
             return (r.Success, string.Join("\n", r.Errors));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

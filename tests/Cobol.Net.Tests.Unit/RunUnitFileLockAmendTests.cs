@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -43,7 +44,7 @@ public sealed class RunUnitFileLockAmendTests
 
     private static (string Directory, string File) NewFile()
     {
-        var dir = Directory.CreateTempSubdirectory("pb3483-").FullName;
+        var dir = ScratchDirectory.Create("pb3483-");
         string file = Path.Combine(dir, "data.dat");
         File.WriteAllText(file, "SEED");
         return (dir, file);
@@ -51,7 +52,7 @@ public sealed class RunUnitFileLockAmendTests
 
     private static void Clean(string directory)
     {
-        try { Directory.Delete(directory, recursive: true); } catch (IOException) { }
+        ScratchDirectory.Remove(directory);
     }
 
     /// <summary>What a request would be told while the lock is held, the request itself left nowhere.</summary>

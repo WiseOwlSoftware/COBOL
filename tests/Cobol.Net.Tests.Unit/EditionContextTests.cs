@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Editions;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -97,8 +98,7 @@ public sealed class EditionContextTests
     {
         // A clean program compiles warning-free on both axes, and Result.Warnings is present (not null) on
         // success — the CLI prints it unconditionally (P2.1 carriers).
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_EdCtx_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_EdCtx_");
         try
         {
             string src = Path.Combine(dir, "clean.cob");
@@ -113,6 +113,6 @@ public sealed class EditionContextTests
                 Assert.Empty(r.Warnings);
             }
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

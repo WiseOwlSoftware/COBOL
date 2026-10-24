@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -478,8 +479,7 @@ public sealed class ClosedFormatReservedWordTests
 
     private static IReadOnlyList<string> Compile(string source, int edition = 2023)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB2533_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB2533_");
         try
         {
             string src = Path.Combine(dir, "pb2533u.cob");
@@ -489,6 +489,6 @@ public sealed class ClosedFormatReservedWordTests
             Assert.False(r.Success, "the source is non-conforming and must be rejected");
             return r.Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }
