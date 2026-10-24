@@ -766,7 +766,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
    `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
    finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
-2. **Finishers first.** (a) A note whose newest report (by wave, then time; header lines only) says `SPLIT` or
+2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
    PB3027: the landing step never fixes a finding; the finisher's `pred` names the findings file and asks for every
@@ -789,7 +789,18 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    same-file successor merged its predecessor), its finisher merges that carrier instead of cherry-picking, because the
    commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not: only a
    newer report naming its lead answers its findings, so its `pred` names the carrier (which may land the branch's
-   commits first) and merges the `FINDINGS` branch alone (review R1-2). A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   commits first) and merges the `FINDINGS` branch alone (review R1-2). **A replayed branch** is the other way a
+   branch's work is carried (kb/Work PB3170): the `pred` above tells a `SPLIT` successor to CHERRY-PICK its predecessor,
+   so the successor is no descendant of it and `branch_carrier` cannot see it (wave 1079 planned PB3127 from `…-28e-2`
+   although `…-3a0-2`, planned beside it, replayed all four of its commits). `branch_replays` reads the commits of every
+   unlanded branch beyond `origin/main` by patch id (`git_batch.patch_ids`, two git processes for all of them; the key
+   `git cherry` uses for the `LANDED` class, `prune_worktrees.replays`), and a branch is carried when branches that
+   OUTRANK it (more distinct patches, then the later report, so no two branches carry each other) hold every one of its
+   commits. Such a branch gets no finisher: its notes join the group of the branch that replays the most of it, or wait
+   while that branch has none. A branch replayed only in part keeps its finisher, whose `pred` names the commits no other
+   branch holds. The unlanded-branch arm (c) and the half-note arm read the same rule. A branch a kb/Work note records
+   ABANDONED (`prune_worktrees.abandon_records`, the survey's matcher) is never planned from: its reports and notes are
+   not read. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
