@@ -153,16 +153,22 @@ def worktree_files(repo: pathlib.Path) -> dict[str, str]:
     return {p.name: p.read_bytes().decode("utf-8").replace("\r\n", "\n") for p in d.iterdir() if p.is_file()}
 
 
+def listing(repo: pathlib.Path, rev: str) -> list[str] | None:
+    """The paths of DEVLOG/ and the monolithic DEVLOG.md in commit `rev`'s tree, from ONE `git ls-tree` of
+    `<rev>^{commit}` (a name that is no commit fails it, so no separate `rev-parse --verify`: kb/Work PB3582); None
+    when `rev` names no commit."""
+    listed = _git(repo, "ls-tree", "--name-only", f"{rev}^{{commit}}", f"{DIR}/", MONOLITH)
+    return listed.stdout.splitlines() if listed.returncode == 0 else None
+
+
 def commit_files(repo: pathlib.Path, rev: str) -> tuple[dict[str, str], bool]:
     """({file name: text} of DEVLOG/ at commit `rev`, whether that tree has the monolithic DEVLOG.md); every blob is
     read through ONE `git cat-file --batch` (two thousand `git show` processes would take a minute)."""
-    if _git(repo, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").returncode != 0:
+    paths = listing(repo, rev)
+    if paths is None:
         raise RangeError(f"{rev} is not a commit")
-    listed = _git(repo, "ls-tree", "--name-only", rev, f"{DIR}/", MONOLITH)
-    if listed.returncode != 0:
-        raise RangeError(f"git ls-tree {rev} failed: {listed.stderr.strip()}")
-    names = [n for n in listed.stdout.splitlines() if n.startswith(f"{DIR}/")]
-    monolith = MONOLITH in listed.stdout.splitlines()
+    names = [n for n in paths if n.startswith(f"{DIR}/")]
+    monolith = MONOLITH in paths
     if not names:
         return {}, monolith
     out = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], capture_output=True, check=True,
@@ -176,10 +182,12 @@ def commit_files(repo: pathlib.Path, rev: str) -> tuple[dict[str, str], bool]:
     return files, monolith
 
 
-def monolith_headers(repo: pathlib.Path, rev: str) -> list[str]:
+def monolith_headers(repo: pathlib.Path, rev: str, has_monolith: bool = True) -> list[str]:
     """The `## Entry` header lines of the monolithic DEVLOG.md at `rev`, in file order with every repeat kept (empty
     when that tree has none). The base of the one landing that migrated the log carries its history there; no later
-    base does."""
+    base does. `has_monolith` False (the caller's listing holds no DEVLOG.md) answers empty with no `git show`."""
+    if not has_monolith:
+        return []
     r = _git(repo, "show", f"{rev}:{MONOLITH}")
     return [ln.rstrip("\r") for ln in r.stdout.split("\n") if HEADER.match(ln)] if r.returncode == 0 else []
 
@@ -256,9 +264,9 @@ def floor_of(base: dict[str, str], base_extra_headers: list[str]) -> int:
 def landing_entries(repo: pathlib.Path, base: str, rev: str) -> tuple[dict[str, str], list[str]]:
     """(the DEVLOG/ files at commit `rev`, the landing's new entries by `new_entries`) for the committed range
     base..rev. Raises RangeError when either end cannot be read."""
-    base_files, _ = commit_files(repo, base)
+    base_files, base_monolith = commit_files(repo, base)
     rev_files, _ = commit_files(repo, rev)
-    return rev_files, new_entries(base_files, monolith_headers(repo, base), rev_files)
+    return rev_files, new_entries(base_files, monolith_headers(repo, base, base_monolith), rev_files)
 
 
 def check(base: dict[str, str], base_extra_headers: list[str], rev: dict[str, str], rev_monolith: bool,
@@ -310,9 +318,9 @@ def check(base: dict[str, str], base_extra_headers: list[str], rev: dict[str, st
 def range_check(repo: pathlib.Path, base: str, rev: str) -> tuple[list[str], list[str], dict[str, str]]:
     """`check` on the committed range base..rev: (refusal reasons, the new entries' names, the DEVLOG/ files at rev).
     Raises RangeError when either end cannot be read."""
-    base_files, _ = commit_files(repo, base)
+    base_files, base_monolith = commit_files(repo, base)
     rev_files, rev_monolith = commit_files(repo, rev)
-    extra = monolith_headers(repo, base)
+    extra = monolith_headers(repo, base, base_monolith)
     stamped_on = {n: f for n in new_entries(base_files, extra, rev_files)
                   if (f := stamp_floor(repo, base, rev, n)) is not None}
     reasons, new = check(base_files, extra, rev_files, rev_monolith, stamped_on)
@@ -332,11 +340,12 @@ def stamp_floor(repo: pathlib.Path, base: str, rev: str, name: str) -> int | Non
     if not added:
         return None
     parent = f"{added[-1]}^1"
-    if _git(repo, "rev-parse", "--verify", "--quiet", f"{parent}^{{commit}}").returncode != 0:
+    listed = listing(repo, parent)
+    if listed is None:
         return 0                                     # a root commit: there was no tree before it
-    listed = _git(repo, "ls-tree", "--name-only", parent, f"{DIR}/").stdout.splitlines()
-    return max([highest(n[len(DIR) + 1:] for n in listed)]
-               + [int(m.group("num")) for h in monolith_headers(repo, parent) if (m := HEADER.match(h))])
+    return max([highest(n[len(DIR) + 1:] for n in listed if n.startswith(f"{DIR}/"))]
+               + [int(m.group("num")) for h in monolith_headers(repo, parent, MONOLITH in listed)
+                  if (m := HEADER.match(h))])
 
 
 def run_check(repo: pathlib.Path, base: str, rev: str) -> int:

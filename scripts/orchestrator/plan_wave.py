@@ -54,7 +54,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
 9. --drain (the owner's drain: "do not schedule new work items but continue all necessary work to get in-process work
    to main", 2026-10-13; kb/Work PB3150) plans only the finishers of STARTED work: every review-FINDINGS finisher, a
    SPLIT or NOT STARTED report's finisher only while its branch holds unlanded work that no other DONE branch carries
-   (`git merge-base --is-ancestor`: unfinished work a finished branch merged lands with that branch), and an unlanded
+   (the local branches' graph, `git_batch.Ancestry.is_ancestor`: unfinished work a finished branch merged lands with
+   that branch), and an unlanded
    branch's finisher on the same terms; never a cluster, a half note's open half, or a note a report left NOT
    started (each waits, with the reason). Every finisher's pred says so.
 
@@ -137,6 +138,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
+import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
 
@@ -362,7 +364,8 @@ def closed_by_branch(branch: str, git: Callable[..., Any]) -> list[str]:
     return sorted(out, key=work.id_order)
 
 
-def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any]) -> None:
+def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any],
+                     is_ancestor: Callable[[str, str], bool]) -> None:
     """Complete the `notes` of every report whose branch is not on main with the notes the branch closes
     (closed_by_branch), so a DONE branch waiting to land holds every note it finished in `awaiting landing`, not only
     its lead and its dispatch group's (answered_notes), and a SPLIT or FINDINGS branch's finisher, which takes that
@@ -376,14 +379,14 @@ def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git:
     FINDINGS report. The planner then read the note as `awaiting landing` with the successor and never planned the
     predecessor's review finisher, while the survey held the successor for those same findings. Wave 1143 planned
     nothing that way (PB3489 behind fix-pb3504, kb/Work PB3508). The contained branch's own report decides the note,
-    as plan()'s carrier rule already says (`branch_carrier`)."""
+    as plan()'s carrier rule already says (`branch_carrier`). `is_ancestor` is the local branches' graph's
+    (local_branches), never a `merge-base` per pair (kb/Work PB3582)."""
     unlanded = list(dict.fromkeys(r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES))
     closed = {b: closed_by_branch(b, git) for b in unlanded}
     for r in reports:
         if r.branch not in closed:
             continue
-        carried = {n for c in unlanded if c != r.branch and
-                   git("merge-base", "--is-ancestor", c, r.branch).returncode == 0 for n in closed[c]}
+        carried = {n for c in unlanded if c != r.branch and is_ancestor(c, r.branch) for n in closed[c]}
         r.notes = list(dict.fromkeys([*r.notes, *(n for n in closed[r.branch] if n not in carried)]))
 
 
@@ -441,27 +444,37 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime, r.path.name))
 
 
-def git_branch_classifier() -> Callable[[str], str]:
-    """branch -> MERGED | LANDED | CHECK | UNLANDED | ABSENT, by prune_worktrees' content test (reused, not forked)."""
+def local_branches() -> tuple[set[str], "git_batch.Ancestry"]:
+    """(every local branch, ONE graph of them beyond origin/main): what the planner's classifier, its carrier rule,
+    add_closed_notes and unlanded_branch_notes all read, from one listing and one graph read (kb/Work PB3582), never a
+    `rev-parse`, a `merge-base` or a `git log` per branch or per pair of branches."""
+    import prune_worktrees  # noqa: PLC0415
+    local = set(prune_worktrees.git("for-each-ref", "refs/heads", "--format=%(refname:short)").stdout.split())
+    return local, prune_worktrees.branch_graph(sorted(local))
+
+
+def git_branch_classifier(local: set[str], graph: "git_batch.Ancestry") -> Callable[[str], str]:
+    """branch -> MERGED | LANDED | CHECK | UNLANDED | ABSENT, by prune_worktrees' content test (reused, not forked), over
+    the local branches and their graph (local_branches)."""
     import prune_worktrees  # noqa: PLC0415  (git work at import time is none, but the grep below is: only on demand)
-    names: set[str] | None = None
+    names: list[set[str]] = []
     cache: dict[str, str] = {}
 
     def classify(branch: str) -> str:
-        nonlocal names
         if branch not in cache:
-            if prune_worktrees.git("rev-parse", "--verify", "--quiet", f"refs/heads/{branch}").returncode != 0:
+            if branch not in local:
                 cache[branch] = "ABSENT"
             else:
-                names = names if names is not None else prune_worktrees.main_names()
-                cache[branch] = prune_worktrees.classify(branch, names)[0]
+                names or names.append(prune_worktrees.main_names())
+                cache[branch] = prune_worktrees.classify(branch, names[0], graph)[0]
         return cache[branch]
     return classify
 
 
 def branch_carrier(reports: list[Report], classify: Callable[[str], str],
-                   git: Callable[..., Any]) -> Callable[[str], str | None]:
-    """branch -> the branch of a FINISHED report (Report.finished), not on main, that contains it (`git merge-base --is-ancestor`), or None.
+                   is_ancestor: Callable[[str, str], bool]) -> Callable[[str], str | None]:
+    """branch -> the branch of a FINISHED report (Report.finished), not on main, that contains it (`is_ancestor`: the
+    local branches' graph, git_batch.Ancestry.is_ancestor, never a `merge-base` per pair, kb/Work PB3582), or None.
     Unfinished work that a finished branch merged lands WITH that branch: a SPLIT predecessor's branch carries no clean
     stamp at its tip, so it never lands alone (prune_worktrees.contained: an unreviewed checkpoint lands through the
     branch that carries it, kb/Work PB3381). Only a finished predecessor reviewed CLEAN lands on its own, and this reads
@@ -473,12 +486,12 @@ def branch_carrier(reports: list[Report], classify: Callable[[str], str],
     def carried(branch: str) -> str | None:
         if branch not in cache:
             cache[branch] = next((c for c in done if c != branch and classify(c) not in LANDED_CLASSES and
-                                  git("merge-base", "--is-ancestor", branch, c).returncode == 0), None)
+                                  is_ancestor(branch, c)), None)
         return cache[branch]
     return carried
 
 
-def unlanded_branch_notes() -> dict[str, list[str]]:
+def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[str, list[str]]:
     """{UNLANDED or CHECK branch: [every note id its commit subjects name]} over every local branch. CHECK (a C# name
     the branch declares is missing from main) is unlanded work until someone reads it: wave 1017's group B branch,
     which only edited existing files, classified CHECK, and its WIP would have been planned over from main.
@@ -487,10 +500,10 @@ def unlanded_branch_notes() -> dict[str, list[str]]:
     import prune_worktrees  # noqa: PLC0415
     names = prune_worktrees.main_names()
     out = {}
-    for b in prune_worktrees.git("branch", "--format=%(refname:short)").stdout.split():
-        if b == "main" or prune_worktrees.classify(b, names)[0] not in ("UNLANDED", "CHECK"):
+    for b in sorted(local - {"main"}):   # the subjects are the graph's (local_branches), never a `git log` per branch
+        if prune_worktrees.classify(b, names, graph)[0] not in ("UNLANDED", "CHECK"):
             continue
-        subjects = prune_worktrees.git("log", "--format=%s", f"origin/main..{b}").stdout
+        subjects = "\n".join(graph.subject(c) for c in graph.beyond(graph.sha(b) or b))
         out[b] = sorted(set(PB.findall(subjects)), key=lambda s: int(s[2:]))
     return out
 
@@ -541,8 +554,13 @@ def answered_notes(r: Report, groups: list[dict[str, Any]]) -> list[str]:
     return list(dict.fromkeys([r.lead, *(n for g in groups if answers(r, g) for n in g.get("notes", []))]))
 
 
+def work_names(paths: Iterable[str]) -> set[str]:
+    """The paths that are work (coord.is_work: never STATUS.md, the harness's settings or TestResults/)."""
+    return {s.strip() for s in paths if s.strip() and coord.is_work(s.strip())}
+
+
 def _names(out: str) -> set[str]:
-    return {s.strip() for s in out.splitlines() if s.strip() and coord.is_work(s.strip())}
+    return work_names(out.splitlines())
 
 
 def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[str]:
@@ -553,11 +571,27 @@ def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[s
     return _names(git("diff", "--name-only", "--no-renames", *revs, **({} if cwd is None else {"cwd": cwd})).stdout)
 
 
-def _still_differs(git: Callable[..., Any], rev: str, cwd: Any) -> set[str]:
-    """The files `rev` changed since it left origin/main AND that still differ from origin/main: a branch landed by
-    content (squash, cherry-pick) drops out; one whose edits are not on main stays, however it classifies."""
-    since = changed_files(git, f"origin/main...{rev}", cwd=cwd)
-    return since & changed_files(git, "origin/main", rev, cwd=cwd) if since else set()
+def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> list[set[str]]:
+    """[the files each commit of `revs` changed since it left origin/main AND that still differ from origin/main]: a
+    branch landed by content (squash, cherry-pick) drops out; one whose edits are not on main stays, however it
+    classifies. One `merge-base` per commit and ONE `git diff-tree --stdin` for every (since-the-merge-base, against
+    main) pair (git_batch.diff_names, kb/Work PB3582), never two `git diff`s per worktree and branch. No origin/main,
+    or no merge base, reads empty, as the two diffs did when they failed."""
+    main = git("rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}", cwd=repo).stdout.strip()
+    if not main or not revs:
+        return [set() for _ in revs]
+    with ThreadPoolExecutor(max_workers=8) as pool:   # subprocess-bound: the merge bases run side by side
+        bases = list(pool.map(lambda rev: git("merge-base", main, rev, cwd=repo).stdout.strip(), revs))
+    pairs = [(rev, x) for rev, b in zip(revs, bases) if b for x in (b, main)]
+    names = iter(git_batch.diff_names(repo, pairs, git=git))
+    out = []
+    for b in bases:
+        if not b:
+            out.append(set())
+            continue
+        since, against = work_names(next(names)), work_names(next(names))
+        out.append(since & against)
+    return out
 
 
 def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.Path = REPO,
@@ -595,27 +629,34 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
         for blk in [b for b in blocks if b.strip()]:
             path = re.search(r"^worktree (.+)$", blk, re.M).group(1).strip()
             br = re.search(r"^branch refs/heads/(.+)$", blk, re.M)
+            head = re.search(r"^HEAD ([0-9a-f]+)$", blk, re.M)
             if br:
                 with_tree.add(br.group(1))
             if path.replace(chr(92), "/").rstrip("/").lower() != here:
-                trees.append((path, br.group(1) if br else None))
+                trees.append((path, br.group(1) if br else None, head.group(1) if head else ""))
 
-        def tree(t: tuple[str, str | None]) -> tuple[str, str | None, set[str], set[str], str]:
-            path, br = t
-            loose = changed_files(git, "HEAD", cwd=path)
-            loose |= _names(git("ls-files", "--others", "--exclude-standard", cwd=path).stdout)
-            head = git("rev-parse", "HEAD", cwd=path).stdout.strip() if meta is not None else ""
-            return path, br, _still_differs(git, "HEAD", path), loose, head
+        def uncommitted(t: tuple[str, str | None, str]) -> set[str]:
+            """Its uncommitted and untracked files from ONE `git status` (kb/Work PB3582: it was a `diff HEAD` and an
+            `ls-files --others`), without the optional index write, which would race the agent working there."""
+            out = git("--no-optional-locks", "status", "--porcelain", "-z", "--no-renames", "--untracked-files=all",
+                      cwd=t[0]).stdout
+            return work_names(e[3:] for e in out.split(chr(0)) if len(e) > 3)
 
-        def branch(b: str) -> tuple[str, set[str]]:
-            if git("merge-base", "--is-ancestor", b, "origin/main", cwd=repo).returncode == 0:
-                return b, set()
-            return b, _still_differs(git, b, repo)
-
-        loose_branches = [b for b in git("branch", "--format=%(refname:short)", cwd=repo).stdout.split()
-                          if b != "main" and b not in with_tree]
+        # every local branch with no worktree whose tip is not on origin/main, with its tip, from ONE listing (no
+        # `merge-base --is-ancestor` per branch); with no origin/main the listing fails and no branch is listed, as
+        # each branch's two diffs then read empty
+        listed = git("for-each-ref", "--no-merged=refs/remotes/origin/main", "--format=%(refname:short) %(objectname)",
+                     "refs/heads", cwd=repo)
+        loose_branches = [(b, sha) for b, _, sha in (ln.partition(" ") for ln in listed.stdout.splitlines()
+                                                    if listed.returncode == 0)
+                          if b != "main" and b not in with_tree and sha]
         with ThreadPoolExecutor(max_workers=8) as pool:
-            tree_rows, branch_rows = list(pool.map(tree, trees)), list(pool.map(branch, loose_branches))
+            tree_loose = list(pool.map(uncommitted, trees))
+        revs = list(dict.fromkeys([h for _, _, h in trees if h] + [sha for _, sha in loose_branches]))
+        differs = dict(zip(revs, _still_differs(git, repo, revs)))
+        tree_rows = [(path, br, differs.get(head, set()) if head else set(), lo, head if meta is not None else "")
+                     for (path, br, head), lo in zip(trees, tree_loose)]
+        branch_rows = [(b, differs.get(sha, set())) for b, sha in loose_branches]
         for path, br, files, loose, head in tree_rows:
             if files | loose:
                 owner = f"worktree {pathlib.PurePath(path).name} ({br or 'detached'})"
@@ -1731,10 +1772,11 @@ def main(argv: list[str] | None = None) -> int:
         classify, unlanded, carrier = (lambda _b: "ABSENT"), {}, None
     else:
         import prune_worktrees  # noqa: PLC0415  (its git runner, reused)
-        classify, unlanded = git_branch_classifier(), unlanded_branch_notes()
-        carrier = branch_carrier(reports, classify, prune_worktrees.git)
+        local, graph = local_branches()
+        classify, unlanded = git_branch_classifier(local, graph), unlanded_branch_notes(local, graph)
+        carrier = branch_carrier(reports, classify, graph.is_ancestor)
         notes.update(branch_lead_notes(reports, notes, harm_weights(), prune_worktrees.git))
-        add_closed_notes(reports, classify, prune_worktrees.git)
+        add_closed_notes(reports, classify, prune_worktrees.git, graph.is_ancestor)
     items = work.load()
     status_of = {i.get("id"): i.get("status") for i in items}
 

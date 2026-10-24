@@ -11,9 +11,11 @@ Inputs, each optional except the listings:
   * the change: the diff against `--base` (the worktree's, or `--head`'s for a replay), analysed by
     `scripts/spec/impacted_tests.py` against the impact map for the base (any age; `--map`/`--store`);
   * TIMINGS: the per-case durations in the trx files of the worktree's previous gate (`--previous-run <dir>`),
-    else the map's recorded durations; and that gate's REDS (trx outcome `Failed`). The gate driver times its plan
-    from the SHARED TIMINGS STORE instead (`publish_timings`/`read_shared_timings`, kb/Work PB2527): every gate
-    publishes there, so a fresh worktree's plan is timed too.
+    else the map's recorded durations. The gate driver times its plan from the SHARED TIMINGS STORE instead
+    (`publish_timings`/`read_shared_timings`, kb/Work PB2527): every gate publishes there, so a fresh worktree's plan
+    is timed too;
+  * the REDS (trx outcome `Failed`) of the worktree's previous gates ON BOTH HOSTS (`previous_gates`, TRX_WRITERS;
+    kb/Work PB3155): that previous gate's, and the newest Linux gate's (`<worktree>/TestResults/linux-gate/`).
 
 THE NAME KEY. Every lookup keys on `name_key(display name)`: the display name with the partition suffix `_P<k>`
 removed from its CLASS segment. A partitioned family (`TestPartitioning.Slice`) puts row i in class
@@ -21,9 +23,11 @@ removed from its CLASS segment. A partitioned family (`TestPartitioning.Slice`) 
 suffix, the append leaves ONE unknown case (evidence `impact-map-pb1708/b7`).
 
 THE TIERS (per case; a key shared by several cases takes the lowest):
-  0a  a case of a test method the diff ADDS · a suite row whose test, its files or its keyed entry the diff changes ·
-      red at the previous gate — always leg 1 (an EDITED test or harness is tier 1 through the map: a whole changed
-      test file would put every row of its theories here — 5,774 cases for 68b X, evidence b4);
+  0a  a case of a test method the diff ADDS OR EDITS (`impacted_tests.tests_changed`, kb/Work PB3190: a hunk in its
+      attributes, declaration or body, or in its theory's `[MemberData]` source) · a suite row whose test, its files or
+      its keyed entry the diff changes · red at the previous gate of either host (`previous_gates`) — always leg 1 (an
+      edited HARNESS — a helper the tests call — is tier 1 through the map: a whole changed test file would put every
+      row of its theories here — 5,774 cases for 68b X, evidence b4);
   0h  a HOST-ONLY WITNESS (kb/Work PB3022; DESIGN-test-build-ci.md §3.17.3): its class carries the xUnit trait
       `[Trait("Host", v)]` with v in HOST_ONLY — a property of this host CI's runners lack (`ReFS`: the Windows
       file-system race witnesses, which CI's NTFS runners may not reproduce) — always leg 1, whatever the diff, and
@@ -36,9 +40,11 @@ THE TIERS (per case; a key shared by several cases takes the lowest):
       later whole-population run used to find;
   0d  a GOVERNING DRIFT TEST (kb/Work PB3531): its class is one the drift-rule index (`scripts/spec/drift_rules.py`)
       says governs a file the diff changes — specifically, or as a tree-wide sweep that reads it, a sweep of the
-      committed tree through its declared `TreeScope` included — gathered from the diff alone
-      (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the budgets and the cap:
-      the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the likeliest red, and a
+      committed tree through its declared `TreeScope` included, and a test that reads the file only through a helper
+      class (kb/Work PB3247: a golden governs the classes reading the corpus through `SuiteManifest`) — gathered from
+      the diff alone (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the
+      budgets and the cap: the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the
+      likeliest red, and a
       dear sweep (CatalogCoverageDriftTests' 44 s) was left in leg 2 by 0c and found only by the landing's Linux leg;
   0u  known to no timing source and to no map (genuinely new) — charged the assembly's median time and admitted to
       leg 1, in declaration order, within LEG_ONE_UNKNOWN_BUDGET; the overflow LEADS leg 2;
@@ -64,7 +70,8 @@ file's BYTES: the digest the gate driver hands the test hosts (COBOLNET_GATE_PLA
 Usage:
     python scripts/gate_plan.py --out plan.json --list Conformance=conf.txt --list Unit=unit.txt \\
         --list Characterization=char.txt [--base <sha> [--head <sha>]] [--map <file> | --store <dir>] \\
-        [--previous-run <dir>]
+        [--previous-run <dir>] [--worktree <dir>]
+    python scripts/gate_plan.py --audit-trx-writers  # every live tool writing a trx is a row of TRX_WRITERS
     python scripts/gate_plan.py --traits          # the class traits the scan finds, per assembly (JSON)
     python scripts/gate_plan.py --self-test
 """
@@ -77,6 +84,7 @@ import json
 import os
 import re
 import statistics
+import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -87,6 +95,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "spec"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import impacted_tests  # noqa: E402
+from live_tools import ROOTS as LIVE_ROOTS  # noqa: E402 — the one list of the live tools' trees
 from test_population import GATED_ASSEMBLIES, LISTED_MARK, PopulationError, parse_listing  # noqa: E402
 
 PLAN_SCHEMA = 1
@@ -225,6 +234,11 @@ def trx_results(run: Path):
             yield r.get("testName") or "", (trx_secs(d) if d else None), r.get("outcome")
 
 
+def red_keys(name: str) -> tuple[str, str]:
+    """The keys a red case is matched by: its name key, and the listed key of an unserializable theory."""
+    return name_key(name), name_key(name).partition("(")[0]
+
+
 def read_previous_run(run: Path) -> tuple[Timings, set[str]]:
     """The previous gate's timings and REDS (by name key), from every trx file in its run directory."""
     timings, reds = Timings(f"previous run {run}"), set()
@@ -232,9 +246,73 @@ def read_previous_run(run: Path) -> tuple[Timings, set[str]]:
         if seconds is not None:
             timings.add(name, seconds)
         if outcome == "Failed":
-            reds.add(name_key(name))
-            reds.add(name_key(name).partition("(")[0])  # the listed key of an unserializable theory
+            reds.update(red_keys(name))
     return timings, reds
+
+
+# ── RED AT THE PREVIOUS GATE MEANS EITHER HOST'S (tier 0a; kb/Work PB3155, PB3184) ─────────────────────────────────
+#: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
+#: writes, relative to the worktree (None: it writes none there), and what the plan takes from it.
+#:   * the gate itself (run_gate_legs.py): its newest earlier run under TestResults/build-local/, chosen by
+#:     `run_gate_legs.Gate.previous_run` and handed to `previous_gates` (the CLI's `--previous-run`), gives the plan
+#:     its timings and reds;
+#:   * the Linux gate (linux-gate.sh: CI's Linux legs under WSL, which a landing runs right after the Windows gate,
+#:     enqueue.py GATES_WINDOWS) leaves its newest run's trx files in TestResults/linux-gate/ (it empties the directory
+#:     first): they give the plan its REDS only, since another host's durations would mis-time this host's plan;
+#:   * the comprehensive battery (battery.sh) runs in its own detached worktree at a batch head (MANDATORY-PRACTICES
+#:     B1), never as a branch's gate, so no re-gate follows it.
+#: Until 2026-10-23 the plan read only the first, so when a landing stopped on a Linux red, the finisher's re-gate ran
+#: neither failed case in leg 1 and read GREEN: w1076a / PB2921 ran `NulByteDriftTests` and `StagedLoudResidue` by hand
+#: on the gate's build, and PB3165's finisher re-ran its Linux red under WSL by hand. `GateLegDriftTests` holds this
+#: table equal to the live tools that write a trx file (`--audit-trx-writers`), so a new writer is classified here or
+#: that test is red.
+TRX_WRITERS: dict[str, tuple[str | None, str]] = {
+    "scripts/run_gate_legs.py": ("TestResults/build-local", "the previous run (--previous-run): timings and reds"),
+    "scripts/linux-gate.sh": ("TestResults/linux-gate", "the Linux gate's newest run: reds"),
+    "scripts/battery.sh": (None, "none: the battery runs in its own detached worktree at a batch head, never a gate "
+                                 "of a branch"),
+}
+LINUX_GATE_RESULTS = Path(TRX_WRITERS["scripts/linux-gate.sh"][0])
+#: What makes a live tool a trx writer: the vstest logger argument naming the trx file (split here, so this file is
+#: not one).
+TRX_LOGGER_MARK = "trx;" + "LogFileName="
+
+
+def read_reds(results: Path) -> set[str]:
+    """The REDS (by name key) of a results directory's trx files; none when it holds no trx file (that gate never ran
+    in this worktree, or its build failed before any leg wrote one)."""
+    if not any(results.glob("*.trx")):
+        return set()
+    return {k for name, _, outcome in trx_results(results) if outcome == "Failed" for k in red_keys(name)}
+
+
+def previous_gates(worktree: Path, previous: Path | None) -> tuple[Timings, dict[str, set[str]]]:
+    """THE ONE READER of a worktree's previous gates (TRX_WRITERS): the timings of build-local's previous run
+    `previous` (none: Timings "none"), and the reds of every source, by its label — that run's and the Linux gate's
+    newest run's, `<worktree>/LINUX_GATE_RESULTS`. The gate driver (`run_gate_legs.Host.plan`) and the CLI both plan
+    from it, so a case red at the last gate of EITHER host is tier 0a of the next."""
+    timings, reds = read_previous_run(previous) if previous is not None else (Timings("none"), set())
+    linux = worktree / LINUX_GATE_RESULTS
+    label = timings.source if previous is not None else "previous run: none"
+    return timings, {label: reds, f"linux gate {linux}": read_reds(linux)}
+
+
+def audit_trx_writers(repo: Path) -> tuple[list[str], list[str]]:
+    """(the live tools that write a trx file, each with its TRX_WRITERS row; the offenders): a writer with no row, a row
+    whose tool is gone or writes no trx file, and a row whose results directory its tool never names."""
+    listed = subprocess.run(["git", "ls-files", "-z", "--", *LIVE_ROOTS], cwd=repo, check=True, capture_output=True,
+                            text=True, encoding="utf-8").stdout.split("\0")
+    writers = sorted(f for f in listed if f and (repo / f).is_file()
+                     and TRX_LOGGER_MARK in (repo / f).read_text(encoding="utf-8", errors="replace"))
+    seen = [f"  writer  {f}  {TRX_WRITERS[f][0] or '-'}  {TRX_WRITERS[f][1]}" for f in writers if f in TRX_WRITERS]
+    bad = [f"  {f}: writes a trx file and has no row in gate_plan.TRX_WRITERS — say whether its reds are tier 0a of "
+           f"the next gate" for f in writers if f not in TRX_WRITERS]
+    for f, (results, _) in sorted(TRX_WRITERS.items()):
+        if f not in writers:
+            bad.append(f"  {f}: a TRX_WRITERS row, but no tracked live tool of that name writes a trx file")
+        elif results is not None and results not in (repo / f).read_text(encoding="utf-8", errors="replace"):
+            bad.append(f"  {f}: its row says it writes {results}/, which it never names")
+    return seen, bad
 
 
 # ── THE SHARED TIMINGS STORE (kb/Work PB2527) ──────────────────────────────────────────────────────────────────────
@@ -327,7 +405,7 @@ class Context:
     tiers: dict[str, int]                   # name key -> map tier (1..3), for this assembly
     map_known: set[str]                     # every name key the map recorded, in any assembly
     every_tier1: bool                       # the change cannot be attributed (no map, stale map, ...)
-    added_tests: set[str]                   # test methods the change adds
+    changed_tests: set[str]                 # test methods the change adds or edits (impacted_tests.tests_changed)
     goldens: set[str]                       # suite test ids the change touches (impacted_tests.suite_tests)
     reds: set[str]
     previous: Timings
@@ -357,7 +435,7 @@ SUITE_ID = 'id: '
 
 
 def tier_of(display: str, key: str, ctx: Context, per_case: float | None, has_timings: bool) -> str:
-    if (method_of(display) in ctx.added_tests or key in ctx.reds
+    if (method_of(display) in ctx.changed_tests or key in ctx.reds
             or any(f'({SUITE_ID}"{g}"' in display or f', {SUITE_ID}"{g}"' in display for g in ctx.goldens)):
         return "0a"
     cls = class_of(key)  # the class without its partition suffix: a trait is declared on the family
@@ -487,8 +565,14 @@ def canonical(obj: dict) -> bytes:
 
 
 def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis, previous: Timings,
-               reds: set[str], base: str | None, traits: dict[str, dict[str, dict[str, set[str]]]]) -> dict:
-    """The plan of every assembly in `listings`; `traits` is each assembly's `class_traits` (tiers 0h and 0c)."""
+               reds: dict[str, set[str]], base: str | None,
+               traits: dict[str, dict[str, dict[str, set[str]]]]) -> dict:
+    """The plan of every assembly in `listings`; `reds` is each red source's reds by its label (`previous_gates`), all
+    of them tier 0a; `traits` is each assembly's `class_traits` (tiers 0h and 0c)."""
+    every_red = set().union(*reds.values())
+    # A red is matched by its name key alone, so a red whose display name differs on this host (a theory argument that
+    # names a host path) matches no case here: each source's count of red keys that name a discovered case says so.
+    listed = {name_key(d) for displays in listings.values() for d in displays}
     m = analysis.map
     recorded = map_timings(m)
     map_known = {name_key(row[2]) for row in (m or {}).get("tests", [])}
@@ -500,7 +584,9 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
                   "constants": {"LEG_ONE_BUDGET": LEG_ONE_BUDGET, "LEG_ONE_UNKNOWN_BUDGET": LEG_ONE_UNKNOWN_BUDGET,
                                 "LEG_ONE_COLLECTION_CAP": LEG_ONE_COLLECTION_CAP,
                                 "SWEEP_CHEAP_SECONDS": SWEEP_CHEAP_SECONDS, "HOST_ONLY": sorted(HOST_ONLY)},
-                  "timings": previous.source if previous else recorded.source, "assemblies": {}}
+                  "timings": previous.source if previous else recorded.source,
+                  "reds": {label: {"keys": len(keys), "listed": len(keys & listed)}
+                           for label, keys in sorted(reds.items())}, "assemblies": {}}
     for asm, displays in listings.items():
         tiers: dict[str, int] = {}
         for display, t in analysis.tiers.get(asm, {}).items():
@@ -508,8 +594,8 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
             tiers[k] = min(tiers.get(k, 3), t)
         host, sweep = trait_sets(traits.get(asm, {}))
         ctx = Context(tiers=tiers, map_known=map_known, every_tier1=bool(analysis.reach.every_tier1),
-                      added_tests=analysis.reach.added_tests.get(asm, set()), goldens=analysis.reach.goldens,
-                      reds=reds, previous=previous, recorded=recorded,
+                      changed_tests=analysis.reach.changed_tests.get(asm, set()), goldens=analysis.reach.goldens,
+                      reds=every_red, previous=previous, recorded=recorded,
                       collection_of_class=collection_of_class.get(asm, {}), host_classes=host, sweep_classes=sweep,
                       drift_classes=analysis.reach.drift_tests)
         plan["assemblies"][asm] = plan_assembly(displays, ctx)
@@ -527,6 +613,9 @@ def summary_lines(plan: dict, out: Path) -> list[str]:
                      f"({s['leg1_seconds']} of {s['recorded_seconds']} recorded s; floor {s['leg1_floor_seconds']} s "
                      f"in {s['leg1_floor_collection'] or '-'}); legs {a['legs']}"
                      + (f" — {s['one_leg_reason']}" if s["one_leg_reason"] else ""))
+    reds = "; ".join(f"{label}: {r['keys']}, {r['listed']} of them a case discovered here"
+                     for label, r in plan["reds"].items()) or "none"
+    lines.append(f"gate_plan: red keys (tier 0a) — {reds}")
     lines.append(f"gate_plan: map {plan['map_state']}, timings {plan['timings']}; plan {plan['sha256'][:12]} → {out}")
     return lines
 
@@ -547,6 +636,7 @@ def write_plan(plan: dict, out: Path) -> str:
 
 def self_test() -> int:
     """Drive every arm on planted inputs (feedback_prove_the_watchdog_fails)."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     failures = 0
 
     def check(label: str, ok: bool, detail: object = "") -> None:
@@ -564,7 +654,7 @@ def self_test() -> int:
           name_key(ns + "Foo_Pbar.M") == ns + "Foo_Pbar.M" and name_key(ns + "Foo.M") == ns + "Foo.M")
 
     def ctx(**kw) -> Context:
-        base = dict(tiers={}, map_known=set(), every_tier1=False, added_tests=set(), goldens=set(), reds=set(),
+        base = dict(tiers={}, map_known=set(), every_tier1=False, changed_tests=set(), goldens=set(), reds=set(),
                     previous=Timings("none"), recorded=Timings("none"))
         base.update(kw)
         return Context(**base)
@@ -596,9 +686,10 @@ def self_test() -> int:
     t3 = timed([(d, 1.0) for d in cheap] + [(pole, 1000.0), (row, 500.0), (f"{ns}Changed.M", 400.0)])
     all3 = cheap + [pole, row, f"{ns}Changed.M"]
     k3 = {name_key(d) for d in all3}
-    p = plan_assembly(all3, ctx(previous=t3, map_known=k3, tiers={k: 3 for k in k3}, added_tests={"M"},
+    p = plan_assembly(all3, ctx(previous=t3, map_known=k3, tiers={k: 3 for k in k3}, changed_tests={"M"},
                                 goldens={"g1"}, reds={name_key(red)}))
-    check("tier 0a: an added test method, a touched golden and a previous red lead leg 1, exempt from the budget",
+    check("tier 0a: an added or edited test method, a touched golden and a previous red lead leg 1, exempt from the "
+          "budget",
           p["leg1"] == [name_key(red), f"{ns}Changed.M", name_key(row)]   # inside tier 0a, cheapest first
           and p["stats"]["tiers"]["0a"] == 3, p["leg1"])
     check("tiers 2 and 3 never enter leg 1 on the budget", p["stats"]["leg1_cases"] == 3, p["stats"])
@@ -623,7 +714,7 @@ def self_test() -> int:
     check("a stale map: every case tier 1, its durations still order leg 1",
           p["stats"]["tiers"]["1"] == 101 and p["stats"]["leg1_cases"] == 22, p["stats"])
     # no timings: leg 1 is tier 0a alone, ordered by tier.
-    p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(added_tests={"M"}))
+    p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}))
     check("no timings: leg 1 is tier 0a alone and nothing is tier 0u",
           p["leg1"] == [f"{ns}Changed.M"] and p["stats"]["tiers"]["0u"] == 0 and p["legs"] == [1, 2], p["stats"])
     # tier 0h: a host-only witness is leg 1 whatever the diff, its cost and the collection cap (kb/Work PB3022).
@@ -761,6 +852,70 @@ def self_test() -> int:
               malformed_read_refused and "replaced a malformed store" in note
               and read_shared_timings(store).seconds(short_c) == 3.0, note)
 
+    # RED AT THE PREVIOUS GATE MEANS EITHER HOST'S (kb/Work PB3155, PB3184): build-local's previous run and the Linux
+    # gate's newest run (TRX_WRITERS) are both read, and a Linux-only red is tier 0a of the next plan.
+    def trx_outcomes(path: Path, rows: list[tuple[str, str, str]]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        body = "".join(f'<UnitTestResult testName="{n}" duration="{d}" outcome="{o}" />' for n, d, o in rows)
+        path.write_text('<?xml version="1.0" encoding="utf-8"?><TestRun xmlns="http://microsoft.com/schemas/'
+                        f'VisualStudio/TeamTest/2010"><Results>{body}</Results></TestRun>', encoding="utf-8",
+                        newline="\n")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        wt, run = Path(tmp) / "wt", Path(tmp) / "wt" / "TestResults" / "build-local" / "000001-20261023T000000Z"
+        win_red, linux_red, linux_pass = f"{ns}WinOnly.M", f"{ns}Lin_P2.M", f"{ns}Lin.Passes"
+        trx_outcomes(run / "leg-1-Unit.trx", [(win_red, "00:00:02.0", "Failed"), (pole, "00:16:40.0", "Passed")])
+        none_t, none_r = previous_gates(wt, None)
+        check("no previous gate on either host: no timings, and every source is empty, never an error",
+              none_t.source == "none" and not set().union(*none_r.values()), none_r)
+        trx_outcomes(wt / LINUX_GATE_RESULTS / "unit.trx", [(linux_pass, "00:00:09.0", "Passed")])
+        _, passing = previous_gates(wt, run)
+        check("a Linux gate whose trx files hold no Failed outcome adds no red",
+              passing[f"linux gate {wt / LINUX_GATE_RESULTS}"] == set(), passing)
+        trx_outcomes(wt / LINUX_GATE_RESULTS / "conformance.trx",
+                     [(linux_red, "00:00:03.0", "Failed"), (f"{ns}LinuxOnly.M", "00:00:01.0", "Failed")])
+        timings, reds = previous_gates(wt, run)
+        both = set().union(*reds.values())
+        check("previous_gates reads the reds of BOTH hosts' previous gates: build-local's previous run and the Linux "
+              "gate's newest run, each under its own label",
+              name_key(win_red) in reds[timings.source]
+              and name_key(linux_red) in reds[f"linux gate {wt / LINUX_GATE_RESULTS}"]
+              and {name_key(win_red), name_key(linux_red)} <= both, reds)
+        check("the Linux gate gives reds only: another host's durations never time this host's plan",
+              timings.seconds(pole) == 1000.0 and timings.seconds(linux_pass) is None
+              and timings.seconds(name_key(linux_red)) is None, timings.source)
+        many = cheap + [pole, win_red, f"{ns}Lin_P5.M"]  # the Linux red, renumbered by a partition-count change
+        a = impacted_tests.Analysis(None, "none", impacted_tests.Reach(every_tier1=["no map"]), {})
+        full = build_plan({"Unit": many}, a, timed([(d, 1.0) for d in cheap] + [(pole, 1000.0)]), reds, None, {})
+        u = full["assemblies"]["Unit"]
+        check("a case red only at the Linux gate is tier 0a of the next plan, in leg 1 by its name key, and the plan "
+              "counts each source's red keys and how many name a case discovered here",
+              name_key(f"{ns}Lin_P5.M") in u["leg1"] and name_key(win_red) in u["leg1"]
+              and u["stats"]["tiers"]["0a"] == 2
+              and full["reds"] == {timings.source: {"keys": 1, "listed": 1},
+                                   f"linux gate {wt / LINUX_GATE_RESULTS}": {"keys": 2, "listed": 1}}
+              and any("red keys (tier 0a)" in line for line in summary_lines(full, Path(tmp) / "plan.json")),
+              (u["stats"]["tiers"], full["reds"]))
+
+    # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
+    # writes none, and a row whose results directory its tool never names are each a finding.
+    with tempfile.TemporaryDirectory() as tmp:
+        scratch = ScratchRepo.init(Path(tmp) / "repo")
+        repo = scratch.path
+        planted = {"scripts/run_gate_legs.py": f"{TRX_LOGGER_MARK}x  # {TRX_WRITERS['scripts/run_gate_legs.py'][0]}",
+                   "scripts/linux-gate.sh": f"--logger {TRX_LOGGER_MARK}unit.trx  # writes somewhere else",
+                   "scripts/new_gate.sh": f"--logger {TRX_LOGGER_MARK}new.trx", "scripts/reader.py": "no logger"}
+        scratch.write({rel: text + "\n" for rel, text in planted.items()})
+        scratch.git("add", "-A")
+        seen, bad = audit_trx_writers(repo)
+        findings = "\n".join(bad)
+        check("the trx writers audit: a writer with no row, a row whose tool is gone and a row whose results "
+              "directory its tool never names are each a finding; a classified writer is seen",
+              len(bad) == 3 and "scripts/new_gate.sh: writes a trx file and has no row" in findings
+              and "scripts/battery.sh: a TRX_WRITERS row, but no tracked live tool" in findings
+              and "scripts/linux-gate.sh: its row says it writes TestResults/linux-gate/" in findings
+              and len(seen) == 2 and not any("reader.py" in x for x in seen + bad), "\n".join(seen + bad))
+
     # the file: canonical, digested, readable back.
     listing = f"Test run for x.dll\n{LISTED_MARK}\n" + "\n".join("    " + d for d in cheap[:3]) + "\n"
     with tempfile.TemporaryDirectory() as tmp:
@@ -768,7 +923,7 @@ def self_test() -> int:
         lf.write_text(listing, encoding="utf-8", newline="\n")
         check("a --list-tests output reads back as its display names", read_listing(lf) == cheap[:3])
         a = impacted_tests.Analysis(None, "none", impacted_tests.Reach(every_tier1=["no map"]), {})
-        full = build_plan({"Conformance": read_listing(lf)}, a, Timings("none"), set(), None, {})
+        full = build_plan({"Conformance": read_listing(lf)}, a, Timings("none"), {}, None, {})
         out = Path(tmp) / "plan.json"
         digest = write_plan(full, out)
         body = json.loads(out.read_text(encoding="utf-8"))
@@ -790,6 +945,10 @@ def main() -> int:
     ap.add_argument("--map", type=Path, help="an explicit impact map (otherwise the store is searched)")
     ap.add_argument("--store", type=Path, help="the map store (default <git common dir>/cobol-impact)")
     ap.add_argument("--previous-run", type=Path, help="the previous gate's run directory (its trx files)")
+    ap.add_argument("--worktree", type=Path, default=Path(__file__).resolve().parents[1],
+                    help="the worktree whose Linux gate's reds are read too (default: this script's)")
+    ap.add_argument("--audit-trx-writers", action="store_true",
+                    help="hold every live tool that writes a trx file to its TRX_WRITERS row (GateLegDriftTests)")
     ap.add_argument("--traits", action="store_true",
                     help="print every gated assembly's class traits as JSON (HostWitnessTraitDriftTests reads it)")
     ap.add_argument("--self-test", action="store_true")
@@ -801,6 +960,15 @@ def main() -> int:
         pass
     if args.self_test:
         return self_test()
+    if args.audit_trx_writers:
+        seen, bad = audit_trx_writers(args.worktree)
+        print("\n".join(seen))
+        if bad:
+            print("\n".join(bad))
+            print(f"=== TRX WRITER AUDIT: {len(bad)} FINDING(S) ===")
+            return 1
+        print(f"=== TRX WRITER AUDIT: CLEAN ({len(seen)} writers) ===")
+        return 0
     if args.traits:
         repo = Path(__file__).resolve().parents[1]
         print(json.dumps({a: {c: {n: sorted(v) for n, v in sorted(t.items())} for c, t in sorted(tr.items())}
@@ -816,7 +984,7 @@ def main() -> int:
         listings[asm] = read_listing(Path(path))
     impacted_tests.HEAD = impacted_tests.git("rev-parse", args.head) if args.head else None
     analysis = impacted_tests.analyse(args.base, None, args.map, args.store)
-    previous, reds = read_previous_run(args.previous_run) if args.previous_run else (Timings("none"), set())
+    previous, reds = previous_gates(args.worktree, args.previous_run)
     plan = build_plan(listings, analysis, previous, reds, args.base, gated_traits(Path(__file__).resolve().parents[1]))
     digest = write_plan(plan, args.out)
     for line in summary_lines(plan, args.out):

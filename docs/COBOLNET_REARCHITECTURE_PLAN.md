@@ -1892,7 +1892,7 @@ result. Run the long legs ONE AT A TIME.
   driver `scripts/run_gate_legs.py` holds the worktree's gate lock, runs the audits (before it queues, kb/Work
   PB2524), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION, lists every
   discovered case of Conformance, Unit and Characterization and plans them ALL into two legs — the tests the change
-  adds and the previous gate's reds (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
+  adds and the previous gate's reds on either host (0a), the host-only witnesses (0h), the cheap tree-wide sweeps (0c) and the
   cheapest cases the change reaches (the impact map's tiers) first — and runs leg 1 FAIL-FAST (batched gating), then
   checks each assembly's population against `--list-tests` and each leg host's identity record. Under the owner's
   scope `whole` it runs both legs, GREEN only when every leg ran; a red in leg 1 is then `RED/INCOMPLETE` with the
@@ -2137,7 +2137,8 @@ result. Run the long legs ONE AT A TIME.
   while turning the previously bare-literal COBOLNET1560 into a catalogued ERROR, cluster D claimed
   COBOLNET1716/1717/1718 (the USAGE float-format phrases) and COBOLNET1719 (§8.8.1.2 Table 3 adjacency), and
   witness B2 claimed COBOLNET1708/1709/1710 (the declined A.4.14 clauses, APPLY COMMIT, and every declined
-  module's exception-names); the band has holes below its maximum and next free is COBOLNET1728.**
+  module's exception-names; 1709 is retired since kb/Work PB3340 provided the sequential journal); the band has holes
+  below its maximum and next free is COBOLNET1728.**
   ⚠ **The semgrep baseline MOVED DOWN at the cluster-D landing and `kb/Work/PB175` carries the new numbers:
   compare a landing against `cobolnet-no-biginteger` 36 and `cobolnet-raw-diagnostic-code-literal` 439** (was
   475 — three BAND codes, COBOLNET0869/0881/1529, had no catalogue descriptor at all and were emitted from 38
@@ -2181,12 +2182,12 @@ result. Run the long legs ONE AT A TIME.
   witness B2's `Removed(descriptor, message)` were both folded into it at their landings. Its SEVERITY picks
   accept-inert (Warning: MCS 1578, VALIDATE 1580 — Annex A.3 processor-dependent
   elements, whose §4.2.6 licence is accept-and-flag) versus refuse (Error: A.4.2 screen 1560/1707, A.4.8 1705,
-  A.4.13 1706, A.4.14 1708, a SEQUENTIAL file in A.4.3's APPLY COMMIT 1709, the declined EC names 1710 — Annex A.4
+  A.4.13 1706, A.4.14 1708, the declined EC names 1710 — Annex A.4
   optional modules, whose A.4.1
   licence admits the syntax ONLY when support is claimed). **`DiagnosticDescriptor.PermissiveInert` is the ONE
   place the `--permissive` policy lives**, read by the one refuse rule `EditionContext.Refuses` and never tested at
-  an emit site: 1708/1709/1710 downgrade to a warning; 1708 binds inert (its sibling statement is already
-  accept-inert) and a 1709 SEQUENTIAL operand stays outside commit control, and a 1710 exception-name resolves, raised only by a RAISE of it, exactly as written (CONFORMANCE.md
+  an emit site: 1708/1710 downgrade to a warning; 1708 binds inert (its sibling statement is already
+  accept-inert), and a 1710 exception-name resolves, raised only by a RAISE of it, exactly as written (CONFORMANCE.md
   §4 preface); 1560/1705/1706/1707 do not move, because an inert compile would REBIND the source to a
   different construct and change the answer.
   Declines with no bound node go through **one parse-level walk**, `Validation/DeclinedFacilityPass` — a third
@@ -3218,7 +3219,7 @@ already-derivable coverage; none change the pipeline.
   cut point, then `gate_plan.py` (`NameKey`, tiers 0a/0u/1–3, the leg-1 budgets and collection cap). By hand:
   `python scripts/spec/impacted_tests.py --base <cut point> [--plan tiers.json]` prints the tiers (no filter), and
   `python scripts/gate_plan.py --out plan.json --list <Assembly>=<--list-tests output> … [--base <sha>]
-  [--previous-run <dir>]` writes a plan. Only the gate driver hands a test host the leg handshake
+  [--previous-run <dir>] [--worktree <dir>]` writes a plan (its tier-0a reds: both hosts' previous gates). Only the gate driver hands a test host the leg handshake
   (`COBOLNET_GATE_PLAN`, `COBOLNET_GATE_LEG`, `COBOLNET_GATE_PLAN_SHA256` — all three or none; one or two of them, or
   a stale plan, makes every case an execution error, so never export them by hand). Maps are recorded ON DEMAND:
   `python scripts/spec/record_impact_map.py [--commit <sha>]` (inside a gate slot; a detached worktree, a
