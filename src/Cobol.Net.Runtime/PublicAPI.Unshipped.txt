@@ -243,3 +243,8 @@ static CobolNet.Runtime.CobolDec.Negate(CobolNet.Runtime.CobolDec value) -> Cobo
 const CobolNet.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 static CobolNet.Runtime.CobolNum.NestedQuotientScale(int receiverScale, int precision) -> int
 ~override CobolNet.Runtime.CobolDecWithPrecision.Equals(object obj) -> bool
+CobolNet.Runtime.OverlappingMove
+static CobolNet.Runtime.OverlappingMove.AlphanumericToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile to, bool decimalPointIsComma) -> string!
+static CobolNet.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
+static CobolNet.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
+static CobolNet.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!

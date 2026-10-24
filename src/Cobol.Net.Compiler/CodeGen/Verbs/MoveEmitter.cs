@@ -80,11 +80,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ctx.Writer.Line($"if ({len} == 0) {{");
             EmitStore(target, fig, MoveClassifier.Kind(fig, target), MoveSenderOrigin.ZeroLengthItem, senderFirst);
             ctx.Writer.Line("} else {");
-            EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Prefill);
+            EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
             ctx.Writer.Line("}");
             return;
         }
-        EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Prefill);
+        EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
         EmitElementMoves(m, i);
     }
 
@@ -119,12 +119,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// else arm (kb/Work PB896). Every arm is the one it always was; the only change is that the dispatch has a
     /// name and two callers.</summary>
     private void EmitStore(Place target, BoundOperand source, MoveKind kind, MoveSenderOrigin origin, bool senderFirst,
-        OverlapPrefill prefill = default)
+        OverlapStore overlap = default)
     {
-        EmitOverlapPrefill(target, prefill);
-        // An overlapping receiver prepared BEFORE the sender is read (D-OVL1/D-OVL2) keeps that order: the prefill has
-        // already identified it, so the store below renders as it always did (kb/Work PB3261).
-        senderFirst &= prefill.Kind == OverlapPrefillKind.None;
+        // An overlapping MOVE (D-OVL1/D-OVL2): an in-place kind IS the whole store; a prefill is written first.
+        if (EmitOverlapStore(target, source, overlap)) return;
+        // An overlapping receiver prepared BEFORE the sender is read keeps that order: the prefill has already
+        // identified it, so the store below renders as it always did (kb/Work PB3261).
+        senderFirst &= overlap.Kind == OverlapStoreKind.None;
         switch (kind)
         {
             case MoveKind.Group:
@@ -147,32 +148,73 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     }
 
     /// <summary>⛔ ISO §14.6.10 1) / Annex A.2 item 36 — operands that overlap have an UNDEFINED result, so what
-    /// WiseOwl COBOL does is documented (docs/CONFORMANCE.md §3 D-OVL1/D-OVL2, kb/Work PB1907): the receiver is
-    /// prepared BEFORE the sender is read, exactly as GnuCOBOL's <c>libcob</c> does. The decision was made at
-    /// bind time (<see cref="MoveOverlap"/>, carried on <see cref="MoveStore.Prefill"/>) and applies only where
-    /// the overlap is a compile-time fact, so every other MOVE emits nothing here and is unchanged. The store
-    /// that follows reads the sender AFTER this statement, which is the whole of the rule.</summary>
-    private void EmitOverlapPrefill(Place target, OverlapPrefill prefill)
+    /// WiseOwl COBOL does is documented (docs/CONFORMANCE.md §3 D-OVL1/D-OVL2, kb/Work PB1907, PB1910): the receiver
+    /// is written while the sender is still being read, exactly as GnuCOBOL's <c>libcob</c> does. The decision was
+    /// made at bind time (<see cref="MoveOverlap"/>, carried on <see cref="MoveStore.Overlap"/>) and applies only
+    /// where the overlap is a compile-time fact, so every other MOVE emits nothing here and is unchanged.
+    /// <para>Returns true when the kind IS the whole store (the three in-place kinds: the runtime's
+    /// <c>OverlappingMove</c> converts the two storage images laid over each other, and the receiver's image is
+    /// written back); false when it only prepared the receiver (<see cref="OverlapStoreKind.LeadingSpaces"/>, whose
+    /// ordinary store follows and reads the sender AFTER this statement) or did nothing.</para></summary>
+    private bool EmitOverlapStore(Place target, BoundOperand source, OverlapStore overlap)
     {
-        switch (prefill.Kind)
+        switch (overlap.Kind)
         {
-            case OverlapPrefillKind.LeadingSpaces:
+            case OverlapStoreKind.LeadingSpaces:
                 // The leading `Positions` positions only: the sender may overlap the rest, which still holds its
                 // pre-move content when the store reads it.
                 ctx.Writer.Line(PlaceRenderer.Write(target, RuntimeApi.StrWindowInto(
-                    PlaceRenderer.Read(target), "1", $"{prefill.Positions}", CsLiteral(new string(' ', prefill.Positions)))));
-                break;
-            case OverlapPrefillKind.ZeroDigits:
-                // libcob's memset of the receiver to the character '0': every position, the sign position of a SIGN
-                // SEPARATE item included, and no operational sign on the last digit (an overpunch such as '{' would
-                // read as a non-digit when the overlapping sender is parsed). An image-backed receiver takes that
-                // image as it is; a native numeric field has no character image, and its zero is MOVE ZERO.
-                ctx.Writer.Line(target is RedefViewPlace || target.Item.StoreAsImage
-                    ? PlaceRenderer.Write(target, CsLiteral(new string('0', target.Item.ImageWidth)))
-                    : ElementaryStore(target, new BoundFigurative('Z'), MoveSenderOrigin.Written, senderFirst: false));
-                break;
+                    PlaceRenderer.Read(target), "1", $"{overlap.Positions}", CsLiteral(new string(' ', overlap.Positions)))));
+                return false;
+            case OverlapStoreKind.DisplayToDisplay:
+            case OverlapStoreKind.PackedToDisplay:
+            case OverlapStoreKind.AlphanumericToDisplay:
+            case OverlapStoreKind.DisplayToPacked:
+                EmitInPlaceStore(target, ((BoundFieldOperand)source).Place, overlap);
+                return true;
+            default:
+                return false;
         }
     }
+
+    /// <summary>The in-place store of one overlapping MOVE: both operands' STORAGE images are read, laid over each
+    /// other at the static offset <see cref="OverlapStore.ReceiverAt"/> and converted in the library's own order of
+    /// reads and writes (<c>OverlappingMove</c>), and the receiver's image is written back. An image-backed
+    /// receiver takes the image as it is; a NATIVE numeric DISPLAY receiver (the item a reference modification
+    /// moves into itself) decodes it through its own profile.</summary>
+    private void EmitInPlaceStore(Place target, Place from, OverlapStore overlap)
+    {
+        const string Context = "overlapping MOVE operand";
+        string senderImage = StorageImageOf(from, Context);
+        string receiverImage = StorageImageOf(target, Context);
+        string toProfile = target.Item.ProfileName;
+        string stored = overlap.Kind switch
+        {
+            OverlapStoreKind.DisplayToDisplay => RuntimeApi.OverlapDisplayToDisplay(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            OverlapStoreKind.PackedToDisplay => RuntimeApi.OverlapPackedToDisplay(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            OverlapStoreKind.DisplayToPacked => RuntimeApi.OverlapDisplayToPacked(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            _ => RuntimeApi.OverlapAlphanumericToDisplay(
+                // The mode of the unit that DESCRIBES the receiver (§12.3.7.4 GR14 b), never the emitting unit's.
+                senderImage, receiverImage, overlap.ReceiverAt, toProfile, target.Item.Pic!.DecimalPointIsComma),
+        };
+        if (target is RedefViewPlace || target.Item.StoreAsImage)
+        {
+            ctx.Writer.Line(PlaceRenderer.Write(target, stored));
+            return;
+        }
+        var pic = target.Item.Pic!;
+        var value = new NumX(RuntimeApi.NumParseImage(stored, toProfile, sending: false), pic.Scale);
+        ctx.Writer.Line(PlaceRenderer.Write(target,
+            ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(value, pic.Scale, toProfile, CobolRounding.Truncation), target.Item)));
+    }
+
+    /// <summary>The bytes an overlapping operand occupies: a Tier-B view's window is its storage as it stands; every
+    /// other place answers THE ONE raw-storage reader (<see cref="OperandText.AsStorageImage"/>).</summary>
+    private static string StorageImageOf(Place p, string context) =>
+        p is RedefViewPlace { Coding: null } ? PlaceRenderer.Read(p) : OperandText.AsStorageImage(p, context);
 
     /// <summary>Why a FILL is being stored into a numeric receiver — the rule to blame when the receiver has no
     /// character image to hold it (<see cref="FigurativeToNumericImageStore"/>'s narrow loud). Three provenances,
