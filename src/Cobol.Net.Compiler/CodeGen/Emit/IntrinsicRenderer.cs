@@ -1223,7 +1223,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{mode}, {DecArgList(ic)}")),
             "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{mode}, {DecArgList(ic)}")),
             "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{mode}, {DecArgList(ic)}")),
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            // ANNUITY (kb/Work PB637): §15.9.3 r3's "positive integer" is a SIGN rule and says nothing about magnitude,
+            // so argument-2 is a TOTAL argument and takes the wide intake; at a positive rate an enormous n is the
+            // equivalent expression's own size condition, never EC-ARGUMENT-FUNCTION (see CobolIntrinsics.AnnuityDec).
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
             "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{mode}, ", "CobolDec", DecOf)),
             _ => null,
         };
