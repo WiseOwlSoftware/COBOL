@@ -429,10 +429,9 @@ def run_stamp(repo: pathlib.Path, branch: str, coord_override: str | None) -> in
 
 # ── self-test: real repositories and real ranges ─────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     # HERMETIC, like landing_check's: drop git's repository-selection variables so nothing reaches the caller's repo.
-    for name in subprocess.run(["git", "rev-parse", "--local-env-vars"], check=True, capture_output=True,
-                               text=True).stdout.split():
-        os.environ.pop(name, None)
+    isolate()
     root = pathlib.Path(tempfile.mkdtemp(prefix="devlog-self-test-"))
     results: list[tuple[str, bool, str]] = []
 
@@ -466,36 +465,19 @@ def self_test() -> int:
        "a\n## Entry 001 x\n")
 
     # check, against real commits
-    repo = root / "repo"
-    repo.mkdir()
-    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
-               GIT_COMMITTER_EMAIL="t@t")
-
-    def sh(*args: str, cwd: pathlib.Path = repo) -> str:
-        return subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True, text=True,
-                              env=env).stdout.strip()
-
-    def tree(spec: dict[str, str | None], cwd: pathlib.Path = repo) -> None:
-        for rel, text in spec.items():
-            p = cwd / rel
-            if text is None:
-                p.unlink()
-            else:
-                p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_bytes(text.encode("utf-8"))
-
-    sh("init", "-q", "-b", "main")
-    tree({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"),
-          f"{DIR}/0010-oldest.md": e("10", "oldest"), "code.py": "x = 1\n"})
-    sh("add", "-A")
-    sh("commit", "-qm", "base")
-    base = sh("rev-parse", "HEAD")
+    scratch = ScratchRepo.init(root / "repo")
+    repo = scratch.path
+    scratch.write({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"),
+                   f"{DIR}/0010-oldest.md": e("10", "oldest"), "code.py": "x = 1\n"})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "base")
+    base = scratch.git("rev-parse", "HEAD")
 
     def landing(label: str, spec: dict[str, str | None], want: int, needle: str = "") -> None:
-        sh("checkout", "-q", "-B", "landing", base)
-        tree(spec)
-        sh("add", "-A")
-        sh("commit", "-qm", "WIP checkpoint: x", "--allow-empty")
+        scratch.git("checkout", "-q", "-B", "landing", base)
+        scratch.write(spec)
+        scratch.git("add", "-A")
+        scratch.git("commit", "-qm", "WIP checkpoint: x", "--allow-empty")
         b, _ = commit_files(repo, base)
         r, mono = commit_files(repo, "HEAD")
         reasons, _ = check(b, monolith_headers(repo, base), r, mono)
@@ -520,18 +502,18 @@ def self_test() -> int:
     landing("editing an old entry's body, with the new entry -> PASS",
             {**new12, f"{DIR}/0010-oldest.md": e("10", "oldest", "body, corrected\n\n")}, 0)
     # the migrating landing: the base has only the monolith; its headers are history, one new entry is new
-    sh("checkout", "-q", "--orphan", "mono")
-    sh("rm", "-rq", "--cached", ".")
+    scratch.git("checkout", "-q", "--orphan", "mono")
+    scratch.git("rm", "-rq", "--cached", ".")
     shutil.rmtree(repo / DIR)
-    tree({MONOLITH: "# Log\n" + e("11", "older") + e("10", "oldest"), "code.py": "x = 1\n"})
-    sh("add", "-A")
-    sh("commit", "-qm", "monolith")
-    mono_base = sh("rev-parse", "HEAD")
-    sh("rm", "-q", MONOLITH)
-    tree({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"), f"{DIR}/0010-oldest.md": e("10", "oldest"),
-          **new12})
-    sh("add", "-A")
-    sh("commit", "-qm", "migrate")
+    scratch.write({MONOLITH: "# Log\n" + e("11", "older") + e("10", "oldest"), "code.py": "x = 1\n"})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "monolith")
+    mono_base = scratch.git("rev-parse", "HEAD")
+    scratch.git("rm", "-q", MONOLITH)
+    scratch.write({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"),
+                   f"{DIR}/0010-oldest.md": e("10", "oldest"), **new12})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "migrate")
     b, _ = commit_files(repo, mono_base)
     r, mono = commit_files(repo, "HEAD")
     reasons, new = check(b, monolith_headers(repo, mono_base), r, mono)
@@ -541,23 +523,23 @@ def self_test() -> int:
     ok("landing_entries on the migrating landing: every history file is added, ONE entry is new (the pull request's "
        "title reads it; kb/Work PB3023 review R1-3)",
        landed == ["0012-the-landing.md"] and len([n for n in files_at if key_of(n)]) == 3, landed)
-    sh("checkout", "-q", "mono")
-    tree({f"{DIR}/0011-older.md": e("11", "older, retitled")})
-    sh("commit", "-qam", "retitle")
+    scratch.git("checkout", "-q", "mono")
+    scratch.write({f"{DIR}/0011-older.md": e("11", "older, retitled")})
+    scratch.git("commit", "-qam", "retitle")
     reasons, _ = check(b, monolith_headers(repo, mono_base), commit_files(repo, "HEAD")[0], False)
     ok("the migrating landing with a header changed in the split -> REFUSED (two new)", any("exactly one" in x for x in
                                                                                              reasons), reasons)
     # review R1-1: main's monolith gained an entry after the branch split it; a landing that keeps the deletion instead
     # of re-running the migration carries its own new entry above main's newest, and must still be refused.
-    sh("checkout", "-q", "-B", "mono-newer", mono_base)
-    tree({MONOLITH: "# Log\n" + e("12", "main's newer") + e("11", "older") + e("10", "oldest")})
-    sh("commit", "-qam", "main gains an entry")
-    newer_base = sh("rev-parse", "HEAD")
-    sh("rm", "-q", MONOLITH)
-    tree({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"), f"{DIR}/0010-oldest.md": e("10", "oldest"),
-          f"{DIR}/0013-the-landing.md": e("13", "the landing")})
-    sh("add", "-A")
-    sh("commit", "-qm", "a stale split")
+    scratch.git("checkout", "-q", "-B", "mono-newer", mono_base)
+    scratch.write({MONOLITH: "# Log\n" + e("12", "main's newer") + e("11", "older") + e("10", "oldest")})
+    scratch.git("commit", "-qam", "main gains an entry")
+    newer_base = scratch.git("rev-parse", "HEAD")
+    scratch.git("rm", "-q", MONOLITH)
+    scratch.write({f"{DIR}/{README}": "# Log\n", f"{DIR}/0011-older.md": e("11", "older"),
+                   f"{DIR}/0010-oldest.md": e("10", "oldest"), f"{DIR}/0013-the-landing.md": e("13", "the landing")})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "a stale split")
     reasons, new = check(commit_files(repo, newer_base)[0], monolith_headers(repo, newer_base),
                          *commit_files(repo, "HEAD"))
     ok("the migrating landing that drops an entry of the base's monolith -> REFUSED (deletes), though its one new "
@@ -580,19 +562,19 @@ def self_test() -> int:
     # group's base, the group's head). Two branches stamped from one main (12, then 13) must pass in BOTH orders; until
     # PB3123 the order 13-then-12 refused the 12 as "not above the base's newest entry 13" (runs 38355538654,
     # 38360587401). The trees are built as the queue builds them: a merge commit of each branch onto the group ahead.
-    sh("checkout", "-q", "main")
+    scratch.git("checkout", "-q", "main")
 
     def stamped_branch(name: str, at: str, edits: dict[str, str | None]) -> str:
-        sh("checkout", "-q", "-B", name, at)
-        tree(edits)
-        sh("add", "-A")
-        sh("commit", "-qm", f"WIP checkpoint: {name} and its stamped entry")
-        return sh("rev-parse", "HEAD")
+        scratch.git("checkout", "-q", "-B", name, at)
+        scratch.write(edits)
+        scratch.git("add", "-A")
+        scratch.git("commit", "-qm", f"WIP checkpoint: {name} and its stamped entry")
+        return scratch.git("rev-parse", "HEAD")
 
     def group(name: str, onto: str, branch: str) -> str:
-        sh("checkout", "-q", "-B", name, onto)
-        sh("merge", "-q", "--no-ff", "-m", f"Merge {branch} (the merge queue's group)", branch)
-        return sh("rev-parse", "HEAD")
+        scratch.git("checkout", "-q", "-B", name, onto)
+        scratch.git("merge", "-q", "--no-ff", "-m", f"Merge {branch} (the merge queue's group)", branch)
+        return scratch.git("rev-parse", "HEAD")
 
     def range_verdict(label: str, lo: str, hi: str, want: int, needle: str = "") -> None:
         reasons, _, _ = range_check(repo, lo, hi)
@@ -622,40 +604,41 @@ def self_test() -> int:
                   "tree it was stamped on")
 
     # stamp: a branch in a linked worktree; the number comes from the allocator; one commit
-    sh("checkout", "-q", "main")
+    scratch.git("checkout", "-q", "main")
     wt = root / "wt"
-    sh("worktree", "add", "-q", "-b", "impl", str(wt), base)
-    tree({f"{DIR}/pending-my-fix.md": "## PB9: the fix — and why\n\nThe body.\n"}, cwd=wt)
-    sh("add", "-A", cwd=wt)
-    sh("commit", "-qm", "WIP checkpoint: the fix and its entry", cwd=wt)
+    scratch.git("worktree", "add", "-q", "-b", "impl", str(wt), base)
+    scratch.write({f"{DIR}/pending-my-fix.md": "## PB9: the fix — and why\n\nThe body.\n"}, cwd=wt)
+    scratch.git("add", "-A", cwd=wt)
+    scratch.git("commit", "-qm", "WIP checkpoint: the fix and its entry", cwd=wt)
     cdir = root / "coord"
     cdir.mkdir()
     out = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve()), "stamp", "impl", "--repo", str(repo),
-                          "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8", env=env)
+                          "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8")
     names = sorted(p.name for p in (wt / DIR).iterdir())
     head = first_line((wt / DIR / "0012-pb9-the-fix-and-why.md").read_text(encoding="utf-8")) if \
         (wt / DIR / "0012-pb9-the-fix-and-why.md").exists() else ""
     ok("stamp: the pending entry becomes 0012-<slug>.md with a stamped header, in one commit",
        out.returncode == 0 and "0012-pb9-the-fix-and-why.md" in names and not any(n.startswith("pending-") for n in names)
        and STAMPED.match(head) and head.endswith("PB9: the fix — and why")
-       and sh("log", "-1", "--format=%s", cwd=wt).startswith("DEVLOG 12:") and not sh("status", "--porcelain", cwd=wt),
+       and scratch.git("log", "-1", "--format=%s", cwd=wt).startswith("DEVLOG 12:")
+       and not scratch.git("status", "--porcelain", cwd=wt),
        out.stdout + out.stderr + repr(names) + head)
     ok("stamp: the stamped branch passes check", not check(commit_files(repo, base)[0], [],
                                                            *commit_files(repo, "impl"))[0])
     ok("stamp: the allocator recorded the number (the next stamp takes 13)",
        json.loads((cdir / "alloc.json").read_text(encoding="utf-8")).get("devlog") == 12)
     again = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve()), "stamp", "impl", "--repo", str(repo),
-                            "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8", env=env)
+                            "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8")
     ok("stamp: a branch with no pending entry is refused, nothing allocated", again.returncode != 0 and
        json.loads((cdir / "alloc.json").read_text(encoding="utf-8")).get("devlog") == 12, again.stdout + again.stderr)
     # OVERTAKEN, KEPT (kb/Work PB3123): another landing, stamped 13 after `impl` took 12, reached main first (the queue
     # ordered it ahead, or `impl` bounced); main is merged in and `impl` keeps its 12, which still passes the landing
     # rule: it is above every entry of the tree it was stamped on, and no other file holds it.
-    sh("checkout", "-q", "main")
-    tree({f"{DIR}/0013-a-later-stamp.md": e("13", "a later stamp")})
-    sh("add", "-A")
-    sh("commit", "-qm", "a later-stamped landing reaches main first")
-    sh("merge", "-q", "--no-edit", "main", cwd=wt)
+    scratch.git("checkout", "-q", "main")
+    scratch.write({f"{DIR}/0013-a-later-stamp.md": e("13", "a later stamp")})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "a later-stamped landing reaches main first")
+    scratch.git("merge", "-q", "--no-edit", "main", cwd=wt)
     kept, _, _ = range_check(repo, "main", "impl")
     names = sorted(p.name for p in (wt / DIR).iterdir())
     ok("an entry a later-stamped landing overtook on main keeps its number and passes check",
@@ -663,23 +646,22 @@ def self_test() -> int:
     ok("next: the highest number in the tree", highest(names_in(wt)) == 13)
     # FOLD (kb/Work PB3023 review R1-3): a successor that merged an unlanded predecessor carries both pending entries
     # and lands both (the predecessor lands THROUGH it): ONE entry, the predecessor's first, each body kept
-    sh("checkout", "-q", "main")
+    scratch.git("checkout", "-q", "main")
     pred = root / "pred"
-    sh("worktree", "add", "-q", "-b", "pred", str(pred), "main")
-    tree({f"{DIR}/pending-pb1-pred.md": "## PB1: the predecessor\n\nThe predecessor's body.\n"}, cwd=pred)
-    sh("add", "-A", cwd=pred)
-    env["GIT_COMMITTER_DATE"] = "2026-10-11T10:00:00"     # the predecessor's entry is the older one
-    sh("commit", "-qm", "WIP checkpoint: the predecessor", cwd=pred)
-    env["GIT_COMMITTER_DATE"] = "2026-10-11T11:00:00"
+    scratch.git("worktree", "add", "-q", "-b", "pred", str(pred), "main")
+    scratch.write({f"{DIR}/pending-pb1-pred.md": "## PB1: the predecessor\n\nThe predecessor's body.\n"}, cwd=pred)
+    scratch.git("add", "-A", cwd=pred)
+    scratch.git("commit", "-qm", "WIP checkpoint: the predecessor", cwd=pred,   # the predecessor's entry is the older one
+                env={"GIT_COMMITTER_DATE": "2026-10-11T10:00:00"})
     succ = root / "succ"
-    sh("worktree", "add", "-q", "-b", "succ", str(succ), "main")
-    tree({f"{DIR}/pending-a-succ.md": "## PB2: the successor\n\nThe successor's body.\n"}, cwd=succ)
-    sh("add", "-A", cwd=succ)
-    sh("commit", "-qm", "WIP checkpoint: the successor", cwd=succ)
-    del env["GIT_COMMITTER_DATE"]
-    sh("merge", "-q", "--no-edit", "pred", cwd=succ)
+    scratch.git("worktree", "add", "-q", "-b", "succ", str(succ), "main")
+    scratch.write({f"{DIR}/pending-a-succ.md": "## PB2: the successor\n\nThe successor's body.\n"}, cwd=succ)
+    scratch.git("add", "-A", cwd=succ)
+    scratch.git("commit", "-qm", "WIP checkpoint: the successor", cwd=succ,
+                env={"GIT_COMMITTER_DATE": "2026-10-11T11:00:00"})
+    scratch.git("merge", "-q", "--no-edit", "pred", cwd=succ)
     fold = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve()), "stamp", "succ", "--repo", str(repo),
-                           "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8", env=env)
+                           "--coord", str(cdir)], capture_output=True, text=True, encoding="utf-8")
     names = sorted(p.name for p in (succ / DIR).iterdir())
     folded = [n for n in names if n.startswith("0014-")]
     text = (succ / DIR / folded[0]).read_text(encoding="utf-8") if folded else ""
@@ -689,7 +671,7 @@ def self_test() -> int:
        and first_line(text).endswith("PB1: the predecessor; PB2: the successor")
        and text.index("### PB1: the predecessor") < text.index("### PB2: the successor")
        and "The predecessor's body." in text and "The successor's body." in text
-       and not any(n.startswith("pending-") for n in names) and not sh("status", "--porcelain", cwd=succ)
+       and not any(n.startswith("pending-") for n in names) and not scratch.git("status", "--porcelain", cwd=succ)
        and not check(commit_files(repo, "main")[0], set(), *commit_files(repo, "succ"))[0],
        fold.stdout + fold.stderr + repr(names))
     ok("zone: a spelled-out zone name is abbreviated as date +%Z prints it",
@@ -699,8 +681,8 @@ def self_test() -> int:
     # The PB2605 repro, kept from landing_devlog.py: the rule is the LANDING's, so a commit in a WORKTREE with nothing
     # but code staged (an implementer's WIP checkpoint) draws no DEVLOG ask or deny from ANY PreToolUse hook this
     # repository registers, in either shell and either shape (`cd <wt> && git commit`, `git -C <wt> commit`).
-    tree({"code.py": "x = 9\n"}, cwd=wt)
-    sh("add", "code.py", cwd=wt)
+    scratch.write({"code.py": "x = 9\n"}, cwd=wt)
+    scratch.git("add", "code.py", cwd=wt)
     settings = json.loads((REPO / ".claude" / "settings.json").read_text(encoding="utf-8"))
     hooks = [(m.get("matcher", ""), h["command"]) for m in settings["hooks"].get("PreToolUse", []) for h in m["hooks"]]
     script = re.compile(r'"\$CLAUDE_PROJECT_DIR/([^"]+)"')
@@ -722,7 +704,7 @@ def self_test() -> int:
                                       env=dict(os.environ, CLAUDE_PROJECT_DIR=str(REPO))).stdout
             if "DEVLOG" in hook_out:
                 asked.append(f"{m.group(1)} on `{command}`")
-    staged = sh("diff", "--cached", "--name-only", cwd=wt).split()
+    staged = scratch.git("diff", "--cached", "--name-only", cwd=wt).split()
     ok("the PB2605 repro: a worktree WIP commit without a DEVLOG entry draws no DEVLOG ask from any hook",
        staged == ["code.py"] and not asked and not missing and ran >= 3,
        f"staged={staged}; asked by: {asked}; hooks run: {ran}; registered but missing: {sorted(missing)}")
@@ -732,7 +714,7 @@ def self_test() -> int:
     own = lint(own_files, (REPO / MONOLITH).exists())
     ok(f"this repository's {DIR}/ passes lint ({len(entries(own_files))} entries)", not own, "; ".join(own[:5]))
 
-    sh("worktree", "remove", "--force", str(wt))
+    scratch.git("worktree", "remove", "--force", str(wt))
     shutil.rmtree(root, ignore_errors=True)
     bad = [r for r in results if not r[1]]
     for label, good, got in results:

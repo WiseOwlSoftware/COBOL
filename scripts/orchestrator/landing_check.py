@@ -69,7 +69,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import pathlib
 import re
 import subprocess
@@ -337,36 +336,32 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
 
 # ── self-test: plants an out-of-set edit and a two-branch overlap in a scratch repository ───────────────────────
 def self_test() -> int:
+    sys.path.insert(0, str(HERE.parent))
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    isolate()   # the subject's own git (check's port) runs in this process: never on the caller's repository
     root = pathlib.Path(tempfile.mkdtemp(prefix="landing-check-"))
-    repo, cdir = root / "repo", root / "coord"
-    repo.mkdir()
+    scratch = ScratchRepo.init(root / "repo")
+    repo, cdir = scratch.path, root / "coord"
     cdir.mkdir()
     git = _git(repo)
-    def sh(*args: str, when: int | None = None) -> None:
-        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
-                   GIT_COMMITTER_EMAIL="t@t", **({"GIT_COMMITTER_DATE": f"@{when} +0000",
-                                                   "GIT_AUTHOR_DATE": f"@{when} +0000"} if when else {}))
-        subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, env=env)
 
     def write(rel: str, text: str) -> None:
-        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
-        (repo / rel).write_text(text, encoding="utf-8", newline="\n")
+        scratch.write({rel: text})
 
-    sh("init", "-q", "-b", "main")
     for f in ("src/A.cs", "src/B.cs", "src/C.cs", "docs/D.md"):
         write(f, "// base\n")
     write("kb/Work/PB9002.md", "---\nid: PB9002\nstatus: open\n---\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "base", when=1_000_000)
-    sh("update-ref", "refs/remotes/origin/main", "HEAD")
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "base", when=1_000_000)
+    scratch.git("update-ref", "refs/remotes/origin/main", "HEAD")
 
     def branch(name: str, msg: str, edits: dict[str, str], when: int) -> None:
-        sh("checkout", "-q", "-b", name, "origin/main")
+        scratch.git("checkout", "-q", "-b", name, "origin/main")
         for f, t in edits.items():
             write(f, t)
-        sh("add", "-A")
-        sh("commit", "-qm", msg, when=when)
-        sh("checkout", "-q", "main")
+        scratch.git("add", "-A")
+        scratch.git("commit", "-qm", msg, when=when)
+        scratch.git("checkout", "-q", "main")
 
     items = [{"id": "PB9001", "status": "open", "cluster": ["PB2119"]},
              {"id": "PB9002", "status": "open", "cluster": ["PB2119"]},
@@ -388,13 +383,13 @@ def self_test() -> int:
                                                "docs/D.md": "doc\n"}, 1_000_200)
     expect("an R3 landing inside its declared set (a new file and a doc edit) lands",
            check(repo, "origin/main", "r-ok", cdir, items, rules, never, git), 0, 0)
-    sh("branch", "-D", "r-ok")
+    scratch.git("branch", "-D", "r-ok")
     # PLANT 1: an out-of-set edit (src/B.cs existed on main and is not declared)
     branch("r-out", "PB9001: extract, one file too many", {"src/A.cs": "// moved\n", "src/B.cs": "// caller\n"},
            1_000_200)
     expect("PLANT 1: an R3 landing that edits a file outside its declared set STOPS",
            check(repo, "origin/main", "r-out", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "r-out")
+    scratch.git("branch", "-D", "r-out")
     # PLANT 2: a two-branch overlap — R3 work (dispatched at 1_000_100) and a fix-lane branch (first commit later)
     branch("r-one", "PB9001: extract", {"src/A.cs": "// moved\n"}, 1_000_200)
     branch("f-two", "PB9100: fix", {"src/A.cs": "// fixed\n"}, 1_000_500)
@@ -405,16 +400,16 @@ def self_test() -> int:
            check(repo, "origin/main", "r-one", cdir, items, rules, never, git), 0, 1)
     # a branch whose commits the landing contains IS the landing: a train built on the R3 branch r-one names only
     #   f-two (dispatched later) as a branch to rebase, never r-one itself
-    sh("checkout", "-q", "-b", "train", "r-one")
+    scratch.git("checkout", "-q", "-b", "train", "r-one")
     write("src/F.cs", "// a fix-lane file the train adds\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "PB9101: fix in the train", when=1_000_700)
-    sh("checkout", "-q", "main")
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "PB9101: fix in the train", when=1_000_700)
+    scratch.git("checkout", "-q", "main")
     expect("a branch whose commits the landing contains is not in flight against it",
            check(repo, "origin/main", "train", cdir, items, rules, never, git), 0, 1)
-    sh("branch", "-D", "train")
+    scratch.git("branch", "-D", "train")
     # fix lane against fix lane: a train merges them (no R3 work on either side)
-    sh("branch", "-D", "r-one")
+    scratch.git("branch", "-D", "r-one")
     items[0]["status"] = "landed"   # r-one landed: its dispatch entry is no longer in flight
     branch("f-three", "PB9101: fix", {"src/A.cs": "// fixed too\n"}, 1_000_600)
     expect("fix-lane branches sharing a file with no R3 work in flight pass",
@@ -424,7 +419,7 @@ def self_test() -> int:
     branch("design", "WIP checkpoint: re-plan PB9001 and PB9002", {"src/B.cs": "// tooling\n"}, 1_000_750)
     expect("a commit that only mentions an R3 note is not R3 work",
            check(repo, "origin/main", "design", cdir, items, rules, never, git), 0, 0)
-    sh("branch", "-D", "design")
+    scratch.git("branch", "-D", "design")
     # a hand wave whose subject names no note but which flips its note's status IS R3 work (the status flip)
     branch("r-hand", "Hand wave: extract", {"src/B.cs": "// hand\n",
                                              "kb/Work/PB9002.md": "---\nid: PB9002\nstatus: landed\n---\n"}, 1_000_800)
@@ -434,7 +429,7 @@ def self_test() -> int:
     expect("... and inside it: lands",
            check(repo, "origin/main", "r-hand", cdir, items, rules, lambda ids: {"src/B.cs"}, git), 0, 0)
     for b in ("f-two", "f-three", "r-hand"):
-        sh("branch", "-D", b)
+        scratch.git("branch", "-D", b)
 
     # ── Draft 10: the ninth refuter's K1 (renames), K2 (identity), K3 (a landing's own members), N2, N5 ──
     items[0]["status"] = "open"
@@ -442,39 +437,33 @@ def self_test() -> int:
         coord.write_json(cdir / plan_wave.DISPATCH_LEDGER, {"groups": list(groups)})
 
     def moved(name: str, msg: str, old: str, new: str, when: int) -> None:
-        sh("checkout", "-q", "-b", name, "origin/main")
-        sh("mv", old, new)
-        sh("commit", "-qm", msg, when=when)
-        sh("checkout", "-q", "main")
+        scratch.git("checkout", "-q", "-b", name, "origin/main")
+        scratch.git("mv", old, new)
+        scratch.git("commit", "-qm", msg, when=when)
+        scratch.git("checkout", "-q", "main")
 
     def worktree(name: str, msg: str, edits: dict[str, str], when: int) -> pathlib.Path:
-        wt = root / name
-        sh("worktree", "add", "-q", "-b", name, str(wt), "origin/main")
-        for f, t in edits.items():
-            (wt / f).write_text(t, encoding="utf-8", newline="\n")
-        subprocess.run(["git", "-C", str(wt), "add", "-A"], check=True, capture_output=True)
-        env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
-                   GIT_COMMITTER_EMAIL="t@t", GIT_COMMITTER_DATE=f"@{when} +0000", GIT_AUTHOR_DATE=f"@{when} +0000")
-        subprocess.run(["git", "-C", str(wt), "commit", "-qm", msg], check=True, capture_output=True, env=env)
-        return wt
+        wt = scratch.worktree(root / name, branch=name, start="origin/main")
+        wt.commit(msg, edits, when=when)
+        return wt.path
 
     def drop(name: str) -> None:
-        sh("worktree", "remove", "--force", str(root / name))
-        sh("branch", "-D", name)
+        scratch.git("worktree", "remove", "--force", str(root / name))
+        scratch.git("branch", "-D", name)
 
     a_set = {"wave": "2", "letter": "a", "notes": ["PB9001"], "files": ["src/A.cs"], "at": 1_000_100}
     ledger(a_set)
     moved("r-mv", "PB9001: move", "src/B.cs", "src/Moved.cs", 1_000_200)
     expect("K1a: an R3 `git mv` of a file outside its declared set STOPS (the OLD path counts)",
            check(repo, "origin/main", "r-mv", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "r-mv")
+    scratch.git("branch", "-D", "r-mv")
     ledger()
     moved("r-mv2", "PB9001: move", "src/A.cs", "src/A2.cs", 1_000_200)
     branch("f-mv", "PB9100: fix", {"src/A.cs": "// fixed\n"}, 1_000_500)
     expect("K1b: a fix-lane edit to a path an in-flight R3 branch RENAMED STOPS (only the rename shares it)",
            check(repo, "origin/main", "f-mv", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "r-mv2")
-    sh("branch", "-D", "f-mv")
+    scratch.git("branch", "-D", "r-mv2")
+    scratch.git("branch", "-D", "f-mv")
 
     ledger(a_set)
     worktree("wt-wip", "WIP checkpoint: extract", {"src/A.cs": "// moved\n", "src/B.cs": "// caller\n"}, 1_000_200)
@@ -482,7 +471,7 @@ def self_test() -> int:
     expect("K2: an R3 worktree whose commits are all `WIP checkpoint:` is R3 work by its dispatch entry: a later "
            "fix-lane edit to a file it changed OUTSIDE its declared set STOPS",
            check(repo, "origin/main", "f-b", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "f-b")
+    scratch.git("branch", "-D", "f-b")
     drop("wt-wip")
 
     worktree("wt-impl", "WIP checkpoint: extract", {"src/A.cs": "// moved\n"}, 1_000_200)
@@ -492,38 +481,38 @@ def self_test() -> int:
     ledger()
     expect("K3a': ... and so does the same train with the dispatch unrecorded (its content is the landing's)",
            check(repo, "origin/main", "r-train", cdir, items, rules, lambda ids: {"src/A.cs"}, git), 0, 0)
-    sh("branch", "-D", "r-train")
+    scratch.git("branch", "-D", "r-train")
     branch("r-train2", "PB9001: extract", {"src/A.cs": "// moved, conflict resolved\n"}, 1_000_900)
     got = check(repo, "origin/main", "r-train2", cdir, items, rules, lambda ids: {"src/A.cs"}, git)
     expect("K3b: an earlier worktree bound to no dispatch, whose content the landing changed, STOPS", got, 1, 0)
     expect("K3b': ... and the stop says how to bind it", ([s for s in got[0] if "merge it into this branch" in s], []),
            1, 0)
-    sh("checkout", "-q", "-b", "r-train3", "wt-impl")   # the landing MERGED its implementer's branch (a successor)
+    scratch.git("checkout", "-q", "-b", "r-train3", "wt-impl")   # the landing MERGED its implementer's branch (a successor)
     write("src/A.cs", "// moved, conflict resolved\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "PB9001: extract, resolved", when=1_000_900)
-    sh("checkout", "-q", "main")
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "PB9001: extract, resolved", when=1_000_900)
+    scratch.git("checkout", "-q", "main")
     expect("K3c: an implementer branch the landing contains is the landing's own: lands",
            check(repo, "origin/main", "r-train3", cdir, items, rules, lambda ids: {"src/A.cs"}, git), 0, 0)
     worktree("wt-other", "WIP checkpoint: another", {"src/A.cs": "// someone else\n"}, 1_000_150)
     expect("K3d: ... and another earlier worktree on the same file still STOPS it",
            check(repo, "origin/main", "r-train3", cdir, items, rules, lambda ids: {"src/A.cs"}, git), 1, 0)
     drop("wt-other")
-    sh("branch", "-D", "r-train2")
+    scratch.git("branch", "-D", "r-train2")
     # kb/Work PB3381 section H: a successor that merged an OLDER head of the landing branch descends from it and lands
     # on top of it, so it never blocks it (wave 1118: -326-13 held PB3333's 3dadec3a3 and stopped PB3333's reviewed
     # -326-20 three times); an empty worktree (no commit beyond main, a merge in progress) blocks nothing; an
     # independent earlier dispatch on the same file (K3d above) still stops it.
-    sh("checkout", "-q", "-b", "succ-old", "wt-impl")   # merged the landing's OLDER head (wt-impl), then its own edit
+    scratch.git("checkout", "-q", "-b", "succ-old", "wt-impl")   # merged the landing's OLDER head (wt-impl), then its own edit
     write("src/A.cs", "// the successor's own edit on the shared file\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "WIP checkpoint: the successor", when=1_000_950)
-    sh("checkout", "-q", "main")
-    sh("checkout", "-q", "-b", "pred-new", "wt-impl")   # the landing: the predecessor's newer, reviewed head
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "WIP checkpoint: the successor", when=1_000_950)
+    scratch.git("checkout", "-q", "main")
+    scratch.git("checkout", "-q", "-b", "pred-new", "wt-impl")   # the landing: the predecessor's newer, reviewed head
     write("src/A.cs", "// the predecessor's review fix\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "PB9001: the review fix", when=1_000_960)
-    sh("checkout", "-q", "main")
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "PB9001: the review fix", when=1_000_960)
+    scratch.git("checkout", "-q", "main")
     # the successor's group was planned with the wave, before any commit of the landing: by dispatch time it is the
     # EARLIER one, which is what stopped the predecessor before section H
     ledger({"wave": "4", "letter": "b", "notes": ["PB9100"], "files": ["src/A.cs"], "at": 1_000_100})
@@ -536,7 +525,7 @@ def self_test() -> int:
            check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
                  reports=h_reports), 0, 0)
     empty = root / "wt-empty"
-    sh("worktree", "add", "-q", "-b", "wt-empty", str(empty), "origin/main")
+    scratch.git("worktree", "add", "-q", "-b", "wt-empty", str(empty), "origin/main")
     (empty / "src" / "A.cs").write_text("// a merge in progress, nothing committed\n", encoding="utf-8", newline="\n")
     expect("H2: a worktree with no commit beyond main (its edits uncommitted) blocks nothing",
            check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
@@ -549,9 +538,9 @@ def self_test() -> int:
     drop("wt-indep")
     ledger()
     for b in ("succ-old", "pred-new"):
-        sh("branch", "-D", b)
+        scratch.git("branch", "-D", b)
     drop("wt-impl")
-    sh("branch", "-D", "r-train3")
+    scratch.git("branch", "-D", "r-train3")
 
     # ── PB3186: a worktree is bound to ONE dispatch (its report, its commit subjects, else the one ledger group that
     #    best covers its diff), never the union of every group its diff meets; a retired hand entry is no dispatch ──
@@ -578,12 +567,12 @@ def self_test() -> int:
            check(repo, "origin/main", "f-d", cdir, items, rules, never, git,
                  reports=plan_wave.load_reports(rdir)), 0, 0)
     drop("wt-rep")
-    sh("branch", "-D", "f-d")
+    scratch.git("branch", "-D", "f-d")
     ledger({"wave": "hand", "letter": "", "hand": True, "notes": ["PB9001"], "files": ["src/C.cs"], "at": 1_000_000},
            {"wave": "x", "letter": "a", "notes": ["PB9002"], "files": ["src/C.cs"], "at": 1_000_000})
     expect("PB3186d: a retired hand entry and a non-numeric wave are no dispatch: a fix-lane landing on their files passes",
            check(repo, "origin/main", "f-land", cdir, items, rules, never, git), 0, 0)
-    sh("branch", "-D", "f-land")
+    scratch.git("branch", "-D", "f-land")
 
     ledger(dict(a_set, files=["src/A.cs", "src/C.cs"]))
     worktree("wt-start", "WIP checkpoint: part 1", {"src/A.cs": "// moved\n"}, 1_000_200)
@@ -595,18 +584,18 @@ def self_test() -> int:
            "its branch, so its untouched declared files are free",
            check(repo, "origin/main", "f-c", cdir, items, rules, never, git,
                  reports=plan_wave.load_reports(rdir)), 0, 0)
-    sh("branch", "-D", "f-c")
+    scratch.git("branch", "-D", "f-c")
     drop("wt-start")
 
     # ── PB2703: a MIXED train (one commit per cluster: R3 and fix lane) is attributed per commit ──
     def commits(name: str, *steps: tuple[str, dict[str, str], int]) -> None:
-        sh("checkout", "-q", "-b", name, "origin/main")
+        scratch.git("checkout", "-q", "-b", name, "origin/main")
         for msg, edits, when in steps:
             for f, t in edits.items():
                 write(f, t)
-            sh("add", "-A")
-            sh("commit", "-qm", msg, when=when)
-        sh("checkout", "-q", "main")
+            scratch.git("add", "-A")
+            scratch.git("commit", "-qm", msg, when=when)
+        scratch.git("checkout", "-q", "main")
 
     ledger(a_set, {"wave": "2", "letter": "b", "notes": ["PB9002"], "files": ["src/C.cs"], "at": 1_000_300})
     commits("mixed", ("PB9001: extract in set", {"src/A.cs": "// moved\n"}, 1_000_200),
@@ -616,23 +605,23 @@ def self_test() -> int:
     branch("f-early", "PB9101: earlier fix", {"src/B.cs": "// earlier fix\n"}, 1_000_050)
     expect("PB2703b: ... its fix-lane file shared with an EARLIER in-flight fix-lane branch lands",
            check(repo, "origin/main", "mixed", cdir, items, rules, never, git), 0, 0)
-    sh("branch", "-D", "f-early")
+    scratch.git("branch", "-D", "f-early")
     branch("f-early2", "PB9101: earlier fix", {"src/A.cs": "// earlier fix\n"}, 1_000_050)
     expect("PB2703b': ... while its R3 commit's file shared with an EARLIER in-flight branch STOPS",
            check(repo, "origin/main", "mixed", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "f-early2")
-    sh("branch", "-D", "mixed")
+    scratch.git("branch", "-D", "f-early2")
+    scratch.git("branch", "-D", "mixed")
     flipped = [dict(i, status="landed") if i["id"] == "PB9002" else i for i in items]   # as the landing's tree reads
     commits("r-self", ("PB9002: delete, and land the note", {"src/C.cs": "// deleted\n", "kb/Work/PB9002.md":
                                                              "---\nid: PB9002\nstatus: landed\n---\n"}, 1_000_400))
     expect("PB2703c: R3 work that flips its own note to landed keeps its (now terminal) ledger declaration: lands",
            check(repo, "origin/main", "r-self", cdir, flipped, rules, never, git), 0, 0)
-    sh("branch", "-D", "r-self")
+    scratch.git("branch", "-D", "r-self")
     commits("squashed", ("PB9001+PB9100: both kinds in one", {"src/A.cs": "// moved\n", "src/B.cs": "// fix\n"},
                          1_000_200))
     expect("PB2703d: ONE commit naming an R3 id and a fix-lane id is R3 whole: its file outside the set STOPS",
            check(repo, "origin/main", "squashed", cdir, items, rules, never, git), 1, 0)
-    sh("branch", "-D", "squashed")
+    scratch.git("branch", "-D", "squashed")
     ledger()
 
     # ── PB3263: the 2026-10-18 15:28 shape. A recorded group (PB3334's engine, here PB9200) whose commits ALSO close two
@@ -650,7 +639,7 @@ def self_test() -> int:
     got = check(repo, "origin/main", "eng", cdir, items_e, rules, lambda ids: {"src/B.cs"}, git)
     expect("PB3263a: R3 notes the landing's own recorded group closed on the way are checked against THAT group's set, "
            "never the set computed now (which would stop on src/A.cs): lands", got, 0, 0)
-    sh("branch", "-D", "eng")
+    scratch.git("branch", "-D", "eng")
     commits("eng-out", ("PB9200+PB9003+PB9004: the engine, and a file nothing declared",
                         {"src/A.cs": "// engine\n", "src/B.cs": "// outside\n", "src/Other.cs": "// new\n"}, 1_000_200))
     got = check(repo, "origin/main", "eng-out", cdir, items_e, rules, lambda ids: {"src/B.cs"}, git)
@@ -668,73 +657,73 @@ def self_test() -> int:
     got = check(repo, "origin/main", "eng-out", cdir, items_e, rules, lambda ids: {"src/A.cs"}, git)
     expect("PB3263d: with no dispatch of the landing recorded, the set is computed now, and the stop says so",
            ([s for s in got[0] if "computed now from the site blocks of PB9003, PB9004" in s], []), 1, 0)
-    sh("branch", "-D", "eng-out")
+    scratch.git("branch", "-D", "eng-out")
 
     # ── PB3180:a MERGE commit is attributed only what it introduced (the files and statuses that differ from EVERY
     #    parent), never the diff its first parent sees, which carries the other parent's whole history ──
     commits("pred", ("WIP checkpoint: land PB9002 in the register", {"kb/Work/PB9002.md":
                                                                     "---\nid: PB9002\nstatus: landed\n---\n"}, 1_001_000),
             ("PB9100: fix-lane edit", {"src/B.cs": "// fixed by the predecessor\n"}, 1_001_010))
-    sh("checkout", "-q", "-b", "fin", "origin/main")
-    sh("merge", "-q", "--no-ff", "pred", "-m", "Merge pred for the review finisher", when=1_001_020)
-    sh("checkout", "-q", "main")
+    scratch.git("checkout", "-q", "-b", "fin", "origin/main")
+    scratch.git("merge", "-q", "--no-ff", "pred", "-m", "Merge pred for the review finisher", when=1_001_020)
+    scratch.git("checkout", "-q", "main")
     expect("PB3180a: a branch that MERGES a predecessor (first parent main) is not charged with the predecessor's diff: "
            "its R3 status flip (no partition file) and its fix-lane code edit stay apart: lands",
            check(repo, "origin/main", "fin", cdir, items, rules, never, git), 0, 0)
     for b in ("fin", "pred"):
-        sh("branch", "-D", b)
+        scratch.git("branch", "-D", b)
 
     ledger(a_set)
     commits("r-mrg", ("WIP checkpoint: the R3 side", {"src/B.cs": "// r3 side\n"}, 1_001_100))
     commits("side", ("PB9100: the other side", {"src/B.cs": "// other side\n"}, 1_001_110))
     def resolve(name: str, text: str) -> None:
-        sh("checkout", "-q", name)
-        subprocess.run(["git", "-C", str(repo), "merge", "-q", "--no-commit", "side"], capture_output=True)
+        scratch.git("checkout", "-q", name)
+        scratch.run("merge", "-q", "--no-commit", "side")   # unchecked: the conflict is the case
         write("src/B.cs", text)
         if text != "// other side\n":
             write("src/C.cs", "// an evil-merge edit neither parent made\n")
-        sh("add", "-A")
-        sh("commit", "-qm", "PB9001: merge the other side, conflict resolved", when=1_001_120)
-        sh("checkout", "-q", "main")
-    sh("branch", "r-theirs", "r-mrg")
+        scratch.git("add", "-A")
+        scratch.git("commit", "-qm", "PB9001: merge the other side, conflict resolved", when=1_001_120)
+        scratch.git("checkout", "-q", "main")
+    scratch.git("branch", "r-theirs", "r-mrg")
     resolve("r-mrg", "// resolved by hand\n")
     got = check(repo, "origin/main", "r-mrg", cdir, items, rules, never, git)
     expect("PB3180b: an R3 merge whose conflict resolution (and evil-merge edit) changes files outside its declared set "
            "STOPS", got, 1, 0)
     expect("PB3180b': ... naming the resolved file and the evil-merge file",
            ([s for s in got[0] if "src/B.cs" in s and "src/C.cs" in s], []), 1, 0)
-    sh("branch", "-D", "r-mrg")
+    scratch.git("branch", "-D", "r-mrg")
     resolve("r-theirs", "// other side\n")
     expect("PB3180b'': ... while a resolution that takes the other parent's version introduces nothing (that parent's "
            "own commit is attributed by its own notes): lands",
            check(repo, "origin/main", "r-theirs", cdir, items, rules, never, git), 0, 0)
     for b in ("r-theirs", "side"):
-        sh("branch", "-D", b)
+        scratch.git("branch", "-D", b)
 
-    base_sha = git("rev-parse", "main").stdout.strip()
+    base_sha = scratch.git("rev-parse", "main")
     commits("f-behind", ("PB9100: a fix-lane branch", {"src/B.cs": "// fixed\n"}, 1_001_200))
     write("src/C.cs", "// main's own R3 landing, outside PB9001's declared set\n")
-    sh("add", "-A")
-    sh("commit", "-qm", "PB9001: an R3 landing on main", when=1_001_210)
-    sh("update-ref", "refs/remotes/origin/main", "HEAD")
-    sh("checkout", "-q", "f-behind")
-    sh("merge", "-q", "--no-ff", "origin/main", "-m", "Merge origin/main into f-behind", when=1_001_220)
-    sh("checkout", "-q", "main")
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "PB9001: an R3 landing on main", when=1_001_210)
+    scratch.git("update-ref", "refs/remotes/origin/main", "HEAD")
+    scratch.git("checkout", "-q", "f-behind")
+    scratch.git("merge", "-q", "--no-ff", "origin/main", "-m", "Merge origin/main into f-behind", when=1_001_220)
+    scratch.git("checkout", "-q", "main")
     expect("PB3180c: a `Merge origin/main` commit carrying main's R3 landing is not charged to the branch: lands",
            check(repo, "origin/main", "f-behind", cdir, items, rules, never, git), 0, 0)
-    sh("branch", "-D", "f-behind")
-    sh("checkout", "-q", "--orphan", "rootless")
-    sh("rm", "-rq", "--cached", ".")
+    scratch.git("branch", "-D", "f-behind")
+    scratch.git("checkout", "-q", "--orphan", "rootless")
+    scratch.git("rm", "-rq", "--cached", ".")
     write("src/Root.cs", "// a root commit\n")
-    sh("add", "src/Root.cs")
-    sh("commit", "-qm", "PB9001: a root commit", when=1_001_300)
-    sh("checkout", "-q", "-f", "main")
+    scratch.git("add", "src/Root.cs")
+    scratch.git("commit", "-qm", "PB9001: a root commit", when=1_001_300)
+    scratch.git("checkout", "-q", "-f", "main")
     walked = commit_work(git, "origin/main", "rootless")
     expect("PB3180d: a root commit is its diff against the empty tree",
            ([] if walked == [({"PB9001"}, {"src/Root.cs"})] else [walked], []), 0, 0)
-    sh("branch", "-D", "rootless")
-    sh("reset", "-q", "--hard", base_sha)
-    sh("update-ref", "refs/remotes/origin/main", base_sha)
+    scratch.git("branch", "-D", "rootless")
+    scratch.git("reset", "-q", "--hard", base_sha)
+    scratch.git("update-ref", "refs/remotes/origin/main", base_sha)
     ledger()
 
     ids = sorted(subject_ids("PB9000-PB9002: a range" + chr(10) + "PB9100+PB9101: two"))
