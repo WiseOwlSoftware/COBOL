@@ -15,15 +15,18 @@ namespace CobolNet.Tests.Unit;
 /// implementation"</c> → OK §A.1 152)), the latitude §9.1.16 grants — "The implementor may specify circumstances
 /// other than a locked logical record that result in the return of a locked record status." (<c>cite.py --check
 /// 9.1.16</c> → OK). docs/CONFORMANCE.md §7 records the one circumstance: a transaction's HOLDING under an active APPLY
-/// COMMIT clause (a record it changed, a deleted record's identity, a unique alternate key value it freed —
-/// docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10); otherwise I-O status '51' (§9.1.13.8 item 1, the record
-/// operation conflict) is produced ONLY for a record another file connector holds locked.
+/// COMMIT clause (of a relative or indexed file, a record it changed, a deleted record's identity, a unique alternate key
+/// value it freed — docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10; of a sequential file, the end of the file, a
+/// record it rewrote or appended, and the whole file once replaced — 2.2.2.3, kb/Work PB3340); otherwise I-O status '51'
+/// (§9.1.13.8 item 1, the record operation conflict) is produced ONLY for a record another file connector holds locked.
 ///
 /// <para>The determination is pinned where it lives: the set of places the runtime PRODUCES
-/// <see cref="FileStatusCode.RecordLocked"/>. Today there are three, each guarded by a lock another connector holds —
-/// <c>PhysicalFileTable.LockRecord</c> (the record's lock owner is a different connector),
-/// <c>FileRegistry.ConflictOnLockedRecord</c> (<c>PhysicalFileTable.IsLockedByOther</c>) and
-/// <c>KeyedConnector.HoldingsGate</c> (another transaction's holding, its owner alive). A fourth producer turns this RED,
+/// <see cref="FileStatusCode.RecordLocked"/>. Today there are four, each guarded by a lock or holding another connector
+/// holds — <c>PhysicalFileTable.LockRecord</c> (the record's lock owner is a different connector),
+/// <c>FileRegistry.ConflictOnLockedRecord</c> (<c>PhysicalFileTable.IsLockedByOther</c>),
+/// <c>KeyedConnector.HoldingsGate</c> (another transaction's holding, its owner alive) and
+/// <c>SequentialJournal.Holdings.Conflict</c> (another live transaction's journaled holding of a sequential file). A fifth
+/// producer turns this RED,
 /// and the answer is to re-adjudicate item 152 (write the new circumstance into §7) — never to widen the expected set
 /// silently. The behavioural half, '51' for a genuinely locked record, is pinned by
 /// <c>conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector</c> and, for
@@ -76,6 +79,7 @@ public sealed class LockedRecordStatusProducersDriftTests
         Assert.True(literals.Count == 0,
             "the '51' status must be spelled FileStatusCode.RecordLocked so this witness can see every producer; a bare "
             + "literal hides one:\n  " + string.Join("\n  ", literals));
-        Assert.Equal(["FileRegistry.ConflictOnLockedRecord", "KeyedConnector.HoldingsGate", "PhysicalFileTable.LockRecord"], producers);
+        Assert.Equal(["FileRegistry.ConflictOnLockedRecord", "KeyedConnector.HoldingsGate", "PhysicalFileTable.LockRecord", "SequentialJournal.Conflict"],
+            producers);
     }
 }

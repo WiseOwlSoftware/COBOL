@@ -182,23 +182,6 @@ internal static class SidecarLockFiles
         TryDelete(retired);                                // delete-pending while a handle lives, under a name nobody probes
     }
 
-    /// <summary><see cref="Retire"/> for a file whose removal the caller must KNOW happened — a transient file of the sequential
-    /// journal (<see cref="HostMedium.DeleteTransient"/>, kb/Work PB3340), whose refused deletion is a refused step of a
-    /// retirement the next entry completes: the same rename-first rule, but a refusal throws what the host throws. A file
-    /// (or a directory) that is not there is no error.</summary>
-    internal static void RetireOrThrow(string path)
-    {
-        try
-        {
-            if (!HostFile.ShareModesAreMandatory) { File.Delete(path); return; }
-            string retired = Path.Combine(Path.GetDirectoryName(path)!, RetiredPrefix + Guid.NewGuid().ToString("N"));
-            File.Move(path, retired);
-            File.Delete(retired);   // delete-pending while a reader's handle lives, under a name nobody probes
-        }
-        catch (FileNotFoundException) { }
-        catch (DirectoryNotFoundException) { }
-    }
-
     internal static void TryDelete(string path)
     {
         try { File.Delete(path); }
@@ -250,6 +233,15 @@ internal static class SidecarLockFiles
             held.Dispose();
             Retire(path);    // a name the first Retire could not take (the host refused the rename) goes once nothing holds it
             RetireDirectory(directory);
+        }
+
+        /// <summary>⛔ A DEATH, FOR A WITNESS (DESIGN-runtime-library.md 2.2.2.12; kb/Work PB3340): the descriptor closes as the
+        /// operating environment closes a killed process's, so the lock goes and the NAME STAYS, for the next tester to find
+        /// <see cref="HostFile.LockFileState.Dead"/> and sweep.</summary>
+        internal void DropAsADeathDoes()
+        {
+            _stream?.Dispose();
+            _stream = null;
         }
     }
 }
