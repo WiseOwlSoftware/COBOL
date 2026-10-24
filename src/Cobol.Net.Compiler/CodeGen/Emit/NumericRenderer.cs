@@ -643,9 +643,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // evaluation is the implementor's). Beside operands that are NOT floats nothing licenses carrying them in
         // binary64, and doing so loses a digit: `COMPUTE R = 13.2 + FUNCTION SQRT(16)` into PIC 99V9 stored 17.1
         // (13.199999999999999 + 4.0 truncated) where SQRT(16) alone is exactly 4 and the sum is 17.2. So the
-        // approximation enters the arithmetic through its shortest-round-trip decimal (the §8.8.1.5.1
-        // implementor-defined float→SDIDI conversion, defined here as shortest round-trip, which every standard mode
-        // already applies to a float operand — the same VALUE the binary64 carries) and the operation runs on the
+        // approximation enters the arithmetic through its shortest-round-trip decimal (CobolDec.FromApproximation:
+        // an engine-produced approximation carries at most 17 meaningful digits, and the shortest decimal is the same
+        // VALUE the binary64 carries; a float DATA ITEM is a different case, lifted by its exact value, kb/Work
+        // PB1606) and the operation runs on the
         // decimal lane; a float ITEM, a float literal carrier or a float receiver keeps the whole expression in
         // binary64 exactly as before (the approximation then stays a double beside it). GnuCOBOL, the precedent where
         // the ISO text is silent, evaluates every intrinsic result as a decimal.
@@ -661,8 +662,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // INTERMEDIATE ROUNDING mode (§11.9.11) and range-checked at the decimal128 bounds (§8.8.1.5.2 r2);
         // the receiver's ROUNDED applies only at the final transfer (§14.7 NOTE 1). This branch runs BEFORE
         // the D16 float branch: under a standard mode a FLOATING-POINT operand converts into SDIDI form via
-        // the §8.8.1.5.1 implementor-defined conversion (CobolDec.FromDouble — the shortest-round-trip decimal
-        // identity of the IEEE value; see DecOperand) and the operation itself is the SDIDI one.
+        // the §8.8.1.5.1 implementor-defined conversion (CobolDec.FromBinary64 — the exact value of the IEEE value
+        // rounded once to 34 digits under INTERMEDIATE ROUNDING; see DecOperand) and the operation itself is the
+        // SDIDI one. A float item that is the WHOLE expression (`COMPUTE R = F`) converts through the same function,
+        // at the store (ArithmeticEmitter.StoreArith).
         // ⛔ AND A NATIVE OPERATION WITH AN SDIDI-CARRIED OPERAND EVALUATES ON THE SDIDI TOO (kb/Work PB69). The
         // Dec producers under NATIVE arithmetic are THREE, not one (kb/Work PB273 — this sentence named only the
         // first for two waves, and D-B made the third the common case):
@@ -719,7 +722,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     }
 
     /// <summary>One operation on the SDIDI lane at the program's INTERMEDIATE ROUNDING mode — the operands lifted by
-    /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its shortest round-trip decimal, an exact wide
+    /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its exact value rounded once, an exact wide
     /// intermediate by round-to-odd). The ONE spelling of the four operators for every caller that takes an operation
     /// there: the standard-decimal engine, an SDIDI-carried native operand (kb/Work PB69) and an exact wide operand whose
     /// operation has no wide form (kb/Work PB1900). Under native arithmetic the result carries the operation's precision
@@ -761,9 +764,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         _rcv.Real || (a.Real && !a.Approximate) || (b.Real && !b.Approximate);
 
     /// <summary>An engine-produced binary64 approximation as the SDIDI of its shortest round-trip decimal
-    /// (<see cref="DecOperand"/>'s conversion — the VALUE is unchanged); every other operand passes through.</summary>
+    /// (<c>CobolDec.FromApproximation</c>, which <see cref="DecOperandExact"/> applies to the same operand — the VALUE is
+    /// unchanged); every other operand passes through.</summary>
     private static NumX LiftApproximation(NumX x) =>
-        x is { Real: true, Approximate: true } ? new NumX(RuntimeApi.DecFromDouble(x.Expr), 0, Dec: true) : x;
+        x is { Real: true, Approximate: true } ? new NumX(RuntimeApi.DecFromApproximation(x.Expr), 0, Dec: true) : x;
 
     /// <summary>The binary64 lane of <see cref="CombineCore"/> — the floating arm of the native dispatch whose other
     /// arm is <see cref="CombineNative"/>, and it owes the SAME size-error rules (kb/Work PB1147, PB1581; the
@@ -805,8 +809,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// value within <see cref="ExactLiftDigits"/> lifts EXACTLY via <c>CobolDec.From</c>, and one that may hold more (a 16-byte binary
     /// container, an operand of unknown bound) ROUNDS via <c>CobolDec.FromParsed</c> / <c>FromUnsigned</c> under the
     /// INTERMEDIATE ROUNDING mode (§8.8.1.5.2 r1; kb/Work PB2918); a FLOAT
-    /// (Real) operand converts via <c>CobolDec.FromDouble</c> — the §8.8.1.5.1 implementor-defined float→SDIDI
-    /// conversion (the shortest round-trip decimal, ≤17 digits, always exact in the 34-digit significand).</summary>
+    /// (Real) operand converts via <c>CobolDec.FromBinary64</c> — the §8.8.1.5.1 implementor-defined float→SDIDI
+    /// conversion: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE ROUNDING mode
+    /// (§8.8.1.5.2 r1; kb/Work PB1606), except an engine-produced approximation (<see cref="NumX.Approximate"/>), which
+    /// is its shortest round-trip decimal (<c>CobolDec.FromApproximation</c>).</summary>
     // ⛔ THE LIFT OF AN OPERAND THAT MAY OUTGROW THE LANE IS THE ROUNDING ONE, IN EVERY MODE (kb/Work PB2918).
     // §8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded according to
     // the rules in 11.9.11" — and a 16-byte binary container (a COMP-5 of 19 or more digits; BINARY-DOUBLE is 8 bytes and lifts exactly) owns 39 digits, so its
@@ -863,7 +869,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private string DecOperandExact(NumX x) => DeU(x) switch
     {
         { Dec: true } d => d.Expr,
-        { Real: true } r => RuntimeApi.DecFromDouble(r.Expr),
+        { Real: true, Approximate: true } r => RuntimeApi.DecFromApproximation(r.Expr),
+        { Real: true } r => RuntimeApi.DecFromBinary64(r.Expr, IntermediateMode),   // a float ITEM: its exact value, rounded once (PB1606)
         { Wide: true } w => RuntimeApi.WideToDec(w.Expr, w.Scale),   // the lowering: round-to-odd, 34 digits (kb/Work PB1900)
         var v => $"CobolDec.From({v.Expr}, {v.Scale})",
     };

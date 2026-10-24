@@ -856,10 +856,16 @@ internal static class RuntimeApi
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
 
-    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI operand conversion — <c>CobolDec.FromDouble</c>
-    /// (the shortest round-trip decimal identity of the IEEE value; P10 Step 12).</summary>
-    public static string DecFromDouble(string doubleExpr) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.FromDouble)}({doubleExpr})";
+    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
+    /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
+    /// ROUNDING mode (§8.8.1.5.2 r1; kb/Work PB1606).</summary>
+    public static string DecFromBinary64(string doubleExpr, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromBinary64)}({doubleExpr}, {modeExpr})";
+
+    /// <summary>The lift of a binary64 that is an implementor-defined APPROXIMATION (a §15.4.1 function's returned
+    /// value, a non-integer power) - <c>CobolDec.FromApproximation</c>, the shortest round-trip decimal.</summary>
+    public static string DecFromApproximation(string doubleExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromApproximation)}({doubleExpr})";
 
     /// <summary>One SDIDI division of two exactly-lifted fixed-point values — MEAN's §15.60.4 equivalent-expression
     /// division under standard-decimal arithmetic (§15.4.1 r1; P10 Step 12).</summary>

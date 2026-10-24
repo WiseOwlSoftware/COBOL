@@ -16,8 +16,8 @@
       *> arm order bypassed for every receiver-less or float-receiver reference.
       *>
       *> HAND-DERIVED: TINY is the exact scale-20 value 1E-20; for that argument the binary64 sin/tan/atan
-      *> results ARE x (the x**3/3 term is ~25 decades below x's ULP), and the 8.8.1.5.1 float -> SDIDI
-      *> conversion is the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20 and its
+      *> results ARE x (the x**3/3 term is ~25 decades below x's ULP), and the conversion of a function's approximation (15.4.1) into the SDIDI is
+      *> the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20 and its
       *> item-92 text is 0.00000000000000000001, never the binary64 E-notation "1E-20".
       *> ACOS(1) / ASIN(0) / LOG(1) / LOG10(1) are 0 exactly and COS(0) is 1 exactly.
       *> The large-magnitude leg pins 15.4.1's invariant instead of an implementor-defined digit string: "the
