@@ -263,14 +263,6 @@ internal abstract class KeyedStore
     /// 2.2.1.15): until a promotion of this run unit lands, every ROLLBACK answers by a promotion's sync.</summary>
     public bool Unacknowledged { get; private set; }
 
-    /// <summary>A ROLLBACK of <see cref="Transaction"/> was refused ('30'): the transaction stands for the next ROLLBACK or
-    /// the dead-owner step, and is never committed (<see cref="Commit"/>).</summary>
-    private bool _rollbackRefused;
-
-    /// <summary>Whether the run unit owes the file a ROLLBACK of <see cref="Transaction"/> before anything else: one was
-    /// refused, or the file is <see cref="Unacknowledged"/>.</summary>
-    private bool RollbackOwed => _rollbackRefused || Unacknowledged;
-
     /// <summary>⛔ DRAW a transaction id (2.2.1.10, finding R4-2): the lowest value from the store's
     /// <see cref="PagedFile.TransactionMint"/> whose liveness byte <paramref name="drawer"/> can take EXCLUSIVELY through
     /// its writable handle — a held byte is a live transaction's or a refused attempt's, and is skipped. 0 when no byte
@@ -324,7 +316,7 @@ internal abstract class KeyedStore
     private void EndTransaction()
     {
         GiveBack(_liveness, Transaction);
-        (Transaction, _liveness, Unacknowledged, _rollbackRefused) = (0, null, false, false);
+        (Transaction, _liveness, Unacknowledged) = (0, null, false);
     }
 
     /// <summary>The witnesses' seam of a death the operating environment delivers at an instant of ANOTHER run unit's
@@ -434,14 +426,11 @@ internal abstract class KeyedStore
     internal CommitOutcome Commit(RestoringTreesFactory reverse)
     {
         if (Transaction == 0) return CommitOutcome.Committed;
-        // ⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (2.2.1.10; 2.2.1.16's refused ROLLBACK and UNACKNOWLEDGED
-        // rows; review finding R1-4): once a ROLLBACK of it was refused, or its COMMIT left the file UNACKNOWLEDGED, the
-        // only statements the run unit executes on it are ROLLBACKs (item 8's unconditional one, then the termination
-        // path's). A later COMMIT, the program's or the implicit one of a run unit that then ends normally (§9.1.18.5), is
-        // refused before it touches the medium, and its caller rolls back again: the changes a ROLLBACK was asked to undo
-        // are never made permanent. Nor is a transaction whose file the run unit no longer holds a writable handle on (a
-        // re-OPEN refused in its share-mode window), which only the dead-owner step can settle.
-        if (RollbackOwed || File is not { Writable: true } file) return CommitOutcome.Refused;
+        // ⛔ A transaction a ROLLBACK is owed (one refused, or its COMMIT left the file UNACKNOWLEDGED) never reaches this
+        // promotion: the registry refuses its COMMIT for every storage engine in one place (FileRegistry.CommitHolder, review
+        // finding R1-4). Nor is a transaction whose file the run unit no longer holds a writable handle on committed (a
+        // re-OPEN refused in its share-mode window): only the dead-owner step can settle it.
+        if (File is not { Writable: true } file) return CommitOutcome.Refused;
         var outcome = file.Commit(Transaction, reverse);
         if (outcome is CommitOutcome.Committed or CommitOutcome.Reversed) EndTransaction();
         else if (outcome == CommitOutcome.Unacknowledged) Unacknowledged = true;
@@ -454,7 +443,7 @@ internal abstract class KeyedStore
     /// promotion answered by its sync (<see cref="PagedFile.RollBackUnacknowledged"/>). Success ends the transaction and
     /// gives the byte back; a refusal ('30') — the statement's entry (which unwinds a COMMIT's unlanded claim, R5's restart
     /// rule), the rollback itself, or a store with no handle left — leaves it standing for the next attempt or the
-    /// dead-owner step, and never committed (<see cref="Commit"/>). The caller holds the mutex.</summary>
+    /// dead-owner step, and never committed (<c>FileRegistry.CommitHolder</c>). The caller holds the mutex.</summary>
     internal StoreStatus Rollback(RestoringTreesFactory restoring)
     {
         if (Transaction == 0) return StoreStatus.Ok;
@@ -463,7 +452,6 @@ internal abstract class KeyedStore
             : file.Enter() != StoreStatus.Ok ? StoreStatus.PermanentError   // the statement's entry (R5's restart rule)
             : RollBack(Transaction, restoring);
         if (status == StoreStatus.Ok) EndTransaction();
-        else _rollbackRefused = true;
         return status;
     }
 
