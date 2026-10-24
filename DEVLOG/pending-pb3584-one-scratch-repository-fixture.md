@@ -45,3 +45,5 @@ landing_measure.git_runner); the SPAWN arm now reads only a `subprocess` call's 
 only from self-test code are read by the INIT arm alone. A rename pass that turned `run(` into the fixture call also
 caught `subprocess.run(` once (line_endings.py); found by a grep for the doubled name and fixed before the commit.
 semgrep verify: no count moved. kb/Work PB3582 is unblocked (its blocker landed).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 10,351/18,325 · Unit 34,347/35,652 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … run 000002-20261024T003804Z ===`; the four `SelfTestFixtureDriftTests` facts passed in leg 1, and the self-test phase was GREEN (46 ran, 50 reused). The first gate (run 000001) was RED on CITATIONS: the drift test cited the design section as `§3.14.10`, which the code-citation audit reads as an ISO clause; it now says "section 3.14.10".
