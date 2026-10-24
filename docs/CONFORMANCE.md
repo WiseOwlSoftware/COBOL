@@ -1323,7 +1323,10 @@ of an unsupported facility.
   §14.2.3 GR9's activation boundary, `MoveSending.ExactValue`) is edited by its own decimal digits, and an
   approximation (a function's returned value) by its shortest round-trip decimal (`CobolDec.FromApproximation`), so
   neither shows the binary noise of a double (0.3 is `+3.0000000000000000E-01`, never `+2.9999999999999998E-01`).
-  Witnesses: `conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb1606_fixed_sender_float_edited_formal`, `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
+  The binary64 intermediate a multi-receiver MOVE freezes such a value into (§14.9.25.4 GR1's "temp", "an intermediate
+  result item provided by the implementor") is read as the approximation it holds (`DataItem.HoldsApproximation`), so
+  `MOVE FUNCTION PI TO W1 W2` edits what `MOVE FUNCTION PI TO W3` does.
+  Witnesses: `conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb1606_fixed_sender_float_edited_formal`, `conformance:cases/14.9.25-MOVE/pb370_move_function_value_digits`, `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
   (every position, the rounding modes, the negative and the huge), `15.60.4-Returned-value-rule/arith_standard`,
   `_unassigned/pb3017_sdidi_divide_remainder_beyond_the_int128_carrier`, `CobolDecBinary64ConversionTests`.
 - **Floating-point numeric-edited receiver — the overflow, underflow, size-error and incompatible-content

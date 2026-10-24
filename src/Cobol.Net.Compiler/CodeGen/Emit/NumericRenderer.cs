@@ -483,7 +483,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             sending.FloatChecked(pic)
                 ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false))
                 : RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false),
-            0, Real: true),
+            0, Real: true, Approximate: item.HoldsApproximation),
         { IsUnsignedWideBinary: true } =>
             new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
         _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale),
@@ -558,7 +558,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // false = raw read; note rule 2's arm in WindowedNum reads its OWN, shorter exemption list off the same value).
         { IsFloat: true } => new NumX(
             sending.FloatChecked(p.Item.Pic!) ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
-            0, Real: true),
+            0, Real: true, Approximate: p.Item.HoldsApproximation),   // a frozen function value reads as itself (PB1606)
         // (A COPY of a float item's content — not an arithmetic read — is FloatCarrierRead below: this arm and
         // WindowedNum's float lane widen to binary64 because arithmetic evaluates there (D16), and a widening
         // quiets a signaling NaN.)
