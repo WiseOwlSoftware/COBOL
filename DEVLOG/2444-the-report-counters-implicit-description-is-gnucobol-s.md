@@ -1,4 +1,4 @@
-## The report counters' implicit description is GnuCOBOL's unsigned 32-bit binary integer (PB1746)
+## Entry 2444 — 2026-10-24 00:20 PDT — The report counters' implicit description is GnuCOBOL's unsigned 32-bit binary integer (PB1746)
 
 PAGE-COUNTER and LINE-COUNTER are "temporary unsigned integer data items of class and category numeric" (§8.4.3.15.4 GR1)
 and the standard names neither a size nor a usage. R26 and PB1153/PB1199/PB1318 had answered with `PIC 9(18) USAGE
@@ -48,3 +48,4 @@ Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 00
 Unit 35,059 · Characterization 5 cases ran in leg 1, the new goldens and `ReportCounterDescriptionDriftTests` among them).
 
 Review round 1 (R1-1, blocking): the registers' unsigned 32-bit shape reuses `Usage.BinaryLong`, yet STRING SR1 and the §8.8.4.2.5 relation refuse them while `MOVE PAGE-COUNTER TO` an alphanumeric item compiles, where `MOVE` of a declared `BINARY-LONG UNSIGNED` item is COBOLNET0819 (§14.9.25.3 SR8). Answer: SR8 keys on "a data item described with usage binary-long", a USAGE clause a program wrote, and §8.4.3.15.4 GR1 gives the counters none, so only Table 16's numeric-integer row judges the move (legal, and cobc accepts it), whereas STRING SR1 and §8.8.4.2.5 read the implicit usage ("described implicitly or explicitly"). Rejecting the MOVE would reject legal source on a latitude the standard leaves open. The decision is now written where it is made (`MoveTable16.ShapeRefusal`, `PicInfo.ReportCounterItem`) and in docs/CONFORMANCE.md section 3; the golden `pb1746_report_counter_description` already pins the legal MOVE (PC-X4, LC-X14).
+
