@@ -65,7 +65,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import unicodedata
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -429,10 +428,10 @@ def run_stamp(repo: pathlib.Path, branch: str, coord_override: str | None) -> in
 
 # ── self-test: real repositories and real ranges ─────────────────────────────────────────────────────────────────
 def self_test() -> int:
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     # HERMETIC, like landing_check's: drop git's repository-selection variables so nothing reaches the caller's repo.
     isolate()
-    root = pathlib.Path(tempfile.mkdtemp(prefix="devlog-self-test-"))
+    root = scratch_dir("devlog-self-test-")
     results: list[tuple[str, bool, str]] = []
 
     def ok(label: str, cond: bool, got: object = "") -> None:
@@ -715,7 +714,7 @@ def self_test() -> int:
     ok(f"this repository's {DIR}/ passes lint ({len(entries(own_files))} entries)", not own, "; ".join(own[:5]))
 
     scratch.git("worktree", "remove", "--force", str(wt))
-    shutil.rmtree(root, ignore_errors=True)
+    remove_tree(root)
     bad = [r for r in results if not r[1]]
     for label, good, got in results:
         print(f"  {'ok ' if good else 'BAD'} {label}" + ("" if good else f": {got}"))

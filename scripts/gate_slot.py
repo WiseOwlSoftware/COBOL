@@ -67,11 +67,9 @@ import json
 import os
 import platform
 import re
-import shutil
 import stat
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 import queue
@@ -820,7 +818,7 @@ def _wait_until(predicate: Callable[[], bool], what: str) -> None:
 
 
 def self_test() -> int:
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     # ⛔ HERMETIC: the self-test builds its OWN repositories, and a git hook exports GIT_DIR and GIT_INDEX_FILE, under
     # which every `git init`/`commit`/`worktree add` once acted on the caller's REAL repository (measured 2026-09-29,
     # wave 72 group G, kb/Work PB1719); dropping the variables from this process also covers the gate children the
@@ -828,7 +826,7 @@ def self_test() -> int:
     isolate()
     me = str(Path(__file__).resolve())
     py = sys.executable
-    root = Path(tempfile.mkdtemp(prefix="gate-slot-selftest-"))
+    root = scratch_dir("gate-slot-selftest-")
     # Every helper body below loops only while this file exists, and the cleanup deletes it FIRST: a red arm (a tree
     # the job failed to kill, a holder that never saw its release) must not leave a process spinning on the host.
     alive = root / "alive"
@@ -1167,7 +1165,7 @@ def self_test() -> int:
         for dirpath, _, files in os.walk(root):  # git writes its objects read-only, which rmtree cannot delete on Windows
             for f in files:
                 os.chmod(os.path.join(dirpath, f), stat.S_IWRITE | stat.S_IREAD)
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
 
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")

@@ -1387,10 +1387,10 @@ class FakeHost(Host):
 
 
 def self_test() -> int:
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     isolate()  # ⛔ hermetic: the arms below make git repositories (scratch_repo.isolate, kb/Work PB1719)
     results: list[tuple[str, bool, str]] = []
-    root = Path(tempfile.mkdtemp(prefix="gate-legs-selftest-"))
+    root = scratch_dir("gate-legs-selftest-")
     sink: list[str] = []
 
     def gate(name: str, **fake) -> tuple[Outcome, FakeHost]:
@@ -1599,7 +1599,7 @@ def self_test() -> int:
                 red = (f"import pathlib, time\nm = pathlib.Path({str(self.mark)!r})\n"
                        "while not m.exists():\n    time.sleep(0.05)\nraise SystemExit(1)")
                 return (("SLOW", ["-c", slow]), ("QUICK-RED", ["-c", red]))
-        mark = Path(tempfile.mkdtemp(prefix="first-red-")) / "grandchild.pid"
+        mark = scratch_dir("first-red-") / "grandchild.pid"
         heard: list[str] = []
         reasons = FirstRedStops(mark).audits(_no_slot, heard.append)
         grandchild = int(mark.read_text(encoding="utf-8"))
@@ -1980,7 +1980,7 @@ def self_test() -> int:
         for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
             for f in files:
                 os.chmod(os.path.join(dirpath, f), 0o666)
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
 
     failed = [n for n, ok, _ in results if not ok]
     print(f"=== run_gate_legs SELF-TEST: {'PASS' if not failed else 'FAIL'} ({len(results)} arms"

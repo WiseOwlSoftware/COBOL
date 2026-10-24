@@ -41,7 +41,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -174,10 +173,12 @@ def at(events: list[str], prefix: str) -> int:
 
 
 def main() -> int:
+    sys.path.insert(0, str(HERE.parent))
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     if shutil.which("node") is None:
         print("FAIL: node is not on PATH (the wave script runs under node here; this file declares the platforms that carry it)")
         return 1
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix="rolling-wave-test-"))
+    tmp = scratch_dir("rolling-wave-test-")
     try:
         (tmp / "harness.mjs").write_text(HARNESS, encoding="utf-8", newline="\n")
         (tmp / "wave.js").write_text(WAVE.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
@@ -416,7 +417,7 @@ def main() -> int:
         check("3b: a SPLIT predecessor is never reviewed, and its successor merges its branch",
               "start:w9a-review-r1" not in r["events"] and "git merge bA" in bp and "unfinished" in bp, bp)
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
     for f in fails:
         print("FAIL:", f)
     print(f"rolling wave self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")

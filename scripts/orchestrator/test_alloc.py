@@ -6,16 +6,17 @@ import os
 import pathlib
 import subprocess
 import sys
-import tempfile
 import time
 
 HERE = pathlib.Path(__file__).resolve().parent
 ALLOC = HERE / "alloc.py"
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
+from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import alloc  # noqa: E402
 import coord  # noqa: E402
 
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="alloc-test-"))
+TMP = scratch_dir("alloc-test-")
 REPO = TMP / "repo"
 (REPO / "kb" / "Work").mkdir(parents=True)
 (REPO / "src" / "Cobol.Net.Editions" / "Diagnostics").mkdir(parents=True)

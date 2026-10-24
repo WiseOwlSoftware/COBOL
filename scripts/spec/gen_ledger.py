@@ -1266,7 +1266,8 @@ def self_test() -> int:
     """The page's new parts on planted inputs (kb/Work PB2912): the loud flags, UNMEASURED for a missing input, the
     trend append carrying the register's series, and the register read from a commit's own tree."""
     global REPO, TREND  # noqa: PLW0603  (pointed at temporary fixtures, and restored)
-    import tempfile  # noqa: PLC0415
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     results: list[tuple[str, bool, str]] = []
 
     def check(name: str, ok: bool, detail: str = "") -> None:
@@ -1338,7 +1339,7 @@ def self_test() -> int:
     check("the trend series lives beside the page, outside every checkout",
           TREND.parent == DEFAULT_OUT.parent and not TREND.resolve().is_relative_to(REPO.resolve()), str(TREND))
     saved = (REPO, TREND)
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix="gen-ledger-test-"))
+    tmp = scratch_dir("gen-ledger-test-")
     try:
         TREND = pathlib.Path("relative-trend.json")
         try:
@@ -1383,7 +1384,7 @@ def self_test() -> int:
         (REPO / "kb" / "Work" / "PB2.md").write_text(fm.format(i="PB2", s="landed"), encoding="utf-8", newline="\n")
         (REPO / "kb" / "Work" / "README.md").write_text("no frontmatter\n", encoding="utf-8", newline="\n")
         sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
         scratch = ScratchRepo.init(REPO)
         scratch.commit("fixture")
         got = register_counts_at("HEAD")
@@ -1412,8 +1413,7 @@ def self_test() -> int:
               shas == [merged] and base_sha not in shas, f"{shas} want {[merged]} (side {side}, tip {tip})")
     finally:
         REPO, TREND = saved
-        import shutil  # noqa: PLC0415
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
 
     for name, ok, detail in results:
         print(f"  {'PASS' if ok else 'FAIL'}  {name}" + ("" if ok else f"\n        {detail}"))

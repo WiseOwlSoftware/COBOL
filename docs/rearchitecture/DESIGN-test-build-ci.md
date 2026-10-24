@@ -1636,6 +1636,13 @@ their own repositories and seven carried a git helper of their own, each with it
 over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
 `"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
 maintenance settings) to that one file.
+**A self-test's scratch directory goes with it (kb/Work PB3194).** `scratch_dir(prefix)` makes it in the machine-wide
+temp directory and registers `remove_tree` for the process's exit, so a return, a raised exception and `sys.exit` all
+remove it; `remove_tree` makes a refused entry writable and removes it again, and prints what still cannot go. Before
+it, three self-tests never removed their scratch and the rest called `shutil.rmtree(..., ignore_errors=True)`, which on
+Windows cannot delete the read-only files git writes its objects as and says nothing: one host's temp directory held
+about 4,600 such directories (5 GB) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
+outside a directory it already owns, and any `rmtree(ignore_errors=True)` in self-test code.
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
@@ -1770,11 +1777,40 @@ reached CI behind a green Windows gate and a green Linux gate. It is a Linux-gat
 because CI runs that job on Linux only; a Git Bash run on Windows would add minutes and no CI parity.
 
 **How: a Linux clone of the commit, never the Windows tree.** The tree's COMMITTED HEAD is cloned into
-`~/linux-gate/<tree>` on the Linux filesystem. The clone is `--shared`: it borrows the Windows repository's object
+`~/linux-gate/<tree>.<pid>/<tree>` on the Linux filesystem (removed when the gate ends, below). The clone is `--shared`: it borrows the Windows repository's object
 store read-only, so nothing is copied. The solution is built there ONCE with the Linux SDK, and every leg then runs
 in PARALLEL against that build, each to its own log (kb/Work PB2879: 234 s against 351 s with the legs one after
 another), the shape of CI's ubuntu jobs. The git-ignored GnuCOBOL corpus is copied in from the tree, or fetched as CI
 fetches it. Commit before running: uncommitted changes are counted, reported, and not tested.
+
+**The gate leaves nothing behind on the Linux filesystem (kb/Work PB3194).** One built gate is about 1 GB and 80,000
+inodes. The clone used to live at `~/linux-gate/<tree>` (with `<tree>.guard-tmp` beside it) and was removed only when
+the same tree was gated again; worktrees come and go, so 345 clones filled the disk on 2026-10-15 (`No space left on
+device` mid-leg read as 2,919 conformance failures, then the distro remounted read-only), 430 exhausted its inodes on
+2026-10-19 and 394 again on 2026-10-22, and each time every Linux gate on the host ended NOT RUN until someone deleted
+clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
+- each gate works in its own directory, `~/linux-gate/<tree>.<pid>/`: the clone (`<tree>`), the guard leg's scratch
+  (`guard-tmp`, beside the clone and never inside it, kb/Work PB2989) and an `owner` file naming the gate's process by
+  pid and start time, so a reused pid is never mistaken for it;
+- the gate removes that directory on every exit path: the EXIT trap after its verdict (GREEN, RED, or a NOT RUN after
+  the clone), and `on_signal` for HUP, INT and TERM, which first ends the legs' process trees (every background job and
+  each process under it, read from `/proc` in one pass) so nothing writes into the clone while it goes. The one build
+  runs in the background (`wait`) because bash defers a trap until a foreground command returns. What survives is what
+  the gate already wrote to the tree's `TestResults/linux-gate`, the guard's forensics of a non-MATCH included
+  (`GUARD_FORENSICS` points there);
+- a gate killed outright (SIGKILL, or WSL ending its session) runs no trap, so every gate first REAPS: a directory
+  whose owner no longer runs goes at once, and one with no owner file (the layout before this mechanism, from a
+  branch not yet merged with it) goes when it is this tree's or older than 3 hours;
+- then it measures the filesystem and refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes
+  or 20 GB free (about twelve built gates: the gate cap of 3 and every implementer gate beside it). `disk` is an
+  ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES`, so a landing retries it and never blames the branch. A
+  filesystem that counts no inodes (btrfs) is held to the space bound alone; one `df` cannot measure is NOT RUN.
+`linux-gate.sh --self-test` drives each exit path on real directories and processes (status 0, 1 and 2, and a TERM
+mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
+stand-in `df`; removing the EXIT trap, the signal trap, the kill, the descendant walk, either bound, the liveness test
+or the age rule each turns it red. The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
+Windows host serves at about half a second each, so there it prints `n/a` and runs in the Linux gate's `selftests`
+leg and CI's audits job.
 
 Two earlier designs failed, and each failure was measured:
 1. **Windows-built binaries run `--no-build`.** The Conformance tests find their goldens through `[CallerFilePath]`,
