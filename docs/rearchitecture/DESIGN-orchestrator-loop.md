@@ -215,7 +215,7 @@ context cap, default 200000) and `-HardContextTokens` (the HARD cap, default 500
 unit gets three times this, because a lander train must be allowed to finish), `-BorrowDays` (passed to
 `budget.py`), `-Unit` (the first unit: written as the operator's steer through `steer.ps1`, section 4.8; a dry run writes it into its own directory under the coordination directory, section 4.8), `-Cluster <lead>[,<lead>...]` (the campaign lanes, section 9.1: comma-separated because `pwsh -File` passes `-Cluster A,B` as one string; each validated at start), `-ConfigDir` (the Claude account the loop spends, section 2.1: default `account.py`'s resolution of `CLAUDE_CONFIG_DIR`; an unknown dir exits 2 before anything starts; every child runs with exactly that account's `CLAUDE_CONFIG_DIR`, unset for the default account; the log header and every `units.jsonl` line name the account), `-Watch` (section 13), `-Python`, and the
 test seams `-TelemetryDir` (passed to `budget.py`), `-WorkDir` (the register `next_unit.py` and `work.py` read for `-Cluster`), `-IdleCloseSeconds` (default 20, section 4.6), `-CheckpointSeconds` (default 300, section 5.1), `-LandLaneSeconds` (default 300; 0 runs no landing lane, section 4.9) and `-FastFailSeconds` (default 120; a unit under it fails only without a `done` handoff, because the `meter` unit legitimately takes about 40 s) and `-BackoffBaseSeconds`
-(default 60). Exit codes: 0 stopped (`STOP`, `-MaxUnits`, `stop-week`, `-DryRun`), 3 another instance runs,
+(default 60), `-GhExe` (the GitHub CLI `adopt_main.py` asks for CI's state of main; a test seam, section 4.10) and the restart's carried counters `-CarryFailures`, `-CarryRan` and `-CarryLastStarted` (set by the supervisor re-executing itself, never by hand, section 4.10). Exit codes: 0 stopped (`STOP`, `-MaxUnits`, `stop-week`, `-DryRun`), 3 another instance runs,
 4 circuit breaker, 5 an owner question is waiting, 2 `-Cluster` names no cluster any kb/Work note names (or `-Unit campaign` without `-Cluster`).
 
 Each iteration, in this order:
@@ -574,6 +574,55 @@ total gate load is the same.
 
 **Measured** after it lands by `landing_measure.py summary`: DONE -> enqueued -> merged per pull request for the first
 waves after the lane, against wave 1069's landings, which went through the enqueue unit.
+
+### 4.10 The loop adopts what landed (`adopt_main.py`, kb/Work PB2699)
+
+**The defect.** Everything the loop plans from (the register `kb/Work`, DEVLOG, `src/`, the planners, the unit prompts and
+the supervisor script) is read from ONE checkout, and every landing is pushed from a worktree, so that checkout fell one
+landing further behind `origin/main` with each merge for as long as the loop ran. Wave 1042 planned from a register seven
+commits old; wave 1079 ran a planner that predated the planner on main; a process fix that landed was not in effect until
+the operator fast-forwarded the checkout and restarted the supervisor by hand. The owner (2026-10-24): "fix the loop so it
+picks up landed changes itself. We should adopt efficiency improvements as soon as they are available and stable."
+
+**One routine owns it**, `scripts/orchestrator/adopt_main.py adopt`. The supervisor calls it at the top of every iteration,
+BETWEEN units (no unit runs, so no tree a unit reads moves under it; a hold that ends loops back through it), and
+`autostart.ps1` calls it before the supervisor starts (its former inline `git pull --ff-only` is gone). It fetches
+`origin/main` and fast-forwards the checkout only when it is:
+
+- **available**: the checkout is on `main`, `origin/main` is strictly ahead of it (never a merge, never a reset; a
+  checkout that is ahead or diverged is kept and said so) and no TRACKED file but `.claude/settings.local.json` is modified
+  (never a stash; an untracked file is no obstacle); and
+- **stable**: CI's push run on main at that commit (`build-and-test.yml`) has SUCCEEDED. A red, pending or unrecorded run,
+  a GitHub CLI that is missing or answers badly, keeps the last adopted commit and logs why: an unobserved CI is never a pass.
+
+Each call prints one line (`adopt main: adopted|current|kept <before>..<after> (origin/main <sha>): <reason>`) and records
+the adopted commit in `<coord>/adopted-main.json`.
+
+**The supervisor adopts itself.** `SUPERVISOR_FILES` (today `orchestrate.ps1`, the one file the running process holds in
+memory; every other loop file is read afresh at each use: the Python tools, `units/*.md`, `handoff.schema.json`,
+`steer.ps1`) names what needs a restart. The trigger does not depend on who moved the checkout: the supervisor records the
+checkout's HEAD when it loads its script and passes it as `adopt_main.py adopt --loaded=<sha>`, and `supervisor_changed` is
+whether `SUPERVISOR_FILES` differ between that commit and the checkout now, in every outcome (adopted, current, kept), so
+the attended session's own `git merge --ff-only origin/main` (which `ledger_state.py` asks for when a ledger publish is
+owed) restarts the supervisor too. When one differs, the supervisor re-executes
+`orchestrate.ps1` from the checkout, still between units: it releases the lock, runs the successor with its own arguments
+(`-Unit`, consumed at start, excepted; `-Cluster` as the lanes still running) plus the counters it keeps in memory
+(`-CarryFailures`, `-CarryRan`, `-CarryLastStarted`: the circuit breaker, `-MaxUnits` and the campaign alternation survive),
+and exits with the successor's exit code. The handoff files, the operator's steer and the unit log are on disk and need no
+carrying. A landing-lane attempt already running is detached and finishes on the code it started with; the successor's
+first tick supervises it. A dry run adopts nothing.
+
+**The planners refuse a stale checkout.** The adopted commit is the floor: `plan_wave.py` calls
+`adopt_main.require_current` and, when its checkout does not contain the adopted commit, prints both shas and exits 2
+(`--allow-stale` plans from it knowingly; no adopted commit recorded, as before any loop has run, passes). The floor is the
+adopted commit and not `origin/main`, because a red main is deliberately not adopted.
+
+**Tests.** `test_adopt_main.py` (a scratch repository and its bare origin: adopted, current, red / pending / unrecorded /
+unreadable / garbled CI, a green re-run of a red run, the restart trigger, a tracked modification, the settings file, an
+untracked file, ahead, diverged, off main, a dry run, the guard, a missing GitHub CLI, and `plan_wave.py` refusing) and
+`test_orchestrate_adopt.ps1` (the supervisor against a scratch origin and a fake `-GhExe`: a stable landing adopted between
+units, a red main kept with the unit still running, a landing that changed the supervisor restarting it with its
+arguments, counters and lock, and a dry run).
 
 ## 5. The handoff (`handoff.schema.json`)
 
@@ -963,7 +1012,7 @@ and the terminals mode (13.2). The prototype has never run a real session; the o
 The reboot path is one Startup entry, `cobolnet-autoresume.cmd`, written by `scripts/orchestrator/install-autostart.ps1` (run once
 by the owner; `-DryRun` shows the file, `-Uninstall` removes it). It opens a Windows Terminal window `cobol-supervisor` in the repo
 and runs `scripts/orchestrator/autostart.ps1`, which lives in git: wait 25 s for the desktop, honour a `STOP` file and a waiting
-`OWNER-QUESTIONS.md`, fast-forward the checkout when only the always-dirty settings file is modified (never stash or reset), then run
+`OWNER-QUESTIONS.md`, adopt `origin/main` into the checkout (`adopt_main.py`, section 4.10: the routine the supervisor runs between its units), then run
 `orchestrate.ps1 -Watch` in that window so the owner can watch it, and print what the exit code means.
 
 This replaces the old arrangement (a `%LOCALAPPDATA%\CobolNet` script that started an interactive `claude` session whose prompt had
@@ -1009,7 +1058,7 @@ Python self-tests in the style of `scripts/hooks/test_dispatch_guard.py` (a scri
 exits nonzero on a failure; no framework): `test_alloc.py` (including two real parallel processes allocating
 concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker),
 `test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (rule 0: a loop
-unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_ledger_state.py` (owed until the current stamp is
+unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
 `account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean; a synthesized handoff checked
@@ -1027,8 +1076,8 @@ never relaunched at its head and a new head is eligible again; an exit 2 or 9 is
 and retried once; an exit 8 stops every attempt and names the operator until `clear-halt`; STOP, the hard cap's fleet stop and the
 global stop start nothing, and STOP-UNIT alone (the soft cap) does not stop it; the agent work `next_unit.py` reads; a real detached runner records its outcome; on
 Windows a spawned runner owns a console with no visible window). The
-supervisor's self-test is twelve parallel parts,
-`scripts/orchestrator/test_orchestrate_*.ps1`, sharing the harness `testdata/orchestrate_test_lib.ps1`: they drive the
+supervisor's self-test is thirteen parallel parts,
+`scripts/orchestrator/test_orchestrate_*.ps1` (adoption and the in-place restart, section 4.10: `test_orchestrate_adopt.ps1`), sharing the harness `testdata/orchestrate_test_lib.ps1`: they drive the
 loop with a fake `-ClaudeExe` (`testdata/fake-claude.ps1`) and `open-watchers.ps1` with a fake `wt.exe`
 (`testdata/fake-wt.ps1`), and also cover `start-session.ps1 -ConfigDir`, `stop.ps1`, `steer.ps1` (section 4.8: validation,
 precedence over a synthesized handoff, a steer written while a unit runs, consumption, an orphan `handoff.json`,
