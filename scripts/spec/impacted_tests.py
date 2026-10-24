@@ -20,11 +20,13 @@ How a changed C# file reaches tests:
     attribute, a `using` — reaches every test that executed ANY code in the file, plus every test that executed a
     file NAMING a type the file declares (tier 2: constants and enum values are compiled INTO their consumers);
   * without `--base` (files named on the command line) every file is taken at that file level.
-A changed TEST file reaches tests the same way (the test assemblies are recorded too): an edited test body or a
-theory's harness is tier 1 for the rows that executed it. It also names the tier-0a facts only the diff knows: the
-test METHODS the change adds (no map or timing knows them yet), and the suite tests whose files or keyed entries
-the change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness
-edit reaches every row of its theory, and 68b X's (b4) put 5,774 cases and 62.8 % of the work ahead of its first red.
+A changed TEST file reaches tests the same way (the test assemblies are recorded too): an edited harness — a helper
+a test calls — is tier 1 for the rows that executed it. It also names the tier-0a facts only the diff knows: the
+test METHODS the change ADDS OR EDITS (`tests_changed`, kb/Work PB3190: a hunk inside a test method's attribute
+block, declaration or body, or inside the `[MemberData]` source of a theory — the change's own tests, which the
+batched gate's leg 1 must run, where tier 1 is only budgeted), and the suite tests whose files or keyed entries the
+change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness edit
+reaches every row of its theory, and 68b X's (b4) put 5,774 cases and 62.8 % of the work ahead of its first red.
 
 EVERY TEST IS TIER 1, with the reason printed, whenever the change cannot be attributed: no map for the base, a map
 older than the base by more than documentation (its line numbers describe another tree), a `.g4`, project, build or
@@ -59,11 +61,13 @@ import zlib
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NamedTuple
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts"))
 from test_population import GATED_ASSEMBLIES  # noqa: E402
 import drift_rules  # noqa: E402  (scripts/spec, beside this file)
+import cs_members  # noqa: E402  (scripts/spec, beside this file)
 SCHEMA = 2
 CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
@@ -76,8 +80,7 @@ DOC_GLOBS = ["docs/*", "kb/*", "*.md", ".claude/*", "adjudication/*", "specs/*",
 # Structural inputs: every assembly may change.
 STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
                            r"|^src/Cobol\.Net\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
-TRIVIAL_RE = re.compile(r"^\s*(//.*|/\*.*|\*.*|)$")
-HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@")
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
 #: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
 SUITE_TREES = ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/")
@@ -93,7 +96,7 @@ class Reach:
     direct: int = 0
     widened: int = 0
     direct_names: set[str] = field(default_factory=set)            # display-name substrings reached outside the map
-    added_tests: dict[str, set[str]] = field(default_factory=dict)  # assembly -> test methods the change ADDS
+    changed_tests: dict[str, set[str]] = field(default_factory=dict)  # assembly -> test methods it adds or edits
     goldens: set[str] = field(default_factory=set)                 # suite test ids the change touches
     drift_tests: set[str] = field(default_factory=set)             # drift classes the index says govern a changed file
     every_tier1: list[str] = field(default_factory=list)
@@ -219,18 +222,63 @@ def changed_files(base: str) -> list[tuple[str, str]]:
     return sorted({(s, p) for s, p in out if p and p != "STATUS.md"}, key=lambda x: x[1])
 
 
-def hunks(base: str, path: str) -> list[tuple[int, int, list[str], list[str]]]:
-    """The -U0 hunks of `path` against `base`: (old start, old count, removed lines, added lines)."""
-    out: list[tuple[int, int, list[str], list[str]]] = []
-    for line in git("diff", "-U0", "--no-color", "--no-renames", base, *([HEAD] if HEAD else []), "--", path).splitlines():
+class Hunk(NamedTuple):
+    """One `-U0` hunk: where it sits on each side (a count of 0 is a pure insertion or deletion AFTER that line), the
+    lines it removes and adds, and whether each of them carries code on its side (`cs_members.code_lines`)."""
+    old_start: int
+    old_count: int
+    new_start: int
+    new_count: int
+    removed: list[str]
+    added: list[str]
+    removed_code: list[bool]
+    added_code: list[bool]
+
+    def trivial(self) -> bool:
+        """Whether it changes only comment lines and blank lines outside every string literal."""
+        return not any(self.removed_code) and not any(self.added_code)
+
+
+def parse_hunks(diff: str, old: str, new: str) -> list[Hunk]:
+    """The hunks of one C# file's `git diff -U0` output, whose two sides are the texts `old` and `new` ("" for an
+    absent side). Which lines carry code is read from the LEXED texts (`cs_members.code_lines`), never from a diff
+    line alone: a raw-string line `      *> note` or a blank line inside a string is code (kb/Work PB3190 review R1-1).
+    Every `-`/`+` line after the first hunk header is content, one starting `--`/`++` included (the `---`/`+++` file
+    headers precede the first hunk)."""
+    out: list[Hunk] = []
+    for line in diff.splitlines():
         h = HUNK_RE.match(line)
         if h:
-            out.append((int(h.group(1)), int(h.group(2) if h.group(2) is not None else 1), [], []))
-        elif out and line.startswith("-") and not line.startswith("---"):
-            out[-1][2].append(line[1:])
-        elif out and line.startswith("+") and not line.startswith("+++"):
-            out[-1][3].append(line[1:])
+            out.append(Hunk(int(h.group(1)), int(h.group(2) if h.group(2) is not None else 1),
+                            int(h.group(3)), int(h.group(4) if h.group(4) is not None else 1), [], [], [], []))
+        elif out and line.startswith("-"):
+            out[-1].removed.append(line[1:])
+        elif out and line.startswith("+"):
+            out[-1].added.append(line[1:])
+    old_code, new_code = cs_members.code_lines(old), cs_members.code_lines(new)
+    for h in out:
+        h.removed_code.extend(h.old_start + k in old_code for k in range(len(h.removed)))
+        h.added_code.extend(h.new_start + k in new_code for k in range(len(h.added)))
     return out
+
+
+def text_at(rev: str | None, path: str) -> str:
+    """`path`'s text at the commit `rev` (None: the worktree), unstripped so its line numbers are the diff's. Its
+    callers read a side the file EXISTS on, so a failed read raises: an empty text would make every line of the
+    diff a non-code line, and a real edit would read as nothing changed."""
+    if rev is None:
+        return text_of(REPO / path)
+    r = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=REPO, capture_output=True, text=True, encoding="utf-8",
+                       errors="replace")
+    if r.returncode != 0:
+        raise RuntimeError(f"impacted_tests: git show {rev}:{path} exited {r.returncode}: {r.stderr.strip()}")
+    return r.stdout
+
+
+def hunks(base: str, path: str) -> list[Hunk]:
+    """The -U0 hunks of the C# file `path` against `base`."""
+    return parse_hunks(git("diff", "-U0", "--no-color", "--no-renames", base, *([HEAD] if HEAD else []), "--", path),
+                       text_at(base, path), text_at(HEAD, path))
 
 
 MODIFIERS = r"(?:public|private|protected|internal|static|readonly|sealed|abstract|virtual|override|async|unsafe|new|" \
@@ -241,37 +289,38 @@ DISPATCH_RE = re.compile(r"\b(override|virtual|abstract|extern|partial|new|impli
 TEST_ATTR_RE = re.compile(r"^\s*\[(Fact|Theory|InlineData|MemberData|ClassData)\b")
 
 
-def method_ids(ix: MapIndex, path: str, h: tuple[int, int, list[str], list[str]]) -> int | None:
+def method_ids(ix: MapIndex, path: str, h: Hunk) -> int | None:
     """The entries a hunk changes, or None when it is a DECLARATION change the method level cannot bound."""
-    start, count, removed, added = h
+    start, count = h.old_start, h.old_count
     ranges = [(lo, hi, i) for lo, hi, i in ix.ranges.get(path, []) if lo > 0]
     mask = 0
     if count == 0:  # pure insertion after line `start`
         inside = [i for lo, hi, i in ranges if lo <= start and start + 1 <= hi]
         for i in inside:
             mask |= 1 << i
-        return mask if inside else inserted_members(ix, path, added)
-    for n, text in zip(range(start, start + count), removed):
+        return mask if inside else inserted_members(ix, path, h)
+    for n, code in zip(range(start, start + count), h.removed_code):
         owners = [i for lo, hi, i in ranges if lo <= n <= hi]
         if owners:
             for i in owners:
                 mask |= 1 << i
-        elif not TRIVIAL_RE.match(text):
+        elif code:
             return None  # a declaration line changed or removed: a signature, a constant, a field, an attribute
-    extra = inserted_members(ix, path, added)
+    extra = inserted_members(ix, path, h)
     return None if extra is None else mask | extra
 
 
-def inserted_members(ix: MapIndex, path: str, added: list[str]) -> int | None:
+def inserted_members(ix: MapIndex, path: str, h: Hunk) -> int | None:
     """What ADDED code can change beyond the lines it adds. A new ordinary method runs only when changed code calls
     it — except through overload resolution, so it reaches the tests that reached any same-named method of the
     file's types. Anything that changes dispatch or state for UNCHANGED code — an override, a virtual, an
     operator or conversion, an extension method, a field, property or constant, a type with a base list, an
     attribute — returns None (a declaration change). A new xunit test attribute adds nothing here: the test
-    method it declares is tier 0a (`Reach.added_tests`)."""
+    method it declares or feeds is tier 0a (`Reach.changed_tests`). Only the hunk's added CODE lines are read
+    (`Hunk.added_code`)."""
     mask = 0
-    for line in added:
-        if TRIVIAL_RE.match(line) or TEST_ATTR_RE.match(line):
+    for line, code in zip(h.added, h.added_code):
+        if not code or TEST_ATTR_RE.match(line):
             continue
         if re.match(r"^\s*\[", line):
             return None  # an attribute: read by reflection, not by a call
@@ -448,44 +497,42 @@ def find_map(store: Path, base: str, reach: Reach) -> tuple[dict | None, str]:
     return None, "none"
 
 
-TEST_METHOD_RE = re.compile(r"^\s*(?:(?:public|internal|protected|private|static|async)\s+)*"
-                            r"(?:void|Task|ValueTask)\s+([A-Za-z_]\w*)\s*[(<]")
-
-
-def test_methods(text: str) -> set[str]:
-    """The names of the xunit test methods a C# source declares: the first method declaration after a `[Fact]` or
-    `[Theory]` attribute line (data attributes and other attributes may sit between them)."""
-    names, pending = set(), False
-    for line in text.splitlines():
-        if re.match(r"^\s*\[(Fact|Theory)\b", line):
-            pending = True
-        elif pending and (m := TEST_METHOD_RE.match(line)):
-            names.add(m.group(1))
-            pending = False
-    return names
+def tests_changed(text: str, diff: list[Hunk] | None) -> set[str]:
+    """The xunit test methods of a C# source (`text`, the changed side) that a diff ADDS OR EDITS (kb/Work PB3190): a
+    test method whose lines — its attribute block, its declaration, its body — a hunk touches, and a theory whose
+    `[MemberData]` source a hunk touches (its rows are that member's values). A hunk that changes only comment lines
+    and blank lines outside every string literal touches nothing (`Hunk.trivial`: a string's lines, the embedded COBOL
+    program a test compiles, are code). `diff` None (a new file, or one named without a diff), or a source whose code
+    braces do not balance once lexed (`cs_members.balance`: the spans cannot be trusted): every test method."""
+    found = cs_members.members(text)
+    if diff is None or cs_members.balance(text):
+        return {m.name for m in found if m.test}
+    real = [h for h in diff if not h.trivial()]
+    touched = {m for m in found if any(m.touched_by(h.new_start, h.new_count) for h in real)}
+    sources = {m.name for m in touched if not m.test}
+    return {m.name for m in found if m.test and (m in touched or sources.intersection(m.data))}
 
 
 def reach_test_file(path: str, base: str | None, reach: Reach) -> None:
-    """Tier 0a from the diff alone: the test methods a changed test source file ADDS (every one of them when the file
-    is named without a diff), in each assembly the file is compiled into."""
-    now = test_methods(git("show", f"{HEAD}:{path}") if HEAD else text_of(REPO / path))
-    before: set[str] = set()
-    if base:
-        try:
-            before = test_methods(git("show", f"{base}:{path}"))
-        except subprocess.CalledProcessError:
-            pass  # an added file
-    added = now - before
+    """Tier 0a from the diff alone: the test methods a changed test source file ADDS OR EDITS (`tests_changed`; every
+    one of them when the file is new or named without a diff), in each assembly the file is compiled into."""
+    text = text_at(HEAD, path)
+    existed = base is not None and subprocess.run(["git", "cat-file", "-e", f"{base}:{path}"], cwd=REPO,
+                                                  capture_output=True).returncode == 0
+    changed = tests_changed(text, hunks(base, path) if existed else None)
+    if existed and cs_members.balance(text):
+        reach.notes.append(f"{path}: its code braces do not balance once lexed (cs_members.balance) — every test "
+                           f"method of it is taken as edited")
     for asm in assemblies_of(path):
-        reach.added_tests.setdefault(asm, set()).update(added)
-    if added:
-        reach.notes.append(f"{path}: adds test method(s) {', '.join(sorted(added))} — tier 0a")
+        reach.changed_tests.setdefault(asm, set()).update(changed)
+    if changed:
+        reach.notes.append(f"{path}: adds or edits test method(s) {', '.join(sorted(changed))} — tier 0a")
 
 
 def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reach) -> None:
     if path not in ix.ranges:
         if path.startswith(TEST_PROJECTS):
-            return  # never executed by the recording: its tests are tier 0a, and nothing else runs it
+            return  # never executed by the recording: its added and edited tests are tier 0a (reach_test_file)
         if path not in ix.known:
             reach.every_tier1.append(f"{path}: the map has never seen it (a file NEW since the map's commit)")
             return
@@ -498,7 +545,7 @@ def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reac
     for h in hunks(base, path):
         ids = method_ids(ix, path, h)
         if ids is None:
-            declaration_change(ix, path, base, reach, f"a change at line {h[0]} outside every method")
+            declaration_change(ix, path, base, reach, f"a change at line {h.old_start} outside every method")
             return
         mask |= ids
     reach.direct |= mask
@@ -522,7 +569,8 @@ def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, 
 
 
 def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | None, reach: Reach) -> None:
-    """Fill `reach` for the changed files. The tier-0a facts (added test methods, suite tests) and the tier-0d one (the
+    """Fill `reach` for the changed files. The tier-0a facts (added and edited test methods, suite tests) and the
+    tier-0d one (the
     drift tests the drift-rule index says govern a changed file, kb/Work PB3531) come from the diff alone and are
     gathered with or without a map; the tiers need the map."""
     if changes:
@@ -542,7 +590,7 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
                 continue
             if ix is not None:
                 reach_cs(ix, path, status, base, reach)
-            if path.startswith(TEST_PROJECTS):
+            if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
                 reach_test_file(path, base, reach)
             continue
         if path.startswith("src/"):
@@ -592,8 +640,8 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
     if ix is None:
         return
     # ⛔ A changed entry reached ONLY outside every test's context. In a test file that is xunit DISCOVERY running
-    # a theory's data source — the file is changed, so its classes are already tier 0a; in product code it is a
-    # finalizer or a thread that does not flow the context, and nothing attributes it.
+    # a theory's data source — the theories naming a changed source are already tier 0a (`tests_changed`); in product
+    # code it is a finalizer or a thread that does not flow the context, and nothing attributes it.
     orphan = (reach.direct | reach.widened) & ix.ambient & ~ix.reached
     unattributed = [ix.entries[i][0] for i in bit_ids(orphan)
                     if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
@@ -646,7 +694,7 @@ def plan_json(a: Analysis) -> dict:
     """The analysis as `--plan` writes it — the same one gate_plan.py computes in-process through `analyse`."""
     return {"map": a.map["commit"] if a.map else None, "map_state": a.map_state,
             "every_tier1": a.reach.every_tier1, "tiers": a.tiers,
-            "tier0a": {"added_tests": {k: sorted(v) for k, v in sorted(a.reach.added_tests.items())},
+            "tier0a": {"changed_tests": {k: sorted(v) for k, v in sorted(a.reach.changed_tests.items())},
                        "goldens": sorted(a.reach.goldens)},
             "tier0d": {"drift_tests": sorted(a.reach.drift_tests)},
             "notes": a.reach.notes}
@@ -675,6 +723,7 @@ def synthetic_map() -> dict:
 
 def self_test() -> int:
     """Prove each arm FIRES against a synthetic map (feedback_prove_the_watchdog_fails)."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
     ix = MapIndex(synthetic_map())
     failures = 0
 
@@ -699,16 +748,85 @@ def self_test() -> int:
                      ("a runtime data file puts every test in tier 1", "src/Cobol.Net.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
         check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
-    planted = "\n".join(["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
-                         "    [InlineData(\"x]\")]", "    public async Task B(string s) { }", "    [Fact(Skip = \"y\")]",
-                         "    [Trait(\"k\", \"v\")]", "    public void C<TSlot>() { }",
-                         "    private static int Helper() => 1;", "}"])
-    got = test_methods(planted)
-    check("an added test method is named for tier 0a (Fact, Theory with data, async, generic; never a helper)",
+    planted = ["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
+               "    [InlineData(\"x]\")]", "    public async Task B(string s) { }", "    [Fact(Skip = \"y\")]",
+               "    [Trait(\"k\", \"v\")]", "    public void C<TSlot>() { }",
+               "    private static int Helper() => 1;", "}"]
+    got = tests_changed("\n".join(planted), None)
+    check("a new file's test methods are all tier 0a (Fact, Theory with data, async, generic; never a helper)",
           got == {"A", "B", "C"}, sorted(got))
+    # kb/Work PB3190: an EDITED test method is tier 0a, read from a real `git diff -U0` of the two versions (the
+    # trailing comments are list indices, as `edit` takes them).
+    q = '"'
+    q3 = q * 3
+    edited = ["public sealed class E", "{", "    [Fact]", "    public void Edited()", "    {", "        Run(1);", "    }",
+              "    [Fact]", "    public void Untouched() => Run(2);", "    [Theory]", "    [MemberData(nameof(Rows))]",
+              "    public void Fed(int n) => Run(n);", "    public static TheoryData<int> Rows => new() { 1, 2 };",
+              "    [Theory]", "    [InlineData(1)]", "    public void Inline(int n) => Run(n);",
+              "    private static void Run(int n) { }", "    [Fact]", "    public void Commented() { }",
+              # PB3190 review R1-1: a test's embedded COBOL program, whose lines may look like C# comments or be blank
+              "    [Fact]", "    public void Embedded() => Run(Compile(" + q3,                   # 19, 20
+              "          *> a fixed-form comment line: its column-7 indicator is the input",     # 21
+              "", "          DISPLAY 'X'.", "          " + q3 + "));",                          # 22, 23, 24
+              "    [Fact]", "    public void Verbatim() => Run(Compile(@" + q,                    # 25, 26
+              "-- a verbatim line at column 0", q + "));", "}"]                                 # 27, 28, 29
+
+    def diff_between(old: list[str], after: list[str]) -> list[Hunk]:
+        before, now = "\n".join(old) + "\n", "\n".join(after) + "\n"
+        with tempfile.TemporaryDirectory() as d:
+            a, b = Path(d) / "a.cs", Path(d) / "b.cs"
+            a.write_text(before, encoding="utf-8", newline="\n")
+            b.write_text(now, encoding="utf-8", newline="\n")
+            # `diff --no-index` exits 1 on a difference: the fixture's unchecked form, outside any repository
+            return parse_hunks(ScratchRepo(d).run("diff", "--no-index", "-U0", "--no-color", str(a), str(b)).stdout,
+                               before, now)
+
+    def diff_of(after: list[str]) -> list[Hunk]:
+        return diff_between(edited, after)
+
+    def edit(i: int, line: str | None) -> list[str]:
+        return edited[:i] + ([line] if line is not None else []) + edited[i + 1:]
+
+    edited_row = edited[:15] + ["    [InlineData(2)]"] + edited[15:]
+    cases = [("tier 0a holds an edited test method: a changed line inside an existing test body",
+              edit(5, "        Run(3);"), {"Edited"}),
+             ("tier 0a holds an edited test method: a line deleted from an existing test body",
+              edit(5, None), {"Edited"}),
+             ("tier 0a holds an edited test method: an added data row of an existing theory", edited_row, {"Inline"}),
+             ("tier 0a holds an edited test method: a changed [MemberData] source (its theory's rows)",
+              edit(12, "    public static TheoryData<int> Rows => new() { 1, 3 };"), {"Fed"}),
+             ("tier 0a holds an edited test method: a changed helper is no test's own change (the map tiers its "
+              "callers)", edit(16, "    private static void Run(int n) { _ = n; }"), set()),
+             ("tier 0a holds an edited test method: a comment line added inside a test body",
+              edited[:6] + ["        // why"] + edited[6:], set()),
+             ("tier 0a holds an edited test method: a raw-string line that looks like a comment (the embedded "
+              "program's `*>` line, its indicator moved one column)",
+              edit(21, "           *> a fixed-form comment line: its column-7 indicator is the input"), {"Embedded"}),
+             ("tier 0a holds an edited test method: a blank line inserted into a test's raw string (the embedded "
+              "program's line numbers move)", edited[:23] + [""] + edited[23:], {"Embedded"}),
+             ("tier 0a holds an edited test method: a deleted verbatim-string line that starts `--` (its diff line "
+              "starts `---`, and is content, not a file header)", edit(27, None), {"Verbatim"})]
+    for label, after, want in cases:
+        got = tests_changed("\n".join(after), diff_of(after))
+        check(label, got == want, sorted(got))
+    unbalanced = "\n".join(edited[:-1])   # the class's closing brace lost: the spans cannot be trusted
+    got = tests_changed(unbalanced, diff_of(edited[:5] + ["        Run(3);"] + edited[6:]))
+    check("a source whose braces do not balance once lexed puts every test method it names in tier 0a",
+          got == {"Edited", "Untouched", "Fed", "Inline", "Commented", "Embedded", "Verbatim"}, sorted(got))
     t, reach = tiers_for(["tests/_shared/TestPartitioning.cs"])
-    check("a shared test file is compiled into every assembly", set(reach.added_tests) == set(TEST_ASSEMBLIES.values()),
-          sorted(reach.added_tests))
+    check("a shared test file is compiled into every assembly",
+          set(reach.changed_tests) == set(TEST_ASSEMBLIES.values()), sorted(reach.changed_tests))
+    # A replay (--head) of a commit that DELETES a test file: its text is absent at the head, so reading it crashed
+    # the analysis (19c9289af replayed, 2026-10-23); a deleted file has no test to run.
+    global HEAD
+    saved, HEAD = HEAD, "HEAD"
+    try:
+        reach = Reach()
+        reach_of(None, [("D", "tests/Cobol.Net.Tests.Unit/NoSuchDeletedTests.cs")], "HEAD", reach)
+        check("a replayed deletion of a test file names no test and does not read the absent file",
+              not any(reach.changed_tests.values()), reach.changed_tests)
+    finally:
+        HEAD = saved
     copy = "conformance-suite/cases/7.2.3-COPY/"
     got = [suite_tests(copy + f) for f in ("copy-library-text.cob", "copy-library-text.2002.out", "CSCOPY01.cpy",
                                            "NO-SUCH-TEXT.cpy")]
@@ -744,6 +862,10 @@ def self_test() -> int:
 
     # The method level: the entries a hunk changes (0 = One(), which M1 reached; 1 = Two(), which no test reached),
     # or None for a declaration change, which falls back to the file level.
+    def lexed(lines: list[str]) -> list[bool]:
+        code = cs_members.code_lines("\n".join(lines))
+        return [n in code for n in range(1, len(lines) + 1)]
+
     method_cases = [
         ("a hunk inside an unreached method reaches no test", (32, 1, ["x = 1;"], ["x = 2;"]), {1}),
         ("a hunk inside a reached method changes that method", (12, 1, ["x = 1;"], ["x = 2;"]), {0}),
@@ -754,9 +876,19 @@ def self_test() -> int:
         ("a new ordinary method reaches no test by itself",
          (25, 0, [], ["    private static int Helper(int x)", "    {", "        return x;", "    }"]), set()),
     ]
-    for label, h, want in method_cases:
-        got = method_ids(ix, "src/Cobol.Net.Compiler/A.cs", h)
+    for label, (start, count, removed, added), want in method_cases:
+        got = method_ids(ix, "src/Cobol.Net.Compiler/A.cs",
+                         Hunk(start, count, start, len(added), removed, added, lexed(removed), lexed(added)))
         check(label, (got is None) if want is None else (got is not None and set(bit_ids(got)) == want), got)
+    # The sibling arm of PB3190 review R1-1: a line deleted from a string literal between methods (here a class-level
+    # raw-string constant, lines 24-26 of a planted A.cs) is a declaration change even when it reads like a comment.
+    a_cs = [f"    // line {n}" for n in range(1, 24)] + ["    const string H = " + q3, "      // generated",
+                                                          "      " + q3 + ";", "}"]
+    got = [method_ids(ix, "src/Cobol.Net.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:24] + a_cs[25:])]
+    check("a comment-looking line deleted from a string literal between methods is a declaration change",
+          got == [None], got)
+    got = [method_ids(ix, "src/Cobol.Net.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:1] + a_cs[2:])]
+    check("a real comment line deleted between methods reaches nothing", got == [0], got)
     reach = Reach()
     reach.direct |= 1 << 0
     reach.widened |= ix.expand(1 << 0)
@@ -812,6 +944,8 @@ def main() -> int:
     ap.add_argument("--store", type=Path, help="the map store (default <git common dir>/cobol-impact)")
     ap.add_argument("--plan", type=Path, help="write the tiers (JSON) that gate_plan.py reads to this file")
     ap.add_argument("--explain", action="store_true", help="print every reach decision")
+    ap.add_argument("--audit-members", action="store_true",
+                    help="the C# member reader's net over the gated test projects (cs_members.audit)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
     try:
@@ -821,6 +955,13 @@ def main() -> int:
         pass
     if args.self_test:
         return self_test()
+    if args.audit_members:
+        findings = cs_members.audit([REPO / d for d in TEST_PROJECTS])
+        for f in findings:
+            print(f"  ⛔ {f}")
+        print(f"=== CS MEMBERS AUDIT: {'CLEAN' if not findings else f'{len(findings)} FINDING(S)'} "
+              f"({', '.join(TEST_PROJECTS)})")
+        return 1 if findings else 0
     global HEAD
     HEAD = git("rev-parse", args.head) if args.head else None
     a = analyse(args.base, args.files, args.map, args.store)
@@ -834,7 +975,8 @@ def main() -> int:
             print(f"  {n}", file=err)
     counts = {asm: dict(sorted(Counter(t.values()).items())) for asm, t in sorted(a.tiers.items())}
     print(f"impacted_tests: map {a.map_state}; tiers per assembly {counts or '(no map: every test tier 1)'}; "
-          f"tier 0a: {len(set().union(*a.reach.added_tests.values()))} added test method(s), {len(a.reach.goldens)} "
+          f"tier 0a: {len(set().union(*a.reach.changed_tests.values()))} added or edited test method(s), "
+          f"{len(a.reach.goldens)} "
           f"suite test(s). The gate runs the WHOLE population in this order (scripts/run_gate_legs.py)")
     return 0
 
