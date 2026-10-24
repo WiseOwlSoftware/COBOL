@@ -763,9 +763,8 @@ survived), and the APPLY COMMIT exemption over a RELATIVE file.
 is the antecedent of six syntax rules of CLAIMED clauses and statements: §12.4.5.9.3 SR1 (LOCK MODE), §12.4.6.4.3
 SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN's sharing phrase), §14.9.30.3 SR5 and
 §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2 (UNLOCK). kb/Work PB371 recorded them CONFORMS
-"witnessed by the refusal of the antecedent", but that refusal (the since-retired COBOLNET1709; kb/Work PB3338 and
-PB3340 made the clause accepted for every organization) was `PermissiveInert`, so under `--permissive` every forbidden
-shape compiled clean. They now report through ONE helper,
+"witnessed by the refusal of the antecedent", but that refusal (COBOLNET1709) is `PermissiveInert`, so under
+`--permissive` every forbidden shape compiled clean. They now report through ONE helper,
 `DataBinder.ScreenApplyCommitSubject` (COBOLNET2974), each caller quoting its own rule: the LOCK MODE arm as the
 APPLY COMMIT clause records the fact (the file control entries are bound first), SR11 after the whole I-O-CONTROL
 paragraph (an APPLY COMMIT clause may follow the SAME clause), SR7 in `BindOpen` beside SR8, the lock phrases in

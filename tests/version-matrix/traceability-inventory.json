@@ -16476,13 +16476,13 @@
   "ordinal": 1,
   "subject": "APPLY COMMIT clause",
   "rule-digest": "b3c6f818398b",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; unit:TransactionControlTests.A_commit_saves_the_items_and_a_later_rollback_restores_them_with_the_files; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:CommitRollbackRefusalWitnessTests.A_sequential_operand_puts_the_file_and_its_status_item_under_commit_control",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/TransactionEmitter.cs#EmitActivation; src/Cobol.Net.Runtime/IO/TransactionControl.cs#Activate; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RegisterCommitControl",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; unit:TransactionControlTests.A_commit_saves_the_items_and_a_later_rollback_restores_them_with_the_files",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): The files the clause names, of every organization, and the data items are subject to the facility: TransactionEmitter registers every file of the clause (ApplyCommitModel.Files) and FileRegistry.RegisterCommitControl accepts a sequential connector. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR1: the files and data items listed are subject to the facility — TransactionEmitter registers the keyed files and the items' save/restore at the element's activation (TransactionControl.Activate). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row. retired-witness: conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation) retired-witness: src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause (the commit and rollback facility is provided for the keyed organizations (kb/Work PB3338): the decline these witnessed is gone, and the rule is now witnessed by its own implementation)",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-12.4.6.3.4-2",
@@ -31386,13 +31386,13 @@
   "ordinal": 1,
   "subject": "Execution",
   "rule-digest": "ea17f2dcf2d8",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one; unit:CommitRollbackRuntimeTests.A_run_unit_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#EndTransactions; src/Cobol.Net.Runtime/Control/RunUnit.cs#Terminate",
+  "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one; unit:CommitRollbackRuntimeTests.A_run_unit_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): Normal termination commits every file under commit control, sequential included (FileRegistry.CloseAll -> EndTransactions -> Commit). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. Normal run unit termination commits every keyed file under commit control (FileRegistry.EndTransactions, run from RunUnit.Terminate); an abnormal one rolls the files back (§14.6.12). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row. retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-14.6.11-2",
@@ -34746,13 +34746,13 @@
   "ordinal": 3,
   "subject": "COMMIT statement",
   "rule-digest": "d0885f815266",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it; unit:TransactionControlTests.A_two_file_commit_refused_at_the_second_file_leaves_the_first_committed; unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Commit",
+  "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it; unit:TransactionControlTests.A_two_file_commit_refused_at_the_second_file_leaves_the_first_committed; unit:TransactionControlTests.A_retired_clause_is_not_restored_and_the_next_statement_deactivates_it",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): COMMIT permanently applies the changes of every file in the active clauses, sequential included (FileRegistry.CommitSequential), and deactivates the retired clauses. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR3: the keyed files' changes are made permanent and their record locks released (FileRegistry.Commit, the keyed engine's promotion), files one at a time in the order of the run unit's open stores (cross-file atomicity per file, owner decision kb/Work PB3454); the clauses of exited initial programs and canceled elements are deactivated. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row. retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule) retired-witness: conformance-test:DocumentedNonSupportWitnessTests.CommitRollbackFacility_NamedNonSupportWarning_PinnedToSpec (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule) retired-witness: conformance:wiseowl/cases/14.9.7-COMMIT/pb261_commit_facility_witness (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule) retired-witness: src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-14.9.7.4-4",
@@ -34761,13 +34761,13 @@
   "ordinal": 4,
   "subject": "COMMIT statement",
   "rule-digest": "e957a3dab039",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Commit",
+  "test-ref": "unit:CommitRollbackRuntimeTests.A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): A sequential file closed under commit control keeps its handle and file lock until the COMMIT, which releases it (SequentialConnector.KeepHeld / ReleaseKept), as a keyed file's does. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR4: a keyed file closed under commit control keeps its file lock until the COMMIT, which releases it (a CLOSE under commit control keeps the transaction, kb/Work PB3480). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row. retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule) retired-witness: conformance-test:DocumentedNonSupportWitnessTests.CommitRollbackFacility_NamedNonSupportWarning_PinnedToSpec (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule) retired-witness: conformance:wiseowl/cases/14.9.7-COMMIT/pb261_commit_facility_witness (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-14.9.7.4-5",
@@ -42202,11 +42202,11 @@
   "subject": "ROLLBACK statement",
   "rule-digest": "afa5a42667ac",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback; src/Cobol.Net.Runtime/IO/TransactionControl.cs#RestoreData; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Rollback; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_external_two_elements; unit:CommitRollbackRuntimeTests.Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit; unit:TransactionControlTests.A_rollback_before_any_commit_restores_the_items_as_at_activation_and_the_files_as_at_the_start; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Delete_file_then_recreate_then_rollback_restores_the_file; unit:SequentialCommitControlTests.A_creation_rolled_back_removes_the_file",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback; src/Cobol.Net.Runtime/IO/TransactionControl.cs#RestoreData; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Rollback",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/12.4.6-I-O-CONTROL/pb3338_apply_commit_external_two_elements; unit:CommitRollbackRuntimeTests.Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit; unit:TransactionControlTests.A_rollback_before_any_commit_restores_the_items_as_at_activation_and_the_files_as_at_the_start",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): Every sequential file is restored to the state at the last COMMIT (appends truncated, rewritten records restored, an OPEN OUTPUT's or DELETE FILE's capture restored, a creation removed) and the data items with it; NOT YET a keyed file replaced by an OPEN OUTPUT or removed by a DELETE FILE since the last COMMIT (kb/Work PB3492).",
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. GR3: the keyed files are restored to the last COMMIT or the start of the run unit, their record locks released (FileRegistry.Rollback), then every active clause's data items, the FILE STATUS item included (TransactionControl.Rollback). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row. retired-witness: conformance-test:DeclinedFacilityTests.CommitAndRollback_DrawTheNamedNonSupportWarning_OncePerSite (COBOLNET1579 is retired: COMMIT and ROLLBACK are no longer accept-inert (kb/Work PB3338), and the pb259/pb261 goldens declare no APPLY COMMIT clause, so they witness GR1, not this rule)",
   "state": "GAP"
  },
  {
@@ -54876,13 +54876,13 @@
   "ordinal": 7,
   "subject": "Files",
   "rule-digest": "f2eb7f77be24",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.The_close_keeps_the_file_lock_until_the_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Commit",
+  "test-ref": "unit:CommitRollbackRuntimeTests.Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): COMMIT releases the record locks of every file under commit control, keyed and sequential alike (the sequential connectors' READ locks and kept handles with them, FileRegistry.ReleaseAllKept). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. COMMIT releases the record locks of the keyed files under commit control and deactivates the retired clauses. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.16-p8",
@@ -54891,13 +54891,13 @@
   "ordinal": 8,
   "subject": "Files",
   "rule-digest": "1f4141fe8b62",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Rollback",
+  "test-ref": "unit:CommitRollbackRuntimeTests.Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): ROLLBACK releases the record locks of every file under commit control, keyed and sequential alike (FileRegistry.ReleaseAllKept after the sequential rollback, RollbackSequential). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. ROLLBACK releases the record locks of the keyed files under commit control and deactivates the retired clauses. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.16-p9",
@@ -54921,13 +54921,13 @@
   "ordinal": 1,
   "subject": "Files",
   "rule-digest": "c5e3f6ded6c9",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Commit_then_more_then_rollback",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback",
+  "test-ref": "unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): The logical unit of work is the run unit's changes since the last COMMIT, per file: a keyed file's transaction in its store, a sequential file's in its journal (SequentialTransactions, one per physical file, in the one order of the run unit's open files). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. A logical unit of work runs between COMMITs; its changes to keyed files are held against every other connector (docs/CONFORMANCE.md DOC-A.1-152). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.18.1-p1",
@@ -54936,13 +54936,13 @@
   "ordinal": 1,
   "subject": "Commit and Rollback",
   "rule-digest": "fe846a9df99b",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): The facility is provided for every organization: keyed files in the store engine, sequential files (record sequential, line sequential, the print stream) in the transaction journal. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. The facility's purpose, commit at stages and save data items for a rollback, is provided for keyed files. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.18.2-p1",
@@ -54951,13 +54951,13 @@
   "ordinal": 1,
   "subject": "Commit and Rollback",
   "rule-digest": "29b52bde8f6b",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.IoControl.cs#BindApplyCommitClause",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:wiseowl/cases/12.4.6.3-APPLY-COMMIT/declined-apply-commit",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): Every file 9.1.18.2 admits may be named: the SEQUENTIAL operand is accepted (COBOLNET1709 retired); sort-merge and report files are refused (SR2, COBOLNET4709). Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. Sort-merge and report files are refused (SR2); a mass-storage file of RELATIVE or INDEXED organization is accepted, a SEQUENTIAL one refused by name (COBOLNET1709). PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.18.3-p1",
@@ -54966,13 +54966,13 @@
   "ordinal": 1,
   "subject": "Commit and Rollback",
   "rule-digest": "771c8a781ca0",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit; unit:SequentialJournalTests.First_write_under_extend_then_commit",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Commit; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Commit",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): COMMIT makes the changes permanent: a sequential file is synced, its directory synced and the decision D C synced before the retirement (2.2.2.6), so the state survives a later abnormal termination; witnessed under a death and a power loss at every operation. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
-  "state": "OK"
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. COMMIT makes the keyed files' changes permanent and saves the clauses' data items with the file status, LINAGE and RECORD items. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
+  "state": "GAP"
  },
  {
   "rule-id": "GR-9.1.18.4-p1",
@@ -54982,11 +54982,11 @@
   "subject": "Commit and Rollback",
   "rule-digest": "c8493e449080",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Rollback; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.Rewrite_then_rewrite_again_then_rollback; unit:SequentialJournalTests.Append_then_capture_then_rollback_restores_the_before_file_and_truncates_to_L",
+  "code-location": "src/Cobol.Net.Runtime/IO/TransactionControl.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Rollback",
+  "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): ROLLBACK restores every sequential file (the journal's images, its committed length, its before file; 2.2.2.7) and the keyed files' records; NOT YET a keyed file replaced by an OPEN OUTPUT or removed by a DELETE FILE since the last COMMIT (kb/Work PB3492: the keyed capture verbs ride the journal, design 2.2.2.14, not implemented).",
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. ROLLBACK restores the keyed files and the clauses' data items with the file status items. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
   "state": "GAP"
  },
  {
@@ -54997,11 +54997,11 @@
   "subject": "Commit and Rollback",
   "rule-digest": "189200bfa702",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#EndTransactions; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CommitSequential; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RollbackSequential; src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
-  "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open; unit:SequentialCommitControlTests.Normal_termination_commits_and_abnormal_termination_rolls_back",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#EndTransactions",
+  "test-ref": "unit:CommitRollbackRuntimeTests.Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB3340 (wave 1157): Normal termination commits; abnormal termination rolls back every sequential file (the runtime's own path and, for a kill or a power loss, the next writable OPEN's entry step) and the keyed files' records; NOT YET a keyed file replaced or removed since the last COMMIT (kb/Work PB3492).",
+  "notes": "kb/Work PB3338 (wave 1154): Annex A.4.3 is now PARTIAL (docs/CONFORMANCE.md §5, §4 item 2): the APPLY COMMIT clause, COMMIT and ROLLBACK are provided for RELATIVE and INDEXED files, whose keyed store engine keeps the transaction (kb/Work PB3337); a SEQUENTIAL or LINE SEQUENTIAL file named in the clause is refused by name, COBOLNET1709, its transaction journal being kb/Work PB3340. The derived verdict commit-and-rollback-only that stamped the module DOCUMENTED-NON-SUPPORT is retired. Normal termination commits, abnormal termination rolls the keyed files back. PARTIAL: the rule quantifies over every file subject to commit and rollback, and only the keyed half is provided; the sequential half is kb/Work PB3340's, which claims this row.",
   "state": "GAP"
  },
  {

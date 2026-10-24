@@ -36,10 +36,11 @@
       *> the two UNIT rows. The plain CLOSE below must release both locks
       *> and the CLOSE ... UNIT must release neither.
       *>
-      *> GR9's APPLY COMMIT carve-out is not exercised here: no clause
-      *> names these files. A sequential file's carve-out is the kept
-      *> handle of the transaction journal (kb/Work PB3340), a keyed
-      *> file's the keyed store engine's (kb/Work PB3480).
+      *> GR9's APPLY COMMIT carve-out is not exercised here: these files
+      *> are SEQUENTIAL, for which APPLY COMMIT is still refused
+      *> (COBOLNET1709, kb/Work PB3340); a keyed file's carve-out is the
+      *> keyed store engine's (a CLOSE under commit control keeps the
+      *> transaction, kb/Work PB3480).
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.

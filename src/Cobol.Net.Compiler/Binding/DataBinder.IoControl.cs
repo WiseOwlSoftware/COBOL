@@ -100,11 +100,10 @@ public sealed partial class DataBinder
     /// naming a file of THIS element's FILE-CONTROL paragraph is file-name-1 (SR1; §8.4.2.2.2 gives a file-name no
     /// qualified format, kb/Work PB2040), anything else is identifier-1 — and an inherited GLOBAL file, which SR1 and
     /// SR11 both keep out of a contained element's clause, therefore resolves as an identifier and is refused there.</para>
-    /// <para>A file of any organization on a mass storage device but a sort-merge or report file is accepted (§9.1.18.2:
-    /// <i>"Apart from sort-merge files and report writer files, any type of file on a mass storage device may be
-    /// specified"</i>): the keyed organizations keep the transaction in their store (DESIGN-runtime-library.md 2.2.1.10)
-    /// and the sequential ones — record sequential, line sequential and the print stream — in the transaction journal
-    /// (2.2.2, kb/Work PB3340).</para></summary>
+    /// <para>A file of SEQUENTIAL or LINE SEQUENTIAL organization is accepted by the standard (§9.1.18.2) and refused
+    /// here by name (COBOLNET1709, Annex A.4.1): commit and rollback is provided for the keyed organizations only; the
+    /// sequential transaction journal is kb/Work PB3340. It is still recorded as subject to the clause, so the claimed
+    /// clauses' syntax rules that key on that fact speak about it under <c>--permissive</c> too (kb/Work PB319).</para></summary>
     private void BindApplyCommitClause(Core.ApplyCommitClauseContext apply)
     {
         var clause = ApplyCommit ??= new ApplyCommitModel { At = Edition.Cursor };
@@ -132,6 +131,8 @@ public sealed partial class DataBinder
                 if (clause.Files.Contains(file)) continue;   // a repeated file-name adds nothing (GR1 is about the set)
                 clause.Files.Add(file);
                 file.SubjectToApplyCommit = true;
+                if (file.IsSequential)
+                    Edition.Declined(DiagnosticCatalog.ApplyCommitClauseUnsupported, $"the file '{file.CobolName}'");
                 // §12.4.5.9.3 SR1 — the LOCK MODE clause of the file control entry, bound before this paragraph.
                 ScreenApplyCommitSubject(file, file.LockMode is not null, "LOCK MODE clause",
                     "ISO §12.4.5.9.3 SR1: \"This clause shall not be specified for a file that is the subject of "
@@ -197,8 +198,10 @@ public sealed partial class DataBinder
         // SR9 — "the file status data items and data-items specified in the linage or record clauses of those file
         // descriptions are automatically subject to the APPLY COMMIT clause … and they shall only be specified in the
         // linkage, working-storage or local-storage sections, or in the case of the record clause also in the file section".
-        // Over every file the clause names, sequential and keyed alike (§9.1.18.2; kb/Work PB3340).
-        foreach (var file in clause.Files)
+        // Over the files the clause puts under commit control: a declined SEQUENTIAL operand (COBOLNET1709, a warning
+        // under --permissive) is absent from the clause, so its FILE STATUS, LINAGE and DEPENDING items are not saved by
+        // a COMMIT nor restored by a ROLLBACK that leaves the file itself alone (review finding w1154a R1-4).
+        foreach (var file in clause.CommitControlledFiles)
         {
             using var _ = Edition.At(clause.At);
             var implicitItems = new List<(DataItem Item, string What, bool FileSectionAllowed)>();

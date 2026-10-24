@@ -730,8 +730,7 @@ did. The model is `scripts/models/kept_liveness_model.py` (a self-test every gat
 fork and exec interleaving, the probe's transient answers, a live owner never rolled back, and a watchdog of mutations (the
 disposal that unlocks nothing, the close before the disposal, an interrupted or transiently refused probe read as unavailable,
 an unknowable owner read as dead) each RED on the row it names. The region map: `RegionBase` = 2^62; the five
-Table 19 column bytes at +0..+4 (`RunUnitFileLock`); the store mutex at +0x100; a sequential file's ENTRY MUTEX at +0x102
-(2.2.2.4, always a lock file: the file it guards may not exist); the LOCK-PRESENCE byte at +0x101,
+Table 19 column bytes at +0..+4 (`RunUnitFileLock`); the store mutex at +0x100; the LOCK-PRESENCE byte at +0x101,
 held shared by every handle that holds at least one published record lock, so a statement asks that one byte
 (`PhysicalFileTable.AnotherRunUnitHoldsLocks`) before it pays for a record identity, a SHA-256 and a record byte; the
 record region at 2^62 + 2^60 for 2^60 bytes. On macOS the same bytes are lock files (`SidecarRegionLocks`, kb/Work
@@ -1534,8 +1533,7 @@ their places; what each does changes:
 - **Published record locks** are unchanged (2.2.1.8).
 
 **2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
-bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 + 0x101, a sequential file's entry mutex at
-2^62 + 0x102 (2.2.2.4; `HostRegionLocks.EntryMutexByte`, held as a lock file on every host), the hashed record region at 2^62 + 2^60
+bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 + 0x101, the hashed record region at 2^62 + 2^60
 — stays, held through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files
 of `SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
 `RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (`PagedFile.FormatPages` pages of 4 096 bytes, which the comment on
@@ -2589,12 +2587,8 @@ written at the COMMIT bullet and asked in PB3330.
 
 #### 2.2.2 The sequential organization under APPLY COMMIT — the transaction journal (kb/Work PB3340)
 
-⛔ **STATUS.** IMPLEMENTED by kb/Work PB3340 (wave 1157, 2026-10-23): the journal is `IO/Sharing/SequentialJournal.cs`, the
-run unit's transactions `IO/Sharing/SequentialTransactions.cs` (owned by `FileRegistry`), the covered connector
-`IO/SequentialConnector.CommitControl.cs`, the entry step `FileConnector.EnterPhysicalFile`, the seam `IO/IHostMedium.cs`, and
-its rows run over real bytes in `SequentialJournalTests` and `SequentialCommitControlTests` through the fault-injecting medium
-(`FaultHostMedium`, 2.2.2.12). The text below is the DESIGN of 2026-10-19 (the Mythos lane, kb/Work PB3426; the tier-2 memo
-PB3420 orders), followed by the implementation (CLAUDE.md rule 2), and CORRECTED the same day after the branch review
+⛔ **STATUS.** This section is the DESIGN of 2026-10-19 (the Mythos lane, kb/Work PB3426; the tier-2 memo PB3420 orders),
+written before PB3340 implements it and followed by it (CLAUDE.md rule 2), and CORRECTED the same day after the branch review
 found two compositions the first text got wrong (findings R1-1 and R1-2 in `kb/Work/PB3426.md`: a REWRITE journaled after a
 capture, and a created file left in place by a rollback). The correction is not another prose round: the protocol below is
 EXECUTED by `scripts/models/sequential_journal_model.py` (2.2.2.12), a self-test every gate and CI run, over every program of
@@ -2915,9 +2909,8 @@ a dead run unit's rollback.
 EXTEND, I-O; any posture, any run unit, covered or not), at every DELETE FILE, and at a covered connector's first change —
 under the entry mutex, which the statement then keeps through its own host open, creation, capture or drawing — the
 connector lists F's lock directory for `txn-*` names and, for each transaction id: its holder held → a live transaction,
-whose holdings the entering statement's test then meets (a REPLACED one: '61' to a writable OPEN and '62' to a DELETE FILE,
-§9.1.13.9 2)'s file sharing conflict of that statement; a base one:
-'51' to a WRITE, to a READ or REWRITE of a held ordinal, and '61' to an OPEN OUTPUT or '62' to a DELETE FILE, which need no other
+whose holdings the entering statement's test then meets (a REPLACED one: '61' to a writable OPEN and a DELETE FILE; a base one:
+'51' to a WRITE, to a READ or REWRITE of a held ordinal, and '61' to an OPEN OUTPUT or DELETE FILE, which need no other
 transaction on the file at all); its holder free → SETTLED, from the record: no record, or a torn header → litter (the holder,
 a before file, the record: deleted); the decision `C` or `R` → the retirement completed; open → the rollback of 2.2.2.7. At the
 entry of every WRITE, READ not IGNORING LOCK and REWRITE through a connector whose file lock admits another run unit's writer
@@ -3012,19 +3005,12 @@ each witness RED under its mutation on its own (a RED from some other row proves
 finding: under R3-1 the R2-1 row was GREEN under its own mutation while the arm passed on the in-flight twin other rows
 reached), so a later change that weakens the oracle, the fault injector or a row fails the gate instead of leaving a
 watchdog that no longer bites (`--mutations` runs that arm alone, `--mutation <name>` applies one to a hand sweep). It models the PROTOCOL, not the bytes (a record is a token,
-L a count, a checksum "the record is whole or it is not"); the bytes are PB3340's, whose **`IHostMedium` seam** (`IO/IHostMedium.cs`) — `HostFile`'s
-roles that change a file or a name (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, `OpenTransient` for the
-journal's files, the removal of a file, `SyncDirectory`, the lock-directory listing, the holder's publication and probe, the
-retirement of a name and of the directory, the entry mutex) made instance-scoped on the run unit (`FileRegistry.Medium`, handed
-to every sequential connector and journal through `SequentialTransactions`; the production implementation is
-`HostMedium.Production`, which is `HostFile` and nothing else, as `RunUnitPageMedium` is the production `IPageMedium`), with a
-test medium (`FaultHostMedium`, the unit tests') that logs every operation, REFUSES the n-th, DIES at it (the run unit's handles
-and holders closed as a killed process's, its unsynced writes kept), or LOSES POWER at it (every file keeps its last synced
-bytes and, only when a directory sync made it durable, its name — or, in the adversarial mode, every physical file keeps what
-the operating environment was handed while the journal's files keep only what was synced), `SharedExtendOpenDriftTests`' ban on
-every other host-path open under `Runtime/IO` and `SequentialJournalSeamDriftTests`' ban on every host change past the medium in
-the connector and the journal making the seam complete — re-runs the same rows over real files, framings and CRCs. The
-keyed organizations keep their own seam (`IPageMedium`, 2.2.1.12). The
+L a count, a checksum "the record is whole or it is not"); the bytes are PB3340's, whose **`IHostMedium` seam** — `HostFile`'s
+roles (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, the lock-directory and lock-holder roles) made
+instance-scoped on the run unit (`FileRegistry` takes an `IHostMedium` whose production implementation is today's static
+`HostFile`, as `RunUnitPageMedium` is the production `IPageMedium`), with a test medium that logs every operation, REFUSES
+the n-th, DIES at it, or keeps or loses any subset of the unsynced writes, `SharedExtendOpenDriftTests`' ban on every other
+host-path open under `Runtime/IO` making the seam complete — re-runs the same rows over real files, framings and CRCs. The
 rows, each a named scenario of the model and each run there in the refusal, death and power-loss modes at every operation and
 with the second run unit at every boundary; the expected state in every row is I1's:
 
@@ -3049,7 +3035,7 @@ with the second run unit at every boundary; the expected state in every row is I
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
-**2.2.2.13 What the design deletes, keeps and measures.** Deleted: the refusal of the sequential operand of an APPLY COMMIT clause, COBOLNET1709 (retired, never reallocated), with `FileModel.IsCommitControlled` and `ApplyCommitModel.CommitControlledFiles`, which only narrowed the clause to its keyed files: every file the clause names is under commit control.
+**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the sequential operand of an APPLY COMMIT clause is refused by name today (COBOLNET1709; kb/Work PB3338 provides the keyed organizations).
 Kept, unchanged in contract: every verb arm of `SequentialConnector`, `OverwriteInPlace` as the one in-place overwrite,
 `ReleaseRecord` as the one release, `SharedAppendStream`, the region map (one new byte kind, `EntryMutexByte`, in 2.2.1.8's
 map, expressed by `SidecarRegionLocks` on every host), `SidecarLockFiles`' holder, probe and retirement rules (the holder file

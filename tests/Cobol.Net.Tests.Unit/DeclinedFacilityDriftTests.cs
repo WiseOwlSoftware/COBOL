@@ -122,7 +122,7 @@ public sealed class DeclinedFacilityDriftTests
         Assert.DoesNotContain("VisitNoSuchDeclinedClause(", pass, StringComparison.Ordinal);
     }
 
-    /// <summary>The declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
+    /// <summary>The three declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
     /// the whole band different from the §4.2.6 processor-dependent band (COBOLNET1578/1579/1580, Warning).
     /// Annex A.4.1: an implementation "shall accept the syntax … for an optional element ONLY when support for
     /// that language element is claimed", so accepting a declined element's syntax is itself the
@@ -135,6 +135,7 @@ public sealed class DeclinedFacilityDriftTests
         foreach (var d in new[]
                  {
                      DiagnosticCatalog.ValidateDataDivisionClauseUnsupported,
+                     DiagnosticCatalog.ApplyCommitClauseUnsupported,
                      DiagnosticCatalog.DeclinedModuleExceptionName,
                  })
         {
@@ -143,15 +144,12 @@ public sealed class DeclinedFacilityDriftTests
         }
     }
 
-    /// <summary>The band's codes are 1708 and 1710 and nothing else carries them — the allocation this cluster claimed. A
-    /// collision is how the shipped COBOLNET1573 two-meanings defect happened. COBOLNET1709 (the declined SEQUENTIAL operand of
-    /// APPLY COMMIT) is RETIRED since kb/Work PB3340 provided the sequential transaction journal: no descriptor carries it,
-    /// and it is never reallocated.</summary>
+    /// <summary>The three codes are 1708/1709/1710 and nothing else carries them — the allocation this cluster
+    /// claimed. A collision is how the shipped COBOLNET1573 two-meanings defect happened.</summary>
     [Fact]
     public void TheDeclinedBand_OwnsItsCodesExclusively()
     {
-        foreach (string code in new[] { "COBOLNET1708", "COBOLNET1710" })
+        foreach (string code in new[] { "COBOLNET1708", "COBOLNET1709", "COBOLNET1710" })
             Assert.Single(DiagnosticCatalog.All, d => d.Code == code);
-        Assert.DoesNotContain(DiagnosticCatalog.All, d => d.Code == "COBOLNET1709");
     }
 }
