@@ -45,6 +45,16 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
         HostFile.PhysicalFileComparer.Equals(HostPath, hostPath)
         && (Identity is not { } kept || HostFile.IdentityAt(hostPath) is not { } now || now == kept);
 
+    /// <summary>Whether the state still holds the file against another opener: its handle, or its published file lock.</summary>
+    internal bool HoldsTheFile => Handle is not null || FileLock?.Column is not null;
+
+    /// <summary>The Table 19 column of the OPEN whose CLOSE kept this state (<c>FileConnector.KeptOpenColumn</c>).</summary>
+    internal ExistingSharingColumn? OpenColumn { get; init; }
+
+    /// <summary>The Table 19 column the state holds the file in: its file lock's, or — the host publishing none (a NO OTHER
+    /// handle's share mode is its lock) — its OPEN's, while its handle stands.</summary>
+    internal ExistingSharingColumn? Column => FileLock?.Column ?? (Handle is not null ? OpenColumn : null);
+
     /// <summary>The run unit's transaction on the physical file, 0 while none.</summary>
     internal ulong OpenTransaction => Store.Transaction;
 

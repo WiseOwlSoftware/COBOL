@@ -588,7 +588,7 @@ public abstract class KeyedConnector : FileConnector
             {
                 _kept = new KeptFile(new KeptHandle(_store!, _handle!, _regions!, _store!.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, HostShare),
                     Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, AttachedStore, SharedStores,
-                    Restoring);
+                    Restoring) { OpenColumn = KeptOpenColumn };
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
             else
