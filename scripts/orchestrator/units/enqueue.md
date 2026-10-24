@@ -37,7 +37,7 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
      operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
-   - `STOPPED`: `CONFLICT` (exit 4, before or after the gate), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5:
+   - `STOPPED`: `CONFLICT` (exit 4, bringing main in), `UNTESTED` (exit 13: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
      a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
      or a DEVLOG refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch

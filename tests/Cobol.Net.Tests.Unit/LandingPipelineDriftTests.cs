@@ -124,7 +124,7 @@ public sealed class LandingPipelineDriftTests
         string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
         int guard = body.IndexOf("if st != ruleset.ACTIVE:", StringComparison.Ordinal);
         Assert.True(guard > 0, "enqueue.py's land() no longer tests the merge queue for ACTIVE");
-        foreach (string step in new[] { "merge_main(wt", "gates(wt)", "(stamp or _stamp)", "queue(wt" })
+        foreach (string step in new[] { "tested(wt", "merge_main(wt", "(rc := gate_once(", "(stamp or _stamp)", "queue(wt" })
         {
             int at = body.IndexOf(step, StringComparison.Ordinal);
             Assert.True(at > guard, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the queue guard")}");

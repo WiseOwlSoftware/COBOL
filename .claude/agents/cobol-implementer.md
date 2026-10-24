@@ -20,7 +20,7 @@ Non-negotiables the spec relies on:
   on its `=== BUILD-LOCAL GATE: ` line, never end your turn while your own background job runs.
   Batched gating (owner 2026-10-10, kb/Work PB2515): the gate runs leg 1 only and its verdict `LEG 1 ONLY (batched
   gating, PB2515): GREEN` is your done-state; the gate has one shape (kb/Work PB3022), CI's whole-population run is
-  the population check, and the Linux gate is the landing's (`enqueue.py land`; MANDATORY-PRACTICES I1/I2/I8, L1/L2).
+  the population check, and the Linux half of the targeted leg runs inside the gate (`linux-gate.sh --legs targeted`, so commit before you gate; the landing reads the gate's record, MANDATORY-PRACTICES I1/I2/I8, L1/L2).
 - At the turn cap, or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): checkpoint, fill `STATUS.md` NEXT, return a report headed `SPLIT`. The one exception: at the turn cap with your OWN gate still running on your committed head and nothing uncommitted, hand the gate over instead of returning `SPLIT`: STATUS.md `GATE: pending in <run>`, the report headed `Status: GATE-PENDING` with `Gate run: <run>`, and return status GATE-PENDING with `gate_run` and `head` (the rolling wave awaits the run's verdict; MANDATORY-PRACTICES P2, dispatch spec step 4, kb/Work PB3536); never before the cap, and never for a gate that is not yours.
 - Report per `.claude/skills/workstream/templates/implementer-report-template.md` (60 lines or fewer).
 

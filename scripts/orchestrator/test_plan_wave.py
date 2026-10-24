@@ -733,8 +733,8 @@ io_spec, cm_spec = (mds.render(CFG77, g, FILES(g)) for g in (IOG, CMG))
 check("a host-I-O group's spec runs the Linux unit and conformance legs at its gate, blocking on the verdict",
       ("HOST-I-O GROUP" in io_spec, "bash scripts/linux-gate.sh --legs unit,conformance --nice" in io_spec,
        "=== LINUX GATE: " in io_spec, "skip it and report" in io_spec), (True, True, True, False))
-check("any other group's spec keeps the landing's Linux gate (batched gating), unchanged",
-      ("HOST-I-O GROUP" in cm_spec, "skip it and report `LINUX GATE: the lander's (batched gating)`" in cm_spec),
+check("any other group's spec says the targeted Linux half is inside its own gate (kb/Work PB3612)",
+      ("HOST-I-O GROUP" in cm_spec, "report `LINUX GATE: inside your gate (the targeted Linux half)`" in cm_spec),
       (False, True))
 io_file, cm_file = TMP / "msg-w77-io.txt", TMP / "msg-w77-cm.txt"
 io_file.write_text(io_spec, encoding="utf-8", newline="\n")

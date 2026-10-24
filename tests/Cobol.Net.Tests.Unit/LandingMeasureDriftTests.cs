@@ -79,7 +79,8 @@ public sealed class LandingMeasureDriftTests
     public void TheQueueStep_WritesTheLandingRecord()
     {
         string source = File.ReadAllText(TestRepo.Scripts("orchestrator", "enqueue.py"));
-        Assert.Contains("measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes)", source);
+        Assert.Contains("measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None)", source);
+        Assert.Contains("measure=lambda wt, branch, pr, gates_run: measure_landing(wt, branch, pr, None, gates_run)", source);
         Assert.Contains("landing_measure.record_enqueued(", source);
     }
 }
