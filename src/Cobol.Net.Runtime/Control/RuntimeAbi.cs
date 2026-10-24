@@ -30,7 +30,7 @@ public static class RuntimeAbi
     /// changes: <c>CallEmitter.CrossingOf</c>, <c>ProgramEmitter.FormalCrossing</c> / <c>FormalCarrierType</c>, the
     /// profile and width <c>CallEmitter.RegisteredFormal</c> / <c>RegisteredReturning</c> register, or the BY VALUE
     /// landing's arguments.</summary>
-    public const int CallAbi = 1;
+    public const int CallAbi = 2;
 
     /// <summary>Why a module compiled against <paramref name="runtimeVersion"/> and <paramref name="callAbi"/> cannot
     /// run on this runtime, or null when it can: the runtime MAJOR must equal this runtime's (a different major is a
