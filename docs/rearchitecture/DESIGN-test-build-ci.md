@@ -2201,8 +2201,18 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    the review stamp (step 2; exit 11); MERGE
    `origin/main` into the branch — not a rebase, corrected at implementation: a branch that merged a same-file
    predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
-   again, and the queue lands by merge commit anyway (a conflict stops it, exit 4: the merge is aborted, the branch's
-   report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves); run the ONE local gate on the
+   again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
+   PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
+   entry to (`wiseowl/diagnostics.json` and `options.json`, the traceability inventory, `constructs.json`), the work notes
+   two branches append to, and the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
+   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit).
+   `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
+   `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
+   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
+   (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
+   resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
+   report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
+   origin/main --keep`); run the ONE local gate on the
    merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
    gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
    PB3527; a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an

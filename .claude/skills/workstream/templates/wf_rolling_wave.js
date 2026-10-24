@@ -114,7 +114,7 @@ function fixGate(g, r, v, round) {
   return agent(
     AUTH + `You are the wave-${W} GATE FINISHER for group ${g.letter} (${g.notes}), gate round ${round} (kb/Work PB3536). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are implemented on the branch. ` +
-    `FIRST \`git merge ${r.branch}\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
+    `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
     `Its gate (run ${r.gate_run}) ended: ${v.line} — read that run's verdict.json, its leg logs and not-run files, and fix every red at its root with the sibling sweep (a gate that DIED or was NOT RUN with no red of the change needs only the re-gate). ` +
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
@@ -285,7 +285,7 @@ function successorNote(g) {
   const review = p.review || `none (it returned ${p.status}, unfinished)`
   return `⛔ SAME-FILE SUCCESSOR: your predecessor group ${g.after} (${p.notes}) ended ${p.status}, review ${review}, on its FINAL branch ${p.branch} ` +
     `(worktree ${p.worktree}, head ${p.head}, report ${p.report}${p.review ? `, review findings ${findingsFile({ letter: g.after })}` : ''}). ` +
-    `FIRST \`git merge ${p.branch}\` (head ${p.head}) into your branch, then read that ` +
+    `FIRST \`python scripts/merge_drivers.py merge ${p.branch} --keep\` (head ${p.head}) into your branch, then read that ` +
     `report's "For the next implementer" section and its STATUS.md as your orientation for the shared file — run ` +
     `\`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${p.worktree}\` and read ONLY the commits it lists beyond the summary. ` +
     `Its notes are its own: never flip them or list them as yours. ` +
@@ -370,7 +370,7 @@ function fixFindings(g, r, v, round) {
   return withCeiling(agent(
     AUTH + `You are the wave-${W} REVIEW FINISHER for group ${g.letter} (${g.notes}), after branch review round ${round} (kb/Work PB3027). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are already implemented on the reviewed branch. ` +
-    `FIRST \`git merge ${r.branch}\` into your branch (the reviewed head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
+    `FIRST \`python scripts/merge_drivers.py merge ${r.branch} --keep\` into your branch (the reviewed head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
     `The reviewer recorded ${v.findings} blocking finding(s): \`python scripts/orchestrator/review_findings.py show ${findingsFile(g)} --round ${round}\`. Answer EVERY BLOCKING one by its id: fix it at its root, with a regression test or golden and the sibling sweep, or answer no_change_needed with the reason. A LEAD (not blocking) is already listed in the report's "## Review findings": fix it when it sits in a file you change anyway (I9), else leave it for the clerk. ` +
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and its "## Review findings" section keeps every LEAD line and gains one line per blocking finding id: fixed (the commit) or no_change_needed (the reason). ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
