@@ -34,5 +34,12 @@ refusing) and `test_orchestrate_adopt.ps1` (a stable landing adopted between uni
 kept and the unit still runs; a supervisor change restarting it with arguments, counters and the lock handed over; a
 dry run). Also green: the core, ledger and autostart supervisor parts and `test_plan_wave.py` (338/338).
 
+Review round 1 (R1-1, blocking): the restart trigger was computed only from the adoption's own fast-forward, but the
+attended session also fast-forwards the checkout by hand when `ledger_state.py` says a ledger publish is owed, after which
+`adopt` reports `current` and a supervisor on an older script ran on indefinitely. Fixed at the root: the supervisor passes
+the checkout HEAD it loaded its script at (`--loaded`), and `supervisor_changed` is now the diff of `SUPERVISOR_FILES`
+between that commit and the checkout now, in every outcome. `test_adopt_main.py` section 4b covers a hand fast-forward
+(current), a kept outcome, no loaded commit and an unreadable one; `test_orchestrate_adopt.ps1` still proves the wiring.
+
 Sweep: the other readers of the checkout (`work.py`, `alloc.py`, `next_unit.py`) are called by the supervisor and the
 units after the adoption, so they read the adopted tree; only `plan_wave.py` plans from it and carries the guard.

@@ -99,11 +99,34 @@ r = am.adopt(REPO, COORD, rerun)
 check("a red run followed by a green re-run is stable", (r.action, head()), (am.ADOPTED, new))
 
 # 4. the supervisor's own script changed: flagged, so the supervisor restarts itself
+loaded = head()   # the commit the running supervisor loaded its script at
 new = land("a process fix", {"scripts/orchestrator/orchestrate.ps1": "v2\n"})
-r = am.adopt(REPO, COORD, GREEN)
+r = am.adopt(REPO, COORD, GREEN, loaded=loaded)
 check("a changed orchestrate.ps1 is the restart trigger", (r.action, r.supervisor_changed, r.changed),
       (am.ADOPTED, True, ("scripts/orchestrator/orchestrate.ps1",)))
 check("its line says so", "restarts" in r.line, True)
+check("a supervisor that loaded the adopted commit has nothing to restart for", am.adopt(REPO, COORD, GREEN, loaded=head()).supervisor_changed, False)
+
+# 4b. the restart does not depend on WHO fast-forwarded the checkout (review R1-1): the attended session runs
+# `git merge --ff-only origin/main` by hand when ledger_state.py says a ledger publish is owed, and the next adopt then finds
+# the checkout current; the supervisor that loaded the older script must still be told to restart, in every outcome.
+PENDING = gh_says([{"status": "in_progress", "conclusion": ""}])
+new = land("a second process fix", {"scripts/orchestrator/orchestrate.ps1": "v3\n"})
+scratch.git("fetch", "-q", "origin", "main")
+scratch.git("merge", "-q", "--ff-only", new)   # by hand, CI not consulted
+r = am.adopt(REPO, COORD, PENDING, loaded=loaded)
+check("a hand fast-forward is still seen: current, restart flagged", (r.action, r.supervisor_changed, r.changed),
+      (am.CURRENT, True, ("scripts/orchestrator/orchestrate.ps1",)))
+check("... and nothing asked CI", PENDING.asked, [])
+land("an unstable landing", {"kb/Work/PB8.md": "h\n"})
+r = am.adopt(REPO, COORD, PENDING, loaded=loaded)
+check("a kept outcome flags the restart too", (r.action, r.supervisor_changed), (am.KEPT, True))
+check("a caller that holds no loaded commit is never told to restart", am.adopt(REPO, COORD, PENDING).supervisor_changed, False)
+check("a loaded commit git cannot read never restarts the supervisor",
+      am.adopt(REPO, COORD, PENDING, loaded="0" * 40).supervisor_changed, False)
+check("the unchanged-script landing does not flag a supervisor loaded after the fix",
+      am.adopt(REPO, COORD, PENDING, loaded=head()).supervisor_changed, False)
+am.adopt(REPO, COORD, GREEN)   # adopt the unstable landing once CI is green: the next sections start from origin/main
 
 # 5. a tracked modification blocks (never stashed); the settings file and an untracked file do not
 land("another landing", {"kb/Work/PB4.md": "d\n"})

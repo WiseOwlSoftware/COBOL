@@ -599,7 +599,11 @@ the adopted commit in `<coord>/adopted-main.json`.
 
 **The supervisor adopts itself.** `SUPERVISOR_FILES` (today `orchestrate.ps1`, the one file the running process holds in
 memory; every other loop file is read afresh at each use: the Python tools, `units/*.md`, `handoff.schema.json`,
-`steer.ps1`) names what needs a restart. When the fast-forward changed one, the supervisor re-executes
+`steer.ps1`) names what needs a restart. The trigger does not depend on who moved the checkout: the supervisor records the
+checkout's HEAD when it loads its script and passes it as `adopt_main.py adopt --loaded=<sha>`, and `supervisor_changed` is
+whether `SUPERVISOR_FILES` differ between that commit and the checkout now, in every outcome (adopted, current, kept), so
+the attended session's own `git merge --ff-only origin/main` (which `ledger_state.py` asks for when a ledger publish is
+owed) restarts the supervisor too. When one differs, the supervisor re-executes
 `orchestrate.ps1` from the checkout, still between units: it releases the lock, runs the successor with its own arguments
 (`-Unit`, consumed at start, excepted; `-Cluster` as the lanes still running) plus the counters it keeps in memory
 (`-CarryFailures`, `-CarryRan`, `-CarryLastStarted`: the circuit breaker, `-MaxUnits` and the campaign alternation survive),

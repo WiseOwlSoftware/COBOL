@@ -11,7 +11,9 @@ planner that predated the planner on main. The owner (2026-10-24 ~10:58 PDT, kb/
 up landed changes itself. We should adopt efficiency improvements as soon as they are available and stable".
 
 `adopt` is called by the supervisor (orchestrate.ps1) BETWEEN units, when no unit runs, and by autostart.ps1 before the
-supervisor starts; nothing else fast-forwards the checkout. It adopts origin/main only when
+supervisor starts. It is NOT the only thing that moves the checkout: the attended session fast-forwards it by hand when
+ledger_state.py says a ledger publish is owed (`git merge --ff-only origin/main`), and `adopt` then finds nothing left to
+do. It adopts origin/main only when
   AVAILABLE  the checkout is on main, fetched origin/main is ahead of it (a fast-forward, never a merge or a reset) and
              nothing TRACKED but `.claude/settings.local.json` is modified (never a stash), and
   STABLE     CI's push run on main (`build-and-test.yml`) at that commit has SUCCEEDED. A red, pending or unrecorded run,
@@ -20,8 +22,11 @@ supervisor starts; nothing else fast-forwards the checkout. It adopts origin/mai
 and it records the adopted commit in `<coord>/adopted-main.json`, the floor `require` (the planner's guard) reads: a
 checkout that does not contain the adopted commit is behind it, and a planner run from it names both shas and refuses
 (plan_wave.py --allow-stale overrides). `supervisor_changed` is true when the fast-forward changed a file the running
-supervisor holds in memory (SUPERVISOR_FILES): the supervisor then restarts itself in place before its next unit. Every
-other file the loop uses (the Python tools, units/*.md, handoff.schema.json, steer.ps1) is re-read at each use, so a
+supervisor holds in memory (SUPERVISOR_FILES): the supervisor then restarts itself in place before its next unit.
+That flag does NOT depend on who moved the checkout. The supervisor passes `--loaded <sha>`, the checkout's HEAD when it
+loaded its script, and `supervisor_changed` is whether SUPERVISOR_FILES differ between that commit and the checkout NOW,
+in every outcome (adopted, current or kept): a fast-forward done by hand between two iterations is seen exactly as one
+done by `adopt`. Every other file the loop uses (the Python tools, units/*.md, handoff.schema.json, steer.ps1) is re-read at each use, so a
 fast-forward is all their adoption needs.
 """
 from __future__ import annotations
@@ -72,7 +77,7 @@ class Adoption:
             return sha[:9] or "?"
         moved = f"{short(self.before)}..{short(self.after)}" if self.action == ADOPTED else short(self.after)
         return (f"adopt main: {self.action} {moved} (origin/main {short(self.target)}): {self.reason}"
-                f"{'; the supervisor itself changed, so it restarts before the next unit' if self.supervisor_changed else ''}")
+                f"{'; the supervisor itself changed since it loaded, so it restarts before the next unit' if self.supervisor_changed else ''}")
 
 
 def _git(repo: pathlib.Path, *args: str) -> tuple[int, str]:
@@ -126,8 +131,24 @@ def tracked_changes(repo: pathlib.Path) -> list[str]:
     return [l for l in out.splitlines() if l.strip() and SETTINGS not in l]
 
 
-def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_run: bool = False) -> Adoption:
-    gh = gh or real_gh
+def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_run: bool = False, loaded: str = "") -> Adoption:
+    """Fast-forward the checkout when it is available and stable, and say whether the supervisor must restart.
+    `loaded` is the checkout's HEAD when the calling supervisor loaded its script ("" for a caller that holds none)."""
+    r = _decide(repo, cdir, gh or real_gh, dry_run)
+    changed = supervisor_files_changed(repo, loaded, r.after) if loaded else ()
+    return dataclasses.replace(r, supervisor_changed=True, changed=changed) if changed else r
+
+
+def supervisor_files_changed(repo: pathlib.Path, loaded: str, now: str) -> tuple[str, ...]:
+    """The SUPERVISOR_FILES that differ between the commit the running supervisor loaded and the checkout's HEAD now,
+    however the checkout got there. An unreadable commit (a pruned sha) answers nothing changed, never a restart loop."""
+    if not now or loaded == now:
+        return ()
+    rc, out = _git(repo, "diff", "--name-only", loaded, now, "--", *SUPERVISOR_FILES)
+    return tuple(f for f in out.splitlines() if f) if rc == 0 else ()
+
+
+def _decide(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh, dry_run: bool) -> Adoption:
     rc, head = _git(repo, "rev-parse", "HEAD")
     if rc != 0:
         return Adoption(KEPT, "", "", "", f"{repo} is not a git checkout ({head.splitlines()[0] if head else 'no answer'})")
@@ -161,9 +182,8 @@ def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_r
     rc, out = _git(repo, "merge", "--ff-only", "--quiet", target)
     if rc != 0:
         return kept(f"git merge --ff-only {target[:9]} refused ({out.splitlines()[0] if out else 'no answer'})", target)
-    changed = tuple(f for f in _git(repo, "diff", "--name-only", head, target, "--", *SUPERVISOR_FILES)[1].splitlines() if f)
     record(cdir, target, head)
-    return Adoption(ADOPTED, head, target, target, why, bool(changed), changed)
+    return Adoption(ADOPTED, head, target, target, why)
 
 
 def record(cdir: pathlib.Path, sha: str, previous: str) -> None:
@@ -198,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--coord")
     ap.add_argument("--gh", default="gh", help="the GitHub CLI executable (a test seam: the self-tests name a fake)")
     ap.add_argument("--dry-run", action="store_true", help="adopt: decide, but move nothing and record nothing")
+    ap.add_argument("--loaded", default="", help="adopt: the checkout's HEAD when the calling supervisor loaded its script")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     try:
@@ -209,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
         problem = require_current(repo, cdir)
         print(problem or f"checkout is at or past the adopted commit ({adopted_sha(cdir)[:9] or 'none adopted'})")
         return 2 if problem else 0
-    r = adopt(repo, cdir, lambda rp, args: real_gh(rp, args, a.gh), dry_run=a.dry_run)
+    r = adopt(repo, cdir, lambda rp, args: real_gh(rp, args, a.gh), dry_run=a.dry_run, loaded=a.loaded)
     print(json.dumps({**dataclasses.asdict(r), "line": r.line}) if a.json else r.line)
     return 0
 
