@@ -73,6 +73,37 @@ public sealed class FunctionValueIntermediateDriftTests : CobolNetTestBase
             + string.Join("\n  ", offenders));
     }
 
+    /// <summary>⛔ THE BINARY64 INTERMEDIATE OF A FLOAT-FAMILY VALUE IS READ AS THE APPROXIMATION IT HOLDS (kb/Work PB1606).
+    /// A floating-point data item is read by its exact value and an approximation by its shortest round-trip decimal
+    /// (docs/CONFORMANCE.md), and the binary64 cell cannot say which it holds; the intermediate is the returned value
+    /// (§14.9.25.4 GR1), so each floating-point numeric-edited receiver edits it through <c>CobolDec.FromApproximation</c>,
+    /// as the single-receiver MOVE edits the function. Without the flag <c>MOVE FUNCTION PI TO W1 W2</c> stored
+    /// +3.14159265358979311599E+00 where <c>MOVE FUNCTION PI TO W3</c> stores +3.14159265358979300000E+00
+    /// (the Linux landing gate's red on <c>2002/pb370_move_function_value_digits</c>).</summary>
+    [Fact]
+    public void EveryFloatFamilyFunction_MovedToTwoFloatEditedReceivers_ReadsTheIntermediateAsAnApproximation()
+    {
+        var offenders = new List<string>();
+        int i = 0;
+        foreach (string name in StandardModeReturnedValueContainerDriftTests.CatalogFloatRows().OrderBy(n => n, StringComparer.Ordinal))
+        {
+            string reference = StandardModeReturnedValueContainerDriftTests.Fixtures[name];
+            string generated = Compile("FVIAP" + (++i).ToString("00"), reference, standardDecimal: false,
+                receivers: "       01 Q1 PIC +9.9(20)E+99.\n       01 Q2 PIC +9.9(20)E+99.\n");
+            int approximate = ApproximationRead.Matches(generated).Count;
+            if (approximate != 2)
+                offenders.Add($"{name}: {approximate} of the 2 float-edited stores read the intermediate through FromApproximation");
+        }
+        Assert.True(offenders.Count == 0,
+            "ISO §14.9.25.4 GR1 — a float-family function moved to two floating-point numeric-edited receivers must edit "
+            + "in each what the single-receiver MOVE edits; the binary64 intermediate holds an approximation, never a float "
+            + "data item (kb/Work PB1606):\n  " + string.Join("\n  ", offenders));
+    }
+
+    /// <summary>A floating-point edited store that reads a MOVE intermediate as an approximation.</summary>
+    private static readonly Regex ApproximationRead = new(
+        @"FormatFloatStore\(CobolDec\.FromApproximation\(\(double\)\(__sendval\d+_MOVE\)\)", RegexOptions.Compiled);
+
     /// <summary>⛔ AN EXACT VALUE WHOSE EVERY RECEIVER IS FLOATING-POINT IS HELD IN THE RECEIVERS' OWN BINARY FORMAT, AND A
     /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §14.6.8.3 rule 2 converts the value to a
     /// binary32 receiver "in a manner consistent with the specifications of ISO/IEC 60559" — one rounding; a binary64

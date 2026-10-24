@@ -453,6 +453,10 @@ public static class HostFile
         catch (UnauthorizedAccessException) { return LockFileState.Unobservable; }   // another user's file, or a directory
     }
 
+    /// <summary>Whether the directory <paramref name="path"/> (a physical file, or a lock directory beside one) lives in is there.</summary>
+    internal static bool ContainingDirectoryExists(string path) =>
+        Path.GetDirectoryName(Path.GetFullPath(path)) is not { } parent || Directory.Exists(parent);
+
     /// <summary>Create the lock directory <paramref name="directory"/> beside a physical file, ⛔ WITH THE PERMISSIONS OF
     /// THE DIRECTORY THE PHYSICAL FILE IS IN (kb/Work PB2917): the first holder's umask (0755 at the default 022) would
     /// make a second user who may write the physical file's directory unable to publish into the lock directory, and
@@ -469,9 +473,17 @@ public static class HostFile
     /// answers the same race on Windows, which fails an existing name only when a FILE is there: with nothing left at the
     /// name, the publication that follows meets the missing directory and publishes again
     /// (<see cref="SidecarLockFiles.Publish"/>); with a directory there again (a sibling's next publication made it after
-    /// the CLOSE), it is another holder's, as at the first probe above.</para></summary>
+    /// the CLOSE), it is another holder's, as at the first probe above.</para>
+    /// <para>⛔ NEVER THE PHYSICAL FILE'S OWN DIRECTORY (kb/Work PB3492): a <paramref name="directory"/> whose parent is not there
+    /// (<see cref="ContainingDirectoryExists"/>) throws <see cref="DirectoryNotFoundException"/>, which the publication answers with no
+    /// holder, nothing beside the file being there to hold (<see cref="SidecarLockFiles.Publish"/>).</para></summary>
     internal static void CreateLockDirectory(string directory)
     {
+        // ⛔ NEVER THE PHYSICAL FILE'S OWN DIRECTORY (kb/Work PB3492's Linux witness): the lock directory lives BESIDE the file, and
+        // Directory.CreateDirectory makes every missing parent, so a lock taken for a file whose directory was removed outside the
+        // run unit made that directory again and the OPEN that should answer '30' (§9.1.13.6 1)) created the file in it.
+        if (!ContainingDirectoryExists(directory))
+            throw new DirectoryNotFoundException($"the directory of the lock directory '{directory}' is not there");
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
         // Exists: another holder's. A FILE at the name falls through to the creation, whose EEXIST stands (below): the
         // host refusing the lock directory, which no pause outwaits (kb/Work PB3314: Publish paces a race that repeats).

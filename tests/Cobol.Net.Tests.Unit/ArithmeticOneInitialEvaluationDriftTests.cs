@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -63,7 +64,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
 
     private static string EmitCSharp(string source, int edition)
     {
-        string dir = Directory.CreateTempSubdirectory("pb654drift").FullName;
+        string dir = ScratchDirectory.Create("pb654drift");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -74,7 +75,7 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>

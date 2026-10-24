@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -24,8 +25,7 @@ public sealed class FileControlKeyRuleSpecTests
 
     private static IReadOnlyList<string> Diagnostics(string source, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Fckr_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Fckr_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -34,7 +34,7 @@ public sealed class FileControlKeyRuleSpecTests
                 new CobolNet.CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, SourceFormat: InitialReferenceFormat.Auto));
             return [.. r.Errors];
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The procedure division that names the file WITHOUT any keyed verb — the shape that used to

@@ -22,7 +22,7 @@ sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import plan_wave as pw  # noqa: E402
 sys.path.insert(0, str(HERE.parent))
-from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+from scratch_repo import ScratchRepo, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582)
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
@@ -30,7 +30,7 @@ import check_practices  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
 
 RULES = coord.rules()
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="plan-wave-test-"))
+TMP = scratch_dir("plan-wave-test-")
 WORK = TMP / "Work"
 WORK.mkdir()
 REPORTS = TMP / "reports"
@@ -125,7 +125,7 @@ check("awaiting landing", p["awaiting_landing"], {"worktree-wf_aaa-1": ["PB1"]})
 check("PB1 not planned", any("PB1" in g.notes for g in p["groups"]), False)
 check("unlanded branch without note", p["unlanded_without_note"], ["worktree-wf_eee-1"])
 
-# 2. finishers first: PB3 (split, landed predecessor) absorbs the notes of BOTH clusters on its file (cap 5), then
+# 2. finishers first: PB3 (split, landed predecessor) absorbs the notes of BOTH clusters on its file (the cap), then
 #    the half PB4, then the branch-only PB13
 FIN = ("PB3", "PB6", "PB7", "PB12")
 check("finisher order", order[:3], [list(FIN), ["PB4"], ["PB13"]])

@@ -31,7 +31,7 @@ namespace CobolNet.Tests.Shared;
 /// a failed assertion — it is re-attempting a MEASUREMENT THAT DID NOT COMPLETE. Nothing about the compiler
 /// was learned on the first attempt, so there is no result being discarded. The retry is serialized behind
 /// <see cref="RetryGate"/> so it runs with the least contention the run can offer, which is the whole point
-/// given that contention is the named cause. Every retry is recorded (see <see cref="LogPath"/>) so the rate
+/// given that contention is the named cause. Every retry is recorded (see <see cref="HarnessLog"/>) so the rate
 /// is measurable rather than assumed — a silent retry would trade one blind spot for another.
 /// </para>
 /// <para>
@@ -78,17 +78,6 @@ internal sealed class HarnessNonObservationException(string message) : Exception
 
 internal static class ProcessObserver
 {
-    /// <summary>
-    /// Where retries and non-observations are recorded, so the rate can be MEASURED across a run rather than
-    /// inferred. §11 A12/A12d asked for a distribution; this is the file that supplies one. The local gate
-    /// (<c>scripts/run_gate_legs.py</c>), the Linux gate (<c>scripts/linux-gate.sh</c>) and every CI test step set
-    /// <c>COBOLNET_HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX, so a
-    /// non-observation on any of them can be read afterwards (kb/Work PB3108; <c>CiHarnessLogDriftTests</c>).
-    /// </summary>
-    public static string LogPath { get; } =
-        Environment.GetEnvironmentVariable("COBOLNET_HARNESS_LOG")
-        ?? Path.Combine(Path.GetTempPath(), "cobolnet-harness-observations.log");
-
     /// <summary>Serializes RETRIES only. The first attempt of every test still runs fully parallel, so the
     /// suite pays nothing in the normal case; a retry gets the quietest machine the run can offer.</summary>
     private static readonly SemaphoreSlim RetryGate = new(1, 1);
@@ -110,12 +99,12 @@ internal static class ProcessObserver
         // The standard display device writes UTF-8 (CONFORMANCE.md item 59; the PB59 repertoire-identity
         // landing) — decode the capture the same way, or a wide character in a golden reads back as OEM
         // mojibake (Ω arrived as '╬⌐' before this line existed).
-        psi.StandardOutputEncoding = new System.Text.UTF8Encoding(false);
-        psi.StandardErrorEncoding = new System.Text.UTF8Encoding(false);
+        psi.StandardOutputEncoding = new UTF8Encoding(false);
+        psi.StandardErrorEncoding = new UTF8Encoding(false);
         // The ACCEPT device decodes a redirected standard input as UTF-8 (CONFORMANCE.md item 1; kb/Work PB3193), so
         // the harness encodes what it pipes the same way; left unset, .NET on Windows encodes it in the console's input
         // code page. BOM-less, or the first record of every run would begin with U+FEFF.
-        psi.StandardInputEncoding = new System.Text.UTF8Encoding(false);
+        psi.StandardInputEncoding = new UTF8Encoding(false);
 
         HostCpuTimes? hostAtStart = HostLoad.Sample();
         Process? proc;
@@ -228,7 +217,7 @@ internal static class ProcessObserver
         if (first.Completed) return first;
 
         Interlocked.Increment(ref _retries);
-        Record($"RETRY  {command} :: {first.Outcome} :: {first.Detail}");
+        HarnessLog.Record($"RETRY  {command} :: {first.Outcome} :: {first.Detail}");
         RetryGate.Wait();
         ProcessObservation second;
         try
@@ -239,12 +228,12 @@ internal static class ProcessObserver
         finally { RetryGate.Release(); }
         if (second.Completed)
         {
-            Record($"RECOVERED  {command} :: exit {second.ExitCode}");
+            HarnessLog.Record($"RECOVERED  {command} :: exit {second.ExitCode}");
             return second;
         }
 
         Interlocked.Increment(ref _nonObservations);
-        Record($"NON-OBSERVATION  {command} :: {second.Outcome} :: {second.Detail}");
+        HarnessLog.Record($"NON-OBSERVATION  {command} :: {second.Outcome} :: {second.Detail}");
         throw new HarnessNonObservationException(
             "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
             $"  command : {command}\n" +
@@ -255,7 +244,7 @@ internal static class ProcessObserver
             $"{Interlocked.Read(ref _nonObservations)} unobserved\n" +
             "  The process never finished, so NOTHING was learned about the program under test. Do not read\n" +
             "  this as a failing assertion: no output was compared. See plan §11 A12 and the observation log\n" +
-            $"  at {LogPath}.");
+            $"  at {HarnessLog.Path}.");
     }
 
     /// <summary>Put the run directory back as it was before the first attempt, or raise the non-observation: a retry
@@ -270,7 +259,7 @@ internal static class ProcessObserver
         }
         if (unrestorable.Count == 0) return;
         Interlocked.Increment(ref _nonObservations);
-        Record($"NON-OBSERVATION  {command} :: run directory cannot be restored :: {string.Join(", ", unrestorable)}");
+        HarnessLog.Record($"NON-OBSERVATION  {command} :: run directory cannot be restored :: {string.Join(", ", unrestorable)}");
         throw new HarnessNonObservationException(
             "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
             $"  command : {command}\n" +
@@ -279,21 +268,5 @@ internal static class ProcessObserver
             "            retry over the first attempt's leftovers measures a different input (kb/Work PB3388).\n" +
             $"  cannot be restored: {string.Join(", ", unrestorable)}\n" +
             $"  (files over {RunDirectoryState.MaxCopiedFileBytes} bytes are not copied; see {nameof(RunDirectoryState)}).");
-    }
-
-    /// <summary>Append one line to the observation log. Best-effort and lock-tolerant: this is an instrument,
-    /// and an instrument that can fail a test run is worse than one that occasionally drops a line.</summary>
-    private static void Record(string line)
-    {
-        try
-        {
-            // A gate or CI step names a log in its results directory, which may not exist until the run writes its
-            // first result (dotnet test creates --results-directory when it writes the TRX, at the end).
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(LogPath))!);
-            File.AppendAllText(LogPath,
-                $"{DateTime.UtcNow:O}\t{Environment.ProcessId}\t{line}{Environment.NewLine}", Encoding.UTF8);
-        }
-        catch (IOException) { /* concurrent append lost — acceptable for an instrument */ }
-        catch (UnauthorizedAccessException) { /* same */ }
     }
 }

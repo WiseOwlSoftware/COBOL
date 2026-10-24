@@ -174,7 +174,8 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// (§14.9.2.4 GR4's exemption for ADD, §14.9.44.4 GR4's for SUBTRACT, numeric design D16 for the rest), but a returned value is described with no usage at all, so
 /// beside fixed-point operands nothing licenses binary64 (for ADD / SUBTRACT: "enough places shall be carried so as
 /// not to lose significant digits") and <c>NumericRenderer.CombineCore</c> lifts it to the SDIDI through the
-/// shortest-round-trip conversion (the implementor-defined float→SDIDI conversion of §8.8.1.5.1) instead of
+/// shortest-round-trip conversion (<c>CobolDec.FromApproximation</c>: an engine-produced approximation is not a float
+/// data item, whose own float→SDIDI conversion of §8.8.1.5.1 is <c>CobolDec.FromBinary64</c>) instead of
 /// dragging <c>13.2</c> into binary64 (where it is 13.199999999999999 and a truncating store gives 17.1 for
 /// <c>13.2 + FUNCTION SQRT(16)</c>).</param>
 /// <param name="Digits">An UPPER BOUND on the decimal digits of the UNSCALED value of an exact (non-<see cref="Dec"/>,

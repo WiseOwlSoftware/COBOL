@@ -126,9 +126,9 @@ public static partial class CobolEdit
     public static string FormatFloatStore(CobolDec value, string picture, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
         => FormatFloatStoreCore((BigInteger)value.Sig, value.Exp, picture, mode, blankWhenZero, commaMode, edits);
 
-    /// <summary>The store of a binary64 sender — through the shortest round-trip decimal (<see cref="CobolDec.FromDouble"/>).</summary>
+    /// <summary>The store of a binary64 sender - through its EXACT value (<see cref="CobolDec.FromBinary64ToOdd"/>), the manner every float-to-fixed landing uses (kb/Work PB623): the receiver's mask rounds the value, so ROUNDED MODE IS PROHIBITED sees 0.1 as the inexact value it is (kb/Work PB1606).</summary>
     public static string FormatFloatStore(double value, string picture, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
-        => FormatFloatStore(CobolDec.FromDouble(value), picture, mode, blankWhenZero, commaMode, edits);
+        => FormatFloatStore(CobolDec.FromBinary64ToOdd(value), picture, mode, blankWhenZero, commaMode, edits);
 
     private static string FormatFloatStoreCore(BigInteger sig, int exp10, string picture, CobolRounding mode, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {
@@ -164,7 +164,7 @@ public static partial class CobolEdit
 
     /// <inheritdoc cref="TryFormatFloat(Int128, int, string, out string, CobolRounding, bool, bool, EditRule[])"/>
     public static bool TryFormatFloat(double value, string picture, out string image, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
-        => TryFormatFloat(CobolDec.FromDouble(value), picture, out image, mode, blankWhenZero, commaMode, edits);
+        => TryFormatFloat(CobolDec.FromBinary64ToOdd(value), picture, out image, mode, blankWhenZero, commaMode, edits);
 
     private static bool TryFormatFloatCore(BigInteger sig, int exp10, string picture, out string image, CobolRounding mode, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {

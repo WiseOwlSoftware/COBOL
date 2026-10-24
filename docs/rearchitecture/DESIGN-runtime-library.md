@@ -2004,13 +2004,24 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   `CommitRollbackRuntimeTests.A_reopen_refused_on_its_second_attempt_too_keeps_what_the_close_kept_and_makes_no_third_attempt`
   (both keyed organizations: refused twice by the host's share mode, and refused at the column on the second attempt).
   The sibling attempt loop, the publication's bounded tries, answers `Unavailable` when every try collides, never a
-  refusal (`HandleColumnLockHostDriftTests.APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding`).
+  refusal for the failure itself (`HandleColumnLockHostDriftTests.APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding`);
+  but a column another run unit holds and Table 19 refuses the request is a conflict the host still sees, so
+  `HandleColumnLockHost.Unpublishable` tests the refused columns (the asker's own bytes left out) before it answers and
+  an exhausted publication beside such a holder is `Refused`, '61' (`...IsRefusedByAHeldColumnTable19Refuses`; PB3518).
+  `Publish` tells the two ways to fail apart (`RegionLockResult.Held`: every try collided; `Unavailable`: the handle or
+  filesystem carries no byte-range lock) and only the first goes on to test the refused columns: a handle that cannot lock
+  cannot test either, and is `Unavailable`, never a '61' no other connector contradicts
+  (`...AHandleThatCarriesNoLockIsUnavailable...`; PB3518 review round 1).
   A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN
   attaches its own, so the liveness byte is held by a live run unit again before any other run unit's dead-owner step can
   find it free (`KeyedConnector.RetakeKeptHandle`, run by `AbandonOpen` for every unsuccessful ending after the swap: another
-  run unit's refusal of the new handle, a refused adoption, a torn page met while positioning; PB3483). The OPEN's
+  run unit's refusal of the new handle, a refused adoption, a torn page met while positioning; PB3483). The retake's own
+  attach reads the store again when the give-back left it without a file, and a medium that refuses that read does not cost the
+  kept state its handle: the liveness byte and the record locks are carried to the retaken handle without a page read
+  (`KeyedConnector.CarryKeptHoldings`, the half of the attach the retake keeps whatever the adoption answers; PB3497), and
+  the store stays unadopted until the connector's next OPEN reads it. The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
   writable handle the re-OPEN takes asks the same question. So is the OPEN OUTPUT probe (`FileConnector.HeldByAnotherHandle`):
   the kept handle is the connector's own, not *"another file connector"* (§9.1.13.9 1) e)); the keyed connector gives it back for
@@ -2052,7 +2063,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   share-mode window) takes them off the host with its own handle (`PhysicalFileTable.Unpublish`), leaves them in this run unit's
   table and publishes them again through the kept handle when `KeyedConnector.RetakeKeptHandle` takes it again
   (`PhysicalFileTable.Republish`), whose endpoint becomes their owner (`KeptFile.Endpoint`; the OPEN OUTPUT probe's retake moves
-  them there through the attach's `Rehome`); a refused retake leaves them in the table alone, where the COMMIT or ROLLBACK
+  them there through the attach's `Rehome`); a retake the host refuses leaves them in the table alone, where the COMMIT or ROLLBACK
   ends them like any unpublished lock (§14.9.27.4 GR25). **What a connector holds past its CLOSE belongs to the physical file, not to the
   connector** (kb/Work PB3484, PB3494). A connector that leaves the registry holding it - displaced by the re-registration of its
   element after a CANCEL (`CloseDisplaced`), or dropped with its object (`CloseAndDrop`) - or that an ASSIGN USING associates with ANOTHER
@@ -3152,34 +3163,83 @@ adds one directory listing and nothing else, and its WRITE nothing under a postu
 `SHARING WITH ALL OTHER`, one hold of the entry mutex through its release, 2.2.2.3's uncovered change); a rollback of a transaction with m rewritten records and a appended ones writes
 m records, one truncation when a > 0 and one sync, never a byte of another connector's record.
 
-**2.2.2.14 The keyed organizations' two CAPTURE verbs ride the same journal (kb/Work PB3492; DESIGN, settled 2026-10-23
-by wave 1157 group A, not yet implemented).** 2.2.2.2's (c) and (d) are not sequential verbs: an OPEN OUTPUT of an EXISTING
+**2.2.2.14 The keyed organizations' two CAPTURE verbs, and their creation, ride the same journal (kb/Work PB3492;
+IMPLEMENTED — `KeyedConnector.JournalCapture`/`JournalCreation`, `FileRegistry.DeleteCovered`/`CommitKeyed`/`RollbackKeyed`,
+`KeyedStore.AdoptRestored`).** 2.2.2.2's (c) and (d) are not sequential verbs: an OPEN OUTPUT of an EXISTING
 relative or indexed file (§14.9.27.4 GR18: *"After the creation of the file, the file contains no records"*) and a DELETE FILE
 of one (§14.9.10 format 2) replace or remove the whole physical file, and 2.2.1.10's transaction cannot undo either, because
-its before-images live IN the file the verb replaces. Measured on 07bfc3606 (the probe kb/Work PB3492 carries, a
-RELATIVE file under APPLY COMMIT): OPEN OUTPUT, WRITE record 1, CLOSE, COMMIT, OPEN OUTPUT, WRITE record 2, CLOSE, ROLLBACK reads record 1 ABSENT, where
-§14.9.36.4 GR3 restores the file *"to the state they were in at the execution of the last COMMIT statement"* (the creation's
-`Recreate` ends the kept transaction when it lands, above, so nothing is left to roll back); and a DELETE FILE after the CLOSE
-answers '62', its own kept handle read as another holder's by `HostFile.IsHeldByAnother` (`FileRegistry.DeleteFile`'s retry
-loop), where the NOTE under §14.9.10.4 GR15 says *"Such files can still be deleted, however if they are, then in the event of a
+its before-images live IN the file the verb replaces, and §14.9.36.4 GR3 restores the file *"to the state they were in at the
+execution of the last COMMIT statement"* (the creation's `Recreate` ends the kept state when it lands, above, so the store
+alone has nothing left to roll back); and a DELETE FILE after the CLOSE must not read its own kept handle as another
+holder's, where the NOTE under §14.9.10.4 GR15 says *"Such files can still be deleted, however if they are, then in the event of a
 rollback they will be restored to the state they were in at the last commit or, if none, the start of the run unit"* and GR15's
 own conflict is a file *"locked by another file connector"*, which the connector's own kept handle is not. **The NOTE settles
 the question kb/Work PB3492 put to the owner** (refuse, roll back and delete, or delete and keep the transaction): the delete
 proceeds and the transaction stands, so a ROLLBACK restores the file and a COMMIT keeps it deleted. No owner decision is
 needed. **The shape:** both verbs CAPTURE exactly as R4 orders it for a sequential file: under the entry mutex the journal is
-begun (START `P`), the physical file's bytes are copied through the KEPT handle (or the connector's own handle when it is open)
-into `txn-<id>.before` and synced, the lock directory synced, the `K` record (`O` or `D`, the length) appended and synced, and
-only then the keyed creation (`KeyedConnector.Recreate`) runs or the kept handle is closed and the file removed. The kept
-state does not end with the creation: its transaction moves into the capture, since the before file holds the file AS IT
-STOOD, the run unit's uncommitted changes and their UNDO pages included. ROLLBACK restores the before file (2.2.2.7 step 1)
-and then rolls back the run unit's own transaction inside the restored file (its TRANSACTIONS tree still names it, so it is
-2.2.1.10's ROLLBACK of a file the run unit holds, run on the restored store before the journal's `D R`); COMMIT promotes
-nothing on the replaced or removed file beyond its sync (2.2.2.6 region 1), and the decision `D C` makes the replacement
-permanent, the captured transaction going with the before file. The entry step of 2.2.2.8 therefore runs at a keyed
-connector's writable OPEN and DELETE FILE too (one directory listing), and a dead owner's capture is settled there before
-2.2.1.10's dead-owner step reads the restored store. **Order of work:** PB3340 builds the journal (2.2.2.4 to 2.2.2.9) and its
-`IHostMedium` seam; the keyed capture is the same journal's second client, landed with it or right after it, with 2.2.1.16's
-OPEN OUTPUT rows and a DELETE FILE row amended to the capture. **One primitive the design assumes and the runtime lacks:** a
+begun (START `P`, `SequentialJournal.OfKeyedFile` set in the owner's memory), the physical file's bytes are copied — through
+the OPEN OUTPUT's own read-write handle (`KeyedConnector.JournalCapture`), or, for a DELETE FILE, through a short-lived read
+handle once the kept one is given back (`FileRegistry.DeleteCovered`, the sequential file's code) — into `txn-<id>.before`
+and synced, the lock directory synced, the `K` record (`O` or `D`, the length) appended and synced, and only then the keyed
+creation (`Attach`, `Recreate`) runs or the file is removed. The kept state ends with the creation as before (its handle, its
+liveness byte, its locks), but its transaction does not: the before file holds the file AS IT STOOD, the run unit's
+uncommitted changes and their UNDO pages included. **ROLLBACK** (`FileRegistry.RollbackKeyed`, under the entry mutex)
+restores the before file (2.2.2.7 step 1) through a writable handle the run unit already holds on the file (a host with
+mandatory share modes refuses any other beside it, so a covered re-OPEN takes a read-write handle while a replaced journal
+stands, `KeyedConnector.HandleAccess`), else one opened for the purpose; then, BEFORE the journal's `D R` (the
+`Rollback(data, restored)` hook), every store of the run unit on the file adopts the restored file (`KeyedStore.AdoptRestored`:
+its in-memory transaction forgotten, the file adopted again through a writable handle) and runs 2.2.1.10's DEAD-OWNER step
+on it, which rolls back the captured transaction: its liveness byte went with the handle the verb gave back, so its owner
+reads as dead, exactly as a dead run unit's does (a death before the `D R` leaves the journal open, and the next settle and
+the next writable OPEN's dead-owner step do the same); a file no store of the run unit holds is adopted through a store made
+for that alone. **COMMIT** (`FileRegistry.CommitKeyed`) first promotes the run unit's keyed transaction in the file as it
+stands now — a transaction that lived in a file the capture removed ended with the removal (`KeyedStore.ForgetTransaction`,
+run when the DELETE FILE's removal lands, `RemovalGiveBack.Removed`), and a store left with no writable file is REFUSED, never
+forgotten (branch review R1-1: a store without its handle is not a removed file) — and only then decides the journal (2.2.2.6), so a death between the two leaves the journal
+open and the next entry restores the last COMMIT; the decision `D C` makes the replacement permanent, the captured
+transaction going with the before file. The keyed transaction and the journal are ONE holder of `FileRegistry.TransactionHolders`
+(the journal's), in the journal's place in the order of the open files. **A CREATION** (2.2.2.2 (e): an OPEN OUTPUT of an
+absent relative or indexed file, an OPEN I-O or EXTEND of an absent OPTIONAL one) begins the journal with START `A` before the
+handle creates the file (`KeyedConnector.JournalCreation`, R1), so its ROLLBACK removes the file, every handle of the run unit
+on it given back first (`FileRegistry.KeyedJournalData.Release`) — **a connector still OPEN on it included** (branch review
+R1-2: §14.9.36.4 GR3 restores the state that had no file, with no implementor latitude, and leaves the open mode as it is, the
+sequential organization's rule of 2.2.2.7). The open connector's keyed transaction is rolled back, then it leaves the file
+(`KeyedConnector.LeaveTheRemovedFile`: the store left, the handle given back, the Table 19 column suspended,
+`FileConnector.SuspendRunUnitFileLock`) and stays in its open mode on no file, holding the absent OPTIONAL file's placeholder
+store: a READ or START answers as for an absent OPTIONAL file ('10', '23'), a REWRITE or DELETE finds no record, and its
+physical-file state stops claiming the removed file (`PhysicalFileTable.ForgetFile`). Its next WRITE, at its last check (so a
+WRITE the empty file refuses creates nothing), creates the file again as its OPEN did — under the entry mutex, a new START `A`
+journal, the creating handle, the empty store, the column resumed (`KeyedConnector.WriteCreatingTheFileAgain`) — and runs
+inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30'). A run
+unit that writes nothing more leaves no file (its normal end commits nothing and its implicit CLOSE keeps nothing). The
+sequential twin gives its column back at the removal too (`SequentialConnector`'s `IJournalData.Release`, resumed by
+`BeginAppending`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
+file (witness `unit:SequentialCommitControlTests`' `A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write`).
+**An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
+created the file, a capture refused before its `K`, a creation refused and undone (`KeyedStore.FileReplaced` false) —
+WITHDRAWS it (`SequentialJournal.Withdraw`: `D R` and the retirement; §14.9.27.4 GR25, *"the file is not affected"*), so the
+kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK. **The entry
+step of 2.2.2.8** runs at every writable OPEN of either organization (`FileConnector.EnterPhysicalFile`, one listing) and at
+every DELETE FILE, a covered one's and an uncovered one's (`FileRegistry.JournalHoldsAgainstDelete`), so a dead owner's
+capture is settled before 2.2.1.10's dead-owner step reads the restored store and before an uncovered DELETE FILE removes a
+file a later settle would otherwise bring back. **The removal gives the Table 19 file lock back with the kept handle**
+(`GiveBackForRemoval`, both organizations): where the host publishes the column through a handle on the file
+(`HandleColumnLockHost`, a covered connector under `SHARING WITH READ ONLY` or `ALL OTHER`, or a keyed INPUT re-OPEN's READ ONLY
+default) that handle refused the removal, and from the removal on the journal's (ALL) holding is the lock. **What the DELETE
+FILE gives back it TAKES BACK unless the removal lands** (`FileConnector.GiveBackForRemoval` returns a `RemovalGiveBack`; branch
+review R1-1): the kept handle goes for each attempt's probe of GR15's conflict and the file lock is suspended
+(`RunUnitFileLock.Suspend`) just before the capture, and an attempt answered '62', GR14's '05', or a capture or removal the
+medium refuses ('30', '37') retakes the handle — for a keyed file the transaction's liveness byte with it — and resumes the
+file lock, under the entry mutex, so an unsuccessful DELETE FILE leaves the file and the transaction on it as the CLOSE left
+them: the COMMIT promotes it and no dead-owner step reads it as a dead one's (witnesses `unit:CommitRollbackRuntimeTests`'
+`A_refused_delete_file_after_a_close_leaves_the_transaction_for_the_commit`, `unit:SequentialCommitControlTests`'
+`A_refused_delete_file_after_a_close_keeps_the_file_lock_until_the_commit`). Witnesses:
+`conformance:cases/14.9.36-ROLLBACK/pb3492_keyed_file_replaced_or_removed` and `unit:CommitRollbackRuntimeTests`'
+`A_keyed_capture_or_creation_refused_at_every_journal_operation_leaves_the_last_commit_or_the_committed_change` (every
+operation of the journal's medium refused), `A_delete_file_after_a_close_is_not_refused_by_the_kept_handle_and_holds_the_file_until_the_rollback`,
+`A_dead_run_units_keyed_capture_is_settled_by_the_next_entry` and `A_keyed_file_created_since_the_last_commit_is_removed_by_the_rollback`;
+a death and a power loss at every journal operation are `unit:SequentialJournalTests`' sweep of the same `Capture`, `Rollback`
+and `Settle`. The journal's types keep their first client's names (`SequentialJournal`, `SequentialTransactions`). **One primitive the design assumes and the runtime lacks:** a
 DIRECTORY SYNC (2.2.2.5 R1 and R4, 2.2.2.6 (1) and (3), 2.2.2.7 (2)). .NET has no API for it: on Linux it is `open(dir,
 O_RDONLY)` and `fsync` (the two-argument `open` is safe to declare, since the mode argument is read only with `O_CREAT`), on
 macOS `fsync` does not reach the medium and `F_FULLFSYNC` goes through the variadic `fcntl` that `SidecarLockFiles` avoids for
@@ -3365,7 +3425,18 @@ two intakes, and which one is not a property of the renderer arm — it is a pro
   where §15.37.4 r3 requires zero. **The body's parameter is `Int128`, and the renderer's intake is the wide
   one** (`IntrinsicRenderer.IntArgWide` / `ArgIntWide` → `AsIntWide`, which has no raise point). Members today:
   BOOLEAN-OF-INTEGER argument-1 (§15.13.3 r1), TEST-DATE-YYYYMMDD and TEST-DAY-YYYYDDD argument-1 (§15.90.3 r1
-  / §15.91.3 r1), FIND-STRING argument-3 (§15.37.3 r3).
+  / §15.91.3 r1), FIND-STRING argument-3 (§15.37.3 r3) and RANDOM's seed (§15.75.3 r2, PB636); the guard pairs a `…Dec` body
+  with the arm of the same name minus the suffix.
+  ⛔ **A TOTAL argument whose value rides the SDIDI takes NO native carrier at all (kb/Work PB637):** ANNUITY's
+  argument-2 (§15.9.3 r3 "a positive integer" — a sign rule). An SDIDI integer holds 34 significant digits at any
+  exponent, so it reaches past `Int128` as well as `long`; the SDIDI arm keeps the position's unbounded SDIDI
+  integer (`DecArg` over `RawArg`) and `AnnuityDec(CobolRounding, CobolDec, CobolDec)` takes it as a `CobolDec`
+  (an `Int128` intake ended the run unit on `ANNUITY(0, 10 ** 40)`, branch review R1-1).
+  `IntrinsicCarrierAgreementDriftTests.IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake` holds that closed set.
+  At rate 0 the equivalent expression is `1 / argument-2` (§15.9.4 r1a), exact for every n; at a positive
+  rate an enormous n leaves `(1 + rate) ** n` outside the decimal128 range, which is the EXPRESSION'S size condition
+  (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2), the same at n = 10^6 and n = 10^20 — never an EC-ARGUMENT-FUNCTION that
+  depends on whether n fits a native integer.
 
 ⚠ **The membership is not a maintained list anywhere.** Declaring the body's carrier IS the claim, and
 `IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake` re-derives the pairing by

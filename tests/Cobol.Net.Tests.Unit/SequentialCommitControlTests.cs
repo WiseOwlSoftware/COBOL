@@ -117,20 +117,6 @@ public sealed class SequentialCommitControlTests
 
     private delegate void Program(Unit u);
 
-    private static string NewDirectory()
-    {
-        string dir = Path.Combine(Path.GetTempPath(), "scc-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
-        return dir;
-    }
-
-    /// <summary>Remove a row's directory; a handle a failed row left open must not hide the row's own failure.</summary>
-    private static void TryDeleteDirectory(string dir)
-    {
-        try { Directory.Delete(dir, recursive: true); }
-        catch (IOException) { }
-    }
-
     private static byte[]? State(string f) => File.Exists(f) ? File.ReadAllBytes(f) : null;
 
     private static string Show(byte[]? state) => state is null ? "<absent>" : Encoding.Latin1.GetString(state);
@@ -162,7 +148,7 @@ public sealed class SequentialCommitControlTests
     {
         int total, synced, handed;
         {
-            string dir = NewDirectory();
+            string dir = ScratchDirectory.Create("scc-");
             string f = Path.Combine(dir, "f.dat");
             try
             {
@@ -177,12 +163,12 @@ public sealed class SequentialCommitControlTests
                 AssertNoLitter(f);
                 (handed, synced) = before == after ? (int.MaxValue, int.MaxValue) : (u.Handed, u.Synced);
             }
-            finally { TryDeleteDirectory(dir); }
+            finally { ScratchDirectory.Remove(dir); }
         }
         foreach (var fault in new[] { FaultHostMedium.Fault.Refuse, FaultHostMedium.Fault.Die, FaultHostMedium.Fault.Power, FaultHostMedium.Fault.PowerKeepingData })
             for (int n = 1; n <= total; n++)
             {
-                string dir = NewDirectory();
+                string dir = ScratchDirectory.Create("scc-");
                 string f = Path.Combine(dir, "f.dat");
                 var medium = new FaultHostMedium(fault, n);
                 try
@@ -218,8 +204,7 @@ public sealed class SequentialCommitControlTests
                 finally
                 {
                     medium.Kill();
-                    try { Directory.Delete(dir, recursive: true); }
-                    catch (IOException) { }   // a handle a failed row left open must not hide the row's own failure
+                    ScratchDirectory.Remove(dir);   // never throws: a handle a failed row left open cannot hide the row's own failure
                 }
             }
     }
@@ -365,12 +350,38 @@ public sealed class SequentialCommitControlTests
             OkCommit(u);
         });
 
+    /// <summary>The same under SHARING WITH ALL OTHER (kb/Work PB3492 review finding R1-2's sibling sweep): the Table 19 column the
+    /// OPEN published — on Windows a handle on the file of its own — leaves the file with it at the ROLLBACK's removal and is
+    /// published again when the WRITE creates the file, so another run unit's NO OTHER OPEN is refused ('61') again.</summary>
+    [Fact]
+    public void A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true, sharing: FileSharing.AllOther);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("X1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            Ok(a.Write("X2"));
+            var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
+            Assert.Equal("61", b.Open(FileOpenMode.Input));
+            OkCommit(a);
+            a.Reg.CloseAll();
+            Assert.Equal("X2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // ── The connector's own state, the lock test and the run unit's end ────────────────────────────────────────
 
     [Fact]
     public void After_a_rollback_the_reader_keeps_its_position_and_rereads_the_restored_file()
     {
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -389,7 +400,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1Y2C3", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -397,7 +408,7 @@ public sealed class SequentialCommitControlTests
     {
         // 2.2.2.12 "CLOSE under commit, then COMMIT": the handle kept through the CLOSE — another run unit's NO OTHER OPEN '61'
         // until the COMMIT (§14.9.6.4 GR9, §14.9.7.4 GR4) — released by the COMMIT.
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -417,7 +428,66 @@ public sealed class SequentialCommitControlTests
             a.Reg.CloseAll();
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ AN UNSUCCESSFUL DELETE FILE AFTER A CLOSE UNDER COMMIT CONTROL TAKES BACK WHAT IT GAVE BACK (kb/Work PB3492, review
+    /// finding R1-1, the sequential arm; MANDATORY-PRACTICES I11): the kept handle goes for the host's probe and the Table 19 file
+    /// lock for the removal, and a DELETE FILE refused at the capture's write of the before file ('30', §9.1.13.6) or at the
+    /// removal takes both back, so another run unit's NO OTHER OPEN is still '61' (§14.9.6.4 GR9, §14.9.7.4 GR4: the file lock
+    /// stands until the COMMIT), and the COMMIT keeps the record the transaction wrote (§14.9.7.4 GR3).</summary>
+    [Theory]
+    [InlineData("capture")]
+    [InlineData("delete")]
+    public void A_refused_delete_file_after_a_close_keeps_the_file_lock_until_the_commit(string refused)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            int target;
+            {
+                File.WriteAllText(f, "C1", Encoding.Latin1);
+                var medium = new FaultHostMedium();
+                var dry = new Unit(f, covered: true, medium);
+                Ok(dry.Open(FileOpenMode.Extend));
+                Ok(dry.Write("X1"));
+                Ok(dry.Close());
+                int from = medium.Operations;
+                Ok(dry.DeleteFile());
+                int at = medium.Log.FindIndex(from, op => refused == "capture"
+                    ? op.StartsWith("write ", StringComparison.Ordinal) && op.EndsWith(".before", StringComparison.Ordinal)
+                    : op == "delete f.dat");
+                Assert.True(at >= 0, $"the DELETE FILE reaches no '{refused}': {string.Join(", ", medium.Log.Skip(from))}");
+                target = at + 1;
+                OkRollback(dry);
+                dry.Reg.CloseAll();
+                medium.Kill();
+            }
+            File.WriteAllText(f, "C1", Encoding.Latin1);
+            var faulty = new FaultHostMedium(FaultHostMedium.Fault.Refuse, target);
+            try
+            {
+                var a = new Unit(f, covered: true, faulty);
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));
+                Ok(a.Close());
+                Assert.Equal("30", a.DeleteFile());
+                Assert.True(faulty.Fired, "the refusal fired inside the DELETE FILE");
+                var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
+                Assert.Equal("61", b.Open(FileOpenMode.Input));
+                OkCommit(a);
+                Assert.Equal("00", b.Open(FileOpenMode.Input));
+                Ok(b.Read(out string r1));
+                Ok(b.Read(out string r2));
+                Assert.Equal(("C1", "X1"), (r1, r2));
+                b.Reg.CloseAll();
+                a.Reg.CloseAll();
+                AssertNoLitter(f);
+            }
+            finally { faulty.Kill(); }
+        }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -425,7 +495,7 @@ public sealed class SequentialCommitControlTests
     {
         // 2.2.2.3 and 2.2.2.8: under SHARING WITH ALL OTHER another run unit's WRITE meets the END holding ('51'); an OPEN OUTPUT
         // needs no other transaction on the file ('61'), and so does a DELETE FILE (its sharing conflict, §9.1.13.9 2): '62').
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -447,7 +517,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2B1", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -456,7 +526,7 @@ public sealed class SequentialCommitControlTests
         // 2.2.2.3: a transaction holds every record it appended (those at or past its L) — beside the records its READs lock
         // under the implicit AUTOMATIC WITH LOCK ON MULTIPLE RECORDS posture (§9.1.16), which are region locks; under SHARING
         // WITH ALL OTHER another run unit's READ of a held record answers '51' (§9.1.13.8 1)), and of any other record '00'.
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -487,7 +557,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2C3X5", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     public static TheoryData<string> JournalArms() => ["WRITE", "READ"];
@@ -518,7 +588,7 @@ public sealed class SequentialCommitControlTests
         // ('51', §9.1.13.8 1)) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
         // requested access on one of these attempts, the statement is successful"; otherwise the conflict's own status (the
         // closing paragraph). The journal arm of the lock test is such a conflict (2.2.2.3: "held, '51' (RETRY applies)").
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
         try
@@ -545,7 +615,7 @@ public sealed class SequentialCommitControlTests
         finally
         {
             FileRegistry.PauseObserver.Value = null;
-            TryDeleteDirectory(dir);
+            ScratchDirectory.Remove(dir);
         }
     }
 
@@ -555,7 +625,7 @@ public sealed class SequentialCommitControlTests
         // §14.7.9.3 GR1 to GR3 wait for a holder that can release: this run unit's own transaction, met through a connector no
         // APPLY COMMIT names (2.2.2.3: "this run unit's through an uncovered connector"), cannot release while the statement
         // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§9.1.13.8 2), A.1 item 109).
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
         var reg = new FileRegistry();
@@ -586,7 +656,7 @@ public sealed class SequentialCommitControlTests
         {
             FileRegistry.PauseObserver.Value = null;
             reg.CloseAll();
-            TryDeleteDirectory(dir);
+            ScratchDirectory.Remove(dir);
         }
     }
 
@@ -604,7 +674,7 @@ public sealed class SequentialCommitControlTests
         // the COMMIT or ROLLBACK (§14.9.7.4 GR4), and the run unit's own transaction until its end, so neither releases while
         // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§9.1.13.9 1)),
         // on the DELETE FILE '62' (§9.1.13.9 2)) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
         var reg = new FileRegistry();
@@ -642,7 +712,7 @@ public sealed class SequentialCommitControlTests
         {
             FileRegistry.PauseObserver.Value = null;
             reg.CloseAll();
-            TryDeleteDirectory(dir);
+            ScratchDirectory.Remove(dir);
         }
     }
 
@@ -654,7 +724,7 @@ public sealed class SequentialCommitControlTests
         // §9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §14.9.10.4 GR16 for the DELETE FILE). The
         // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
         // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25).
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -669,14 +739,14 @@ public sealed class SequentialCommitControlTests
             u.Reg.CloseAll();
             Assert.Equal("C1", File.ReadAllText(f, Encoding.Latin1));
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
     public void A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open()
     {
         // §9.1.18.5 for the terminations the runtime cannot see (2.2.2.4: the journal is durable for exactly this).
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -700,7 +770,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -708,7 +778,7 @@ public sealed class SequentialCommitControlTests
     {
         // §14.6.11 1): "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
         // §9.1.18.5: an abnormal termination rolls them back.
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -726,7 +796,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1X1", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>F's bytes as they stand while connectors hold it open for writing (a reader that shares with them).</summary>
@@ -761,7 +831,7 @@ public sealed class SequentialCommitControlTests
     [InlineData("commit")]
     public void A_transaction_whose_rollback_the_medium_refused_is_never_committed(string next)
     {
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -789,7 +859,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>⛔ A REFUSED ROLLBACK CLOSES THE HANDLE IT OPENED FOR THE PURPOSE (review finding R1-5 of kb/Work PB3340; design
@@ -801,7 +871,7 @@ public sealed class SequentialCommitControlTests
     [Fact]
     public void A_refused_rollback_closes_the_handle_it_opened_for_the_purpose()
     {
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -826,7 +896,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1C2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>⛔ A DEAD TRANSACTION WHOSE FILE IS SHORTER THAN ITS COMMITTED LENGTH IS SETTLED (review finding R1-4 of kb/Work
@@ -838,7 +908,7 @@ public sealed class SequentialCommitControlTests
     [Fact]
     public void A_dead_transaction_whose_file_is_shorter_than_its_committed_length_is_settled()
     {
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -859,7 +929,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1B1", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>⛔ AN UNCOVERED WRITER'S RECORD IS NEVER CUT BY A TRANSACTION THAT BEGINS DURING ITS WRITE (review finding R1-1 of
@@ -874,7 +944,7 @@ public sealed class SequentialCommitControlTests
     [Fact]
     public async Task An_uncovered_writers_record_is_never_cut_by_a_transaction_that_begins_during_its_write()
     {
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -909,7 +979,7 @@ public sealed class SequentialCommitControlTests
             Assert.Equal("C1B1B2", File.ReadAllText(f, Encoding.Latin1));
             AssertNoLitter(f);
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -917,7 +987,7 @@ public sealed class SequentialCommitControlTests
     {
         // 2.2.2.13, measured through the medium's operation log: a writable OPEN of an uncovered file adds one directory listing
         // and nothing else (the listing is not a counted operation: it changes nothing), and its WRITEs add nothing.
-        string dir = NewDirectory();
+        string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
         {
@@ -931,6 +1001,6 @@ public sealed class SequentialCommitControlTests
             Assert.DoesNotContain(medium.Log, op => op.Contains("txn-", StringComparison.Ordinal) || op.StartsWith("syncdir", StringComparison.Ordinal));
             Assert.False(Directory.Exists(SequentialJournal.DirectoryOf(f)));
         }
-        finally { TryDeleteDirectory(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

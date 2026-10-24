@@ -6,6 +6,7 @@ using System.Linq;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -18,10 +19,9 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class TextManipulationStatementTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB1357_" + Guid.NewGuid().ToString("N")[..8]);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_PB1357_");
 
-    public TextManipulationStatementTests() => Directory.CreateDirectory(_dir);
-    public void Dispose() { try { Directory.Delete(_dir, recursive: true); } catch { /* best-effort */ } }
+    public void Dispose() { ScratchDirectory.Remove(_dir); }
 
     private void Copybook(string name, string content) => File.WriteAllText(Path.Combine(_dir, name), content);
 

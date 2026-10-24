@@ -41,10 +41,11 @@ THE TIERS (per case; a key shared by several cases takes the lowest):
   0d  a GOVERNING DRIFT TEST (kb/Work PB3531): its class is one the drift-rule index (`scripts/spec/drift_rules.py`)
       says governs a file the diff changes — specifically, or as a tree-wide sweep that reads it, a sweep of the
       committed tree through its declared `TreeScope` included, and a test that reads the file only through a helper
-      class (kb/Work PB3247: a golden governs the classes reading the corpus through `SuiteManifest`) — gathered from
-      the diff alone (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the
-      budgets and the cap: the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the
-      likeliest red, and a
+      class (kb/Work PB3247: a golden governs the classes reading the corpus through `SuiteManifest`) — or governs a
+      REGISTER (a data file a drift test reads by name) that cites what the change removes: a deleted file, a deleted
+      member, a renamed test (kb/Work PB3131, `drift_rules.citing`); gathered from the diff alone
+      (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the budgets and the cap:
+      the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the likeliest red, and a
       dear sweep (CatalogCoverageDriftTests' 44 s) was left in leg 2 by 0c and found only by the landing's Linux leg;
   0u  known to no timing source and to no map (genuinely new) — charged the assembly's median time and admitted to
       leg 1, in declaration order, within LEG_ONE_UNKNOWN_BUDGET; the overflow LEADS leg 2;

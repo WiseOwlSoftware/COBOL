@@ -5,6 +5,7 @@ using CobolNet.Runtime;
 using CobolNet.Runtime.Collation;
 using CobolNet.Runtime.Collation.Locale;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Collation;
 
@@ -158,8 +159,7 @@ public sealed class LocaleManagerTests
     [Fact]
     public void SiteTailoringDirectory_IsDiscoveredAndSelectable()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cobolnet-locales-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cobolnet-locales-");
         string saved = Environment.GetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable) ?? "";
         try
         {
@@ -183,7 +183,7 @@ public sealed class LocaleManagerTests
         {
             Environment.SetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable, saved.Length == 0 ? null : saved);
             LocaleManager.ClearCache();
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 }

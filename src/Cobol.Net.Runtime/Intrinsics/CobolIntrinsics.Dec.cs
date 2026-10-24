@@ -239,15 +239,28 @@ public static partial class CobolIntrinsics
     }   // evaluated in SDIDI form end to end (kb/Work PB116 — it
         // detoured through Math.Sqrt in binary64, ~16 digits).
 
-    /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).
-    /// Domain per §15.9.3 r2/r3, through the SAME raise site as the double carrier (one site per rule).</summary>
-    public static CobolDec AnnuityDec(CobolRounding mode, CobolDec rate, long periods)
+    /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1a/r1b).
+    /// Domain per §15.9.3 r2/r3, through the SAME raise site as the double carrier (one site per rule).
+    /// <para>⛔ <paramref name="periods"/> IS A <see cref="CobolDec"/> HOLDING AN INTEGER — the SDIDI integer the §15.3
+    /// type-6 position intake already produced (<see cref="IntegerArgUnboundedDec"/>), never narrowed to a native
+    /// carrier (kb/Work PB637). Argument-2 is a TOTAL integer argument: §15.9.3 r3 constrains it to "a positive
+    /// integer" and nothing about its magnitude, so §15.3 r14 has no "incorrect value for that argument" to fire on
+    /// and the value is the returned-value rule's: §15.4.1 r1 makes the standard-decimal result EQUAL the equivalent
+    /// arithmetic expression's. An SDIDI integer reaches past <c>long</c> AND past <see cref="Int128"/> (34
+    /// significant digits at any exponent), so ANY native integer parameter re-narrows a count the expression
+    /// evaluates: <c>ANNUITY(0, 10 ** 40)</c> was a fatal EC-SIZE-OVERFLOW through an <see cref="Int128"/> intake.
+    /// At rate 0 the expression is 1/n, exact for every n (ANNUITY(0 10^20) = 1E-20, ANNUITY(0 10^40) = 1E-40).
+    /// At a positive rate the expression's own <c>(1 + rate) ** n</c> leaves the decimal128 range once
+    /// n·ln(1 + rate) passes about 14 000 — at n = 10^6 for a 5 % rate, and equally at n = 10^20 — and that is the
+    /// EXPRESSION'S size condition (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2, raised inside <see cref="CobolDec.Pow"/>), the
+    /// same for every n past the edge. A small rate keeps a finite value for an enormous n (rate 1E-30, n 10^20).</para></summary>
+    public static CobolDec AnnuityDec(CobolRounding mode, CobolDec rate, CobolDec periods)
     {
-        if (rate.Sig < 0 || periods <= 0)
-            return CobolDec.From(AnnuityDomain(rate.ToDouble(), periods), 0);
+        if (rate.Sig < 0 || periods.Sig <= 0)
+            return CobolDec.From(AnnuityDomain(rate.ToDouble(), periods.ToDouble()), 0);
         CobolDec one = CobolDec.From(1, 0);
-        if (rate.Sig == 0) return CobolDec.Div(one, CobolDec.From(periods, 0), mode);
-        CobolDec pow = CobolDec.Pow(CobolDec.Add(one, rate, mode), CobolDec.From(-periods, 0), mode);
+        if (rate.Sig == 0) return CobolDec.Div(one, periods, mode);
+        CobolDec pow = CobolDec.Pow(CobolDec.Add(one, rate, mode), CobolDec.Negate(periods), mode);
         return CobolDec.Div(rate, CobolDec.Sub(one, pow, mode), mode);
     }
 

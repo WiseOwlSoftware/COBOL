@@ -43,7 +43,7 @@ public sealed class RegionLocksDriftTests
         internal Site(RegionHostKind kind)
         {
             _kind = kind;
-            Directory = System.IO.Directory.CreateTempSubdirectory("pb2936-").FullName;
+            Directory = ScratchDirectory.Create("pb2936-");
             File = Path.Combine(Directory, "data.dat");
             System.IO.File.WriteAllText(File, "SEED");
         }
@@ -68,7 +68,7 @@ public sealed class RegionLocksDriftTests
         public void Dispose()
         {
             for (int i = _owned.Count - 1; i >= 0; i--) _owned[i].Dispose();
-            try { System.IO.Directory.Delete(Directory, recursive: true); } catch (IOException) { }
+            ScratchDirectory.Remove(Directory);
         }
     }
 
@@ -255,7 +255,7 @@ public sealed class RegionLocksDriftTests
     [InlineData("nothing", 13, false)]
     public void ALockDirectoryEexist_IsTheClosingSiblingRace_UnlessAFileHoldsTheName(string atTheName, int errno, bool race)
     {
-        string parent = Directory.CreateTempSubdirectory("pb3313-").FullName;
+        string parent = ScratchDirectory.Create("pb3313-");
         try
         {
             string name = Path.Combine(parent, "lockdir");
@@ -263,7 +263,7 @@ public sealed class RegionLocksDriftTests
             if (atTheName == "file") File.WriteAllText(name, "");
             Assert.Equal(race, HostFile.IsClosingSiblingRace(new IOException("mkdir", errno), name));
         }
-        finally { Directory.Delete(parent, recursive: true); }
+        finally { ScratchDirectory.Remove(parent); }
     }
 
     /// <summary>⛔ A PUBLICATION THAT LOSES THE SAME RACE AGAIN WAITS FOR IT TO END INSTEAD OF RETRYING AT ONCE (kb/Work

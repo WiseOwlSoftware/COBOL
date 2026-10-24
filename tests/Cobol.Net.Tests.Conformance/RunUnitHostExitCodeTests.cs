@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -94,7 +95,7 @@ public sealed class RunUnitHostExitCodeTests
     [Fact]
     public void ARunUnitEndedUnderAHost_LeavesTheHostProcessExitCodeAlone()
     {
-        string dir = CutRunner.NewTempDir("hxexit");
+        string dir = ScratchDirectory.Create("hxexit");
         try
         {
             NonCobolElement.CompileCobol(dir, "HXSTOP", StopProgram);
@@ -112,6 +113,6 @@ public sealed class RunUnitHostExitCodeTests
             Assert.Equal("", stderr);    // every ending reached the host as a value, none as a process-level report
             Assert.Equal(5, exit);       // the process ends with the exit code its host set
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -77,7 +78,7 @@ public sealed class NestedQuotientPrecisionDriftTests
 
     private static string EmitCSharp(string source)
     {
-        string dir = Directory.CreateTempSubdirectory("pb3538drift").FullName;
+        string dir = ScratchDirectory.Create("pb3538drift");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -88,7 +89,7 @@ public sealed class NestedQuotientPrecisionDriftTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The result-scale argument of every truncating division kernel call in <paramref name="cs"/>, each kernel

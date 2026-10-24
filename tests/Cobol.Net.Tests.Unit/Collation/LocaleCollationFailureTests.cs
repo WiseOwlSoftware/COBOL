@@ -6,6 +6,7 @@ using CobolNet.Runtime.Collation;
 using CobolNet.Runtime.Collation.Cldr;
 using CobolNet.Runtime.Collation.Locale;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Collation;
 
@@ -191,7 +192,7 @@ public sealed class LocaleCollationFailureTests
         {
             _variable = variable;
             _saved = Environment.GetEnvironmentVariable(variable);
-            Path = Directory.CreateTempSubdirectory("cobolnet-pb2773-").FullName;
+            Path = ScratchDirectory.Create("cobolnet-pb2773-");
             Environment.SetEnvironmentVariable(variable, Path);
             LocaleManager.ClearCache();
         }
@@ -210,7 +211,7 @@ public sealed class LocaleCollationFailureTests
         {
             Environment.SetEnvironmentVariable(_variable, _saved);
             LocaleManager.ClearCache();
-            try { Directory.Delete(Path, recursive: true); } catch (IOException) { /* best-effort temp cleanup */ }
+            ScratchDirectory.Remove(Path);
         }
     }
 }

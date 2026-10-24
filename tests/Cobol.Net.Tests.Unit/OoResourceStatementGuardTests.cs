@@ -3,6 +3,7 @@
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -22,7 +23,7 @@ public sealed class OoResourceStatementGuardTests
 {
     private static string EmitCSharp(string turn)
     {
-        string dir = Directory.CreateTempSubdirectory("pb3102oo").FullName;
+        string dir = ScratchDirectory.Create("pb3102oo");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -61,7 +62,7 @@ public sealed class OoResourceStatementGuardTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]

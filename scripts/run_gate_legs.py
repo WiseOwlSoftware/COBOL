@@ -16,9 +16,10 @@ implementer's, a re-gate after a fix, a landing's — makes the order plan (scri
 repository-wide, runs its audits BEFORE it queues for the slot (kb/Work PB2524), and runs leg 1 FAIL-FAST. Leg 1 is
 the change's own tests and goldens and the previous gates' reds, either host's (tier 0a, kb/Work PB3155), the
 host-only witnesses (tier 0h: the Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap
-tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file (tier 0d, kb/Work
-PB3531) and the cheapest cases the change reaches; so a re-gate after a fix runs leg 1 again — seconds for a
-bookkeeping fix, never a population run. The local whole-population run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
+tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file or a register citing
+what the change removes (tier 0d, kb/Work PB3531, PB3131) and the cheapest cases the change reaches; so a re-gate
+after a fix runs leg 1 again — seconds for a bookkeeping fix, never a population run. The local whole-population
+run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
 2026-10-10); CI's merge-group run is the whole-population regression net.
 Its SCOPE is a shared gate setting (gate_slot.py, read once at the start): `leg1` (the coded default, batched gating,
 kb/Work PB2515) runs leg 1 only and names every leg-2 case NOT RUN, and its verdict line says
@@ -184,6 +185,9 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
     NotRunCause("interpreter", ENVIRONMENT, "no runnable Python (or one without PyYAML) on the host"),
     NotRunCause("host", ENVIRONMENT, "the host is not Linux and has no WSL to run the Linux gate on"),
     NotRunCause("sdk", ENVIRONMENT, "no .NET SDK in the Linux environment"),
+    NotRunCause("disk", ENVIRONMENT, "the Linux filesystem the gate clones onto has too few free inodes or too little "
+                                     "free space, after the gate removed every ended gate's leftovers (linux-gate.sh "
+                                     "check_disk, kb/Work PB3194)"),
     NotRunCause("tree", ENVIRONMENT, "the tree's git state could not be read or cloned (not at a repository root, no "
                                      "HEAD, no reachable Windows git, a failed clone)"),
     NotRunCause("launch", ENVIRONMENT, "the host refused to make the gate's run directory (an unwritable run root, or "
@@ -1386,10 +1390,10 @@ class FakeHost(Host):
 
 
 def self_test() -> int:
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
+    from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     isolate()  # ⛔ hermetic: the arms below make git repositories (scratch_repo.isolate, kb/Work PB1719)
     results: list[tuple[str, bool, str]] = []
-    root = Path(tempfile.mkdtemp(prefix="gate-legs-selftest-"))
+    root = scratch_dir("gate-legs-selftest-")
     sink: list[str] = []
 
     def gate(name: str, **fake) -> tuple[Outcome, FakeHost]:
@@ -1598,7 +1602,7 @@ def self_test() -> int:
                 red = (f"import pathlib, time\nm = pathlib.Path({str(self.mark)!r})\n"
                        "while not m.exists():\n    time.sleep(0.05)\nraise SystemExit(1)")
                 return (("SLOW", ["-c", slow]), ("QUICK-RED", ["-c", red]))
-        mark = Path(tempfile.mkdtemp(prefix="first-red-")) / "grandchild.pid"
+        mark = scratch_dir("first-red-") / "grandchild.pid"
         heard: list[str] = []
         reasons = FirstRedStops(mark).audits(_no_slot, heard.append)
         grandchild = int(mark.read_text(encoding="utf-8"))
@@ -1681,11 +1685,13 @@ def self_test() -> int:
             [read_verdict(v) for v in ("GREEN — x ===", f"{LEG1_ONLY}: GREEN — x", "RED — x", "RED/INCOMPLETE — x",
                                        f"{LEG1_ONLY}: RED — x", "BUILD FAILED — x", "NOT RUN [settings] — x",
                                        "NOT RUN [sdk] (no .NET SDK in this Linux environment) ===",
+                                       "NOT RUN [disk] (777216 free inodes on the filesystem holding /x) ===",
                                        "NOT RUN [driver] — x", "NOT RUN — x", "NOT RUN [nosuch] — x", "NOT RUNNING",
                                        "GREEN (legs unit) ===", "GREENISH")]
             == [GREEN_READING, GREEN_READING, RED_READING, RED_READING, RED_READING, RED_READING, not_run("settings"),
-                not_run("sdk"), not_run("driver"), Reading(NOT_RUN, UNCLASSIFIED), Reading(NOT_RUN, UNCLASSIFIED),
+                not_run("sdk"), not_run("disk"), not_run("driver"), Reading(NOT_RUN, UNCLASSIFIED), Reading(NOT_RUN, UNCLASSIFIED),
                 RED_READING, GREEN_READING, RED_READING]
+            and NOT_RUN_CAUSES["disk"].carried == ENVIRONMENT
             and [c.tag for c in NOT_RUN_CAUSES.values() if c.carried == BRANCH]
             == ["driver", "population", "arguments", "verdict", "unslotted", "unclassified"])
         # Every printer of a NOT RUN verdict names its cause (the classification is read, never guessed from prose):
@@ -1974,10 +1980,7 @@ def self_test() -> int:
             survived and handed == (1, f"{VERDICT}LEG 1 ONLY (batched gating, PB2515): RED — planted ==="),
             f"survived {survived}; {handed}")
     finally:
-        for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
-            for f in files:
-                os.chmod(os.path.join(dirpath, f), 0o666)
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
 
     failed = [n for n, ok, _ in results if not ok]
     print(f"=== run_gate_legs SELF-TEST: {'PASS' if not failed else 'FAIL'} ({len(results)} arms"

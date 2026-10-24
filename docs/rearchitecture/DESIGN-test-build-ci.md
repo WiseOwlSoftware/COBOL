@@ -569,7 +569,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `COBOLNET_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `COBOLNET_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`), the Linux gate (`linux-gate.sh`'s `test_leg`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory, and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `COBOLNET_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `COBOLNET_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
 | `scripts/guard-compiler.sh` | ⭐ **THE one answer to "which compiler is this gate measuring?"** (kb/Work/PB750): `cobol`. `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure does not contain `Cobol.Net.Compiler`. Earned by the guards hard-coding the legacy CLI, so `guard NIST: 353 MATCH` measured the ORACLE for the whole rearchitecture and battery #58's NC215A wrong answer was invisible to it. `--self-test` (discovered by `scripts/self_tests.py`, and run by `guard-verify.sh` too) proves the refusal fires on synthetic manifests. |
@@ -988,6 +988,29 @@ because the raw name is not stable (`b7`):
   430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
   118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
   the gate run just before it on another branch, on the same host and the same shared timings.
+  **A register's citations** (kb/Work PB3131): a drift test that reads a REGISTER by name — the traceability
+  inventory's code-locations (`src/.../File.cs#Member`) and test-refs (`unit:Class.Method`), docs/CONFORMANCE.md's
+  pins — and checks that its citations resolve is broken by a diff that never touches the register: one that deletes a
+  cited member, renames a cited test or deletes a cited file. Tier 0d therefore also holds every class that governs a
+  register citing what the diff REMOVES: `impacted_tests.removals` reads one `git diff -U0` (a deleted file; the
+  identifiers on removed lines that the file's new text lacks; the types it declares) and `drift_rules.citing` looks
+  each up in every non-C# file a drift test names, indexed once per plan by the three citation shapes (`Citations`).
+  Four landings on 2026-10-14..17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a
+  Windows leg 1 that left the class in leg 2 by its cost (4-6 s a case, over `SWEEP_CHEAP_SECONDS`); replayed with no
+  map, each of the four commits (611bdb3a2, 684d01b4b, 1a473341f, c3c6879ab) now names the class, with the citation it
+  breaks, at a plan cost of about 2-5 s. **A deletion is matched precisely**, because tier 0d sits outside the leg-1
+  budgets (branch review R1-1 of PB3131 measured one prose comment in a deleted file promoting 102 classes): a type
+  is one a C# line DECLARES (`TYPE_DECL`, a line's first token after its modifiers, never a comment, string or prose
+  word), deleting one file of a `partial` type deletes no type, and a deleted type breaks a dotted name only where a
+  member follows it (`Harness.Opens`, never `Program.cs` or `SourceKind.Program`); a deleted file breaks a path
+  citation only when the citation, resolved against the tree before the change (`TreeFiles`: the files whose path ends
+  with the citation's, or a golden pin's `<edition>/<test>` by name), names no file the change keeps, so
+  `docs/README.md` survives deleting `docs/sub/README.md` and a bare word is no path. Of the six most recent
+  file-deleting commits on main, five then promote nothing beyond their governed classes, and the sixth (cf9c85914)
+  promotes the inventory's classes on a real break: its code-location
+  `src/Cobol.Net.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
+  its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
+  outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
   compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its
@@ -1703,6 +1726,32 @@ their own repositories and seven carried a git helper of their own, each with it
 over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
 `"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
 maintenance settings) to that one file.
+**A self-test's scratch directory goes with it (kb/Work PB3194).** `scratch_dir(prefix)` makes it in the machine-wide
+temp directory and registers `remove_tree` for the process's exit, so a return, a raised exception and `sys.exit` all
+remove it; `remove_tree` makes a refused entry writable and removes it again, and prints what still cannot go. Before
+it, three self-tests never removed their scratch and the rest called `shutil.rmtree(..., ignore_errors=True)`, which on
+Windows cannot delete the read-only files git writes its objects as and says nothing: one host's temp directory held
+7,359 such directories (0.75 GB of files) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
+outside a directory it already owns, and any `rmtree(ignore_errors=True)` in self-test code.
+**A C# test's scratch directory follows the same rules (kb/Work PB3194, review R1-2): `tests/_shared/ScratchDirectory.cs`.**
+About a hundred test classes made a directory in the temp directory and removed it with `try { Directory.Delete(dir,
+recursive: true); } catch { }`; the witness tests that loaded the program they compiled into the test host
+(`LoadFromAssemblyPath`, `Assembly.LoadFrom`) kept its file mapped, so every one of their deletes failed on Windows, in
+silence, and a test host the gate ends at its first red runs no cleanup at all: 16,096 `CobolNet_Tests_*` directories
+in one host's temp directory on 2026-10-23 (17,331 old-layout `CobolNet_*` directories untouched for over 3 hours were
+removed by hand when this landed). Now `ScratchDirectory.Create(prefix)` makes every scratch directory under ONE
+directory per test host, `<temp>/cobolnet-tests/<pid>-<id>`, beside `<pid>-<id>.lock`, which the host holds exclusively
+(`FileShare.None`, an flock on Linux) until its process ends; `Remove(dir)` deletes a directory whole, read-only entries
+included, and reports what it cannot (`HarnessLog.ReportLeft`: standard error and `COBOLNET_HARNESS_LOG`), never
+throwing from a `finally` or a `Dispose`; the host's directory goes at exit, and every host's first `Create` REAPS each
+host directory whose lock is free or gone, holding that lock while it removes the directory (deleted on close), so a
+starting host can never lose its directory to a reaper. `LoadAssembly(path)` loads a compiled program from its bytes,
+so the host keeps no mapping of the file. `FileHarness.TryDelete` (a test's physical file) reports through the same
+`HarnessLog.ReportLeft`. `ScratchDirectoryDriftTests` holds every C# file under `tests/` to it (no recursive delete, no
+temp directory of its own, no assembly load from a path, no delete in a `try` whose catches are all empty), with its
+two exemptions named and each still checked live; `ScratchDirectoryTests` drives the read-only removal, the report of a
+directory that cannot go (a held handle on Windows, an unsearchable directory on Linux), the reaping rules and the
+unlocked load.
 
 **5. One git process per question kind, never one per object (kb/Work PB3582).** A Windows process start costs tens of
 milliseconds where Linux pays about one, so a script that asks git one question per branch, commit, pair or file is
@@ -1857,11 +1906,51 @@ reached CI behind a green Windows gate and a green Linux gate. It is a Linux-gat
 because CI runs that job on Linux only; a Git Bash run on Windows would add minutes and no CI parity.
 
 **How: a Linux clone of the commit, never the Windows tree.** The tree's COMMITTED HEAD is cloned into
-`~/linux-gate/<tree>` on the Linux filesystem. The clone is `--shared`: it borrows the Windows repository's object
+`~/linux-gate/<tree>.<pid>/<tree>` on the Linux filesystem (removed when the gate ends, below). The clone is `--shared`: it borrows the Windows repository's object
 store read-only, so nothing is copied. The solution is built there ONCE with the Linux SDK, and every leg then runs
 in PARALLEL against that build, each to its own log (kb/Work PB2879: 234 s against 351 s with the legs one after
 another), the shape of CI's ubuntu jobs. The git-ignored GnuCOBOL corpus is copied in from the tree, or fetched as CI
 fetches it. Commit before running: uncommitted changes are counted, reported, and not tested.
+
+**The gate leaves nothing behind on the Linux filesystem (kb/Work PB3194).** One built gate is about 1 GB and 80,000
+inodes. The clone used to live at `~/linux-gate/<tree>` (with `<tree>.guard-tmp` beside it) and was removed only when
+the same tree was gated again; worktrees come and go, so 345 clones filled the disk on 2026-10-15 (`No space left on
+device` mid-leg read as 2,919 conformance failures, then the distro remounted read-only), 430 exhausted its inodes on
+2026-10-19 and 394 again on 2026-10-22, and each time every Linux gate on the host ended NOT RUN until someone deleted
+clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
+- each gate works in its own directory, `~/linux-gate/<tree>.<pid>/`: the clone (`<tree>`), the guard leg's scratch
+  (`guard-tmp`, beside the clone and never inside it, kb/Work PB2989) and an `owner` file naming the gate's process by
+  pid and start time, so a reused pid is never mistaken for it;
+- the gate removes that directory on every exit path: the EXIT trap after its verdict (GREEN, RED, or a NOT RUN after
+  the clone), and `on_signal` for HUP, INT and TERM, which first ends the legs' process trees (every background job and
+  each process under it, read from `/proc` in one pass) so nothing writes into the clone while it goes. The one build
+  runs in the background (`wait`) because bash defers a trap until a foreground command returns. What survives is what
+  the gate already wrote to the tree's `TestResults/linux-gate`, the guard's forensics of a non-MATCH included
+  (`GUARD_FORENSICS` points there);
+- a gate killed outright (SIGKILL, or WSL ending its session) runs no trap, so every gate first REAPS: a directory
+  whose owner no longer runs goes at once, and one with no owner file (the layout before this mechanism, from a
+  branch not yet merged with it) goes when it is this tree's or older than 3 hours;
+- then it measures the filesystem and refuses, `=== LINUX GATE: NOT RUN [disk] (…) ===`, below 1,000,000 free inodes
+  or 20 GB free (about twelve built gates: the gate cap of 3 and every implementer gate beside it). `disk` is an
+  ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES`, so a landing retries it and never blames the branch. A
+  filesystem that counts no inodes (btrfs) is held to the space bound alone; one `df` cannot measure is NOT RUN.
+`linux-gate.sh --self-test` drives each exit path on real directories and processes (status 0, 1 and 2, and a TERM
+mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
+stand-in `df`; removing the EXIT trap, the signal trap, the kill, the descendant walk, either bound, the liveness test
+or the age rule each turns it red. The signal arm is SYNCHRONIZED, never timed (review R1-1: a 20 s watchdog failed a
+slow correct gate and 5 s polls passed without testing): the leg's grandchild says READY through a fifo once it has
+blocked TERM and the probe signal, the gate signals itself only after reading it, and the arm reads a second fifo the
+grandchild holds open to its end, so it waits for that process's exit itself. A PROBE signal sent after the gate has
+exited (SIGVTALRM) ends a grandchild the stop never reached. The grandchild takes the first signal with `sigwait` and
+records TERM when TERM is that one or still pending beside it, so it records whether a TERM was ever sent, whatever the
+order or the load; a PROBE alone is a red. A stop that does not end its jobs hangs the arm, which `self_tests.py`
+reports HANG, a non-observation, never a pass. The grandchild was first a `bash -c` with a TERM trap, and that witness
+was wrong: run 32 at a time, 2 of 256 runs recorded PROBE although `on_signal` had sent the TERM (status 0), because
+bash did not run the TERM trap before the probe's trap ended the shell; the Linux gate's selftests leg at the landing
+of c89014b6b failed so. The `sigwait` grandchild (Python, the one interpreter) is GREEN in 256 of 256 runs 32 at a
+time, and the mutant whose stop signals only its jobs is red (`leg-child: PROBE`). The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
+Windows host serves at about half a second each, so there it prints `n/a` and runs in the Linux gate's `selftests`
+leg and CI's audits job.
 
 Two earlier designs failed, and each failure was measured:
 1. **Windows-built binaries run `--no-build`.** The Conformance tests find their goldens through `[CallerFilePath]`,

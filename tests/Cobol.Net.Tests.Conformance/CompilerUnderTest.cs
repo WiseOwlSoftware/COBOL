@@ -77,19 +77,6 @@ internal static class CutRunner
         return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }
 
-    /// <summary>Create a fresh isolated temp directory for one compile-and-run.</summary>
-    public static string NewTempDir(string tag)
-    {
-        string dir = Path.Combine(Path.GetTempPath(), $"CobolNet_Diff_{tag}_{Guid.NewGuid():N}"[..40]);
-        Directory.CreateDirectory(dir);
-        return dir;
-    }
-
-    /// <summary>Best-effort recursive delete of a temp directory.</summary>
-    public static void TryDelete(string dir)
-    {
-        try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
-    }
 }
 
 /// <summary>
@@ -103,7 +90,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
     public (bool ok, string stdout, string detail) CompileAndRun(string source,
         IReadOnlyDictionary<string, string?>? env = null)
     {
-        string dir = CutRunner.NewTempDir("cn");
+        string dir = ScratchDirectory.Create("cn");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -116,7 +103,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
 
             return CutRunner.Run(dll, dir, null, env);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Compile and run <paramref name="source"/>, then return the RAW BYTES the program left in
@@ -132,7 +119,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
     /// <returns><c>bytes</c> is null when the program did not create the file.</returns>
     public (bool ok, string stdout, string detail, byte[]? bytes) CompileRunAndReadFile(string source, string fileName)
     {
-        string dir = CutRunner.NewTempDir("cn");
+        string dir = ScratchDirectory.Create("cn");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -147,7 +134,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
             string produced = Path.Combine(dir, fileName);
             return (ok, stdout, detail, File.Exists(produced) ? File.ReadAllBytes(produced) : null);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Compile each of <paramref name="companions"/> into its OWN assembly beside
@@ -161,7 +148,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
     /// unchecked-activator test cannot be written as one program.</para></summary>
     public (bool ok, string stdout, string detail) CompileAndRunWith(string source, params string[] companions)
     {
-        string dir = CutRunner.NewTempDir("cn");
+        string dir = ScratchDirectory.Create("cn");
         try
         {
             if (CompileCompanions(dir, companions) is { } failure) return (false, "", failure);
@@ -175,7 +162,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
 
             return CutRunner.Run(dll, dir);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Compile each of <paramref name="companions"/> into its own assembly in <paramref name="dir"/>, named for its
@@ -207,7 +194,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
     /// <c>(-1, "", detail)</c>.</summary>
     public (int exitCode, string stdout, string detail) CompileAndRunExit(string source, params string[] companions)
     {
-        string dir = CutRunner.NewTempDir("cn");
+        string dir = ScratchDirectory.Create("cn");
         try
         {
             if (CompileCompanions(dir, companions) is { } failure) return (-1, "", failure);
@@ -222,6 +209,6 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
 
             return CutRunner.RunExit(dll, dir);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

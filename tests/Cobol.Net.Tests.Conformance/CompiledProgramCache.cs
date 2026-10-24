@@ -471,7 +471,7 @@ internal static class CompiledProgramCache
             var staged = new DirectoryInfo(Path.Combine(Root, "src"));
             if (staged.Exists)
                 foreach (var dir in staged.EnumerateDirectories().Where(d => d.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-7)))
-                    try { dir.Delete(recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+                    ScratchDirectory.Remove(dir.FullName);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* another process maintains */ }
         return true;

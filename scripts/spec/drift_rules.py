@@ -43,11 +43,20 @@ tests/_shared (`Sources`), and the test governs, transitively, every path those 
 per-file query says `— through <helper>`). Those paths govern a changed file but never make a class a sweep
 (`is_sweep`). TestRepo's path helpers are read from tests/_shared/TestRepo.cs (`test_repo`), never copied here, and a
 suite test it names by a literal id governs that program specifically. `--self-test` fires each arm on a planted tree.
+
+A drift test that reads a REGISTER — a data file it names, such as the traceability inventory or docs/CONFORMANCE.md —
+and checks that the register's citations resolve is broken by a change that never touches the register: one that
+deletes a member a code-location names, renames a test a test-ref names, or deletes a file. `citing` answers that
+case for the gate's planner (kb/Work PB3131): given what a diff removes (`removal_of`, fed by
+scripts/spec/impacted_tests.py), the classes that govern each register citing it (`Citations.broken_by` reads the
+three citation shapes a register uses: a path, a path and member, a dotted name).
 """
 import json
 import pathlib
 import re
+import subprocess
 import sys
+from dataclasses import dataclass
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 #: THE repo-root locator every test project shares. Its path helpers are READ FROM ITS SOURCE (`test_repo`), never
@@ -72,17 +81,23 @@ CALL = re.compile(r"\bTestRepo\.(\w+)\(([^()]*)\)")
 BARE_CALL = re.compile(r"(?<![\w.])(\w+)\(([^()]*)\)")
 #: `Path.Combine(TestRepo.Root, "a", "b")` (or `Path.Combine([TestRepo.Root, "a", ...])`): the root helper written out.
 ROOT_COMBINE = re.compile(r"\bPath\.Combine\(\s*\[?\s*TestRepo\.Root\s*,([^()\]]*)\]?\s*\)")
-#: A TOP-LEVEL type declaration of a test source (every test source uses a file-scoped namespace, so a top-level type
-#: starts its line; a nested one is indented): the helper classes a drift test may read the tree through.
-TYPE_DECL = re.compile(r"^(?:(?:public|internal|private|protected|static|sealed|abstract|partial|file|readonly|ref|"
-                       r"unsafe)\s+)*(?:class|struct|interface|enum|record(?:\s+class|\s+struct)?)\s+(\w+)", re.M)
+#: A C# type DECLARATION (one rule, two readers): its indent (group 1), its modifiers (group 2) and its name (group 3),
+#: matched only at a line start, so a comment (`// so a record is two trees`), a string ("record which of the two") or
+#: prose declares no type. Every test source uses a file-scoped namespace, so a TOP-LEVEL type (the helper classes a
+#: drift test may read the tree through, `Sources`, kb/Work PB3247) has no indent; a removed one, nested or not, is what
+#: a register's dotted citation can name (`declared_types`, kb/Work PB3131 review R1-1).
+TYPE_DECL = re.compile(r"^([ \t]*)((?:(?:public|private|protected|internal|static|sealed|abstract|partial|readonly|"
+                       r"file|ref|unsafe|new)[ \t]+)*)(?:class|struct|interface|enum|record(?:[ \t]+(?:struct|class))?)"
+                       r"[ \t]+([A-Za-z_]\w*)", re.M)
 #: A use of a type by name: a member access `T.M`, a construction `new T`, `typeof(T)`, a base type `class C : T`,
 #: `using static N.T;`. Comments are removed first: a summary naming a helper is no read of its tree.
 TYPE_USE = re.compile(r"(?<![\w.])(\w+)\s*\.\s*[A-Za-z_]|\bnew\s+(\w+)\b|\btypeof\s*\(\s*(\w+)"
                       r"|\b(?:class|struct|record)\s+\w+(?:<[^>]*>)?(?:\([^)]*\))?\s*:\s*(\w+)"
                       r"|\busing\s+static\s+(?:\w+\.)*(\w+)\s*;")
 COMMENT = re.compile(r"//[^\n]*")
-LITERAL = re.compile(r'"((?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)/[^"\s{}*]+)"')
+#: The top-level trees a repo-relative path a test reads, or a register cites, starts with.
+TREE_ROOTS = r"(?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)"
+LITERAL = re.compile(r'"(' + TREE_ROOTS + r'/[^"\s{}*]+)"')
 SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
 CLASS = re.compile(r"\bclass\s+(\w*DriftTests)\b")
 CREF = re.compile(r'<(?:see|seealso)\s+(?:cref|langword|href)="(?:[A-Z]:)?([^"]+)"\s*/>')
@@ -195,7 +210,8 @@ class Sources:
         for f in test_sources(root):
             rel = f.relative_to(root).as_posix()
             for m in TYPE_DECL.finditer(self.text(rel)):
-                self.types.setdefault((project(rel), m.group(1)), []).append(rel)
+                if not m.group(1):   # top-level only: a nested type is no helper class
+                    self.types.setdefault((project(rel), m.group(3)), []).append(rel)
 
     def text(self, rel):
         if rel not in self._texts:
@@ -443,6 +459,210 @@ def governing(rows, rel):
         elif under or held:
             sweeps.append(r)
     return specific, sweeps
+
+
+@dataclass(frozen=True)
+class Removal:
+    """What a change takes away from one tracked file, as a CITATION can name it: the file itself (`deleted`), the
+    identifiers its old text had and its new text lacks (`names`), the types it declares (`classes`, old text and new)
+    — the left-hand side of a dotted `Class.Member` citation — and the types it deletes WHOLE (`dropped`): a type
+    declared on a removed line, not `partial`, whose name the new text lacks (or whose file is deleted)."""
+    path: str
+    deleted: bool
+    names: frozenset[str]
+    classes: frozenset[str]
+    dropped: frozenset[str] = frozenset()
+
+
+IDENT = re.compile(r"[A-Za-z_]\w*")
+def declared_types(path, text):
+    """(type, partial?) for every type the C# `text` of `path` declares; none for a file that is not C#."""
+    return [(name, "partial" in mods.split()) for _, mods, name in TYPE_DECL.findall(text)] if path.endswith(".cs") else []
+
+
+def removal_of(path, removed, after):
+    """The Removal of `path` from a diff: its `removed` lines, and its text after the change (None: deleted). An
+    identifier the old text had and the new one lacks sits on a removed line, so the removed lines suffice. None when
+    the change removes nothing a citation can name. Deleting one file of a `partial` type deletes no type: its other
+    files still declare it (cf9c85914 deleted IndexedConnector.WholeStore.cs, and IndexedConnector.Start lived on)."""
+    removed_text = "\n".join(removed)
+    gone = declared_types(path, removed_text)
+    classes = frozenset(t for t, _ in gone + declared_types(path, after or ""))
+    whole = frozenset(t for t, partial in gone if not partial)
+    if after is None:
+        return Removal(path, True, frozenset(), classes, whole)
+    names = frozenset(IDENT.findall(removed_text)) - frozenset(IDENT.findall(after))
+    return Removal(path, False, names, classes, whole & names) if names else None
+
+
+def data_files(rows):
+    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly — each with the
+    classes that govern it specifically: the registers that cite tree symbols (the traceability inventory's
+    code-locations and test-refs, docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
+    out = {}
+    for p in sorted({p for r in rows for p in reads(r) if not p.endswith(".cs")}):
+        if (ROOT / p).is_file():
+            out[p] = sorted(r["test"] for r in governing(rows, p)[0])
+    return out
+
+
+PATH_MEMBER = re.compile(r"(" + TREE_ROOTS + r"/[\w./-]+)#([A-Za-z_][\w.]*)")
+#: Anchored at a word start and possessive: unanchored, the scan of the 18 MB of registers took 2 s, not 0.6 s.
+DOTTED = re.compile(r"\b[A-Za-z_]\w*+(?:\.[A-Za-z_]\w*+)+")
+#: What surrounds a path citation in a register and is not the path: a scheme before it (`conformance:`), a member
+#: after it (`#Bind`) and the punctuation of the prose or list holding it.
+SCHEME = re.compile(r"^(?:[\w-]+:)+")
+OPENERS, CLOSERS = " \t\n\"'`|(<[*", " \t\n\"'`|)>]*"
+
+
+def key(path):
+    """A file's identity as a citation names it: its path without its extension (`cases/X/t` names `t.cob` and
+    `t.out`)."""
+    head, _, base = path.rpartition("/")
+    return f"{head}/{base.rsplit('.', 1)[0]}" if "." in base else path
+
+
+class TreeFiles:
+    """The tree BEFORE the change, as a register's path citation resolves against it. A citation names the files whose
+    path ENDS with its path, the extension optional (`conformance:cases/5.5-X/t`, `src/P/Binder.cs#Bind`), so
+    `scripts/test.py` never names `scripts/foo/test.py`. A golden pin (`2023/<test>`, docs/CONFORMANCE.md) is the one
+    path whose directory is an EDITION, a number: it names every file whose name is its last segment. A run with no
+    directory names a file only by its whole name (`Binder.cs`): a bare word is no path."""
+
+    def __init__(self, paths):
+        self.by_name, self.by_stem = {}, {}
+        for p in paths:
+            base = p.rpartition("/")[2]
+            self.by_name.setdefault(base, []).append(p)
+            if "." in base:
+                self.by_stem.setdefault(base.rsplit(".", 1)[0], []).append(p)
+
+    def resolve(self, cite):
+        """The files the path citation `cite` names: () when it names none, or is no path."""
+        path = SCHEME.sub("", cite).split("#", 1)[0].rstrip(".,;:")
+        dirs, _, last = path.rpartition("/")
+        if not dirs:
+            return tuple(self.by_name.get(last, ())) if "." in last else ()
+        named = self.by_name.get(last, []) + self.by_stem.get(last, [])
+        under = tuple(p for p in named if p.rpartition("/")[0] == dirs or p.rpartition("/")[0].endswith("/" + dirs))
+        return under or (tuple(named) if dirs.isdigit() else ())
+
+
+class Citations:
+    """A data file's citations of tree symbols, indexed once so a removal is checked by set lookups (a regex per
+    removed identifier over the 7.5 MB inventory cost 12-49 s a plan). A register cites a symbol in three shapes:
+    a PATH (`src/.../File.cs`, `cases/<clause>/<test>`), a PATH AND MEMBER (`src/.../File.cs#Member`, `#Class.Member`,
+    a grammar's `#rule`) and a DOTTED NAME (`unit:Class.Method`, `Namespace.Class.Method`)."""
+
+    def __init__(self, text, wanted, types):
+        """Index `text`, keeping only the citations whose member is one of the `wanted` (removed) identifiers, and the
+        dotted names that qualify one of the removed `types`."""
+        self.text = text
+        self.members = {}   # (path, a segment after its `#`) -> the citation
+        for path, member in PATH_MEMBER.findall(text):
+            for seg in filter(None, member.split(".")):
+                if seg in wanted:
+                    self.members.setdefault((path, seg), f"{path}#{member}")
+        self.qualified = {}   # (a segment, any later segment of the same dotted name) -> the dotted name
+        self.typed = {}   # a removed type -> a dotted name qualifying it
+        for name in set(DOTTED.findall(text)):
+            segs = name.split(".")
+            for i, right in enumerate(segs):
+                if right in wanted:
+                    for left in segs[:i]:
+                        self.qualified.setdefault((left, right), name)
+                if right in types and qualifies(segs, i):
+                    self.typed.setdefault(right, name)
+
+    def broken_by(self, removal, tree=None, gone=frozenset()):
+        """The first citation `removal` breaks, or None: a PATH AND MEMBER by removing any segment after the `#`; a
+        DOTTED NAME by removing a later segment from a file declaring the earlier one as a type, or by removing the
+        type itself (or its file); a PATH by deleting the file it names, when every file it names is `gone` (the keys
+        the change deletes) — resolved against the `tree` before the change, so `docs/README.md` is not broken by
+        deleting `docs/sub/README.md`, and a bare `test` or `Program` is no path at all (PB3131 review R1-1)."""
+        for n in sorted(removal.names):
+            if (removal.path, n) in self.members:
+                return self.members[removal.path, n]
+            for c in sorted(removal.classes):
+                if (c, n) in self.qualified:
+                    return self.qualified[c, n]
+        for t in sorted(removal.dropped):
+            if t in self.typed:
+                return self.typed[t]
+        if not removal.deleted or tree is None:
+            return None
+        stem = key(removal.path).rpartition("/")[2]
+        seen = set()
+        for hit in re.finditer(r"(?<![\w-])" + re.escape(stem) + r"(?![\w-])", self.text) if stem in self.text else ():
+            run = self.run_at(hit.start(), hit.end())
+            if run in seen:
+                continue
+            seen.add(run)
+            named = tree.resolve(run)
+            if removal.path in named and all(key(p) in gone for p in named):
+                return run[:160]
+        return None
+
+
+    def run_at(self, start, end):
+        """The citation holding the mention at [start, end): the run of text between the delimiters around it, walked
+        a character at a time (a `rfind` per delimiter scans back to the file's start when that delimiter is absent,
+        which cost seconds for a common stem's thousand mentions), at most RUN_REACH characters each way."""
+        lo, hi, text = start, end, self.text
+        while lo > max(0, start - RUN_REACH) and text[lo - 1] not in OPENERS:
+            lo -= 1
+        while hi < min(len(text), end + RUN_REACH) and text[hi] not in CLOSERS:
+            hi += 1
+        return text[lo:hi]
+
+
+RUN_REACH = 512
+
+
+def qualifies(segs, i):
+    """Whether segment `i` of a dotted name cites it as a TYPE: a member follows it (`Class.Method`). A member's name
+    starts upper-case or `_`, so `Program.cs` is a file name, not a member of `Program`; and a name the segment ENDS
+    (`SourceElementKind.Program`, `Scope.Program`) is a member or an enum value of another type, not this one."""
+    return i + 1 < len(segs) and (segs[i + 1][:1].isupper() or segs[i + 1][:1] == "_")
+
+
+def tracked_tree():
+    """The committed tree's paths (`git ls-files`): `citing`'s default tree, with the deleted paths added back."""
+    out = subprocess.run(["git", "-c", "core.quotePath=false", "ls-files", "-z"], cwd=ROOT, check=True,
+                         capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
+    return [p for p in out.split("\0") if p]
+
+
+def citing(rows, removals, read=None, tree=None):
+    """{drift class: (data file, citation)} for every data file (`data_files`) holding a citation one of `removals`
+    breaks: the classes that govern that file specifically, which the gate's planner puts in leg 1 with the governing
+    ones (tier 0d; scripts/spec/impacted_tests.py). A change that deletes a member, renames a test or deletes a file a
+    register cites breaks the register's check WITHOUT touching the register (kb/Work PB3131: four landings stopped in
+    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows leg 1 that never ran it). `read`
+    (repo-relative path -> text) defaults to the tree; `tree` (the paths before the change, which a deleted file's
+    path citation resolves against) defaults to the tracked tree plus the deleted paths."""
+    read = read or (lambda p: (ROOT / p).read_text(encoding="utf-8", errors="replace"))
+    out = {}
+    if not removals:
+        return out
+    wanted = frozenset().union(*(r.names for r in removals))
+    types = frozenset().union(*(r.dropped for r in removals))
+    deleted = [r.path for r in removals if r.deleted]
+    files = TreeFiles(set(tree if tree is not None else tracked_tree()) | set(deleted)) if deleted else None
+    gone = frozenset(key(p) for p in deleted)
+    for data, classes in data_files(rows).items():
+        if all(c in out for c in classes):
+            continue
+        cites = Citations(read(data), wanted, types)
+        for removal in removals:
+            if removal.path == data:
+                continue   # the register's own edit is governed (`governed`), not cited
+            cite = cites.broken_by(removal, files, gone)
+            if cite:
+                for c in classes:
+                    out.setdefault(c, (data, cite))
+                break
+    return out
 
 
 def self_test():
