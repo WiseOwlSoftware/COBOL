@@ -31,9 +31,21 @@ namespace CobolNet.Tests.Unit;
 /// would be listed here with a reason; none does today.
 /// </para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class SourceEncodingDriftTests
 {
     private static readonly byte[] Bom = [0xEF, 0xBB, 0xBF];
+
+    /// <summary>The directory of a tree the <see cref="Scopes"/> table names. Each tree is spelled by its own helper
+    /// call, so the drift-rule index (scripts/spec/drift_rules.py) sees the two trees this class reads and plans it for
+    /// a change to a file under either (kb/Work PB3112: a root taken from the theory's parameter named nothing, so the
+    /// class governed no file, and the index's `--check` now refuses a class like that).</summary>
+    private static string TreeRoot(string tree) => tree switch
+    {
+        "src" => TestRepo.Src(),
+        "tests" => TestRepo.Tests(),
+        _ => throw new ArgumentOutOfRangeException(nameof(tree), tree, "a tree the Scopes table names"),
+    };
 
     /// <summary>Source trees whose files shall not begin with a byte-order mark, with why it matters. The test
     /// sources are covered too (kb/Work PB927): the same bad tool write produced them, and a file a sweep reads
@@ -51,7 +63,7 @@ public sealed class SourceEncodingDriftTests
     {
         var offenders = new List<string>();
         byte[] head = new byte[3];   // hoisted: CA2014 forbids a stackalloc inside the loop
-        string root = TestRepo.At(tree);
+        string root = TreeRoot(tree);
         foreach (string f in Directory.EnumerateFiles(root, pattern, SearchOption.AllDirectories))
         {
             string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
@@ -81,7 +93,8 @@ public sealed class SourceEncodingDriftTests
     public void TheScanSeesFiles(string tree, string pattern, string why)
     {
         _ = why;
-        int n = Directory.EnumerateFiles(TestRepo.At(tree), pattern, SearchOption.AllDirectories).Count();
-        Assert.True(n > 0, $"the {pattern} scan found no files under {TestRepo.At(tree)} — the scan is broken");
+        string root = TreeRoot(tree);
+        int n = Directory.EnumerateFiles(root, pattern, SearchOption.AllDirectories).Count();
+        Assert.True(n > 0, $"the {pattern} scan found no files under {root} — the scan is broken");
     }
 }
