@@ -1,4 +1,4 @@
-## PB3611: the fix lane's group cap is eight notes, restated nowhere else
+## Entry 2462 — 2026-10-24 10:26 PDT — PB3611: the fix lane's group cap is eight notes, restated nowhere else
 
 The planner (`scripts/orchestrator/plan_wave.py`) hands `fix_clusters.py` the cap `model_rules.json` `wave.max_notes_per_group`,
 which was 5 and made more branches than the landing rate (1.5 per hour, `landing_measure.py summary`) carries: wave 1157
@@ -20,3 +20,4 @@ is one edit. `test_plan_wave.py` 338/338 and `test_rolling_wave.py` 41/41 pass; 
 
 Not measured: whether a larger group costs review depth (findings per note before and after). The reports of the first
 wave planned at cap 8 carry that figure.
+
