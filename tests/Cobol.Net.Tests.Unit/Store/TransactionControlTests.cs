@@ -692,6 +692,7 @@ public sealed class TransactionControlTests
         Assert.Null(r.Txn.Rollback());
         Assert.Equal("GONE-CHANGED", gone.Item);             // GR4/GR5: the canceled element's items are not restored
         Assert.Equal("INITIAL", kept.Item);
+        Assert.True(r.Reg.IsCommitControlled("F"));          // the live clause still names F
         Assert.Null(r.Txn.Commit());
         Assert.Equal(1, gone.Saves);                         // GR6: deactivated by the ROLLBACK, never saved again
         Assert.Equal(2, kept.Saves);
@@ -700,5 +701,115 @@ public sealed class TransactionControlTests
         Assert.Null(r.Txn.Commit());                         // §14.9.7.4 GR3: the COMMIT deactivates the last clause
         Assert.False(r.Txn.AnyActive);
         Assert.Equal(2, kept.Saves);
+        Assert.False(r.Reg.IsCommitControlled("F"));         // kb/Work PB3541: no active clause names F any more
+    }
+
+    /// <summary>⛔ kb/Work PB3541 — A FILE WHOSE LAST CLAUSE IS DEACTIVATED LEAVES COMMIT CONTROL. §14.9.7.4 GR3 (<i>"The COMMIT
+    /// statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"</i>) and
+    /// §14.9.36.4 GR6 for the ROLLBACK end the clause, and §12.4.6.3.4 GR5 makes it active only until then; so F's changes
+    /// after the deactivating statement are no ROLLBACK's (§14.9.36.4 GR3 restores <i>"All files and data-items referenced
+    /// in active APPLY COMMIT clauses"</i>) and a fatal status on F runs no §14.6.13.1.3 item 8 ROLLBACK, while another
+    /// element's active clause, on file G, keeps the run unit's commit control alive. Both deactivating statements are
+    /// cases: the COMMIT (<paramref name="byCommit"/>) and the ROLLBACK.</summary>
+    [Theory]
+    [MemberData(nameof(OrgsByStatement))]
+    public void A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s(FileOrg org, bool byCommit)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        r.Declare("G");
+        object canceled = new(), live = new();
+        var gone = new Clause(r.Reg);
+        var kept = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        Assert.True(r.Activate(live, kept, "G"));
+        r.OpenIO("F");
+        r.OpenIO("G");
+        r.Txn.Retire(canceled);
+        Assert.Null(byCommit ? r.Txn.Commit() : r.Txn.Rollback());
+        Assert.False(r.Reg.IsCommitControlled("F"));
+        Assert.True(r.Reg.IsCommitControlled("G"));
+        Assert.True(r.Txn.AnyActive);
+        Change(r);                                           // F's changes, made after the deactivation
+        Assert.Equal("00", r.Write(8, "A008", "G"));         // G's change, under its active clause
+        kept.Item = "CHANGED";
+        r.Refuse = (file, _, op) => file == "F" && op[0] == 'W' ? Refusal : null;
+        Assert.Equal("30", r.Write(9, "A009"));              // a fatal status on F
+        r.Refuse = null;
+        Item8(r, "F");                                       // F is subject to no active clause: no ROLLBACK
+        Assert.Equal("CHANGED", kept.Item);
+        Assert.Null(r.Txn.Rollback());
+        Assert.Equal(Changed(), r.Contents("F"));            // F is no ROLLBACK's: every change of it survives
+        Assert.Equal(Seeded(), r.Contents("G"));             // G is rolled back
+        Assert.Equal("INITIAL", kept.Item);
+    }
+
+    /// <summary>⛔ kb/Work PB3541 — THE DEACTIVATION PUTS THE FILE CONTROL ENTRY'S OWN LOCK POSTURE BACK. Under commit control
+    /// §9.1.16 applies <i>"an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"</i>, so a READ locks its record
+    /// (§12.4.5.9.4 GR4) and another connector's READ of it answers '51'. Once the clause naming F is deactivated F is no
+    /// longer a file subject to commit and rollback, and its entry's LOCK MODE IS MANUAL holds again: a READ without the
+    /// WITH LOCK phrase locks nothing, and the other connector reads the record '00'.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_deactivated_clause_gives_the_file_its_declared_lock_posture_back(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        Register(r.Reg, "F2", r.Hosts["F"], org);
+        object canceled = new();
+        var gone = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        r.OpenIO("F");
+        FileHarness.Open(r.Reg, "F2", FileOpenMode.IO);
+        Assert.Equal("00", Read(r.Reg, "F", org, 2, out _));
+        Assert.Equal("51", Read(r.Reg, "F2", org, 2, out _));   // AUTOMATIC under commit control: F's READ locked record 2
+        r.Txn.Retire(canceled);
+        r.Reg.Close("F");
+        Assert.Null(r.Txn.Commit());                            // deactivates the clause; F's kept locks released
+        r.OpenIO("F");
+        Assert.Equal("00", Read(r.Reg, "F", org, 2, out _));
+        Assert.Equal("00", Read(r.Reg, "F2", org, 2, out _));   // MANUAL again: a READ without WITH LOCK locks nothing
+    }
+
+    /// <summary>⛔ kb/Work PB3541's refused arm: a ROLLBACK the medium refuses still deactivates the retired clause
+    /// (§14.9.36.4 GR6 is not conditioned on GR3's success) and takes F out of commit control, but F's transaction, made
+    /// while the clause was active, stays OWED: the refusal is told ('30'), and the next ROLLBACK, which another element's
+    /// active clause keeps from being a CONTINUE (GR1), finishes it, because the registry finds the transaction by its open
+    /// id and not by the connector's commit-control flag.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_refused_rollback_that_deactivates_the_clause_leaves_the_files_transaction_owed(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        r.Declare("G");
+        object canceled = new(), live = new();
+        var gone = new Clause(r.Reg);
+        var kept = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        Assert.True(r.Activate(live, kept, "G"));
+        r.OpenIO("F");
+        Change(r);                                           // F's changes, made while its clause is active
+        r.Txn.Retire(canceled);
+        r.Refuse = (file, _, op) => file == "F" && op[0] == 'W' ? Refusal : null;
+        Assert.Equal("F", r.Txn.Rollback());
+        r.Refuse = null;
+        Assert.Equal("30", r.Reg.Status("F"));
+        Assert.False(r.Reg.IsCommitControlled("F"));         // GR6: the clause is deactivated all the same
+        Assert.NotEqual(0UL, r.Reg.TransactionOf("F"));      // ... and F's transaction is owed
+        Assert.Null(r.Txn.Rollback());                       // the next ROLLBACK finishes it
+        Assert.Equal(0UL, r.Reg.TransactionOf("F"));
+        Assert.Equal(Seeded(), r.Contents("F"));
+    }
+
+    public static TheoryData<FileOrg, bool> OrgsByStatement()
+    {
+        var data = new TheoryData<FileOrg, bool>();
+        foreach (var org in KeyedOrgs)
+        {
+            data.Add(org, true);
+            data.Add(org, false);
+        }
+        return data;
     }
 }
