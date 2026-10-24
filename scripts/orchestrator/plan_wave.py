@@ -444,17 +444,18 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
 def git_branch_classifier() -> Callable[[str], str]:
     """branch -> MERGED | LANDED | CHECK | UNLANDED | ABSENT, by prune_worktrees' content test (reused, not forked)."""
     import prune_worktrees  # noqa: PLC0415  (git work at import time is none, but the grep below is: only on demand)
-    names: set[str] | None = None
+    read: dict[str, Any] = {}
     cache: dict[str, str] = {}
 
     def classify(branch: str) -> str:
-        nonlocal names
+        if not read:   # at the first question: every local branch and ONE graph of them (kb/Work PB3582), never a
+            # `rev-parse` and a `merge-base` per branch
+            read["local"] = set(prune_worktrees.git("for-each-ref", "refs/heads", "--format=%(refname:short)").stdout.split())
+            read["graph"] = prune_worktrees.branch_graph(sorted(read["local"]))
+            read["names"] = prune_worktrees.main_names()
         if branch not in cache:
-            if prune_worktrees.git("rev-parse", "--verify", "--quiet", f"refs/heads/{branch}").returncode != 0:
-                cache[branch] = "ABSENT"
-            else:
-                names = names if names is not None else prune_worktrees.main_names()
-                cache[branch] = prune_worktrees.classify(branch, names)[0]
+            cache[branch] = ("ABSENT" if branch not in read["local"] else
+                             prune_worktrees.classify(branch, read["names"], read["graph"])[0])
         return cache[branch]
     return classify
 
@@ -486,11 +487,13 @@ def unlanded_branch_notes() -> dict[str, list[str]]:
     plan() knows the latter (kb/Work PB3150 review R2-1)."""
     import prune_worktrees  # noqa: PLC0415
     names = prune_worktrees.main_names()
+    branches = [b for b in prune_worktrees.git("branch", "--format=%(refname:short)").stdout.split() if b != "main"]
+    graph = prune_worktrees.branch_graph(branches)   # ONE graph: the classes and the subjects (kb/Work PB3582)
     out = {}
-    for b in prune_worktrees.git("branch", "--format=%(refname:short)").stdout.split():
-        if b == "main" or prune_worktrees.classify(b, names)[0] not in ("UNLANDED", "CHECK"):
+    for b in branches:
+        if prune_worktrees.classify(b, names, graph)[0] not in ("UNLANDED", "CHECK"):
             continue
-        subjects = prune_worktrees.git("log", "--format=%s", f"origin/main..{b}").stdout
+        subjects = "\n".join(graph.subject(c) for c in graph.beyond(graph.sha(b) or b))
         out[b] = sorted(set(PB.findall(subjects)), key=lambda s: int(s[2:]))
     return out
 

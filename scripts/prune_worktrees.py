@@ -146,6 +146,8 @@ from typing import TYPE_CHECKING, Callable
 REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the coordination directory, the live-process probe)
+import git_batch  # noqa: E402  (scripts/: THE batched git reads, one process for many objects, kb/Work PB3582)
+from git_batch import Ancestry  # noqa: E402
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 from queue_facts import PullRequest  # noqa: E402
 if TYPE_CHECKING:
@@ -188,13 +190,12 @@ def main_names(repo=REPO):
     return set(out.split())
 
 
-def merges_to_main_unchanged(branch, repo=REPO) -> bool:
+def merges_to_main_unchanged(branch, graph: Ancestry, repo=REPO) -> bool:
     """Would merging `branch` into origin/main leave main's tree exactly as it is? Any git failure (unrelated histories, a
-    conflict, a missing ref) is a NO: an unproven landing is never LANDED."""
+    conflict, a missing ref) is a NO: an unproven landing is never LANDED. Main's tree is the graph's, read once a pass."""
     merged = git('merge-tree', '--write-tree', 'origin/main', branch, cwd=repo)
-    tree = git('rev-parse', 'origin/main^{tree}', cwd=repo)
-    return (merged.returncode == 0 and tree.returncode == 0 and bool(tree.stdout.strip())
-            and merged.stdout.split('\n', 1)[0].strip() == tree.stdout.strip())
+    tree = graph.base_tree()
+    return merged.returncode == 0 and bool(tree) and merged.stdout.split('\n', 1)[0].strip() == tree
 
 
 def uncommitted(path) -> int:
@@ -276,13 +277,13 @@ def train_clusters(base: str, last: str, label: str, repo=REPO) -> dict[str, str
     return found
 
 
-def carried(branch, lost, repo=REPO, coord_dir: pathlib.Path | None = None) -> str:
+def carried(branch, lost, graph: Ancestry, repo=REPO, coord_dir: pathlib.Path | None = None) -> str:
     """How a branch's work reached main as OTHER commits, or '' (kb/Work PB2708): a landed train took exactly its head
     (train_heads), or every one of its commits is patch-equivalent to a commit on main (`git cherry`: a finisher
     cherry-picked them, the five SPLIT predecessors of 2026-10-10) and it declares no name main lacks. A branch that
     moved past the head a train took is not carried (its later commits never were), and a cherry-picked branch with a
     name main lacks stays a DECISION (`worktree-wf_0cae47bc-172-2`: HolderState, StateOf)."""
-    head = git('rev-parse', branch, cwd=repo).stdout.strip()
+    head = graph.sha(branch) or ''
     for took, evidence in train_heads(repo, coord_dir).get(branch, []):
         if head and head.startswith(took):
             return evidence
@@ -293,10 +294,16 @@ def carried(branch, lost, repo=REPO, coord_dir: pathlib.Path | None = None) -> s
     return ''
 
 
-def classify(branch, names, repo=REPO, coord_dir: pathlib.Path | None = None):
+def branch_graph(branches, repo=REPO) -> Ancestry:
+    """THE ancestry every classify() of one pass reads (git_batch.Ancestry: one resolve and one `git log` for every
+    branch, never a `merge-base` per branch, kb/Work PB3582)."""
+    return Ancestry.read(repo, branches)
+
+
+def classify(branch, names, graph: Ancestry, repo=REPO, coord_dir: pathlib.Path | None = None):
     """(content class, added files absent from main, declared C# names main lacks, how a LANDED row's work reached main
-    when its own merge would still change main: carried(), else '')."""
-    if git('merge-base', '--is-ancestor', branch, 'origin/main', cwd=repo).returncode == 0:
+    when its own merge would still change main: carried(), else ''). `graph` holds the branch (branch_graph)."""
+    if graph.on_base(graph.sha(branch) or branch):
         return 'MERGED', [], [], ''
     # ANY added file absent from main counts (2026-10-04: a branch that added only scripts/ and docs/ was classified
     # LANDED and would have been deleted)
@@ -314,9 +321,9 @@ def classify(branch, names, repo=REPO, coord_dir: pathlib.Path | None = None):
     lost = sorted(n for n in declared if n not in names)
     if absent:
         return 'UNLANDED', absent, lost, ''
-    if merges_to_main_unchanged(branch, repo):
+    if merges_to_main_unchanged(branch, graph, repo):
         return 'LANDED', absent, lost, ''
-    how = carried(branch, lost, repo, coord_dir)
+    how = carried(branch, lost, graph, repo, coord_dir)
     return ('LANDED' if how else 'CHECK'), absent, lost, how
 
 
@@ -338,6 +345,23 @@ def worktrees(repo=REPO) -> list[Tree]:
         head = re.search(r'^HEAD ([0-9a-f]+)$', blk, re.M)
         found.append(Tree(path, br.group(1) if br else None, (lk.group(1) or '') if lk else None, head.group(1) if head else ''))
     return found
+
+
+def worktree_git_dir(path: str | pathlib.Path) -> pathlib.Path:
+    """A linked worktree's own git directory, read from its `.git` file (`gitdir: <path>`, absolute or relative to the
+    worktree) with no git process (kb/Work PB3582); the `.git` directory of a checkout that has one; else the worktree
+    itself, whose `logs/HEAD` then simply does not exist (age_minutes ignores a missing path)."""
+    dot = pathlib.Path(path) / '.git'
+    if dot.is_dir():
+        return dot
+    try:
+        text = dot.read_text(encoding='utf-8').strip()
+    except OSError:
+        return pathlib.Path(path)
+    if not text.startswith('gitdir:'):
+        return pathlib.Path(path)
+    gitdir = pathlib.Path(text[len('gitdir:'):].strip())
+    return gitdir if gitdir.is_absolute() else (pathlib.Path(path) / gitdir).resolve()
 
 
 def live_lock(reason: str | None, alive: Callable[[int], str | None] = coord.process_name) -> bool:
@@ -392,54 +416,84 @@ class Row:
                                     # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
 
 
-def mechanical(commit: str, repo=REPO) -> bool:
-    """A commit that changes nothing a reviewer reads: a merge whose tree IS the clean merge of its two parents (no hand
-    resolution: what `enqueue.py land`'s own `git merge origin/main` makes), or a commit that changes only DEVLOG/ (an
-    entry, its stamp)."""
-    parents = git('rev-list', '--parents', '-n', '1', commit, cwd=repo).stdout.split()[1:]
-    if len(parents) == 2:
-        clean = git('merge-tree', '--write-tree', *parents, cwd=repo)
-        return clean.returncode == 0 and clean.stdout.split()[:1] == [
-            git('rev-parse', f'{commit}^{{tree}}', cwd=repo).stdout.strip()]
-    if len(parents) == 1:
-        paths = git('diff-tree', '--no-commit-id', '--name-only', '-r', commit, cwd=repo).stdout.split()
-        return bool(paths) and all(p.startswith('DEVLOG/') for p in paths)
-    return False
+def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
+    """The commits (beyond the graph's base) that change nothing a reviewer reads: a merge whose tree IS the clean merge
+    of its two parents (no hand resolution: what `enqueue.py land`'s own `git merge origin/main` makes), or a commit that
+    changes only DEVLOG/ (an entry, its stamp). Parents and trees come from the graph; every one-parent commit's files
+    from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree` (kb/Work PB3582)."""
+    out = set()
+    for c in commits:
+        parents = graph.parents(c)
+        if len(parents) == 2:
+            clean = git('merge-tree', '--write-tree', *parents, cwd=repo)
+            if clean.returncode == 0 and clean.stdout.split()[:1] == [graph.tree(c)]:
+                out.add(c)
+    singles = [c for c in commits if len(graph.parents(c)) == 1]
+    for c, paths in zip(singles, git_batch.diff_names(repo, [(c, graph.parents(c)[0]) for c in singles])):
+        if paths and all(p.startswith('DEVLOG/') for p in paths):
+            out.add(c)
+    return out
 
 
-def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = 'refs/remotes/origin/main') -> list[str] | None:
+def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = git_batch.BASE,
+                     graph: Ancestry | None = None) -> list[str] | None:
     """THE REVIEW'S COVERAGE (MANDATORY-PRACTICES I10, L9; kb/Work PB3027, PB3023), one rule read by this survey and by
     `enqueue.py land`: the commits of `tip` after the `reviewed` head that no reviewer read, newest first — every commit
     not on `base` but a mechanical one (above). [] = the review still covers the tip; None = `reviewed` is not a commit
-    of `tip` (unreadable, or another history), so it covers nothing."""
-    full = git('rev-parse', '--verify', '--quiet', f'{reviewed}^{{commit}}', cwd=repo).stdout.strip()
-    if not full or not tip or git('merge-base', '--is-ancestor', full, tip, cwd=repo).returncode != 0:
+    of `tip` (unreadable, or another history), so it covers nothing. `graph`: the pass's Ancestry over `base` holding
+    `tip` (the survey's, read once for every row); else one is read here for `tip` alone."""
+    if not tip:
         return None
-    return [c for c in git('rev-list', tip, f'^{full}', f'^{base}', cwd=repo).stdout.split() if not mechanical(c, repo)]
+    if graph is None:
+        graph = Ancestry.read(repo, [tip], base)
+    elif graph.base != base:
+        raise ValueError(f'unreviewed_since: the graph excludes {graph.base}, not {base}')
+    full, head = graph.sha(reviewed), graph.sha(tip)
+    if not full or not head:
+        return None
+    # A reviewed head beyond the base is a commit of the tip exactly when the tip's graph reaches it; one on the base
+    # (or another history) is asked of git, the rare case.
+    if full not in graph.beyond(head) and git('merge-base', '--is-ancestor', full, head, cwd=repo).returncode != 0:
+        return None
+    since = graph.newest_first(graph.beyond(head) - graph.beyond(full))
+    skip = mechanical(since, graph, repo)
+    return [c for c in since if c not in skip]
 
 
-def review_holds(rv: Review, tip: str | None, *, repo=REPO) -> bool:
+def review_holds(rv: Review, tip: str | None, *, repo=REPO, graph: Ancestry | None = None) -> bool:
     """A review stamp at an OLDER head still holds at `tip`: every commit since its head is mechanical
     (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp). False when it names the tip itself."""
-    return bool(tip) and not rv.covers(tip) and unreviewed_since(rv.sha, tip, repo=repo) == []
+    return bool(tip) and not rv.covers(tip) and unreviewed_since(rv.sha, tip, repo=repo, graph=graph) == []
 
 
-def stamp_covers(rv: Review, tip: str | None, *, repo=REPO) -> bool:
+def stamp_covers(rv: Review, tip: str | None, *, repo=REPO, graph: Ancestry | None = None) -> bool:
     """THE REVIEW STAMP'S COVERAGE OF A BRANCH TIP (coverage 2 of the module doc), one rule for both verdicts and both
     readers: lifecycle() here (a CLEAN stamp that covers is WAITING TO LAND, a FINDINGS stamp that covers is the next
     wave's finisher) and the planner's FINDINGS arm (plan_wave.plan `review_covers`, kb/Work PB3394). The stamp names
     the tip, or it holds there (review_holds). A stamp at an older head followed by real commits covers nothing: those
     commits are unreviewed, so the branch is WAITING FOR REVIEW, a diff-only re-review (kb/Work PB3381), and a
     finisher there would answer findings the branch has already answered (wave 1127 planned three)."""
-    return bool(tip) and (rv.covers(tip) or review_holds(rv, tip, repo=repo))
+    return bool(tip) and (rv.covers(tip) or review_holds(rv, tip, repo=repo, graph=graph))
 
 
 def review_coverage(rows: list[Row], repo=REPO) -> Callable[[Review | None, str | None], bool]:
     """stamp_covers at the tips THIS survey measured: (a stamp, its branch) -> the stamp covers that branch's tip. The
     planner's FINDINGS arm reads it (plan_wave.main, kb/Work PB3394), so the planner and lifecycle() never disagree on
-    one branch. A branch the survey has no row for has no tip, and no stamp covers it."""
+    one branch. A branch the survey has no row for has no tip, and no stamp covers it. Every answer reads ONE graph of
+    the measured tips, read at the first question (kb/Work PB3582)."""
     tips = {r.name: r.tip for r in rows}
-    return lambda rv, branch: bool(rv) and stamp_covers(rv, tips.get(branch or ''), repo=repo)
+    graph: list[Ancestry] = []
+
+    def covers(rv: Review | None, branch: str | None) -> bool:
+        tip = tips.get(branch or '')
+        if not rv or not tip:
+            return False
+        if rv.covers(tip):
+            return True
+        if not graph:
+            graph.append(Ancestry.read(repo, [t for t in tips.values() if t]))
+        return stamp_covers(rv, tip, repo=repo, graph=graph[0])
+    return covers
 
 
 @dataclasses.dataclass
@@ -706,42 +760,62 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Repor
     if not common.is_absolute():
         common = pathlib.Path(repo) / common
 
+    # Every branch's tip and last-commit line from ONE `git for-each-ref`, and the ancestry every row reads (MERGED, the
+    # count ahead, the review's coverage, contained(), carrying_findings()) from ONE graph: never a `rev-parse`,
+    # `log -1`, `rev-list --count` or `merge-base` per branch (kb/Work PB3582: they were most of the 3,048 git processes
+    # of this script's self-test).
+    refs = {}
+    for line in git('for-each-ref', 'refs/heads',
+                    '--format=%(refname:short)%00%(objectname)%00%(objectname:short) %(committerdate:short) %(subject)',
+                    cwd=repo).stdout.splitlines():
+        b, tip, last = line.split('\0', 2)
+        if b != 'main':
+            refs[b] = (tip, last[:90])
+    graph = branch_graph(list(refs), repo)
+    reports = list(reports)
+    detached = [t for t in trees if not t.branch]
+    # every other name a row asks the graph about, resolved in the same single process as a batch
+    graph.names(*{x for r in reports for x in (r.head, r.review.sha if r.review else None) if x},
+                *{t.head for t in detached if t.head})
+
     def measure(b: str) -> Row:
-        kind, absent, lost, how = classify(b, names, repo, coord_dir)
+        tip, last = refs[b]
+        kind, absent, lost, how = classify(b, names, graph, repo, coord_dir)
         t = by_branch.get(b)
-        ahead = int(git('rev-list', '--count', 'origin/main..' + b, cwd=repo).stdout.strip() or 0)
-        last = git('log', '-1', '--format=%h %cs %s', b, cwd=repo).stdout.strip()[:90]
         stamps = [common / 'logs' / 'refs' / 'heads' / b]
         dirty = 0
         if t:
-            gitdir = pathlib.Path(git('rev-parse', '--absolute-git-dir', cwd=t.path).stdout.strip() or t.path)
-            stamps += [gitdir / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md']
+            stamps += [worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md']
             dirty = uncommitted(t.path)
-        return Row(b, kind, absent, lost, ahead, t.path if t else None, t.lock if t else None, dirty,
-                   age_minutes(*stamps), last, newest_report(list(reports), b, t.path if t else None), how=how,
-                   tip=git('rev-parse', '--verify', '--quiet', f'refs/heads/{b}', cwd=repo).stdout.strip())
+        return Row(b, kind, absent, lost, len(graph.beyond(tip)), t.path if t else None, t.lock if t else None, dirty,
+                   age_minutes(*stamps), last, newest_report(reports, b, t.path if t else None), how=how, tip=tip)
+
+    shown = {}
+    valid = sorted({sha for t in detached if t.head and (sha := graph.sha(t.head))})
+    if valid:   # every detached worktree's last-commit line from ONE `git log --no-walk`; an unreadable head reads ''
+        for line in git('log', '--no-walk=unsorted', '--format=%H %h %cs', *valid, cwd=repo).stdout.splitlines():
+            sha, _, rest = line.partition(' ')
+            shown[sha] = rest
 
     def measure_detached(t: Tree) -> Row:
-        gitdir = pathlib.Path(git('rev-parse', '--absolute-git-dir', cwd=t.path).stdout.strip() or t.path)
         dirty = uncommitted(t.path)
-        last = git('log', '-1', '--format=%h %cs', t.head, cwd=repo).stdout.strip() if t.head else '?'
+        last = shown.get(graph.sha(t.head) or '', '') if t.head else '?'
         return Row(f'(detached) {pathlib.PurePath(t.path).name}', 'DETACHED', [], [], 0, t.path, t.lock, dirty,
-                   age_minutes(gitdir / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md'), last)
+                   age_minutes(worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md'), last)
 
-    branches = [b for b in git('branch', '--format=%(refname:short)', cwd=repo).stdout.split() if b != 'main']
     with ThreadPoolExecutor(max_workers=16) as pool:   # subprocess-bound: ~1-3 s a branch, 35 s for 29 one by one
-        rows = list(pool.map(measure, branches)) + list(pool.map(measure_detached, [t for t in trees if not t.branch]))
+        rows = list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
     import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back; its attempt reader, never its text)
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
     for r in rows:
         rv = r.report.review if r.report else None
         if rv:
-            r.review_holds = review_holds(rv, r.tip, repo=repo)
+            r.review_holds = review_holds(rv, r.tip, repo=repo, graph=graph)
         if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
-            r.report_since = unreviewed_since(r.report.head, r.tip, repo=repo)
+            r.report_since = unreviewed_since(r.report.head, r.tip, repo=repo, graph=graph)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
                                    prs=prs, lane=lane)
-    contained(rows, repo)
+    contained(rows, graph)
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
     stamped = [r.review.file for r in reports if r.review and r.review.file]
@@ -750,7 +824,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Repor
         if v['torn']:
             print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1, R6-1): {v["torn"]}; '
                   f'the operator: {review_findings.remedy(pathlib.Path(v["file"]), v["line"])}', file=sys.stderr)
-    carrying_findings(rows, repo, found, list(reports))
+    carrying_findings(rows, graph, found, reports)
     return rows
 
 
@@ -766,7 +840,7 @@ CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED
 CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
 
 
-def contained(rows: list[Row], repo=REPO) -> None:
+def contained(rows: list[Row], graph: Ancestry) -> None:
     """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
     tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
     (CARRIER_STATES), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
@@ -792,21 +866,14 @@ def contained(rows: list[Row], repo=REPO) -> None:
         candidates.append(r)
     if not candidates:
         return
-    # ONE git process per carrier, never one per (candidate, carrier) pair (kb/Work PB3583: the pairwise
-    # `merge-base --is-ancestor` was 1,746 of the 4,636 git processes of this script's self-test, 168 s of CI's Windows
-    # self-test job). A candidate is not MERGED (LANDED_CONTENT, above: classify() reads `--is-ancestor <its branch>
-    # origin/main`), so its tip is no ancestor of origin/main, and it is an ancestor of a carrier's tip exactly when it
-    # is one of the commits that tip has beyond origin/main. With no origin/main (a repository that never fetched one)
-    # nothing is excluded: every commit of the carrier's tip.
-    main = git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/main^{commit}', cwd=repo).stdout.strip()
-    beyond = {}
-    for c in carriers:
-        listed = git('rev-list', c.tip, *([f'^{main}'] if main else []), cwd=repo)
-        if listed.returncode != 0:  # an empty set here would read every candidate as uncontained, silently
-            raise RuntimeError(f'git rev-list {c.tip} failed ({listed.returncode}): {listed.stderr.strip()}')
-        beyond[c.tip] = set(listed.stdout.split())
+    # NO git process per carrier or pair: the survey's graph (git_batch.Ancestry, kb/Work PB3582; the pairwise
+    # `merge-base --is-ancestor` was 1,746 of the 4,636 git processes of this script's self-test, kb/Work PB3583). A
+    # candidate is not MERGED (LANDED_CONTENT, above: classify() reads the graph's `on_base`), so its tip is no ancestor
+    # of origin/main, and it is an ancestor of a carrier's tip exactly when it is one of the commits that tip has beyond
+    # origin/main (graph.beyond). With no origin/main (a repository that never fetched one) the graph excludes nothing:
+    # every commit of the carrier's tip.
     for r in candidates:
-        c = next((c for c in carriers if c.tip != r.tip and r.tip in beyond[c.tip]), None)
+        c = next((c for c in carriers if c.tip != r.tip and r.tip in graph.beyond(c.tip)), None)
         if c:
             r.state, r.carrier = 'IN FLIGHT', c.name
             r.why = f'contained in {c.name} ({c.state}): its work lands through that branch; ' + evidence(r)
@@ -831,7 +898,7 @@ def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
     return row.report.lead if row else ''
 
 
-def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), reports: list[Report] = ()) -> None:
+def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (), reports: list[Report] = ()) -> None:
     """A WAITING TO LAND branch that carries ANOTHER note's unanswered review findings waits for them (kb/Work PB3381):
     its tip contains, not yet on main, the head at which a branch review's LAST verdict is FINDINGS with blocking
     findings (`findings`: review_findings.unanswered over review_findings.findings_files, the ONE reader the rolling
@@ -865,7 +932,7 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
     for r in rows:
         if r.state != 'WAITING TO LAND' or not r.tip or not r.report:
             continue
-        unlanded = git('rev-list', f'origin/main..{r.tip}', cwd=repo).stdout.split()
+        unlanded = graph.beyond(r.tip)
         hit = next(((v, lead, names) for v, lead, names, heads in holds
                     if (v['torn'] or not (lead and lead == r.report.lead))
                     and (r.name in names or any(c.startswith(h) for h in heads for c in unlanded))), None)
@@ -1566,7 +1633,8 @@ def self_test() -> int:
             if 'PermissionError' in what:
                 pathlib.Path.open = deny
             try:
-                carrying_findings(cut_rows, repo, review_findings.unanswered(review_findings.findings_files(fscratch)),
+                carrying_findings(cut_rows, branch_graph([r.tip for r in cut_rows if r.tip], repo),
+                                  review_findings.unanswered(review_findings.findings_files(fscratch)),
                                   report_index(rdir, terminal))
                 got = (ts.state, ts.waits_on, 'TORN' in ts.why)
             except Exception as e:  # noqa: BLE001  (the round-4 reader raised here; a raise is a failed check, never a crash)
