@@ -55,6 +55,7 @@ public sealed class ImpactedTestsDriftTests
             "a deleted member a register cites as path#member", "a member removed from a #Class.Member chain",
             "a renamed test a register cites as Class.Method", "a deleted suite test a register cites by its stem",
             "a removal no register cites names no drift test", "a change that removes nothing a citation can name",
+            "a diff's removed lines are read per file",
             "reach_of puts the drift test of a register citing a removed member in tier 0d",
             "the real inventory: renaming a test it cites names SpecTraceabilityInventoryDriftTests");
     }

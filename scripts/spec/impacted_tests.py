@@ -524,6 +524,24 @@ def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, 
     reach.notes.append(f"{path}: {why} — the file level, plus the {len(users or [])} executed file(s) naming its types")
 
 
+def removed_lines(diff: str) -> dict[str, list[str]]:
+    """The removed lines of a `git diff -U0` output, per old path. A file header (`--- a/<path>`) is read only between
+    `diff --git` and the first `@@`, so a removed line whose text is `-- a/x` stays a removed line; `--- /dev/null`
+    (an added file) removes nothing."""
+    removed: dict[str, list[str]] = {}
+    path, header = None, False
+    for line in diff.splitlines():
+        if line.startswith("diff --git "):
+            path, header = None, True
+        elif header and line.startswith("--- "):
+            path = line[6:] if line.startswith("--- a/") else None
+        elif line.startswith("@@"):
+            header = False
+        elif path and not header and line.startswith("-"):
+            removed.setdefault(path, []).append(line[1:])
+    return removed
+
+
 def removals(changes: list[tuple[str, str]], base: str | None) -> list[drift_rules.Removal]:
     """What the diff against `base` takes away from each changed file that a register can cite (a deleted file, an
     identifier gone from its text, the types it declares): `drift_rules.citing`'s input. One `git diff` for the whole
@@ -536,18 +554,7 @@ def removals(changes: list[tuple[str, str]], base: str | None) -> list[drift_rul
                               text=True, encoding="utf-8", errors="replace").stdout
 
     status = dict((p, s) for s, p in changes)
-    diff = lenient("diff", "-U0", "--no-color", "--no-renames", base, *([HEAD] if HEAD else []))
-    removed: dict[str, list[str]] = {}
-    path, header = None, False
-    for line in diff.splitlines():
-        if line.startswith("diff --git "):
-            path, header = None, True   # a removed line reading `-- a/x` must not be taken for a file header
-        elif header and line.startswith("--- "):
-            path = line[6:] if line.startswith("--- a/") else None   # `--- /dev/null`: an added file removes nothing
-        elif line.startswith("@@"):
-            header = False
-        elif path and not header and line.startswith("-"):
-            removed.setdefault(path, []).append(line[1:])
+    removed = removed_lines(lenient("diff", "-U0", "--no-color", "--no-renames", base, *([HEAD] if HEAD else [])))
     out = []
     for p, lines in sorted(removed.items()):
         if status.get(p) == "D":
@@ -810,6 +817,13 @@ def self_test() -> int:
             got = citing([removal])
             check(label, (got == {} if want is None else got == {"RegisterDriftTests": ("docs/register.json", want)}),
                   got)
+        diff = "\n".join(["diff --git a/src/P/Binder.cs b/src/P/Binder.cs", "--- a/src/P/Binder.cs",
+                          "+++ b/src/P/Binder.cs", "@@ -3,2 +3,0 @@", "-    void Bind() { }", "--- a/not/a/header",
+                          "diff --git a/docs/new.md b/docs/new.md", "--- /dev/null", "+++ b/docs/new.md",
+                          "@@ -0,0 +1 @@", "+text"])
+        got = removed_lines(diff)
+        check("a diff's removed lines are read per file, a removed `-- a/x` line among them, an added file's none",
+              got == {"src/P/Binder.cs": ["    void Bind() { }", "-- a/not/a/header"]}, got)
         check("a change that removes nothing a citation can name carries no removal",
               drift_rules.removal_of("src/P/Binder.cs", ["    x = 1;"], "class Binder { void M() { x = 2; } }") is None,
               "removal_of")

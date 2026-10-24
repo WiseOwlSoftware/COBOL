@@ -23,9 +23,9 @@ In no-map replays, all four landing stops now name the class and the citation th
 1a473341f, c3c6879ab). The citation step costs about 2-5 s per plan; a first version ran one regex per removed
 identifier and cost 12-49 s.
 
-**Tests.** `impacted_tests.py --self-test` gains eight arms: the three citation shapes, a deleted suite test, a
-removal no register cites, a change that removes nothing, the `reach_of` wiring with no map, and the real inventory.
-Each one fails when `Citations.broken_by` is stubbed out. `ImpactedTestsDriftTests` now pins these arms and PB3531's
+**Tests.** `impacted_tests.py --self-test` gains nine arms: the three citation shapes, a deleted suite test, a
+removal no register cites, a change that removes nothing, the diff reader (a removed `-- a/x` line is not a file header), the `reach_of` wiring with no map, and the real inventory.
+Each arm that expects a citation fails when `Citations.broken_by` is stubbed out. `ImpactedTestsDriftTests` now pins these arms and PB3531's
 two tier-0d arms, which it had not pinned. Docs: `DESIGN-test-build-ci.md` (tier 0d), the gate skill,
 MANDATORY-PRACTICES I1, and the gate scripts' headers.
 
