@@ -1311,20 +1311,20 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>The absent OPTIONAL I-O arm's two refusals over a kept state (§14.9.27.4 GR17 creates the file; GR25, <i>"If the
-    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; kb/Work PB3493, review finding R1-5): the
-    /// file A's CLOSE under commit control kept is removed outside the run unit, and A's re-OPEN I-O finds it absent. When the
-    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §9.1.13.6 item 1's
-    /// '30'), the OPEN never reached another file, so the kept state stands as the CLOSE left it — the transaction too, which the
-    /// ROLLBACK then ends. When the handle is taken but the new file's store cannot be made (<c>attach</c>: the medium refuses
-    /// the empty store's first write, '30'), the kept state has already ended with the removed file it belonged to — the new
-    /// handle names another physical file — so no transaction stands. A host that keeps a file while a handle on it stands
-    /// (Windows) refuses the removal, which is the host's own protection of the kept state.</summary>
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; kb/Work PB3493, review finding R1-5; PB3576):
+    /// the file A's CLOSE under commit control kept is removed outside the run unit, and A's re-OPEN I-O finds it absent. The kept
+    /// state belongs to the removed file, not to A, so it RETIRES to the registry before the OPEN reaches either refusal: when the
+    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §9.1.13.6 item 1's '30'),
+    /// and when the handle is taken but the new file's store cannot be made (<c>attach</c>: the medium refuses the empty store's
+    /// first write, '30'), the transaction A made stands in the registry, as the CLOSE left it, until the ROLLBACK ends it, and A
+    /// holds none. A host that keeps a file while a handle on it stands (Windows) refuses the removal, which is the host's own
+    /// protection of the kept state.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "handle")]
     [InlineData(FileOrg.Relative, "attach")]
     [InlineData(FileOrg.Indexed, "handle")]
     [InlineData(FileOrg.Indexed, "attach")]
-    public void A_refused_reopen_of_an_optional_file_that_vanished_ends_the_kept_state_only_past_the_new_handle(FileOrg org,
+    public void A_refused_reopen_of_an_optional_file_that_vanished_leaves_the_retired_kept_state_as_the_close_left_it(FileOrg org,
         string refusal)
     {
         string dir = Tmp($"pb3493-vanished-refused-{org}-{refusal}");
@@ -1358,9 +1358,10 @@ public sealed class CommitRollbackRuntimeTests
             try { a.OpenStatic("F", FileOpenMode.IO); }
             finally { KeyedStore.MediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
-            Assert.Equal(refusal == "handle" ? id : 0ul, a.TransactionOf("F"));
-            Assert.Null(a.Rollback());
             Assert.Equal(0ul, a.TransactionOf("F"));
+            Assert.Equal(id, a.RetiredTransactionOf("F"));
+            Assert.Null(a.Rollback());
+            Assert.Equal(0ul, a.RetiredTransactionOf("F"));
             a.CloseAll();
         }
         finally
@@ -1603,6 +1604,46 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal(Rec(2, "B002"), image);
             Assert.Equal("00", Read(a, org, 2, out image, name: "F"));
             Assert.Equal(Rec(2, "A002"), image);
+            a.CloseAll();
+        }
+        finally
+        {
+            TryDelete(host);
+            TryDelete(moved);
+        }
+    }
+
+    /// <summary>⛔ DELETE FILE ASKS ABOUT THE PHYSICAL FILE, NOT ITS PATH (kb/Work PB3576; §9.1.13.9 2), a DELETE FILE statement
+    /// refused when the physical file is <i>"currently open by another file connector"</i>): connector F holds the file open;
+    /// outside the run unit the file is removed (or renamed away) and another made at the path; connector G's DELETE FILE deletes
+    /// THE FILE AT THE PATH ('00', the file gone), because F is open on a file that is not at the path any more — a control
+    /// DELETE FILE beside an F that holds the file at the path is '62'. Before the fix the registry compared F's path with G's
+    /// and refused the new file's deletion ('62').</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "removed")]
+    [InlineData(FileOrg.Indexed, "renamed")]
+    public void A_delete_file_of_a_path_whose_file_was_replaced_is_refused_by_no_connector_open_on_the_old_file(FileOrg org, string how)
+    {
+        string host = Tmp($"pb3576-delete-{org}-{how}");
+        string moved = host + ".old";
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: false, name: "F");
+            Declare(a, host, org, commit: false, name: "G");
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("62", a.DeleteFile("G"));   // F holds the file at the path: another connector has it open
+            if (!ReplaceOutsideTheRunUnit(host, moved, how, org))
+            {
+                a.CloseAll();   // Windows: the host kept the file with the handle, there is no replaced file to delete
+                return;
+            }
+            Assert.Equal("00", a.DeleteFile("G"));
+            Assert.False(File.Exists(host));
+            Assert.Equal("00", Read(a, org, 1, out var image, name: "F"));   // F goes on reading the file it holds
+            Assert.Equal(Rec(1, "A001"), image);
             a.CloseAll();
         }
         finally

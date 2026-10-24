@@ -908,7 +908,7 @@ public sealed class FileRegistry
         // for an open connector it would report an outside holder that never lets go, and RETRY FOREVER would
         // wait for ever on a statement GR13 has already answered '41'.
         else if (RetryLoop(() =>
-                     OpenByAnotherConnector(name, c.HostPath) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
+                     OpenByAnotherConnector(name, c) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
                      : HostFile.IsHeldByAnother(c.HostPath) ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
                      : RetryAttempt.InRunUnit(FileStatusCode.Success), retryKind, retryAmount) is var sharing
                  && sharing != FileStatusCode.Success)
@@ -975,15 +975,17 @@ public sealed class FileRegistry
         return null;
     }
 
-    /// <summary>True when a file connector OTHER than <paramref name="name"/> currently has the physical file at
-    /// <paramref name="host"/> open (§9.1.13.9 item 2 — the DELETE FILE sharing conflict is defined over "another
-    /// file connector" plainly, so a non-sharing-registered open connector counts too).</summary>
-    private bool OpenByAnotherConnector(string name, string host)
+    /// <summary>True when a file connector OTHER than <paramref name="name"/> currently has open the physical file that
+    /// <paramref name="target"/>'s path names now (§9.1.13.9 item 2 — the DELETE FILE sharing conflict is defined over "another
+    /// file connector" plainly, so a non-sharing-registered open connector counts too). ⛔ THE PHYSICAL FILE, NOT THE PATH
+    /// (kb/Work PB3576): a connector open on a file since removed or renamed away outside the run unit is open on ANOTHER
+    /// file than the one the path names, and refuses nobody's DELETE FILE of it. Every successful OPEN is in its file's state
+    /// (<see cref="PhysicalFileTable.State.Open"/>) until its CLOSE, so the file's state answers.</summary>
+    private bool OpenByAnotherConnector(string name, FileConnector target)
     {
-        foreach (var (other, c) in _files)
-            if (!CobolNames.Same(other, name)
-                && c.IsOpen && HostFile.PhysicalFileComparer.Equals(c.HostPath, host))
-                return true;
+        var file = _physical.For(target.HostPath, HostFile.IdentityAt(target.HostPath));
+        foreach (var other in file.Open.Keys)
+            if (!CobolNames.Same(other, name)) return true;
         return false;
     }
 
@@ -1123,6 +1125,11 @@ public sealed class FileRegistry
     /// <summary>The id of the run unit's open transaction on <paramref name="name"/>'s physical file, 0 while none (the
     /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
     internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;
+
+    /// <summary>The seam of the retire witnesses (kb/Work PB3576): the transaction the run unit still has in the file that connector
+    /// <paramref name="name"/>'s CLOSE under commit control kept and the registry now keeps (<see cref="_retired"/>), 0 when none.</summary>
+    internal ulong RetiredTransactionOf(string name) =>
+        _retired.Where(r => CobolNames.Same(r.Name, name)).Select(r => r.Kept.OpenTransaction).FirstOrDefault();
 
     /// <summary>The seam of the record-lock witnesses (kb/Work PB3578): how many record locks this run unit's table holds for
     /// connector <paramref name="name"/> on the physical file it is associated with, published to the host or not.</summary>
