@@ -1137,10 +1137,14 @@ public sealed class CommitRollbackRuntimeTests
 
     /// <summary>The one refusal that lands the creation is the final sync's, after the truncation (<see cref="PagedFile.Create"/>:
     /// the medium's state is unknown, '30' either way): the previous file is gone all the same, so what the CLOSE kept ends with
-    /// it. The OPEN answers '30', the transaction is no more, and the file is the created, empty store (§14.9.27.4 GR18).</summary>
+    /// it. The OPEN answers '30' and no keyed transaction stands in the file, but the OPEN CAPTURED the file before its creation
+    /// (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492): the capture's (ALL) holding refuses another run unit's writable OPEN
+    /// ('61', 2.2.2.8), and the ROLLBACK that item 8 would run (§14.6.13.1.3 8)) restores the file as at the last COMMIT
+    /// (§14.9.36.4 GR3) — the seeded records, A's uncommitted record 7 rolled back in the restored file. Before kb/Work PB3492 the
+    /// ROLLBACK found nothing to restore and the file stayed the empty store.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_reopen_output_whose_final_sync_is_refused_ends_the_kept_state_with_the_file(FileOrg org)
+    public void A_reopen_output_whose_final_sync_is_refused_is_restored_by_the_rollback(FileOrg org)
     {
         string host = Tmp($"pb3493-final-sync-{org}");
         try
@@ -1158,11 +1162,13 @@ public sealed class CommitRollbackRuntimeTests
             var d = new FileRegistry();
             Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
             d.OpenStatic("D", FileOpenMode.IO);
-            Assert.Equal("00", d.Status("D"));   // the kept file lock went with the file
-            d.CloseAll();
+            Assert.Equal("61", d.Status("D"));   // the capture holds the whole file until A's COMMIT or ROLLBACK
             Assert.Null(a.Rollback());
             a.CloseAll();
-            Assert.Equal(new string?[10], Contents(host, org));
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));
+            d.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
         }
         finally { TryDelete(host); }
     }
@@ -1173,9 +1179,11 @@ public sealed class CommitRollbackRuntimeTests
     /// slot's sync) AND the undo's restore of that slot. §14.9.27.4 GR25's <i>"the file is not affected"</i> is out of reach:
     /// the commit slot holds the empty store, which R6 adopts at every later OPEN. So the OPEN answers '30' (§9.1.13.6 item 1)
     /// and what the CLOSE kept ends with the previous file, as at a refused final sync: no transaction stands (a COMMIT and a
-    /// ROLLBACK find none and touch nothing), the kept file lock is gone (a NO OTHER OPEN of another run unit is '00'), and the
-    /// file reads as the empty store. Before the fix the kept transaction stood over the old store, and the next COMMIT
-    /// promoted it beside the creation's slot and answered success over a file every later OPEN read as empty.</summary>
+    /// ROLLBACK find none in the file), the kept file lock is gone, and the file reads as the empty store. Before the fix the kept
+    /// transaction stood over the old store, and the next COMMIT promoted it beside the creation's slot and answered success over
+    /// a file every later OPEN read as empty. The OPEN captured the file before its creation (2.2.2.14; kb/Work PB3492), so the
+    /// capture's (ALL) holding refuses another run unit's writable OPEN ('61') until the COMMIT, which makes the replacement
+    /// permanent (§14.9.7.4 GR3) — the ROLLBACK after it finds nothing — and then admits it.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "write")]
     [InlineData(FileOrg.Relative, "sync")]
@@ -1205,20 +1213,24 @@ public sealed class CommitRollbackRuntimeTests
             var d = new FileRegistry();
             Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
             d.OpenStatic("D", FileOpenMode.IO);
-            Assert.Equal("00", d.Status("D"));   // the kept file lock went with the previous file
-            d.CloseAll();
+            Assert.Equal("61", d.Status("D"));   // the capture holds the whole file until A's COMMIT or ROLLBACK
             Assert.Null(a.Commit());
             Assert.Null(a.Rollback());
             a.CloseAll();
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));   // the kept file lock went with the previous file, the capture with the COMMIT
+            d.CloseAll();
             Assert.Equal(new string?[10], Contents(host, org));
         }
         finally { TryDelete(host); }
     }
 
     /// <summary>An OPEN OUTPUT whose creation lands ends what the CLOSE kept with the file it was kept on (§14.9.27.4 GR18): the
-    /// transaction (A's record 7 is not in the new file and no ROLLBACK brings it back), its record lock on record 1 (another
-    /// run unit's READ of record 1, which answered '51' before, finds the new file empty) and the file lock; the connector's
-    /// next WRITE begins a transaction of the new file, which the COMMIT makes permanent.</summary>
+    /// transaction (A's record 7 is not in the new file; it is in the capture's before file, which only a ROLLBACK brings back,
+    /// kb/Work PB3492), its record lock on record 1 and the file lock; the capture's (ALL) holding refuses another run unit's
+    /// writable OPEN ('61', DESIGN-runtime-library.md 2.2.2.8) until the COMMIT; the connector's next WRITE begins a transaction
+    /// of the new file, which the COMMIT makes permanent with the replacement, and after it the other run unit's READ of record
+    /// 1 finds it absent.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void A_reopen_output_that_lands_ends_what_the_close_kept(FileOrg org)
@@ -1234,12 +1246,16 @@ public sealed class CommitRollbackRuntimeTests
             a.OpenStatic("F", FileOpenMode.Output);
             Assert.Equal("00", a.Status("F"));
             Assert.Equal(0ul, a.TransactionOf("F"));
-            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
-            Assert.Equal("23", Read(b, org, 1, out _, name: "B"));
-            b.CloseAll();
+            var refused = new FileRegistry();
+            Declare(refused, host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            refused.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("61", refused.Status("B"));
             Assert.Equal("00", Write(a, org, 2, "A002"));
             Assert.NotEqual(0ul, a.TransactionOf("F"));
             Assert.Null(a.Commit());
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            Assert.Equal("23", Read(b, org, 1, out _, name: "B"));
+            b.CloseAll();
             a.CloseAll();
             var expected = new string?[10];
             expected[2] = Rec(2, "A002");
@@ -1248,7 +1264,245 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
+    // ── kb/Work PB3492: the verbs that replace or remove a keyed file, and its creation, ride the run unit's journal (2.2.2.14) ──
+
+    /// <summary>The physical file's records as a fresh run unit reads them, or null when the file is not there.</summary>
+    private static string?[]? StateOf(string host, FileOrg org) => File.Exists(host) ? Contents(host, org) : null;
+
+    /// <summary>I3: no transaction file is left in the file's lock directory.</summary>
+    private static void AssertNoJournalLeft(string host)
+    {
+        string directory = SequentialJournal.DirectoryOf(host);
+        string[] left = Directory.Exists(directory)
+            ? [.. Directory.GetFiles(directory, SequentialJournal.NamePrefix + "*").Select(Path.GetFileName)!]
+            : [];
+        Assert.True(left.Length == 0, $"left behind: {string.Join(", ", left)}");
+    }
+
+    /// <summary>The next entry: another run unit's writable OPEN of the file (an uncovered OPEN I-O of it as OPTIONAL), whose entry
+    /// step settles a dead transaction and whose store's dead-owner step rolls back the keyed one a restored file holds.</summary>
+    private static void NextEntry(string host, FileOrg org)
+    {
+        var next = new FileRegistry();
+        Declare(next, host, org, commit: false, name: "N", optional: true);
+        next.OpenStatic("N", FileOpenMode.IO);
+        string status = next.Status("N");
+        next.CloseAll();
+        Assert.True(status is "00" or "05", $"the next entry's OPEN answered {status}");
+        if (status == "05") File.Delete(host);   // the OPTIONAL I-O created an absent file (after its settle): the state stays "no file"
+    }
+
+    /// <summary>The rows of 2.2.2.14: a run unit under commit control changes record 7 of the committed file and CLOSEs it, then
+    /// replaces it (OPEN OUTPUT, WRITE record 2) or removes it (DELETE FILE after the CLOSE), or — with no file — creates it (OPEN
+    /// OUTPUT, WRITE record 2), and COMMITs.</summary>
+    public static TheoryData<FileOrg, string> CaptureRows() =>
+        new() { { FileOrg.Relative, "output" }, { FileOrg.Indexed, "output" }, { FileOrg.Relative, "delete" },
+            { FileOrg.Indexed, "delete" }, { FileOrg.Relative, "create" }, { FileOrg.Indexed, "create" } };
+
+    /// <summary>One row's program through <paramref name="a"/>: '30' (or a refused COMMIT) is the fatal condition, whose item 8
+    /// ROLLBACK (§14.6.13.1.3 8)) the caller runs. Returns whether the COMMIT answered success.</summary>
+    private static bool CaptureRow(FileRegistry a, FileOrg org, string verb)
+    {
+        static bool Fine(string status, string expected = "00") =>
+            status == "30" ? false : status == expected ? true : throw new Xunit.Sdk.XunitException($"status {status}, not {expected}");
+        if (verb != "create")
+        {
+            a.OpenStatic("F", FileOpenMode.IO);
+            if (!Fine(a.Status("F")) || !Fine(Write(a, org, 7, "A007"))) return false;
+            a.Close("F");
+            if (!Fine(a.Status("F"))) return false;
+        }
+        if (verb == "delete")
+        {
+            if (!Fine(a.DeleteFile("F"))) return false;   // not '62': the connector's own kept handle is not another's (GR15)
+        }
+        else
+        {
+            a.OpenStatic("F", FileOpenMode.Output);
+            if (!Fine(a.Status("F")) || !Fine(Write(a, org, 2, "B002"))) return false;
+            a.Close("F");
+            if (!Fine(a.Status("F"))) return false;
+        }
+        return a.Commit() is null;
+    }
+
+    /// <summary>⛔ THE KEYED CAPTURE AND CREATION, FAULT-FREE AND REFUSED AT EVERY OPERATION OF THE JOURNAL'S MEDIUM (kb/Work PB3492;
+    /// MANDATORY-PRACTICES I11): run fault-free, the row's COMMIT makes the replacement, the removal or the creation permanent
+    /// (§14.9.7.4 GR3) — the record 7 its run unit changed before the capture is gone with the file it was in. Refused at operation
+    /// n of the medium (the journal's header, the before file's write and sync, the directory syncs, the <c>K</c>, the decision,
+    /// the retirement), the statement answers '30', item 8's ROLLBACK runs, and the file the next entry finds is the state at the
+    /// last COMMIT (§14.9.36.4 GR3: the five seeded records, record 7 rolled back; no file for a creation) — or, when the COMMIT
+    /// answered success before the refusal, the committed one; never a third, and no transaction file is left behind.</summary>
+    [Theory]
+    [MemberData(nameof(CaptureRows))]
+    public void A_keyed_capture_or_creation_refused_at_every_journal_operation_leaves_the_last_commit_or_the_committed_change(
+        FileOrg org, string verb)
+    {
+        string?[]? before = verb == "create" ? null : Seeded();
+        string?[]? after = verb == "delete" ? null : new string?[10];
+        if (after is not null) after[2] = Rec(2, "B002");
+        int total;
+        {
+            string host = Tmp($"pb3492-row-{org}-{verb}");
+            try
+            {
+                if (before is not null) Seed(host, org);
+                var medium = new FaultHostMedium();
+                var a = new FileRegistry { Medium = medium };
+                Declare(a, host, org, commit: true, sharing: FileSharing.NoOther);
+                Assert.True(CaptureRow(a, org, verb), "the fault-free row is told success");
+                a.CloseAll();
+                total = medium.Operations;
+                Assert.True(total > 0, "the row reaches the journal's medium");
+                Assert.Equal(after, StateOf(host, org));
+                AssertNoJournalLeft(host);
+            }
+            finally { TryDelete(host); }
+        }
+        for (int n = 1; n <= total; n++)
+        {
+            string host = Tmp($"pb3492-row-{org}-{verb}-{n}");
+            var medium = new FaultHostMedium(FaultHostMedium.Fault.Refuse, n);
+            try
+            {
+                if (before is not null) Seed(host, org);
+                var a = new FileRegistry { Medium = medium };
+                Declare(a, host, org, commit: true, sharing: FileSharing.NoOther);
+                bool told = CaptureRow(a, org, verb);
+                if (!told) _ = a.Rollback();   // item 8's unconditional ROLLBACK; the program ends
+                a.EndTransactions(abnormal: !told);
+                a.CloseAll();
+                NextEntry(host, org);
+                string where = $"refused at operation {n} of {total} ({medium.Log.ElementAtOrDefault(n - 1)})";
+                Assert.True((told ? after : before) is var expected && Same(expected, StateOf(host, org)),
+                    $"{where}: told {told}, the file is not the state it was told");
+                AssertNoJournalLeft(host);
+            }
+            finally
+            {
+                medium.Kill();
+                TryDelete(host);
+            }
+        }
+    }
+
+    private static bool Same(string?[]? a, string?[]? b) => a is null ? b is null : b is not null && a.SequenceEqual(b);
+
+    /// <summary>⛔ A DELETE FILE AFTER A CLOSE UNDER COMMIT CONTROL IS NOT REFUSED BY THE CONNECTOR'S OWN KEPT HANDLE (kb/Work PB3492;
+    /// the NOTE under §14.9.10.4 GR15, <i>"Such files can still be deleted, however if they are, then in the event of a rollback they
+    /// will be restored to the state they were in at the last commit"</i>): it answers '00' under every posture — under ALL OTHER
+    /// the host publishes the Table 19 file lock through a handle of its own on Windows, which went with the removal — and the
+    /// removal's (ALL) holding then refuses another run unit's writable OPEN ('61') and DELETE FILE ('62', §9.1.13.9 2)) until the
+    /// ROLLBACK, which restores the file as at the last COMMIT, record 7 rolled back in it.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileSharing.NoOther)]
+    [InlineData(FileOrg.Relative, FileSharing.AllOther)]
+    [InlineData(FileOrg.Indexed, FileSharing.NoOther)]
+    [InlineData(FileOrg.Indexed, FileSharing.AllOther)]
+    public void A_delete_file_after_a_close_is_not_refused_by_the_kept_handle_and_holds_the_file_until_the_rollback(FileOrg org,
+        FileSharing sharing)
+    {
+        string host = Tmp($"pb3492-delete-{org}-{sharing}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: sharing);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.DeleteFile("F"));
+            Assert.False(File.Exists(host));
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: false, name: "B", optional: true);
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("61", b.Status("B"));
+            Assert.Equal("62", b.DeleteFile("B"));
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+            AssertNoJournalLeft(host);
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A DEAD RUN UNIT'S CAPTURE IS SETTLED BY THE NEXT ENTRY (2.2.2.8, 2.2.2.14; §9.1.18.5, <i>"When a run unit terminates
+    /// abnormally, all file changes made since the previous commit ... are rolled back"</i>): A changes record 7 and DELETEs the file,
+    /// which gives every handle of A on it back, and dies (its journal's holder dropped as a death drops it). The next writable
+    /// OPEN of another run unit restores the before file, and its store's dead-owner step rolls back A's record 7 in it; an
+    /// uncovered DELETE FILE settles it the same way first, so no later entry brings back the file it removed.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "open")]
+    [InlineData(FileOrg.Indexed, "open")]
+    [InlineData(FileOrg.Relative, "delete")]
+    [InlineData(FileOrg.Indexed, "delete")]
+    public void A_dead_run_units_keyed_capture_is_settled_by_the_next_entry(FileOrg org, string next)
+    {
+        string host = Tmp($"pb3492-dead-{org}-{next}");
+        var medium = new FaultHostMedium();
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry { Medium = medium };
+            Declare(a, host, org, commit: true, sharing: FileSharing.NoOther);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.DeleteFile("F"));
+            medium.Kill();   // A dies: nothing of it is on the file any more but its journal
+            if (next == "open")
+            {
+                NextEntry(host, org);
+                Assert.Equal(Seeded(), Contents(host, org));
+            }
+            else
+            {
+                var b = new FileRegistry();
+                Declare(b, host, org, commit: false, name: "B");
+                Assert.Equal("00", b.DeleteFile("B"));
+                NextEntry(host, org);
+                Assert.False(File.Exists(host));
+            }
+            AssertNoJournalLeft(host);
+        }
+        finally
+        {
+            medium.Kill();
+            TryDelete(host);
+        }
+    }
+
+    /// <summary>⛔ A KEYED FILE CREATED SINCE THE LAST COMMIT IS ABSENT AGAIN AFTER THE ROLLBACK (§14.9.36.4 GR3, the state at the start
+    /// of the run unit had no file; §14.9.27.4 GR18; 2.2.2.14) — and, the determination for a connector still OPEN on it at the
+    /// ROLLBACK, the file stays as its OPEN created it (no records) with the creation standing, so the ROLLBACK after its CLOSE
+    /// removes it, and a COMMIT keeps it.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Indexed, false)]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Indexed, true)]
+    public void A_keyed_file_created_since_the_last_commit_is_removed_by_the_rollback(FileOrg org, bool openAtTheRollback)
+    {
+        string host = Tmp($"pb3492-create-{org}-{openAtTheRollback}");
+        try
+        {
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true, sharing: FileSharing.NoOther, optional: true);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 2, "B002"));
+            if (openAtTheRollback)
+            {
+                Assert.Null(a.Rollback());
+                Assert.True(File.Exists(host));                  // the open connector stands on the file its OPEN created
+                Assert.Equal("00", Write(a, org, 2, "C002"));    // record 2 was rolled back: the creation's empty store
+            }
+            a.Close("F");
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.False(File.Exists(host));
+            AssertNoJournalLeft(host);
+        }
+        finally { TryDelete(host); }
+    }
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
     /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. On I-O the OPEN creates

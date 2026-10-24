@@ -285,7 +285,7 @@ public sealed class FileRegistry
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
         {
             IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
-            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)),
+            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)), Transactions = Sequential,
         };
     }
 
@@ -302,7 +302,7 @@ public sealed class FileRegistry
             (KeyedAccess)accessMode, primeKey, varyMin, varyMax, primeCollation)
         {
             IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
-            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)),
+            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)), Transactions = Sequential,
         };
     }
 
@@ -927,8 +927,8 @@ public sealed class FileRegistry
         if (c.IsOpen) status = c.PermanentErrorInEffect ?? FileStatusCode.FileAlreadyOpen;
         else if (ValidateFixedFileAttributes(c, overridden) is { } conflict)
             status = conflict;                                             // '39' GR18 — see the method
-        else if (c is SequentialConnector { CommitControlled: true } covered)
-            status = DeleteCoveredSequential(name, covered, retryKind, retryAmount);   // under commit control: the capture (2.2.2.9)
+        else if (c.CommitControlled)
+            status = DeleteCovered(name, c, retryKind, retryAmount);   // under commit control: the capture (2.2.2.9, 2.2.2.14)
         // §9.1.13.9 2) asks about EVERY other file connector: this run unit's are the registry's to see, and
         // another run unit's only the host's (kb/Work PB860 — asked before the delete, because a Unix unlink
         // succeeds over an open file). Inside the retry loop, because another run unit CAN close mid-loop — and
@@ -936,8 +936,14 @@ public sealed class FileRegistry
         // ⛔ ASKED ONLY AFTER GR13: the host probe cannot tell THIS connector's own handle from a foreign one, so
         // for an open connector it would report an outside holder that never lets go, and RETRY FOREVER would
         // wait for ever on a statement GR13 has already answered '41'.
+        // ⛔ THE ENTRY STEP RUNS AT EVERY DELETE FILE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3492's sibling): a dead run
+        // unit's transaction on the file is settled first — a creation of its removed, a capture of its restored — so the file
+        // this statement deletes is the one the last COMMIT left, and no later settle brings back a file this statement deleted;
+        // a live one holds the file against a DELETE FILE ('62', §9.1.13.9 2)), this run unit's own (through a connector no APPLY
+        // COMMIT names) a holder no RETRY wait releases.
         else if (RetryLoop(() =>
                      OpenByAnotherConnector(name, c) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
+                     : JournalHoldsAgainstDelete(c) is { } journaled ? journaled
                      : HostFile.IsHeldByAnother(c.HostPath) ? DeleteFileHeld(name, c)
                      : RetryAttempt.InRunUnit(FileStatusCode.Success), retryKind, retryAmount) is var sharing
                  && sharing != FileStatusCode.Success)
@@ -983,7 +989,25 @@ public sealed class FileRegistry
         return status;
     }
 
-    /// <summary>⛔ DELETE FILE OF A SEQUENTIAL FILE UNDER COMMIT CONTROL (DESIGN-runtime-library.md 2.2.2.9; kb/Work PB3340, PB3492).
+    /// <summary>The entry step of a DELETE FILE through a connector no APPLY COMMIT names (2.2.2.8): dead transactions on the file
+    /// settled, then a live one's holding answered — '37' (GR16) where the lock directory cannot be listed, '62' (GR15) for any live
+    /// transaction, which no RETRY wait releases when it is this run unit's own; null when none lives.</summary>
+    private RetryAttempt? JournalHoldsAgainstDelete(FileConnector c)
+    {
+        SequentialJournal.Holdings holdings;
+        // A settle the medium refuses leaves the dead transaction for the next entry: the statement's permanent error ('30').
+        try { holdings = SequentialJournal.Enter(Medium, c.HostPath, null, null); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return RetryAttempt.InRunUnit(FileStatusCode.PermanentError); }
+        if (holdings.Unlistable) return RetryAttempt.InRunUnit(FileStatusCode.PermissionDenied);
+        if (!holdings.Any) return null;
+        int? own = Sequential.Of(c.HostPath)?.Id;
+        return holdings.Live.All(h => h.Id == own)
+            ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
+            : RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing);
+    }
+
+    /// <summary>⛔ DELETE FILE OF A FILE UNDER COMMIT CONTROL, OF EITHER ORGANIZATION (DESIGN-runtime-library.md 2.2.2.9, 2.2.2.14;
+    /// kb/Work PB3340, PB3492).
     /// The NOTE under §14.9.10.4 GR15: <i>"Such files can still be deleted, however if they are, then in the event of a rollback
     /// they will be restored to the state they were in at the last commit or, if none, the start of the run unit"</i> — and
     /// GR15's conflict is a file <i>"locked by another file connector"</i>, which the connector's own kept handle is not. Under
@@ -992,8 +1016,12 @@ public sealed class FileRegistry
     /// another connector of this run unit, or another handle than the connector's own kept one; then GR14's '05' for an
     /// absent file; then the transaction begun if none stands and the file CAPTURED in its base phase (R4), the kept handle
     /// closed, the file removed and its directory synced. The mutex is held from the successful test to the removal and given
-    /// back between RETRY attempts, so the transaction it waits for can roll back meanwhile.</summary>
-    private string DeleteCoveredSequential(string name, SequentialConnector covered, FileRetryKind retryKind, long retryAmount)
+    /// back between RETRY attempts, so the transaction it waits for can roll back meanwhile.
+    /// <para>A RELATIVE or INDEXED file is captured the same way (2.2.2.14): its keyed transaction lives in the file's own pages,
+    /// so the before file holds it as it stood, and a ROLLBACK restores the file and rolls it back there
+    /// (<see cref="RollbackKeyed"/>); the kept handle goes first, the transaction's liveness byte with it
+    /// (<see cref="KeyedConnector.GiveBackForRemoval"/>).</para></summary>
+    private string DeleteCovered(string name, FileConnector covered, FileRetryKind retryKind, long retryAmount)
     {
         string path = Path.GetFullPath(covered.HostPath);
         RegionLocks? mutex = null;
@@ -1018,7 +1046,8 @@ public sealed class FileRegistry
                 case FilePresence.Absent: return FileStatusCode.OptionalFileNotFound;   // '05' GR14 — nothing to capture
                 case FilePresence.Unauthorized: return FileStatusCode.PermissionDenied;   // '37' GR16
             }
-            var journal = Sequential.Of(path) ?? Sequential.Begin(path, SequentialJournal.StartState.Present);
+            var journal = Sequential.Of(path)
+                ?? Sequential.Begin(path, SequentialJournal.StartState.Present, ofKeyedFile: covered is KeyedConnector);
             covered.GiveBackForRemoval();   // the kept handle goes first: a Windows handle not opened for deletion blocks the removal
             if (!journal.Replaced)
                 using (var copy = Medium.OpenAuxiliary(path, FileMode.Open, FileAccess.Read))
@@ -1171,18 +1200,9 @@ public sealed class FileRegistry
         var c = Require(name);
         _shareBeforeCommitControl.TryAdd(name, _connectorShares.TryGetValue(name, out var declared) ? declared : null);
         var share = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
-        switch (c)
-        {
-            case KeyedConnector keyed:
-                keyed.CommitControlled = true;
-                break;
-            case SequentialConnector sequential:
-                sequential.CommitControlled = true;
-                share = share with { Sharing = share.Sharing ?? FileSharing.NoOther };
-                break;
-            default:
-                throw MisroutedVerb("APPLY COMMIT", name, c);
-        }
+        if (c is not (KeyedConnector or SequentialConnector)) throw MisroutedVerb("APPLY COMMIT", name, c);
+        c.CommitControlled = true;
+        if (c is SequentialConnector) share = share with { Sharing = share.Sharing ?? FileSharing.NoOther };
         _connectorShares[name] = share;
     }
 
@@ -1203,8 +1223,7 @@ public sealed class FileRegistry
     /// (<see cref="TransactionHolders"/>).</summary>
     internal void ReleaseCommitControl(string name)
     {
-        if (_files.TryGetValue(name, out var c) && c is KeyedConnector keyed) keyed.CommitControlled = false;
-        if (c is SequentialConnector sequential) sequential.CommitControlled = false;
+        if (_files.TryGetValue(name, out var c)) c.CommitControlled = false;
         if (!_shareBeforeCommitControl.Remove(name, out var declared)) return;
         if (declared is { } share) _connectorShares[name] = share;
         else _connectorShares.Remove(name);
@@ -1213,7 +1232,7 @@ public sealed class FileRegistry
     /// <summary>Whether <paramref name="name"/>'s connector is under commit control — "a file subject to an active APPLY
     /// COMMIT clause" (§14.6.13.1.3 item 8, <see cref="TransactionControl.RollbackOnFatal"/>).</summary>
     internal bool IsCommitControlled(string name) =>
-        _files.TryGetValue(name, out var c) && c is KeyedConnector { CommitControlled: true } or SequentialConnector { CommitControlled: true };
+        _files.TryGetValue(name, out var c) && c.CommitControlled;
 
     /// <summary>The id of the run unit's open transaction on <paramref name="name"/>'s physical file, 0 while none (the
     /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
@@ -1250,6 +1269,27 @@ public sealed class FileRegistry
     /// of its own, which a path would have folded into one, leaving the other uncommitted.</para></summary>
     private List<TransactionHolder> TransactionHolders()
     {
+        // ⛔ A FILE'S TRANSACTION JOURNAL (2.2.2.6): the registry's, in the same order, told by the name of the covered connector
+        // that holds the file (the one the program tests), or of any covered connector on its path. A RELATIVE or INDEXED file's
+        // journal (its creation or capture, 2.2.2.14) and the run unit's keyed transaction in the file are ONE transaction on
+        // ONE physical file: the journal's holder commits and rolls back both (CommitKeyed, RollbackKeyed), so the keyed one is
+        // not a holder of its own.
+        var owners = new List<TransactionHolder>();
+        var journaled = new HashSet<string>(HostFile.PhysicalFileComparer);
+        if (_sequential is { } sequential)
+            foreach (var (journal, order) in sequential.Open)
+            {
+                owners.Add(new(CoveredNameOf(journal.HostPath) ?? "", null, null, order, journal));
+                if (journal.OfKeyedFile) journaled.Add(journal.HostPath);
+            }
+        owners.AddRange(KeyedTransactionHolders().Where(h => !journaled.Any(path => OnPhysicalFile(h.HostPath, path))));
+        return [.. owners.OrderBy(h => h.Order)];
+    }
+
+    /// <summary>The run unit's keyed transactions, one per store (<see cref="TransactionHolders"/>): what a CLOSE kept and the
+    /// registry retired, then the connectors attached to a store with a transaction standing.</summary>
+    private List<TransactionHolder> KeyedTransactionHolders()
+    {
         var seen = new HashSet<KeyedStore>(ReferenceEqualityComparer.Instance);
         var owners = new List<TransactionHolder>();
         foreach (var (name, kept) in _retired)
@@ -1257,28 +1297,149 @@ public sealed class FileRegistry
         foreach (var (name, c) in _files)
             if (c is KeyedConnector { TransactionStore: { Transaction: not 0 } store } k && seen.Add(store))
                 owners.Add(new(name, k, null, store.OpenOrder));
-        // ⛔ A SEQUENTIAL FILE'S TRANSACTION (2.2.2.6): the registry's journal, in the same order, told by the name of the
-        // covered connector that holds the file (the one the program tests), or of any covered connector on its path.
-        if (_sequential is { } sequential)
-            foreach (var (journal, order) in sequential.Open)
-                owners.Add(new(CoveredNameOf(journal.HostPath) ?? "", null, null, order, journal));
-        return [.. owners.OrderBy(h => h.Order)];
+        return owners;
     }
 
-    /// <summary>The name of a covered sequential connector on the physical file at <paramref name="hostPath"/>: an open one first,
-    /// then one that holds the handle its CLOSE kept, then any.</summary>
+    /// <summary>The name of a covered connector on the physical file at <paramref name="hostPath"/>: an open one first, then one
+    /// that holds the handle its CLOSE kept, then any.</summary>
     private string? CoveredNameOf(string hostPath)
     {
         string? any = null;
         foreach (var (name, c) in _files)
         {
-            if (c is not SequentialConnector { CommitControlled: true } s || s.HostPath.Length == 0
-                || !HostFile.PhysicalFileComparer.Equals(Path.GetFullPath(s.HostPath), hostPath))
-                continue;
-            if (s.IsOpen) return name;
+            if (!c.CommitControlled || !OnPhysicalFile(c.HostPath, hostPath)) continue;
+            if (c.IsOpen) return name;
             any ??= name;
         }
         return any;
+    }
+
+    /// <summary>Whether <paramref name="hostPath"/> (a connector's, possibly relative or empty) names the physical file at the absolute
+    /// <paramref name="physical"/> (<see cref="HostFile.PhysicalFileComparer"/>).</summary>
+    private static bool OnPhysicalFile(string hostPath, string physical) =>
+        hostPath.Length > 0 && HostFile.PhysicalFileComparer.Equals(Path.GetFullPath(hostPath), physical);
+
+    /// <summary>⛔ COMMIT a RELATIVE or INDEXED file's transaction that a creation or a capture journaled (2.2.2.14; kb/Work PB3492):
+    /// first the run unit's keyed transaction in the file as it stands now — promoted (2.2.1.10), or, when it lived in the file
+    /// the capture removed or replaced (its store holds no file any more), forgotten, the replacement having nothing of it to
+    /// keep — then the journal's own three regions (2.2.2.6), through a handle of the run unit on the file. The order is what
+    /// makes the COMMIT atomic: a death between the two leaves the journal open, and the next entry restores the before file, so
+    /// the file reads as at the last COMMIT; a refusal of either is the COMMIT's (item 8's ROLLBACK follows), and a reversed
+    /// decision is rolled back at once.</summary>
+    private CommitOutcome CommitKeyed(SequentialJournal journal)
+    {
+        foreach (var holder in KeyedTransactionHolders().Where(h => OnPhysicalFile(h.HostPath, journal.HostPath)))
+        {
+            var store = (KeyedStore)holder.Identity.Store;
+            if (store.File is null)
+            {
+                store.ForgetTransaction();
+                continue;
+            }
+            if (holder.Commit(this) is var keyed and not CommitOutcome.Committed) return keyed;
+        }
+        var outcome = journal.Commit(KeyedHandleOn(journal.HostPath));
+        switch (outcome)
+        {
+            case CommitOutcome.Committed:
+                Sequential.End(journal);
+                break;
+            case CommitOutcome.Reversed:
+                _ = RollbackKeyed(journal);
+                break;
+        }
+        return outcome;
+    }
+
+    /// <summary>⛔ ROLL BACK a RELATIVE or INDEXED file's transaction that a creation or a capture journaled (§14.9.36.4 GR3, <i>"restored
+    /// to the state they were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements
+    /// had previously been executed"</i>; 2.2.2.7, 2.2.2.14; kb/Work PB3492), under the entry mutex. A capture (<c>K</c>): the journal
+    /// restores the before file through a handle of the run unit (<see cref="KeyedJournalData"/>), and before its decision the run
+    /// unit's store of the file adopts the restored file and rolls back the keyed transaction it holds — the run unit's uncommitted
+    /// changes of before the capture (<see cref="AdoptRestoredStores"/>); the transaction in the replaced file goes with it. A
+    /// creation (START <c>A</c>): the run unit's handles on the file are given back and the file removed — unless a connector of
+    /// the run unit still has it OPEN: §14.9.36.4 GR3 restores files and leaves open connectors open, and an open keyed connector
+    /// stands on a physical file, so the implementor's determination (DESIGN-runtime-library.md 2.2.2.14) keeps the file its OPEN
+    /// created, its keyed transaction rolled back (no records: the state of the creation), and the creation standing for the
+    /// next ROLLBACK, after the CLOSE, or COMMIT. A journal that never captured (a capture refused
+    /// before its <c>K</c>) changed nothing: the keyed transaction rolls back as any does. A refused step leaves the rollback OWED.</summary>
+    private StoreStatus RollbackKeyed(SequentialJournal journal)
+    {
+        string path = journal.HostPath;
+        var keyed = KeyedTransactionHolders().Where(h => OnPhysicalFile(h.HostPath, path)).ToList();
+        try
+        {
+            using var mutex = Sequential.HoldEntryMutex(path);
+            bool createdUnderAnOpenConnector = journal.Start == SequentialJournal.StartState.Absent
+                && _files.Values.Any(c => c is KeyedConnector { IsOpen: true } && OnPhysicalFile(c.HostPath, path));
+            if (!journal.Replaced || createdUnderAnOpenConnector)
+                foreach (var holder in keyed)
+                    if (holder.Rollback(this) != StoreStatus.Ok) return StoreStatus.PermanentError;
+            if (createdUnderAnOpenConnector) return StoreStatus.Ok;   // the creation stands
+            using var data = new KeyedJournalData(this, path);
+            if (!journal.Rollback(data, f => AdoptRestoredStores(path, f))) return StoreStatus.PermanentError;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return StoreStatus.PermanentError; }
+        Sequential.End(journal);
+        return StoreStatus.Ok;
+    }
+
+    /// <summary>The restore's last step for a keyed file (<see cref="RollbackKeyed"/>): every store of the run unit on the physical
+    /// file at <paramref name="path"/> — an attached connector's, a retired kept state's — adopts the file restored through
+    /// <paramref name="through"/> and rolls back the transaction it holds (<see cref="KeyedStore.AdoptRestored"/>); with no store
+    /// holding it, a covered connector on the path does it through a store made for that alone. False on a refusal.</summary>
+    private bool AdoptRestoredStores(string path, FileStream through)
+    {
+        var seen = new HashSet<KeyedStore>(ReferenceEqualityComparer.Instance);
+        KeyedConnector? covered = null;
+        foreach (var c in _files.Values)
+        {
+            if (c is not KeyedConnector k || !OnPhysicalFile(k.HostPath, path)) continue;
+            if (k.CommitControlled) covered ??= k;
+            if (k.TransactionStore is { } store && seen.Add(store) && k.AdoptRestored(through) != StoreStatus.Ok) return false;
+        }
+        foreach (var (_, kept) in _retired)
+            if (OnPhysicalFile(kept.HostPath, path) && seen.Add(kept.Store) && kept.AdoptRestored(through) != StoreStatus.Ok) return false;
+        return seen.Count > 0 || covered is null || covered.AdoptRestored(through) == StoreStatus.Ok;
+    }
+
+    /// <summary>A writable handle of the run unit on the keyed file at <paramref name="path"/>: an open connector's, or one a CLOSE under
+    /// commit control kept; null when it holds none (a DELETE FILE removed the file).</summary>
+    private FileStream? KeyedHandleOn(string path) =>
+        _files.Values.OfType<KeyedConnector>().Where(k => OnPhysicalFile(k.HostPath, path)).Select(k => k.WritableHandle)
+            .Concat(_retired.Where(r => OnPhysicalFile(r.Kept.HostPath, path)).Select(r => r.Kept.WritableStream))
+            .FirstOrDefault(h => h is not null);
+
+    /// <summary>⛔ THE PHYSICAL FILE AS A KEYED FILE'S JOURNAL ROLLBACK REACHES IT (2.2.2.7; <see cref="IJournalData"/>): a writable handle
+    /// the run unit already holds on it (<see cref="KeyedHandleOn"/>) — a host whose share modes are mandatory refuses any other
+    /// beside it — else one opened for the purpose and closed with the rollback. Before a creation's removal every handle of the
+    /// run unit on the file is given back with what its CLOSE kept (<see cref="ReleaseKeptOn"/>).</summary>
+    private sealed class KeyedJournalData(FileRegistry registry, string path) : IJournalData, IDisposable
+    {
+        private readonly SequentialJournal.AuxiliaryData _opened = new(registry.Medium, path);
+
+        public FileStream Writable(bool create) => registry.KeyedHandleOn(path) ?? _opened.Writable(create);
+
+        public void Release()
+        {
+            _opened.Release();
+            registry.ReleaseKeptOn(path);
+        }
+
+        public void Dispose() => _opened.Dispose();
+    }
+
+    /// <summary>Give back what every CLOSE under commit control kept of the keyed file at <paramref name="path"/> — the registered
+    /// connectors' and the retired states' — before a ROLLBACK removes the file a creation made (<see cref="KeyedJournalData"/>).</summary>
+    private void ReleaseKeptOn(string path)
+    {
+        foreach (var (name, c) in _files.ToArray())
+            if (c is KeyedConnector { IsOpen: false } k && OnPhysicalFile(k.HostPath, path)) ReleaseKeptOf(name, k);
+        foreach (var retired in _retired.Where(r => OnPhysicalFile(r.Kept.HostPath, path)).ToArray())
+        {
+            retired.Kept.Release();
+            _retired.Remove(retired);
+        }
     }
 
     /// <summary>The covered sequential connectors on the physical file at <paramref name="hostPath"/>, the retired ones included:
@@ -1351,11 +1512,16 @@ public sealed class FileRegistry
         /// still holding that id (a keyed COMMIT reversed is over, and its id may be drawn again).</summary>
         public bool Stands((object Store, ulong Id) identity) => Journal is { } j ? !j.Retired : Identity == identity;
 
+        /// <summary>The physical file's host path: the journal's (absolute), the connector's or the kept state's.</summary>
+        public string HostPath => Journal?.HostPath ?? Connector?.HostPath ?? Kept!.HostPath;
+
         public CommitOutcome Commit(FileRegistry registry) =>
-            Journal is { } j ? registry.CommitSequential(j) : Connector is { } c ? c.CommitTransaction() : Kept!.CommitTransaction();
+            Journal is { } j ? j.OfKeyedFile ? registry.CommitKeyed(j) : registry.CommitSequential(j)
+            : Connector is { } c ? c.CommitTransaction() : Kept!.CommitTransaction();
 
         public StoreStatus Rollback(FileRegistry registry) =>
-            Journal is { } j ? registry.RollbackSequential(j) : Connector is { } c ? c.RollbackTransaction() : Kept!.RollbackTransaction();
+            Journal is { } j ? j.OfKeyedFile ? registry.RollbackKeyed(j) : registry.RollbackSequential(j)
+            : Connector is { } c ? c.RollbackTransaction() : Kept!.RollbackTransaction();
     }
 
     /// <summary>The file-name whose I-O status a refused COMMIT or ROLLBACK is told through (§9.1.13.1): the connector registered
@@ -1779,12 +1945,12 @@ public sealed class FileRegistry
         return false;
     }
 
-    /// <summary>The run unit's own transaction on a SEQUENTIAL file refuses a writable OPEN, or with <paramref name="exclusive"/>
-    /// an OPEN OUTPUT or a DELETE FILE, of a connector that does not cover it (DESIGN-runtime-library.md 2.2.2.8: a replaced
-    /// transaction refuses every writable OPEN, and any live one an exclusive request); a covered connector's own transaction is
-    /// the one it changes the file in.</summary>
+    /// <summary>The run unit's own transaction journal on a file of either organization refuses a writable OPEN, or with
+    /// <paramref name="exclusive"/> an OPEN OUTPUT or a DELETE FILE, of a connector that does not cover it (DESIGN-runtime-library.md
+    /// 2.2.2.8, 2.2.2.14: a replaced transaction refuses every writable OPEN, and any live one an exclusive request); a covered
+    /// connector's own transaction is the one it changes the file in.</summary>
     private bool OwnTransactionRefuses(FileConnector c, bool exclusive) =>
-        c is SequentialConnector { CommitControlled: false } && Sequential.Of(c.HostPath) is { } own && (exclusive || own.Replaced);
+        !c.CommitControlled && Sequential.Of(c.HostPath) is { } own && (exclusive || own.Replaced);
 
     /// <summary>The holder of a DELETE FILE's sharing conflict the host reported ('62', §9.1.13.9 2)): this run unit's own when
     /// it holds the file through what a CLOSE under commit control kept or through its own transaction — no RETRY wait releases

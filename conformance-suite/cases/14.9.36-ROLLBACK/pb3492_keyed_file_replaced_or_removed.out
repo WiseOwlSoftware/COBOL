@@ -1,0 +1,17 @@
+R 00: 1=AAAA                                                
+X 00: K1=AAAA                                               
+OPEN OUTPUT R 00
+OPEN OUTPUT X 00
+R 00: 1=AAAA                                                
+X 00: K1=AAAA                                               
+DELETE FILE R 00
+DELETE FILE X 00
+OPEN INPUT R AFTER DELETE 05
+R 00: 1=AAAA                                                
+X 00: K1=AAAA                                               
+DELETE FILE X 00
+R 00: 2=BBBB                                                
+X 05:                                                       
+OPEN OUTPUT X CREATES 00
+R 00: 2=BBBB                                                
+X 05:                                                       
