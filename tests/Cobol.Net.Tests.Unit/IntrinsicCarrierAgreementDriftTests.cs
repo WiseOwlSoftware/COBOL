@@ -288,8 +288,12 @@ public sealed class IntrinsicCarrierAgreementDriftTests
                 var carriers = m.GetParameters().Select(p => p.ParameterType)
                     .Where(p => p == typeof(long) || p == typeof(Int128)).ToList();
                 if (carriers.Count == 0) continue;                          // no integer carrier — nothing to pair
-                if (carriers.Count > 1) { ambiguous.Add(m.Name); continue; } // correspondence not derivable here
-                if (!byName.TryGetValue(m.Name, out var seen)) byName[m.Name] = seen = [];
+                // The SDIDI twin of an arm's body is named <c>{Arm}Dec</c> (AnnuityDec, FactorialDec): it is the same
+                // function on the other carrier, so it joins the arm's own entry and must agree with it (kb/Work PB637 —
+                // the guard was blind to ANNUITY's SDIDI body, whose narrow intake went unseen for a whole wave).
+                string arm = m.Name.Length > 3 && m.Name.EndsWith("Dec", StringComparison.Ordinal) ? m.Name[..^3] : m.Name;
+                if (carriers.Count > 1) { ambiguous.Add(arm); continue; }    // correspondence not derivable here
+                if (!byName.TryGetValue(arm, out var seen)) byName[arm] = seen = [];
                 seen.Add(carriers[0]);
             }
         return byName
@@ -399,6 +403,67 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             + "on the VALUE, so §15.3 has no incorrect argument to raise on and the arm must use IntArgWide / "
             + "ArgIntWide; long means the argument rules bound it, so the arm must use IntArg / ArgInt and keep "
             + "the §15.3 landing. Offenders: " + string.Join("; ", offenders));
+    }
+
+    /// <summary>A TOTAL integer argument whose value rides the SDIDI — kb/Work PB637. An SDIDI integer holds 34 significant
+    /// digits at ANY exponent, so it reaches past <c>Int128</c> as well as past <c>long</c>: ANNUITY's argument-2
+    /// (§15.9.3 r3 "a positive integer", no magnitude) is an SDIDI integer the equivalent expression evaluates, and a
+    /// native integer carrier ANYWHERE between the position intake and the body (<c>IntArg</c>, <c>IntArgWide</c>, an
+    /// <c>Int128</c> / <c>long</c> parameter) lands it on a width that ends the run unit
+    /// (<c>ANNUITY(0, 10 ** 40)</c> through <c>IntegerArgWideDec</c> was a fatal EC-SIZE-OVERFLOW). The arm keeps the
+    /// operand on the SDIDI (<c>DecArg</c> over <c>RawArg</c>) and the body takes it as a <c>CobolDec</c>.</summary>
+    private static readonly string[] SdidiIntegerArms = ["Annuity"];
+
+    /// <summary>The arms of <see cref="SdidiIntegerArms"/> that render a native integer intake, by name.</summary>
+    private static List<string> SdidiIntegerOffenders(string rendererSource, ICollection<string>? examined = null)
+    {
+        var offenders = new List<string>();
+        foreach (var (name, arm) in Arms(rendererSource))
+        {
+            if (!SdidiIntegerArms.Contains(name)) continue;
+            examined?.Add(name);
+            if (NarrowIntake.IsMatch(arm) || WideIntake.IsMatch(arm))
+                offenders.Add($"{name}: its integer argument rides the SDIDI past Int128, but the arm lands it on a native carrier");
+        }
+        return offenders;
+    }
+
+    [Fact]
+    public void TheSdidiIntegerDetector_CatchesTheNativeIntakeAndNothingElse()
+    {
+        // kb/Work PB637 — ANNUITY's SDIDI arm as it was written (long), as the first fix wrote it (Int128), and as it stands.
+        Assert.Single(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            """"));
+        Assert.Single(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
+            """"));
+        Assert.Empty(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            """"));
+        Assert.Empty(SdidiIntegerOffenders("""// the Annuity arm once read "Annuity" => … IntArg(ic, 1)"""));
+    }
+
+    [Fact]
+    public void IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake()
+    {
+        var examined = new HashSet<string>(StringComparer.Ordinal);
+        var offenders = SdidiIntegerOffenders(
+            File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs")), examined);
+        foreach (string arm in SdidiIntegerArms)
+            Assert.True(examined.Contains(arm), $"the {arm} arm was not examined — the arm splitter lost it");
+        Assert.True(offenders.Count == 0, "kb/Work PB637: " + string.Join("; ", offenders));
+
+        // The body's half: its integer parameter is a CobolDec and no native integer parameter exists beside it.
+        foreach (string arm in SdidiIntegerArms)
+        {
+            var body = typeof(CobolIntrinsics).GetMethod(arm + "Dec", BindingFlags.Public | BindingFlags.Static)
+                ?? throw new InvalidOperationException($"{arm}Dec is gone");
+            Assert.DoesNotContain(body.GetParameters(), p => p.ParameterType == typeof(long) || p.ParameterType == typeof(Int128));
+        }
     }
 
     /// <summary>

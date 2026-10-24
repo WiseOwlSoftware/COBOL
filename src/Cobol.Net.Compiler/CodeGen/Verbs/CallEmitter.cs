@@ -105,7 +105,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // return, so it needs no guard here — GR3i.
             w.Line(invocation);
             brackets.Settle(receivers);
-            string? propagatedBare = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
+            string? propagatedBare = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
             if (c.NotOnException is { } notBare) EmitNotOnException(notBare, callErr: null, propagatedBare);
             return false;
         }
@@ -150,7 +150,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // — before either phrase body, which also keeps an activation inside a phrase body from consuming THIS
         // CALL's staging — and NOT ON EXCEPTION runs only when the pickup raised nothing. A failed activation
         // stages nothing, so the pickup is a no-op on the ON EXCEPTION path.
-        string? propagated = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
+        string? propagated = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
         if (c.OnException is { } on)
             using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
         if (c.NotOnException is { } not)
@@ -327,6 +327,47 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
+    /// <summary>⛔ THE ACTIVATING STATEMENT'S TAIL, ONCE FOR EVERY ACTIVATION (kb/Work PB3246): what the activator does when
+    /// the activation has returned and its RETURNING item is delivered, in the one order the standard gives it - the
+    /// propagation pickup (<see cref="EmitPropagationPickup"/>), THEN §14.9.40.4 GR17's question. A <c>GOBACK … RAISING</c>
+    /// condition is raised in the activating element "after the result, if any, of the activated element is returned"
+    /// (§14.9.18.4 GR1 b)); a USE procedure of the activated element that ended in EXIT PROGRAM / GOBACK while a format 1
+    /// SORT whose range activated it is active terminates that SORT (§14.9.40.4 GR17), and the termination unwinds the
+    /// rest of the range, so it must come last: asked first, it left before the pickup and the staged condition was raised
+    /// at the activator's next, unrelated activation. The CALL lane (<see cref="EmitCall"/>, a function activation and a
+    /// program-pointer CALL included) and the INVOKE lane (every <c>OoEmitter</c> form: instance, SELF, SUPER, factory,
+    /// universal and New, whose <c>NEW OVERRIDE</c> is a user method, kb/Work PB1582; an inline method invocation and an
+    /// object-property access are INVOKEs bound as their statement's pre-ops) both end here, so the order cannot be taught to
+    /// one and not the other. The INVOKE tail is emitted after the RETURNING delivery (§14.9.23.4 GR8) and the copy-outs, so
+    /// identifier-4 holds the result exactly as a CALL's RETURNING item does; asked in the method's own epilogue, the
+    /// termination unwound past that delivery and dropped the result. ⛔ The request is TAKEN before the pickup and ACTED ON
+    /// after it (kb/Work PB3246, review R1-1): the pickup can run the activator's own USE procedure, a declarative may
+    /// CALL, INVOKE or activate a function, and that nested activation's tail would otherwise consume THIS activation's
+    /// request and terminate the SORT in the middle of the declarative (its RESUME and the rest of it skipped). A RESUME AT
+    /// procedure-name the pickup's declarative takes leaves the statement before the termination is acted on: the
+    /// declarative's own transfer supersedes the request (the raise, which GR1 b) puts first, has chosen where control goes).
+    /// The GR17 question is unconditional: the activated
+    /// element can be another compilation group's, so whether it has declaratives is not known here. The pickup is gated on
+    /// <c>EcState.Active</c>, which spans class units.</summary>
+    /// <returns><see cref="EmitPropagationPickup"/>'s raised flag.</returns>
+    public string? EmitActivationReturned(IActivatingStatement site, bool reportRaised = false)
+    {
+        var w = ctx.Writer;
+        if (!ecState.Active)
+        {
+            // No pickup is emitted, so nothing runs between the return and the question: ask it at once.
+            w.Line($"{RuntimeApi.SortAfterActivationReturn};   // §14.9.40.4 GR17 - a declarative's EXIT PROGRAM / GOBACK ended the SORT this activation ran in");
+            return null;
+        }
+        // The request is THIS activation's: taken before the pickup, which can run the activator's own USE procedure and so
+        // activate again - the nested return must not find it (review R1-1).
+        string taken = $"__gr17{ctx.Names.NextEc()}";
+        w.Line($"var {taken} = {RuntimeApi.SortTakeActivationReturnTermination};   // §14.9.40.4 GR17 request of THIS activation's return");
+        string? raised = EmitPropagationPickup(site, reportRaised);
+        w.Line($"{RuntimeApi.SortTerminateAfterActivation(taken)};   // §14.9.40.4 GR17 - after the pickup");
+        return raised;
+    }
+
     /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM / method-return …
     /// RAISING</c> exception condition — ISO §14.9.18.4 GR1 b), RAISED HERE, in the activating runtime element,
     /// "as if a RAISE statement" at the end of the activating statement (§14.6.13.1.3 #6): test the ACTIVATOR's
@@ -343,7 +384,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// propagated condition (a name or an object) was RAISED here — the §14.9.4.4 GR3i "propagated" test the
     /// CALL's NOT ON EXCEPTION phrase keys on (kb/Work PB606). Null when no pickup is emitted (nothing can be
     /// raised) or no caller asked.</returns>
-    public string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
+    private string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
     {
         if (!ecState.Active) return null;
         var w = ctx.Writer;
@@ -824,11 +865,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // OoEmitter's INVOKE twin apply it. Digits/Scale are 0: this is character storage, not numeric meta.
         if (a.ContentBool is { } cb)
         {
-            string bv = BooleanRenderer.RenderAtItemWidth(cb, num);
-            // A known formal's record is filled by GR9's MOVE (kb/Work PB2587) through the one boolean-argument store
+            // A known formal's record is filled by GR9's MOVE (kb/Work PB2587, PB1014) through the one boolean-argument record
             // the INVOKE lane uses; with no formal known the value crosses as itself (GR9's first regime).
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
-                + $"{(a.Formal is { } bf ? BooleanArgumentRecord(bv, bf) : bv)}), null)";
+            string record = a.Formal is { } bf ? BooleanArgumentRecord(cb, bf) : BooleanRenderer.RenderAtItemWidth(cb, num);
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({record}), null)";
         }
         // ⛔ AN ADDRESS-IDENTIFIER CROSSES AS A DETACHED POINTER VALUE IN EVERY MODE (kb/Work PB239). §14.9.4.3
         // SR4 makes it a SENDING operand even BY REFERENCE and SR5 withholds the receiving role, so the carrier is
@@ -1100,24 +1140,32 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static string MovedArgText(string carrier) =>
         $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, {carrier}, null)";
 
-    /// <summary>⛔ THE RECORD OF A KNOWN FORMAL FILLED FROM A BOOLEAN VALUE (kb/Work PB46, PB2587) — the C# string expression
-    /// a BY CONTENT boolean-expression-1 or boolean literal-2 (<paramref name="value"/>, a '0'/'1' string) crosses as into
+    /// <summary>⛔ THE RECORD OF A KNOWN FORMAL FILLED FROM A BOOLEAN VALUE (kb/Work PB46, PB2587, PB1014) — the C# string
+    /// expression a BY CONTENT boolean-expression-1 or boolean literal-2 (<paramref name="value"/>) crosses as into
     /// <paramref name="formal"/>, for the CALL and function lanes (<see cref="ArgCarrierText"/>) and the INVOKE lane alike.
     /// <para>⛔ ANY LENGTH IS TESTED FIRST, AND THE ORDER IS THE WHOLE POINT. §13.18.2.3 SR1 admits the picture symbol '1'
     /// as well as 'N' and 'X', so a category-BOOLEAN formal can carry ANY LENGTH — and §13.18.2.4 GR1b then makes n "the
     /// length of the corresponding argument", not the one symbol its PICTURE spells (measured: `01 AL PIC 1 ANY LENGTH`
-    /// received B"1000" as B"1" while the category test came first). Otherwise §14.8.2.3.3 rule 2d makes the crossing the
-    /// MOVE store for the formal's category: a BOOLEAN receiver pads and truncates in boolean ZEROS (§14.6.8.6), an
-    /// ALPHANUMERIC one in spaces with the boolean characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of
-    /// class boolean, its boolean value shall be moved"), and a GROUP formal takes the characters as §14.9.25.4 GR4's
-    /// group move does — an alphanumeric copy to the group's image width, space-filled (kb/Work PB1113).</para></summary>
-    internal static string BooleanArgumentRecord(string value, DataItem formal)
+    /// received B"1000" as B"1" while the category test came first). Otherwise §14.8.2.3.3 rule 2d makes the crossing a MOVE
+    /// with the argument as its sending operand, so the value is that MOVE's sender (<see cref="BoundBoolOperand"/>, at
+    /// §8.8.2 rule 10's width) and the record is the MOVE's own (<see cref="MoveEmitter.RecordValue"/>): the one receiving
+    /// store of every category — a BOOLEAN receiver pads and truncates in boolean ZEROS (§14.6.8.6), an ALPHANUMERIC or
+    /// NATIONAL one in spaces with the boolean characters moved as-is (§14.9.25.4 GR6a — "If the sending item is of class
+    /// boolean, its boolean value shall be moved"), an alphanumeric-edited or national-edited one EDITS them (GR6 —
+    /// `B"10"` into PIC XBX is "1 0"), and a JUSTIFIED one right-justifies — and a plain GROUP formal takes the characters
+    /// as §14.9.25.4 GR4's group move does, an alphanumeric copy to the group's image width, space-filled (kb/Work
+    /// PB1113). There is no second store of a boolean beside the MOVE's (PB1014: the hand-written one skipped the editing).
+    /// A NUMERIC formal never reaches here: §14.8.2.3.3 rule 2 a) refuses a boolean sender at bind (COBOLNET0828).</para></summary>
+    internal string BooleanArgumentRecord(BoundBoolExpr value, DataItem formal)
     {
-        int width = Math.Max(1, formal.Pic?.Length ?? 0);
-        return formal.IsGroup ? RuntimeApi.StrStore(value, $"{BoundaryImageWidth(formal)}")
-            : formal.IsAnyLength ? value
-            : formal.Pic!.Category is PicCategory.Boolean ? RuntimeApi.StrStoreBoolean(value, $"{width}", formal.Justified)
-            : ReceivingStore.Characters(formal, value, $"{width}");   // the ONE elementary character store (kb/Work PB871)
+        var sender = new BoundBoolOperand(value, AtItemWidth: true);
+        if (formal.IsAnyLength) return OperandText.AsString(sender, num);
+        if (IsPlainGroupFormal(formal))
+            return RuntimeApi.StrStore(OperandText.AsString(sender, num), $"{BoundaryImageWidth(formal)}");
+        return IsMovedFormal(formal)
+            ? move.RecordValue(sender, formal)
+            : throw new InvalidOperationException(
+                $"CallEmitter.BooleanArgumentRecord: a BY CONTENT boolean argument reached formal '{formal.CobolName}', which no MOVE fills (bind refuses it)");
     }
 
     /// <summary>⛔ THE ONE VALUE OF A FIGURATIVE-CONSTANT / ALL-LITERAL ARGUMENT (kb/Work PB1418 + PB1617) — the C#
