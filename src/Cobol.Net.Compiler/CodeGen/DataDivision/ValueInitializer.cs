@@ -299,8 +299,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ALL "literal" (§8.3.3.6.2 Format 6, where ALL is REQUIRED): the literal repeated to the item width
         // (ISO §8.3.3.6.4 GR2; §8.3.3.6.3 SR3 forbids a multi-character literal-1 on a numeric item). Read through
         // THE one operand classifier, so this arm and the SET store see the same spellings (kb/Work PB461).
-        if (FigurativeConstants.Classify(raw).AllLiteral is { } allLit && pic.Category is not PicCategory.Numeric)
-            return EmitText.CsLiteral(EmitText.RepeatToWidth(CobolLiteral.Decode(allLit), pic.Length));
+        if (AllLiteralInitializer(raw, pic) is { } allFill) return allFill;
 
         return pic.Category switch
         {
@@ -440,10 +439,22 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <c>GroupImageCodec.BooleanImageOf</c>'s single decision.</summary>
     public string BooleanCarrierOf(string raw, PicInfo pic) =>
         FigurativeInitializer(raw, pic)
-        ?? (FigurativeConstants.Classify(raw).AllLiteral is { } allLit
+        ?? AllLiteralInitializer(raw, pic)
+        ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
+                                      justifiedRight: false);
+
+    /// <summary>⛔ THE ONE READER OF A FORMAT-6 <c>ALL literal-1</c> VALUE (ISO §8.3.3.6.2 Format 6, where ALL is
+    /// REQUIRED; §8.3.3.6.4 GR2: the literal repeated to the associated item's size) — the literal repeated to the
+    /// item's <see cref="PicInfo.Length"/> positions, or null when <paramref name="raw"/> is not an ALL-literal or
+    /// the item is numeric (§8.3.3.6.3 SR3 forbids a multi-character literal-1 there; a digit-only ALL on a numeric
+    /// item is the numeric recipe's). It is asked by this initializer, by the boolean carrier AND by
+    /// <c>GroupImageCodec</c>'s character-image seed — the third asker was missing, so a record that was the base of a
+    /// REDEFINES (a Tier-B image-backed record) seeded `PIC X(6) VALUE ALL "."` with the parse text `ALL"."`
+    /// instead of six periods (kb/Work PB1910 sibling sweep; the image seed is a second copy of this recipe).</summary>
+    public string? AllLiteralInitializer(string raw, PicInfo pic) =>
+        pic.Category is not PicCategory.Numeric && FigurativeConstants.Classify(raw).AllLiteral is { } allLit
             ? EmitText.CsLiteral(EmitText.RepeatToWidth(CobolLiteral.Decode(allLit), pic.Length))
-            : RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
-                                         justifiedRight: false));
+            : null;
 
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
