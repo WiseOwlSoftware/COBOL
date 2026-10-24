@@ -2607,6 +2607,41 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A KEPT STATE THAT ENDS INSIDE THE CONNECTOR GIVES BACK THE RECORD LOCKS THE HOST COULD NOT PUBLISH TOO (kb/Work
+    /// PB3578; §14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; §9.1.16): on a host whose
+    /// region locks answer unavailable for record bytes, connector F, under commit control, READs record 2 (the lock is in this run
+    /// unit's table alone), is CLOSEd (the CLOSE keeps it, §14.9.6.4 GR9: one lock held) and re-OPENed OUTPUT, which creates the file
+    /// anew and ends what the CLOSE kept (PB3493: the transaction ended with the file it was in). Nothing of the old file is held by
+    /// F any more: no lock stays in the table for a connector with nothing left to release it. Before the fix
+    /// <c>KeyedConnector.ReleaseKept</c> released only the locks its endpoint published, so the unpublished one stayed.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_open_output_over_the_kept_file_gives_back_the_record_locks_the_host_could_not_publish(FileOrg org)
+    {
+        string host = Tmp($"pb3578-output-{org}");
+        try
+        {
+            Seed(host, org);
+            var unavailable = new RecordBytesUnavailableHost(HostRegionLocks.HostOfThisProcess);
+            using var forced = HostRegionLocks.Forcing(unavailable);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Read(a, org, 2, out _));
+            Assert.True(unavailable.RecordBytesRefused > 0, "the READ's record lock never reached the host as a record byte");
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));   // §14.9.6.4 GR9: the CLOSE under commit control keeps it
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(0, a.RecordLocksHeldBy("F"));
+            a.CloseAll();
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>A region-lock host that delegates to its inner host but cannot carry a RECORD's byte (a filesystem without
     /// byte-range locks, answering <see cref="RegionLockResult.Unavailable"/>): the store mutex, the liveness bytes and the
     /// presence byte are carried as ever.</summary>

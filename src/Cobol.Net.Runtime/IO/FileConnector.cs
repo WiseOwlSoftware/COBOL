@@ -329,11 +329,18 @@ public abstract class FileConnector
     /// answer).</summary>
     /// <param name="physical">The physical file's shared state — every connector gets it.</param>
     /// <param name="locksRecords">Whether this open's connector SETS record locks (<c>FileRegistry.RecordLocksSetUnder</c>: a LOCK MODE clause under a mode other than NO OTHER). A registered SHARING posture alone is NOT participation.</param>
-    internal void AssociatePhysical(PhysicalFileTable.State physical, bool locksRecords)
+    internal void AssociatePhysical(PhysicalFileTable.State physical, string lockOwner, bool locksRecords)
     {
         Physical = physical;
+        LockOwner = lockOwner;
         _locksRecords = locksRecords;
     }
+
+    /// <summary>⛔ THE NAME THE RUN UNIT'S RECORD-LOCK TABLE HOLDS THIS CONNECTOR'S LOCKS UNDER (<see cref="PhysicalFileTable"/>
+    /// keys an owner by the connector's registry name): the connector does not know it from its own construction, and what a
+    /// CLOSE under commit control keeps must be able to give its record locks back without the registry (kb/Work PB3578), so the
+    /// registry hands it down with the physical file's state at every OPEN (<see cref="AssociatePhysical"/>).</summary>
+    internal string LockOwner { get; private set; } = "";
 
     /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
     /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run

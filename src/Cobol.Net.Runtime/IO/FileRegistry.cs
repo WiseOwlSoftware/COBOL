@@ -1124,6 +1124,11 @@ public sealed class FileRegistry
     /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
     internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;
 
+    /// <summary>The seam of the record-lock witnesses (kb/Work PB3578): how many record locks this run unit's table holds for
+    /// connector <paramref name="name"/> on the physical file it is associated with, published to the host or not.</summary>
+    internal int RecordLocksHeldBy(string name) =>
+        Require(name).Physical is { } st ? st.RecordLocks.Values.Count(owner => CobolNames.Same(owner, name)) : 0;
+
     /// <summary>The witnesses' seam of a death that lands while ANOTHER run unit's statement runs (2.2.1.17's round-4
     /// table): this run unit's liveness byte on <paramref name="name"/>'s physical file is released as the operating
     /// environment releases a dead process's, and nothing else of the run unit is touched.</summary>
@@ -1240,26 +1245,22 @@ public sealed class FileRegistry
             try { if (c is KeyedConnector { CommitControlled: true } k) ReleaseKeptOf(name, k); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
-        foreach (var (name, kept) in _retired.ToArray())
+        foreach (var (_, kept) in _retired.ToArray())
         {
-            try
-            {
-                // The record locks the host could not publish are this run unit's table alone and are its by name, as a registered
-                // connector's are (ReleaseKeptOf) - a retired connector's key can leave the registry (CloseAndDrop) or name another
-                // file by now (Associate), so the kept state's own physical-file state is the way to them (review finding R1-3).
-                if (kept.Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, name);
-                kept.Release();
-            }
+            // A retired connector's key can leave the registry (CloseAndDrop) or name another file by now (Associate), so the kept
+            // state gives back its record locks itself, by its own owner name and physical-file state (review finding R1-3).
+            try { kept.Release(); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
         _retired.Clear();
     }
 
-    /// <summary>⛔ THE ONE GIVING BACK of what a registered keyed connector holds past a CLOSE under commit control (§9.1.16, the
-    /// COMMIT's and the ROLLBACK's; §9.1.18.5, the run unit's end): its record locks — the table's, by name, which also
-    /// covers a lock no host published — and then everything the CLOSE kept (<see cref="KeyedConnector.ReleaseKept"/>: the
-    /// locks its endpoint published, the handle, the file lock, the attachment). A connector retired from the registry is
-    /// ended in <see cref="ReleaseAllKept"/> by its own physical-file state, because its key may no longer name it.</summary>
+    /// <summary>What a registered keyed connector under commit control holds at a COMMIT, a ROLLBACK or the run unit's end (§9.1.16,
+    /// <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>; §9.1.18.5): the record
+    /// locks of its OPEN file — the table's, by name, which also covers a lock no host published — and then everything its CLOSE
+    /// kept, which <see cref="KeptFile.Release"/> gives back, as it does for every other path that ends a kept state
+    /// (<see cref="KeyedConnector.ReleaseKept"/>, kb/Work PB3578). A connector retired from the registry is ended in
+    /// <see cref="ReleaseAllKept"/> by its kept state alone, because its key may no longer name it.</summary>
     private void ReleaseKeptOf(string name, KeyedConnector k)
     {
         ReleaseAllForConnector(name);
@@ -1456,7 +1457,7 @@ public sealed class FileRegistry
         // under kb/Work PB740 is on exactly as much as a SHARING WITH ALL OTHER pair. The second argument is
         // the RECORD-LOCKING posture, and only the §9.1.16 questions read it through `SharedPhysical`.
         ReclaimRetired(name, c);
-        c.AssociatePhysical(st, RecordLocksSetUnder(posture, sharing));
+        c.AssociatePhysical(st, name, RecordLocksSetUnder(posture, sharing));
         // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). The share mode of
         // a host handle is fixed when the handle is created, so the posture of THIS connector's sharing mode is
         // handed down here, ahead of c.Open. It is the posture of the mode alone: Table 19 has just admitted this
