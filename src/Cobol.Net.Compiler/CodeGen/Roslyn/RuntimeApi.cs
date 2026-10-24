@@ -1050,16 +1050,17 @@ internal static class RuntimeApi
         $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.StringTransfer)}({acc}, {src}, {delim}, ref {ptrVar}, ref {ovfVar})";
 
     /// <summary>One receiving area's extraction — <c>CobolStringOps.UnstringExtract</c> (out-vars for the examined
-    /// field and the matched delimiter; −1 = not acted upon).</summary>
-    public static string UnstringExtract(string src, string dels, string alls, string noDelimSize,
-        string ptrVar, string fldVar, string dlmVar) =>
-        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {alls}, {noDelimSize}, " +
-        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar})";
+    /// field, the matched delimiter's content and its position in the DELIMITED list, −1 for none; the call's value
+    /// is −1 = not acted upon).</summary>
+    public static string UnstringExtract(string src, string dels, string noDelimSize,
+        string ptrVar, string fldVar, string dlmVar, string matchedVar) =>
+        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {noDelimSize}, " +
+        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar})";
 
-    /// <summary>Which listed delimiter an examination matched — <c>CobolStringOps.MatchedDelimiterIndex</c> (−1 at the
-    /// end of the sender); asked only where an identifier delimiter can be overwritten mid-statement (D-UNS2).</summary>
-    public static string UnstringMatchedDelimiter(string dels, string dlmVar) =>
-        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.MatchedDelimiterIndex)}({dels}, {dlmVar})";
+    /// <summary>The contiguous repeats of a matched ALL delimiter — <c>CobolStringOps.UnstringSkipRun</c>, run after the
+    /// receiving area's INTO store (D-UNS2).</summary>
+    public static string UnstringSkipRun(string src, string dels, string alls, string matchedVar, string ptrVar) =>
+        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringSkipRun)}({src}, {dels}, {alls}, {matchedVar}, ref {ptrVar});";
 
     /// <summary>The JUSTIFIED-right alphanumeric store (§14.9.25.4 GR6c) — <c>CobolString.Store</c> with
     /// <c>justifiedRight: true</c>.</summary>

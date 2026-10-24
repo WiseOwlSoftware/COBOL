@@ -224,6 +224,38 @@ public sealed class GateLegDriftTests
         }
     }
 
+    /// <summary>
+    /// RED AT THE PREVIOUS GATE MEANS EITHER HOST'S (kb/Work PB3155, PB3184; DESIGN-test-build-ci.md §3.14.2, tier 0a):
+    /// every live tool that writes a trx file into a worktree is a row of <c>gate_plan.TRX_WRITERS</c>, which says what
+    /// the plan takes from its results — the gate's own previous run, the Linux gate's newest run, or nothing and why —
+    /// and names a results directory its tool really writes. Until 2026-10-23 the plan read only the first, so a
+    /// finisher's re-gate after a landing's Linux red ran neither failed case in leg 1 and read GREEN (w1076a, PB2921).
+    /// </summary>
+    [Fact]
+    public void EveryTrxWriter_IsARedSourceOfThePlan_OrSaysWhyNot()
+    {
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"),
+            "--audit-trx-writers");
+
+        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX WRITER AUDIT: CLEAN", StringComparison.Ordinal),
+            "A live tool writes test results (a trx file) that the gate's plan does not classify: give it a row in "
+            + "scripts/gate_plan.py TRX_WRITERS (its results directory, and whether its reds are tier 0a of the next "
+            + "gate, read by gate_plan.previous_gates), or correct the row that no longer matches its tool.\n"
+            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
+
+        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the two gates whose reds the plan reads, and the battery. An audit that
+        // stopped seeing them would report a clean tree over nothing.
+        foreach (string writer in new[]
+                 {
+                     "scripts/run_gate_legs.py  TestResults/build-local", "scripts/linux-gate.sh  TestResults/linux-gate",
+                     "scripts/battery.sh  -",
+                 })
+        {
+            Assert.True(r.Stdout.Contains("  writer  " + writer + "  ", StringComparison.Ordinal),
+                $"the trx writer audit no longer sees {writer} — the audit is broken, not the tree clean.\n{r.Stdout}");
+        }
+    }
+
     private const string Ns = "CobolNet.Tests.Conformance";
 
     // ── Arm (1): the name key and the leg function ────────────────────────────────────────────────────────────────
