@@ -822,7 +822,11 @@ public sealed record PicInfo(
     /// GnuCOBOL's, which declares both <c>CB_USAGE_UNSIGNED_INT</c> (cobc/tree.c <c>build_report</c>, surveyed with
     /// cobc 3.2.0). <c>AlgebraicRanges.DescribeCounter</c> reads this profile for the extremes, the character image,
     /// the byte length and the usage screens; <c>CobolReport.CounterModulus</c> is the runtime's twin of its 32 bits
-    /// and <c>ReportCounterDescriptionDriftTests</c> pins the two together.</para></summary>
+    /// and <c>ReportCounterDescriptionDriftTests</c> pins the two together.</para>
+    /// <para>⚠ THE SHAPE IS NOT A USAGE CLAUSE. The profile reuses <see cref="Usage.BinaryLong"/> for its width, but a
+    /// register is not "a data item described with usage binary-long": the usage-keyed rules that read an implicit
+    /// description (STRING §14.9.43.3 SR1, §8.8.4.2.5) refuse it, while §14.9.25.3 SR8 — keyed on a written usage — does
+    /// not (<c>MoveTable16.ShapeRefusal</c>), so <c>MOVE PAGE-COUNTER TO</c> an alphanumeric item stays legal.</para></summary>
     public static PicInfo ReportCounterItem() => BinaryItem(Usage.BinaryLong, signed: false);
 
     /// <summary>The synthesized profile of a REPORT SECTION <b>sum counter</b> (ISO §13.18.54.4 GR1): "The sum
