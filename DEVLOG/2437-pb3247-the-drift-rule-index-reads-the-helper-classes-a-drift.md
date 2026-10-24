@@ -1,4 +1,4 @@
-## PB3247: the drift-rule index reads the helper classes a drift test reads the tree through
+## Entry 2437 — 2026-10-23 21:28 PDT — PB3247: the drift-rule index reads the helper classes a drift test reads the tree through
 
 The gate's tier 0d plans every drift test that `scripts/spec/drift_rules.py` says governs a changed file. A test that
 read a file only through a shared helper class was invisible to the index, so a branch changing that file gated GREEN
@@ -51,3 +51,4 @@ was a second copy of TestRepo, and it is gone. Performance: each source is read 
 **Gate** (run 000001-20261024T015348Z, head 84c6d1b09; leg 1 ran 205 Unit and 24 Conformance tier-0d cases, among them
 HostWitnessTraitDriftTests and TrackedTreeScopeDriftTests): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,336 · Unit 1,256 · Characterization 31`.
+
