@@ -1,4 +1,4 @@
-## PB3654: three queue-lead notes repaired, and the register's reader drops a note it cannot parse without a word
+## Entry 2483 — 2026-10-24 14:59 PDT — PB3654: three queue-lead notes repaired, and the register's reader drops a note it cannot parse without a word
 
 Entry 2480 filed PB3651, PB3652 and PB3653 from the PB3170 and PB2974 reports, and they reached main (PR #513) unreadable:
 every line of the three files began with a stray backtick, the frontmatter's opening line included (it read `` `--- ``),
@@ -13,3 +13,4 @@ damaged leaves the register: `work.py next` never ranks it, the planner never re
 counts the rest. Beside it, `check()` ignores `--work`, the test seam `main` parses: a probe directory holding the
 damaged PB3653.md and a good PB3650.md printed the repository's 2922 items, not its two. With the repair the register
 reads 2923 items, PB3654 included.
+
