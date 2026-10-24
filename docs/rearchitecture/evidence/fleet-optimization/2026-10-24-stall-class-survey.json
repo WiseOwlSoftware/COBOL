@@ -1,0 +1,2506 @@
+{
+ "_frozen": "Frozen evidence (kb/Work PB785): written once on 2026-10-24 when the stall-class survey ended; never edited to stay current.",
+ "experiment": "2026-10-24-stall-class-survey",
+ "workflow_run": "wf_261e7afb-19e",
+ "question": "Which classes of mechanical stop left finished work idle in the orchestrator loop from 2026-10-12 to 2026-10-24?",
+ "design": "4 read-only cobol-locator measurers (one per record source), 1 cobol-adjudicator classifier (opus), 4 cobol-refuter verifiers (opus), slices of 8 classes each",
+ "metrics": {
+  "workflow_dir": "wf_261e7afb-19e",
+  "agents": 9,
+  "returned": 9,
+  "rows": [
+   {
+    "agent": "a6b45e1cd781b67c7",
+    "label": "classify",
+    "turns": 34,
+    "tool_calls": 43,
+    "tokens": 5168233,
+    "fresh": 337734,
+    "token_parts": {
+     "input": 68,
+     "output": 85391,
+     "cache_read": 4830499,
+     "cache_write": 252275
+    },
+    "wall_s": 892.8,
+    "first": "2026-10-24T18:38:41.972Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "summary": "410 de-duplicated incidents (712 measurer lines; 302 folded as duplicates) in 32 mechanism classes. Detail: E:\\Temp\\claude\\E--COBOL\\2f7da35b-367c-4195-a0f3-890a7da7c1c3\\scratchpad\\stalls\\classify.jsonl and classes.json. Measured idle in mechanical classes is about 50,500 branch-minutes. Largest classes: the landing lane ticks only while a unit runs (orchestrate.ps1:414-418), 22,299 min, new-note; review happens only in the serial enqueue unit, notes-only branches included, 8,235 min, extend PB3608; a Linux-gate environment failure needs a hand re-arm, 6,452 min, extend PB3194; generated-file conflicts, 2,735 min, PB3610; every queue removal goes to a finisher (land_lane.py:542-545), 1,845 min, new-note; a red the branch does not carry ends STOPPED, 1,713 min, new-note. Today's four: PB3628 NOT QUEUED (602 min), stale blocked flag (601 min, PB3389), notes-only serial review (unmeasured, PB3608), exit 6 predecessor entry (117 min, PB3145). Classes taken only from the register are unmeasured.",
+     "classes": [
+      {
+       "key": "LANE_TICK_UNIT_BOUND",
+       "name": "Landing lane ticks only while an LLM unit runs",
+       "mechanism": "orchestrate.ps1 ticks land_lane.py only in the unit loop (:414-418) and at unit start (:324); Wait-Until (:142) for hold-day (:547-556), backoff (:708), breaker and owner-question stops never tick. 2164 loop-min of hold/backoff gaps counted as incidents, not summed.",
+       "incidents_n": 27,
+       "idle_min_total": 22299,
+       "idle_min_max": 2447,
+       "mechanical": true,
+       "automatic_resolution": "orchestrate.ps1: Start-LaneTick/Complete-LaneTick inside Wait-Until and the backoff wait; autostart.ps1 schedules land_lane.py tick when no supervisor is alive.",
+       "safety_risks": "Low race risk (tick.lock, gate-slot cap); must honour owner STOP and lane HALT; gates load the box during a budget hold.",
+       "examples": [
+        "worktree-wf_15ec6338-3a0-11 2447 min: measure-landings.jsonl:630",
+        "worktree-wf_15ec6338-3a0-19 1193 min (exit 3 cleared, lane dormant): measure-landings.jsonl:537",
+        "worktree-wf_5579bfb3-423-8 1128 min: measure-landings.jsonl:625",
+        "loop hold-day 2026-10-15T02:02Z 941 loop-min: measure-landings.jsonl:710"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3103",
+         "status": "landed",
+         "cluster": "PB3015",
+         "covers": "lane beside the unit; not outside units"
+        },
+        {
+         "id": "PB3608",
+         "status": "open",
+         "cluster": "PB3608",
+         "covers": "review lane, same tick shape"
+        }
+       ],
+       "proposal": "new-note"
+      },
+      {
+       "key": "SERIAL_ENQUEUE_REVIEW",
+       "name": "Review/re-arm only in the serial enqueue unit (incl. notes-only branches)",
+       "mechanism": "A DONE branch outside a wave is reviewed only by the next enqueue unit; units run one at a time (waves 186-336 min); prune_worktrees.py:615 --min-age 180 first holds a just-touched operator branch IN FLIGHT.",
+       "incidents_n": 62,
+       "idle_min_total": 8235,
+       "idle_min_max": 1571,
+       "mechanical": true,
+       "automatic_resolution": "PB3608 review lane (orchestrate.ps1 + land_lane.py, lease per head); a kb/Work+DEVLOG-only diff passes work.py check + devlog.py check with no reviewer and skips min-age.",
+       "safety_risks": "Bypass must prove diff scope mechanically; review lane tokens outside unit accounting (budget.py); duplicate reviewers without a lease.",
+       "examples": [
+        "TODAY notes-PB2699-adopt-landed + notes-PB1957-loop-majors unmeasured: measure-landings.jsonl:723; measure-supervisor.jsonl:179",
+        "worktree-wf_71ab13ab-689-18 1571 min: measure-landings.jsonl:649",
+        "fix-self-test-wall-leads 147 min: measure-landings.jsonl (pr 457); kb/Work/PB3608.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3608",
+         "status": "open",
+         "cluster": "PB3608",
+         "covers": "review lane; lacks notes-only path and min-age exemption"
+        },
+        {
+         "id": "PB3103",
+         "status": "landed",
+         "cluster": "PB3015",
+         "covers": "lane beside unit"
+        },
+        {
+         "id": "PB3381",
+         "status": "landed",
+         "cluster": "",
+         "covers": "wave held predecessor"
+        }
+       ],
+       "proposal": "extend-note"
+      },
+      {
+       "key": "ENV_LINUX_GATE_RED",
+       "name": "Linux-gate environment failure strands landings until a hand re-arm",
+       "mechanism": "WSL disk full (10-15) ended landings exit 5; owner question stopped the loop; 8 branches re-armed by hand at same heads. Now enqueue.py:731-733 env NOT RUN is exit 2 = classify ONCE then STOPPED, so a long outage still waits for a unit.",
+       "incidents_n": 9,
+       "idle_min_total": 6452,
+       "idle_min_max": 826,
+       "mechanical": true,
+       "automatic_resolution": "land_lane.py: env NOT RUN (exit 2, NOT RUN [disk/env]) joins WAITS, freed when linux-gate.sh preflight (PB3194) passes.",
+       "safety_risks": "Keep branch-carried NOT RUN (enqueue.py:735-750) a stop; back off on a permanently broken host.",
+       "examples": [
+        "worktree-wf_f560587e-74d-1 826 min: measure-landings.jsonl:546",
+        "worktree-wf_c0ed6078-78e-8 824 min: measure-landings.jsonl:543",
+        "loop owner-question 764 loop-min: measure-landings.jsonl:711; measure-supervisor.jsonl:180"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3194",
+         "status": "landed",
+         "cluster": "PB1957,PB1732,PB3022",
+         "covers": "disk cause, free-space check (2026-10-23)"
+        },
+        {
+         "id": "PB3526",
+         "status": "landed",
+         "cluster": "",
+         "covers": "NOT RUN not read as RED (2026-10-22)"
+        }
+       ],
+       "proposal": "extend-note"
+      },
+      {
+       "key": "REAL_RED_FINISHER",
+       "name": "Real red or conflict needing a finisher code commit",
+       "mechanism": "Gate red, exit 7 other, bounce or registry conflict whose next head carried a code commit.",
+       "incidents_n": 51,
+       "idle_min_total": 5137,
+       "idle_min_max": 982,
+       "mechanical": false,
+       "automatic_resolution": "None; the dispatch wait belongs to SERIAL/LANE_TICK.",
+       "safety_risks": "n/a",
+       "examples": [
+        "worktree-wf_5579bfb3-423-17 982 min: measure-landings.jsonl:541",
+        "worktree-wf_0e51b14b-ced-6 PR #467 bounce 272 min: measure-supervisor.jsonl:177"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB1957",
+         "status": "open",
+         "cluster": "",
+         "covers": "late reds, local vs CI"
+        }
+       ],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "ORACLE_ONE_BASELINE",
+       "name": "Landing oracle one-baseline rule (exit 7, merge-group race)",
+       "mechanism": "exit 7 not in land_lane.WAITS (:131); two queued baselines failed ArchOracleDriftTests; waits until unit re-arm. All 2026-10-13..14.",
+       "incidents_n": 8,
+       "idle_min_total": 5064,
+       "idle_min_max": 1364,
+       "mechanical": true,
+       "automatic_resolution": "Done: PB3107 deleted the oracle (enqueue.py:88).",
+       "safety_risks": "n/a",
+       "examples": [
+        "worktree-wf_787860dd-104-9 1364 min: measure-landings.jsonl:588",
+        "worktree-wf_d63f7207-db5-30 1281 min: measure-landings.jsonl:502"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3107",
+         "status": "landed",
+         "cluster": "PB2885,PB3023",
+         "covers": "oracle deleted 2026-10-13"
+        }
+       ],
+       "proposal": "covered-landed"
+      },
+      {
+       "key": "OWNER_POLICY_LOOP_DOWN",
+       "name": "Loop down by owner STOP / single-session / -MaxUnits",
+       "mechanism": "Owner STOP overnight, single-session decision (1248), -MaxUnits 1; lane down with loop. Loop wall minutes.",
+       "incidents_n": 8,
+       "idle_min_total": 4848,
+       "idle_min_max": 1248,
+       "mechanical": false,
+       "automatic_resolution": "Needs owner decision: may the tokenless lane land under owner STOP.",
+       "safety_risks": "Landing during owner STOP may contradict the owner.",
+       "examples": [
+        "single-session 2026-10-22T21:23Z 1248 min: measure-landings.jsonl:718",
+        "STOP 2026-10-21T04:17Z 813 min: measure-landings.jsonl:715"
+       ],
+       "existing_notes": [],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "GENERATED_FILE_CONFLICT",
+       "name": "Catch-up merge conflicts on machine-maintained lists",
+       "mechanism": "enqueue.py merge_main exit 4 on manifests, diagnostics.json, arch-oracle manifests, traceability-inventory, RuntimeAbiPin, appended notes; classify STOPPED; finisher hand-merges.",
+       "incidents_n": 35,
+       "idle_min_total": 2735,
+       "idle_min_max": 629,
+       "mechanical": true,
+       "automatic_resolution": "PB3610 merge drivers (.gitattributes, key-wise JSON) installed by enqueue.py merge_main; PB3116 derives manifests.",
+       "safety_risks": "Union can dup/drop keys; drift tests must run on merged tree; never union frontmatter.",
+       "examples": [
+        "worktree-wf_d63f7207-db5-11 629 min: measure-landings.jsonl:510",
+        "worktree-wf_d63f7207-db5-30 260 min: measure-landings.jsonl:501"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3610",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "merge drivers"
+        },
+        {
+         "id": "PB3116",
+         "status": "open",
+         "cluster": "PB3103,PB3107",
+         "covers": "manifests restate folder"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "QUEUE_REMOVAL_TO_FINISHER",
+       "name": "Every merge-queue removal goes to an enqueue-unit finisher",
+       "mechanism": "land_lane.py:542-545 makes any removal (merge_conflict, infrastructure) BOUNCED for a finisher; candidates() :733 skips BOUNCED; fix was a merge or same-head retry.",
+       "incidents_n": 18,
+       "idle_min_total": 1845,
+       "idle_min_max": 959,
+       "mechanical": true,
+       "automatic_resolution": "land_lane.py watch: read removal reason; merge_conflict -> rerun enqueue.py land now; infrastructure -> one same-head re-enqueue.",
+       "safety_risks": "Cap infra retry at one; judgment conflict re-ends exit 4; take rearm lease vs unit finisher.",
+       "examples": [
+        "worktree-wf_098e73ce-fb1-5 141 min: measure-landings.jsonl:598",
+        "worktree-wf_dfc118ad-872-14 infra 86 min: measure-landings.jsonl:590",
+        "worktree-wf_5579bfb3-423-17 959 min (lane dormant): measure-landings.jsonl:687"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3275",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "state vs unobserved head (part)"
+        },
+        {
+         "id": "PB3308",
+         "status": "open",
+         "cluster": "",
+         "covers": "setup-dotnet transient (cause)"
+        },
+        {
+         "id": "PB3140",
+         "status": "landed",
+         "cluster": "PB1957",
+         "covers": "artifact upload (cause)"
+        }
+       ],
+       "proposal": "new-note"
+      },
+      {
+       "key": "RED_NOT_THE_BRANCH",
+       "name": "A red the branch does not carry ends STOPPED",
+       "mechanism": "enqueue.py:750-752 exit 5 for any non-green; classify :223-236 STOPPED; only NOT RUN compared with gate_main (:735-741). Flaky/load reds and main's reds waited for re-arm.",
+       "incidents_n": 23,
+       "idle_min_total": 1713,
+       "idle_min_max": 784,
+       "mechanical": true,
+       "automatic_resolution": "enqueue.py: compare RED failing tests with gate_main at same step; same failure on main -> WAITS exit in land_lane.py.",
+       "safety_risks": "Costs a main gate (PB3547); only same-test-same-failure waives; no blind retry.",
+       "examples": [
+        "worktree-wf_f560587e-74d-11 PB2922 784 min: measure-landings.jsonl:551",
+        "notes-pb-nist-impact-leg1-20261018 IX216A 242 min: measure-landings.jsonl:569"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3545",
+         "status": "open",
+         "cluster": "",
+         "covers": "killed gate read as red (part)"
+        },
+        {
+         "id": "PB3108",
+         "status": "landed",
+         "cluster": "PB3104",
+         "covers": "one flaky cause"
+        }
+       ],
+       "proposal": "new-note"
+      },
+      {
+       "key": "UNATTRIBUTED",
+       "name": "Chain-ending failure or queue excess with no recorded cause",
+       "mechanism": "21 chains end on a failure and landed by another path; 4 queue excesses with no bounce recorded; PR #458.",
+       "incidents_n": 26,
+       "idle_min_total": 1013,
+       "idle_min_max": 834,
+       "mechanical": false,
+       "automatic_resolution": "Unmeasured: record removal reason and landing path first.",
+       "safety_risks": "n/a",
+       "examples": [
+        "notes-pb3319-s0b-edition-leads 834 min: measure-landings.jsonl:692"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3124",
+         "status": "open",
+         "cluster": "PB3028,PB3023",
+         "covers": "removals uncounted"
+        }
+       ],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "NOT_QUEUED_STRANDED",
+       "name": "Re-armed fixed tip stranded: PR state read without the head",
+       "mechanism": "land_lane.candidates :740 skips a re-armed NOT QUEUED/ENQUEUED row; prune_worktrees lifecycle :438/:454 reads PR state without PR head == tip.",
+       "incidents_n": 3,
+       "idle_min_total": 602,
+       "idle_min_max": 602,
+       "mechanical": true,
+       "automatic_resolution": "candidates(): accept NOT QUEUED/BOUNCED re-arm with tip == re-arm head; lifecycle compares head at removal.",
+       "safety_risks": "enqueue re-gates so a real red re-stops; reuse open PR.",
+       "examples": [
+        "TODAY worktree-wf_0e51b14b-ced-6 PR #467 602 min: measure-landings.jsonl:720; kb/Work/PB3628.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3628",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "candidates skips NOT QUEUED"
+        },
+        {
+         "id": "PB3275",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "state vs unobserved head"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "STALE_STORED_BLOCKED",
+       "name": "Stored blocked flag goes stale when the blocker lands mid-queue",
+       "mechanism": "work.py check (:410; :489-495) refuses blocked:true after blocked_by landed; stored flag bounces the PR in the merge group; clerk fix then needs re-review (exit 11).",
+       "incidents_n": 5,
+       "idle_min_total": 601,
+       "idle_min_max": 305,
+       "mechanical": true,
+       "automatic_resolution": "work.py: derive blocked from blocked_by, or enqueue.py flips it in the catch-up merge as an accepted mechanical commit.",
+       "safety_risks": "Fix-lane skip_flag must read derived value; avoid exit-11 loop.",
+       "examples": [
+        "TODAY notes-PB3633-pb3492-leads PR #493 305 min: measure-landings.jsonl:721",
+        "notes-pb3382 PR #256 233 min: measure-landings.jsonl:600"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3389",
+         "status": "open",
+         "cluster": "",
+         "covers": "derive blocked"
+        },
+        {
+         "id": "PB3368",
+         "status": "open",
+         "cluster": "",
+         "covers": "catch-up merge not re-checked"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "SOURCE_CONFLICT_FINISHER",
+       "name": "Source conflict resolved in a finisher merge commit",
+       "mechanism": "merge_main conflict in source; resolution is judgment though the head carried only a merge.",
+       "incidents_n": 8,
+       "idle_min_total": 454,
+       "idle_min_max": 203,
+       "mechanical": false,
+       "automatic_resolution": "None; route to a finisher at once.",
+       "safety_risks": "n/a",
+       "examples": [
+        "worktree-wf_0e51b14b-ced-16 203 min: measure-landings.jsonl:494"
+       ],
+       "existing_notes": [],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "BREAKER_METER",
+       "name": "Meter failures trip the breaker and stop loop and lane",
+       "mechanism": "Meter units fail without the Chrome extension (39/53); count toward the 3-failure breaker; spawn resume units.",
+       "incidents_n": 2,
+       "idle_min_total": 394,
+       "idle_min_max": 394,
+       "mechanical": true,
+       "automatic_resolution": "orchestrate.ps1: exclude meter-only failures from breaker; conservative budget.py hold; no resume after meter failure.",
+       "safety_risks": "budget.py under-reads the meter; fallback must hold.",
+       "examples": [
+        "2026-10-22T10:30Z 394 loop-min: measure-landings.jsonl:717; BREAKER-20261022-033035.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB2665",
+         "status": "open",
+         "cluster": "",
+         "covers": "meter/resume livelock (part)"
+        }
+       ],
+       "proposal": "extend-note"
+      },
+      {
+       "key": "EXIT3_DESIGNED_WAIT",
+       "name": "Landing-check overlap wait, lane awake",
+       "mechanism": "exit 3 while a ticking lane waited for overlapping in-flight work; WAITS retried same head.",
+       "incidents_n": 6,
+       "idle_min_total": 260,
+       "idle_min_max": 68,
+       "mechanical": false,
+       "automatic_resolution": "Already automatic (land_lane.WAITS); designed R3 order.",
+       "safety_risks": "n/a",
+       "examples": [
+        "worktree-wf_2ae0707b-b3d-4 68 min: measure-landings.jsonl:571"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB2701",
+         "status": "landed",
+         "cluster": "",
+         "covers": "exit 3 retry-when-free"
+        }
+       ],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "QUOTA_STOP_ENDS_LANE",
+       "name": "429 quota burns units, trips breaker, stops tokenless lane",
+       "mechanism": "usage_limit_reached: 3 units died, breaker stopped loop and lane; reset time is in the 429 text.",
+       "incidents_n": 2,
+       "idle_min_total": 226,
+       "idle_min_max": 226,
+       "mechanical": true,
+       "automatic_resolution": "orchestrate.ps1: on 429 sleep to stated reset, keep lane ticking.",
+       "safety_risks": "Mis-parsed reset could spin.",
+       "examples": [
+        "2026-10-24T13:15Z 226 loop-min: measure-landings.jsonl:719; BREAKER-20261024-061546.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3305",
+         "status": "landed",
+         "cluster": "",
+         "covers": "stop-week override (other path)"
+        }
+       ],
+       "proposal": "new-note"
+      },
+      {
+       "key": "DEVLOG_STAMP_NOT_ATOMIC",
+       "name": "devlog.py stamp half-applies; rerun refuses",
+       "mechanism": "stamp unlinks pending before git add; failed add leaves half-stamped tree; exit 6 STOPPED.",
+       "incidents_n": 3,
+       "idle_min_total": 125,
+       "idle_min_max": 105,
+       "mechanical": true,
+       "automatic_resolution": "devlog.py#stamp: repeatable order, resume, retry index.lock.",
+       "safety_risks": "Bad resume could double-number.",
+       "examples": [
+        "worktree-wf_e873df80-6b5-22 105 min: measure-landings.jsonl:573"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3367",
+         "status": "open",
+         "cluster": "",
+         "covers": "stamp atomicity"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "LANE_TRANSIENT_RETRIED",
+       "name": "Transient lane exits already retried",
+       "mechanism": "exit 12/9/2-fetch/DIED retried next tick (FREE/ONCE).",
+       "incidents_n": 12,
+       "idle_min_total": 118,
+       "idle_min_max": 30,
+       "mechanical": true,
+       "automatic_resolution": "Already automatic (land_lane.WAITS/ONCE).",
+       "safety_risks": "n/a",
+       "examples": [
+        "worktree-wf_37d4041f-6f7-1 30 min: measure-attempts.jsonl:158"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3526",
+         "status": "landed",
+         "cluster": "",
+         "covers": "gate busy not RED"
+        }
+       ],
+       "proposal": "covered-landed"
+      },
+      {
+       "key": "EXIT6_PREDECESSOR_STAMPED_ENTRY",
+       "name": "exit 6 NO ENTRY from a merged predecessor's stamped DEVLOG entry",
+       "mechanism": "enqueue.py:764 needs exactly one new stamped entry; a branch that merged an unlanded predecessor carries two; exit 6 STOPPED.",
+       "incidents_n": 3,
+       "idle_min_total": 117,
+       "idle_min_max": 117,
+       "mechanical": true,
+       "automatic_resolution": "enqueue.py pull_request_text: drop entries of an open predecessor PR and WAIT until it merges (land_lane.WAITS).",
+       "safety_risks": "Wrong title mis-numbers DEVLOG; verify via gh the extra entry is an open PR's.",
+       "examples": [
+        "TODAY worktree-wf_c3d0ab06-0af-11 unmeasured: measure-landings.jsonl:722",
+        "worktree-wf_c6c6fa26-b3b-9 117 min: measure-landings.jsonl:523"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3145",
+         "status": "open",
+         "cluster": "PB3123",
+         "covers": "wait instead of NO ENTRY"
+        },
+        {
+         "id": "PB3111",
+         "status": "open",
+         "cluster": "PB3104",
+         "covers": "predecessor pending rewritten"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "DIRTY_WORKTREE",
+       "name": "Landing refused for stray untracked scratch",
+       "mechanism": "enqueue.py refuses any uncommitted path; STATUS.prev.md blocked faf-20 (exit 2).",
+       "incidents_n": 5,
+       "idle_min_total": 22,
+       "idle_min_max": 5,
+       "mechanical": true,
+       "automatic_resolution": "enqueue.py dirty check ignores coord.NEVER_WORK scratch (STATUS.prev.md) or gitignore it.",
+       "safety_risks": "Never ignore a real change; named scratch only.",
+       "examples": [
+        "worktree-wf_b390c138-faf-20 5 min: measure-attempts.jsonl:107"
+       ],
+       "existing_notes": [],
+       "proposal": "new-note"
+      },
+      {
+       "key": "STOP_UNIT_SUPPRESSES_LANE",
+       "name": "Unit context soft cap suppressed landings",
+       "mechanism": "lane logged STOP-UNIT no landing starts (24 windows, max 45); last tick 2026-10-19 00:09 PDT (timeline.txt).",
+       "incidents_n": 1,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "Done by PB3402.",
+       "safety_risks": "n/a",
+       "examples": [
+        "lane windows, branch waits unmeasured: measure-supervisor.jsonl:184"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3402",
+         "status": "landed",
+         "cluster": "",
+         "covers": "landed 2026-10-19"
+        }
+       ],
+       "proposal": "covered-landed"
+      },
+      {
+       "key": "SURVEY_MISREADS_FINISHED",
+       "name": "Survey derives finished state from report text, age or files",
+       "mechanism": "prune_worktrees lifecycle reads report header, --min-age, stamped file, not git; finished branch reads IN FLIGHT/DECISION/UNLANDED. Register only, unmeasured.",
+       "incidents_n": 10,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "prune_worktrees.lifecycle: head and carried/merged from git; report by sha.",
+       "safety_risks": "Looser parse could land unfinished work; keep CLEAN review gate.",
+       "examples": [
+        "kb/Work/PB3476.md (measure-register.jsonl:55)",
+        "kb/Work/PB3609.md (measure-register.jsonl:82)"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3476",
+         "status": "open",
+         "cluster": "",
+         "covers": "no HEAD sha"
+        },
+        {
+         "id": "PB3609",
+         "status": "open",
+         "cluster": "PB3608",
+         "covers": "merged read IN FLIGHT"
+        },
+        {
+         "id": "PB3318",
+         "status": "open",
+         "cluster": "",
+         "covers": "landed read UNLANDED"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "PLANNER_NEVER_PLANS",
+       "name": "Planner and survey disagree on who owns the next step",
+       "mechanism": "plan_wave arms and survey each defer to the other: deadlock or whole-wave wait. Register only, unmeasured.",
+       "incidents_n": 15,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "One shared next-step reader for plan_wave.py and prune_worktrees.py plus drift test.",
+       "safety_risks": "Double owner duplicates finishers.",
+       "examples": [
+        "kb/Work/PB3509.md",
+        "kb/Work/PB3118.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3509",
+         "status": "open",
+         "cluster": "PB3015",
+         "covers": "carrier report"
+        },
+        {
+         "id": "PB3446",
+         "status": "open",
+         "cluster": "PB3114,PB3394",
+         "covers": "stale-stamp arm"
+        },
+        {
+         "id": "PB3267",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "FINDINGS carried"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "PLANNER_OVERHOLDS",
+       "name": "In-flight/ledger file sets hold ready work",
+       "mechanism": "plan_wave over-holds (HAND entries, settings.local.json, empty set, --release case). Register only.",
+       "incidents_n": 7,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "plan_wave.py in-flight set from committed diffs; case-insensitive release.",
+       "safety_risks": "Under-hold plans conflicts.",
+       "examples": [
+        "kb/Work/PB3465.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3452",
+         "status": "open",
+         "cluster": "PB3263",
+         "covers": "no site block"
+        },
+        {
+         "id": "PB3171",
+         "status": "open",
+         "cluster": "",
+         "covers": "--release case"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "ABANDON_DECISION",
+       "name": "Contained branches wait for an operator ABANDON",
+       "mechanism": "prune_worktrees.contained() never carries DECISION rows a landed successor holds. Register only.",
+       "incidents_n": 5,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "contained(): git-contained -> ABANDON-ready, prune --apply retires.",
+       "safety_risks": "Data loss if misjudged; require git cherry empty.",
+       "examples": [
+        "kb/Work/PB3302.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3386",
+         "status": "open",
+         "cluster": "",
+         "covers": "contained() misses DECISION"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "GATE_EXCLUSION_HANG",
+       "name": "No per-branch exclusion: duplicate or hung gates hold slots",
+       "mechanism": "Two enqueue.py land runs of one branch; gate hung 6 h 40 min in slot; pid reuse reads RUNNING. Register only.",
+       "incidents_n": 5,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "enqueue.py per-branch lock; land_lane.pid_alive checks start time.",
+       "safety_risks": "Stale lock must expire.",
+       "examples": [
+        "kb/Work/PB3310.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3310",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "hung gate"
+        },
+        {
+         "id": "PB3157",
+         "status": "open",
+         "cluster": "PB3023,PB3103",
+         "covers": "per-branch exclusion"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "REGATE_AND_GATE_DURATION",
+       "name": "Branch gated more than once; slow pre-slot steps",
+       "mechanism": "Main moved during slot wait so re-gate; pre-slot audits 20-45 min. Register only.",
+       "incidents_n": 10,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "Owner decision PB3612: gate once; skip re-gate on merge-only catch-up.",
+       "safety_risks": "CI is then the only merged-tree check (owner accepted).",
+       "examples": [
+        "kb/Work/PB3612.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3612",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "gate once"
+        },
+        {
+         "id": "PB3315",
+         "status": "open",
+         "cluster": "PB1957",
+         "covers": "pre-slot audit"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "LATE_RED_GATE_COVERAGE",
+       "name": "Red first seen at landing Linux gate or CI",
+       "mechanism": "Implementer gate leg missed Linux-only or changed-body tests. Register only.",
+       "incidents_n": 7,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": false,
+       "automatic_resolution": "Gate coverage work under PB1957.",
+       "safety_risks": "n/a",
+       "examples": [
+        "kb/Work/PB3603.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB1957",
+         "status": "open",
+         "cluster": "",
+         "covers": "local vs CI"
+        }
+       ],
+       "proposal": "not-mechanical"
+      },
+      {
+       "key": "OPERATOR_INBOX_WATCHER",
+       "name": "Operator inbox watcher not re-armed",
+       "mechanism": "Watcher fired once, not re-armed; landing requests waited. Register only.",
+       "incidents_n": 1,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "Done by PB3387.",
+       "safety_risks": "n/a",
+       "examples": [
+        "kb/Work/PB3387.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3387",
+         "status": "landed",
+         "cluster": "",
+         "covers": "landed 2026-10-18"
+        }
+       ],
+       "proposal": "covered-landed"
+      },
+      {
+       "key": "DEVLOG_ORDER_REFUSED",
+       "name": "DEVLOG number stamped before queue order",
+       "mechanism": "Queue order reversed; merge group refused lower number (PR #31). Register only.",
+       "incidents_n": 1,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "Done by PB3123.",
+       "safety_risks": "n/a",
+       "examples": [
+        "kb/Work/PB3123.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3123",
+         "status": "landed",
+         "cluster": "PB3025,PB3023",
+         "covers": "landed 2026-10-13"
+        }
+       ],
+       "proposal": "covered-landed"
+      },
+      {
+       "key": "REVIEWER_HOOK_REFUSAL",
+       "name": "status_guard hook blocks a read-only reviewer",
+       "mechanism": "scripts/hooks/status_guard.py demands a restamp the reviewer may not write. Register only.",
+       "incidents_n": 1,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": true,
+       "automatic_resolution": "status_guard.py exempts read-only reviewer sessions.",
+       "safety_risks": "Must not exempt writers.",
+       "examples": [
+        "kb/Work/PB3560.md"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3560",
+         "status": "open",
+         "cluster": "",
+         "covers": "hook"
+        }
+       ],
+       "proposal": "covered-open"
+      },
+      {
+       "key": "NOT_AN_IDLE",
+       "name": "Recorded, but no finished work idled",
+       "mechanism": "Measurement, log noise, duplicate dispatch, data-loss hazards, checkpoint NotADirectoryError.",
+       "incidents_n": 31,
+       "idle_min_total": 0,
+       "idle_min_max": 0,
+       "mechanical": false,
+       "automatic_resolution": "Out of scope; each has its own note.",
+       "safety_risks": "n/a",
+       "examples": [
+        "checkpoint not written x29: measure-supervisor.jsonl:187"
+       ],
+       "existing_notes": [
+        {
+         "id": "PB3250",
+         "status": "open",
+         "cluster": "",
+         "covers": "checkpoint NotADirectoryError"
+        }
+       ],
+       "proposal": "not-mechanical"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "af196cf4aadf8a958",
+    "label": "measure:attempts",
+    "turns": 15,
+    "tool_calls": 20,
+    "tokens": 1187163,
+    "fresh": 89649,
+    "token_parts": {
+     "input": 30,
+     "output": 17345,
+     "cache_read": 1097514,
+     "cache_write": 72274
+    },
+    "wall_s": 218.2,
+    "first": "2026-10-24T18:22:09.653Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "source": "E:\\COBOL-coord\\land-lane\\attempts\\*.json (491 records, 2026-10-13..2026-10-24; 174 with rc!=0, 317 rc=0 ENQUEUED); survey.json not used for timing",
+     "jsonl": "E:\\Temp\\claude\\E--COBOL\\2f7da35b-367c-4195-a0f3-890a7da7c1c3\\scratchpad\\stalls\\measure-attempts.jsonl",
+     "incidents_total": 174,
+     "summary": "174 failed attempts; 112 mechanical (about 23,000 branch-minutes idle), 56 real finisher code commits, 6 unknown. Mechanisms: (1) exit3 landing_check overlap, 13 cases, 7,756 min, retried at the same head once the other work was gone (waits on a branch's merge, never re-evaluated). (2) Linux red from a sick WSL disk (PB3194), 8 cases, 6,452 min, re-armed unchanged. (3) exit7 stale landing-oracle baseline, 10 cases, 3,111 min, re-armed after PB3107 deleted the oracle. (4) exit4 generated manifest conflicts, 32 mechanical, 2,980 min, fixed by a merge only. (5) env/timing reds (PB2922 TEMP, PB3108, IX216A) re-armed. (6) exit12 busy, exit2 dirty tree, exit6 transient. 22 chains end on a failure; 19 landed later by a path outside the branch name, 2 open (ced-6 case 4 and 0af-17), 1 (14a1e62b-326-32) never landed.",
+     "top": [
+      {
+       "branch": "worktree-wf_d63f7207-db5-30",
+       "stop_kind": "exit7 NOT QUEUED (landing oracle refused)",
+       "cause": "landing_oracle.py arch-oracle baseline stale; no code defect",
+       "idle_min": 1281,
+       "resolution": "rearm at same head after landing_oracle.py deleted (PB3107)",
+       "mechanical": true,
+       "mechanical_why": "next attempt at same head; oracle itself later deleted",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T063646769097Z-worktree-wf_d63f7207-db5-30.json"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-19",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "shares a file with earlier-dispatched in-flight work; lane waits for that work to leave",
+       "idle_min": 1193,
+       "resolution": "retried at same head once overlap gone",
+       "mechanical": true,
+       "mechanical_why": "same head, only the other branch's landing changed (overlap check is a wait, not a defect)",
+       "evidence": "attempts/ *-worktree-wf_15ec6338-3a0-19.json; why='the in-flight work it shared a file with is gone'"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-4",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "in-flight file overlap",
+       "idle_min": 1096,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_15ec6338-3a0-4.json"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-6",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "in-flight file overlap",
+       "idle_min": 1076,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_15ec6338-3a0-6.json"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-12",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "in-flight file overlap",
+       "idle_min": 1068,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_15ec6338-3a0-12.json"
+      },
+      {
+       "branch": "worktree-wf_5579bfb3-423-5",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "in-flight file overlap",
+       "idle_min": 1062,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_5579bfb3-423-5.json"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-5",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "BitLayout.cs shared with dispatched whand (PB372/PB711/PB736)",
+       "idle_min": 1040,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/20261015T001145256369Z-worktree-wf_15ec6338-3a0-5.json log tail"
+      },
+      {
+       "branch": "worktree-wf_5579bfb3-423-11",
+       "stop_kind": "exit3 landing_check STOP",
+       "cause": "in-flight file overlap",
+       "idle_min": 961,
+       "resolution": "retried at same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_5579bfb3-423-11.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-1",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "sick WSL disk, environment not branch",
+       "idle_min": 826,
+       "resolution": "rearm at same head after owner repaired WSL disk 2026-10-16 03:30 (PB3194)",
+       "mechanical": true,
+       "mechanical_why": "same head; red was environmental (pre PB3526 classification)",
+       "evidence": "attempts/ *-worktree-wf_f560587e-74d-1.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-2",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 824,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_f560587e-74d-2.json"
+      },
+      {
+       "branch": "worktree-wf_c0ed6078-78e-8",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 824,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_c0ed6078-78e-8.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-4",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 817,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_d6f41ebf-faa-4.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-5",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 807,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_d6f41ebf-faa-5.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-11",
+       "stop_kind": "exit5 GATE RED (Windows)",
+       "cause": "PB2922 test_orchestrate_steer.ps1 reads machine-global TEMP, concurrent landings collide",
+       "idle_min": 784,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head; red is a test-harness defect not the branch's",
+       "evidence": "attempts/ *-worktree-wf_f560587e-74d-11.json"
+      },
+      {
+       "branch": "worktree-wf_9b740cf9-198-4",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 782,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_9b740cf9-198-4.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-10",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "WSL disk",
+       "idle_min": 775,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_d6f41ebf-faa-10.json"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-11",
+       "stop_kind": "exit4 CONFLICT (manifest)",
+       "cause": "generated manifest (tests/conformance/*/manifest.json) conflicts bringing main in",
+       "idle_min": 629,
+       "resolution": "next head was a single merge commit (conflict resolution) then landed",
+       "mechanical": true,
+       "mechanical_why": "only a merge between end_head and next head",
+       "evidence": "attempts/ *-worktree-wf_d63f7207-db5-11.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-3",
+       "stop_kind": "exit7 NOT QUEUED (landing oracle)",
+       "cause": "stale arch-oracle baseline",
+       "idle_min": 458,
+       "resolution": "rearm same head after oracle deleted (PB3107)",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_4959cab1-c5a-3.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-12",
+       "stop_kind": "exit7 NOT QUEUED",
+       "cause": "stale arch-oracle baseline",
+       "idle_min": 419,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_4959cab1-c5a-12.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-22",
+       "stop_kind": "exit7 NOT QUEUED",
+       "cause": "stale arch-oracle baseline",
+       "idle_min": 370,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_4959cab1-c5a-22.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-8",
+       "stop_kind": "exit7 NOT QUEUED",
+       "cause": "stale arch-oracle baseline",
+       "idle_min": 314,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head",
+       "evidence": "attempts/ *-worktree-wf_4959cab1-c5a-8.json"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-4",
+       "stop_kind": "exit4 CONFLICT (manifest)",
+       "cause": "generated manifest conflict",
+       "idle_min": 260,
+       "resolution": "next head changed only DEVLOG/kb/evidence",
+       "mechanical": true,
+       "mechanical_why": "only DEVLOG/kb/evidence files changed",
+       "evidence": "attempts/ *-worktree-wf_d63f7207-db5-4.json"
+      },
+      {
+       "branch": "notes-pb-nist-impact-leg1-20261018",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "IX216A OPEN EXTEND status 05, intermittent, not a notes-only branch's",
+       "idle_min": 242,
+       "resolution": "rearm same head",
+       "mechanical": true,
+       "mechanical_why": "same head; flaky test red on notes-only branch",
+       "evidence": "attempts/ *-notes-pb-nist-impact-leg1-20261018.json"
+      },
+      {
+       "branch": "worktree-wf_0e51b14b-ced-16",
+       "stop_kind": "exit4 CONFLICT (source/tests/docs)",
+       "cause": "merge conflict",
+       "idle_min": 203,
+       "resolution": "next head only a merge",
+       "mechanical": true,
+       "mechanical_why": "only merges between",
+       "evidence": "attempts/ *-worktree-wf_0e51b14b-ced-16.json"
+      },
+      {
+       "branch": "worktree-wf_ff4f514b-355-37",
+       "stop_kind": "exit5 GATE RED (Linux)",
+       "cause": "red then DEVLOG/kb-only change; last attempt failed, landed 286 min later via other path",
+       "idle_min": 188,
+       "resolution": "DEVLOG/kb-only follow-up",
+       "mechanical": true,
+       "mechanical_why": "only DEVLOG/kb/evidence files changed",
+       "evidence": "attempts/ *-worktree-wf_ff4f514b-355-37.json"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "a677cfdc665aa3bc5",
+    "label": "measure:landings",
+    "turns": 87,
+    "tool_calls": 90,
+    "tokens": 14316854,
+    "fresh": 373787,
+    "token_parts": {
+     "input": 174,
+     "output": 93749,
+     "cache_read": 13943067,
+     "cache_write": 279864
+    },
+    "wall_s": 993.8,
+    "first": "2026-10-24T18:22:07.825Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "source": "E:\\COBOL-coord\\landing-measurements.jsonl (489 rows at read time; the brief said 488) joined with E:\\COBOL-coord\\land-lane\\attempts\\*.json (491 attempts), units.jsonl (425 units), orchestrate-*.out.log, BREAKER-*.md, kb/Work and scripts read from E:\\COBOL-wt\\notes-pb1957",
+     "jsonl": "E:\\Temp\\claude\\E--COBOL\\2f7da35b-367c-4195-a0f3-890a7da7c1c3\\scratchpad\\stalls\\measure-landings.jsonl",
+     "incidents_total": 234,
+     "summary": "489 landings, 10-12..10-24: 206 waited >30 min done->enqueue (750 branch-h); 26 bounced (23 merge_conflict removals). The jsonl holds 489 landing, 234 incident and 19 mechanism-class lines; 142 of 192 stalls were mechanical (733 branch-h, 429 of them with no unit running). Mechanisms: land_lane ticks only while an LLM unit runs (orchestrate.ps1:81-83,547-556), so hold-day, STOP, owner-question and breaker stops (meter browser absent; weekly 429) leave it dormant; serial enqueue-unit review (PB3608); exits 3/7 not retried when the cause clears; WSL-disk red read as branch red; manifest list-union conflicts hand-merged by finishers; PB3628; stale blocked flag. review_clean is never recorded (0/489).",
+     "top": [
+      {
+       "branch": "worktree-wf_15ec6338-3a0-11",
+       "pr": "108",
+       "stop_kind": "DONE, first landing attempt not started",
+       "cause": "LANE-DORMANT: land_lane.py ticks only while an LLM unit runs. hold-day 19:02 PDT then STOP 22:21 PDT, restart 10:43 PDT 10-15, owner-question stop 14:53 PDT until 03:37 PDT 10-16. 1705 of 2447 min had no unit.",
+       "idle_min": 2447,
+       "stopped_at": "2026-10-14T22:02Z",
+       "resumed_at": "2026-10-16T14:49Z",
+       "resolution": "first attempt 10-16T14:49Z, ENQUEUED, no code change",
+       "mechanical": true,
+       "mechanical_why": "first lane attempt succeeded at the DONE head",
+       "evidence": "E:/COBOL-coord/logs/orchestrate-20261014-134648.out.log:204-206; orchestrate-20261015-104306.out.log:243; scripts/orchestrator/orchestrate.ps1:81-83,547-556; attempts/*3a0-11.json"
+      },
+      {
+       "branch": "worktree-wf_71ab13ab-689-18 (+2 same chain)",
+       "pr": "197",
+       "stop_kind": "DONE, awaiting review then first landing attempt",
+       "cause": "loop down 10-17T05:30Z-17:46Z (STOP 22:30 PDT, orchestrate-20261016-033755.out.log:675), then serial enqueue units (62+40+78 min) reached it last",
+       "idle_min": 1571,
+       "stopped_at": "2026-10-16T20:41Z",
+       "resumed_at": "2026-10-17T22:52Z",
+       "resolution": "first attempt ENQUEUED, no code change",
+       "mechanical": true,
+       "mechanical_why": "waiting for a dormant lane and a serial unit; first attempt succeeded",
+       "evidence": "units.jsonl (gap 736 min, then enqueue units 10-17 17:46-22:51Z); kb/Work/PB3608.md"
+      },
+      {
+       "branch": "worktree-wf_787860dd-104-9 (+dfc118ad-872-14)",
+       "pr": "28",
+       "stop_kind": "merge-queue bounce, re-enqueue",
+       "cause": "merge-group red ArchOracleDriftTests.TheRecordedBaseline: two concurrently queued arch-oracle baselines (PB3107 RULE 1 race); re-enqueue waited through loop-down 10-13T07:52Z-18:00Z (608 min)",
+       "idle_min": 1364,
+       "stopped_at": "2026-10-13T06:20Z",
+       "resumed_at": "2026-10-14T05:04Z",
+       "resolution": "new head carrying merge/DEVLOG only, ENQUEUED 05:04Z, merged 05:52Z",
+       "mechanical": true,
+       "mechanical_why": "new head had no first-parent code commit",
+       "evidence": "landing-measurements.jsonl pr 28 note; attempts/*104-9.json; units.jsonl gap 608 min"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-30 (+4 c5a branches)",
+       "pr": "54",
+       "stop_kind": "NOT QUEUED exit 7 (landing oracle)",
+       "cause": "stale arch-oracle baseline; landing_oracle.py deleted by PR #38 at 00:06Z 10-14, but exit 7 is not a retry-when-free exit (land_lane.py:131 WAITS = exits 3 and 12), so the cause was gone 4 h before the manual re-arm",
+       "idle_min": 1281,
+       "stopped_at": "2026-10-13T06:50Z",
+       "resumed_at": "2026-10-14T04:11Z",
+       "resolution": "re-armed at the same head; siblings c5a-3/12/22/8 waited 458/419/370/314 min the same way",
+       "mechanical": true,
+       "mechanical_why": "re-arm at same head, no commit",
+       "evidence": "attempts/*d63f7207-db5-30.json why: 'exit 7 was the landing oracle's stale arch-oracle baseline'; scripts/orchestrator/land_lane.py:127-131"
+      },
+      {
+       "branch": "worktree-wf_15ec6338-3a0-19 (+10, 3a0-4/5/6/12, 423-5/11/17...)",
+       "pr": "74",
+       "stop_kind": "NOT QUEUED exit 3 (shares a file with in-flight work)",
+       "cause": "overlap with earlier-dispatched branches; the loop then held (hold-day 19:02 PDT) and stopped (22:21 PDT). On restart the first tick retried five branches in the same second ('the in-flight work it shared a file with is gone')",
+       "idle_min": 1193,
+       "stopped_at": "2026-10-14T23:32Z",
+       "resumed_at": "2026-10-15T19:24Z",
+       "resolution": "retried at the same head, ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "retry at same head once the overlap cleared",
+       "evidence": "orchestrate-20261014-134648.out.log:195-206; orchestrate-20261015-104306.out.log:5-8 (10:43:39 PDT); 11 branches, 941 min dormant each"
+      },
+      {
+       "branch": "worktree-wf_3c440b32-c7b-7 (+4)",
+       "pr": "190",
+       "stop_kind": "DONE, lane dormant",
+       "cause": "LANE-DORMANT: loop stopped 10-17T05:30Z-17:46Z, five finished branches waited for a restart",
+       "idle_min": 1038,
+       "stopped_at": "2026-10-17T03:17Z",
+       "resumed_at": "2026-10-17T20:35Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded, no code change",
+       "evidence": "units.jsonl gap 736 min; attempts/*c7b-7.json; orchestrate-20261016-033755.out.log:671-675"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-16 (+2)",
+       "pr": "36",
+       "stop_kind": "DONE, lane dormant",
+       "cause": "LANE-DORMANT: loop down 10-13T07:52Z-18:00Z (STOP 00:52 PDT, restart 11:00 PDT)",
+       "idle_min": 971,
+       "stopped_at": "2026-10-13T05:29Z",
+       "resumed_at": "2026-10-13T21:40Z",
+       "resolution": "first attempt then queued",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "orchestrate-20261012-182412.out.log:173-181; units.jsonl gap 608 min"
+      },
+      {
+       "branch": "plan-wave-drain",
+       "pr": "69",
+       "stop_kind": "DONE, lane dormant then serial unit",
+       "cause": "LANE-DORMANT 442 of 862 min (loop down 10-14T12:00Z-19:08Z after STOP during backoff)",
+       "idle_min": 862,
+       "stopped_at": "2026-10-14T09:21Z",
+       "resumed_at": "2026-10-14T23:43Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "orchestrate-20261013-110050.out.log:222; units.jsonl"
+      },
+      {
+       "branch": "notes-pb3487-20261020",
+       "pr": "355",
+       "stop_kind": "DONE, lane dormant",
+       "cause": "LANE-DORMANT: STOP 21:17 PDT 10-20, restart 10:50 PDT 10-21 (813 of 847 min)",
+       "idle_min": 847,
+       "stopped_at": "2026-10-21T03:48Z",
+       "resumed_at": "2026-10-21T17:54Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "orchestrate-20261020-102214.out.log:214; units.jsonl gap 813 min"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-1 (+9: 74d-2/8/11, 78e-8, faa-4/5/10, 198-4)",
+       "pr": "97",
+       "stop_kind": "GATE RED (Linux) then loop owner-question stop",
+       "cause": "WSL disk full and read-only (PB3194) read as branch RED, not INFRA; the loop then stopped on the owner question (14:53 PDT) until the owner repaired the disk at ~03:30 PDT; mass re-arm 03:38 PDT",
+       "idle_min": 826,
+       "stopped_at": "2026-10-15T20:52Z",
+       "resumed_at": "2026-10-16T10:38Z",
+       "resolution": "re-armed at the same head ('WSL disk repaired ... 218 GB free')",
+       "mechanical": true,
+       "mechanical_why": "same-head re-arm; the only human act was freeing disk space",
+       "evidence": "attempts/*74d-1.json why; orchestrate-20261015-104306.out.log:243; kb/Work/PB3194.md; 10 branches, 764 min dormant"
+      },
+      {
+       "branch": "worktree-wf_99ebf84c-a15-1",
+       "pr": "382",
+       "stop_kind": "DONE, lane dormant",
+       "cause": "LANE-DORMANT: circuit breaker 03:30 PDT (3 meter units failed: 'Browser extension is not connected'), loop down until 09:22 PDT",
+       "idle_min": 683,
+       "stopped_at": "2026-10-22T06:08Z",
+       "resumed_at": "2026-10-22T17:31Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "E:/COBOL-coord/logs/BREAKER-20261022-033035.md; logs/20261022-032913-meter.jsonl; units.jsonl gap 394 min"
+      },
+      {
+       "branch": "notes-PB1754-r2b5b-20261016 (+plan-wave-guard)",
+       "pr": "150",
+       "stop_kind": "DONE, awaiting reviewer",
+       "cause": "SERIAL-ENQUEUE-UNIT: finished branches are reviewed only inside an enqueue unit; enqueue units ran back to back 10:37-22:22Z and reached this one last",
+       "idle_min": 680,
+       "stopped_at": "2026-10-16T11:02Z",
+       "resumed_at": "2026-10-16T22:22Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "waiting for a serial unit; first attempt succeeded",
+       "evidence": "kb/Work/PB3608.md; units.jsonl enqueue units 10-16"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-11 (+c5a-12, b3b-9)",
+       "pr": "45",
+       "stop_kind": "CONFLICT in a registry file, enqueue exit 4",
+       "cause": "append-adjacent entries in tests/conformance/*/manifest.json or arch-oracle manifests; a finisher merges origin/main and unions the lists by hand",
+       "idle_min": 629,
+       "stopped_at": "2026-10-13T18:36Z",
+       "resumed_at": "2026-10-14T05:04Z",
+       "resolution": "new head 'WIP checkpoint: merge origin/main (finisher, enqueue CONFLICT exit 4)', merge only",
+       "mechanical": true,
+       "mechanical_why": "first-parent commits are merges only; I saw the union diff in b938f0379",
+       "evidence": "attempts/*db5-11.json; git show --cc b938f0379443 (manifest.json lists)"
+      },
+      {
+       "branch": "worktree-wf_0e51b14b-ced-6",
+       "pr": "467",
+       "stop_kind": "re-armed NOT QUEUED, never relaunched",
+       "cause": "land_lane.candidates skips a re-armed NOT QUEUED row (land_lane.py:742); queue watch says BOUNCED, survey says NOT QUEUED (PB3628); the loop was also down 13:15Z-17:01Z (weekly limit 429)",
+       "idle_min": 602,
+       "stopped_at": "2026-10-24T08:12Z",
+       "resumed_at": "2026-10-24T18:14Z",
+       "resolution": "operator hand-landed; lane logged the re-arm stale and dropped it",
+       "mechanical": true,
+       "mechanical_why": "CLEAN review r3 at the re-armed head; only a launch was missing",
+       "evidence": "kb/Work/PB3628.md; orchestrate-20261024-1002.out:16; attempts/000037-20261024T025546Z-worktree-wf_0e51b14b-ced-6.json"
+      },
+      {
+       "branch": "worktree-wf_a0f69701-089-8",
+       "pr": "283",
+       "stop_kind": "DONE, awaiting reviewer",
+       "cause": "SERIAL-ENQUEUE-UNIT: units of 121, 126 and 87 min ran back to back",
+       "idle_min": 382,
+       "stopped_at": "2026-10-19T03:01Z",
+       "resumed_at": "2026-10-19T09:23Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "units.jsonl 10-19 03:02-08:37Z; kb/Work/PB3608.md"
+      },
+      {
+       "branch": "notes-PB3633-pb3492-leads",
+       "pr": "493",
+       "stop_kind": "removed from merge queue (failed_checks 13:08:46Z)",
+       "cause": "work.py check holds blocked: to blocked_by (work.py:490-495); the notes' blocker PB3492 landed while the PR waited, so blocked: true failed the check; loop also down 13:15Z-17:01Z",
+       "idle_min": 305,
+       "stopped_at": "2026-10-24T13:08Z",
+       "resumed_at": "2026-10-24T18:13Z",
+       "resolution": "operator flipped frontmatter and hand-landed",
+       "mechanical": true,
+       "mechanical_why": "frontmatter flip only",
+       "evidence": "E:/COBOL-coord/land-lane/survey.json row BOUNCED; scripts/spec/work.py:490-495; logs/operator-land-pb3633-20261024.log (11:13 PDT)"
+      },
+      {
+       "branch": "worktree-wf_d588a65b-0ab-6",
+       "pr": "139",
+       "stop_kind": "DONE, awaiting reviewer",
+       "cause": "SERIAL-ENQUEUE-UNIT: units of 51, 64 and 75 min",
+       "idle_min": 277,
+       "stopped_at": "2026-10-16T15:19Z",
+       "resumed_at": "2026-10-16T19:55Z",
+       "resolution": "first attempt ENQUEUED (later two queue bounces, merge_conflict and a Setup .NET 10 download failure, re-armed at the same head)",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "units.jsonl 10-16; landing-measurements.jsonl pr 139 note"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-30",
+       "pr": "54",
+       "stop_kind": "CONFLICT in registry files at first attempt",
+       "cause": "manifest.json list-union conflict, finisher merge",
+       "idle_min": 260,
+       "stopped_at": "2026-10-13T01:25Z",
+       "resumed_at": "2026-10-13T05:45Z",
+       "resolution": "merge-only head; this branch conflicted 5 times in 3 days",
+       "mechanical": true,
+       "mechanical_why": "merge-only head",
+       "evidence": "attempts/*db5-30.json (6 attempts)"
+      },
+      {
+       "branch": "notes-pb-nist-impact-leg1-20261018",
+       "pr": "266",
+       "stop_kind": "GATE RED (Linux) on a notes-only branch",
+       "cause": "intermittent IX216A (OPEN EXTEND status 05), PB3388, not this branch",
+       "idle_min": 242,
+       "stopped_at": "2026-10-18T20:51Z",
+       "resumed_at": "2026-10-19T00:53Z",
+       "resolution": "re-armed at the same head",
+       "mechanical": true,
+       "mechanical_why": "same-head re-arm",
+       "evidence": "attempts/*nist-impact-leg1-20261018.json why"
+      },
+      {
+       "branch": "notes-pb3382-crash-matrix-close-20261018",
+       "pr": "256",
+       "stop_kind": "queue removal (merge_conflict), then UNREVIEWED",
+       "cause": "after the bounce fix the lane refused: 1 commit after the CLEAN review neither main's, a clean merge, nor DEVLOG-only",
+       "idle_min": 233,
+       "stopped_at": "2026-10-18T20:56Z",
+       "resumed_at": "2026-10-19T00:49Z",
+       "resolution": "re-armed at the same head, reviewed CLEAN b38d4bd0b6e3 diff-only",
+       "mechanical": true,
+       "mechanical_why": "same-head re-arm after diff-only review",
+       "evidence": "attempts/*crash-matrix-close-20261018.json; landing-measurements.jsonl pr 256"
+      },
+      {
+       "branch": "worktree-wf_0e51b14b-ced-16 (+c925aaba-f76-12)",
+       "pr": "482",
+       "stop_kind": "CONFLICT in source files, enqueue exit 4",
+       "cause": "conflict resolved by a merge-only head",
+       "idle_min": 203,
+       "stopped_at": "2026-10-24T04:46Z",
+       "resumed_at": "2026-10-24T08:09Z",
+       "resolution": "merge-only head, then queued and merged 08:45Z",
+       "mechanical": true,
+       "mechanical_why": "first-parent commits are merges only (a hand-resolved merge can hide judgment)",
+       "evidence": "attempts/*ced-16.json; landing-measurements.jsonl pr 482"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-22 (+4: db5-30, c5a-3/12)",
+       "pr": "50",
+       "stop_kind": "CONFLICT in manifest.json",
+       "cause": "same registry list-union conflict after the 10-14T04:11Z mass re-arm",
+       "idle_min": 193,
+       "stopped_at": "2026-10-14T04:13Z",
+       "resumed_at": "2026-10-14T07:26Z",
+       "resolution": "merge-only heads",
+       "mechanical": true,
+       "mechanical_why": "merge-only heads",
+       "evidence": "attempts/*c5a-22.json"
+      },
+      {
+       "branch": "worktree-wf_ff4f514b-355-37",
+       "pr": "149",
+       "stop_kind": "GATE RED (Linux) then removal from the queue",
+       "cause": "bounce: conflict with PR #139 ahead in RuntimeAbiPinDriftTests.cs, clean against main",
+       "idle_min": 188,
+       "stopped_at": "2026-10-16T18:55Z",
+       "resumed_at": "2026-10-16T22:03Z",
+       "resolution": "merge-only head ba1cb239ffcc",
+       "mechanical": true,
+       "mechanical_why": "merge-only head",
+       "evidence": "landing-measurements.jsonl pr 149 note"
+      },
+      {
+       "branch": "worktree-wf_098e73ce-fb1-9",
+       "pr": "174",
+       "stop_kind": "DONE, awaiting reviewer",
+       "cause": "SERIAL-ENQUEUE-UNIT: 88 min unit",
+       "idle_min": 188,
+       "stopped_at": "2026-10-17T01:03Z",
+       "resumed_at": "2026-10-17T04:11Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "units.jsonl 10-17 02:12Z"
+      },
+      {
+       "branch": "worktree-wf_673ae116-5e4-3 (+2)",
+       "pr": "221",
+       "stop_kind": "DONE, awaiting reviewer",
+       "cause": "SERIAL-ENQUEUE-UNIT: one 34 min unit reached three branches",
+       "idle_min": 172,
+       "stopped_at": "2026-10-18T05:39Z",
+       "resumed_at": "2026-10-18T08:31Z",
+       "resolution": "first attempt ENQUEUED",
+       "mechanical": true,
+       "mechanical_why": "first attempt succeeded",
+       "evidence": "units.jsonl 10-18 07:37Z"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "a57f8049945545910",
+    "label": "measure:register",
+    "turns": 34,
+    "tool_calls": 42,
+    "tokens": 3473822,
+    "fresh": 163737,
+    "token_parts": {
+     "input": 68,
+     "output": 31165,
+     "cache_read": 3310085,
+     "cache_write": 132504
+    },
+    "wall_s": 342.0,
+    "first": "2026-10-24T18:22:09.656Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "source": "kb/Work notes added since 2026-10-12 (git first-add date; 485 notes screened, 114 stall-related recorded) plus the DEVLOG entries 1967..2462, read from E:/COBOL-wt/notes-pb1957",
+     "jsonl": "E:\\Temp\\claude\\E--COBOL\\2f7da35b-367c-4195-a0f3-890a7da7c1c3\\scratchpad\\stalls\\measure-register.jsonl",
+     "incidents_total": 115,
+     "summary": "115 register lines (one per note: 49 landed, 65 open, 1 retired). Idle is stated in only ~21 notes, so most lines are idle_min -1 (unmeasured). Every stated figure is the note's own, not recomputed. Mechanism classes: (1) serial-unit barrier: reviews and landings only inside an enqueue unit (PB3103, PB3402, PB3608, PB3381). (2) stale stored flags and states: blocked:true (PB3389, PB3322), NOT QUEUED (PB3628), PR state against an unobserved head (PB3275), merged branch read IN FLIGHT (PB3609), stamped DEVLOG file read UNLANDED (PB3318). (3) report-header parsing strands a CLEAN branch (PB3476, PB3361, PB3260). (4) planner vs survey disagreement or deadlock (PB3508, PB3509, PB3528, PB3446, PB3267). (5) DEVLOG stamp and exit-6 (PB3367, PB3145, PB3111, PB3123). (6) a hung gate holding a slot (PB3310). (7) catch-up merge ungated (PB3368). Open, unfixed: PB3628, PB3389, PB3275, PB3476, PB3609, PB3608, PB3145, PB3367, PB3310.",
+     "top": [
+      {
+       "branch": "PB3315",
+       "stop_kind": "rendered-views-audit-20-28-min-pre-slot",
+       "cause": "audit RENDERED VIEWS (rendered_views.py --check waiting on gen_ledger git subprocesses) took 20-28 min before the gate slot; the first run exceeded the harness 30-min background limit and was killed, so the finisher lost the whole gate",
+       "idle_min": 1680,
+       "resolution": "still open (PB1957:2)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3315.md"
+      },
+      {
+       "branch": "PB3118",
+       "stop_kind": "notes-only-process-branch-never-planned-finisher",
+       "cause": "fix lane skips process_only and not-yet-on-main notes, so a notes-only FINDINGS branch is never planned; survey showed 'DONE 27 h ago and never landed'",
+       "idle_min": 1620,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3118.md"
+      },
+      {
+       "branch": "PB3302",
+       "stop_kind": "superseded-SPLIT-branches-sit-until-abandoned",
+       "cause": "eight superseded branches idle over 24 h awaiting an ABANDON decision after successors landed",
+       "idle_min": 1440,
+       "resolution": "fixed by hand: ABANDON recorded, note landed",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3302.md"
+      },
+      {
+       "branch": "PB3628",
+       "stop_kind": "candidates-skips-rearmed-NOT-QUEUED-row",
+       "cause": "land_lane.candidates (land_lane.py ~742) skips a re-armed row whose PR reads NOT QUEUED; the queue watch has already left it BOUNCED; PR #467 reviewed CLEAN, re-armed 08:12Z",
+       "idle_min": 780,
+       "resolution": "still open; operator hand-landed PR #467",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3628.md; DEVLOG/2453-pb3628-file-the-stranded-re-armed-not-queued-branch.md"
+      },
+      {
+       "branch": "PB3381",
+       "stop_kind": "rolling-wave-same-file-predecessor-HOLD",
+       "cause": "wave 1118: seven hours, six groups DONE, zero landed; predecessor HELD to land through successor, reviewed only at tail, whole-branch re-review each round",
+       "idle_min": 420,
+       "resolution": "fixed: HOLD deleted, DEVLOG 2236",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3381.md; DEVLOG/2236-finished-work-lands-at-once-the-rolling-wave-s-same-file.md"
+      },
+      {
+       "branch": "PB3310",
+       "stop_kind": "no-per-branch-lock-linux-gate-hang",
+       "cause": "two enqueue.py land runs of one branch overlap; linux-gate.sh keys its WSL clone on basename and rm -rf's it at start; first Linux gate hung 6 h 40 min holding gate slot 1",
+       "idle_min": 400,
+       "resolution": "still open (PB1957:2)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3310.md"
+      },
+      {
+       "branch": "PB3275",
+       "stop_kind": "survey-reads-PR-state-against-unobserved-head",
+       "cause": "auto-merge PR that never entered the queue reads ENQUEUED forever (over 6 h, stale blocked:true on PB3322); bounced PR with fixed tip pushed reads BOUNCED forever",
+       "idle_min": 360,
+       "resolution": "still open (PB1957:2)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3275.md (prune_worktrees.py:438-440)"
+      },
+      {
+       "branch": "PB3107",
+       "stop_kind": "oracle-one-baseline-serializes-landings",
+       "cause": "input-changing landings re-record the oracle one at a time: about five serial cycles of ~50 min, each a finisher, review and two gates",
+       "idle_min": 250,
+       "resolution": "fixed (landed)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3107.md"
+      },
+      {
+       "branch": "PB3389",
+       "stop_kind": "stale-stored-blocked-flag-refused-at-merge-group",
+       "cause": "blocked:true stored copy of blocked_by went stale when PB3333 landed ahead in queue; work.py check refused in the merge group; PR 256 removed 21:03Z, about 4 h to fix, fresh review needed (recurred in PR #352, and PR #493 per context)",
+       "idle_min": 240,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3389.md"
+      },
+      {
+       "branch": "PB3476",
+       "stop_kind": "DONE-report-without-HEAD-sha-strands-CLEAN-branch",
+       "cause": "report header gives no HEAD sha so prune lifecycle reads it covering no commit: IN FLIGHT for --min-age 180 then DECISION; landing lane never takes it; recurred 2026-10-21 on 472-20 until the sha was added by hand",
+       "idle_min": 180,
+       "resolution": "still open; manual sha edit",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3476.md"
+      },
+      {
+       "branch": "PB3609",
+       "stop_kind": "survey-labels-MERGED-branch-IN-FLIGHT-180-min",
+       "cause": "merged branch touched within --min-age 180 falls to IN FLIGHT; 13 of 20 IN FLIGHT branches were already merged at 16:00 on 2026-10-23",
+       "idle_min": 180,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3609.md; DEVLOG/2425"
+      },
+      {
+       "branch": "PB3387",
+       "stop_kind": "operator-inbox-watcher-not-rearmed",
+       "cause": "watcher fired 14:40 and was never re-armed; nine messages incl. three landing requests waited to 17:14",
+       "idle_min": 154,
+       "resolution": "fixed: Stop hook refuses turn end while unarmed",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3387.md; DEVLOG/2241"
+      },
+      {
+       "branch": "PB3608",
+       "stop_kind": "finished-branch-waits-for-reviewer-in-serial-enqueue-unit",
+       "cause": "loop reviews only inside an enqueue unit; units ran 3308 s, 4579 s and over 2 h; fix-self-test-wall-leads DONE 14:00 still WAITING FOR REVIEW at 16:00",
+       "idle_min": 120,
+       "resolution": "still open (review lane beside landing lane proposed)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3608.md; DEVLOG/2425"
+      },
+      {
+       "branch": "PB3612",
+       "stop_kind": "regate-after-main-moved",
+       "cause": "three local gate runs on both hosts (4615 s) because main moved twice while waiting for a gate slot; owner decision: gate once at head, merge gated by queue CI",
+       "idle_min": 77,
+       "resolution": "owner decision; implementer dispatched, open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3612.md"
+      },
+      {
+       "branch": "PB3291",
+       "stop_kind": "plan-wave-number-collision",
+       "cause": "two sessions planned wave 1098; ledger upsert dropped the other's in-flight group and hid file sets for 50 min",
+       "idle_min": 50,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3291.md"
+      },
+      {
+       "branch": "PB3527",
+       "stop_kind": "landing-ends-ENQUEUED-nothing-verifies-queue-entry",
+       "cause": "PR #385 ci-gate success 18:46:46Z but its required check-run stayed in_progress 50 min; landing held until someone looked",
+       "idle_min": 50,
+       "resolution": "fixed: lane watches each PR (DEVLOG 2376)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3527.md"
+      },
+      {
+       "branch": "PB3402",
+       "stop_kind": "soft-cap-STOP-UNIT-holds-landing",
+       "cause": "two branches reviewed CLEAN 21:18 started landing 22:05 when capped enqueue unit ended",
+       "idle_min": 47,
+       "resolution": "fixed (landed)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3402.md"
+      },
+      {
+       "branch": "PB3324",
+       "stop_kind": "ledger-audit-2713s-inside-gate",
+       "cause": "gen_ledger git show per commit since last trend point: audit RENDERED VIEWS took 2,713 s in one gate run",
+       "idle_min": 45,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3324.md"
+      },
+      {
+       "branch": "PB3263",
+       "stop_kind": "empty-declared-file-set-plans-colliding-with-nothing",
+       "cause": "reviewed branch waited ~20 min; PR #265 conflicted with engine branch in six files",
+       "idle_min": 20,
+       "resolution": "fixed (landed)",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3263.md"
+      },
+      {
+       "branch": "PB3581",
+       "stop_kind": "windows-self-tests-last-step-of-longest-queue-job",
+       "cause": "440 s of self-tests ran after a build they never read inside the merge queue's longest job (16.5 min)",
+       "idle_min": 16.5,
+       "resolution": "fixed: own job",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3581.md"
+      },
+      {
+       "branch": "PB3145",
+       "stop_kind": "enqueue-exit6-NO-ENTRY-should-wait-for-contained-predecessor-PR",
+       "cause": "enqueue.py exits 6 NO ENTRY when a contained predecessor carries its own stamped DEVLOG entry and its PR is still open (b3b-9 containing 872-4 which merged c5a-12 after stamp); same shape as c3d0ab06-0af-11 on 2026-10-24",
+       "idle_min": -1,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3145.md"
+      },
+      {
+       "branch": "PB3367",
+       "stop_kind": "devlog-stamp-not-atomic-rerun-refuses",
+       "cause": "git add returned 128 after both gates GREEN: half-stamped worktree, rerun refuses 'no pending entry'; lane can never land it alone; recurred 2026-10-18 on 783-42 and 6b5-22",
+       "idle_min": -1,
+       "resolution": "still open",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3367.md"
+      },
+      {
+       "branch": "PB3368",
+       "stop_kind": "catch-up-merge-after-gate-no-sweep-rerun",
+       "cause": "clean textual merge flips a tree-wide sweep or the blocked:true audit after the gate; PR bounces from queue (PR #216, PR #352)",
+       "idle_min": -1,
+       "resolution": "still open; PB3612 supersedes by leaving merge gating to CI",
+       "mechanical": true,
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3368.md"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "a0b2ffdda5872c8a6",
+    "label": "measure:supervisor",
+    "turns": 46,
+    "tool_calls": 65,
+    "tokens": 6211793,
+    "fresh": 243193,
+    "token_parts": {
+     "input": 92,
+     "output": 57756,
+     "cache_read": 5968600,
+     "cache_write": 185345
+    },
+    "wall_s": 643.7,
+    "first": "2026-10-24T18:22:09.654Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "source": "supervisor: orchestrate-*.out.log 10-12..10-24 plus orchestrate-20261024-1002.out, 739 handoff.json, units.jsonl, land-lane/attempts (491), landing-measurements, BREAKER-*.md, OWNER-QUESTIONS.md",
+     "jsonl": "E:\\Temp\\claude\\E--COBOL\\2f7da35b-367c-4195-a0f3-890a7da7c1c3\\scratchpad\\stalls\\measure-supervisor.jsonl",
+     "incidents_total": 189,
+     "summary": "189 incidents (175 land-attempt stops, 14 class rows). 104 mechanical with idle>0, 289 h raw (loop-down overlap not netted). Mechanisms: (1) stops with no new code: re-arm at same head, or merge-only, wait for the next serial enqueue unit; 101 of 152 resumed stops, 367.6 h gap, 71 within 30 min of unit start. (2) No auto re-arm when blocker lands: oracle exit 7 (PB3107) 314-1281 min; PB3628 ced-6 602 min. (3) Manifest/baseline merge conflicts: 35 mechanical stops, ~50 h. (4) Environmental Linux red re-armed unchanged (WSL disk full 764 min). (5) Breaker trips: meter fails (Chrome ext, 39/53), 429 quota, lane stops with loop. (6) Stale blocked:true (#493), min-age 180 on notes branches. QUEUE NOT ACTIVE: none found.",
+     "top": [
+      {
+       "branch": "worktree-wf_d63f7207-db5-30",
+       "stop_kind": "exit 7",
+       "cause": "landing oracle exit 7 (stale arch-oracle baseline) until PB3107 deleted landing_oracle.py; re-armed by an enqueue unit",
+       "idle_min": 1281,
+       "stopped_at": "2026-10-13T06:50:02Z",
+       "resumed_at": "2026-10-14T04:11:04Z",
+       "resolution": "rearm at same head, no commit (608 min of it loop-down)",
+       "mechanical": true,
+       "mechanical_why": "a rearm-on-blocker-landed script could have acted",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T063646769097Z-worktree-wf_d63f7207-db5-30.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-1",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full; re-armed unchanged after owner repair",
+       "idle_min": 826,
+       "stopped_at": "2026-10-15T20:52:32Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit (764 min loop-down)",
+       "mechanical": true,
+       "mechanical_why": "disk-free probe plus auto re-arm of same-head Linux red",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T204343797347Z-worktree-wf_f560587e-74d-1.json; E:/COBOL-coord/OWNER-QUESTIONS.md"
+      },
+      {
+       "branch": "worktree-wf_c0ed6078-78e-8",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 824,
+       "stopped_at": "2026-10-15T20:54:26Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T203917088938Z-worktree-wf_c0ed6078-78e-8.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-2",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 824,
+       "stopped_at": "2026-10-15T20:53:50Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T203917097306Z-worktree-wf_f560587e-74d-2.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-4",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 817,
+       "stopped_at": "2026-10-15T21:01:00Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T205838799450Z-worktree-wf_d6f41ebf-faa-4.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-5",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 807,
+       "stopped_at": "2026-10-15T21:11:32Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T210842475183Z-worktree-wf_d6f41ebf-faa-5.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-8",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 797,
+       "stopped_at": "2026-10-15T21:21:02Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T211836531152Z-worktree-wf_f560587e-74d-8.json"
+      },
+      {
+       "branch": "worktree-wf_f560587e-74d-11",
+       "stop_kind": "GATE RED (Windows)",
+       "cause": "PB2922 TEMP dry-run steer collision, not the branch; re-armed unchanged",
+       "idle_min": 784,
+       "stopped_at": "2026-10-15T21:34:11Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "known flake re-arm",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T213337611533Z-worktree-wf_f560587e-74d-11.json"
+      },
+      {
+       "branch": "worktree-wf_9b740cf9-198-4",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 782,
+       "stopped_at": "2026-10-15T21:36:23Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T213337618982Z-worktree-wf_9b740cf9-198-4.json"
+      },
+      {
+       "branch": "worktree-wf_d6f41ebf-faa-10",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "WSL disk full",
+       "idle_min": 775,
+       "stopped_at": "2026-10-15T21:43:16Z",
+       "resumed_at": "2026-10-16T10:38:17Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261015T214111395619Z-worktree-wf_d6f41ebf-faa-10.json"
+      },
+      {
+       "branch": "(all landing lane branches, 9 stopped)",
+       "stop_kind": "LOOP STOPPED: owner question (WSL disk full)",
+       "cause": "stale ~/linux-gate snapshots filled the WSL disk, read-only mount, every Linux gate failed; units may not run WSL lifecycle commands",
+       "idle_min": 764,
+       "stopped_at": "2026-10-15T21:53:33Z",
+       "resumed_at": "2026-10-16T10:37:55Z",
+       "resolution": "owner ran recovery by hand; operator re-armed at same heads",
+       "mechanical": true,
+       "mechanical_why": "snapshot pruning plus disk probe is a script; only the remount needed the owner",
+       "evidence": "E:/COBOL-coord/OWNER-QUESTIONS.md 2026-10-15 14:53 entry; E:/COBOL-coord/logs/orchestrate-20261015-104306.out.log"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-11",
+       "stop_kind": "CONFLICT",
+       "cause": "merge of main conflicted in arch-oracle manifests",
+       "idle_min": 629,
+       "stopped_at": "2026-10-13T18:36:09Z",
+       "resumed_at": "2026-10-14T05:04:45Z",
+       "resolution": "new head, merge/derived only",
+       "mechanical": true,
+       "mechanical_why": "conflict only in generated/append-only files",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T183600114658Z-worktree-wf_d63f7207-db5-11.json"
+      },
+      {
+       "branch": "worktree-wf_0e51b14b-ced-6",
+       "pr": "467",
+       "stop_kind": "REARMED but NOT QUEUED (never re-landed)",
+       "cause": "land_lane.candidates line 742 skips a re-armed NOT QUEUED row; PR DIRTY, reviewed tip 9e871991b unpushed (PB3628, still open)",
+       "idle_min": 602,
+       "stopped_at": "2026-10-24T08:12:12Z",
+       "resumed_at": "2026-10-24T18:14:42Z",
+       "resolution": "attended operator hand-landed",
+       "mechanical": true,
+       "mechanical_why": "candidates() accepting NOT QUEUED, or landing any CLEAN unpushed tip, needs no judgment",
+       "evidence": "E:/COBOL-wt/notes-pb1957/kb/Work/PB3628.md; E:/COBOL-coord/logs/orchestrate-20261024-1002.out 11:14:42 PDT"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-3",
+       "stop_kind": "exit 7",
+       "cause": "stale arch-oracle baseline; blocker PB3107 landed, re-armed by enqueue unit",
+       "idle_min": 458,
+       "stopped_at": "2026-10-13T20:33:26Z",
+       "resumed_at": "2026-10-14T04:11:02Z",
+       "resolution": "rearm at same head, no commit (loop was up; a wave unit was running)",
+       "mechanical": true,
+       "mechanical_why": "rearm-on-blocker-landed script",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T201036435747Z-worktree-wf_4959cab1-c5a-3.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-12",
+       "stop_kind": "exit 7",
+       "cause": "same stale oracle baseline",
+       "idle_min": 419,
+       "stopped_at": "2026-10-13T21:11:54Z",
+       "resumed_at": "2026-10-14T04:11:01Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T205652722150Z-worktree-wf_4959cab1-c5a-12.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-22",
+       "stop_kind": "exit 7",
+       "cause": "same stale oracle baseline",
+       "idle_min": 370,
+       "stopped_at": "2026-10-13T22:01:10Z",
+       "resumed_at": "2026-10-14T04:11:02Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T214553155867Z-worktree-wf_4959cab1-c5a-22.json"
+      },
+      {
+       "branch": "(whole loop and land lane)",
+       "stop_kind": "CIRCUIT BREAKER (3 failed meter units)",
+       "cause": "meter units failed: Chrome extension not connected, 3 in a row; loop and land lane stopped",
+       "idle_min": 352,
+       "stopped_at": "2026-10-22T10:30:35Z",
+       "resumed_at": "2026-10-22T16:22:48Z",
+       "resolution": "operator restarted; ~43 min of it was budget hold-day",
+       "mechanical": true,
+       "mechanical_why": "meter fallback or excluding meter failures from the breaker",
+       "evidence": "E:/COBOL-coord/logs/BREAKER-20261022-033035.md; 20261022-032913-meter.handoff.invalid.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-8",
+       "stop_kind": "exit 7",
+       "cause": "same stale oracle baseline",
+       "idle_min": 314,
+       "stopped_at": "2026-10-13T22:56:42Z",
+       "resumed_at": "2026-10-14T04:11:03Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "same as above",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T223844869889Z-worktree-wf_4959cab1-c5a-8.json"
+      },
+      {
+       "branch": "notes-PB3633-pb3492-leads",
+       "pr": "493",
+       "stop_kind": "BOUNCED (merge queue failed_checks)",
+       "cause": "work.py check refused blocked:true on notes whose blocker PB3492 landed (#491) after the branch base",
+       "idle_min": 311,
+       "stopped_at": "2026-10-24T13:08:46Z",
+       "resumed_at": "",
+       "resolution": "lower bound: still BOUNCED at 18:19:24Z survey; hand-landed (time unmeasured)",
+       "mechanical": true,
+       "mechanical_why": "flip blocked:false when blockers are landed, or recheck after merging main",
+       "evidence": "E:/COBOL-coord/land-lane/survey.json; E:/COBOL-coord/logs/BREAKER-20261024-061546.md"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-4",
+       "stop_kind": "CONFLICT",
+       "cause": "merge of main conflicted in arch-oracle manifests",
+       "idle_min": 260,
+       "stopped_at": "2026-10-13T01:25:35Z",
+       "resumed_at": "2026-10-13T05:45:38Z",
+       "resolution": "new head, merge/derived only",
+       "mechanical": true,
+       "mechanical_why": "conflict only in generated files",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T012524117562Z-worktree-wf_d63f7207-db5-4.json"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-30",
+       "stop_kind": "CONFLICT",
+       "cause": "merge of main conflicted in conformance manifests (2002, negative)",
+       "idle_min": 260,
+       "stopped_at": "2026-10-13T01:25:33Z",
+       "resumed_at": "2026-10-13T05:45:38Z",
+       "resolution": "new head, merge/derived only",
+       "mechanical": true,
+       "mechanical_why": "append-only manifest conflict",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261013T012524126161Z-worktree-wf_d63f7207-db5-30.json"
+      },
+      {
+       "branch": "notes-pb-nist-impact-leg1-20261018",
+       "stop_kind": "GATE RED (Linux)",
+       "cause": "IX216A intermittent Linux red, not this notes-only branch's",
+       "idle_min": 242,
+       "stopped_at": "2026-10-18T20:51:58Z",
+       "resumed_at": "2026-10-19T00:53:41Z",
+       "resolution": "rearm at same head, no commit",
+       "mechanical": true,
+       "mechanical_why": "known-flake retry",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261018T203051277678Z-notes-pb-nist-impact-leg1-20261018.json"
+      },
+      {
+       "branch": "(whole loop and land lane)",
+       "stop_kind": "CIRCUIT BREAKER (3 failed units, 429 weekly limit)",
+       "cause": "usage_limit_reached; 3 units exited with 0 calls; breaker stopped loop and tokenless land lane while #493 BOUNCED and ced-6 waited",
+       "idle_min": 226,
+       "stopped_at": "2026-10-24T13:15:46Z",
+       "resumed_at": "2026-10-24T17:01:33Z",
+       "resolution": "operator restart after the 10:00 PDT reset",
+       "mechanical": true,
+       "mechanical_why": "sleep to reset time; keep land lane running without tokens",
+       "evidence": "E:/COBOL-coord/logs/BREAKER-20261024-061546.md; 20261024-061230-resume.jsonl"
+      },
+      {
+       "branch": "worktree-wf_d63f7207-db5-30",
+       "stop_kind": "CONFLICT",
+       "cause": "merge of main conflicted in conformance manifests",
+       "idle_min": 193,
+       "stopped_at": "2026-10-14T04:13:33Z",
+       "resumed_at": "2026-10-14T07:26:29Z",
+       "resolution": "new head, merge/derived only",
+       "mechanical": true,
+       "mechanical_why": "append-only manifest conflict",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261014T041104104077Z-worktree-wf_d63f7207-db5-30.json"
+      },
+      {
+       "branch": "worktree-wf_4959cab1-c5a-3",
+       "stop_kind": "CONFLICT",
+       "cause": "merge of main conflicted in tests/conformance/2002/manifest.json",
+       "idle_min": 193,
+       "stopped_at": "2026-10-14T04:13:33Z",
+       "resumed_at": "2026-10-14T07:26:29Z",
+       "resolution": "new head, merge/derived only",
+       "mechanical": true,
+       "mechanical_why": "append-only manifest conflict",
+       "evidence": "E:/COBOL-coord/land-lane/attempts/20261014T041102341291Z-worktree-wf_4959cab1-c5a-3.json"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "ae12c7431b06b7f81",
+    "label": "verify:0",
+    "turns": 105,
+    "tool_calls": 107,
+    "tokens": 17688714,
+    "fresh": 339903,
+    "token_parts": {
+     "input": 210,
+     "output": 75023,
+     "cache_read": 17348811,
+     "cache_write": 264670
+    },
+    "wall_s": 1209.7,
+    "first": "2026-10-24T18:53:35.153Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "verdicts": [
+      {
+       "key": "LANE_TICK_UNIT_BOUND",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "PB3181 (landed), PB3186 (landed), PB3608 (open), PB3194 (landed)",
+       "corrections": "The code claim is true (orchestrate.ps1:142-148 Wait-Until never ticks), but the cited incidents were blocked by other things. 3a0-11 (2447 min) was reviewed CLEAN at 22:09Z while the lane ticked; the survey read its DISCHARGED report as DECISION (kb/Work/PB3181.md shape 1 names it). 423-8 (1128 min; the 01:06:55Z to 19:55:04Z arithmetic is right) was skipped while the lane ticked 18:21-19:00 PDT because the report's HEAD was read by first match (PB3181), and its first attempt went RED anyway. 3a0-19 got exit 3 on every tick while units ran (a spurious whand stop, PB3186), then hit a CONFLICT. Of the hold-day's 941 min, 742 came after the operator's deliberate 22:20 night STOP (scratch/mythos-restart-20261015.md:3), which the lane honours by design. The other dormant windows are night STOPs, the WSL-disk owner question (PB3194), or waits for a reviewer (PB3608). Residual holds or breakers with no STOP add up to about 1000 min, and no branch is shown landable inside them: unmeasured. Detail: E:/Temp/claude/E--COBOL/2f7da35b-367c-4195-a0f3-890a7da7c1c3/scratchpad/stalls/verify-0.jsonl"
+      },
+      {
+       "key": "ORACLE_ONE_BASELINE",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3107 (landed, PR #38 2026-10-14T00:06Z)",
+       "corrections": "Confirmed: db5-30 exited rc 7 at 06:50:02Z and was re-armed at 04:11:04Z, which is 1281 min. 104-9 bounced from the merge group on ArchOracleDriftTests with two queued baselines (landing-measurements.jsonl:39), 1364 min. These stops were not mechanical at the time: before PB3107 merged, a retry got exit 7 again, so putting exit 7 in WAITS would have looped full gates. Only 245 min came after the cause was removed, and those re-arms then hit CONFLICT. The oracle is gone: TheRecordedBaseline test is deleted, no baseline is committed, and WAITS is {3,12}."
+      },
+      {
+       "key": "RED_NOT_THE_BRANCH",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "root causes landed: PB2922, PB3108, PB3388; open: PB3545, PB3547, PB3548",
+       "corrections": "The code claim holds (enqueue.py:750-753), but the proposal fails on its own examples. IX216A passed in every other run (PB3388), and the PB2922 TEMP collision needs a concurrent dry run, so main reads GREEN and nothing would be waived. Where main really fails the same test, the merge group fails it too and bounces the branch. Waiving also masks a possible wrong answer: PB3388 says to find a root cause, not re-gate. 74d-11's 784 min (21:34:11Z to 10:38:17Z) overlaps the WSL-disk outage and owner-question stop (PB3194), when no landing could pass. Each root cause has landed; the class omits PB2922, PB3388, PB3547 and PB3548."
+      },
+      {
+       "key": "SOURCE_CONFLICT_FINISHER",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "not-mechanical",
+       "final_notes": "none; PB3608 keeps finishers in the enqueue unit (PB3608.md:46)",
+       "corrections": "Confirmed as judgment work. ced-16's merge 0632c7799 unifies regexes and two drift-rule mechanisms. 423-5's merge 444ab10f4 folds PB3154's guard into PB3164's ConstantScopeOf. Both heads were reviewed CLEAN before landing. ced-16's 202.8 min breaks down as 168 min waiting for the next enqueue unit (04:46Z to 07:34Z; the wave unit held the loop), about 10 min of finisher work and 25 min of review and relaunch. That dispatch wait is a separate scheduling mechanism (a finisher only starts inside an enqueue unit) that no note covers. It deserves its own class."
+      },
+      {
+       "key": "DEVLOG_STAMP_NOT_ATOMIC",
+       "evidence_holds": true,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-open",
+       "final_notes": "PB3367 (open)",
+       "corrections": "Confirmed. The 6b5-22 lane log, line 18, shows git add exiting 128 inside devlog.py stamp. It was re-armed at 00:57:56Z after the 23:12:48Z stop (105.1 min). 783-42 and 472-25 failed the same way (15.5 and 4.8 min). devlog.py still unlinks the pending file at line 416 before git add at line 418. A rerun is safe only in PB3367's shape: keep or restore the pending file, renumber from main's tree each run, and record stderr. The 'index.lock' cause is a guess, because _git drops stderr."
+      },
+      {
+       "key": "STOP_UNIT_SUPPRESSES_LANE",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3402 (landed: 2918e1890, main via PR #276 2026-10-19T07:44Z); PB3419 open (stale comment)",
+       "corrections": "Confirmed: there are 66 'land lane: STOP-UNIT' ticks, and the longest window ran 21:18:42-22:03:28 PDT on 10-18 (44.8 min). The last tick was 10-19 00:09:56, after the PB3402 commit at 00:04. land_lane now ignores STOP-UNIT alone. The idle of 0 understates it: PB3402 records two CLEAN branches held about 47 min each. orchestrate.ps1:194 still has the stale comment (PB3419)."
+      },
+      {
+       "key": "ABANDON_DECISION",
+       "evidence_holds": false,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-open",
+       "final_notes": "PB3386 (open, ancestry subset); PB3170 (open, planner/cherry-pick side)",
+       "corrections": "The cited example PB3302 does not show the mechanism: its 8 branches had non-empty git cherry, so the operator judged them superseded by content and the 'cherry empty' gate would auto-resolve none. The ancestry cases (PB3346's 3, PB3317's 9, notes-pb3330) are mechanical. contained() at :855-876 still skips a DECISION row with a SPLIT report, which is PB3386. This is not a landing stall: the successors landed on their own, and the cost is operator decisions. The idle is unmeasured."
+      },
+      {
+       "key": "OPERATOR_INBOX_WATCHER",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3387 (landed 11f7b8ab0, 314d06415)",
+       "corrections": "Confirmed from the mailbox: the first message came at 14:40:32 PDT on 10-18, and the operator's reply at 17:18:32 says the watcher was 'unarmed 14:40-17:14'. That is 153.5 min, and the three landing requests waited 101-132 min. The idle of 0 understates it. inbox_guard.py is registered as the Stop hook (.claude/settings.json:134). This is an attended-operator stall, not one from the loop's records."
+      }
+     ]
+    }
+   },
+   {
+    "agent": "a58379509bbde0871",
+    "label": "verify:1",
+    "turns": 85,
+    "tool_calls": 94,
+    "tokens": 13173547,
+    "fresh": 277064,
+    "token_parts": {
+     "input": 170,
+     "output": 70381,
+     "cache_read": 12896483,
+     "cache_write": 206513
+    },
+    "wall_s": 923.2,
+    "first": "2026-10-24T18:53:39.579Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "verdicts": [
+      {
+       "key": "SERIAL_ENQUEUE_REVIEW",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "corrections": "The mechanism is real (review happens only inside the serial enqueue unit), but the numbers and the proposed extension are wrong. (1) The 1571-min maximum is false. done=10-16T13:41 PDT is the WIP commit f20624c78, because landing_measure.done_times (landing_measure.py:395,446-450) takes the EARLIEST DONE report for each lead. After it came review rounds 3, 4, R2-1, 6 and 7 plus a finisher (12 commits, 13ff04b16^1..^2). The attempted head f72e9cbaa was committed at 22:38Z and tried at 22:52Z, so the real wait was 14 min. (2) Recomputed over all 59 incidents: the attempted-head commit to first lane attempt totals 2797 min (max 188), not 8235 (v1/tail_gap.py). All 59 windows contain commits, most of them fixes for review findings. (3) The 188-min case (fb1-9) was a report with no HEAD (20261016-204022-resume.handoff.json), which is PB3476. (4) The median wave is 41 min; only 4 of 53 waves ran 180 min or longer. (5) scripts/prune_worktrees.py:615 holds only report-less branches as min-age. After 180 min they read DECISION (:655-657), never WAITING FOR REVIEW. (6) Skipping review for notes-only branches is unsafe. PR 155 (kb/Work+DEVLOG only) had 3 accuracy errors found in review (aebdfe46b). PR 212 had a review finding (R1-1) even though work.py check was clean (a9f63261d). PB3608 already designs the review lane that removes the genuine serial waits (pr457, pr167, 147 min each).",
+       "final_proposal": "covered-open",
+       "final_notes": "PB3608 (keep the reviewer, no bypass for notes-only branches); PB3476 (fb1-9); PB3609"
+      },
+      {
+       "key": "OWNER_POLICY_LOOP_DOWN",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": true,
+       "refuted": false,
+       "corrections": "Both stops are confirmed as the owner's acts. orchestrate-20261020-102214.out.log:210-214 shows STOP and the loop ending at 04:17Z, and 20261021-105023-resume.handoff.operator.json records 'Owner chose Restart the loop'. Recomputed: 813 min. The STOP at 14:22 PDT 10-22 is in the tail of orchestrate-20261022-092248.out.log, and units resumed 10-23 18:11Z (1248 min). Loop-down minutes are not idle finished work: 34 PRs (#398-#432) merged during the 1248-min window and 2 during the 813-min window. The idle of the DONE branch at each stop is unmeasured. The lane honours STOP by design (out.log:211-212), and the owner stopped a session on 10-22 over quota, so landing under STOP is unsafe without the owner.",
+       "final_proposal": "not-mechanical",
+       "final_notes": ""
+      },
+      {
+       "key": "BREAKER_METER",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "corrections": "Confirmed: three meter units failed on 'Browser extension is not connected', and the breaker stopped the loop at 03:30:35 PDT (orchestrate-20261021-221908.out.log:265). Since 10-12, 39 of 53 meter units failed, 36 of them on that error. Only one breaker trip was caused by the meter; BREAKER-20261024-061546 was enqueue/resume units. Recomputed: 352 min of breaker downtime. The last 43 min of the 394 were a budget hold-day after the 09:22 restart (092248.out.log:3-4). No PR merged in that window, and the DONE branch's idle is unmeasured. The fix is unsafe as proposed: budget.py under-reads usage (owner: 53% on budget.py versus 69% on the meter), and at the trip it read 82.11% of an 85.8% cap. PB2665 (open) already holds the safe parts, in the opposite direction: no resume after a meter failure, and consecutive failures raise an owner question. Landing during the stop needs the lane to tick (the LANE_TICK_UNIT_BOUND autostart), not a breaker change.",
+       "final_proposal": "covered-open",
+       "final_notes": "PB2665; landing during the stop belongs to LANE_TICK_UNIT_BOUND"
+      },
+      {
+       "key": "LANE_TRANSIENT_RETRIED",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "corrections": "The retry is automatic: land_lane.py:131 WAITS and :136 FREE/ONCE. Attempt 000031 (6f7-1) hit GATE BUSY at 02:05:46Z and retried at 02:35:46Z, 30.0 min later. The lock holder was the finisher's own gate on the same head (run 000010, started 02:03:59Z). 000032's runner then died (the only rc=None in 491 attempts), and 000034 found the lane's own orphaned gate still holding the lock. 000038 was ENQUEUED at 03:10Z. Those minutes are time the lock holder's gate spent running, not idle, so 118 min overstates the idle. The re-gate cannot be avoided because enqueue.py merges origin/main first.",
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3526, PB3527, PB3536 (landed)"
+      },
+      {
+       "key": "UNATTRIBUTED",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "corrections": "The incidents have recorded causes, so this is not a class. PR 175 (834 min, 82% of the total): the raw record has pre_queue_reds=1. Its pull_request run 39003798946 failed at 04:46Z because PB3319/21/22 still had blocked:true after PB3173 landed. Commit c4ade3b34 fixed it at 18:07Z, it was queued at 18:39:12Z, and kb/Work/PB3275.md:38-52 (variant 2, open) documents it. This is the stale-blocked mechanism, the same as PR #493, and it overlaps the overnight STOP. PR 275 also has pre_queue_reds=1. PR 400 is recorded with bounces=1 (merge-group run 39867759611 failed a conformance shard); only its cause is missing. PR 385 was closed and reopened, then queued 19:47Z. Attempt 0af-17 read rc=None only because it was read while in flight: it ended ENQUEUED and merged as #496. Each of the 21 attempts carries its exit code.",
+       "final_proposal": "drop",
+       "final_notes": "PB3275 (variant 2), PB3124"
+      },
+      {
+       "key": "SURVEY_MISREADS_FINISHED",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "corrections": "Live in the code: scripts/prune_worktrees.py:635-642 checks for a missing report HEAD before it reads the review stamp (:643-646). This class is measurable, not 0. fb1-9 was reviewed CLEAN by the time the wave ended at 02:12Z 10-17 (20261016-170947-wave.handoff.json), and the resume unit then fixed the report's missing HEAD. The first attempt came at 04:11:02Z, about 119 min of idle (188 min from its head commit). PB3609 and PB3318 misread branches that are already on main (survey.json row notes-PB3633-pb3492-leads: MERGED / IN FLIGHT). They inflate the backlog but idle nothing. PB3476's fix (a CLEAN stamp at the tip counts as coverage) keeps the review gate, so it is safe.",
+       "final_proposal": "covered-open",
+       "final_notes": "PB3476 (the arm that stalls landings); PB3609 and PB3318 are not stalls"
+      },
+      {
+       "key": "GATE_EXCLUSION_HANG",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "corrections": "Confirmed. evidence-hung-linux-gate-20261016d.txt shows the Unit leg in futex_do_wait with an etime of 06:42:26. The branch had already merged as PR #127 at 17:34:25Z through the overlapping run. A second witness: lane attempt 20261022T182758924898Z (62f-11) overlapped a manual enqueue.py run and, before PB3526, read GATE RED and wrote BLOCKED. Idle is unmeasured, not 0: the 6h41 is a slot hold on a branch already on main. PB3194 (landed) already fixed part of PB3310: linux-gate.sh:187-192 keys each snapshot per gate, and reap_gates :138-147 skips live gates. Still open: enqueue.py has no per-branch lock, and land_lane.py:333-338 pid_alive does not check the start time. Both fixes are safe. The slot ceiling must stay report-only, never a kill.",
+       "final_proposal": "covered-open",
+       "final_notes": "PB3157, PB3310 (snapshot part done by PB3194), PB3113"
+      },
+      {
+       "key": "DEVLOG_ORDER_REFUSED",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "corrections": "Idle is not 0. PR #31 was removed at 07:19:53Z and re-added at 07:22:02Z (2 min). PR #25 was removed at 06:30:32Z and re-added at 18:42:51Z (732 min), but that run also failed ArchOracleDrift (PB3107, landed). The fix 8774ae147 (stamp_floor, devlog.py:317,329; number order follows stamp order) landed in PR #38 at 2026-10-14T00:06:11Z, after both incidents. None of the 29 bounce causes recorded since involves the DEVLOG.",
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3123 (landed); PB3107 (landed)"
+      }
+     ]
+    }
+   },
+   {
+    "agent": "a3b8977b6dc9238e5",
+    "label": "verify:2",
+    "turns": 122,
+    "tool_calls": 125,
+    "tokens": 20470937,
+    "fresh": 305594,
+    "token_parts": {
+     "input": 244,
+     "output": 85357,
+     "cache_read": 20165343,
+     "cache_write": 219993
+    },
+    "wall_s": 1340.5,
+    "first": "2026-10-24T18:53:39.581Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "verdicts": [
+      {
+       "key": "ENV_LINUX_GATE_RED",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3194 (landed: linux-gate.sh:138 reap_gates, :167 check_disk), PB3526 (landed; a second env NOT RUN at the same head is the operator's handoff by design, PB3526.md:70-71)",
+       "corrections": "Recomputed: 74d-1 GATE RED ended 2026-10-15T20:52:32Z, re-armed at the same head 10-16T10:38:17Z = 825.75 min. c0ed-8: 823.85 min. Cause confirmed (OWNER-QUESTIONS.md:4-6: ENOSPC, read-only). But the idle is the owner-only WSL repair. Loop units may not run WSL lifecycle commands, and the owner question had stopped the loop at 14:53:33 PDT, so no lane tick ran. The owner repaired ~03:30 PDT and the re-arm came ~8 min later. Auto-retry would have saved minutes, not 6452. The cause is fixed by PB3194, landed after the incidents. No env GATE NOT RUN attempt exists in land-lane/attempts since then (every rc=2 is a dirty-worktree REFUSED or a fetch failure). Retrying is safe only with a probe per cause (check_disk covers [disk] only), backoff, and a loud owner signal. PROCESS NOTE, not about this class: my one `git fetch -q` in E:\\COBOL wrote FETCH_HEAD and the remote refs at 11:59:36 PDT. That is a git-metadata write against the read-only rule; nothing in the working tree changed."
+      },
+      {
+       "key": "GENERATED_FILE_CONFLICT",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3610 (LANDED 2026-10-24T18:26:53Z, PR #496: merge_drivers.py, .gitattributes, enqueue.py:634-641), PB3177 (landed 10-17T19:40Z, deleted tests/conformance/*/manifest.json), PB3107 (landed, the arch-oracle commits nothing); PB3116 is stale-open",
+       "corrections": "Recomputed: db5-11 = 628.6 min, db5-30 = 260.1 min (db5-30 then hit 3 more manifest conflicts in a row). The class lists PB3610 as open, but it LANDED today: keyed three-way merge per key, where a real conflict declines; work notes merged per frontmatter key with a union body; the ABI pin raised by both sides and then re-measured on the merged tree (abi_pin.py settle). Every conformance-manifest incident is dated on or before 10-17T04:01Z, and PB3177 deleted those files. The 629-min db5-11 was a modify/delete on an arch-oracle baseline, which no driver resolves and PB3107 removed. About 110 min are prose/source conflicts no driver may touch (DESIGN-*.md, TransactionControlTests.cs: 80e-4, 472-20, 6f7-1). Residual: scripts/semgrep/baseline.json has no driver (1 incident, 42 min). Caveat: a drivers merge counts as mechanical, so gated_covers skips the re-gate and CI is the only check of the merged tree (accepted in PB3612)."
+      },
+      {
+       "key": "NOT_QUEUED_STRANDED",
+       "evidence_holds": true,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": false,
+       "final_proposal": "covered-open",
+       "final_notes": "PB3628 (open, PB1957 tier 1), PB3275 (open, PB1957 tier 2)",
+       "corrections": "Confirmed. The re-arm tool_use is at 2026-10-24T08:12:11.927Z (logs/20261024-003338-enqueue.jsonl). The queue watch LEFT the PR as BOUNCED (attempt 000037). No later attempt ran. The operator's merge 5a7f1b791 came at 18:12:23Z = 600.2 min (the claim of 602 used the lane's 18:14Z line). land_lane.py:736-741 skips NOT QUEUED in the re-arm loop. Ticks did run and skip it (PB3628 09:45Z). Only one incident is measured. PB3527 (landed) is misfiled here: it is a stuck check-run, a different mechanism. PB3275's own witnesses are unmeasured strandings of the same mechanism: PR #107 (10-16), PR #175 (>6 h from 10-17T04:46Z), PR #268 (removed 10-19T03:26Z). Safe: the re-arm is consumed by one launch and needs tip == re-arm head, and enqueue re-checks review (exit 11) and re-gates."
+      },
+      {
+       "key": "EXIT3_DESIGNED_WAIT",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB2701 (WAITS), PB3381 (landed 10-19T03:49Z: the check stops only independent work), PB3263 (landed 10-20T01:50Z: item 4, landing_check arm 1)",
+       "corrections": "Recomputed: b3d-4 = 68.5 min, 423-17 = 58.6 min, 6b5-17 = 32.7 min. 326-32's stops were bookkeeping false stops cleared by a HAND ledger edit (attempt 20261018T223809340177Z why-field; PB3263.md:36-47 analyses this log). PB3381 and PB3263 fixed them after the incidents. The rest is not idle: 423-17 waited 44 min for 3a0-4 to merge (19:10:26Z), and only the 14.5 min after that is idle, which belongs to the lane-tick class. Possible hole: b3d-4 and 6b5-17 were released as 'in-flight work gone' although 326-13/25/26 never merged (b3d-4 merged as PR #263 at 00:13Z), so the release came when the worktrees disappeared. Re-probe that; it is not idle to automate."
+      },
+      {
+       "key": "EXIT6_PREDECESSOR_STAMPED_ENTRY",
+       "evidence_holds": true,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": false,
+       "final_proposal": "extend-note",
+       "final_notes": "PB3145 (open, MINOR; cluster PB3123 is landed; no tier, so no lane plans it)",
+       "corrections": "Confirmed. b3b-9: exit 6 at 05:29:36Z, carrying DEVLOG 2005 (PR #46) plus its own 2016. PR #46 merged 5 min later. The hand merge came at 07:05Z and the relaunch at 07:26:29Z = 116.9 min, ~111 min of it after the predecessor merged. 0af-11, now MEASURED: exit 6 at 18:06:02Z, carrying 2434 (ced-6) plus 2463. PR #467 merged 18:50:11Z, relaunch 19:05:48Z = 59.8 min. PB3145 states the fix but is orphaned (PB3636), so extend it with this witness and put it in PB1957. PB3111 is a different mechanism. Safety: wait only while gh shows each extra entry belongs to an OPEN PR whose head the branch contains, and stop when that PR closes or bounces. Never land two entries."
+      },
+      {
+       "key": "PLANNER_NEVER_PLANS",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "extend-note",
+       "final_notes": "PB3446 (open; its fix direction is the one shared reader plus a drift test): fold PB3509, PB3118, PB3404 into it and give it a PB1957 tier; PB3267/PB3625 are PB1957 tier 2; landed: PB3380, PB3394, PB3508, PB3528",
+       "corrections": "Idle is NOT 0. PB3118: notes-PB3084-t1065 got FINDINGS at 10-12T02:37:51Z, and only the resume unit answered them, by hand (merge 97603aec7, 23:15 PDT) = ~1657 min. PB3509: wave 1144 planned 0 groups (~07:05Z); a hand-planned w1145a finisher followed, and fix-pb3504 merged 08:49:25Z = ~104 min (approximate). The 15 notes are not one mechanism: PB3126, PB3258, PB3487, PB3456 and PB3150 are others. The open members (PB3509, PB3118, PB3446, PB3404) have no tier and no running cluster, so covered-open means unplanned. Safety: one reader must also read ownership (PB3379) and min-age, or a second finisher gets planned on a branch another lane is writing."
+      },
+      {
+       "key": "REGATE_AND_GATE_DURATION",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-open",
+       "final_notes": "PB3612 (open, PB1957 tier 1, owner decision), PB3315 (open, tier 2); landed: PB3581, PB3582, PB3585, PB3536; PB3546/PB3547 become moot under PB3612",
+       "corrections": "The class says it is unmeasured, but landing-measurements.jsonl carries gate time and run count for every landing. Since 10-12: 330 records, 291 with 2+ runs, 7,669 gate-minutes, of which ~4,811 are in runs past the first. That is an upper bound: it includes legitimate re-gates after a finisher's change. Verified PR #26: 3869.5 s in 4 runs, DONE-to-queue 66.5 min. PB3612's headline figure (4615 s in 3 runs) was not found in the raw logs. Safety: a semantic break from a clean merge reaches the queue untested locally. The owner accepted that risk; the overlap re-run and ci-gate bound it. CLAUDE.md 'Testing' must change in the same change."
+      },
+      {
+       "key": "REVIEWER_HOOK_REFUSAL",
+       "evidence_holds": false,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "PB3560 (open, MINOR) stays as a minor defect, not a stall",
+       "corrections": "Not a stall. status_guard.py:12-14 and :111 refuse a Stop ONCE and pass the second, and PB3560's own lead says 'let the stop through only on the second try'. The cost was one turn, with no finished work idled. The raw reviewer transcript is not in the records (the w1152a report lists only the R3-1 and R5-1 leads), so the incident rests on the note alone. The fix (exempt read-only roles) is safe because the guard already fails open after one refusal."
+      }
+     ]
+    }
+   },
+   {
+    "agent": "acc23747fe5d58ba2",
+    "label": "verify:3",
+    "turns": 100,
+    "tool_calls": 103,
+    "tokens": 16219635,
+    "fresh": 292173,
+    "token_parts": {
+     "input": 200,
+     "output": 73044,
+     "cache_read": 15927462,
+     "cache_write": 218929
+    },
+    "wall_s": 1000.2,
+    "first": "2026-10-24T18:53:39.582Z",
+    "unparsed": 0,
+    "returned": true,
+    "result": {
+     "verdicts": [
+      {
+       "key": "REAL_RED_FINISHER",
+       "evidence_holds": true,
+       "idle_measure_ok": true,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": false,
+       "final_proposal": "not-mechanical",
+       "final_notes": "PB1957 (open). PB3107 (landed) covers the misfiled exit-7 members.",
+       "corrections": "Both examples hold. 423-17: GATE RED (Linux) ended 01:55:11Z, re-attempt 18:16:39Z = 981.5 min. ced-6: bounced 03:40:12Z, code fix 3c4865564 at 03:59Z. The class uses 'the next head carried a code commit' as its test for not-mechanical, and that test misfiles 6 incidents (1343 of 5137 min). 104-9, 104-11, 104-3 (exit 7), db5-4 and f46-3 (745 and 70 min) were all fixed by 'merge origin/main + re-record the arch-oracle baseline': the exit-7 stale oracle (enqueue.py:88), removed by PB3107. 872-19 was a snapshot re-record. Most of the remaining idle is lane dormancy: 941 of 423-17's 982 min."
+      },
+      {
+       "key": "QUEUE_REMOVAL_TO_FINISHER",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": false,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "Members belong elsewhere: manifest and diagnostics conflicts to PB3116 (open); source conflicts to a finisher; infra bounces to PB3308 (open) and PB3140 (landed); PR #444 to PB3389; a failed group ahead to PB3124.",
+       "corrections": "I re-ran each fix merge's three-way merge read-only (legacy git merge-tree). All 12 merge-resolved incidents had real git conflicts, including ProgramTable.cs, BitRunImageDriftTests.cs, RuntimeAbiPinDriftTests.cs, test_plan_wave.py and manifests. So 'rerun enqueue.py land' would have ended exit 4 again every time, and a hand-resolved merge is exit 11 anyway. stopped_at is the enqueue end, not the removal: fb1-5 is 130 min (not 141), 872-14 is 69 (not 86). PR #81 was failed_checks (not a conflict), and 764 min of it was lane dormancy. #444 is STALE_STORED_BLOCKED. Only 2 same-head infra bounces remain, and their causes have notes."
+      },
+      {
+       "key": "STALE_STORED_BLOCKED",
+       "evidence_holds": true,
+       "idle_measure_ok": true,
+       "safe_to_automate": true,
+       "coverage_correct": true,
+       "refuted": false,
+       "final_proposal": "covered-open",
+       "final_notes": "PB3389 (open; add the PR #493 recurrence of 2026-10-24); PB3368 for #352",
+       "corrections": "#493: removed failed_checks 13:08:46Z, flag-flip fix 18:13:38Z = 304.9 min. The blocker #491 merged 13:06:29Z, ahead of it in the queue. #256: 225.6 min. The refusing code is work.py:641-646; :489-495 is the comment. The catch-up-merge flip would fix neither example, because both blockers landed after the catch-up merge; only deriving the flag works. Deriving it must keep non-note blockers (PB670, PB296) and the skip_flag reader, as PB3389 says. #444 also belongs here."
+      },
+      {
+       "key": "QUOTA_STOP_ENDS_LANE",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "The lane half is LANE_TICK_UNIT_BOUND (orchestrate.ps1:29,81). No note covers 429 handling.",
+       "corrections": "The 429 and the breaker are confirmed (BREAKER-20261024-061546.md; resetsAt 1792861200 = 17:00Z, machine-readable). But the 225.8 loop-min was the account's seven-day limit, and the loop restarted at 10:01:33 PDT, 1.6 min after the reset. No finished work idled: the four branches landed afterwards were finished after 10:06 PDT, and ced-6 was stranded by PB3628 whether or not the lane ticked. There is 1 incident, not 2 (one is a duplicate). The class names the symptom; the mechanism is the lane being bound to the loop."
+      },
+      {
+       "key": "DIRTY_WORKTREE",
+       "evidence_holds": false,
+       "idle_measure_ok": true,
+       "safe_to_automate": false,
+       "coverage_correct": true,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "enqueue.py already excludes coord.NEVER_WORK (coord.py:239)",
+       "corrections": "All 491 attempt records hold 6 dirty refusals on 3 branches. Only faf-20 (STATUS.prev.md, 9.0 min, once) was stray scratch, and its next attempt was exit 4 anyway. 326-19 was a finisher's staged 81-path merge, and notes-landing-latency was the operator's live edits; refusing both was correct. STATUS.prev.md is not in NEVER_WORK and no script writes it. Loosening the check races live finishers, and a list of agents' improvised filenames is the hand-maintained list rule 5 forbids."
+      },
+      {
+       "key": "PLANNER_OVERHOLDS",
+       "evidence_holds": false,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3186 (landed 10-15 21:04Z), PB3465, PB3114, PB3263 landed. PB3171 is fixed in code but its note still reads open. PB3452 and PB3291 are open but are dispatch-side or under-holds.",
+       "corrections": "'Idle 0, register only' is false. The PB3186 HAND-entry over-hold held 7 finished branches for 961-1193 min each on 10-14/15 (3a0-5 log:4, 'shares BitLayout.cs with dispatched whand'; 00:23:30Z to 17:43:21Z = 1040 min). The classifier filed them under LANE_TICK_UNIT_BOUND. That fix landed after the incidents. PB3171's case fold is in plan_wave.py:745-748 (a06d6a6de). PB3263 and PB3291 are under-holds."
+      },
+      {
+       "key": "LATE_RED_GATE_COVERAGE",
+       "evidence_holds": true,
+       "idle_measure_ok": false,
+       "safe_to_automate": true,
+       "coverage_correct": false,
+       "refuted": true,
+       "final_proposal": "covered-landed",
+       "final_notes": "PB3190 (#474), PB3131 with PB3603 folded in (#482), PB3531 (#403), PB3552 (#416), PB3155 and PB3184 (#467), PB3439 retired; campaign PB1957 stays open",
+       "corrections": "These are mechanical gate-planning rules, not judgment work, and every member note landed between 10-22 and 10-24, after the incidents. Tier 0a now admits edited test bodies, Linux reds feed the next gate, register drift tests run in leg 1, and the drift index sees TrackedTree classes (gate_plan.py:18,26,41). The idle is unmeasured, not 0: each late red's bounce and finisher round sits inside REAL_RED_FINISHER. PB3603's raw TestResults are gone because its worktree was pruned."
+      },
+      {
+       "key": "NOT_AN_IDLE",
+       "evidence_holds": false,
+       "idle_measure_ok": true,
+       "safe_to_automate": false,
+       "coverage_correct": true,
+       "refuted": true,
+       "final_proposal": "drop",
+       "final_notes": "Out of the census. PB3180 (landed), PB3152 and PB3611 move to the over-hold family. PB3250 stays open.",
+       "corrections": "The checkpoint failures are confirmed as not idles: 30 in the window, and the unit continues each time. But PB3180 did idle finished work: 3a0-4 log:12 shows a false R3 stop on a finished branch (a merge commit charged with its predecessor's diff), part of a 1096-min hold. PB3152 and PB3611 also delay finished work. 'not-mechanical' is the wrong label: PB3250, PB3474, PB3409 and PB3135 are one-line script fixes that simply cause no idle. These are tooling defects, not COBOL semantics, so no ISO citation applies."
+      }
+     ]
+    }
+   }
+  ]
+ }
+}
