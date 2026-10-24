@@ -30,7 +30,7 @@ public sealed class SelfTestDiscoveryDriftTests
     private static readonly Regex StandaloneName = new(@"^test_[^/]*\.(py|ps1)$", RegexOptions.Compiled);
 
     /// <summary>The scripts that read the live tools' trees, each through <c>live_tools.ROOTS</c> and never a copy.</summary>
-    private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py"];
+    private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py", "scratch_repo.py"];
 
     /// <summary>
     /// The files the net reads, before <see cref="Roots"/> narrows them: every tracked script (declared, kb/Work PB3531,

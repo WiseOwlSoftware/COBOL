@@ -1620,6 +1620,23 @@ tracer; `run_gate_legs.py --self-test` proves every gate reuses, and that a hung
 self-test is `SELF-TESTS HANG`; `SelfTestDiscoveryDriftTests` holds the arms by name and forbids `--reuse` in CI and
 the Linux gate.
 
+**4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it
+through `scripts/scratch_repo.py`'s `ScratchRepo` (`init`, `clone`, `origin`, `worktree`, `git`, `run`, `write`,
+`commit`), the one place a self-test's git process starts. `init` and `clone` write the identity, no automatic
+maintenance (`maintenance.auto = false`, `gc.auto = 0`) and no signing into the new repository's OWN config, so every
+git process in it — the fixture's, the code under test's, a linked worktree's — behaves the same whoever runs the
+self-test (the runner, whose private global config takes the same constants from the fixture, CI, or a hand run:
+outside the runner the `prune_worktrees.py` self-test once started 74 background `git maintenance` processes in the
+repository it was still building). Every command runs without git's repository-selection variables, a failed one
+raises with git's own message (`run` is the unchecked form for a command whose failure is the case), and `isolate()`
+drops the variables from a process whose code under test runs git itself. Until PB3584 fifteen self-tests created
+their own repositories and seven carried a git helper of their own, each with its own identity and checking.
+`scratch_repo.py --audit` reads every self-test's syntax tree (a function named for a self-test, a standalone
+`test_*.py`): a `subprocess` call whose argv is a git argv, a repository created around the fixture, or a nested helper
+over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
+`"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
+maintenance settings) to that one file.
+
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
 is a non-zero exit and a hang is bounded by the budget place, never by a clock. What the runner cannot see is an arm
@@ -1776,9 +1793,11 @@ gate's first serial valley in every run) and then wrote the refreshed index back
 git rewrote on its next command; `git.exe` reads it in 0.1-1.2 s. `LinuxGateDriftTests` holds every git call on the
 tree to `wgit`, and every arm of it to `--no-optional-locks`.
 
-Two guards stay beside the clone (group G, kb/Work PB1719). A self-test that builds its own repositories first drops
-every variable `git rev-parse --local-env-vars` names (`gate_slot.py`, `status_guard.py`), so an inherited `GIT_DIR`
-can never redirect it into the real repository. And the script snapshots the real repository's `HEAD` and
+Two guards stay beside the clone (group G, kb/Work PB1719). A self-test builds and drives its repositories through
+the one scratch-repository fixture, `scripts/scratch_repo.py` (§3.14.10, kb/Work PB3584), which runs every git
+command without the variables `git rev-parse --local-env-vars` names, and a self-test whose code under test runs git
+in its own process drops them from that process first (`scratch_repo.isolate`), so an inherited `GIT_DIR` can never
+redirect it into the real repository. And the script snapshots the real repository's `HEAD` and
 `core.worktree` before the legs and is RED (`repository-written`) when either changed. (Not the worktree list:
 other agents add and remove worktrees of the shared repository while it runs.)
 

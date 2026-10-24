@@ -356,6 +356,7 @@ def check(root: Path) -> int:
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────
 
 def self_test() -> int:
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
     failures = []
 
     def expect(label: str, got, want) -> None:
@@ -367,12 +368,8 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
 
-        def run(*args: str) -> None:
-            subprocess.run(["git", "-C", d, "-c", "core.autocrlf=false", *args], check=True, capture_output=True)
-
-        run("init", "-q")
-        run("config", "user.email", "self-test@example.invalid")
-        run("config", "user.name", "self-test")
+        # the fixture's own commands pin core.autocrlf off; the code under test reads the host's own setting
+        scratch = ScratchRepo.init(root, options=("-c", "core.autocrlf=false"))
         expect("an EMPTY population is RED, never a green over nothing", check(root), 1)
         (root / "lf.txt").write_bytes(b"one" + LF + b"two" + LF)
         (root / "crlf.txt").write_bytes(b"one" + CRLF + b"two" + CRLF)
@@ -380,8 +377,8 @@ def self_test() -> int:
         (root / "fixture.bin").write_bytes(b"A" + NUL + CR + b"B" + CRLF)
         (root / "pinned.xml").write_bytes(b"<a/>" + CRLF)
         (root / ".gitattributes").write_bytes(b"pinned.xml -text" + LF)
-        run("add", "-A")
-        run("commit", "-q", "-m", "fixture")
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "fixture")
         _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX: a CRLF blob and a lone-CR text blob are found; LF, a NUL file and a declared -text file "
                "are not", sorted(in_index), ["crlf.txt", "lonecr.md"])
@@ -389,9 +386,9 @@ def self_test() -> int:
 
         (root / ".gitattributes").write_bytes(b"* text=auto eol=lf" + LF + b"pinned.xml -text" + LF
                                               + b"lonecr.md -text" + LF)
-        run("add", "--renormalize", ".")
-        run("add", "-A")
-        run("commit", "-q", "-m", "normalized")
+        scratch.git("add", "--renormalize", ".")
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "normalized")
         _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX: renormalized under text=auto eol=lf, nothing is found", in_index, [])
         expect("arm WORKING TREE: the pre-normalization CRLF checkout is still found", in_tree, ["crlf.txt"])
@@ -408,41 +405,41 @@ def self_test() -> int:
         # `git diff`, and enqueue.py's dirty-tree check refused the landing.
         status = git(root, "status", "--porcelain", binary=True).stdout.decode("utf-8")
         expect("after --fix git status lists only the real edit, unstaged", status, " M lf.txt\n")
-        run("checkout", "--", "lf.txt")
+        scratch.git("checkout", "--", "lf.txt")
         # Branch review R3-2: `git update-index` records the working tree's MODE too, so re-stating an entry whose
         # content is the staged blob but whose mode is not STAGED an unstaged `chmod +x` (Linux, core.filemode true).
         # Planted portably: the index says 100755 and the checkout (no exec bit; Git for Windows reads every file so)
         # says 100644 — the same mismatch from the other side; the index must come out of --fix untouched.
-        run("config", "core.filemode", "true")
+        scratch.git("config", "core.filemode", "true")
         (root / "mode.sh").write_bytes(b"echo" + LF)
-        run("add", "mode.sh")
-        run("commit", "-q", "-m", "a script")
-        run("update-index", "--chmod=+x", "mode.sh")
+        scratch.git("add", "mode.sh")
+        scratch.git("commit", "-q", "-m", "a script")
+        scratch.git("update-index", "--chmod=+x", "mode.sh")
         before = git(root, "ls-files", "-s", "mode.sh").stdout
         expect("--fix never re-states an entry whose working-tree mode differs from the index's (no mode is staged)",
                (refresh_index(root), git(root, "ls-files", "-s", "mode.sh").stdout), (0, before))
-        run("reset", "-q", "--", "mode.sh")
+        scratch.git("reset", "-q", "--", "mode.sh")
         # Branch review R5-1: mid-merge, `git diff-files --raw` gives a conflicted path a `U` record AND an `M` record
         # against ours, so re-stating it would put ours at stage 0 and silently resolve the conflict. Planted as a
         # modify/delete conflict; --fix must leave both of its stages.
         (root / "conflict.txt").write_bytes(b"base" + LF)
-        run("add", "conflict.txt")
-        run("commit", "-q", "-m", "base")
-        run("checkout", "-q", "-b", "side")
-        run("rm", "-q", "conflict.txt")
-        run("commit", "-q", "-m", "side deletes")
-        run("checkout", "-q", "-")
+        scratch.git("add", "conflict.txt")
+        scratch.git("commit", "-q", "-m", "base")
+        scratch.git("checkout", "-q", "-b", "side")
+        scratch.git("rm", "-q", "conflict.txt")
+        scratch.git("commit", "-q", "-m", "side deletes")
+        scratch.git("checkout", "-q", "-")
         (root / "conflict.txt").write_bytes(b"ours" + LF)
-        run("commit", "-q", "-am", "ours modifies")
-        subprocess.run(["git", "-C", d, "-c", "core.autocrlf=false", "merge", "-q", "side"], capture_output=True)  # conflicts
+        scratch.git("commit", "-q", "-am", "ours modifies")
+        scratch.run("merge", "-q", "side")  # unchecked: it conflicts, which is the case
         expect("--fix never re-states a conflicted path (a modify/delete conflict keeps its two stages)",
                (refresh_index(root), len(git(root, "ls-files", "-u", "--", "conflict.txt").stdout.splitlines())), (0, 2))
-        run("merge", "--abort")
+        scratch.git("merge", "--abort")
 
         accident = b"one" + CRLF + b"two" + CR + CRLF
         (root / "accident.md").write_bytes(accident)
-        run("add", "-A")
-        run("commit", "-q", "-m", "a stray CR")
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "a stray CR")
         _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX + WORKING TREE: an undeclared lone CR is found although git stores the file as binary",
                (in_index, in_tree), (["accident.md"], ["accident.md"]))
