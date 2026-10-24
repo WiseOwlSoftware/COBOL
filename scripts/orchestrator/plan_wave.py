@@ -135,6 +135,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE.parent / "spec"))
+import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
@@ -1691,6 +1692,8 @@ def main(argv: list[str] | None = None) -> int:
                     "(review findings, and unlanded unfinished branches no DONE branch carries); never a cluster or a "
                     "note no report started (kb/Work PB3150)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-stale", action="store_true", help="plan from a checkout BEHIND the commit the loop adopted "
+                    "(adopt_main.py); without it the planner refuses and names both shas (kb/Work PB2699)")
     ap.add_argument("--release", metavar="SEL", help="drop the dispatch-ledger entries of an ABORTED dispatch and exit: "
                     "a wave (1040), a group (1040a) or a note id (PB2249); exit 1 when nothing matched")
     ap.add_argument("--finished", metavar="REPORT", help="is this fix-lane report FINISHED (Report.finished: DONE, or "
@@ -1725,6 +1728,12 @@ def main(argv: list[str] | None = None) -> int:
                                a.stop_file and coord.fleet_stop_problem(a.stop_file),
                                a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
         print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
+    # A STALE CHECKOUT PLANS FROM A STALE REGISTER AND RUNS A STALE PLANNER (kb/Work PB2699: wave 1042 planned seven commits
+    # behind; wave 1079 ran a planner older than the one main carried). The supervisor fast-forwards the checkout before
+    # each unit (adopt_main.py); a planner whose checkout lacks the adopted commit refuses, naming both shas.
+    if not a.allow_stale and (stale := adopt_main.require_current(REPO, coord.coord_dir(a.coord))):
+        print(f"⛔ {stale}")
         return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
