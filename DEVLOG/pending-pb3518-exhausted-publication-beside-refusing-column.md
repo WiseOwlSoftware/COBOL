@@ -17,5 +17,12 @@ directory. A first request, a superseding request (the kept column stands) and a
 Unavailable). The existing witness now exercises the exhaustion with no held column, where `Unavailable` is right.
 `DESIGN-runtime-library.md` states the rule.
 
+Review round 1 found that `Publish` returned -1 both for exhausted tries and for `RegionLockResult.Unavailable` (a handle or filesystem
+that carries no byte-range lock), so `Unpublishable` ran the refused-column test, whose own `whenUnobservable: true` answer is a holder,
+and refused (61) an OPEN no connector contradicts. `Publish` now returns the `RegionLockResult` (Ok; Held on exhaustion; Unavailable on a
+handle that cannot lock, which ends the loop at the first try) and `Unpublishable` tests the columns only after `Held`.
+`AHandleThatCarriesNoLockIsUnavailableWhileAnExhaustedPublicationBesideAHolderIsRefused` drives the loop through its delegate seam and
+`Unpublishable` against a real kept holder.
+
 Self-review: the sidecar host's own exhausted `Publish` (it returns null for "the host takes no lock here" and for 12 lost races
 alike) still answers `Unavailable` without testing; that is reported as a lead because the two causes cannot be told apart at the call.
