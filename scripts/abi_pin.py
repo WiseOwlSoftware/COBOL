@@ -28,7 +28,6 @@ surface is an incompatible change against main's 17: major 18"). So:
 from __future__ import annotations
 
 import argparse
-import os
 import pathlib
 import re
 import subprocess
@@ -37,6 +36,7 @@ from typing import Callable
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+from test_population import scrubbed_env  # noqa: E402  (scripts/: the gate-environment scrub, kb/Work PB1718)
 
 PIN_PATH = "src/Cobol.Net.Runtime/RuntimeAbi.pin"
 PROPS_PATH = "Directory.Build.props"
@@ -105,12 +105,18 @@ def _sub(path: pathlib.Path, pattern: re.Pattern, number: str) -> None:
 
 def run_measurement(repo: pathlib.Path) -> str | None:
     """Build the Unit tests and run RuntimeAbiPinDriftTests in WRITE mode, under the shared gate slot (it is a build):
-    None, or why it failed."""
-    cmd = [sys.executable, str(HERE / "gate_slot.py"), "run", "--repo", str(repo), "--label", "abi_pin: measure", "--",
-           "dotnet", "test", TEST_PROJECT, "-c", "Debug", "--filter", TEST_FILTER, "--nologo"]
-    p = subprocess.run(cmd, cwd=repo, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                       env={**os.environ, WRITE_VARIABLE: "1"})
-    return None if p.returncode == 0 else f"dotnet test exited {p.returncode}:{NL}" + NL.join((p.stdout + p.stderr).split(NL)[-40:])
+    None, or why it failed. The filter is asserted to select something first (filter_population.py: vstest answers an
+    unmatched filter with a passing run of zero tests, kb/Work PB708) and the run is scrubbed of the gate's
+    environment (test_population.scrubbed_env, kb/Work PB1718); the write switch is the one variable added."""
+    slot = [sys.executable, str(HERE / "gate_slot.py"), "run", "--repo", str(repo), "--label", "abi_pin: measure", "--"]
+    spawn = {"cwd": repo, "capture_output": True, "text": True, "encoding": "utf-8", "errors": "replace"}
+    guard = subprocess.run([*slot, sys.executable, str(HERE / "filter_population.py"), "--filter", TEST_FILTER, "--filtered",
+                            TEST_PROJECT, "--allow-build"], env=scrubbed_env(), **spawn)
+    if guard.returncode != 0:
+        return f"the measuring filter selects no test (filter_population.py rc {guard.returncode}):{NL}{guard.stdout}{guard.stderr}"
+    run = ["dotnet", "test", TEST_PROJECT, "-c", "Debug", "--filter", TEST_FILTER, "--nologo"]
+    p = subprocess.run([*slot, *run], env={**scrubbed_env(), WRITE_VARIABLE: "1"}, **spawn)
+    return None if p.returncode == 0 else f"the measuring run exited {p.returncode}:{NL}" + NL.join((p.stdout + p.stderr).split(NL)[-40:])
 
 
 def settle(repo: pathlib.Path, *, stage: bool = True, measure: Runner = run_measurement) -> str | None:
@@ -208,7 +214,7 @@ def self_test() -> int:
                f"{why} {seen}")
         (repo / PIN_PATH).write_bytes(pin(18, UNMEASURED, 3, UNMEASURED).encode("utf-8"))
         expect("settle: a measurement that fails, or writes nothing, is the reason, never a pass",
-               settle(repo, measure=lambda r: "dotnet test exited 1") == "dotnet test exited 1"
+               settle(repo, measure=lambda r: "the measuring run exited 1") == "the measuring run exited 1"
                and "did not write" in (settle(repo, measure=lambda r: None) or ""))
         (repo / PIN_PATH).write_bytes(pin(18, "1111", 3, "2222").encode("utf-8"))
         fresh = bump(repo, runtime_major=True, call_abi=False, measure=writes)

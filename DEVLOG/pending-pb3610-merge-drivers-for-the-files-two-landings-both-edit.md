@@ -51,3 +51,9 @@ rolling-wave tests follow the new instruction text.
 whole solution unrestorable (NETSDK1013, found by the first solution build); a `git merge --abort` that keeps the settle's
 own edits to files the merge changed (restored from HEAD); a union merge that returned an empty body when git failed
 (now a conflict); an unchecked `git add` in the settle.
+
+**Gate.** The first gate (000001-20261024T173719Z) was RED in Unit leg 1 on three drift tests that read what the new files are:
+`HostWitnessTraitDriftTests` (MergeDriverDriftTests names paths under scripts/, so drift_rules.py makes it a tree-wide sweep and
+it must carry the Sweep trait), `FilterPopulationGuardDriftTests` and `GateLegDriftTests` arm 6 (abi_pin.py runs a filtered
+`dotnet test`: it now asserts the filter selects something with filter_population.py and runs scrubbed of the gate environment,
+and arm 6 lists it among the sites the caller audit must see). The three are fixed on the branch.
