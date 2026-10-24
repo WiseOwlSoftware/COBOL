@@ -13,7 +13,7 @@ fixture's second engine and the `work.py parity` comparison went with them: the 
 
 THE INVARIANT, in two directions:
 
-  COVERAGE (kb/Work PB1535 and its registration wave). Every inventory row whose verdict is DEFECTIVE is claimed, in
+  COVERAGE (the registration wave of 2026-08-31). Every inventory row whose verdict is DEFECTIVE is claimed, in
   `inventory_rows`, by a LIVE note (a status that is not terminal); and every `inventory_rows` claim names a rule-id the
   inventory has. `tests/version-matrix/traceability-inventory.json` says which spec rules the compiler does not yet
   implement correctly, `kb/Work/` says what is left to do, and nothing held them together: measured 2026-08-31, of 138
@@ -58,7 +58,7 @@ MIN_REASON_LENGTH = 20
 #: The spellings that say nothing, for the ones that squeeze past the floor.
 VACUOUS_REASONS = ("n/a", "na", "none", "nothing", "tbd", "todo", "unknown", "-", "no rows", "not applicable")
 
-#: The smallest populations at which the checks mean anything. Measured on the live tree 2026-10-24: 3,000+ notes, 4,214
+#: The smallest populations at which the checks mean anything. Measured on the live tree 2026-10-24: 2,901 notes, 4,214
 #: rows; these floors are far below them, so they catch a register or an inventory that FAILED TO LOAD, not a small one.
 MIN_NOTES, MIN_OBLIGED_NOTES, MIN_ROWS, MIN_CLOSES_CLAIMS = 100, 50, 1000, 100
 
