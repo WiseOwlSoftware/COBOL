@@ -22,7 +22,8 @@ sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import plan_wave as pw  # noqa: E402
 sys.path.insert(0, str(HERE.parent))
-from scratch_repo import ScratchRepo, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from scratch_repo import ScratchRepo, isolate, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+import prune_worktrees as prune  # noqa: E402  (scripts/: the branch survey; the replay rule is its, kb/Work PB3170)
 import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582)
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
@@ -2198,6 +2199,167 @@ check("PB3625: a later serial-wave DONE report supersedes the date-wave SPLIT re
       [b for g in po["a"]["groups"] if g.kind == "finisher" and "PB5" in g.notes for b in g.continues], [])
 check("PB3625: the converse holds: a SPLIT report written after the DONE one is the note's newest and gets its finisher",
       [b for g in po["b"]["groups"] if g.kind == "finisher" and "PB5" in g.notes for b in g.continues], ["worktree-old-1"])
+
+# PB3170: A BRANCH ANOTHER BRANCH REPLAYS IS NEVER PLANNED FROM. The planner's own FINISH-FIRST pred tells a SPLIT
+# successor to CHERRY-PICK its predecessor, so the successor holds the work as other commits and is no descendant of
+# it (`branch_carrier` reads ancestry of DONE branches only). Wave 1079 planned PB3127 from w1077b's branch `…-28e-2`
+# although `…-3a0-2` (w1078b, SPLIT, planned in the same wave) replayed all four of its commits.
+# (a) THE RULE, on real commits (a scratch repository, the cherry-picks `git cherry` matches by patch id): x holds four
+# commits; y cherry-picks them and adds one; z cherry-picks two; q is cut from x with one of its own; w is unrelated.
+isolate()
+RG = ScratchRepo.init(TMP / "repo-3170")
+RG.commit("base", {"a.txt": "base\n"})
+RG.git("update-ref", git_batch.BASE, "HEAD")
+RG.git("switch", "-q", "-c", "x")
+for i in range(1, 5):
+    RG.commit(f"x{i}", {f"x{i}.txt": f"{i}\n"})
+x_commits = RG.git("rev-list", "--reverse", f"{git_batch.BASE}..x").split()
+RG.git("switch", "-q", "-c", "y", "main")
+RG.git("cherry-pick", *x_commits)
+RG.commit("y5", {"y5.txt": "5\n"})
+y5 = RG.git("rev-parse", "HEAD")
+RG.git("switch", "-q", "-c", "z", "main")
+RG.git("cherry-pick", *x_commits[:2])
+RG.git("switch", "-q", "-c", "q", "x")
+RG.commit("q1", {"q1.txt": "q\n"})
+RG.git("switch", "-q", "-c", "w", "main")
+RG.commit("w1", {"w1.txt": "w\n"})
+w1 = RG.git("rev-parse", "HEAD")
+RG_ORDER = ["x", "y", "z", "q", "w"]
+RG_GRAPH = git_batch.Ancestry.read(RG.path, RG_ORDER)
+found = prune.replays(RG_ORDER, RG_ORDER, RG_ORDER.index, RG_GRAPH)
+check("PB3170 (a): x, whose four commits y replays by cherry-pick and q holds as ancestors, is carried (by the branch "
+      "that replays the most, the later of two ties); it has no commit of its own beyond them",
+      (found["x"].carrier, found["x"].fresh, found["x"].by), ("q", (), (("q", 4), ("y", 4))))
+check("PB3170 (a): z, two of x's commits cherry-picked, is carried too, by every larger UNCARRIED branch (x is carried)",
+      (found["z"].carrier, found["z"].fresh, [b for b, _ in found["z"].by]), ("q", (), ["q", "y"]))
+check("PB3170 (a): y is NOT carried: its fifth commit is in no larger branch (fresh), and q replays the other four",
+      (found["y"].carrier, found["y"].fresh, found["y"].by), (None, (y5,), (("q", 4),)))
+check("PB3170 (a): the largest of the family, q, carries nothing: exactly one branch still does the work",
+      (found["q"].carrier, len(found["q"].fresh), found["q"].by), (None, 5, ()))
+check("PB3170 (a): an unrelated branch is replayed by nobody", (found["w"].carrier, found["w"].fresh, found["w"].by),
+      (None, (w1,), ()))
+# the tie: two branches holding the same work cannot each carry the other; the later report's carries the earlier's
+RG.git("switch", "-q", "-c", "x2", "x")
+tie = prune.replays(["x", "x2"], ["x", "x2"], {"x": 0, "x2": 1}.get, git_batch.Ancestry.read(RG.path, ["x", "x2"]))
+check("PB3170 (a): two branches holding the same commits: the later report carries the earlier, never both ways",
+      (tie["x"].carrier, tie["x2"].carrier), ("x2", None))
+# the successor CHAIN (review R1-1): c-x holds four commits; a-mid (a later report) cherry-picks them; b-top (the latest)
+# cherry-picks a-mid and adds one. a-mid is carried by b-top, so it gets no finisher: c-x's carrier is b-top, never the
+# carried middle link a-mid. The names are chosen so that the name order and the report order disagree (the old rule
+# broke the tie on NAME, and a-mid sorts before b-top).
+for br, picks in (("c-x", x_commits), ("a-mid", x_commits)):
+    RG.git("switch", "-q", "-c", br, "main")
+    RG.git("cherry-pick", *picks)
+mid_commits = RG.git("rev-list", "--reverse", f"{git_batch.BASE}..a-mid").split()
+RG.git("switch", "-q", "-c", "b-top", "main")
+RG.git("cherry-pick", *mid_commits)
+RG.commit("t5", {"t5.txt": "5" + chr(10)})
+CH_ORDER = ["c-x", "a-mid", "b-top"]
+chain = prune.replays(CH_ORDER, CH_ORDER, CH_ORDER.index, git_batch.Ancestry.read(RG.path, CH_ORDER))
+check("PB3170 (a): in a successor chain every carried link rides on the TOP branch, never on a carried middle link",
+      [(chain[b].carrier, chain[b].fresh == ()) for b in CH_ORDER], [("b-top", True), ("b-top", True), (None, False)])
+check("PB3170 (a): ... and `by` names only branches that have a finisher",
+      [[n for n, _ in chain[b].by] for b in CH_ORDER], [["b-top"], ["b-top"], []])
+# (b) THROUGH THE PLANNER'S OWN WIRING (branch_replays: the reports' order is the rank, ABANDONED carries nothing)
+rg_reports = [pw.Report(pathlib.Path(f"{slug}-{lead}-report.md"), int(slug[1:5]), slug, lead, "SPLIT", [lead], False,
+                        branch, None, "7777777aa")   # oldest first: x's report, then y's
+              for slug, lead, branch in (("w1077b", "PB6", "x"), ("w1078b", "PB5", "y"))]
+rep_all = pw.branch_replays(rg_reports, lambda b: "UNLANDED", {}, RG_GRAPH, set())
+rep_ab = pw.branch_replays(rg_reports, lambda b: "UNLANDED", {}, RG_GRAPH, {"y"})
+rep_land = pw.branch_replays(rg_reports, lambda b: "LANDED" if b == "y" else "UNLANDED", {}, RG_GRAPH, set())
+check("PB3170 (b): x is replayed by y when y has a later report (y's own fifth commit is not x's business)",
+      (rep_all("x").carrier, rep_all("x").fresh), ("y", ()))
+check("PB3170 (b): an ABANDONED branch carries nothing, and a LANDED one is no unlanded branch to carry",
+      (rep_ab("x").carrier, rep_ab("x").by, rep_land("x").carrier), (None, (), None))
+# abandon_records is abandon_record for a list, in one pass over the notes
+AB = TMP / "Work-3170"
+AB.mkdir()
+(AB / "PB901.md").write_text("`old-a` is ABANDONED, superseded by `new-a`.\nnot abandoned: old-b\n", encoding="utf-8", newline="\n")
+(AB / "PB902.md").write_text("nothing here\n`old-c` abandoned (wave 1, SPLIT).\n", encoding="utf-8", newline="\n")
+ab_names = ["old-a", "new-a", "old-b", "old-c", "none"]
+check("PB3170 (b): abandon_records agrees with abandon_record for each branch, in one pass",
+      prune.abandon_records(ab_names, AB), {b: n for b in ab_names if (n := prune.abandon_record(b, AB))})
+check("PB3170 (b): ... and names the note that records it, never a branch a line merely mentions",
+      prune.abandon_records(ab_names, AB), {"old-a": "PB901", "old-c": "PB902"})
+
+# (c) THE PLAN. PB6's newest report (w1077b) is a SPLIT on `…-28e-2`; PB5's (w1078b, later) a SPLIT on `…-3a0-2`.
+R_REPORTS = TMP / "reports-3170"
+R_REPORTS.mkdir()
+B28, B3A = "worktree-r-28e-2", "worktree-r-3a0-2"
+
+
+def r3170(slug, lead, status, branch, when):
+    p = R_REPORTS / f"{slug}-{lead}-report.md"
+    p.write_text(f"{status}\n# {lead} group\n**Status:** {status} · **branch:** `{branch}` · **HEAD:** `7777777aa`\n\n"
+                 "## Reproduced?\n", encoding="utf-8", newline="\n")
+    os.utime(p, (when, when))
+
+
+def plan3170(carrier_status, replay=None, abandoned=None, unlanded=None, clusters=None, held=None):
+    for p in R_REPORTS.glob("*.md"):
+        p.unlink()
+    r3170("w1077b", "PB6", "SPLIT", B28, 1_000_000_000)
+    r3170("w1078b", "PB5", carrier_status, B3A, 1_000_003_600)
+    return pw.plan(notes, clusters or [cl(F_BIND, "PB5", "PB6")], [], pw.load_reports(R_REPORTS), lambda b: "UNLANDED",
+                   unlanded or {}, RULES, budget_points=100, replay=replay, abandoned=abandoned, held=held)
+
+
+def continuing(p, branch):
+    return [sorted(g.notes) for g in p["groups"] if branch in g.continues]
+
+
+FULL = {B28: prune.Replay(B3A, (), ((B3A, 4),)), B3A: prune.Replay(None, ("f" * 12,), ())}
+before = plan3170("SPLIT")
+check("PB3170 (c): WITHOUT the rule both SPLIT branches get a finisher (the defect: the same four commits land twice)",
+      (continuing(before, B28), continuing(before, B3A)), ([["PB6"]], [["PB5"]]))
+after = plan3170("SPLIT", replay=FULL.get)
+check("PB3170 (c): a SPLIT branch another SPLIT branch replays gets no finisher; its note rides on the carrier's group",
+      (continuing(after, B28), continuing(after, B3A)), ([], [["PB5", "PB6"]]))
+check("PB3170 (c): ... and the carrier's pred names the branch it carries",
+      [("ride on this branch" in g.pred, B28 in g.pred) for g in after["groups"] if B3A in g.continues], [(True, True)])
+done = plan3170("DONE", replay=FULL.get)
+check("PB3170 (c): the carrier DONE (it lands on its own): the carried note waits for it, with the reason, no finisher",
+      (continuing(done, B28), "PB6" in done["waiting"] and B3A in done["waiting"]["PB6"]), ([], True))
+part = plan3170("SPLIT", replay={B28: prune.Replay(None, ("abc123def456",), ((B3A, 3),)), B3A: FULL[B3A]}.get)
+check("PB3170 (c): a branch only PARTLY replayed keeps its finisher, whose pred names only the commits no other branch holds",
+      (continuing(part, B28), [("ONLY" in g.pred, "abc123def" in g.pred, B3A in g.pred) for g in part["groups"]
+                               if B28 in g.continues]), ([["PB6"]], [(True, True, True)]))
+gone = plan3170("SPLIT", abandoned={B28})
+check("PB3170 (c): an ABANDONED branch is never planned from: no finisher continues it, its note is planned from main",
+      (continuing(gone, B28), any("PB6" in g.notes and not g.continues for g in gone["groups"]) or
+       any("PB6" in g.notes for g in gone["groups"] if B3A in g.continues)), ([], True))
+# the unlanded-branch arm (a branch with commits naming a note and NO report), and the half-note arm, are the siblings
+two = pw.plan(notes, [cl(F_EMIT, "PB7")], [], [], lambda b: "UNLANDED", {"b-1": ["PB7"], "b-2": ["PB7"]}, RULES,
+              budget_points=100, replay={"b-1": prune.Replay("b-2", (), (("b-2", 2),))}.get)
+check("PB3170 (c): the sibling arm: a report-less unlanded branch another branch replays gets no finisher either",
+      [g.continues for g in two["groups"]], [["b-2"]])
+twoh = pw.plan(notes, [], [cl("src/X/Half.cs", "PB4")], [], lambda b: "UNLANDED", {"b-1": ["PB4"], "b-2": ["PB4"]}, RULES,
+               budget_points=100, replay={"b-1": prune.Replay("b-2", (), (("b-2", 2),))}.get)
+check("PB3170 (c): ... and the half-note arm resumes from the replaying branch only",
+      [g.continues for g in twoh["groups"]], [["b-2"]])
+
+# (d) THE TWO RULES COMPOSE: a rider (PB3170) belongs to the replaying branch's UNIT (kb/Work PB2974). A dispatch holding
+# the carrier's note holds the rider too; the carrier's one finisher takes the rider AND the unreported notes its own
+# branch carries, naming the replayed commits once; a report-less branch's one finisher names its fresh commits.
+hold = plan3170("SPLIT", replay=FULL.get, held={"PB5": "dispatch w1080a"})
+check("PB3170 x PB2974: a dispatch holding the carrier's note holds the rider on it: no finisher over either branch",
+      (continuing(hold, B28), continuing(hold, B3A)), ([], []))
+check("PB3170 x PB2974: ... and the rider waits naming the held note and its dispatch",
+      ("PB5" in hold["waiting"].get("PB6", ""), "w1080a" in hold["waiting"].get("PB6", "")), (True, True))
+PART3A = {B28: FULL[B28], B3A: prune.Replay(None, ("fedcba987654",), (("worktree-r-zz", 1),))}
+both = plan3170("SPLIT", replay=PART3A.get, unlanded={B3A: ["PB7"]}, clusters=[cl(F_BIND, "PB5", "PB6", "PB7")])
+check("PB3170 x PB2974: the carrier's ONE finisher takes its note, the rider and its branch's unreported note",
+      (continuing(both, B28), continuing(both, B3A), [g.kind for g in both["groups"]]),
+      ([], [["PB5", "PB6", "PB7"]], ["finisher"]))
+check("PB3170 x PB2974: ... its pred names the rider and the replayed commits, the latter exactly once",
+      [("ride on this branch" in g.pred, g.pred.count("cherry-pick ONLY"), "fedcba987" in g.pred, "PB7" in g.pred)
+       for g in both["groups"]], [(True, 1, True, True)])
+lone = pw.plan(notes, [cl(F_EMIT, "PB7")], [], [], lambda b: "UNLANDED", {"b-1": ["PB7"]}, RULES, budget_points=100,
+               replay={"b-1": prune.Replay(None, ("0123456789ab",), (("b-2", 1),))}.get)
+check("PB3170 x PB2974: a report-less branch partly replayed is ONE finisher naming only its fresh commits",
+      [(g.continues, "cherry-pick ONLY" in g.pred, "012345678" in g.pred) for g in lone["groups"]],
+      [(["b-1"], True, True)])
 
 for f in fails:
     print("FAIL:", f)
