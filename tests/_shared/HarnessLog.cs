@@ -29,19 +29,55 @@ internal static class HarnessLog
         Record(line);
     }
 
-    /// <summary>Append one line. Best-effort and lock-tolerant: this is an instrument, and an instrument that can fail a
-    /// test run is worse than one that occasionally drops a line.</summary>
+    /// <summary>How long one append waits, in all, for another writer to let go of the log.</summary>
+    private static readonly TimeSpan AppendPatience = TimeSpan.FromSeconds(5);
+
+    /// <summary>Serializes this host's appends: xUnit runs test classes in parallel, and each append holds the file
+    /// alone.</summary>
+    private static readonly Lock Appending = new();
+
+    /// <summary>Append one line, and LOSE NONE (kb/Work PB3194): a test reads it back (<c>ScratchDirectoryTests</c>) and a
+    /// reader counts it. This host's appends take turns under <see cref="Appending"/>; another process holding the file
+    /// (a second test host, a reader) is waited for, up to <see cref="AppendPatience"/>. It never throws, since an
+    /// instrument must not fail the test it watches: a line it still cannot write goes to standard error, marked lost,
+    /// never into silence.</summary>
     public static void Record(string line)
     {
-        try
+        string entry = $"{DateTime.UtcNow:O}\t{Environment.ProcessId}\t{line}{Environment.NewLine}";
+        Exception? last = null;
+        lock (Appending)
         {
-            // A gate or CI step names a log in its results directory, which may not exist until the run writes its
-            // first result (dotnet test creates --results-directory when it writes the TRX, at the end).
-            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(Path))!);
-            File.AppendAllText(Path,
-                $"{DateTime.UtcNow:O}\t{Environment.ProcessId}\t{line}{Environment.NewLine}", Encoding.UTF8);
+            var waited = System.Diagnostics.Stopwatch.StartNew();
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    // A gate or CI step names a log in its results directory, which may not exist until the run writes its
+                    // first result (dotnet test creates --results-directory when it writes the TRX, at the end).
+                    Directory.CreateDirectory(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(Path))!);
+                    using var log = new FileStream(Path, FileMode.Append, FileAccess.Write, FileShare.Read | FileShare.Delete);
+                    using var text = new StreamWriter(log, Encoding.UTF8);
+                    text.Write(entry);
+                    return;
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    last = e;
+                    if (waited.Elapsed >= AppendPatience) break;
+                    Thread.Sleep(Math.Min(5 << Math.Min(attempt, 5), 100));
+                }
+            }
         }
-        catch (IOException) { /* concurrent append lost: acceptable for an instrument */ }
-        catch (UnauthorizedAccessException) { /* same */ }
+        Console.Error.WriteLine($"HARNESS-LOG-LOST  {Path} :: {last!.GetType().Name}: {last.Message} :: {line}");
+    }
+
+    /// <summary>The log's text so far, read beside its writers (they share it for reading, and this reader shares it for
+    /// writing, so neither refuses the other); empty when nothing has been recorded.</summary>
+    public static string ReadAll()
+    {
+        if (!File.Exists(Path)) return "";
+        using var log = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var text = new StreamReader(log, Encoding.UTF8);
+        return text.ReadToEnd();
     }
 }

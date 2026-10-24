@@ -52,7 +52,7 @@ public sealed class ScratchDirectoryTests
             ScratchDirectory.Remove(dir);
 
             Assert.True(Directory.Exists(dir), "the refusal did not happen, so this case measured nothing");
-            string log = File.Exists(HarnessLog.Path) ? File.ReadAllText(HarnessLog.Path) : "";
+            string log = HarnessLog.ReadAll();
             Assert.Contains($"SCRATCH-LEFT  {dir} :: ", log, StringComparison.Ordinal);
         }
         finally
