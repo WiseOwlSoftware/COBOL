@@ -1,4 +1,4 @@
-## CI: an artifact upload or download no longer decides a verdict; both go through one retried action (kb/Work PB3140)
+## Entry 2433 — 2026-10-23 20:32 PDT — CI: an artifact upload or download no longer decides a verdict; both go through one retried action (kb/Work PB3140)
 
 **Why.** Merge-group run 38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard,
 then its `actions/upload-artifact` step failed on the artifact service's `ETIMEDOUT`. The step ran `if: always()` with
@@ -38,3 +38,4 @@ at 120 s twice on a host 99 to 100 % busy, so every suite test and the partition
 before comparing anything; fail-fast then stopped the leg (the IDENTITY MISMATCH). Nothing in this change reaches it.
 The re-gate, run 000002-20261024T020342Z on the same head: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN` (Conformance 9,984 · Unit 34,448 · Characterization 5 cases), the four `CiArtifactDriftTests` cases Passed.
+
