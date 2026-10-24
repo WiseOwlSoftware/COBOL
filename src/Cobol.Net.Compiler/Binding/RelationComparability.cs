@@ -80,10 +80,12 @@ internal static class RelationComparability
         BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { Usage: Usage.Display or Usage.National } } } =>
             IntrinsicResultType.IsIntegerOperand(o),
         BoundComputedOperand { Expr: BoundIntrinsicCall } => IntrinsicResultType.IsIntegerOperand(o),
-        // A COUNTER REGISTER is an unsigned integer data item whose implicit description is PIC 9(d) USAGE DISPLAY
-        // (docs/CONFORMANCE.md, the counter registers' declared capacity): §8.4.3.15.3 SR1 admits PAGE-COUNTER and
-        // LINE-COUNTER "in any context where an integer data item may appear", and this is one (kb/Work PB1153).
-        BoundComputedOperand { Expr: var register } when AlgebraicRanges.IsCounterRegister(register) => true,
+        // A COUNTER REGISTER is an unsigned integer data item (§8.4.3.15.3 SR1 admits PAGE-COUNTER and LINE-COUNTER
+        // "in any context where an integer data item may appear", and this is one — kb/Work PB1153), but only the
+        // one whose implicit description is usage display qualifies HERE: LINAGE-COUNTER's PIC 9(d) is, LINE- /
+        // PAGE-COUNTER's 32-bit binary integer is not (docs/CONFORMANCE.md, "the counter registers' declared
+        // description"; kb/Work PB1746), so their comparison with an alphanumeric operand is this rule's breach.
+        BoundComputedOperand { Expr: var register } => AlgebraicRanges.CounterRegisterIsUsageDisplay(register) is true,
         _ => false,
     };
 

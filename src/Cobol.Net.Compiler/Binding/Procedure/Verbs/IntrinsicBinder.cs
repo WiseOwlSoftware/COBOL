@@ -2196,10 +2196,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A COUNTER REGISTER (LINAGE-/LINE-/PAGE-COUNTER) is a DATA ITEM — "a temporary unsigned integer data item"
         // (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1) — so §15.50.3 r1's "a data item of any class or category" admits it;
         // it used to fall to the default arm below and be refused as "a numeric literal" (kb/Work PB1153). Its
-        // length is §15.50.4 r3's alphanumeric character positions of its implicit description, PIC 9(d) USAGE DISPLAY
-        // (docs/CONFORMANCE.md, the counter registers' declared capacity) — d, one position per digit.
-        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterDigits(reg) is { } regDigits =>
-            new BoundNumLiteral(regDigits.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+        // length is that of its implicit description (docs/CONFORMANCE.md, "the counter registers' declared
+        // description"): d positions for LINAGE-COUNTER's PIC 9(d) USAGE DISPLAY item, the 4 bytes of a 32-bit
+        // binary integer for LINE-/PAGE-COUNTER (kb/Work PB1746) — AlgebraicRanges.CounterRegisterByteLength.
+        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
+            new BoundNumLiteral(regBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         // An argument that already failed to bind (a nested call the binder rejected) is already loud — no
         // second, misattributed report ("is a numeric literal") on top of it (kb/Work PB63).
         BoundOperandError e => BoundExprError.Carry(e.Feature, e.IsUnbuilt),
@@ -2652,10 +2653,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // pointer, admitted by r1 — occupies the pointer carrier's bytes (the LENGTH twin's arm; kb/Work PB1060).
         BoundAddressOperand => new BoundNumLiteral(DataItem.PointerByteWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         // A COUNTER REGISTER is a data item (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1), admitted by §15.14.3 r1's
-        // "a data item of any class or category"; its implicit PIC 9(d) USAGE DISPLAY occupies d bytes (the
-        // LENGTH twin above — kb/Work PB1153).
-        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterDigits(reg) is { } regDigits =>
-            new BoundNumLiteral(regDigits.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+        // "a data item of any class or category"; its implicit description occupies the LENGTH twin's byte count
+        // above (kb/Work PB1153, PB1746).
+        BoundComputedOperand { Expr: var reg } when AlgebraicRanges.CounterRegisterByteLength(reg) is { } regBytes =>
+            new BoundNumLiteral(regBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         BoundOperandError e => BoundExprError.Carry(e.Feature, e.IsUnbuilt),   // already loud (kb/Work PB63)
         // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
         // (fix-queue PB48 sweep). PB25 gave BindLengthFold its §8.3.3.6.4 GR3 arms and cited the reasoning in

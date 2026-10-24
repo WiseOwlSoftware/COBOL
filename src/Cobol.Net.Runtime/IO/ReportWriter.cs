@@ -256,11 +256,23 @@ public sealed class CobolReport(
 
     /// <summary>The report's LINE-COUNTER (ISO §8.4.3.15): an unsigned integer; 0 after INITIATE (GR3), set to
     /// each line's number as it is printed (§13.18.35.4 GR6), reset to 0 at every page advance (GR3).</summary>
-    public long LineCounter { get; private set; }
+    public long LineCounter { get => _lineCounter; private set => _lineCounter = value & CounterMask; }
+    private long _lineCounter;
 
     /// <summary>The report's PAGE-COUNTER (ISO §8.4.3.15): 1 after INITIATE (GR2), +1 at each page advance.
     /// ⛔ SET BY THE PROCEDURE DIVISION TOO — see <see cref="SetPageCounter"/>.</summary>
-    public long PageCounter { get; private set; }
+    public long PageCounter { get => _pageCounter; private set => _pageCounter = value & CounterMask; }
+    private long _pageCounter;
+
+    /// <summary>⛔ THE REGISTERS' CAPACITY, THE RUNTIME'S TWIN OF <c>PicInfo.ReportCounterItem</c> (kb/Work PB1746):
+    /// PAGE-COUNTER and LINE-COUNTER are "temporary unsigned integer data items" (§8.4.3.15.4 GR1) of no size or usage
+    /// the standard names, so the latitude order (CLAUDE.md rule 1) takes GnuCOBOL's — an unsigned 32-bit binary
+    /// integer (<c>CB_USAGE_UNSIGNED_INT</c>, cobc/tree.c <c>build_report</c>), which a page advance past 4,294,967,295
+    /// wraps to 0 in, exactly as cobc's <c>ADD 1 TO PAGE-COUNTER</c> does. Every assignment of either counter reduces
+    /// modulo this, so the carrier cannot hold a value its description does not;
+    /// <c>ReportCounterDescriptionDriftTests</c> pins it against the compiler's description.</summary>
+    internal const long CounterModulus = 1L << 32;
+    private const long CounterMask = CounterModulus - 1;
 
     /// <summary>Assign PAGE-COUNTER from the procedure division (ISO §8.4.3.15.3 SR1 — "In the procedure
     /// division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may
