@@ -1261,7 +1261,13 @@ of an unsupported facility.
   every register is an integer for `PERFORM … TIMES`. **Usage screens follow the description:** STRING's identifiers
   "shall be described … as usage display or national" (§14.9.43.3 SR1) and §8.8.4.2.5's numeric integer operand "shall
   be … of usage display or national", so **LINAGE-COUNTER takes a STRING sender and an alphanumeric relation, and
-  PAGE-COUNTER / LINE-COUNTER are refused in both** (COBOLNET1626, COBOLNET2532, as a declared `BINARY` item is);
+  PAGE-COUNTER / LINE-COUNTER are refused in both** (COBOLNET1626, COBOLNET2532), because those rules read the item's usage
+  "described implicitly or explicitly" and the registers' implicit usage is binary. **§14.9.25.3 SR8 does not reach the
+  registers**: it keys on "a data item described with usage binary-char, binary-short, binary-long, or binary-double" —
+  a USAGE clause a program wrote — and §8.4.3.15.4 GR1 gives the counters no usage clause, only the category numeric and
+  the unsigned-integer shape the implementor pins above; so `MOVE PAGE-COUNTER TO` an alphanumeric item is judged by
+  Table 16's numeric-integer row alone and is legal (and cobc accepts it), whereas `MOVE` of a declared
+  `BINARY-LONG UNSIGNED` item to one is COBOLNET0819 (`MoveTable16.ShapeRefusal`, kb/Work PB1746 review R1-1);
   UNSTRING's identifiers "shall reference data items of category alphanumeric or national" (§14.9.48.3 SR2), which a
   numeric register is not, so **all three registers are refused as an UNSTRING sender or delimiter** (COBOLNET1651;
   before PB1746 the statement compiled and split the register's image). `AlgebraicRanges.CounterRegisterDigits` /
