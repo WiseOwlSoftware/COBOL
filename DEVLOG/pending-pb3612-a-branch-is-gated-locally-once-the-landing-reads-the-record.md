@@ -28,7 +28,7 @@ reused answer needs a GREEN Linux half of this head's tree. The Linux results la
 reproduces a Linux CI red.
 
 **Mechanism 2 — `enqueue.py land` gates nothing; it reads the record.** `tested_locally` reads the worktree's gate runs and
-refuses (exit 13, UNTESTED, before anything is merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN
+refuses (exit 14, UNTESTED, before anything is merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN
 …`) a tip no run covers: GREEN with exit 0, measured the committed head's own tree (`tree` equals `head_tree`: an
 implementer who gated uncommitted edits tested something no commit carries), a GREEN Linux half of that tree on a host
 that runs one, and a head that IS the tip or is followed only by main's commits, clean merges and DEVLOG-only commits
@@ -40,7 +40,7 @@ the Linux gate row, `SLOT_WRAP` and `gate_argv` (no row runs outside the driver'
 `gated_covers`. The self-test arms that drove the gate through those paths now drive the lane/overlap path; new arms: an
 untested tip, the evidence rules (a later RED does not unrecord a GREEN; an uncommitted tree, no Linux half, a non-zero
 exit and a foreign head do), coverage after main's commits, an overlap that runs one gate and a disjoint merge that runs
-none, the set-aside files, main moving while the pull request is queued. The land lane and the loop's exit table treat 13
+none, the set-aside files, main moving while the pull request is queued. The land lane and the loop's exit table treat 14
 as a STOP for a finisher.
 
 **Mechanism 3 — measurement.** `landing_measure.py` records `landing_gate_runs` (0 or 1; null before the rule, said
@@ -49,7 +49,7 @@ with `summary --since`.
 
 **Mechanism 4 — docs, same change set.** MANDATORY-PRACTICES I1, I8, L1, L2, L10, L12; the gate skill; the fix-lane and
 implementer briefs and the dispatch-spec template; `make_dispatch_specs.LINUX_GATE` and its pins; the finisher brief and
-the enqueue unit (exit 13); the agent definition; DESIGN-test-build-ci.md §3.15, §3.17.2, §3.17.3, §3.18;
+the enqueue unit (exit 14); the agent definition; DESIGN-test-build-ci.md §3.15, §3.17.2, §3.17.3, §3.18;
 DESIGN-orchestrator-loop.md; CLAUDE.md's Testing paragraph (owner-owned text, edited to the decision's words); README and
 DOC_INDEX. `LinuxGateDriftTests` gains a test that the driver's Linux command and the script's targeted mode spell their
 arguments the same; `LandingPipelineDriftTests` lists the new arms.

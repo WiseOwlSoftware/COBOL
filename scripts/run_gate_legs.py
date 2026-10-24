@@ -1144,6 +1144,12 @@ class Gate:
             # is green, under the slot this gate still holds.
             if (stop := self._linux_leg(out, run, plan, sorted(to_run), spawn)) is not None:
                 out.tree_end = self.host.measured_tree()
+                if stop.reading == BUSY_READING:
+                    return self._finish(
+                        out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
+                        "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
+                        f"once it ends; the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))} "
+                        f"(run {run.name})", EXIT_BUSY)
                 return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
                                     f"the Linux half of the targeted leg was NOT RUN ({stop.line}); the Windows half ran "
                                     f"leg(s) {', '.join(map(str, sorted(to_run)))} (run {run.name})", 2)
@@ -1156,7 +1162,8 @@ class Gate:
         """THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): the plan's `legs`, the
         legs the Windows half just ran, in a WSL clone of the committed HEAD (`Host.linux_leg`), printed here and recorded
         in `out.linux`. A red is a reason (the verdict is RED and names the host); a NOT RUN, which measured nothing, is
-        returned so the gate ends NOT RUN with the Linux gate's own cause."""
+        returned so the gate ends NOT RUN with the Linux gate's own cause; a BUSY (another Linux gate of this worktree
+        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red."""
         t = time.monotonic()
         self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
                  "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
@@ -1171,6 +1178,8 @@ class Gate:
                      "log": leg.log, "legs": legs, "tree": out.head_tree}
         if leg.reading == GREEN_READING:
             return None
+        if leg.reading == BUSY_READING:
+            return leg
         if leg.reading.word == NOT_RUN:
             return leg if cause else LinuxLeg(not_run("unclassified"), leg.line, leg.log)
         out.reasons.append("LINUX HALF RED")
@@ -1487,8 +1496,9 @@ class FakeHost(Host):
         return self.committed_tree
 
     def runs_linux_leg(self) -> bool:
-        """The planted Linux half: a plant naming `linux` (`linux`, `linux-red`, `linux-sdk`, `linux-silent`) makes this
-        a Windows host that runs it; none plants a Linux host (its own legs are the Linux half)."""
+        """The planted Linux half: a plant naming `linux` (`linux`, `linux-red`, `linux-sdk`, `linux-silent`,
+        `linux-busy`) makes this a Windows host that runs it; none plants a Linux host (its own legs are the Linux
+        half)."""
         return any(p.startswith("linux") for p in self.plant)
 
     def linux_leg(self, run, plan, legs, spawn) -> LinuxLeg:
@@ -1498,6 +1508,9 @@ class FakeHost(Host):
             return LinuxLeg(not_run("verdict"), "no `=== LINUX GATE: ` line", LINUX_LEG_LOG)
         if "linux-sdk" in self.plant:
             line = f"{LINUX_VERDICT}NOT RUN [sdk] (no .NET SDK in this Linux environment) ==="
+        elif "linux-busy" in self.plant:
+            line = (f"{LINUX_VERDICT}BUSY — another Linux gate of this tree is running (pid 4242); this run touched "
+                    "nothing ===")
         elif "linux-red" in self.plant:
             line = f"{LINUX_VERDICT}RED (failed or not run: unit; HEAD head-1; logs in TestResults/linux-gate/) ==="
         else:
@@ -2150,6 +2163,11 @@ def self_test() -> int:
             "NOT RUN [verdict]",
             o.exit_code == 2 and o.verdict == "NOT RUN [sdk]" and o.linux["verdict"] == NOT_RUN
             and o_silent.exit_code == 2 and o_silent.verdict == "NOT RUN [verdict]", f"{o.line} | {o_silent.line}")
+        o, h = gate("linux-busy", plant={"linux-busy"})
+        arm("a BUSY Linux half (another Linux gate of this worktree runs: linux-gate.sh's one gate per tree, kb/Work "
+            "PB3310) ends the gate BUSY with BUSY's own exit, never RED: the one verdict reader reads its line as BUSY",
+            o.exit_code == EXIT_BUSY and o.verdict == BUSY and o.linux["verdict"] == BUSY
+            and "LINUX HALF RED" not in o.line and read_verdict(o.line[len(VERDICT):]) == BUSY_READING, o.line)
         o, h = gate("linux-inert", plant={"linux", "inert"}, scope=None)
         arm("the inert lane runs no Linux half (no test reads the change), and its record is reused with no Linux half",
             o.exit_code == 0 and o.lane == "inert" and o.linux is None and not any(e.startswith("linux ") for e in h.events),

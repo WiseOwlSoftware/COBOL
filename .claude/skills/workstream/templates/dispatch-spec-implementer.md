@@ -76,7 +76,7 @@ re-gate after a fix runs leg 1 again, never the population.
 leg-2 case NOT RUN, and is done on `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …`; a red
 is `…: RED` — fix it and re-gate. The Linux half of the targeted leg runs INSIDE this gate (the same plan's legs in a WSL clone of your COMMITTED HEAD, under the
 slot you hold: COMMIT BEFORE YOU GATE, kb/Work PB3612); `enqueue.py land` gates nothing again, it reads this gate's record and
-refuses a head with none (exit 13); CI's merge-group run checks the population and the merge with main. (Only while the owner has set the shared implementer scope to `whole`, as `python
+refuses a head with none (exit 14); CI's merge-group run checks the population and the merge with main. (Only while the owner has set the shared implementer scope to `whole`, as `python
 scripts/gate_slot.py status` shows, does it run both legs, stop `RED/INCOMPLETE` on a leg-1 red, and finish on
 `=== BUILD-LOCAL GATE: GREEN — …`.) ALWAYS `-Priority BelowNormal`; one gate per worktree.
 ⛔ `python scripts/semgrep/verify.py` must not increase any rule's count (train 57 dropped a cluster for +20 BigInteger).

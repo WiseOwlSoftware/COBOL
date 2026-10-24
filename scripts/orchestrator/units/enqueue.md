@@ -37,7 +37,7 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
      operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
-   - `STOPPED`: `CONFLICT` (exit 4, bringing main in), `UNTESTED` (exit 13: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
+   - `STOPPED`: `CONFLICT` (exit 4, bringing main in), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
      a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
      or a DEVLOG refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
@@ -49,9 +49,11 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
      INDEPENDENT in-flight work; a branch that descends from it — its successor, its finisher, a carrier that merged
      any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
-     another gate held the worktree's gate lock, nothing ran and nothing is red, kb/Work PB3527) and `RETRY-ONCE` (a
-     first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once `landing_check.py` passes
-     on the branch, exit 12 once the gate lock is free). Nothing to do here.
+     another gate held the worktree's gate lock, nothing ran and nothing is red, kb/Work PB3527; or exit 13: another
+     `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310) and
+     `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
+     `landing_check.py` passes on the branch, exit 12 once the gate lock is free, exit 13 once the land lock is free).
+     Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`
      once `ruleset.py check` reports ACTIVE; it already named it in the operator's mailbox. Land nothing another way:
      name it in the handoff.

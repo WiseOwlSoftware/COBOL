@@ -1504,6 +1504,17 @@ ReadyToRun runtime for the programs the tests run.
 
 #### 3.14.6 The gate cap (M2)
 
+**Long holds are flagged, never killed (kb/Work PB3310).** The OS frees only a DEAD holder's slot, so a hung gate keeps
+its slot for as long as its process lives (2026-10-16: a Linux gate whose WSL clone was deleted under it held one of the
+three slots 6 h 40 min). Every released hold records its duration per kind (`gate_slot.hold_kind`: `gate`, `Linux gate`,
+`record_impact_map`) in `<git common dir>/cobol-gate-slots/holds.json` (the last 50 per kind); `gate_slot.py status` marks a
+held slot older than 5 times the median of its kind's recorded holds (at least 5 recorded) `LONG HOLD`, and the session
+probe prints those lines. The limit is the gates' own history, not a fixed one, and the flag is advice: the operator
+verifies the holder's pid before stopping anything. The Linux gate (`scripts/linux-gate.sh`) runs one gate per tree: a
+second run on a tree whose gate is running answers `=== LINUX GATE: BUSY ...` (exit 3) before it touches the tree's
+results, and `enqueue.py land` holds a per-worktree land lock (§3.17.2 step 3), so the overlap that produced the hang
+cannot start.
+
 `scripts/gate_slot.py` is ONE counting semaphore for the whole repository, served FIFO:
 - **Slots.** N lock files `<git common dir>/cobol-gate-slots/<k>.lock`, each held by an exclusive OS file lock
   (`LockFile` on Windows, `flock` on Linux), so a crashed holder releases its slot when it dies and no stale-pid
@@ -2212,14 +2223,17 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
    resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
+   origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
+   every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
+   line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
+   the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
    hour to finish a branch is stupidly ridiculously slow … Developers merge separate branches into a continually moving
    main all the time without problems … Why don't we do that?", then "yes"; measured: PB3140's landing ran 3 local gate
    runs, 4,615 s, because main moved twice while it waited for a slot; five branches took about an hour each from CLEAN to
    queued; the lane lands 1.47 changes per hour). A branch is gated locally ONCE, at its head, by its implementer or
    finisher: that run (§3.17.3: leg 1 on Windows, then the same plan's legs in a WSL clone of the committed head, under the
    one slot) is the whole definition of "tested locally". `enqueue.tested_locally` reads it from the worktree's newest
-   `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 13, UNTESTED, before anything is
+   `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 14, UNTESTED, before anything is
    merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
    covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
    GREEN Linux half of that tree on a host that runs one (the inert lane has none), and its head IS the tip or every later
@@ -2306,7 +2320,7 @@ only whole-population run.
   IMPLEMENTER'S gate and nowhere else (the landing reads that gate's record: §3.17.2 step 3, owner 2026-10-23). The verdict
   file records the Linux half (`linux`: verdict, cause, the committed `tree` it measured) and `head_tree`; a reused
   answer needs a GREEN Linux half of this head's tree; the inert lane runs none; a Windows half that is not green never
-  starts the clone; a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
+  starts the clone; a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause, and a BUSY one (another Linux gate of the worktree runs: linux-gate.sh runs one gate per tree, kb/Work PB3310) ends it BUSY, never RED. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
   tests (a locale golden's Linux text, a lock-race fix red 10 of 10 on Linux, a host-path length test), and the WSL
   run caught each before a CI round trip; a leg-1 run under WSL costs the clone and build (~1–2 min) plus the leg,
   not the 5–10 min of CI's whole Linux legs. Only the whole-population regression run is CI's. Fail-fast order:

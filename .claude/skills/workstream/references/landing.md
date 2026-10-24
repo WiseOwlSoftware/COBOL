@@ -38,14 +38,16 @@
   `prune_worktrees.py --brief` lists it WAITING FOR REVIEW until ONE read-only `cobol-reviewer` stamps it (the `review`
   skill's branch form, MANDATORY-PRACTICES I10, kb/Work PB3027); a `Review: CLEAN` stamp at its tip makes it WAITING TO
   LAND. With the loop STOPPED the attended session runs `enqueue.py land` by hand for its own branch, no agent needed.
-- **What a script cannot decide goes to ONE finisher (L12).** A conflict (exit 4), an untested tip (13: no recorded GREEN local gate covers it), a red gate (5), a DEVLOG or oracle
+- **What a script cannot decide goes to ONE finisher (L12).** A conflict (exit 4), an untested tip (14: no recorded GREEN local gate covers it), a red gate (5), a DEVLOG or oracle
   refusal (6, 7), or a pull request the queue BOUNCED or whose required check failed before the queue
   (`prune_worktrees.py` reads ENQUEUED, NOT QUEUED and BOUNCED from `queue_facts.py`, the one reader of GitHub's facts;
   offline the states are git-only) is the branch's own: one
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
   `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, nothing ran,
-  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527). A gate NOT RUN (it
+  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527); exit 13 (another
+  `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
+  once the lock is free. A gate NOT RUN (it
   measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
   (malformed gate settings, a host with no WSL, Python or SDK) is exit 2 with no BLOCKED line, retried once and a second
   time the operator's handoff; a BRANCH cause (code the gated tree carries failed: the driver, the population listing,

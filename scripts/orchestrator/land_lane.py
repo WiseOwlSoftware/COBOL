@@ -63,6 +63,8 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
        exit 3 — the landing check's STOP: the branch shares a file with earlier-dispatched in-flight work (kb/Work
                 PB2701)                                            retried at this head once `landing_check.py` passes
                                                                    on the branch (the overlap is gone); never as is
+       exit 13 — another `land` of the branch runs (kb/Work     retried at this head once the worktree's land lock
+                PB3310; nothing ran, nothing red)           is free (`wait_free`); never the enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock (kb/Work PB3527; nothing ran, nothing red)   is free (`wait_free`); never the enqueue unit's
        exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
@@ -70,7 +72,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
        anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
-                UNREVIEWED 11, UNTESTED 13 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
+                UNREVIEWED 11, UNTESTED 14 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
                                                                    or reviewer, and re-arms a stop resolved with no
@@ -114,7 +116,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
+from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT,
+                     land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
@@ -128,7 +131,8 @@ EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch share
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock"}
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock",
+         EXIT_LAND_BUSY: "the worktree's land lock"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -380,10 +384,22 @@ def gate_lock_free(worktree: str) -> tuple[bool, str]:
     """Whether the worktree's gate lock (the gate driver's own: run_gate_legs.Host.lock_path) is free now: taken and
     released at once (an OS lock, freed when its holder dies, so a lock that reads held is a live gate)."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    return lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+
+
+def land_lock_free(worktree: str) -> tuple[bool, str]:
+    """Whether the worktree's land lock (enqueue.py's own: land_lock_path, kb/Work PB3310) is free now: no other `land`
+    of its branch runs."""
+    return lock_free(lambda: land_lock_path(pathlib.Path(worktree)), f"the land lock of {worktree}")
+
+
+def lock_free(locate: Callable[[], pathlib.Path], what: str) -> tuple[bool, str]:
+    """Whether the OS lock at `locate()` is free now: taken and released at once (an OS lock is freed when its holder
+    dies, so a lock that reads held is a live holder)."""
     try:
-        path = run_gate_legs.Host(pathlib.Path(worktree)).lock_path()
+        path = locate()
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
-        return False, f"the gate lock of {worktree} could not be located ({exc})"
+        return False, f"{what} could not be located ({exc})"
     lock = ExclusiveLock.try_take(path, f"land_lane.py probe (pid {os.getpid()})")
     if lock is None:
         return False, f"held by {ExclusiveLock.holder(path) or '(no label)'}"
@@ -393,9 +409,11 @@ def gate_lock_free(worktree: str) -> tuple[bool, str]:
 
 def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free."""
+    branch; exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock is free."""
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree)
+    if rc == EXIT_LAND_BUSY:
+        return land_lock_free(worktree)
     return landing_check_free(worktree)
 
 
@@ -850,7 +868,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 revi
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free)",
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free; exit 13: the worktree's land lock is free)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -1106,6 +1124,18 @@ def self_test() -> int:
         after = wait_free(EXIT_GATE_BUSY, str(lock_wt))
         expect("wait_free for exit 12 reads the gate driver's own lock of the worktree: held names its holder, then free",
                while_held[0] is False and "pid 356316" in while_held[1] and after == (True, ""), f"{while_held} {after}")
+        # exit 13 (kb/Work PB3310): another `land` of the branch runs; the lane waits on the worktree's land lock, which
+        # is enqueue.py's own (land_lock_path), exactly as it waits on the gate driver's for exit 12.
+        land_held = ExclusiveLock.try_take(land_lock_path(lock_wt), "enqueue.py land x (pid 356317)")
+        try:
+            land_while_held = wait_free(EXIT_LAND_BUSY, str(lock_wt))
+        finally:
+            land_held.release()
+        land_after = wait_free(EXIT_LAND_BUSY, str(lock_wt))
+        expect("wait_free for exit 13 reads enqueue.py's own land lock of the worktree: held names its holder, then free; "
+               "the exit is a retry-when-free class, never the enqueue unit's",
+               land_while_held[0] is False and "pid 356317" in land_while_held[1] and land_after == (True, "")
+               and classify({"rc": EXIT_LAND_BUSY}) == FREE, f"{land_while_held} {land_after}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")

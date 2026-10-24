@@ -52,6 +52,7 @@
 # non-observations, copied in as the gate ends) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
+#   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
 # Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
@@ -214,13 +215,43 @@ check_disk() {
     exit 2
   fi
 }
+# live_gate_of <root> <tree>: the pid of a RUNNING gate of the same tree, if any (its owner file names the tree and a
+# pid whose process started when the gate's did).
+live_gate_of() {
+  local d pid start path
+  for d in "$1"/*/; do
+    d="${d%/}"
+    [ -f "$d/owner" ] || continue
+    read -r pid start path < "$d/owner" 2>/dev/null || continue
+    [ "$path" = "$2" ] && gate_alive "$d" && { printf '%s' "$pid"; return 0; }
+  done
+  return 1
+}
 # begin_gate <root> <tree>: make this gate's own directory (gate, snap, gtmp) and arm its removal on every exit path.
+# ⛔ ONE GATE PER TREE AT A TIME (kb/Work PB3310). Two runs on one tree share its results directory
+# (TestResults/linux-gate, which the planner reads as the tree's newest run) and, before PB3194, shared and deleted each
+# other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
+# `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
+# the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
+# it touches anything: BUSY is the driver's verdict for another gate holding the tree (run_gate_legs.BUSY), neither a
+# pass nor a red, and enqueue.py reads it as exit 12. The check and the registration (the owner file) are one step under
+# an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
-  local name="${2##*/}" me="$BASHPID"   # captured here: inside $( ) BASHPID is that subshell's
+  local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
+  mkdir -p "$1"
+  # util-linux's flock is on every Linux the gate runs on; the Windows host that runs this script's self-test has none,
+  # and starts no two gates on one tree.
+  exec 8>"$1/.begin.lock"
+  if command -v flock >/dev/null 2>&1; then flock 8; fi
+  if other="$(live_gate_of "$1" "$2")"; then
+    exec 8>&-
+    echo "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $other); this run touched nothing ==="; exit 3
+  fi
   gate="$1/$name.$me"
   snap="$gate/$name"
   gtmp="$gate/guard-tmp"
   mkdir -p "$gate" && printf '%s %s %s\n' "$me" "$(proc_field "$me" 20)" "$2" > "$gate/owner"
+  exec 8>&-
   trap remove_gate EXIT
   trap 'on_signal 129' HUP
   trap 'on_signal 130' INT
@@ -386,6 +417,23 @@ under.wait()
   check "a gate stopped by a signal mid-way ends its legs' process trees and removes its clone" "$got" \
         "rc=143 alive: none leg-child: TERM"
   fi
+  # ONE GATE PER TREE (kb/Work PB3310): a second gate on a tree whose gate is RUNNING answers BUSY (exit 3) and touches
+  # nothing (the running gate's directory stays, no directory of its own); another tree, or a tree whose gate has
+  # ended, starts.
+  ( : ) & wait $!; dead=$!
+  me="$BASHPID"; mkdir -p "$st_root"/{busy.1,ended.2}
+  echo "$me $(proc_field "$me" 20) /e/trees/wt-busy" > "$st_root/busy.1/owner"
+  echo "$dead 12345 /e/trees/wt-ended" > "$st_root/ended.2/owner"
+  got="$( ( begin_gate "$st_root" /e/trees/wt-busy; echo "started" ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  check "a second gate on a tree whose gate runs answers BUSY, exit 3, and creates nothing" "$got" \
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me); this run touched nothing ===
+rc=3
+busy.1 ended.2 "
+  got="$( ( begin_gate "$st_root" /e/trees/wt-other; echo "started" ) 2>&1 | tail -1 )"
+  check "a gate on another tree starts beside it" "$got" "started"
+  got="$( ( begin_gate "$st_root" /e/trees/wt-ended; echo "started" ) 2>&1 | tail -1 )"
+  check "a gate on a tree whose earlier gate has ended starts" "$got" "started"
+  rm -rf "${st_root:?}"/*
   # Reaping: an ended gate's directory goes whatever its age, a live one stays; a directory in the layout before this
   # mechanism (no owner file) goes when it is this tree's or older than the bound, and stays otherwise.
   ( : ) & wait $!; dead=$!
@@ -496,13 +544,14 @@ state_before="$(repo_state)"
 # this worktree's next gate, so a finisher's re-gate after a landing's Linux red runs it in leg 1. It holds only the
 # newest run: emptied first.
 out="$tree/TestResults/linux-gate"
-rm -rf "$out"; mkdir -p "$out"
 # This gate's footprint (kb/Work PB3194, above): reap what ended gates left, refuse on a full filesystem, then work in
-# this gate's own directory, removed on every exit path.
+# this gate's own directory, removed on every exit path. begin_gate answers BUSY before the results directory below is
+# emptied (kb/Work PB3310): a second run on the tree never deletes the first's logs.
 mkdir -p "$GATES_ROOT"
 reap_gates "$GATES_ROOT" "$(basename "$tree")"
 check_disk "$GATES_ROOT"
 begin_gate "$GATES_ROOT" "$tree"
+rm -rf "$out"; mkdir -p "$out"
 if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$snap" > "$out/clone.log" 2>&1 \
    || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
   echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2

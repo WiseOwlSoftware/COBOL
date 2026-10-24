@@ -135,6 +135,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE.parent / "spec"))
+import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
@@ -426,9 +427,22 @@ def parse_report(p: pathlib.Path) -> Report | None:
                   (g.group(1) if (g := GATE_RUN.search(unstamped)) else None))
 
 
+def report_order(r: Report) -> tuple[float, int, str]:
+    """THE ONE ORDER OF FIX-LANE REPORTS, oldest first (kb/Work PB3625): the report's write time, then its wave number,
+    then its file name. Every reader that takes "the newest report" (the planner's `newest`, the branch survey's
+    `newest_report`, the landing check's `report_of`, the landing measure's chain) reads this order through
+    `load_reports`. The wave number is a name, not a clock: two lanes number their waves differently (date-numbered
+    20261024 against serial 1157), so ordering by it first made a superseded report outrank a later one. `next_wave`
+    takes the highest wave number for a different job (a number nobody has used) and is right to ignore time."""
+    return (r.path.stat().st_mtime, r.wave, r.path.name)
+
+
 def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | None = None) -> list[Report]:
-    """The reports in `reports_dir`, oldest first: by wave, then modification time, then file name. The name makes the
-    order TOTAL: two reports of one wave written within one file-system tick tie on the first two keys, and a tie left
+    """The reports in `reports_dir`, oldest first: by WRITE TIME, then wave, then file name (`report_order`). The wave
+    number is no order across lanes (kb/Work PB3625: the loop's waves are date-numbered, 20261024, the Mythos lane's
+    serial, 1157, so every date-numbered report outranked every serial one and a superseded SPLIT report stayed a
+    note's newest beside a later DONE one), so it only breaks a tie. The name makes the
+    order TOTAL: two reports written within one file-system tick tie on the first two keys, and a tie left
     to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
     newest report, the order finishers are planned in and which of two chained finishers is the successor differed
     between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
@@ -441,7 +455,7 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
     for r in reps:
         r.notes = answered_notes(r, groups)
-    return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime, r.path.name))
+    return sorted(reps, key=report_order)
 
 
 def local_branches() -> tuple[set[str], "git_batch.Ancestry"]:
@@ -1691,6 +1705,8 @@ def main(argv: list[str] | None = None) -> int:
                     "(review findings, and unlanded unfinished branches no DONE branch carries); never a cluster or a "
                     "note no report started (kb/Work PB3150)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-stale", action="store_true", help="plan from a checkout BEHIND the commit the loop adopted "
+                    "(adopt_main.py); without it the planner refuses and names both shas (kb/Work PB2699)")
     ap.add_argument("--release", metavar="SEL", help="drop the dispatch-ledger entries of an ABORTED dispatch and exit: "
                     "a wave (1040), a group (1040a) or a note id (PB2249); exit 1 when nothing matched")
     ap.add_argument("--finished", metavar="REPORT", help="is this fix-lane report FINISHED (Report.finished: DONE, or "
@@ -1725,6 +1741,12 @@ def main(argv: list[str] | None = None) -> int:
                                a.stop_file and coord.fleet_stop_problem(a.stop_file),
                                a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
         print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
+    # A STALE CHECKOUT PLANS FROM A STALE REGISTER AND RUNS A STALE PLANNER (kb/Work PB2699: wave 1042 planned seven commits
+    # behind; wave 1079 ran a planner older than the one main carried). The supervisor fast-forwards the checkout before
+    # each unit (adopt_main.py); a planner whose checkout lacks the adopted commit refuses, naming both shas.
+    if not a.allow_stale and (stale := adopt_main.require_current(REPO, coord.coord_dir(a.coord))):
+        print(f"⛔ {stale}")
         return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
