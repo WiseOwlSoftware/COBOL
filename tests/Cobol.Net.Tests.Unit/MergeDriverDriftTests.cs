@@ -22,6 +22,7 @@ namespace CobolNet.Tests.Unit;
 /// arithmetic: the two scripts' self-tests run in every gate and in CI (the self-test runner), so these keep the arms
 /// declared and the registry, the attributes and the callers one thing.
 /// </remarks>
+[Trait("Sweep", "tree")]
 public sealed class MergeDriverDriftTests
 {
     private const string Drivers = "scripts/merge_drivers.py";
