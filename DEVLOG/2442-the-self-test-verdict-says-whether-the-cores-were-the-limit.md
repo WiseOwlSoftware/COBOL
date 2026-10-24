@@ -1,4 +1,4 @@
-## The self-test verdict says whether the cores were the limit; the budget stays one place per core (PB3585)
+## Entry 2442 — 2026-10-23 23:18 PDT — The self-test verdict says whether the cores were the limit; the budget stays one place per core (PB3585)
 
 kb/Work PB3585 asked whether CI's 4-core Windows runner would run the script self-tests faster with more budget places
 than cores. The note's hypothesis was that the self-tests spend their time waiting on process starts and disk. It
@@ -30,3 +30,4 @@ default. DESIGN-test-build-ci.md §3.14.10 item 2 records the reading, the numbe
 
 **Witnesses.** New `self_tests.py --self-test` arms cover the busy share's arithmetic, a missing or non-advancing
 reading, this host's reading, the verdict line, and `--budget`'s refusals of 0, -2, x and 1.5.
+
