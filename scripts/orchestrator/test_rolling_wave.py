@@ -198,7 +198,7 @@ def main() -> int:
               [x["branch"] for x in r["out"]["ready"]] == ["bA", "bB"], r["out"]["ready"])
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("1: the successor merges the predecessor's reviewed head and is told it lands on its own",
-              "git merge bA" in bp and "head a1" in bp and "lands ON ITS OWN" in bp and "landed-via-predecessor" not in bp, bp)
+              "merge_drivers.py merge bA" in bp and "head a1" in bp and "lands ON ITS OWN" in bp and "landed-via-predecessor" not in bp, bp)
         check("1: round 1 blocks on critical,high,medium and reviews the whole branch",
               "--blocking critical,high,medium" in (pr.get("w9a-review-r1") or [""])[0] and "git diff" not in (pr.get("w9a-review-r1") or [""])[0],
               (pr.get("w9a-review-r1") or [""])[0])
@@ -217,7 +217,7 @@ def main() -> int:
               at(ev, "end:w9a-review-r2") < at(ev, "start:impl-B-PB2"), ev)
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("2: the successor merges the review finisher's branch, the reviewed head",
-              "git merge bA2" in bp and "head a2" in bp, bp)
+              "merge_drivers.py merge bA2" in bp and "head a2" in bp, bp)
         r2 = (pr.get("w9a-review-r2") or [""])[0]
         check("2: round 2 reviews only the finisher's diff from the head round 1 reviewed",
               "git diff a1..HEAD" in r2 and "not re-opened unless the diff touches it" in r2, r2)
@@ -245,7 +245,7 @@ def main() -> int:
               at(ev, "end:last-verdict-A") < at(ev, "start:impl-B-PB2") < 10 ** 9, ev)
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("3: the successor is told the predecessor's findings belong to its next-wave finisher, held through the file",
-              "git merge bA2" in bp and "FINDINGS 1" in bp and "NEXT-WAVE FINISHER" in bp and "prune_worktrees.py holds" in bp
+              "merge_drivers.py merge bA2" in bp and "FINDINGS 1" in bp and "NEXT-WAVE FINISHER" in bp and "prune_worktrees.py holds" in bp
               and "review-w9-a.jsonl" in bp and "UNANSWERED" not in bp, bp)
         check("3: the successor's reviewer does not record the predecessor's findings again",
               "do not record them again" in (pr.get("w9b-review-r1") or [""])[0], pr.get("w9b-review-r1"))
@@ -310,7 +310,7 @@ def main() -> int:
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("3a unanswered-split: the successor merges the finisher's branch and is told the findings are UNANSWERED "
               "and that the survey holds it through the findings file",
-              "git merge bA2" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
+              "merge_drivers.py merge bA2" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
               and "NEXT-WAVE FINISHER" not in bp and "prune_worktrees.py holds your branch" in bp, bp)
         rp = (pr.get("w9b-review-r1") or [""])[0]
         check("3a unanswered-split: the successor's reviewer reviews the predecessor's content and records those findings again",
@@ -338,7 +338,7 @@ def main() -> int:
             bp = (pr.get("impl-B-PB2") or [""])[0]
             check(f"3a' {name}: the successor merges the reviewed branch and is told the findings are UNANSWERED and held "
                   "through the findings file, never its next-wave finisher's alone",
-                  "git merge bA" in bp and "head a1" in bp and "UNANSWERED" in bp and "prune_worktrees.py holds your branch" in bp
+                  "merge_drivers.py merge bA" in bp and "head a1" in bp and "UNANSWERED" in bp and "prune_worktrees.py holds your branch" in bp
                   and want in bp and "review-w9-a.jsonl" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
             rp = (pr.get("w9b-review-r1") or [""])[0]
             check(f"3a' {name}: the successor's reviewer reviews the predecessor's content and records those findings again",
@@ -390,7 +390,7 @@ def main() -> int:
         check("5: GATE-PENDING -> RED: a gate finisher merges the branch and is told the gate's verdict, and ITS branch "
               "is reviewed (never the red head)",
               at(ev, "end:gate-await-implementer-1") < at(ev, "start:gatefix-A-r1") < at(ev, "start:w9a-review-r1") < 10 ** 9
-              and "git merge bA" in gp and red_run in gp and "RED — planted" in gp
+              and "merge_drivers.py merge bA" in gp and red_run in gp and "RED — planted" in gp
               and [x["branch"] for x in r["out"]["ready"]] == ["bA3"], (ev, gp))
         stuck_run = gate_run("stuck", None)
         r = run(tmp, "gate-stuck", {"args": args(solo, **gate_args), "agents": {
@@ -415,7 +415,7 @@ def main() -> int:
             "w9b-review-r1": [review("CLEAN", "b1")]}})
         bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
         check("3b: a SPLIT predecessor is never reviewed, and its successor merges its branch",
-              "start:w9a-review-r1" not in r["events"] and "git merge bA" in bp and "unfinished" in bp, bp)
+              "start:w9a-review-r1" not in r["events"] and "merge_drivers.py merge bA" in bp and "unfinished" in bp, bp)
     finally:
         remove_tree(tmp)
     for f in fails:
