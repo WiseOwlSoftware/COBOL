@@ -283,35 +283,19 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>⛔ THE APPEND'S STEP (2.2.2.3, 2.2.2.5 R3), the last before a WRITE's bytes reach the writer. A covered connector
     /// whose run unit has no transaction on the file begins one under the entry mutex — the entry step, the lock test (another
-    /// live transaction holds the end: '51') and the header, then the <c>L</c> record — or, when a ROLLBACK removed the file
-    /// under it, begins one with no file at its start and creates the file again as its OPEN did; one whose transaction stands
-    /// writes <c>L</c> at its first append and nothing after. A connector whose file lock admits another run unit's writer
-    /// (<c>SHARING WITH ALL OTHER</c>) meets every other live transaction's END holding: '51'. Returns the failing status, or
-    /// null; throws on a refusal (R5: '30').</summary>
+    /// live transaction holds the end: '51') and the header, then the <c>L</c> record (<see cref="BeginAppending"/>) — or, when a
+    /// ROLLBACK removed the file under it, begins one with no file at its start and creates the file again as its OPEN did; one
+    /// whose transaction stands writes <c>L</c> at its first append and nothing after. A connector whose file lock admits another
+    /// run unit's writer (<c>SHARING WITH ALL OTHER</c>) meets every other live transaction's END holding: '51'. Every lock test
+    /// is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Returns the failing status, or null; throws on
+    /// a refusal (R5: '30').</summary>
     private string? JournalAppend()
     {
         bool sharing = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (!CommitControlled)
-            return sharing && SequentialJournal.Enter(Medium, HostPath, null, null).Any ? FileStatusCode.RecordLocked : null;
+        if (!CommitControlled) return sharing ? JournalLockTest(null, EveryHolding, underMutex: false) : null;
         var journal = Journal;
-        if (journal is null || _fileRemoved)
-        {
-            using var mutex = Transactions.HoldEntryMutex(HostPath);
-            if (SequentialJournal.Enter(Medium, HostPath, journal?.Id, mutex).Any) return FileStatusCode.RecordLocked;
-            if (_fileRemoved)
-            {
-                // The state at the last COMMIT had no file: the WRITE creates it again, as its OPEN did (2.2.2.7).
-                journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
-                _writer = OpenWriter(FileMode.Append);
-                _fileRemoved = false;
-                return null;
-            }
-            journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
-            _writer!.Flush();
-            journal.NoteFirstAppend(_held!.Length);
-            return null;
-        }
-        if (sharing && SequentialJournal.Enter(Medium, HostPath, journal.Id, null).Any) return FileStatusCode.RecordLocked;
+        if (journal is null || _fileRemoved) return JournalLockTest(journal?.Id, EveryHolding, underMutex: true, BeginAppending);
+        if (sharing && JournalLockTest(journal.Id, EveryHolding, underMutex: false) is { } held) return held;
         if (!journal.Replaced && journal.CommittedLength is null)
         {
             _writer!.Flush();
@@ -320,27 +304,50 @@ public sealed partial class SequentialConnector : IJournalData
         return null;
     }
 
+    /// <summary>Every live transaction holds the end of the file (2.2.2.3), so every holding meets a WRITE.</summary>
+    private static readonly Func<SequentialJournal.Holding, bool> EveryHolding = static _ => true;
+
+    /// <summary>The covered WRITE's first change, under the entry mutex its lock test holds (<see cref="JournalAppend"/>): the state
+    /// at the last COMMIT had no file (a ROLLBACK removed it, 2.2.2.7) — the transaction begins with no file at its start and the
+    /// WRITE creates the file again, as its OPEN did; otherwise the transaction begins and its <c>L</c> is read at this first
+    /// append.</summary>
+    private void BeginAppending()
+    {
+        var journal = Journal;
+        if (_fileRemoved)
+        {
+            journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
+            _writer = OpenWriter(FileMode.Append);
+            _fileRemoved = false;
+            return;
+        }
+        journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
+        _writer!.Flush();
+        journal.NoteFirstAppend(_held!.Length);
+    }
+
     /// <summary>⛔ THE OVERWRITE'S STEP (2.2.2.3, 2.2.2.5 R2), before <see cref="OverwriteInPlace(Stream, long, ReadOnlySpan{byte}, string, bool)"/>
     /// writes the record of <paramref name="length"/> bytes at <paramref name="anchor"/>: a covered connector whose run unit has no
     /// transaction begins one under the entry mutex (another live transaction holding the record: '51'); in the base phase the
     /// record's current bytes are journaled and synced before they are overwritten, the first time the record is rewritten. A
     /// connector whose file lock admits another run unit's writer meets every other live transaction's holding of the record:
-    /// '51'. Returns the failing status, or null; throws on a refusal (R5: '30').</summary>
+    /// '51'. Every lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Returns the failing
+    /// status, or null; throws on a refusal (R5: '30').</summary>
     private string? JournalImage(Stream stream, long anchor, int length)
     {
         bool sharing = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (!CommitControlled)
-            return sharing && SequentialJournal.Enter(Medium, HostPath, null, null).HoldsRecordAt(anchor) ? FileStatusCode.RecordLocked : null;
+        bool HoldsTheRecord(SequentialJournal.Holding h) => h.HoldsRecordAt(anchor);
+        if (!CommitControlled) return sharing ? JournalLockTest(null, HoldsTheRecord, underMutex: false) : null;
         var journal = Journal;
         if (journal is null)
         {
-            using var mutex = Transactions.HoldEntryMutex(HostPath);
-            if (SequentialJournal.Enter(Medium, HostPath, null, mutex).HoldsRecordAt(anchor)) return FileStatusCode.RecordLocked;
-            journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
+            if (JournalLockTest(null, HoldsTheRecord, underMutex: true,
+                    () => journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present)) is { } refused)
+                return refused;
         }
-        else if (sharing && SequentialJournal.Enter(Medium, HostPath, journal.Id, null).HoldsRecordAt(anchor))
-            return FileStatusCode.RecordLocked;
-        if (!journal.NeedsImage(_readOrdinal, anchor)) return null;
+        else if (sharing && JournalLockTest(journal.Id, HoldsTheRecord, underMutex: false) is { } held)
+            return held;
+        if (!journal!.NeedsImage(_readOrdinal, anchor)) return null;
         byte[] image = new byte[length];
         long resume = stream.Position;
         stream.Seek(anchor, SeekOrigin.Begin);
@@ -355,15 +362,38 @@ public sealed partial class SequentialConnector : IJournalData
     /// meets every other live transaction's holding of the record it would make available — the whole file once replaced, a
     /// record it rewrote, one it appended — with '51' (§9.1.13.8 1)), and a dead one's is settled before the READ. The record
     /// a forward READ makes available starts at the file position indicator's offset; a backward one's is told by its ordinal.
-    /// Null when the READ may proceed. The caller asks it after the record-lock conflict check (DOC-A.1-104's point).</summary>
+    /// The lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Null when the READ may proceed.
+    /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).</summary>
     internal string? ReadHoldingsGate(bool previous)
     {
         if (!FileLockPosture.AdmitsAnotherWriter(HostShare) || HostPath.Length == 0 || _reader is null) return null;
-        var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, null);
-        if (!holdings.Any) return null;
         long at = _lineSequential ? _lineByteOffset : _readOffset;
-        bool held = previous ? holdings.HoldsRecordBefore(TargetReadOrdinal(previous), at) : holdings.HoldsRecordAt(at);
-        return held ? FileStatusCode.RecordLocked : null;
+        long ordinal = previous ? TargetReadOrdinal(previous) : 0;
+        return JournalLockTest(Journal?.Id,
+            previous ? h => h.HoldsRecordBefore(ordinal, at) : h => h.HoldsRecordAt(at), underMutex: false);
+    }
+
+    /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST, UNDER THE STATEMENT'S RETRY PHRASE (2.2.2.3: <i>"held, '51' (RETRY
+    /// applies)"</i>; §14.7.9.3 GR4 b): a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the
+    /// holder permits makes the statement successful). Each attempt is one entry step (<see cref="SequentialJournal.Enter"/>,
+    /// <paramref name="ownId"/> the connector's own transaction, which it never meets): a dead owner's transaction is settled,
+    /// and a live one's holding that <paramref name="held"/> picks refuses the attempt (<see cref="SequentialJournal.Holdings.Conflict"/>:
+    /// one of the run unit's own transactions, met through a connector no APPLY COMMIT names, is not waited for). With
+    /// <paramref name="underMutex"/> the attempt holds the entry mutex — and <paramref name="proceed"/>, the first change, runs
+    /// under it, so no other transaction begins between the test and the change — and gives it back before any wait, so a
+    /// waiting statement never keeps another run unit's entry step out. Returns '51' (a RETRY's exhaustion status: '51', or
+    /// FOREVER's '52' for the run unit's own holding), or null when the statement proceeds; throws on a refusal (R5: '30').</summary>
+    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, bool underMutex, Action? proceed = null)
+    {
+        int? runUnitsOwn = Transactions.Of(HostPath)?.Id;
+        string status = FileRegistry.RetryLoop(() =>
+        {
+            using var mutex = underMutex ? Transactions.HoldEntryMutex(HostPath) : null;
+            if (SequentialJournal.Enter(Medium, HostPath, ownId, mutex).Conflict(held, runUnitsOwn) is { } conflict) return conflict;
+            proceed?.Invoke();
+            return RetryAttempt.InRunUnit(FileStatusCode.Success);
+        }, StatementRetry.Kind, StatementRetry.Amount, waiter: this);
+        return status == FileStatusCode.Success ? null : status;
     }
 
     // ── What the registry's COMMIT and ROLLBACK ask of the connector (2.2.2.6, 2.2.2.7) ──────────────────────────────

@@ -2724,7 +2724,17 @@ finding R4-1 unchanged: no probe closes a window between itself and a test of a 
 liveness probe are read in the same step, and the holding is a durable record, never a region byte the operating environment
 releases with a dead handle. A WRITE's first change — the test, the drawing of the journal, the reading of L and its record
 — runs under the entry mutex as ONE step, so no other transaction begins on the file between the test and the header (the
-model's interleavings at every operation boundary are what hold this).
+model's interleavings at every operation boundary are what hold this). **The RETRY phrase (§14.7.9.3 GR4 b), as built in
+`SequentialConnector.JournalLockTest`):** every journal arm of the test — WRITE, REWRITE and READ, covered or not — is ONE
+attempt function under `FileRegistry.RetryLoop` with the statement's phrase, so a statement that meets a holding waits and
+attempts again exactly as one that meets a region lock does. Each attempt is a whole entry step (a dead owner met on a later
+attempt is settled there); an attempt that needs the entry mutex (a covered connector's first change) takes it for that
+attempt alone and gives it back before the wait, so a waiting statement never keeps another run unit's entry step — or the
+holder's own retirement — out. A holding of the tester's OWN run unit's transaction (met through a connector no APPLY COMMIT
+names) cannot end while the statement runs, so the attempt is `RetryAttempt.InRunUnit`: no wait, and RETRY FOREVER ends
+with '52' (A.1 item 109) — the region lock's rule for a holder inside the run unit (`unit:SequentialCommitControlTests`
+`A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase` and
+`A_holding_of_this_run_units_own_transaction_is_not_waited_for`).
 
 **2.2.2.4 The journal: where it lives, what it holds, and why nowhere else will do.** The journal of a transaction on physical
 file F is THREE transient files in F's lock directory — `.wolk-<16 hex>/` beside F, named by `HostFile.PhysicalFileKey`

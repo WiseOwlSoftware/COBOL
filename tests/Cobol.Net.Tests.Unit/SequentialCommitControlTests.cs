@@ -55,12 +55,14 @@ public sealed class SequentialCommitControlTests
             return Reg.Status(N);
         }
 
-        internal string Write(string record) => Reg.WriteShared(N, record, -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
+        internal string Write(string record, FileRetryKind retry = FileRetryKind.None, long amount = 0) =>
+            Reg.WriteShared(N, record, -1, FileRecordLock.None, retry, amount, page: null);
 
-        internal string Read(out string image) =>
-            Reg.ReadShared(N, previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false, FileRetryKind.None, 0, out image);
+        internal string Read(out string image, FileRetryKind retry = FileRetryKind.None, long amount = 0, bool ignoringLock = false) =>
+            Reg.ReadShared(N, previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock, retry, amount, out image);
 
-        internal string Rewrite(string record) => Reg.RewriteShared(N, record, -1, FileRecordLock.None, FileRetryKind.None, 0);
+        internal string Rewrite(string record, FileRetryKind retry = FileRetryKind.None, long amount = 0) =>
+            Reg.RewriteShared(N, record, -1, FileRecordLock.None, retry, amount);
 
         internal string Close()
         {
@@ -483,6 +485,106 @@ public sealed class SequentialCommitControlTests
             AssertNoLitter(f);
         }
         finally { TryDeleteDirectory(dir); }
+    }
+
+    public static TheoryData<string> JournalArms() => ["WRITE", "READ"];
+
+    /// <summary>Another run unit's live transaction <paramref name="a"/> holds the end of the file (its append), and
+    /// <paramref name="b"/> stands where its <paramref name="statement"/> meets that holding — a WRITE at the end, a READ of the
+    /// appended record — only in the journal, no region lock covering it (2.2.2.3). Returns b's statement under a RETRY phrase.</summary>
+    private static Func<FileRetryKind, long, string> MeetJournalHolding(string statement, Unit a, Unit b)
+    {
+        Ok(a.Open(FileOpenMode.Extend));
+        Ok(a.Write("X3"));
+        if (statement == "WRITE")
+        {
+            Ok(b.Open(FileOpenMode.Extend));
+            return (kind, amount) => b.Write("B3", kind, amount);
+        }
+        Ok(b.Open(FileOpenMode.Input));
+        Ok(b.Read(out _));
+        Ok(b.Read(out _));
+        return (kind, amount) => b.Read(out _, kind, amount);
+    }
+
+    [Theory]
+    [MemberData(nameof(JournalArms))]
+    public void A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase(string statement)
+    {
+        // §14.7.9.3 GR4 b): a statement unsuccessful at its first attempt "because of ... a record operation conflict condition"
+        // ('51', §9.1.13.8 1)) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
+        // requested access on one of these attempts, the statement is successful"; otherwise the conflict's own status (the
+        // closing paragraph). The journal arm of the lock test is such a conflict (2.2.2.3: "held, '51' (RETRY applies)").
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        int pauses = 0;
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var a = new Unit(f, covered: true, sharing: FileSharing.AllOther);
+            var b = new Unit(f, covered: false, sharing: FileSharing.AllOther);
+            var attempt = MeetJournalHolding(statement, a, b);
+            FileRegistry.PauseObserver.Value = _ => pauses++;
+            Assert.Equal("51", attempt(FileRetryKind.None, 0));               // GR4 a): no RETRY phrase, no wait
+            Assert.Equal(0, pauses);
+            Assert.Equal("51", attempt(FileRetryKind.Times, 2));              // GR1: two attempts after the failure, then '51'
+            Assert.Equal(2, pauses);
+            pauses = 0;
+            FileRegistry.PauseObserver.Value = _ => { if (++pauses == 3) OkCommit(a); };
+            Assert.Equal("00", attempt(FileRetryKind.Forever, 0));            // GR3: until the holder's COMMIT releases it
+            Assert.Equal(3, pauses);
+            FileRegistry.PauseObserver.Value = null;
+            b.Reg.CloseAll();
+            a.Reg.CloseAll();
+            Assert.Equal(statement == "WRITE" ? "C1C2X3B3" : "C1C2X3", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally
+        {
+            FileRegistry.PauseObserver.Value = null;
+            TryDeleteDirectory(dir);
+        }
+    }
+
+    [Fact]
+    public void A_holding_of_this_run_units_own_transaction_is_not_waited_for()
+    {
+        // §14.7.9.3 GR1 to GR3 wait for a holder that can release: this run unit's own transaction, met through a connector no
+        // APPLY COMMIT names (2.2.2.3: "this run unit's through an uncovered connector"), cannot release while the statement
+        // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§9.1.13.8 2), A.1 item 109).
+        string dir = NewDirectory();
+        string f = Path.Combine(dir, "f.dat");
+        int pauses = 0;
+        var reg = new FileRegistry();
+        try
+        {
+            File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            foreach (string name in new[] { "F", "G" })
+            {
+                reg.Register(name, f, recordWidth: 2, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
+                reg.RegisterSharing(name, FileSharing.AllOther, LockModeRequiredBy(FileSharing.AllOther), multiple: false);
+            }
+            reg.RegisterCommitControl("F");
+            reg.OpenStatic("F", FileOpenMode.Extend);
+            Ok(reg.WriteShared("F", "X3", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
+            reg.OpenStatic("G", FileOpenMode.Extend);
+            Ok(reg.Status("G"));
+            FileRegistry.PauseObserver.Value = _ => pauses++;
+            Assert.Equal("51", reg.WriteShared("G", "G3", -1, FileRecordLock.None, FileRetryKind.Times, 3, page: null));
+            Assert.Equal("52", reg.WriteShared("G", "G3", -1, FileRecordLock.None, FileRetryKind.Forever, 0, page: null));
+            Assert.Equal(0, pauses);
+            Assert.Null(reg.Commit());
+            Ok(reg.WriteShared("G", "G3", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
+            reg.CloseAll();
+            Assert.Equal("C1C2X3G3", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally
+        {
+            FileRegistry.PauseObserver.Value = null;
+            reg.CloseAll();
+            TryDeleteDirectory(dir);
+        }
     }
 
     [Fact]

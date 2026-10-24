@@ -550,14 +550,25 @@ internal sealed class SequentialJournal
 
     /// <summary>A live transaction's holdings as its record says them (2.2.2.3): the WHOLE file once replaced (or while its
     /// header is not yet readable — a transaction being born, or a record this process may not read), the end of the file always,
-    /// every rewritten record's offset, and every offset at or past L once it has appended.</summary>
-    internal readonly record struct Holding(bool Whole, long? CommittedLength, IReadOnlySet<long> RewrittenOffsets,
+    /// every rewritten record's offset, and every offset at or past L once it has appended. <see cref="Id"/> is the transaction's
+    /// id in the lock directory (<see cref="NoId"/> when the directory itself cannot be listed): the lock test tells by it a
+    /// holding of the tester's own run unit, which no wait can release (<see cref="Holdings.Conflict"/>).</summary>
+    internal readonly record struct Holding(int Id, bool Whole, long? CommittedLength, IReadOnlySet<long> RewrittenOffsets,
         IReadOnlySet<long> RewrittenOrdinals)
     {
         /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets this holding.</summary>
         internal bool HoldsRecordAt(long offset) =>
             Whole || RewrittenOffsets.Contains(offset) || (CommittedLength is long committed && offset >= committed);
+
+        /// <summary>Whether a backward READ of the record numbered <paramref name="ordinal"/>, which lies before
+        /// <paramref name="before"/>, meets this holding: a rewritten record is told by its ordinal, and the appended records past
+        /// L can lie before <paramref name="before"/> only when L does.</summary>
+        internal bool HoldsRecordBefore(long ordinal, long before) =>
+            Whole || RewrittenOrdinals.Contains(ordinal) || (CommittedLength is long committed && committed < before);
     }
+
+    /// <summary>The id of a holding whose transaction is not known (a lock directory this process may not list).</summary>
+    internal const int NoId = -1;
 
     /// <summary>What the entry step found: the holdings of every live transaction on the file other than the caller's own.</summary>
     internal sealed class Holdings(IReadOnlyList<Holding> live)
@@ -579,11 +590,23 @@ internal sealed class SequentialJournal
         /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets a holding.</summary>
         internal bool HoldsRecordAt(long offset) => Live.Any(h => h.HoldsRecordAt(offset));
 
-        /// <summary>Whether a backward READ of the record numbered <paramref name="ordinal"/>, which lies before
-        /// <paramref name="before"/>, meets a holding: a rewritten record is told by its ordinal, and the appended records past
-        /// L can lie before <paramref name="before"/> only when L does.</summary>
-        internal bool HoldsRecordBefore(long ordinal, long before) =>
-            Live.Any(h => h.Whole || h.RewrittenOrdinals.Contains(ordinal) || (h.CommittedLength is long committed && committed < before));
+        /// <summary>⛔ THE LOCK TEST'S ANSWER (2.2.2.3: "held, '51' (RETRY applies)"): null when no holding <paramref name="held"/>
+        /// picks lives; otherwise the record operation conflict '51' (§9.1.13.8 1)), its holder OUTSIDE the run unit — a holder a
+        /// RETRY phrase waits for (§14.7.9.3 GR1 to GR3) — unless every such holding is the run unit's own transaction
+        /// <paramref name="runUnitsOwn"/>, met through a connector no APPLY COMMIT clause names, which cannot end while the
+        /// statement runs: a RETRY makes no wait for it, and FOREVER ends with the deadlock '52' (A.1 item 109).</summary>
+        internal RetryAttempt? Conflict(Func<Holding, bool> held, int? runUnitsOwn)
+        {
+            bool any = false, outside = false;
+            foreach (var holding in Live)
+                if (held(holding))
+                {
+                    any = true;
+                    outside |= holding.Id != runUnitsOwn;
+                }
+            return !any ? null
+                : outside ? RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked) : RetryAttempt.InRunUnit(FileStatusCode.RecordLocked);
+        }
     }
 
     /// <summary>⛔ THE ENTRY STEP (2.2.2.8) on the physical file <paramref name="hostPath"/>: the lock directory listed for
@@ -598,7 +621,7 @@ internal sealed class SequentialJournal
         string directory = DirectoryOf(hostPath);
         IReadOnlyList<string> names;
         try { names = medium.ListNames(directory, NamePrefix); }
-        catch (UnauthorizedAccessException) { return new Holdings([WholeFile]); }
+        catch (UnauthorizedAccessException) { return new Holdings([WholeFileOf(NoId)]); }
         if (names.Count == 0) return Holdings.None;
         var ids = new SortedSet<int>();
         foreach (string name in names)
@@ -610,10 +633,10 @@ internal sealed class SequentialJournal
             switch (medium.ProbeHolder(Path.Combine(directory, HolderName(id))))
             {
                 case HostFile.LockFileState.Live:
-                    live.Add(HoldingOf(medium, Path.Combine(directory, RecordName(id))));
+                    live.Add(HoldingOf(medium, id, Path.Combine(directory, RecordName(id))));
                     break;
                 case HostFile.LockFileState.Unobservable:
-                    live.Add(WholeFile);
+                    live.Add(WholeFileOf(id));
                     break;
                 default:
                     (dead ??= []).Add(id);
@@ -626,21 +649,21 @@ internal sealed class SequentialJournal
 
     private static readonly IReadOnlySet<long> EmptyOffsets = new HashSet<long>();
 
-    /// <summary>The holding of a transaction whose record cannot be read: the whole file.</summary>
-    private static readonly Holding WholeFile = new(true, null, EmptyOffsets, EmptyOffsets);
+    /// <summary>The holding of the transaction <paramref name="id"/> whose record cannot be read: the whole file.</summary>
+    private static Holding WholeFileOf(int id) => new(id, true, null, EmptyOffsets, EmptyOffsets);
 
     /// <summary>A live transaction's holding, read from its record; a record not yet readable (the transaction is being born, or
     /// this process may not read it) holds the whole file.</summary>
-    private static Holding HoldingOf(IHostMedium medium, string recordPath)
+    private static Holding HoldingOf(IHostMedium medium, int id, string recordPath)
     {
         try
         {
             using var record = medium.OpenTransient(recordPath, FileMode.Open, FileAccess.Read);
-            if (ReadRecord(record) is not { } contents) return WholeFile;
-            return new Holding(contents.Replaced, contents.CommittedLength, contents.Images.Select(i => i.Offset).ToHashSet(),
+            if (ReadRecord(record) is not { } contents) return WholeFileOf(id);
+            return new Holding(id, contents.Replaced, contents.CommittedLength, contents.Images.Select(i => i.Offset).ToHashSet(),
                 contents.Images.Select(i => i.Ordinal).ToHashSet());
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return WholeFile; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return WholeFileOf(id); }
     }
 
     /// <summary>Settle the dead transactions <paramref name="ids"/> under the entry mutex: <paramref name="held"/> when the caller
