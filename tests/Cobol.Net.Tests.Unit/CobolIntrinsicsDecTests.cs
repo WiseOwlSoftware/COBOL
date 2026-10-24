@@ -79,23 +79,25 @@ public sealed class CobolIntrinsicsDecTests
 
     [Fact]
     public void AnnuityDec_RateZero_IsReciprocalOfPeriods() =>
-        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), 4));
+        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(4, 0)));
 
     /// <summary>⛔ kb/Work PB637 — argument-2 is a TOTAL integer (§15.9.3 r3 "positive integer" is a sign rule), so a
     /// count past <c>long</c> reaches the body whole. At rate 0 the equivalent expression §15.9.4 r1a is
     /// <c>1 / argument-2</c>, which §15.4.1 r1 makes the standard-decimal value for every n: 10^20 → 1E-20 and
-    /// 10^38 (past the 34-digit SDIDI, so the operand lift rounds, §8.8.1.5.2 r1) → 1E-38, with checking ARMED.</summary>
+    /// 10^38 → 1E-38 and 10^40 (past <c>Int128</c>: an SDIDI integer the renderer keeps whole — the first fix narrowed
+    /// it to <c>Int128</c>, review R1-1) → 1E-40, with checking ARMED. The count is 10^exponent.</summary>
     [Theory]
-    [InlineData("100000000000000000000", 20)]
-    [InlineData("100000000000000000000000000000000000000", 38)]
-    public void AnnuityDec_RateZero_PastLong_IsReciprocal_AndRaisesNothingUnderChecking(string periods, int exponent)
+    [InlineData(20)]
+    [InlineData(38)]
+    [InlineData(40)]
+    public void AnnuityDec_RateZero_PastLong_IsReciprocal_AndRaisesNothingUnderChecking(int exponent)
     {
         bool saved = CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking;
         CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = true;
         try
         {
             AssertDec(D(1, exponent),
-                CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), System.Int128.Parse(periods)));
+                CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(1, -exponent)));
         }
         finally { CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = saved; }
     }
@@ -108,7 +110,7 @@ public sealed class CobolIntrinsicsDecTests
     public void AnnuityDec_TinyRate_PastLong_IsTheExpressionsValue()
     {
         double actual = CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(1, 30),
-            System.Int128.Parse("100000000000000000000")).ToDouble();
+            D(1, -20)).ToDouble();
         Assert.True(System.Math.Abs(actual - 1.00000000005E-20) <= 1E-32, $"ANNUITY(1E-30 10^20) = {actual:R}");
     }
 
@@ -117,12 +119,13 @@ public sealed class CobolIntrinsicsDecTests
     /// §8.8.1.5.2 r2) — and it is the SAME condition at n = 10^6 (inside <c>long</c>) and at n = 10^20 (past it),
     /// never an EC-ARGUMENT-FUNCTION that depends on the carrier's width (§15.3 r14 has no incorrect argument here).</summary>
     [Theory]
-    [InlineData("1000000")]
-    [InlineData("100000000000000000000")]
-    public void AnnuityDec_PositiveRate_PastTheRange_IsTheExpressionsSizeCondition(string periods)
+    [InlineData(6)]
+    [InlineData(20)]
+    [InlineData(40)]
+    public void AnnuityDec_PositiveRate_PastTheRange_IsTheExpressionsSizeCondition(int exponent)
     {
         var ex = Assert.ThrowsAny<CobolNet.Runtime.Exceptions.CobolFatalException>(() =>
-            CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(5, 2), System.Int128.Parse(periods)));
+            CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(5, 2), D(1, -exponent)));
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }
 
