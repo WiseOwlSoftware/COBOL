@@ -45,16 +45,15 @@ if (Test-Path $Questions) {
     return
 }
 
-# Bring the checkout up to date only when nothing but the always-dirty settings file is modified (never stash, never reset).
-$dirty = @(& git -C $RepoDir status --porcelain 2>$null | Where-Object { $_ -notmatch 'settings\.local\.json' })
-if ($dirty.Count -eq 0) {
-    if ($DryRun) { Say "DRY RUN: git -C $RepoDir pull --ff-only" }
-    else {
-        $out = & git -C $RepoDir pull --ff-only 2>&1
-        Say "git pull --ff-only: $(($out | Select-Object -Last 1))"
-    }
+# Bring the checkout up to date by the ONE routine that does it (adopt_main.py, kb/Work PB2699): origin/main once CI's run on
+# it has succeeded, only when nothing tracked but the always-dirty settings file is modified (never stash, never reset).
+# The supervisor runs the same routine between its units, so a landing after this start is adopted too.
+$Adopt = Join-Path (Join-Path $RepoDir 'scripts') 'orchestrator/adopt_main.py'
+if ($DryRun) { Say "DRY RUN: python $Adopt adopt --repo $RepoDir --coord $CoordDir" }
+else {
+    $out = & python $Adopt adopt --repo $RepoDir --coord $CoordDir 2>&1
+    Say "$(($out | Select-Object -Last 1))"
 }
-else { Say "the checkout has $($dirty.Count) uncommitted change(s); skipping the pull" }
 
 $argsList = @('-NoProfile', '-File', $Supervisor, '-Watch') + $SupervisorArgs
 if ($DryRun) {
