@@ -17,6 +17,8 @@
 *>   HANDLED=EC-FLOW-ROLLBACK   PB3338RS's ROLLBACK, likewise
 *>   RECORD 1 ABSENT            back in PB3338RM, no recursive element is active and its ROLLBACK restores RELF to
 *>                              the start of the run unit (14.9.36.4 GR3): the COMMIT under PB3338RR committed nothing.
+*>                              That state had no file (OPEN OUTPUT created it), so the ROLLBACK removes it and the
+*>                              OPTIONAL file's OPEN INPUT answers 05 (9.1.13.2 item 4 a)) before the READ (kb/Work PB3492).
 *> Negative control: PB3338RM's own activation raises no EC-FLOW-APPLY-COMMIT, and its ROLLBACK raises nothing.
       >>TURN EC-FLOW-COMMIT EC-FLOW-ROLLBACK EC-FLOW-APPLY-COMMIT CHECKING ON
        IDENTIFICATION DIVISION.
@@ -24,7 +26,7 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT RELF ASSIGN TO "pb3338rm.dat"
+           SELECT OPTIONAL RELF ASSIGN TO "pb3338rm.dat"
                ORGANIZATION IS RELATIVE
                ACCESS MODE IS RANDOM
                RELATIVE KEY IS RK.
