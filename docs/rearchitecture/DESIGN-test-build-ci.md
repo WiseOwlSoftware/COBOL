@@ -1651,6 +1651,19 @@ the gate slot:** the slot rations builds and test legs and is held for a whole g
 inside it would make a red self-test wait behind up to three other gates' builds and legs, which is exactly what
 PB2524 moved the audits out of the slot to stop (fail fast, kb/Work PB2523). A per-self-test place keeps fail-fast and
 bounds the load, and with reuse a gate rarely needs a place at all. Every caller takes it.
+⚖ **Why one place per core, and how a run says whether the cores were its limit (kb/Work PB3585).** The self-tests
+mostly start processes, so a wider budget than the cores would help only if they spent the phase waiting rather than
+computing. The GREEN verdict line says which, from every run: `the host's P processors u% busy` (`HostCpu`: two readings
+of `GetSystemTimes` or `/proc/stat`, the reading `tests/_shared/HostLoad.cs` takes) across the phase. Near 100 % the
+cores were the limit; well below it, `--budget N` measures a wider width for one run (a measurement only: no gate or CI
+job passes it, since a run wider than another gate's also takes the places above that gate's width). Measured
+2026-10-24 on CI's 4-core Windows runner (merge-group runs 40058976771, 40057441922, 40048830853): the phase took 290,
+369 and 236 s for 1,031, 1,332 and 812 summed self-test seconds, with all four places busy from the 20th second until
+the last long self-test, so the places were never short of work. The phase's own processes needed 988 CPU-seconds and
+started 12,996 processes on this host (a Job object's accounting at 4 logical processors), 85 % of the 1,160
+processor-seconds a 4-core runner has in 290 s. On a runner as fast as this host, a wider budget can win at most the
+rest, and on a slower one less, so the default stays the cores. What does cost time is the order: a self-test starts in discovery order, so a long one discovered late
+(`prune_worktrees.py`, started at 196 s of 286 in run 40058976771) runs alone for the last 50 s.
 
 **3. No verdict from the clock.** A self-test is never RED for being slow. A run still going HANG_AFTER_S = 3600 s after
 it took its place — counted from the place, so waiting behind other gates never counts; far above every PASS
