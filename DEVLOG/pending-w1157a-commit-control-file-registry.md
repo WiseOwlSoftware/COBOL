@@ -136,3 +136,7 @@ description's lock on Linux and is not the medium's, while on Windows the NO OTH
 it, so the medium now owns the column locks established under `OwnColumnLocks()`, and `Kill` gives them back. That Linux run
 also found the WSL filesystem out of inodes, filled by 394 `~/linux-gate` clones that `linux-gate.sh` never removes. The ones
 older than three hours were pruned, and the leak is a lead in the report.
+
+Gates at a18dc8b55: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
+run: Conformance 8,632 · Unit 922 · Characterization 31 ...` (run 000004-20261024T013348Z) and `=== LINUX GATE: GREEN (legs
+selftests unit characterization conformance guard selftests-built; HEAD a18dc8b55) ===`.
