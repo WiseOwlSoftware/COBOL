@@ -1,37 +1,4 @@
-## Commit and rollback for sequential files: the transaction journal (PB3340), and a deactivated clause releases its files (PB3541)
-
-**PB3541 (wave 1157, group A).** A file connector put under commit control by an APPLY COMMIT clause stayed under it after
-the clause was deactivated. Re-probed on 07bfc3606: a main program whose clause names only WS-X calls a subprogram whose
-clause names the EXTERNAL RELATIVE file RELF, CANCELs it and COMMITs, so §14.9.7.4 GR3 (*"The COMMIT statement also
-deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"*) deactivates the
-subprogram's clause; a third program, with no clause, then writes record 1 of RELF, and the main program's ROLLBACK undid
-it (`RECORD 1 ABSENT`). §14.9.36.4 GR3 restores only *"files and data-items referenced in active APPLY COMMIT clauses"*, and
-§12.4.6.3.4 GR5 makes a canceled element's clause active only until that deactivation. The mechanism: `TransactionControl`
-dropped the retired participant and nothing undid `FileRegistry.RegisterCommitControl`, which has no inverse, so the
-connector kept `CommitControlled` (its WRITEs journaled into the run unit's transaction, §14.6.13.1.3 item 8 still due on its
-fatal statuses) and the implicit AUTOMATIC posture of §9.1.16.
-
-The fix: each participant keeps the file connectors it put under commit control, and `TransactionControl.DeactivateRetired`,
-the one deactivation (a successful COMMIT and every ROLLBACK), takes each file a deactivated clause named that no remaining
-active clause names out of commit control through the new `FileRegistry.ReleaseCommitControl`, which clears the flag and puts
-back the file control entry's own lock posture (the registration now records it; a displaced connector forgets it with its
-share). A transaction whose rollback the medium refused stays owed: the registry finds it by its open transaction id, not by
-the flag. Witnesses: `TransactionControlTests.A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s`
-(COMMIT and ROLLBACK arms, RELATIVE and INDEXED), `A_deactivated_clause_gives_the_file_its_declared_lock_posture_back` (the
-entry's MANUAL posture back, RED on a mutant that keeps the AUTOMATIC share) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
-RED on a mutant that skips the release. DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
-
-**PB3492 re-probed and settled.** On this branch's build a RELATIVE
-file under APPLY COMMIT answers '62' to a DELETE FILE after its CLOSE (its own kept handle read as another holder's by
-`HostFile.IsHeldByAnother`), and the re-probe found a sibling with the same root: an OPEN OUTPUT of an existing keyed file
-after a COMMIT, then a ROLLBACK, leaves the file empty (`RECORD 1 ABSENT`), because `KeyedConnector.Recreate` ends the kept
-transaction when the creation lands. The owner question PB3492 carried is answered by the standard: the NOTE under §14.9.10.4
-GR15 says such files *"can still be deleted, however if they are, then in the event of a rollback they will be restored"*, and
-GR15's conflict is a file *"locked by another file connector"*. DESIGN-runtime-library.md 2.2.2.14 now settles the shape: the
-keyed organizations' two capture verbs ride PB3340's journal (the before file copied through the kept handle, the `K`
-record, then the creation or the removal; ROLLBACK restores the before file and rolls back the run unit's transaction inside
-it), and it records the one primitive the journal design assumes and the runtime lacks, a directory sync, for the
-`IHostMedium` seam to own.
+## Commit and rollback for sequential files: the transaction journal (PB3340)
 
 **PB3340 (wave 1157, group A, the finisher).** §9.1.18.2 admits *"any type of file on a mass storage device"* except sort-merge
 and report files, and the runtime gave commit and rollback to the keyed organizations only: the compiler refused a SEQUENTIAL
@@ -178,3 +145,16 @@ the fix (all five measured red on the unfixed source, green after).
   refusal's vacuity (GR-14.9.10.4-7, GR-14.9.51.4-11) go to the registrar for re-adjudication.
 
 Design 2.2.1.10 (5), 2.2.2.3, 2.2.2.7 and 2.2.2.13 state the rules as built.
+
+### Merging main: its revert of PB3340 and the abandoned loop-branch journal neutralized
+
+Main gained two changes that would have undone this branch silently: c44a069c2 (PR #465, worktree-wf_37d4041f-6f7-1), which
+reverted f3aaa207c..f53efd90b, this branch's steps 1-4, on a branch that shared their history; and 7d5a7e220..c860b0a96, the
+loop's worktree-wf_f6f89a51-99e-1 steps 1-2 (a second `SequentialJournal`, `Sharing/IHostMedium.cs`, `Sharing/HostDirectory.cs`,
+`Journal/FaultingHostMedium.cs`, `Journal/SequentialJournalTests.cs`), which kb/Work PB3340 records ABANDONED and which reached
+main through worktree-wf_f6f89a51-99e-15 (Entry 2426 describes it). A plain merge would have deleted every file this branch
+added and kept the abandoned duplicate. The merge resolved each path the two touched as a three-way merge of this branch,
+c44a069c2's tree (the base) and main, so main's own later changes (PB3576, PB3578, PB670) are kept and the revert is not,
+then reverse-applied the abandoned journal's hunks and deleted its five files (no forwarder: this branch's `IO/IHostMedium.cs`,
+`Sharing/SequentialJournal.cs` and `FaultHostMedium.cs` are the one seam, journal and medium). Verified by
+`git diff <the pre-merge head>` over src, tests, conformance-suite and docs: only main's changes differ.

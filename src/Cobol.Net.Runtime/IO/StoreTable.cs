@@ -87,10 +87,17 @@ internal sealed class StoreTable
     /// and <c>FileRegistry.OpenShared</c> runs that arbitration BEFORE the connector's OPEN body. An entry that
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
     /// silent emptying of records another connector is reading (the analogous impossible state in
-    /// <see cref="Attach{T}"/> is answered the same way).</para></summary>
-    public T AttachCreated<T>(string host, PhysicalFileIdentity? identity, T created) where T : KeyedStore
+    /// <see cref="Attach{T}"/> is answered the same way).</para>
+    /// <para>⛔ WHERE TABLE 19 IS NOT ASKED THE OPEN IS ADMITTED, AND THE CREATION REPLACES THE PATH'S STORE (kb/Work PB670):
+    /// at COBOL-85 (<paramref name="arbitrated"/> false: <see cref="FileConnector.SharingFacilityInEffect"/>) no sharing mode
+    /// restricts another connector, so an OPEN OUTPUT beside connectors that hold the file is a normal open and creates the
+    /// file under them (§14.9.27.4 GR18). The created store becomes the run unit's for the path, as it does for a file replaced
+    /// at the path from outside (<see cref="Attach{T}"/>, kb/Work PB3533): the store the siblings hold stays theirs alone, their
+    /// <see cref="Detach"/> no longer touches the path's entry, and what they find in the file from then on is the file's own
+    /// word, the engine's statuses for a file that changed under an open connector (2.2.1.6).</para></summary>
+    public T AttachCreated<T>(string host, PhysicalFileIdentity? identity, T created, bool arbitrated) where T : KeyedStore
     {
-        if (_byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
+        if (arbitrated && _byHost.TryGetValue(host, out var e) && !NamesAnotherFile(e, identity))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
                 + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "

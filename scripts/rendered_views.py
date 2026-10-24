@@ -209,20 +209,16 @@ def self_test() -> int:
     def check(name: str, ok: bool, detail: str = "") -> None:
         results.append((name, ok, detail))
 
-    def git(root, *a):
-        r = _git(root, *a)
-        if r.returncode != 0:
-            raise RuntimeError(f"git {' '.join(a)}: {r.stderr}")
-
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
     with tempfile.TemporaryDirectory() as td:
         root = pathlib.Path(td)
-        git(root, "init", "-q")
+        scratch = ScratchRepo.init(root)
         (root / "docs").mkdir()
         (root / "kb" / "Conformance").mkdir(parents=True)
         (root / ".gitignore").write_text("kb/Conformance/\ndocs/OK.md\n", encoding="utf-8", newline="\n")
         (root / "docs" / "TRACKED.md").write_text("x", encoding="utf-8", newline="\n")
         (root / "kb" / "Conformance" / "a.md").write_text("x", encoding="utf-8", newline="\n")
-        git(root, "add", "-f", "docs/TRACKED.md", "kb/Conformance/a.md")
+        scratch.git("add", "-f", "docs/TRACKED.md", "kb/Conformance/a.md")
         views = (View("ok", "docs/OK.md", ("x",), None),
                  View("tracked", "docs/TRACKED.md", ("x",), None),
                  View("dir-tracked", "kb/Conformance/", ("x",), None),
@@ -241,7 +237,7 @@ def self_test() -> int:
         (root / "docs" / "GEN.md").write_text("# T\n\n> **Generated** from X - do not edit by hand.\n", encoding="utf-8", newline="\n")
         (root / "docs" / "HAND.md").write_text("# T\n\nAn index someone wrote; see the generated ones.\n", encoding="utf-8", newline="\n")
         (root / "kb" / "Work" / "PB1.md").write_text("Generated indexes - do not hand-edit them.\n", encoding="utf-8", newline="\n")
-        git(root, "add", "docs/GEN.md", "docs/HAND.md", "kb/Work/PB1.md")
+        scratch.git("add", "docs/GEN.md", "docs/HAND.md", "kb/Work/PB1.md")
         swept = unregistered_problems(views, root)
         text = "\n".join(swept)
         check("an unregistered tracked doc that declares itself generated is named",

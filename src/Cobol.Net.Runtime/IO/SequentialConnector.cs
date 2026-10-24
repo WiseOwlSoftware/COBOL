@@ -244,8 +244,10 @@ public sealed partial class SequentialConnector : FileConnector
     /// and an ordinal of a print line is no record identity in either arm.</para></summary>
     private void ReleaseRecord()
     {
+        ThrowDeferredReleaseFault();
         bool anotherWriter = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (FileLockPosture.AdmitsAnotherRunUnit(HostShare))   // a READER or a writer may be open beside this one
+        bool released = OtherConnectorsMayShare;   // a READER or a writer may be open beside this one
+        if (released)
         {
             _writer!.Flush();                      // GR12 — released, not merely buffered
             NoteRelease();                         // …and now visible, so no sibling's read-ahead may hide it
@@ -253,9 +255,33 @@ public sealed partial class SequentialConnector : FileConnector
         if (SharedPhysical is not { } shared) return;
         // …and a writer the host denied READ (OpenWriter's write-only OUTPUT fallback, kb/Work PB2848) cannot count
         // the medium: a count it could not make would refuse, AFTER the flush above, a record that is in the file.
-        _writeOrdinal = anotherWriter && FileLock!.CanRead
+        _writeOrdinal = anotherWriter && released && FileLock!.CanRead
             ? PhysicalOrdinalOfRelease((SharedAppendStream)_writer!.BaseStream)   // §9.1.16 identity, off the medium
             : ++shared.ReleasedOrdinal;                                           // …or the only writer's mint
+    }
+
+    /// <summary>A host refusal met by <see cref="ReleaseBufferedRecords"/>, held for the statement that owns the bytes.</summary>
+    private IOException? _deferredReleaseFault;
+
+    /// <inheritdoc/>
+    internal override void ReleaseBufferedRecords()
+    {
+        if (_writer is null || _deferredReleaseFault is not null) return;
+        try
+        {
+            _writer.Flush();   // GR12 - the records already WRITTEN are released before the sibling's OPEN reads the medium
+            NoteRelease();
+        }
+        catch (IOException refused) { _deferredReleaseFault = refused; }
+    }
+
+    /// <summary>Report the refusal <see cref="ReleaseBufferedRecords"/> held, once, at the writer's own next release or
+    /// CLOSE, through the catch shape those statements already have (<see cref="WriteRecord"/>).</summary>
+    private void ThrowDeferredReleaseFault()
+    {
+        if (_deferredReleaseFault is not { } fault) return;
+        _deferredReleaseFault = null;
+        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(fault);
     }
 
     /// <summary>The records counted so far of the physical file a sharing writer appends to: the ones that START
@@ -317,10 +343,13 @@ public sealed partial class SequentialConnector : FileConnector
     /// <para>An over-length LINE SEQUENTIAL record's unread remainder (§14.9.30.4 GR15 / NOTE 3) is untouched
     /// on purpose: it is part of a record ALREADY made available, and <c>_lineByteOffset</c> is already past
     /// its physical line, so re-anchoring neither loses it nor re-reads it.</para>
-    /// <para>⛔ A TRUNCATING SIBLING CANNOT ARISE, so no rule is written for one: every cell of Table 19's two
-    /// OUTPUT request rows is <i>Unsuccessful open</i> (§14.9.27.4; §9.1.13.9 1) e) — <i>"An attempt is made to
-    /// open a physical file in the output mode and the physical file is currently open by another file
-    /// connector"</i>), so nothing may truncate this file while this connector holds it open.</para>
+    /// <para>⛔ A TRUNCATING SIBLING ANNOUNCES ITSELF LIKE A RELEASE. From COBOL-2002 none arises: every cell of
+    /// Table 19's two OUTPUT request rows is <i>Unsuccessful open</i> (§14.9.27.4; §9.1.13.9 1) e) — <i>"An attempt
+    /// is made to open a physical file in the output mode and the physical file is currently open by another file
+    /// connector"</i>), so nothing may truncate this file while this connector holds it open. At COBOL-85 the file
+    /// sharing facility is not in effect, so that OPEN OUTPUT is admitted and truncates (<see cref="OpenCore"/> bumps
+    /// the generation through <see cref="NoteRelease"/>): the next READ re-anchors and finds the file as it stands,
+    /// which holds no record (§14.9.30.4 GR21).</para>
     /// <para>⛔ ACROSS RUN UNITS THERE IS NO GENERATION TO COMPARE, SO A READER THAT MAY MEET ANOTHER RUN UNIT'S
     /// WRITER RE-ANCHORS AT EVERY FRAME (kb/Work PB2692). The release generation is one run unit's memory; a
     /// writer in another run unit releases records this run unit never hears of, and its REWRITE of a record
@@ -333,7 +362,9 @@ public sealed partial class SequentialConnector : FileConnector
     private void EnsureReaderCoherent()
     {
         if (Physical is not { } physical) return;
-        bool anotherRunUnitMayWrite = FileLockPosture.AdmitsAnotherWriter(HostShare);
+        // At COBOL-85 no other run unit is owed (OtherConnectorsMayShare): a sibling connector of this run unit announces
+        // its releases through the generation, and that is all this reader compares.
+        bool anotherRunUnitMayWrite = SharingFacilityInEffect && FileLockPosture.AdmitsAnotherWriter(HostShare);
         if (!anotherRunUnitMayWrite && physical.ReleaseGeneration == _coherentAt) return;
         _coherentAt = physical.ReleaseGeneration;
         if (_reader is not { BaseStream.CanSeek: true } reader) return;
@@ -1070,6 +1101,7 @@ public sealed partial class SequentialConnector : FileConnector
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _printControl = false;
+        _deferredReleaseFault = null;   // a refusal held for the previous OPEN's writer ended with that OPEN
         _device = DeviceLine.Fresh;
         _lineEnd = SelectLineEnd();   // the registry told HasLinageClause before this OPEN's body ran
         _lastReadBlockStart = -1;
@@ -1136,6 +1168,12 @@ public sealed partial class SequentialConnector : FileConnector
                     // so the first record released is ordinal 1. (§9.1.15 item 3 does not admit output as a
                     // concurrent mode, so no other connector is numbering against this file at the time.)
                     if (SharedPhysical is { } outShared) outShared.ReleasedOrdinal = 0;
+                    // …and the truncation is a change to the medium that every sibling reader's read-ahead must hear of
+                    // (§14.9.30.4 GR21 c: the record selected is an existing record in the physical file). Table 19
+                    // refuses an OUTPUT against an open sibling, so none exists from 2002; at COBOL-85 nothing is
+                    // refused (FileSharingFacility), a reader may hold records that this file no longer holds, and the
+                    // generation is the one channel a sibling of this run unit listens on (EnsureReaderCoherent).
+                    NoteRelease();
                     break;
 
                 case FileOpenMode.Extend:
@@ -1281,6 +1319,7 @@ public sealed partial class SequentialConnector : FileConnector
             // An unterminated line — an AFTER write's record — is ended here; a line some travel already ended
             // gets nothing (kb/Work PB864).
             if (_device != DeviceLine.Fresh) { _writer?.Write(_lineEnd); _device = DeviceLine.Fresh; }
+            ThrowDeferredReleaseFault();
             _writer?.Flush();   // the records land before the bytes that guard them are given back; a refusal maps to '30' (§9.1.13.6 item 1)
         }
         finally

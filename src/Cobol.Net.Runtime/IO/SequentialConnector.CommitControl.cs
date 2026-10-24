@@ -101,11 +101,14 @@ public sealed partial class SequentialConnector : IJournalData
     }
 
     /// <inheritdoc/>
-    /// <remarks>A kept handle on a physical file the path no longer names (removed or renamed away outside the run unit) is
-    /// given back: the OPEN is an ordinary OPEN of the file at the path (kb/Work PB3533's rule, the keyed connector's).</remarks>
-    private protected override void EndWhatWasKeptOfAnotherFile()
+    /// <remarks>A kept handle on a physical file the path no longer names (removed or renamed away outside the run unit, another
+    /// file made at the path) is given back: the OPEN is an ordinary OPEN of the file at the path (kb/Work PB3533's rule). Unlike
+    /// the keyed connector's kept state, nothing of the transaction lives in the handle: the journal is the registry's
+    /// (<see cref="SequentialTransactions"/>), so there is nothing to retire to it.</remarks>
+    private protected override void RetireWhatWasKeptOfAnotherFile(FilePresence presence)
     {
-        if (HoldsKeptHandle && HostFile.IdentityOf(_held!.SafeFileHandle) is { } kept && HostFile.IdentityAt(HostPath) is { } now && kept != now)
+        if (presence is FilePresence.Present && HoldsKeptHandle && HostFile.IdentityOf(_held!.SafeFileHandle) is { } kept
+            && HostFile.IdentityAt(HostPath) is { } now && kept != now)
             ReleaseKept();
     }
 

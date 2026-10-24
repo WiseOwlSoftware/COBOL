@@ -128,12 +128,12 @@ def main():
 
 
 def self_test():
-    # HERMETIC, like gate_slot.py's: the self-test builds its own repository, so a caller's repository selection
-    # (GIT_DIR/GIT_INDEX_FILE from a git hook, or any exported GIT_DIR/GIT_WORK_TREE) would send its init, config and commit to the
-    # caller's REAL repository. Git names the variables itself (kb/Work PB1719, 2026-09-29).
-    for name in subprocess.run(["git", "rev-parse", "--local-env-vars"], check=True, capture_output=True,
-                               text=True).stdout.split():
-        os.environ.pop(name, None)
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+    # HERMETIC: the hook under test runs git in this process, so a caller's repository selection (GIT_DIR/GIT_INDEX_FILE
+    # from a git hook, or any exported GIT_DIR/GIT_WORK_TREE) would send it to the caller's REAL repository (kb/Work
+    # PB1719, 2026-09-29).
+    isolate()
     ok = True
 
     def check(name, got, want_kind):
@@ -145,10 +145,9 @@ def self_test():
         print(("ok      " if good else "FAIL    ") + f"{name}: {kind} (want {want_kind})")
 
     with tempfile.TemporaryDirectory() as d:
-        run = lambda *a: subprocess.run(["git", *a], cwd=d, capture_output=True, check=True)
-        run("init", "-q"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
-        p = pathlib.Path(d)
-        (p / "a.txt").write_text("1", newline="\n"); run("add", "a.txt"); run("commit", "-qm", "one")
+        scratch = ScratchRepo.init(d)
+        p = scratch.path
+        scratch.commit("one", {"a.txt": "1"})
         commit = lambda ev, **kw: decide({"hook_event_name": ev, "cwd": d, "tool_input": {"command": "git commit -m x"}, **kw})
         check("no STATUS.md: pre-commit silent", commit("PreToolUse"), "none")
         check("no STATUS.md: stop silent", decide({"hook_event_name": "Stop", "cwd": d}), "none")
@@ -158,7 +157,7 @@ def self_test():
         (p / "STATUS.md").write_text(f"STATUS-AT: {head}\nDONE: one\n", newline="\n")
         check("current: pre-commit allowed", commit("PreToolUse"), "none")
         check("current: stop allowed", decide({"hook_event_name": "SubagentStop", "cwd": d}), "none")
-        (p / "a.txt").write_text("2", newline="\n"); run("commit", "-qam", "two")
+        scratch.commit("two", {"a.txt": "2"})
         check("stale: a PostToolUse event is ignored (no per-command reminder)", commit("PostToolUse"), "none")
         check("stale: next commit denied", commit("PreToolUse"), "deny")
         check("stale: stop blocked", decide({"hook_event_name": "Stop", "cwd": d}), "block")
