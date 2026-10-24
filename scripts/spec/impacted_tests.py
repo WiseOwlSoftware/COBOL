@@ -931,7 +931,15 @@ def self_test() -> int:
                                                                           "ClosesRowsBackLinkDriftTests"}),
                     ("docs/CONFORMANCE.md", {"AnnexA1RegisterDriftTests"}),
                     (copy + "copy-library-text.cob", {"ConstantNameLiteralPositionDriftTests"}),
-                    ("kb/Work/PB3247.md", {"ClosesRowsBackLinkDriftTests", "EcRaiseSiteRegistryDriftTests"})]:
+                    ("kb/Work/PB3247.md", {"ClosesRowsBackLinkDriftTests", "EcRaiseSiteRegistryDriftTests"}),
+                    # kb/Work PB3112: the reads a test spells with a nested call, a constant or a wrapper's callers.
+                    ("src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4", {"ArithmeticOperandRoleDriftTests",
+                                                                          "SendingOperandDriftTests",
+                                                                          "ReceivingOperandFormDriftTests"}),
+                    ("src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs", {"ClassConditionTableDriftTests"}),
+                    ("src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs", {"FixedFormRecordDriftTests"}),
+                    # A wrapper's trailing parameters (`AssertDeclares(string script, params string[] cases)`) are no path.
+                    ("scripts/spec/cite.py", {"CitationAuditSelfTestDriftTests"})]:
         reach = Reach()
         reach_of(None, [("M", f)], None, reach)
         check(f"with no map, a change to {f} names {', '.join(sorted(want))} (tier 0d)", want <= reach.drift_tests,
