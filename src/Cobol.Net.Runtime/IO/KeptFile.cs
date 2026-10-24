@@ -31,8 +31,8 @@ internal sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, Regi
 /// outside the run unit (<see cref="IsOfTheFileAt"/>).</para>
 /// </summary>
 internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLock? FileLock, RegionLocks Endpoint,
-    string HostPath, PhysicalFileIdentity? Identity, PhysicalFileTable.State? Physical, KeyedStore Store, StoreTable? Table,
-    RestoringTreesFactory Restoring)
+    string HostPath, PhysicalFileIdentity? Identity, PhysicalFileTable.State? Physical, string LockOwner, KeyedStore Store,
+    StoreTable? Table, RestoringTreesFactory Restoring)
 {
     /// <summary>⛔ WHETHER <paramref name="hostPath"/> NAMES THE PHYSICAL FILE THIS STATE WAS KEPT ON, NOW (kb/Work PB3533): the same
     /// path (<see cref="HostFile.PhysicalFileComparer"/>) and, where the host can tell, the same file
@@ -77,17 +77,19 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
         }
     }
 
-    /// <summary>Give back everything a CLOSE under commit control kept — §9.1.15, <i>"the file lock is removed by the COMMIT
-    /// statement"</i>; §9.1.18.5, at the run unit's end <i>"all file and record locks are then released"</i>; and an
-    /// <c>OPEN OUTPUT</c>, which creates the file anew: the record locks published through the kept endpoint (out of this
-    /// run unit's table as well as off the host: the endpoint is the one owner of them), the handle, the run-unit file lock
-    /// and the run unit's attachment to the store. A transaction still standing at that moment (a ROLLBACK refused) is left
-    /// as a death leaves it, for the dead-owner step.</summary>
+    /// <summary>⛔ THE ONE GIVING BACK of everything a CLOSE under commit control kept — §9.1.15, <i>"the file lock is removed by
+    /// the COMMIT statement"</i>; §9.1.18.5, at the run unit's end <i>"all file and record locks are then released"</i>; and an
+    /// <c>OPEN OUTPUT</c>, which creates the file anew: ALL the record locks the connector holds on the physical file, out of this
+    /// run unit's table as well as off the host — by <see cref="LockOwner"/>, so a lock the host could not publish (a table entry
+    /// no endpoint carries, kb/Work PB3480) goes with the ones the kept endpoint published (kb/Work PB3578) — the handle, the
+    /// run-unit file lock and the run unit's attachment to the store. Every path that ends a kept state ends it here, from the
+    /// registry's COMMIT, ROLLBACK and run-unit end as from the connector's own OPEN. A transaction still standing at that
+    /// moment (a ROLLBACK refused) is left as a death leaves it, for the dead-owner step.</summary>
     internal void Release()
     {
         try
         {
-            if (Physical is { } physical) PhysicalFileTable.ReleaseThrough(physical, Endpoint);
+            if (Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, LockOwner);
             if (Handle is { } handle && !Adopted) GiveBack(Store, handle);
         }
         finally

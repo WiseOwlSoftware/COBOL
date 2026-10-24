@@ -99,6 +99,21 @@ on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The ni
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
 
+**⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
+results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
+can be read without a re-run. Every upload goes through ONE step, the composite action `.github/actions/upload-results`:
+it tries the upload three times (30 s, then 90 s apart; each retry `overwrite: true`), and when all three fail it warns
+and passes, because a job's verdict is its tests'. The one artifact a verdict does depend on, a conformance shard's
+trx and listing, is checked by the job that reads it: `conformance-population` downloads through
+`.github/actions/download-results` (three attempts; only the third failure fails the step), and a shard whose upload
+was lost is absent from the union it checks, so the guard fails there and names the missing cases. Before this, a bare
+`actions/upload-artifact` step under `always()` made the artifact service part of the verdict: merge-group run
+38502926616 (PR #39, 2026-10-14) passed 5338 of 5338 tests in a Windows conformance shard, its upload failed on
+`ETIMEDOUT`, and the merge queue removed the pull request. No workflow names the raw upload or download action; the
+drift test holds every step, and both actions' retry shape, to this rule. (`actions/cache` needs no such step: a
+cache restore or save that fails only warns. The one network fetch a job makes itself, the GnuCOBOL testsuite on a
+cache miss, retries the same way inside `scripts/fetch-gnucobol-tests.ps1`: three attempts before it fails.)
+
 **⛔ `ci-gate` is a REQUIRED status check on `main`** (owner decision 2026-09-06, question 23; `kb/Work/PB796`),
 with `enforce_admins: true` — an administrator exemption would be worthless when every push to this repository is
 made with the owner's credentials. It is the terminal job: `if: always()`, `needs:` every other job, and it PASSES
@@ -1643,6 +1658,23 @@ tracer; `run_gate_legs.py --self-test` proves every gate reuses, and that a hung
 self-test is `SELF-TESTS HANG`; `SelfTestDiscoveryDriftTests` holds the arms by name and forbids `--reuse` in CI and
 the Linux gate.
 
+**4. One scratch-repository fixture (kb/Work PB3584).** A self-test that needs a git repository builds and drives it
+through `scripts/scratch_repo.py`'s `ScratchRepo` (`init`, `clone`, `origin`, `worktree`, `git`, `run`, `write`,
+`commit`), the one place a self-test's git process starts. `init` and `clone` write the identity, no automatic
+maintenance (`maintenance.auto = false`, `gc.auto = 0`) and no signing into the new repository's OWN config, so every
+git process in it — the fixture's, the code under test's, a linked worktree's — behaves the same whoever runs the
+self-test (the runner, whose private global config takes the same constants from the fixture, CI, or a hand run:
+outside the runner the `prune_worktrees.py` self-test once started 74 background `git maintenance` processes in the
+repository it was still building). Every command runs without git's repository-selection variables, a failed one
+raises with git's own message (`run` is the unchecked form for a command whose failure is the case), and `isolate()`
+drops the variables from a process whose code under test runs git itself. Until PB3584 fifteen self-tests created
+their own repositories and seven carried a git helper of their own, each with its own identity and checking.
+`scratch_repo.py --audit` reads every self-test's syntax tree (a function named for a self-test, a standalone
+`test_*.py`): a `subprocess` call whose argv is a git argv, a repository created around the fixture, or a nested helper
+over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
+`"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
+maintenance settings) to that one file.
+
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
 is a non-zero exit and a hang is bounded by the budget place, never by a clock. What the runner cannot see is an arm
@@ -1799,9 +1831,11 @@ gate's first serial valley in every run) and then wrote the refreshed index back
 git rewrote on its next command; `git.exe` reads it in 0.1-1.2 s. `LinuxGateDriftTests` holds every git call on the
 tree to `wgit`, and every arm of it to `--no-optional-locks`.
 
-Two guards stay beside the clone (group G, kb/Work PB1719). A self-test that builds its own repositories first drops
-every variable `git rev-parse --local-env-vars` names (`gate_slot.py`, `status_guard.py`), so an inherited `GIT_DIR`
-can never redirect it into the real repository. And the script snapshots the real repository's `HEAD` and
+Two guards stay beside the clone (group G, kb/Work PB1719). A self-test builds and drives its repositories through
+the one scratch-repository fixture, `scripts/scratch_repo.py` (§3.14.10, kb/Work PB3584), which runs every git
+command without the variables `git rev-parse --local-env-vars` names, and a self-test whose code under test runs git
+in its own process drops them from that process first (`scratch_repo.isolate`), so an inherited `GIT_DIR` can never
+redirect it into the real repository. And the script snapshots the real repository's `HEAD` and
 `core.worktree` before the legs and is RED (`repository-written`) when either changed. (Not the worktree list:
 other agents add and remove worktrees of the shared repository while it runs.)
 

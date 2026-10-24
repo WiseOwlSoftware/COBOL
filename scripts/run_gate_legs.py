@@ -114,7 +114,7 @@ import impacted_tests  # noqa: E402
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Setting, Slot,  # noqa: E402
-                       drop_git_local_env, git_common_dir, slot_dir)
+                       git_common_dir, slot_dir)
 from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
@@ -1385,7 +1385,8 @@ class FakeHost(Host):
 
 
 def self_test() -> int:
-    drop_git_local_env()  # ⛔ hermetic: the arms below make git repositories (gate_slot.drop_git_local_env)
+    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (this directory's: the one scratch-repository fixture)
+    isolate()  # ⛔ hermetic: the arms below make git repositories (scratch_repo.isolate, kb/Work PB1719)
     results: list[tuple[str, bool, str]] = []
     root = Path(tempfile.mkdtemp(prefix="gate-legs-selftest-"))
     sink: list[str] = []
@@ -1707,12 +1708,9 @@ def self_test() -> int:
             and all(v.startswith("NOT_RUN_CAUSES[") for v in own), f"untagged={untagged} unknown={unknown} own={own}")
 
         # The lock is per WORKTREE: a linked worktree's git dir is its own.
-        git = ["git", "-c", "user.name=gate-legs", "-c", "user.email=gate-legs@invalid", "-c", "init.defaultBranch=main"]
-        repo, linked = root / "repo", root / "linked"
-        repo.mkdir()
-        for argv in (["init", "-q"], ["commit", "-q", "--allow-empty", "-m", "self-test"],
-                     ["worktree", "add", "-q", "--detach", str(linked)]):
-            subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
+        scratch = ScratchRepo.init(root / "repo")
+        scratch.commit("self-test", allow_empty=True)
+        repo, linked = scratch.path, scratch.worktree(root / "linked", detach=True).path
         a, b = Host(repo).lock_path(), Host(linked).lock_path()
         arm("the gate lock is per worktree: the main checkout and a linked worktree lock different files",
             a != b and a.parent == (repo / ".git").resolve() and b.parent.parent == (repo / ".git" / "worktrees").resolve(),
@@ -1721,8 +1719,7 @@ def self_test() -> int:
         # THE MEASURED TREE (kb/Work PB3536): the working tree's content, through a private index.
         (repo / ".gitignore").write_text("ignored.txt\n", encoding="utf-8", newline="\n")
         (repo / "tracked.txt").write_text("one\n", encoding="utf-8", newline="\n")
-        for argv in (["add", "-A"], ["commit", "-q", "-m", "tracked"]):
-            subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
+        scratch.commit("tracked")
         real = Host(repo)
         index_before = (repo / ".git" / "index").read_bytes()
         t0 = real.measured_tree()
@@ -1746,13 +1743,12 @@ def self_test() -> int:
         past = (int(time.time()) - 60) * 1_000_000_000
         tracked, real_index = repo / "tracked.txt", repo / ".git" / "index"
         os.utime(tracked, ns=(past, past))
-        subprocess.run(git + ["add", "--", "tracked.txt"], cwd=repo, check=True, capture_output=True)
+        scratch.git("add", "--", "tracked.txt")
         os.utime(real_index, ns=(past, past))
         t_racy0 = real.measured_tree()
         tracked.write_text("six\n", encoding="utf-8", newline="\n")      # the same size as "one\n"
         os.utime(tracked, ns=(past, past))
-        seen = subprocess.run(git + ["--no-optional-locks", "status", "--porcelain", "--", "tracked.txt"], cwd=repo,
-                              check=True, capture_output=True, text=True).stdout
+        seen = scratch.git("--no-optional-locks", "status", "--porcelain", "--", "tracked.txt")
         t_racy = real.measured_tree()
         tracked.write_text("one\n", encoding="utf-8", newline="\n")
         arm("an edit in the index's own second (racy git) changes the measured tree: the private index keeps the "
@@ -1767,8 +1763,8 @@ def self_test() -> int:
         settings.parent.mkdir()
         settings.write_text("{}\n", encoding="utf-8", newline="\n")
         # forced: a user's global excludes may name it (tracked in the repository all the same, as here)
-        for argv in (["add", "-f", "--", ".claude/settings.local.json"], ["commit", "-q", "-m", "harness settings"]):
-            subprocess.run(git + argv, cwd=repo, check=True, capture_output=True)
+        scratch.git("add", "-f", "--", ".claude/settings.local.json")
+        scratch.git("commit", "-q", "-m", "harness settings")
         committed = real.git("rev-parse", "HEAD^{tree}")
         settings.write_text('{"permissions": {}}\n', encoding="utf-8", newline="\n")
         # STATUS.md is IGNORED, as in this repository (git refuses an `add` pathspec naming an ignored path, even an
@@ -1779,11 +1775,11 @@ def self_test() -> int:
         (repo / "TestResults" / "build-local").mkdir(parents=True)
         (repo / "TestResults" / "build-local" / "gate.log").write_text("x\n", encoding="utf-8", newline="\n")
         t_harness = real.measured_tree()
-        subprocess.run(git + ["add", "--", str(settings)], cwd=repo, check=True, capture_output=True)
+        scratch.git("add", "--", str(settings))
         t_staged = real.measured_tree()
         (repo / "tracked.txt").write_text("three\n", encoding="utf-8", newline="\n")
         t_work = real.measured_tree()
-        subprocess.run(git + ["reset", "-q", "--hard"], cwd=repo, check=True, capture_output=True)
+        scratch.git("reset", "-q", "--hard")
         for p in (repo / "STATUS.md", repo / "TestResults"):
             shutil.rmtree(p) if p.is_dir() else p.unlink()
         arm("the measured tree leaves out coord.NEVER_WORK: a harness-edited tracked settings file (on disk, or staged), "
