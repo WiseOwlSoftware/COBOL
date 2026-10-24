@@ -363,7 +363,8 @@ def closed_by_branch(branch: str, git: Callable[..., Any]) -> list[str]:
     return sorted(out, key=work.id_order)
 
 
-def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any]) -> None:
+def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any],
+                     is_ancestor: Callable[[str, str], bool]) -> None:
     """Complete the `notes` of every report whose branch is not on main with the notes the branch closes
     (closed_by_branch), so a DONE branch waiting to land holds every note it finished in `awaiting landing`, not only
     its lead and its dispatch group's (answered_notes), and a SPLIT or FINDINGS branch's finisher, which takes that
@@ -377,14 +378,14 @@ def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git:
     FINDINGS report. The planner then read the note as `awaiting landing` with the successor and never planned the
     predecessor's review finisher, while the survey held the successor for those same findings. Wave 1143 planned
     nothing that way (PB3489 behind fix-pb3504, kb/Work PB3508). The contained branch's own report decides the note,
-    as plan()'s carrier rule already says (`branch_carrier`)."""
+    as plan()'s carrier rule already says (`branch_carrier`). `is_ancestor` is the local branches' graph's
+    (local_branches), never a `merge-base` per pair (kb/Work PB3582)."""
     unlanded = list(dict.fromkeys(r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES))
     closed = {b: closed_by_branch(b, git) for b in unlanded}
     for r in reports:
         if r.branch not in closed:
             continue
-        carried = {n for c in unlanded if c != r.branch and
-                   git("merge-base", "--is-ancestor", c, r.branch).returncode == 0 for n in closed[c]}
+        carried = {n for c in unlanded if c != r.branch and is_ancestor(c, r.branch) for n in closed[c]}
         r.notes = list(dict.fromkeys([*r.notes, *(n for n in closed[r.branch] if n not in carried)]))
 
 
@@ -442,28 +443,37 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime, r.path.name))
 
 
-def git_branch_classifier() -> Callable[[str], str]:
-    """branch -> MERGED | LANDED | CHECK | UNLANDED | ABSENT, by prune_worktrees' content test (reused, not forked)."""
+def local_branches() -> tuple[set[str], "git_batch.Ancestry"]:
+    """(every local branch, ONE graph of them beyond origin/main): what the planner's classifier, its carrier rule,
+    add_closed_notes and unlanded_branch_notes all read, from one listing and one graph read (kb/Work PB3582), never a
+    `rev-parse`, a `merge-base` or a `git log` per branch or per pair of branches."""
+    import prune_worktrees  # noqa: PLC0415
+    local = set(prune_worktrees.git("for-each-ref", "refs/heads", "--format=%(refname:short)").stdout.split())
+    return local, prune_worktrees.branch_graph(sorted(local))
+
+
+def git_branch_classifier(local: set[str], graph: "git_batch.Ancestry") -> Callable[[str], str]:
+    """branch -> MERGED | LANDED | CHECK | UNLANDED | ABSENT, by prune_worktrees' content test (reused, not forked), over
+    the local branches and their graph (local_branches)."""
     import prune_worktrees  # noqa: PLC0415  (git work at import time is none, but the grep below is: only on demand)
-    read: dict[str, Any] = {}
+    names: list[set[str]] = []
     cache: dict[str, str] = {}
 
     def classify(branch: str) -> str:
-        if not read:   # at the first question: every local branch and ONE graph of them (kb/Work PB3582), never a
-            # `rev-parse` and a `merge-base` per branch
-            read["local"] = set(prune_worktrees.git("for-each-ref", "refs/heads", "--format=%(refname:short)").stdout.split())
-            read["graph"] = prune_worktrees.branch_graph(sorted(read["local"]))
-            read["names"] = prune_worktrees.main_names()
         if branch not in cache:
-            cache[branch] = ("ABSENT" if branch not in read["local"] else
-                             prune_worktrees.classify(branch, read["names"], read["graph"])[0])
+            if branch not in local:
+                cache[branch] = "ABSENT"
+            else:
+                names or names.append(prune_worktrees.main_names())
+                cache[branch] = prune_worktrees.classify(branch, names[0], graph)[0]
         return cache[branch]
     return classify
 
 
 def branch_carrier(reports: list[Report], classify: Callable[[str], str],
-                   git: Callable[..., Any]) -> Callable[[str], str | None]:
-    """branch -> the branch of a FINISHED report (Report.finished), not on main, that contains it (`git merge-base --is-ancestor`), or None.
+                   is_ancestor: Callable[[str, str], bool]) -> Callable[[str], str | None]:
+    """branch -> the branch of a FINISHED report (Report.finished), not on main, that contains it (`is_ancestor`: the
+    local branches' graph, git_batch.Ancestry.is_ancestor, never a `merge-base` per pair, kb/Work PB3582), or None.
     Unfinished work that a finished branch merged lands WITH that branch: a SPLIT predecessor's branch carries no clean
     stamp at its tip, so it never lands alone (prune_worktrees.contained: an unreviewed checkpoint lands through the
     branch that carries it, kb/Work PB3381). Only a finished predecessor reviewed CLEAN lands on its own, and this reads
@@ -475,12 +485,12 @@ def branch_carrier(reports: list[Report], classify: Callable[[str], str],
     def carried(branch: str) -> str | None:
         if branch not in cache:
             cache[branch] = next((c for c in done if c != branch and classify(c) not in LANDED_CLASSES and
-                                  git("merge-base", "--is-ancestor", branch, c).returncode == 0), None)
+                                  is_ancestor(branch, c)), None)
         return cache[branch]
     return carried
 
 
-def unlanded_branch_notes() -> dict[str, list[str]]:
+def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[str, list[str]]:
     """{UNLANDED or CHECK branch: [every note id its commit subjects name]} over every local branch. CHECK (a C# name
     the branch declares is missing from main) is unlanded work until someone reads it: wave 1017's group B branch,
     which only edited existing files, classified CHECK, and its WIP would have been planned over from main.
@@ -488,10 +498,8 @@ def unlanded_branch_notes() -> dict[str, list[str]]:
     plan() knows the latter (kb/Work PB3150 review R2-1)."""
     import prune_worktrees  # noqa: PLC0415
     names = prune_worktrees.main_names()
-    branches = [b for b in prune_worktrees.git("branch", "--format=%(refname:short)").stdout.split() if b != "main"]
-    graph = prune_worktrees.branch_graph(branches)   # ONE graph: the classes and the subjects (kb/Work PB3582)
     out = {}
-    for b in branches:
+    for b in sorted(local - {"main"}):   # the subjects are the graph's (local_branches), never a `git log` per branch
         if prune_worktrees.classify(b, names, graph)[0] not in ("UNLANDED", "CHECK"):
             continue
         subjects = "\n".join(graph.subject(c) for c in graph.beyond(graph.sha(b) or b))
@@ -1763,10 +1771,11 @@ def main(argv: list[str] | None = None) -> int:
         classify, unlanded, carrier = (lambda _b: "ABSENT"), {}, None
     else:
         import prune_worktrees  # noqa: PLC0415  (its git runner, reused)
-        classify, unlanded = git_branch_classifier(), unlanded_branch_notes()
-        carrier = branch_carrier(reports, classify, prune_worktrees.git)
+        local, graph = local_branches()
+        classify, unlanded = git_branch_classifier(local, graph), unlanded_branch_notes(local, graph)
+        carrier = branch_carrier(reports, classify, graph.is_ancestor)
         notes.update(branch_lead_notes(reports, notes, harm_weights(), prune_worktrees.git))
-        add_closed_notes(reports, classify, prune_worktrees.git)
+        add_closed_notes(reports, classify, prune_worktrees.git, graph.is_ancestor)
     items = work.load()
     status_of = {i.get("id"): i.get("status") for i in items}
 

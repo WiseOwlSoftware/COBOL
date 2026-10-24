@@ -189,6 +189,17 @@ class Ancestry:
         """`commit` (a tip this graph read, or a commit one reaches) is the base or an ancestor of it."""
         return self._full(commit) not in self._parents
 
+    def is_ancestor(self, ancestor: str, commit: str) -> bool:
+        """`git merge-base --is-ancestor <ancestor> <commit>` for two names this graph read: from memory when `ancestor`
+        is beyond the base (it is then an ancestor exactly when `commit` reaches it beyond the base); asked of git when
+        it is on the base, the one case the graph cannot see (`commit` may or may not contain that much of the base)."""
+        a, c = self.sha(ancestor), self.sha(commit)
+        if not a or not c:
+            return False
+        if a in self._parents:
+            return a in self.beyond(c)
+        return self.repo is not None and run(self.repo, "merge-base", "--is-ancestor", a, c).returncode == 0
+
     def beyond(self, commit: str) -> frozenset[str]:
         """Every commit `commit` reaches that the base does not (`git rev-list <commit> ^<base>`); empty when it is on
         the base."""
@@ -308,6 +319,11 @@ def self_test() -> int:
         check("Ancestry: parents and tree as `rev-list --parents` / `<c>^{tree}` read them",
               graph.parents(merge) == tuple(repo.git("rev-list", "--parents", "-n", "1", merge).split()[1:])
               and graph.tree(merge) == repo.git("rev-parse", f"{merge}^{{tree}}"))
+        asked = [(a, b) for a in ("side", "empty", root, "main") for b in ("main", "side", "empty")]
+        got_anc = [graph.is_ancestor(a, b) for a, b in asked]
+        want_anc = [repo.run("merge-base", "--is-ancestor", a, b).returncode == 0 for a, b in asked]
+        check("Ancestry.is_ancestor is `merge-base --is-ancestor` (from memory beyond the base, from git on it)",
+              got_anc == want_anc, list(zip(asked, got_anc, want_anc)))
         try:
             Ancestry.read(r, ["main", "no-such-branch"])
             check("Ancestry: a tip that names no commit raises (never 'on the base')", False)

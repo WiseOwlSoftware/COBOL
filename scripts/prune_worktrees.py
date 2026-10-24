@@ -451,9 +451,7 @@ def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = git_batc
     full, head = graph.sha(reviewed), graph.sha(tip)
     if not full or not head:
         return None
-    # A reviewed head beyond the base is a commit of the tip exactly when the tip's graph reaches it; one on the base
-    # (or another history) is asked of git, the rare case.
-    if full not in graph.beyond(head) and git('merge-base', '--is-ancestor', full, head, cwd=repo).returncode != 0:
+    if not graph.is_ancestor(full, head):
         return None
     since = graph.newest_first(graph.beyond(head) - graph.beyond(full))
     skip = mechanical(since, graph, repo)
