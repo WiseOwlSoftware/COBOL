@@ -32,6 +32,13 @@
 #     clone that is an ordinary Linux repository.
 # The clone builds COMMITTED HEAD: commit before running it. Uncommitted tracked changes are counted and reported.
 #
+# THE INERT LANE AND ITS PROOF (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A HEAD whose change against origin/main
+# touches only paths no test reads (scripts/inert_lane.py classify, THE one classification: CI's `changes` job and the
+# Windows gate use it too) runs no leg: `=== LINUX GATE: GREEN (inert lane, …) ===`. Every other run watches every inert
+# path with inotify while the test legs run (`inert_lane.py watch`), so a test that starts reading one is a RED here
+# (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The `selftests` leg runs in a
+# clone of its own, so the self-tests' reads (audits, which read inert paths by design) never reach the watch.
+#
 # Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
 # non-observations, copied in as the gate ends) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
@@ -473,6 +480,21 @@ if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corp
   corpus_red=" corpus-fetch"
 fi
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
+# THE INERT LANE (kb/Work PB2878): the change is HEAD against its merge base with the tree's origin/main (the clone
+# shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
+main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
+lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
+if [ -n "$lane_base" ]; then
+  lane_out="$("$PY" "$snap/scripts/inert_lane.py" classify --root "$snap" --base "$lane_base" --head HEAD 2>&1)"
+else
+  lane_out=$'lane=full\nreason=no merge base with origin/main: the full lane'
+fi
+lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
+if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
+  echo "linux-gate: inert lane — $lane_reason"
+  echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878: $lane_reason; no leg runs; HEAD ${head:0:9}) ==="; exit 0
+fi
+echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
 [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 
 bad="$corpus_red"; ran=""
@@ -485,11 +507,11 @@ bad="$corpus_red"; ran=""
 # reads the built test assemblies. They are path-sensitive: a drive-letter path that Linux reads as relative turned CI
 # red on 2026-10-07 after a green Windows run (kb/Work PB2142).
 leg_status() { printf '%s\n' "$2" > "$out/$1.status"; }   # <leg> <GREEN|RED|NOT RUN>
-selftests_leg() {  # <leg name> [runner arguments…]
-  local name="$1"; shift
+selftests_leg() {  # <leg name> <clone> [runner arguments…]
+  local name="$1" dir="$2"; shift 2
   local start rc secs verdict
   start=$(date +%s)
-  ( cd "$snap" && "${nice_prefix[@]}" "$PY" scripts/self_tests.py "$@" ) > "$out/$name.log" 2>&1
+  ( cd "$dir" && "${nice_prefix[@]}" "$PY" scripts/self_tests.py "$@" ) > "$out/$name.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))
   verdict="$(grep -E '^=== SELF-TESTS: ' "$out/$name.log" | tail -1)"
@@ -561,8 +583,18 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   fi
 }
 
+# The script self-tests are AUDITS and read inert paths by design (the work register, the DEVLOG), so `selftests` runs in
+# a clone of its own, outside the inert watch below (kb/Work PB2878); `selftests-built` reads this clone's build.
+selfsnap="$snap.selftests"
+rm -rf "$selfsnap"
 order=(selftests)
-selftests_leg selftests > "$out/selftests.result" 2>&1 &
+if git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$selfsnap" >> "$out/clone.log" 2>&1 \
+   && git -C "$selfsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
+  selftests_leg selftests "$selfsnap" > "$out/selftests.result" 2>&1 &
+else
+  leg_status selftests RED
+  echo "leg selftests: RED — could not clone HEAD ${head:0:9} into $selfsnap (TestResults/linux-gate/clone.log)" > "$out/selftests.result"
+fi
 start=$(date +%s)
 ( cd "$snap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build.log" 2>&1 &
 wait $!   # in the background, so a signal reaches on_signal during the build (bash defers a trap past a foreground command)
@@ -579,6 +611,16 @@ cli_before="$(cli_fingerprint)"
 if [ $brc -ne 0 ]; then
   echo "linux-gate: the Linux BUILD failed; see TestResults/linux-gate/build.log"
   grep -E ' error ' "$out/build.log" | sort -u | head -10 | sed 's/^/    /'
+fi
+# THE INERT WATCH (kb/Work PB2878): every inert path of the clone is watched while the legs run; the watcher's command
+# waits for the stop file this script writes once the legs end. Its readiness is its events file.
+watch_events="$out/inert-watch.events"; watch_stop="$out/inert-watch.stop"; watch_pid=""
+rm -f "$watch_events" "$watch_stop"
+if [ $brc -eq 0 ]; then
+  ( cd "$snap" && "$PY" scripts/inert_lane.py watch --root "$snap" --events "$watch_events" \
+      -- bash -c 'while [ ! -e "$1" ]; do sleep 1; done' inert-watch "$watch_stop" ) > "$out/inert-watch.log" 2>&1 &
+  watch_pid=$!
+  for _ in $(seq 1 240); do [ -e "$watch_events" ] || ! kill -0 "$watch_pid" 2>/dev/null && break; sleep 0.25; done
 fi
 for leg in "${wanted[@]}"; do
   order+=("$leg")
@@ -598,7 +640,7 @@ order+=(selftests-built)
 case ",$legs," in
   *,unit,*conformance,*|*,conformance,*unit,*)
     if [ $brc -eq 0 ]; then
-      selftests_leg selftests-built --built > "$out/selftests-built.result" 2>&1 &
+      selftests_leg selftests-built "$snap" --built > "$out/selftests-built.result" 2>&1 &
     else
       leg_status selftests-built "NOT RUN"
       echo "leg selftests-built: NOT RUN (the Linux build failed)" > "$out/selftests-built.result"
@@ -609,7 +651,21 @@ case ",$legs," in
     echo "leg selftests-built: NOT RUN (it reads the unit and conformance assemblies, and --legs '$legs' asks for" \
          "neither of them)" > "$out/selftests-built.result" ;;
 esac
-wait
+# Every leg, never the watcher: it ends only once the stop file exists.
+for job in $(jobs -p); do [ "$job" = "$watch_pid" ] || wait "$job"; done
+if [ -n "$watch_pid" ]; then
+  order+=(inert-watch)
+  touch "$watch_stop"
+  wait "$watch_pid"; wrc=$?
+  wverdict="$(grep -E '^=== INERT WATCH: ' "$out/inert-watch.log" | tail -1)"
+  if [ $wrc -eq 0 ] && [[ "$wverdict" == "=== INERT WATCH: GREEN"* ]]; then
+    leg_status inert-watch GREEN; echo "leg inert-watch: GREEN — $wverdict" > "$out/inert-watch.result"
+  else
+    leg_status inert-watch RED
+    { echo "leg inert-watch: RED (rc=$wrc) — ${wverdict:-no watch verdict; see TestResults/linux-gate/inert-watch.log}"
+      sed 's/^/    /' "$out/inert-watch.log"; } > "$out/inert-watch.result"
+  fi
+fi
 for leg in "${order[@]}"; do
   cat "$out/$leg.result"
   st="$(cat "$out/$leg.status" 2>/dev/null)"
