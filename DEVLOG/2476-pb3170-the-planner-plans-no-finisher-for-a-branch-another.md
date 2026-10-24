@@ -1,4 +1,4 @@
-## PB3170 — the planner plans no finisher for a branch another branch replays, and none from an abandoned one
+## Entry 2476 — 2026-10-24 14:13 PDT — PB3170 — the planner plans no finisher for a branch another branch replays, and none from an abandoned one
 
 **Defect.** The planner's own FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor (never merge it),
 so the successor holds the predecessor's work as other commits and is no descendant of it. `plan_wave.branch_carrier`
@@ -51,3 +51,4 @@ report order (361/361).
 
 **Not fixed here.** `prune_worktrees.contained()` (the branch survey) still reads ancestry only: a replayed SPLIT branch
 stays a DECISION row until its carrier lands and `git cherry` reads it LANDED. The planner no longer dispatches it.
+
