@@ -761,48 +761,6 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
                             f"(kb/Work PB3023, PB3103): a finisher merges origin/main, resolves and re-gates; the new tip is "
                             f"reviewed, then the landing lane lands it")
         return end(EXIT_CONFLICT, f"CONFLICT in {', '.join(files)} — merge aborted, branch unchanged")
-
-    def gate_once(why: str) -> int | None:
-        """The one gate a landing runs, rarely (module doc, step 3): None when it is GREEN, else the landing's exit."""
-        head = _git(wt, "rev-parse", "HEAD").stdout.strip()
-        say(f"enqueue: gating {head[:12]} once: {why}")
-        results = gates(wt)
-        for host, _, line in results:
-            say(f"enqueue: {host} gate: {line}")
-        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
-        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
-        if busy := next(((h, line) for h, r, line in results if r == run_gate_legs.BUSY_READING), None):
-            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
-                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
-        # A gate that measured nothing (kb/Work PB3526) blocks only when its cause is code the gated tree carries and
-        # main, measured at the same step, does not fail the same way: the class is the driver's one classification
-        # (run_gate_legs.NOT_RUN_CAUSES), read here, never re-derived.
-        if not results:
-            return end(2, f"GATE NOT RUN (none) on {head[:12]} — no gate row ran (GATES is empty): nothing measured")
-        stopped = next(((h, r, line) for h, r, line in results if r.word == run_gate_legs.NOT_RUN), None)
-        if stopped and not stopped[1].branch_carried:
-            return end(2, f"GATE NOT RUN ({stopped[0]}) on {head[:12]} — the gate measured nothing, for a cause in the "
-                          f"environment ([{stopped[1].cause.tag}]: no finisher fixes it): {stopped[2]}")
-        if stopped:
-            host, reading, line = stopped
-            main_sha = _git(wt, "rev-parse", base).stdout.strip()
-            ran = (on_main or (lambda w, h, sha: gate_main(w, h, sha, say=say)))(wt, host, main_sha)
-            if ran is not None and ran.reading.cause == reading.cause:
-                return end(2, f"GATE NOT RUN ({host}) on {head[:12]} — [{reading.cause.tag}] fails on main "
-                              f"{main_sha[:12]} the same way at the same step ({ran.how}): not the branch's, the "
-                              f"operator's: {line}")
-            on_main_said = (f"main {main_sha[:12]} reads {ran.reading.word}"
-                            f"{f' [{ran.reading.cause.tag}]' if ran.reading.cause else ''} there ({ran.how})"
-                            if ran is not None else f"main {main_sha[:12]} could not be measured (above)")
-            blocked(branch, wt, f"BLOCKED: enqueue — the {host} gate was NOT RUN on {head[:12]} by code the branch "
-                                f"carries ([{reading.cause.tag}]: {reading.cause.what}); {on_main_said}: {line}")
-            return end(EXIT_GATE, f"GATE NOT RUN, BRANCH-CARRIED ({host}) on {head[:12]} — [{reading.cause.tag}]; "
-                                  f"{on_main_said}")
-        bad = next(((h, line) for h, r, line in results if r != run_gate_legs.GREEN_READING), None)
-        if bad:
-            blocked(branch, wt, f"BLOCKED: enqueue — the {bad[0]} gate is not GREEN on {head[:12]}: {bad[1]}")
-            return end(EXIT_GATE, f"GATE RED ({bad[0]}) on {head[:12]}")
-        return None
     blocked = blocked or (lambda b, w, line: record_blocked(b, w, line, say))
     wt = worktree or worktree_of(repo, branch)
     if branch == "main":
@@ -870,6 +828,51 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     gates_run = 0
     if files := merge_main(wt, branch, base):
         return conflicted(files, "before the queue")
+
+    # Defined here, after the land lock and the merge, because it is only ever called by step 3 below
+    # (LandingPipelineDriftTests holds every gate of land() after the lock in the text too, kb/Work PB3310).
+    def gate_once(why: str) -> int | None:
+        """The one gate a landing runs, rarely (module doc, step 3): None when it is GREEN, else the landing's exit."""
+        head = _git(wt, "rev-parse", "HEAD").stdout.strip()
+        say(f"enqueue: gating {head[:12]} once: {why}")
+        results = gates(wt)
+        for host, _, line in results:
+            say(f"enqueue: {host} gate: {line}")
+        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
+        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
+        if busy := next(((h, line) for h, r, line in results if r == run_gate_legs.BUSY_READING), None):
+            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
+                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
+        # A gate that measured nothing (kb/Work PB3526) blocks only when its cause is code the gated tree carries and
+        # main, measured at the same step, does not fail the same way: the class is the driver's one classification
+        # (run_gate_legs.NOT_RUN_CAUSES), read here, never re-derived.
+        if not results:
+            return end(2, f"GATE NOT RUN (none) on {head[:12]} — no gate row ran (GATES is empty): nothing measured")
+        stopped = next(((h, r, line) for h, r, line in results if r.word == run_gate_legs.NOT_RUN), None)
+        if stopped and not stopped[1].branch_carried:
+            return end(2, f"GATE NOT RUN ({stopped[0]}) on {head[:12]} — the gate measured nothing, for a cause in the "
+                          f"environment ([{stopped[1].cause.tag}]: no finisher fixes it): {stopped[2]}")
+        if stopped:
+            host, reading, line = stopped
+            main_sha = _git(wt, "rev-parse", base).stdout.strip()
+            ran = (on_main or (lambda w, h, sha: gate_main(w, h, sha, say=say)))(wt, host, main_sha)
+            if ran is not None and ran.reading.cause == reading.cause:
+                return end(2, f"GATE NOT RUN ({host}) on {head[:12]} — [{reading.cause.tag}] fails on main "
+                              f"{main_sha[:12]} the same way at the same step ({ran.how}): not the branch's, the "
+                              f"operator's: {line}")
+            on_main_said = (f"main {main_sha[:12]} reads {ran.reading.word}"
+                            f"{f' [{ran.reading.cause.tag}]' if ran.reading.cause else ''} there ({ran.how})"
+                            if ran is not None else f"main {main_sha[:12]} could not be measured (above)")
+            blocked(branch, wt, f"BLOCKED: enqueue — the {host} gate was NOT RUN on {head[:12]} by code the branch "
+                                f"carries ([{reading.cause.tag}]: {reading.cause.what}); {on_main_said}: {line}")
+            return end(EXIT_GATE, f"GATE NOT RUN, BRANCH-CARRIED ({host}) on {head[:12]} — [{reading.cause.tag}]; "
+                                  f"{on_main_said}")
+        bad = next(((h, line) for h, r, line in results if r != run_gate_legs.GREEN_READING), None)
+        if bad:
+            blocked(branch, wt, f"BLOCKED: enqueue — the {bad[0]} gate is not GREEN on {head[:12]}: {bad[1]}")
+            return end(EXIT_GATE, f"GATE RED ({bad[0]}) on {head[:12]}")
+        return None
+
     # 3. A gate only where nothing else has tested the tree: the lanes no one gates, and a merge that changed a file the
     # branch also changes. "Changed" is read against the head the RECORD measured (proof.gated), never against this run's
     # start: a re-run after an earlier run made the overlapping merge commit, whose gate came back BUSY or NOT RUN, starts
