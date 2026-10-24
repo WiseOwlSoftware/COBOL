@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -26,7 +27,7 @@ public sealed class HandleColumnLockHostDriftTests
 
     private static (string Directory, string File) NewFile()
     {
-        var dir = System.IO.Directory.CreateTempSubdirectory("pb3482-").FullName;
+        var dir = ScratchDirectory.Create("pb3482-");
         string file = Path.Combine(dir, "data.dat");
         System.IO.File.WriteAllText(file, "SEED");
         return (dir, file);
@@ -34,7 +35,7 @@ public sealed class HandleColumnLockHostDriftTests
 
     private static void Clean(string directory)
     {
-        try { System.IO.Directory.Delete(directory, recursive: true); } catch (IOException) { }
+        ScratchDirectory.Remove(directory);
     }
 
     public static TheoryData<FileSharing, FileOpenMode, FileSharing, FileOpenMode> EveryPair()

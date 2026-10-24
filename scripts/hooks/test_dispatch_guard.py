@@ -8,13 +8,15 @@ import os
 import pathlib
 import subprocess
 import sys
-import tempfile
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 HOOK = pathlib.Path(__file__).with_name("dispatch_guard.py")
 REPO = pathlib.Path(__file__).resolve().parents[2]
 BRIEF = REPO / ".claude" / "skills" / "workstream" / "templates" / "fix-lane-implementer-brief.md"
 FINISHER = REPO / ".claude" / "skills" / "workstream" / "templates" / "finisher-brief.md"
-TMP = pathlib.Path(tempfile.mkdtemp())
+TMP = scratch_dir("test-dispatch-guard-")
 
 WITH_SKILL = TMP / "with.jsonl"
 WITH_SKILL.write_text(json.dumps({"type": "tool_use", "name": "Skill", "input": {"skill": "workstream"}}) + "\n",

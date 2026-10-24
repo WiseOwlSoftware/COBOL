@@ -5,6 +5,7 @@ using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -21,13 +22,11 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class FileBoundaryTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_FBT_" + Guid.NewGuid().ToString("N")[..8]);
-
-    public FileBoundaryTests() => Directory.CreateDirectory(_dir);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_FBT_");
 
     public void Dispose()
     {
-        try { Directory.Delete(_dir, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        ScratchDirectory.Remove(_dir);
     }
 
     private string Host(string name) => Path.Combine(_dir, name);

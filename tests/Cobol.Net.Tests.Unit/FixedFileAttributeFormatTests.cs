@@ -4,6 +4,7 @@ using System.Reflection;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -25,16 +26,14 @@ namespace CobolNet.Tests.Unit;
 [Collection("process-globals")]   // kb/Work PB126: `Console.Error` is process-wide and `RecordLayoutNotice` writes to it on OPEN — a class that swaps the error stream and a class that opens a mismatched fixed file must not run in parallel (LineSequential_IsNeverReported captured another class's notice)
 public sealed class FixedFileAttributeFormatTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_FFA_" + Guid.NewGuid().ToString("N")[..8]);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_FFA_");
     private readonly string? _keyCheckWas = Environment.GetEnvironmentVariable(FileRegistry.KeyCheckVariable);
-
-    public FixedFileAttributeFormatTests() => Directory.CreateDirectory(_dir);
 
     public void Dispose()
     {
         Environment.SetEnvironmentVariable(FileRegistry.KeyCheckVariable, _keyCheckWas);
         CobolFile.Init();   // the next test's registry must not inherit this one's key-check answer
-        try { Directory.Delete(_dir, recursive: true); } catch { /* best-effort */ }
+        ScratchDirectory.Remove(_dir);
     }
 
     private string Host(string name) => Path.Combine(_dir, name);

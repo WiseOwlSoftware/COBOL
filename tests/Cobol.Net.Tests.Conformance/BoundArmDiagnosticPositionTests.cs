@@ -3,6 +3,7 @@
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -17,10 +18,9 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class BoundArmDiagnosticPositionTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_BoundPos_" + Guid.NewGuid().ToString("N")[..8]);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_BoundPos_");
 
-    public BoundArmDiagnosticPositionTests() => Directory.CreateDirectory(_dir);
-    public void Dispose() { try { Directory.Delete(_dir, recursive: true); } catch { /* best-effort */ } }
+    public void Dispose() { ScratchDirectory.Remove(_dir); }
 
     private const string Prologue =
         "       IDENTIFICATION DIVISION.\n" +

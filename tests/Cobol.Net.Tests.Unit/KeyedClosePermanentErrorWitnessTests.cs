@@ -259,7 +259,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023,
             SourceFormat: InitialReferenceFormat.Auto));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
-        var call = AssemblyLoadContext.Default.LoadFromAssemblyPath(dll).GetTypes()
+        var call = ScratchDirectory.LoadAssembly(dll).GetTypes()
             .Single(t => t.Name == id && t.GetMethod("Call") is not null).GetMethod("Call")!;
         var entry = call.CreateDelegate<Entry>();
         string trace = new(' ', 240);

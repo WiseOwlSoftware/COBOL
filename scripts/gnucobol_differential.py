@@ -29,6 +29,7 @@ from concurrent.futures import ProcessPoolExecutor
 # rules below refuse to launder into compiler verdicts.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gnucobol_extract as gx                                                              # noqa: E402
+from scratch_repo import scratch_dir  # noqa: E402  (this directory's: a run's scratch, removed at exit)
 
 STD_MAP = {'cobol85': '85', 'cobol2002': '2002', 'cobol2014': '2014', 'cobol2023': '2023'}
 VENDOR_STDS = ('mf', 'ibm', 'acu', 'rm', 'xopen', 'mvs', 'bs2000', 'realia')
@@ -335,8 +336,10 @@ def main() -> int:
           f'{len([x for x in os.listdir(a.src) if x.endswith(".at") and x.startswith(a.only)])} .at wrapper(s) '
           f'- gnucobol_extract.differential_cases')
 
-    work = tempfile.mkdtemp(prefix='gcdiff_')
-    payload = [(a.exe, g, work) for g in groups]
+    # The cases' work directory goes when the run ends, whatever the way out: every result it holds is in `results`
+    # by then, and one directory per run was left in the temp directory until kb/Work PB3194.
+    work = scratch_dir('gcdiff_')
+    payload = [(a.exe, g, str(work)) for g in groups]
     results = []
     with ProcessPoolExecutor(max_workers=a.jobs) as ex:
         for i, r in enumerate(ex.map(run_case, payload, chunksize=4), 1):

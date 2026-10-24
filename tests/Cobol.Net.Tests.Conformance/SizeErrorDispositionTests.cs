@@ -3,6 +3,7 @@
 using CobolNet.Compiler;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -35,7 +36,7 @@ public sealed class SizeErrorDispositionTests
 
     private static (int Exit, string Stdout, string Stderr) Run(string source)
     {
-        string dir = CutRunner.NewTempDir("pb75");
+        string dir = ScratchDirectory.Create("pb75");
         try
         {
             string src = Path.Combine(dir, "prog.cob"), dll = Path.Combine(dir, "prog.dll");
@@ -44,7 +45,7 @@ public sealed class SizeErrorDispositionTests
             Assert.True(r.Success, "[compile] " + string.Join("\n", r.Errors));
             return CutRunner.RunExit(dll, dir);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The NATIVE-arithmetic twin (kb/Work PB639): the size error is on the RESULT's transfer into the

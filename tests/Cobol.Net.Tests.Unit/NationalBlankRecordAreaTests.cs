@@ -65,7 +65,7 @@ public sealed class NationalBlankRecordAreaTests
             Assert.Equal("23", reg.ReadKeyed("X", -1, "", out string image));
             Assert.Equal(expected, image);
         }
-        finally { try { reg.Close("X"); File.Delete(host); } catch { } }
+        finally { reg.Close("X"); FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -81,7 +81,7 @@ public sealed class NationalBlankRecordAreaTests
             Assert.Equal("10", reg.ReadKeyedNext("X", out string image));   // past the only record: §14.9.30.4 GR24
             Assert.Equal(expected, image);
         }
-        finally { try { reg.Close("X"); File.Delete(host); } catch { } }
+        finally { reg.Close("X"); FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -97,7 +97,7 @@ public sealed class NationalBlankRecordAreaTests
             Assert.Equal("10", reg.ReadShared("S", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out string image));
             Assert.Equal(expected, image);
         }
-        finally { try { reg.Close("S"); File.Delete(host); } catch { } }
+        finally { reg.Close("S"); FileHarness.TryDelete(host); }
     }
 
     [Theory]

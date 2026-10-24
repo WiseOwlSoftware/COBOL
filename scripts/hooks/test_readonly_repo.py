@@ -6,11 +6,13 @@ import os
 import pathlib
 import subprocess
 import sys
-import tempfile
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 HOOK = pathlib.Path(__file__).with_name("readonly_repo.py")
 REPO = pathlib.Path(__file__).resolve().parents[2]
-OUTSIDE = pathlib.Path(tempfile.mkdtemp())
+OUTSIDE = scratch_dir("test-readonly-repo-")
 
 CASES = [
     (str(REPO / "src" / "x.cs"), True),

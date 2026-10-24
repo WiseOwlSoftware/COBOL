@@ -26,8 +26,7 @@ internal static class NistRunner
     /// files exist — deterministic start-clean, zero cross-test coupling under xunit parallelism.</summary>
     public static NistRunResult Run(string testName)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Nist_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Nist_");
         try
         {
             string src = TestRepo.Nist("programs", testName + ".cob");
@@ -88,7 +87,7 @@ internal static class NistRunner
             if (hasPrintFile) NistOutputs.AddStdout(written, stdout);
             return new NistRunResult(true, Normalize(report), runDetail, written);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private static NistRunResult Failed(string detail) =>
@@ -264,7 +263,7 @@ internal static class NistOutputs
     /// stale goldens go, a program that wrote nothing leaves no directory.</summary>
     internal static void Capture(string dir, IReadOnlyDictionary<string, byte[]> written)
     {
-        if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        ScratchDirectory.Remove(dir);
         if (written.Count == 0) return;
         Directory.CreateDirectory(dir);
         foreach (var (name, bytes) in written) File.WriteAllBytes(Path.Combine(dir, name), Canonical(bytes));

@@ -29,11 +29,9 @@ from __future__ import annotations
 import json
 import os
 import pathlib
-import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 
 #: The launcher's one answer line: `DETACHED <json>` with the target's pid and whether it left the caller's job.
@@ -104,6 +102,7 @@ def _wait_for(predicate, what: str, limit_s: float = 120.0) -> None:
 
 
 def self_test() -> int:
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -111,7 +110,7 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    root = pathlib.Path(tempfile.mkdtemp(prefix="detached-selftest-"))
+    root = scratch_dir("detached-selftest-")
     survivor = None
     try:
         # 1. a detached process OUTLIVES a tree kill of its caller (the agent harness's kill, kb/Work PB3536): a caller
@@ -166,7 +165,7 @@ def self_test() -> int:
     finally:
         if survivor is not None and pid_alive(survivor):
             _kill_tree(survivor)
-        shutil.rmtree(root, ignore_errors=True)
+        remove_tree(root)
     print(f"=== detached.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

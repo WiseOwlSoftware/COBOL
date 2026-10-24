@@ -3,6 +3,7 @@
 using System.Text;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -17,13 +18,11 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class CodeSetConversionTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_CSC_" + Guid.NewGuid().ToString("N")[..8]);
-
-    public CodeSetConversionTests() => Directory.CreateDirectory(_dir);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_CSC_");
 
     public void Dispose()
     {
-        try { Directory.Delete(_dir, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        ScratchDirectory.Remove(_dir);
     }
 
     private static readonly char Euro = (char)0x20AC;

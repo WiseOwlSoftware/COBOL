@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -16,10 +17,9 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class DiagnosticPositionTests : IDisposable
 {
-    private readonly string _dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pos_" + Guid.NewGuid().ToString("N")[..8]);
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_Pos_");
 
-    public DiagnosticPositionTests() => Directory.CreateDirectory(_dir);
-    public void Dispose() { try { Directory.Delete(_dir, recursive: true); } catch { /* best-effort */ } }
+    public void Dispose() { ScratchDirectory.Remove(_dir); }
 
     private void Write(string name, string content) => File.WriteAllText(Path.Combine(_dir, name), content);
 

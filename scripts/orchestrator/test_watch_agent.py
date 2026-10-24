@@ -7,10 +7,11 @@ import json
 import pathlib
 import subprocess
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
+from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import watch_agent as w  # noqa: E402
 
 fails, checked = [], []
@@ -28,7 +29,7 @@ def asst(mid, blocks, cr=1000, cw=10, inp=2, ts="2026-10-04T18:34:44.623Z"):
         "usage": {"input_tokens": inp, "cache_read_input_tokens": cr, "cache_creation_input_tokens": cw}}})
 
 
-T = pathlib.Path(tempfile.mkdtemp(prefix="watch-test-")) / "agent-a1.jsonl"
+T = scratch_dir("watch-test-") / "agent-a1.jsonl"
 st = w.State()
 check("missing file renders nothing", list(w.feed(T, st)), [])
 

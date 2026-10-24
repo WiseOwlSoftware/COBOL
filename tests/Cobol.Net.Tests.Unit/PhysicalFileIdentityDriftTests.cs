@@ -32,8 +32,7 @@ public sealed class PhysicalFileIdentityDriftTests
     [Fact]
     public void TheHostIdentity_TellsTheFileAHandleHoldsFromTheOneMadeAtItsPathSince()
     {
-        string dir = Path.Combine(Path.GetTempPath(), $"pb3533-identity-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb3533-identity-");
         try
         {
             string first = Path.Combine(dir, "first.dat"), second = Path.Combine(dir, "second.dat");
@@ -51,7 +50,7 @@ public sealed class PhysicalFileIdentityDriftTests
             Assert.Equal(identity, HostFile.IdentityOf(held.SafeFileHandle));
             Assert.Equal(identity, HostFile.IdentityAt(Path.Combine(dir, "moved.dat")));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -80,8 +79,7 @@ public sealed class PhysicalFileIdentityDriftTests
     public void OnACaseSensitiveHost_TwoFilesDifferingInCase_AreTwoPhysicalFiles()
     {
         if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()) return;
-        string dir = Path.Combine(Path.GetTempPath(), $"pb2748-case-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb2748-case-");
         try
         {
             var reg = new FileRegistry();
@@ -97,7 +95,7 @@ public sealed class PhysicalFileIdentityDriftTests
             reg.Close("U");
             reg.Close("L");
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>⛔ THE STRUCTURAL HALF: every table keyed on the physical file uses the one comparer, and no file under

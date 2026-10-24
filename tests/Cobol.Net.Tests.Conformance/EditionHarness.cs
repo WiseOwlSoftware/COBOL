@@ -40,8 +40,7 @@ public static class EditionHarness
         IReadOnlyDictionary<string, string>? copybooks, bool flagExtensions,
         Func<string, CompilerDriver.Result, T> observe)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ed_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Ed_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -53,7 +52,7 @@ public static class EditionHarness
                 FlagExtensions: flagExtensions));
             return observe(dir, r);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The harness's verdict of one compile: success, the failing errors (a failure that carries no error
@@ -93,13 +92,12 @@ public static class EditionHarness
         var options = CorpusManifest.CompileOptions(testName, "", edition, permissive, checkOnly);
         if (!File.Exists(options.SourcePath))
             throw new FileNotFoundException($"NIST source not found: {options.SourcePath}", options.SourcePath);
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ed_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Ed_");
         try
         {
             return observe(dir, CompiledProgramCache.Compile(options with { OutputPath = Path.Combine(dir, testName + ".dll") }));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Compile <paramref name="source"/> at <paramref name="edition"/> AND run it, returning the program's
@@ -107,8 +105,7 @@ public static class EditionHarness
     /// Uses the shared <see cref="CutRunner"/> (the golden-runner's execution path).</summary>
     public static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition, bool permissive = false)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Run_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Run_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -118,7 +115,7 @@ public static class EditionHarness
             if (!r.Success) return (false, "", $"[compile] {r.Status}: {string.Join("\n", r.Errors)}");
             return CutRunner.Run(dll, dir);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The diagnostics of compiling <paramref name="source"/> at <paramref name="edition"/> (empty when it

@@ -39,7 +39,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     /// <summary>Compiles each COBOL program once per class and hands every test the same assembly.</summary>
     public sealed class CompiledPrograms : IDisposable
     {
-        private readonly string _root = Path.Combine(Path.GetTempPath(), "pb2485-" + Guid.NewGuid().ToString("N")[..8]);
+        private readonly string _root = ScratchDirectory.Create("pb2485-");
         private readonly Dictionary<string, string> _built = [];
 
         internal string Build(string name, string source)
@@ -62,22 +62,21 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
         public void Dispose()
         {
-            try { Directory.Delete(_root, recursive: true); } catch (IOException) { }
+            ScratchDirectory.Remove(_root);
         }
     }
 
     private readonly CompiledPrograms _programs;
-    private readonly string _work = Path.Combine(Path.GetTempPath(), "pb2485w-" + Guid.NewGuid().ToString("N")[..8]);
+    private readonly string _work = ScratchDirectory.Create("pb2485w-");
 
     public RunUnitProcessBoundaryTests(CompiledPrograms programs)
     {
         _programs = programs;
-        Directory.CreateDirectory(_work);
     }
 
     public void Dispose()
     {
-        try { Directory.Delete(_work, recursive: true); } catch (IOException) { }
+        ScratchDirectory.Remove(_work);
     }
 
     private const string Seed = "SEEDSEED";

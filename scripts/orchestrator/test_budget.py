@@ -10,10 +10,11 @@ import os
 import pathlib
 import subprocess
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
+from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import account as accounts  # noqa: E402
 import budget  # noqa: E402
 import coord  # noqa: E402
@@ -27,7 +28,7 @@ FIXTURE["calibration"].update(tokens_per_point={"sonnet": 1_000_000, "opus": 400
 LA = budget.ZoneInfo("America/Los_Angeles")
 fails, checked = [], []
 UUID1, UUID2 = "uuid-account-1", "uuid-account-2"
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="budget-test-"))
+TMP = scratch_dir("budget-test-")
 
 
 def acct(name, uuid):
@@ -135,7 +136,7 @@ r = budget.estimate(now, [past], source([ev(at(2026, 10, 5, 9, 30), "sonnet", ou
 check("new window after reset", (r["session_est_pct"], r["resume_at"]), (5.0, None))
 
 # 6. --record appends a reading through the CLI
-cdir = pathlib.Path(tempfile.mkdtemp(prefix="budget-test-"))
+cdir = scratch_dir("budget-test-")
 env = dict(os.environ, COBOL_COORD_DIR=str(cdir))
 cmd = [sys.executable, str(HERE / "budget.py"), "--account", "account1", "--record", "--weekly", "31.5", "--session", "12",
        "--session-reset", "2026-10-05T13:00:00-07:00", "--now", "2026-10-05T12:00:00-07:00"]

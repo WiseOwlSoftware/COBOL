@@ -8,18 +8,16 @@ fast-forward lets it mark.
 Run: python scripts/orchestrator/test_ledger_state.py   (a fabricated repo and its bare origin in a temp directory)."""
 import json
 import pathlib
-import shutil
 import subprocess
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "spec"))
 sys.path.insert(0, str(HERE.parent))
 import gen_ledger  # noqa: E402
-from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="ledger-state-test-"))
+TMP = scratch_dir("ledger-state-test-")
 REPO, COORD, ORIGIN, LANDER = TMP / "repo", TMP / "coord", TMP / "origin.git", TMP / "lander"
 fails = []
 
@@ -111,7 +109,7 @@ check("current once the checkout is fast-forwarded and marked", (run("owed")["st
 check("a main ref that names nothing is refused, never read as current",
       "names no commit" in run("owed", "--main-ref", "origin/no-such-branch", want=2), True)
 
-shutil.rmtree(TMP, ignore_errors=True)   # the scratch repository, its origin, the lander's clone and the coordination
+remove_tree(TMP)   # the scratch repository, its origin, the lander's clone and the coordination
 if fails:
     print("\n".join("FAIL: " + f for f in fails))
     sys.exit(1)

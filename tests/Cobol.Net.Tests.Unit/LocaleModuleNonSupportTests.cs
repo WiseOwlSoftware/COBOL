@@ -8,6 +8,7 @@ using System.Linq;
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -31,8 +32,7 @@ public sealed class LocaleModuleNonSupportTests
 {
     private static IReadOnlyList<string> CompileErrors(string procedureBody, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cn_a49_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cn_a49_");
         try
         {
             string src = Path.Combine(dir, "a49.cob");
@@ -44,7 +44,7 @@ public sealed class LocaleModuleNonSupportTests
             return CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "a49.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto)).Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED a third time — the LAST (kb/Work PB64 T6; the module is CLAIMED whole):

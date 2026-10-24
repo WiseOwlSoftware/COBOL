@@ -120,7 +120,7 @@ public sealed class ProcessObservationDriftTests
     [Fact]
     public void AProcessThatCannotStart_RaisesAsALaunchFailure()
     {
-        var psi = new ProcessStartInfo(Path.Combine(Path.GetTempPath(), "cobolnet-no-such-exe-" + Guid.NewGuid().ToString("N")));
+        var psi = new ProcessStartInfo(ScratchDirectory.Create("cobolnet-no-such-exe-"));
         var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveOrThrow(psi, budget: OneSecond));
         Assert.Contains("LaunchFailed", ex.Message, StringComparison.Ordinal);
     }
@@ -175,7 +175,7 @@ public sealed class ProcessObservationDriftTests
     /// rewrites, a subdirectory, and a file over the copy bound (the runtime assembly's stand-in).</summary>
     private static (string outer, string run) WritingProbeDirectories()
     {
-        string outer = Path.Combine(Path.GetTempPath(), "CobolNet_RetryProbe_" + Guid.NewGuid().ToString("N")[..8]);
+        string outer = ScratchDirectory.Create("CobolNet_RetryProbe_");
         string run = Path.Combine(outer, "run");
         Directory.CreateDirectory(Path.Combine(run, "sub"));
         File.WriteAllText(Path.Combine(run, "data.txt"), "before");
@@ -206,7 +206,7 @@ public sealed class ProcessObservationDriftTests
             Assert.Equal("kept", File.ReadAllText(Path.Combine(run, "sub", "kept.txt")));
             Assert.Equal(RunDirectoryState.MaxCopiedFileBytes + 1, new FileInfo(Path.Combine(run, "big.bin")).Length);
         }
-        finally { Directory.Delete(outer, recursive: true); }
+        finally { ScratchDirectory.Remove(outer); }
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public sealed class ProcessObservationDriftTests
             Assert.Contains("big.bin", ex.Message, StringComparison.Ordinal);
             Assert.Contains("attempt2: not run", ex.Message, StringComparison.Ordinal);
         }
-        finally { Directory.Delete(outer, recursive: true); }
+        finally { ScratchDirectory.Remove(outer); }
     }
 
     /// <summary>A caller that names no run directory (a tool run in the repository, which is not the child's to
@@ -248,7 +248,7 @@ public sealed class ProcessObservationDriftTests
             Assert.Equal(9, obs.ExitCode);
             Assert.True(File.Exists(Path.Combine(run, "created.txt")));
         }
-        finally { Directory.Delete(outer, recursive: true); }
+        finally { ScratchDirectory.Remove(outer); }
     }
 
     /// <summary>The abnormal arm of the retry itself: a retry that also observes nothing raises, and the directory it
@@ -272,7 +272,7 @@ public sealed class ProcessObservationDriftTests
             Assert.Equal("False", createdSeenByRetry);
             Assert.Contains("attempt2", ex.Message, StringComparison.Ordinal);
         }
-        finally { Directory.Delete(outer, recursive: true); }
+        finally { ScratchDirectory.Remove(outer); }
     }
 
     /// <summary>

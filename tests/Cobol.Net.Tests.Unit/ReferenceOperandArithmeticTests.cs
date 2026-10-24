@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -47,8 +48,7 @@ public sealed class ReferenceOperandArithmeticTests
     [InlineData(true)]
     public void ObjectReferenceInArithmetic_IsRefusedUnderEveryDialect(bool permissive)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_RefArith_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_RefArith_");
         try
         {
             string src = Path.Combine(dir, "pb1425r.cob");
@@ -61,6 +61,6 @@ public sealed class ReferenceOperandArithmeticTests
             Assert.DoesNotContain(r.Errors, e => e.Contains("backend compilation failed", StringComparison.Ordinal));
             Assert.DoesNotContain(r.Errors, e => e.Contains("digit-decoding", StringComparison.Ordinal));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

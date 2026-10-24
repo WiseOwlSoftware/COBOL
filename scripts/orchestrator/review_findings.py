@@ -90,9 +90,7 @@ import json
 import os
 import pathlib
 import re
-import shutil
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -609,6 +607,8 @@ def summary(paths: list[pathlib.Path]) -> dict:
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    sys.path.insert(0, str(HERE.parent))
+    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     fails: list[str] = []
 
     def check(what: str, ok: bool) -> None:
@@ -622,7 +622,7 @@ def self_test() -> int:
             return True
         return False
 
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix="review-findings-selftest-"))
+    tmp = scratch_dir("review-findings-selftest-")
     try:
         f = tmp / "review-w9-a.jsonl"
         report = tmp / "w9a-PB1-report.md"
@@ -1102,7 +1102,7 @@ def self_test() -> int:
         check(f"arm: the summary measures findings per branch and the re-review rate: {s}",
               s["branches"] == 1 and s["findings_per_branch"] == 1.0 and s["re_review_rate"] == 1.0 and s["clean"] == 1)
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== REVIEW_FINDINGS SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")

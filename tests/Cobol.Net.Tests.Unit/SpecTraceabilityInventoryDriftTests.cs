@@ -1474,7 +1474,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // ⛔ A SYMBOL IN A COMMENT IS NOT A SYMBOL (kb/Work PB762), and a row's prose is read too. Built in a scratch
         // tree so the fixture cannot rot with production code: `Live.cs` holds the symbols in its code and the same
         // kinds of name where the old whole-body word search would have found them.
-        string fixture = Directory.CreateTempSubdirectory("pb762_").FullName;
+        string fixture = ScratchDirectory.Create("pb762_");
         try
         {
             Directory.CreateDirectory(Path.Combine(fixture, "src"));
@@ -1520,7 +1520,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         }
         finally
         {
-            Directory.Delete(fixture, recursive: true);
+            ScratchDirectory.Remove(fixture);
         }
 
         // ── kind-DOC rows: the register anchor, and what a DOC row costs ─────────────────────────────

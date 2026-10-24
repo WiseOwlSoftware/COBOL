@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -125,7 +126,7 @@ public sealed class HostRunUnitEndingTests
     [Fact]
     public void StopRunAndFatalCondition_EndTheRunUnitOnly_AndReachTheHostAsOneDocumentedException()
     {
-        string dir = CutRunner.NewTempDir("r48host");
+        string dir = ScratchDirectory.Create("r48host");
         try
         {
             NonCobolElement.CompileCobol(dir, "R48CNT", Counter);
@@ -152,6 +153,6 @@ public sealed class HostRunUnitEndingTests
             Assert.Equal(0, exit);                              // the host ran to its own return: no run-unit ending exited it
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

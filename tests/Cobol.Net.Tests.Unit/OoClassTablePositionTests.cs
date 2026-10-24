@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -157,7 +158,7 @@ public sealed class OoClassTablePositionTests
     [MemberData(nameof(Sources))]
     public void EveryPass1Diagnostic_IsPositionedAtItsClause(string label, string source)
     {
-        string dir = Directory.CreateTempSubdirectory("oopos").FullName;
+        string dir = ScratchDirectory.Create("oopos");
         try
         {
             string path = Path.Combine(dir, "PT" + label + ".cob");
@@ -177,6 +178,6 @@ public sealed class OoClassTablePositionTests
                     Assert.True(got.Contains(("COBOLNET" + mk.Groups[1].Value, i + 1)),
                         $"{label}: expected COBOLNET{mk.Groups[1].Value} at line {i + 1}; got:\n{all}");
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

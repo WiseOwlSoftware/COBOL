@@ -9,6 +9,7 @@ using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Parsing;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -329,8 +330,7 @@ public sealed class CobolWordsDirectiveTests
 
     private static IReadOnlyList<string> CompileErrors(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_CWords_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_CWords_");
         try
         {
             string src = Path.Combine(dir, "cw.cob");
@@ -339,7 +339,7 @@ public sealed class CobolWordsDirectiveTests
                 src, Path.Combine(dir, "cw.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return r.Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact] // GR5 end-to-end — a RESERVE'd word used as a user-defined name is COBOLNET0901-rejected.
