@@ -21,19 +21,6 @@ namespace CobolNet.Runtime.IO;
 /// </summary>
 public sealed partial class SequentialConnector : IJournalData
 {
-    /// <summary>The run unit's sequential transactions and host medium (<see cref="FileRegistry"/>'s, given at registration).</summary>
-    internal SequentialTransactions Transactions { get; init; } = SequentialTransactions.Standalone();
-
-    /// <summary>The run unit's host medium (<see cref="IHostMedium"/>): every handle this connector opens is the medium's.</summary>
-    private IHostMedium Medium => Transactions.Medium;
-
-    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§12.4.6.3.4; set by
-    /// <c>FileRegistry.RegisterCommitControl</c>, cleared by <c>ReleaseCommitControl</c>).</summary>
-    internal bool CommitControlled { get; set; }
-
-    /// <summary>The run unit's open transaction on this connector's physical file, while it is under commit control.</summary>
-    private SequentialJournal? Journal => CommitControlled ? Transactions.Of(HostPath) : null;
-
     /// <summary>The covered connector's host handle: the open connector's, or the one its CLOSE kept (<see cref="_kept"/>).</summary>
     private FileStream? _held;
 
@@ -49,9 +36,6 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>The Table 19 run-unit file lock a CLOSE under commit control kept.</summary>
     private RunUnitFileLock? _keptFileLock;
-
-    /// <summary>The entry mutex a covered OPEN holds from its entry step to its end (<see cref="EnterPhysicalFile"/>).</summary>
-    private RegionLocks? _entryMutex;
 
     /// <summary>A ROLLBACK REMOVED the file under this open connector (START <c>A</c>, 2.2.2.7): its next WRITE creates it
     /// again, beginning a new transaction; a READ reads AT END and a REWRITE answers '43'.</summary>
@@ -112,40 +96,51 @@ public sealed partial class SequentialConnector : IJournalData
             ReleaseKept();
     }
 
-    /// <summary>A DELETE FILE's GR15 question under commit control (<c>FileRegistry.DeleteCoveredSequential</c>): is the file
-    /// held by another handle than this connector's own kept one (<see cref="HeldByAnotherHandle"/>)?</summary>
-    internal bool HeldByAnotherAtDelete() => HeldByAnotherHandle();
-
-    /// <summary>A DELETE FILE under commit control closes the kept handle before the file is removed (2.2.2.4: a Windows handle
-    /// not opened for deletion blocks the removal, and after it there is no file to lock); what else the CLOSE kept — the file
-    /// lock — stays until the COMMIT or ROLLBACK, and the transaction's (ALL) holding refuses every other opener.</summary>
-    internal void GiveBackForRemoval() => GiveBackHeld();
-
-    // ── The entry step (2.2.2.8) ───────────────────────────────────────────────────────────────────────────────
-
     /// <inheritdoc/>
-    /// <remarks>⛔ AT EVERY WRITABLE OPEN of a sequential file — covered or not, any posture — the lock directory is listed for
-    /// transaction journals: a live transaction's holdings refuse the OPEN ('61' to an OPEN OUTPUT while any lives, to any
-    /// writable OPEN while a replaced one lives) and a dead one is settled (rolled back, or retired) before the presence probe.
-    /// A covered OPEN takes the entry mutex for it and keeps it through its host open, creation or capture
-    /// (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex only to settle. An OPEN
-    /// INPUT runs no step (it has no writable handle to restore F with, and reads F as it stands). A lock directory this process
-    /// may not list (a host whose refusal of F's own directory hides the lock directory beside F too: Linux, a directory of
-    /// mode 000) is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient authority exists to access the
-    /// file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to cause.</remarks>
-    private protected override string? EnterPhysicalFile(FileOpenMode mode)
+    /// <remarks>Nothing of the transaction lives in the handle (the journal is the registry's, <see cref="SequentialTransactions"/>),
+    /// so taking it back (<see cref="TakeHeld"/>, with the access and share mode it had) restores the file lock its share mode is,
+    /// and the Table 19 one is resumed beside it (kb/Work PB3492's sibling).</remarks>
+    internal override RemovalGiveBack? GiveBackForRemoval()
     {
-        if (mode is FileOpenMode.Input || HostPath.Length == 0) return null;
-        if (CommitControlled) _entryMutex = Transactions.HoldEntryMutex(HostPath);
-        var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, _entryMutex);
-        return holdings.Unlistable ? FileStatusCode.PermissionDenied : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
+        if (!_kept) return null;
+        var givenBack = new HeldGivenBack(this, _held is { } held ? (held.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, _heldShare) : null,
+            _keptFileLock);
+        try { GiveBackHeld(); }
+        catch
+        {
+            givenBack.Dispose();
+            throw;
+        }
+        return givenBack;
+    }
+
+    /// <summary>What <see cref="GiveBackForRemoval"/> gave back: the kept handle's access and share mode (null: none was held) and
+    /// the kept Table 19 file lock.</summary>
+    private sealed class HeldGivenBack(SequentialConnector owner, (FileAccess Access, FileShare Share)? held, RunUnitFileLock? fileLock)
+        : RemovalGiveBack
+    {
+        internal override void SuspendFileLock() => fileLock?.Suspend();
+
+        private protected override void TakeBack()
+        {
+            if (held is { } h && owner._kept && owner._held is null)
+                try { owner.TakeHeld(FileMode.Open, h.Access, h.Share); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }   // the window: the kept state stays without its handle
+            if (fileLock is not null && !fileLock.Resume() && ReferenceEquals(owner._keptFileLock, fileLock)) owner._keptFileLock = null;
+        }
+
+        private protected override void Landed()
+        {
+            fileLock?.Dispose();
+            if (ReferenceEquals(owner._keptFileLock, fileLock)) owner._keptFileLock = null;
+        }
     }
 
     /// <inheritdoc/>
+    /// <remarks>The entry step itself is <see cref="FileConnector.EnterPhysicalFile"/>'s, the same for every organization.</remarks>
     private protected override void LeaveEntry()
     {
-        _entryMutex?.Dispose();
-        _entryMutex = null;
+        base.LeaveEntry();
         _adoptedKept = false;
     }
 
@@ -328,6 +323,7 @@ public sealed partial class SequentialConnector : IJournalData
             journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
             _writer = OpenWriter(FileMode.Append);
             _fileRemoved = false;
+            if (!ResumeRunUnitFileLock()) throw new IOException($"the file lock of '{HostPath}' cannot be published again");   // R5: '30'
             return;
         }
         journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
@@ -491,7 +487,10 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <inheritdoc/>
     /// <remarks>The file is about to be removed (a creation rolled back, START <c>A</c>): the writer and reader over the handle go
-    /// with it, and the connector, which stays in its open mode, notes the removal (<see cref="_fileRemoved"/>).</remarks>
+    /// with it, and the connector, which stays in its open mode, notes the removal (<see cref="_fileRemoved"/>). Its Table 19
+    /// column goes too (<see cref="FileConnector.SuspendRunUnitFileLock"/>, kb/Work PB3492's sibling sweep): where the host
+    /// publishes it through a handle on the file (a SHARING WITH ALL OTHER or READ ONLY connector on Windows) that handle refused
+    /// the removal, and the ROLLBACK answered '30'; the WRITE that creates the file again publishes it again.</remarks>
     void IJournalData.Release()
     {
         try
@@ -501,7 +500,11 @@ public sealed partial class SequentialConnector : IJournalData
         }
         finally
         {
-            if (IsOpen) _fileRemoved = true;
+            if (IsOpen)
+            {
+                _fileRemoved = true;
+                SuspendRunUnitFileLock();
+            }
             (_writer, _reader) = (null, null);
             GiveBackHeld();
         }

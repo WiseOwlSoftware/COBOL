@@ -350,6 +350,32 @@ public sealed class SequentialCommitControlTests
             OkCommit(u);
         });
 
+    /// <summary>The same under SHARING WITH ALL OTHER (kb/Work PB3492 review finding R1-2's sibling sweep): the Table 19 column the
+    /// OPEN published — on Windows a handle on the file of its own — leaves the file with it at the ROLLBACK's removal and is
+    /// published again when the WRITE creates the file, so another run unit's NO OTHER OPEN is refused ('61') again.</summary>
+    [Fact]
+    public void A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true, sharing: FileSharing.AllOther);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("X1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            Ok(a.Write("X2"));
+            var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
+            Assert.Equal("61", b.Open(FileOpenMode.Input));
+            OkCommit(a);
+            a.Reg.CloseAll();
+            Assert.Equal("X2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // ── The connector's own state, the lock test and the run unit's end ────────────────────────────────────────
 
     [Fact]
@@ -401,6 +427,65 @@ public sealed class SequentialCommitControlTests
             b.Reg.CloseAll();
             a.Reg.CloseAll();
             AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ AN UNSUCCESSFUL DELETE FILE AFTER A CLOSE UNDER COMMIT CONTROL TAKES BACK WHAT IT GAVE BACK (kb/Work PB3492, review
+    /// finding R1-1, the sequential arm; MANDATORY-PRACTICES I11): the kept handle goes for the host's probe and the Table 19 file
+    /// lock for the removal, and a DELETE FILE refused at the capture's write of the before file ('30', §9.1.13.6) or at the
+    /// removal takes both back, so another run unit's NO OTHER OPEN is still '61' (§14.9.6.4 GR9, §14.9.7.4 GR4: the file lock
+    /// stands until the COMMIT), and the COMMIT keeps the record the transaction wrote (§14.9.7.4 GR3).</summary>
+    [Theory]
+    [InlineData("capture")]
+    [InlineData("delete")]
+    public void A_refused_delete_file_after_a_close_keeps_the_file_lock_until_the_commit(string refused)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            int target;
+            {
+                File.WriteAllText(f, "C1", Encoding.Latin1);
+                var medium = new FaultHostMedium();
+                var dry = new Unit(f, covered: true, medium);
+                Ok(dry.Open(FileOpenMode.Extend));
+                Ok(dry.Write("X1"));
+                Ok(dry.Close());
+                int from = medium.Operations;
+                Ok(dry.DeleteFile());
+                int at = medium.Log.FindIndex(from, op => refused == "capture"
+                    ? op.StartsWith("write ", StringComparison.Ordinal) && op.EndsWith(".before", StringComparison.Ordinal)
+                    : op == "delete f.dat");
+                Assert.True(at >= 0, $"the DELETE FILE reaches no '{refused}': {string.Join(", ", medium.Log.Skip(from))}");
+                target = at + 1;
+                OkRollback(dry);
+                dry.Reg.CloseAll();
+                medium.Kill();
+            }
+            File.WriteAllText(f, "C1", Encoding.Latin1);
+            var faulty = new FaultHostMedium(FaultHostMedium.Fault.Refuse, target);
+            try
+            {
+                var a = new Unit(f, covered: true, faulty);
+                Ok(a.Open(FileOpenMode.Extend));
+                Ok(a.Write("X1"));
+                Ok(a.Close());
+                Assert.Equal("30", a.DeleteFile());
+                Assert.True(faulty.Fired, "the refusal fired inside the DELETE FILE");
+                var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
+                Assert.Equal("61", b.Open(FileOpenMode.Input));
+                OkCommit(a);
+                Assert.Equal("00", b.Open(FileOpenMode.Input));
+                Ok(b.Read(out string r1));
+                Ok(b.Read(out string r2));
+                Assert.Equal(("C1", "X1"), (r1, r2));
+                b.Reg.CloseAll();
+                a.Reg.CloseAll();
+                AssertNoLitter(f);
+            }
+            finally { faulty.Kill(); }
         }
         finally { ScratchDirectory.Remove(dir); }
     }
