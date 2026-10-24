@@ -128,7 +128,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// END plus the count of receiving areas acted upon (GR14 — the statement ADDS to it; D-UNS3). An initiation pointer
     /// outside [1, size(sender)] is the GR15a overflow and TERMINATES the operation before any transfer (GR16a); otherwise each receiving area gets
     /// one <c>UnstringExtract</c> (GR11b–f), its result stored per the MOVE rules (GR11c — so two
-    /// contiguous delimiters space-fill an alphanumeric receiver and ZERO-fill a numeric one, GR8), DELIMITER IN /
+    /// contiguous delimiters space-fill an alphanumeric receiver and ZERO-fill a numeric one, GR8), an ALL
+    /// delimiter's repeats consumed after that INTO store (GR7; <see cref="EmitAllRun"/>), DELIMITER IN /
     /// COUNT IN stored per GR11d/e, and the tally bumped — all skipped when the sender was already exhausted
     /// (GR11g: that receiver is not acted upon; exhaustion is NOT overflow, GR15). After the receivers, unexamined
     /// sender characters with every receiver acted upon raise the GR15b overflow. Pointer/tally write back before
@@ -148,6 +149,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         int id = ctx.Names.NextStrUnstr();
         string src = $"__unsSrc{id}", dels = $"__unsDel{id}", alls = $"__unsAll{id}",
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
+        bool hasAll = s.Delimiters.Any(d => d.All);
         w.Line($"string {src} = {SenderText(s)};");   // DA4: an operand (may be a function)
         // §14.9.48.4 GR2 (kb/Work PB1184): "If the data item referenced by identifier-1 is a zero-length item, execution
         // of the UNSTRING statement terminates immediately." — BEFORE any initiation test, so the GR15 a) overflow
@@ -164,13 +166,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // trailing spaces included (GR9: the delimiter is the content of the item; the legacy's TrimEnd was a
             // deviation).
             w.Line($"string[] {dels} = {{ {string.Join(", ", s.Delimiters.Select(d => DelimiterText(s, d)))} }};");
-            w.Line($"bool[] {alls} = {{ {string.Join(", ", s.Delimiters.Select(d => d.All ? "true" : "false"))} }};");
+            // GR7: which listed delimiters carry the ALL phrase; read only where a repeat run can follow a match.
+            if (hasAll) w.Line($"bool[] {alls} = {{ {string.Join(", ", s.Delimiters.Select(d => d.All ? "true" : "false"))} }};");
         }
         else
-        {
             w.Line($"string[] {dels} = global::System.Array.Empty<string>();");
-            w.Line($"bool[] {alls} = global::System.Array.Empty<bool>();");
-        }
         w.Line(s.Pointer is { } p0
             ? $"long {ptr} = {RuntimeApi.HostInt64(NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0))};"   // GR11a / GR12 — user-initialized (by VALUE — kb/Work PB86; saturating — PB1033)
             : $"long {ptr} = 1;");                                                    // GR11a — leftmost position
@@ -194,7 +194,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             for (int k = 0; k < s.Receivers.Count; k++)
             {
                 var r = s.Receivers[k];
-                string cnt = $"__unsCnt{id}_{k}", fld = $"__unsFld{id}_{k}", dlm = $"__unsDlm{id}_{k}";
+                string cnt = $"__unsCnt{id}_{k}", fld = $"__unsFld{id}_{k}", dlm = $"__unsDlm{id}_{k}",
+                       di = $"__unsDi{id}_{k}";   // di: the matched delimiter's position in the list, −1 for none
                 // GR11 b): "the size of the current receiving area" — a property of the receiver AT EXECUTION (an
                 // ANY LENGTH formal's argument length, a reference modifier's evaluated length), asked of the ONE
                 // receiving-size reader (kb/Work PB979: this was a binder integer, 1 for ANY LENGTH, and a
@@ -204,13 +205,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 // before every receiving area after the first, so it is seen as the previous area's INTO, DELIMITER IN
                 // and COUNT IN stores left it. The first area needs none: nothing has been stored yet.
                 if (k > 0) EmitReread(live, s, src, dels);
-                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, alls, size, ptr, fld, dlm)};");
+                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, size, ptr, fld, dlm, di)};");
                 using (w.Block($"if ({cnt} >= 0)"))                                   // −1: not acted upon (GR11g)
                 {
-                    // The matched delimiter's POSITION in the list is taken now, over the array the examination used.
-                    string di = $"__unsDi{id}_{k}";
-                    if (r.DelimiterStore is not null && live.Delimiters.Count > 0)
-                        w.Line($"int {di} = {RuntimeApi.UnstringMatchedDelimiter(dels, dlm)};");
                     // GR11 c): the examined characters ARE the conceptual elementary item, moved "according to
                     // the rules for the MOVE statement" — by the bound MOVE, never a private copy of its rules.
                     w.Line(PlaceRenderer.Write(s.Examined, ReceivingStore.Characters(s.Examined.Item, fld, "")));
@@ -223,6 +220,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                     }
                     else
                         move.Emit(r.Store);
+                    if (hasAll) EmitAllRun(live, s, src, dels, alls, ptr, di);
                     if (r.DelimiterStore is { } ds)
                     {
                         // GR11 d): the delimiting characters, the same conceptual-item shape; an end-of-data
@@ -341,11 +339,27 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         foreach (int i in live.Delimiters) w.Line($"{dels}[{i}] = {DelimiterText(s, s.Delimiters[i])};");
     }
 
+    /// <summary>GR7's ALL run, consumed AFTER the receiving area's INTO store and BEFORE its DELIMITER IN and COUNT IN
+    /// stores (D-UNS2, libcob <c>cob_unstring_into</c>: <c>cob_memcpy</c> into the receiving area, then the loop that
+    /// skips the delimiter's repeats against the delimiter item's own storage, then the DELIMITER IN and COUNT IN
+    /// moves). The sender and the matched delimiter are read again first where a store of the statement can reach
+    /// them, so the run is measured over what the INTO store left; an UNSTRING whose operands are disjoint, or whose
+    /// delimiters are literals, renders the bare kernel call and nothing else. <paramref name="matchedIndex"/> names
+    /// the local holding the matched position (<c>CobolStringOps.UnstringExtract</c>'s <c>matched</c>).</summary>
+    private void EmitAllRun(LiveReads live, BoundUnstringStmt s, string src, string dels, string alls, string ptr, string matchedIndex)
+    {
+        var w = ctx.Writer;
+        if (live.Sender) w.Line($"{src} = {SenderText(s)};");
+        foreach (int i in live.Delimiters.Where(i => s.Delimiters[i].All))
+            w.Line($"if ({matchedIndex} == {i}) {dels}[{i}] = {DelimiterText(s, s.Delimiters[i])};");
+        w.Line(RuntimeApi.UnstringSkipRun(src, dels, alls, matchedIndex, ptr));
+    }
+
     /// <summary>DELIMITER IN receives the matched identifier delimiter's content AFTER the INTO store (D-UNS2,
     /// libcob <c>cob_unstring_into</c>: the delimiting characters are copied from the delimiter item's own storage
     /// once the receiving area has been written), so when an INTO store reached it the live content replaces the
     /// occurrence the examination matched. <paramref name="matchedIndex"/> names the local holding the matched
-    /// position (<c>CobolStringOps.MatchedDelimiterIndex</c>, −1 for an end-of-sender examination, which stays empty).</summary>
+    /// position (<c>CobolStringOps.UnstringExtract</c>'s <c>matched</c>, −1 for an end-of-sender examination, which stays empty).</summary>
     private void EmitDelimiterReread(LiveReads live, BoundUnstringStmt s, string matchedIndex, string dlm)
     {
         var w = ctx.Writer;
