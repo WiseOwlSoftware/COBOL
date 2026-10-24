@@ -1,4 +1,4 @@
-## PB3628: NOT QUEUED reads only a pull request at the branch's tip, so a re-armed branch is no longer stranded
+## Entry 2472 — 2026-10-24 13:05 PDT — PB3628: NOT QUEUED reads only a pull request at the branch's tip, so a re-armed branch is no longer stranded
 
 **What happened.** On 2026-10-24 branch `worktree-wf_0e51b14b-ced-6` (PB3155) bounced in the merge queue (PR #467, ci-gate
 failed). A finisher fixed it, a reviewer stamped the new tip CLEAN and `land_lane.py rearm` re-armed it at 08:12Z. By 09:45Z
@@ -31,3 +31,4 @@ launches, a re-armed NOT QUEUED row does not, and its status line says why.
 
 **Left alone.** A pull request IN the merge queue reads ENQUEUED whatever the local tip. A commit made after the queue took
 it cannot be pushed without ejecting it, so the queue merges first and the branch then reads by its content.
+
