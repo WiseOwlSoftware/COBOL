@@ -1,4 +1,4 @@
-## PB3112: the drift-rule index reads every path a drift test spells, so a grammar edit runs the five grammar drift tests at the Windows gate
+## Entry 2463 — 2026-10-24 11:05 PDT — PB3112: the drift-rule index reads every path a drift test spells, so a grammar edit runs the five grammar drift tests at the Windows gate
 
 **Re-probe.** The note said the tier-0c cost cap keeps about 270 Sweep cases out of Windows leg 1, so a tree-wide rule
 goes red first at the landing's Linux gate. Two landings had already closed that for the cases it named: tier 0h runs the
@@ -59,3 +59,4 @@ and `impacted_tests.py --self-test` holds `cite.py -> CitationAuditSelfTestDrift
 
 **Landing note.** This branch merges the PB3155 follow-up (`worktree-wf_0e51b14b-ced-6`, entry 2434), which was reviewed
 CLEAN and has not landed; it lands first or with this one.
+
