@@ -6,6 +6,13 @@
 #   arguments, and its verdict is that run's (run_on_linux, kb/Work PB2999).
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
 #
+#   bash scripts/linux-gate.sh --legs targeted --plan <plan.json|none> [--plan-legs 1[,2]] [--nice]
+#     THE LINUX HALF OF THE LOCAL GATE (owner 2026-10-23, kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): not CI's whole
+#     legs but the legs of the plan the Windows half just made, built and run in the clone by the gate driver's
+#     `--plan-leg`. The Windows gate (scripts/build-local.ps1 → run_gate_legs.py) runs it after its own green legs, under
+#     the slot it holds, and records the verdict as the branch's "tested locally" evidence; nobody else needs it. The
+#     default legs below stay the tool that reproduces a Linux CI red on this box.
+#
 # ⛔ WHY IT EXISTS (kb/Work PB1732). The implementer and lander gates ran on Windows only, so CI's Linux jobs were the
 # first Linux run a change ever got. On 2026-09-28 train 71b's first push went RED in `Greenfield unit +
 # characterization (Linux)`: group F's new GateLegDriftTests.Arm5 planted the Windows root `E:\COBOL-wt\battery87`,
@@ -83,11 +90,26 @@ check_legs() {
   for leg in "${wanted[@]}"; do
     case "$leg" in
       unit|characterization|conformance|guard) ;;
-      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard;" \
+      targeted)  # the Linux half of the local gate (kb/Work PB3612): one mode, not one leg among the others
+        if [ "${#wanted[@]}" -ne 1 ]; then
+          echo "linux-gate: --legs targeted stands alone (it runs a plan's legs, not CI's whole legs)"
+          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
+        fi ;;
+      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard,"\
+              "or targeted alone;" \
               "selftests always runs, and selftests-built with unit or conformance)"
          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
   done
+}
+
+# `targeted` ($targeted, set from $legs) and --plan (<plan.json|none>) go together: neither alone is a run.
+check_plan() {
+  targeted=0; [ "$legs" = "targeted" ] && targeted=1
+  if { [ "$targeted" = 1 ] && [ -z "$plan" ]; } || { [ "$targeted" = 0 ] && [ -n "$plan" ]; }; then
+    echo "linux-gate: --plan <plan.json|none> belongs to --legs targeted, and --legs targeted needs it"
+    echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
+  fi
 }
 
 # PY: THE ONE INTERPRETER the gate scripts run (scripts/python-resolve.sh; kb/Work PB1637, PB3197), or the gate is NOT
@@ -304,6 +326,18 @@ if [ "${1:-}" = "--self-test" ]; then
   check "an unknown --legs name exits 2" "$rc" "2"
   got="$( legs=unit,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
   check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
+  got="$( legs=targeted; plan=none; check_legs; check_plan; echo "accepted ${wanted[*]} targeted=$targeted" )"
+  check "--legs targeted with a --plan is the Linux half of the local gate (kb/Work PB3612)" "$got" "accepted targeted targeted=1"
+  got="$( legs=targeted,unit; plan=none; check_legs; echo "accepted" )"; rc=$?
+  check "--legs targeted stands alone: with another leg it is NOT RUN (bad arguments)" "$(echo "$got" | tail -1)" \
+        "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
+  check "--legs targeted with another leg exits 2" "$rc" "2"
+  got="$( legs=targeted; plan=""; check_legs; check_plan; echo "accepted" )"; rc=$?
+  check "--legs targeted without a --plan is NOT RUN (bad arguments), and exits 2" "$(echo "$got" | tail -1) $rc" \
+        "=== LINUX GATE: NOT RUN [arguments] (bad arguments) === 2"
+  got="$( legs=unit,guard; plan=x.json; check_legs; check_plan; echo "accepted" )"; rc=$?
+  check "a --plan without --legs targeted is NOT RUN (bad arguments), and exits 2" "$(echo "$got" | tail -1) $rc" \
+        "=== LINUX GATE: NOT RUN [arguments] (bad arguments) === 2"
   # The interpreter, through the one resolver, with stand-in interpreters (shell functions the resolver's probe runs):
   # `return 1` answers the floor probe as an interpreter below 3.12 (or the Store alias) does, `return 0` as one at it.
   got="$( python3() { return 1; }; python() { return 0; }; PYTHON=""; resolve_py; echo "$PY" )"
@@ -441,16 +475,19 @@ fi
 run_on_linux "$@"
 
 legs="unit,characterization,conformance,guard"
+plan=""; plan_legs="1"
 nice_prefix=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --legs) legs="$2"; shift 2 ;;
+    --plan) plan="$2"; shift 2 ;;              # --legs targeted: the Windows half's plan file, or `none`
+    --plan-legs) plan_legs="$2"; shift 2 ;;    # --legs targeted: which legs of that plan (default 1)
     --nice) nice_prefix=(nice -n 10); shift ;;   # an implementer's run yields the cores to the lander's
     *) echo "linux-gate: unknown argument '$1'"; echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
   esac
 done
 check_legs
-
+check_plan
 [ -d "$HOME/.dotnet" ] && export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.local/bin:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 if ! command -v dotnet >/dev/null 2>&1; then
@@ -535,7 +572,10 @@ echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
 # shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
 main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
 lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
-if [ -n "$lane_base" ]; then
+if [ "$targeted" = 1 ]; then
+  # The Windows half decided the lane before it started this one (an inert change runs no Linux half, run_gate_legs.py).
+  lane_out=$'lane=full\nreason=the targeted leg: the gate that started it classified the change'
+elif [ -n "$lane_base" ]; then
   lane_out="$("$PY" "$snap/scripts/inert_lane.py" classify --root "$snap" --base "$lane_base" --head HEAD 2>&1)"
 else
   lane_out=$'lane=full\nreason=no merge base with origin/main: the full lane'
@@ -634,6 +674,34 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   fi
 }
 
+# THE TARGETED LEG (--legs targeted; kb/Work PB3612, DESIGN-test-build-ci.md §3.17.3): the Linux half of the local gate.
+# It runs the legs <plan_legs> of the plan the Windows half made (<plan>: its plan.json, relative to the tree, or `none`
+# for the whole population in one leg) in the built clone, by the gate driver's own `--plan-leg`: the same handshake, the
+# same population and identity checks, no audit, no build, no slot (the Windows half holds the gate's). The driver writes
+# into this gate's directory on the LINUX filesystem (the harness's observation log is appended there; see test_leg), and
+# the results are copied to the tree's TestResults/linux-gate as the leg ends, so the next gate's plan reads this leg's
+# reds as tier 0a (gate_plan.TRX_WRITERS).
+targeted_leg() {
+  local start rc secs verdict from="$plan" results="$gate/plan-leg"
+  start=$(date +%s)
+  case "$from" in none|/*) ;; *) from="$tree/$from" ;; esac
+  ( cd "$snap" && "${nice_prefix[@]}" "$PY" scripts/run_gate_legs.py --plan-leg "$from" --plan-legs "$plan_legs" \
+      --results "$results" ) > "$out/targeted.log" 2>&1
+  rc=$?
+  secs=$(( $(date +%s) - start ))
+  if [ -d "$results" ] && ! cp -r "$results"/. "$out/"; then
+    echo "linux-gate: could not copy the targeted leg's results into $out (the next gate's plan reads its reds there)"
+  fi
+  verdict="$(grep -E '^=== PLAN LEG: ' "$out/targeted.log" | tail -1)"
+  if [ $rc -eq 0 ] && [[ "$verdict" == "=== PLAN LEG: GREEN"* ]]; then
+    leg_status targeted GREEN; echo "leg targeted: GREEN in ${secs}s — $verdict"
+  else
+    leg_status targeted RED
+    echo "leg targeted: RED (rc=$rc) in ${secs}s — ${verdict:-no plan-leg verdict; see TestResults/linux-gate/targeted.log}"
+    grep -vE '^  PASS ' "$out/targeted.log" | head -60 | sed 's/^/    /'
+  fi
+}
+
 # THE AUDIT CLONE (kb/Work PB2878): the script self-tests are AUDITS that read inert paths by design, and the guard is
 # no `dotnet test` leg, so they run in a clone of their own, with its own build, outside the inert watch of the test
 # legs below. `selftests` starts at once; the clone's build then starts `selftests-built` (it reads the unit and
@@ -641,6 +709,7 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
 auditsnap="$snap.audits"
 rm -rf "$auditsnap"
 order=(selftests)
+[ "$targeted" = 1 ] && order=()
 audit_built_legs() {  # the audit clone's build, then the legs that need it
   local abrc
   ( cd "$auditsnap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build-audits.log" 2>&1
@@ -665,7 +734,11 @@ audit_built_legs() {  # the audit clone's build, then the legs that need it
   esac
   wait
 }
-if git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$auditsnap" >> "$out/clone.log" 2>&1 \
+if [ "$targeted" = 1 ]; then
+  # THE TARGETED LEG (kb/Work PB3612) runs no audit: the gate that started it ran them on Windows, and CI's `audits` job
+  # runs them on Linux on every event.
+  :
+elif git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$auditsnap" >> "$out/clone.log" 2>&1 \
    && git -C "$auditsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
   selftests_leg selftests "$auditsnap" > "$out/selftests.result" 2>&1 &
   audit_built_legs &
@@ -702,6 +775,15 @@ if [ $brc -eq 0 ]; then
   watch_pid=$!
   for _ in $(seq 1 240); do [ -e "$watch_events" ] || ! kill -0 "$watch_pid" 2>/dev/null && break; sleep 0.25; done
 fi
+if [ "$targeted" = 1 ]; then
+  order+=(targeted)
+  if [ $brc -ne 0 ]; then
+    leg_status targeted RED; echo "leg targeted: RED — the Linux BUILD failed (rc=$brc)" > "$out/targeted.result"
+  else
+    targeted_leg > "$out/targeted.result" 2>&1 &
+  fi
+  wanted=()
+fi
 for leg in "${wanted[@]}"; do
   order+=("$leg")
   case "$leg" in
@@ -716,7 +798,7 @@ for leg in "${wanted[@]}"; do
   test_leg "$leg" "$proj" > "$out/$leg.result" 2>&1 &
 done
 # selftests-built runs in the audit clone, after that clone's build (audit_built_legs).
-order+=(selftests-built)
+[ "$targeted" = 0 ] && order+=(selftests-built)
 # Every leg, never the watcher: it ends only once the stop file exists.
 for job in $(jobs -p); do [ "$job" = "$watch_pid" ] || wait "$job"; done
 if [ -n "$watch_pid" ]; then

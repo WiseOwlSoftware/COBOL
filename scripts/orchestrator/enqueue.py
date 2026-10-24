@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""enqueue.py — THE LANDING STEP, A SCRIPT: one finished branch, brought up to main, gated, its DEVLOG entry stamped,
-checked, and handed to GitHub's merge queue as one pull request (kb/Work PB3023, PB3024; DESIGN-test-build-ci.md
-sections 3.17.2 step 3, 3.17.5 and 3.17.6). No agent lands anything: the loop's landing lane (land_lane.py, kb/Work PB3103) runs
-this per WAITING TO LAND branch, and an agent is dispatched only for what a script cannot decide (a conflict, a red gate, a queue bounce).
+"""enqueue.py — THE LANDING STEP, A SCRIPT: one finished branch, brought up to main, its local gate verified, its DEVLOG
+entry stamped, checked, and handed to GitHub's merge queue as one pull request (kb/Work PB3023, PB3024, PB3612;
+DESIGN-test-build-ci.md sections 3.17.2 step 3, 3.17.5 and 3.17.6). No agent lands anything: the loop's landing lane
+(land_lane.py, kb/Work PB3103) runs this per WAITING TO LAND branch, and an agent is dispatched only for what a script
+cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
 
     python scripts/orchestrator/enqueue.py land <branch> [--worktree <path>] [--lane L] [--dry-run]  THE landing step
     python scripts/orchestrator/enqueue.py queue --title "<one-line subject>" --body-file <forensic message> [--dry-run]
@@ -36,31 +37,41 @@ this per WAITING TO LAND branch, and an agent is dispatched only for what a scri
      notes they both append to and the runtime ABI pin are merged by key, not by line, and a merge that changed the pin
      measures the merged tree (abi_pin.py settle) before its merge commit, so none of those is a conflict. A conflict
      is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.
-  3. THE GATE on the merged head, every host in GATES, each under the shared gate slot (the cap of 3, so concurrent
-     enqueues queue there and never beyond it; build-local takes its own, every other row runs under `gate_slot.py
-     run`, and no row runs while one would run outside it, kb/Work PB3104): each verdict line is read by the gate
-     driver's one reader (`run_gate_legs.read_verdict`). BUSY — another gate holds the worktree's gate lock: it measured
-     nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527: on 2026-10-22 it was read as a red and
-     sent PB3511's branch to a finisher with nothing to fix); the landing lane lands it again once the lock is free.
-     NOT RUN [<cause>] — the gate measured nothing — is read with its cause's class from the driver's ONE
-     classification (run_gate_legs.NOT_RUN_CAUSES; kb/Work PB3526, review R2-1 of wave 1150), never re-derived here.
-     An ENVIRONMENT cause (malformed shared gate settings, a host with no WSL, Python or SDK, a tree git cannot read) is
-     exit 2 (usage or state) with NO report line: the lane retries it once, and a second at the head is the operator's
-     handoff, never a finisher's. A BRANCH cause (a failure of code the gated tree carries: the gate driver, the
-     population listing, no verdict line at all, a gate row refused for running outside the slot, the gate script's
-     arguments) is measured against MAIN at the same step (`gate_main`: the same row in a clean checkout of the
-     origin/main the branch merged, once per main head and host, recorded in MAIN_RUNS): main failing with the same
-     cause is exit 2 with no report line (main's defect, the operator's); otherwise, main unmeasurable included, it
-     blocks like a red, exit 5, the report gaining `BLOCKED: enqueue — the <host> gate was NOT RUN … by code the branch
-     carries ([<cause>] …); main … reads …`, and goes to a finisher. Any other verdict that is not GREEN is exit 5, the
-     report gains `BLOCKED: <host> gate … at enqueue — <verdict>`. A green head is recorded in
-     the worktree's git directory (`enqueue-gated`); a later run whose head differs from it only by commits that are
-     main's, clean merges or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule) is not gated again.
-  4. MAIN AGAIN, then the stamp, then `queue` (below). Main moves while a branch gates (the queue merges other pull
+  3. THE EVIDENCE, NOT A GATE (owner decision 2026-10-23, kb/Work PB3612: "Taking one hour to finish a branch is
+     stupidly ridiculously slow … Developers merge separate branches into a continually moving main all the time
+     without problems"). A branch is gated locally ONCE, at its head, by its implementer or finisher (`build-local`:
+     leg 1 on Windows, then the SAME plan's legs in a WSL clone, under the one slot: run_gate_legs.py). The landing
+     does not gate the merge with main, and does not gate again when main moves: the merge queue's CI (`ci-gate`, the
+     whole population on the exact merge) is the gate for the merge. It READS the record instead (`tested_locally`):
+     the worktree's newest gate verdict files must hold a GREEN run of the committed head's own tree (`head_tree`
+     equals the `tree` it measured) with its Linux half GREEN (the inert lane has none), whose head covers this one
+     (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
+     `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
+     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. The
+     lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
+     landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
+     seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
+     also changes (a true textual merge in a shared file: `merge_overlap`, set aside the files a merge driver merges
+     by key and the inert ones no test reads), the one gate runs once on the merged head. "Changed" is read against
+     the head the covering record measured, so a re-run after a run whose gate was BUSY or NOT RUN (it left the merge
+     commit) gates just the same. THAT RUN is read by the
+     gate driver's one reader (`run_gate_legs.read_verdict`), under the shared gate slot (build-local takes its own;
+     no row runs while one would run outside it, kb/Work PB3104). BUSY — another gate holds the worktree's gate
+     lock: it measured nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527). NOT RUN
+     [<cause>] — the gate measured nothing — is read with its cause's class from the driver's ONE classification
+     (run_gate_legs.NOT_RUN_CAUSES; kb/Work PB3526, review R2-1 of wave 1150), never re-derived here. An ENVIRONMENT
+     cause is exit 2 (usage or state) with NO report line: the lane retries it once, and a second at the head is the
+     operator's handoff, never a finisher's. A BRANCH cause is measured against MAIN at the same step (`gate_main`:
+     the same row in a clean checkout of the origin/main the branch merged, once per main head, recorded in
+     MAIN_RUNS): main failing with the same cause is exit 2 with no report line (main's defect, the operator's);
+     otherwise it blocks like a red, exit 5, the report gaining `BLOCKED: enqueue — the <host> gate was NOT RUN …`,
+     and goes to a finisher. Any other verdict that is not GREEN is exit 5, the report gaining `BLOCKED: <host> gate …
+     at enqueue — <verdict>`.
+  4. MAIN AGAIN, then the stamp, then `queue` (below). Main moves while a branch waits (the queue merges other pull
      requests), and `queue` takes only a head that descends from main; so origin/main is fetched again and, when it
-     moved, MERGED in once more, without a second gate (kb/Work PB3023 review R1-2): the local gate confirms the change
-     (step 3), and the merge group, which builds this pull request on the current main, runs the whole population
-     (DESIGN-test-build-ci.md section 3.17.2 step 4). A conflict here is exit 4, as in step 2. Then `devlog.py stamp
+     moved, MERGED in once more, never gated (kb/Work PB3023 review R1-2): the merge group, which builds this pull
+     request on the current main, runs the whole population (DESIGN-test-build-ci.md section 3.17.2 step 4). A
+     conflict here is exit 4, as in step 2. Then `devlog.py stamp
      <branch>`: the branch's `DEVLOG/pending-<slug>.md` is numbered (alloc.py devlog: number order is stamp order) and
      stamped in one commit; an entry stamped by an earlier run keeps its number, even when main has since landed a
      higher one (kb/Work PB3123: the queue orders landings after their stamps). Then `queue`, the pull request titled with
@@ -106,7 +117,8 @@ code the branch carries that main does not share) · 8 the merge queue is not AC
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
 11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
 gate lock (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
-is held (`land` only; nothing ran, nothing is red, no report line; step 0).
+is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
+recorded GREEN local gate covers it (`land` only; nothing merged; step 3).
 
 AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
 checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
@@ -144,14 +156,15 @@ EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
 EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
+EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
 #: runs on one branch race on the worktree (merge, DEVLOG stamp, push) and on everything the gates write: on 2026-10-16
 #: the second run's Linux gate deleted the first's clone mid-test, and the first held a gate slot for 6 h 40 min.
 LAND_LOCK_NAME = "cobol-land.lock"
-# How many times `land` brings a moved main in after its gate before it gives up (exit 2): main moves under a gate
-# about once per landing the queue merges, and between `land`'s fetch and `queue`'s only by seconds.
+# How many times `land` brings a moved main in before it gives up (exit 2): main moves about once per landing the queue
+# merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
 VERDICT = "=== ENQUEUE: "
 # The line `queue` prints once the pull request is queued, and its one reader (land_lane.py records the number, so its
@@ -162,38 +175,27 @@ QUEUED_LINE = re.compile(r"^ENQUEUED pr=(?P<pr>\d+) sha=(?P<sha>\S+) branch=(?P<
 # (the registrar's and the clerk's notes; the golden lane's spec-derived goldens, which the gate runs), and their briefs
 # name themselves with `land --lane <lane>`. Every other branch lands only under a CLEAN review stamp (review_gate).
 UNREVIEWED_LANES = ("registrar", "golden", "clerk")
-# THE GATE AT ENQUEUE (DESIGN-test-build-ci.md §3.17.2 step 3, §3.17.3): one GateRow per host, in order. THE ONE GATE
-# (kb/Work PB3022: one shape, no mode; a landing's gate runs at Normal priority) on Windows, then CI's Linux legs under
-# WSL (the operator's steer 2026-10-11 12:37: the landing keeps the whole-leg WSL gate until PB3022 item 10 makes the one
-# gate run leg 1 on both hosts; then the Linux row goes and build-local's own verdict covers both). On a Linux host only
-# the Linux twin of the one gate runs.
-# ⛔ EVERY ROW RUNS UNDER THE SHARED GATE SLOT (kb/Work PB3104; gate_slot.py, DESIGN-test-build-ci.md §3.14.6): the cap
-# of 3, a landing's ticket served first. Until 2026-10-12 the Linux row ran `linux-gate.sh` bare, so seven concurrent
-# landings ran seven uncapped WSL gates side by side, and load alone turned five of them RED. Each row says HOW it takes
-# its slot (GateRow.slot), `unslotted` checks the claim, and run_gates runs no row while any row is unslotted.
-SLOT_OWN = "own"     # the command takes the slot itself: build-local hands the gate to SLOT_DRIVER, which acquires it
-SLOT_WRAP = "wrap"   # run_gates runs the command under `gate_slot.py run` (gate_argv)
+# THE GATE A LANDING RUNS, RARELY (module doc, step 3; kb/Work PB3612): the one gate (kb/Work PB3022: one shape, no
+# mode; at Normal priority, a landing's slot served first), once, on the merged head when main's merge touched a file
+# the branch also changes, and on the tip of a lane that gates nowhere else. One GateRow per host: build-local, which on
+# Windows runs leg 1 and then the same plan in a WSL clone (run_gate_legs.py), on a Linux host its own legs.
+# ⛔ EVERY ROW TAKES THE SHARED GATE SLOT (kb/Work PB3104; gate_slot.py, DESIGN-test-build-ci.md §3.14.6): the cap of 3,
+# a landing's ticket served first. Until 2026-10-12 a row ran `linux-gate.sh` bare, so seven concurrent landings ran
+# seven uncapped WSL gates side by side, and load alone turned five of them RED. A row's command hands the gate to
+# SLOT_DRIVER, which acquires the slot; `unslotted` checks that claim, and run_gates runs no row while any row fails it.
 SLOT_DRIVER = "scripts/run_gate_legs.py"
 _DRIVER_ACQUIRES = re.compile(r"GateSlots\.for_repo\([^)]*\)\.acquire\(")
 
 
 class GateRow(NamedTuple):
-    """One host's gate at enqueue: the host, the command run in the worktree, its verdict line's prefix, and how it
-    takes the shared gate slot (SLOT_OWN or SLOT_WRAP, above)."""
+    """One host's gate at enqueue: the host, the command run in the worktree, and its verdict line's prefix."""
     host: str
     command: tuple[str, ...]
     prefix: str
-    slot: str
 
 
-# Per row, not ONE acquisition held across both rows: build-local takes its slot inside SLOT_DRIVER (after its audits,
-# kb/Work PB2524), so an outer slot held around it would make that a SECOND slot of the same cap, and three concurrent
-# landings each holding an outer slot at cap 3 would wait on their inner acquisitions forever. The Linux row takes its
-# own landing ticket when the Windows row ends, and is served ahead of every waiting implementer gate.
-GATES_WINDOWS = (GateRow("Windows", ("pwsh", "-NoProfile", "-File", "scripts/build-local.ps1"), "=== BUILD-LOCAL GATE: ",
-                         SLOT_OWN),
-                 GateRow("Linux", ("bash", "scripts/linux-gate.sh", "--nice"), "=== LINUX GATE: ", SLOT_WRAP))
-GATES_LINUX = (GateRow("Linux", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: ", SLOT_OWN),)
+GATES_WINDOWS = (GateRow("Windows", ("pwsh", "-NoProfile", "-File", "scripts/build-local.ps1"), "=== BUILD-LOCAL GATE: "),)
+GATES_LINUX = (GateRow("Linux", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: "),)
 
 
 def host_gates() -> tuple[GateRow, ...]:
@@ -201,7 +203,6 @@ def host_gates() -> tuple[GateRow, ...]:
     return GATES_WINDOWS if os.name == "nt" else GATES_LINUX
 
 
-GATED_MARK = "enqueue-gated"     # in the worktree's git directory: the head this script last gated GREEN
 # (the check's name, its command under scripts/, its refusal's exit code here, whether it takes --base, whether its
 # every non-zero is a refusal). A refusal is the script's exit 1; any other non-zero is "could not run", except for
 # landing_check.py, whose every non-zero is a STOP (its own contract: re-plan, never retry as is).
@@ -243,13 +244,17 @@ def queue_state() -> tuple[str, str]:
     return state, detail + "".join(f"; {d}" for d in diffs[:3])
 
 
-def measure_landing(cwd: pathlib.Path, branch: str, pr: int, changes: int | None, say: Say = print) -> None:
-    """Write the landing's record into the coordination directory (landing_measure.record_enqueued)."""
+def measure_landing(cwd: pathlib.Path, branch: str, pr: int, changes: int | None, landing_gates: int | None,
+                    say: Say = print) -> None:
+    """Write the landing's record into the coordination directory (landing_measure.record_enqueued). `landing_gates`: the
+    gates the landing itself ran (`land`: 0 or 1, kb/Work PB3612); None for a hand-queued pull request (UNMEASURED)."""
     d = coord.coord_dir()
-    rec = landing_measure.record_enqueued(d / landing_measure.FILE, cwd, branch, pr, d / "scratch" / "reports", changes)
+    rec = landing_measure.record_enqueued(d / landing_measure.FILE, cwd, branch, pr, d / "scratch" / "reports", changes,
+                                          landing_gates=landing_gates)
     say(f"landing-measure: recorded PR #{pr} ({branch}): DONE {rec['done'] or 'UNMEASURED'}, enqueued {rec['enqueued']}, "
         f"local gate {rec['local_gate_s'] if rec['local_gate_s'] is not None else 'UNMEASURED'} s "
-        f"in {rec['local_gate_runs'] or 0} run(s)")
+        f"in {rec['local_gate_runs'] or 0} run(s), {'UNMEASURED' if rec['landing_gate_runs'] is None else rec['landing_gate_runs']} "
+        "of them run by the landing itself")
 
 
 def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Callable[[], tuple[str, str]],
@@ -444,37 +449,24 @@ def dirty_paths(wt: pathlib.Path) -> list[str]:
 
 def unslotted(rows, tree: pathlib.Path) -> list[tuple[str, str]]:
     """THE SLOT RULE, in one place (kb/Work PB3104): [(host, why)] for each row of `rows` that would run outside the
-    shared gate slot; [] when every row takes one. A SLOT_WRAP row takes it through gate_argv. A SLOT_OWN row's claim is
-    checked, never trusted: its script (read under `tree`, the worktree whose scripts run) must hand the gate to
-    SLOT_DRIVER, and SLOT_DRIVER must acquire the slot. run_gates runs no row while this is not empty, and the self-test
-    holds GATES_WINDOWS and GATES_LINUX to it on every host."""
+    shared gate slot; [] when every row takes one. A row's claim is checked, never trusted: its script (read under
+    `tree`, the worktree whose scripts run) must hand the gate to SLOT_DRIVER, and SLOT_DRIVER must acquire the slot.
+    run_gates runs no row while this is not empty, and the self-test holds GATES_WINDOWS and GATES_LINUX to it on every
+    host."""
     out: list[tuple[str, str]] = []
     for row in rows:
         if not isinstance(row, GateRow):
             out.append((str(row[0]) if row else "?", f"a bare row {row!r}, not a GateRow: it names no slot"))
-        elif row.slot == SLOT_WRAP:
             continue
-        elif row.slot != SLOT_OWN:
-            out.append((row.host, f"slot {row.slot!r} is neither {SLOT_OWN!r} nor {SLOT_WRAP!r}"))
-        else:
-            script = next((a for a in row.command if a.startswith("scripts/")), "")
-            path = tree / script if script else None
-            driver = tree / SLOT_DRIVER
-            if path is None or not path.is_file() or SLOT_DRIVER not in path.read_text(encoding="utf-8"):
-                out.append((row.host, f"{script or ' '.join(row.command)} claims its own slot but does not hand the "
-                                      f"gate to {SLOT_DRIVER}"))
-            elif not driver.is_file() or not _DRIVER_ACQUIRES.search(driver.read_text(encoding="utf-8")):
-                out.append((row.host, f"{SLOT_DRIVER} no longer acquires a gate slot (GateSlots.for_repo(...).acquire)"))
+        script = next((a for a in row.command if a.startswith("scripts/")), "")
+        path = tree / script if script else None
+        driver = tree / SLOT_DRIVER
+        if path is None or not path.is_file() or SLOT_DRIVER not in path.read_text(encoding="utf-8"):
+            out.append((row.host, f"{script or ' '.join(row.command)} does not hand the gate to {SLOT_DRIVER}, so it "
+                                  "takes no gate slot"))
+        elif not driver.is_file() or not _DRIVER_ACQUIRES.search(driver.read_text(encoding="utf-8")):
+            out.append((row.host, f"{SLOT_DRIVER} no longer acquires a gate slot (GateSlots.for_repo(...).acquire)"))
     return out
-
-
-def gate_argv(row: GateRow, wt: pathlib.Path, label: str) -> list[str]:
-    """The command run_gates starts for `row`: its own for SLOT_OWN, else the same under `gate_slot.py run` on the
-    worktree's repository (one slot directory per repository: the git common dir every worktree shares)."""
-    if row.slot == SLOT_OWN:
-        return list(row.command)
-    return [sys.executable, str(HERE.parent / "gate_slot.py"), "run", "--repo", str(wt),
-            "--label", f"{label}: {row.host} gate", "--", *row.command]
 
 
 def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, "run_gate_legs.Reading", str]]:
@@ -495,16 +487,14 @@ def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, "run_gate_legs.Re
     logs.mkdir(parents=True, exist_ok=True)
     # A LANDING gate (kb/Work PB3103): its gate slot is served before every waiting implementer gate's (gate_slot.py
     # CLASS_ENV), so a landing never queues behind up to the cap's worth of implementer gates. Every row inherits it:
-    # build-local's driver and `gate_slot.py run` both read the class from this environment.
+    # the gate driver reads the class from this environment.
     env = {**os.environ, gate_slot.CLASS_ENV: gate_slot.LANDING}
-    label = f"enqueue {_git(wt, 'branch', '--show-current').stdout.strip() or wt.name}"
     out: list[tuple[str, str, str]] = []
     for row in gates:
         host, prefix = row.host, row.prefix
         log = logs / f"{host.lower()}-gate.log"
         with log.open("wb") as f:
-            rc = subprocess.run(gate_argv(row, wt, label), cwd=wt, stdout=f, stderr=subprocess.STDOUT,
-                                env=env).returncode
+            rc = subprocess.run(list(row.command), cwd=wt, stdout=f, stderr=subprocess.STDOUT, env=env).returncode
         lines = [ln.strip() for ln in log.read_bytes().decode("utf-8", errors="replace").splitlines()
                  if ln.strip().startswith(prefix)]
         if not lines:
@@ -665,17 +655,80 @@ def merge_main(wt: pathlib.Path, branch: str, base: str) -> list[str] | None:
     return merge_drivers.merge(wt, base, f"Merge origin/main into {branch} (enqueue.py)")
 
 
-def gated_covers(wt: pathlib.Path, mark: pathlib.Path, head: str, base: str) -> bool:
-    """Whether the head the gated mark names still covers `head`: it IS that head, or every later commit is main's, a
-    clean merge or DEVLOG-only (`prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too),
-    so the tree a gate would test differs from the gated one only by main's own, already-landed changes and the log."""
-    if not mark.is_file():
-        return False
-    gated = mark.read_text(encoding="utf-8").strip()
-    if gated == head:
-        return True
+class Tested(NamedTuple):
+    """Whether a branch's tip has a recorded local gate (`tested_locally`), and what to say about it."""
+    ok: bool
+    text: str
+    gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
+
+
+def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
+    """THE EVIDENCE A LANDING READS INSTEAD OF A GATE (kb/Work PB3612; module doc, step 3): the worktree's gate runs
+    (`TestResults/build-local/*/verdict.json`, newest first, written by run_gate_legs.py) must hold one that
+      * read GREEN, by the gate driver's one reader, with exit 0;
+      * measured the COMMITTED head's own tree (`tree` equals `head_tree`: an implementer who gated with uncommitted
+        edits tested something no commit carries);
+      * on a host that runs the Linux half (a Windows host: `Host.runs_linux_leg`), carries a GREEN Linux half of that
+        same tree; the inert lane runs none (no test reads the change);
+      * has a head that COVERS `head`: it IS `head`, or every later commit is main's, a clean merge of main or
+        DEVLOG-only (`prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too).
+    The newest run is not special: a REUSED answer is a run too, and a later RED does not unrecord an earlier GREEN of
+    the same head. `linux_half`: whether a Linux half is required (default: this host runs one, `Host.runs_linux_leg`;
+    the self-test names it so it reads the same on every host)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its record and its verdict's vocabulary)
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
-    return prune_worktrees.unreviewed_since(gated, head, repo=wt, base=base) == []
+    root = wt / run_gate_legs.RUN_ROOT
+    runs = (sorted((p for p in root.iterdir() if p.is_dir() and run_gate_legs.RUN_DIR.fullmatch(p.name)),
+                   key=lambda p: run_gate_legs.run_order(p.name), reverse=True) if root.is_dir() else [])
+    if not runs:
+        return Tested(False, f"{root} holds no gate run: nobody gated this worktree (`pwsh scripts/build-local.ps1`)")
+    if linux_half is None:
+        linux_half = run_gate_legs.Host(wt).runs_linux_leg()
+    why: list[str] = []
+    for run in runs:
+        rec = run_gate_legs.read_record(run)
+        if rec is None:
+            why.append(f"{run.name}: no verdict file (a gate still running, or one that died)")
+            continue
+        tree, head_tree = rec.get("tree"), rec.get("head_tree")
+        linux = rec.get("linux") or {}
+        gated = rec.get("head")
+        if run_gate_legs.read_verdict(str(rec.get("verdict", ""))) != run_gate_legs.GREEN_READING \
+                or rec.get("exit_code") != 0:
+            problem = f"it read {str(rec.get('verdict', '?'))[:40]}"
+        elif not head_tree or tree != head_tree:
+            problem = "it measured a working tree that was not the committed head's (uncommitted changes)"
+        elif linux_half and rec.get("lane") != "inert" and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
+            problem = "it carries no GREEN Linux half of the committed tree"
+        elif not gated:
+            problem = "it records no head"
+        elif gated != head and prune_worktrees.unreviewed_since(gated, head, repo=wt, base=base) != []:
+            problem = (f"it gated {gated[:12]}, and the commits since are not all main's, a clean merge of main or "
+                       "DEVLOG-only")
+        else:
+            half = "inert lane, no Linux half" if rec.get("lane") == "inert" else (
+                "Linux half GREEN" if linux_half else "Linux host: its own legs")
+            return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
+                          str(gated))
+        why.append(f"{run.name}: {problem}")
+    return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]))
+
+
+def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
+    """The files bringing main in changed under a branch that also changes them (kb/Work PB3612; module doc step 3): a true
+    textual merge in a shared file, the case a developer would re-test. `before` is the branch's head before the merge.
+    A file a merge driver merges by key (merge_drivers.covered_by_driver) is no such merge, and one no test reads (the
+    inert classification) cannot change a test: both are set aside."""
+    import inert_lane  # noqa: PLC0415  (scripts/: THE one classification of a path no test reads)
+    unreadable = ["(the two sides' changes could not be listed: git said no)"]   # never a silent "no overlap"
+    mb = _git(wt, "merge-base", before, base)
+    if mb.returncode != 0 or not mb.stdout.strip():
+        return unreadable
+    sides = [_git(wt, "diff", "--name-only", "--no-renames", "-z", mb.stdout.strip(), tip) for tip in (before, base)]
+    if any(s.returncode != 0 for s in sides):
+        return unreadable
+    shared = set(filter(None, sides[0].stdout.split(chr(0)))) & set(filter(None, sides[1].stdout.split(chr(0))))
+    return sorted(f for f in shared if not merge_drivers.covered_by_driver(f) and not inert_lane.CLASSIFICATION.is_inert(f))
 
 
 def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: Gh,
@@ -684,11 +737,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
          stamp: Callable[[pathlib.Path, str], int] | None = None,
          blocked: Callable[[str, pathlib.Path, str], None] | None = None,
          review: Callable[[str, pathlib.Path, str], str | None] = review_gate,
-         measure: Callable[[pathlib.Path, str, int], None] | None = None,
+         tested: Callable[[pathlib.Path, str, str], Tested] = tested_locally,
+         measure: Callable[[pathlib.Path, str, int, int], None] | None = None,
          lane: str | None = None, dry_run: bool = False, say: Say = print) -> int:
     """THE landing step (module doc); the collaborators are parameters so the self-test drives every exit arm.
-    `measure(worktree, branch, pr)` writes the queued pull request's landing record (kb/Work PB3028; `queue` step 5).
-    `on_main(worktree, host, main_sha)` measures main at the step a branch-carried NOT RUN stopped (gate_main)."""
+    `measure(worktree, branch, pr, gates_run)` writes the queued pull request's landing record (kb/Work PB3028; `queue`
+    step 5), `gates_run` being how many gates this landing ran itself (0 unless step 3's exception fired).
+    `on_main(worktree, host, main_sha)` measures main at the step a branch-carried NOT RUN stopped (gate_main).
+    `tested(worktree, head, base)` is the evidence a landing reads instead of a gate (`tested_locally`)."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver's Reading and its one NOT RUN classification)
 
     land_lock: list[gate_slot.ExclusiveLock] = []   # the worktree's land lock once taken; every outcome releases it
@@ -750,20 +806,35 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     elif why := review(branch, wt, base):
         blocked(branch, wt, f"BLOCKED: enqueue — not reviewed at its tip (kb/Work PB3027, MANDATORY-PRACTICES I10): {why}")
         return end(EXIT_UNREVIEWED, f"UNREVIEWED — {why}")
+    # 1c. The evidence the branch was tested locally, once, at its tip (kb/Work PB3612): a landing reads it and gates
+    # nothing the implementer already gated.
+    proof = tested(wt, here.head, base)
+    gate_why = ""
+    if proof.ok:
+        say(f"enqueue: {proof.text}; the merge with main is the merge queue's to test")
+    elif lane:
+        gate_why = f"the {lane} lane gates nowhere else ({proof.text})"
+    else:
+        blocked(branch, wt, f"BLOCKED: enqueue — no local gate is recorded GREEN at this tip (kb/Work PB3612, owner "
+                            f"2026-10-23: a branch is gated locally once, at its head, by its implementer): {proof.text}. A "
+                            "finisher runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the tip (a reviewed, "
+                            "unchanged tip needs no second review) and the lane lands it")
+        return end(EXIT_UNTESTED, f"UNTESTED — {proof.text}")
     # 2. Main in, by merge.
     if dry_run:
         behind = _git(wt, "merge-base", "--is-ancestor", base, "HEAD").returncode != 0
-        return end(0, f"DRY RUN — would {'merge origin/main into ' + branch + ', ' if behind else ''}gate, stamp and "
-                      "queue it")
+        return end(0, f"DRY RUN — would {'merge origin/main into ' + branch + ', ' if behind else ''}{'gate once, ' if gate_why else ''}"
+                      "stamp and queue it")
+    gates_run = 0
     if files := merge_main(wt, branch, base):
-        return conflicted(files, "before the gate")
-    # 3. The gate, once per tested tree.
-    gitdir, head = (_git(wt, "rev-parse", "--absolute-git-dir", "HEAD").stdout.split(chr(10)) + ["", ""])[:2]
-    mark = pathlib.Path(gitdir.strip()) / GATED_MARK
-    head = head.strip()
-    if gated_covers(wt, mark, head, base):
-        say(f"enqueue: {head[:12]} is covered by the head an earlier enqueue run gated GREEN ({mark}); not gated again")
-    else:
+        return conflicted(files, "before the queue")
+
+    # Defined here, after the land lock and the merge, because it is only ever called by step 3 below
+    # (LandingPipelineDriftTests holds every gate of land() after the lock in the text too, kb/Work PB3310).
+    def gate_once(why: str) -> int | None:
+        """The one gate a landing runs, rarely (module doc, step 3): None when it is GREEN, else the landing's exit."""
+        head = _git(wt, "rev-parse", "HEAD").stdout.strip()
+        say(f"enqueue: gating {head[:12]} once: {why}")
         results = gates(wt)
         for host, _, line in results:
             say(f"enqueue: {host} gate: {line}")
@@ -800,13 +871,28 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         if bad:
             blocked(branch, wt, f"BLOCKED: enqueue — the {bad[0]} gate is not GREEN on {head[:12]}: {bad[1]}")
             return end(EXIT_GATE, f"GATE RED ({bad[0]}) on {head[:12]}")
-        mark.write_text(head + "\n", encoding="utf-8", newline="\n")
-    # 4. Main again (it moves while a branch gates: R1-2), the DEVLOG stamp, the queue.
+        return None
+
+    # 3. A gate only where nothing else has tested the tree: the lanes no one gates, and a merge that changed a file the
+    # branch also changes. "Changed" is read against the head the RECORD measured (proof.gated), never against this run's
+    # start: a re-run after an earlier run made the overlapping merge commit, whose gate came back BUSY or NOT RUN, starts
+    # at that merge commit, and the shared file must still be re-tested (kb/Work PB3612, review R1-1).
+    tested_head = proof.gated or here.head
+    if not gate_why and _git(wt, "rev-parse", "HEAD").stdout.strip() != tested_head \
+            and (shared := merge_overlap(wt, tested_head, base)):
+        gate_why = (f"bringing main in changed {len(shared)} file(s) the branch also changes ({', '.join(shared[:3])}"
+                    f"{', …' if len(shared) > 3 else ''}): a true textual merge in a shared file, which a developer "
+                    "re-tests")
+    if gate_why:
+        gates_run = 1
+        if (rc := gate_once(gate_why)) is not None:
+            return rc
+    # 4. Main again (it moves while a branch waits: R1-2), the DEVLOG stamp, the queue.
     for attempt in range(1, CATCH_UP + 1):
         if failed := fetch_main(wt):
-            return end(2, f"NOT QUEUED — {failed} (the gated head is not gated again on a re-run)")
+            return end(2, f"NOT QUEUED — {failed}")
         if files := merge_main(wt, branch, base):
-            return conflicted(files, "after the gate")
+            return conflicted(files, "while the pull request was being queued")
         if (stamp or _stamp)(wt, branch) != 0:
             return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md`")
         title, body = pull_request_text(wt, base, branch)
@@ -816,7 +902,7 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         body_file.write_text(body, encoding="utf-8", newline="\n")
         rc = queue(wt, title, str(body_file), gh=gh, state=state,
                    checks=lambda sha, b: checks(wt, sha, b),
-                   measure=(lambda b, n: measure(wt, b, n)) if measure else None, say=say)
+                   measure=(lambda b, n: measure(wt, b, n, gates_run)) if measure else None, say=say)
         if rc != 2 or _git(wt, "merge-base", "--is-ancestor", base, "HEAD").returncode == 0:
             return end(rc, "ENQUEUED" if rc == 0 else f"NOT QUEUED (exit {rc}, above)")
         say(f"enqueue: main moved again before the queue took the branch; bringing it in (attempt {attempt + 1} of "
@@ -1077,7 +1163,19 @@ def self_test() -> int:
         fix.git("add", "c.txt")
         fix.git("commit", "--quiet", "-m", "the fix")
         (wt / "d.txt").write_text("main moves again", encoding="utf-8", newline="\n")
-        scratch.git("add", "d.txt")
+        # the gate rows' probe (below): a script that hands its gate to the driver, which acquires a slot, and says what it is
+        # told, so `unslotted` accepts the probe rows run_gates and gate_main start in main's checkout
+        (wt / "scripts").mkdir()
+        (wt / "scripts" / "run_gate_legs.py").write_text("slot = GateSlots.for_repo(repo).acquire(label)" + chr(10),
+                                                         encoding="utf-8", newline="\n")
+        (wt / "scripts" / "probe-gate.py").write_text(chr(10).join([
+            "# a probe gate: hands the gate to scripts/run_gate_legs.py (SLOT_DRIVER) and prints what it is told",
+            "import os, pathlib, sys",
+            f"print(sys.argv[1].replace('{{class}}', os.environ.get({gate_slot.CLASS_ENV!r}, 'none')))",
+            "if len(sys.argv) > 3:",
+            "    pathlib.Path(sys.argv[3]).write_text(pathlib.Path('a.txt').read_text())",
+            "raise SystemExit(int(sys.argv[2]))", ""]), encoding="utf-8", newline="\n")
+        scratch.git("add", "d.txt", "scripts")
         scratch.git("commit", "--quiet", "-m", "main moves again")
         scratch.git("push", "--quiet", "origin", "main")
         fix_tip = fix.git("rev-parse", "HEAD")
@@ -1106,13 +1204,18 @@ def self_test() -> int:
         notes: list[str] = []
         record = lambda b, w, line: notes.append(line)    # noqa: E731
         reviewed = lambda b, w, base: None                # noqa: E731  (the review arms below drive review_gate)
+        proved = lambda w, head, base: Tested(True, "planted: a recorded GREEN gate")             # noqa: E731
+        unproved = lambda w, head, base: Tested(False, "planted: no gate run covers this tip")    # noqa: E731
 
         def run_land(state=active, gates: Gate | None = None, checks=lambda w, s, b: 0, gh: Gh | None = None,
                      stamped: list[str] | None = None, branch: str = "fix", wtree: pathlib.Path = lw, **kw) -> int:
-            return land(root, branch, wtree, review=kw.pop("review", reviewed), gh=gh or fake_gh([], []), state=state,
-                        checks=checks, gates=gates or gates_of(green, []), stamp=stamper([] if stamped is None else
-                                                                                        stamped),
-                        blocked=record, say=lines.append, **kw)
+            return land(root, branch, wtree, review=kw.pop("review", reviewed), tested=kw.pop("tested", proved),
+                        gh=gh or fake_gh([], []), state=state, checks=checks, gates=gates or gates_of(green, []),
+                        stamp=stamper([] if stamped is None else stamped), blocked=record, say=lines.append, **kw)
+
+        def gated_land(**kw) -> int:
+            """A lane no one gates (`--lane registrar`) landing a tip with no recorded gate: the landing gates it once."""
+            return run_land(lane="registrar", tested=unproved, **kw)
 
         def main_moves(name: str, text: str) -> None:
             """Another landing reaches main (the queue merged it): a commit on origin's main."""
@@ -1178,11 +1281,90 @@ def self_test() -> int:
                and fix.git("rev-parse", "HEAD") == fix_tip and "fix" not in scratch.git("ls-remote", "--heads", "origin")
                and lines[-1].startswith(VERDICT + "QUEUE NOT ACTIVE"), f"{rc_inactive} {lines[-1:]}")
 
-        ran, stamped = [], []
-        rc_red = run_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: RED (x) ===")], ran),
-                          stamped=stamped)
-        expect("land: main is MERGED in (the branch's commits kept), and a host's red gate is exit 5 with the host "
-               "named in the report, before any stamp",
+        # kb/Work PB3612: the landing does not gate; it reads the record of the implementer's gate.
+        ran, stamped, notes[:] = [], [], []
+        rc_untested = run_land(tested=unproved, gates=gates_of(green, ran), stamped=stamped)
+        expect("land: a tip no recorded GREEN local gate covers is exit 14, UNTESTED, before anything is merged: the "
+               "report is told to send a finisher to gate it, the landing runs no gate, stamps nothing, and the branch "
+               "is unchanged (kb/Work PB3612)",
+               rc_untested == EXIT_UNTESTED and not ran and not stamped and fix.git("rev-parse", "HEAD") == fix_tip
+               and len(notes) == 1 and notes[0].startswith("BLOCKED: enqueue — no local gate is recorded GREEN")
+               and "build-local.ps1" in notes[0] and lines[-1].startswith(VERDICT + "UNTESTED"),
+               f"{rc_untested} {notes} {lines[-1:]}")
+
+        # THE EVIDENCE ITSELF (tested_locally), on planted verdict files in the branch's worktree.
+        results_dir = lw / "TestResults" / "build-local"
+        base_ref = "refs/remotes/origin/main"
+
+        def gate_run(n: int, **rec) -> None:
+            """A planted gate run `n` with a verdict file: GREEN, the working tree equal to the head's tree, head = HEAD."""
+            d = results_dir / f"{n:06d}-20261029T000000Z"
+            d.mkdir(parents=True, exist_ok=True)
+            head_now = fix.git("rev-parse", "HEAD")
+            record_ = {"verdict": "LEG 1 ONLY (batched gating, PB2515): GREEN", "line": "=== planted ===", "exit_code": 0,
+                       "head": head_now,
+                       "tree": "T", "head_tree": "T", "lane": "full", "linux": {"verdict": "GREEN", "tree": "T"}}
+            record_.update(rec)
+            (d / "verdict.json").write_text(json.dumps(record_), encoding="utf-8", newline="\n")
+
+        def seen(linux_half: bool = True) -> Tested:
+            return tested_locally(lw, fix.git("rev-parse", "HEAD"), base_ref, linux_half=linux_half)
+        none_yet = seen()
+        gate_run(1)
+        covered = seen()
+        gate_run(2, verdict="LEG 1 ONLY (batched gating, PB2515): RED")
+        red_after = seen()          # a later RED does not unrecord an earlier GREEN of the same head
+        shutil.rmtree(results_dir)
+        gate_run(1, tree="T-dirty")
+        dirty_run = seen()
+        shutil.rmtree(results_dir)
+        gate_run(1, linux=None)
+        no_linux = seen()
+        no_linux_ok_on_linux = seen(linux_half=False)
+        gate_run(1, linux=None, lane="inert")
+        inert_run = seen()
+        shutil.rmtree(results_dir)
+        gate_run(1, exit_code=1)
+        lying = seen()
+        shutil.rmtree(results_dir)
+        gate_run(1, head="0" * 40)
+        elsewhere = seen()
+        expect("tested_locally: a GREEN gate run of the committed head's own tree with its Linux half GREEN covers the "
+               "tip, an earlier one survives a later RED; no run, a tree that was not the head's, a run with no GREEN "
+               "Linux half (on a host that runs one; a Linux host's own legs are it), a non-zero exit and a head the tip "
+               "does not descend from are none; the inert lane has no Linux half (kb/Work PB3612)",
+               not none_yet.ok and "no gate run" in none_yet.text and covered.ok and "Linux half GREEN" in covered.text
+               and red_after.ok and not dirty_run.ok and "uncommitted" in dirty_run.text
+               and not no_linux.ok and "no GREEN Linux half" in no_linux.text and no_linux_ok_on_linux.ok
+               and inert_run.ok and "inert lane" in inert_run.text and not lying.ok and not elsewhere.ok,
+               f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {lying} {elsewhere}")
+        shutil.rmtree(results_dir)
+        gate_run(1)
+        gated_head = fix.git("rev-parse", "HEAD")
+        main_moves("m1.txt", "main moves after the branch was gated")
+        assert fetch_main(lw) is None
+        merge_main(lw, "fix", base_ref)
+        (lw / "DEVLOG").mkdir(exist_ok=True)
+        (lw / "DEVLOG" / "pending-fix.md").write_text("## PB1: the fix\n\nWhy.\n", encoding="utf-8", newline="\n")
+        fix.git("add", "DEVLOG")
+        fix.git("commit", "--quiet", "-m", "the entry")
+        after_main = seen()
+        own_commit("after-gate.txt")
+        after_commit = seen()
+        expect("tested_locally: the gated head still covers the tip after main's commits, a clean merge of main and a "
+               "DEVLOG-only commit (the review's coverage rule), and no longer after a commit of the branch's own",
+               after_main.ok and gated_head[:12] in after_main.text and not after_commit.ok
+               and "not all main's" in after_commit.text, f"{after_main} {after_commit}")
+        shutil.rmtree(results_dir)
+        fix.git("reset", "--quiet", "--hard", fix_tip)
+
+        # A gate a landing does run: a lane no one gates (read by the driver's one reader, run on the merged head), a red
+        # is exit 5 with the host named in the report, before any stamp.
+        ran, stamped, notes[:] = [], [], []
+        rc_red = gated_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: RED (x) ===")], ran),
+                            stamped=stamped)
+        expect("land: the one gate a landing runs (a lane no one gates) runs on the MERGED head (main in, the branch's "
+               "commits kept), and a host's red is exit 5 with the host named in the report, before any stamp",
                rc_red == EXIT_GATE and ran and not stamped and "Linux" in notes[-1]
                and fix.run("merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0
                and fix.run("merge-base", "--is-ancestor", fix_tip, "HEAD").returncode == 0, f"{rc_red} {notes[-1:]}")
@@ -1193,7 +1375,7 @@ def self_test() -> int:
                      "gate E:\\x (pid 356316, since 2026-10-22 12:30:29); nothing ran, nothing is red: re-run once it "
                      "ends ===")
         ran, stamped, notes[:] = [], [], []
-        rc_busy = run_land(gates=gates_of([("Windows", held_line)], ran), stamped=stamped)
+        rc_busy = gated_land(gates=gates_of([("Windows", held_line)], ran), stamped=stamped)
         expect("land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
                "no stamp, nothing queued (kb/Work PB3527)",
                rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
@@ -1228,11 +1410,11 @@ def self_test() -> int:
         # exit 2 with no report line: the lane retries it once and a second is the operator's, never a finisher's.
         ran, stamped, notes[:] = [], [], []
         mains: list[tuple[str, str]] = []
-        rc_nr = run_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: NOT RUN [sdk] (no .NET SDK "
-                                                                          "in this Linux environment) ===")], ran),
-                         stamped=stamped, on_main=lambda w, h, sha: mains.append((h, sha)))
+        rc_nr = gated_land(gates=gates_of([("Windows", win_green), ("Linux", "=== LINUX GATE: NOT RUN [sdk] (no .NET SDK "
+                                                                              "in this Linux environment) ===")], ran),
+                           stamped=stamped, on_main=lambda w, h, sha: mains.append((h, sha)))
         nr_line = lines[-1]
-        rc_none = run_land(gates=gates_of([], ran), stamped=stamped)
+        rc_none = gated_land(gates=gates_of([], ran), stamped=stamped)
         expect("land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
                "2, never a red: no report line, no stamp, nothing queued, main not measured (kb/Work PB3526)",
                rc_nr == 2 and rc_none == 2 and ran and not stamped and not notes and not mains
@@ -1252,8 +1434,8 @@ def self_test() -> int:
                                                          line, how)
             return gate
         ran, stamped, notes[:], mains[:] = [], [], [], []
-        rc_branch = run_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
-                             on_main=main_reads(win_green))
+        rc_branch = gated_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
+                               on_main=main_reads(win_green))
         branch_line = lines[-1]
         expect("land: a BRANCH-carried NOT RUN (the tree's own gate driver failed) on a main that passes the same gate "
                "is exit 5 with a BLOCKED line naming the cause and main's reading: a finisher's (review R2-1)",
@@ -1263,14 +1445,14 @@ def self_test() -> int:
                and branch_line.startswith(VERDICT + "GATE NOT RUN, BRANCH-CARRIED (Windows)"),
                f"{rc_branch} {mains} {notes} {branch_line}")
         ran, stamped, notes[:], mains[:] = [], [], [], []
-        rc_shared = run_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
-                             on_main=main_reads(crashed.replace("TypeError", "TypeError (main)"),
-                                                "the recorded main run of 2026-10-22T22:00:00Z"))
+        rc_shared = gated_land(gates=gates_of([("Windows", crashed)], ran), stamped=stamped,
+                               on_main=main_reads(crashed.replace("TypeError", "TypeError (main)"),
+                                                  "the recorded main run of 2026-10-22T22:00:00Z"))
         shared_line = lines[-1]
         ran2, notes_other = [], []
-        rc_other = run_land(gates=gates_of([("Windows", crashed)], ran2), stamped=stamped,
-                            on_main=main_reads("=== BUILD-LOCAL GATE: NOT RUN [population] — the population could not "
-                                               "be listed: x ==="))
+        rc_other = gated_land(gates=gates_of([("Windows", crashed)], ran2), stamped=stamped,
+                              on_main=main_reads("=== BUILD-LOCAL GATE: NOT RUN [population] — the population could not "
+                                                 "be listed: x ==="))
         notes_other, notes[:] = list(notes), []
         expect("land: a BRANCH-carried NOT RUN that main fails the SAME way at the same step (its cause) is exit 2 with "
                "no report line, naming how main was measured: main's defect is the operator's, not the branch's; a "
@@ -1280,9 +1462,9 @@ def self_test() -> int:
                and rc_other == EXIT_GATE and len(notes_other) == 1 and "[population]" in notes_other[0]
                and not stamped, f"{rc_shared} {shared_line} {rc_other} {notes_other}")
         ran, stamped, notes[:], mains[:] = [], [], [], []
-        rc_unmeasured = run_land(gates=gates_of([("Windows", "=== BUILD-LOCAL GATE: NOT RUN — an older gate's line "
-                                                              "naming no cause ===")], ran),
-                                 stamped=stamped, on_main=main_reads(None))
+        rc_unmeasured = gated_land(gates=gates_of([("Windows", "=== BUILD-LOCAL GATE: NOT RUN — an older gate's line "
+                                                                "naming no cause ===")], ran),
+                                   stamped=stamped, on_main=main_reads(None))
         expect("land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried, and main that could not be measured "
                "leaves it blocked: exit 5, the finisher attributes it (review R2-1)",
                rc_unmeasured == EXIT_GATE and len(notes) == 1 and "[unclassified]" in notes[0]
@@ -1292,10 +1474,8 @@ def self_test() -> int:
         # gate_main itself, on this scratch repository: a clean detached checkout of main runs the row, is removed, and
         # the result is recorded; a second landing at the same main head reads the record and runs nothing.
         marker = root / "main-gate-ran.txt"
-        driver_crash = GateRow("Probe", (sys.executable, "-c", "import pathlib, sys; "
-                                         f"pathlib.Path({str(marker)!r}).write_text(pathlib.Path('a.txt').read_text()); "
-                                         "print('=== PROBE GATE: NOT RUN [driver] — the gate driver failed: X ==='); "
-                                         "sys.exit(2)"), "=== PROBE GATE: ", SLOT_WRAP)
+        driver_crash = GateRow("Probe", (sys.executable, "scripts/probe-gate.py", "=== PROBE GATE: NOT RUN [driver] — the "
+                                         "gate driver failed: X ===", "2", str(marker)), "=== PROBE GATE: ")
         said: list[str] = []
         first = gate_main(lw, "Probe", main_sha, rows=(driver_crash,), say=said.append)
         main_a = marker.read_text(encoding="utf-8") if marker.exists() else None
@@ -1316,52 +1496,149 @@ def self_test() -> int:
                f"{first} {again} main_a={main_a!r} probes={probes} said={said}")
 
         prs, log, ran = [], [], []
-        measured: list[tuple[pathlib.Path, str, int]] = []
+        measured: list[tuple[pathlib.Path, str, int, int]] = []
         rc_q = run_land(gh=fake_gh(prs, log), gates=gates_of(green, ran),
-                        measure=lambda w, b, n: measured.append((w, b, n)))
+                        measure=lambda w, b, n, g: measured.append((w, b, n, g)))
         create = next((a for a in log if a[:2] == ["pr", "create"]), [])
-        expect("land: an ACTIVE queue opens one pull request titled from the DEVLOG entry, whose body carries the entry "
-               "and the commits, and queues it",
-               rc_q == 0 and ran and create and create[create.index("--title") + 1] == "DEVLOG 42: PB1: the fix"
+        expect("land: a tested tip opens one pull request titled from the DEVLOG entry, whose body carries the entry "
+               "and the commits, and queues it, with no gate run by the landing (kb/Work PB3612)",
+               rc_q == 0 and not ran and create and create[create.index("--title") + 1] == "DEVLOG 42: PB1: the fix"
                and "Why it was wrong." in pathlib.Path(create[create.index("--body-file") + 1]).read_text(encoding="utf-8")
-               and lines[-1].startswith(VERDICT + "ENQUEUED"), f"{rc_q} {create} {lines[-3:]}")
-        expect("land: the queued pull request is measured once, in the branch's worktree (kb/Work PB3028)",
-               len(measured) == 1 and measured[0][0] == lw and measured[0][1] == "fix", str(measured))
+               and lines[-1].startswith(VERDICT + "ENQUEUED"), f"{rc_q} {ran} {create} {lines[-3:]}")
+        expect("land: the queued pull request is measured once, in the branch's worktree, with the gates the landing ran "
+               "itself (none: kb/Work PB3028, PB3612)",
+               len(measured) == 1 and measured[0][0] == lw and measured[0][1] == "fix" and measured[0][3] == 0,
+               str(measured))
+        ran, measured_lane = [], []
+        rc_lane_gate = gated_land(gh=fake_gh(prs, []), gates=gates_of(green, ran),
+                                  measure=lambda w, b, n, g: measured_lane.append(g))
+        expect("land: a lane no one gates, with no recorded gate, gates its tip ONCE (the one gate, GREEN) and is "
+               "queued, the landing's record saying it ran one gate (kb/Work PB3612)",
+               rc_lane_gate == 0 and ran == [1] and measured_lane == [1], f"{rc_lane_gate} {ran} {measured_lane}")
 
         ran = []
         rc_again = run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran), checks=lambda w, s, b: 6)
-        ran_after_new_commit: list[int] = []
-        own_commit("e.txt")
-        run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran_after_new_commit))
-        expect("land: a re-run on the commit already gated GREEN does not gate again, a new commit does; a landing "
-               "check's refusal keeps its own code",
-               not ran and ran_after_new_commit and rc_again == 6, f"{ran} {ran_after_new_commit} {rc_again}")
+        expect("land: a landing check's refusal keeps its own code, with no gate run",
+               rc_again == 6 and not ran, f"{ran} {rc_again}")
 
-        # kb/Work PB3023 review R1-2, the reviewer's repro: the queue merges another pull request while this branch gates
-        gated_tip, ran, log = own_commit("f.txt"), [], []
-        rc_moved = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("g.txt", "g")
-                            or gates_of(green, [])(w))
+        # kb/Work PB3023 review R1-2: the queue merges another pull request while the landing stamps and queues.
+        moved_tip, log = own_commit("f.txt"), []
+        stamper_inner = stamper([])
+        moved: list[int] = []
+
+        def stamp_while_main_moves(w: pathlib.Path, b: str) -> int:
+            if not moved:
+                moved.append(1)
+                main_moves("g.txt", "g")
+            return stamper_inner(w, b)
+        ran = []
+        rc_moved = land(root, "fix", lw, review=reviewed, tested=proved, gh=fake_gh(prs, log), state=active,
+                        checks=lambda w, s, b: 0, gates=gates_of(green, ran), stamp=stamp_while_main_moves, blocked=record,
+                        say=lines.append)
         head = fix.git("rev-parse", "HEAD")
-        ran_rerun: list[int] = []
-        run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran_rerun))
-        expect("land: main moving during the gate is merged in again WITHOUT a second gate and the branch is queued on "
-               "the new main; a re-run on that head (a clean merge after the gated one) is not gated again",
-               rc_moved == 0 and ran == [1] and not ran_rerun and lines[-1].startswith(VERDICT + "ENQUEUED")
+        expect("land: main moving while the landing queues is merged in again WITHOUT any gate and the branch is queued "
+               "on the new main (kb/Work PB3023 review R1-2)",
+               rc_moved == 0 and not ran and lines[-1].startswith(VERDICT + "ENQUEUED")
                and fix.run("merge-base", "--is-ancestor", "refs/remotes/origin/main", head).returncode == 0
-               and fix.run("merge-base", "--is-ancestor", gated_tip, head).returncode == 0
+               and fix.run("merge-base", "--is-ancestor", moved_tip, head).returncode == 0
                and scratch.git("ls-remote", "origin", "refs/heads/fix").split()[:1] == [head]
-               and [a[:2] for a in log] == [["pr", "list"], ["pr", "merge"]], f"{rc_moved} {ran} {ran_rerun} {log}")
+               and [a[:2] for a in log] == [["pr", "list"], ["pr", "merge"]], f"{rc_moved} {ran} {log}")
 
-        clash_after, ran, log, notes[:] = own_commit("h.txt"), [], [], []
-        rc_late = run_land(gh=fake_gh(prs, log), gates=lambda w: ran.append(1) or main_moves("h.txt", "main's h")
-                           or gates_of(green, [])(w))
-        expect("land: a conflict bringing the moved main in after the gate is exit 4: the merge is aborted, the branch "
-               "unchanged, the report told, and nothing pushed or queued",
-               rc_late == EXIT_CONFLICT and ran == [1] and not log and fix.git("rev-parse", "HEAD") == clash_after
-               and not dirty_paths(lw) and notes and "after the gate" in notes[-1] and "h.txt" in notes[-1],
-               f"{rc_late} {ran} {log} {notes[-1:]}")
+        clash_after, log, notes[:] = own_commit("h.txt"), [], []
+        moved.clear()
+        stamper_late = stamper([])
+
+        def stamp_while_main_clashes(w: pathlib.Path, b: str) -> int:
+            if not moved:
+                moved.append(1)
+                main_moves("h.txt", "main's h")
+            return stamper_late(w, b)
+        rc_late = land(root, "fix", lw, review=reviewed, tested=proved, gh=fake_gh(prs, log), state=active,
+                       checks=lambda w, s, b: 0, gates=gates_of(green, []), stamp=stamp_while_main_clashes,
+                       blocked=record, say=lines.append)
+        expect("land: a conflict bringing the moved main in while the landing queues is exit 4: the merge is aborted, the "
+               "branch unchanged, the report told, and nothing queued",
+               rc_late == EXIT_CONFLICT and not [a for a in log if a[:2] == ["pr", "merge"]]
+               and not dirty_paths(lw) and notes and "while the pull request was being queued" in notes[-1]
+               and "h.txt" in notes[-1], f"{rc_late} {log} {notes[-1:]}")
         fix.git("reset", "--quiet", "--hard", head)
 
+        # THE ONE EXCEPTION (kb/Work PB3612): bringing main in changed a file the branch also changes.
+        main_moves("shared.txt", chr(10).join(f"line {i}" for i in range(1, 10)) + chr(10))
+        assert fetch_main(lw) is None
+        merge_main(lw, "fix", base_ref)
+        (lw / "shared.txt").write_text(chr(10).join(["the branch's line 1", *(f"line {i}" for i in range(2, 10))]) + chr(10),
+                                       encoding="utf-8", newline="\n")
+        fix.git("commit", "--quiet", "-am", "the branch edits the top of shared.txt")
+        own_commit("only-mine.txt")
+        main_moves("shared.txt", chr(10).join([*(f"line {i}" for i in range(1, 9)), "main's line 9"]) + chr(10))
+        main_moves("only-main.txt", "main's own file")
+        assert fetch_main(lw) is None
+        before_merge = fix.git("rev-parse", "HEAD")
+        shared_files = merge_overlap(lw, before_merge, base_ref)
+        ran, log, measured_ov = [], [], []
+        rc_overlap = run_land(gh=fake_gh(prs, log), gates=gates_of(green, ran),
+                              measure=lambda w, b, n, g: measured_ov.append(g))
+        merged_tip = fix.git("rev-parse", "HEAD")
+        expect("land: bringing main in changed a file the branch also changes (a clean textual merge in shared.txt): the "
+               "one gate runs ONCE on the merged head, the landing's record says one gate, and a file only one side "
+               "changed is no such merge (kb/Work PB3612)",
+               shared_files == ["shared.txt"] and rc_overlap == 0 and ran == [1] and measured_ov == [1]
+               and fix.run("merge-base", "--is-ancestor", before_merge, merged_tip).returncode == 0
+               and "shared.txt" in [ln for ln in lines if "gating" in ln and "once" in ln][-1],
+               f"{shared_files} {rc_overlap} {ran} {measured_ov}")
+        main_moves("only-main-2.txt", "main again")
+        own_commit("only-mine-2.txt")
+        assert fetch_main(lw) is None
+        ran, measured_ov = [], []
+        rc_disjoint = run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran),
+                               measure=lambda w, b, n, g: measured_ov.append(g))
+        expect("land: bringing main in over files the branch does not change runs no gate (the merge queue tests the "
+               "merge) and the landing's record says none (kb/Work PB3612)",
+               rc_disjoint == 0 and not ran and measured_ov == [0], f"{rc_disjoint} {ran} {measured_ov}")
+        # Review R1-1: the overlapping merge commit exists after a run whose gate came back BUSY; the re-run starts at it.
+        main_moves("shared2.txt", chr(10).join(f"line {i}" for i in range(1, 10)) + chr(10))
+        assert fetch_main(lw) is None
+        merge_main(lw, "fix", base_ref)
+        (lw / "shared2.txt").write_text(chr(10).join(["the branch's line 1", *(f"line {i}" for i in range(2, 10))]) + chr(10),
+                                        encoding="utf-8", newline="\n")
+        fix.git("commit", "--quiet", "-am", "the branch edits the top of shared2.txt")
+        gated_head = fix.git("rev-parse", "HEAD")
+        main_moves("shared2.txt", chr(10).join([*(f"line {i}" for i in range(1, 9)), "main's line 9"]) + chr(10))
+        assert fetch_main(lw) is None
+        covered = lambda w, head, base: Tested(True, "planted: a GREEN gate at the pre-merge head", gated_head)   # noqa: E731
+        ran, stamped, measured_ov = [], [], []
+        rc_first = run_land(gates=gates_of([("Windows", held_line)], ran), stamped=stamped, tested=covered)
+        merge_commit = fix.git("rev-parse", "HEAD")
+        ran, measured_ov = [], []
+        rc_again = run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran), tested=covered,
+                            measure=lambda w, b, n, g: measured_ov.append(g))
+        expect("land: a re-run after the run that made the overlapping merge commit (its gate BUSY) still runs the one "
+               "gate, against the head the record measured, not the head the re-run started at (kb/Work PB3612 review R1-1)",
+               rc_first == EXIT_GATE_BUSY and not stamped and merge_commit != gated_head
+               and rc_again == 0 and ran == [1] and measured_ov == [1], f"{rc_first} {stamped} {rc_again} {ran} {measured_ov}")
+        # Set aside: a file a merge driver merges by key, one no test reads, and a file only one side changed.
+        sets = scratch.worktree(root / "sets-wt", branch="sets", start="main")
+        sw = sets.path
+        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+            (sw / name).parent.mkdir(parents=True, exist_ok=True)
+            (sw / name).write_text("one" + chr(10), encoding="utf-8", newline="\n")
+        sets.git("add", "-A")
+        sets.git("commit", "--quiet", "-m", "the four shared files")
+        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+            (sw / name).write_text("branch" + chr(10), encoding="utf-8", newline="\n")
+        sets.git("commit", "--quiet", "-am", "the branch edits all four")
+        main_four = scratch.worktree(root / "main4-wt", branch="main4", start="sets~1")
+        for name in ("conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB1.md", "DEVLOG/x.md", "src/code.cs"):
+            (main_four.path / name).write_text("main" + chr(10), encoding="utf-8", newline="\n")
+        main_four.git("commit", "--quiet", "-am", "main edits all four")
+        overlap_four = merge_overlap(sw, sets.git("rev-parse", "HEAD"), main_four.git("rev-parse", "HEAD"))
+        overlap_unreadable = merge_overlap(sw, "0" * 40, main_four.git("rev-parse", "HEAD"))
+        expect("merge_overlap: a file a merge driver merges by key (diagnostics.json, a work note) and one no test reads "
+               "(a DEVLOG entry) are no true textual merge; only source both sides changed is; a side git cannot list "
+               "is never read as no overlap (kb/Work PB3612)",
+               overlap_four == ["src/code.cs"] and len(overlap_unreadable) == 1 and "could not be listed" in overlap_unreadable[0],
+               f"{overlap_four} {overlap_unreadable}")
 
         # ── the review before the landing (MANDATORY-PRACTICES I10; kb/Work PB3023 review R1-4) ───────────────────
         scratch.git("fetch", "--quiet", "origin")
@@ -1429,37 +1706,25 @@ def self_test() -> int:
                            lane="registrar", gates=gates_of(green, ran))
         expect("review: a FINDINGS stamp or no report is unreviewed; only a lane I10 does not review, named with "
                "--lane, lands without a stamp",
-               "FINDINGS" in findings and "--lane" in no_report and rc_lane == 0 and ran,
+               "FINDINGS" in findings and "--lane" in no_report and rc_lane == 0 and not ran,
                f"{findings!r} {no_report!r} {rc_lane}")
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
-        # The probe is a SLOT_WRAP row, as the Linux row is: run_gates starts it under `gate_slot.py run` on this
-        # scratch repository's own slot directory (never the real one).
-        probe = GateRow("Probe", (sys.executable, "-c", "import os; print('=== PROBE GATE: GREEN — class '"
-                                  f" + os.environ.get({gate_slot.CLASS_ENV!r}, 'none'))"), "=== PROBE GATE: ", SLOT_WRAP)
-        got = run_gates(wt, gates=(probe,))
+        # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
+        # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
+        def probe(text: str, rc: int = 0) -> GateRow:
+            return GateRow("Probe", (sys.executable, "scripts/probe-gate.py", text, str(rc)), "=== PROBE GATE: ")
+        got = run_gates(wt, gates=(probe("=== PROBE GATE: GREEN — class {class}"),))
         expect("the gate at enqueue is a LANDING gate: its slot is served before waiting implementer gates "
                "(kb/Work PB3103, gate_slot.py CLASS_ENV)", got and got[0][1] == run_gate_legs.GREEN_READING and got[0][2].endswith(
                    f"class {gate_slot.LANDING}"), str(got))
-        probe_log = (wt / "TestResults" / "enqueue" / "probe-gate.log").read_text(encoding="utf-8", errors="replace")
-        took, ran_at = probe_log.find("gate-slot: took slot"), probe_log.find("=== PROBE GATE: ")
-        linux_row = next((r for r in GATES_WINDOWS if isinstance(r, GateRow) and r.host == "Linux"), None)
-        linux_argv = gate_argv(linux_row, wt, "enqueue b") if linux_row else []
-        expect("gate rows: the Linux row runs under `gate_slot.py run` with the landing class, and the slot is taken "
-               "before its command starts (kb/Work PB3104)",
-               0 <= took < ran_at and got and got[0][2].endswith(f"class {gate_slot.LANDING}") and "--" in linux_argv
-               and linux_argv[1:3] == [str(HERE.parent / "gate_slot.py"), "run"]
-               and linux_argv[linux_argv.index("--") + 1:] == ["bash", "scripts/linux-gate.sh", "--nice"],
-               f"took={took} ran={ran_at} {linux_argv}")
 
-        def says(text: str, rc: int) -> GateRow:
-            return GateRow("Probe", (sys.executable, "-c", f"print({text!r}); raise SystemExit({rc})"),
-                           "=== PROBE GATE: ", SLOT_WRAP)
-        busy_run = run_gates(wt, gates=(says("=== PROBE GATE: BUSY — another gate holds this worktree's gate lock ===",
-                                             3),))
-        lying = run_gates(wt, gates=(says("=== PROBE GATE: GREEN — but the exit says otherwise ===", 1),))
-        silent = run_gates(wt, gates=(says("python: command not found", 127),))
+        busy_run = run_gates(wt, gates=(probe("=== PROBE GATE: BUSY — another gate holds this worktree's gate lock ===",
+                                              3),))
+        lying = run_gates(wt, gates=(probe("=== PROBE GATE: GREEN — but the exit says otherwise ===", 1),))
+        silent = run_gates(wt, gates=(probe("python: command not found", 127),))
         # The line linux-gate.sh prints when another Linux gate of the tree runs (kb/Work PB3310), read from the script
-        # itself: it must be this reader's BUSY, so enqueue answers exit 12 for it and never a red.
+        # itself: it must be the one reader's BUSY, so the gate driver ends a gate whose Linux half prints it BUSY
+        # (run_gate_legs._linux_leg, kb/Work PB3612), which the landing answers with exit 12, never a red.
         linux_busy = re.search(r'echo "=== LINUX GATE: (BUSY[^"]*)"', (HERE.parent / "linux-gate.sh").read_text(
             encoding="utf-8")).group(1).replace("$other", "4242")
         expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
@@ -1474,19 +1739,19 @@ def self_test() -> int:
 
         repo_root = HERE.parent.parent
         every_row = unslotted(GATES_WINDOWS + GATES_LINUX, repo_root)
-        expect("gate rows: every row of GATES_WINDOWS and GATES_LINUX takes the shared gate slot, build-local through "
-               "run_gate_legs.py and every other row under `gate_slot.py run` (kb/Work PB3104)", not every_row,
-               str(every_row))
+        expect("gate rows: every row of GATES_WINDOWS and GATES_LINUX hands the gate to run_gate_legs.py, which takes the "
+               "shared gate slot (kb/Work PB3104); the landing has no Linux row of its own: the Linux half runs inside "
+               "that gate (kb/Work PB3612)", not every_row and [r.host for r in GATES_WINDOWS] == ["Windows"], str(every_row))
 
-        linux_cmd = ("bash", "scripts/linux-gate.sh", "--nice")
-        planted = [("Planted", list(linux_cmd), "=== LINUX GATE: "),          # the row as it stood before PB3104
-                   GateRow("Planted", linux_cmd, "=== LINUX GATE: ", "none"),
-                   GateRow("Planted", linux_cmd, "=== LINUX GATE: ", SLOT_OWN)]  # a claim its script does not keep
-        refused = [bool(unslotted([row], repo_root)) for row in planted]
         tree = root / "tree"
         (tree / "scripts").mkdir(parents=True)
-        (tree / "scripts" / "build-local.sh").write_text(f"python {SLOT_DRIVER}\n", encoding="utf-8", newline="\n")
-        own = GateRow("Own", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: ", SLOT_OWN)
+        (tree / "scripts" / "build-local.sh").write_text(f"python {SLOT_DRIVER}{chr(10)}", encoding="utf-8", newline="\n")
+        (tree / "scripts" / "unrelated.sh").write_text(f"echo hello{chr(10)}", encoding="utf-8", newline="\n")
+        planted = [("Planted", ["bash", "scripts/build-local.sh"], "=== LINUX GATE: "),    # a bare row: it names no slot
+                   GateRow("Planted", ("bash", "scripts/unrelated.sh"), "=== LINUX GATE: "),   # a script with no hand-off
+                   GateRow("Planted", ("bash", "scripts/missing.sh"), "=== LINUX GATE: ")]    # no script at all
+        refused = [bool(unslotted([row], tree)) for row in planted]
+        own = GateRow("Own", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: ")
         (tree / SLOT_DRIVER).write_text("def main():\n    return 0\n", encoding="utf-8", newline="\n")
         no_acquire = bool(unslotted([own], tree))
         (tree / SLOT_DRIVER).write_text("slot = GateSlots.for_repo(repo).acquire(label)\n", encoding="utf-8",
@@ -1494,12 +1759,12 @@ def self_test() -> int:
         acquires = unslotted([own], tree)
         marker = root / "unslotted-ran.txt"
         marking = GateRow("Marker", (sys.executable, "-c", f"import pathlib; pathlib.Path({str(marker)!r})"
-                                                           ".write_text('ran')"), "=== MARKER GATE: ", SLOT_WRAP)
+                                                           ".write_text('ran')"), "=== MARKER GATE: ")
         blocked_run = run_gates(wt, gates=(marking, planted[0]))
-        expect("gate rows: a planted unslotted row (a bare row, an unknown slot, a script claiming its own slot without "
-               "the driver, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
+        expect("gate rows: a planted unslotted row (a bare row, a script that does not hand the gate to the driver, no "
+               "script, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
                refused == [True, True, True] and no_acquire and not acquires and not marker.exists()
-               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Planted", run_gate_legs.not_run("unslotted"))
+               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Marker", run_gate_legs.not_run("unslotted"))
                and blocked_run[0][2].startswith("REFUSED"),
                f"{refused} no_acquire={no_acquire} acquires={acquires} marker={marker.exists()} {blocked_run}")
 
@@ -1539,7 +1804,7 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("checks", help="the landing checks on base..rev")
     c.add_argument("--rev", default="HEAD")
     c.add_argument("--base", default="origin/main")
-    lnd = sub.add_parser("land", help="THE landing step: main in, the gate, the DEVLOG stamp, the checks, the queue")
+    lnd = sub.add_parser("land", help="THE landing step: the local-gate evidence, main in, the DEVLOG stamp, the checks, the queue")
     lnd.add_argument("branch")
     lnd.add_argument("--worktree", type=pathlib.Path, help="the branch's worktree (default: found by git worktree list)")
     lnd.add_argument("--lane", choices=UNREVIEWED_LANES,
@@ -1559,11 +1824,11 @@ def main(argv: list[str] | None = None) -> int:
     if a.verb == "queue":
         return queue(cwd, a.title, a.body_file, gh=ruleset.real_gh, state=queue_state,
                      checks=lambda sha, base: run_checks(sha, base, _script_runner(cwd)),
-                     measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes), dry_run=a.dry_run)
+                     measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None), dry_run=a.dry_run)
     if a.verb == "land":
         return land(cwd, a.branch, a.worktree, gh=ruleset.real_gh, state=queue_state,
                     checks=lambda wt, sha, base: run_checks(sha, base, _script_runner(wt)), lane=a.lane,
-                    measure=lambda wt, branch, pr: measure_landing(wt, branch, pr, None), dry_run=a.dry_run)
+                    measure=lambda wt, branch, pr, gates_run: measure_landing(wt, branch, pr, None, gates_run), dry_run=a.dry_run)
     ap.print_help()
     return 2
 

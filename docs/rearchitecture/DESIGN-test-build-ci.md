@@ -1912,8 +1912,8 @@ round it waited on); with the gate detached and handed over, the wave awaits the
 > ⛔ **Reshaped by §3.17.3 (owner 2026-10-11, kb/Work PB3015, Q1a and the 12:45 correction "Yes, both hosts, leg 1"):
 > the WSL run becomes the LINUX HALF OF THE TARGETED LEG — leg 1 of the same plan in a WSL clone, in every local gate —
 > and CI's whole Linux legs run only on the merge group.** `linux-gate.sh` keeps its whole-leg form as the tool that
-> reproduces a Linux CI red on this box (`reference wsl_linux_repro`) and gains the leg-1 plan form once PB3022 lands.
-> Below is the as-built gate until then.
+> reproduces a Linux CI red on this box (`reference wsl_linux_repro`) and has the plan form, `--legs targeted` (kb/Work
+> PB3612, §3.17.3). Below is the whole-leg gate.
 
 CI runs most of its test jobs on `ubuntu-26.04` (pinned, so the runner image moves only when the repository says so),
 and every local gate runs on the Windows host, so without this a
@@ -2223,19 +2223,36 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
    resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`); run the ONE local gate on the
-   merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
-   gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
-   PB3527; exit 13, never a red, when another `land` of the branch holds the worktree's land lock
-   (`<git dir>/cobol-land.lock`, taken before the worktree is first read and released by every outcome: two runs on one
-   branch raced on the merge, the stamp and the gates' files, kb/Work PB3310); a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an
-   ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5 like a red;
-   a commit gated GREEN, or a head that differs from it only
-   by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
-   rule — is not gated again on a re-run); bring main in AGAIN when it moved during the gate, without a second gate
-   (review R1-2, corrected at implementation: the queue merges other pull requests while a branch gates, `queue` takes
-   only a head that descends from main, and re-gating every such head would race the queue forever; the merge group
-   below integrates the branch on the current main and runs the whole population; a conflict here is exit 4 too);
+   origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
+   every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
+   line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
+   the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
+   hour to finish a branch is stupidly ridiculously slow … Developers merge separate branches into a continually moving
+   main all the time without problems … Why don't we do that?", then "yes"; measured: PB3140's landing ran 3 local gate
+   runs, 4,615 s, because main moved twice while it waited for a slot; five branches took about an hour each from CLEAN to
+   queued; the lane lands 1.47 changes per hour). A branch is gated locally ONCE, at its head, by its implementer or
+   finisher: that run (§3.17.3: leg 1 on Windows, then the same plan's legs in a WSL clone of the committed head, under the
+   one slot) is the whole definition of "tested locally". `enqueue.tested_locally` reads it from the worktree's newest
+   `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 14, UNTESTED, before anything is
+   merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
+   covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
+   GREEN Linux half of that tree on a host that runs one (the inert lane has none), and its head IS the tip or every later
+   commit is main's, a clean merge of main or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
+   A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
+   (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
+   costs no re-gate. ONE exception, the case a developer would also re-test: when bringing main in changed a file the
+   branch also changes (`enqueue.merge_overlap`: a true textual merge in a shared file; the files a merge driver
+   merges by key and the inert ones no test reads are set aside), the one gate (`build-local`, Normal priority, its
+   slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
+   record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
+   the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
+   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527); a gate NOT RUN, which measured
+   nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an ENVIRONMENT cause or a BRANCH cause main fails
+   the same way at the same step, else exit 5 like a red. Bring main in AGAIN when it moved while the pull request is
+   queued, without a gate (review R1-2, corrected at implementation: the queue merges other pull requests meanwhile,
+   `queue` takes only a head that descends from main, and re-gating every such head would race the queue forever; the
+   merge group below integrates the branch on the current main and runs the whole population; a conflict here is exit 4
+   too);
    `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed) and `landing_check.py` (the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
@@ -2243,15 +2260,12 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
    (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
    and the head's required check-runs (`queue_facts.py`) and, past a 10-minute grace, re-runs a stuck check, then
-   closes, reopens and re-queues the pull request, then asks the operator. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
-   gate at enqueue adds CI's Linux legs under WSL (`linux-gate.sh --nice`), run under `gate_slot.py run` as a
-   landing ticket of the same shared gate slot (§3.14.6; kb/Work PB3104: run bare, seven concurrent landings ran seven
-   uncapped WSL gates and load alone turned five RED); then that row goes. A HOST-I-O group (a file of its set under
-   `src/Cobol.Net.Runtime/IO/`) does not meet the Linux legs first here: its implementer runs the unit and
-   conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8; `make_dispatch_specs.host_io`, kb/Work PB3381:
-   wave 1118's PB3333 was refused at this step by 31 NIST RL programs that differ on Linux, 2.6 h after its DONE),
-   and this step still runs all of them. Every gate row declares how it takes its
-   slot and `enqueue.py` runs no row while one would run outside it.
+   closes, reopens and re-queues the pull request, then asks the operator. A HOST-I-O group (a file of its set under
+   `src/Cobol.Net.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
+   `make_dispatch_specs.host_io`, kb/Work PB3381: wave 1118's PB3333 was refused at its landing by 31 NIST RL programs that
+   differ on Linux, 2.6 h after its DONE), and CI's merge group runs all of them. Every gate row (the rare gate above) hands
+   its gate to `run_gate_legs.py`, which takes the slot, and `enqueue.py` runs no row while one would not (PB3104; the
+   Linux row, which ran under `gate_slot.py run` as a landing ticket, is gone with the landing's Linux gate).
 4. **The merge queue** (PB3024): GitHub builds the merge group (several queued PRs on top of `main`), the workflow runs on
    the `merge_group` event — the full matrix: Linux and Windows, the sharded conformance legs, unit + characterization,
    the population check (§3.14.4), audits, guard, INV-1 — `ci-gate` stays the one required check, and main advances in
@@ -2296,16 +2310,21 @@ only whole-population run.
 - **LANDED (kb/Work PB3022):** the lander's mode of `build-local` and its arm of `run_gate_legs.py` are deleted: the gate has one shape, the
   ordered leg 1 of §3.14 (a plan, fail-fast, a gate slot). The scope `whole` stays as the owner's on-demand switch
   (`gate_slot.py set-implementer-scope whole`) and the battery's form; it is nobody's per-change gate.
-- **The targeted leg runs on BOTH hosts** (owner 2026-10-11 ~12:45, after asking whether dropping the WSL gate would
+- **LANDED (kb/Work PB3612) — the targeted leg runs on BOTH hosts, inside the implementer's gate** (owner 2026-10-11 ~12:45, after asking whether dropping the WSL gate would
   push every Linux-only failure to CI: "Yes, both hosts, leg 1"): the one gate runs leg 1 natively on Windows and then,
-  under the same gate slot, leg 1 in a WSL clone of the committed head (`linux-gate.sh` gains the plan: it runs
-  `build-local.sh` on the same leg-1 plan instead of CI's whole legs), in the implementer's gate and
-  at enqueue alike. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
+  under the same gate slot, the SAME plan's legs in a WSL clone of the committed head: `run_gate_legs.py`
+  (`Gate._linux_leg`, `Host.linux_leg`) starts `bash scripts/linux-gate.sh --legs targeted --plan <run>/plan.json
+  --plan-legs <n>`, which clones HEAD, builds it once and runs the driver's own `--plan-leg` there (`plan_leg`: the legs of
+  an existing plan through `Gate._run_leg`, the population check and the identity check of this clone's listing and
+  binaries; no audits, no build, no slot of its own, and a case the plan never heard of runs in leg 1). It runs in the
+  IMPLEMENTER'S gate and nowhere else (the landing reads that gate's record: §3.17.2 step 3, owner 2026-10-23). The verdict
+  file records the Linux half (`linux`: verdict, cause, the committed `tree` it measured) and `head_tree`; a reused
+  answer needs a GREEN Linux half of this head's tree; the inert lane runs none; a Windows half that is not green never
+  starts the clone; a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause, and a BUSY one (another Linux gate of the worktree runs: linux-gate.sh runs one gate per tree, kb/Work PB3310) ends it BUSY, never RED. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
   tests (a locale golden's Linux text, a lock-race fix red 10 of 10 on Linux, a host-path length test), and the WSL
   run caught each before a CI round trip; a leg-1 run under WSL costs the clone and build (~1–2 min) plus the leg,
   not the 5–10 min of CI's whole Linux legs. Only the whole-population regression run is CI's. Fail-fast order:
-  Windows first (no clone), Linux second; a Linux-only red names its host in the verdict line. Until this lands, the
-  land units keep today's whole-leg WSL gate (operator steer, 2026-10-11 12:37).
+  Windows first (no clone), Linux second; a Linux-only red names its host in the verdict line.
 - **LANDED (kb/Work PB3022) — tier 0h, host-only witnesses, and tier 0c, the cheap tree-wide sweeps** (§3.14.2's
   tiers; `TIER_ORDER = 0a, 0h, 0c, 0d, 0u, 1, 2, 3`, tier 0d since kb/Work PB3531; the race witnesses are the Unit classes that drive the sharing
   layer's host types from concurrent workers, the sweeps are `drift_rules.py --sweeps`). The design as decided: every
@@ -2565,7 +2584,7 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
 |---|---|---|
 | CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` + `ci-gate` | the matrix |
 | local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or leg; under either scope | the ordered gate |
-| landing's Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main) | `=== LINUX GATE: GREEN (inert lane, …) ===`, no leg | every leg, under the watch |
+| Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main; the targeted mode takes the lane from the gate that started it, which runs no Linux half in the inert lane) | `=== LINUX GATE: GREEN (inert lane, …) ===`, no leg | every leg, under the watch |
 
 The audits run in every lane (they are where a register note, a citation or a DEVLOG entry is checked); CI's `audits`
 job runs on every event.
