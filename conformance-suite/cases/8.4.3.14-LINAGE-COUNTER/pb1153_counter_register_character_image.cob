@@ -14,9 +14,13 @@
       *> alphanumeric operand - and every integer-item context - PERFORM ...
       *> TIMES, FUNCTION LENGTH - takes them like an unsigned integer item.
       *> Their implicit description is the documented one (docs/CONFORMANCE.md,
-      *> "the counter registers' declared capacity"): PIC 9(d) USAGE DISPLAY,
-      *> d = the digits of the LINAGE page size (LINAGE 20 -> 9(2)) and 18 for
-      *> the report counters. Before the fix each character context compiled
+      *> "the counter registers' declared description"): LINAGE-COUNTER is
+      *> PIC 9(d) USAGE DISPLAY, d = the digits of the LINAGE page size
+      *> (LINAGE 20 -> 9(2)), so it also takes a STRING sender and a relation
+      *> with an alphanumeric operand; LINE-COUNTER and PAGE-COUNTER are
+      *> unsigned 32-bit binary integers whose image is 10 digits (kb/Work
+      *> PB1746; their STRING and alphanumeric-relation refusals are the
+      *> wiseowl cases pb1746-*). Before the fix each character context compiled
       *> clean and aborted at run time ("computed expression in a string
       *> context"), PERFORM PAGE-COUNTER TIMES was refused as not an integer,
       *> and FUNCTION LENGTH(PAGE-COUNTER) was refused as "a numeric literal".
@@ -36,7 +40,6 @@
        01 WX4  PIC X(4).
        01 WX20 PIC X(20).
        01 W2   PIC X(2) VALUE "02".
-       01 WL   PIC X(18) VALUE "000000000000000001".
        01 K    PIC 9 VALUE 0.
        REPORT SECTION.
        RD R1 PAGE LIMIT 10 LINES HEADING 1 FIRST DETAIL 2
@@ -64,7 +67,7 @@
            DISPLAY "LNC-LENGTH=" FUNCTION LENGTH(LINAGE-COUNTER).
            CLOSE LPF.
       *> PAGE-COUNTER is 1 after INITIATE; LINE-COUNTER is the line of the
-      *> detail just printed, 2 (FIRST DETAIL 2). Their image is 9(18).
+      *> detail just printed, 2 (FIRST DETAIL 2). Their image is 10 digits.
            OPEN OUTPUT RPTF.
            INITIATE R1.
            GENERATE D1.
@@ -77,13 +80,6 @@
            DISPLAY "LC-MOVE4=[" WX4 "]".
            MOVE LINE-COUNTER TO WX20.
            DISPLAY "LC-MOVE20=[" WX20 "]".
-           MOVE SPACES TO WX20.
-           STRING "P" PAGE-COUNTER DELIMITED BY SIZE INTO WX20.
-           DISPLAY "PC-STRING=[" WX20 "]".
-           IF PAGE-COUNTER = WL
-               DISPLAY "PC-REL=EQ"
-           ELSE
-               DISPLAY "PC-REL=NE".
            PERFORM PAGE-COUNTER TIMES
                ADD 1 TO K
            END-PERFORM.
