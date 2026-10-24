@@ -21,7 +21,10 @@ namespace CobolNet.Tests.Unit;
 /// §14.9.10.4 GR15 (a DELETE FILE of such a file is undone by a rollback), §9.1.18.5 (an abnormal termination rolls back) and
 /// §14.9.27.4 GR17 and GR18 (a creation's file is the state "no file" at its start, so its rollback removes it: an OPEN INPUT
 /// then answers '35', or '05' for an OPTIONAL file).</para>
+/// <para>It is a file-system race witness (<c>[Trait("Host", "ReFS")]</c>, kb/Work PB3022): its interleaving case drives two run
+/// units' statements from two workers through the host's locks.</para>
 /// </summary>
+[Trait("Host", "ReFS")]
 public sealed class SequentialCommitControlTests
 {
     /// <summary>A statement answered '30': the fatal EC-I-O-PERMANENT-ERROR of a file under commit control.</summary>
