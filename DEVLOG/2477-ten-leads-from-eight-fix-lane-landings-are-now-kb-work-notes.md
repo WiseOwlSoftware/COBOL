@@ -1,4 +1,4 @@
-## Ten leads from eight fix-lane landings are now kb/Work notes
+## Entry 2477 — 2026-10-24 14:13 PDT — Ten leads from eight fix-lane landings are now kb/Work notes
 
 The clerk filed the review leads and new defects of eight landed fix-lane branches (PRs #495, #496, #500, #501, #504, #506, #507) as register notes. Ten new notes, PB3641 to PB3650: the group cap's measurement provenance in `model_rules.json` (PB3641, from PB3611); the merge queue merging without the merge drivers (PB3642) and the prose docs that still conflict at landings (PB3643), both from PB3610; a merge-queue bounce's reds never reaching tier 0a (PB3644) and the `Sources.constants` fixed point capped at 8 passes (PB3645), both from PB3112; the Linux gate's inert lane skipping the selftests leg CI runs (PB3646), the `.gitignore` comment naming the deleted `RenderedViewsDriftTests` (PB3647) and the Linux gate's disk bound not counting the audit clone (PB3648), all from PB2878 part 2; the landing lane's exit 12 having a second, unprobed source (PB3649, from PB3310); and the `load_reports` docstring (PB3650, from PB3625).
 
@@ -7,3 +7,4 @@ Three existing notes were extended: PB1729 gained the Python conflict-marker swe
 Not filed: PB3610's drift-test lead was answered in its own change; its dangling DEVLOG sentence is history and too small for a note; PB3275's ENQUEUED-arm remark has no repro and a pushed pull request leaves the queue, so the state cannot persist; PB2699's lead is by design. Ids PB3651 and PB3652 are unused.
 
 PB3283 gained a third instance: an attended reviewer's start record with no verdict read as WAITING FOR REVIEW and cost a duplicate review (branch fix-pb3263-unknown-subsystem-prefix, PB3640).
+
