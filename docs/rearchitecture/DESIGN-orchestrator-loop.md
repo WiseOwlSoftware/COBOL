@@ -765,7 +765,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
    `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
    finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
-2. **Finishers first.** (a) A note whose newest report (by wave, then time; header lines only) says `SPLIT` or
+2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
    PB3027: the landing step never fixes a finding; the finisher's `pred` names the findings file and asks for every
