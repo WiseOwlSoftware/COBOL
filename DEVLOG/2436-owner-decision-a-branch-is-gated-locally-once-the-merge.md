@@ -1,3 +1,4 @@
-## Owner decision: a branch is gated locally once; the merge queue gates the merge (PB3612)
+## Entry 2436 — 2026-10-23 21:08 PDT — Owner decision: a branch is gated locally once; the merge queue gates the merge (PB3612)
 
 On 2026-10-23 the owner said "Taking one hour to finish a branch is stupidly ridiculously slow." and asked "Developers merge separate branches into a continually moving main all the time without problems. Maybe the rare merge conflict, which they address. Why don't we do that?" PB3140's landing ran its local gate three times (4615.0 s) because main moved twice while it waited for a slot, and each run covered both hosts before CI ran the whole population again. The owner approved ("yes") a new process: the implementer gates the branch head once (Windows leg 1 plus the targeted Linux leg), and `enqueue.py land` merges, stamps and queues without a local gate, so the merge queue's CI gates the merge. The one exception is a textual merge in a file the branch also touches, which gets one targeted Windows run. kb/Work PB3612 files the decision and the implementation contract; no code changed in this entry.
+
