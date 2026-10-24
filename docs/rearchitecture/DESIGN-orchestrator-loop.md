@@ -781,7 +781,13 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    or not) that no report written since that dispatch names is excluded too, and waits with the group named; it is in
    an agent's hands, or in a planned wave the operator has not launched yet. The fix lane read no ledger until then,
    and wave 1044 re-planned seven of the eight groups another session's recorded, unlaunched wave 1045 held. An
-   aborted dispatch is released with `--release`.
+   aborted dispatch is released with `--release`. **A branch's work is one unit** (kb/Work PB2974): a finisher
+   continues ONE branch, so when an unanswered dispatch holds any note of a SPLIT or FINDINGS report, or of an
+   unlanded branch whose commit subjects name several, every other note of that report or branch waits with the
+   holder named (`plan()` after the held loop). Wave 1056's first plan, with a dispatch recorded for only some of each
+   wave-1053 branch's notes, made three more finishers that cherry-picked the branches wave 1055's finishers were
+   finishing. An unlanded branch's finisher is one group whatever the cap, as a report's is, so the notes past the cap
+   are never planned a second time as clusters beside it.
 
    1b. **The file-set partition, for every plan** (kb/Work PB2807). With two planners (the loop and an attended or
    Mythos session) a fix-lane group could be planned on a file another session's running group was changing for a
