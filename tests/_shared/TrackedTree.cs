@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Shared;
 
 /// <summary>
 /// ⭐ THE COMMITTED TREE — the files git tracks, as repo-root-relative paths with <c>/</c> separators (kb/Work PB735,
-/// PB927). Every byte-level sweep of the repository (<c>ConflictMarkerDriftTests</c>, <c>NulByteDriftTests</c>) draws
+/// PB927). Every byte-level sweep of the repository (<c>NulByteDriftTests</c>; the conflict-marker check is an audit, <c>scripts/conflict_markers.py</c>, kb/Work PB2878) draws
 /// its population from here, and from git only: the alternative, walking the filesystem with a hand-written exclusion
 /// list, needs that list because gitignored corpora (<c>tests/external/gnucobol/</c>) carry marker-shaped lines and
 /// binary bytes as TEST DATA, whereas <c>git ls-files</c> excludes them structurally.
