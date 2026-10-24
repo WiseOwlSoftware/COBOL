@@ -105,7 +105,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // return, so it needs no guard here — GR3i.
             w.Line(invocation);
             brackets.Settle(receivers);
-            string? propagatedBare = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
+            string? propagatedBare = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
             if (c.NotOnException is { } notBare) EmitNotOnException(notBare, callErr: null, propagatedBare);
             return false;
         }
@@ -150,7 +150,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // — before either phrase body, which also keeps an activation inside a phrase body from consuming THIS
         // CALL's staging — and NOT ON EXCEPTION runs only when the pickup raised nothing. A failed activation
         // stages nothing, so the pickup is a no-op on the ON EXCEPTION path.
-        string? propagated = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
+        string? propagated = EmitActivationReturned(c, reportRaised: c.NotOnException is not null);
         if (c.OnException is { } on)
             using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
         if (c.NotOnException is { } not)
@@ -327,6 +327,30 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
+    /// <summary>⛔ THE ACTIVATING STATEMENT'S TAIL, ONCE FOR EVERY ACTIVATION (kb/Work PB3246): what the activator does when
+    /// the activation has returned and its RETURNING item is delivered, in the one order the standard gives it - the
+    /// propagation pickup (<see cref="EmitPropagationPickup"/>), THEN §14.9.40.4 GR17's question. A <c>GOBACK … RAISING</c>
+    /// condition is raised in the activating element "after the result, if any, of the activated element is returned"
+    /// (§14.9.18.4 GR1 b)); a USE procedure of the activated element that ended in EXIT PROGRAM / GOBACK while a format 1
+    /// SORT whose range activated it is active terminates that SORT (§14.9.40.4 GR17), and the termination unwinds the
+    /// rest of the range, so it must come last: asked first, it left before the pickup and the staged condition was raised
+    /// at the activator's next, unrelated activation. The CALL lane (<see cref="EmitCall"/>, a function activation and a
+    /// program-pointer CALL included) and the INVOKE lane (every <c>OoEmitter</c> form: instance, SELF, SUPER, factory,
+    /// universal and New, whose <c>NEW OVERRIDE</c> is a user method, kb/Work PB1582; an inline method invocation and an
+    /// object-property access are INVOKEs bound as their statement's pre-ops) both end here, so the order cannot be taught to
+    /// one and not the other. The INVOKE tail is emitted after the RETURNING delivery (§14.9.23.4 GR8) and the copy-outs, so
+    /// identifier-4 holds the result exactly as a CALL's RETURNING item does; asked in the method's own epilogue, the
+    /// termination unwound past that delivery and dropped the result. The GR17 question is unconditional: the activated
+    /// element can be another compilation group's, so whether it has declaratives is not known here. The pickup is gated on
+    /// <c>EcState.Active</c>, which spans class units.</summary>
+    /// <returns><see cref="EmitPropagationPickup"/>'s raised flag.</returns>
+    public string? EmitActivationReturned(IActivatingStatement site, bool reportRaised = false)
+    {
+        string? raised = EmitPropagationPickup(site, reportRaised);
+        ctx.Writer.Line($"{RuntimeApi.SortAfterActivationReturn};   // §14.9.40.4 GR17 - after the pickup (a declarative's EXIT PROGRAM / GOBACK ended the SORT this activation ran in)");
+        return raised;
+    }
+
     /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM / method-return …
     /// RAISING</c> exception condition — ISO §14.9.18.4 GR1 b), RAISED HERE, in the activating runtime element,
     /// "as if a RAISE statement" at the end of the activating statement (§14.6.13.1.3 #6): test the ACTIVATOR's
@@ -343,7 +367,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// propagated condition (a name or an object) was RAISED here — the §14.9.4.4 GR3i "propagated" test the
     /// CALL's NOT ON EXCEPTION phrase keys on (kb/Work PB606). Null when no pickup is emitted (nothing can be
     /// raised) or no caller asked.</returns>
-    public string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
+    private string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
     {
         if (!ecState.Active) return null;
         var w = ctx.Writer;

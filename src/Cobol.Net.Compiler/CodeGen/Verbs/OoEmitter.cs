@@ -841,7 +841,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         w.Line($"{RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(u.Receiver))}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value", argumentView: false) + "   // RETURNING delivery (§14.9.23.4 GR8)");
-        EmitInvocationReturned(u);   // the universal path returns identically (D-EO6)
+        U.Call.EmitActivationReturned(u);   // the universal path returns identically (D-EO6)
     }
 
     /// <summary>INVOKE NULL (kb/Work PB1136): identifier-1 is the predefined NULL object reference, so §14.9.23.4 GR5 sets
@@ -1612,7 +1612,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         w.Line(PlaceRenderer.Write(ret, "null") + "   // §16.2.1.2 GR2 — NULL unless New creates the object");
         w.Line(PlaceRenderer.Write(ret, $"({ret.Item.Pic!.ClrType}){factory}.{OoStandardClasses.NewCsName}()")
             + "   // INVOKE … \"New\" (ISO §16.2.1.2)");
-        EmitInvocationReturned(inv);   // a NEW OVERRIDE is a user method (kb/Work PB1582): it returns like any other
+        U.Call.EmitActivationReturned(inv);   // a NEW OVERRIDE is a user method (kb/Work PB1582): it returns like any other
     }
 
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal crosses as its argument's
@@ -1955,7 +1955,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         {
             w.Line($"{call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, §14.9.23.4 GR5)");
         }
-        EmitInvocationReturned(inv);   // after GR8: identifier-4 already holds the result
+        U.Call.EmitActivationReturned(inv);   // after GR8: identifier-4 already holds the result
     }
 
     /// <summary>⛔ HOW A STORE THROUGH A METHOD FORMAL REACHES ITS BY REFERENCE ARGUMENT (ISO §14.2.3 GR8; kb/Work PB2087):
@@ -2036,27 +2036,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             ? $"{PlaceRenderer.Read(recv)}.Length"
             : recv.Item.IsGroup ? $"{CallEmitter.BoundaryImageWidth(recv.Item)}"
             : $"{CallEmitter.ElementaryFormalWindow(recv.Item)}";
-
-    /// <summary>⛔ THE INVOKER'S SIDE OF A METHOD'S RETURN, emitted once per INVOKE after the RETURNING delivery
-    /// (§14.9.23.4 GR8: "the result of the activated method is placed into identifier-4") — by every form: instance,
-    /// SELF, SUPER, factory, universal (D-EO6), and New, whose <c>NEW OVERRIDE</c> is a user method (kb/Work PB1582).
-    /// An inline method invocation and an object-property access are INVOKEs bound as their statement's pre-ops, so
-    /// they reach it too. Two questions, in the order <c>ProgramTable.CallProgram</c> and the CALL site ask them:
-    /// <list type="number">
-    /// <item>§14.9.40.4 GR17 (kb/Work PB1177): a declarative of the returning method that ended in EXIT METHOD or
-    /// GOBACK while a format 1 SORT whose range invoked it was active terminates that SORT now — after the return has
-    /// done what a return does, so identifier-4 holds the result exactly as a CALL's RETURNING item does. Asked in the
-    /// method's own epilogue, the termination unwound past this delivery and dropped the result. Unconditional: the
-    /// method can be another compilation group's, so whether it has declaratives is not known here.</item>
-    /// <item>The propagation pickup (D-EO6; §14.6.13.1.5, §14.9.18.4 GR1 b)): a method GOBACK/EXIT … RAISING stages,
-    /// and the activating site consumes it after the RETURNING delivery and copy-outs. Gated on
-    /// <c>EcState.Active</c>, which spans class units.</item>
-    /// </list></summary>
-    private void EmitInvocationReturned(IActivatingStatement site)
-    {
-        Ctx.Writer.Line($"{RuntimeApi.SortAfterActivationReturn};   // §14.9.40.4 GR17 — a declarative's EXIT METHOD / GOBACK ended the SORT this INVOKE ran in");
-        U.Call.EmitPropagationPickup(site);
-    }
 
     /// <summary>True when a BY CONTENT argument lands in a FLOATING-POINT method formal by the §14.2.3 GR9 COMPUTE
     /// (kb/Work PB1114): the formal is floating-point, and the argument is a literal-2, an arithmetic expression or an
