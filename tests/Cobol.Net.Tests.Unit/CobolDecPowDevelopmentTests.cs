@@ -38,13 +38,13 @@ public sealed class CobolDecPowDevelopmentTests
     /// enforce: that a binary64 step would be spelled one of these ways (`Math.Log2(` slips through
     /// `Math.Log10(`+`Math.Log(`; `using M = System.Math;` slips through all of them), and that the
     /// development lives entirely in this one file — <c>CobolIntrinsics.RealArgs.cs</c> already contains
-    /// <c>CobolDec.FromDouble(Math.Pow(…))</c>, legitimately, as the §8.8.1.3 NATIVE arm, in a file this scan
+    /// <c>CobolDec.FromApproximation(Math.Pow(…))</c>, legitimately, as the §8.8.1.3 NATIVE arm, in a file this scan
     /// does not read. What the scan IS is a tripwire on the shapes that actually shipped and were deleted,
     /// widened to the near-miss spellings; the reachability audit is the sweep recorded in kb/Work PB167, and
     /// the value pins below are the guard with teeth — a binary64 reintroduction gives
     /// 1.0618366495807028 where <see cref="PastLoopBoundEscape_KeepsTheNegativeBasesParitySign"/> needs
     /// 1.061836649543504…, whichever file it sits in.</para>
-    /// <para>⛔ <c>ToDouble</c>/<c>FromDouble</c> ARE DELIBERATELY NOT BANNED. Both are <c>CobolDec</c>'s own
+    /// <para>⛔ <c>ToDouble</c>/<c>FromBinary64</c>/<c>FromApproximation</c> ARE DELIBERATELY NOT BANNED. Both are <c>CobolDec</c>'s own
     /// §8.8.1.5.1 conversion API, defined in this file by necessity and called from six sites outside it;
     /// banning their spelling would ban the type's public surface, not a development step.</para>
     /// <para>Whole-line comments are stripped first — the file's forensic remarks NAME the calls they

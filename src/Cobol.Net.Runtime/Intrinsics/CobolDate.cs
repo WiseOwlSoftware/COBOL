@@ -841,7 +841,7 @@ public static class CobolDate
         long date = integerDate <= long.MinValue ? long.MinValue
                   : integerDate >= long.MaxValue ? long.MaxValue
                   : (long)integerDate;
-        return CombinedDatetimeOutOfRange(date, CobolDec.FromDouble(seconds), leapSecond);
+        return CombinedDatetimeOutOfRange(date, CobolDec.FromBinary64(seconds, CobolRounding.NearestAwayFromZero), leapSecond);
     }
 
     /// <summary>The §15.17.3 argument screen, asked ONCE for ALL THREE carriers (the exact Int128 lane, the SDIDI,

@@ -22846,5 +22846,12 @@
    "85"
   ],
   "expect": "COBOLNET0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
+ },
+ "pb1606-float-item-standard-decimal-below-2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
  }
 }

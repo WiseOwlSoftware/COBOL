@@ -22,8 +22,8 @@
       *> HAND-DERIVED EXPECTATIONS.
       *> TINY is the exact scale-20 value 1E-20; ScaledToDouble gives the binary64 nearest 1E-20. For that
       *> argument x, sin x = x - x**3/6, tan x = x + x**3/3 and atan x = x - x**3/3, and |x**3/3| ~ 3.3E-61 is
-      *> some 25 decades below the ULP of x (~1.6E-36), so each rounds to x itself in binary64. The 8.8.1.5.1
-      *> float -> SDIDI conversion is the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20
+      *> some 25 decades below the ULP of x (~1.6E-36), so each rounds to x itself in binary64. The conversion of a function's
+      *> implementor-defined approximation (15.4.1) is the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20
       *> and its 15.4.1 item-92 text is the fixed-point digit string 0.00000000000000000001 — NEVER the
       *> binary64 E-notation "1E-20" the un-contained value printed.
       *> COS(0) = 1 exactly, and ACOS(1) / ASIN(0) / LOG(1) / LOG10(1) are 0 exactly (each an exact
@@ -54,6 +54,7 @@
        01 B1       PIC S9(31).
        01 B2       PIC S9(31).
        01 FL       USAGE COMP-2.
+       01 FL2      USAGE COMP-2.
        PROCEDURE DIVISION.
        MAIN.
       *> 1 — the item-92 TEXT channel renders the SDIDI, not a binary64.
@@ -77,9 +78,13 @@
            ELSE
                DISPLAY "TAN-CHANNELS-DIFFER " B1 " " B2
            END-IF
-      *> 3 — the float-receiver channel and the relation channel see that same value.
+      *> 3 — the float-receiver channels land that same value: a MOVE and a COMPUTE into FLOAT-LONG receivers
+      *> hold one binary64. (They are not compared with the function itself: a float ITEM enters the SDIDI by
+      *> its exact binary value, 8.8.1.5.1's conversion as WiseOwl defines it, and the double nearest 1E-20 is
+      *> 9.99999999999999945...E-21, not the SDIDI 1E-20 the function returned.)
            MOVE FUNCTION SIN(TINY) TO FL
-           IF FL = FUNCTION SIN(TINY)
+           COMPUTE FL2 = FUNCTION SIN(TINY)
+           IF FL = FL2
                DISPLAY "FLOAT-CHANNEL-AGREES"
            ELSE
                DISPLAY "FLOAT-CHANNEL-DIFFERS"

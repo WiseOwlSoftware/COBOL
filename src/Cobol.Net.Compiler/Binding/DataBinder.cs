@@ -537,8 +537,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // performs operations in the standard intermediate data item, which for its reachable operands IS the
         // standard DECIMAL form, so STANDARD routes to the same CobolDec engine as STANDARD-DECIMAL
         // (NumericRenderer.StandardDecimal). Floating-point operands participate under BOTH modes through the
-        // §8.8.1.5.1 implementor-defined float→SDIDI conversion (CobolDec.FromDouble — the shortest-round-trip
-        // decimal identity of the IEEE value); the operations themselves are SDIDI (P10 Step 12).
+        // §8.8.1.5.1 implementor-defined float→SDIDI conversion (CobolDec.FromBinary64 — the binary64's exact value
+        // rounded once to 34 digits under INTERMEDIATE ROUNDING, §8.8.1.5.2 r1); the operations themselves are SDIDI
+        // (P10 Step 12).
         // STANDARD was DROPPED by ISO/IEC 1989:2023 (§8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL)
         // → the pass's arithmetic-standard-2002 dual-window row rejects it at --std 2023 (0807).
         // STANDARD-BINARY is DECLINED — but the screen is NOT here any more: it moved to OptionsBinder's
