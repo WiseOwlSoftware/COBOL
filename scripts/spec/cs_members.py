@@ -87,8 +87,29 @@ class Member:
 def blank(text: str) -> str:
     """`text` with every comment, preprocessor line, character literal and string replaced by spaces (newlines kept)."""
     out = list(text)
-    _code(text, out, 0, hole=False)
+    _code(text, out, 0, hole=False, spans=None)
     return "".join(out)
+
+
+def code_lines(text: str) -> frozenset[int]:
+    """The lines (1-based) of `text` that carry CODE: a line holding a character that is neither whitespace nor inside
+    a comment, and EVERY line a string literal touches, a blank one included (a test's embedded COBOL program is its
+    input, so a raw-string line `      *> note`, or a blank line inside it, is as much a change as a statement). A
+    preprocessor line is code. The one answer to "does this diff line change only comments and blank lines"
+    (`impacted_tests.Hunk`; kb/Work PB3190 review R1-1): a line regex cannot tell a comment from a string line that
+    starts with `*` or `//`."""
+    spans: list[tuple[str, int, int]] = []
+    _code(text, list(text), 0, hole=False, spans=spans)
+    starts = [0] + [m.end() for m in NEWLINE.finditer(text)]
+    kept = list(text)
+    code: set[int] = set()
+    for kind, a, b in spans:
+        if kind == "comment":
+            _wipe(kept, a, b)
+        else:
+            code.update(range(bisect.bisect_right(starts, a), bisect.bisect_right(starts, max(b - 1, a)) + 1))
+    code.update(n for n, line in enumerate(NEWLINE.split("".join(kept)), 1) if line.strip())
+    return frozenset(code)
 
 
 def _wipe(out: list[str], a: int, b: int) -> None:
@@ -96,9 +117,10 @@ def _wipe(out: list[str], a: int, b: int) -> None:
     out[a:b] = NOT_NEWLINE.sub(" ", seg) if "\n" in seg else " " * len(seg)
 
 
-def _code(text: str, out: list[str], i: int, hole: bool) -> int:
-    """Scan code from `i`, wiping what is not code. Inside an interpolation hole, return the index of the `}` that
-    closes it; otherwise the end of the text."""
+def _code(text: str, out: list[str], i: int, hole: bool, spans: list[tuple[str, int, int]] | None) -> int:
+    """Scan code from `i`, wiping what is not code and adding each comment's and string's span to `spans` (when given,
+    as `("comment" | "string", start, end)`). Inside an interpolation hole, return the index of the `}` that closes
+    it; otherwise the end of the text."""
     n, depth, stop = len(text), 0, HOLE_STOP if hole else CODE_STOP
     while True:
         m = stop.search(text, i)
@@ -112,9 +134,13 @@ def _code(text: str, out: list[str], i: int, hole: bool) -> int:
             j = _line_end(text, i)              # a preprocessor directive is one line
         elif text.startswith("//", i):
             j = _line_end(text, i)
+            if spans is not None:
+                spans.append(("comment", i, j))
         elif text.startswith("/*", i):
             j = text.find("*/", i + 2)
             j = n if j < 0 else j + 2
+            if spans is not None:
+                spans.append(("comment", i, j))
         elif c == "/":
             i += 1
             continue
@@ -126,6 +152,8 @@ def _code(text: str, out: list[str], i: int, hole: bool) -> int:
                 i += 1
                 continue
             j = _string_end(text, out, s)
+            if spans is not None:
+                spans.append(("string", i, j))
         else:                                   # a bracket, seen only inside a hole
             if c in "{([":
                 depth += 1
@@ -184,7 +212,7 @@ def _string_end(text: str, out: list[str], m: re.Match) -> int:
             if text.startswith("{{", k):
                 k += 2
                 continue
-            k = _code(text, out, k + 1, hole=True) + 1
+            k = _code(text, out, k + 1, hole=True, spans=None) + 1
             continue
         k += 1
     return n
@@ -406,7 +434,31 @@ def self_test() -> int:
           a.touched_by(8, 1) and a.touched_by(4, 0) and a.touched_by(10, 0) and a.touched_by(11, 3), a)
     check("a hunk touches no member it does not reach: lines before or after it, a deletion after its last line",
           not a.touched_by(1, 3) and not a.touched_by(12, 2) and not a.touched_by(11, 0), a)
-    broken = "class X { void M() { string s = " + q + "{" + q + "; } }"
+    # kb/Work PB3190 review R1-1: a string's lines are code even when they look like a comment or are blank.
+    coded = nl.join([
+        "class X",                                                       # 1
+        "{",                                                             # 2
+        "    // a comment",                                              # 3
+        "    /* a block",                                                # 4
+        "     * comment */",                                             # 5
+        "",                                                              # 6
+        "    string s = " + q * 3,                                       # 7
+        "      *> the embedded COBOL program's comment line",            # 8
+        "      // its input too",                                        # 9
+        "",                                                              # 10
+        "    " + q * 3 + ";",                                            # 11
+        "#if DEBUG",                                                     # 12
+        "    string v = @" + q + "a",                                    # 13
+        "* a verbatim string's second line" + q + "; /* trailing */",    # 14
+        "#endif",                                                        # 15
+        "    int i; // code before a comment",                           # 16
+        "}",                                                             # 17
+    ])
+    want = {1, 2, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+    check("code lines: a string literal's every line, a blank one included, and a preprocessor line are code; a "
+          "comment or blank line outside every string is not", code_lines(coded) == want,
+          sorted(code_lines(coded) ^ want))
+    broken ="class X { void M() { string s = " + q + "{" + q + "; } }"
     check("the audit's balance: a brace inside a string is not code, an unclosed body is counted",
           balance(broken) == 0 and balance("class X { void M() { ") == 2)
     with tempfile.TemporaryDirectory() as d:

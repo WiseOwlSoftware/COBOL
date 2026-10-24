@@ -977,7 +977,10 @@ because the raw name is not stable (`b7`):
 - **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
   compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its
   declaration, its body — a `-U0` hunk of the diff touches, and every theory whose `[MemberData]` source a hunk
-  touches (its rows are that member's values); a hunk of blank and comment lines touches nothing. The member spans
+  touches (its rows are that member's values); a hunk of comment lines and blank lines outside every string literal
+  touches nothing, decided from the LEXED source on each side (`cs_members.code_lines`, carried per line by the
+  `Hunk`), never from a diff line alone, since a test's embedded COBOL program is a string whose lines may start `*`
+  or `//` or be blank (PB3190 review R1-1; the method level's `method_ids` reads the same flags). The member spans
   come from `scripts/spec/cs_members.py`, a lexer that blanks comments, preprocessor lines, characters and every
   string form (verbatim, interpolated holes, raw) so the braces left are code; a source whose braces do not balance
   once lexed puts every test method of the file here, and `impacted_tests.py --audit-members` (run by
