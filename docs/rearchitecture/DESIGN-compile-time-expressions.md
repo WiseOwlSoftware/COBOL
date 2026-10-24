@@ -399,6 +399,14 @@ Member-wise record equality is **replaced by a hand-written `Equals`** dispatchi
 Alnum/National → `Text`; Boolean → `Bits` value-equality). `AS PARAMETER` (GR4, landed) and the SR2/COBOLNET1618
 redefinition check (landed) use this model.
 
+**`AS PARAMETER` classifies the environment value syntactically (kb/Work PB1626; DOC-A.1-49).** The form of the value is
+the implementor's (GR4), so GnuCOBOL 3.2 decides, and `DefineParameterValue.Classify` is the ONE rule: no value (absent,
+empty, or beginning with a space; an unclosed or more-than-one-literal quoted text), ONE quoted literal, the SPELLING of a
+fixed-point numeric literal (`NumericLiteral.IsFixedPointLiteralForm`, §8.3.3.3.2), or alphanumeric text as given. A numeric
+or quoted form is then evaluated by the same `EvaluateOperandText` path a literal written in `>>DEFINE X AS …` takes, so
+the value (the `CtNumeric` carrier, never System.Decimal), the §8.3.3.3.2 digit capacity and the literal screening are
+that path's and cannot disagree with it; the classification does not depend on the edition's arithmetic mode.
+
 ## 10. Legacy-oracle safety — ONE mechanism, behavior-preserving
 
 `ConditionalCompilationProcessor.Process` has two callers: greenfield `Frontend.cs` and the legacy differential

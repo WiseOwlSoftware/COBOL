@@ -45,7 +45,7 @@ public sealed record CtValue
     /// <summary>The bit value (meaningful only for <see cref="CtCategory.Boolean"/>).</summary>
     public BitString? Bits { get; }
     /// <summary>The literal AS WRITTEN when the value was written as ONE nonnumeric literal token (<c>X"2A"</c>), else
-    /// null (a numeric operand, a boolean expression, an operating-environment PARAMETER value). A DEFINE directive names
+    /// null (a numeric operand, a boolean expression, an operating-environment PARAMETER value that is not one quoted literal). A DEFINE directive names
     /// "a particular literal value" (§7.3.11.1), and a constant entry FROM the variable is "as if … the text represented
     /// by compilation-variable-name-1 were written" (§13.10.4 GR1), so a rule asking that literal's FORM (a
     /// hexadecimal-alphanumeric literal) reads this; <see cref="Text"/> is decoded and has lost it. Value equality never
