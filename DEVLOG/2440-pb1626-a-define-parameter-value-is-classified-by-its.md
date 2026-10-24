@@ -1,4 +1,4 @@
-## PB1626: a `>>DEFINE … PARAMETER` value is classified by its spelling, not by System.Decimal
+## Entry 2440 — 2026-10-23 22:40 PDT — PB1626: a `>>DEFINE … PARAMETER` value is classified by its spelling, not by System.Decimal
 
 **Re-probe.** `PVAL=1234567890123456789012345678901` (31 digits) and `QVAL=1,000`, with `>>DEFINE PVAL AS PARAMETER` and
 `>>IF PVAL > 0`: refused at 2002 and 2023 alike (COBOLNET1619, 'Alphanumeric' vs 'Numeric'), and `QVAL` was numeric. The cause was
@@ -37,3 +37,4 @@ first use of the name reports it as not previously defined. The semgrep counts a
 diagnostic codes were used.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,214 · Unit 1,314 · Characterization 31 … Conformance 10,129/18,343 · Unit 34,605/35,919 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s)` (run 000001-20261024T045644Z). The Linux gate is the lander's.
+
