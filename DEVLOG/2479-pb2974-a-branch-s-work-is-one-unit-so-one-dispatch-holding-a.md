@@ -1,4 +1,4 @@
-## PB2974: a branch's work is one unit, so one dispatch holding a note holds the whole report
+## Entry 2479 — 2026-10-24 14:23 PDT — PB2974: a branch's work is one unit, so one dispatch holding a note holds the whole report
 
 Wave 1056's first plan re-dispatched three wave-1053 SPLIT branches that wave 1055's finishers were finishing. The
 ledger recorded each finisher under only some of its branch's notes (w1055A PB2727, PB2729, PB2773 of the four on
@@ -30,3 +30,4 @@ first in its pred), and a report's finisher takes the unreported notes of its ow
 
 Not closed: telling a live agent's lock on a SPLIT branch from a recent touch (the note's 2026-10-16 paragraph) needs
 a lock-only signal that the branch survey does not expose; the ledger hold is the signal a dispatched finisher leaves.
+
