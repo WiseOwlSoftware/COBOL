@@ -917,7 +917,7 @@ def self_test() -> int:
     # through its declared TreeScope, and names no path (kb/Work PB3531).
     _, reach = tiers_for(["scripts/differential_fuzz.py"])
     check("a changed file names every drift test the index says governs it, a sweep of the committed tree included "
-          "(tier 0d)", {"CatalogCoverageDriftTests", "ConflictMarkerDriftTests"} <= reach.drift_tests
+          "(tier 0d)", "CatalogCoverageDriftTests" in reach.drift_tests
           and "NulByteDriftTests" not in reach.drift_tests, sorted(reach.drift_tests))
     # A file a scope sets aside BY NAME is the rule's owner, which the sweep does not read: the class still governs it
     # (PB3531 review R1-1 — the general-format heading pattern lives in spec_headings.py).
@@ -925,13 +925,11 @@ def self_test() -> int:
     check("a change to the file a sweep sets aside by name (its rule's owner) names that sweep (tier 0d)",
           "CatalogCoverageDriftTests" in reach.drift_tests, sorted(reach.drift_tests))
     # Tier 0d with NO impact map (kb/Work PB3247): each changed file names the drift test the landing's Linux leg found
-    # red on it — a test naming the file, and tests reading it only through a shared helper class (TraceabilityInventory,
-    # WorkRegister, SuiteManifest) or a TestRepo helper the index once lacked (`Kb`).
-    for f, want in [("tests/version-matrix/traceability-inventory.json", {"SpecTraceabilityInventoryDriftTests",
-                                                                          "ClosesRowsBackLinkDriftTests"}),
+    # red on it — a test naming the file, and tests reading it only through a shared helper class (SuiteManifest) or a
+    # TestRepo helper the index once lacked.
+    for f, want in [("tests/version-matrix/traceability-inventory.json", {"SpecTraceabilityInventoryDriftTests"}),
                     ("docs/CONFORMANCE.md", {"AnnexA1RegisterDriftTests"}),
                     (copy + "copy-library-text.cob", {"ConstantNameLiteralPositionDriftTests"}),
-                    ("kb/Work/PB3247.md", {"ClosesRowsBackLinkDriftTests", "EcRaiseSiteRegistryDriftTests"}),
                     # kb/Work PB3112: the reads a test spells with a nested call, a constant or a wrapper's callers.
                     ("src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4", {"ArithmeticOperandRoleDriftTests",
                                                                           "SendingOperandDriftTests",

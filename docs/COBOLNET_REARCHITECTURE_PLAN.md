@@ -2086,14 +2086,14 @@ result. Run the long legs ONE AT A TIME.
   `docs/CONFORMANCE.md` §5 records as Not claimed — GAP unchanged at **3641**, every one of the sixteen still
   owing the witness the schema requires), and **115** registered on **37 new notes** (PB225–PB261) plus
   `inventory_rows` claims added to **13** existing live notes. `work.py next` actionable: **29 → 54**.
-  **The invariant is `DefectiveRowCoverageDriftTests`** (`tests/Cobol.Net.Tests.Unit`): every row whose verdict
+  **The invariant is `work.py check`'s coverage half** (`scripts/spec/work_inventory.py`): every row whose verdict
   the schema marks non-resolving is claimed by a live `kb/Work` note's **`inventory_rows`** frontmatter list —
   a NEW register field, and the machine-readable NOTE→ROW back-link the register never had. Proved failing
   before it was believed (a blanked claim, then a typo'd one; both checks fired). ⛔ Consequence to know before
   landing anything: **when a note flips to `landed`, its rows must be re-verdicted in the same change set** or
   the gate goes red — which is the event most worth failing on. ⭐ **And since 2026-09-20 the landing also writes
   `closes_rows:`** — the rows the fix CLOSED, as distinct from the rows it CLAIMED (owner decision 2026-09-19,
-  `kb/Work/PB245`): `ClosesRowsBackLinkDriftTests` fails a landed `kind: defect` note that names neither rows nor
+  `kb/Work/PB245`): `work.py check` fails a landed `kind: defect` note that names neither rows nor
   a reason, and one that names a row the inventory still calls non-OK. 485 landed notes were back-filled from the
   inventory's own commit history (1,972 row attributions over 257 commits).
   Seven proposed CONFORMS re-adjudications were REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
@@ -3244,11 +3244,11 @@ already-derivable coverage; none change the pipeline.
   `reserved-words.json`); regen `.g.cs` via `scripts/gen-constructs.ps1` / docs via `gen-vcr.ps1`,
   `gen-diagnostics-doc.ps1`.
 - Work register: `python scripts/spec/work.py check` (frontmatter well-formed, including the `closes_rows`
-  back-link's shape) · `work.py parity` (the register's TWO frontmatter readers — Python and
-  `tests/_shared/WorkRegister.cs` — still read one file format the same way, against
-  `tests/version-matrix/work-frontmatter-parity-cases.json`). ⛔ The gates that enforce the register against the
-  inventory are in the Unit assembly and run every build: **`DefectiveRowCoverageDriftTests`** (every
-  defective-verdict row is claimed by a LIVE note's `inventory_rows`) and **`ClosesRowsBackLinkDriftTests`**
+  back-link's shape; and, through `scripts/spec/work_inventory.py`, the register against the inventory) ·
+  `work.py --self-test` (the register's ONE frontmatter reader against
+  `tests/version-matrix/work-frontmatter-cases.json`). ⛔ The checks that enforce the register against the
+  inventory are audits, so a `kb/`-only change runs them (the inert lane, DESIGN-test-build-ci.md §3.18): **coverage**
+  (every defective-verdict row is claimed by a LIVE note's `inventory_rows`) and the **back-link**
   (every LANDED `kind: defect` note names the rows its fix CLOSED in `closes_rows`, or says why it closed none;
   and every row so named is one the inventory still counts as OK — its computed `state`, which is what the
   burn-down reports). `python scripts/spec/backfill_closes_rows.py`
