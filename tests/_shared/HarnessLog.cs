@@ -29,8 +29,10 @@ internal static class HarnessLog
         Record(line);
     }
 
-    /// <summary>How long one append waits, in all, for another writer to let go of the log.</summary>
-    private static readonly TimeSpan AppendPatience = TimeSpan.FromSeconds(5);
+    /// <summary>How many times one append tries before it reports the line lost. The pauses between tries double from 5 ms
+    /// to 100 ms, so another writer's hold is waited for about five seconds in all: a count of tries, never a clock
+    /// reading (kb/Work PB1590).</summary>
+    private const int AppendAttempts = 60;
 
     /// <summary>Serializes this host's appends: xUnit runs test classes in parallel, and each append holds the file
     /// alone.</summary>
@@ -38,7 +40,7 @@ internal static class HarnessLog
 
     /// <summary>Append one line, and LOSE NONE (kb/Work PB3194): a test reads it back (<c>ScratchDirectoryTests</c>) and a
     /// reader counts it. This host's appends take turns under <see cref="Appending"/>; another process holding the file
-    /// (a second test host, a reader) is waited for, up to <see cref="AppendPatience"/>. It never throws, since an
+    /// (a second test host, a reader) is waited for, up to <see cref="AppendAttempts"/> tries. It never throws, since an
     /// instrument must not fail the test it watches: a line it still cannot write goes to standard error, marked lost,
     /// never into silence.</summary>
     public static void Record(string line)
@@ -47,8 +49,7 @@ internal static class HarnessLog
         Exception? last = null;
         lock (Appending)
         {
-            var waited = System.Diagnostics.Stopwatch.StartNew();
-            for (int attempt = 0; ; attempt++)
+            for (int attempt = 1; ; attempt++)
             {
                 try
                 {
@@ -63,8 +64,8 @@ internal static class HarnessLog
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException)
                 {
                     last = e;
-                    if (waited.Elapsed >= AppendPatience) break;
-                    Thread.Sleep(Math.Min(5 << Math.Min(attempt, 5), 100));
+                    if (attempt == AppendAttempts) break;
+                    Thread.Sleep(Math.Min(5 << Math.Min(attempt - 1, 5), 100));
                 }
             }
         }
