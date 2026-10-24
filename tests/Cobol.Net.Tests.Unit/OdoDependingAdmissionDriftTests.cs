@@ -33,6 +33,7 @@ namespace CobolNet.Tests.Unit;
 /// <para>The conformance witnesses are <c>conformance-suite/cases/13.18.38-OCCURS/pb3510-depending-on-*</c> (refused)
 /// and <c>pb3510_depending_counters_admitted</c> (accepted, GR8 slices by an admitted counter).</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class OdoDependingAdmissionDriftTests
 {
     private static string CompilerSrc(params string[] parts) =>
@@ -41,7 +42,6 @@ public sealed class OdoDependingAdmissionDriftTests
     /// <summary>Every assignment to an <c>OccursSpec.Depending</c>, member form or object initializer, is one of the two
     /// known writers, and the binder's is guarded by the SR17/SR2/SR20 admission.</summary>
     [Fact]
-    [Trait("Sweep", "tree")]
     public void OccursSpecDepending_IsWrittenOnlyByTheAdmissionAndTheExtentFreeze()
     {
         var writers = new List<(string File, string Line)>();
