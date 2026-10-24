@@ -21,7 +21,8 @@ who acts next:
                    `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
                    Nobody touches it.
                    A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
-                   FOR REVIEW) whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED (a
+                   FOR REVIEW) whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED, or whose
+                   own review ended FINDINGS (finisher_due: the planner plans its finisher, kb/Work PB3267) (a
                    branch a review finisher merged, an unfinished or unreviewed predecessor; contained()) is IN FLIGHT
                    too: an unreviewed checkpoint never lands alone, it lands through that branch (its row names it,
                    `carrier`), and reads LANDED once it has. A branch reviewed CLEAN at its tip keeps its own
@@ -54,7 +55,7 @@ who acts next:
                    lists them in that order, kb/Work PB2981's ranking). (A stamp that says FINDINGS and covers the tip is
                    a DECISION row: the next wave's finisher answers them, plan_wave.py.)
   STOPPED          coverages 1 and 2 hold and the lane's attempt at this tip STOPPED (land_lane's class: a conflict 4, a
-                   red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, a repeated exit 2 or 9, a runner that DIED twice): the
+                   red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, UNTESTED 14, a repeated exit 2 or 9, a runner that DIED twice): the
                    lane never relaunches it at this head; the enqueue unit sends it to its finisher (or reviewer), whose
                    new tip is reviewed and landed, or re-arms a stop resolved with no commit. The evidence names the
                    attempt and land_lane.ACTION's owner. A branch it contains with no clean stamp at its tip lands
@@ -636,6 +637,23 @@ def landing_state(row: Row, rep: Report, rv: Review, lane: Lane | None, observed
     return 'WAITING TO LAND', f'{clean}; {tried}: {land_lane.ACTION[cls]}'
 
 
+def stamp_held(row: Row) -> bool:
+    """The row's review stamp covers its tip (stamp_covers, measured by survey(): the stamp names the tip, or it holds
+    there)."""
+    rv = row.report.review if row.report else None
+    return bool(rv) and (rv.covers(row.tip) or row.review_holds)
+
+
+def finisher_due(row: Row) -> bool:
+    """A finished branch, not on main, whose branch review stamped FINDINGS at its tip: the planner owns its finisher
+    (plan_wave.plan's FINDINGS arm, the same stamp_covers test), so the branch lands once that finisher has answered
+    the findings, and everything it contains lands with it (contained(), kb/Work PB3267). Its row is a DECISION:
+    nothing else decides it."""
+    rep = row.report
+    return bool(row.state == 'DECISION' and row.content not in LANDED_CONTENT and rep and rep.finished
+                and rep.review and rep.review.verdict == 'FINDINGS' and stamp_held(row))
+
+
 def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours: float = 24,
               live: Callable[[str | None], bool] = live_lock,
               prs: dict[str, PullRequest] | None = None, lane: Lane | None = None,
@@ -712,7 +730,7 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
             return ('IN FLIGHT', touched) if fresh else ('DECISION', f'{rep.name}: {rep.status}, but {uncovered}; '
                                                          + evidence(row))
         rv = rep.review
-        covered = bool(rv) and (rv.covers(row.tip) or row.review_holds)   # stamp_covers, measured by survey()
+        covered = stamp_held(row)
         if covered and rv.verdict == 'CLEAN':
             return landing_state(row, rep, rv, lane, observed=prs is not None, pr=pr)
         if covered and rv.verdict == 'FINDINGS':
@@ -913,7 +931,8 @@ CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
 def contained(rows: list[Row], graph: Ancestry) -> None:
     """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
     tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
-    (CARRIER_STATES), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
+    (CARRIER_STATES) or whose review ended FINDINGS (finisher_due: the planner owns its finisher, and everything it
+    contains lands with that branch, kb/Work PB3267), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
     FINDINGS-stamped one, or a finished report WAITING FOR REVIEW), so it cannot land by itself: an unreviewed checkpoint
     never lands alone (kb/Work PB3381 section G). That is a branch a review finisher merged (kb/Work PB3027: the wave's
     finisher rewrites the report for its own branch; a later wave's finisher writes a new report and leaves the
@@ -926,7 +945,7 @@ def contained(rows: list[Row], graph: Ancestry) -> None:
     its successor's pull request merging on top, where until then it read IN FLIGHT and waited for its successor (the
     train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
     the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
-    carriers = [c for c in rows if c.report and c.tip and c.state in CARRIER_STATES]
+    carriers = [c for c in rows if c.report and c.tip and (c.state in CARRIER_STATES or finisher_due(c))]
     candidates = []
     for r in rows:
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
@@ -1320,14 +1339,20 @@ def self_test() -> int:
         scratch.git('branch', 'rpred-fix', 'rpred')
         scratch.git('switch', '-q', '-c', 'rsucc', 'rpred')
         commit('src/RS.cs', 'class RsuccX {}\n', 'rsucc')
+        # kb/Work PB3267: a FINDINGS-stamped branch is a CARRIER (the planner owns its finisher), whatever its
+        # predecessors' own report: `gpred` (no report) lands with `gsucc` (FINDINGS at its tip, DECISION), and a
+        # FINDINGS predecessor `hpred` lands with `hsucc`, a plain successor not yet reviewed (WAITING FOR REVIEW)
+        for b in ('gpred', 'hpred'):
+            scratch.git('switch', '-q', '-c', b, 'main')
+            commit(f'src/{b.title()}.cs', f'class {b.title()}X {{}}\n', b)
         for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs'),
-                           ('tsucc', 'tpred', 'src/TS.cs')):
+                           ('tsucc', 'tpred', 'src/TS.cs'), ('gsucc', 'gpred', 'src/GS.cs'), ('hsucc', 'hpred', 'src/HS.cs')):
             scratch.git('switch', '-q', '-c', b, base)
             commit(f, f'class {b.title()}X {{}}\n', b)
         tips = {b: scratch.git('rev-parse', b) for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
                                                                 'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
                                                                 'xpred', 'xsucc', 'upred', 'usucc', 'pred', 'rpred',
-                                                                'rsucc', 'tpred', 'tsucc', 'findings-moved')}
+                                                                'rsucc', 'tpred', 'tsucc', 'gsucc', 'hpred', 'hsucc', 'findings-moved')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
         scratch.git('switch', '-q', '-c', 'modified-only', 'main')
@@ -1478,6 +1503,13 @@ def self_test() -> int:
                                           f'**Review:** FINDINGS 1 w9993a-r3 {tips["tpred"]} {at_scratch("w9993/review-w9993-a.jsonl")}\n', 10),
                 ('w9993b-PB43-report.md', f'Status: DONE\nBranch: tsucc\nHEAD: {tips["tsucc"]}\n'
                                           f'**Review:** CLEAN w9993b-r1 {tips["tsucc"]}\n', 10),
+                # kb/Work PB3267: gsucc ended FINDINGS (a finisher is due) and carries gpred, which has no report;
+                # hpred ended FINDINGS and hsucc, which merged it, is finished and not reviewed yet
+                ('w9991a-PB44-report.md', f'Status: DONE\nBranch: gsucc\nHEAD: {tips["gsucc"]}\n'
+                                          f'**Review:** FINDINGS 1 w9991a-r1 {tips["gsucc"]} E:/s/review-w9991-a.jsonl\n', 10),
+                ('w9991b-PB45-report.md', f'Status: DONE\nBranch: hpred\nHEAD: {tips["hpred"]}\n'
+                                          f'**Review:** FINDINGS 1 w9991b-r1 {tips["hpred"]} E:/s/review-w9991-b.jsonl\n', 10),
+                ('w9991c-PB46-report.md', f'Status: DONE\nBranch: hsucc\nHEAD: {tips["hsucc"]}\n', 10),
                 # kb/Work PB3181, PB3125: the report, the review and the landing lane's attempt at the tip
                 ('w9998r-PB18-report.md', f'Status: DONE\nBranch: lane-stopped · head {lane_at["lane-stopped"][:12]}\n'
                                           f'**Review:** CLEAN w9998r-r1 {lane_at["lane-stopped"]}\n', 10),
@@ -1571,6 +1603,7 @@ def self_test() -> int:
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
                 'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
                 'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT',
+                'gpred': 'IN FLIGHT', 'gsucc': 'DECISION', 'hpred': 'IN FLIGHT', 'hsucc': 'WAITING FOR REVIEW',
                 'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION'}
         for name, state in want.items():
             got = rows.get(name)
@@ -1632,7 +1665,7 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
         # kb/Work PB3381: no hold. A predecessor reviewed CLEAN keeps its own lifecycle inside an unreviewed successor;
         # a successor carrying another note's unanswered FINDINGS waits on that branch; a finisher of the SAME note
@@ -1656,6 +1689,16 @@ def self_test() -> int:
                'review_findings.py repair ' in rows['tsucc'].why) == ('IN FLIGHT', 'tpred', True, True, True),
               f'a successor whose predecessor\'s findings file is torn is held, the tear named: '
               f'{rows["tsucc"].state} {rows["tsucc"].why}')
+        # kb/Work PB3267, both directions of one rule: a branch whose review ended FINDINGS is a carrier, because the
+        # planner owns its finisher. A predecessor with no report of its own lands with it (gpred: IN FLIGHT, carried,
+        # never a DECISION row for the operator to decide by hand) and the FINDINGS branch itself stays the DECISION
+        # row its finisher answers; a FINDINGS predecessor inside a plain, unreviewed successor (hpred) is carried by
+        # it, is not owned, and so keeps its finisher (plan_wave's FINDINGS arm), while hsucc keeps reading its review
+        check((rows['gpred'].carrier, 'contained in gsucc (DECISION)' in rows['gpred'].why, rows['gsucc'].carrier)
+              == ('gsucc', True, ''),
+              f'a predecessor of a FINDINGS-stamped branch lands through it: {rows["gpred"].why}')
+        check((rows['hpred'].carrier, rows['hsucc'].carrier) == ('hsucc', ''),
+              f'a FINDINGS predecessor inside an unreviewed successor is carried by it: {rows["hpred"].why}')
         # review R5-1, THE PROPERTY at representative cuts (review_findings.py --self-test proves it at every byte):
         # the survey's own reader (unanswered over findings_files) and carrying_findings, re-run on tsucc for each body
         # of tpred's findings file. Expected results from the rule: a cut inside a record holds tsucc; among them the
@@ -1905,7 +1948,7 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 52 · 13 in flight · 4 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 56 · 15 in flight · 5 waiting for review · '
                                                       '9 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
