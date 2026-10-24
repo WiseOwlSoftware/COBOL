@@ -100,6 +100,16 @@ public sealed class BoundaryItemLandingTests
         Assert.Equal(CobolDec.From(1250, 2), new MoveSending("1250", Numeric: true, Unscaled: 1250, Scale: 2).ExactValue);
         // A fixed-point sender is NOT read through binary64: 0.3 stays 3 x 10^-1, not 0.29999999999999998 (kb/Work PB1606).
         Assert.Equal(CobolDec.From(3, 1), new MoveSending("0.3", Numeric: true, Unscaled: 3, Scale: 1).ExactValue);
+        // A binary64 is a floating-point DATA ITEM's exact binary value, unless the activating element states it an engine
+        // APPROXIMATION (a function's value), whose value is its shortest round-trip decimal: 0.3 (review round 2, finding R2-1).
+        Assert.Equal(CobolDec.FromBinary64ToOdd(0.3), new MoveSending("0.3", Numeric: true, Real: 0.3).ExactValue);
+        Assert.Equal(CobolDec.From(3, 1), new MoveSending("0.3", Numeric: true, Real: 0.3, Approximate: true).ExactValue);
+        Assert.NotEqual(CobolDec.From(3, 1), new MoveSending("0.3", Numeric: true, Real: 0.3).ExactValue);
+        // The evaluated cell is read as an approximation only where the activating element says so.
+        var cell = new CobolArg(CobolPassMode.Content, ManagedPointer<double>.Cell(0.3), null);
+        Assert.False(Assert.IsType<MoveSending>(CobolArgAdapt.WithValueSending(cell).Sending).Approximate);
+        var approx = Assert.IsType<MoveSending>(CobolArgAdapt.WithValueSending(cell, approximate: true).Sending);
+        Assert.Equal(CobolDec.From(3, 1), approx.ExactValue);
     }
 
     [Fact]

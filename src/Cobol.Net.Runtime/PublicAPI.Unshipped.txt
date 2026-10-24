@@ -248,3 +248,11 @@ static CobolNet.Runtime.CobolDec.FromApproximation(double d) -> CobolNet.Runtime
 static CobolNet.Runtime.CobolDec.FromBinary64(double d, CobolNet.Runtime.CobolRounding mode) -> CobolNet.Runtime.CobolDec
 *REMOVED*CobolNet.Runtime.MoveSending.Binary64.get -> double
 CobolNet.Runtime.MoveSending.ExactValue.get -> CobolNet.Runtime.CobolDec
+*REMOVED*CobolNet.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage) -> void
+*REMOVED*CobolNet.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null) -> void
+*REMOVED*static CobolNet.Runtime.CobolArgAdapt.WithValueSending(CobolNet.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> CobolNet.Runtime.CobolArg
+CobolNet.Runtime.MoveSending.Approximate.get -> bool
+CobolNet.Runtime.MoveSending.Approximate.init -> void
+CobolNet.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage, out bool Approximate) -> void
+CobolNet.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false) -> void
+static CobolNet.Runtime.CobolArgAdapt.WithValueSending(CobolNet.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> CobolNet.Runtime.CobolArg

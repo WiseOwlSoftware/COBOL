@@ -59,8 +59,9 @@ public sealed class FloatItemSdidiLiftDriftTests
         var offenders = Callers("Cobol.Net.Compiler", "DecFromApproximation(", "RuntimeApi.cs", "NumericRenderer.cs", "IntrinsicRenderer.cs");
         Assert.True(offenders.Count == 0, "A shortest-round-trip lift is for an implementor-defined approximation only (kb/Work PB1606): "
             + string.Join("; ", offenders));
-        // In the runtime: the non-integer power of the r2e development.
-        var runtime = Callers("Cobol.Net.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs");
+        // In the runtime: the non-integer power of the r2e development, and the sending operand of a CALL's BY CONTENT function
+        // value (MoveSending.ExactValue: its Approximate flag is stated by the activating element, never inferred).
+        var runtime = Callers("Cobol.Net.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs");
         Assert.True(runtime.Count == 0, "CobolDec.FromApproximation lifts a function's or a power's binary64 approximation, never a data item: "
             + string.Join("; ", runtime));
     }
@@ -100,6 +101,11 @@ public sealed class FloatItemSdidiLiftDriftTests
         int exact = api.IndexOf("Emit.NumXCarrier.Binary64 or Emit.NumXCarrier.Sdidi", entry, StringComparison.Ordinal);
         Assert.True(approx > entry && approx < exact,
             "FloatEditEntry must send an Approximate binary64 through DecFromApproximation BEFORE its exact-binary64 arm");
+        // The same approximation crossing a CALL's activation boundary BY CONTENT (review round 2, finding R2-1): the cell is a
+        // bare double, so the activating element states that it is an approximation, and the sending operand reads it so.
+        string call = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "CallEmitter.cs"));
+        Assert.Contains("approximateReal = x.Approximate;", call);
+        Assert.Contains("RuntimeApi.ArgWithValueSending(built, OperandText.StorageImageConverter(computed), approximateReal)", call);
     }
 
     [Fact]
