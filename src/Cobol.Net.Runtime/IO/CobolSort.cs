@@ -158,7 +158,7 @@ public static class CobolSort
     /// "all statements that are executed as the result of a transfer of control in the range" and "all statements in
     /// declarative procedures that are executed as a result of the execution of statements in the range"). The whole
     /// range ends with the statement, so the activations it entered end too (their boundaries unwind:
-    /// <c>ProgramTable.CallProgram</c>, the method activation's <c>finally</c>).
+    /// <c>ProgramTable.Activate</c>, the method activation's <c>finally</c>).
     /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3, kb/Work PB1177): the landing carries the action only for the
     /// SORT's OWN declaratives (the registered scope). Another element's RESUME AT procedure-name names a procedure of an
     /// activation the termination has ended, so it lands as <see cref="DispatchResult.NotNormal"/>, at the statement's
@@ -186,8 +186,9 @@ public static class CobolSort
         return false;
     }
 
-    /// <summary>The INVOKE site's §14.9.40.4 GR17 question once the method's return has completed and §14.9.23.4 GR8 has placed its result — see
-    /// <c>SortFileTable.AfterActivationReturn</c> (kb/Work PB1177); <c>ProgramTable.CallProgram</c> asks it for a CALL.</summary>
+    /// <summary>The activating site's §14.9.40.4 GR17 question once the return has completed, §14.9.23.4 GR8 has placed
+    /// the result and the propagation pickup has run - see <c>SortFileTable.AfterActivationReturn</c> (kb/Work PB1177,
+    /// PB3246); a CALL, an INVOKE and the host boundary all ask it.</summary>
     public static void AfterActivationReturn() => Stores.AfterActivationReturn();
 
     /// <summary>The RELEASE STATEMENT (ISO §14.9.32.4). GR1: "A RELEASE statement may be executed only when it is
