@@ -36,8 +36,10 @@
 # touches only paths no test reads (scripts/inert_lane.py classify, THE one classification: CI's `changes` job and the
 # Windows gate use it too) runs no leg: `=== LINUX GATE: GREEN (inert lane, …) ===`. Every other run watches every inert
 # path with inotify while the test legs run (`inert_lane.py watch`), so a test that starts reading one is a RED here
-# (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The `selftests` leg runs in a
-# clone of its own, so the self-tests' reads (audits, which read inert paths by design) never reach the watch.
+# (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The watched clone runs the
+# three `dotnet test` legs and nothing else: the self-tests (audits, which read inert paths by design: the register, the
+# DEVLOG, the skills submodule they initialize) and the guard run in a second clone with its own build, so no read of
+# theirs reaches the watch.
 #
 # Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
 # non-observations, copied in as the gate ends) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
@@ -529,8 +531,8 @@ guard_leg() {
   # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
   # `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
   # every local leg. Its scratch is private to this clone (guard-fast.sh's own mktemp directory and every
-  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). Its own `dotnet build` of
-  # the CLI is up to date after the ONE build (a second build of the tree is a no-op, kb/Work PB3529).
+  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). It runs in the AUDIT clone
+  # (kb/Work PB2878), whose build its own `dotnet build` of the CLI finds up to date (kb/Work PB3529).
   # ⛔ The scratch lies BESIDE the clone, never inside it (kb/Work PB2989): `selftests-built` runs at the same time and
   # keys its inputs by every untracked file of the clone (scripts/self_test_inputs.py), so a guard temp file listed by
   # `git ls-files -o` and deleted before `git hash-object` read it made that leg NOT RUN (train 1056b, 2026-10-11).
@@ -539,7 +541,7 @@ guard_leg() {
   local start rc secs summary
   start=$(date +%s)
   mkdir -p "$gtmp"
-  ( cd "$snap" && TMPDIR="$gtmp" GUARD_FORENSICS="$out/guard-forensics" "${nice_prefix[@]}" bash scripts/guard-fast.sh ) \
+  ( cd "$auditsnap" && TMPDIR="$gtmp" GUARD_FORENSICS="$out/guard-forensics" "${nice_prefix[@]}" bash scripts/guard-fast.sh ) \
     > "$out/guard.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))
@@ -583,25 +585,54 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   fi
 }
 
-# The script self-tests are AUDITS and read inert paths by design (the work register, the DEVLOG), so `selftests` runs in
-# a clone of its own, outside the inert watch below (kb/Work PB2878); `selftests-built` reads this clone's build.
-selfsnap="$snap.selftests"
-rm -rf "$selfsnap"
+# THE AUDIT CLONE (kb/Work PB2878): the script self-tests are AUDITS that read inert paths by design, and the guard is
+# no `dotnet test` leg, so they run in a clone of their own, with its own build, outside the inert watch of the test
+# legs below. `selftests` starts at once; the clone's build then starts `selftests-built` (it reads the unit and
+# conformance assemblies) and the guard. Every one writes its leg's .status and .result like any leg.
+auditsnap="$snap.audits"
+rm -rf "$auditsnap"
 order=(selftests)
-if git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$selfsnap" >> "$out/clone.log" 2>&1 \
-   && git -C "$selfsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
-  selftests_leg selftests "$selfsnap" > "$out/selftests.result" 2>&1 &
+audit_built_legs() {  # the audit clone's build, then the legs that need it
+  local abrc
+  ( cd "$auditsnap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build-audits.log" 2>&1
+  abrc=$?
+  if [[ " ${wanted[*]} " == *" guard "* ]]; then
+    if [ $abrc -eq 0 ]; then guard_leg > "$out/guard.result" 2>&1 &
+    else leg_status guard RED; echo "leg guard: RED — the audit clone's build failed (rc=$abrc; TestResults/linux-gate/build-audits.log)" > "$out/guard.result"; fi
+  fi
+  case ",$legs," in
+    *,unit,*conformance,*|*,conformance,*unit,*)
+      if [ $abrc -eq 0 ]; then
+        selftests_leg selftests-built "$auditsnap" --built > "$out/selftests-built.result" 2>&1 &
+      else
+        leg_status selftests-built RED
+        echo "leg selftests-built: RED — the audit clone's build failed (rc=$abrc; TestResults/linux-gate/build-audits.log)" > "$out/selftests-built.result"
+      fi ;;
+    *)
+      # Not run because the legs asked for build neither unit nor conformance: said, never silent.
+      leg_status selftests-built "NOT RUN"
+      echo "leg selftests-built: NOT RUN (it reads the unit and conformance assemblies, and --legs '$legs' asks for" \
+           "neither of them)" > "$out/selftests-built.result" ;;
+  esac
+  wait
+}
+if git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$auditsnap" >> "$out/clone.log" 2>&1 \
+   && git -C "$auditsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
+  selftests_leg selftests "$auditsnap" > "$out/selftests.result" 2>&1 &
+  audit_built_legs &
 else
-  leg_status selftests RED
-  echo "leg selftests: RED — could not clone HEAD ${head:0:9} into $selfsnap (TestResults/linux-gate/clone.log)" > "$out/selftests.result"
+  for leg in selftests guard selftests-built; do
+    leg_status "$leg" RED
+    echo "leg $leg: RED — could not clone HEAD ${head:0:9} into $auditsnap (TestResults/linux-gate/clone.log)" > "$out/$leg.result"
+  done
 fi
 start=$(date +%s)
 ( cd "$snap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build.log" 2>&1 &
 wait $!   # in the background, so a signal reaches on_signal during the build (bash defers a trap past a foreground command)
 brc=$?
-echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the legs run in parallel against it"
-# THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI while the guard leg's own `dotnet build` of it runs, which
-# is safe only while a second build of the tree is a no-op. A fresh clone's second build once recompiled the frontend
+echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the test legs run in parallel against it"
+# THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI, which is safe only while nothing builds this clone again
+# (the guard's own `dotnet build` of the CLI now runs in the audit clone, kb/Work PB2878). A fresh clone's second build once recompiled the frontend
 # and everything above it (the generated parser joined Compile after the SDK hashed it), replacing the `cobol` apphost
 # while the conformance leg ran it: "No such file or directory", "Text file busy". The fix is the build's own
 # (Cobol.Net.Frontend.csproj, AntlrGenerationDriftTests); this fingerprint of the CLI's output names a recurrence as
@@ -628,29 +659,15 @@ for leg in "${wanted[@]}"; do
     unit)             proj="tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj" ;;
     characterization) proj="tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj" ;;
     conformance)      proj="tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj" ;;
-    guard)            guard_leg > "$out/guard.result" 2>&1 & continue ;;
+    guard)            continue ;;   # the audit clone runs it (audit_built_legs)
   esac
   if [ $brc -ne 0 ]; then
     leg_status "$leg" RED; echo "leg $leg: RED — the Linux BUILD failed (rc=$brc)" > "$out/$leg.result"; continue
   fi
   test_leg "$leg" "$proj" > "$out/$leg.result" 2>&1 &
 done
-# selftests-built reads the unit and conformance assemblies, which the ONE build made; it needs no leg to finish first.
+# selftests-built runs in the audit clone, after that clone's build (audit_built_legs).
 order+=(selftests-built)
-case ",$legs," in
-  *,unit,*conformance,*|*,conformance,*unit,*)
-    if [ $brc -eq 0 ]; then
-      selftests_leg selftests-built "$snap" --built > "$out/selftests-built.result" 2>&1 &
-    else
-      leg_status selftests-built "NOT RUN"
-      echo "leg selftests-built: NOT RUN (the Linux build failed)" > "$out/selftests-built.result"
-    fi ;;
-  *)
-    # Not run because the legs asked for build neither unit nor conformance: said, never silent.
-    leg_status selftests-built "NOT RUN"
-    echo "leg selftests-built: NOT RUN (it reads the unit and conformance assemblies, and --legs '$legs' asks for" \
-         "neither of them)" > "$out/selftests-built.result" ;;
-esac
 # Every leg, never the watcher: it ends only once the stop file exists.
 for job in $(jobs -p); do [ "$job" = "$watch_pid" ] || wait "$job"; done
 if [ -n "$watch_pid" ]; then
@@ -671,7 +688,7 @@ for leg in "${order[@]}"; do
   st="$(cat "$out/$leg.status" 2>/dev/null)"
   case "$st" in
     GREEN) ran="$ran $leg" ;;
-    "NOT RUN") [ $brc -ne 0 ] && bad="$bad $leg" ;;   # only selftests-built is ever NOT RUN (every --legs name was checked)
+    "NOT RUN") ;;   # only selftests-built is ever NOT RUN, when --legs asks for neither assembly it reads (said in its line)
     *) bad="$bad $leg" ;;
   esac
 done

@@ -80,7 +80,7 @@ public sealed class InertLaneDriftTests
         Assert.Contains("scripts/inert_lane.py watch", linuxGate, StringComparison.Ordinal);
         string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
         Assert.Contains("import inert_lane", driver, StringComparison.Ordinal);
-        Assert.Contains("inert_lane.classify(", driver, StringComparison.Ordinal);
+        Assert.Contains("inert_lane.CLASSIFICATION.classify(", driver, StringComparison.Ordinal);
     }
 
     [Fact]

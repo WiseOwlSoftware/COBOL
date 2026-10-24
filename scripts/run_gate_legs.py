@@ -405,7 +405,7 @@ class Host:
         if not base or not tree:
             return inert_lane.Lane(False, "no base or no measured tree: the full lane")
         try:
-            return inert_lane.classify(inert_lane.changed(self.repo, base, tree))
+            return inert_lane.CLASSIFICATION.classify(inert_lane.changed(self.repo, base, tree))
         except (subprocess.CalledProcessError, OSError) as e:
             return inert_lane.Lane(False, f"the change could not be listed ({e}): the full lane")
 

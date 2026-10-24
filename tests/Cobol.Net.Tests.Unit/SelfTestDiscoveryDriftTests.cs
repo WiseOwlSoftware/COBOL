@@ -183,10 +183,10 @@ public sealed class SelfTestDiscoveryDriftTests
         Assert.DoesNotContain("--reuse", workflow, StringComparison.Ordinal);
         // linux-gate.sh runs its legs in parallel (kb/Work PB2879), so each runner call redirects to its leg's result
         // file and runs in the background; it still calls THE runner, and names no self-test by hand.
-        // Each names the clone it runs in: `selftests` its own, outside the inert watch of the test legs (kb/Work
-        // PB2878), `selftests-built` the one the build made.
-        Assert.Matches(@"(?m)^\s*selftests_leg selftests ""\$selfsnap""( > ""\$out/selftests\.result"" 2>&1 &)?\r?$", linux);
-        Assert.Matches(@"(?m)^\s+selftests_leg selftests-built ""\$snap"" --built( > ""\$out/selftests-built\.result"" 2>&1 &)?\r?$", linux);
+        // Both run in the AUDIT clone, outside the inert watch of the test legs (kb/Work PB2878): the self-tests are
+        // audits, which read inert paths by design.
+        Assert.Matches(@"(?m)^\s*selftests_leg selftests ""\$auditsnap""( > ""\$out/selftests\.result"" 2>&1 &)?\r?$", linux);
+        Assert.Matches(@"(?m)^\s+selftests_leg selftests-built ""\$auditsnap"" --built( > ""\$out/selftests-built\.result"" 2>&1 &)?\r?$", linux);
 
         var steps = Jobs(workflow);
         Assert.Contains("run: python3 scripts/self_tests.py", RunLines(steps["audits"]));
