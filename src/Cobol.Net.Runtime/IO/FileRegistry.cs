@@ -202,6 +202,7 @@ public sealed class FileRegistry
         CloseIfOpen(cobolName);
         Retire(cobolName);   // what a CLOSE under commit control kept stays the COMMIT's and the ROLLBACK's (PB3484)
         _connectorShares.Remove(cobolName);
+        _shareBeforeCommitControl.Remove(cobolName);
     }
 
     /// <summary>A connector is about to leave <see cref="_files"/> (displaced, or dropped with its object) after its CLOSE, or to
@@ -1010,9 +1011,18 @@ public sealed class FileRegistry
     /// was registered as ALL OTHER by the emitter and a RETRY-phrase-only OPEN was registered as ALL OTHER here,
     /// while a clause-less file was not registered at all — three arms of one determination, two of which had
     /// silently answered it (kb/Work PB321). The default is applied at ONE read, <see cref="SharedOpenAttempt"/>,
-    /// where the OPEN statement's mode is known.</para></summary>
-    public static FileSharing ImplementorDefaultSharing(FileOpenMode mode) =>
-        mode == FileOpenMode.Input ? FileSharing.ReadOnly : FileSharing.NoOther;
+    /// where the OPEN statement's mode is known.</para>
+    /// <para>⛔ THE DEFAULT IS A FUNCTION OF THE EDITION TOO (kb/Work PB670, the owner's determination of 2026-10-23,
+    /// docs/CONFORMANCE.md DOC-A.1-77): the file sharing facility is a COBOL-2002 module
+    /// (<see cref="DialectBehavior.FileSharingFacility"/>), so for a program compiled for <paramref name="edition"/>
+    /// <c>85</c> the implementor-defined mode §9.1.15 allows to be <i>"a mode completely specified by the
+    /// implementor"</i> is the one that restricts nobody: <see cref="FileSharing.AllOther"/>, whose file lock
+    /// (<see cref="FileLockPosture.OfSharingMode"/>, <see cref="FileShare.ReadWrite"/>) admits every sibling handle of the
+    /// run unit in every open mode. It stands for that mode and nothing more: Table 19 is not asked at that edition
+    /// (<see cref="FileConnector.SharingFacilityInEffect"/>), because its OUTPUT row refuses even an ALL OTHER sibling.</para></summary>
+    public static FileSharing ImplementorDefaultSharing(FileOpenMode mode, int edition) =>
+        !DialectBehaviors.IsActive(DialectBehavior.FileSharingFacility, edition) ? FileSharing.AllOther
+        : mode == FileOpenMode.Input ? FileSharing.ReadOnly : FileSharing.NoOther;
 
     /// <summary>⛔ THE §12.4.5.9.4 GR1 b) 2. IMPLEMENTOR DEFAULT — the record-locking posture of a file
     /// connector whose file control entry writes NEITHER a LOCK MODE clause NOR a SHARING clause and whose OPEN
@@ -1078,8 +1088,32 @@ public sealed class FileRegistry
     {
         if (Require(name) is not KeyedConnector keyed)
             throw MisroutedVerb("APPLY COMMIT (the sequential journal is kb/Work PB3340)", name, Require(name));
+        _shareBeforeCommitControl.TryAdd(name, _connectorShares.TryGetValue(name, out var declared) ? declared : null);
         keyed.CommitControlled = true;
         _connectorShares[name] = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
+    }
+
+    /// <summary>The file control entry's own record-locking posture of each connector put under commit control
+    /// (<see cref="RegisterCommitControl"/>), which <see cref="ReleaseCommitControl"/> puts back; null when the entry
+    /// declared none (<see cref="ImplementorDefaultShare"/>).</summary>
+    private readonly Dictionary<string, ConnectorShare?> _shareBeforeCommitControl = new(CobolNames.Comparer);
+
+    /// <summary>⛔ TAKE A FILE CONNECTOR OUT OF COMMIT CONTROL — the inverse of <see cref="RegisterCommitControl"/>, run when
+    /// the last APPLY COMMIT clause naming it is DEACTIVATED (kb/Work PB3541; <see cref="TransactionControl"/>): §14.9.7.4
+    /// GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT clauses in exited initial programs and canceled
+    /// runtime elements"</i>, and §14.9.36.4 GR6 for the ROLLBACK. From then on the file is no longer "specified in" an
+    /// active clause, so its changes are no longer the next ROLLBACK's (§14.9.36.4 GR3: <i>"All files and data-items
+    /// referenced in active APPLY COMMIT clauses are restored"</i>), §14.6.13.1.3 item 8 no longer applies to it, and
+    /// §9.1.16's implicit AUTOMATIC posture gives way to the file control entry's own. The COMMIT or ROLLBACK that
+    /// deactivates the clause has already ended the file's transaction and given back what its CLOSE kept; a transaction
+    /// whose rollback the medium refused stays owed, found by its open transaction id and not by this flag
+    /// (<see cref="TransactionHolders"/>).</summary>
+    internal void ReleaseCommitControl(string name)
+    {
+        if (_files.TryGetValue(name, out var c) && c is KeyedConnector keyed) keyed.CommitControlled = false;
+        if (!_shareBeforeCommitControl.Remove(name, out var declared)) return;
+        if (declared is { } share) _connectorShares[name] = share;
+        else _connectorShares.Remove(name);
     }
 
     /// <summary>Whether <paramref name="name"/>'s connector is under commit control — "a file subject to an active APPLY
@@ -1384,17 +1418,24 @@ public sealed class FileRegistry
         // clause; with neither, the implementor default, which is a function of THIS open's mode (see
         // ImplementorDefaultSharing) and so is one of the three modes Table 19 prints.
         var posture = ShareOf(name);
-        FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode);
+        FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode, c.Edition);
         var st = _physical.For(c.HostPath);
-        foreach (var (other, existing) in st.Open)
-        {
-            if (CobolNames.Same(other, name)) continue;
-            if (Table19.Conflicts(request: (sharing, mode), existing))
+        // ⛔ THE ARBITRATION BELONGS TO THE FILE SHARING FACILITY, a COBOL-2002 module (kb/Work PB670): a COBOL-85 program
+        // is compiled for a processor on which neither Table 19 nor its '61' exists (ISO §A.4.1: the facility's rules and
+        // I-O status values are optional with it), and the sharing mode its connectors hold is the implementor's own,
+        // which restricts nobody (ImplementorDefaultSharing) — so two connectors open one physical file in any modes and
+        // every OPEN is a normal open. The registration below still records the open, as the close and the physical file's
+        // shared state read it.
+        if (c.SharingFacilityInEffect)
+            foreach (var (other, existing) in st.Open)
             {
-                c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §9.1.13.9 item 1
-                return RetryAttempt.InRunUnit(FileStatusCode.FileSharingConflict);   // held by this run unit
+                if (CobolNames.Same(other, name)) continue;
+                if (Table19.Conflicts(request: (sharing, mode), existing))
+                {
+                    c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §9.1.13.9 item 1
+                    return RetryAttempt.InRunUnit(FileStatusCode.FileSharingConflict);   // held by this run unit
+                }
             }
-        }
         // ⛔ The registration is gated on the STATUS, not on `IsOpen`. A re-OPEN of a connector that is already
         // open is unsuccessful with '41' (§9.1.13.7 item 1) and FileConnector.Open leaves the connector in its
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
@@ -1427,6 +1468,13 @@ public sealed class FileRegistry
         // cross-run-unit region lock (RunUnitFileLock, kb/Work PB833), so the two halves of the file lock cannot
         // disagree about which mode this OPEN is under.
         c.HostSharing = sharing;
+        // ⛔ A SIBLING THAT ARRIVES AFTER A WRITER IS OWED WHAT THE WRITER HAS ALREADY WRITTEN (kb/Work PB670 review R1-1).
+        // At COBOL-85 a connector buffers its records while it is the only one open on the file (FileConnector.
+        // OtherConnectorsMayShare), so the incoming OPEN's connector must find them in the physical file: each connector
+        // already open on it releases its buffer first, ahead of the body that may read, count or truncate the medium.
+        if (!c.SharingFacilityInEffect)
+            foreach (var other in st.Open.Keys)
+                if (!CobolNames.Same(other, name) && _files.TryGetValue(other, out var holder)) holder.ReleaseBufferedRecords();
         string status = c.Open(mode);
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {
