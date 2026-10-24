@@ -517,8 +517,10 @@ public sealed class HandleColumnLockHostDriftTests
         Assert.Equal(RegionLockResult.Held, HandleColumnLockHost.Publish(0, _ => { tries++; return RegionLockResult.Held; }, out none));
         Assert.True(tries > 1);   // an exhausted publication chose another byte each time
         Assert.Equal(-1L, none);
-        Assert.Equal(RegionLockResult.Ok, HandleColumnLockHost.Publish(100, candidate => { tries = (int)candidate; return RegionLockResult.Ok; }, out var at));
-        Assert.Equal(tries, at);
+        long tried = -1;
+        Assert.Equal(RegionLockResult.Ok, HandleColumnLockHost.Publish(100, candidate => { tried = candidate; return RegionLockResult.Ok; }, out var at));
+        Assert.Equal(tried, at);
+        Assert.InRange(at, 100L, 100L + HostRegionLocks.ColumnRangeWidth);
 
         if (!OperatingSystem.IsWindows()) return;   // the rest is Windows byte-range locks
         var (dir, file) = NewFile();
