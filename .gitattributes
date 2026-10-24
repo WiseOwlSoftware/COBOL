@@ -41,3 +41,16 @@ tests/nist/valid-files/** -text
 
 # The repo-local NuGet feed (nuget-feed/README.md, kb/Work PB3504) holds a package, a zip archive: stored as-is.
 nuget-feed/*.nupkg binary
+
+# ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, NOT BY LINE (kb/Work PB3610; scripts/merge_drivers.py, whose
+# DRIVERS registry is the SSOT for this block and whose `--check` holds the two together). Landings conflicted on keyed
+# catalogues two branches had each added an entry to, on the work notes two branches appended to, and on the runtime
+# ABI pin; each conflict cost a finisher cycle to do what a program does exactly. git runs a driver only when both sides
+# changed the file, and only when the merge passes `-c merge.<name>.driver=…`: `enqueue.py land` and
+# `scripts/merge_drivers.py merge <ref>` do (merge_drivers.config_args); a bare `git merge` falls back to a line merge.
+conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object
+conformance-suite/wiseowl/options.json merge=cobol-keyed-object
+tests/version-matrix/traceability-inventory.json merge=cobol-keyed-inventory
+tests/version-matrix/constructs.json merge=cobol-keyed-constructs
+kb/Work/PB*.md merge=cobol-work-note
+src/Cobol.Net.Runtime/RuntimeAbi.pin merge=cobol-abi-pin
