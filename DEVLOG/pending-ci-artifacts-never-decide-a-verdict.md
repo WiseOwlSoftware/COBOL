@@ -31,3 +31,10 @@ checked by PyYAML parsing, GitHub's documented composite keys (`continue-on-erro
 upload action's documented `overwrite` input, and the drift test. Each attempt's condition names `always()`, so a red
 job's status cannot skip the upload inside the composite action. The artifact name reaches the shell steps through
 `env`, never through `${{ }}` in the script.
+
+**Gate.** The first gate (run 000001-20261024T014129Z) was RED on 53 Conformance HARNESS NON-OBSERVATIONS, all one
+fixture: `generate.py --out` (`tests/_shared/SuiteManifest.cs`, one 120 s unit) used 9 s of processor time and was killed
+at 120 s twice on a host 99 to 100 % busy, so every suite test and the partition drift tests that read the suite failed
+before comparing anything; fail-fast then stopped the leg (the IDENTITY MISMATCH). Nothing in this change reaches it.
+The re-gate, run 000002-20261024T020342Z on the same head: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+GREEN` (Conformance 9,984 · Unit 34,448 · Characterization 5 cases), the four `CiArtifactDriftTests` cases Passed.
