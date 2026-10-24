@@ -74,3 +74,13 @@ Conformance 10,112/18,394 · Unit 36,910/38,134 · Characterization 5/36 cases r
 "no overlap" (now a gate), and a silent copy of the Linux results (now loud). Performance: the Linux half adds the clone
 and build (46 s) and the leg (59-77 s) to a gate the implementer already runs, and removes three whole gates (about 4,600 s)
 from a landing. Duplication: the Linux half reuses `Gate._run_leg`, `_check_populations` and `_check_identity`.
+
+**Branch review round 1 (finisher).** R1-1 (blocking): the one gate for a merge that changed a file the branch also
+changes was decided by comparing HEAD after this run's `merge_main` with the head the run started at, so a re-run after
+a run that had made the overlapping merge commit (its gate BUSY, NOT RUN for an environment cause, or the process died)
+started at that merge commit, saw no merge, and queued the pull request with the shared-file merge never tested. Fixed at
+the root: `tested_locally` now returns the head its covering record measured (`Tested.gated`), and `land` reads the
+overlap against that head, so the decision no longer depends on how many runs it took. New self-test arm: a first run
+whose gate is BUSY leaves the merge commit and exits 12; the re-run still runs the one gate and records one. R1-2 (lead):
+the section 7d comment of `test_plan_wave.py` named the landing's Linux gate; it now says the targeted Linux half is in
+the implementer's own gate.
