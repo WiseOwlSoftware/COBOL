@@ -32,16 +32,25 @@ internal sealed class SequentialTransactions(IHostMedium medium, Func<long> next
         hostPath.Length > 0 && _open.TryGetValue(Path.GetFullPath(hostPath), out var open) ? open.Journal : null;
 
     /// <summary>Begin the run unit's transaction on <paramref name="hostPath"/> (<see cref="SequentialJournal.Begin"/>), under the
-    /// entry mutex the caller holds.</summary>
-    internal SequentialJournal Begin(string hostPath, SequentialJournal.StartState start)
+    /// entry mutex the caller holds; <paramref name="ofKeyedFile"/> for a RELATIVE or INDEXED file's creation or capture
+    /// (<see cref="SequentialJournal.OfKeyedFile"/>).</summary>
+    internal SequentialJournal Begin(string hostPath, SequentialJournal.StartState start, bool ofKeyedFile = false)
     {
-        var journal = SequentialJournal.Begin(Medium, hostPath, start);
+        var journal = SequentialJournal.Begin(Medium, hostPath, start, ofKeyedFile);
         _open[journal.HostPath] = (journal, nextOrder());
         return journal;
     }
 
     /// <summary>The transaction on <paramref name="journal"/>'s file is over (committed, or rolled back and retired).</summary>
     internal void End(SequentialJournal journal) => _open.Remove(journal.HostPath);
+
+    /// <summary>Withdraw <paramref name="journal"/>, begun by an OPEN that is unsuccessful with the file not affected
+    /// (<see cref="SequentialJournal.Withdraw"/>); it stays open when the medium refuses the withdrawal.</summary>
+    internal void Withdraw(SequentialJournal journal)
+    {
+        journal.Withdraw();
+        if (journal.Retired) End(journal);
+    }
 
     /// <summary>Every open transaction with its place in the order of the run unit's open files.</summary>
     internal IEnumerable<(SequentialJournal Journal, long Order)> Open => _open.Values;
