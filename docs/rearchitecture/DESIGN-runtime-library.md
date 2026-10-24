@@ -3365,7 +3365,18 @@ two intakes, and which one is not a property of the renderer arm — it is a pro
   where §15.37.4 r3 requires zero. **The body's parameter is `Int128`, and the renderer's intake is the wide
   one** (`IntrinsicRenderer.IntArgWide` / `ArgIntWide` → `AsIntWide`, which has no raise point). Members today:
   BOOLEAN-OF-INTEGER argument-1 (§15.13.3 r1), TEST-DATE-YYYYMMDD and TEST-DAY-YYYYDDD argument-1 (§15.90.3 r1
-  / §15.91.3 r1), FIND-STRING argument-3 (§15.37.3 r3).
+  / §15.91.3 r1), FIND-STRING argument-3 (§15.37.3 r3) and RANDOM's seed (§15.75.3 r2, PB636); the guard pairs a `…Dec` body
+  with the arm of the same name minus the suffix.
+  ⛔ **A TOTAL argument whose value rides the SDIDI takes NO native carrier at all (kb/Work PB637):** ANNUITY's
+  argument-2 (§15.9.3 r3 "a positive integer" — a sign rule). An SDIDI integer holds 34 significant digits at any
+  exponent, so it reaches past `Int128` as well as `long`; the SDIDI arm keeps the position's unbounded SDIDI
+  integer (`DecArg` over `RawArg`) and `AnnuityDec(CobolRounding, CobolDec, CobolDec)` takes it as a `CobolDec`
+  (an `Int128` intake ended the run unit on `ANNUITY(0, 10 ** 40)`, branch review R1-1).
+  `IntrinsicCarrierAgreementDriftTests.IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake` holds that closed set.
+  At rate 0 the equivalent expression is `1 / argument-2` (§15.9.4 r1a), exact for every n; at a positive
+  rate an enormous n leaves `(1 + rate) ** n` outside the decimal128 range, which is the EXPRESSION'S size condition
+  (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2), the same at n = 10^6 and n = 10^20 — never an EC-ARGUMENT-FUNCTION that
+  depends on whether n fits a native integer.
 
 ⚠ **The membership is not a maintained list anywhere.** Declaring the body's carrier IS the claim, and
 `IntrinsicCarrierAgreementDriftTests.EveryTotalIntegerArgument_TakesTheWideIntake` re-derives the pairing by
