@@ -1,4 +1,4 @@
-## PB3584: every script self-test builds its scratch git repositories through one fixture, scripts/scratch_repo.py
+## Entry 2430 — 2026-10-23 19:51 PDT — PB3584: every script self-test builds its scratch git repositories through one fixture, scripts/scratch_repo.py
 
 **What was wrong.** Fifteen script self-tests created their own scratch git repositories and seven carried a git
 helper of their own (devlog.py `sh`, prune_worktrees.py `g`, rendered_views.py `git`, run_gate_legs.py's two,
@@ -47,3 +47,4 @@ caught `subprocess.run(` once (line_endings.py); found by a grep for the doubled
 semgrep verify: no count moved. kb/Work PB3582 is unblocked (its blocker landed).
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 10,351/18,325 · Unit 34,347/35,652 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … run 000002-20261024T003804Z ===`; the four `SelfTestFixtureDriftTests` facts passed in leg 1, and the self-test phase was GREEN (46 ran, 50 reused). The first gate (run 000001) was RED on CITATIONS: the drift test cited the design section as `§3.14.10`, which the code-citation audit reads as an ISO clause; it now says "section 3.14.10".
+
