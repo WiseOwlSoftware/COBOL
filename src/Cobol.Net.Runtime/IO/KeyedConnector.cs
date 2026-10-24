@@ -587,7 +587,7 @@ public abstract class KeyedConnector : FileConnector
             if (CloseKeepsLocks)
             {
                 _kept = new KeptFile(new KeptHandle(_store!, _handle!, _regions!, _store!.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, HostShare),
-                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, AttachedStore, SharedStores,
+                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, LockOwner, AttachedStore, SharedStores,
                     Restoring);
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
