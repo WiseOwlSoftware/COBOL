@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using CobolNet.Binding;
@@ -37,18 +38,50 @@ namespace CobolNet.Tests.Unit;
 ///     adapters (<c>FormalCrossing</c>, <c>FormalCarrierType</c>), the registered formals and RETURNING item
 ///     (<c>RegisteredFormal</c> / <c>RegisteredReturning</c>) and every profile and group atom array they name.</item>
 /// </list>
-/// When a hash moves: decide whether the boundary really changed. If it did, raise the number that guards it (a
-/// compiler-side crossing change → <see cref="RuntimeAbi.CallAbi"/>; a surface removal or a codec change → the major),
-/// then re-pin the hash printed in the failure. If the change is a pure rename with no effect on what crosses (a
-/// temporary's name), re-pin alone and say why in the commit.
+/// ⛔ The pin is a FILE nobody edits, <c>src/Cobol.Net.Runtime/RuntimeAbi.pin</c> (kb/Work PB3610): this class MEASURES the
+/// four numbers and writes them when <c>COBOLNET_WRITE_ABI_PIN=1</c> (as <c>COBOLNET_WRITE_DIAGNOSTICS_DOC=1</c> writes the
+/// diagnostics doc), driven by <c>scripts/abi_pin.py</c>. When a hash moves: decide whether the boundary really changed. If
+/// it did, <c>python scripts/abi_pin.py bump --runtime-major</c> (a surface removal or a codec change) or
+/// <c>bump --call-abi</c> (a compiler-side crossing change) raises the number in <c>Directory.Build.props</c> or
+/// <see cref="RuntimeAbi.CallAbi"/> and has this class write the hashes. If the change is a pure rename with no effect on
+/// what crosses (a temporary's name), <c>python scripts/abi_pin.py repin</c> alone, and say why in the commit. Two branches
+/// that each changed the pin no longer conflict: the merge driver (scripts/merge_drivers.py) adds their counters and marks
+/// the hashes UNMEASURED, and the merge measures the merged tree before it makes the merge commit.
 /// </summary>
 public sealed class RuntimeAbiPinDriftTests
 {
-    // ── The pins. Change a hash only with the decision the class summary describes. ──
-    private const int PinnedMajor = 18;
-    private const string PinnedRuntimeHash = "681D9891A9A51E45";
-    private const int PinnedCallAbi = 2;
-    private const string PinnedBoundaryHash = "82F4263ED6B4BC0A";
+    /// <summary>The environment variable that makes the pin facts WRITE the measurement into the pin file instead of
+    /// comparing with it (scripts/abi_pin.py sets it).</summary>
+    private const string WriteVariable = "COBOLNET_WRITE_ABI_PIN";
+
+    private static readonly Lazy<string> RuntimeHash = new(() => Hash(RuntimeHalf()));
+    private static readonly Lazy<string> BoundaryHash = new(() => Hash(BoundaryHalf()));
+
+    private static string PinPath => TestRepo.Src("Cobol.Net.Runtime", "RuntimeAbi.pin");
+
+    private static bool IsValueLine(string line) => line.Length > 0 && line[0] != '#';
+
+    /// <summary>The pin file's value lines (<c>key value</c>), by key.</summary>
+    private static Dictionary<string, string> ReadPin() =>
+        File.ReadAllLines(PinPath).Where(IsValueLine).Select(l => l.Split(' ', 2)).ToDictionary(p => p[0], p => p[1], StringComparer.Ordinal);
+
+    /// <summary>Writes the measurement into the pin file's value lines (its header and order are the file's own) when
+    /// <see cref="WriteVariable"/> is set; true when it did, and the fact then compares nothing.</summary>
+    private static bool WriteWhenAsked()
+    {
+        if (Environment.GetEnvironmentVariable(WriteVariable) != "1")
+            return false;
+        var values = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["runtime-major"] = RuntimeAbi.Version.Major.ToString(CultureInfo.InvariantCulture),
+            ["runtime-hash"] = RuntimeHash.Value,
+            ["call-abi"] = RuntimeAbi.CallAbi.ToString(CultureInfo.InvariantCulture),
+            ["boundary-hash"] = BoundaryHash.Value,
+        };
+        var lines = File.ReadAllLines(PinPath).Select(l => IsValueLine(l) && values.TryGetValue(l.Split(' ')[0], out var v) ? $"{l.Split(' ')[0]} {v}" : l);
+        File.WriteAllText(PinPath, string.Join('\n', lines) + "\n");
+        return true;
+    }
 
     /// <summary>The boundary-layout fixture: every elementary category and byte form a Format 1 CALL passes BY
     /// REFERENCE and BY CONTENT, a group and a table, and a RETURNING item, with EC-PROGRAM-ARG-MISMATCH checking on
@@ -129,23 +162,29 @@ public sealed class RuntimeAbiPinDriftTests
     [Fact]
     public void TheRuntimeMajor_IsPinnedBesideTheShippedSurfaceAndTheCodecImages()
     {
-        string hash = Hash(RuntimeHalf());
-        Assert.True(RuntimeAbi.Version.Major == PinnedMajor && hash == PinnedRuntimeHash,
-            $"the runtime's major is {RuntimeAbi.Version.Major} (pinned {PinnedMajor}) and its shipped surface and codec "
-            + $"images hash to {hash} (pinned {PinnedRuntimeHash}). A removed or changed public member, or a codec that lays "
-            + "a value out differently, is an incompatible change: raise the major in Directory.Build.props <Version>, then "
-            + "pin both here (RuntimeAbiPinDriftTests summary; DESIGN-external-repository §15.4).");
+        if (WriteWhenAsked())
+            return;
+        var pin = ReadPin();
+        string hash = RuntimeHash.Value;
+        Assert.True(RuntimeAbi.Version.Major.ToString(CultureInfo.InvariantCulture) == pin["runtime-major"] && hash == pin["runtime-hash"],
+            $"the runtime's major is {RuntimeAbi.Version.Major} (pinned {pin["runtime-major"]}) and its shipped surface and codec "
+            + $"images hash to {hash} (pinned {pin["runtime-hash"]}). A removed or changed public member, or a codec that lays "
+            + "a value out differently, is an incompatible change: `python scripts/abi_pin.py bump --runtime-major`; a pure "
+            + "rename: `python scripts/abi_pin.py repin` (RuntimeAbiPinDriftTests summary; DESIGN-external-repository §15.4).");
     }
 
     [Fact]
     public void TheCallAbi_IsPinnedBesideTheBoundaryLayout()
     {
-        string hash = Hash(BoundaryHalf());
-        Assert.True(RuntimeAbi.CallAbi == PinnedCallAbi && hash == PinnedBoundaryHash,
-            $"the call ABI is {RuntimeAbi.CallAbi} (pinned {PinnedCallAbi}) and the boundary-layout fixture's compiler-side "
-            + $"decisions hash to {hash} (pinned {PinnedBoundaryHash}). A changed crossing arm, carrier type, registered "
-            + "profile or width makes a new caller and an old callee disagree: raise RuntimeAbi.CallAbi, then pin both here "
-            + "(RuntimeAbiPinDriftTests summary; DESIGN-external-repository §15.4).");
+        if (WriteWhenAsked())
+            return;
+        var pin = ReadPin();
+        string hash = BoundaryHash.Value;
+        Assert.True(RuntimeAbi.CallAbi.ToString(CultureInfo.InvariantCulture) == pin["call-abi"] && hash == pin["boundary-hash"],
+            $"the call ABI is {RuntimeAbi.CallAbi} (pinned {pin["call-abi"]}) and the boundary-layout fixture's compiler-side "
+            + $"decisions hash to {hash} (pinned {pin["boundary-hash"]}). A changed crossing arm, carrier type, registered "
+            + "profile or width makes a new caller and an old callee disagree: `python scripts/abi_pin.py bump --call-abi`; a "
+            + "pure rename: `python scripts/abi_pin.py repin` (RuntimeAbiPinDriftTests summary; DESIGN-external-repository §15.4).");
     }
 
     [Fact]
