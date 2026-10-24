@@ -2937,9 +2937,9 @@ static CobolNet.Runtime.CobolString.ThruMemberFig(string? read, string? lo, stri
 static CobolNet.Runtime.CobolString.ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ') -> bool
 static CobolNet.Runtime.CobolString.Window(string? s, int leftmost, int length) -> string!
 static CobolNet.Runtime.CobolString.WindowInto(string? dst, int leftmost, int length, string? slice, char pad = ' ') -> string!
-static CobolNet.Runtime.CobolStringOps.MatchedDelimiterIndex(string![]! delimiters, string! matched) -> int
 static CobolNet.Runtime.CobolStringOps.StringTransfer(string? dest, string? source, string? delimiter, ref long pointer, ref bool overflow) -> string!
-static CobolNet.Runtime.CobolStringOps.UnstringExtract(string? source, string![]! delimiters, bool[]! allFlags, int receiverSize, ref long pointer, out string! field, out string! delimiter) -> int
+static CobolNet.Runtime.CobolStringOps.UnstringExtract(string? source, string![]! delimiters, int receiverSize, ref long pointer, out string! field, out string! delimiter, out int matched) -> int
+static CobolNet.Runtime.CobolStringOps.UnstringSkipRun(string? source, string![]! delimiters, bool[]! allFlags, int matched, ref long pointer) -> void
 static CobolNet.Runtime.CobolTable.AllArgs<T>(System.Func<long[]!, long>![]! counts, System.Func<long[]!, T>! element, System.Func<long[]!, T>? lead = null) -> T[]!
 static CobolNet.Runtime.CobolTable.ArgConcat<T>(params T[]![]! parts) -> T[]!
 static CobolNet.Runtime.CobolTable.At<T>(T[]! table, CobolNet.Runtime.Occurrence occurrence) -> T
