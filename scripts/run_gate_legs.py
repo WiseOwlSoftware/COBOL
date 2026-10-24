@@ -1977,9 +1977,6 @@ def self_test() -> int:
             survived and handed == (1, f"{VERDICT}LEG 1 ONLY (batched gating, PB2515): RED — planted ==="),
             f"survived {survived}; {handed}")
     finally:
-        for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
-            for f in files:
-                os.chmod(os.path.join(dirpath, f), 0o666)
         remove_tree(root)
 
     failed = [n for n, ok, _ in results if not ok]

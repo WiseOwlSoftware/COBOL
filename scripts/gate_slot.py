@@ -67,7 +67,6 @@ import json
 import os
 import platform
 import re
-import stat
 import subprocess
 import sys
 import threading
@@ -1162,9 +1161,6 @@ def self_test() -> int:
         alive.unlink(missing_ok=True)
         for pr in procs:
             pr.kill()
-        for dirpath, _, files in os.walk(root):  # git writes its objects read-only, which rmtree cannot delete on Windows
-            for f in files:
-                os.chmod(os.path.join(dirpath, f), stat.S_IWRITE | stat.S_IREAD)
         remove_tree(root)
 
     if failures:

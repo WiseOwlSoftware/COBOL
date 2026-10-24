@@ -1509,12 +1509,6 @@ def self_test() -> int:
         expect("the tick starts every runner through the one detached launch (scripts/detached.py)",
                tick.__kwdefaults__["start"] is spawn_detached)
     finally:
-        for dirpath, _, files in os.walk(root):  # git writes read-only objects, which rmtree cannot delete on Windows
-            for name in files:
-                try:
-                    os.chmod(os.path.join(dirpath, name), 0o600)
-                except OSError:
-                    pass
         remove_tree(root)
     print(f"=== land_lane.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
