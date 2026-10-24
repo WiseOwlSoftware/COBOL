@@ -38,7 +38,7 @@ cost the orchestrator a hand-written groups.json; this computes it.
    frontier-model hold (item 8), and an unlanded branch whose commit subjects name it (review R2-1).
 3. CLUSTERS from fix_clusters.py --json (the public submodule's view of kb/Work), minus the notes above, ranked by
    inventory rows claimed (the sum of each note's `inventory_rows`), then harm. A finisher on a cluster's primary
-   file absorbs that cluster's notes up to the cap of five.
+   file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
 4. ONE GROUP PER PRIMARY FILE: a later group on the same file is a same-file successor (`after:`, MANDATORY-PRACTICES O2).
 5. MODEL per group from model_rules.json (Opus for design-heavy files and areas, an open design question, or a note
    that already failed twice; Sonnet otherwise; never Fable).

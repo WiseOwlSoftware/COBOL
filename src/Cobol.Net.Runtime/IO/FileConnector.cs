@@ -433,6 +433,17 @@ public abstract class FileConnector
     /// (<see cref="TakeRunUnitFileLock"/>).</summary>
     private bool _runUnitLockWasKept;
 
+    /// <summary>⛔ THE OPEN CONNECTOR'S FILE LOCK WHILE ITS FILE IS NOT THERE (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review
+    /// finding R1-2): a ROLLBACK removes the file a creation since the last COMMIT made (§14.9.36.4 GR3) while this connector
+    /// stays open, so the column the OPEN published is given back for the removal (<see cref="RunUnitFileLock.Suspend"/>: on a
+    /// host that publishes it through a handle on the file, that handle refuses the removal), and published again when the
+    /// connector's next WRITE creates the file again (<see cref="ResumeRunUnitFileLock"/>).</summary>
+    private protected void SuspendRunUnitFileLock() => _runUnitLock?.Suspend();
+
+    /// <summary>Publish again the column <see cref="SuspendRunUnitFileLock"/> gave back, the file being there again; false when the
+    /// host cannot.</summary>
+    private protected bool ResumeRunUnitFileLock() => _runUnitLock?.Resume() ?? true;
+
     /// <summary>The unsuccessful OPEN gives its file lock back (§9.1.15: only a SUCCESSFUL opening establishes one) — or, when
     /// it is the kept lock this OPEN amended, returns it to the organization's kept state as the CLOSE left it
     /// (<see cref="TryRestoreKeptFileLock"/>).</summary>
@@ -980,14 +991,70 @@ public abstract class FileConnector
         finally { LeaveEntry(); }
     }
 
-    /// <summary>The organization's ENTRY STEP at an OPEN in <paramref name="mode"/>, run before the presence probe
-    /// (<see cref="OpenOnce"/>): the failing I-O status, or null to proceed. Only a sequential file has one
-    /// (<c>SequentialConnector</c>, DESIGN-runtime-library.md 2.2.2.8: the transaction journals of its lock directory); a
-    /// statement-long hold it takes (the entry mutex) is given back by <see cref="LeaveEntry"/> when the OPEN ends.</summary>
-    private protected virtual string? EnterPhysicalFile(FileOpenMode mode) => null;
+    // ── Commit control: the run unit's transaction journals (DESIGN-runtime-library.md 2.2.2; kb/Work PB3340, PB3492) ──
 
-    /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not.</summary>
-    private protected virtual void LeaveEntry() { }
+    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§12.4.6.3.4; set by
+    /// <c>FileRegistry.RegisterCommitControl</c>, cleared by <c>ReleaseCommitControl</c>). A keyed connector's WRITE, REWRITE and
+    /// DELETE then keep the record's before-image in the run unit's transaction in the file (2.2.1.10); a sequential connector's
+    /// changes are its run unit's transaction journal (2.2.2); and the verbs that replace or remove the WHOLE physical file of
+    /// either organization — an OPEN OUTPUT of an existing file, a DELETE FILE — and a creation are journaled there too (2.2.2.2,
+    /// 2.2.2.14).</summary>
+    internal bool CommitControlled { get; set; }
+
+    /// <summary>The run unit's transaction journals and host medium (<see cref="FileRegistry"/>'s, given at registration).</summary>
+    internal SequentialTransactions Transactions { get; init; } = SequentialTransactions.Standalone();
+
+    /// <summary>The run unit's host medium (<see cref="IHostMedium"/>): every handle the journal opens is the medium's.</summary>
+    private protected IHostMedium Medium => Transactions.Medium;
+
+    /// <summary>The run unit's open transaction journal on this connector's physical file, while it is under commit control.</summary>
+    private protected SequentialJournal? Journal => CommitControlled ? Transactions.Of(HostPath) : null;
+
+    /// <summary>The entry mutex a covered OPEN holds from its entry step to its end (<see cref="EnterPhysicalFile"/>).</summary>
+    private protected RegionLocks? EntryMutex { get; private set; }
+
+    /// <summary>⛔ THE ENTRY STEP AT EVERY WRITABLE OPEN of a file of ANY organization (DESIGN-runtime-library.md 2.2.2.8, 2.2.2.14),
+    /// run before the presence probe (<see cref="OpenOnce"/>): the lock directory is listed for transaction journals — a live
+    /// transaction's holdings refuse the OPEN ('61' to an OPEN OUTPUT while any lives, to any writable OPEN while a replaced one
+    /// lives) and a dead one is settled (rolled back, or retired) first, so a keyed file a dead run unit captured is restored
+    /// before the store's own dead-owner step reads it. A covered OPEN takes the entry mutex for it and keeps it through its host
+    /// open, creation or capture (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex
+    /// only to settle. An OPEN INPUT runs no step (it has no writable handle to restore the file with, and reads it as it stands).
+    /// A lock directory this process may not list is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient
+    /// authority exists to access the file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to
+    /// cause. Returns the failing I-O status, or null to proceed.</summary>
+    private string? EnterPhysicalFile(FileOpenMode mode)
+    {
+        if (mode is FileOpenMode.Input || HostPath.Length == 0) return null;
+        // A file whose directory is not there has no lock directory beside it: nothing to settle and no one to exclude, and the
+        // OPEN's own creation answers for the directory (§9.1.13.6 1)), after what the CLOSE kept of another file has retired.
+        if (CommitControlled && HostFile.ContainingDirectoryExists(HostPath)) EntryMutex = Transactions.HoldEntryMutex(HostPath);
+        var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, EntryMutex);
+        return holdings.Unlistable ? FileStatusCode.PermissionDenied : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
+    }
+
+    /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not: the entry mutex given back.</summary>
+    private protected virtual void LeaveEntry()
+    {
+        EntryMutex?.Dispose();
+        EntryMutex = null;
+    }
+
+    /// <summary>A DELETE FILE's GR15 question under commit control (<c>FileRegistry.DeleteCovered</c>): is the file held by another
+    /// handle than this connector's own? Asked once the kept handle is given back for the removal (<see cref="GiveBackForRemoval"/>),
+    /// because its own share mode refuses the host's probe; the kept file lock stays held through the question, which the probe
+    /// admits as the connector's own (<see cref="ProbeHeldByAnother"/>).</summary>
+    internal bool HeldByAnotherAtDelete() => ProbeHeldByAnother();
+
+    /// <summary>⛔ A DELETE FILE UNDER COMMIT CONTROL GIVES BACK THE HANDLE ITS CLOSE KEPT BEFORE THE FILE IS REMOVED, AND TAKES IT
+    /// BACK UNLESS THE REMOVAL LANDS (2.2.2.4, 2.2.2.14; kb/Work PB3492, review finding R1-1): a Windows handle not opened for
+    /// deletion blocks the removal, and its share mode the host's probe (<see cref="HeldByAnotherAtDelete"/>). What it gave back is
+    /// the returned <see cref="RemovalGiveBack"/>'s to put back — the handle and, for a keyed file, the transaction's liveness byte
+    /// with it (2.2.1.10), and the Table 19 file lock once suspended — whenever the DELETE FILE does not remove the file: GR15's
+    /// '62', GR14's '05', a refused capture or removal ('30', '37'). An unsuccessful DELETE FILE leaves the file and the transaction
+    /// on it as they were, so its COMMIT promotes the transaction and no other run unit's dead-owner step reads it as a dead
+    /// one's. Null when the connector kept nothing to give back.</summary>
+    internal virtual RemovalGiveBack? GiveBackForRemoval() => null;
 
     /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
     private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)

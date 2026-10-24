@@ -183,6 +183,28 @@ internal sealed class RunUnitFileLock : IDisposable
         return true;
     }
 
+    /// <summary>⛔ GIVE THE PUBLICATION BACK FOR A DELETE FILE'S REMOVAL, KEEPING WHAT THE LOCK WAS ESTABLISHED AS (kb/Work PB3492, review
+    /// finding R1-1): a column a host publishes through a handle on the file (<see cref="HoldsAHandle"/>) refuses the removal, so
+    /// it goes for the removal's instant, and <see cref="Resume"/> publishes it again when the removal does not land (§14.9.10.4,
+    /// an unsuccessful DELETE FILE leaves the file and what holds it as they were). From the removal on the transaction's journal
+    /// holding is the lock (DESIGN-runtime-library.md 2.2.2.14). <see cref="Column"/> is null while suspended.</summary>
+    internal void Suspend()
+    {
+        _hold?.Dispose();
+        _hold = null;
+    }
+
+    /// <summary>Publish again, with no test, the column <see cref="Suspend"/> gave back: the DELETE FILE that suspended it did not
+    /// remove the file, and the transaction's journal holding refused every other opener in between. False (the lock stays given
+    /// back) when the host cannot publish it again.</summary>
+    internal bool Resume()
+    {
+        if (_hold is not null) return true;
+        if (_as.Host.Establish(_as.HostPath, _as.Own, _as.OwesWrites, [], supersedes: null, out var hold) != Outcome.Held) return false;
+        _hold = hold;
+        return true;
+    }
+
     /// <summary>The Table 19 column this lock publishes, or null once it was given back. A file lock a CLOSE under commit control
     /// kept is read through it by the registry, which tells by it a sharing conflict of the run unit's own
     /// (<c>FileRegistry.RunUnitHoldsAgainst</c>).</summary>

@@ -160,6 +160,18 @@ internal sealed class PhysicalFileTable
         st.Identity = id;
     }
 
+    /// <summary>⛔ THE FILE <paramref name="st"/> STOOD FOR IS GONE AND A CONNECTOR STAYS OPEN ON IT: a ROLLBACK removed the keyed file a
+    /// creation since the last COMMIT made (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review finding R1-2). The state stops
+    /// claiming the removed file's identity and is the state of the path <paramref name="host"/> again, so the file that connector's
+    /// next WRITE creates there is learned as this state's (<see cref="For"/>), with the connector open in it and its record
+    /// locks.</summary>
+    public void ForgetFile(State st, string host)
+    {
+        if (st.Identity is { } id && _byIdentity.TryGetValue(id, out var claimant) && ReferenceEquals(claimant, st)) _byIdentity.Remove(id);
+        st.Identity = null;
+        _byHost[host] = st;
+    }
+
     /// <summary>Drop every physical-file state (run-unit start hygiene).</summary>
     public void Clear()
     {

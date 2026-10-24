@@ -126,11 +126,20 @@ internal sealed class SequentialJournal
     private readonly HashSet<long> _imaged = [];
 
     private SequentialJournal(IHostMedium medium, string hostPath, string directory, int id, StartState start,
-        SidecarLockFiles.LockFileHolder holder, FileStream record)
+        SidecarLockFiles.LockFileHolder holder, FileStream record, bool ofKeyedFile)
     {
         (_medium, HostPath, _directory, Id, Start, _holder, _record) = (medium, hostPath, directory, id, start, holder, record);
         Replaced = start == StartState.Absent;
+        OfKeyedFile = ofKeyedFile;
     }
+
+    /// <summary>⛔ Whether the physical file is a RELATIVE or INDEXED file (2.2.2.14; kb/Work PB3492): the journal is then the second
+    /// client's, and records only what the keyed store cannot hold of itself — the creation (START <c>A</c>) and the capture
+    /// (<c>K</c>) of the verbs that replace or remove the whole file. Its owner's COMMIT and ROLLBACK reach the run unit's keyed
+    /// transaction in the file too (<c>FileRegistry.CommitKeyed</c>, <c>RollbackKeyed</c>). In the owner's memory only: a dead
+    /// owner's journal is settled the same way whatever the organization, and the next writable OPEN's dead-owner step rolls back
+    /// the keyed transaction the restored file holds.</summary>
+    internal bool OfKeyedFile { get; }
 
     /// <summary>The physical file's absolute host path.</summary>
     internal string HostPath { get; }
@@ -167,7 +176,7 @@ internal sealed class SequentialJournal
     /// held, the record created, the header written and SYNCED, the lock directory synced — before the first byte of F changes or
     /// F is created. The caller holds the entry mutex and has run <see cref="Enter"/>. A refusal leaves no file behind and
     /// throws: the statement answers '30'.</summary>
-    internal static SequentialJournal Begin(IHostMedium medium, string hostPath, StartState start)
+    internal static SequentialJournal Begin(IHostMedium medium, string hostPath, StartState start, bool ofKeyedFile = false)
     {
         string directory = DirectoryOf(hostPath);
         int id = DrawId(medium, directory);
@@ -194,7 +203,7 @@ internal sealed class SequentialJournal
             holder.Dispose();
             throw;
         }
-        return new SequentialJournal(medium, Path.GetFullPath(hostPath), directory, id, start, holder, record);
+        return new SequentialJournal(medium, Path.GetFullPath(hostPath), directory, id, start, holder, record, ofKeyedFile);
     }
 
     /// <summary>The lowest non-negative id with neither a holder nor a record in <paramref name="directory"/> (2.2.2.4): a dead
@@ -363,8 +372,10 @@ internal sealed class SequentialJournal
     /// (<see cref="Unacknowledged"/>: <c>D O</c> appended and synced, or nothing at all is touched), then the one idempotent
     /// sequence of <see cref="RollBack"/> from what the record says, through <paramref name="data"/>. Returns false when the
     /// medium refused a step: the rollback is OWED, the transaction stays open and its holder held, and the next COMMIT,
-    /// ROLLBACK or termination runs it again before anything else.</summary>
-    internal bool Rollback(IJournalData data)
+    /// ROLLBACK or termination runs it again before anything else. <paramref name="restored"/>, when given, runs once a capture
+    /// has been restored and synced and BEFORE the decision <c>D R</c> (a keyed file's store adopts the restored file and rolls
+    /// back the transaction it holds, 2.2.2.14); it answers false when it is refused, and the rollback is then owed.</summary>
+    internal bool Rollback(IJournalData data, Func<FileStream, bool>? restored = null)
     {
         if (Retired) return true;
         try
@@ -376,7 +387,7 @@ internal sealed class SequentialJournal
                 Unacknowledged = false;
             }
             var contents = ReadRecord(_record!) ?? throw new IOException($"the record of transaction {Id} on '{HostPath}' could not be read back");
-            RollBack(_medium, HostPath, _directory, Id, contents, data, _record!);
+            RollBack(_medium, HostPath, _directory, Id, contents, data, _record!, restored);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
         // Rolled back: the record reads R, so a retirement the medium refuses is completed by the next entry (2.2.2.7 (3)).
@@ -411,6 +422,25 @@ internal sealed class SequentialJournal
     /// <summary>Whether the transaction is over: committed or rolled back and retired.</summary>
     internal bool Retired => _holder is null;
 
+    /// <summary>⛔ WITHDRAW a transaction whose first change did not happen (2.2.2.14; kb/Work PB3492): an OPEN under commit control
+    /// began it for a creation or a capture and is UNSUCCESSFUL with the file not affected (§14.9.27.4 GR25: <i>"If the execution of
+    /// the OPEN statement is unsuccessful, the file is not affected"</i>) — refused before it created the file, a capture refused
+    /// before its <c>K</c> was handed over, or a creation refused and undone. The file is as the journal's start says, so nothing
+    /// is restored: the decision <c>D R</c> is appended and synced and the journal retired. A refusal leaves the journal open for
+    /// the run unit's next COMMIT (which makes the unchanged file permanent) or ROLLBACK (which restores what is already there);
+    /// so does a death, for the next entry.</summary>
+    internal void Withdraw()
+    {
+        if (Retired) return;
+        try
+        {
+            AppendDecision(_record!, Decision.RolledBack);
+            _record!.Flush(flushToDisk: true);
+            Retire();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+    }
+
     /// <summary>⛔ A DEATH, FOR A WITNESS: the holder and the record are closed as the operating environment closes a dead
     /// process's handles — the holder's name is left for the next entry to find dead — and nothing is retired.</summary>
     internal void AbandonAsADeathDoes()
@@ -440,12 +470,13 @@ internal sealed class SequentialJournal
     /// instead left the dead transaction unsettled for good: every later writable OPEN, DELETE FILE and covered first change
     /// of the file answered '30' until an administrator removed the lock directory.</para></summary>
     private static void RollBack(IHostMedium medium, string hostPath, string directory, int id, Contents contents, IJournalData data,
-        FileStream record)
+        FileStream record, Func<FileStream, bool>? restored = null)
     {
         string before = Path.Combine(directory, BeforeName(id));
+        FileStream? restoredThrough = null;
         if (contents.Capture is not null)
         {
-            var f = data.Writable(create: true);
+            var f = restoredThrough = data.Writable(create: true);
             using var copy = medium.OpenTransient(before, FileMode.Open, FileAccess.Read);
             if (copy.Length != contents.CapturedLength)
                 throw new IOException($"the before file of transaction {id} on '{hostPath}' holds {copy.Length} bytes where its capture recorded {contents.CapturedLength}");
@@ -466,6 +497,8 @@ internal sealed class SequentialJournal
             if (contents.CommittedLength is long committed && f.Length >= committed) f.SetLength(committed);
             f.Flush(flushToDisk: true);
             medium.SyncDirectory(FileDirectoryOf(hostPath));
+            if (restoredThrough is not null && restored is not null && !restored(restoredThrough))
+                throw new IOException($"the store of the restored '{hostPath}' could not adopt it (transaction {id})");
         }
         else
         {

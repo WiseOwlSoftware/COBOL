@@ -319,6 +319,56 @@ internal abstract class KeyedStore
         (Transaction, _liveness, Unacknowledged) = (0, null, false);
     }
 
+    /// <summary>⛔ THE RUN UNIT'S TRANSACTION LIVED IN A FILE THAT IS GONE (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492): an
+    /// OPEN OUTPUT or a DELETE FILE under commit control CAPTURED the physical file into the run unit's transaction journal and
+    /// replaced or removed it, so the pages this transaction's UNDO tree lives in are the before file's now, not the file's. A
+    /// COMMIT makes the replacement permanent and has nothing of this transaction to promote; a ROLLBACK restores the before
+    /// file and rolls the transaction back in it as its dead owner's (<see cref="AdoptRestored"/>). Either way the transaction
+    /// ends here: its liveness byte (already gone with the handle given back for the removal, or the creation's) is released.</summary>
+    internal void ForgetTransaction() => EndTransaction();
+
+    /// <summary>⛔ ADOPT THE PHYSICAL FILE A ROLLBACK RESTORED FROM ITS BEFORE FILE (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492):
+    /// the journal wrote the bytes the file held at its capture back through <paramref name="through"/>, so every page this store
+    /// holds in memory describes a file that is gone. The run unit's transaction in it ends (<see cref="ForgetTransaction"/>), the
+    /// store adopts the restored file again (2.2.1.6 R6, through a writable handle), and then the DEAD-OWNER step runs on it
+    /// (<see cref="RollBackDeadOwners"/>): the restored file holds, as it stood at the capture, the run unit's own uncommitted
+    /// changes of before the capture — whose liveness byte went with the handle the capture's verb gave back, so its owner reads
+    /// as dead to <paramref name="prober"/> — and any dead run unit's, and §14.9.36.4 GR3 restores <i>"the state they were in at
+    /// the execution of the last COMMIT statement"</i>. Run under the journal's entry mutex, BEFORE the journal's decision
+    /// <c>D R</c> (a death between them leaves the journal open, and the next settle restores the file again and the next writable
+    /// OPEN's dead-owner step reads it). <paramref name="through"/> is attached for the adoption alone when no connector of the
+    /// run unit holds the file (a DELETE FILE removed it), and <paramref name="prober"/> is then made over it.</summary>
+    internal StoreStatus AdoptRestored(SafeFileHandle through, RegionLocks? prober, string hostPath, RestoringTreesFactory restoring,
+        IKeyOrder holdingsOrder)
+    {
+        bool attachedHere = !_handles.Holds(through);
+        if (attachedHere) _handles.Attach(through, writable: true);
+        var probing = prober ?? HostRegionLocks.Open(through, hostPath, writable: true);
+        try
+        {
+            ForgetTransaction();
+            File = null;
+            _fenceOwed = false;
+            if (_medium.Length == 0) return StoreStatus.Ok;   // captured with no bytes: no store, no records, nothing to roll back
+            return HostRegionLocks.InStoreMutex(_coherent ? probing : null, () =>
+            {
+                var status = PagedFile.Open(_medium, writable: true, _coherent, holdingsOrder, out var adopted, _cachePages);
+                if (status != StoreStatus.Ok) return status;
+                File = adopted;
+                return RollBackDeadOwners(probing, restoring);
+            });
+        }
+        finally
+        {
+            if (prober is null) probing.Dispose();
+            if (attachedHere)
+            {
+                _handles.Detach(through);
+                if (!_handles.HasHandle) File = null;
+            }
+        }
+    }
+
     /// <summary>The witnesses' seam of a death the operating environment delivers at an instant of ANOTHER run unit's
     /// statement (DESIGN-runtime-library.md 2.2.1.17's round-4 table: "the test lock host releasing A's byte at that
     /// point"): the transaction's liveness byte released as a dead process's handle releases it, and nothing else of the
