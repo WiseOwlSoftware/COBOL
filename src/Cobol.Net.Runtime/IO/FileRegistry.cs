@@ -1820,11 +1820,28 @@ public sealed class FileRegistry
     /// implementor may specify circumstances other than a locked logical record that result in the return of a locked
     /// record status."</i>; DOC-A.1-152) — its RETRY phrase applying — and rolls a dead owner back at the test
     /// (<paramref name="reevaluate"/>: the record to read is named again). IGNORING LOCK tests nothing (§14.9.30.4 GR12;
-    /// D.2.5's tolerated read). Returns the conflict status — already stored on the connector — or null.</summary>
+    /// D.2.5's tolerated read). Returns the conflict status — already stored on the connector — or null. A SEQUENTIAL
+    /// file's transactions hold their records in their journals instead (<see cref="JournalConflict"/>).</summary>
     private string? HoldingsConflict(string name, FileConnector c, string recId, bool ignoringLock, out bool reevaluate)
     {
         reevaluate = false;
         if (ignoringLock || c is not KeyedConnector keyed || keyed.ReadHoldingsGate(recId, out reevaluate) is not { } held)
+            return null;
+        SetStatusOf(name, held);   // as ConflictOnLockedRecord: the status assignment drops the '43' gate (PB140)
+        return held;
+    }
+
+    /// <summary>⛔ THE JOURNAL HALF OF A SEQUENTIAL READ'S LOCK TEST (DESIGN-runtime-library.md 2.2.2.3, 2.2.2.8; kb/Work PB3340):
+    /// a record another live transaction on the file rewrote or appended is held in its JOURNAL, not in the region, so the
+    /// record-lock tables (and the peek they gate) do not see it; a READ that does not ignore locks, through a connector whose
+    /// file lock admits another run unit's writer, meets it with '51' (§9.1.13.8 1); §9.1.16's implementor-specified
+    /// circumstance, DOC-A.1-152) and settles a dead owner's transaction first (<see cref="SequentialConnector.ReadHoldingsGate"/>).
+    /// A connector whose permanent error is in effect asks no lock question (§9.1.13.1, PB3416). Returns the conflict status —
+    /// stored on the connector — or null.</summary>
+    private string? JournalConflict(string name, FileConnector c, bool previous, bool ignoringLock)
+    {
+        if (ignoringLock || c is not SequentialConnector sequential || PermanentErrorOutranksLocks(c)
+            || sequential.ReadHoldingsGate(previous) is not { } held)
             return null;
         SetStatusOf(name, held);   // as ConflictOnLockedRecord: the status assignment drops the '43' gate (PB140)
         return held;
@@ -1997,6 +2014,11 @@ public sealed class FileRegistry
             // conflict condition out and its skip-scan below is post-read on every organization. Nor does a READ on a
             // connector whose permanent error is in effect (NoLockQuestion).
             string peek = advancingOnLock || NoLockQuestion(st, c) ? "" : c.PeekSequentialRecordId(previous);
+            if (!advancingOnLock && JournalConflict(name, c, previous, ignoringLock) is { } journaled)
+            {
+                image = "";
+                return journaled;    // GR10 — nothing has moved
+            }
             if (peek.Length > 0)
             {
                 if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)

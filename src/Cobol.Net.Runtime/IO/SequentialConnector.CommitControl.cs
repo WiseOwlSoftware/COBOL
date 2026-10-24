@@ -350,6 +350,22 @@ public sealed partial class SequentialConnector : IJournalData
         return null;
     }
 
+    /// <summary>⛔ THE READ'S STEP (2.2.2.3, 2.2.2.8): a READ not IGNORING LOCK through a connector whose file lock admits another
+    /// run unit's writer (<c>SHARING WITH ALL OTHER</c>, the one posture under which another transaction can live beside it)
+    /// meets every other live transaction's holding of the record it would make available — the whole file once replaced, a
+    /// record it rewrote, one it appended — with '51' (§9.1.13.8 1)), and a dead one's is settled before the READ. The record
+    /// a forward READ makes available starts at the file position indicator's offset; a backward one's is told by its ordinal.
+    /// Null when the READ may proceed. The caller asks it after the record-lock conflict check (DOC-A.1-104's point).</summary>
+    internal string? ReadHoldingsGate(bool previous)
+    {
+        if (!FileLockPosture.AdmitsAnotherWriter(HostShare) || HostPath.Length == 0 || _reader is null) return null;
+        var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, null);
+        if (!holdings.Any) return null;
+        long at = _lineSequential ? _lineByteOffset : _readOffset;
+        bool held = previous ? holdings.HoldsRecordBefore(TargetReadOrdinal(previous), at) : holdings.HoldsRecordAt(at);
+        return held ? FileStatusCode.RecordLocked : null;
+    }
+
     // ── What the registry's COMMIT and ROLLBACK ask of the connector (2.2.2.6, 2.2.2.7) ──────────────────────────────
 
     /// <summary>Release the writer's buffered records to the operating environment for the COMMIT, which syncs them. Throws on a

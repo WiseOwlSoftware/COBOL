@@ -551,7 +551,8 @@ internal sealed class SequentialJournal
     /// <summary>A live transaction's holdings as its record says them (2.2.2.3): the WHOLE file once replaced (or while its
     /// header is not yet readable — a transaction being born, or a record this process may not read), the end of the file always,
     /// every rewritten record's offset, and every offset at or past L once it has appended.</summary>
-    internal readonly record struct Holding(bool Whole, long? CommittedLength, IReadOnlySet<long> RewrittenOffsets)
+    internal readonly record struct Holding(bool Whole, long? CommittedLength, IReadOnlySet<long> RewrittenOffsets,
+        IReadOnlySet<long> RewrittenOrdinals)
     {
         /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets this holding.</summary>
         internal bool HoldsRecordAt(long offset) =>
@@ -577,6 +578,12 @@ internal sealed class SequentialJournal
 
         /// <summary>Whether a READ not IGNORING LOCK or a REWRITE of the record at <paramref name="offset"/> meets a holding.</summary>
         internal bool HoldsRecordAt(long offset) => Live.Any(h => h.HoldsRecordAt(offset));
+
+        /// <summary>Whether a backward READ of the record numbered <paramref name="ordinal"/>, which lies before
+        /// <paramref name="before"/>, meets a holding: a rewritten record is told by its ordinal, and the appended records past
+        /// L can lie before <paramref name="before"/> only when L does.</summary>
+        internal bool HoldsRecordBefore(long ordinal, long before) =>
+            Live.Any(h => h.Whole || h.RewrittenOrdinals.Contains(ordinal) || (h.CommittedLength is long committed && committed < before));
     }
 
     /// <summary>⛔ THE ENTRY STEP (2.2.2.8) on the physical file <paramref name="hostPath"/>: the lock directory listed for
@@ -591,7 +598,7 @@ internal sealed class SequentialJournal
         string directory = DirectoryOf(hostPath);
         IReadOnlyList<string> names;
         try { names = medium.ListNames(directory, NamePrefix); }
-        catch (UnauthorizedAccessException) { return new Holdings([new Holding(true, null, EmptyOffsets)]); }
+        catch (UnauthorizedAccessException) { return new Holdings([WholeFile]); }
         if (names.Count == 0) return Holdings.None;
         var ids = new SortedSet<int>();
         foreach (string name in names)
@@ -606,7 +613,7 @@ internal sealed class SequentialJournal
                     live.Add(HoldingOf(medium, Path.Combine(directory, RecordName(id))));
                     break;
                 case HostFile.LockFileState.Unobservable:
-                    live.Add(new Holding(true, null, EmptyOffsets));
+                    live.Add(WholeFile);
                     break;
                 default:
                     (dead ??= []).Add(id);
@@ -619,6 +626,9 @@ internal sealed class SequentialJournal
 
     private static readonly IReadOnlySet<long> EmptyOffsets = new HashSet<long>();
 
+    /// <summary>The holding of a transaction whose record cannot be read: the whole file.</summary>
+    private static readonly Holding WholeFile = new(true, null, EmptyOffsets, EmptyOffsets);
+
     /// <summary>A live transaction's holding, read from its record; a record not yet readable (the transaction is being born, or
     /// this process may not read it) holds the whole file.</summary>
     private static Holding HoldingOf(IHostMedium medium, string recordPath)
@@ -626,10 +636,11 @@ internal sealed class SequentialJournal
         try
         {
             using var record = medium.OpenTransient(recordPath, FileMode.Open, FileAccess.Read);
-            if (ReadRecord(record) is not { } contents) return new Holding(true, null, EmptyOffsets);
-            return new Holding(contents.Replaced, contents.CommittedLength, contents.Images.Select(i => i.Offset).ToHashSet());
+            if (ReadRecord(record) is not { } contents) return WholeFile;
+            return new Holding(contents.Replaced, contents.CommittedLength, contents.Images.Select(i => i.Offset).ToHashSet(),
+                contents.Images.Select(i => i.Ordinal).ToHashSet());
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return new Holding(true, null, EmptyOffsets); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return WholeFile; }
     }
 
     /// <summary>Settle the dead transactions <paramref name="ids"/> under the entry mutex: <paramref name="held"/> when the caller
