@@ -92,6 +92,8 @@ PUBLIC_STRING = re.compile(r"\bpublic\s+static\s+string\s+(\w+)\s*\(")
 HELPER_OPEN = re.compile(r"\bTestRepo\.(\w+)\(")
 COMBINE_OPEN = re.compile(r"\bPath\.Combine\(")
 CALL_OPEN = re.compile(HELPER_OPEN.pattern + "|" + COMBINE_OPEN.pattern)
+#: What follows `Path.Combine(` when it is the root helper written out: `TestRepo.Root`, or `[TestRepo.Root`.
+ROOTED = re.compile(r"\s*\[?\s*TestRepo\.Root\b")
 #: An expression-bodied method taking only strings: `string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));`
 WRAPPER = re.compile(r"\b(\w+)\(\s*((?:params\s+)?string(?:\[\])?\s+\w+(?:\s*,\s*(?:params\s+)?string(?:\[\])?\s+\w+)*)\s*\)"
                      r"\s*=>\s*")
@@ -329,7 +331,7 @@ class Sources:
             p = None
             segs, _ = path_join(args, consts, helpers)
             if m.group(1) is None:   # Path.Combine(..)
-                rooted = re.match(r"\s*\[?\s*TestRepo\.Root\b", text[m.end():]) is not None
+                rooted = ROOTED.match(text, m.end()) is not None
                 joined = "/".join(segs)
                 if rooted or (len(segs) > 1 and re.fullmatch(TREE_ROOTS, joined.split("/")[0])):
                     p = joined
