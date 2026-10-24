@@ -16,8 +16,9 @@ there is nothing to reconcile it WITH.
 What remains:
 
 1. `python scripts/spec/work.py check` — the register is well-formed (kind/status/id, no duplicates, and the
-   `closes_rows` back-link's SHAPE). `python scripts/spec/work.py parity` checks that the register's two
-   frontmatter readers — Python and `tests/_shared/WorkRegister.cs` — still read one file format the same way.
+   `closes_rows` back-link's shape, and the register against the traceability inventory: every defective row claimed
+   by a live note, every `closes_rows` entry a row the inventory calls closed; `scripts/spec/work_inventory.py`).
+   `python scripts/spec/work.py --self-test` holds the register's one frontmatter reader to its cases.
 2. `python scripts/rendered_views.py --check` — every rendered view (the burn-down, the drift-rule index, the diagnostics table) still renders, none is tracked.
 3. `constructs.json` — still its own authority for CI and the drift tests; unchanged.
 4. Plan §0 — narrative and owner decisions ONLY. It no longer carries a worklist; `Fix next` does.
@@ -48,8 +49,8 @@ corrected — a design doc that specified the wrong thing gets fixed in the same
 ⛔ **AND WRITE `closes_rows:` IN THAT SAME COMMIT** (owner decision 2026-09-19, `kb/Work/PB245`). The rows the
 fix re-verdicted LEAVE `inventory_rows` — the claim a note makes while it is open — and arrive in `closes_rows`,
 which is what survives the landing. A landing that closed no inventory row says so: `closes_rows: []` plus a
-`closes_rows_reason:` sentence. Nothing here is optional prose — `ClosesRowsBackLinkDriftTests`
-(`tests/Cobol.Net.Tests.Unit`) fails the build when a landed `kind: defect` note says neither, and when a row it
+`closes_rows_reason:` sentence. Nothing here is optional prose — `python scripts/spec/work.py check`
+(`scripts/spec/work_inventory.py`, a gate audit) fails when a landed `kind: defect` note says neither, and when a row it
 names is still non-OK in `tests/version-matrix/traceability-inventory.json`. The field exists because without it
 "which rows did this fix close" could only be answered by measuring the compiler again: fourteen §15 rows held
 the GAP open on mechanisms seven landings had already shipped, and thirteen closed CONFORMS the first time

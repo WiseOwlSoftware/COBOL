@@ -39,8 +39,10 @@ public sealed class LandingLaneDriftTests
 
     /// <summary>The files that describe the current pipeline: the whole tree but the paths that record history
     /// (CLAUDE.md rule 6) and the test sources (this file names the pattern). Declared (kb/Work PB3531), so the
-    /// drift-rule index names this class for each of them.</summary>
-    private static readonly TreeScope Current = new(Under: [""], Except: ["DEVLOG/", "kb/", "adjudication/", "specs/", "tests/"]);
+    /// drift-rule index names this class for each of them. The knowledge base and the vault's settings are set aside
+    /// whole: a sweep that read them made the vault a test input (kb/Work PB2878).</summary>
+    private static readonly TreeScope Current = new(Under: [""],
+        Except: ["DEVLOG/", "kb/", ".obsidian/", "adjudication/", "specs/", "tests/"]);
 
     /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="Current"/>) with a line in the
     /// retired wording, as <c>path:line</c>.</summary>

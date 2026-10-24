@@ -128,6 +128,10 @@ public sealed class GateLegDriftTests
                      "malformed shared gate settings: the gate is NOT RUN",
                      "a red audit (a tracked rendered view) STOPS the gate before the build",
                      "the audits and the corpus fetch run BEFORE the gate slot is taken",
+                     // kb/Work PB2878: the inert lane, a change no test reads
+                     "a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN",
+                     "the inert lane under the `whole` scope is a plain GREEN",
+                     "a red audit is RED in the inert lane too",
                      "shared gate settings that turn malformed while the gate queues: NOT RUN",
                      "every gate that ran a leg publishes its measured durations to the shared timings store",
                      "a failed publish to the timings store is reported and recorded, and the verdict is unaffected",
@@ -178,7 +182,9 @@ public sealed class GateLegDriftTests
                 .Concat(Directory.EnumerateDirectories(dir)
                     .Where(d => !skipped.Contains(Path.GetFileName(d))).SelectMany(Walk))
             : [];
-        var files = new[] { ".claude", ".github", "scripts", "docs", "tests" }.SelectMany(d => Walk(TestRepo.At(d)))
+        // Each tree is spelled by its own call, so the drift-rule index names this test for a change under any of them.
+        var files = new[] { TestRepo.At(".claude"), TestRepo.At(".github"), TestRepo.Scripts(), TestRepo.Docs(), TestRepo.Tests() }
+            .SelectMany(Walk)
             .Concat(Directory.EnumerateFiles(TestRepo.Root, "*.md")
                 .Where(f => Path.GetFileName(f) != "STATUS.md"))  // a worktree's gitignored checkpoint (the history, DEVLOG/, is not walked)
             .ToList();

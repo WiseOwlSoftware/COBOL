@@ -24,7 +24,7 @@ a previous summary was wrong — lives in the note BODY, which is where it alrea
     python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
     python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes, tier then blocked_by order
     python scripts/spec/work.py stats      # counts by kind/status/harm
-    python scripts/spec/work.py parity     # the frontmatter reader vs. its C# twin's fixture (--json for the gate)
+    python scripts/spec/work.py --self-test   # the frontmatter reader against tests/version-matrix/work-frontmatter-cases.json
 
 ⭐ `inventory_rows:` — THE BACK-LINK TO THE P14 TRACEABILITY INVENTORY, and the register's newest field
 (2026-08-31). A note lists the `rule-id`s it owns; that list is the SSOT for ownership, and the note's prose
@@ -33,12 +33,12 @@ NOTHING holding them together: of 138 inventory rows verdicted PARTIAL / NOT-IMP
 invisible to `next`** when it was first measured — ranked by nothing, owed by nobody, and counted by the
 burn-down the whole time.
 
-⛔ The field is enforced by `DefectiveRowCoverageDriftTests` (tests/Cobol.Net.Tests.Unit) and NOT here, on
-purpose: the predicate has to keep holding as the INVENTORY changes underneath a note, so it belongs to
-something that runs every build, and validating a rule-id against the inventory from Python as well would be
-the same rule in two places. What that gate asserts is that every defective-verdict row is claimed by a note
-whose status is not terminal — so **flipping a note to `landed` without re-verdicting its rows turns the
-battery red**, which is exactly the event that used to pass unnoticed.
+⛔ The field is checked against the inventory by `check` through `work_inventory.py` (this directory), which asserts
+that every defective-verdict row is claimed by a note whose status is not terminal and that every claim names a row
+the inventory has — so **flipping a note to `landed` without re-verdicting its rows turns the audit red**, which is
+exactly the event that used to pass unnoticed. The predicate has to keep holding as the INVENTORY changes underneath a
+note, which is why it is asked on every run of `check` (the gate's audit phase, CI's `audits` job) and not once at
+landing. It was a Unit drift test until PB2878 (it read every note, which made `kb/` a test input).
 
 ⭐ `closes_rows:` — THE OTHER DIRECTION, and the register's newest field (owner decision 2026-09-19,
 `kb/Work/PB245`). `inventory_rows` is what a note CLAIMS while it is open; `closes_rows` is what its landing
@@ -49,14 +49,13 @@ the rows leave `inventory_rows` as they are re-verdicted, and they arrive in `cl
 closed no row says so with `closes_rows: []` **and** a `closes_rows_reason:`; silence is what the field
 replaced. The spelling is `closes_rows`, not the decision's `closes-rows`: every multiword key in this
 frontmatter is snake_case, and `kb/Work.base` addresses a property as `note.<key>`, where a hyphen would
-at best need quoting and at worst read as an operator. Enforced by `ClosesRowsBackLinkDriftTests`
-(tests/Cobol.Net.Tests.Unit); the SHAPE half is :func:`closes_rows_shape` here.
+at best need quoting and at worst read as an operator. Checked against the inventory by `work_inventory.py` (the
+landed-note and the closed-row halves); the SHAPE half is :func:`closes_rows_shape` here.
 
-⛔ AND THE READER ITSELF IS A GATE. `parse_frontmatter` has a C# twin (`tests/_shared/WorkRegister.cs`), the two
-read one file format, and they disagreed for months about a list WRAPPED across two lines (`kb/Work/PB875`):
-this side truncated it, that side discarded it, and both called the note well-formed.
-`tests/version-matrix/work-frontmatter-parity-cases.json` is the fixture both evaluate, and the C# gate runs
-`work.py parity --json` so the comparison is against this engine RUN, not against an assumption about it.
+⛔ AND THE READER ITSELF IS A GATE: `parse_frontmatter` is THE reader of the register — there is no second one — and
+`--self-test` holds it to `tests/version-matrix/work-frontmatter-cases.json`, the shapes the register has contained, each
+of which broke a reader once (`kb/Work/PB875`: a list WRAPPED across two lines was truncated here and discarded by the
+C# twin that PB2878 deleted, and both called the note well-formed).
 """
 from __future__ import annotations
 
@@ -79,10 +78,9 @@ STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
 #: The statuses that mean an item is DONE — the ONE vocabulary every reader of the register asks (kb/Work PB3196:
 #: the R0 census and the note generator each read the status their own way, and the census's own copy held four
 #: statuses that `check` rejects). A view of open work shall exclude every one of them — see
-#: :func:`check_base_agrees`, which is what stops the next one added here from being half-applied. The C# reader's
-#: twin, `WorkRegister.TerminalStatuses`, is held to this tuple by the parity fixture: :func:`parity_view` reports
-#: `terminal`, and :func:`parity` refuses a fixture that leaves any status of STATUSES without a case, so a status
-#: added here reaches both engines' answers.
+#: :func:`check_base_agrees`, which is what stops the next one added here from being half-applied. The reader's
+#: self-test holds the fixture to it: :func:`reading_view` reports `terminal`, and :func:`self_test` refuses a fixture
+#: that leaves any status of STATUSES without a case, so a status added here reaches the reader's answers.
 TERMINAL_STATUSES = ("landed", "retired")
 HARM = {"wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects", "process"}
 
@@ -227,8 +225,7 @@ def migrate() -> int:
 
 #: The frontmatter block: everything between the opening `---` line and the closing one. The register is LF
 #: (kb/Work PB3029); `\r?\n` because a reader that hard-codes LF would answer "this is not a note" for a note a
-#: Windows tool wrote CRLF — SILENTLY — where the line-endings audit (scripts/line_endings.py) names it. The C#
-#: twin (tests/_shared/WorkRegister.cs) reads the same bytes the same way.
+#: Windows tool wrote CRLF — SILENTLY — where the line-endings audit (scripts/line_endings.py) names it.
 FRONT = re.compile(r"\A---\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
 #: A frontmatter key. Anything else on a line — a colon inside a title, a wrapped list's continuation — is not
 #: one. A VALUE is a list when it opens with `[`, whatever its key: list-ness is a property of the value, so a
@@ -244,18 +241,17 @@ def _split_list(inner: str) -> list[str]:
 def parse_frontmatter(text: str) -> dict | None:
     """One note's frontmatter as `key -> str | bool | list[str]`, or `None` when the file is not a note.
 
-    ⛔ THIS IS ONE HALF OF A TWO-LANGUAGE READER, AND THE HALVES DISAGREED. Its C# twin is
-    `tests/_shared/WorkRegister.cs`; `tests/version-matrix/work-frontmatter-parity-cases.json` is the fixture
-    both evaluate, and `work.py parity --json` is how the C# gate runs THIS engine for real rather than assuming
-    it. `kb/Work/PB875` is the note recording what the disagreement cost: a list WRAPPED across two lines — the
-    normal YAML shape, and the shape `kb/Work/PB205` had carried for months — was read here as a truncated list
-    and in C# as NO list at all, so a note went on claiming four inventory rows in the register while the gate
-    that enforces claims saw none, and `work.py check` called the same note well-formed.
+    ⛔ THIS IS THE ONE READER OF THE REGISTER, and `tests/version-matrix/work-frontmatter-cases.json` is its test
+    (`--self-test`). It had a C# twin (`tests/_shared/WorkRegister.cs`, deleted by PB2878) and the two disagreed:
+    `kb/Work/PB875` is the note recording what that cost: a list WRAPPED across two lines — the normal YAML shape, and
+    the shape `kb/Work/PB205` had carried for months — was read here as a truncated list and in C# as NO list at
+    all, so a note went on claiming four inventory rows in the register while the gate that enforces claims saw
+    none, and `work.py check` called the same note well-formed.
 
     ⛔ AND IT FAILED **OPEN**. Both halves answered a malformed value with emptiness, which reads exactly like a
     note that claims nothing — the one answer a register must never invent. An unterminated list is now an ERROR
-    CODE in `_errors` (the key is left ABSENT, never silently empty), and the codes are what the parity fixture
-    compares: two readers that reject one note for two different reasons look identical under "it was rejected".
+    CODE in `_errors` (the key is left ABSENT, never silently empty), and the codes are what the fixture compares:
+    two malformations look identical under "it was rejected".
 
     ⛔ A RUNAWAY IS BOUNDED BY THE NEXT KEY, and that is measured, not assumed. A list left open by a missing
     bracket used to keep eating lines until some later line happened to end in `]` — so `tags: [cobolsharp,
@@ -367,8 +363,8 @@ def check_base_agrees() -> list[str]:
 
 
 #: A traceability-inventory rule-id, by SHAPE only — `AR-15.7.3-1`, `SR-13.18.40.3-22`, `FMT-14.9.32.2`,
-#: `GR-9.3.6-L4.1`. Whether the id names a row that EXISTS, and whether that row's verdict resolves, is the
-#: C# gate's question and is deliberately not asked here (see :func:`closes_rows_shape`).
+#: `GR-9.3.6-L4.1`. Whether the id names a row that EXISTS, and whether that row's verdict resolves, is
+#: `work_inventory.py`'s question (see :func:`closes_rows_shape`).
 RULE_ID_SHAPE = re.compile(r"\A[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
 
 
@@ -383,10 +379,9 @@ def closes_rows_shape(it: dict) -> list[str]:
     ⛔ WHAT IS CHECKED HERE, AND WHAT IS NOT — the same division `record_verdicts.py` draws, for the same reason.
     This validates what is decidable from the NOTE alone: the value is a list, each member is SPELLED like a
     rule-id, and a reason that is present is not empty. Whether a named row exists, whether its verdict resolves,
-    and whether a landed defect note said anything at all belong to `ClosesRowsBackLinkDriftTests`
-    (tests/Cobol.Net.Tests.Unit) — those predicates have to keep holding as the INVENTORY changes underneath a
-    note that nobody is editing, so they belong to something that runs every build, and asking them here as well
-    would be one rule in two places (`feedback_one_rule_one_place`).
+    and whether a landed defect note said anything at all belong to `work_inventory.py` (which :func:`check` also
+    runs): those predicates need the INVENTORY, and asking them here as well would be one rule in two places
+    (`feedback_one_rule_one_place`).
     """
     bad: list[str] = []
     for e in it.get("_errors", []):
@@ -438,6 +433,9 @@ def check() -> int:
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
+    import work_inventory  # noqa: PLC0415  (this directory's)
+
+    bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
     bad += topology_problems(items)
     bad += sites_problems(items)
     bad += r3_program_problems(items)
@@ -1131,22 +1129,22 @@ def print_cluster(view: dict, as_json: bool) -> int:
     return 0
 
 
-# ── the cross-language parity fixture ────────────────────────────────────────────────────────────────────────
+# ── the reader's self-test ───────────────────────────────────────────────────────────────────────────────────
 
-FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-parity-cases.json"
-FIXTURE_REL = "tests/version-matrix/work-frontmatter-parity-cases.json"
+FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-cases.json"
+FIXTURE_REL = "tests/version-matrix/work-frontmatter-cases.json"
 
 
-def parity_view(text: str) -> dict:
-    """What a reader of this register SEES in one note — the normalized answer both engines must give.
+def reading_view(text: str) -> dict:
+    """What a reader of this register SEES in one note — the normalized answer the reader must give.
 
-    Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the gate asks
-    what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
+    Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the register's checks
+    ask what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
     normalized away is `errors` — a malformed value is a third outcome, and collapsing it into "empty" is the
     fail-open that `kb/Work/PB875` is about.
 
-    `terminal` is what each engine's vocabulary makes of the status (TERMINAL_STATUSES here, its C# twin there): the
-    register's gates read DONE through it, so it is compared like any field (kb/Work PB3196).
+    `terminal` is what the DONE vocabulary (TERMINAL_STATUSES) makes of the status: the register's checks read DONE
+    through it, so it is compared like any field (kb/Work PB3196).
     """
     d = parse_frontmatter(text)
     if d is None:
@@ -1165,68 +1163,61 @@ def _wrapped_list(text: str) -> bool:
     return any("]" not in line[line.index("["):] for line in text.splitlines() if "[" in line)
 
 
-def parity_findings(fixture: dict, answers: list[dict]) -> list[str]:
-    """Where THIS engine disagrees with the fixture's recorded expectation, field by field."""
+def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
+    """Where the reader disagrees with the fixture's recorded expectation, field by field."""
     bad = []
     for case, got in zip(fixture["cases"], answers, strict=True):
         for k, want in case["expect"].items():
-            # A fixture naming a field this view does not have is a FINDING, not a traceback: the two
-            # engines expose the same field set, so a key only one of them knows is exactly a parity bug.
+            # A fixture naming a field the view does not have is a FINDING, not a traceback.
             if k not in got:
-                bad.append(f'parity case "{case["name"]}": the fixture expects a field {k!r} that this '
-                           f'reader does not report — the two engines no longer describe the same note')
+                bad.append(f'case "{case["name"]}": the fixture expects a field {k!r} that the reader does not report')
             elif got[k] != want:
-                bad.append(f'parity case "{case["name"]}": {k} is {got[k]!r}, fixture says {want!r}')
+                bad.append(f'case "{case["name"]}": {k} is {got[k]!r}, fixture says {want!r}')
     return bad
 
 
-def parity(as_json: bool) -> int:
-    """Evaluate `tests/version-matrix/work-frontmatter-parity-cases.json` — the fixture the C# twin evaluates too.
+def self_test() -> int:
+    """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
-    ⛔ THE FIXTURE IS ALSO THIS ENGINE'S SELF-TEST, AND IT ASSERTS ITS OWN POPULATION. A parity run that measured
-    no wrapped list, no malformed value and no non-note file would be green about nothing at all — which is
-    precisely the state `work.py check` was in while `kb/Work/PB390` claimed four rows the gate could not see
-    (`feedback_green_gates_arent_evidence`, `feedback_verdict_evidence_invariant`).
+    ⛔ THE FIXTURE ASSERTS ITS OWN POPULATION. A run that measured no wrapped list, no malformed value and no non-note
+    file would be green about nothing at all — precisely the state `work.py check` was in while `kb/Work/PB390`
+    claimed four rows the gate could not see (`feedback_green_gates_arent_evidence`,
+    `feedback_verdict_evidence_invariant`).
     """
     if not FIXTURE.exists():
-        print(f"⛔ parity fixture not found: {FIXTURE_REL}")
+        print(f"⛔ fixture not found: {FIXTURE_REL}")
         return 1
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    answers = [{"name": c["name"], **parity_view(c["text"])} for c in fixture["cases"]]
-    findings = parity_findings(fixture, answers)
+    answers = [{"name": c["name"], **reading_view(c["text"])} for c in fixture["cases"]]
+    findings = case_findings(fixture, answers)
 
-    # POPULATION — the shapes this register actually contains, each of which broke one reader or the other.
+    # POPULATION — the shapes this register actually contains, each of which broke a reader once.
     covered = {
         "a list wrapped across lines": any(_wrapped_list(c["text"]) for c in fixture["cases"]),
         "a malformed value reported as an error": any(a["errors"] for a in answers),
         "a file that is not a note": any(not a["note"] for a in answers),
         "CRLF line endings": any("\r\n" in c["text"] for c in fixture["cases"]),
     }
-    findings += [f"the parity fixture carries no case for {what} — it cannot be measuring that shape"
+    findings += [f"the fixture carries no case for {what} — it cannot be measuring that shape"
                  for what, ok in covered.items() if not ok]
-    # EVERY STATUS OF THE VOCABULARY, so the two engines' terminal sets are compared on each one (kb/Work PB3196): a
-    # status added to STATUSES or TERMINAL_STATUSES stops this until a case states what it is, and that case is
-    # what holds the C# twin to it.
+    # EVERY STATUS OF THE VOCABULARY, so the `terminal` answer is measured on each one (kb/Work PB3196): a status added
+    # to STATUSES or TERMINAL_STATUSES stops this until a case states what it is.
     stated = {a["status"] for a in answers if a["note"]}
-    findings += [f"the parity fixture carries no note whose status is {s!r} — neither engine's `terminal` answer "
-                 f"for it is measured" for s in sorted((STATUSES | set(TERMINAL_STATUSES)) - stated)]
-    # EVERY FIELD, on every case: a field the fixture leaves unstated is a field the engines may disagree on unseen.
-    findings += [f'parity case "{c["name"]}": the fixture states no {k!r} — it must state every field the view '
-                 f'reports' for c, a in zip(fixture["cases"], answers)
-                 for k in a if k != "name" and k not in c["expect"]]
+    findings += [f"the fixture carries no note whose status is {s!r} — the `terminal` answer for it is not measured"
+                 for s in sorted((STATUSES | set(TERMINAL_STATUSES)) - stated)]
+    # EVERY FIELD, on every case: a field the fixture leaves unstated is a field the reader may change unseen.
+    findings += [f'case "{c["name"]}": the fixture states no {k!r} — it must state every field the view reports'
+                 for c, a in zip(fixture["cases"], answers) for k in a if k != "name" and k not in c["expect"]]
     if len(fixture["cases"]) < 8:
-        findings.append(f'{len(fixture["cases"])} parity case(s) — too few to be measuring the reader')
+        findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))
     corrupted["cases"][0]["expect"]["id"] = corrupted["cases"][0]["expect"].get("id", "") + "-X"
-    if not parity_findings(corrupted, [{"name": c["name"], **parity_view(c["text"])}
-                                       for c in corrupted["cases"]]):
+    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["text"])} for c in corrupted["cases"]]):
         findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
 
-    print(f"parity cases  : {len(answers)} from {FIXTURE_REL}")
-    if as_json:
-        print("JSON " + json.dumps({"findings": findings, "parity": answers}, ensure_ascii=False))
+    print(f"cases  : {len(answers)} from {FIXTURE_REL}")
     if findings:
         print(f"\n⛔ {len(findings)} finding(s):")
         for f in findings:
@@ -1238,9 +1229,10 @@ def parity(as_json: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["migrate", "check", "next", "stats", "parity"])
+    ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats"])
+    ap.add_argument("--self-test", action="store_true", help="the frontmatter reader against its cases")
     ap.add_argument("--top", type=int, default=3)
-    ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (parity, next --cluster)")
+    ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (next --cluster)")
     ap.add_argument("--work", default=str(WORK), help="the register directory (default kb/Work; a test seam)")
     ap.add_argument("--cluster", metavar="LEAD", help="next: the open notes whose `cluster` names LEAD, in blocked_by "
                     "order, whatever their harm flags (a campaign; exit 1 when no note names it)")
@@ -1249,12 +1241,14 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
+    if a.self_test:
+        return self_test()
+    if a.cmd is None:
+        ap.error("a command (migrate, check, next, stats) or --self-test")
     if a.cmd == "migrate":
         return migrate()
     if a.cmd == "check":
         return check()
-    if a.cmd == "parity":
-        return parity(a.json)
     if a.cluster and a.cmd != "next":
         ap.error("--cluster goes with next")
     items = load(pathlib.Path(a.work))
