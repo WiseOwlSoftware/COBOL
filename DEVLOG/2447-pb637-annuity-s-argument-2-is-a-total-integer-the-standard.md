@@ -1,4 +1,4 @@
-## PB637: ANNUITY's argument-2 is a total integer; the standard-decimal body takes it as the SDIDI integer
+## Entry 2447 — 2026-10-24 01:15 PDT — PB637: ANNUITY's argument-2 is a total integer; the standard-decimal body takes it as the SDIDI integer
 
 FUNCTION ANNUITY under ARITHMETIC IS STANDARD-DECIMAL took argument-2 through the PARTIAL-function narrowing (`IntArg`, a `long` body). §15.9.3 r3 says only "Argument-2 shall be a positive integer", a sign and integer-ness rule, so a count past 9 223 372 036 854 775 807 is a legal argument and §15.3 r14 has no incorrect value to raise on. The probe on this tree reproduced the note: `ANNUITY(0, N)` with `N PIC 9(25) VALUE 10^20` stored 0 with checking off and terminated the run unit with EC-ARGUMENT-FUNCTION under `>>TURN EC-ARGUMENT-FUNCTION CHECKING ON`.
 
@@ -13,3 +13,4 @@ FUNCTION ANNUITY under ARITHMETIC IS STANDARD-DECIMAL took argument-2 through th
 **Goldens and tests.** `conformance:cases/15.9.3-Argument-rules/pb637_annuity_total_periods` (checking ON, armed by a non-positive count; 19-, 25- and 31-digit n; a 10^50 count past `Int128`; §15.4.1 NOTE 2's relation; the tiny-rate value; the size condition on both sides of the 64-bit window) and `pb637_annuity_total_periods_unchecked` (the silent-0 leg, with the 10^50 count). Both are accepted from 2014: the ARITHMETIC clause is a 2014 introduction (`tests/version-matrix/constructs.json` row `arithmetic-standard-decimal-2014`; review R1-2 caught the earlier 2023 rationale); no `reject-at` negative since no syntax is introduced. `CobolIntrinsicsDecTests.AnnuityDec_*` takes the count as a `CobolDec` (10^20, 10^38, 10^40). No inventory row was non-OK; `closes_rows` is empty with its reason on the note.
 
 Gate: see the report; no diagnostic codes were used.
+
