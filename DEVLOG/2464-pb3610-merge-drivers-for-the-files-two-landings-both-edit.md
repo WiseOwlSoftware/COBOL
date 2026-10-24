@@ -1,4 +1,4 @@
-## PB3610: merge drivers for the files two landings both edit, and the runtime ABI pin as a measured file
+## Entry 2464 — 2026-10-24 11:23 PDT — PB3610: merge drivers for the files two landings both edit, and the runtime ABI pin as a measured file
 
 Landings stopped at CONFLICT on files that are not code, and each stop cost a finisher cycle (about 100 k tokens and a
 re-gate) to do what a program does exactly. The counts, from the 487 landing logs under `E:\COBOL-coord\logs`
@@ -67,3 +67,4 @@ it now returns the fallback's own verdict. R1-2: `merge` reported `CONFLICT in ?
 empty merge commit failed); it now answers None first. Two new self-test arms fail without the fixes and pass with them.
 The lead R1-3 (the 30-day conflict-coverage drift test) is answered in the note: the logs are outside the repository, so
 `--conflicts` is the measurement. The gate for these commits follows below.
+
