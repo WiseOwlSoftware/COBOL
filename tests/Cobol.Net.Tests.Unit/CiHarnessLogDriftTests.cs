@@ -48,7 +48,7 @@ public sealed class CiHarnessLogDriftTests
                       COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log
                     run: dotnet test p.csproj --results-directory TestResults/x
                   - name: Upload
-                    uses: actions/upload-artifact@v7
+                    uses: ./.github/actions/upload-results
                     with:
                       path: |
                         TestResults/x/*.trx
@@ -96,11 +96,11 @@ public sealed class CiHarnessLogDriftTests
         if (job is not null) yield return job;
     }
 
-    /// <summary>The upload paths of a job's upload-artifact steps: the <c>path:</c> value, or each line of a
-    /// <c>path: |</c> block.</summary>
+    /// <summary>The upload paths of a job's upload steps (<see cref="CiArtifactDriftTests.UploadAction"/>): the
+    /// <c>path:</c> value, or each line of a <c>path: |</c> block.</summary>
     private static IEnumerable<string> UploadPaths(List<List<string>> job)
     {
-        foreach (var step in job.Where(s => s.Any(l => l.Contains("actions/upload-artifact", StringComparison.Ordinal))))
+        foreach (var step in job.Where(s => s.Any(l => l.Contains(CiArtifactDriftTests.UploadAction, StringComparison.Ordinal))))
         {
             int at = step.FindIndex(l => l.TrimStart().StartsWith("path:", StringComparison.Ordinal));
             if (at < 0) continue;
