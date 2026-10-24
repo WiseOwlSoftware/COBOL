@@ -428,7 +428,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         if (a.Omitted || a.Mode is not CobolPassMode.Content || a.Formal is not null) return built;
         // A boolean expression's value is its '0'/'1' text, a boolean literal's too (docs/CONFORMANCE.md D-B3); a boolean or national
         // FUNCTION value (usage bit / national, StaticUsageOf) also states its representation (kb/Work PB3587).
-        if (a.ContentBool is not null) return RuntimeApi.ArgWithValueSending(built, null);
+        if (a.ContentBool is not null) return RuntimeApi.ArgWithValueSending(built, null, approximate: false);
         if (a.Value is BoundComputedOperand computed) return RuntimeApi.ArgWithValueSending(built, OperandText.StorageImageConverter(computed), approximateReal);
         string? sending = a.Place is { } p ? PlaceSending(p) : a.Value switch
         {
