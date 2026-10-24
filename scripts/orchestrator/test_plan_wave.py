@@ -713,8 +713,8 @@ check("a fleet stop is STOP-<scope>", coord.fleet_stop(pathlib.Path("S"), "loop"
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/Cobol.Net.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
-#     host-I-O spec says run the unit and conformance legs from WSL after the Windows gate, any other keeps the
-#     landing's Linux gate; check_practices refuses a spec whose paragraph is not its group's.
+#     host-I-O spec says run the unit and conformance legs from WSL after the Windows gate, any other says the
+#     targeted Linux half runs inside its own gate (the landing runs no Linux gate: kb/Work PB3612); check_practices refuses a spec whose paragraph is not its group's.
 check("host_io: a file under src/Cobol.Net.Runtime/IO/ sets it, either separator",
       (mds.host_io(["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"]), mds.host_io(["src\\Cobol.Net.Runtime\\IO\\Sharing\\X.cs"])),
       (True, True))

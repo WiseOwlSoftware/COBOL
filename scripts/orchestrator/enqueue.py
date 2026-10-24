@@ -45,7 +45,9 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
      seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
      also changes (a true textual merge in a shared file: `merge_overlap`, set aside the files a merge driver merges
-     by key and the inert ones no test reads), the one gate runs once on the merged head. THAT RUN is read by the
+     by key and the inert ones no test reads), the one gate runs once on the merged head. "Changed" is read against
+     the head the covering record measured, so a re-run after a run whose gate was BUSY or NOT RUN (it left the merge
+     commit) gates just the same. THAT RUN is read by the
      gate driver's one reader (`run_gate_legs.read_verdict`), under the shared gate slot (build-local takes its own;
      no row runs while one would run outside it, kb/Work PB3104). BUSY — another gate holds the worktree's gate
      lock: it measured nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527). NOT RUN
@@ -633,6 +635,7 @@ class Tested(NamedTuple):
     """Whether a branch's tip has a recorded local gate (`tested_locally`), and what to say about it."""
     ok: bool
     text: str
+    gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
 
 
 def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
@@ -681,7 +684,8 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
         else:
             half = "inert lane, no Linux half" if rec.get("lane") == "inert" else (
                 "Linux half GREEN" if linux_half else "Linux host: its own legs")
-            return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})")
+            return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
+                          str(gated))
         why.append(f"{run.name}: {problem}")
     return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]))
 
@@ -819,9 +823,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     if files := merge_main(wt, branch, base):
         return conflicted(files, "before the queue")
     # 3. A gate only where nothing else has tested the tree: the lanes no one gates, and a merge that changed a file the
-    # branch also changes.
-    if not gate_why and _git(wt, "rev-parse", "HEAD").stdout.strip() != here.head \
-            and (shared := merge_overlap(wt, here.head, base)):
+    # branch also changes. "Changed" is read against the head the RECORD measured (proof.gated), never against this run's
+    # start: a re-run after an earlier run made the overlapping merge commit, whose gate came back BUSY or NOT RUN, starts
+    # at that merge commit, and the shared file must still be re-tested (kb/Work PB3612, review R1-1).
+    tested_head = proof.gated or here.head
+    if not gate_why and _git(wt, "rev-parse", "HEAD").stdout.strip() != tested_head \
+            and (shared := merge_overlap(wt, tested_head, base)):
         gate_why = (f"bringing main in changed {len(shared)} file(s) the branch also changes ({', '.join(shared[:3])}"
                     f"{', …' if len(shared) > 3 else ''}): a true textual merge in a shared file, which a developer "
                     "re-tests")
@@ -1513,6 +1520,27 @@ def self_test() -> int:
         expect("land: bringing main in over files the branch does not change runs no gate (the merge queue tests the "
                "merge) and the landing's record says none (kb/Work PB3612)",
                rc_disjoint == 0 and not ran and measured_ov == [0], f"{rc_disjoint} {ran} {measured_ov}")
+        # Review R1-1: the overlapping merge commit exists after a run whose gate came back BUSY; the re-run starts at it.
+        main_moves("shared2.txt", chr(10).join(f"line {i}" for i in range(1, 10)) + chr(10))
+        assert fetch_main(lw) is None
+        merge_main(lw, "fix", base_ref)
+        (lw / "shared2.txt").write_text(chr(10).join(["the branch's line 1", *(f"line {i}" for i in range(2, 10))]) + chr(10),
+                                        encoding="utf-8", newline="\n")
+        fix.git("commit", "--quiet", "-am", "the branch edits the top of shared2.txt")
+        gated_head = fix.git("rev-parse", "HEAD")
+        main_moves("shared2.txt", chr(10).join([*(f"line {i}" for i in range(1, 9)), "main's line 9"]) + chr(10))
+        assert fetch_main(lw) is None
+        covered = lambda w, head, base: Tested(True, "planted: a GREEN gate at the pre-merge head", gated_head)   # noqa: E731
+        ran, stamped, measured_ov = [], [], []
+        rc_first = run_land(gates=gates_of([("Windows", held_line)], ran), stamped=stamped, tested=covered)
+        merge_commit = fix.git("rev-parse", "HEAD")
+        ran, measured_ov = [], []
+        rc_again = run_land(gh=fake_gh(prs, []), gates=gates_of(green, ran), tested=covered,
+                            measure=lambda w, b, n, g: measured_ov.append(g))
+        expect("land: a re-run after the run that made the overlapping merge commit (its gate BUSY) still runs the one "
+               "gate, against the head the record measured, not the head the re-run started at (kb/Work PB3612 review R1-1)",
+               rc_first == EXIT_GATE_BUSY and not stamped and merge_commit != gated_head
+               and rc_again == 0 and ran == [1] and measured_ov == [1], f"{rc_first} {stamped} {rc_again} {ran} {measured_ov}")
         # Set aside: a file a merge driver merges by key, one no test reads, and a file only one side changed.
         sets = scratch.worktree(root / "sets-wt", branch="sets", start="main")
         sw = sets.path
