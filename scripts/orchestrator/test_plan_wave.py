@@ -209,7 +209,7 @@ p5r = pw.plan(notes, CLUSTERS, HALF, rv_reports, lambda b: "UNLANDED", {}, RULES
 g5r = next((g for g in p5r["groups"] if "PB5" in g.notes), None)
 check("a FINDINGS stamp is a finisher whose pred names the findings file and the answer rule",
       (g5r.kind if g5r else None, bool(g5r) and all(s in g5r.pred for s in ("review-w1062-e.jsonl", "no_change_needed",
-                                                                              "git merge worktree-wf_rv-1"))),
+                                                                              "merge_drivers.py merge worktree-wf_rv-1"))),
       ("finisher", True))
 check("a CLEAN stamp awaits landing", p5r["awaiting_landing"].get("worktree-wf_rv-2"), ["PB7"])
 check("a placeholder Review line stamps nothing", pw.parse_review("**Review:** stamped by the branch reviewer"), None)
@@ -565,12 +565,12 @@ check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == 
 for mode, pm in (("every mode", pn), ("drain", pd)):
     g79 = next((g for g in pm["groups"] if g.notes == ["PB79"]), None)
     check(f"{mode}: a carried unseen-lead FINDINGS gets its finisher, its pred naming the carrier (R1-2)",
-          bool(g79) and ("git merge worktree-wf_dr-5" in g79.pred, "contained in worktree-wf_dr-2" in g79.pred,
+          bool(g79) and ("merge_drivers.py merge worktree-wf_dr-5" in g79.pred, "contained in worktree-wf_dr-2" in g79.pred,
                          "never worktree-wf_dr-2" in g79.pred, "review_findings.py show E:/s/r79.jsonl" in g79.pred),
           (True, True, True, True))
 g5n = next((g for g in pn["groups"] if "PB5" in g.notes), None)
 check("every mode: a carried SPLIT's finisher merges its carrier, never cherry-picks it",
-      bool(g5n) and "git merge worktree-wf_dr-2" in g5n.pred and "cherry-pick its unlanded" not in g5n.pred, True)
+      bool(g5n) and "merge_drivers.py merge worktree-wf_dr-2" in g5n.pred and "cherry-pick its unlanded" not in g5n.pred, True)
 check("without --drain nothing waits on the drain", (pn["drain_not_started"], any("DRAIN" in g.pred for g in pn["groups"])),
       ([], False))
 # R1-1: the review finisher of owner-task's FINDINGS works on its OWN branch, and its later report about the same
@@ -608,7 +608,7 @@ for successor, carried, want in (
                   (g77, ps["awaiting_landing"].get("worktree-wf_f-1")), ([], ["PB77"]))
         else:
             check(f"{mode}: the successor's own FINDINGS gets the next finisher (R1-1)",
-                  [("review-wf_f-1.jsonl" in g.pred, "git merge worktree-wf_f-1" in g.pred) for g in g77], [(True, True)])
+                  [("review-wf_f-1.jsonl" in g.pred, "merge_drivers.py merge worktree-wf_f-1" in g.pred) for g in g77], [(True, True)])
 
 # 6c. A NOTE AN UNREPORTED DISPATCH HOLDS IS NOT PLANNED AGAIN, IN EITHER LANE (kb/Work PB2806): the fix lane read no
 #     ledger, and wave 1044 re-planned seven of the eight groups another session's recorded, unlaunched wave 1045 held.
@@ -1130,7 +1130,7 @@ check("fix lane: a group meeting only a FINISHED branch is planned as its contin
       (("PB5",) in FG, FG.get(("PB5",)) and FG[("PB5",)].after, FG.get(("PB5",)) and FG[("PB5",)].continues),
       (True, "", ["worktree-done"]))
 check("... its pred says merge that branch first and names the shared file",
-      all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "git merge", "worktree-done", "w1090c", F_BIND)), True)
+      all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "merge_drivers.py merge", "worktree-done", "w1090c", F_BIND)), True)
 check("fix lane: a dispatch of the group's OWN notes never defers it (the hold already decided them)",
       ("PB9",) in FG, True)
 check("fix lane: a group meeting another dispatch's RUNNING group waits, naming it",
