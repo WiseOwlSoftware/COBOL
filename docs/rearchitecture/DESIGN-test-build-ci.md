@@ -964,7 +964,22 @@ because the raw name is not stable (`b7`):
   the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
   `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
+  a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
+  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
+  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
+  test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
+  (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
+  class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
+  every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
+  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
+  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
+  spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
+  the `Sweep` trait).
+  **Measured cost** (the Unit assembly, the
   shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
   49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
   change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
@@ -1651,6 +1666,26 @@ their own repositories and seven carried a git helper of their own, each with it
 over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
 `"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
 maintenance settings) to that one file.
+
+**5. One git process per question kind, never one per object (kb/Work PB3582).** A Windows process start costs tens of
+milliseconds where Linux pays about one, so a script that asks git one question per branch, commit, pair or file is
+bounded by process creation: merge-group run 40004159292 summed the script self-tests at 1,444 s on CI's Windows runner
+and 144 s on Linux, and GIT_TRACE2 counted 3,048 git processes in `prune_worktrees.py`'s self-test, 1,471 in
+`landing_check.py`'s, 646 in `enqueue.py`'s and 363 in `devlog.py`'s, nearly all one question about one object. The
+same loops are the session probe's survey, the landing check and the planner's in-flight sets, so every session paid
+it. `scripts/git_batch.py` answers a whole list from one process each: `Ancestry` (one `cat-file --batch-check` resolve
+and one `git log --stdin <tips> --not <base>`: every commit the tips reach beyond origin/main with its parents, tree,
+date and subject, so `on_base`, `beyond`, `is_ancestor`, the count ahead and the subjects are read from memory; a tip
+that names no commit raises, never reads "on the base"), `diff_names` / `diff_patches` (one `diff-tree --stdin
+--always` over `<commit> <parent>` pairs: one header per pair in input order, empty diffs included) and `object_ids`
+(one `cat-file --batch-check` over `<rev>:<path>`). The survey reads every branch's tip and last commit from one
+`for-each-ref` and every row's ancestry (MERGED, ahead, the review's coverage, `contained`, `carrying_findings`) from
+one graph; the landing check charges each commit through the two batched diffs and reads `depends` from the graph; the
+in-flight sets read each worktree with one `status` and every unmerged branch from one `for-each-ref --no-merged`;
+the planner's classifier, carrier rule and `add_closed_notes` share one graph of the local branches. Each reader is
+held to the one-process-per-object form it replaces by `git_batch.py --self-test`, and `GitBatchDriftTests` keeps the
+per-object ancestry questions out of the survey, the landing check and the planner. Measured on the batched readers:
+1,246, 846, 510 and 286 processes for the same four self-tests.
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm

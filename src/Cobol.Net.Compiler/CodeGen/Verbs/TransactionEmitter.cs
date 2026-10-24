@@ -45,7 +45,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         // it (DESIGN-runtime-library.md 2.2.1.10, "What the program is told"): true when this element stored it.
         using (w.Block("private bool __CommitStatus(string __file)"))
         {
-            foreach (var file in clause.CommitControlledFiles)
+            foreach (var file in clause.Files)
                 using (w.Block($"if (__file == {FileKeyExpr(file)})"))
                 {
                     seqIo.EmitStoreFileStatus(file);
@@ -64,7 +64,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         if (Clause is not { } clause) return;
         using (w.Block("if (!__applyCommitActive)"))
         {
-            string files = "new string[] { " + string.Join(", ", clause.CommitControlledFiles.Select(FileKeyExpr)) + " }";
+            string files = "new string[] { " + string.Join(", ", clause.Files.Select(FileKeyExpr)) + " }";
             w.Line($"__applyCommitActive = {RuntimeApi.ActivateApplyCommit(files, "__CommitSave", "__CommitRestore", "__CommitStatus")};");
         }
     }
