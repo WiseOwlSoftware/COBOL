@@ -58,6 +58,17 @@ cost the orchestrator a hand-written groups.json; this computes it.
    that branch), and an unlanded
    branch's finisher on the same terms; never a cluster, a half note's open half, or a note a report left NOT
    started (each waits, with the reason). Every finisher's pred says so.
+10. A BRANCH ANOTHER BRANCH REPLAYS IS NEVER PLANNED FROM (kb/Work PB3170). The pred above tells a SPLIT successor to
+   CHERRY-PICK its predecessor, so the successor holds the predecessor's work as other commits and is no descendant of
+   it: the carrier rule of item 9 (a DONE branch that contains another) cannot see it. `branch_replays` reads the
+   commits of every unlanded branch beyond origin/main by PATCH ID (git_batch.patch_ids, one batched read), the rule
+   `git cherry` uses for LANDED (prune_worktrees.carried). A branch every commit of which an OUTRANKING branch holds
+   (more distinct patches, then the later report: no two branches carry each other) is planned no finisher: its notes
+   go to the group of the UNCARRIED branch that replays the most of it (never a carried middle link of a successor
+   chain), or wait while that branch has none. A branch only partly
+   replayed is still planned, its pred naming only the commits no other branch holds. A branch a kb/Work note
+   records ABANDONED (prune_worktrees.abandon_records, the survey's own matcher) is never planned from: its reports and
+   its notes are not read.
 
 --cluster LEAD plans a CAMPAIGN wave instead (design section 9.1, kb/Work PB2120): the notes are work.py's
 cluster_order() of LEAD (every open note whose `cluster` names it, whatever its harm flags), clustered on the sites
@@ -129,18 +140,21 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE.parent / "spec"))
+import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
+if TYPE_CHECKING:
+    from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
 
 REPO = coord.REPO
 FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "references" / "fix_clusters.py"
@@ -502,6 +516,25 @@ def branch_carrier(reports: list[Report], classify: Callable[[str], str],
                                   is_ancestor(branch, c)), None)
         return cache[branch]
     return carried
+
+
+def branch_replays(reports: list[Report], classify: Callable[[str], str], unlanded: Mapping[str, Any],
+                   graph: "git_batch.Ancestry", abandoned: set[str]) -> Callable[[str], "Replay | None"]:
+    """branch -> how far OTHER unlanded branches replay its commits (prune_worktrees.Replay), or None for a branch the
+    rule did not read. THE ONE RULE for "this branch's work is carried elsewhere" (kb/Work PB3170): `branch_carrier`
+    sees only a DONE branch that CONTAINS another, but the planner's own FINISH-FIRST pred tells every SPLIT successor
+    to CHERRY-PICK its predecessor (never merge it), so the successor holds the predecessor's work as other commits and
+    is no descendant of it: wave 1079 planned PB3127 from `…-28e-2`, whose four commits `…-3a0-2` (another SPLIT
+    report's branch, planned in the same wave) replayed. A branch carries work when it is unlanded and has a report of
+    ANY status; a branch recorded ABANDONED carries nothing, and is no source either. `rank` is the position of the
+    branch's newest report in `reports` (oldest first), so of two branches that hold the same work the later report's
+    carries it."""
+    import prune_worktrees  # noqa: PLC0415
+    rank = {r.branch: i for i, r in enumerate(reports) if r.branch}
+    carriers = [b for b in rank if b not in abandoned and classify(b) not in LANDED_CLASSES]
+    found = prune_worktrees.replays(sorted(set(carriers) | {b for b in unlanded if b not in abandoned}), carriers,
+                                    lambda b: rank.get(b, -1), graph)
+    return found.get
 
 
 def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[str, list[str]]:
@@ -1142,17 +1175,30 @@ def landing_cost(rules: dict[str, Any]) -> float:
     return c["landing_tokens"] / rules["calibration"]["tokens_per_point"][c["landing_model"]]
 
 
-def branch_resume(branch: str, nid_list: list[str]) -> str:
+def replay_clause(replay: "Replay | None") -> str:
+    """What a finisher is told when OTHER unlanded branches replay some of the branch's commits (kb/Work PB3170): take
+    only the commits no outranking branch holds, because the branches that hold the rest are planned from and land them,
+    and a second copy would land twice. Empty when nothing is replayed."""
+    if not replay or not replay.by:
+        return ""
+    held = ", ".join(f"{b} ({n})" for b, n in replay.by)
+    return (f" {len(replay.fresh)} of its commits are in no other branch ({', '.join(c[:9] for c in replay.fresh)}): "
+            f"cherry-pick ONLY those; the others are replayed on {held} (patch-equivalent commits), which carry them to "
+            f"main, and picking them again would land them twice.")
+
+
+def branch_resume(branch: str, nid_list: list[str], replay: "Replay | None" = None) -> str:
     return (f"Branch {branch} carries unlanded work for {', '.join(nid_list)} with no report. Run "
             f"`python tools/claude-skills/skills/agent-fleet/references/status_delta.py <its worktree>` if the "
             f"worktree still exists, read its STATUS.md, cherry-pick its commits onto current main (never merge the "
-            f"branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots.")
+            f"branch), resolve conflicts against the spec, re-gate, then finish the notes at their roots."
+            + replay_clause(replay))
 
 
 def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: list[str],
-                  carried_by: str | None = None) -> str:
+                  carried_by: str | None = None, replay: "Replay | None" = None) -> str:
     if rep is None:
-        return "FINISH-FIRST: " + branch_resume(branch or "?", nid_list)
+        return "FINISH-FIRST: " + branch_resume(branch or "?", nid_list, replay)
     if rep.finished and rep.review and rep.review.verdict == "FINDINGS":
         return (f"FINISH-FIRST: the branch review of {rep.slug} ({rep.lead}) found {rep.review.findings} finding(s) at "
                 f"head {rep.review.sha}: the records of kind `finding` in {rep.review.file} "
@@ -1170,6 +1216,7 @@ def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: li
                 f"branch (never cherry-pick {rep.branch}: its commits would land twice) and re-gate before new work."
                 if carried_by else
                 "cherry-pick its unlanded commits onto current main (never merge the branch) and re-gate before new work."
+                + replay_clause(replay)
                 if cls in ("UNLANDED", "CHECK") else
                 "its landed part is already on main, so orient from the report only."))
     return (f"FINISH-FIRST: predecessor {rep.slug} ({rep.lead}) returned {rep.status or 'an unfinished report'} for "
@@ -1185,7 +1232,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          held: dict[str, str] | None = None, drain: bool = False,
          carrier: Callable[[str], str | None] | None = None,
          owned: set[str] | None = None,
-         review_covers: Callable[[Report], bool] | None = None) -> dict[str, Any]:
+         review_covers: Callable[[Report], bool] | None = None,
+         replay: "Callable[[str], Replay | None] | None" = None,
+         abandoned: set[str] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -1213,6 +1262,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     PB3311). A FINDINGS branch that a carrier merely contains is not owned, and gets its finisher with the carrier
     named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1).
 
+    `replay` (branch_replays) says how far OTHER unlanded branches replay a branch's commits, and `abandoned` is the set
+    of branches a kb/Work note records ABANDONED (prune_worktrees.abandon_records); both are kb/Work PB3170. An
+    abandoned branch is never planned from: its reports and its notes are not read. A SPLIT, NOT STARTED or GATE-ENDED
+    report whose unlanded branch is fully replayed by branches that outrank it is planned NO finisher: its notes go to
+    the finisher of the branch that replays the most of it (the group's notes), or wait while that branch's report is
+    not a finisher candidate. A branch only partly replayed keeps its finisher, whose pred names the commits no other
+    branch holds (replay_clause). Without `replay` and `abandoned` nothing here changes the plan.
+
     `review_covers(report)`: its review stamp COVERS its branch's tip (prune_worktrees.stamp_covers over the survey's
     tips, the one coverage rule the branch survey's lifecycle reads; kb/Work PB3394). Only a FINDINGS stamp that covers
     the tip makes a review finisher; a stamp at an older head followed by real commits is WAITING FOR REVIEW (those
@@ -1221,6 +1278,12 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
     review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
+    replay = replay or (lambda _b: None)
+    abandoned = abandoned or set()
+    # AN ABANDONED BRANCH IS NEVER PLANNED FROM (kb/Work PB3170): the decision is recorded in kb/Work before the branch
+    # is deleted, and until then its report would still be a note's newest, planning a finisher on work nobody carries.
+    # Its reports stay in `reports` (the routing counts them as failed attempts); every planning arm reads `live`.
+    live = [r for r in reports if not (r.branch and r.branch in abandoned)]
     wave_rules = rules["wave"]
     cap = wave_rules["max_notes_per_group"]
     open_ids = {n["id"] for c in clusters + half_clusters for n in c["notes"] if n["id"] in notes}
@@ -1250,12 +1313,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # (branch_carrier) does not, and is named in its finisher's pred instead (review R1-1, R1-2). Every arm below that
     # asks "is this note the planner's to decide" reads `leads`, never `open_ids`: the dispatch hold, the frontier-model
     # hold and an unlanded branch's notes (review R2-1). Only the clusters' own arms read the clusters.
-    leads = open_ids | {r.lead for r in reports if r.review and r.review.verdict == "FINDINGS" and
+    leads = open_ids | {r.lead for r in live if r.review and r.review.verdict == "FINDINGS" and
                         r.lead not in open_ids and r.lead in notes and
                         stamped(r, classify(r.branch) if r.branch else "ABSENT")}
-    unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()}
+    # A branch another branch replays in full is planned from through THAT branch (kb/Work PB3170): its commit subjects
+    # name the same notes, so the carrier's own entry plans them; two finishers on one note's commits land them twice.
+    unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()
+                if b not in abandoned and not ((rp := replay(b)) and rp.carrier)}
     newest: dict[str, Report] = {}
-    for r in reports:  # sorted oldest first, so the last write wins
+    for r in live:  # sorted oldest first, so the last write wins
         for i in r.notes:
             if i in leads:
                 newest[i] = r
@@ -1271,6 +1337,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
 
     awaiting: dict[str, list[str]] = {}
     finisher_by_rep: dict[pathlib.Path, list[str]] = {}
+    replayed_to: dict[str, tuple[Report, str]] = {}   # note -> (its newest report, the branch that replays its branch)
     waiting: dict[str, str] = {}
     for nid, r in newest.items():
         cls = classify(r.branch) if r.branch else "ABSENT"
@@ -1306,13 +1373,32 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                             f"the verdict; a GREEN one finishes the report, any other end plans a finisher")
         elif (r.status in FINISH_STATUSES or r.gate_state == "ENDED" or (cls in LANDED_CLASSES and r.not_started)
               or findings(r, cls)):
-            if drain and not findings(r, cls) and (why := drained(r.branch, cls)):
+            if (not findings(r, cls) and cls not in LANDED_CLASSES and not carrier(r.branch or "")
+                    and (rp := replay(r.branch or "")) and rp.carrier):
+                # THE BRANCH'S WORK IS REPLAYED ELSEWHERE (kb/Work PB3170): a SPLIT successor cherry-picks its
+                # predecessor, so `carrier` (a DONE branch that CONTAINS this one) cannot see it. The note rides on
+                # the branch that replays it, below.
+                replayed_to[nid] = (r, rp.carrier)
+            elif drain and not findings(r, cls) and (why := drained(r.branch, cls)):
                 waiting[nid] = why
             else:
                 finisher_by_rep.setdefault(r.path, []).append(nid)
         elif cls not in LANDED_CLASSES:
             awaiting.setdefault(r.branch or str(r.path), []).append(nid)
 
+    # THE NOTES THAT RIDE ON A REPLAYING BRANCH (kb/Work PB3170) go to that branch's report: its finisher, when its
+    # newest report is one, takes them into its group (the commits are already on its branch); otherwise they wait for
+    # it, because a finisher of their own would cherry-pick the same commits onto main beside it.
+    rep_of_branch = {r.branch: r for r in live if r.branch}   # oldest first: the newest report of each branch
+    riders: dict[pathlib.Path, dict[str, list[str]]] = {}
+    for nid, (r, to) in replayed_to.items():
+        if (rc := rep_of_branch.get(to)) and rc.path in finisher_by_rep:
+            finisher_by_rep[rc.path].append(nid)
+            riders.setdefault(rc.path, {}).setdefault(r.branch or "?", []).append(nid)
+        else:
+            waiting[nid] = (f"its branch {r.branch} is replayed by {to} (every commit is on it, patch-equivalent or "
+                            f"identical), whose report is not a finisher candidate yet: planning {r.slug}'s finisher "
+                            f"would land the same commits twice; it is planned again once {to} lands (kb/Work PB3170)")
     taken: set[str] = {i for ids in awaiting.values() for i in ids} | set(waiting)
     # A note an unreported dispatch holds is another agent's, or a planned wave's not launched yet (kb/Work PB2806).
     for nid in sorted(leads & set(held or {}) - taken, key=work.id_order):
@@ -1338,7 +1424,11 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         if ids:
             groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
                                 sorted({f for i in ids for f in note_files.get(i, [])}),
-                                pred=finisher_pred(rep, rep.branch, cls, ids, carried_by=by),
+                                pred=finisher_pred(rep, rep.branch, cls, ids, carried_by=by,
+                                                   replay=replay(rep.branch or "")) +
+                                "".join(f" Notes {', '.join(n)} ride on this branch: it replays every commit of {b} "
+                                        f"(kb/Work PB3170), so {b} gets no finisher of its own."
+                                        for b, n in riders.get(path, {}).items()),
                                 continues=[b for b in (rep.branch, by) if b]))
             taken |= set(ids)
     # A half note may also sit on an unlanded branch (a killed wave's WIP): its group carries that branch's resume
@@ -1353,7 +1443,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                                 pred=("FINISH-FIRST: " + ", ".join(chunk) + (" is" if len(chunk) == 1 else " are") +
                                       " `status: half`: read each note's record of the landed half and its kb/Work "
                                       "history before touching code; finish the open half at its root." +
-                                      "".join(" " + branch_resume(b, ids) for b, ids in on_branch.items())),
+                                      "".join(" " + branch_resume(b, ids, replay(b)) for b, ids in on_branch.items())),
                                 continues=list(on_branch)))
             taken |= set(chunk)
     for branch, ids in sorted(unlanded.items()):
@@ -1365,7 +1455,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         if ids:
             groups.append(Group("finisher", ids[:cap], note_file.get(ids[0], ""),
                                 sorted({f for i in ids[:cap] for f in note_files.get(i, [])}),
-                                pred=finisher_pred(None, branch, "UNLANDED", ids[:cap]), continues=[branch]))
+                                pred=finisher_pred(None, branch, "UNLANDED", ids[:cap], replay=replay(branch)),
+                                continues=[branch]))
             taken |= set(ids[:cap])
 
     def rows(ids: list[str]) -> int:
@@ -1704,6 +1795,8 @@ def main(argv: list[str] | None = None) -> int:
                     "(review findings, and unlanded unfinished branches no DONE branch carries); never a cluster or a "
                     "note no report started (kb/Work PB3150)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-stale", action="store_true", help="plan from a checkout BEHIND the commit the loop adopted "
+                    "(adopt_main.py); without it the planner refuses and names both shas (kb/Work PB2699)")
     ap.add_argument("--release", metavar="SEL", help="drop the dispatch-ledger entries of an ABORTED dispatch and exit: "
                     "a wave (1040), a group (1040a) or a note id (PB2249); exit 1 when nothing matched")
     ap.add_argument("--finished", metavar="REPORT", help="is this fix-lane report FINISHED (Report.finished: DONE, or "
@@ -1738,6 +1831,12 @@ def main(argv: list[str] | None = None) -> int:
                                a.stop_file and coord.fleet_stop_problem(a.stop_file),
                                a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
         print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
+    # A STALE CHECKOUT PLANS FROM A STALE REGISTER AND RUNS A STALE PLANNER (kb/Work PB2699: wave 1042 planned seven commits
+    # behind; wave 1079 ran a planner older than the one main carried). The supervisor fast-forwards the checkout before
+    # each unit (adopt_main.py); a planner whose checkout lacks the adopted commit refuses, naming both shas.
+    if not a.allow_stale and (stale := adopt_main.require_current(REPO, coord.coord_dir(a.coord))):
+        print(f"⛔ {stale}")
         return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
@@ -1782,12 +1881,16 @@ def main(argv: list[str] | None = None) -> int:
     reports_dir = pathlib.Path(a.reports) if a.reports else coord.reports_dir(a.coord)
     reports = load_reports(reports_dir, cdir)
     if a.no_branches:
-        classify, unlanded, carrier = (lambda _b: "ABSENT"), {}, None
+        classify, unlanded, carrier, replay, abandoned = (lambda _b: "ABSENT"), {}, None, None, set()
     else:
         import prune_worktrees  # noqa: PLC0415  (its git runner, reused)
         local, graph = local_branches()
         classify, unlanded = git_branch_classifier(local, graph), unlanded_branch_notes(local, graph)
         carrier = branch_carrier(reports, classify, graph.is_ancestor)
+        abandoned = set(prune_worktrees.abandon_records(
+            sorted({r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES} | set(unlanded)),
+            REPO / "kb" / "Work"))
+        replay = branch_replays(reports, classify, unlanded, graph, abandoned)
         notes.update(branch_lead_notes(reports, notes, harm_weights(), prune_worktrees.git))
         add_closed_notes(reports, classify, prune_worktrees.git, graph.is_ancestor)
     items = work.load()
@@ -1818,7 +1921,7 @@ def main(argv: list[str] | None = None) -> int:
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned, review_covers=review_covers)
+             owned=owned, review_covers=review_covers, replay=replay, abandoned=abandoned)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
