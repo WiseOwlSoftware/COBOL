@@ -46,3 +46,6 @@ it. Neither closes an inventory row (test-gate tooling).
 
 **Siblings left open, by design.** A merge-queue bounce's reds live in GitHub's CI run, not the worktree. The Linux
 gate's `selftests` and `guard` legs write no trx, and a self-test whose inputs changed re-runs at the next gate anyway.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,360 · Unit 1,369 · Characterization 31 … — Conformance 9,983/18,343 · Unit 34,455/35,824 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) … run 000002-20261024T021714Z) ===`; the new `GateLegDriftTests.EveryTrxWriter_IsARedSourceOfThePlan_OrSaysWhyNot` ran in
+leg 1 and passed.
