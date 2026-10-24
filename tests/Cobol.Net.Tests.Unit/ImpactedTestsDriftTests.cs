@@ -47,7 +47,17 @@ public sealed class ImpactedTestsDriftTests
             "a runtime data file", "an added test method is named for tier 0a",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
             "a changed static constructor", "no map for the base puts every test in tier 1",
-            "a documentation-only older map is used", "a STALE map is returned for its durations");
+            "a documentation-only older map is used", "a STALE map is returned for its durations",
+            // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
+            // the change removes (kb/Work PB3131)
+            "a changed file names every drift test the index says governs it",
+            "a change to the file a sweep sets aside by name",
+            "a deleted member a register cites as path#member", "a member removed from a #Class.Member chain",
+            "a renamed test a register cites as Class.Method", "a deleted suite test a register cites by its stem",
+            "a removal no register cites names no drift test", "a change that removes nothing a citation can name",
+            "a diff's removed lines are read per file",
+            "reach_of puts the drift test of a register citing a removed member in tier 0d",
+            "the real inventory: renaming a test it cites names SpecTraceabilityInventoryDriftTests");
     }
 
     [Fact]
