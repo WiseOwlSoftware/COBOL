@@ -1,4 +1,4 @@
-## A branch is gated locally once, at its head; the landing reads the record and gates nothing (PB3612)
+## Entry 2484 — 2026-10-24 14:59 PDT — A branch is gated locally once, at its head; the landing reads the record and gates nothing (PB3612)
 
 kb/Work PB3612 (owner decision 2026-10-23 ~20:40 PDT, after "Taking one hour to finish a branch is stupidly ridiculously
 slow … Developers merge separate branches into a continually moving main all the time without problems. Maybe the rare
@@ -94,3 +94,4 @@ another Linux gate of the worktree runs, and this branch runs that script inside
 Linux-half reader called every reading that was not GREEN or NOT RUN a red, so a BUSY Linux half would have been a RED
 gate and a finisher sent to fix nothing. `run_gate_legs._linux_leg` now ends such a gate BUSY, with BUSY's own exit,
 under a new self-test arm.
+
