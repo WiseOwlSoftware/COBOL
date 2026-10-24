@@ -46,7 +46,6 @@ import select
 import struct
 import subprocess
 import sys
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -260,48 +259,39 @@ def self_test() -> int:
     expect("an empty change is the full lane", c.classify([]).inert, False)
     expect("an all-inert change is the inert lane", c.classify(["DEVLOG/pending-x.md", "kb/Spec/y.md"]).name, "inert")
     expect("one path a test may read makes the change full", c.classify(["DEVLOG/a.md", "kb/Work/PB1.md"]).name, "full")
-    with tempfile.TemporaryDirectory(prefix="inert-lane-") as d:
-        root = Path(d)
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
 
-        def git(*a: str) -> str:
-            return subprocess.run(["git", "-C", d, *a], capture_output=True, check=True, text=True).stdout.strip()
-
-        git("init", "-q")
-        git("config", "user.email", "self-test@example.invalid")
-        git("config", "user.name", "self-test")
-        for rel in ("src/a.cs", "DEVLOG/0001-x.md", "kb/Work/PB1.md", "kb/Spec/s.md"):
-            (root / rel).parent.mkdir(parents=True, exist_ok=True)
-            (root / rel).write_text(rel + "\n", encoding="utf-8", newline="\n")
-        git("add", "-A")
-        git("commit", "-q", "-m", "base")
-        base = git("rev-parse", "HEAD")
-        git("mv", "src/a.cs", "DEVLOG/a.cs")
-        git("commit", "-q", "-m", "rename")
-        expect("a code file renamed INTO an inert directory shows both names, so the change is full",
-               (sorted(changed(root, base)), c.classify(changed(root, base)).name),
-               (["DEVLOG/a.cs", "src/a.cs"], "full"))
-        expect("the watch covers the directory of every inert tracked file, none above them, the READ ones excluded",
-               c.watch_dirs(root), ["DEVLOG", "kb/Spec"])
-        expect("check: an entry naming no tracked path is stale, and so is a READ entry under no INERT one",
-               len(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}).check(root)), 3)
-        if sys.platform.startswith("linux"):
-            py = [sys.executable, "-c"]
-            out: list[str] = []
-            expect("a command that reads an inert file is RED, naming it",
-                   (watch(root, py + [f"open({str(root / 'DEVLOG' / '0001-x.md')!r}).read()"], None, out.append, c) != 0,
-                    any("opened: DEVLOG/0001-x.md" in s for s in out)), (True, True))
-            out.clear()
-            expect("a command that LISTS an inert directory is RED",
-                   (watch(root, py + [f"import os; os.listdir({str(root / 'kb' / 'Spec')!r})"], None, out.append, c) != 0,
-                    any("opened: kb/Spec/" in s for s in out)), (True, True))
-            out.clear()
-            events = root / "events.txt"
-            expect("a command that reads only a READ path and code is GREEN, keeps its own exit code, and leaves an "
-                   "empty events file",
-                   (watch(root, py + [f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); raise SystemExit(3)"],
-                          events, out.append, c), events.read_text(encoding="utf-8")), (3, ""))
-        else:
-            print(f"  skip the inotify arms: this host is {sys.platform} (they run in CI's audits job and the Linux gate)")
+    root = scratch_dir("inert-lane-")
+    repo = ScratchRepo.init(root)
+    repo.commit("base", {rel: rel + "\n" for rel in ("src/a.cs", "DEVLOG/0001-x.md", "kb/Work/PB1.md", "kb/Spec/s.md")})
+    base = repo.git("rev-parse", "HEAD")
+    repo.git("mv", "src/a.cs", "DEVLOG/a.cs")
+    repo.commit("rename")
+    expect("a code file renamed INTO an inert directory shows both names, so the change is full",
+           (sorted(changed(root, base)), c.classify(changed(root, base)).name),
+           (["DEVLOG/a.cs", "src/a.cs"], "full"))
+    expect("the watch covers the directory of every inert tracked file, none above them, the READ ones excluded",
+           c.watch_dirs(root), ["DEVLOG", "kb/Spec"])
+    expect("check: an entry naming no tracked path is stale, and so is a READ entry under no INERT one",
+           len(Classification(inert={"DEVLOG/": "", "gone/": ""}, read={"elsewhere/": ""}).check(root)), 3)
+    if sys.platform.startswith("linux"):
+        py = [sys.executable, "-c"]
+        out: list[str] = []
+        expect("a command that reads an inert file is RED, naming it",
+               (watch(root, py + [f"open({str(root / 'DEVLOG' / '0001-x.md')!r}).read()"], None, out.append, c) != 0,
+                any("opened: DEVLOG/0001-x.md" in s for s in out)), (True, True))
+        out.clear()
+        expect("a command that LISTS an inert directory is RED",
+               (watch(root, py + [f"import os; os.listdir({str(root / 'kb' / 'Spec')!r})"], None, out.append, c) != 0,
+                any("opened: kb/Spec/" in s for s in out)), (True, True))
+        out.clear()
+        events = root / "events.txt"
+        expect("a command that reads only a READ path and code is GREEN, keeps its own exit code, and leaves an "
+               "empty events file",
+               (watch(root, py + [f"open({str(root / 'kb' / 'Work' / 'PB1.md')!r}).read(); raise SystemExit(3)"],
+                      events, out.append, c), events.read_text(encoding="utf-8")), (3, ""))
+    else:
+        print(f"  skip the inotify arms: this host is {sys.platform} (they run in CI's audits job and the Linux gate)")
     print(f"=== INERT LANE SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 

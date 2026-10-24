@@ -35,7 +35,6 @@ import argparse
 import os
 import subprocess
 import sys
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -141,50 +140,51 @@ def self_test() -> int:
         if not ok:
             failures.append(label)
 
-    with tempfile.TemporaryDirectory(prefix="conflict-markers-") as d:
-        root = Path(d)
-        for eol in ("\r\n", "\n"):
-            name = "crlf.txt" if eol == "\r\n" else "lf.txt"
-            (root / name).write_bytes(eol.join(["context above", OURS + " HEAD", "our side", BASE + " merged common",
-                                                "the ancestor", SPLIT, "their side", THEIRS + " origin/main",
-                                                "context below"]).encode() + eol.encode())
-            s = scan(root, [name])
-            expect(f"a planted diff3 hunk ({'CRLF' if eol == chr(13) + chr(10) else 'LF'}) fires on all four markers, "
-                   "by line", [(n, m) for _, n, m in s.offenders], [(2, OURS), (4, BASE), (6, SPLIT), (8, THEIRS)])
-        (root / "heading.md").write_bytes(("Title\r\n" + SPLIT + "\r\n\r\nbody\r\n").encode())
-        (root / "table.md").write_bytes(("| a | b |\n| - | - |\n" + BASE + "\n").encode())
-        s = scan(root, ["heading.md", "table.md"])
-        expect("a divider without its brackets is not a conflict (the company rule)", (s.scanned, s.offenders), (2, []))
-        (root / "blob.bin").write_bytes(b"\0\1\2binary\r\n" + (OURS + " HEAD\r\n").encode())
-        s = scan(root, ["blob.bin"])
-        expect("a file with a NUL in its first 8 KB is binary and not scanned", (s.scanned, s.binary, s.offenders),
-               (0, 1, []))
-        (root / "eight.txt").write_bytes(("<" * 8 + "\n" + "=" * 7 + " x\n" + OURS + "x\n").encode())
-        s = scan(root, ["eight.txt"])
-        expect("eight characters, a labelled divider and an opener glued to text are not markers", s.offenders, [])
-        (root / "eof.txt").write_bytes(("text\n" + THEIRS).encode())
-        expect("the end of the file ends the last line as a newline would", [m for _, _, m in scan(root, ["eof.txt"]).offenders],
-               [THEIRS])
-        s = scan(root, ["absent.txt", "lf.txt"])
-        expect("a tracked path absent from the checkout is counted, and the file after it is still swept",
-               (s.missing, len(s.offenders)), (1, 4))
-        (root / "sub").mkdir()
-        s = scan(root, ["sub"])
-        expect("a directory (a gitlink's checkout) is absent, never read", (s.missing, s.unreadable), (1, []))
-        if os.name != "nt" and os.geteuid() != 0:
-            locked = root / "locked.txt"
-            locked.write_bytes(b"plain\n")
-            locked.chmod(0)
-            s = scan(root, ["locked.txt", "lf.txt"])
-            locked.chmod(0o600)
-            expect("a file that exists but cannot be opened is reported, and the sweep goes on",
-                   (len(s.unreadable), len(s.offenders)), (1, 4))
-        # check(): a broken enumeration is RED, never a clean tree — no repository at all, and a repository whose
-        # enumeration finds fewer than MIN_TRACKED paths (the heading file alone, clean)
-        expect("a directory git cannot enumerate is RED", check(root), 1)
-        subprocess.run(["git", "-C", d, "init", "-q"], check=True)
-        subprocess.run(["git", "-C", d, "add", "heading.md"], check=True)
-        expect("an enumeration of too few tracked paths is RED", check(root), 1)
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
+
+    root = scratch_dir("conflict-markers-")
+    for eol in ("\r\n", "\n"):
+        name = "crlf.txt" if eol == "\r\n" else "lf.txt"
+        (root / name).write_bytes(eol.join(["context above", OURS + " HEAD", "our side", BASE + " merged common",
+                                            "the ancestor", SPLIT, "their side", THEIRS + " origin/main",
+                                            "context below"]).encode() + eol.encode())
+        s = scan(root, [name])
+        expect(f"a planted diff3 hunk ({'CRLF' if eol == chr(13) + chr(10) else 'LF'}) fires on all four markers, "
+               "by line", [(n, m) for _, n, m in s.offenders], [(2, OURS), (4, BASE), (6, SPLIT), (8, THEIRS)])
+    (root / "heading.md").write_bytes(("Title\r\n" + SPLIT + "\r\n\r\nbody\r\n").encode())
+    (root / "table.md").write_bytes(("| a | b |\n| - | - |\n" + BASE + "\n").encode())
+    s = scan(root, ["heading.md", "table.md"])
+    expect("a divider without its brackets is not a conflict (the company rule)", (s.scanned, s.offenders), (2, []))
+    (root / "blob.bin").write_bytes(b"\0\1\2binary\r\n" + (OURS + " HEAD\r\n").encode())
+    s = scan(root, ["blob.bin"])
+    expect("a file with a NUL in its first 8 KB is binary and not scanned", (s.scanned, s.binary, s.offenders),
+           (0, 1, []))
+    (root / "eight.txt").write_bytes(("<" * 8 + "\n" + "=" * 7 + " x\n" + OURS + "x\n").encode())
+    s = scan(root, ["eight.txt"])
+    expect("eight characters, a labelled divider and an opener glued to text are not markers", s.offenders, [])
+    (root / "eof.txt").write_bytes(("text\n" + THEIRS).encode())
+    expect("the end of the file ends the last line as a newline would", [m for _, _, m in scan(root, ["eof.txt"]).offenders],
+           [THEIRS])
+    s = scan(root, ["absent.txt", "lf.txt"])
+    expect("a tracked path absent from the checkout is counted, and the file after it is still swept",
+           (s.missing, len(s.offenders)), (1, 4))
+    (root / "sub").mkdir()
+    s = scan(root, ["sub"])
+    expect("a directory (a gitlink's checkout) is absent, never read", (s.missing, s.unreadable), (1, []))
+    if os.name != "nt" and os.geteuid() != 0:
+        locked = root / "locked.txt"
+        locked.write_bytes(b"plain\n")
+        locked.chmod(0)
+        s = scan(root, ["locked.txt", "lf.txt"])
+        locked.chmod(0o600)
+        expect("a file that exists but cannot be opened is reported, and the sweep goes on",
+               (len(s.unreadable), len(s.offenders)), (1, 4))
+    # check(): a broken enumeration is RED, never a clean tree — no repository at all, and a repository whose
+    # enumeration finds fewer than MIN_TRACKED paths (the heading file alone, clean)
+    expect("a directory git cannot enumerate is RED", check(root), 1)
+    repo = ScratchRepo.init(root)
+    repo.git("add", "heading.md")
+    expect("an enumeration of too few tracked paths is RED", check(root), 1)
     print(f"=== CONFLICT MARKERS SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
