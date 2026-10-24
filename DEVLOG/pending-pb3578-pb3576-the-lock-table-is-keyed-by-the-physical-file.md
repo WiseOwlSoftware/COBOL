@@ -41,7 +41,19 @@ witnesses whose assertion described the old ending (re-stated: the transaction s
 PB3533/PB3493 witnesses re-stated for the retire: the replaced file's change COMMITted, the refusals ('39', '61', the refused handle and attach) leaving the retired
 state as the CLOSE left it. Notes: kb/Work/PB3578 and PB3576 landed (`closes_rows: []`: runtime defects with no inventory row); PB3579's names updated.
 
+**Review round 1 (finisher).** R1-1 (blocking): a host that frees a removed file's number and gives it to the next file made (ext4 does, at once) left the
+removed file's state claiming the number, `Learn` refused to rebind it, and the connector that made the file sat in a state no later OPEN or DELETE FILE of the path
+found (a hang in `RETRY FOREVER` where §14.7.9.3 GR3 answers '61' at once; '00' where §9.1.13.9 1) a) requires '61'). `PhysicalFileTable.Learn` now yields the claim
+of a state no connector has open (no handle keeps its number its own, and a file made now cannot be one that already existed); a state a connector has open keeps it.
+Witnesses: `PhysicalFileTableIdentityTests.AFileMadeWithAFreedNumberTakesItFromTheStateOfTheFileThatWasRemoved` (RED with the old `TryAdd`, every host),
+`AStateLearnsItsFileOnce_AndAnOpenStateKeepsItsClaim`, and `CommitRollbackRuntimeTests.A_file_made_with_the_number_of_a_removed_file_is_met_by_the_connector_that_made_it`
+('62', '61'; both organizations). R1-2 (lead): the `_kept` cref to the deleted `TakeKept`, `CarryKeptOver`'s absent-OPTIONAL comment and `ReleaseThrough`'s caller and
+by-name sentence are corrected. A state that is idle yet kept by a handle-less kept state with unpublished locks keeps no claim on a reused number; that is the one
+contrived residue (the retired kept state still reaches its locks through its association).
+
 **Gate.** `TestResults/build-local/000001-20261024T011042Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run:
 Conformance 8,764 · Unit 953 · Characterization 31 … Conformance 9,563/18,327 · Unit 34,873/35,826 · Characterization 5/36 cases ran`; the 31 added tests are `Passed` in `leg-1-Unit.trx`.
 `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD d78a163f7) ===` (unit 35,861, conformance 18,327; two earlier runs of the same head were RED
 only with "No space left on device" while other fleets filled the WSL disk, which also turned 22 `CobolFileLockTests` red). `python scripts/semgrep/verify.py`: PASS.
+
+**Finisher gate.** `TestResults/build-local/000001-20261024T020019Z` (head `3b437aa59`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 9,920/18,343 - Unit 34,905/35,841 - Characterization 5/36 cases ran); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 3b437aa59) ===`; `python scripts/semgrep/verify.py`: PASS.
