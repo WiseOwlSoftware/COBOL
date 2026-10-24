@@ -24,8 +24,11 @@ this per WAITING TO LAND branch, and an agent is dispatched only for what a scri
   2. `git fetch` origin's main and, when the branch does not already contain it, MERGE it into the branch (never a
      rebase: a branch that merged a same-file predecessor or a sibling carries conflict resolutions in its merge
      commits, which a rebase throws away and asks for again; the queue lands by merge commit anyway, so the branch's
-     history stays as written). A conflict is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and
-     the exit is 4: a finisher resolves it.
+     history stays as written). THROUGH THE MERGE DRIVERS (scripts/merge_drivers.py, kb/Work PB3610): the keyed
+     catalogues two landings both add to (wiseowl/diagnostics.json, the traceability inventory, constructs.json), the work
+     notes they both append to and the runtime ABI pin are merged by key, not by line, and a merge that changed the pin
+     measures the merged tree (abi_pin.py settle) before its merge commit, so none of those is a conflict. A conflict
+     is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.
   3. THE GATE on the merged head, every host in GATES, each under the shared gate slot (the cap of 3, so concurrent
      enqueues queue there and never beyond it; build-local takes its own, every other row runs under `gate_slot.py
      run`, and no row runs while one would run outside it, kb/Work PB3104): each verdict line is read by the gate
@@ -123,6 +126,7 @@ sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 import gate_slot  # noqa: E402  (the landing gate's class: CLASS_ENV, LANDING)
 import landing_measure  # noqa: E402
+import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one merge of main into a branch, kb/Work PB3610)
 import ruleset  # noqa: E402
 
 EXIT_CONFLICT = 4
@@ -628,15 +632,13 @@ def fetch_main(wt: pathlib.Path) -> str | None:
 
 
 def merge_main(wt: pathlib.Path, branch: str, base: str) -> list[str] | None:
-    """MERGE the fetched main into the branch when the branch does not already contain it (steps 2 and 4). None when
-    the branch now contains main; else the conflicted files, with the merge aborted and the branch unchanged."""
+    """MERGE the fetched main into the branch when the branch does not already contain it (steps 2 and 4), through the
+    merge drivers (merge_drivers.merge: the keyed catalogues, the work notes and the runtime ABI pin are merged by key,
+    kb/Work PB3610). None when the branch now contains main; else the conflicted files, with the merge aborted and the
+    branch unchanged."""
     if _git(wt, "merge-base", "--is-ancestor", base, "HEAD").returncode == 0:
         return None
-    if _git(wt, "merge", "--no-edit", "-m", f"Merge origin/main into {branch} (enqueue.py)", base).returncode == 0:
-        return None
-    files = _git(wt, "diff", "--name-only", "--diff-filter=U").stdout.split()
-    _git(wt, "merge", "--abort")
-    return files or ["?"]
+    return merge_drivers.merge(wt, base, f"Merge origin/main into {branch} (enqueue.py)")
 
 
 def gated_covers(wt: pathlib.Path, mark: pathlib.Path, head: str, base: str) -> bool:
@@ -1098,8 +1100,29 @@ def self_test() -> int:
                f"{rc_conflict} {notes[-1:]}")
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
+        # kb/Work PB3610: two landings that each add an entry to a keyed catalogue are no conflict. Main gains the
+        # catalogue and its .gitattributes line; the branch merges them in; then both sides add a member.
+        keyed = lambda *ks: "{" + chr(10) + (", " + chr(10)).join(f' "{k}": {{ "v": 1 }}' for k in ks) + chr(10) + "}" + chr(10)  # noqa: E731
+        main_moves(".gitattributes", "catalogue.json merge=cobol-keyed-object" + chr(10))
+        main_moves("catalogue.json", keyed("a"))
+        assert fetch_main(lw) is None
+        rc_in = merge_main(lw, "fix", "refs/remotes/origin/main")
+        (lw / "catalogue.json").write_text(keyed("a", "ours"), encoding="utf-8", newline="\n")
+        fix.git("commit", "--quiet", "-am", "the branch adds a member")
+        main_moves("catalogue.json", keyed("a", "theirs"))
+        assert fetch_main(lw) is None
+        plain = fix.run("merge", "--no-commit", "--no-ff", "refs/remotes/origin/main")
+        fix.run("merge", "--abort")
+        rc_keyed = merge_main(lw, "fix", "refs/remotes/origin/main")
+        got = json.loads((lw / "catalogue.json").read_text(encoding="utf-8")) if rc_keyed is None else {}
+        expect("land: both sides adding a member to a keyed catalogue is merged by key, where a plain git merge conflicts "
+               "(merge_main goes through the merge drivers; kb/Work PB3610)",
+               rc_in is None and plain.returncode != 0 and rc_keyed is None and set(got) == {"a", "ours", "theirs"}
+               and not dirty_paths(lw), f"{rc_in} {plain.returncode} {rc_keyed} {got}")
+        fix.git("reset", "--quiet", "--hard", fix_tip)
+
         ran, stamped = [], []
-        rc_inactive = [run_land(state=st, gates=gates_of(green, ran), stamped=stamped)
+        rc_inactive =[run_land(state=st, gates=gates_of(green, ran), stamped=stamped)
                        for st in (absent, lambda: (ruleset.DRIFT, "x"), lambda: (ruleset.SKIPPED, "offline"))]
         expect("land: the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) is exit 8 before anything is merged, gated, "
                "stamped or pushed: main takes only queued pull requests (kb/Work PB3023 review R1-1)",

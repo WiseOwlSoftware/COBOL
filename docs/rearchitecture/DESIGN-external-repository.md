@@ -1533,6 +1533,13 @@ guarded on both sides of the boundary, each by a recorded version and a fixture 
   `Directory.Build.props`); its MAJOR changes exactly when its public surface or a codec's image layout changes
   incompatibly. `Microsoft.CodeAnalysis.PublicApiAnalyzers` with `PublicAPI.Shipped.txt` makes every surface change a
   deliberate, reviewed edit; a unit test asserts that the recorded major equals `RuntimeAbi.Version.Major`.
+  **The pin is a measured file, `src/Cobol.Net.Runtime/RuntimeAbi.pin`, that nobody edits** (kb/Work PB3610): the major and
+  the surface hash, the call ABI and the boundary-layout hash. `RuntimeAbiPinDriftTests` re-measures all four and, under
+  `COBOLNET_WRITE_ABI_PIN=1`, writes them; `scripts/abi_pin.py bump --runtime-major|--call-abi` and `repin` raise the
+  numbers in `Directory.Build.props` and `RuntimeAbi.cs` and have the test write the hashes. Two branches that each
+  changed the pin merge through the merge driver (`scripts/merge_drivers.py`): the counters add (each side's merged
+  surface is incompatible with the other's), the hashes read UNMEASURED, and the merge measures the merged tree
+  (`abi_pin.py settle`) before it makes the merge commit — a hash is a property of the merged tree no branch measured.
 - **The compiler side — the call ABI.** The crossing of each boundary item is a COMPILER decision: its crossing arm
   and carrier type (`CallEmitter.CrossingOf`, `ProgramEmitter.FormalCrossing`/`FormalCarrierType`), the
   `NumProfile`/width it registers (`CallEmitter.RegisteredFormal`, `RegisteredReturning`) and the BY VALUE landing

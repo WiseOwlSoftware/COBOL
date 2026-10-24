@@ -22,7 +22,8 @@
   STATE: running`), its LANDING LANE (`scripts/orchestrator/land_lane.py`, ticked by the supervisor beside every
   unit, kb/Work PB3103) runs it for every branch `python scripts/prune_worktrees.py --brief` lists WAITING TO LAND,
   in the order it lists them (the most harmful lead first, kb/Work PB2981's ranking), the moment it is ready; the
-  `enqueue` unit (`scripts/orchestrator/units/enqueue.md`) reviews, dispatches finishers and files the leads: the attended session lands nothing itself and writes each finished attended branch's report
+  `enqueue` unit (`scripts/orchestrator/units/enqueue.md`) reviews, dispatches finishers and files the leads; the attended session lands by hand only what the lane cannot reach or would leave idle
+  for a mechanical reason (O11, "nothing simple waits", owner 2026-10-24), and writes each finished attended branch that needs a review as a report
   where the unit collects it — the file name EXACTLY `<coord>\scratch\reports\w<wave><letter>-PB<lead>-report.md`
   (plan_wave.py `REPORT_NAME`), its header:
 
