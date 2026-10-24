@@ -57,3 +57,5 @@ own edits to files the merge changed (restored from HEAD); a union merge that re
 it must carry the Sweep trait), `FilterPopulationGuardDriftTests` and `GateLegDriftTests` arm 6 (abi_pin.py runs a filtered
 `dotnet test`: it now asserts the filter selects something with filter_population.py and runs scrubbed of the gate environment,
 and arm 6 lists it among the sites the caller audit must see). The three are fixed on the branch.
+
+The gate: run `TestResults/build-local/000002-20261024T174538Z`, `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,167 · Unit 1,110 · Characterization 31 ... Conformance 10,227/18,394 · Unit 37,035/38,145 · Characterization 5/36 cases ran`. The four `MergeDriverDriftTests` facts and the three `RuntimeAbiPinDriftTests` facts ran in leg 1 (leg-1-Unit.trx).
