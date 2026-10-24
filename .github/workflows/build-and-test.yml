@@ -80,7 +80,7 @@ jobs:
   # to decide it (`paths-ignore` on the trigger first, which left a sha with no check at all under the required status
   # check, then a doc-only regex in this job); but that list was not a classification: `docs/` and `kb/Work/` are TEST
   # INPUTS, so a change to them skipped the very tests that read them (kb/Work PB3603). The classification now has ONE
-  # home, scripts/inert_lane.py, which this job, the local gate and the landing's Linux gate all call, and which the
+  # home, scripts/inert_lane.py, which this job, the local gate and the Linux gate all call, and which the
   # inotify watch on every Linux test step below proves: a test that opens an inert path turns its step RED. ──
   changes:
     name: changes (does this commit need the matrix?)

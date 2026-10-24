@@ -13,7 +13,7 @@ matrix's old doc-only list named, and each paid the local gate (median ~14 min: 
 the landing's four Linux legs; but that list was not a classification at all: `docs/` and `kb/Work/` are test INPUTS
 (kb/Work PB3603: a kb/Work-only branch went RED on the Linux gate), so CI skipping the matrix for them broke the CI
 invariant (kb/Work PB1957) silently. THIS MODULE IS THE ONE CLASSIFICATION, used by every runner: CI's `changes` job,
-the local gate (scripts/run_gate_legs.py) and the landing's Linux gate (scripts/linux-gate.sh).
+the local gate (scripts/run_gate_legs.py) and the Linux gate (scripts/linux-gate.sh).
 
 THE RULE. A path is INERT when it lies under an INERT entry and under no READ entry. A change is in the INERT LANE when
 its changed paths (`git diff --name-only --no-renames`, so a rename shows BOTH names and a code file renamed into an
@@ -22,12 +22,12 @@ on every event, in every lane; they are where a citation, a register note or a D
 and no test leg: no test reads the change, so no test can turn red on it. Every other change is the FULL lane.
 
 THE PROOF (`watch`, the drift test the classification needs). Every whole-assembly `dotnet test` run on Linux — CI's
-Linux test steps and the landing's Linux gate — runs under an inotify watch of every inert path (directories included,
+Linux test steps and the Linux gate — runs under an inotify watch of every inert path (directories included,
 so a test that LISTS an inert directory is caught too), through this module: a test that opens an inert path, directly
 or through a script it runs, turns the run RED naming the path. So the day a test starts reading an inert path, the
 change that made it read it is red until that path leaves INERT (or gains a READ entry naming its reader). A watch
 that overflows its queue proves nothing and is RED. The watch has no Windows twin (Windows has no open events); the
-Linux runs are the whole population on every code change (the landing's Linux gate and CI's merge group).
+Linux runs are the whole population on every code change (the Linux gate and CI's merge group).
 
 What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and running the three assemblies on Windows;
 then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every

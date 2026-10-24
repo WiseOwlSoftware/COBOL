@@ -70,7 +70,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
        anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
-                UNREVIEWED 11, an exit
+                UNREVIEWED 11, UNTESTED 13 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
                                                                    or reviewer, and re-arms a stop resolved with no

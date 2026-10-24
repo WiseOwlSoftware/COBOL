@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ ONE CLASSIFICATION DECIDES THE INERT LANE, AND EVERY LINUX TEST RUN PROVES IT (kb/Work PB2878;
 /// DESIGN-test-build-ci.md §3.18): CI's <c>changes</c> job, the local gate (<c>scripts/run_gate_legs.py</c>) and the
-/// landing's Linux gate (<c>scripts/linux-gate.sh</c>) each decide whether a change skips the test legs by calling
+/// Linux gate (<c>scripts/linux-gate.sh</c>) each decide whether a change skips the test legs by calling
 /// <c>scripts/inert_lane.py</c>, and no path list of their own; every Linux step of CI that runs <c>dotnet test</c>, and
 /// the Linux gate's test legs, run under its inotify watch; and every INERT and READ entry names a tracked path.
 /// </summary>

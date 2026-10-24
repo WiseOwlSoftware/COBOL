@@ -61,13 +61,13 @@ Verify on wave 67 with the same measurement (turns to first edit, read calls, pr
 (1) Every gate is `build-local.ps1`, the ORDERED gate (owner, 2026-09-28, kb/Work
 PB1708: "order, don't skip"), with ONE shape (owner 2026-10-11, kb/Work PB3022): it holds a GATE SLOT
 (`scripts/gate_slot.py`, kb/Work PB1720) — at most N gates build or test at once, repository-wide (N is one shared
-setting, 3 by default, kb/Work PB2514) — and runs leg 1 only (batched gating, kb/Work PB2515); a landing's gate is the
-same command on the train head. The local whole-population run is gone: CI's merge-group run is the population check
+setting, 3 by default, kb/Work PB2514) — and runs leg 1 only (batched gating, kb/Work PB2515); a landing gates nothing (it reads
+the branch's own gate record, kb/Work PB3612). The local whole-population run is gone: CI's merge-group run is the population check
 (kb/Work PB3015: on 2026-10-10 the lander's local population runs were 41 % of all lander minutes, 7–53 min each and
 8 of 15 RED under load), measured per landing by `scripts/orchestrator/landing_measure.py` (the retired train records are the BEFORE column of its `summary`). (2) Every implementer gate runs at `-Priority BelowNormal`, which Windows passes down to the build, the test
-hosts and every compiled program, so the landing's Normal-priority gate wins the cores. (3) GITHUB'S MERGE QUEUE
+hosts and every compiled program, so the rare gate a landing runs (Normal priority) wins the cores. (3) GITHUB'S MERGE QUEUE
 ORDERS MAIN (kb/Work PB3023, PB3024): every branch waiting to land is enqueued at once, one pull request per branch, and
-main moving under a branch's gate is merged in by `enqueue.py land` with no second gate, so no landing waits for another
+main moving while a branch waits is merged in by `enqueue.py land` with no gate, so no landing waits for another
 or loses a race to main (the R1 lander lost it three times on 2026-10-07, under the direct-push landing). CI's merge
 group remains the proof. (4) One branch per pull request: there are no trains. (5) The Conformance runner's compiled-program cache (kb/Work PB985) makes a
 re-gate after a test-only fix skip recompilation.

@@ -517,7 +517,7 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; nothing ran and nothing is red, kb/Work PB3527) | retries at this head once the worktree's gate lock is free (`wait_free`); never the enqueue unit's |
 | exit 2 (main moved under every catch-up merge; or GATE NOT RUN: the gate measured nothing, for an ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES` — malformed shared gate settings, a host with no WSL, Python or SDK — or a BRANCH cause main fails the same way at the same step, and so writes no BLOCKED line, kb/Work PB3526; a BRANCH cause main does not share — the tree's gate driver, its population listing, no verdict line — is exit 5, below), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
-| exit 4, 5, 6, 7, 11, or a second exit 2 or 9 at this head | STOPPED: never relaunched at this head unless re-armed; the enqueue unit's |
+| exit 4, 5, 6, 7, 11, 13 (UNTESTED: no recorded GREEN local gate covers the tip, kb/Work PB3612), or a second exit 2 or 9 at this head | STOPPED: never relaunched at this head unless re-armed; the enqueue unit's |
 
 A run that commits (main merged in, the DEVLOG stamp) makes the survey read the branch IN FLIGHT, so a retry is driven
 by the lane's own attempt record, never by the survey.
