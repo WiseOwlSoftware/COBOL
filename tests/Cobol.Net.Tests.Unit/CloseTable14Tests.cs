@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -105,8 +106,7 @@ public sealed class CloseTable14Tests
     public void Category_PlacesEverySupportedConnectorKind()
     {
         var reg = new FileRegistry();
-        string dir = Path.Combine(Path.GetTempPath(), $"pb235-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb235-");
         try
         {
             reg.Register("S", Path.Combine(dir, "s.dat"), 8, lineSequential: false, optional: false, -1, -1);
@@ -128,7 +128,7 @@ public sealed class CloseTable14Tests
             Assert.Throws<InvalidOperationException>(() => reg.CloseReelUnitForRemoval("R"));
             Assert.Throws<InvalidOperationException>(() => reg.CloseNoRewind("I"));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The SAME medium determination read from the OPEN side (kb/Work PB317). §14.9.27.4 GR11 —
@@ -149,8 +149,7 @@ public sealed class CloseTable14Tests
     public void OpenNoRewind_IsTheCloseArmsTwinOnTheSameMedium()
     {
         var reg = new FileRegistry();
-        string dir = Path.Combine(Path.GetTempPath(), $"pb317-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("pb317-");
         try
         {
             reg.Register("S", Path.Combine(dir, "s.dat"), 8, lineSequential: false, optional: false, -1, -1);
@@ -171,7 +170,7 @@ public sealed class CloseTable14Tests
             reg.RegisterRelative("R", Path.Combine(dir, "r.dat"), 8, false, 0, 4, -1, -1);
             Assert.Throws<InvalidOperationException>(() => reg.OpenNoRewindStatic("R", FileOpenMode.Input));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The determination's consequence, stated as the invariant the dispatch relies on: no category a

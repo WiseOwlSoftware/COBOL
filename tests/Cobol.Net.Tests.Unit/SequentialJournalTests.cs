@@ -116,8 +116,7 @@ public sealed class SequentialJournalTests
 
     private static (string Directory, string File) NewFile(byte[]? initial)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "sjt-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("sjt-");
         string f = Path.Combine(dir, "f.dat");
         if (initial is not null) File.WriteAllBytes(f, initial);
         return (dir, f);
@@ -160,7 +159,7 @@ public sealed class SequentialJournalTests
                 Assert.Equal(Show(committedAfter), Show(State(f)));
                 AssertNoLitter(f);
             }
-            finally { Directory.Delete(dir, recursive: true); }
+            finally { ScratchDirectory.Remove(dir); }
         }
         Assert.True(total > 0, "the row reaches the medium");
         foreach (var fault in new[] { FaultHostMedium.Fault.Refuse, FaultHostMedium.Fault.Die, FaultHostMedium.Fault.Power, FaultHostMedium.Fault.PowerKeepingData })
@@ -186,7 +185,7 @@ public sealed class SequentialJournalTests
                     else Assert.True(Same(state, committedBefore), "I1, the decision was not durable: " + where);
                     AssertNoLitter(f);
                 }
-                finally { Directory.Delete(dir, recursive: true); }
+                finally { ScratchDirectory.Remove(dir); }
             }
     }
 
@@ -348,7 +347,7 @@ public sealed class SequentialJournalTests
             Assert.Equal("C1X1", Show(State(f)));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── The format and the entry step ───────────────────────────────────────────────────────────────────────────
@@ -390,7 +389,7 @@ public sealed class SequentialJournalTests
             o.Release();
             Assert.Equal(C1C2, State(f));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -420,7 +419,7 @@ public sealed class SequentialJournalTests
             Assert.Equal("C1C2C3", Show(State(f)));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -443,7 +442,7 @@ public sealed class SequentialJournalTests
             Assert.Equal(C1C2, State(f));
             AssertNoLitter(f);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -468,6 +467,6 @@ public sealed class SequentialJournalTests
             o.Release();
             Assert.Equal(C1C2, State(f));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -48,7 +49,7 @@ public sealed class MoveEditionDifferentialTests
     /// <summary>Compile-and-run at an explicit edition/severity axis (the 2023 --permissive pre-removal leg).</summary>
     private static (bool ok, string stdout, string detail) RunAt(string source, int edition, bool permissive = false)
     {
-        string dir = CutRunner.NewTempDir("mved");
+        string dir = ScratchDirectory.Create("mved");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -60,7 +61,7 @@ public sealed class MoveEditionDifferentialTests
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
             return CutRunner.Run(dll, dir);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ═══ Item 1 — the ALL-digit value semantics (§8.3.3.6.4 GR2 + §14.9.25.4 GR6d3b) ══════════════════════════

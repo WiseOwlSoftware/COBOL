@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -25,7 +26,7 @@ public sealed class StandardClassBaseTests
 
     private static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition = 2002)
     {
-        string dir = CutRunner.NewTempDir("CobolNet_Base");
+        string dir = ScratchDirectory.Create("CobolNet_Base");
         try
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
@@ -34,7 +35,7 @@ public sealed class StandardClassBaseTests
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>§14.9.23.3 SR4 f): SELF "New" in a factory method names a method of "the factory interface of the

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -61,7 +62,7 @@ public sealed class LeapSecondReportedSecondsPinTests
                   DISPLAY FCD
               """
             : "";
-        string dir = CutRunner.NewTempDir("ls60");
+        string dir = ScratchDirectory.Create("ls60");
         try
         {
             string src = Path.Combine(dir, programId + ".cob");
@@ -92,7 +93,7 @@ public sealed class LeapSecondReportedSecondsPinTests
             Assert.True(ok, detail);
             Assert.Equal(formatted ? Expected2023 : Expected2002, stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]

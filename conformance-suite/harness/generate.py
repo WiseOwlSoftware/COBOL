@@ -1187,6 +1187,8 @@ def _plant(root: Path, files: dict[str, str]) -> None:
 
 
 def self_test() -> int:
+    sys.path.insert(0, str(REPO / "scripts"))
+    from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
     rc = 0
 
     def check(name: str, ok: bool, got: object = None) -> None:
@@ -1298,7 +1300,7 @@ def self_test() -> int:
                   and r85["rows"] == 10 and r85["observable"] == 8, r85)
             check("arm: a row not in the edition's band is not counted there (GR-1.1.1-2, SR-1.1.1-2 are 2002 on)",
                   report["2002"]["rows"] == 13, report["2002"])
-        shutil.rmtree(root / "suites", ignore_errors=True)
+        remove_tree(root / "suites")
         rc_check, _ = generate(root, inputs, [], None)
         check("arm: --check writes nothing", rc_check == 0 and not (root / "suites").exists())
         # --out DIR names a directory the user chose: only what a previous run wrote there is ever removed (R1-1).

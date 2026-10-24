@@ -37,8 +37,7 @@ public sealed class ImplementorNamesDriftTests
             {procedure}
                        STOP RUN.
             """;
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Inm_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Inm_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -47,7 +46,7 @@ public sealed class ImplementorNamesDriftTests
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The elements a reader must find for each kind: every non-numbered name, and both ENDS of each

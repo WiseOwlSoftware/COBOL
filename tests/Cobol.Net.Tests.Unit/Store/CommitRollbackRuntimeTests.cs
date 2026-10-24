@@ -1367,7 +1367,7 @@ public sealed class CommitRollbackRuntimeTests
         finally
         {
             TryDelete(host);
-            try { Directory.Delete(dir, recursive: true); } catch (IOException) { }
+            ScratchDirectory.Remove(dir);
         }
     }
 

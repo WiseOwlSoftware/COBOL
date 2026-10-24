@@ -29,7 +29,7 @@ public sealed class UnstringLiveReadDriftTests
 {
     private static string EmitCSharp(string source)
     {
-        string dir = Directory.CreateTempSubdirectory("pb1907drift").FullName;
+        string dir = ScratchDirectory.Create("pb1907drift");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -40,7 +40,7 @@ public sealed class UnstringLiveReadDriftTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private static string Program(string data, string unstring) => $$"""

@@ -500,7 +500,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         }
         finally
         {
-            try { File.SetAttributes(path, FileAttributes.Normal); File.Delete(path); } catch (IOException) { }
+            FileHarness.TryDelete(path);
         }
     }
 

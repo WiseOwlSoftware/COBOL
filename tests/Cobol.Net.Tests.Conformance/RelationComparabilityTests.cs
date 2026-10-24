@@ -261,8 +261,7 @@ public sealed class RelationComparabilityTests
     /// <summary>Parse + bind only (no Roslyn emit): every verdict here is settled at the relation checkpoint.</summary>
     private static IReadOnlyList<string> CheckOnly(string source, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Rc_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Rc_");
         try
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
@@ -270,6 +269,6 @@ public sealed class RelationComparabilityTests
                 DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")];
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

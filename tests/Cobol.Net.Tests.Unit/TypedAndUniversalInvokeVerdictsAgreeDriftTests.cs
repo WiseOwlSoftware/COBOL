@@ -180,8 +180,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
             "       END OBJECT.",
             "       END CLASS C2077DT.",
             "");
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB2077_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB2077_");
         try
         {
             string src = Path.Combine(dir, "pb2077.cob");
@@ -192,7 +191,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
                 "the probe program drew an error other than the verdict under test:\n" + string.Join("\n", r.Errors));
             return r.Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private const string Group4 = "       01 LF.\n          05 LF1 PIC X(4).";

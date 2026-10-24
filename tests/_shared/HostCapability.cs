@@ -34,8 +34,7 @@ internal static class HostCapability
     /// witness.</summary>
     private static string Scratch()
     {
-        string dir = Path.Combine(Path.GetTempPath(), $"hostcap-{Environment.ProcessId}-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create($"hostcap-{Environment.ProcessId}-");
         return dir;
     }
 
@@ -206,9 +205,7 @@ internal static class HostCapability
         }
         finally
         {
-            try { Directory.Delete(dir, recursive: true); }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
+            ScratchDirectory.Remove(dir);
         }
     }
 
