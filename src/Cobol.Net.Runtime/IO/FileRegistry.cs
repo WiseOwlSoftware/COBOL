@@ -994,7 +994,10 @@ public sealed class FileRegistry
     /// transaction, which no RETRY wait releases when it is this run unit's own; null when none lives.</summary>
     private RetryAttempt? JournalHoldsAgainstDelete(FileConnector c)
     {
-        var holdings = SequentialJournal.Enter(Medium, c.HostPath, null, null);
+        SequentialJournal.Holdings holdings;
+        // A settle the medium refuses leaves the dead transaction for the next entry: the statement's permanent error ('30').
+        try { holdings = SequentialJournal.Enter(Medium, c.HostPath, null, null); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return RetryAttempt.InRunUnit(FileStatusCode.PermanentError); }
         if (holdings.Unlistable) return RetryAttempt.InRunUnit(FileStatusCode.PermissionDenied);
         if (!holdings.Any) return null;
         int? own = Sequential.Of(c.HostPath)?.Id;
