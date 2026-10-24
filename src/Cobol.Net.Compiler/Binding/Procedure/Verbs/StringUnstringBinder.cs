@@ -466,6 +466,14 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         BoundFieldOperand { Place: { } p } when p.DenotedItem is not null
             && ItemCategory.UsageOutsideDisplayOrNational(p.Item) is { } outside =>
             UsageOffence(p.Item, outside),
+        // ⛔ A COUNTER REGISTER IS AN IDENTIFIER TOO (kb/Work PB1746): PAGE-COUNTER and LINE-COUNTER are "temporary
+        // unsigned integer data items" (§8.4.3.15.4 GR1) whose implicit description is a 32-bit binary integer
+        // (AlgebraicRanges.CounterRegisterUsage), so SR1's "usage display or national" refuses them as it refuses a
+        // declared BINARY item. The binder carries the register as a computed operand (it is runtime state), which
+        // the field arm above never sees; LINAGE-COUNTER's PIC 9(d) is usage display and passes.
+        BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterIsUsageDisplay(register) is false =>
+            $"is a counter register, an unsigned integer item of USAGE {AlgebraicRanges.CounterRegisterUsage(register)}, "
+            + "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national",
         _ => null,
     };
 
@@ -516,6 +524,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // returns a value of category ALPHABETIC (§15.18.4 r3), which the model carries as `ResultCategory`
         // Alphanumeric plus the `ResultIsAlphabetic` rider — the alphabetic result is none of SR2's two categories.
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultIsAlphabetic: true } } => "alphabetic",
+        // ⛔ A COUNTER REGISTER IS A NUMERIC DATA ITEM (§8.4.3.15.4 GR1 / §8.4.3.14.4 GR1: "of class and category
+        // numeric"), which SR2's "category alphanumeric or national" refuses as it refuses a declared PIC 9 item — the
+        // binder carries it as a computed operand, which no arm here saw, so `UNSTRING PAGE-COUNTER …` split the
+        // register's image (kb/Work PB1746).
+        BoundComputedOperand { Expr: var register } when AlgebraicRanges.IsCounterRegister(register) => "numeric",
         // ⛔ THE SAME WHITELIST, ON THE OTHER ARM (kb/Work PB664). This arm listed the categories it REFUSES
         // while its FIELD twin was being turned into the rule's own admit-list — two arms of one sentence, one
         // of them fixed, which is this repository's most reproducible defect shape. It is behaviour-identical

@@ -136,12 +136,29 @@ public sealed class SortFileTable
     /// SORT whose range activated the element was active, that statement is terminated now, in the activator: the
     /// return has done what a return does (the BY REFERENCE copy-out, the RETURNING delivery), and the
     /// <see cref="SortTerminationSignal"/> unwinds the rest of the range to the statement's landing as a completion
-    /// that is not normal. Asked by <c>ProgramTable.CallProgram</c> after every CALL and function activation, and by
-    /// every INVOKE site after its RETURNING delivery (<c>OoEmitter.EmitInvocationReturned</c>).</summary>
-    internal void AfterActivationReturn()
+    /// that is not normal. Asked by every emitted activating site AFTER the return has been picked up completely - the
+    /// RETURNING delivery and the propagation pickup of a <c>GOBACK ... RAISING</c> the same activation staged
+    /// (§14.9.18.4 GR1 b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
+    /// <c>CallEmitter.EmitActivationReturned</c>), and the host boundary (<c>ProgramTable.CallFromHost</c>).</summary>
+    internal void AfterActivationReturn() => TerminateAfterActivation(TakeActivationReturnTermination());
+
+    /// <summary>⛔ THE REQUEST BELONGS TO THE ACTIVATION THAT LEFT IT (kb/Work PB3246, review R1-1): the file-name of the SORT
+    /// the activation just returned from asked to have terminated, taken OUT of the run unit's one pending slot. An activating
+    /// site that emits a propagation pickup takes it before the pickup runs, because the pickup can run the activator's own USE
+    /// procedure and that procedure can activate again: left in the slot, the nested activation's return would consume this
+    /// activation's request and terminate the SORT in the middle of the declarative. Null when the activation left none.</summary>
+    internal string? TakeActivationReturnTermination()
     {
-        if (_exitTerminated is not { } name) return;
+        var name = _exitTerminated;
         _exitTerminated = null;
-        throw new SortTerminationSignal(name, DispatchResult.NotNormal);
+        return name;
+    }
+
+    /// <summary>Terminate the SORT named by a request <see cref="TakeActivationReturnTermination"/> took (nothing for null):
+    /// the <see cref="SortTerminationSignal"/> unwinds the rest of the range to the statement's landing as a completion that is
+    /// not normal.</summary>
+    internal static void TerminateAfterActivation(string? name)
+    {
+        if (name is not null) throw new SortTerminationSignal(name, DispatchResult.NotNormal);
     }
 }
