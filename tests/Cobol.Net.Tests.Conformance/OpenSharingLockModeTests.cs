@@ -16,7 +16,8 @@ namespace CobolNet.Tests.Conformance;
 /// exactly what happened while SR8 was written down in two places, and exactly the drift a future re-addition
 /// would reintroduce. Only a COUNT catches it. (2) The APPLY COMMIT exemption and its control arm must be the SAME
 /// program but for the I-O-CONTROL paragraph, which a pair of corpus files cannot guarantee. The file is RELATIVE: the
-/// APPLY COMMIT clause is accepted for it (kb/Work PB3338), as for a SEQUENTIAL one (kb/Work PB3340).</para>
+/// APPLY COMMIT clause is accepted for a keyed file (kb/Work PB3338) and still refused for a SEQUENTIAL one
+/// (COBOLNET1709, kb/Work PB3340).</para>
 ///
 /// <para>The behaviour these guard is pinned from the other side by <c>conformance:cases/14.9.27-OPEN/pb319_sr8_antecedent</c>
 /// (the antecedent falsified by a non-ALL phrase and by a file never opened),
@@ -80,7 +81,7 @@ public sealed class OpenSharingLockModeTests
     public void ApplyCommitFile_IsExemptFromSr8()
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Violation("PB319APC", applyCommit: true), 2023);
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET17", StringComparison.Ordinal));   // the clause is accepted, not declined
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1709");   // the clause is accepted, not declined
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1512");
         Assert.True(ok, "§14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
             + string.Join("\n", errors));

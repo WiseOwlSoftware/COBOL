@@ -46,12 +46,6 @@ internal sealed class SidecarRegionLocks : RegionLocks
         public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new SidecarRegionLocks(hostPath, writable);
     }
 
-    /// <summary>An endpoint on the physical file at <paramref name="hostPath"/> that is held through no handle on it — the
-    /// one kind of endpoint that serves a file that may not exist (<see cref="HostRegionLocks.EntryMutexByte"/>, kb/Work
-    /// PB3340). Writable: a lock file holds an exclusive byte whatever the access to the physical file
-    /// (<see cref="ExclusiveNeedsWritableHandle"/>).</summary>
-    internal static RegionLocks ForPath(string hostPath) => new SidecarRegionLocks(hostPath, writable: true);
-
     /// <summary>The lock directory, or null for a path no lock directory can be named beside (every operation is then
     /// <see cref="RegionLockResult.Unavailable"/>).</summary>
     private readonly string? _directory;

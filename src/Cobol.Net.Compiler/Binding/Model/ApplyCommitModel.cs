@@ -16,11 +16,15 @@ namespace CobolNet.Binding.Model;
 /// </summary>
 public sealed class ApplyCommitModel
 {
-    /// <summary>⛔ The file-name-1 operands, in written order, each once — THE FILES THE CLAUSE PUTS UNDER COMMIT CONTROL, of
-    /// every organization §9.1.18.2 admits (the keyed ones' transaction is their store's, DESIGN-runtime-library.md 2.2.1.10;
-    /// the sequential ones' is the transaction journal, 2.2.2, kb/Work PB3340). The activation, the statements' own-file arms
-    /// and the EC binding read this list.</summary>
+    /// <summary>The file-name-1 operands, in written order, each once.</summary>
     public List<FileModel> Files { get; } = [];
+
+    /// <summary>⛔ THE FILES THE CLAUSE PUTS UNDER COMMIT CONTROL — the keyed ones. A SEQUENTIAL operand is refused
+    /// (COBOLNET1709, docs/CONFORMANCE.md §4 item 2; kb/Work PB3340); under <c>--permissive</c> the refusal is a warning
+    /// and the declined operand is simply absent: never activated, committed, rolled back or told of a refusal. The rule
+    /// is <see cref="FileModel.IsCommitControlled"/>; the activation, the statements' own-file arms and the EC binding
+    /// read this list of it.</summary>
+    public IEnumerable<FileModel> CommitControlledFiles => Files.Where(f => f.IsCommitControlled);
 
     /// <summary>The identifier-1 operands as written, resolved post-build (<c>DataBinder.ResolveApplyCommit</c>): the
     /// data division is not bound when the I-O-CONTROL paragraph is.</summary>

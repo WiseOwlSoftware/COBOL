@@ -63,8 +63,7 @@ THE PROTOCOL UNDER TEST (2.2.2.4–2.2.2.8, in the model's terms; every name bel
   holdings: a live journal holds the END of F (every WRITE through another connector: '51'), every ordinal in its R
             set and, once it has appended, every ordinal ≥ L (READ not IGNORING LOCK, REWRITE: '51'), and the WHOLE
             file once REPLACED (a
-            writable OPEN by another run unit: '61'); an OPEN OUTPUT or DELETE FILE also needs no other handle ('61'; a
-            DELETE FILE's sharing conflict is '62', ISO 9.1.13.9 2), as the implementation answers it, kb/Work PB3340).
+            writable OPEN by another run unit: '61'); an OPEN OUTPUT or DELETE FILE also needs no other handle ('61').
 
 ITS OWN WATCHDOG (review round 2, R2-2; round 3, R3-1). A model that stays GREEN proves nothing once its oracle or its
 fault injector is weakened, so --self-test also runs the protocol with each named MUTATION applied (each a defect a review
@@ -537,9 +536,8 @@ class RunUnit:
                 finally:
                     self._drop_mutex()
         others = self.h.handles_on(self.F) - {self}
-        refused = "62" if kind == "DELETE" else "61"    # ISO 9.1.13.9 2): a DELETE FILE's file sharing conflict
         if exclusive and others:
-            return refused
+            return "61"
         if kind == "WRITE" and self.h.append.get(self.F) not in (None, self):
             return "51"
         if kind in ("READ", "REWRITE") and self.h.region.get((self.F, k)) not in (None, self):
@@ -550,7 +548,7 @@ class RunUnit:
             j = self._read_journal(t)                 # a holder with no header yet is a transaction being born
             if kind in ("OPEN", "DELETE"):
                 if exclusive or j is None or j["replaced"]:
-                    return refused
+                    return "61"
             elif kind == "WRITE":
                 return "51"
             else:
