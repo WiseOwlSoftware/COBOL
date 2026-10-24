@@ -23,8 +23,8 @@
       *>   LINAGE clause" (8.4.3.14.4 GR1) = 3 here, OPEN OUTPUT sets it to 1 (13.18.34.4 GR7):
       *>   NTZ before any WRITE is TRUE, after one WRITE (value 2) NTZ and FFZ are FALSE, after
       *>   a second WRITE (value 3) FFZ is TRUE. PAGE-COUNTER is 1 after INITIATE (NTZ TRUE);
-      *>   LINE-COUNTER is not at its PIC 9(18) capacity (FFZ FALSE) - CONFORMANCE.md, the counter
-      *>   registers' declared capacity. A function's temporary (CONFORMANCE.md DOC-A.1-92):
+      *>   LINE-COUNTER is not at its 4294967295 capacity (FFZ FALSE) - CONFORMANCE.md, the counter
+      *>   registers' declared description. A function's temporary (CONFORMANCE.md DOC-A.1-92):
       *>   an INTEGER function has no fraction digits (15.2 item 5), so ABS(-1) IS NEAREST-TO-ZERO
       *>   is TRUE and INTEGER(-5.5) = -6 is not; SQRT(4) = 2 is a binary64, neither binary64
       *>   extreme - FALSE for both.
