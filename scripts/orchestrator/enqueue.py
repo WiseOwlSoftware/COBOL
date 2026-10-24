@@ -47,7 +47,11 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      equals the `tree` it measured) with its Linux half GREEN (the inert lane has none), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
-     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. The
+     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
+     that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_run`: the newest run with no record whose
+     `gate.pid` names a live process; the landing lane launches a landing beside its own implementer's gate) owes a
+     verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work PB3662), retried once no
+     gate runs; a run whose process died with none still counts as no record. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
      landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
      seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
@@ -154,7 +158,7 @@ EXIT_GATE = 5
 EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
-EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
+EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate lock, or its verdict is not in yet, kb/Work PB3662): nothing ran, nothing is red (kb/Work PB3527)
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
@@ -660,6 +664,7 @@ class Tested(NamedTuple):
     ok: bool
     text: str
     gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
+    running: str = ""  # "": no gate runs in this worktree; else the live run a verdict is still owed by (kb/Work PB3662)
 
 
 def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
@@ -678,17 +683,17 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its record and its verdict's vocabulary)
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
     root = wt / run_gate_legs.RUN_ROOT
-    runs = (sorted((p for p in root.iterdir() if p.is_dir() and run_gate_legs.RUN_DIR.fullmatch(p.name)),
-                   key=lambda p: run_gate_legs.run_order(p.name), reverse=True) if root.is_dir() else [])
+    runs = run_gate_legs.run_dirs(root)[::-1]
     if not runs:
         return Tested(False, f"{root} holds no gate run: nobody gated this worktree (`pwsh scripts/build-local.ps1`)")
     if linux_half is None:
         linux_half = run_gate_legs.Host(wt).runs_linux_leg()
     why: list[str] = []
+    live = run_gate_legs.live_run(root)   # a run owes a verdict while its process lives (kb/Work PB3662)
     for run in runs:
         rec = run_gate_legs.read_record(run)
         if rec is None:
-            why.append(f"{run.name}: no verdict file (a gate still running, or one that died)")
+            why.append(f"{run.name}: no verdict file ({'a gate still running' if live and live[0] == run else 'a gate that died'})")
             continue
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         linux = rec.get("linux") or {}
@@ -711,7 +716,8 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
                           str(gated))
         why.append(f"{run.name}: {problem}")
-    return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]))
+    return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]),
+                  running=f"{live[0].name} (pid {live[1]})" if live else "")
 
 
 def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
@@ -812,6 +818,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     gate_why = ""
     if proof.ok:
         say(f"enqueue: {proof.text}; the merge with main is the merge queue's to test")
+    elif proof.running:
+        # A gate of this worktree is still running, so its verdict is OWED, not absent (kb/Work PB3662): the lane that
+        # launched this landing beside its own implementer's gate would otherwise read the exit as a terminal STOP and
+        # wait for a hand re-arm. It is the same stop as a held gate lock, exit 12: nothing ran, nothing is red, no
+        # report line, and the lane retries this head once no gate runs here (land_lane.gate_lock_free).
+        return end(EXIT_GATE_BUSY, f"GATE BUSY — the gate run {proof.running} of this worktree is still running and its "
+                                   f"verdict is not in yet on {here.head[:12]}: nothing ran and nothing is red; landed "
+                                   "again once the gate ends")
     elif lane:
         gate_why = f"the {lane} lane gates nowhere else ({proof.text})"
     else:
@@ -1338,6 +1352,39 @@ def self_test() -> int:
                and not no_linux.ok and "no GREEN Linux half" in no_linux.text and no_linux_ok_on_linux.ok
                and inert_run.ok and "inert lane" in inert_run.text and not lying.ok and not elsewhere.ok,
                f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {lying} {elsewhere}")
+
+        # kb/Work PB3662: a run with no verdict file whose gate PROCESS LIVES owes a verdict; the landing lane launches
+        # a landing beside the branch's own running gate, and that exit was a terminal STOP (14) waiting for a re-arm.
+        shutil.rmtree(results_dir)
+        tip_before = fix.git("rev-parse", "HEAD")
+        owed = results_dir / "000001-20261029T000000Z"
+        owed.mkdir(parents=True)
+        run_gate_legs.write_pid(owed, os.getpid())                 # this very process: alive, and no verdict file yet
+        awaiting = seen()
+        ran, stamped, notes[:] = [], [], []
+        rc_owed = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                           gates=gates_of(green, ran), stamped=stamped)
+        owed_line, owed_notes, owed_ran, owed_stamped = lines[-1], list(notes), list(ran), list(stamped)
+        gone = subprocess.Popen([sys.executable, "-c", "pass"])
+        gone.wait()                                                # its pid names no live process now
+        run_gate_legs.write_pid(owed, gone.pid)
+        died = seen()
+        rc_died = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                           gates=gates_of(green, ran), stamped=stamped)
+        run_gate_legs.write_pid(owed, os.getpid())
+        gate_run(2)                                                # a GREEN run of the head beside a live older one
+        covered_beside = seen()
+        expect("land: a gate of the worktree still RUNNING (no verdict file, gate.pid names a live process) is exit 12, "
+               "GATE BUSY, never exit 14: no report line, no gate, no stamp, the branch unchanged, and the evidence "
+               "says which run owes the verdict; a run whose process died with none is still no record (UNTESTED, "
+               "exit 14); a GREEN run covering the head stands beside a live one (kb/Work PB3662)",
+               not awaiting.ok and awaiting.running.startswith(owed.name) and "still running" in awaiting.text
+               and rc_owed == EXIT_GATE_BUSY and not owed_ran and not owed_stamped and not owed_notes
+               and owed_line.startswith(VERDICT + "GATE BUSY — the gate run 000001-20261029T000000Z")
+               and not died.ok and died.running == "" and "gate that died" in died.text
+               and rc_died == EXIT_UNTESTED and len(notes) == 1 and covered_beside.ok
+               and fix.git("rev-parse", "HEAD") == tip_before,
+               f"{awaiting} {rc_owed} {owed_line} {died} {rc_died} {notes} {covered_beside}")
         shutil.rmtree(results_dir)
         gate_run(1)
         gated_head = fix.git("rev-parse", "HEAD")
