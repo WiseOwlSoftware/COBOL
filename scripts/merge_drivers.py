@@ -35,8 +35,8 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
   RUNTIME ABI PIN   src/Cobol.Net.Runtime/RuntimeAbi.pin (abi_pin.py): two branches that each raised a counter raise it
                     by both, and the hashes of the merged surface, which no merge can know, are marked UNMEASURED for
                     `abi_pin.py settle` to measure on the merged tree before the merge commit is made.
-A conflict a driver cannot resolve falls back to git's own line merge of the three files, so the file the finisher opens
-carries the usual conflict markers.
+A file a driver declines (a real conflict at its level) falls back to git's own line merge of the three files: where that
+merges cleanly, as it would without a driver, the file merges; else the file the finisher opens carries the usual markers.
 
 THE MERGE (`merge`): `git merge --no-commit` with the drivers, then `abi_pin.settle` when the pin says UNMEASURED, then
 the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_worktrees.mechanical` (the review's
@@ -293,8 +293,8 @@ def git(repo: pathlib.Path, *args: str, config: bool = False) -> subprocess.Comp
 
 # ── the driver entry point ───────────────────────────────────────────────────────────────────────────────────────
 def run_driver(name: str, base: pathlib.Path, ours: pathlib.Path, theirs: pathlib.Path) -> int:
-    """What git runs for one conflicting file: the merged text replaces `ours`, exit 0; or the three-way line merge
-    with its conflict markers does, exit 1."""
+    """What git runs for one conflicting file: the merged text replaces `ours`, exit 0; else the plain three-way line
+    merge decides: its clean result replaces `ours`, exit 0, or its conflict markers do, exit 1."""
     driver = next((d for d in DRIVERS if d.name == name), None)
     if driver is None:
         print(f"merge_drivers: no driver named {name}", file=sys.stderr)
@@ -304,9 +304,11 @@ def run_driver(name: str, base: pathlib.Path, ours: pathlib.Path, theirs: pathli
     if merged is not None:
         ours.write_bytes(merged.encode("utf-8"))
         return 0
-    subprocess.run(["git", "merge-file", "-L", "ours", "-L", "base", "-L", "theirs", str(ours), str(base), str(theirs)],
-                   capture_output=True)
-    return 1
+    # The keyed merger declined (None): the plain three-way line merge decides, as it would without a driver. Clean (exit 0):
+    # the merged lines are in `ours` and the file merges; else `ours` holds the conflict markers and git is told so.
+    fallback = subprocess.run(["git", "merge-file", "-L", "ours", "-L", "base", "-L", "theirs", str(ours), str(base),
+                               str(theirs)], capture_output=True)
+    return 0 if fallback.returncode == 0 else 1
 
 
 # ── the merge ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -319,6 +321,8 @@ def merge(repo: pathlib.Path, ref: str, message: str, measure: Callable[[pathlib
     is left in progress with its conflict markers instead of aborted; the finisher resolves, runs `abi_pin.py settle
     --stage` when the pin says UNMEASURED, and commits."""
     import abi_pin  # noqa: PLC0415
+    if git(repo, "merge-base", "--is-ancestor", ref, "HEAD").returncode == 0:
+        return None                                      # the branch already contains `ref`: nothing to merge
     if git(repo, "merge-base", "--is-ancestor", "HEAD", ref).returncode == 0:
         return None if git(repo, "merge", "--ff-only", ref).returncode == 0 else ["?"]
     if git(repo, "merge", "--no-commit", "--no-ff", ref, config=True).returncode != 0:
@@ -527,6 +531,30 @@ def self_test() -> int:
         scratch.run("merge", "--abort")
         expect("git: keep leaves a conflicting merge IN PROGRESS with its markers, for a finisher to resolve",
                kept == ["d.json"] and in_progress and marked and scratch.git("rev-parse", "HEAD") == tip, f"{kept}")
+        # A file the keyed merger declines (both sides changed one entry) but git's line merge merges cleanly (the changes are
+        # on lines apart, as a plain `git merge` would merge them) merges: no conflict, no markers (review finding R1-1).
+        fat = lambda p, s: (f'{{{NL} "x": {{{NL}  "p": "{p}",{NL}  "q": "q",{NL}  "r": "r",{NL}  "s": "{s}"{NL} }}{NL}}}{NL}')    # noqa: E731
+        fr = ScratchRepo.init(root / "fallback")
+        fr.commit("base", {"d.json": fat("1", "4"), ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+        fr.git("switch", "-q", "-c", "topic")
+        fr.commit("topic", {"d.json": fat("1+", "4")})
+        fr.git("switch", "-q", "main")
+        fr.commit("main", {"d.json": fat("1", "4+")})
+        fr.git("switch", "-q", "topic")
+        plain_clean = fr.run("merge", "--no-commit", "--no-ff", "main")
+        fr.run("merge", "--abort")
+        files = merge(fr.path, "main", "Merge main (fallback self-test)")
+        text = (fr.path / "d.json").read_text(encoding="utf-8")
+        expect("git: an entry both sides changed, on lines apart, merges through git's own line merge exactly as a plain "
+               "git merge does (the keyed merger declines, the fallback is clean): no conflict, no markers",
+               plain_clean.returncode == 0 and files is None and text == fat("1+", "4+") and not fr.git("status", "--porcelain"),
+               f"{plain_clean.returncode} {files} {text!r}")
+        # `ref` already inside the branch: nothing to merge, as a bare `git merge` answers "Already up to date" (R1-2).
+        before = fr.git("rev-parse", "HEAD")
+        again = merge(fr.path, "main", "Merge main (again)")
+        older = merge(fr.path, "main~1", "Merge main~1 (ancestor)")
+        expect("git: a ref the branch already contains is no conflict and no new commit (a resumed agent's first merge step)",
+               again is None and older is None and fr.git("rev-parse", "HEAD") == before, f"{again} {older}")
         # The ABI pin through git: both branches raise the major; the merge adds them and settles before its commit.
         import abi_pin  # noqa: PLC0415
         pr = ScratchRepo.init(root / "pin")
