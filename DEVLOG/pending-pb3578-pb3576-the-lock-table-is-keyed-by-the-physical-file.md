@@ -40,3 +40,8 @@ witnesses whose assertion described the old ending (re-stated: the transaction s
 `A_retired_kept_states_unpublished_record_locks_belong_to_its_file_...` (Linux, `how` removed/renamed, both organizations, SHARING ALL OTHER and NO OTHER), and the
 PB3533/PB3493 witnesses re-stated for the retire: the replaced file's change COMMITted, the refusals ('39', '61', the refused handle and attach) leaving the retired
 state as the CLOSE left it. Notes: kb/Work/PB3578 and PB3576 landed (`closes_rows: []`: runtime defects with no inventory row); PB3579's names updated.
+
+**Gate.** `TestResults/build-local/000001-20261024T011042Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run:
+Conformance 8,764 · Unit 953 · Characterization 31 … Conformance 9,563/18,327 · Unit 34,873/35,826 · Characterization 5/36 cases ran`; the 31 added tests are `Passed` in `leg-1-Unit.trx`.
+`=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD d78a163f7) ===` (unit 35,861, conformance 18,327; two earlier runs of the same head were RED
+only with "No space left on device" while other fleets filled the WSL disk, which also turned 22 `CobolFileLockTests` red). `python scripts/semgrep/verify.py`: PASS.
