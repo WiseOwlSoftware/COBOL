@@ -3,11 +3,15 @@
 Run: python scripts/orchestrator/test_checkpoint.py   (a fabricated repo with real worktrees in a temp directory)."""
 import json
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+
 CP = HERE / "checkpoint.py"
 SCHEMA = json.loads((HERE / "handoff.schema.json").read_text(encoding="utf-8"))
 TMP = pathlib.Path(tempfile.mkdtemp(prefix="checkpoint-test-"))
@@ -20,26 +24,19 @@ def check(name, got, want):
         fails.append(f"{name}: got {got!r}, want {want!r}")
 
 
-def git(cwd, *a):
-    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *a], cwd=cwd, check=True, capture_output=True)
-
-
 def run(*a):
     r = subprocess.run([sys.executable, str(CP), *a, "--coord", str(COORD), "--repo", str(REPO)], capture_output=True, text=True)
     check(f"exit of {a[0]}", r.returncode, 0)
     return r
 
 
-REPO.mkdir(parents=True)
-git(REPO, "init", "-q", "-b", "main")
-(REPO / "a.txt").write_text("a", encoding="utf-8", newline="\n")
-git(REPO, "add", "."); git(REPO, "commit", "-q", "-m", "base")
-git(REPO, "update-ref", "refs/remotes/origin/main", "HEAD")           # the base the worktrees are measured against
-git(REPO, "worktree", "add", "-q", "-b", "committed", str(TMP / "wt-committed"))
-git(REPO, "worktree", "add", "-q", "-b", "dirty", str(TMP / "wt-dirty"))
-git(REPO, "worktree", "add", "-q", "-b", "clean", str(TMP / "wt-clean"))
-(TMP / "wt-committed" / "b.txt").write_text("b", encoding="utf-8", newline="\n")
-git(TMP / "wt-committed", "add", "."); git(TMP / "wt-committed", "commit", "-q", "-m", "wip")
+scratch = ScratchRepo.init(REPO)
+scratch.commit("base", {"a.txt": "a"})
+scratch.git("update-ref", "refs/remotes/origin/main", "HEAD")           # the base the worktrees are measured against
+committed = scratch.worktree(TMP / "wt-committed", branch="committed")
+scratch.worktree(TMP / "wt-dirty", branch="dirty")
+scratch.worktree(TMP / "wt-clean", branch="clean")
+committed.commit("wip", {"b.txt": "b"})
 (TMP / "wt-committed" / "STATUS.md").write_text("STATUS-AT: abc\nDONE: x\n", encoding="utf-8", newline="\n")
 (TMP / "wt-dirty" / "c.txt").write_text("c", encoding="utf-8", newline="\n")                      # uncommitted
 (TMP / "wt-dirty" / "STATUS.md").write_text("ignored in the dirty count", encoding="utf-8", newline="\n")
@@ -75,6 +72,7 @@ run("synthesize", "--unit", "meter", "--out", str(out))
 h = json.loads(out.read_text(encoding="utf-8"))
 check("with no checkpoint and no milestones it still synthesizes", ("no checkpoint" in h["summary"], h["next_unit"]), (True, "resume"))
 
+shutil.rmtree(TMP, ignore_errors=True)   # the scratch repository, its worktrees and the coordination directory
 if fails:
     print("\n".join("FAIL: " + f for f in fails))
     sys.exit(1)

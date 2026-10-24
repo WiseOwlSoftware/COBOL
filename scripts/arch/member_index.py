@@ -360,6 +360,8 @@ def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict]
 
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     root = Path(tempfile.mkdtemp(prefix="member-index-test-"))
     for f in ("src/A/Binder.cs", "src/A/Binder.Oo.cs", "src/A/Use.cs", "src/B/Emit.cs", "tests/T.cs", "src/A/Sym.cs"):
         (root / f).parent.mkdir(parents=True, exist_ok=True)
@@ -433,13 +435,13 @@ def self_test() -> int:
     check("target", note_names(text, idx), (["N.Sym.Flag", "N.Sym.Go", "N.Sym.Unused"], "declared and its target"))
     # folder sites expand on the current tree (K1 (3)): a file added under a site folder after the index joins
     (root / "src/A/Added.cs").write_text("// new", encoding="utf-8", newline="\n")
-    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
-    subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+    scratch = ScratchRepo.init(root)
+    scratch.git("add", "-A")
     check("folder", "src/A/Added.cs" in folder_files(("src/A",), root), True)
     fs = note_file_set("**Sites:**\n- folder `src/A/`", root, index=no_index, drifted=no_index)
     check("folder-declared", "src/A/Added.cs" in fs["files"] and "src/A" not in fs["files"], True)
     # currency (K1 (3)): the planner's index is the one whose treeKey is this tree's, else regenerated, else refused
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "c0"], cwd=root, check=True)
+    scratch.git("commit", "-qm", "c0")
     key = tree_key(root)
     check("key-stable", key == tree_key(root) and key is not None, True)
     cache = root / "cache"
@@ -459,7 +461,7 @@ def self_test() -> int:
     check("cached", current(root, cache, regenerate=False)["treeKey"], key)
     (root / "src/A/Added.cs").write_text("// changed", encoding="utf-8", newline="\n")
     check("dirty-no-key", tree_key(root), None)
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "c1"], cwd=root, check=True)
+    scratch.git("commit", "-qam", "c1")
     try:
         current(root, cache, regenerate=False)
         check("landing-makes-stale", "no refusal", "refusal")
