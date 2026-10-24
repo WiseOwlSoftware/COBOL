@@ -1,4 +1,4 @@
-## PB3541's refused COMMIT gets its witness: a refused COMMIT deactivates nothing, and item 8's ROLLBACK restores the file before it deactivates the clause
+## Entry 2432 — 2026-10-23 20:09 PDT — PB3541's refused COMMIT gets its witness: a refused COMMIT deactivates nothing, and item 8's ROLLBACK restores the file before it deactivates the clause
 
 PB3541 landed through the loop's branch (entry 2426), which carried this branch's work-in-progress commits but not its
 branch-review fix R1-1. This landing adds that one witness and nothing else:
@@ -11,3 +11,4 @@ the other controlled file G and the live clause's data items (§14.9.36.4 GR3), 
 clause (§14.9.36.4 GR6). The test fails on a mutant that runs `TransactionControl.DeactivateRetired` before the refusal
 check: F would be released first, item 8 would find it under no clause, and its changes would stay in the open transaction
 for the run unit's end to make permanent. The PB3541 note's Landing section names the witness.
+
