@@ -1,4 +1,4 @@
-## O11: nothing simple waits; the attended session lands what the lane cannot reach
+## Entry 2467 — 2026-10-24 11:59 PDT — O11: nothing simple waits; the attended session lands what the lane cannot reach
 
 Until now MANDATORY-PRACTICES O11 said, while the loop runs, "the attended session lands nothing itself": a finished
 attended branch became a report for the enqueue unit, and everything stopped waited for that unit. Units run one at a
@@ -15,3 +15,4 @@ O11, the workstream skill's section 3 and `references/landing.md` now say the at
 loop runs, any branch the lane cannot reach or would leave idle for a mechanical reason, when no lane attempt runs for
 it. It then steers the next unit so nothing is duplicated, re-arms what a predecessor's landing unblocks, and files each
 case as a note in the process campaign so the loop does it itself next time. `check_practices.py` is green.
+
