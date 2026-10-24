@@ -263,13 +263,16 @@ def parse_hunks(diff: str, old: str, new: str) -> list[Hunk]:
 
 
 def text_at(rev: str | None, path: str) -> str:
-    """`path`'s text at the commit `rev` (None: the worktree), unstripped so its line numbers are the diff's; "" when
-    it is absent there."""
+    """`path`'s text at the commit `rev` (None: the worktree), unstripped so its line numbers are the diff's. Its
+    callers read a side the file EXISTS on, so a failed read raises: an empty text would make every line of the
+    diff a non-code line, and a real edit would read as nothing changed."""
     if rev is None:
         return text_of(REPO / path)
     r = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=REPO, capture_output=True, text=True, encoding="utf-8",
                        errors="replace")
-    return r.stdout if r.returncode == 0 else ""
+    if r.returncode != 0:
+        raise RuntimeError(f"impacted_tests: git show {rev}:{path} exited {r.returncode}: {r.stderr.strip()}")
+    return r.stdout
 
 
 def hunks(base: str, path: str) -> list[Hunk]:
