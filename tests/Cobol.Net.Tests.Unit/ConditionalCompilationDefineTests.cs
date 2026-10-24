@@ -93,17 +93,25 @@ public sealed class ConditionalCompilationDefineTests
         finally { Environment.SetEnvironmentVariable("CN-CC-TEST-SPELLING", null); }
     }
 
-    [Theory] // DOC-A.1-49 (kb/Work PB1533): the value's CATEGORY — NUMERIC when the whole text parses as an invariant-culture
-             // decimal number (surrounding white space, a sign, '.' as the decimal point and ',' as a group separator are
-             // accepted), otherwise ALPHANUMERIC with the text exactly as given. §7.3.8.2 SR1 a): a relation's operands are of
-             // the same category, so the literal the relation compares against names the category the value has.
+    [Theory] // DOC-A.1-49 (kb/Work PB1533, PB1626): the value's CATEGORY is SYNTACTIC, as GnuCOBOL 3.2 classifies it — NUMERIC
+             // exactly when the text is the spelling of a fixed-point numeric literal (§8.3.3.3.2: an optional leading sign,
+             // digits, at most one decimal point that is not the rightmost character), a quoted value is that ONE literal,
+             // and every other text is ALPHANUMERIC exactly as given. §7.3.8.2 SR1 a): a relation's operands are of the same
+             // category, so the literal the relation compares against names the category the value has.
     [InlineData("7", "7")]
-    [InlineData(" -2.5 ", "-2.5")]
-    [InlineData("1,000", "1000")]
+    [InlineData("-2.5", "-2.5")]
+    [InlineData("+.5", "0.5")]
     [InlineData("007", "7")]
     [InlineData("abc", "\"abc\"")]
     [InlineData("7x", "\"7x\"")]
-    [InlineData("1,5", "15")]   // the comma is a GROUP separator, never a decimal comma
+    [InlineData("1,000", "\"1,000\"")]   // the comma is no part of a numeric literal's spelling
+    [InlineData("1,5", "\"1,5\"")]
+    [InlineData("5.", "\"5.\"")]         // §8.3.3.3.2 3): the decimal point is never the rightmost character
+    [InlineData("1E5", "\"1E5\"")]       // no floating-point spelling: the classification is a fixed-point literal's
+    [InlineData("7 ", "\"7 \"")]         // trailing white space is content, not ignored
+    [InlineData("\"ab\"\"c\"", "\"ab\"\"c\"")]   // a quoted value is the literal as written: the doubled quotation symbol is content
+    [InlineData("'x y'", "\"x y\"")]
+    [InlineData("\"7\"", "\"7\"")]       // quoted, so alphanumeric although its content spells a number
     public void Parameter_ValueCategory_FollowsTheDocumentedTyping(string value, string literal)
     {
         const string name = "CN-CC-TEST-TYPING";
@@ -113,6 +121,84 @@ public sealed class ConditionalCompilationDefineTests
             var (text, diags) = Run($">>DEFINE {name} AS PARAMETER\n>>IF {name} = {literal}\nKEEP\n>>END-IF\n");
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.Contains("KEEP", text);
+        }
+        finally { Environment.SetEnvironmentVariable(name, null); }
+    }
+
+    [Theory] // §7.3.11.4 GR4 (kb/Work PB1626): "If no value is made available from the operating environment, compilation-variable-name-1
+             // is not defined." GnuCOBOL 3.2 reads an empty value, one that begins with a space, and an improperly quoted one as
+             // no value — here a quoted value is held to ONE literal, so a quoted value followed by more text is no value too.
+    [InlineData("")]
+    [InlineData(" 7")]
+    [InlineData(" -2.5 ")]
+    [InlineData("\"abc")]
+    [InlineData("\"")]
+    [InlineData("\"a\"b\"")]
+    [InlineData("\"a\" & \"b\"")]
+    [InlineData("'a\"")]
+    public void Parameter_NoValue_LeavesTheNameUndefined(string value)
+    {
+        const string name = "CN-CC-TEST-NOVALUE";
+        Environment.SetEnvironmentVariable(name, value);
+        try
+        {
+            var (text, diags) = Run($">>DEFINE {name} AS PARAMETER\n>>IF {name} IS NOT DEFINED\nKEEP\n>>END-IF\n");
+            Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
+            Assert.Contains("KEEP", text);
+        }
+        finally { Environment.SetEnvironmentVariable(name, null); }
+    }
+
+    [Theory] // kb/Work PB1626 — the classification is the SAME at every edition and is not System.Decimal's: a 31-digit value (the
+             // fixed-point literal capacity, §8.3.3.3.2) is NUMERIC, so it compares against the numeric literal it spells and is
+             // the SAME value as that literal written in a DEFINE (§7.3.11.3 SR2 raises no COBOLNET1618). Before PB1626 a 29-31
+             // digit value was alphanumeric and ">>IF X > 0" was refused (COBOLNET1619, 'Alphanumeric' vs 'Numeric').
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void Parameter_ThirtyOneDigitValue_IsNumericAtEveryEdition(int edition)
+    {
+        const string name = "CN-CC-TEST-LONG";
+        const string digits = "1234567890123456789012345678901";
+        Environment.SetEnvironmentVariable(name, digits);
+        try
+        {
+            var bag = new DiagnosticBag();
+            string text = ConditionalCompilationProcessor.Process(
+                $">>DEFINE {name} AS PARAMETER\n>>IF {name} > 0\nPOSITIVE\n>>END-IF\n>>IF {name} = {digits}\nEQUAL\n>>END-IF\n>>DEFINE {name} AS {digits}\n",
+                diagnostics: bag, sourcePath: "t.cob", dialectLevel: edition);
+            Assert.False(bag.HasErrors, string.Join("\n", bag.Diagnostics));
+            Assert.Contains("POSITIVE", text);
+            Assert.Contains("EQUAL", text);
+        }
+        finally { Environment.SetEnvironmentVariable(name, null); }
+    }
+
+    [Fact] // kb/Work PB1626 — a numeric spelling longer than the fixed-point literal capacity (§8.3.3.3.2: 1 through 31 digits) is
+           // refused where the literal is evaluated, exactly as `>>DEFINE X AS <32 digits>` is: at the DEFINITION, naming the
+           // directive, and the name stays undefined (GnuCOBOL reports it at the use; the diagnostic's position is the only difference).
+    public void Parameter_ThirtyTwoDigitValue_RefusedAtTheDefinition()
+    {
+        const string name = "CN-CC-TEST-TOOLONG";
+        Environment.SetEnvironmentVariable(name, "12345678901234567890123456789012");
+        try
+        {
+            var (_, diags) = Run($">>DEFINE {name} AS PARAMETER\n");
+            var d = Assert.Single(diags.Diagnostics, x => x.Code == "COBOLNET1619");
+            Assert.Contains("32 digit positions", d.Message);
+        }
+        finally { Environment.SetEnvironmentVariable(name, null); }
+    }
+
+    [Fact] // a directive in an omitted branch changes nothing, so the over-long value is never evaluated there
+    public void Parameter_ThirtyTwoDigitValue_InAnOmittedBranch_IsNotEvaluated()
+    {
+        const string name = "CN-CC-TEST-TOOLONG2";
+        Environment.SetEnvironmentVariable(name, "12345678901234567890123456789012");
+        try
+        {
+            var (_, diags) = Run($">>IF 1 = 2\n>>DEFINE {name} AS PARAMETER\n>>END-IF\n");
+            Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
         }
         finally { Environment.SetEnvironmentVariable(name, null); }
     }
