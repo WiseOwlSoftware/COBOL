@@ -158,8 +158,7 @@ public static class MoveOverlap
     /// <summary>An unedited numeric DISPLAY sender whose description (usage, digits, scale, sign and sign form)
     /// differs from the receiver's — GnuCOBOL's compiler copies identical descriptions byte for byte.</summary>
     private static bool IsOtherNumericDisplay(Place from, PicInfo receiver) =>
-        from.DenotedItem is not null   // a whole item, not a slice (a slice is alphanumeric, §8.4.3.3.4 GR6)
-        && from.Item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display } s
+        IsNumericDisplayItem(from) && from.Item.Pic is { } s
         && !(s.Length == receiver.Length && s.Digits == receiver.Digits && s.Scale == receiver.Scale
              && s.Signed == receiver.Signed && s.SignKind == receiver.SignKind);
 }
