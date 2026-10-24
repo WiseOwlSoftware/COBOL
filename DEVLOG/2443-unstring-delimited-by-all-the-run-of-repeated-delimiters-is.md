@@ -1,4 +1,4 @@
-## UNSTRING DELIMITED BY ALL: the run of repeated delimiters is consumed after the INTO store, as libcob does (PB1909)
+## Entry 2443 — 2026-10-23 23:30 PDT — UNSTRING DELIMITED BY ALL: the run of repeated delimiters is consumed after the INTO store, as libcob does (PB1909)
 
 PB1909 was the one measured GnuCOBOL difference PB1907 (wave 1002) kept for cost. An UNSTRING with `DELIMITED BY ALL <identifier>` whose INTO,
 DELIMITER IN or COUNT IN store of the same statement overwrites that delimiter (or the sender) is undefined by §14.9.48.4 GR18 and Annex A.2
@@ -35,3 +35,4 @@ A `record_verdicts` batch retired that witness, added `UnstringSkipRun` and `Uns
 `matched` bounds guard that quietly did nothing was removed so a mismatched flag array is loud; a zero-length live delimiter is the one deliberate no-op
 (an empty delimiter would match without end). Comments: the kernel and emitter summaries were rewritten with the code. Tests: the sibling arms were swept
 (`ALL` literal, `ALL` identifier disjoint, overlapped delimiter, overlapped sender, no `ALL`).
+
