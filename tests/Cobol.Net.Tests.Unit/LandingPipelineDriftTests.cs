@@ -44,9 +44,11 @@ public sealed class LandingPipelineDriftTests
 
     /// <summary>The files that PERFORM the landing: the whole tree but the paths that describe it (design docs, the work
     /// register, the history, frozen evidence and adjudication records, the spec, and the test sources, as this file
-    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them.</summary>
+    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them. The
+    /// knowledge base and the vault's settings are set aside whole: a sweep that read them made the vault a test input
+    /// (kb/Work PB2878).</summary>
     private static readonly TreeScope NotNarrative = new(Under: [""],
-        Except: ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
+        Except: ["docs/", "kb/", ".obsidian/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
 
     private const string TheGuardedStep = "scripts/orchestrator/enqueue.py";
 
