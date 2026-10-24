@@ -2125,8 +2125,8 @@ found = prune.replays(RG_ORDER, RG_ORDER, RG_ORDER.index, RG_GRAPH)
 check("PB3170 (a): x, whose four commits y replays by cherry-pick and q holds as ancestors, is carried (by the branch "
       "that replays the most, the later of two ties); it has no commit of its own beyond them",
       (found["x"].carrier, found["x"].fresh, found["x"].by), ("q", (), (("q", 4), ("y", 4))))
-check("PB3170 (a): z, two of x's commits cherry-picked, is carried too, by every larger branch",
-      (found["z"].carrier, found["z"].fresh, [b for b, _ in found["z"].by]), ("q", (), ["q", "x", "y"]))
+check("PB3170 (a): z, two of x's commits cherry-picked, is carried too, by every larger UNCARRIED branch (x is carried)",
+      (found["z"].carrier, found["z"].fresh, [b for b, _ in found["z"].by]), ("q", (), ["q", "y"]))
 check("PB3170 (a): y is NOT carried: its fifth commit is in no larger branch (fresh), and q replays the other four",
       (found["y"].carrier, found["y"].fresh, found["y"].by), (None, (y5,), (("q", 4),)))
 check("PB3170 (a): the largest of the family, q, carries nothing: exactly one branch still does the work",
@@ -2138,6 +2138,23 @@ RG.git("switch", "-q", "-c", "x2", "x")
 tie = prune.replays(["x", "x2"], ["x", "x2"], {"x": 0, "x2": 1}.get, git_batch.Ancestry.read(RG.path, ["x", "x2"]))
 check("PB3170 (a): two branches holding the same commits: the later report carries the earlier, never both ways",
       (tie["x"].carrier, tie["x2"].carrier), ("x2", None))
+# the successor CHAIN (review R1-1): c-x holds four commits; a-mid (a later report) cherry-picks them; b-top (the latest)
+# cherry-picks a-mid and adds one. a-mid is carried by b-top, so it gets no finisher: c-x's carrier is b-top, never the
+# carried middle link a-mid. The names are chosen so that the name order and the report order disagree (the old rule
+# broke the tie on NAME, and a-mid sorts before b-top).
+for br, picks in (("c-x", x_commits), ("a-mid", x_commits)):
+    RG.git("switch", "-q", "-c", br, "main")
+    RG.git("cherry-pick", *picks)
+mid_commits = RG.git("rev-list", "--reverse", f"{git_batch.BASE}..a-mid").split()
+RG.git("switch", "-q", "-c", "b-top", "main")
+RG.git("cherry-pick", *mid_commits)
+RG.commit("t5", {"t5.txt": "5" + chr(10)})
+CH_ORDER = ["c-x", "a-mid", "b-top"]
+chain = prune.replays(CH_ORDER, CH_ORDER, CH_ORDER.index, git_batch.Ancestry.read(RG.path, CH_ORDER))
+check("PB3170 (a): in a successor chain every carried link rides on the TOP branch, never on a carried middle link",
+      [(chain[b].carrier, chain[b].fresh == ()) for b in CH_ORDER], [("b-top", True), ("b-top", True), (None, False)])
+check("PB3170 (a): ... and `by` names only branches that have a finisher",
+      [[n for n, _ in chain[b].by] for b in CH_ORDER], [["b-top"], ["b-top"], []])
 # (b) THROUGH THE PLANNER'S OWN WIRING (branch_replays: the reports' order is the rank, ABANDONED carries nothing)
 rg_reports = [pw.Report(pathlib.Path(f"{slug}-{lead}-report.md"), int(slug[1:5]), slug, lead, "SPLIT", [lead], False,
                         branch, None, "7777777aa")   # oldest first: x's report, then y's

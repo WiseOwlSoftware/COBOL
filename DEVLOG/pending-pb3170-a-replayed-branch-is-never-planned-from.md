@@ -39,5 +39,15 @@ against `abandon_record` per branch, and the plan in six shapes, the first of wh
 finishers). `git_batch.py --self-test` gains three `patch_ids` arms (root commit, merge and empty commit absent, a
 cherry-pick shares its id), declared in `GitBatchDriftTests`.
 
+**Review round 1 (R1-1).** `replays` chose a branch's carrier as the outranking branch replaying the most of its
+commits, a tie broken by branch NAME. In the planner's own successor chain (c-x, then a-mid cherry-picking it, then
+b-top cherry-picking a-mid) c-x was carried by the middle link a-mid, which is itself carried and gets no finisher, so
+c-x's note waited for a-mid to land (it never does) while b-top's finisher landed c-x's commits blind to the note. The
+outcome depended on worktree-name order. Fix: `replays` settles branches highest key first and names as carrier (and in
+`by`) only outranking branches carried by nobody, the tie going to the later report. Every patch of a carried branch is
+held by an uncarried one (induction from the top of the order), so a carried branch always has a carrier that
+has a finisher. Witness: two `test_plan_wave.py` checks on a real three-branch chain whose names disagree with the
+report order (361/361).
+
 **Not fixed here.** `prune_worktrees.contained()` (the branch survey) still reads ancestry only: a replayed SPLIT branch
 stays a DECISION row until its carrier lands and `git cherry` reads it LANDED. The planner no longer dispatches it.

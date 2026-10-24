@@ -796,8 +796,8 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    unlanded branch beyond `origin/main` by patch id (`git_batch.patch_ids`, two git processes for all of them; the key
    `git cherry` uses for the `LANDED` class, `prune_worktrees.replays`), and a branch is carried when branches that
    OUTRANK it (more distinct patches, then the later report, so no two branches carry each other) hold every one of its
-   commits. Such a branch gets no finisher: its notes join the group of the branch that replays the most of it, or wait
-   while that branch has none. A branch replayed only in part keeps its finisher, whose `pred` names the commits no other
+   commits. Such a branch gets no finisher: its notes join the group of the UNCARRIED branch (one with a finisher, never a middle
+   link of a successor chain) that replays the most of it (a tie: the later report), or wait while that branch has none. A branch replayed only in part keeps its finisher, whose `pred` names the commits no other
    branch holds. The unlanded-branch arm (c) and the half-note arm read the same rule. A branch a kb/Work note records
    ABANDONED (`prune_worktrees.abandon_records`, the survey's matcher) is never planned from: its reports and notes are
    not read. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).

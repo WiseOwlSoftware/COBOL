@@ -64,7 +64,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
    commits of every unlanded branch beyond origin/main by PATCH ID (git_batch.patch_ids, one batched read), the rule
    `git cherry` uses for LANDED (prune_worktrees.carried). A branch every commit of which an OUTRANKING branch holds
    (more distinct patches, then the later report: no two branches carry each other) is planned no finisher: its notes
-   go to the group of the branch that replays the most of it, or wait while that branch has none. A branch only partly
+   go to the group of the UNCARRIED branch that replays the most of it (never a carried middle link of a successor
+   chain), or wait while that branch has none. A branch only partly
    replayed is still planned, its pred naming only the commits no other branch holds. A branch a kb/Work note
    records ABANDONED (prune_worktrees.abandon_records, the survey's own matcher) is never planned from: its reports and
    its notes are not read.

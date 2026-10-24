@@ -299,10 +299,11 @@ def carried(branch, lost, graph: Ancestry, repo=REPO, coord_dir: pathlib.Path | 
 @dataclasses.dataclass(frozen=True)
 class Replay:
     """How far OTHER unlanded branches replay one branch's commits (`replays`, kb/Work PB3170). `carrier`: the branch
-    that replays the most of them, when it and the others that outrank this one together replay EVERY commit (the
-    branch's work rides on them; None otherwise). `fresh`: this branch's commits (oldest first) that no outranking
-    branch holds, in or out of a carried branch. `by`: (branch, how many of this branch's commits it replays) for each
-    outranking branch that replays any."""
+    that replays the most of them (a tie: the later report), among the outranking branches that are carried by nobody,
+    when those together replay EVERY commit (the branch's work rides on them; None otherwise). `fresh`: this branch's
+    commits (oldest first) that no outranking branch holds, in or out of a carried branch. `by`: (branch, how many of
+    this branch's commits it replays) for each outranking UNCARRIED branch that replays any (a carried one has no
+    finisher to name)."""
     carrier: str | None
     fresh: tuple[str, ...]
     by: tuple[tuple[str, int], ...]
@@ -328,15 +329,22 @@ def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int]
     def key(b: str) -> tuple[int, int, str]:
         return len(held[b]), rank(b), b
 
-    out: dict[str, Replay] = {}
-    for b in branches:
+    # Highest key first, so every branch that outranks one is settled before it is read. A branch's carrier is always a
+    # branch carried by NOBODY (one that has a finisher), never a middle link of a successor chain (each SPLIT successor
+    # cherry-picks its predecessor: c-x, then a-mid, then b-top): naming a carried link strands the note on a branch
+    # that never lands on its own (review R1-1). Every patch of a carried branch is held by an uncarried one: the
+    # highest-keyed branch is uncarried, and a carried branch's patches are held by branches above it, by induction.
+    settled: dict[str, Replay] = {}
+    for b in sorted(names, key=key, reverse=True):
         mine = [c for c in commits[b] if c in pid]
         above = [c for c in carriers if c != b and held[c] and key(c) > key(b)]
-        by = sorted(((c, sum(1 for x in mine if pid[x] in held[c])) for c in above), key=lambda t: (-t[1], t[0]))
         everywhere = frozenset().union(*(held[c] for c in above))
         fresh = tuple(x for x in mine if pid[x] not in everywhere)
-        out[b] = Replay(by[0][0] if mine and not fresh and by else None, fresh, tuple(t for t in by if t[1]))
-    return out
+        counted = [(c, sum(1 for x in mine if pid[x] in held[c])) for c in above if settled[c].carrier is None]
+        by = tuple(sorted(((c, n) for c, n in counted if n), key=lambda t: (-t[1], t[0])))
+        best = max(by, key=lambda t: (t[1], key(t[0])), default=None)   # most replayed, then the LATER report
+        settled[b] = Replay(best[0] if mine and not fresh and best else None, fresh, by)
+    return {b: settled[b] for b in branches}
 
 
 def branch_graph(branches, repo=REPO) -> Ancestry:
