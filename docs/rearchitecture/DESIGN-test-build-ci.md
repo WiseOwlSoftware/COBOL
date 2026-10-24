@@ -123,12 +123,12 @@ names carry the shard AND its filter text (`Greenfield conformance (Linux, shard
 measured on `5bf5a7f1`), so any shard edit renames the context, and every matrix job is skipped on a docs-only
 push, which a required check reads as "never reported".
 
-**The doc-only skip moved one layer down.** `paths-ignore` used to make the workflow decline to START for a
-`DEVLOG/**` / `docs/**` / `kb/**` / `PROMPT.md` / `CLAUDE.md` / `README.md` push — incompatible with a per-commit
-required check, which has nothing to satisfy when no run exists. The identical list now lives in `changes` (one
-copy, no trigger-side twin to drift against), which diffs `github.event.before .. github.sha` and outputs
-`run_matrix`; every other job carries `needs: changes` + `if: needs.changes.outputs.run_matrix == 'true'`. A merge
-group's base is its `merge_group.base_sha`, so a group of docs-only pull requests skips the matrix; a pull request never
+**The skip moved one layer down, and is now the inert lane (§3.18).** `paths-ignore` used to make the workflow decline
+to START for a doc-only push — incompatible with a per-commit required check, which has nothing to satisfy when no run
+exists. `changes` now decides it, by calling `scripts/inert_lane.py classify` over `base .. github.sha` (§3.18: the one
+classification, which the local gate and the Linux gate call too), and outputs `run_matrix`; every other job carries
+`needs: changes` + `if: needs.changes.outputs.run_matrix == 'true'`. A merge group's base is its
+`merge_group.base_sha`, so a group of inert pull requests skips the matrix; a pull request never
 runs it (its run is the cheap jobs, §3.17.6); a push to main diffs from `before`, and with no resolvable `before` the
 matrix runs. `changes` also short-circuits a push whose sha already carries a green run of the workflow from an event
 other than `pull_request` — the merge group's, since the queue advances main to the very commit it tested — so main's
@@ -966,16 +966,16 @@ because the raw name is not stable (`b7`):
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
   the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
   a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
-  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
-  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  through `SuiteManifest`, and the register drift tests (since replaced by `work_inventory.py`) read the register through
+  `WorkRegister`, so a golden or a note governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
   test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
   test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
   (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
   class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
   every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
-  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  copy the index once held lacked a helper (`Kb`, then), and `--check` fails on a helper in a shape it cannot read; a suite test named
   by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
-  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  helper call's path is its LEADING string literals (`TestRepo.Nist("cases", note + ".txt")` reads under `tests/nist/cases`; a
   collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
   spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
   the `Sweep` trait). A call's path is what its arguments SPELL, read by one evaluator with balanced parentheses
@@ -2374,7 +2374,8 @@ demand and not committed.
   plus a sweep that no tracked `docs/` or `kb/` markdown declares itself generated without a row. Nothing compares a view
   with a copy on disk, so "absent" and "stale" no longer exist; a reader that needs a view (`phase_b_batch.py` reads the
   diagnostics table) refuses with the render command when it is absent, never reads an empty one as "no diagnostics".
-  `RenderedViewsDriftTests` asks the script's `--tree` mode, so the audit, CI and the test cannot disagree. NOT views, and
+  No test asks the script (a Unit test did until kb/Work PB2878: its tree sweep reads the head of every tracked `kb/` note,
+  and a test that read the vault made every note a test input), so the audit and CI are its only callers. NOT views, and
   tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must build with no pre-step; each
   has its own drift test), DATA extracted from the licensed standard (the generator needs the private PDF), the gating
   status block embedded in `VERSION_CHANGE_REFERENCE.md` (a region of a hand-written, anchor-checked document: one row per
@@ -2429,7 +2430,7 @@ demand and not committed.
 #### 3.17.6 CI and repository settings (PB3024)
 
 - `build-and-test.yml` (landed, PB3024 phase 1): `merge_group:` added; the `changes` job runs the matrix on
-  `merge_group` (base = the group's `base_sha`, so a group of docs-only PRs skips it exactly as a docs-only landing did)
+  `merge_group` (base = the group's `base_sha`, so a group of inert-lane PRs skips it exactly as an inert landing did, §3.18)
   and `workflow_dispatch`, only the cheap jobs (`audits`, `ci-gate`) on `pull_request`, and on `push` to main the
   already-verified short-circuit (the merge-queue commit IS the commit main advances to; measured on the first three
   queued landings, PRs 7–9: each `push` run found its merge group's green run on the same sha and skipped the matrix).
@@ -2508,6 +2509,81 @@ well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm ove
 by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
 (no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
 landing is held to a record of its own tree.
+
+### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
+
+**Why.** Owner 2026-10-09, on a one-change landing that edited a practices file and two briefs: "Should this require a
+full CI run? I would think not." Of the 300 landings of 2026-10-16..23, 137 changed only paths CI's doc-only regex
+named, and each still paid the local gate (median about 14 min: the audits, a slot, a build, leg 1) and the landing's
+four Linux legs. And the regex was not a classification: `docs/` and `kb/Work/` are test INPUTS, so CI skipped the
+very tests that read them, and a kb/Work-only branch went RED on the landing's Linux gate behind a GREEN Windows gate
+(kb/Work PB3603); the CI invariant (PB1957) held only because the Linux gate ran every leg.
+
+**The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and
+under no `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it).
+A change is in the inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into
+an inert directory shows its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the
+knowledge base, THE work register `kb/Work/` among it) and `.obsidian/`. NOT inert, measured on 2026-10-23 by deleting
+each candidate and running the three assemblies on Windows, and then by the watch below over the whole Linux
+population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and twenty-odd classes read
+CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files
+(GateLegDriftTests, ArchReviewFleetDriftTests, SelfTestDiscoveryDriftTests); the `tools/claude-skills` pin, which the
+self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflict-marker sweep moved before them:
+
+- **The conflict-marker sweep**, which read EVERY tracked file and so made every path a test input, became an audit
+  (`scripts/conflict_markers.py --check`, kb/Work PB735's rule unchanged), which also closes the hole that it never ran
+  in CI on a change whose matrix was skipped.
+- **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every
+  landed `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory)
+  were two Unit drift tests that read every `kb/Work/` note through a C# twin of `work.py`'s frontmatter reader. They are
+  now `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are
+  audits: the gate's `WORK REGISTER` audit runs them before the slot, CI's `audits` job on every event, and they run on a
+  `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
+  (the fixture stays as `work.py --self-test`'s cases). The tree sweeps of LandingPipelineDriftTests (two scopes),
+  LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` and `.obsidian/` aside whole, and EcRaiseSiteRegistryDriftTests
+  no longer reads a note (the raise site is its evidence). `RenderedViewsDriftTests`, which only ran
+  `rendered_views.py --tree` (rule (c) there reads the head of every tracked `kb/` note), is deleted: the same rule is
+  `rendered_views.py --check`, the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job, so no test reads the
+  vault.
+
+**Who calls it — every runner, no list of its own (the CI invariant).**
+
+| Runner | Inert lane | Full lane |
+|---|---|---|
+| CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` + `ci-gate` | the matrix |
+| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or leg; under either scope | the ordered gate |
+| landing's Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main) | `=== LINUX GATE: GREEN (inert lane, …) ===`, no leg | every leg, under the watch |
+
+The audits run in every lane (they are where a register note, a citation or a DEVLOG entry is checked); CI's `audits`
+job runs on every event.
+
+**The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test
+that starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux
+runs under `inert_lane.py watch`: an inotify watch (through `ctypes`, no package to install) of every directory an
+inert tracked file lies in and of every inert directory itself, so an OPEN of an inert file or a LISTING of an inert
+directory, by the test or by any process it starts, is recorded; the run is RED naming each such path (`opened: …`), and
+an overflowed event queue is RED too (it proves nothing). CI's four Linux `dotnet test` steps run under it; the Linux
+gate runs one watch over its parallel test legs (the `inert-watch` leg) in a clone that runs those three legs and nothing
+else, and runs the script self-tests (audits, which read inert paths by design: the register, every DEVLOG entry, the
+skills submodule they initialize) and the guard in a second clone with its own build, the AUDIT clone (which also takes
+the guard's own `dotnet build` of the CLI off the clone whose CLI the legs run, kb/Work PB3529). Windows has no open
+events, so the
+Windows runs carry no watch; the Linux runs are the whole population on every code change. The answer to a RED watch is
+a READ entry naming the reader (the path leaves the inert lane) or making the reader an audit, never deleting the watch.
+
+**Drift test.** `InertLaneDriftTests`: the `changes` job classifies through the module and carries no path regex; every
+`dotnet test` line of a Linux job runs under the watch; `linux-gate.sh` classifies and watches, and `run_gate_legs.py`
+classifies, through the module; `inert_lane.py check` is GREEN (every entry names a tracked path, every READ entry lies
+under an INERT one). The classification's logic and the watch's firing (a read, a listing, a READ path, the command's
+own exit code) are `inert_lane.py --self-test`'s arms, run by the self-test runner in every gate and CI (the inotify
+arms on Linux: CI's `audits` job and the Linux gate's `selftests` leg). `SelfTestDiscoveryDriftTests` holds both
+self-test legs of the Linux gate to the audit clone.
+
+**What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only
+those), so it is the inert lane: the audits (the register's checks among them) and nothing else. A change to `docs/`, a
+skill or a brief is still the full lane until its readers become audits or gain READ entries, one measured path at a
+time (an INERT entry is added only with a GREEN Linux watch run: `bash scripts/linux-gate.sh --nice`, its `inert-watch`
+leg).
 
 ---
 
