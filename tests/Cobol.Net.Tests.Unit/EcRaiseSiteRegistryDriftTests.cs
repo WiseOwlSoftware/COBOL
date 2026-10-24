@@ -87,12 +87,10 @@ public sealed class EcRaiseSiteRegistryDriftTests
     /// chooses at RUN time (§14.9.18.4 GR1 b) 3a, §14.6.13.1.5 EXIT/GOBACK item 4). The activating statement carries its own
     /// <see cref="EcCheckingProfile"/> (<c>EcBinder.StampActivators</c>), which answers for ANY catalogued name, so no
     /// statement declares these; the raise site is <c>ExceptionState.StageLastName</c> / <c>ConvertObjectPropagationToNamed</c>.
-    /// Each entry names the landed kb/Work note that built the mechanism.</summary>
-    private static readonly (string Name, string Note)[] RaisedAtTheActivationBoundary =
-    [
-        ("EC-RAISING-NOT-SPECIFIED", "PB408"),
-        ("EC-OO-EXCEPTION", "PB1121"),
-    ];
+    /// The evidence that each is raised is the raise site itself (<c>Raised</c>), never the register: a test reads no
+    /// <c>kb/</c> note (kb/Work PB2878: a register-only change runs no test leg). The notes that built the mechanisms are
+    /// PB408 (EC-RAISING-NOT-SPECIFIED) and PB1121 (EC-OO-EXCEPTION).</summary>
+    private static readonly string[] RaisedAtTheActivationBoundary = ["EC-RAISING-NOT-SPECIFIED", "EC-OO-EXCEPTION"];
 
     private static IEnumerable<string> Level3Names =>
         ExceptionCatalog.Level3Rows.Select(r => r.Name).OrderBy(n => n, StringComparer.Ordinal);
@@ -181,7 +179,7 @@ public sealed class EcRaiseSiteRegistryDriftTests
     {
         var declared = EcBinder.AllDeclaredNames;
         var declined = DeclinedRaiseSites.SelectMany(d => d.Names.Select(n => (Name: n, d.Anchor))).ToDictionary(d => d.Name, d => d.Anchor);
-        var atBoundary = RaisedAtTheActivationBoundary.Select(b => b.Name).ToHashSet(StringComparer.Ordinal);
+        var atBoundary = RaisedAtTheActivationBoundary.ToHashSet(StringComparer.Ordinal);
         var problems = new List<string>();
         foreach (string name in Level3Names)
         {
@@ -257,12 +255,9 @@ public sealed class EcRaiseSiteRegistryDriftTests
                 }
             }
         }
-        foreach (var (name, note) in RaisedAtTheActivationBoundary)
+        foreach (string name in RaisedAtTheActivationBoundary)
         {
             if (!names.Contains(name)) problems.Add($"{name}: not a catalogued level-3 name");
-            string file = TestRepo.Kb("Work", note + ".md");
-            if (!File.Exists(file) || !File.ReadAllText(file).Contains("status: landed", StringComparison.Ordinal))
-                problems.Add($"{name}: kb/Work/{note}.md is not a landed note");
             // The activating statement's profile answers for the name: >>TURN EC-ALL CHECKING ON enables it.
             if (!EcCheckingProfile.FromEvents([(ExceptionCatalog.EcAll, true)]).Enabled(name))
                 problems.Add($"{name}: an EcCheckingProfile does not enable it, so the activating statement could not raise it");

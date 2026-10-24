@@ -966,16 +966,16 @@ because the raw name is not stable (`b7`):
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
   the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
   a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
-  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
-  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  through `SuiteManifest`, and the register drift tests (since replaced by `work_inventory.py`) read the register through
+  `WorkRegister`, so a golden or a note governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
   test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
   test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
   (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
   class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
   every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
-  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  copy the index once held lacked a helper (`Kb`, then), and `--check` fails on a helper in a shape it cannot read; a suite test named
   by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
-  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  helper call's path is its LEADING string literals (`TestRepo.Nist("cases", note + ".txt")` reads under `tests/nist/cases`; a
   collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
   spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
   the `Sweep` trait). A call's path is what its arguments SPELL, read by one evaluator with balanced parentheses
@@ -2511,16 +2511,26 @@ very tests that read them, and a kb/Work-only branch went RED on the landing's L
 **The classification — ONE module, `scripts/inert_lane.py`.** A path is INERT when it lies under an `INERT` entry and
 under no `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it).
 A change is in the inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into
-an inert directory shows its old name too) are non-empty and all inert. Today the one INERT entry is `DEVLOG/`.
-NOT inert, measured on 2026-10-23 by deleting each candidate and running the three assemblies on Windows, and then by
-the watch below over the whole Linux population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every
-doc, and twenty-odd classes read CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the
-root `*.md` files (GateLegDriftTests, ArchReviewFleetDriftTests, SelfTestDiscoveryDriftTests); `kb/` and `.obsidian/`
-(LandingPipelineDriftTests' `Current` sweep reads every tracked file but the history paths, and
-ClosesRowsBackLinkDriftTests and DefectiveRowCoverageDriftTests read every `kb/Work/` note); the `tools/claude-skills`
-pin, which the self-tests initialize. The conflict-marker sweep, which read EVERY
-tracked file and so made every path a test input, became an audit (`scripts/conflict_markers.py --check`, kb/Work
-PB735's rule unchanged), which also closes the hole that it never ran in CI on a change whose matrix was skipped.
+an inert directory shows its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the
+knowledge base, THE work register `kb/Work/` among it) and `.obsidian/`. NOT inert, measured on 2026-10-23 by deleting
+each candidate and running the three assemblies on Windows, and then by the watch below over the whole Linux
+population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and twenty-odd classes read
+CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files
+(GateLegDriftTests, ArchReviewFleetDriftTests, SelfTestDiscoveryDriftTests); the `tools/claude-skills` pin, which the
+self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflict-marker sweep moved before them:
+
+- **The conflict-marker sweep**, which read EVERY tracked file and so made every path a test input, became an audit
+  (`scripts/conflict_markers.py --check`, kb/Work PB735's rule unchanged), which also closes the hole that it never ran
+  in CI on a change whose matrix was skipped.
+- **The register's cross-checks against the inventory** (every defective-verdict row claimed by a live note; every
+  landed `kind: defect` note naming the rows it closed, or why none, and every row so named closed in the inventory)
+  were two Unit drift tests that read every `kb/Work/` note through a C# twin of `work.py`'s frontmatter reader. They are
+  now `scripts/spec/work_inventory.py`, called by `work.py check`, so the register has ONE reader and the checks are
+  audits: the gate's `WORK REGISTER` audit runs them before the slot, CI's `audits` job on every event, and they run on a
+  `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
+  (the fixture stays as `work.py --self-test`'s cases). LandingPipelineDriftTests' `Current` retired-name sweep sets
+  `kb/` and `.obsidian/` aside as its sibling sweeps do, and EcRaiseSiteRegistryDriftTests no longer reads a note (the
+  raise site is its evidence), so no test reads the vault.
 
 **Who calls it — every runner, no list of its own (the CI invariant).**
 
@@ -2555,13 +2565,11 @@ own exit code) are `inert_lane.py --self-test`'s arms, run by the self-test runn
 arms on Linux: CI's `audits` job and the Linux gate's `selftests` leg). `SelfTestDiscoveryDriftTests` holds both
 self-test legs of the Linux gate to the audit clone.
 
-**What the lane does not yet cover, and the measured next step.** A notes landing changes `kb/Work/` (107 of the 137
-landings above changed only `DEVLOG/` and `kb/Work/`), which tests read, so it is the full lane; and since the regex is
-gone CI now runs the matrix for it, which is correct (PB3603). Making `kb/Work/` inert means two changes of design, the
-way the conflict-marker sweep moved: the register drift tests' cross-checks of the register against the inventory
-become an audit (`work.py check`, the register's one reader), and LandingPipelineDriftTests' `Current` sweep sets
-`kb/` aside as it sets aside the other history paths (or its rule over `kb/` becomes an audit). kb/Work PB2878's landing
-names that as its next step.
+**What the lane covers.** A notes landing changes `DEVLOG/` and `kb/Work/` (107 of the 137 landings above changed only
+those), so it is the inert lane: the audits (the register's checks among them) and nothing else. A change to `docs/`, a
+skill or a brief is still the full lane until its readers become audits or gain READ entries, one measured path at a
+time (an INERT entry is added only with a GREEN Linux watch run: `bash scripts/linux-gate.sh --nice`, its `inert-watch`
+leg).
 
 ---
 
