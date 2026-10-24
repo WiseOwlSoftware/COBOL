@@ -72,13 +72,16 @@ who acts next:
                    running: the elapsed time and the watch say which it is. So does an exit-0 attempt at the tip whose
                    pull request is no longer open while its work is not on main (closed without merging), whenever
                    GitHub was observed; unobserved, the lane's record reads ENQUEUED. Auto-merge on at an older head than
-                   the tip (a finisher's fix committed since) is not a hand-off of the tip: that pull request is the old
-                   landing's, and the branch reads by its report again (kb/Work PB3628).
+                   the tip (a finisher's fix committed since) is not a hand-off of the tip, whatever that head's health:
+                   one that conflicts with main, failed a required check or was removed promises nothing, and a healthy
+                   one promises only its own commits. That pull request is the old landing's, and the branch reads by
+                   its report again (kb/Work PB3275, PB3628).
   BOUNCED          its pull request is open but the queue REMOVED it (a red merge group, a conflict, a timeout: the
                    reason is GitHub's), or a REQUIRED check FAILED on its head before the queue took it (kb/Work PB3096,
                    PB3527: it can never enter the queue at that head), or it CONFLICTS with main (merge state DIRTY:
-                   no re-run or reopen clears it), and its head is still the branch's tip: the
-                   enqueue unit dispatches ONE finisher
+                   no re-run or reopen clears it), and its head is still the branch's tip and no commit was pushed
+                   after the removal (the head is read at the removal, not by headRefOid alone, which a push moves,
+                   kb/Work PB3275): the enqueue unit dispatches ONE finisher
                    with the reason named. A finisher that fixes the branch returns DONE and lands nothing: its new tip
                    is reviewed again, then the landing lane lands it. A bounce resolved with no commit (infrastructure,
                    a red already on main) is re-armed by the enqueue unit (`land_lane.py rearm`, kb/Work PB3103), and
@@ -612,14 +615,18 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
                                f'{finisher}')
         import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back, lazily)
         latest = lane_latest(row, lane)
-        # A pull request is handed to the queue AT ONE HEAD: auto-merge on is GitHub's promise to queue that head, and
+        # A pull request is handed to the queue AT ONE HEAD: auto-merge on is GitHub's promise to queue THAT head, and
         # with auto-merge off only the lane's ENQUEUED attempt at this tip says it was handed. So NOT QUEUED reads only
-        # a pull request AT THE BRANCH'S TIP. One at an older head (a finisher's fix is committed locally, the push
-        # still to come: `enqueue.py land` force-pushes the tip to the pull request and queues it again) is the OLD
-        # landing's, which the queue watch has ended (watch_step: a moved head is a new landing, a red or conflicting
-        # one is LEFT as BOUNCED), and the branch reads by its report again (kb/Work PB3628: the auto-merge flag on the
-        # old head read NOT QUEUED, which neither the lane's candidates nor the enqueue unit acts on, and stranded a
-        # re-armed branch for hours).
+        # a pull request AT THE BRANCH'S TIP: a pull-request state is read against the head it was observed at (kb/Work
+        # PB3275, PB3628). One at an older head (a finisher's fix committed locally, the push still to come) is the OLD
+        # landing's, whatever that head's health. A head that cannot be queued (it conflicts with main, a required
+        # check failed on it, the queue removed it) promises nothing (PB3275: a finisher's tip on a CONFLICTING
+        # auto-merge pull request read ENQUEUED, then NOT QUEUED, for ever); a healthy one promises only ITS commits,
+        # never the tip's, so waiting on it would land the old head and leave the fix for a second landing. The branch
+        # reads by its report again: WAITING FOR REVIEW until the tip is reviewed, then WAITING TO LAND, and
+        # `enqueue.py land` pushes the tip onto the same pull request and queues it (the queue watch reads the moved
+        # head as a new landing: watch_step). PB3628's witness: PR #467's old head read NOT QUEUED, which neither the
+        # lane's candidates nor the enqueue unit acts on, and stranded a re-armed, reviewed-CLEAN tip for 13 h.
         if at_head and (pr.auto_merge_at or (latest and latest[1] == land_lane.DONE and at_tip(row, latest[0]))):
             return not_queued(row, pr, lane, now or dt.datetime.now(dt.timezone.utc))
     slug = next((s for s in sorted(in_flight_slugs) if re.match(re.escape(s) + r'(?![a-z0-9])', row.name.lower())), None)
@@ -1714,6 +1721,42 @@ def self_test() -> int:
         check(conflicted[0] == 'BOUNCED' and 'conflicts with main (merge state DIRTY' in conflicted[1],
               f'a pull request that conflicts with main (merge state DIRTY) at the tip is BOUNCED, the finisher\'s: no '
               f're-run or reopen clears a conflict (kb/Work PB3527 review R1-5): {conflicted}')
+        # A PULL-REQUEST STATE IS READ AGAINST THE HEAD IT WAS OBSERVED AT (kb/Work PB3275 variant 3): `succ` is removed
+        # by the queue with its headRefOid AT the tip, so BOUNCED; the same pull request after a finisher PUSHED a commit
+        # (the removal is followed by a commit in the timeline, and headRefOid is the tip again) reads by its report
+        # (CLEAN: WAITING TO LAND), not BOUNCED for ever. Through the one reader, queue_facts.read.
+        pushed = queue_facts.read(queue_facts.fake([queue_facts.node(18, 'succ', tips['succ'], removed='FAILED_CHECKS',
+                                                                     pushed=2)]))
+        after_push = lifecycle(pr_rows['succ'], in_flight_slugs=set(), min_age=180, live=live, prs=pushed,
+                               lane=land_lane.view(landed_coord), now=then)
+        before_push = lifecycle(pr_rows['succ'], in_flight_slugs=set(), min_age=180, live=live,
+                                prs=queue_facts.read(queue_facts.fake([queue_facts.node(
+                                    18, 'succ', tips['succ'], removed='FAILED_CHECKS')])),
+                                lane=land_lane.view(landed_coord), now=then)
+        check(before_push[0] == 'BOUNCED' and after_push[0] == 'WAITING TO LAND' and pushed['succ'].head == tips['succ'],
+              f'a bounced pull request whose fixed tip was pushed (headRefOid is the tip again, a commit follows the removal '
+              f'in the timeline) reads by its report, never BOUNCED for ever: before {before_push}, after {after_push}')
+        # The second half (variant 1) and kb/Work PB3628, one rule: auto-merge on is GitHub's promise to queue the pull
+        # request at ITS head, never at the tip. `fnd-fix`'s finisher tip (reviewed CLEAN) is not the head of its pull
+        # request #19, so whatever that head's health (DIRTY, a failed required check, removed by the queue with
+        # auto-merge still on, or healthy with its check still running) the tip reads by its report and the lane lands
+        # it: waiting on a healthy old head would land that head and leave the fix for a second landing, and NOT QUEUED
+        # is a state no reader acts on for a tip (PR #467 stranded 13 h). The `healthy` expectation was NOT QUEUED when
+        # PB3275 landed alone; the reconciled rule reads it by its report like the others.
+        stuck_head = {'dirty': queue_facts.node(19, 'fnd-fix', 'an-older-head', auto='2026-10-22T18:44:50Z', state='DIRTY'),
+                      'red': queue_facts.node(19, 'fnd-fix', 'an-older-head', auto='2026-10-22T18:44:50Z',
+                                              runs=[ci(191, 'COMPLETED', 'FAILURE')]),
+                      'removed': queue_facts.node(19, 'fnd-fix', 'an-older-head', auto='2026-10-22T18:44:50Z',
+                                                  removed='FAILED_CHECKS'),
+                      'healthy': queue_facts.node(19, 'fnd-fix', 'an-older-head', auto='2026-10-22T18:44:50Z',
+                                                  runs=[ci(191, 'IN_PROGRESS')])}
+        past_head = {k: lifecycle(pr_rows['fnd-fix'], in_flight_slugs=set(), min_age=180, live=live,
+                                  prs=queue_facts.read(queue_facts.fake([n])), lane=land_lane.view(landed_coord),
+                                  now=then)[0]
+                     for k, n in stuck_head.items()}
+        check(past_head == dict.fromkeys(stuck_head, 'WAITING TO LAND'),
+              f'a tip past the head of an auto-merge pull request reads by its report whatever that head\'s health '
+              f'(PB3275, PB3628): {past_head}')
         # the same pull request AT the tip, auto-merge on and its check-run stuck: handed to the queue, not in it
         at_tip_prs = queue_facts.read(queue_facts.fake(
             [queue_facts.node(20, 'unreviewed', tips['unreviewed'], auto='2026-10-22T18:44:50Z',

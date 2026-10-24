@@ -46,6 +46,10 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            poll, so a raise frees the queue at once. A setting may carry an expiry (`--until`, an ISO time with its
            UTC offset); once it passes, the CODED DEFAULT is in force again with no one acting. `clear` removes a
            setting, so its coded default is in force at once.
+  holds    `holds.json` beside the slots: every released hold's duration per kind (`hold_kind`), under `holds.lock`. `status`
+           marks a held slot older than HOLD_LONG_FACTOR times the median of its kind's recorded holds `LONG HOLD`
+           (kb/Work PB3310): a hung gate keeps its slot for as long as its process lives, and nothing named it. The flag
+           is advice, derived from the gates' own history; this tool never stops a holder.
   defaults THE OWNER'S DECISIONS, coded here and nowhere else (2026-10-10): the cap is DEFAULT_SLOTS = 3 and the
            implementer scope is DEFAULT_SCOPE = `leg1`. A setting exists only to depart from them.
   scope    The implementer gate's population (`run_gate_legs.py` reads it): `leg1` (the default; batched gating,
@@ -414,14 +418,105 @@ def _remove_ticket_file(path: Path) -> None:
         pass
 
 
+# ── how long a slot is held (kb/Work PB3310) ───────────────────────────────────────────────────────────────────
+
+#: ⛔ A HUNG GATE HOLDS A SLOT FOR AS LONG AS IT LIKES (the OS releases only a DEAD holder's lock): on 2026-10-16 a Linux
+#: gate whose WSL clone had been deleted under it held one of the three slots for 6 h 40 min, a third of the machine's
+#: landing capacity, and the operator's peer session noticed it, not a tool. Every released hold therefore records how
+#: long it lasted, per KIND (`hold_kind`), in `holds.json` beside the slots, and `status` flags a held slot older than
+#: HOLD_LONG_FACTOR times the median of its kind's recorded holds: a limit derived from the gates' own history, never
+#: a fixed one. The flag is SURFACED only, never a kill: whether the holder is hung or merely slow is the operator's
+#: judgment, and the pid is verified before anything is stopped.
+HOLDS_FILE = "holds.json"
+HOLDS_LOCK = "holds.lock"
+HOLDS_SCHEMA = 1
+HOLD_HISTORY = 50          # holds kept per kind, newest last
+HOLD_MIN_SAMPLES = 5       # fewer recorded holds than this give no baseline, so nothing is flagged
+HOLD_LONG_FACTOR = 5       # a hold longer than this many times its kind's median is flagged
+_PID_SUFFIX = re.compile(r"\s*\(pid \d+.*$", re.DOTALL)
+
+
+def hold_kind(label: str) -> str:
+    """The KIND of hold a slot label names, the one rule `Slot.release` (writing) and `status` (reading) share: the
+    label without its `(pid …)` suffix, then the text after its last `": "` when it has one (`enqueue <branch>: Linux
+    gate` is a `Linux gate`), else its first word (`gate <worktree>` is a `gate`, `record_impact_map <sha>` is a
+    `record_impact_map`). A branch name or a path therefore never splits one kind into many."""
+    head = _PID_SUFFIX.sub("", label).strip()
+    if ": " in head:
+        return head.rsplit(": ", 1)[1].strip() or head
+    return head.split(" ", 1)[0] if head else "(no label)"
+
+
+def read_holds(directory: Path) -> dict[str, list[float]]:
+    """The recorded hold durations in seconds, per kind, oldest first. A missing file is no history. A file that is
+    unreadable or not this schema raises ValueError: a corrupt history is said, never silently replaced by none."""
+    path = directory / HOLDS_FILE
+    if not path.exists():
+        return {}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        if doc.get("schema") != HOLDS_SCHEMA:
+            raise ValueError("not schema " + str(HOLDS_SCHEMA))
+        return {k: [float(x) for x in v] for k, v in doc["holds"].items()}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+        raise ValueError(f"{path}: unreadable hold history ({type(e).__name__}: {e}); delete it to start a new one") from None
+
+
+def record_hold(directory: Path, kind: str, seconds: float) -> None:
+    """Append one released hold to its kind's history (the last HOLD_HISTORY kept), under `holds.lock`, replaced
+    atomically."""
+    directory.mkdir(parents=True, exist_ok=True)
+    with _Mutex(directory / HOLDS_LOCK, DEFAULT_POLL_S):
+        holds = read_holds(directory)
+        holds[kind] = [*holds.get(kind, []), round(seconds, 1)][-HOLD_HISTORY:]
+        sharedfile.replace_text(directory / HOLDS_FILE, json.dumps({"schema": HOLDS_SCHEMA, "holds": holds}, indent=1,
+                                                                   sort_keys=True) + "\n")
+
+
+def hold_baseline(holds: dict[str, list[float]], kind: str) -> float | None:
+    """The median of `kind`'s recorded holds in seconds, or None below HOLD_MIN_SAMPLES of them (no baseline yet)."""
+    seen = sorted(holds.get(kind, []))
+    if len(seen) < HOLD_MIN_SAMPLES:
+        return None
+    mid = len(seen) // 2
+    return seen[mid] if len(seen) % 2 else (seen[mid - 1] + seen[mid]) / 2
+
+
+def long_hold(held_s: float, baseline_s: float | None) -> bool:
+    """A hold older than HOLD_LONG_FACTOR times its kind's median. No baseline, no flag."""
+    return baseline_s is not None and held_s > HOLD_LONG_FACTOR * baseline_s
+
+
+def _duration(seconds: float) -> str:
+    minutes = seconds / 60
+    return f"{minutes / 60:.1f} h" if minutes >= 120 else f"{minutes:.1f} min"
+
+
+def hold_report(label: str, held_s: float, holds: dict[str, list[float]]) -> str:
+    """What `status` appends to a held slot: how long it has been held and, when it is far past its kind's median,
+    the LONG HOLD flag (the marker session-probe greps for)."""
+    kind = hold_kind(label)
+    base = hold_baseline(holds, kind)
+    text = f", held {_duration(held_s)}"
+    if long_hold(held_s, base):
+        text += (f" — ⚠ LONG HOLD: {held_s / base:.0f}x the median {_duration(base)} of its last "
+                 f"{len(holds[kind])} '{kind}' holds (flagged above {HOLD_LONG_FACTOR}x). Verify the holder's pid is "
+                 f"alive and making progress before stopping anything; this tool never kills a holder")
+    return text
+
+
 @dataclass
 class Slot:
-    """A held slot. Release it with `release()` or by leaving its `with` block; the OS releases it if the holder dies."""
+    """A held slot. Release it with `release()` or by leaving its `with` block; the OS releases it if the holder dies.
+    A released hold's duration is recorded under its kind (`record_hold`) when the slot knows its directory."""
     index: int
     count: int
     ticket: int
     waited_s: float
     _fd: int = field(repr=False)
+    directory: Path | None = field(default=None, repr=False)
+    label: str = ""
+    taken_at: float = field(default_factory=time.monotonic, repr=False)
 
     def spawn_kwargs(self, **kwargs) -> dict:
         """`subprocess` keyword arguments that keep a child inside the slot for as long as it lives, and no longer.
@@ -444,6 +539,11 @@ class Slot:
 
     def release(self) -> None:
         if self._fd >= 0:
+            if self.directory is not None:
+                try:
+                    record_hold(self.directory, hold_kind(self.label), time.monotonic() - self.taken_at)
+                except (OSError, ValueError) as e:  # the history is a convenience: a gate never fails over it, but says so
+                    print(f"gate-slot: could not record this hold's duration ({e})", file=sys.stderr)
             _unlock(self._fd)
             os.close(self._fd)
             self._fd = -1
@@ -464,6 +564,9 @@ class SlotState:
     cap: int
     held: dict[int, str]
     waiting: list[tuple[int, str, str]]
+    held_s: dict[int, float] = field(default_factory=dict)       # seconds each held slot has been held
+    holds: dict[str, list[float]] = field(default_factory=dict)  # recorded hold durations per kind (kb/Work PB3310)
+    holds_problem: str = ""                                      # why the hold history could not be read, else ""
 
 
 class GateSlots:
@@ -577,7 +680,7 @@ class GateSlots:
             raise
         # The slot is taken BEFORE the ticket is dropped, so no later waiter can slip in between.
         k, fd = got
-        slot = Slot(k, cap, seq, time.monotonic() - start, fd)
+        slot = Slot(k, cap, seq, time.monotonic() - start, fd, self.directory, label)
         try:
             self._drop_ticket(seq, ticket_fd, gate_class)
             bind_process_tree()
@@ -594,6 +697,7 @@ class GateSlots:
         a running gate, and hiding it hid two of three holders from the operator (kb/Work PB2514)."""
         settings = self.settings()
         held: dict[int, str] = {}
+        held_s: dict[int, float] = {}
         if self.directory.is_dir():
             for p in self.directory.iterdir():
                 m = _SLOT_FILE.fullmatch(p.name)
@@ -605,12 +709,18 @@ class GateSlots:
                         _unlock(fd)
                     else:
                         held[int(m.group(1))] = _read_label(p)
+                        # the label is written when the slot is taken, so the file's write time is the hold's start
+                        held_s[int(m.group(1))] = max(0.0, time.time() - p.stat().st_mtime)
                 finally:
                     os.close(fd)
             waiting = self._live_tickets()
         else:
             waiting = []
-        return SlotState(self.directory, settings, settings.effective_cap(), held, waiting)
+        try:
+            holds, problem = read_holds(self.directory), ""
+        except ValueError as e:  # a corrupt history must not hide the holders: status says it instead
+            holds, problem = {}, str(e)
+        return SlotState(self.directory, settings, settings.effective_cap(), held, waiting, held_s, holds, problem)
 
 
 # ── the process tree ────────────────────────────────────────────────────────────────────────────────────────────
@@ -686,9 +796,13 @@ def _cmd_status(args: argparse.Namespace) -> int:
     print(f"gate-slot: {st.directory} — {len(st.held)} slot(s) held, cap {st.cap}, {len(st.waiting)} waiting")
     for line in st.settings.report():
         print(line)
+    if st.holds_problem:
+        print(f"gate-slot: NO LONG-HOLD FLAGS — {st.holds_problem}")
     for k in range(max([st.cap - 1, *st.held]) + 1):
         above = " (above the cap in force: taken under an earlier, higher cap)" if k >= st.cap else ""
-        print(f"  slot {k + 1}: " + (f"HELD by {st.held[k] or '(no label)'}{above}" if k in st.held else "free"))
+        held = f"HELD by {st.held[k] or '(no label)'}{above}{hold_report(st.held[k], st.held_s.get(k, 0.0), st.holds)}" \
+            if k in st.held else "free"
+        print(f"  slot {k + 1}: {held}")
     for seq, gate_class, label in st.waiting:
         print(f"  ticket {seq} ({gate_class}): waiting — {label or '(no label)'}")
     return 0
@@ -1141,6 +1255,47 @@ def self_test() -> int:
             r = inproc(repo, "clear", "slots")
             assert r.returncode == 2 and "unknown setting" in r.stderr, f"clear slots: {r.stdout}{r.stderr}"
 
+        def long_holds() -> None:
+            # kb/Work PB3310: a slot held far past the median of its kind's recorded holds is FLAGGED by `status`,
+            # never killed, and the limit comes from the gates' own recorded holds.
+            kinds = {"enqueue wt-a: Linux gate (pid 7, 2026-10-24 10:00:00)": "Linux gate",
+                     "gate E:\\COBOL\\wt (pid 8, since 2026-10-24 10:00:00, run x)": "gate",
+                     "record_impact_map 0123456789ab (pid 9, 2026-10-24 10:00:00)": "record_impact_map",
+                     "": "(no label)"}
+            for label, kind in kinds.items():
+                assert hold_kind(label) == kind, f"hold_kind({label!r}) = {hold_kind(label)!r}, not {kind!r}"
+            assert hold_baseline({"k": [60.0] * (HOLD_MIN_SAMPLES - 1)}, "k") is None, "a baseline from too few holds"
+            assert hold_baseline({"k": [10.0, 30.0, 50.0, 70.0, 5000.0]}, "k") == 50.0, "the median shrugs off a hang"
+            assert not long_hold(1e9, None), "no baseline must never flag"
+            assert not long_hold(HOLD_LONG_FACTOR * 60.0, 60.0) and long_hold(HOLD_LONG_FACTOR * 60.0 + 1, 60.0), \
+                "the flag is a hold ABOVE the factor times the median"
+            repo, _ = make_repo("longhold")
+            d = slot_dir(repo)
+            r = inproc(repo, "status")
+            assert r.returncode == 0 and "LONG HOLD" not in r.stdout, f"status of an idle repository:\n{r.stdout}{r.stderr}"
+            quick = gate(repo, "Quick", [py, "-c", "print('ran', flush=True)"])
+            assert quick.finish() == 0
+            assert len(read_holds(d).get("Quick", [])) == 1, f"a released hold was not recorded: {read_holds(d)}"
+            for _ in range(HOLD_MIN_SAMPLES):
+                record_hold(d, "Hung", 60.0)
+            go = root / "longhold.go"
+            hung = gate(repo, "Hung", hold(go))
+            hung.expect(r"^held pid=")
+            r = inproc(repo, "status")
+            assert r.returncode == 0 and "LONG HOLD" not in r.stdout and re.search(r"slot 1: HELD by Hung .*, held ", r.stdout), \
+                f"a fresh hold was flagged, or its age is missing:\n{r.stdout}"
+            long_ago = time.time() - 3 * 3600   # the slot's label write time is the hold's start: age it three hours
+            os.utime(d / "0.lock", (long_ago, long_ago))
+            r = inproc(repo, "status")
+            assert r.returncode == 0 and re.search(r"slot 1: HELD by Hung .*held 3\.0 h — .*LONG HOLD: 180x the median 1\.0 min", r.stdout) \
+                and "never kills" in r.stdout, f"a three-hour hold of a one-minute kind was not flagged:\n{r.stdout}"
+            (d / HOLDS_FILE).write_text("{not json", encoding="utf-8", newline="\n")
+            r = inproc(repo, "status")
+            assert r.returncode == 0 and "NO LONG-HOLD FLAGS" in r.stdout and "slot 1: HELD by Hung" in r.stdout, \
+                f"a corrupt hold history hid the holders or went unsaid:\n{r.stdout}{r.stderr}"
+            go.touch()
+            assert hung.finish() == 0
+
         print(f"gate_slot.py --self-test ({'Windows Job object' if IS_WINDOWS else 'Linux flock'} arm)")
         arm("FIFO order: a later waiter never overtakes a live earlier ticket, a re-gate queues last", fifo)
         arm("a killed holder releases its slot", killed_holder)
@@ -1157,6 +1312,7 @@ def self_test() -> int:
         arm("clear returns one setting or both to the coded defaults, and repairs a malformed file", clear_settings)
         arm("landing gates first: a landing ticket is served before every implementer ticket, FIFO within each class",
             landing_first)
+        arm("a hold far past the median of its kind's recorded holds is flagged by status, never killed", long_holds)
     finally:
         alive.unlink(missing_ok=True)
         for pr in procs:
@@ -1166,7 +1322,7 @@ def self_test() -> int:
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")
         return 1
-    print("gate_slot.py --self-test: ALL GREEN — 11 arms")
+    print("gate_slot.py --self-test: ALL GREEN — 12 arms")
     return 0
 
 
