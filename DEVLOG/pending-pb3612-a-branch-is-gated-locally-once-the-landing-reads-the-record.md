@@ -84,3 +84,13 @@ overlap against that head, so the decision no longer depends on how many runs it
 whose gate is BUSY leaves the merge commit and exits 12; the re-run still runs the one gate and records one. R1-2 (lead):
 the section 7d comment of `test_plan_wave.py` named the landing's Linux gate; it now says the targeted Linux half is in
 the implementer's own gate.
+
+**Landing finisher: main merged in.** Bringing origin/main in conflicted in `enqueue.py`, MANDATORY-PRACTICES L12 and
+DESIGN-test-build-ci.md section 3.17.2. PB3310 (#506) had landed the land lock as exit 13, the number this branch used
+for UNTESTED. Main's 13 stays and UNTESTED is now exit 14 (`EXIT_UNTESTED`), renumbered in every doc, brief, skill,
+note and drift pin this branch had written it into. The land lock is grafted into this branch's `land` preamble. The
+merge also exposed one interaction that no textual conflict showed. PB3310 made `linux-gate.sh` answer BUSY when
+another Linux gate of the worktree runs, and this branch runs that script inside `build-local` as the Linux half. The
+Linux-half reader called every reading that was not GREEN or NOT RUN a red, so a BUSY Linux half would have been a RED
+gate and a finisher sent to fix nothing. `run_gate_legs._linux_leg` now ends such a gate BUSY, with BUSY's own exit,
+under a new self-test arm.
