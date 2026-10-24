@@ -993,9 +993,10 @@ public sealed class FileRegistry
             string sharing = RetryLoop(() =>
             {
                 mutex = Sequential.HoldEntryMutex(path);
+                var holdings = SequentialJournal.Enter(Medium, path, Sequential.Of(path)?.Id, mutex);
                 var attempt =
-                    SequentialJournal.Enter(Medium, path, Sequential.Of(path)?.Id, mutex).RefusesOpen(exclusive: true) is not null
-                        ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
+                    holdings.Unlistable ? RetryAttempt.InRunUnit(FileStatusCode.PermissionDenied)   // '37' GR16: no authority to read the lock directory
+                    : holdings.RefusesOpen(exclusive: true) is not null ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
                     : OpenByAnotherConnector(name, path) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
                     : covered.HeldByAnotherAtDelete() ? DeleteFileHeld(name, covered)
                     : RetryAttempt.InRunUnit(FileStatusCode.Success);

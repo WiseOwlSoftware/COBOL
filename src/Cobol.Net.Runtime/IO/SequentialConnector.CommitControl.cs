@@ -126,12 +126,16 @@ public sealed partial class SequentialConnector : IJournalData
     /// writable OPEN while a replaced one lives) and a dead one is settled (rolled back, or retired) before the presence probe.
     /// A covered OPEN takes the entry mutex for it and keeps it through its host open, creation or capture
     /// (<see cref="LeaveEntry"/> gives it back); an uncovered one pays one listing and takes the mutex only to settle. An OPEN
-    /// INPUT runs no step (it has no writable handle to restore F with, and reads F as it stands).</remarks>
+    /// INPUT runs no step (it has no writable handle to restore F with, and reads F as it stands). A lock directory this process
+    /// may not list (a host whose refusal of F's own directory hides the lock directory beside F too: Linux, a directory of
+    /// mode 000) is the authority the OPEN lacks: '37' (§9.1.13.6 6) b): <i>"insufficient authority exists to access the
+    /// file"</i>), the file unaffected — never the '61' of a sharing conflict no holder is known to cause.</remarks>
     private protected override string? EnterPhysicalFile(FileOpenMode mode)
     {
         if (mode is FileOpenMode.Input || HostPath.Length == 0) return null;
         if (CommitControlled) _entryMutex = Transactions.HoldEntryMutex(HostPath);
-        return SequentialJournal.Enter(Medium, HostPath, Journal?.Id, _entryMutex).RefusesOpen(exclusive: mode is FileOpenMode.Output);
+        var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, _entryMutex);
+        return holdings.Unlistable ? FileStatusCode.PermissionDenied : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
     }
 
     /// <inheritdoc/>

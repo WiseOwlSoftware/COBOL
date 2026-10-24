@@ -571,10 +571,17 @@ internal sealed class SequentialJournal
     internal const int NoId = -1;
 
     /// <summary>What the entry step found: the holdings of every live transaction on the file other than the caller's own.</summary>
-    internal sealed class Holdings(IReadOnlyList<Holding> live)
+    internal sealed class Holdings(IReadOnlyList<Holding> live, bool unlistable = false)
     {
         /// <summary>No live transaction other than the caller's.</summary>
         internal static readonly Holdings None = new([]);
+
+        /// <summary>The lock directory cannot be listed by this process: whatever lives there holds the WHOLE file.</summary>
+        internal static readonly Holdings Unreadable = new([WholeFileOf(NoId)], unlistable: true);
+
+        /// <summary>Whether the lock directory could not be listed (<see cref="Unreadable"/>): the process lacks the authority
+        /// the entry step needs, which an OPEN answers as such ('37', §9.1.13.6 6) b)) rather than as a sharing conflict.</summary>
+        internal bool Unlistable { get; } = unlistable;
 
         /// <summary>The live transactions' holdings.</summary>
         internal IReadOnlyList<Holding> Live { get; } = live;
@@ -621,7 +628,7 @@ internal sealed class SequentialJournal
         string directory = DirectoryOf(hostPath);
         IReadOnlyList<string> names;
         try { names = medium.ListNames(directory, NamePrefix); }
-        catch (UnauthorizedAccessException) { return new Holdings([WholeFileOf(NoId)]); }
+        catch (UnauthorizedAccessException) { return Holdings.Unreadable; }
         if (names.Count == 0) return Holdings.None;
         var ids = new SortedSet<int>();
         foreach (string name in names)

@@ -117,3 +117,22 @@ held by another connector of the run unit. Witnesses: `unit:SequentialCommitCont
 (the NO OTHER row RED before the fix, its pause observer throwing instead of hanging) and
 `conformance:cases/14.7.9-RETRY/pb3340_retry_forever_own_run_unit_hold` (sequential, relative and replaced-journal holds:
 '61' and '62' at once, '00' after the COMMIT). DOC-A.1-109 and `docs/COBOLNET_FILES_DESIGN.md` D8 say so.
+
+**The gates' reds.** The first Windows gate refused the exception golden filed under 14.9.36, a clause none of its rules
+belongs to; it now lives under 14.7.9. The second found five tree-wide drift reds that the parked branch had never been gated
+against. `LockedRecordStatusProducersDriftTests` is fixed above. `StoreCoherenceTests` now counts files by the class they
+declare, so `SequentialConnector.CommitControl.cs` belongs to its class. `FrameDecoderDriftTests` names the journal's own
+fixed-field decoders beside the paged store's. `SequentialJournal.HeaderBytes` is renamed `JournalHeaderBytes`, because the
+old name belonged to the deleted whole-store model. README drops the declined SEQUENTIAL APPLY COMMIT bullet. Batch
+`adjudication/w1157a2-pb3340/batch.json` retires GR-9.1.18.2-p1's witness `declined-apply-commit`, a deleted case. The Linux
+gate (all legs, run under WSL) then found two reds that Windows cannot show. (1) Linux hides a lock directory beside F when
+F's directory is at mode 000, so the entry step's listing failed and the OPEN answered '61' where
+`FileAuthorityPresenceTests` requires '37'. A lock directory this process may not list is now the missing authority:
+`Holdings.Unlistable`, '37' for a writable OPEN (§9.1.13.6 6) b)) and for a covered DELETE FILE (§14.9.10.4 GR16). The
+cross-platform witness `A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks` uses
+`FaultHostMedium.RefusesListing`. (2) `A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open` answered '61'
+on Linux because `FaultHostMedium.Kill` did not drop the dying run unit's Table 19 column lock. That lock is an open file
+description's lock on Linux and is not the medium's, while on Windows the NO OTHER share mode is the lock. A real death closes
+it, so the medium now owns the column locks established under `OwnColumnLocks()`, and `Kill` gives them back. That Linux run
+also found the WSL filesystem out of inodes, filled by 394 `~/linux-gate` clones that `linux-gate.sh` never removes. The ones
+older than three hours were pruned, and the leak is a lead in the report.
