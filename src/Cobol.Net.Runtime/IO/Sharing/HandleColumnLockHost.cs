@@ -54,7 +54,8 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// <inheritdoc/>
     /// <remarks>⛔ <paramref name="owesWrites"/> is published as one more exclusive byte, of the OWED-WRITES range
     /// (<see cref="HostRegionLocks.OwedWritesRangeStart"/>), through the same handle and in the same request as the column: a
-    /// request that cannot publish it is <see cref="RunUnitFileLock.Outcome.Unavailable"/> and leaves nothing published. A
+    /// request that cannot publish it is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (<see cref="RunUnitFileLock.Outcome.Refused"/>
+    /// when a column Table 19 refuses it is held: <see cref="Unpublishable"/>) and leaves nothing published. A
     /// superseding request keeps the superseded hold's byte when it owes writes too, publishes one when only it does, and
     /// gives the old one back, after the new state stands, when only the superseded hold did.</remarks>
     public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own, bool owesWrites,
@@ -91,7 +92,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             else
             {
                 publishedByte = Publish(handle, HostRegionLocks.ColumnRangeStart(own));
-                if (publishedByte < 0) return RunUnitFileLock.Outcome.Unavailable;
+                if (publishedByte < 0) return Unpublishable(handle, refused, OwnBytes(previous, own, -1));
                 added = publishedByte;
             }
 
@@ -102,15 +103,11 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             if (owesWrites && owedByte < 0)
             {
                 owedByte = Publish(handle, HostRegionLocks.OwedWritesRangeStart);
-                if (owedByte < 0) return RunUnitFileLock.Outcome.Unavailable;
+                if (owedByte < 0) return Unpublishable(handle, refused, OwnBytes(previous, own, added));
                 addedOwed = owedByte;
             }
 
-            (ExistingSharingColumn, long)[] ownBytes = previous is null || previous.Own == own
-                ? [(own, publishedByte)]
-                : [(own, publishedByte), (previous.Own, previous.Byte)];
-            foreach (var column in refused)
-                if (OthersHold(handle, column, ownBytes, whenUnobservable: true)) return RunUnitFileLock.Outcome.Refused;
+            if (AnotherHoldsARefusedColumn(handle, refused, OwnBytes(previous, own, added))) return RunUnitFileLock.Outcome.Refused;
 
             if (previous is null) hold = new Published(handle, own, publishedByte, owedByte);
             else
@@ -136,6 +133,39 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             }
         }
     }
+
+    /// <summary>The bytes a request holds in the columns' ranges: the superseded hold's column byte (a re-OPEN's old column
+    /// stands beside the new one until the new one does) and the byte this request added to its own column
+    /// (<paramref name="added"/>, -1 when it has added none). The test of the refused columns leaves out exactly these.</summary>
+    private static (ExistingSharingColumn, long)[] OwnBytes(Published? previous, ExistingSharingColumn own, long added)
+    {
+        var bytes = new List<(ExistingSharingColumn, long)>(2);
+        if (previous is not null) bytes.Add((previous.Own, previous.Byte));
+        if (added >= 0) bytes.Add((own, added));
+        return [.. bytes];
+    }
+
+    /// <summary>Does a holder other than the asker hold a column Table 19 refuses the request? The one test an established
+    /// lock and a publication that could not be made are both judged by.</summary>
+    [SupportedOSPlatform("windows")]
+    private static bool AnotherHoldsARefusedColumn(SafeFileHandle handle, IReadOnlyList<ExistingSharingColumn> refused,
+        ReadOnlySpan<(ExistingSharingColumn Column, long Byte)> ownBytes)
+    {
+        foreach (var column in refused)
+            if (OthersHold(handle, column, ownBytes, whenUnobservable: true)) return true;
+        return false;
+    }
+
+    /// <summary>⛔ A PUBLICATION THAT RAN OUT OF TRIES IS A LOCK THIS HOST CANNOT HOLD, NOT A REASON TO ADMIT WHAT TABLE 19
+    /// REFUSES (kb/Work PB3518): the request cannot be held (<see cref="RunUnitFileLock.Outcome.Unavailable"/>, and the OPEN
+    /// goes on with the share modes alone), yet a column another run unit has already published and Table 19 refuses this
+    /// request is a conflict this host CAN see, so it is <see cref="RunUnitFileLock.Outcome.Refused"/> exactly as after a
+    /// publication (§9.1.13.9 1)'s '61'). The converse never holds: no request is refused for failing to publish. The
+    /// same two answers as <see cref="SidecarColumnLockHost"/> gives a lock directory this user may not write.</summary>
+    [SupportedOSPlatform("windows")]
+    private static RunUnitFileLock.Outcome Unpublishable(SafeFileHandle handle, IReadOnlyList<ExistingSharingColumn> refused,
+        ReadOnlySpan<(ExistingSharingColumn Column, long Byte)> ownBytes) =>
+        AnotherHoldsARefusedColumn(handle, refused, ownBytes) ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
 
     /// <summary>Hold exclusively one byte of the range starting at <paramref name="rangeStart"/> (a column's, or the
     /// owed-writes range) through <paramref name="handle"/>, chosen at random, and answer it; -1 when this host cannot (the
@@ -167,9 +197,8 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     private static RunUnitFileLock.Outcome GiveWay(Published previous, IReadOnlyList<ExistingSharingColumn> refused, out IDisposable? hold)
     {
         hold = null;
-        (ExistingSharingColumn, long)[] ownBytes = [(previous.Own, previous.Byte)];
-        foreach (var column in refused)
-            if (OthersHold(previous.Handle!, column, ownBytes, whenUnobservable: true)) return RunUnitFileLock.Outcome.Refused;
+        if (AnotherHoldsARefusedColumn(previous.Handle!, refused, OwnBytes(previous, ExistingSharingColumn.NoOtherAnyMode, -1)))
+            return RunUnitFileLock.Outcome.Refused;
         previous.Dispose();
         hold = new Published(null, ExistingSharingColumn.NoOtherAnyMode, -1, -1);
         return RunUnitFileLock.Outcome.Held;

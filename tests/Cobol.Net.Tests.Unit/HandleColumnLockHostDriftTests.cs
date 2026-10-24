@@ -388,13 +388,15 @@ public sealed class HandleColumnLockHostDriftTests
     /// <summary>⛔ A PUBLICATION EVERY ONE OF ITS TRIES COLLIDES IN IS A LOCK THIS HOST CANNOT HOLD, NOT A REFUSAL (kb/Work
     /// PB3498, the sibling of <c>FileConnector.Open</c>'s two attempts): the publication chooses another byte of its column's
     /// range after each collision with a holder or a tester, a bounded number of times, and a range an outside program
-    /// holds exclusively collides every one. The outcome is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (the OPEN goes on
-    /// without a column; the share modes it falls back on are the host's own), never <see cref="RunUnitFileLock.Outcome.Refused"/>
-    /// ('61' is another connector's, §9.1.13.9 1)) and never an exception; a first request leaves nothing published (no handle
-    /// stays on the file: a <see cref="FileShare.None"/> open is admitted), and a superseding request leaves the superseded
-    /// column standing exactly as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the
-    /// file is not affected"</i>), refusing what it refused, and the outside program's range given back, the same requests
-    /// are held.</summary>
+    /// holds exclusively collides every one. With no held column Table 19 refuses it, the outcome is
+    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/> (the OPEN goes on without a column; the share modes it falls back on
+    /// are the host's own), never <see cref="RunUnitFileLock.Outcome.Refused"/> ('61' is another connector's, §9.1.13.9 1)) and
+    /// never an exception; a first request leaves nothing published (no handle stays on the file: a
+    /// <see cref="FileShare.None"/> open is admitted), and a superseding request leaves the superseded column standing exactly
+    /// as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>),
+    /// refusing what it refused, and the outside program's range given back, the same requests are held. A held column the
+    /// request IS refused by turns the same exhaustion into '61'
+    /// (<see cref="APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses"/>, kb/Work PB3518).</summary>
     [Fact]
     public void APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding()
     {
@@ -404,17 +406,24 @@ public sealed class HandleColumnLockHostDriftTests
         {
             var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.IO);
             long start = HostRegionLocks.ColumnRangeStart(Table19.Column(sharing, mode));
+            // No column is held, so nothing refuses the request but the exhausted publication: unavailable, nothing left behind.
+            using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, RunUnitFileLock.Take(Host, file, sharing, mode, out var alone));
+                Assert.Null(alone);
+            }
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // no handle of a failed try stays
+
             // A column held already (before the outsider takes the range, which a holder of another column would meet as a holder).
             Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
             using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
 
-                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, RunUnitFileLock.Take(Host, file, sharing, mode, out var none));
-                Assert.Null(none);
-
-                // The held column replaced by the one whose range the outsider holds: the request is unavailable and the kept
-                // column stands (it refuses a READ ONLY I-O request, whose own range the outsider does not hold).
+                // The held column replaced by the one whose range the outsider holds: the request is unavailable (the kept
+                // column is the asker's own, so no other holder refuses it) and the kept column stands (it refuses a READ
+                // ONLY I-O request, whose own range the outsider does not hold).
                 Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept!.Amend(sharing, mode, owesWrites: false));
                 Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
                 Assert.True(kept.Revert());   // nothing was amended: the restore is a no-op
@@ -428,11 +437,74 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ AN EXHAUSTED PUBLICATION DOES NOT HIDE A CONFLICT THE HOST CAN SEE (kb/Work PB3518, the review lead of
+    /// PB3498): Table 19 (§14.9.27.4) prints <i>Unsuccessful open</i> for a SHARING WITH ALL OTHER I-O request beside a
+    /// READ ONLY INPUT connector, and §9.1.13.9 1) makes that '61'. When every try of the request's own publication collides
+    /// (an outside program holds its column's range exclusively), the request cannot be held, but the column the other run
+    /// unit has published is still there to be seen, so the answer is <see cref="RunUnitFileLock.Outcome.Refused"/> and
+    /// not <see cref="RunUnitFileLock.Outcome.Unavailable"/>, which would let the OPEN go on beside a connector the table
+    /// refuses it. The same holds for a superseding request (the kept column stands, §14.9.27.4 GR25 <i>"the file is not
+    /// affected"</i>) and for an owed-writes byte that cannot be published after the column was (the column byte is given
+    /// back). A request nothing refuses stays unavailable
+    /// (<see cref="APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding"/>).</summary>
+    [Fact]
+    public void APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.IO);
+            long start = HostRegionLocks.ColumnRangeStart(Table19.Column(sharing, mode));
+            long owedStart = HostRegionLocks.OwedWritesRangeStart;
+            // Two READ ONLY INPUT holders, taken before the outsider (a holder of another column would meet it as a holder).
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var second));
+            Assert.True(Table19.Conflicts((sharing, mode), (FileSharing.ReadOnly, FileOpenMode.Input)));   // the premise: the table refuses this request
+            using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+
+                // A first request: refused, nothing held.
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, sharing, mode, out var none));
+                Assert.Null(none);
+
+                // A superseding request: refused by the OTHER holder (the kept column is the asker's own), and the kept column stands.
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(sharing, mode, owesWrites: false));
+                second!.Dispose();
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));   // the kept column still refuses a writer
+                Assert.True(kept.Revert());   // nothing was amended: the restore is a no-op
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept.Amend(sharing, mode, owesWrites: false));   // no other holder is left to refuse it
+                kept.Dispose();
+            }
+
+            // The owed-writes byte: the column publishes, the owed-writes range collides every try, the kept holder refuses the
+            // request, and the column byte it had added is given back.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var holder));
+            using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using (var probe = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, owedStart, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, sharing, mode, out var none, owesWrites: true));
+                Assert.Null(none);
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(probe.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+                WindowsByteRangeLocks.Unlock(probe.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth);
+            }
+            holder!.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, sharing, mode, out var after));
+            after!.Dispose();
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // no handle of a failed try stays
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>⛔ AN OWED-WRITES BYTE THAT CANNOT BE PUBLISHED FAILS THE WHOLE REQUEST AND TAKES BACK THE COLUMN BYTE IT ALREADY
     /// ADDED (kb/Work PB3499, review round 1, MANDATORY-PRACTICES I11 exception path): the request publishes its column first
     /// and the owed-writes byte second, so an outside program that holds the whole owed-writes range exclusively collides every
     /// try of the second publication. The outcome is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (a lock this host cannot
-    /// hold, never '61': §9.1.13.9 1) names another file connector), and it leaves nothing behind (§14.9.27.4 GR25, <i>"If the
+    /// hold, never '61' for the failure itself: §9.1.13.9 1) names another file connector; a held column Table 19 refuses is
+    /// a '61' of its own, <see cref="APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses"/>), and it leaves nothing behind (§14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>): a first request leaves no stray byte in
     /// its column's range and no handle on the file, and a superseding request leaves the superseded column standing, the
     /// column it asked for unpublished.</summary>
