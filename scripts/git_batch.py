@@ -41,7 +41,7 @@ from __future__ import annotations
 import pathlib
 import subprocess
 import sys
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Sequence
 
 BASE = "refs/remotes/origin/main"
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: a root commit's diff is taken against it
@@ -57,14 +57,19 @@ def run(repo: pathlib.Path | str, *args: str, stdin: str | None = None) -> subpr
                           encoding="utf-8", errors="replace")
 
 
-def _checked(repo: pathlib.Path | str, *args: str, stdin: str | None = None) -> str:
-    r = run(repo, *args, stdin=stdin)
+#: A caller's own git runner, `git(*args, cwd=<repo>, stdin=<text>)` (prune_worktrees.git's shape): a self-test's fake
+#: answers the readers' batched commands through it. None runs git here (`run`).
+Runner = Callable[..., subprocess.CompletedProcess]
+
+
+def _checked(repo: pathlib.Path | str, *args: str, stdin: str | None = None, git: Runner | None = None) -> str:
+    r = git(*args, cwd=repo, stdin=stdin) if git else run(repo, *args, stdin=stdin)
     if r.returncode != 0:
         raise GitError(f"git {' '.join(args[:3])} in {repo} failed ({r.returncode}): {r.stderr.strip()[:300]}")
     return r.stdout
 
 
-def _batch_check(repo: pathlib.Path | str, specs: Sequence[str]) -> list[tuple[str, str] | None]:
+def _batch_check(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | None = None) -> list[tuple[str, str] | None]:
     """[(object id, type) | None] per spec, from ONE `git cat-file --batch-check` (`<spec> missing` -> None)."""
     if not specs:
         return []
@@ -72,7 +77,7 @@ def _batch_check(repo: pathlib.Path | str, specs: Sequence[str]) -> list[tuple[s
     if bad:
         raise GitError(f"git cat-file --batch-check cannot ask about {bad[0]!r}")
     lines = _checked(repo, "cat-file", "--batch-check=%(objectname) %(objecttype)",
-                     stdin="".join(f"{s}\n" for s in specs)).splitlines()
+                     stdin="".join(f"{s}\n" for s in specs), git=git).splitlines()
     if len(lines) != len(specs):
         raise GitError(f"git cat-file --batch-check answered {len(lines)} lines for {len(specs)} questions")
     out: list[tuple[str, str] | None] = []
@@ -82,16 +87,16 @@ def _batch_check(repo: pathlib.Path | str, specs: Sequence[str]) -> list[tuple[s
     return out
 
 
-def resolve(repo: pathlib.Path | str, names: Iterable[str]) -> dict[str, str | None]:
+def resolve(repo: pathlib.Path | str, names: Iterable[str], git: Runner | None = None) -> dict[str, str | None]:
     """{name: its full commit id, or None when it names no commit} for every name, from ONE process."""
     uniq = list(dict.fromkeys(n for n in names if n))
     return {n: (a[0] if a and a[1] == "commit" else None)
-            for n, a in zip(uniq, _batch_check(repo, [f"{n}^{{commit}}" for n in uniq]))}
+            for n, a in zip(uniq, _batch_check(repo, [f"{n}^{{commit}}" for n in uniq], git))}
 
 
-def object_ids(repo: pathlib.Path | str, specs: Sequence[str]) -> list[str]:
+def object_ids(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | None = None) -> list[str]:
     """[the object id of each `<rev>:<path>`, '' when absent], from ONE process."""
-    return [a[0] if a else "" for a in _batch_check(repo, list(specs))]
+    return [a[0] if a else "" for a in _batch_check(repo, list(specs), git)]
 
 
 class Ancestry:
@@ -165,6 +170,10 @@ class Ancestry:
         """The subject line of a commit beyond the base."""
         return self._subjects[self._full(commit)]
 
+    def time(self, commit: str) -> int:
+        """The committer date (seconds since the epoch) of a commit beyond the base."""
+        return self._times[self._full(commit)]
+
     def newest_first(self, commits: Iterable[str]) -> list[str]:
         """`commits` (beyond the base) newest first by committer date, as `git rev-list` lists them."""
         return sorted(commits, key=lambda c: (-self._times.get(c, 0), c))
@@ -212,7 +221,7 @@ class Ancestry:
 
 
 def _diff_tree(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], args: Sequence[str],
-               pathspec: Sequence[str]) -> list[list[str]]:
+               pathspec: Sequence[str], git: Runner | None) -> list[list[str]]:
     """The output lines of ONE `git diff-tree --stdin --always -r --no-renames <args>` per (commit, parent) pair, in
     input order: `--always` gives every pair its header line (the commit) even when its diff is empty. A pair whose
     parent is EMPTY_TREE (a root commit) is sent as the commit alone, which `--root` diffs against the empty tree
@@ -221,7 +230,8 @@ def _diff_tree(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], args:
         return []
     lines = _checked(repo, "diff-tree", "--stdin", "--always", "--root", "-r", "--no-renames", *args,
                      *(["--", *pathspec] if pathspec else []),
-                     stdin="".join(f"{c}\n" if p == EMPTY_TREE else f"{c} {p}\n" for c, p in pairs)).splitlines()
+                     stdin="".join(f"{c}\n" if p == EMPTY_TREE else f"{c} {p}\n" for c, p in pairs),
+                     git=git).splitlines()
     blocks: list[list[str]] = []
     want = iter(c for c, _ in pairs)
     nxt = next(want)
@@ -238,14 +248,17 @@ def _diff_tree(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], args:
     return blocks
 
 
-def diff_names(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pathspec: str) -> list[set[str]]:
-    """[the files each (commit, parent) pair changes], renames off (a moved file counts at both paths)."""
-    return [{s for s in b if s.strip()} for b in _diff_tree(repo, pairs, ["--name-only"], pathspec)]
+def diff_names(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pathspec: str,
+               git: Runner | None = None) -> list[set[str]]:
+    """[the files each (commit, parent) pair changes], renames off (a moved file counts at both paths). Both sides of a
+    pair are object ids (`git diff-tree --stdin` reads hex, never a ref name)."""
+    return [{s for s in b if s.strip()} for b in _diff_tree(repo, pairs, ["--name-only"], pathspec, git)]
 
 
-def diff_patches(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pathspec: str) -> list[str]:
-    """[the -U0 patch of each (commit, parent) pair], renames off."""
-    return ["\n".join(b) for b in _diff_tree(repo, pairs, ["-p", "-U0"], pathspec)]
+def diff_patches(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pathspec: str,
+                 git: Runner | None = None) -> list[str]:
+    """[the -U0 patch of each (commit, parent) pair], renames off; object ids on both sides, as diff_names."""
+    return ["\n".join(b) for b in _diff_tree(repo, pairs, ["-p", "-U0"], pathspec, git)]
 
 
 # ── self-test: each reader against the one-process-per-object form it replaces ──────────────────────────────────────

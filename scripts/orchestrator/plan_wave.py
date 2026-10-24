@@ -137,6 +137,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
+import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
 
@@ -544,8 +545,13 @@ def answered_notes(r: Report, groups: list[dict[str, Any]]) -> list[str]:
     return list(dict.fromkeys([r.lead, *(n for g in groups if answers(r, g) for n in g.get("notes", []))]))
 
 
+def work_names(paths: Iterable[str]) -> set[str]:
+    """The paths that are work (coord.is_work: never STATUS.md, the harness's settings or TestResults/)."""
+    return {s.strip() for s in paths if s.strip() and coord.is_work(s.strip())}
+
+
 def _names(out: str) -> set[str]:
-    return {s.strip() for s in out.splitlines() if s.strip() and coord.is_work(s.strip())}
+    return work_names(out.splitlines())
 
 
 def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[str]:
@@ -556,11 +562,27 @@ def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[s
     return _names(git("diff", "--name-only", "--no-renames", *revs, **({} if cwd is None else {"cwd": cwd})).stdout)
 
 
-def _still_differs(git: Callable[..., Any], rev: str, cwd: Any) -> set[str]:
-    """The files `rev` changed since it left origin/main AND that still differ from origin/main: a branch landed by
-    content (squash, cherry-pick) drops out; one whose edits are not on main stays, however it classifies."""
-    since = changed_files(git, f"origin/main...{rev}", cwd=cwd)
-    return since & changed_files(git, "origin/main", rev, cwd=cwd) if since else set()
+def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> list[set[str]]:
+    """[the files each commit of `revs` changed since it left origin/main AND that still differ from origin/main]: a
+    branch landed by content (squash, cherry-pick) drops out; one whose edits are not on main stays, however it
+    classifies. One `merge-base` per commit and ONE `git diff-tree --stdin` for every (since-the-merge-base, against
+    main) pair (git_batch.diff_names, kb/Work PB3582), never two `git diff`s per worktree and branch. No origin/main,
+    or no merge base, reads empty, as the two diffs did when they failed."""
+    main = git("rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}", cwd=repo).stdout.strip()
+    if not main or not revs:
+        return [set() for _ in revs]
+    with ThreadPoolExecutor(max_workers=8) as pool:   # subprocess-bound: the merge bases run side by side
+        bases = list(pool.map(lambda rev: git("merge-base", main, rev, cwd=repo).stdout.strip(), revs))
+    pairs = [(rev, x) for rev, b in zip(revs, bases) if b for x in (b, main)]
+    names = iter(git_batch.diff_names(repo, pairs, git=git))
+    out = []
+    for b in bases:
+        if not b:
+            out.append(set())
+            continue
+        since, against = work_names(next(names)), work_names(next(names))
+        out.append(since & against)
+    return out
 
 
 def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.Path = REPO,
@@ -598,27 +620,34 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
         for blk in [b for b in blocks if b.strip()]:
             path = re.search(r"^worktree (.+)$", blk, re.M).group(1).strip()
             br = re.search(r"^branch refs/heads/(.+)$", blk, re.M)
+            head = re.search(r"^HEAD ([0-9a-f]+)$", blk, re.M)
             if br:
                 with_tree.add(br.group(1))
             if path.replace(chr(92), "/").rstrip("/").lower() != here:
-                trees.append((path, br.group(1) if br else None))
+                trees.append((path, br.group(1) if br else None, head.group(1) if head else ""))
 
-        def tree(t: tuple[str, str | None]) -> tuple[str, str | None, set[str], set[str], str]:
-            path, br = t
-            loose = changed_files(git, "HEAD", cwd=path)
-            loose |= _names(git("ls-files", "--others", "--exclude-standard", cwd=path).stdout)
-            head = git("rev-parse", "HEAD", cwd=path).stdout.strip() if meta is not None else ""
-            return path, br, _still_differs(git, "HEAD", path), loose, head
+        def uncommitted(t: tuple[str, str | None, str]) -> set[str]:
+            """Its uncommitted and untracked files from ONE `git status` (kb/Work PB3582: it was a `diff HEAD` and an
+            `ls-files --others`), without the optional index write, which would race the agent working there."""
+            out = git("--no-optional-locks", "status", "--porcelain", "-z", "--no-renames", "--untracked-files=all",
+                      cwd=t[0]).stdout
+            return work_names(e[3:] for e in out.split(chr(0)) if len(e) > 3)
 
-        def branch(b: str) -> tuple[str, set[str]]:
-            if git("merge-base", "--is-ancestor", b, "origin/main", cwd=repo).returncode == 0:
-                return b, set()
-            return b, _still_differs(git, b, repo)
-
-        loose_branches = [b for b in git("branch", "--format=%(refname:short)", cwd=repo).stdout.split()
-                          if b != "main" and b not in with_tree]
+        # every local branch with no worktree whose tip is not on origin/main, with its tip, from ONE listing (no
+        # `merge-base --is-ancestor` per branch); with no origin/main the listing fails and no branch is listed, as
+        # each branch's two diffs then read empty
+        listed = git("for-each-ref", "--no-merged=refs/remotes/origin/main", "--format=%(refname:short) %(objectname)",
+                     "refs/heads", cwd=repo)
+        loose_branches = [(b, sha) for b, _, sha in (ln.partition(" ") for ln in listed.stdout.splitlines()
+                                                    if listed.returncode == 0)
+                          if b != "main" and b not in with_tree and sha]
         with ThreadPoolExecutor(max_workers=8) as pool:
-            tree_rows, branch_rows = list(pool.map(tree, trees)), list(pool.map(branch, loose_branches))
+            tree_loose = list(pool.map(uncommitted, trees))
+        revs = list(dict.fromkeys([h for _, _, h in trees if h] + [sha for _, sha in loose_branches]))
+        differs = dict(zip(revs, _still_differs(git, repo, revs)))
+        tree_rows = [(path, br, differs.get(head, set()) if head else set(), lo, head if meta is not None else "")
+                     for (path, br, head), lo in zip(trees, tree_loose)]
+        branch_rows = [(b, differs.get(sha, set())) for b, sha in loose_branches]
         for path, br, files, loose, head in tree_rows:
             if files | loose:
                 owner = f"worktree {pathlib.PurePath(path).name} ({br or 'detached'})"

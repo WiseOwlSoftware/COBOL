@@ -1185,26 +1185,33 @@ class _R:
 SETTINGS_FILE = ".claude/settings.local.json"
 
 
-def fake_git(*args, cwd=None):
+STATUS_ARGS = ("--no-optional-locks", "status", "--porcelain", "-z", "--no-renames", "--untracked-files=all")
+DIFF_TREE_ARGS = ("diff-tree", "--stdin", "--always", "--root", "-r", "--no-renames", "--name-only")
+# What each (commit, parent) pair changes: origin/main is m0; a worktree's or branch's merge base with it x0.
+FAKE_PAIRS = {("aaa", "m0"): [], ("bbb", "b0"): ["src/Existing.cs"], ("bbb", "m0"): ["src/Existing.cs"],
+              ("ccc", "c0"): ["src/Landed.cs"], ("ccc", "m0"): []}
+
+
+def fake_git(*args, cwd=None, stdin=None):
+    """The in-flight reader's git, as it asks it since kb/Work PB3582: one status per worktree, one listing of the
+    unmerged branches, one merge base per commit and ONE diff-tree for every pair."""
     key = (str(cwd).replace(chr(92), "/"), args)
+    if key == ("/r", DIFF_TREE_ARGS):
+        return _R("".join(f"{c}{NL}" + "".join(f"{n}{NL}" for n in FAKE_PAIRS[(c, p)])
+                          for c, p in (ln.split() for ln in stdin.splitlines())))
     table = {
         ("/r", ("worktree", "list", "--porcelain")): _R(NL.join([
-            "worktree /r", "HEAD aaa", "branch refs/heads/main", "",
+            "worktree /r", "HEAD m0", "branch refs/heads/main", "",
             "worktree /w/fresh", "HEAD aaa", "branch refs/heads/worktree-fresh", "",
             "worktree /w/edits", "HEAD bbb", "branch refs/heads/worktree-edits", ""])),
-        ("/w/fresh", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R(""),
-        ("/w/fresh", ("diff", "--name-only", "--no-renames", "HEAD")): _R("src/Fresh.cs" + NL + SETTINGS_FILE + NL),
-        ("/w/fresh", ("ls-files", "--others", "--exclude-standard")): _R("STATUS.md" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R("src/Existing.cs" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main", "HEAD")): _R("src/Existing.cs" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "HEAD")): _R(SETTINGS_FILE + NL),
-        ("/w/edits", ("ls-files", "--others", "--exclude-standard")): _R(""),
-        ("/r", ("branch", "--format=%(refname:short)")): _R(NL.join(
-            ["main", "worktree-fresh", "worktree-edits", "squashed", "merged"])),
-        ("/r", ("merge-base", "--is-ancestor", "squashed", "origin/main")): _R("", 1),
-        ("/r", ("merge-base", "--is-ancestor", "merged", "origin/main")): _R("", 0),
-        ("/r", ("diff", "--name-only", "--no-renames", "origin/main...squashed")): _R("src/Landed.cs" + NL),
-        ("/r", ("diff", "--name-only", "--no-renames", "origin/main", "squashed")): _R(""),
+        ("/w/fresh", STATUS_ARGS): _R(chr(0).join([" M src/Fresh.cs", " M " + SETTINGS_FILE, "?? STATUS.md", ""])),
+        ("/w/edits", STATUS_ARGS): _R(chr(0).join([" M " + SETTINGS_FILE, ""])),
+        ("/r", ("for-each-ref", "--no-merged=refs/remotes/origin/main", "--format=%(refname:short) %(objectname)",
+                "refs/heads")): _R(NL.join(["worktree-fresh aaa", "worktree-edits bbb", "squashed ccc"])),
+        ("/r", ("rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}")): _R("m0" + NL),
+        ("/r", ("merge-base", "m0", "aaa")): _R("m0" + NL),
+        ("/r", ("merge-base", "m0", "bbb")): _R("b0" + NL),
+        ("/r", ("merge-base", "m0", "ccc")): _R("c0" + NL),
     }
     if key not in table:
         raise AssertionError(f"unexpected git call {key}")
