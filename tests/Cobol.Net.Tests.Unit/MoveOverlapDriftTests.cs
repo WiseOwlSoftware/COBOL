@@ -17,8 +17,8 @@ namespace CobolNet.Tests.Unit;
 /// <para>ISO §14.6.10 1) leaves the result of an overlapping MOVE undefined (Annex A.2 item 36), so WiseOwl COBOL
 /// documents what it does and the corpus golden <c>85/pb1907_overlap_move</c> pins it. This class pins the SHAPE
 /// that keeps the rule from spreading: <c>MoveOverlap.Classify</c> is the only place an
-/// <see cref="OverlapPrefill"/> is built, <c>StorageExtent</c> is the only static-overlap predicate, and
-/// <c>MoveEmitter.EmitOverlapPrefill</c> renders every <see cref="OverlapPrefillKind"/> — so a new corner is one
+/// <see cref="OverlapStore"/> is built, <c>StorageExtent</c> is the only static-overlap predicate, and
+/// <c>MoveEmitter.EmitOverlapStore</c> renders every <see cref="OverlapStoreKind"/> — so a new corner is one
 /// enum member, one classifier arm and one emitter arm, and cannot be classified without being rendered.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -28,16 +28,16 @@ public sealed class MoveOverlapDriftTests
         File.ReadAllText(TestRepo.Src(["Cobol.Net.Compiler", .. parts]));
 
     [Fact]
-    public void OnlyTheClassifier_BuildsAnOverlapPrefill()
+    public void OnlyTheClassifier_BuildsAnOverlapStore()
     {
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs",
                      SearchOption.AllDirectories))
         {
             string name = Path.GetFileName(file);
             if (name is "MoveOverlap.cs") continue;
-            Assert.False(Regex.IsMatch(File.ReadAllText(file), @"new\s+OverlapPrefill\s*\("),
-                $"{name} builds an OverlapPrefill. The overlapping-MOVE decision is MoveOverlap.Classify's alone, "
-                + "carried on MoveStore.Prefill, so the emitter renders it and re-derives nothing (kb/Work PB1907).");
+            Assert.False(Regex.IsMatch(File.ReadAllText(file), @"new\s+OverlapStore\s*\("),
+                $"{name} builds an OverlapStore. The overlapping-MOVE decision is MoveOverlap.Classify's alone, "
+                + "carried on MoveStore.Overlap, so the emitter renders it and re-derives nothing (kb/Work PB1907).");
         }
     }
 
@@ -56,11 +56,24 @@ public sealed class MoveOverlapDriftTests
     }
 
     [Fact]
-    public void TheEmitterRendersEveryPrefillKind_AndPassesTheStoresPrefill()
+    public void TheEmitterRendersEveryStoreKind_AndPassesTheStoresOverlap()
     {
         string emitter = Src("CodeGen", "Verbs", "MoveEmitter.cs");
-        foreach (var kind in Enum.GetValues<OverlapPrefillKind>().Where(k => k is not OverlapPrefillKind.None))
-            Assert.Contains($"case OverlapPrefillKind.{kind}:", emitter);
-        Assert.Equal(2, Regex.Matches(emitter, @"m\.Stores\[i\]\.Prefill").Count);
+        foreach (var kind in Enum.GetValues<OverlapStoreKind>().Where(k => k is not OverlapStoreKind.None))
+            Assert.Contains($"case OverlapStoreKind.{kind}:", emitter);
+        Assert.Equal(2, Regex.Matches(emitter, @"m\.Stores\[i\]\.Overlap").Count);
+    }
+
+    /// <summary>Every in-place kind IS a runtime algorithm of the same name (<c>OverlappingMove.&lt;Kind&gt;</c>) with its
+    /// emitted spelling in <c>RuntimeApi</c>, so a kind cannot be classified without an algorithm to call.</summary>
+    [Fact]
+    public void EveryInPlaceKind_IsARuntimeAlgorithm_AndHasItsRuntimeApiSpelling()
+    {
+        string api = Src("CodeGen", "Roslyn", "RuntimeApi.cs");
+        foreach (var kind in Enum.GetValues<OverlapStoreKind>().Where(k => new OverlapStore(k).IsInPlace))
+        {
+            Assert.NotNull(typeof(CobolNet.Runtime.OverlappingMove).GetMethod(kind.ToString()));
+            Assert.Contains($"nameof(OverlappingMove.{kind})", api);
+        }
     }
 }
