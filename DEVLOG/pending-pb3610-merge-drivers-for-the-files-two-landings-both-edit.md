@@ -59,3 +59,11 @@ it must carry the Sweep trait), `FilterPopulationGuardDriftTests` and `GateLegDr
 and arm 6 lists it among the sites the caller audit must see). The three are fixed on the branch.
 
 The gate: run `TestResults/build-local/000002-20261024T174538Z`, `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 8,167 · Unit 1,110 · Characterization 31 ... Conformance 10,227/18,394 · Unit 37,035/38,145 · Characterization 5/36 cases ran`. The four `MergeDriverDriftTests` facts and the three `RuntimeAbiPinDriftTests` facts ran in leg 1 (leg-1-Unit.trx).
+
+**Review round 1.** Two blocking findings, both in `merge_drivers.py`, both reproduced in a scratch repository and fixed.
+R1-1: `run_driver` returned 1 whenever the keyed or note merger declined, even when its `git merge-file` fallback merged
+cleanly, so two branches editing different lines of one catalogue entry stopped at CONFLICT where a plain `git merge` merges;
+it now returns the fallback's own verdict. R1-2: `merge` reported `CONFLICT in ?` for a ref the branch already contains (the
+empty merge commit failed); it now answers None first. Two new self-test arms fail without the fixes and pass with them.
+The lead R1-3 (the 30-day conflict-coverage drift test) is answered in the note: the logs are outside the repository, so
+`--conflicts` is the measurement. The gate for these commits follows below.
