@@ -1339,7 +1339,7 @@ class FakeHost(Host):
         if self.plan_fails:
             raise RuntimeError("planted: the impact analysis crashed")
         plan = {"schema": 1, "base": base, "map": None, "map_state": "none", "every_tier1": ["planted"],
-                "constants": {}, "timings": "none",
+                "constants": {}, "timings": "none", "reds": {},
                 "assemblies": {a: {"legs": legs, "leg1": l1, "leg2": l2, "stats": {
                     "cases": len(self.POPULATION[a]), "tiers": {}, "leg1_cases": len(l1), "leg1_seconds": 0,
                     "recorded_seconds": 0, "leg1_floor_seconds": 0, "leg1_floor_collection": None,

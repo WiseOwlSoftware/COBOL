@@ -19,7 +19,12 @@ returns the timings of build-local's previous run and the reds of every source b
 gate's newest run (`<worktree>/TestResults/linux-gate/`, which linux-gate.sh empties before each run). The Linux run
 gives reds only: another host's durations would mis-time this host's plan. The driver's `Host.plan` and the CLI
 (`--worktree`, default the script's repository) both call it, with no shim over `--previous-run`. `build_plan` takes
-the reds by source, writes each source's count into the plan (`"reds"`) and prints it.
+the reds by source, and writes each source's count into the plan (`"reds"`) and prints it: its red keys, and how many
+of them name a case discovered on this host. A red is matched by its name key alone, so one whose display name differs
+between hosts (a theory argument that names a host path) is visible there and is not lost silently.
+
+**The first gate was RED** (run `000001-20261024T015633Z`, self-tests): the `run_gate_legs.py` self-test's planted plan
+had no `"reds"` field, which `summary_lines` now reads. The planted plan now carries it.
 
 **The rule that keeps it true.** Every live tool that writes a trx file into a worktree is a row of
 `gate_plan.TRX_WRITERS`: the gate (its previous run: timings and reds), the Linux gate (its newest run: reds) and the
