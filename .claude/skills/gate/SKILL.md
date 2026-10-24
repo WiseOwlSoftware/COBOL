@@ -49,14 +49,16 @@ when absent — both BEFORE it queues, because they read only the tree (kb/Work 
 (`scripts/gate_slot.py`: at most N gates build or test at once, repository-wide — `gate-slot: waiting, k
 ahead` is the cap working), builds the solution and lists every discovered case of Conformance, Unit and
 Characterization. The ORDER PLAN (`scripts/gate_plan.py`) puts in leg 1 the tests the change ADDS, the previous gate's
-reds (tier 0a), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
+reds on either host (tier 0a: build-local's previous run and the worktree's newest Linux gate run, so a re-gate after a
+landing's Linux red runs it; kb/Work PB3155), the host-only witnesses — every class carrying `[Trait("Host", "ReFS")]`, the Windows file-system race
 witnesses CI's NTFS runners may not reproduce (tier 0h, whatever the diff) — the cheap tree-wide sweeps, every class
 carrying `[Trait("Sweep", "tree")]` whose cases are cheap (tier 0c: the bookkeeping reds a population run used to
 find; `HostWitnessTraitDriftTests` keeps both traits on the classes they belong to, kb/Work PB3022), every drift
 test the drift-rule index says governs a file the change touches, whatever its cost (tier 0d, kb/Work PB3531: what
-`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included, and the classes
-of a register — the traceability inventory, docs/CONFORMANCE.md — that cites a member, test or file the change removes,
-kb/Work PB3131) and the
+`drift_rules.py <file>` lists, a sweep of the committed tree through its declared `TreeScope` included, a test
+reading the file through a helper class such as `SuiteManifest` (kb/Work PB3247), and the classes of a register — the
+traceability inventory, docs/CONFORMANCE.md — that cites a member, test or file the change removes, kb/Work PB3131)
+and the
 cheapest cases the change can reach — the tiers `impacted_tests.py` derives from an impact map, when one
 exists — and everything else in leg 2, its collections LONGEST FIRST, timed from the shared timings store every gate
 publishes to after its legs, so a fresh worktree is timed too (kb/Work PB2527). The test hosts run Server GC (kb/Work

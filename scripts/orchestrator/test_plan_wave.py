@@ -23,6 +23,7 @@ import coord  # noqa: E402
 import plan_wave as pw  # noqa: E402
 sys.path.insert(0, str(HERE.parent))
 from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582)
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
@@ -332,7 +333,7 @@ _cl_git = _branch_git("worktree-wf_cl-1", {"PB13": "landed", "PB10": "retired", 
 
 check("a branch closes the notes it flipped to a terminal status, not the ones it only touched",
       pw.closed_by_branch("worktree-wf_cl-1", _cl_git), ["PB10", "PB13"])
-pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git)
+pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git, lambda a, b: False)
 check("a finished report on an unlanded branch answers its lead, its group and what the branch closes",
       [r.notes for r in cl_reports], [["PB13", "PB10"]])
 pcl = pw.plan(notes, CLUSTERS, HALF, cl_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -341,7 +342,7 @@ check("the note the branch closed is awaiting landing with it, never planned a s
       ({"worktree-wf_cl-1": ["PB13", "PB10"]}, False))
 check("a note the branch only touched is still planned", any("PB9" in g.notes for g in pcl["groups"]), True)
 cl_landed = pw.load_reports(CL_REPORTS, CL_COORD)
-pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git)
+pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git, lambda a, b: False)
 check("a landed branch adds nothing (its notes are closed on main)", [r.notes for r in cl_landed], [["PB13"]])
 # 6b'''00 (R2). THE SAME HOLD FOR AN UNFINISHED BRANCH (branch review R2-1, R2-2). A SPLIT report's finisher takes the
 #         branch's commits, which carry the notes the branch already closed: they belong to that finisher's group, or
@@ -355,7 +356,7 @@ CL_SPLIT.mkdir()
     encoding="utf-8", newline="\n")
 returned(CL_SPLIT)
 cl_split = pw.load_reports(CL_SPLIT, CL_COORD)
-pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git)
+pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git, lambda a, b: False)
 check("a SPLIT report on an unlanded branch answers what the branch closes too", [r.notes for r in cl_split],
       [["PB13", "PB10"]])
 pcs = pw.plan(notes, CLUSTERS, HALF, cl_split, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -378,7 +379,8 @@ pw.record_dispatch(CAP_COORD, "1138", [{"letter": "a", "notes": ["PB13", "PB14"]
 returned(CAP_REPORTS)
 cap_reports = pw.load_reports(CAP_REPORTS, CAP_COORD)
 pw.add_closed_notes(cap_reports, lambda b: "UNLANDED",
-                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}))
+                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}),
+                    lambda a, b: False)
 pcap = pw.plan(notes, CLUSTERS, HALF, cap_reports, lambda b: "UNLANDED", {}, CAP_RULES, budget_points=100)
 check("a FINDINGS branch that closed more notes than the cap has ONE review finisher, not one per chunk",
       sorted((g.kind, tuple(g.notes)) for g in pcap["groups"] if {"PB13", "PB14", "PB10"} & set(g.notes)),
@@ -408,13 +410,13 @@ _pr_succ = _branch_git("worktree-wf_pr-2", {"PB13": "landed", "PB14": "landed"})
 
 
 def _pr_git(*args, cwd=None):
-    if args[:2] == ("merge-base", "--is-ancestor"):
-        return _Shown(0 if args[2:] == ("worktree-wf_pr-1", "worktree-wf_pr-2") else 1)
     pred = _pr_pred(*args)
     return pred if pred.returncode == 0 and pred.stdout else _pr_succ(*args)
 
 
-pw.add_closed_notes(pr_reports, lambda b: "UNLANDED", _pr_git)
+# the one ancestry fact: the predecessor's branch is contained in the successor's (the planner's graph, kb/Work PB3582)
+pw.add_closed_notes(pr_reports, lambda b: "UNLANDED", _pr_git,
+                    lambda a, b: (a, b) == ("worktree-wf_pr-1", "worktree-wf_pr-2"))
 check("the successor's report answers what it closed itself, not what its contained predecessor closed",
       sorted((r.lead, tuple(r.notes)) for r in pr_reports), [("PB13", ("PB13",)), ("PB14", ("PB14",))])
 ppr = pw.plan(notes, CLUSTERS, HALF, pr_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -537,36 +539,24 @@ for head, stamp in (("314d06415aa", "11f7b8ab0c0e"), ("11f7b8ab0c0e", "11f7b8ab0
 import prune_worktrees  # noqa: E402
 _dr_tips = {"worktree-wf_dr-2": "2020202bb", "worktree-wf_dr-5": "6060606ff"}
 _dr_rep = {r.lead: r for r in prune_worktrees.report_index(DR, lambda _i: False)}
-_git_saved = prune_worktrees.git
-
-
-def _dr_git(*a, **_k):
-    """The one ancestry fact of this scenario, in contained()'s question (kb/Work PB3583: one `rev-list <carrier tip>`
-    per carrier): 6060606ff is a commit of 2020202bb's history, and no origin/main exists."""
-    if a[:1] == ("rev-list",):
-        return _Shown(0, {"2020202bb": "2020202bb\n6060606ff\n", "6060606ff": "6060606ff\n"}.get(a[1], ""))
-    return _Shown(1)
-
-
-prune_worktrees.git = _dr_git
-try:
-    for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", True)):
-        rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
-                                    tip=_dr_tips[b])
-                for b, lead, st in (("worktree-wf_dr-2", "PB7", carrier_state), ("worktree-wf_dr-5", "PB79", "DECISION"))]
-        prune_worktrees.contained(rows)
-        survey_owned = prune_worktrees.owned(rows)
-        pr = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
-                     budget_points=100, carrier=DR_CARRIER.get, owned=survey_owned)
-        g79 = next((g for g in pr["groups"] if g.notes == ["PB79"]), None)
-        check(f"R1-1: a FINDINGS branch contained in a {carrier_state} carrier reads IN FLIGHT, is not owned, and gets "
-              f"its finisher naming the carrier; the carrier's own note {'is planned' if pb7_planned else 'waits'}",
-              (rows[1].state, rows[1].carrier, "worktree-wf_dr-5" in survey_owned, "PB79" in pr["waiting"],
-               bool(g79) and "contained in worktree-wf_dr-2" in g79.pred,
-               any("PB7" in g.notes for g in pr["groups"]), "being answered" in pr["waiting"].get("PB7", "")),
-              ("IN FLIGHT", "worktree-wf_dr-2", False, False, True, pb7_planned, not pb7_planned))
-finally:
-    prune_worktrees.git = _git_saved
+# The one ancestry fact of this scenario, as contained() reads it (the survey's graph, kb/Work PB3582): 6060606ff is a
+# commit of 2020202bb's history, and no origin/main exists.
+_dr_graph = git_batch.Ancestry.of({"2020202bb": ("6060606ff",), "6060606ff": ()})
+for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", True)):
+    rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
+                                tip=_dr_tips[b])
+            for b, lead, st in (("worktree-wf_dr-2", "PB7", carrier_state), ("worktree-wf_dr-5", "PB79", "DECISION"))]
+    prune_worktrees.contained(rows, _dr_graph)
+    survey_owned = prune_worktrees.owned(rows)
+    pr = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+                 budget_points=100, carrier=DR_CARRIER.get, owned=survey_owned)
+    g79 = next((g for g in pr["groups"] if g.notes == ["PB79"]), None)
+    check(f"R1-1: a FINDINGS branch contained in a {carrier_state} carrier reads IN FLIGHT, is not owned, and gets "
+          f"its finisher naming the carrier; the carrier's own note {'is planned' if pb7_planned else 'waits'}",
+          (rows[1].state, rows[1].carrier, "worktree-wf_dr-5" in survey_owned, "PB79" in pr["waiting"],
+           bool(g79) and "contained in worktree-wf_dr-2" in g79.pred,
+           any("PB7" in g.notes for g in pr["groups"]), "being answered" in pr["waiting"].get("PB7", "")),
+          ("IN FLIGHT", "worktree-wf_dr-2", False, False, True, pb7_planned, not pb7_planned))
 pn = dr_plan(False)
 check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == ["PB77"] for g in pn["groups"]), True)
 # R1-2: PB79's branch is contained in worktree-wf_dr-2, PB7's DONE branch, whose report never answers PB79's findings:
@@ -673,17 +663,19 @@ check("a branch naming no lead is a judgment row, its non-lead ids never planned
       ("worktree-wf_dr-8" in pj["unlanded_without_note"], any("PB4242" in g.notes for g in pj["groups"])), (True, False))
 # ...and unlanded_branch_notes itself keeps every id the subjects name: it once kept only the open notes, so a
 # superseded FINDINGS branch naming only its unseen lead (owner-task: PB77) reached plan() empty, a judgment row.
-_saved = (prune_worktrees.main_names, prune_worktrees.classify, prune_worktrees.git)
-_subjects = {"owner-task": "PB77: an owner task\nPB77: answer review R1-1", "worktree-wf_x": "PB2, PB11: fix"}
+_saved = (prune_worktrees.main_names, prune_worktrees.classify)
 prune_worktrees.main_names = lambda: set()
-prune_worktrees.classify = lambda b, _names: ("UNLANDED",)
-prune_worktrees.git = lambda *a, **_k: _Shown(0, "main\n" + "\n".join(_subjects) if a[0] == "branch"
-                                              else _subjects[a[-1].split("..")[1]])
+prune_worktrees.classify = lambda b, _names, _graph: ("UNLANDED",)
+# the subjects come from the ONE graph of the local branches (kb/Work PB3582), never a `git log` per branch
+_ub_graph = git_batch.Ancestry.of(
+    {"o2": ("o1",), "o1": (), "x1": ()}, names={"owner-task": "o2", "worktree-wf_x": "x1"},
+    subjects={"o2": "PB77: answer review R1-1", "o1": "PB77: an owner task", "x1": "PB2, PB11: fix"})
 try:
-    check("unlanded_branch_notes names every id, an unseen lead's too (R2-1)", pw.unlanded_branch_notes(),
+    check("unlanded_branch_notes names every id, an unseen lead's too (R2-1)",
+          pw.unlanded_branch_notes({"main", "owner-task", "worktree-wf_x"}, _ub_graph),
           {"owner-task": ["PB77"], "worktree-wf_x": ["PB2", "PB11"]})
 finally:
-    prune_worktrees.main_names, prune_worktrees.classify, prune_worktrees.git = _saved
+    prune_worktrees.main_names, prune_worktrees.classify = _saved
 
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
@@ -1194,26 +1186,33 @@ class _R:
 SETTINGS_FILE = ".claude/settings.local.json"
 
 
-def fake_git(*args, cwd=None):
+STATUS_ARGS = ("--no-optional-locks", "status", "--porcelain", "-z", "--no-renames", "--untracked-files=all")
+DIFF_TREE_ARGS = ("diff-tree", "--stdin", "--always", "--root", "-r", "--no-renames", "--name-only")
+# What each (commit, parent) pair changes: origin/main is m0; a worktree's or branch's merge base with it x0.
+FAKE_PAIRS = {("aaa", "m0"): [], ("bbb", "b0"): ["src/Existing.cs"], ("bbb", "m0"): ["src/Existing.cs"],
+              ("ccc", "c0"): ["src/Landed.cs"], ("ccc", "m0"): []}
+
+
+def fake_git(*args, cwd=None, stdin=None):
+    """The in-flight reader's git, as it asks it since kb/Work PB3582: one status per worktree, one listing of the
+    unmerged branches, one merge base per commit and ONE diff-tree for every pair."""
     key = (str(cwd).replace(chr(92), "/"), args)
+    if key == ("/r", DIFF_TREE_ARGS):
+        return _R("".join(f"{c}{NL}" + "".join(f"{n}{NL}" for n in FAKE_PAIRS[(c, p)])
+                          for c, p in (ln.split() for ln in stdin.splitlines())))
     table = {
         ("/r", ("worktree", "list", "--porcelain")): _R(NL.join([
-            "worktree /r", "HEAD aaa", "branch refs/heads/main", "",
+            "worktree /r", "HEAD m0", "branch refs/heads/main", "",
             "worktree /w/fresh", "HEAD aaa", "branch refs/heads/worktree-fresh", "",
             "worktree /w/edits", "HEAD bbb", "branch refs/heads/worktree-edits", ""])),
-        ("/w/fresh", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R(""),
-        ("/w/fresh", ("diff", "--name-only", "--no-renames", "HEAD")): _R("src/Fresh.cs" + NL + SETTINGS_FILE + NL),
-        ("/w/fresh", ("ls-files", "--others", "--exclude-standard")): _R("STATUS.md" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R("src/Existing.cs" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main", "HEAD")): _R("src/Existing.cs" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "HEAD")): _R(SETTINGS_FILE + NL),
-        ("/w/edits", ("ls-files", "--others", "--exclude-standard")): _R(""),
-        ("/r", ("branch", "--format=%(refname:short)")): _R(NL.join(
-            ["main", "worktree-fresh", "worktree-edits", "squashed", "merged"])),
-        ("/r", ("merge-base", "--is-ancestor", "squashed", "origin/main")): _R("", 1),
-        ("/r", ("merge-base", "--is-ancestor", "merged", "origin/main")): _R("", 0),
-        ("/r", ("diff", "--name-only", "--no-renames", "origin/main...squashed")): _R("src/Landed.cs" + NL),
-        ("/r", ("diff", "--name-only", "--no-renames", "origin/main", "squashed")): _R(""),
+        ("/w/fresh", STATUS_ARGS): _R(chr(0).join([" M src/Fresh.cs", " M " + SETTINGS_FILE, "?? STATUS.md", ""])),
+        ("/w/edits", STATUS_ARGS): _R(chr(0).join([" M " + SETTINGS_FILE, ""])),
+        ("/r", ("for-each-ref", "--no-merged=refs/remotes/origin/main", "--format=%(refname:short) %(objectname)",
+                "refs/heads")): _R(NL.join(["worktree-fresh aaa", "worktree-edits bbb", "squashed ccc"])),
+        ("/r", ("rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}")): _R("m0" + NL),
+        ("/r", ("merge-base", "m0", "aaa")): _R("m0" + NL),
+        ("/r", ("merge-base", "m0", "bbb")): _R("b0" + NL),
+        ("/r", ("merge-base", "m0", "ccc")): _R("c0" + NL),
     }
     if key not in table:
         raise AssertionError(f"unexpected git call {key}")

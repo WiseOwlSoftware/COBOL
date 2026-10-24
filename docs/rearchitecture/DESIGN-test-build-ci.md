@@ -835,8 +835,8 @@ DECLARATION change (an override, virtual, operator, conversion, extension method
 with a base list or an attribute, or any removed or changed line no method owns) reaches every test that executed
 the file plus every test that executed a file naming one of its outermost types; a static constructor's change
 reaches every test that touched its type. A test's reach is its own recorded context plus its class's and its
-collection's (constructors, fixtures). The test assemblies are recorded too, so an edited test body or theory harness
-reaches exactly the rows that executed it. From that:
+collection's (constructors, fixtures). The test assemblies are recorded too, so an edited theory harness reaches
+exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14.2). From that:
 
 | tier | the tests | runs |
 |---|---|---|
@@ -964,7 +964,22 @@ because the raw name is not stable (`b7`):
   the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
   `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
+  a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
+  through `SuiteManifest`, `ClosesRowsBackLinkDriftTests` the register through `WorkRegister`, so a golden or a note
+  governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
+  test uses by name (a member access, `new`, `typeof`, a base type, `using static`; never in a comment), in its own
+  test project or `tests/_shared`, and the drift test governs, transitively, every path those helpers name
+  (`Sources.inherited`; the per-file query says `— through <helper>`). Those paths govern (tier 0d) but never make a
+  class a sweep: the closure is file-grained, and a literal added to one helper must not move the `Sweep` trait of
+  every class that uses it. `TestRepo`'s own path helpers are read from its source (`test_repo`), never copied: the
+  copy the index once held lacked `Kb`, and `--check` fails on a helper in a shape it cannot read; a suite test named
+  by its literal id (`TestRepo.SuiteCase`, `SuiteFile`) governs that program and its sibling files specifically. A
+  helper call's path is its LEADING string literals (`TestRepo.Kb("Work", note + ".md")` reads under `kb/Work`; a
+  collection expression is its elements), and `Path.Combine(TestRepo.Root, "a", ...)` is read as the root helper it
+  spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
+  the `Sweep` trait).
+  **Measured cost** (the Unit assembly, the
   shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
   49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
   change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
@@ -997,13 +1012,31 @@ because the raw name is not stable (`b7`):
   its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
   outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
-- **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
-  into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
-  gate. Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
+- **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
+  compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its
+  declaration, its body — a `-U0` hunk of the diff touches, and every theory whose `[MemberData]` source a hunk
+  touches (its rows are that member's values); a hunk of comment lines and blank lines outside every string literal
+  touches nothing, decided from the LEXED source on each side (`cs_members.code_lines`, carried per line by the
+  `Hunk`), never from a diff line alone, since a test's embedded COBOL program is a string whose lines may start `*`
+  or `//` or be blank (PB3190 review R1-1; the method level's `method_ids` reads the same flags). The member spans
+  come from `scripts/spec/cs_members.py`, a lexer that blanks comments, preprocessor lines, characters and every
+  string form (verbatim, interpolated holes, raw) so the braces left are code; a source whose braces do not balance
+  once lexed puts every test method of the file here, and `impacted_tests.py --audit-members` (run by
+  `ImpactedTestsDriftTests`) holds the lexer to every source of the gated test projects (kb/Work PB3190: until
+  2026-10-23 only an ADDED method was here, so under batched gating an edited test ran in leg 1 only if the tier-1
+  budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
+  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
+  a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
+  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184). Every live tool that writes a trx file into a
+  worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
+  own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
+  --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
+  and read GREEN (w1076a / PB2921). Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
   construction. ⚠ **Corrected by the M11 acceptance (kb/Work PB1717):** this tier first held every case DECLARED IN a
   changed test file. 68b X edits the corpus and continuity harnesses (`CorpusRunnerTests.cs`, `VersionMatrixTests.cs`),
   so that rule put 5,774 cases and 8,037 test-seconds in tier 0a, and its first red ran after **62.8 %** of the work
-  (`b4`, measured through `gate_plan.py`). An EDITED test or harness is tier 1 through the map instead (the test
+  (`b4`, measured through `gate_plan.py`). An edited HARNESS — a helper the tests call — is tier 1 through the map
+  instead, while an edited test method is tier 0a by its own span, never by its file's (the test
   assemblies are recorded, §3.13), where cheapest-first finds X's first red after **0.32 %**.
 - **Tier 0u** — a case no timing source and no map knows (genuinely new, after `NameKey`). Each is charged the
   assembly's median recorded time and admitted to leg 1 within its OWN budget, `LEG_ONE_UNKNOWN_BUDGET` = 2 % of the
@@ -1032,7 +1065,8 @@ because the raw name is not stable (`b7`):
   gate publishes to (section 3.14.3 step 6; kb/Work PB2527), so a FRESH worktree's plan is timed too — before it,
   every implementer gate ran in a fresh worktree and printed `timings none`, and its leg 2 ran in declaration order;
   the worktree's own previous run times the plan only while no gate on the machine has published. Reds always come
-  from the worktree's own previous run.
+  from the worktree's own previous gates (tier 0a, both hosts'), never from the store; the Linux gate's durations
+  never time the plan (another host's).
 
 **The plan file** (`plan.json` in the gate's run directory) holds, per assembly, the leg-1 KEYS, the leg-2 KEYS, the
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
@@ -1640,6 +1674,19 @@ the gate slot:** the slot rations builds and test legs and is held for a whole g
 inside it would make a red self-test wait behind up to three other gates' builds and legs, which is exactly what
 PB2524 moved the audits out of the slot to stop (fail fast, kb/Work PB2523). A per-self-test place keeps fail-fast and
 bounds the load, and with reuse a gate rarely needs a place at all. Every caller takes it.
+⚖ **Why one place per core, and how a run says whether the cores were its limit (kb/Work PB3585).** The self-tests
+mostly start processes, so a wider budget than the cores would help only if they spent the phase waiting rather than
+computing. The GREEN verdict line says which, from every run: `the host's P processors u% busy` (`HostCpu`: two readings
+of `GetSystemTimes` or `/proc/stat`, the reading `tests/_shared/HostLoad.cs` takes) across the phase. Near 100 % the
+cores were the limit; well below it, `--budget N` measures a wider width for one run (a measurement only: no gate or CI
+job passes it, since a run wider than another gate's also takes the places above that gate's width). Measured
+2026-10-24 on CI's 4-core Windows runner (merge-group runs 40058976771, 40057441922, 40048830853): the phase took 290,
+369 and 236 s for 1,031, 1,332 and 812 summed self-test seconds, with all four places busy from the 20th second until
+the last long self-test, so the places were never short of work. The phase's own processes needed 988 CPU-seconds and
+started 12,996 processes on this host (a Job object's accounting at 4 logical processors), 85 % of the 1,160
+processor-seconds a 4-core runner has in 290 s. On a runner as fast as this host, a wider budget can win at most the
+rest, and on a slower one less, so the default stays the cores. What does cost time is the order: a self-test starts in discovery order, so a long one discovered late
+(`prune_worktrees.py`, started at 196 s of 286 in run 40058976771) runs alone for the last 50 s.
 
 **3. No verdict from the clock.** A self-test is never RED for being slow. A run still going HANG_AFTER_S = 3600 s after
 it took its place — counted from the place, so waiting behind other gates never counts; far above every PASS
@@ -1674,6 +1721,26 @@ their own repositories and seven carried a git helper of their own, each with it
 over the subject's own git runner is a finding; `SelfTestFixtureDriftTests` runs the audit, adds a text net for
 `"git"` and `"init"` in one argv, and holds the fixture's rules (the repository-selection variables, the identity, the
 maintenance settings) to that one file.
+
+**5. One git process per question kind, never one per object (kb/Work PB3582).** A Windows process start costs tens of
+milliseconds where Linux pays about one, so a script that asks git one question per branch, commit, pair or file is
+bounded by process creation: merge-group run 40004159292 summed the script self-tests at 1,444 s on CI's Windows runner
+and 144 s on Linux, and GIT_TRACE2 counted 3,048 git processes in `prune_worktrees.py`'s self-test, 1,471 in
+`landing_check.py`'s, 646 in `enqueue.py`'s and 363 in `devlog.py`'s, nearly all one question about one object. The
+same loops are the session probe's survey, the landing check and the planner's in-flight sets, so every session paid
+it. `scripts/git_batch.py` answers a whole list from one process each: `Ancestry` (one `cat-file --batch-check` resolve
+and one `git log --stdin <tips> --not <base>`: every commit the tips reach beyond origin/main with its parents, tree,
+date and subject, so `on_base`, `beyond`, `is_ancestor`, the count ahead and the subjects are read from memory; a tip
+that names no commit raises, never reads "on the base"), `diff_names` / `diff_patches` (one `diff-tree --stdin
+--always` over `<commit> <parent>` pairs: one header per pair in input order, empty diffs included) and `object_ids`
+(one `cat-file --batch-check` over `<rev>:<path>`). The survey reads every branch's tip and last commit from one
+`for-each-ref` and every row's ancestry (MERGED, ahead, the review's coverage, `contained`, `carrying_findings`) from
+one graph; the landing check charges each commit through the two batched diffs and reads `depends` from the graph; the
+in-flight sets read each worktree with one `status` and every unmerged branch from one `for-each-ref --no-merged`;
+the planner's classifier, carrier rule and `add_closed_notes` share one graph of the local branches. Each reader is
+held to the one-process-per-object form it replaces by `git_batch.py --self-test`, and `GitBatchDriftTests` keeps the
+per-object ancestry questions out of the survey, the landing check and the planner. Measured on the batched readers:
+1,246, 846, 510 and 286 processes for the same four self-tests.
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm

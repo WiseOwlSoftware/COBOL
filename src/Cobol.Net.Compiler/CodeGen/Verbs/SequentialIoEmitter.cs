@@ -227,7 +227,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// no exit from the hook skips it.</item>
     /// </list></summary>
     private static bool Item8Applies(FileModel? file, bool verbDisposes, bool onExceptionHandled, bool successArm) =>
-        !verbDisposes && !onExceptionHandled && !successArm && (file is null || file.IsCommitControlled);
+        !verbDisposes && !onExceptionHandled && !successArm && (file is null || file.SubjectToApplyCommit);
 
     /// <summary>Item 8's question (<see cref="Item8Applies"/>), asked at the raise: declares and returns the bool that the
     /// ROLLBACK is due. <paramref name="checkingEnabled"/> is the C# test that checking for the raised condition is
