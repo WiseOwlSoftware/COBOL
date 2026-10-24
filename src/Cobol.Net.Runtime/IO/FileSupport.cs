@@ -689,6 +689,35 @@ public static class HostFile
         return fs;
     }
 
+    /// <summary>⛔ THE SIXTH ROLE: a TRANSIENT FILE OF THE SEQUENTIAL JOURNAL (docs/rearchitecture/DESIGN-runtime-library.md
+    /// 2.2.2.4; kb/Work PB3340) — a transaction's record (<c>txn-&lt;id&gt;.journal</c>) or before file
+    /// (<c>txn-&lt;id&gt;.before</c>) in a physical file's lock directory, created with <see cref="FileMode.CreateNew"/> (a name
+    /// is one transaction's) or opened when <paramref name="create"/> is false. ⛔ IT SHARES READ, WRITE AND DELETE WITH
+    /// EVERY OTHER HANDLE, because the record of a LIVE transaction is read by every other run unit's lock test (its holdings,
+    /// 2.2.2.3) and settled by whoever finds its owner dead, and no reader may be refused by the owner's own handle.
+    /// Unbuffered, like every connector handle: each write is positional and reaches the operating environment at once, so a
+    /// sync makes exactly what was written durable. Throws what a <see cref="FileStream"/> throws; the caller maps it.</summary>
+    internal static FileStream OpenJournalFile(string path, bool create, bool writable) =>
+        new(path, create ? FileMode.CreateNew : FileMode.Open, writable ? FileAccess.ReadWrite : FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, FileOptions.None);
+
+    /// <summary>⛔ THE SEVENTH ROLE: the WRITABLE handle a ROLLBACK restores a physical file through when its transaction's owner
+    /// holds none — the dead-owner rollback the entry step runs (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.7, 2.2.2.8;
+    /// kb/Work PB3340), or a restore that creates the file a capture removed (<paramref name="create"/>). It admits every other
+    /// handle, as <see cref="OpenAuxiliary"/> does and for the same reason: it is opened under the entry mutex, inside a
+    /// statement Table 19 and the holdings had already allowed, and it must not manufacture a refusal against a reader the
+    /// standard admits (§14.9.27.4 Table 19). Unbuffered: every restored byte is positional. Throws what a
+    /// <see cref="FileStream"/> throws; the caller maps it.</summary>
+    internal static FileStream OpenRestoreHandle(string hostPath, bool create) =>
+        new(hostPath, create ? FileMode.CreateNew : FileMode.Open, FileAccess.ReadWrite,
+            FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, FileOptions.None);
+
+    /// <summary>⛔ THE DIRECTORY SYNC (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3340, PB3492): make the
+    /// entries of <paramref name="directory"/> — a file created, renamed or removed in it — durable on the medium, as a file's
+    /// sync makes its bytes durable. .NET has no API for it; the per-host determination is <see cref="HostDirectory.Sync"/>'s
+    /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.14). Throws <see cref="IOException"/> when the host refuses it; the caller maps it.</summary>
+    internal static void SyncDirectory(string directory) => HostDirectory.Sync(directory);
+
     /// <summary>A file connector's own long-lived WRITE stream — the third role, and the one .NET does not
     /// have. <c>FileMode.Append</c> is not the host's atomic append: it seeks to the end ONCE, at open, and
     /// every later write goes at that stream's own position (and <c>FileMode.Create</c> anchors at zero). That

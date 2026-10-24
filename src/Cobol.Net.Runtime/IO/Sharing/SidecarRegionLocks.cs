@@ -46,6 +46,12 @@ internal sealed class SidecarRegionLocks : RegionLocks
         public RegionLocks Open(SafeFileHandle handle, string hostPath, bool writable) => new SidecarRegionLocks(hostPath, writable);
     }
 
+    /// <summary>⛔ AN ENDPOINT THAT NEEDS NO HANDLE ON THE FILE — the one host whose exclusive hold is a file in the lock
+    /// directory (<see cref="ExclusiveNeedsWritableHandle"/> is false), so a byte can be held for a physical file that does
+    /// not exist: the sequential journal's entry mutex (<see cref="HostRegionLocks.EntryMutexByte"/>, kb/Work PB3340) on every
+    /// host, whichever host serves the record locks.</summary>
+    internal static RegionLocks WithoutHandle(string hostPath) => new SidecarRegionLocks(hostPath, writable: true);
+
     /// <summary>The lock directory, or null for a path no lock directory can be named beside (every operation is then
     /// <see cref="RegionLockResult.Unavailable"/>).</summary>
     private readonly string? _directory;
