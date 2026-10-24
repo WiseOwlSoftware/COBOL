@@ -149,7 +149,7 @@ public sealed class GroupMoveSenderChannelDriftTests
             foreach (var args in CallArguments(src, "RuntimeApi.ArgWithValueSending"))
             {
                 seen++;
-                Assert.True(args.Count == 2, $"{Path.GetFileName(file)}: RuntimeApi.ArgWithValueSending(...) must state its storage-image converter (or null)");
+                Assert.True(args.Count == 3, $"{Path.GetFileName(file)}: RuntimeApi.ArgWithValueSending(...) must state its storage-image converter (or null) and whether its binary64 value is an engine approximation (kb/Work PB1606)");
             }
         }
         Assert.True(seen >= 6, $"only {seen} producer call(s) found: the scan is no longer recognizing them");

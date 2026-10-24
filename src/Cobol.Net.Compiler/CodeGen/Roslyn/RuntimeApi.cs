@@ -367,6 +367,12 @@ internal static class RuntimeApi
     /// arithmetic store of a 16-byte unsigned COMP-5 item into a floating-point edited receiver).</summary>
     private static (string Store, string Try, string Args) FloatEditEntry(Emit.NumX value) => value.Carrier switch
     {
+        // An engine-produced approximation (a function's returned value, a non-integer power) is its SHORTEST ROUND-TRIP
+        // decimal - 0.3 is +3.0000000000000000E-01, not the binary expansion's +2.9999999999999998E-01 - exactly as
+        // beside an operator (CobolDec.FromApproximation, kb/Work PB1606); only a floating-point DATA ITEM is read by its
+        // exact binary value (the Binary64 arm below).
+        Emit.NumXCarrier.Binary64 when value.Approximate =>
+            (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), DecFromApproximation(value.Expr)),
         Emit.NumXCarrier.Binary64 or Emit.NumXCarrier.Sdidi =>
             (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), value.Expr),
         Emit.NumXCarrier.UnsignedWide =>
@@ -856,10 +862,16 @@ internal static class RuntimeApi
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
 
-    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI operand conversion — <c>CobolDec.FromDouble</c>
-    /// (the shortest round-trip decimal identity of the IEEE value; P10 Step 12).</summary>
-    public static string DecFromDouble(string doubleExpr) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.FromDouble)}({doubleExpr})";
+    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
+    /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
+    /// ROUNDING mode (§8.8.1.5.2 r1; kb/Work PB1606).</summary>
+    public static string DecFromBinary64(string doubleExpr, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromBinary64)}({doubleExpr}, {modeExpr})";
+
+    /// <summary>The lift of a binary64 that is an implementor-defined APPROXIMATION (a §15.4.1 function's returned
+    /// value, a non-integer power) - <c>CobolDec.FromApproximation</c>, the shortest round-trip decimal.</summary>
+    public static string DecFromApproximation(string doubleExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromApproximation)}({doubleExpr})";
 
     /// <summary>One SDIDI division of two exactly-lifted fixed-point values — MEAN's §15.60.4 equivalent-expression
     /// division under standard-decimal arithmetic (§15.4.1 r1; P10 Step 12).</summary>
@@ -2386,8 +2398,8 @@ internal static class RuntimeApi
     /// <summary>The sending value aligned at <paramref name="scale"/> — <see cref="MoveSending.AtScale"/>.</summary>
     public static string MoveSendingAtScale(string sending, int scale) => $"{sending}.{nameof(MoveSending.AtScale)}({scale})";
 
-    /// <summary>The sending value as binary64 — <see cref="MoveSending.Binary64"/>.</summary>
-    public static string MoveSendingBinary64(string sending) => $"{sending}.{nameof(MoveSending.Binary64)}";
+    /// <summary>The sending value's exact decimal, for a floating-point edited receiver — <see cref="MoveSending.ExactValue"/>.</summary>
+    public static string MoveSendingExactValue(string sending) => $"{sending}.{nameof(MoveSending.ExactValue)}";
 
     /// <summary>A sending operand the activating element states for its argument (<see cref="MoveSending"/>; kb/Work PB2587):
     /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.
@@ -2409,8 +2421,8 @@ internal static class RuntimeApi
 
     /// <summary>An argument evaluated into its cell, with its sending operand read back from that cell —
     /// <see cref="CobolArgAdapt.WithValueSending"/> (kb/Work PB2587).</summary>
-    public static string ArgWithValueSending(string arg, string? storageImage) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)})";
+    public static string ArgWithValueSending(string arg, string? storageImage, bool approximate) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)}{(approximate ? ", approximate: true" : "")})";
 
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>

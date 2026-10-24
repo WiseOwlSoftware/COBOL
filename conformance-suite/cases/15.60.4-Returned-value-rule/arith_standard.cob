@@ -20,10 +20,12 @@
       *>     the product's adjusted exponent 6200 exceeds decimal128's +6144 -> EC-SIZE-OVERFLOW
       *>     (8.8.1.5.2 r2) -> the size error condition -> ON SIZE ERROR; W4 stays 00000 (14.7.5).
       *> W5: a COMP-2 float operand converts into SDIDI form per 8.8.1.5.1 (the implementor-defined
-      *>     conversion = the SHORTEST round-trip decimal identity of the IEEE value, so the double nearest
-      *>     0.1 converts to the SDIDI 0.1 exactly) and the operations are SDIDI: 0.1 * 3 = 0.3 exactly ->
-      *>     0.300000000000000000 at scale 18. Native IEEE binary64 computes 0.1d * 3 =
-      *>     0.30000000000000004440892... whose scale-18 store carries the binary artifact in digits 17-18
+      *>     conversion = the binary64's EXACT value rounded once to 34 digits under INTERMEDIATE ROUNDING per
+      *>     8.8.1.5.2 r1: the double nearest 0.1 is 0.1000000000000000055511151231257827021..., so it converts
+      *>     to the SDIDI 0.1000000000000000055511151231257827) and the operations are SDIDI:
+      *>     0.1000000000000000055511151231257827 * 3 = 0.3000000000000000166533453693773481 -> truncated
+      *>     (14.7.4.3 r2) at scale 18: 0.300000000000000016. Native IEEE binary64 computes 0.1d * 3 =
+      *>     0.30000000000000004440892... whose scale-18 store is 0.300000000000000044
       *>     (the mode-consumption witness for float operands).
       *> MEAN: 15.4.1 r1 + NOTE 2 - under standard arithmetic FUNCTION MEAN(a b c) = (a + b + c) / 3 is a
       *>     TRUE relation (both sides are the SAME SDIDI division 4/3); under native the function's

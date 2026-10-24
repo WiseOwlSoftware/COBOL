@@ -714,14 +714,14 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// <summary>A run-time VALUE <paramref name="sending"/> edited into the numeric-edited <paramref name="record"/>
     /// (§14.9.25.4 GR6 — "any editing specified for … the receiving data item"): aligned at the record's own scale
     /// (<see cref="MoveSending.AtScale"/>, §14.6.8.2's truncation) for a fixed-point mask or a LOCALE picture, and handed
-    /// over as binary64 to a floating-point one — the forms <see cref="RuntimeApi.EditFormatFor"/> takes from
+    /// over as its exact decimal (<see cref="MoveSending.ExactValue"/>, never binary64) to a floating-point one —the forms <see cref="RuntimeApi.EditFormatFor"/> takes from
     /// <see cref="ConvertSource"/>'s numeric arm.</summary>
     private string EditedValue(DataItem record, string sending)
     {
         var pic = record.OperandPic!;
         string cfg = ArithmeticEmitter.BwzFlag(record) + ctx.EditCfg(pic);
         if (pic.IsFloatEdited)
-            return RuntimeApi.EditFormatFor(pic, new NumX(RuntimeApi.MoveSendingBinary64(sending), 0, Real: true), "", "", cfg);
+            return RuntimeApi.EditFormatFor(pic, new NumX(RuntimeApi.MoveSendingExactValue(sending), 0, Dec: true), "", "", cfg);
         int scale = pic.ReceiverScale();
         string aligned = RuntimeApi.MoveSendingAtScale(sending, scale);
         return RuntimeApi.EditFormatFor(pic, new NumX(aligned, scale), aligned, $"{scale}", cfg);

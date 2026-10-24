@@ -34,7 +34,7 @@ public sealed class NumvalFDoubleTests
     }
 
     /// <summary>The binary64 carries the argument's DECIMAL IDENTITY: converted back through the shortest
-    /// round-trip decimal (the §8.8.1.5.1 <c>CobolDec.FromDouble</c> conversion) it lands at scale 9 exactly
+    /// round-trip decimal (the <c>CobolDec.FromApproximation</c> conversion of an implementor-defined approximation) it lands at scale 9 exactly
     /// where the Int128 projection (a fixed arithmetic receiver's / a MOVE sender's route) already is.
     /// (Deliberately NOT through <c>CobolFloat.ToScaled</c>'s multiply-then-truncate, which lands 1.5E-8 at
     /// scale 9 as 14 — the very artifact the MOVE sender's exact route exists to avoid.)</summary>
@@ -44,5 +44,5 @@ public sealed class NumvalFDoubleTests
     [InlineData("-2.5E+1")]
     public void NumvalFDouble_CarriesTheDecimalIdentity_OfTheInt128Projection(string text) =>
         Assert.Equal(CobolIntrinsics.NumvalF(text, 9),
-            CobolDec.FromDouble(CobolIntrinsics.NumvalFDouble(text)).ToUnscaled(9, CobolRounding.Truncation));
+            CobolDec.FromApproximation(CobolIntrinsics.NumvalFDouble(text)).ToUnscaled(9, CobolRounding.Truncation));
 }

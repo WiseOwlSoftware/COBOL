@@ -47,11 +47,14 @@
       *>   no ROUNDED), subsidiary quotient the same, and the remainder is
       *>   W - Q * 10**10 = 340282366920938463463374607431768200000
       *>   - 340282366920938463463374607430000000000 = 1768200000.
-      *>   F = 1.0E+30 (FLOAT-LONG) converts to the SDIDI 1E+30 exactly
-      *>   (8.8.1.5.1 shortest round-trip decimal): 1E30 / 3 =
-      *>   333333333333333333333333333333.3333333333333333333333333333333
-      *>   rounds to 34 digits, Q = 333333333333333333333333333333 (30
-      *>   digits), remainder = 1E30 - 3 * Q = 1.
+      *>   F = 1.0E+30 (FLOAT-LONG) holds the binary64 nearest 1E30,
+      *>   1000000000000000019884624838656 exactly;
+      *>   it converts to the SDIDI of exactly that value (31 digits, so
+      *>   8.8.1.5.1's conversion, the exact value rounded once under
+      *>   8.8.1.5.2 r1, changes nothing): F / 3 =
+      *>   333333333333333339961541612885.3333333333...
+      *>   rounds to 34 digits, Q = 333333333333333339961541612885 (30
+      *>   digits), remainder = F - 3 * Q = 1.
       *>   F = 1.0E+40 / 7 = 1.428571428571428571428571428571429E+39 is
       *>   past 2**128 - 1 (about 3.4E+38): the quotient's size error, Q
       *>   and R unchanged (14.7.5 rule 1 - the resultants keep their
