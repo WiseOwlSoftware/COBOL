@@ -567,6 +567,9 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
     """The plan of every assembly in `listings`; `reds` is each red source's reds by its label (`previous_gates`), all
     of them tier 0a; `traits` is each assembly's `class_traits` (tiers 0h and 0c)."""
     every_red = set().union(*reds.values())
+    # A red is matched by its name key alone, so a red whose display name differs on this host (a theory argument that
+    # names a host path) matches no case here: each source's count of red keys that name a discovered case says so.
+    listed = {name_key(d) for displays in listings.values() for d in displays}
     m = analysis.map
     recorded = map_timings(m)
     map_known = {name_key(row[2]) for row in (m or {}).get("tests", [])}
@@ -579,7 +582,8 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
                                 "LEG_ONE_COLLECTION_CAP": LEG_ONE_COLLECTION_CAP,
                                 "SWEEP_CHEAP_SECONDS": SWEEP_CHEAP_SECONDS, "HOST_ONLY": sorted(HOST_ONLY)},
                   "timings": previous.source if previous else recorded.source,
-                  "reds": {label: len(keys) for label, keys in sorted(reds.items())}, "assemblies": {}}
+                  "reds": {label: {"keys": len(keys), "listed": len(keys & listed)}
+                           for label, keys in sorted(reds.items())}, "assemblies": {}}
     for asm, displays in listings.items():
         tiers: dict[str, int] = {}
         for display, t in analysis.tiers.get(asm, {}).items():
@@ -606,7 +610,8 @@ def summary_lines(plan: dict, out: Path) -> list[str]:
                      f"({s['leg1_seconds']} of {s['recorded_seconds']} recorded s; floor {s['leg1_floor_seconds']} s "
                      f"in {s['leg1_floor_collection'] or '-'}); legs {a['legs']}"
                      + (f" — {s['one_leg_reason']}" if s["one_leg_reason"] else ""))
-    reds = "; ".join(f"{label}: {n}" for label, n in plan["reds"].items()) or "none"
+    reds = "; ".join(f"{label}: {r['keys']}, {r['listed']} of them a case discovered here"
+                     for label, r in plan["reds"].items()) or "none"
     lines.append(f"gate_plan: red keys (tier 0a) — {reds}")
     lines.append(f"gate_plan: map {plan['map_state']}, timings {plan['timings']}; plan {plan['sha256'][:12]} → {out}")
     return lines
@@ -862,7 +867,8 @@ def self_test() -> int:
         _, passing = previous_gates(wt, run)
         check("a Linux gate whose trx files hold no Failed outcome adds no red",
               passing[f"linux gate {wt / LINUX_GATE_RESULTS}"] == set(), passing)
-        trx_outcomes(wt / LINUX_GATE_RESULTS / "conformance.trx", [(linux_red, "00:00:03.0", "Failed")])
+        trx_outcomes(wt / LINUX_GATE_RESULTS / "conformance.trx",
+                     [(linux_red, "00:00:03.0", "Failed"), (f"{ns}LinuxOnly.M", "00:00:01.0", "Failed")])
         timings, reds = previous_gates(wt, run)
         both = set().union(*reds.values())
         check("previous_gates reads the reds of BOTH hosts' previous gates: build-local's previous run and the Linux "
@@ -878,10 +884,11 @@ def self_test() -> int:
         full = build_plan({"Unit": many}, a, timed([(d, 1.0) for d in cheap] + [(pole, 1000.0)]), reds, None, {})
         u = full["assemblies"]["Unit"]
         check("a case red only at the Linux gate is tier 0a of the next plan, in leg 1 by its name key, and the plan "
-              "counts each source's red keys",
+              "counts each source's red keys and how many name a case discovered here",
               name_key(f"{ns}Lin_P5.M") in u["leg1"] and name_key(win_red) in u["leg1"]
               and u["stats"]["tiers"]["0a"] == 2
-              and full["reds"] == {timings.source: 1, f"linux gate {wt / LINUX_GATE_RESULTS}": 1}
+              and full["reds"] == {timings.source: {"keys": 1, "listed": 1},
+                                   f"linux gate {wt / LINUX_GATE_RESULTS}": {"keys": 2, "listed": 1}}
               and any("red keys (tier 0a)" in line for line in summary_lines(full, Path(tmp) / "plan.json")),
               (u["stats"]["tiers"], full["reds"]))
 
