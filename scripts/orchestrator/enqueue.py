@@ -105,6 +105,7 @@ kb/Work PB3527) follows it into the merge queue on every tick and, when it stall
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import datetime as dt
 import json
 import os
@@ -250,11 +251,11 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
     if not body.is_file() or not body.read_text(encoding="utf-8").strip():
         say(f"⛔ enqueue: --body-file {body_file} is missing or empty — it is the landing's forensic message")
         return 2
-    branch = _git(cwd, "branch", "--show-current").stdout.strip()
+    here = worktree_state(cwd)
+    branch, dirty = here.branch, here.dirty
     if not branch or branch == "main":
         say(f"⛔ enqueue: HEAD is {'detached' if not branch else 'on main'} — a landing is queued from its own branch")
         return 2
-    dirty = dirty_paths(cwd)
     if dirty:
         say("⚠ enqueue: the working tree is DIRTY — these paths are NOT part of what is queued:")
         for ln in dirty:
@@ -264,7 +265,7 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
         say(f"⛔ enqueue: git fetch origin main failed: {f.stderr.strip()}")
         return 2
     base = _git(cwd, "rev-parse", "refs/remotes/origin/main").stdout.strip()
-    sha = _git(cwd, "rev-parse", "HEAD").stdout.strip()
+    sha = here.head
     if sha == base:
         say(f"enqueue: origin/main is already at {sha[:12]} — nothing to land.")
         return 0
@@ -378,9 +379,39 @@ def worktree_of(repo: pathlib.Path, branch: str) -> pathlib.Path | None:
     return None
 
 
+@dataclasses.dataclass(frozen=True)
+class WorktreeState:
+    branch: str        # the checked-out branch, '' when HEAD is detached
+    head: str          # HEAD's commit id, '' before the first commit
+    dirty: list[str]   # the uncommitted paths that are work (coord.NEVER_WORK aside), as `git status --porcelain` lines
+
+
+def worktree_state(wt: pathlib.Path) -> WorktreeState:
+    """The worktree's branch, HEAD and uncommitted work from ONE `git status --porcelain=v2 --branch -z` (kb/Work
+    PB3582: it was a `branch --show-current`, a `status --porcelain` and a `rev-parse HEAD`). Each entry is given back
+    in the v1 line form (`XY path`, `?? path`) the dirty readers print and coord.porcelain_work reads."""
+    out = _git(wt, "status", "--porcelain=v2", "--branch", "--no-renames", "-z").stdout
+    branch = head = ""
+    lines = []
+    for e in out.split(chr(0)):
+        if e.startswith("# branch.head "):
+            branch = "" if e.endswith("(detached)") else e[len("# branch.head "):]
+        elif e.startswith("# branch.oid "):
+            head = "" if e.endswith("(initial)") else e[len("# branch.oid "):]
+        elif e.startswith("1 "):
+            f = e.split(" ", 8)
+            lines.append(f"{f[1].replace('.', ' ')} {f[8]}")
+        elif e.startswith("u "):
+            f = e.split(" ", 10)
+            lines.append(f"{f[1]} {f[10]}")
+        elif e.startswith("? "):
+            lines.append(f"?? {e[2:]}")
+    return WorktreeState(branch, head, coord.porcelain_work(lines))
+
+
 def dirty_paths(wt: pathlib.Path) -> list[str]:
-    """The worktree's uncommitted paths that are work (coord.NEVER_WORK aside), as `git status --porcelain` lines."""
-    return coord.porcelain_work(_git(wt, "status", "--porcelain").stdout.splitlines())
+    """The worktree's uncommitted paths that are work (worktree_state)."""
+    return worktree_state(wt).dirty
 
 
 def unslotted(rows, tree: pathlib.Path) -> list[tuple[str, str]]:
@@ -645,17 +676,18 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         return end(EXIT_CONFLICT, f"CONFLICT in {', '.join(files)} — merge aborted, branch unchanged")
     blocked = blocked or (lambda b, w, line: record_blocked(b, w, line, say))
     wt = worktree or worktree_of(repo, branch)
-    if wt is None or _git(wt, "branch", "--show-current").stdout.strip() != branch:
+    here = worktree_state(wt) if wt is not None else None
+    if here is None or here.branch != branch:
         return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
     if branch == "main":
         return end(2, "REFUSED — main is not a branch to land")
-    if dirty := dirty_paths(wt):
+    if dirty := here.dirty:
         return end(2, f"REFUSED — the worktree {wt} has {len(dirty)} uncommitted path(s) ({dirty[0].strip()}): commit "
                       "or remove them; a landing carries only commits")
     if failed := fetch_main(wt):
         return end(2, f"REFUSED — {failed}")
     base = "refs/remotes/origin/main"
-    if _git(wt, "rev-parse", "HEAD").stdout.strip() == _git(wt, "rev-parse", base).stdout.strip():
+    if here.head == _git(wt, "rev-parse", base).stdout.strip():
         return end(0, "NOTHING TO LAND — the branch is origin/main")
     # 1. THE QUEUE GUARD, before anything is merged or gated: the queue is the only way onto main (module doc).
     st, detail = state()
@@ -676,8 +708,9 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     if files := merge_main(wt, branch, base):
         return conflicted(files, "before the gate")
     # 3. The gate, once per tested tree.
-    head = _git(wt, "rev-parse", "HEAD").stdout.strip()
-    mark = pathlib.Path(_git(wt, "rev-parse", "--absolute-git-dir").stdout.strip()) / GATED_MARK
+    gitdir, head = (_git(wt, "rev-parse", "--absolute-git-dir", "HEAD").stdout.split(chr(10)) + ["", ""])[:2]
+    mark = pathlib.Path(gitdir.strip()) / GATED_MARK
+    head = head.strip()
     if gated_covers(wt, mark, head, base):
         say(f"enqueue: {head[:12]} is covered by the head an earlier enqueue run gated GREEN ({mark}); not gated again")
     else:

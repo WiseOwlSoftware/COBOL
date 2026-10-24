@@ -328,12 +328,20 @@ public abstract class FileConnector
     /// <c>OpenCore</c> reads them, so assigning afterwards would open every stream on the PREVIOUS open's
     /// answer).</summary>
     /// <param name="physical">The physical file's shared state — every connector gets it.</param>
+    /// <param name="lockOwner">The connector's registry name, which the physical file's record-lock table holds its locks under (<see cref="LockOwner"/>).</param>
     /// <param name="locksRecords">Whether this open's connector SETS record locks (<c>FileRegistry.RecordLocksSetUnder</c>: a LOCK MODE clause under a mode other than NO OTHER). A registered SHARING posture alone is NOT participation.</param>
-    internal void AssociatePhysical(PhysicalFileTable.State physical, bool locksRecords)
+    internal void AssociatePhysical(PhysicalFileTable.State physical, string lockOwner, bool locksRecords)
     {
         Physical = physical;
+        LockOwner = lockOwner;
         _locksRecords = locksRecords;
     }
+
+    /// <summary>⛔ THE NAME THE RUN UNIT'S RECORD-LOCK TABLE HOLDS THIS CONNECTOR'S LOCKS UNDER (<see cref="PhysicalFileTable"/>
+    /// keys an owner by the connector's registry name): the connector does not know it from its own construction, and what a
+    /// CLOSE under commit control keeps must be able to give its record locks back without the registry (kb/Work PB3578), so the
+    /// registry hands it down with the physical file's state at every OPEN (<see cref="AssociatePhysical"/>).</summary>
+    internal string LockOwner { get; private set; } = "";
 
     /// <summary>The ISO §9.1.15 <b>file lock</b> this connector's own host handles carry — <i>"The successful
     /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run
@@ -444,8 +452,14 @@ public abstract class FileConnector
     {
         var kept = _runUnitLock;
         _runUnitLock = null;
+        KeptOpenColumn = Table19.Column(HostSharing, Mode);
         return kept;
     }
+
+    /// <summary>The Table 19 column of the OPEN whose state the last CLOSE under commit control kept
+    /// (<see cref="KeepRunUnitFileLock"/>): what the kept state holds the file in where the host publishes no file lock of its own
+    /// (a NO OTHER handle's share mode is its lock, <see cref="TakeRunUnitFileLock"/>).</summary>
+    private protected ExistingSharingColumn? KeptOpenColumn { get; private set; }
 
     /// <summary>Is the (present) physical file held open by a handle that is not THIS connector's own
     /// (<see cref="HostFile.IsHeldByAnother"/>)? A handle the connector's CLOSE kept (<see cref="HoldsKeptHandle"/>) is its
@@ -467,6 +481,16 @@ public abstract class FileConnector
     /// replaces it by its own (<see cref="TakeRunUnitFileLock"/>), which the kept one would otherwise refuse as another
     /// holder's.</summary>
     private protected virtual RunUnitFileLock? KeptFileLock => null;
+
+    /// <summary>⛔ WHAT THIS CLOSED CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT, AS TABLE 19 SEES IT (§14.9.7.4 GR4: its file lock
+    /// stands until the COMMIT or ROLLBACK): whether it still holds the file against another opener (a kept handle, or a
+    /// published kept file lock), and the column it holds it in — the kept file lock's, or, the host publishing none, the column
+    /// of the OPEN whose handle it kept. The registry reads them to tell a sharing conflict of the run unit's own from another
+    /// run unit's (<c>FileRegistry.RunUnitHoldsAgainst</c>).</summary>
+    internal bool KeepsTheFile => HoldsKeptHandle || KeptFileLock?.Column is not null;
+
+    /// <inheritdoc cref="KeepsTheFile"/>
+    internal ExistingSharingColumn? KeptColumn => KeptFileLock?.Column ?? (HoldsKeptHandle ? KeptOpenColumn : null);
 
     /// <summary>Whether this (closed) connector still holds a kept handle (<see cref="HoldsKeptHandle"/>) whose share mode
     /// refuses every other open of the file (<see cref="FileShare.None"/>: a CLOSE under SHARING WITH NO OTHER), so that no
@@ -515,11 +539,14 @@ public abstract class FileConnector
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
 
-    /// <summary>The OPEN found a PRESENT physical file at <see cref="HostPath"/> (<see cref="OpenOnce"/>, before the file lock
-    /// and the organization's body): what this connector's CLOSE under commit control kept, if it was kept on another physical
-    /// file than the one the path names now — the kept one removed or renamed away and another made at the path outside the
-    /// run unit — ends here (kb/Work PB3533). Only a keyed connector keeps anything (kb/Work PB3337).</summary>
-    private protected virtual void EndWhatWasKeptOfAnotherFile() { }
+    /// <summary>The OPEN has probed <see cref="HostPath"/> and found it <paramref name="presence"/> Present or Absent
+    /// (<see cref="OpenOnce"/>, before the file lock and the organization's body): what this connector's CLOSE under commit control
+    /// kept, if it was kept on another physical file than the one the path names now — the kept one removed or renamed away
+    /// outside the run unit, and another made at the path or none (kb/Work PB3533) — is handed to the registry, which keeps it
+    /// for the COMMIT, the ROLLBACK and the run unit's end as it keeps the state of a connector associated with another file
+    /// (kb/Work PB3576). A keyed connector's kept state carries its transaction (kb/Work PB3337); a sequential one's kept handle
+    /// carries none, its journal being the registry's (kb/Work PB3340), so it is given back.</summary>
+    private protected virtual void RetireWhatWasKeptOfAnotherFile(FilePresence presence) { }
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
@@ -936,6 +963,36 @@ public abstract class FileConnector
     {
         refusedAfterTheColumnWasHeld = false;
         if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §9.1.13.1 (kb/Work PB1541) before '41'
+        // ⛔ THE ENTRY STEP RUNS BEFORE THE PRESENCE PROBE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3340): settling a dead
+        // run unit's transaction can create or remove the physical file (a creation rolled back removes it, a DELETE FILE rolled
+        // back restores it), so the presence every rule below reads is the presence AFTER it. An entry refused by a live
+        // transaction's holdings is §9.1.13.9 1)'s '61', with the file unaffected (§14.9.27.4 GR25).
+        string? entered;
+        try { entered = EnterPhysicalFile(mode); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { entered = FileStatusCode.PermanentError; }
+        if (entered is not null)
+        {
+            LeaveEntry();
+            (Mode, ModeKnown) = (mode, true);   // a FAILED open still records the attempted mode (GR6b "being opened")
+            return Status = entered;
+        }
+        try { return OpenOnceEntered(mode, ownedWritesAdmitted, out refusedAfterTheColumnWasHeld); }
+        finally { LeaveEntry(); }
+    }
+
+    /// <summary>The organization's ENTRY STEP at an OPEN in <paramref name="mode"/>, run before the presence probe
+    /// (<see cref="OpenOnce"/>): the failing I-O status, or null to proceed. Only a sequential file has one
+    /// (<c>SequentialConnector</c>, DESIGN-runtime-library.md 2.2.2.8: the transaction journals of its lock directory); a
+    /// statement-long hold it takes (the entry mutex) is given back by <see cref="LeaveEntry"/> when the OPEN ends.</summary>
+    private protected virtual string? EnterPhysicalFile(FileOpenMode mode) => null;
+
+    /// <summary>The OPEN that <see cref="EnterPhysicalFile"/> entered has ended, successfully or not.</summary>
+    private protected virtual void LeaveEntry() { }
+
+    /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
+    private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
+    {
+        refusedAfterTheColumnWasHeld = false;
         _ownedWritesAdmitted = ownedWritesAdmitted;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
@@ -969,11 +1026,12 @@ public abstract class FileConnector
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR3 / §9.1.13.6 item 6 b)
-            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES ENDS HERE, before anything of this OPEN reads it (kb/Work
-            // PB3533): the write probe, the file lock the CLOSE kept and the organization's kept handle and store all belong to
-            // the physical file the CLOSE was on, and a present file that is not that one was made at the path after it was
-            // removed or renamed away outside the run unit.
-            if (presence is FilePresence.Present) EndWhatWasKeptOfAnotherFile();
+            // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES LEAVES THIS CONNECTOR HERE, before anything of this OPEN reads
+            // it (kb/Work PB3533, PB3576): the write probe, the file lock the CLOSE kept and the organization's kept handle and
+            // store all belong to the physical file the CLOSE was on, and the path now names another file (made after the kept one
+            // was removed or renamed away outside the run unit) or none. The kept state is not ended with it: the physical file
+            // still exists unless it was removed, and the COMMIT still reaches what the run unit changed in it.
+            if (presence is FilePresence.Present or FilePresence.Absent) RetireWhatWasKeptOfAnotherFile(presence);
             // §14.9.27.4 GR10 — the fixed-file-attribute comparison, BEFORE any organization work: "During the
             // execution of the OPEN statement when the file connector is matched with the file and the file
             // exists, the attributes of the file connector as specified in the file control paragraph and the

@@ -802,6 +802,52 @@ public sealed class TransactionControlTests
         Assert.Equal(Seeded(), r.Contents("F"));
     }
 
+    /// <summary>⛔ kb/Work PB3541's refused COMMIT: a COMMIT the medium refuses deactivates NOTHING (§14.9.7.4 GR3's
+    /// deactivation is the COMMIT's effect, and a refused COMMIT made no change permanent), so a retired clause naming F
+    /// keeps F under commit control until §14.6.13.1.3 item 8's ROLLBACK, which is due because F is <i>"a file subject to
+    /// an active APPLY COMMIT clause"</i>, restores F with every other file and the live clause's data items
+    /// (§14.9.36.4 GR3), and only then deactivates the retired clause (§14.9.36.4 GR6) and takes F out of commit control.
+    /// A deactivation run before the refusal is told (or in a finally) would release F first: item 8 would find F under
+    /// no clause and run no ROLLBACK, and F's changes would stay in its open transaction for the run unit's end to make
+    /// permanent.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_refused_commit_deactivates_nothing_and_item_8_restores_the_file_then_deactivates_the_clause(FileOrg org)
+    {
+        using var r = new Run(org);
+        r.Declare("F");
+        r.Declare("G");
+        object canceled = new(), live = new();
+        var gone = new Clause(r.Reg);
+        var kept = new Clause(r.Reg);
+        Assert.True(r.Activate(canceled, gone, "F"));
+        Assert.True(r.Activate(live, kept, "G"));
+        r.OpenIO("F");
+        r.OpenIO("G");
+        Change(r);                                           // F's changes, made while its clause is active
+        Assert.Equal("00", r.Write(8, "A008", "G"));         // G's change, under the live clause
+        kept.Item = "CHANGED";
+        r.Txn.Retire(canceled);
+        int at = r.Log["F"].Count;
+        r.Refuse = (file, n, op) => file == "F" && n >= at && op[0] == 'W' ? Refusal : null;
+        Assert.Equal("F", r.Txn.Commit());                   // refused at F's first page write: before its slot sync
+        r.Refuse = null;
+        Assert.Equal("30", r.Reg.Status("F"));
+        Assert.Equal("30", kept.StatusItems.GetValueOrDefault("F"));
+        Assert.True(r.Reg.IsCommitControlled("F"));          // the refused COMMIT deactivated nothing
+        Assert.Equal(1, kept.Saves);                         // ... and saved nothing (GR5 is the COMMIT's)
+        Item8(r, "F");                                       // §14.6.13.1.3 item 8: due, F is still subject to a clause
+        Assert.Equal(Seeded(), r.Contents("F"));             // GR3: F restored
+        Assert.Equal(Seeded(), r.Contents("G"));             // ... with every other file under commit control
+        Assert.Equal("INITIAL", kept.Item);                  // ... and the live clause's items
+        Assert.False(r.Reg.IsCommitControlled("F"));         // GR6: item 8's ROLLBACK deactivated the retired clause
+        Assert.True(r.Reg.IsCommitControlled("G"));
+        Assert.True(r.Txn.AnyActive);
+        Assert.Null(r.Txn.Commit());
+        Assert.Equal(1, gone.Saves);                         // deactivated: never saved again
+        Assert.Equal(2, kept.Saves);
+    }
+
     public static TheoryData<FileOrg, bool> OrgsByStatement()
     {
         var data = new TheoryData<FileOrg, bool>();
