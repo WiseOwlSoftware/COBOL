@@ -755,7 +755,7 @@ public abstract class KeyedConnector : FileConnector
     /// (<see cref="InheritKept"/>) meets the same question here.</remarks>
     private protected sealed override void RetireWhatWasKeptOfAnotherFile(FilePresence presence)
     {
-        if (_kept is { } kept && (presence is FilePresence.Absent || !kept.IsOfTheFileAt(HostPath))) RetireKept();
+        if (_kept is { } kept && (presence is FilePresence.Present && !kept.IsOfTheFileAt(HostPath))) ReleaseKept();   // TEMP PROBE
     }
 
     /// <summary>The connector's re-OPEN SUCCEEDED (<see cref="OpenCore"/>): what its CLOSE under commit control kept is this
