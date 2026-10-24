@@ -9,9 +9,10 @@
       *> counter register. ISO 15.14.3 r1 admits "a data item of any class or
       *> category", and LINAGE-COUNTER / PAGE-COUNTER are data items
       *> (8.4.3.14.4 GR1, 8.4.3.15.4 GR1). Their implicit description is
-      *> PIC 9(d) USAGE DISPLAY (docs/CONFORMANCE.md, the counter registers'
-      *> declared capacity), d bytes: 2 for LINAGE IS 20 LINES, 18 for the
-      *> report counters. The COBOL-85 witness of the same description is
+      *> (docs/CONFORMANCE.md, the counter registers' declared description)
+      *> PIC 9(d) USAGE DISPLAY for LINAGE-COUNTER, d bytes (2 for LINAGE IS 20
+      *> LINES), and an unsigned 32-bit binary integer for the report counters,
+      *> 4 bytes (kb/Work PB1746). The COBOL-85 witness of the same description is
       *> conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_character_image.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1153CBL.

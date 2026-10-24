@@ -815,8 +815,10 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
   reverse back.
 - **STRING** seeds the working buffer from the dest's current value (GR7: only written positions change); pointer is
   a C# `int` round-tripped via `CobolNum`; overflow when pointer<1 or >len before a char move (GR8).
-- **UNSTRING** uses a per-INTO `UnstringExtract` (earliest delimiter wins, tie→first-listed, ALL skips contiguous
-  repeats; two contiguous delimiters → empty extract → space/zero fill via `CobolString.Store`/`CobolNum.Store`).
+- **UNSTRING** uses a per-INTO `UnstringExtract` (earliest delimiter wins, tie→first-listed, one occurrence consumed,
+  the matched delimiter's list position returned; two contiguous delimiters → empty extract → space/zero fill via
+  `CobolString.Store`/`CobolNum.Store`) and, for an ALL delimiter, a `UnstringSkipRun` after that INTO store that
+  consumes the contiguous repeats (GR7) over the delimiter and sender as the store left them.
   Overlapping operands (§14.9.48.4 GR18, Annex A.2 item 61) run IN PLACE, as libcob does (CONFORMANCE.md D-UNS1 to
   D-UNS4): `StringEmitter` re-reads the sender and each identifier delimiter before every receiving area after the
   first, but only where `StorageSharing.MayShare` says a store (INTO, DELIMITER IN, COUNT IN) can reach it; the TALLYING

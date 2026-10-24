@@ -1470,9 +1470,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>THE ANTECEDENT IS WRITTEN OUT IN FULL, IN THE RULE'S OWN ORDER. (1) The leading conjunct: a file
     /// subject to an APPLY COMMIT clause is EXEMPT, and the exemption is load-bearing rather than decorative
     /// because §12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an APPLY
-    /// COMMIT clause" — without the exemption the two rules would make such a file unwritable. It is reachable
-    /// today: COBOLNET1709 declines the clause but is <c>PermissiveInert</c>, so <c>--permissive</c> compiles the
-    /// program. (2) The two disjuncts collapse to ONE test on the EFFECTIVE sharing mode, which is what the
+    /// COMMIT clause" — without the exemption the two rules would make such a file unwritable; the clause is accepted
+    /// for every organization §9.1.18.2 admits (kb/Work PB3338, PB3340). (2) The two disjuncts collapse to ONE test on the EFFECTIVE sharing mode, which is what the
     /// caller passes: <c>sharing ?? file.Sharing</c> is the ALL phrase when the OPEN group wrote one and the
     /// file control entry's clause when it did not (§14.9.27.4 GR23), which is exactly "[ALL on the OPEN]" OR
     /// "[phrase omitted AND the SELECT says ALL]". A phrase that is present and is NOT ALL satisfies neither

@@ -405,14 +405,14 @@ public sealed class CommitRollbackRefusalWitnessTests : CobolNetTestBase
 
     public static TheoryData<FileOrg> Orgs() => [.. FileHarness.KeyedOrgs];
 
-    // ── The declined SEQUENTIAL operand under --permissive (review finding w1154a R1-4) ──────────────────────────────
+    // ── The SEQUENTIAL operand (kb/Work PB3340; review finding w1154a R1-4) ────────────────────────────────────────────
 
-    /// <summary>A SEQUENTIAL operand is refused (COBOLNET1709, docs/CONFORMANCE.md §4 item 2); under <c>--permissive</c>
-    /// the refusal is a warning and the operand is absent from the clause, so a ROLLBACK, which leaves the file alone, does
-    /// not restore its FILE STATUS item either (§12.4.6.3.3 SR9 makes the item subject to the clause only through the
-    /// file): after the AT END the item keeps '10' while the connector is at its end.</summary>
+    /// <summary>A SEQUENTIAL operand puts the file under commit control (§9.1.18.2; kb/Work PB3340), and with it its FILE STATUS
+    /// item (§12.4.6.3.3 SR9: <i>"the file status data items ... are automatically subject to the APPLY COMMIT clause"</i>), so
+    /// the ROLLBACK restores the item to its value at the last COMMIT (§14.9.36.4 GR3: <i>"It also includes the file status data
+    /// items"</i>): the AT END's '10' gives way to the '00' the COMMIT saved after the OPEN, and W to 'CHGD'.</summary>
     [Fact]
-    public void A_declined_sequential_operand_puts_neither_the_file_nor_its_status_item_under_commit_control()
+    public void A_sequential_operand_puts_the_file_and_its_status_item_under_commit_control()
     {
         const string id = "CSQ";
         string host = Path.Combine(TempDir, "csq.dat");
@@ -449,20 +449,20 @@ public sealed class CommitRollbackRefusalWitnessTests : CobolNetTestBase
             GOBACK.
             END PROGRAM {id}.
             """;
-        var (trace, ended) = Run(id, source, refuse: 0, permissive: true);
+        var (trace, ended) = Run(id, source, refuse: 0);
         Assert.Null(ended);
-        Assert.Equal(["READ 10", "ROLLBACK 10 CHGD"], trace);
+        Assert.Equal(["READ 10", "ROLLBACK 00 CHGD"], trace);
     }
 
     // ── The harness ─────────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Compile the program and activate it through its host entry in a flow of its own, over a medium that
     /// refuses the <paramref name="refuse"/>-th write (0: none): its trace (one entry per note) and the run unit's ending.</summary>
-    private (string[] trace, RunUnitEndedException? ended) Run(string id, string source, int refuse, bool permissive = false)
+    private (string[] trace, RunUnitEndedException? ended) Run(string id, string source, int refuse)
     {
         string src = Path.Combine(TempDir, $"{id}.cob"), dll = Path.Combine(TempDir, $"{id}.dll");
         File.WriteAllText(src, source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023, Permissive: permissive,
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023,
             SourceFormat: InitialReferenceFormat.Auto));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         var call = AssemblyLoadContext.Default.LoadFromAssemblyPath(dll).GetTypes()

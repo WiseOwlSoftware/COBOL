@@ -59,6 +59,12 @@ concurrency:
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
 # non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
 #
+# ⛔ AN ARTIFACT NEVER DECIDES A VERDICT (kb/Work PB3140; CiArtifactDriftTests): every upload goes through ONE step,
+# ./.github/actions/upload-results (tried three times; when all fail it warns and passes), and every download through
+# ./.github/actions/download-results (tried three times; the third failure fails the job that needs it). A bare
+# actions/upload-artifact step under `always()` once failed a shard whose 5338 tests had all passed, on an artifact
+# service ETIMEDOUT, and the merge queue removed the pull request (merge-group run 38502926616, PR #39).
+#
 # ⛔ NO JOB SETS A VARIABLE THAT NARROWS A TEST RUN (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): the gate's leg
 # handshake COBOLNET_GATE_*, or VSTest* / RunSettingsFilePath, which MSBuild imports from the environment as the
 # VSTest target's filter and run settings. A hosted job's environment is exactly what this file declares, so that
@@ -472,12 +478,10 @@ jobs:
             2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
       - name: Upload test results (TRX + population listing + shard log)
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-results
         with:
           name: test-results-${{ runner.os }}-conformance-${{ matrix.shard }}
           path: TestResults/${{ runner.os }}-${{ matrix.shard }}/
-          if-no-files-found: ignore
-          retention-days: 14
 
   # Unit + characterization moved OFF the conformance job's critical path (A14 option 1): they are
   # project-granular (nothing hand-listed), so no population guard is needed here.
@@ -535,14 +539,12 @@ jobs:
         run: python3 scripts/self_tests.py --built
       - name: Upload test results (TRX)
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-results
         with:
           name: test-results-${{ runner.os }}-unit
           path: |
             TestResults/${{ runner.os }}-unit/*.trx
             TestResults/${{ runner.os }}-unit/harness-observations.log
-          if-no-files-found: ignore
-          retention-days: 14
 
   # The Windows twin of greenfield-conformance — SAME shard filters (the population job checks both platforms'
   # sums), Release config like the rest of the Windows leg. Kept full-suite on Windows deliberately: the
@@ -617,12 +619,10 @@ jobs:
             2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
       - name: Upload test results (TRX + population listing + shard log)
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-results
         with:
           name: test-results-${{ runner.os }}-conformance-${{ matrix.shard }}
           path: TestResults/${{ runner.os }}-${{ matrix.shard }}/
-          if-no-files-found: ignore
-          retention-days: 14
 
   # ── The shard POPULATION GUARD (kb/Work PB1718; DESIGN-test-build-ci §3.14.4): per platform, the UNION of the
   # shards' trx test definitions must equal the discovered population (`--list-tests`, which every shard listed
@@ -642,7 +642,7 @@ jobs:
         with:
           submodules: false
       - name: Download every shard's trx and population listing
-        uses: actions/download-artifact@v8
+        uses: ./.github/actions/download-results
         with:
           pattern: test-results-*-conformance-*
           path: shards
@@ -656,7 +656,7 @@ jobs:
             "$PY" scripts/test_population.py check --label "Conformance ($os shards)" \
               --listing shards/test-results-$os-conformance-*/conformance.list.txt \
               --trx shards/test-results-$os-conformance-*/*.trx \
-              || { echo "::error::POPULATION MISMATCH ($os): the shards' union is not the discovered population — see the names above"; fail=1; }
+              || { echo "::error::POPULATION MISMATCH ($os): the shards' union is not the discovered population — see the names above (a shard whose artifact upload failed after its retries is absent here: its job's warning names it)"; fail=1; }
           done
           exit $fail
 
@@ -708,14 +708,12 @@ jobs:
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-results
         with:
           name: test-results-${{ runner.os }}-inv1-strong
           path: |
             TestResults/${{ runner.os }}-inv1-strong/*.trx
             TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
-          if-no-files-found: ignore
-          retention-days: 14
 
   # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
   # build) plus the greenfield suites on Windows. The NIST guard is Linux-only (bash), so this job gives the
@@ -762,14 +760,12 @@ jobs:
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Upload test results (TRX)
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-results
         with:
           name: test-results-${{ runner.os }}-build-test
           path: |
             TestResults/${{ runner.os }}-build-test/*.trx
             TestResults/${{ runner.os }}-build-test/harness-observations.log
-          if-no-files-found: ignore
-          retention-days: 14
 
   # ── Every script self-test on Windows, the Windows-only ones included (the orchestrator loop's test_orchestrate_*.ps1
   # and test_autostart.ps1), which the Linux audits job reports NOT RUN (kb/Work PB2563). ITS OWN JOB, beside
