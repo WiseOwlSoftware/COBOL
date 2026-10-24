@@ -79,7 +79,55 @@ public sealed class CobolIntrinsicsDecTests
 
     [Fact]
     public void AnnuityDec_RateZero_IsReciprocalOfPeriods() =>
-        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), 4));
+        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(4, 0)));
+
+    /// <summary>⛔ kb/Work PB637 — argument-2 is a TOTAL integer (§15.9.3 r3 "positive integer" is a sign rule), so a
+    /// count past <c>long</c> reaches the body whole. At rate 0 the equivalent expression §15.9.4 r1a is
+    /// <c>1 / argument-2</c>, which §15.4.1 r1 makes the standard-decimal value for every n: 10^20 → 1E-20 and
+    /// 10^38 → 1E-38 and 10^40 (past <c>Int128</c>: an SDIDI integer the renderer keeps whole — the first fix narrowed
+    /// it to <c>Int128</c>, review R1-1) → 1E-40, with checking ARMED. The count is 10^exponent.</summary>
+    [Theory]
+    [InlineData(20)]
+    [InlineData(38)]
+    [InlineData(40)]
+    public void AnnuityDec_RateZero_PastLong_IsReciprocal_AndRaisesNothingUnderChecking(int exponent)
+    {
+        bool saved = CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking;
+        CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = true;
+        try
+        {
+            AssertDec(D(1, exponent),
+                CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(1, -exponent)));
+        }
+        finally { CobolNet.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = saved; }
+    }
+
+    /// <summary>§15.9.4 r1b past <c>long</c> with a rate small enough that <c>(1 + rate) ** n</c> stays in range:
+    /// rate 1E-30, n 10^20. With x = n·ln(1 + rate) = 1E-10 − 5E-41 the denominator is 1 − e^(−x) = x − x²/2 + … and
+    /// the value rate / (x − x²/2) = 1E-20 · (1 + 5E-11 + …) = 1.00000000005E-20. The subtraction cancels ten of the
+    /// SDIDI's 34 digits (an inherent property of the written expression), so the assertion is to 12 digits.</summary>
+    [Fact]
+    public void AnnuityDec_TinyRate_PastLong_IsTheExpressionsValue()
+    {
+        double actual = CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(1, 30),
+            D(1, -20)).ToDouble();
+        Assert.True(System.Math.Abs(actual - 1.00000000005E-20) <= 1E-32, $"ANNUITY(1E-30 10^20) = {actual:R}");
+    }
+
+    /// <summary>The OTHER half of the totality claim: at a positive rate the equivalent expression's own
+    /// <c>(1 + rate) ** n</c> leaves the decimal128 range, which is its size condition (EC-SIZE-OVERFLOW,
+    /// §8.8.1.5.2 r2) — and it is the SAME condition at n = 10^6 (inside <c>long</c>) and at n = 10^20 (past it),
+    /// never an EC-ARGUMENT-FUNCTION that depends on the carrier's width (§15.3 r14 has no incorrect argument here).</summary>
+    [Theory]
+    [InlineData(6)]
+    [InlineData(20)]
+    [InlineData(40)]
+    public void AnnuityDec_PositiveRate_PastTheRange_IsTheExpressionsSizeCondition(int exponent)
+    {
+        var ex = Assert.ThrowsAny<CobolNet.Runtime.Exceptions.CobolFatalException>(() =>
+            CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(5, 2), D(1, -exponent)));
+        Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
+    }
 
     [Fact]
     public void PresentValueDec_Rate1_SumsDiscountedAmounts() =>

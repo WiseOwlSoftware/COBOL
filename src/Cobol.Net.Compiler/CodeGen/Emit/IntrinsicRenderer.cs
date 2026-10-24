@@ -1223,7 +1223,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{mode}, {DecArgList(ic)}")),
             "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{mode}, {DecArgList(ic)}")),
             "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{mode}, {DecArgList(ic)}")),
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            // ANNUITY (kb/Work PB637): §15.9.3 r3's "positive integer" is a SIGN rule and says nothing about magnitude,
+            // so argument-2 is a TOTAL argument and rides the SDIDI as the position intake left it (RawArg: the operand's
+            // integer on the SDIDI, unbounded — an SDIDI integer reaches past Int128), never on a native integer
+            // carrier. At a positive rate an enormous n is the equivalent expression's own size condition, never
+            // EC-ARGUMENT-FUNCTION (see CobolIntrinsics.AnnuityDec). IntrinsicCarrierAgreementDriftTests
+            // .IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake pins this arm.
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{mode}, ", "CobolDec", DecOf)),
             _ => null,
         };
@@ -1685,6 +1691,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// integer") and §15.75.4 r3 makes the distinct-sequence subset a FLOOR ("shall include the values from 0
     /// through at least 32767"), not a domain, so a wider seed is legal and its sequence is defined
     /// (kb/Work PB636 — the narrow intake aborted the run unit on a 19-digit seed).</item>
+    /// <item>ANNUITY argument-2 — §15.9.3 r3 constrains the SIGN only ("a positive integer"; kb/Work PB637). It is
+    /// TOTAL too, but its value rides the SDIDI, whose integer reaches past <c>Int128</c>, so the SDIDI arm does NOT
+    /// take this intake: it keeps the position's unbounded SDIDI integer (<see cref="DecArg"/> over
+    /// <see cref="RawArg"/>), and the binary64 arm takes it as a binary64 (<see cref="Dbl"/>).
+    /// <c>IntrinsicCarrierAgreementDriftTests.IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake</c> holds that.</item>
     /// </list>
     /// <para>⚠ THE SET IS NOT MAINTAINED HERE. The runtime body's declared parameter carrier IS the totality
     /// claim — <c>Int128</c> for a total argument, <c>long</c> for one the argument rules bound — and
