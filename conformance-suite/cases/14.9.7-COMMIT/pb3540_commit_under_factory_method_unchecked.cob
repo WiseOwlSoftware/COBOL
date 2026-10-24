@@ -16,6 +16,8 @@
 *>   RECORD 1 ABSENT   PB3540F's own ROLLBACK, with no recursive element active, restores RELF to the start of the run
 *>                     unit (14.9.36.4 GR3). Before PB3540 the COMMIT under the method went through, record 1 was
 *>                     committed, and this line read RECORD 1=AAAA.
+*>                     The run unit's start had no file (OPEN OUTPUT created it), so the ROLLBACK removes it and the
+*>                     OPTIONAL file's OPEN INPUT answers 05 (9.1.13.2 item 4 a)) before the READ (kb/Work PB3492).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3540F.
        ENVIRONMENT DIVISION.
@@ -24,7 +26,7 @@
            CLASS PB3540K.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT RELF ASSIGN TO "pb3540f.dat"
+           SELECT OPTIONAL RELF ASSIGN TO "pb3540f.dat"
                ORGANIZATION IS RELATIVE
                ACCESS MODE IS RANDOM
                RELATIVE KEY IS RK.
