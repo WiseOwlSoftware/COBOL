@@ -1382,32 +1382,28 @@ def self_test() -> int:
         (REPO / "kb" / "Work" / "PB1.md").write_text(fm.format(i="PB1", s="open"), encoding="utf-8", newline="\n")
         (REPO / "kb" / "Work" / "PB2.md").write_text(fm.format(i="PB2", s="landed"), encoding="utf-8", newline="\n")
         (REPO / "kb" / "Work" / "README.md").write_text("no frontmatter\n", encoding="utf-8", newline="\n")
-        for args in (("init", "-q", "-b", "main"), ("add", "."), ("commit", "-q", "-m", "fixture")):
-            subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=REPO, check=True,
-                           capture_output=True)
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
+        scratch = ScratchRepo.init(REPO)
+        scratch.commit("fixture")
         got = register_counts_at("HEAD")
         want = {"compiler_open": 1, "defects": 1, "wrong_answer": 1, "crashes": 0, "gap_holders": 1}
         check("the register is read from a commit's own tree (git cat-file --batch)", got == want, f"{got}")
 
         # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is
         # not an ancestor of it, but its commits were recorded earlier; `last..HEAD` listed them again.
-        def run(*args: str, check_rc: bool = True) -> str:
-            return subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=REPO, check=check_rc,
-                                  capture_output=True, text=True, encoding="utf-8").stdout.strip()
-
         def commit(gap_rows: int, msg: str) -> str:
             (REPO / INVENTORY_REL).write_text(json.dumps([{"rule-id": f"R-{i}", "state": "GAP", "verdict": "PARTIAL"}
                                                           for i in range(gap_rows)]), encoding="utf-8", newline="\n")
-            run("add", ".")
-            run("commit", "-q", "-m", msg)
-            return run("rev-parse", "--short=8", "HEAD")
+            scratch.commit(msg)
+            return scratch.git("rev-parse", "--short=8", "HEAD")
 
-        base_sha = run("rev-parse", "--short=8", "HEAD")
-        run("checkout", "-q", "-b", "side")
+        base_sha = scratch.git("rev-parse", "--short=8", "HEAD")
+        scratch.git("checkout", "-q", "-b", "side")
         side = commit(1, "side: closes a row")
-        run("checkout", "-q", "main")
+        scratch.git("checkout", "-q", "main")
         tip = commit(2, "main: moves on")
-        run("merge", "-q", "--no-ff", "side", check_rc=False)   # both sides changed the inventory: resolved by hand
+        scratch.run("merge", "-q", "--no-ff", "side")   # unchecked: both sides changed the inventory, resolved by hand
         merged = commit(3, "merge side")
         recorded = [{"sha": side, "date": "2026-10-01", "gap": 1, "closed": 0, "dns": 0, "label": "", "battery": None},
                     {"sha": tip, "date": "2026-10-02", "gap": 2, "closed": 0, "dns": 0, "label": "", "battery": None}]
