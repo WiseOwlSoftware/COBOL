@@ -1,4 +1,4 @@
-## PB3267: a branch whose review ended FINDINGS is a carrier in the branch survey, so its predecessors land with it
+## Entry 2482 — 2026-10-24 14:49 PDT — PB3267: a branch whose review ended FINDINGS is a carrier in the branch survey, so its predecessors land with it
 
 `prune_worktrees.contained()` took its carriers from `CARRIER_STATES`, and a DONE branch whose tip carries a FINDINGS stamp is
 a DECISION row, so it was never a carrier. A predecessor with no report of its own that sits inside such a branch read
@@ -15,3 +15,4 @@ stamp covers its tip: the planner's own test). `lifecycle` and `finisher_due` sh
 construct); the regression is `prune_worktrees.py --self-test` (rows `gpred`/`gsucc`, `hpred`/`hsucc`, the owned set, the verdict
 counts). PB3267 `open` to `landed`, `closes_rows: []` with its reason. Open sibling, already filed: PB3386 (a SPLIT predecessor is
 not carried either).
+
