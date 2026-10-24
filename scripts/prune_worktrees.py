@@ -1064,64 +1064,42 @@ def main(argv=None):
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
-class FixtureError(RuntimeError):
-    """A git command that builds the self-test's scratch repository failed: the fixture, not the survey, is wrong."""
-
-
 def self_test() -> int:
     """A scratch repository with one branch in every lifecycle state, surveyed and then pruned (--apply)."""
+    from scratch_repo import ScratchRepo, ScratchRepoError, isolate  # noqa: PLC0415  (scripts/: the one fixture)
     fails = []
     check = lambda ok, what: None if ok else fails.append(what)  # noqa: E731
     tmp = pathlib.Path(tempfile.mkdtemp(prefix='prune-selftest-'))
     try:
-        env_strip = subprocess.run(['git', 'rev-parse', '--local-env-vars'], capture_output=True, text=True).stdout.split()
-        for v in env_strip:      # never act on the caller's repository (kb/Work PB1719)
-            os.environ.pop(v, None)
-        origin, repo = tmp / 'origin.git', tmp / 'repo'
-        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(origin)], check=True)
-        subprocess.run(['git', 'init', '-q', '-b', 'main', str(repo)], check=True)
-        def g(*args, cwd=repo):
-            """A FIXTURE git command, which must succeed: a failure raises with git's own message. Unchecked, a command
-            that failed while the fixture was built left a branch where the fixture never meant it, and a lifecycle
-            FAIL on that branch was the only trace (merge-group run 39193754708: `lane-free` read MERGED, its own
-            commit absent from it, and nothing said why)."""
-            r = git(*args, cwd=cwd)
-            if r.returncode:
-                raise FixtureError(f'git {" ".join(map(str, args))} (in {cwd}) exited {r.returncode}: '
-                                   f'{(r.stderr or r.stdout).strip()}')
-            return r
-        for k, v in (('user.name', 'self-test'), ('user.email', 'self-test@example.invalid'), ('commit.gpgsign', 'false')):
-            g('config', k, v)
-        try:
-            g('rev-parse', '--verify', '--quiet', 'refs/heads/no-such-branch')
-            check(False, 'a failing fixture git command raises')
-        except FixtureError:
-            pass
+        isolate()      # never act on the caller's repository (kb/Work PB1719)
+        # Every fixture command is CHECKED (ScratchRepoError carries git's message): an unchecked command that failed
+        # while the fixture was built left a branch where the fixture never meant it, and a lifecycle FAIL on that
+        # branch was the only trace (merge-group run 39193754708: `lane-free` read MERGED, its own commit absent).
+        scratch = ScratchRepo.init(tmp / 'repo')
+        repo = scratch.path
 
         def commit(path, text, msg, cwd=repo):
-            p = pathlib.Path(cwd) / path
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(text, encoding='utf-8', newline="\n")
-            g('add', path, cwd=cwd)
-            g('commit', '-q', '-m', msg, cwd=cwd)
+            scratch.write({path: text}, cwd)
+            scratch.git('add', path, cwd=cwd)
+            scratch.git('commit', '-q', '-m', msg, cwd=cwd)
 
         commit('src/A.cs', 'class Alpha {}\n', 'base')
-        g('remote', 'add', 'origin', str(origin))
-        g('push', '-q', 'origin', 'main')
-        g('fetch', '-q', 'origin')
+        origin = scratch.origin(tmp / 'origin.git').path
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('fetch', '-q', 'origin')
         # merged: an ancestor of main. landed-by-content: re-applied on main as a different commit.
-        g('branch', 'merged')
-        g('switch', '-q', '-c', 'landed-content')
+        scratch.git('branch', 'merged')
+        scratch.git('switch', '-q', '-c', 'landed-content')
         commit('src/B.cs', 'class Bravo {}\n', 'bravo')
-        g('switch', '-q', 'main')
+        scratch.git('switch', '-q', 'main')
         commit('src/B.cs', 'class Bravo {}\n', 'bravo, as the train re-applied it')
-        g('push', '-q', 'origin', 'main')
-        g('fetch', '-q', 'origin')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('fetch', '-q', 'origin')
         # unlanded with no report (DECISION), unlanded with a DONE report (WAITING TO LAND), a SPLIT report (DECISION),
         # a DONE report whose lead note is already landed (superseded: DECISION), a DONE report 30 h old (stale:
         # DECISION), a DONE report followed by a commit no report describes (resumed since: DECISION, whatever the
         # report's age, kb/Work PB3181), a ledger slug, a fresh one
-        main_at = g('rev-parse', 'main').stdout.strip()
+        main_at = scratch.git('rev-parse', 'main')
         for b, f in (('orphan', 'src/C.cs'), ('done-branch', 'src/D.cs'), ('split-branch', 'src/E.cs'),
                      ('w9999a-ledger', 'src/F.cs'), ('fresh', 'src/G.cs'), ('superseded', 'src/H.cs'),
                      ('stale-done', 'src/I.cs'), ('resumed', 'src/J.cs'),
@@ -1140,69 +1118,69 @@ def self_test() -> int:
                      ('lane-pred', 'src/LP.cs'), ('lane-free', 'src/LF.cs'), ('lane-done', 'src/LD.cs'),
                      ('lane-running', 'src/LR.cs'), ('discharged', 'src/DS.cs'), ('discharged-empty', 'src/DE.cs'),
                      ('no-head', 'src/NH.cs')):
-            g('switch', '-q', '-c', b, 'main')
+            scratch.git('switch', '-q', '-c', b, 'main')
             commit(f, f'class {b.replace("-", "_").title()}X {{}}\n', b)
-        g('switch', '-q', '-c', 'lane-stopped', 'lane-pred')
+        scratch.git('switch', '-q', '-c', 'lane-stopped', 'lane-pred')
         commit('src/LS.cs', 'class LaneStoppedX {}\n', 'lane-stopped')
-        lane_at = {b: g('rev-parse', b).stdout.strip() for b in ('lane-stopped', 'lane-free', 'lane-done', 'lane-running',
+        lane_at = {b: scratch.git('rev-parse', b) for b in ('lane-stopped', 'lane-free', 'lane-done', 'lane-running',
                                                                   'discharged', 'discharged-empty', 'no-head')}
-        resumed_at = g('rev-parse', 'resumed').stdout.strip()
-        g('switch', '-q', 'resumed')
+        resumed_at = scratch.git('rev-parse', 'resumed')
+        scratch.git('switch', '-q', 'resumed')
         commit('src/J.cs', 'class ResumedX { int AfterTheReport; }\n', 'a commit no report describes')
-        reviewed_at = g('rev-parse', 'reviewed-moved').stdout.strip()
-        g('switch', '-q', 'reviewed-moved')
+        reviewed_at = scratch.git('rev-parse', 'reviewed-moved')
+        scratch.git('switch', '-q', 'reviewed-moved')
         commit('src/S.cs', 'class ReviewedMovedX { int AfterTheReview; }\n', 'a commit after the review')
         # `reviewed-stamped`: CLEAN at a head, then only the DEVLOG stamp enqueue.py makes: still reviewed (kb/Work PB3023)
-        stamped_at = g('rev-parse', 'reviewed-stamped').stdout.strip()
-        g('switch', '-q', 'reviewed-stamped')
+        stamped_at = scratch.git('rev-parse', 'reviewed-stamped')
+        scratch.git('switch', '-q', 'reviewed-stamped')
         commit('DEVLOG/0042-the-fix.md', '## Entry 42 — 2026-10-11 20:00 PDT — the fix\n\nWhy.\n', 'DEVLOG 42: stamp')
-        fmoved_at = g('rev-parse', 'findings-moved').stdout.strip()
-        g('switch', '-q', 'findings-moved')
+        fmoved_at = scratch.git('rev-parse', 'findings-moved')
+        scratch.git('switch', '-q', 'findings-moved')
         commit('src/FM.cs', 'class FindingsMovedX { int R1_1Answered; }\n', 'review R1-1: answered after the review')
-        fstamped_at = g('rev-parse', 'findings-stamped').stdout.strip()
-        g('switch', '-q', 'findings-stamped')
+        fstamped_at = scratch.git('rev-parse', 'findings-stamped')
+        scratch.git('switch', '-q', 'findings-stamped')
         commit('DEVLOG/0043-the-findings.md', '## Entry 43 — 2026-10-11 21:00 PDT — findings\n\nWhy.\n', 'DEVLOG 43: stamp')
-        g('switch', '-q', '-c', 'succ', 'pred')
+        scratch.git('switch', '-q', '-c', 'succ', 'pred')
         commit('src/V.cs', 'class SuccessorX {}\n', 'succ')
         # `fnd-pred` was reviewed FINDINGS; a later wave's finisher `fnd-fix` merged it and was reviewed CLEAN
-        g('switch', '-q', '-c', 'fnd-fix', 'fnd-pred')
+        scratch.git('switch', '-q', '-c', 'fnd-fix', 'fnd-pred')
         commit('src/W2.cs', 'class FindingsFixedX {}\n', 'the findings answered')
         # kb/Work PB3381: `cpred` was reviewed CLEAN and `csucc`, its same-file successor cut from it, is not reviewed
         # yet: the predecessor lands at once, never held behind its successor. `xpred` ended FINDINGS at the cap and
         # `xsucc` (another note) merged it and was reviewed CLEAN: it carries xpred's unanswered findings, so it waits.
         for b, f in (('cpred', 'src/CP.cs'), ('xpred', 'src/XP.cs')):
-            g('switch', '-q', '-c', b, 'main')
+            scratch.git('switch', '-q', '-c', b, 'main')
             commit(f, f'class {b.title()}X {{}}\n', b)
         # Review R1-2: `upred` is DONE with NO stamp (its reviewer never returned: NO-RESULT) and `usucc`, its successor,
         # merged it and was reviewed CLEAN over the whole branch: an unreviewed checkpoint never lands alone, so `upred`
         # lands through `usucc` (IN FLIGHT, carried), never WAITING FOR REVIEW for a second reviewer.
-        g('switch', '-q', '-c', 'upred', 'main')
+        scratch.git('switch', '-q', '-c', 'upred', 'main')
         commit('src/UP.cs', 'class UpredX {}\n', 'upred')
         # Review R3-1: `rpred` was reviewed FINDINGS (its findings file says so) and its review finisher came back
         # BLOCKED with NO commit, its branch `rpred-fix` fast-forwarded to rpred's head, after REWRITING the group's one
         # report for `rpred-fix` with no Review line, as its contract says. `rsucc` (another note) merged rpred and was
         # reviewed CLEAN: no report stamps rpred's findings any more, yet rsucc carries them, so it waits.
-        g('switch', '-q', '-c', 'rpred', 'main')
+        scratch.git('switch', '-q', '-c', 'rpred', 'main')
         commit('src/RP.cs', 'class RpredX {}\n', 'rpred')
         # Review R4-1 (the reviewer's probe): `tpred` ended FINDINGS at the round cap (round 3), and a round-4 review
         # was killed mid-append of its first finding, leaving a torn line. `tsucc` (another note) merged tpred and was
         # reviewed CLEAN. The tear answers nothing, so tsucc still carries tpred's unanswered findings and waits.
-        g('switch', '-q', '-c', 'tpred', 'main')
+        scratch.git('switch', '-q', '-c', 'tpred', 'main')
         commit('src/TP.cs', 'class TpredX {}\n', 'tpred')
-        g('branch', 'rpred-fix', 'rpred')
-        g('switch', '-q', '-c', 'rsucc', 'rpred')
+        scratch.git('branch', 'rpred-fix', 'rpred')
+        scratch.git('switch', '-q', '-c', 'rsucc', 'rpred')
         commit('src/RS.cs', 'class RsuccX {}\n', 'rsucc')
         for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs'),
                            ('tsucc', 'tpred', 'src/TS.cs')):
-            g('switch', '-q', '-c', b, base)
+            scratch.git('switch', '-q', '-c', b, base)
             commit(f, f'class {b.title()}X {{}}\n', b)
-        tips = {b: g('rev-parse', b).stdout.strip() for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
+        tips = {b: scratch.git('rev-parse', b) for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
                                                                 'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
                                                                 'xpred', 'xsucc', 'upred', 'usucc', 'pred', 'rpred',
                                                                 'rsucc', 'tpred', 'tsucc', 'findings-moved')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
-        g('switch', '-q', '-c', 'modified-only', 'main')
+        scratch.git('switch', '-q', '-c', 'modified-only', 'main')
         commit('src/A.cs', 'class Alpha { int Fixed() => 1; }\n', 'a method-body fix')
         # THE WORK REACHED MAIN AS OTHER COMMITS (kb/Work PB2708). `carried`: train 9999 (its manifest, its trailer
         # commit, its `Train 9999:` commit) took its head and the lander edited it in the train, so its own merge would
@@ -1215,27 +1193,27 @@ def self_test() -> int:
         manifest: list[dict] = []
 
         def train_commit(branch, path, text, cluster):
-            tip = g('rev-parse', branch).stdout.strip()
-            base = g('merge-base', branch, 'main').stdout.strip()      # where the branch was cut, as the train applier recorded
+            tip = scratch.git('rev-parse', branch)
+            base = scratch.git('merge-base', branch, 'main')      # where the branch was cut, as the train applier recorded
             manifest.append({'cluster': cluster, 'branch': branch, 'base': base, 'head': tip})
             # the body a lander rewrote: only the trailer survives (train 1053's 53A and 53G)
             commit(path, text, f'{cluster} PB1: the cluster as the lander edited it\n\nTrain-Cluster: {cluster}\n')
-        g('switch', '-q', '-c', 'unlanded-train', 'main')
+        scratch.git('switch', '-q', '-c', 'unlanded-train', 'main')
         commit('src/U.cs', 'class UniformUnlanded {}\n', 'unlanded-train')
         (landed_coord / 'scratch' / 'train7777-manifest.json').write_text(json.dumps(
-            [{'cluster': 'K', 'branch': 'unlanded-train', 'base': g('rev-parse', 'main').stdout.strip(),
-              'head': g('rev-parse', 'unlanded-train').stdout.strip()}]), encoding='utf-8', newline="\n")
+            [{'cluster': 'K', 'branch': 'unlanded-train', 'base': scratch.git('rev-parse', 'main'),
+              'head': scratch.git('rev-parse', 'unlanded-train')}]), encoding='utf-8', newline="\n")
         for b, f, name in (('carried', 'src/K.cs', 'KiloCarried'), ('carried-moved', 'src/M.cs', 'MikeMoved'),
                            ('picked', 'src/P.cs', 'PapaPicked'), ('picked-lost', 'src/Q.cs', 'QuebecLost')):
-            g('switch', '-q', '-c', b, 'main')
+            scratch.git('switch', '-q', '-c', b, 'main')
             commit(f, f'class {name} {{}}\n', b)
-        g('switch', '-q', '-c', 'add-del', 'main')
+        scratch.git('switch', '-q', '-c', 'add-del', 'main')
         commit('src/A.cs', 'class Alpha {}\nclass TransientName {}\n', 'a WIP name')
         commit('src/A.cs', 'class Alpha { int Kept() => 2; }\n', 'the WIP name deleted, a body fix kept')
         # `ejected` changes only an existing file (no added file to read UNLANDED by), so the train record decides it
-        g('switch', '-q', '-c', 'ejected', 'main')
+        scratch.git('switch', '-q', '-c', 'ejected', 'main')
         commit('src/A.cs', 'class Alpha { int Ejected() => 3; }\n', 'a method-body fix its train ejected')
-        g('switch', '-q', 'main')
+        scratch.git('switch', '-q', 'main')
         # an EARLIER train reusing the letters lands after train 9999's members were cut (train 1056 before train 1055,
         # 2026-10-11), so their base..last range holds its K and E; `ejected` is train 9999's cluster E in the manifest,
         # but its lander ejected it: no E commit in train 9999, and the earlier train's E must not carry it
@@ -1243,34 +1221,34 @@ def self_test() -> int:
         commit('src/E0.cs', 'class EchoEarlier {}\n', 'E PB3: an earlier train\'s cluster E\n\nTrain-Cluster: E\n')
         commit('DEVLOG/9998-train.md', 'train 9998\n', 'Train 9998: DEVLOG 0, the earlier train\'s last commit')
         train_commit('carried', 'src/K.cs', 'class KiloCarried { int EditedInTrain; }\n', 'K')
-        k9999 = g('log', '-1', '--format=%h').stdout.strip()
+        k9999 = scratch.git('log', '-1', '--format=%h')
         train_commit('carried-moved', 'src/M.cs', 'class MikeMoved { int EditedInTrain; }\n', 'M')
-        manifest.append({'cluster': 'E', 'branch': 'ejected', 'base': g('merge-base', 'ejected', 'main').stdout.strip(),
-                         'head': g('rev-parse', 'ejected').stdout.strip()})
+        manifest.append({'cluster': 'E', 'branch': 'ejected', 'base': scratch.git('merge-base', 'ejected', 'main'),
+                         'head': scratch.git('rev-parse', 'ejected')})
         commit('DEVLOG/9999-train.md', 'train 9999\n', 'Train 9999: DEVLOG 1, the train\'s last commit')
         (landed_coord / 'scratch' / 'train9999-manifest.json').write_text(json.dumps(manifest), encoding='utf-8', newline="\n")
         for b, f, text in (('picked', 'src/P.cs', 'class PapaPicked { int LaterOnMain; }\n'),
                            ('picked-lost', 'src/Q.cs', 'class QuebecRenamed {}\n')):
-            g('cherry-pick', b)
+            scratch.git('cherry-pick', b)
             commit(f, text, f'main edits the file {b} added')
-        g('switch', '-q', 'carried-moved')
+        scratch.git('switch', '-q', 'carried-moved')
         commit('src/M.cs', 'class MikeMoved { int AfterTheTrain; }\n', 'a commit after the head the train took')
         # a pushed branch that lands is deleted on origin too; a remote that moved on is kept
-        g('push', '-q', 'origin', 'landed-content')
-        g('switch', '-q', '-c', 'tmp-remote', 'merged')
+        scratch.git('push', '-q', 'origin', 'landed-content')
+        scratch.git('switch', '-q', '-c', 'tmp-remote', 'merged')
         commit('src/R.cs', 'class RomeoRemoteOnly {}\n', 'a commit only the remote holds')
-        g('push', '-q', 'origin', 'tmp-remote:merged')
-        g('switch', '-q', 'main')
-        g('branch', '-D', 'tmp-remote')
-        g('push', '-q', 'origin', 'main')
-        g('fetch', '-q', 'origin')
+        scratch.git('push', '-q', 'origin', 'tmp-remote:merged')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('branch', '-D', 'tmp-remote')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('fetch', '-q', 'origin')
         # `lane-stopped` got what `enqueue.py land` commits before its gate: origin/main merged in cleanly, the DEVLOG
         # stamp; its attempt then stopped at that tip with exit 5 (GATE RED). The attempts are written by the lane's own
         # writer (land_lane.launch) and completed in its runner's record shape (run_attempt: rc, verdict, end_head).
-        g('switch', '-q', 'lane-stopped')
-        g('merge', '-q', '--no-edit', 'origin/main')
+        scratch.git('switch', '-q', 'lane-stopped')
+        scratch.git('merge', '-q', '--no-edit', 'origin/main')
         commit('DEVLOG/0043-lane.md', '## Entry 43 — 2026-10-15 12:00 PDT — lane\n\nWhy.\n', 'DEVLOG 43: stamp the entry')
-        g('switch', '-q', 'main')
+        scratch.git('switch', '-q', 'main')
         import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back)
 
         def attempt(branch: str, head: str, rc: int | None, verdict: str = '', end_head: str | None = None) -> None:
@@ -1280,22 +1258,22 @@ def self_test() -> int:
                 land_lane.update(rec, {'rc': rc, 'verdict': verdict, 'ended': '2026-10-15T19:00:00+00:00',
                                        'end_head': end_head or head})
         attempt('lane-stopped', lane_at['lane-stopped'], 5, 'GATE RED (Linux) on x',
-                g('rev-parse', 'lane-stopped').stdout.strip())
+                scratch.git('rev-parse', 'lane-stopped'))
         attempt('lane-free', lane_at['lane-free'], 3, 'NOT QUEUED (exit 3, above)')
         attempt('lane-done', lane_at['lane-done'], 0, 'ENQUEUED')
         attempt('lane-running', lane_at['lane-running'], None)
         attempt('done-branch', 'an-older-head', 5, 'GATE RED (Windows) on an-older-head')   # not at this tip: ignored
         wt = tmp / 'worktrees'
         # worktrees: dirty-but-merged (DECISION), locked by a live agent, locked by a dead pid (LANDED), detached
-        g('worktree', 'add', '-q', '-b', 'dirty-merged', str(wt / 'dirty-merged'), 'main')
+        scratch.git('worktree', 'add', '-q', '-b', 'dirty-merged', str(wt / 'dirty-merged'), 'main')
         (wt / 'dirty-merged' / 'scratch.txt').write_text('uncommitted\n', encoding='utf-8', newline="\n")
-        g('worktree', 'add', '-q', '-b', 'agent-live', str(wt / 'agent-live'), 'main')
-        g('worktree', 'lock', '--reason', 'claude agent live (pid 101)', str(wt / 'agent-live'))
-        g('worktree', 'add', '-q', '-b', 'agent-dead', str(wt / 'agent-dead'), 'main')
-        g('worktree', 'lock', '--reason', 'claude agent dead (pid 102)', str(wt / 'agent-dead'))
-        g('worktree', 'add', '-q', '--detach', str(wt / 'pin'), 'main')
+        scratch.git('worktree', 'add', '-q', '-b', 'agent-live', str(wt / 'agent-live'), 'main')
+        scratch.git('worktree', 'lock', '--reason', 'claude agent live (pid 101)', str(wt / 'agent-live'))
+        scratch.git('worktree', 'add', '-q', '-b', 'agent-dead', str(wt / 'agent-dead'), 'main')
+        scratch.git('worktree', 'lock', '--reason', 'claude agent dead (pid 102)', str(wt / 'agent-dead'))
+        scratch.git('worktree', 'add', '-q', '--detach', str(wt / 'pin'), 'main')
         # unreadable: a landed worktree whose status git cannot produce (a corrupt index) holding an untracked file
-        g('worktree', 'add', '-q', '-b', 'unreadable', str(wt / 'unreadable'), 'main')
+        scratch.git('worktree', 'add', '-q', '-b', 'unreadable', str(wt / 'unreadable'), 'main')
         (wt / 'unreadable' / 'precious.txt').write_text('uncommitted\n', encoding='utf-8', newline="\n")
         (repo / '.git' / 'worktrees' / 'unreadable' / 'index').write_bytes(b'not an index')
         rdir = tmp / 'reports'
@@ -1735,7 +1713,7 @@ def self_test() -> int:
         out = []
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
-        left = set(g('branch', '--format=%(refname:short)').stdout.split())
+        left = set(scratch.git('branch', '--format=%(refname:short)').split())
         check(n == 6, f'--apply removed {n}, want 6 (5 LANDED + orphan): {out}')
         check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
         check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')} <= left,
@@ -1761,12 +1739,12 @@ def self_test() -> int:
         check(not list(tmp.rglob('*.bundle')), 'nothing was archived')
         check((wt / 'dirty-merged' / 'scratch.txt').exists(), 'an uncommitted file survived')
         check((wt / 'unreadable' / 'precious.txt').exists(), 'a file in an unmeasurable worktree survived')
-        heads = set(g('ls-remote', '--heads', 'origin').stdout.split())
+        heads = set(scratch.git('ls-remote', '--heads', 'origin').split())
         check('refs/heads/landed-content' not in heads and any('deleted origin/landed-content' in l for l in out),
               f'a landed branch is deleted on origin too: {out}')
         check('refs/heads/merged' in heads and any('kept origin/merged' in l for l in out),
               f'a remote branch holding commits the local one did not is kept: {out}')
-    except FixtureError as e:
+    except ScratchRepoError as e:
         fails.append(f'the fixture could not be built, so nothing above it was measured: {e}')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
