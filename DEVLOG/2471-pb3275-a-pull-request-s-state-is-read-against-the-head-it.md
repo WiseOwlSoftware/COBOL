@@ -1,4 +1,4 @@
-## PB3275: a pull request's state is read against the head it was observed at (BOUNCED after a push, NOT QUEUED past a dead head)
+## Entry 2471 — 2026-10-24 12:57 PDT — PB3275: a pull request's state is read against the head it was observed at (BOUNCED after a push, NOT QUEUED past a dead head)
 
 **Re-probe.** The note's variants 1 and 2 (ENQUEUED read from auto-merge alone; a conflicting or red pull request that never
 enters the queue) had already been fixed by PB3527: `queue_facts.PullRequest.in_queue` is the only ENQUEUED fact, and
@@ -35,3 +35,4 @@ the new state). Arms that read the CURRENT head's facts (`red`, `conflicts`) are
 merge state belong to it.
 
 **Gate.** See the branch report.
+
