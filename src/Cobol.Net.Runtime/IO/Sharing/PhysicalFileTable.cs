@@ -139,13 +139,25 @@ internal sealed class PhysicalFileTable
 
     /// <summary>Record that <paramref name="st"/> stands for the physical file of <paramref name="identity"/> (null: the host
     /// cannot tell) unless it already knows its file, and make it findable by it. A connector's open handle tells it once the
-    /// OPEN has made the file (<c>FileRegistry.SharedOpenAttempt</c>), which an OPEN OUTPUT of an absent path creates. A file the
-    /// table already holds a state for stays with that state (an identity two states claim cannot arise from one host's answers
-    /// unless a file was made while its path was probed: the first state keeps it).</summary>
+    /// OPEN has made the file (<c>FileRegistry.SharedOpenAttempt</c>), which an OPEN OUTPUT of an absent path creates.
+    /// <para>⛔ A FILE'S NUMBER CAN OUTLIVE THE FILE (<see cref="PhysicalFileIdentity"/>; kb/Work PB3576, review R1-1): a host
+    /// that gives the number of a removed file to the next one made (Linux ext4 does, at once) hands this state's file the number
+    /// another state still claims. A state no connector has open (<see cref="State.Open"/>) holds no handle on its file, so
+    /// nothing keeps the number its own, and a file made now cannot be one that already existed: the number is the new file's
+    /// and the claim yields. The old state keeps what its holders reach through their association
+    /// (<see cref="FileConnector.Physical"/>, <see cref="KeptFile.Physical"/>) and is found by the number no more. A state a
+    /// connector has open keeps its claim: its handle keeps its file alive, so the number cannot have been given again, and the
+    /// first state to know an identity keeps it.</para></summary>
     public void Learn(State st, PhysicalFileIdentity? identity)
     {
         if (st.Identity is not null || identity is not { } id) return;
-        if (_byIdentity.TryAdd(id, st)) st.Identity = id;
+        if (_byIdentity.TryGetValue(id, out var claimant))
+        {
+            if (claimant.Open.Count > 0) return;
+            claimant.Identity = null;
+        }
+        _byIdentity[id] = st;
+        st.Identity = id;
     }
 
     /// <summary>Drop every physical-file state (run-unit start hygiene).</summary>
@@ -249,10 +261,11 @@ internal sealed class PhysicalFileTable
 
     /// <summary>⛔ THE RELEASE OF EVERY RECORD LOCK PUBLISHED THROUGH <paramref name="endpoint"/> — out of this run unit's
     /// table and given back to every other run unit — for the one owner of a lock that outlives its connector's CLOSE: the
-    /// endpoint a CLOSE under commit control kept (§14.9.6.4 GR9, §9.1.16; <c>KeyedConnector.ReleaseKept</c>). It names the
-    /// endpoint and not the connector, because the endpoint is what carries the lock to the other run units and the
-    /// connector's registry key is not its own to know. A lock that was never published (a host that cannot carry it) is
-    /// this run unit's table alone and is the registry's, by name (<see cref="ReleaseAllForConnector"/>).</summary>
+    /// endpoint a CLOSE under commit control kept (§14.9.6.4 GR9, §9.1.16). It names the endpoint and not the connector, because
+    /// the endpoint is what carries the lock to the other run units. It is the release of a re-OPEN that carried the kept state
+    /// on (<c>KeyedConnector.CarryKeptOver</c>): a lock that was never published (a host that cannot carry it) is this run
+    /// unit's table alone and stays, with the connector that re-opened. The ENDING of a kept state releases every lock its
+    /// connector holds by name, published or not (<see cref="KeptFile.Release"/>, <see cref="ReleaseAllForConnector"/>).</summary>
     public static void ReleaseThrough(State st, RegionLocks endpoint)
     {
         foreach (var recId in PublishedThrough(st, endpoint)) Unlock(st, recId);

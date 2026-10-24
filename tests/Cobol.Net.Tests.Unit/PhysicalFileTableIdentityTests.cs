@@ -63,21 +63,47 @@ public sealed class PhysicalFileTableIdentityTests
         Assert.Same(absent, table.For("/d/q.link", First));   // the removed file's state is still its connectors'
     }
 
-    /// <summary>A state learns its file once: a second identity does not rebind it, and an identity another state holds stays with
-    /// that state.</summary>
+    /// <summary>A state learns its file once: a second identity does not rebind it, and an identity a state holds open stays with
+    /// that state (a connector's handle keeps its file alive, so the number cannot have been given to another file).</summary>
     [Fact]
-    public void AStateLearnsItsFileOnce()
+    public void AStateLearnsItsFileOnce_AndAnOpenStateKeepsItsClaim()
     {
         var table = new PhysicalFileTable();
         var a = table.For("/d/a.dat", First);
+        a.Open["F"] = (FileSharing.NoOther, FileOpenMode.IO);
         table.Learn(a, Second);
         Assert.Equal(First, a.Identity);
         var b = table.For("/d/b.dat", null);
-        table.Learn(b, First);   // the first file belongs to a
+        table.Learn(b, First);   // a connector has the first file open: it belongs to a
         Assert.Null(b.Identity);
         table.Learn(b, null);    // a host that cannot tell
         Assert.Null(b.Identity);
         Assert.Same(a, table.For("/d/anything", First));
+    }
+
+    /// <summary>⛔ A FILE'S NUMBER CAN OUTLIVE THE FILE (review R1-1 of kb/Work PB3576; <see cref="PhysicalFileIdentity"/>): ext4
+    /// gives the number of a removed file to the next one made, at once. A state with no connector open holds no handle on its file,
+    /// so the file made at the path takes the number from it: every later question about the path reaches the state of the
+    /// connector that made the file, never the removed file's, which keeps what its holders reach.</summary>
+    [Fact]
+    public void AFileMadeWithAFreedNumberTakesItFromTheStateOfTheFileThatWasRemoved()
+    {
+        var table = new PhysicalFileTable();
+        var removed = table.For("/d/s.dat", null);
+        table.Learn(removed, First);   // OPEN OUTPUT made the file; CLOSE; DELETE FILE removed it; its number was freed
+        Assert.Equal("00", table.LockRecord(removed, "H", "3", holder: null));   // a lock a retired kept state still holds
+
+        var made = table.For("/d/s.dat", null);   // OPEN OUTPUT of the absent path: a state of its own ...
+        Assert.NotSame(removed, made);
+        made.Open["F"] = (FileSharing.NoOther, FileOpenMode.Output);
+        table.Learn(made, First);                // ... and the host gave the new file the removed file's number
+
+        Assert.Equal(First, made.Identity);
+        Assert.Null(removed.Identity);
+        Assert.Same(made, table.For("/d/s.dat", First));     // another connector's OPEN of the path meets F's Table 19 entry
+        Assert.Same(made, table.For("/d/s.link", First));
+        Assert.Equal("51", table.LockRecord(removed, "G", "3", holder: null));   // the removed file's holders keep their locks
+        Assert.Equal("00", table.LockRecord(made, "G", "3", holder: null));
     }
 
     /// <summary>Where the host cannot tell files apart (no identity anywhere) the path decides, as it always did.</summary>
