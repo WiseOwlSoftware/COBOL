@@ -1910,12 +1910,17 @@ clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
 mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
 stand-in `df`; removing the EXIT trap, the signal trap, the kill, the descendant walk, either bound, the liveness test
 or the age rule each turns it red. The signal arm is SYNCHRONIZED, never timed (review R1-1: a 20 s watchdog failed a
-slow correct gate and 5 s polls passed without testing): the leg's grandchild says READY through a fifo once its traps
-are set, the gate signals itself only after reading it, and the arm reads a second fifo the grandchild holds open to its
-end, so it waits for that process's exit itself. A PROBE signal sent after the gate has exited (SIGVTALRM, numbered
-above TERM, so a TERM sent first is always the one handled) ends a grandchild the stop never reached and records it, a
-red; a stop that does not end its jobs hangs the arm, which `self_tests.py` reports HANG, a non-observation, never a
-pass. Measured: GREEN in 40 of 40 runs beside twice as many busy processes as cores, the no-descendant-walk mutant red. The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
+slow correct gate and 5 s polls passed without testing): the leg's grandchild says READY through a fifo once it has
+blocked TERM and the probe signal, the gate signals itself only after reading it, and the arm reads a second fifo the
+grandchild holds open to its end, so it waits for that process's exit itself. A PROBE signal sent after the gate has
+exited (SIGVTALRM) ends a grandchild the stop never reached. The grandchild takes the first signal with `sigwait` and
+records TERM when TERM is that one or still pending beside it, so it records whether a TERM was ever sent, whatever the
+order or the load; a PROBE alone is a red. A stop that does not end its jobs hangs the arm, which `self_tests.py`
+reports HANG, a non-observation, never a pass. The grandchild was first a `bash -c` with a TERM trap, and that witness
+was wrong: run 32 at a time, 2 of 256 runs recorded PROBE although `on_signal` had sent the TERM (status 0), because
+bash did not run the TERM trap before the probe's trap ended the shell; the Linux gate's selftests leg at the landing
+of c89014b6b failed so. The `sigwait` grandchild (Python, the one interpreter) is GREEN in 256 of 256 runs 32 at a
+time, and the mutant whose stop signals only its jobs is red (`leg-child: PROBE`). The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
 Windows host serves at about half a second each, so there it prints `n/a` and runs in the Linux gate's `selftests`
 leg and CI's audits job.
 
