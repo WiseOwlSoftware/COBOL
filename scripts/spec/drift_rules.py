@@ -305,17 +305,21 @@ class Sources:
 
     def constants(self, text):
         """{name: (segments, complete)} of the strings a source spells as a repo path: `static readonly string
-        GrammarDir = Path.Combine("src", ..)` read by `Path.Combine(TestRepo.Root, GrammarDir)` (kb/Work PB3112). Two
-        passes, so a constant may name a later one; a name declared twice to different values names nothing."""
+        GrammarDir = Path.Combine("src", ..)` read by `Path.Combine(TestRepo.Root, GrammarDir)` (kb/Work PB3112). Passes
+        repeat until nothing changes, so a constant may name a later one however long the chain; a name declared twice
+        in one pass to different values names nothing (a later pass refining its own earlier, partial value is no clash)."""
         helpers, consts, ambiguous = self.repo["helpers"], {}, set()
-        for _ in range(2):
+        for _ in range(8):
+            before, seen = dict(consts), {}
             for m in STRING_DECL.finditer(text):
                 value = path_expr(text[m.end():_statement_end(text, m.end())], consts, helpers)
                 if not value[0]:
                     continue
-                if consts.get(m.group(1), value) != value:
+                if seen.get(m.group(1), value) != value:
                     ambiguous.add(m.group(1))
-                consts[m.group(1)] = value
+                seen[m.group(1)] = consts[m.group(1)] = value
+            if consts == before:
+                break
         return {n: v for n, v in consts.items() if n not in ambiguous}
 
     def reads(self, text):
@@ -350,18 +354,23 @@ class Sources:
         wrapped, out = {}, []
         for w in WRAPPER.finditer(text):
             end = _statement_end(text, w.end())
-            names = [a.split()[-1] for a in w.group(2).split(",")]
+            params = [a.split() for a in w.group(2).split(",")]
             inside = [c for c in calls if w.end() <= c[0] < end   # a parameter the read's own path carries
-                      and any(re.search(r"\b" + n + r"\b", text[c[0]:c[1]]) for n in names)]
+                      and any(re.search(r"\b" + a[-1] + r"\b", text[c[0]:c[1]]) for a in params)]
             if inside:
-                wrapped[w.group(1)] = (w.start(), end, inside[0][2])
+                # Only the parameters that read's path carries are path segments at a caller; the others are not
+                # (`AssertDeclares(string script, params string[] cases)` reads `scripts/spec/<script>`, never `cases`).
+                used = [(i, a[0] == "params") for i, a in enumerate(params)
+                        if re.search(r"\b" + a[-1] + r"\b", text[inside[0][0]:inside[0][1]])]
+                wrapped[w.group(1)] = (w.start(), end, inside[0][2], used)
         sites: dict[str, int] = {}
         for m in re.finditer(r"(?<![\w.])(" + "|".join(map(re.escape, wrapped)) + r")\(", text) if wrapped else []:
-            start, end, prefix = wrapped[m.group(1)]
+            start, end, prefix, used = wrapped[m.group(1)]
             args, after = path_args(text, m.end())
             if after >= 0 and not start <= m.start() < end and not text[m.end():].lstrip().startswith(("string", "params")):
                 sites[m.group(1)] = sites.get(m.group(1), 0) + 1
-                segs, _ = path_join(args, consts, helpers)
+                carried = [x for i, rest in used for x in (args[i:] if rest else args[i:i + 1])]
+                segs, _ = path_join(carried, consts, helpers)
                 out.append(("/".join(([prefix] if prefix else []) + segs).strip("/"), text[m.start():after]))
         # The body's own read stands unless every use of the wrapper is a call that spells its path: a method group
         # (`files.Select(Read)`) or a `nameof` is a use whose path nobody spells.
@@ -878,7 +887,10 @@ def self_test():
                                                   '    static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts));\n'
                                                   '    static string Go(params string[] args) => Run(TestRepo.Scripts("tool.py"), args);\n'
                                                   '    string A => Read("src", "Proj", "Dir", "A.cs");\n'
-                                                  '    string B => Go("--check");'),
+                                                  '    static void Declares(string script, params string[] cases) =>\n'
+                                                  '        Verify(TestRepo.Scripts("spec", script), cases);\n'
+                                                  '    string B => Go("--check");\n'
+                                                  '    void C() => Declares("cite.py", "fires EMPTY-NEEDLE", "pins 14.7.7");'),
             "tests/P/MethodGroupDriftTests.cs": drift("MethodGroupDriftTests",
                                                       '    static string Src(params string[] p) => TestRepo.Src(["Proj", .. p]);\n'
                                                       '    string A => Src("Dir", "A.cs");\n'
@@ -924,8 +936,18 @@ def self_test():
               by["SpelledDriftTests"]["paths"])
         check("a wrapper's callers spell its path, and the wrapper's own directory read is replaced by theirs; a "
               "method that only passes its arguments on is no wrapper",
-              sorted(by["WrapperDriftTests"]["paths"]) == ["scripts/tool.py", "src/Proj/Dir/A.cs"],
+              sorted(by["WrapperDriftTests"]["paths"]) == ["scripts/spec/cite.py", "scripts/tool.py", "src/Proj/Dir/A.cs"],
               by["WrapperDriftTests"]["paths"])
+        check("only the arguments bound to the parameters the wrapper's path carries are path segments (kb/Work PB3112 "
+              "review R1-1): `Declares(\"cite.py\", cases..)` reads scripts/spec/cite.py, never a case name",
+              not any("EMPTY-NEEDLE" in p or "14.7.7" in p for p in by["WrapperDriftTests"]["paths"]),
+              by["WrapperDriftTests"]["paths"])
+        forward = Sources(root).constants('static readonly string A = Path.Combine("src", B);\n'
+                                          'static readonly string B = Path.Combine("Proj", "Grammar");\n'
+                                          'static readonly string C = "one.cs";\nstatic readonly string C = "two.cs";')
+        check("a constant naming a later one resolves however the declarations are ordered; a name declared twice to "
+              "different values names nothing", forward == {"A": (["src", "Proj", "Grammar"], True),
+                                                            "B": (["Proj", "Grammar"], True)}, forward)
         check("a wrapper also used as a method group keeps its own directory read (nobody spells that use)",
               sorted(by["MethodGroupDriftTests"]["paths"]) == ["src/Proj", "src/Proj/Dir/A.cs"],
               by["MethodGroupDriftTests"]["paths"])

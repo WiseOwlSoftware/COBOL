@@ -937,7 +937,9 @@ def self_test() -> int:
                                                                           "SendingOperandDriftTests",
                                                                           "ReceivingOperandFormDriftTests"}),
                     ("src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs", {"ClassConditionTableDriftTests"}),
-                    ("src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs", {"FixedFormRecordDriftTests"})]:
+                    ("src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs", {"FixedFormRecordDriftTests"}),
+                    # A wrapper's trailing parameters (`AssertDeclares(string script, params string[] cases)`) are no path.
+                    ("scripts/spec/cite.py", {"CitationAuditSelfTestDriftTests"})]:
         reach = Reach()
         reach_of(None, [("M", f)], None, reach)
         check(f"with no map, a change to {f} names {', '.join(sorted(want))} (tier 0d)", want <= reach.drift_tests,

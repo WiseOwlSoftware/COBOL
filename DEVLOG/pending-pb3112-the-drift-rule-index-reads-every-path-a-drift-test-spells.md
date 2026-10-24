@@ -47,5 +47,15 @@ reach, so the timings store needs no change.
 tests for `CobolData.g4`, `ClassConditionTableDriftTests` for `ClassConditionModel.cs` and `FixedFormRecordDriftTests` for an
 emitter file against the real index. No golden: this is test-gate tooling.
 
+**Review round 1.** The reviewer found that a wrapper's caller contributed EVERY argument to the wrapper's path, including
+the ones bound to parameters the body's path never carries: `CitationAuditSelfTestDriftTests.AssertDeclares(string script,
+params string[] cases)` was indexed as reading `scripts/spec/cite.py/fires EMPTY-NEEDLE (check)/..`, so it lost its
+governance of `cite.py`. `Sources.reads` now records which parameters the read's path carries and takes only those
+arguments at a caller (a `params` parameter takes the rest); `cite.py` governs the class again, and the probe for index
+paths that exist nowhere finds none from a wrapper. A constant that names a later one no longer reads as ambiguous when a
+pass refines its own earlier partial value (the reviewer's lead): `Sources.constants` repeats passes to a fixed point and
+flags only a name declared twice to different values in one pass. Both have planted arms in `drift_rules.py --self-test`,
+and `impacted_tests.py --self-test` holds `cite.py -> CitationAuditSelfTestDriftTests` against the real index.
+
 **Landing note.** This branch merges the PB3155 follow-up (`worktree-wf_0e51b14b-ced-6`, entry 2434), which was reviewed
 CLEAN and has not landed; it lands first or with this one.

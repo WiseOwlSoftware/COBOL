@@ -985,7 +985,8 @@ because the raw name is not stable (`b7`):
   single-level regex missed (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
   GrammarDir)`, `Path.Combine("src", ..)`; five grammar-scanning classes governed no grammar file). A method that wraps
   one read (`Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`) is read at its CALLERS, whose
-  literals spell the path; the body's own directory read is replaced by theirs unless some use of the wrapper (a method
+  literals spell the path (only the arguments bound to the parameters the body's path carries: for
+  `AssertDeclares(string script, params string[] cases)` the `script`, never the `cases`); the body's own directory read is replaced by theirs unless some use of the wrapper (a method
   group, `nameof`) spells none. That narrowing is exact, so three classes that were read as sweeps of `src` or
   `scripts/spec` are specific to the files they name and lose the `Sweep` trait, and one (`LevelNumberArmDriftTests`,
   which enumerates `src/Cobol.Net.Compiler`) gains it. A drift test that reads the repo and spells no path at all
