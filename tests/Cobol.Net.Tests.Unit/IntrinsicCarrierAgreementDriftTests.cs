@@ -288,8 +288,12 @@ public sealed class IntrinsicCarrierAgreementDriftTests
                 var carriers = m.GetParameters().Select(p => p.ParameterType)
                     .Where(p => p == typeof(long) || p == typeof(Int128)).ToList();
                 if (carriers.Count == 0) continue;                          // no integer carrier — nothing to pair
-                if (carriers.Count > 1) { ambiguous.Add(m.Name); continue; } // correspondence not derivable here
-                if (!byName.TryGetValue(m.Name, out var seen)) byName[m.Name] = seen = [];
+                // The SDIDI twin of an arm's body is named <c>{Arm}Dec</c> (AnnuityDec, FactorialDec): it is the same
+                // function on the other carrier, so it joins the arm's own entry and must agree with it (kb/Work PB637 —
+                // the guard was blind to ANNUITY's SDIDI body, whose narrow intake went unseen for a whole wave).
+                string arm = m.Name.Length > 3 && m.Name.EndsWith("Dec", StringComparison.Ordinal) ? m.Name[..^3] : m.Name;
+                if (carriers.Count > 1) { ambiguous.Add(arm); continue; }    // correspondence not derivable here
+                if (!byName.TryGetValue(arm, out var seen)) byName[arm] = seen = [];
                 seen.Add(carriers[0]);
             }
         return byName
@@ -359,13 +363,22 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     {
         var wide = new Dictionary<string, bool>(StringComparer.Ordinal)
         {
-            ["TestDateYyyymmdd"] = true, ["TestDayYyyyddd"] = true, ["Factorial"] = false,
+            ["TestDateYyyymmdd"] = true, ["TestDayYyyyddd"] = true, ["Factorial"] = false, ["Annuity"] = true,
         };
         Assert.Equal(2, IntakeWidthOffenders(
             """case "TestDateYyyymmdd" or "TestDayYyyyddd": return DateFn(m, IntArg(ic, 0));""", wide).Count);
         Assert.Empty(IntakeWidthOffenders(
             """case "TestDateYyyymmdd" or "TestDayYyyyddd": return DateFn(m, IntArgWide(ic, 0));""", wide));
         Assert.Single(IntakeWidthOffenders("""case "Factorial": return Intrinsic(m, IntArgWide(ic, 0));""", wide));
+        // kb/Work PB637 — ANNUITY's SDIDI arm exactly as it was written (the narrow intake), and as it landed.
+        Assert.Single(IntakeWidthOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            """", wide));
+        Assert.Empty(IntakeWidthOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
+            """", wide));
         Assert.Empty(IntakeWidthOffenders(
             """/// this arm used to read case "TestDateYyyymmdd": … IntArg(ic, 0)""", wide));
     }
@@ -383,6 +396,9 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         // kb/Work PB636 — RANDOM's seed joined the set: §15.75.3 r2 constrains the sign alone and §15.75.4 r3
         // makes the distinct-sequence subset a floor, so the body declares Int128 and the arm must go wide.
         Assert.True(wide.GetValueOrDefault("Random"), "Random is not paired as a wide body");
+        // kb/Work PB637 — ANNUITY's argument-2 joined the set: §15.9.3 r3 is a sign rule ("a positive integer"), so the
+        // SDIDI body (AnnuityDec) declares Int128 and its arm must go wide.
+        Assert.True(wide.GetValueOrDefault("Annuity"), "Annuity is not paired as a wide body");
         Assert.False(wide.GetValueOrDefault("Factorial", true), "Factorial is not paired as a narrow body");
 
         var examined = new HashSet<string>(StringComparer.Ordinal);
@@ -390,7 +406,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs")), wide, examined);
         // ... and the guard is worthless for an arm it never JUDGED: the four total arms must each have been examined
         // (FIND-STRING's was not, while a mid-line "true" : "false" passed for an arm head).
-        foreach (string arm in new[] { "TestDateYyyymmdd", "TestDayYyyyddd", "FindString", "Random" })
+        foreach (string arm in new[] { "TestDateYyyymmdd", "TestDayYyyyddd", "FindString", "Random", "Annuity" })
             Assert.True(examined.Contains(arm), $"the {arm} arm was not examined — the arm splitter lost it");
 
         Assert.True(offenders.Count == 0,
