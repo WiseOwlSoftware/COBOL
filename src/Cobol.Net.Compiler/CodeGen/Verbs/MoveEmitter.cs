@@ -152,7 +152,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// is written while the sender is still being read, exactly as GnuCOBOL's <c>libcob</c> does. The decision was
     /// made at bind time (<see cref="MoveOverlap"/>, carried on <see cref="MoveStore.Overlap"/>) and applies only
     /// where the overlap is a compile-time fact, so every other MOVE emits nothing here and is unchanged.
-    /// <para>Returns true when the kind IS the whole store (the three in-place kinds: the runtime's
+    /// <para>Returns true when the kind IS the whole store (the four in-place kinds: the runtime's
     /// <c>OverlappingMove</c> converts the two storage images laid over each other, and the receiver's image is
     /// written back); false when it only prepared the receiver (<see cref="OverlapStoreKind.LeadingSpaces"/>, whose
     /// ordinary store follows and reads the sender AFTER this statement) or did nothing.</para></summary>

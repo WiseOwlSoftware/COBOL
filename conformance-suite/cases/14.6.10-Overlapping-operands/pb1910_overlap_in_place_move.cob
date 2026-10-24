@@ -35,6 +35,17 @@
       *>   SMEAR-X   the same from an alphanumeric sender.
       *>   P-SIGN    a PACKED sender's digits are a snapshot but its sign is
       *>             read from its last byte after the receiver is stored.
+      *>   PP-TAIL, PP-SEND, PP-PACK   a P position stores no byte, only the
+      *>             scale: the library's offsets count the STORED digits, so
+      *>             9(3)PP PACKED-DECIMAL over the tail of 123456 shows 23300,
+      *>             9(4)PP (123400) into 9(5) PACKED-DECIMAL over bytes 2-4
+      *>             shows 00000 and a 9(3)PP PACKED-DECIMAL sender holding
+      *>             12300 into 9(4) over its bytes 2-5 gives 2300.
+      *>   PP-OUT, PP-LOW   the sender's digit positions and the receiver's
+      *>             share no decimal position (123456 into PP9(3) PACKED-
+      *>             DECIMAL; .001234 into 9(5) PACKED-DECIMAL): libcob then
+      *>             reads past the sender or writes past the receiver, which
+      *>             no rule describes, so the snapshot stands: zero.
       *> It applies only where the overlap is a compile-time fact.
       *>
       *> WHY EACH LEG CAN FAIL: a compiler that snapshots every MOVE prints
@@ -79,6 +90,36 @@
           05 FILLER PIC X VALUE SPACE.
        01 F2 REDEFINES F1.
           05 FS PIC S9(4) SIGN IS LEADING SEPARATE.
+       01 G1.
+          05 GD PIC 9(6) VALUE 123456.
+          05 FILLER PIC X(8) VALUE SPACES.
+       01 G2 REDEFINES G1.
+          05 FILLER PIC X(3).
+          05 GP PIC 9(3)PP PACKED-DECIMAL.
+       01 H1.
+          05 HD PIC 9(4)PP VALUE 123400.
+          05 FILLER PIC X(8) VALUE SPACES.
+       01 H2 REDEFINES H1.
+          05 FILLER PIC X.
+          05 HP PIC 9(5) PACKED-DECIMAL.
+       01 I1.
+          05 IP PIC 9(3)PP PACKED-DECIMAL VALUE 12300.
+          05 FILLER PIC X(8) VALUE SPACES.
+       01 I2 REDEFINES I1.
+          05 FILLER PIC X.
+          05 IN-D PIC 9(4).
+       01 J1.
+          05 JD PIC 9(6) VALUE 123456.
+          05 FILLER PIC X(8) VALUE SPACES.
+       01 J2 REDEFINES J1.
+          05 FILLER PIC X(3).
+          05 JP PIC PP9(3) PACKED-DECIMAL.
+       01 K1.
+          05 KD PIC PP9(4) VALUE .001234.
+          05 FILLER PIC X(8) VALUE SPACES.
+       01 K2 REDEFINES K1.
+          05 FILLER PIC X.
+          05 KP PIC 9(5) PACKED-DECIMAL.
        PROCEDURE DIVISION.
        MAIN.
            MOVE AD TO AP
@@ -93,4 +134,14 @@
            DISPLAY "SMEAR-X4=" EN
            MOVE FP TO FS
            DISPLAY "P-SIGN=" FS
+           MOVE GD TO GP
+           DISPLAY "PP-TAIL=" GP
+           MOVE HD TO HP
+           DISPLAY "PP-SEND=" HP
+           MOVE IP TO IN-D
+           DISPLAY "PP-PACK=" IN-D
+           MOVE JD TO JP
+           DISPLAY "PP-OUT=" JP
+           MOVE KD TO KP
+           DISPLAY "PP-LOW=" KP
            STOP RUN.
