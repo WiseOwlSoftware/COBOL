@@ -48,4 +48,8 @@ lock the host holds until it ends, `Remove` that takes read-only entries and rep
 `ScratchDirectoryDriftTests` forbids the old shapes and `ScratchDirectoryTests` drives the mechanism. Its first run
 already reported real handles left open by `CommitRollbackRefusalWitnessTests` (a lead in the report). 17,331
 old-layout `CobolNet_*` directories untouched for over 3 hours were removed. R1-3: DOC_INDEX's linux-gate row now
-describes the per-gate directory, the reaping and NOT RUN [disk].
+describes the per-gate directory, the reaping and NOT RUN [disk]. Merging main brought in three files written to the
+old shapes, now converted too: `scripts/git_batch.py`'s self-test (`scratch_dir`, `remove_tree`), and
+`SequentialJournalTests` and `SequentialCommitControlTests` (`ScratchDirectory.Create` and `Remove`; the latter's own
+`NewDirectory` and `TryDeleteDirectory` wrappers deleted). Main had moved the journal tests out of `Journal/`, so the
+branch's edit of the old file went with it.

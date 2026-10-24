@@ -79,6 +79,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "spec"))
 import coord  # noqa: E402
+import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
+from git_batch import Ancestry  # noqa: E402
 import plan_wave  # noqa: E402  (inflight_file_sets: THE in-flight enumeration; computed_file_set: THE declared set)
 import work  # noqa: E402
 
@@ -88,13 +90,12 @@ ID_RANGE = re.compile(r"\bPB(\d+)-PB(\d+)\b")                # "PB2478-PB2483: .
 MAX_RANGE = 64
 STATUS_LINE = re.compile(r"^([-+])status:[ ]*(\S*)")   # a frontmatter status line removed or added by a patch
 WORK_DIR = "kb/Work/"
-EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: what a root commit's diff is taken against
 
 
 def _git(repo: pathlib.Path) -> Callable[..., Any]:
-    def run(*args: str, cwd: Any = repo) -> subprocess.CompletedProcess:
-        return subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, encoding="utf-8",
-                              errors="replace")
+    def run(*args: str, cwd: Any = repo, stdin: str | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(cwd), *args], input=stdin, capture_output=True, text=True,
+                              encoding="utf-8", errors="replace")
     return run
 
 
@@ -109,12 +110,17 @@ def subject_ids(subjects: str) -> set[str]:
 
 
 def status_flips(git: Callable[..., Any], *revs: str) -> set[str]:
-    """The notes whose `status` the diff `git diff <revs>` changes. ONE patch of the register, not two `git show`s per
+    """The notes whose `status` the diff `git diff <revs>` changes (flips_in, over ONE patch of the register)."""
+    return flips_in(git("diff", "--no-renames", "-U0", *revs, "--", WORK_DIR).stdout)
+
+
+def flips_in(patch: str) -> set[str]:
+    """The notes whose `status` a -U0 patch of the register changes. ONE patch of the register, not two `git show`s per
     changed note (the ninth refuter's N1: 400 shows were 17 of the check's 24 s on a real range). A note's status
     changed when its patch removes one `status:` line and adds a different one; a note FILED there has no removed line,
     so it is not worked on there."""
     nid, was = None, {}
-    for line in git("diff", "--no-renames", "-U0", *revs, "--", WORK_DIR).stdout.splitlines():
+    for line in patch.splitlines():
         if line.startswith("diff --git "):
             stem = pathlib.PurePosixPath(line.rsplit(" b/", 1)[-1]).stem
             nid = stem if PB.fullmatch(stem) else None
@@ -123,16 +129,18 @@ def status_flips(git: Callable[..., Any], *revs: str) -> set[str]:
     return {n for n, s in was.items() if "-" in s and s["-"] != s.get("+")}
 
 
-def work_notes(git: Callable[..., Any], base: str, rev: str) -> set[str]:
+def work_notes(git: Callable[..., Any], graph: Ancestry, base: str, rev: str) -> set[str]:
     """The notes the LANDING `base..rev` works on: the ids that lead a commit subject (the lander re-commits one
     `PB…: …` commit per cluster) and the notes whose `status` it changes (a landing flips its note in the commit that
     lands it, CLAUDE.md rule 8). Never every id a message mentions: a design commit that names the notes it re-plans
     works on none of them. An IN-FLIGHT branch's identity never comes from here alone (identity(), K2). One COMMIT's
-    notes are commit_work's, never this over `sha^..sha` (PB3180)."""
-    return subject_ids(git("log", "--format=%s", f"{base}..{rev}").stdout) | status_flips(git, f"{base}...{rev}")
+    notes are commit_work's, never this over `sha^..sha` (PB3180). The subjects are the graph's (`graph` excludes
+    `base` and holds `rev`), never a `git log` per branch (kb/Work PB3582)."""
+    return (subject_ids("\n".join(graph.subject(c) for c in graph.beyond(rev)))
+            | status_flips(git, f"{base}...{rev}"))
 
 
-def commit_work(git: Callable[..., Any], base: str, rev: str) -> list[tuple[set[str], set[str]]]:
+def commit_work(repo: pathlib.Path, git: Callable[..., Any], graph: Ancestry, rev: str) -> list[tuple[set[str], set[str]]]:
     """THE per-commit attribution (PB2703, PB3180): (the notes it works on, the files it changed) for every commit
     of `base..rev`, oldest first, each charged only with what the commit ITSELF introduced. A non-merge commit is its
     diff against its one parent (a root commit's against the empty tree). A MERGE commit is what differs from EVERY
@@ -140,20 +148,26 @@ def commit_work(git: Callable[..., Any], base: str, rev: str) -> list[tuple[set[
     evil-merge edits) and the notes whose `status` it changes against each parent — plus the ids leading its OWN
     subject. Never its first-parent diff: that carries the other parent's whole history (a merged predecessor's
     commits, which this same walk already attributes one by one, or main's own landings in a `Merge origin/main`), and
-    charging it to the merge smeared one commit's R3 note across other commits' files (the PB3154 false stop)."""
+    charging it to the merge smeared one commit's R3 note across other commits' files (the PB3154 false stop).
+    The commits, parents and subjects are the graph's (`graph` excludes the base), and every (commit, parent) pair's
+    files and register patch come from ONE `git diff-tree --stdin` each (git_batch, kb/Work PB3582): never a `log -1`
+    and two diffs per commit and parent."""
+    commits = list(reversed(graph.newest_first(graph.beyond(rev))))
+    sides = {sha: graph.parents(sha) or (git_batch.EMPTY_TREE,) for sha in commits}
+    pairs = [(sha, p) for sha in commits for p in sides[sha]]
+    names = iter(git_batch.diff_names(repo, pairs, git=git))
+    patches = iter(git_batch.diff_patches(repo, pairs, WORK_DIR, git=git))
     out = []
-    for line in git("rev-list", "--reverse", "--parents", f"{base}..{rev}").stdout.splitlines():
-        sha, *parents = line.split()
-        sides = parents or [EMPTY_TREE]
-        notes = subject_ids(git("log", "-1", "--format=%s", sha).stdout)
-        notes |= set.intersection(*(status_flips(git, p, sha) for p in sides))
-        out.append((notes, set.intersection(*(plan_wave.changed_files(git, p, sha) for p in sides))))
+    for sha in commits:
+        each = [(plan_wave.work_names(next(names)), flips_in(next(patches))) for _ in sides[sha]]
+        notes = subject_ids(graph.subject(sha)) | set.intersection(*(f for _, f in each))
+        out.append((notes, set.intersection(*(n for n, _ in each))))
     return out
 
 
-def first_commit_time(git: Callable[..., Any], base: str, rev: str) -> float | None:
-    out = git("log", "--reverse", "--format=%ct", f"{base}..{rev}").stdout.split()
-    return float(out[0]) if out else None
+def first_commit_time(graph: Ancestry, rev: str) -> float | None:
+    """The committer date of the oldest commit `rev` has beyond the graph's base, or None when it has none."""
+    return float(min(graph.time(c) for c in graph.beyond(rev))) if graph.beyond(rev) else None
 
 
 def _key(path: str | None) -> str:
@@ -177,18 +191,19 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     ledger does not hold; `reports` are the fix-lane reports (plan_wave.load_reports), which bind an in-flight branch
     to its own dispatch first (identity)."""
     git = git or _git(repo)
+    graph = Ancestry.read(repo, [rev], base)   # THE ancestry of this check: the landing, then every in-flight branch
     inside = coord.campaign(rules).partitioned   # the partition's domain: a code file under a campaign root
     r3 = {i.get("id") for i in items if r3_lead in (i.get("cluster") or [])}
     status = {i.get("id"): i.get("status") for i in items}
     terminal = lambda n: status.get(n) in work.TERMINAL_STATUSES  # noqa: E731
     mine = {p for p in plan_wave.changed_files(git, f"{base}...{rev}") if inside(p)}
-    notes = work_notes(git, base, rev)
+    notes = work_notes(git, graph, base, rev)
     # R3 work is attributed PER COMMIT (PB2703): a landing can be MIXED — a branch that merged a predecessor, a train
     # before kb/Work PB3023 — some commits R3 notes, the rest fix lane or tooling — so the R3 work is the commits that
     # work on an R3 note and the partition files THEY change, never the whole landing's diff, and a merge commit is
     # charged only with what it introduced (commit_work, PB3180). A squashed commit naming both kinds is R3 whole.
     r3_notes, mine_r3_files = set(), set()
-    for worked, changed in commit_work(git, base, rev):
+    for worked, changed in commit_work(repo, git, graph, rev):
         if hit := worked & r3:
             r3_notes |= hit
             mine_r3_files |= {p for p in changed if inside(p)}
@@ -196,7 +211,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     full_ledger = plan_wave.ledger_groups(coord_dir)   # THE reader: a retired hand entry is no dispatch (PB3186)
     ledger = [g for g in full_ledger if not all(terminal(i) for i in g.get("notes", []))]
     my_at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & notes]
-                + [first_commit_time(git, base, rev) or float("inf")])
+                + [first_commit_time(graph, rev) or float("inf")])
     stops, warnings = [], []
 
     if mine_r3:   # 1. the declared set
@@ -221,7 +236,9 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
                  f"{', '.join(unrecorded)} on the way"] if carriers else []) + \
                ([f"computed now from the site blocks of {', '.join(computed)}, which no dispatch of this landing "
                  f"records"] if computed else [])
-        existed = {p for p in mine_r3_files if git("cat-file", "-e", f"{base}:{p}").returncode == 0}
+        r3_files = sorted(mine_r3_files)
+        existed = {p for p, oid in zip(r3_files, git_batch.object_ids(repo, [f"{base}:{p}" for p in r3_files], git=git))
+                   if oid}
         outside = sorted(existed - declared)
         listed = f"{', '.join(outside[:8])}{' …' if len(outside) > 8 else ''}"
         # a group recorded with NO files declared nothing: its set is UNKNOWN (plan_wave.collision), so a file outside
@@ -245,12 +262,19 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     # an answered dispatch (its report exists) is read through its branch, never its declared set (PB2795)
     busy = plan_wave.inflight_file_sets(git=git, repo=repo, coord_dir=coord_dir, meta=meta, terminal=terminal,
                                         reports=reports)
+    # ONE more read for every in-flight branch git can read; one it cannot (an unborn worktree's zero HEAD) has no
+    # commit beyond the base, so depends() reads it as blocking nothing, as an empty worktree
+    revs = [m["rev"] for m in meta.values() if m.get("rev")]
+    known = graph.names(*revs)
+    graph.extend(r for r in revs if known[r])
 
     def contained(their_rev: str, files: set[str]) -> set[str]:
         """The files whose version on `their_rev` IS this landing's: a lander that re-committed or patched a member's
-        work carries it by content, not by commit (the retired train applier, kb/Work PB3023)."""
-        return {f for f in files if git("rev-parse", "-q", "--verify", f"{rev}:{f}").stdout.strip()
-                == git("rev-parse", "-q", "--verify", f"{their_rev}:{f}").stdout.strip()}
+        work carries it by content, not by commit (the retired train applier, kb/Work PB3023). Both sides' blob ids from ONE
+        `git cat-file --batch-check` (git_batch.object_ids)."""
+        ordered = sorted(files)
+        ids = git_batch.object_ids(repo, [f"{r}:{f}" for r in (rev, their_rev) for f in ordered], git=git)
+        return {f for f, mine_id, their_id in zip(ordered, ids, ids[len(ordered):]) if mine_id == their_id}
 
     report_of: dict[str, plan_wave.Report] = {}            # branch / worktree key -> its NEWEST report
     for r in reports:                                      # oldest first: the last write is the newest
@@ -269,14 +293,14 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         if rep := report_of.get(m.get("branch") or "") or report_of.get(_key(m.get("path"))):
             g = by_slug.get(rep.slug.lower())
             their, how = (set(g.get("notes", [])) if g else {rep.lead}), f"report {rep.path.name}"
-        elif subj := work_notes(git, base, m["rev"]):
+        elif subj := work_notes(git, graph, base, m["rev"]):
             their, how = subj, "commit subjects"
         elif g := best_group(files, ledger):
             their, how = set(g.get("notes", [])), f"dispatch-ledger group {plan_wave.ledger_slug(g)}"
         else:
             their = set()
         at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & their]
-                 + [first_commit_time(git, base, m["rev"]) or float("inf")])
+                 + [first_commit_time(graph, m["rev"]) or float("inf")])
         return their, at, how or "nothing"
 
     def depends(their_rev: str) -> bool:
@@ -284,19 +308,20 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         empty worktree: its loose files are work in progress, not a dispatch's claim), or one that DESCENDS from the
         landing branch: their merge-base is a commit beyond `base`, so it merged some head of this branch (a successor,
         a review finisher, a carrier) and lands on top of it. Never one this landing merged: the caller reads that one
-        by its later, uncommitted edits."""
-        if git("merge-base", "--is-ancestor", their_rev, base).returncode == 0:
+        by its later, uncommitted edits. Read from the graph (no git process, kb/Work PB3582): their merge-base with
+        this branch lies beyond `base` exactly when the commits each has beyond `base` meet (a common ancestor beyond
+        the base, so every best one descending from it is beyond it too)."""
+        if graph.on_base(their_rev):
             return True
-        mb = git("merge-base", their_rev, rev).stdout.strip()
-        return bool(mb) and git("merge-base", "--is-ancestor", mb, base).returncode != 0 \
-            and git("merge-base", "--is-ancestor", their_rev, rev).returncode != 0
+        theirs, mine_beyond = graph.beyond(their_rev), graph.beyond(rev)
+        return bool(theirs & mine_beyond) and graph.sha(their_rev) not in mine_beyond
 
     for owner, files in sorted(busy.items()):
         m = meta.get(owner, {})
         if m.get("rev"):                                   # a worktree or an unlanded branch, by its ACTUAL diff
             if depends(m["rev"]):
                 continue                                   # empty, or built on this landing: it lands on top of it
-            if git("merge-base", "--is-ancestor", m["rev"], rev).returncode == 0:
+            if graph.sha(m["rev"]) in graph.beyond(rev):   # an ancestor of the landing (not on the base: depends)
                 files = set(m.get("uncommitted", set()))   # its commits are in this landing; later edits are its own
             shared = {f for f in mine & files if inside(f)}
             if not shared:
@@ -717,7 +742,7 @@ def self_test() -> int:
     scratch.git("add", "src/Root.cs")
     scratch.git("commit", "-qm", "PB9001: a root commit", when=1_001_300)
     scratch.git("checkout", "-q", "-f", "main")
-    walked = commit_work(git, "origin/main", "rootless")
+    walked = commit_work(repo, git, Ancestry.read(repo, ["rootless"], "origin/main"), "rootless")
     expect("PB3180d: a root commit is its diff against the empty tree",
            ([] if walked == [({"PB9001"}, {"src/Root.cs"})] else [walked], []), 0, 0)
     scratch.git("branch", "-D", "rootless")

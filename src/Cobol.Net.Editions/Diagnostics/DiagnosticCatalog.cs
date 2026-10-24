@@ -763,7 +763,7 @@ public static class DiagnosticCatalog
         + "word INTO.\"",
         "ISO §13.4.6.3 SR4");
     // kb/Work PB666: the APPLY COMMIT antecedent family had no code anywhere — its rows were CONFORMS "witnessed by the
-    // refusal of the antecedent" (COBOLNET1709 refusing APPLY COMMIT, kb/Work PB371), but COBOLNET1709 is
+    // refusal of the antecedent" (the since-retired COBOLNET1709 refusing APPLY COMMIT, kb/Work PB371), which was
     // PermissiveInert, so under --permissive every forbidden shape compiled with zero errors.
     // DataBinder.ScreenApplyCommitSubject is the ONE report.
     public static readonly DiagnosticDescriptor ApplyCommitSubjectRule = new(
@@ -3479,16 +3479,10 @@ public static class DiagnosticCatalog
         + "which opens with `[ class-clause ]` (owner decision, kb/Work PB375, 2026-09-02).",
         "ISO §4.2.7 / Annex A.4.1 / Annex A.4.14 / §13.16.2 / §4.2.13", DeclinedOptionalElement,
         PermissiveInert: true, Annex: DeclinedAnnex.A4);
-    public static readonly DiagnosticDescriptor ApplyCommitClauseUnsupported = new(
-        "COBOLNET1709", "apply-commit-clause-unsupported", EditionSeverity.Error,
-        "The I-O-CONTROL paragraph's APPLY COMMIT clause (ISO §12.4.6.3) names a file of SEQUENTIAL or LINE "
-        + "SEQUENTIAL organization. §9.1.18.2 admits \"any type of file on a mass storage device\", but WiseOwl COBOL "
-        + "provides commit and rollback only for RELATIVE and INDEXED files, whose keyed store engine keeps the "
-        + "transaction (docs/CONFORMANCE.md §5, Annex A.4.3: Partial); the sequential organization's transaction "
-        + "journal is not provided (kb/Work PB3340), so Annex A.4.1 makes refusing that operand by name the "
-        + "conforming posture.",
-        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.3 item 2 / §9.1.18.2 / §12.4.6.3",
-        DeclinedOptionalElement, PermissiveInert: true, Annex: DeclinedAnnex.A4);
+    // COBOLNET1709 (apply-commit-clause-unsupported) refused a SEQUENTIAL or LINE SEQUENTIAL operand of the APPLY COMMIT
+    // clause by name while commit and rollback covered the keyed organizations only; kb/Work PB3340's transaction journal
+    // (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2) covers the sequential ones, so the operand is accepted and the
+    // code is deleted. The id is retired, never reallocated.
     public static readonly DiagnosticDescriptor DeclinedModuleExceptionName = new(
         "COBOLNET1710", "declined-module-exception-name", EditionSeverity.Error,
         "A written exception-name (>>TURN, RAISE, EXIT/GOBACK RAISING, a USE declarative, or an "

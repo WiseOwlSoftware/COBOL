@@ -1250,7 +1250,7 @@ public sealed class CommitRollbackRuntimeTests
 
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
-    /// removed outside the run unit, so the OPEN ('05') ends it instead of attaching beside it, and a later OPEN of the file made
+    /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
     /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. On I-O the OPEN creates
     /// the file (GR17) and the CLOSE keeps the file lock its opening established (§9.1.15), so another run unit's OPEN OUTPUT is
     /// '61' until the COMMIT removes it. A host that keeps a file
@@ -1261,7 +1261,7 @@ public sealed class CommitRollbackRuntimeTests
     [InlineData(FileOrg.Relative, FileOpenMode.IO)]
     [InlineData(FileOrg.Indexed, FileOpenMode.Input)]
     [InlineData(FileOrg.Indexed, FileOpenMode.IO)]
-    public void A_reopen_of_an_optional_file_that_vanished_ends_what_the_close_kept(FileOrg org, FileOpenMode mode)
+    public void A_reopen_of_an_optional_file_that_vanished_retires_what_the_close_kept(FileOrg org, FileOpenMode mode)
     {
         string host = Tmp($"pb3493-vanished-{org}-{mode}");
         try
@@ -1311,20 +1311,20 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>The absent OPTIONAL I-O arm's two refusals over a kept state (§14.9.27.4 GR17 creates the file; GR25, <i>"If the
-    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; kb/Work PB3493, review finding R1-5): the
-    /// file A's CLOSE under commit control kept is removed outside the run unit, and A's re-OPEN I-O finds it absent. When the
-    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §9.1.13.6 item 1's
-    /// '30'), the OPEN never reached another file, so the kept state stands as the CLOSE left it — the transaction too, which the
-    /// ROLLBACK then ends. When the handle is taken but the new file's store cannot be made (<c>attach</c>: the medium refuses
-    /// the empty store's first write, '30'), the kept state has already ended with the removed file it belonged to — the new
-    /// handle names another physical file — so no transaction stands. A host that keeps a file while a handle on it stands
-    /// (Windows) refuses the removal, which is the host's own protection of the kept state.</summary>
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; kb/Work PB3493, review finding R1-5; PB3576):
+    /// the file A's CLOSE under commit control kept is removed outside the run unit, and A's re-OPEN I-O finds it absent. The kept
+    /// state belongs to the removed file, not to A, so it RETIRES to the registry before the OPEN reaches either refusal: when the
+    /// host refuses the handle that would create the new file (<c>handle</c>: the directory is gone too, §9.1.13.6 item 1's '30'),
+    /// and when the handle is taken but the new file's store cannot be made (<c>attach</c>: the medium refuses the empty store's
+    /// first write, '30'), the transaction A made stands in the registry, as the CLOSE left it, until the ROLLBACK ends it, and A
+    /// holds none. A host that keeps a file while a handle on it stands (Windows) refuses the removal, which is the host's own
+    /// protection of the kept state.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "handle")]
     [InlineData(FileOrg.Relative, "attach")]
     [InlineData(FileOrg.Indexed, "handle")]
     [InlineData(FileOrg.Indexed, "attach")]
-    public void A_refused_reopen_of_an_optional_file_that_vanished_ends_the_kept_state_only_past_the_new_handle(FileOrg org,
+    public void A_refused_reopen_of_an_optional_file_that_vanished_leaves_the_retired_kept_state_as_the_close_left_it(FileOrg org,
         string refusal)
     {
         string dir = Tmp($"pb3493-vanished-refused-{org}-{refusal}");
@@ -1358,9 +1358,10 @@ public sealed class CommitRollbackRuntimeTests
             try { a.OpenStatic("F", FileOpenMode.IO); }
             finally { KeyedStore.MediumObserver.Value = null; }
             Assert.Equal("30", a.Status("F"));
-            Assert.Equal(refusal == "handle" ? id : 0ul, a.TransactionOf("F"));
-            Assert.Null(a.Rollback());
             Assert.Equal(0ul, a.TransactionOf("F"));
+            Assert.Equal(id, a.RetiredTransactionOf("F"));
+            Assert.Null(a.Rollback());
+            Assert.Equal(0ul, a.RetiredTransactionOf("F"));
             a.CloseAll();
         }
         finally
@@ -1389,20 +1390,23 @@ public sealed class CommitRollbackRuntimeTests
         return true;
     }
 
-    /// <summary>⛔ THE KEPT STATE IS OF A PHYSICAL FILE, AND A PATH NAMES ONE ONLY WHEN IT IS ASKED (kb/Work PB3533; the decision of
-    /// kb/Work PB3493 for a kept file that is not there, DESIGN-runtime-library.md 2.2.1.10): A changes record 7 under commit
-    /// control and is CLOSEd; outside the run unit the file is removed (or renamed away) and another made at the same path, holding
-    /// record 2. A's re-OPEN is an ordinary OPEN of the file the path names: it reads record 2 and finds no record 7 or 1 ('23'),
-    /// no transaction stands, and a change and COMMIT reach the new file. What the CLOSE kept ended with the file it was kept on:
-    /// its transaction is left as a death leaves it, so the next writable OPEN of the renamed file rolls record 7 back. Before the
-    /// fix the re-OPEN adopted the kept handle on the removed file and read its records ('23' for record 2, '00' for record 7), and
-    /// the COMMIT went to the removed file.</summary>
+    /// <summary>⛔ THE KEPT STATE IS OF A PHYSICAL FILE, AND A PATH NAMES ONE ONLY WHEN IT IS ASKED (kb/Work PB3533, PB3576; the
+    /// decision of kb/Work PB3493 for a kept file that is not there, DESIGN-runtime-library.md 2.2.1.10): A changes record 7 under
+    /// commit control and is CLOSEd; outside the run unit the file is removed (or renamed away) and another made at the same path,
+    /// holding record 2. A's re-OPEN is an ordinary OPEN of the file the path names: it reads record 2 and finds no record 7 or 1
+    /// ('23'), no transaction of A's stands in it, and a change reaches the new file. What the CLOSE kept RETIRES with the file it
+    /// was kept on (the registry keeps it as it keeps the state of a connector associated with another file, kb/Work PB3494), so
+    /// the COMMIT (§14.9.7.4 GR3, <i>"permanently applies any changes made to the files specified in all the active APPLY COMMIT
+    /// clauses"</i>) commits BOTH files' changes: record 8 in the file at the path and record 7 in the renamed one, never abandoned
+    /// to the next writable OPEN's rollback. Before the fix the re-OPEN adopted the kept handle on the removed file and read its
+    /// records ('23' for record 2, '00' for record 7); before kb/Work PB3576 the kept state was ended, and record 7 of the renamed
+    /// file was rolled back unseen.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, FileOpenMode.IO, "removed")]
     [InlineData(FileOrg.Relative, FileOpenMode.Input, "renamed")]
     [InlineData(FileOrg.Indexed, FileOpenMode.IO, "renamed")]
     [InlineData(FileOrg.Indexed, FileOpenMode.Input, "removed")]
-    public void A_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept(FileOrg org, FileOpenMode mode, string how)
+    public void A_reopen_of_a_file_replaced_outside_the_run_unit_retires_what_the_close_kept(FileOrg org, FileOpenMode mode, string how)
     {
         string host = Tmp($"pb3533-replaced-{org}-{mode}-{how}");
         string moved = host + ".old";
@@ -1438,7 +1442,12 @@ public sealed class CommitRollbackRuntimeTests
             expected[2] = Rec(2, "B002");
             if (mode == FileOpenMode.IO) expected[8] = Rec(8, "B008");
             Assert.Equal(expected, Contents(host, org));
-            if (how == "renamed") Assert.Equal(Seeded(), Settled(moved, org));
+            if (how == "renamed")
+            {
+                var renamed = Seeded();
+                renamed[7] = Rec(7, "A007");   // the COMMIT reached the file the run unit changed, under its new name
+                Assert.Equal(renamed, Settled(moved, org));
+            }
         }
         finally
         {
@@ -1447,17 +1456,18 @@ public sealed class CommitRollbackRuntimeTests
         }
     }
 
-    /// <summary>The same decision when the re-OPEN of the file made at the path is UNSUCCESSFUL (kb/Work PB3533; §14.9.27.4 GR25,
-    /// <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>, speaks of the file the path names,
-    /// and the kept one is not it): the path names a file that is not a keyed file (GR10's fixed file attribute conflict, '39'), or
-    /// one another run unit holds under SHARING WITH NO OTHER (§9.1.13.9 1), '61'). The kept state has ended all the same — no
-    /// transaction stands and the ROLLBACK has nothing to restore — and the file at the path is as the other party left it.</summary>
+    /// <summary>The same decision when the re-OPEN of the file made at the path is UNSUCCESSFUL (kb/Work PB3533, PB3576; §14.9.27.4
+    /// GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>, speaks of the file the path
+    /// names, and the kept one is not it): the path names a file that is not a keyed file (GR10's fixed file attribute conflict,
+    /// '39'), or one another run unit holds under SHARING WITH NO OTHER (§9.1.13.9 1), '61'). The kept state has retired all the
+    /// same — A holds no transaction of its own, and the ROLLBACK restores the retired one — and the file at the path is as the other
+    /// party left it.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "39")]
     [InlineData(FileOrg.Relative, "61")]
     [InlineData(FileOrg.Indexed, "39")]
     [InlineData(FileOrg.Indexed, "61")]
-    public void An_unsuccessful_reopen_of_a_file_replaced_outside_the_run_unit_ends_what_the_close_kept(FileOrg org, string refusal)
+    public void An_unsuccessful_reopen_of_a_file_replaced_outside_the_run_unit_retires_what_the_close_kept(FileOrg org, string refusal)
     {
         string host = Tmp($"pb3533-replaced-refused-{org}-{refusal}");
         FileRegistry? holder = null;
@@ -1553,6 +1563,184 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal(expected, Contents(host, org));
         }
         finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ THE RUN UNIT'S FILE AND RECORD LOCKS ARE OF A PHYSICAL FILE, NOT OF A PATH (kb/Work PB3576; §9.1.16, <i>"While
+    /// locked by a given file connector, a record is not accessible to another file connector"</i>; §9.1.13.9 1), a file opened by
+    /// a connector with SHARING WITH NO OTHER refuses another connector's OPEN): connector F holds the file open and READs record 2
+    /// WITH LOCK; outside the run unit the file is removed (or renamed away) and another made at the path, holding a record 2 of its
+    /// own (<c>B002</c>); connector G of the same run unit OPENs the path. G meets nothing of F's: its OPEN is '00' even where F holds
+    /// the old file under NO OTHER (an OPEN against the Table 19 entry of a file that is not at the path, '61', before the fix), and
+    /// its READ of record 2 WITH LOCK is '00' and reads <c>B002</c> ('51' before the fix: F's lock on a record of the OLD file); F
+    /// reads <c>A002</c> from the file it holds. Both connectors keep their own locks to the end.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "removed", FileSharing.AllOther)]
+    [InlineData(FileOrg.Relative, "renamed", FileSharing.NoOther)]
+    [InlineData(FileOrg.Indexed, "renamed", FileSharing.AllOther)]
+    [InlineData(FileOrg.Indexed, "removed", FileSharing.NoOther)]
+    public void Two_connectors_on_a_path_whose_file_was_replaced_meet_none_of_each_others_locks(FileOrg org, string how,
+        FileSharing sharing)
+    {
+        string host = Tmp($"pb3576-locks-{org}-{how}-{sharing}");
+        string moved = host + ".old";
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: false, name: "F", sharing);
+            Declare(a, host, org, commit: false, name: "G", sharing);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            if (sharing == FileSharing.AllOther)
+                Assert.Equal("00", Read(a, org, 2, out _, phrase: FileRecordLock.WithLock, name: "F"));
+            if (!ReplaceOutsideTheRunUnit(host, moved, how, org))
+            {
+                a.CloseAll();   // Windows: the host kept the file with the handle, there is no replaced file to meet
+                return;
+            }
+            a.OpenStatic("G", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("G"));
+            Assert.Equal("00", Read(a, org, 2, out var image, phrase: sharing == FileSharing.AllOther ? FileRecordLock.WithLock : FileRecordLock.None, name: "G"));
+            Assert.Equal(Rec(2, "B002"), image);
+            Assert.Equal("00", Read(a, org, 2, out image, name: "F"));
+            Assert.Equal(Rec(2, "A002"), image);
+            a.CloseAll();
+        }
+        finally
+        {
+            TryDelete(host);
+            TryDelete(moved);
+        }
+    }
+
+    /// <summary>⛔ DELETE FILE ASKS ABOUT THE PHYSICAL FILE, NOT ITS PATH (kb/Work PB3576; §9.1.13.9 2), a DELETE FILE statement
+    /// refused when the physical file is <i>"currently open by another file connector"</i>): connector F holds the file open;
+    /// outside the run unit the file is removed (or renamed away) and another made at the path; connector G's DELETE FILE deletes
+    /// THE FILE AT THE PATH ('00', the file gone), because F is open on a file that is not at the path any more — a control
+    /// DELETE FILE beside an F that holds the file at the path is '62'. Before the fix the registry compared F's path with G's
+    /// and refused the new file's deletion ('62').</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "removed")]
+    [InlineData(FileOrg.Indexed, "renamed")]
+    public void A_delete_file_of_a_path_whose_file_was_replaced_is_refused_by_no_connector_open_on_the_old_file(FileOrg org, string how)
+    {
+        string host = Tmp($"pb3576-delete-{org}-{how}");
+        string moved = host + ".old";
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: false, name: "F");
+            Declare(a, host, org, commit: false, name: "G");
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("62", a.DeleteFile("G"));   // F holds the file at the path: another connector has it open
+            if (!ReplaceOutsideTheRunUnit(host, moved, how, org))
+            {
+                a.CloseAll();   // Windows: the host kept the file with the handle, there is no replaced file to delete
+                return;
+            }
+            Assert.Equal("00", a.DeleteFile("G"));
+            Assert.False(File.Exists(host));
+            Assert.Equal("00", Read(a, org, 1, out var image, name: "F"));   // F goes on reading the file it holds
+            Assert.Equal(Rec(1, "A001"), image);
+            a.CloseAll();
+        }
+        finally
+        {
+            TryDelete(host);
+            TryDelete(moved);
+        }
+    }
+
+    /// <summary>⛔ A FILE MADE AFTER ANOTHER WAS REMOVED MAY BE GIVEN THE REMOVED FILE'S NUMBER, AND IS STILL THE FILE ITS CONNECTOR
+    /// OPENED (review R1-1 of kb/Work PB3576; §9.1.13.9 1) a), a file opened by one connector with SHARING WITH NO OTHER refuses
+    /// another connector's OPEN; §9.1.13.9 2), DELETE FILE of a file open by another connector is '62'): F OPENs OUTPUT (creating
+    /// the file), CLOSEs and DELETEs the file, then OPENs OUTPUT again. A host that gives a freed file number to the next file made
+    /// (Linux ext4) gives the new file the number the first file's state still claimed. Connector G of the run unit then meets F's
+    /// Table 19 entry at once: DELETE FILE is '62' and OPEN INPUT is '61', as they are beside any other open connector.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_file_made_with_the_number_of_a_removed_file_is_met_by_the_connector_that_made_it(FileOrg org)
+    {
+        string host = Tmp($"pb3576-number-{org}");
+        try
+        {
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: false, name: "F", FileSharing.NoOther);
+            Declare(a, host, org, commit: false, name: "G", FileSharing.NoOther);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            a.Close("F");
+            Assert.Equal("00", a.DeleteFile("F"));
+            Assert.False(File.Exists(host));
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("62", a.DeleteFile("G"));
+            a.OpenStatic("G", FileOpenMode.Input);
+            Assert.Equal("61", a.Status("G"));
+            a.CloseAll();
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ THE LOCKS A RETIRED KEPT STATE HOLDS ARE THE OLD FILE'S, AND THE COMMIT GIVES THEM BACK WITH IT (kb/Work PB3576,
+    /// PB3578; §9.1.16, <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>): on a host
+    /// whose region locks answer unavailable for record bytes, F, under commit control, READs record 2 (the lock is in this run
+    /// unit's table alone) and is CLOSEd, which keeps it; outside the run unit the file is renamed away and another made at the
+    /// path, holding a record 2 of its own. F's re-OPEN is an ordinary OPEN of the new file: F holds no record lock there, and
+    /// connector H of the run unit READs the new record 2 ('00', never the old file's lock's '51'). The retired kept state still holds
+    /// its lock on the renamed file until the COMMIT, which gives it back: no record lock stays in the run unit's table for a
+    /// connector with nothing left to release it, and a connector of the run unit that OPENs the renamed file meets '51' on record
+    /// 2 until then and '00' after.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_retired_kept_states_unpublished_record_locks_belong_to_its_file_and_end_with_the_commit(FileOrg org)
+    {
+        string host = Tmp($"pb3576-retired-locks-{org}");
+        string moved = host + ".old";
+        try
+        {
+            Seed(host, org);
+            var unavailable = new RecordBytesUnavailableHost(HostRegionLocks.HostOfThisProcess);
+            using var forced = HostRegionLocks.Forcing(unavailable);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            Declare(a, host, org, commit: false, name: "H");
+            Declare(a, moved, org, commit: false, name: "M");
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Read(a, org, 2, out _));
+            Assert.True(unavailable.RecordBytesRefused > 0, "the READ's record lock never reached the host as a record byte");
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));
+            if (!ReplaceOutsideTheRunUnit(host, moved, "renamed", org))
+            {
+                Assert.Null(a.Rollback());   // Windows: the kept handle's share mode admits no rename
+                a.CloseAll();
+                return;
+            }
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(0, a.RecordLocksHeldBy("F"));
+            a.OpenStatic("H", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("H"));
+            Assert.Equal("00", Read(a, org, 2, out var image, name: "H"));
+            Assert.Equal(Rec(2, "B002"), image);
+            a.OpenStatic("M", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("M"));
+            Assert.Equal("51", Read(a, org, 2, out _, name: "M"));   // the retired state still holds F's lock on the renamed file
+            Assert.Null(a.Commit());
+            Assert.Equal("00", Read(a, org, 2, out image, name: "M"));
+            Assert.Equal(Rec(2, "A002"), image);
+            a.CloseAll();
+        }
+        finally
+        {
+            TryDelete(host);
+            TryDelete(moved);
+        }
     }
 
     /// <summary>Open connector <paramref name="name"/> of <paramref name="reg"/> in I-O mode on the physical file the content of
@@ -2603,6 +2791,41 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal("00", Read(a, org, 1, out _, name: "B"));
             a.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A KEPT STATE THAT ENDS INSIDE THE CONNECTOR GIVES BACK THE RECORD LOCKS THE HOST COULD NOT PUBLISH TOO (kb/Work
+    /// PB3578; §14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; §9.1.16): on a host whose
+    /// region locks answer unavailable for record bytes, connector F, under commit control, READs record 2 (the lock is in this run
+    /// unit's table alone), is CLOSEd (the CLOSE keeps it, §14.9.6.4 GR9: one lock held) and re-OPENed OUTPUT, which creates the file
+    /// anew and ends what the CLOSE kept (PB3493: the transaction ended with the file it was in). Nothing of the old file is held by
+    /// F any more: no lock stays in the table for a connector with nothing left to release it. Before the fix
+    /// <c>KeyedConnector.ReleaseKept</c> released only the locks its endpoint published, so the unpublished one stayed.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_open_output_over_the_kept_file_gives_back_the_record_locks_the_host_could_not_publish(FileOrg org)
+    {
+        string host = Tmp($"pb3578-output-{org}");
+        try
+        {
+            Seed(host, org);
+            var unavailable = new RecordBytesUnavailableHost(HostRegionLocks.HostOfThisProcess);
+            using var forced = HostRegionLocks.Forcing(unavailable);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Read(a, org, 2, out _));
+            Assert.True(unavailable.RecordBytesRefused > 0, "the READ's record lock never reached the host as a record byte");
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(1, a.RecordLocksHeldBy("F"));   // §14.9.6.4 GR9: the CLOSE under commit control keeps it
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(0, a.RecordLocksHeldBy("F"));
+            a.CloseAll();
         }
         finally { TryDelete(host); }
     }

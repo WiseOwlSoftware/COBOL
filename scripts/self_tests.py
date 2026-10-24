@@ -4,6 +4,7 @@
     python scripts/self_tests.py            # every self-test that needs no build, in parallel; exit 0 only when all pass
     python scripts/self_tests.py --built    # the ones that read the BUILT test assemblies (after a solution build)
     python scripts/self_tests.py --list     # print what discovery found, and how each would run here
+    python scripts/self_tests.py --budget 8 # one phase at another budget width: a measurement only (THE BUDGET)
     python scripts/self_tests.py --self-test
 
 ⛔ WHY ONE RUNNER, AND WHY DISCOVERY. Until PB2563 the gates ran self-tests from hand lists: the gate driver's AUDITS
@@ -66,13 +67,18 @@ before it starts and holds it to its end, so one gate alone runs as wide as the 
 instead of multiplying them: a gate's self-test time no longer grows with the number of gates. A gate's
 self-tests keep running BEFORE its gate slot (kb/Work PB2524: a red one fails the gate without queueing behind other
 gates' builds and legs, PB2523); the budget is their own, so they never wait for a whole gate either.
+WHETHER THE CORES ARE THE LIMIT (kb/Work PB3585): the verdict line says how busy the host's processors were across the
+phase (`HostCpu`, the reading HostLoad.cs takes). Near 100 % the cores were the limit and a wider budget cannot shorten
+the phase; well below it, the self-tests were waiting and a wider one may, which `--budget N` measures (one run at
+another width; never a gate's or CI's setting, since a run wider than the others takes the places above their width).
 
 NO VERDICT FROM THE CLOCK (the owner's no-wall-clock rule, 2026-09-25): a self-test is never RED for being slow. A run
 that is still going HANG_AFTER_S after it took its budget place is stopped and reported HANG, with its output so far —
 its own state, verdict and exit code, never RED.
 
 THE VERDICT LINE: `=== SELF-TESTS: GREEN — n ran, r reused (inputs unchanged since a recorded PASS) in m s (budget B
-places machine-wide; w s waited for places) (k not run on <platform>) ===`, `=== SELF-TESTS: RED — …` or
+places machine-wide; w s waited for places; the host's P processors u% busy) (k not run on <platform>) ===`,
+`=== SELF-TESTS: RED — …` or
 `=== SELF-TESTS: HANG — …`. A self-test that RAN says WHY on its console line (kb/Work PB3061) — `first run: no PASS
 recorded for <platform>, Python <v>` or `re-run: N input(s) changed since the newest PASS — a, b, c (+k more)` — and
 how long it waited for a budget place when that was a second or more, so a gate log shows what a re-run cost and what
@@ -121,7 +127,10 @@ SUBMODULE = "tools/claude-skills"
 #: fleet load this budget removed (kb/Work PB2897's measurements). A run past it is HANG, exit HANG_EXIT.
 HANG_AFTER_S = 3600
 HANG_EXIT = 3
-#: The machine-wide budget (module docstring): one place per core, the width one gate alone always ran at.
+#: The machine-wide budget (module docstring): one place per core, the width one gate alone always ran at. kb/Work
+#: PB3585 asked whether a 4-core CI runner gains from more places, since the self-tests start processes and touch disk;
+#: the verdict line says how busy the host's processors were across the run (`HostCpu`), which answers it from every
+#: run, and `--budget N` runs one phase at another width for a measurement.
 BUDGET_CAP = os.cpu_count() or 4
 BUDGET_DIR = "cobol-self-test-slots"
 BUDGET_POLL_S = 0.25
@@ -301,6 +310,44 @@ def private_git_config(scratch: Path) -> Path:
     return cfg
 
 
+@dataclass(frozen=True)
+class HostCpu:
+    """THE HOST'S PROCESSOR TIMES AT ONE MOMENT (kb/Work PB3585): the ticks its processors spent idle and in all, from
+    `GetSystemTimes` on Windows (whose kernel time includes the idle time) and the aggregate `cpu` line of `/proc/stat`
+    on Linux, the reading tests/_shared/HostLoad.cs takes for a harness non-observation. Two readings give the share of
+    the host's processors busy between them: near 100 % across a phase means the cores were its limit and more budget
+    places cannot shorten it; well below means the self-tests were waiting (on disk, on what a process start reads),
+    and a wider budget may. An instrument, never a verdict: a host it cannot read is said to be unreadable."""
+    idle: int
+    total: int
+
+    @classmethod
+    def sample(cls) -> "HostCpu | None":
+        try:
+            if os.name == "nt":
+                import ctypes
+                from ctypes import wintypes
+                idle, kernel, user = (wintypes.FILETIME() for _ in range(3))
+                if not ctypes.WinDLL("kernel32").GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel),
+                                                                ctypes.byref(user)):
+                    return None
+                ticks = lambda ft: (ft.dwHighDateTime << 32) | ft.dwLowDateTime  # noqa: E731
+                return cls(ticks(idle), ticks(kernel) + ticks(user))
+            with open("/proc/stat", encoding="ascii") as f:
+                fields = [int(v) for v in f.readline().split()[1:9]]
+            # user nice system idle iowait irq softirq steal (guest time is inside user): a processor in iowait is idle
+            return cls(fields[3] + fields[4], sum(fields))
+        except (OSError, ValueError, IndexError, AttributeError):
+            return None
+
+    @staticmethod
+    def describe(start: "HostCpu | None", end: "HostCpu | None") -> str:
+        if start is None or end is None or end.total <= start.total:
+            return "the host's processor use not readable"
+        busy = 100.0 * (1.0 - (end.idle - start.idle) / (end.total - start.total))
+        return f"the host's {os.cpu_count() or '?'} processors {busy:.0f}% busy"
+
+
 class Budget:
     """THE MACHINE-WIDE SELF-TEST BUDGET (module docstring): `cap` places, each an OS lock file
     `<directory>/<k>.lock` (gate_slot.ExclusiveLock — the OS drops a lock when its holder dies, so a crashed gate never
@@ -314,8 +361,8 @@ class Budget:
         self._poller = threading.Lock()
 
     @classmethod
-    def for_repo(cls, repo: Path) -> "Budget":
-        return cls(git_common_dir(repo) / BUDGET_DIR, BUDGET_CAP)
+    def for_repo(cls, repo: Path, cap: int = BUDGET_CAP) -> "Budget":
+        return cls(git_common_dir(repo) / BUDGET_DIR, cap)
 
     @contextlib.contextmanager
     def place(self, label: str) -> Iterator[int]:
@@ -440,7 +487,7 @@ class Runner:
         self.tree = inputs.Tree.load(self.repo)
         self.deriver = inputs.Deriver(self.tree, HEADER_LINES)
 
-    def run(self, tests: list[SelfTest], jobs: int | None = None) -> list[Result]:
+    def run(self, tests: list[SelfTest]) -> list[Result]:
         here = [t for t in tests if t.runs_on(self.platform)]
         results = [Result(t, NOT_RUN, None, 0.0, "") for t in tests if not t.runs_on(self.platform)]
         todo = []
@@ -459,7 +506,7 @@ class Runner:
         try:
             git_config = private_git_config(scratch)
             tracer = inputs.install_tracer(scratch / "tracer")
-            workers = max(1, min(len(todo) or 1, jobs or BUDGET_CAP))
+            workers = max(1, min(len(todo) or 1, self.budget.cap))  # a thread per place, so no place waits idle
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
                 futures = [pool.submit(self.run_one, t, scratch, git_config, tracer, why[t.path]) for t in todo]
                 for f in concurrent.futures.as_completed(futures):
@@ -548,7 +595,7 @@ def select(tests: list[SelfTest], built: bool) -> tuple[list[SelfTest], list[Sel
 
 
 def verdict(results: list[Result], platform: str, wall: float,
-            deferred: list[SelfTest] | None = None, budget_cap: int | None = None) -> tuple[int, str]:
+            deferred: list[SelfTest] | None = None, budget_cap: int | None = None, host: str = "") -> tuple[int, str]:
     ran = [r for r in results if r.state in (GREEN, RED, HANG)]
     red = [r for r in ran if r.state == RED]
     hung = [r for r in ran if r.state == HANG]
@@ -570,9 +617,25 @@ def verdict(results: list[Result], platform: str, wall: float,
     if hung:
         return HANG_EXIT, f"{VERDICT}HANG — {hangs}{not_run} ==="
     done = f"{len(ran)} ran, {len(reused)} reused (inputs unchanged since a recorded PASS)" if reused else f"{len(ran)} ran"
-    budget = (f" (budget {budget_cap} places machine-wide; {sum(r.waited for r in ran):.0f}s waited for places)"
-              if ran and budget_cap else "")  # kb/Work PB3061: the budget's share of the phase, from the log
+    # kb/Work PB3061: the budget's share of the phase, from the log; PB3585: whether the cores were its limit (HostCpu)
+    budget = (f" (budget {budget_cap} places machine-wide; {sum(r.waited for r in ran):.0f}s waited for places"
+              f"{'; ' + host if host else ''})" if ran and budget_cap else "")
     return 0, f"{VERDICT}GREEN — {done} in {wall:.0f}s{budget}{not_run} ==="
+
+
+def _places(text: str) -> int:
+    """`--budget`'s value: a whole number of places, at least one (Budget refuses fewer)."""
+    if not text.isdigit() or int(text) < 1:
+        raise argparse.ArgumentTypeError(f"a budget is a whole number of places, at least 1, not {text!r}")
+    return int(text)
+
+
+def _refused(parse: Callable[[str], object], text: str) -> bool:
+    try:
+        parse(text)
+    except argparse.ArgumentTypeError:
+        return True
+    return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -580,8 +643,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--list", action="store_true", help="print what discovery found and exit")
     ap.add_argument("--built", action="store_true",
                     help="run the self-tests that read the built test assemblies (SELF-TEST-NEEDS: build)")
-    ap.add_argument("--jobs", type=int, default=None,
-                    help="how many of this run's self-tests wait for a budget place at once (default: the cores)")
+    ap.add_argument("--budget", type=_places, default=BUDGET_CAP,
+                    help="how many budget places this run may hold at once (default: the cores). For a measurement "
+                         "only (kb/Work PB3585): the places are the machine-wide ones, so a run wider than another "
+                         "gate's takes the places above that gate's width too; no gate or CI job passes it")
     ap.add_argument("--reuse", action="store_true",
                     help="report a self-test REUSED while a recorded PASS's inputs are unchanged (every gate)")
     ap.add_argument("--self-test", action="store_true", help="prove the discovery rule and the verdict")
@@ -609,15 +674,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{VERDICT}NOT RUN — {failure} ===")
         return 2
     phase, deferred = select(tests, args.built)
-    start = time.monotonic()
+    start, cpu = time.monotonic(), HostCpu.sample()
     try:
-        runner = Runner(REPO, platform, say, reuse=args.reuse)
+        runner = Runner(REPO, platform, say, reuse=args.reuse, budget=Budget.for_repo(REPO, args.budget))
     except (OSError, ValueError, subprocess.CalledProcessError) as e:  # the tree or a declared read cannot be read
         print(f"{VERDICT}NOT RUN — the inputs of the self-tests cannot be read: {e} ===")
         return 2
-    results = runner.run(phase, args.jobs)
+    results = runner.run(phase)
     rc, line = verdict(results, platform, time.monotonic() - start, None if args.built else deferred,
-                       runner.budget.cap)
+                       runner.budget.cap, HostCpu.describe(cpu, HostCpu.sample()))
     print(line, flush=True)
     return rc
 
@@ -748,6 +813,26 @@ def self_test() -> int:
         rc, line = verdict([r for r in results if r.test.path != "scripts/test_red.py"], this_platform(), 1.0)
         check("arm: no red is GREEN, still naming what did not run here",
               (rc, line.startswith(VERDICT + "GREEN"), "1 not run on" in line), (0, True, True))
+        greens = [r for r in results if r.test.path != "scripts/test_red.py"]
+        line = verdict(greens, this_platform(), 1.0, None, 3, "the host's 4 processors 97% busy")[1]
+        check("arm: a GREEN line names the budget and how busy the host's processors were (kb/Work PB3585)",
+              "(budget 3 places machine-wide; 0s waited for places; the host's 4 processors 97% busy)" in line, True)
+
+    # kb/Work PB3585: the host's processor reading, on both platforms the runner supports, and the --budget width
+    a, b = HostCpu(100, 1000), HostCpu(400, 2000)  # 1,000 ticks elapsed, 300 of them idle: 70 % busy
+    check("arm: the busy share is 1 - idle/total between two readings",
+          HostCpu.describe(a, b).endswith("processors 70% busy"), True)
+    check("arm: a reading that is missing or did not advance is said to be unreadable, never guessed",
+          {HostCpu.describe(None, b), HostCpu.describe(a, None), HostCpu.describe(a, a)},
+          {"the host's processor use not readable"})
+    first = HostCpu.sample()
+    sum(range(200_000))  # some processor time, so the second reading advances
+    second = HostCpu.sample()
+    check("arm: this host's processors are readable, and their total ticks advance",
+          first is not None and second is not None and second.total >= first.total and second.idle >= first.idle, True)
+    check("arm: --budget takes a whole number of places, at least one",
+          ([_places(v) for v in ("1", "12")], [_refused(_places, v) for v in ("0", "-2", "x", "1.5")]),
+          ([1, 12], [True] * 4))
 
     fleet_arms(check)
     print(f"self_tests.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")

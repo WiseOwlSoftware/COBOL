@@ -183,6 +183,11 @@ internal sealed class RunUnitFileLock : IDisposable
         return true;
     }
 
+    /// <summary>The Table 19 column this lock publishes, or null once it was given back. A file lock a CLOSE under commit control
+    /// kept is read through it by the registry, which tells by it a sharing conflict of the run unit's own
+    /// (<c>FileRegistry.RunUnitHoldsAgainst</c>).</summary>
+    internal ExistingSharingColumn? Column => _hold is null ? null : _as.Own;
+
     /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent.</summary>
     public void Dispose()
     {
