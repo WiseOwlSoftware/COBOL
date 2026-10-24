@@ -7,9 +7,12 @@ namespace CobolNet.Tests.Shared;
 /// <summary>
 /// THE test harness's observation log: one line per event a test run cannot show as a verdict but a reader must be able
 /// to count afterwards (a retried or unobserved child process, <c>ProcessObserver</c>; a scratch directory that
-/// could not be removed, <c>ScratchDirectory</c>). The local gate (<c>scripts/run_gate_legs.py</c>), the Linux
-/// gate (<c>scripts/linux-gate.sh</c>) and every CI test step set <c>COBOLNET_HARNESS_LOG</c> to a file in their results
-/// directory, which CI uploads with the TRX (kb/Work PB3108; <c>CiHarnessLogDriftTests</c>).
+/// could not be removed, <c>ScratchDirectory</c>). The local gate (<c>scripts/run_gate_legs.py</c>) and every CI test
+/// step set <c>COBOLNET_HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX (kb/Work
+/// PB3108; <c>CiHarnessLogDriftTests</c>). The Linux gate (<c>scripts/linux-gate.sh</c>) sets it to a file on the Linux
+/// filesystem and copies that into its results directory as it ends: the log is read beside its writers
+/// (<see cref="ReadAll"/>), and on a Windows drive mounted over 9P (WSL's <c>/mnt/e</c>) an append beside a reader lost
+/// lines and the read failed with ENODATA (kb/Work PB3194).
 /// </summary>
 internal static class HarnessLog
 {
