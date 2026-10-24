@@ -552,7 +552,12 @@ by the lane's own attempt record, never by the survey.
    record's lock), so a `collect` the enqueue unit made while the tick surveyed is kept (review R1-3). Under a stop
    the watch reads but acts on nothing. `land_lane.py status` prints each exit-0 attempt's watch, and
    `prune_worktrees.py --brief` lists such a branch NOT QUEUED with how long it has waited, what GitHub says and the
-   watch's state, until the queue holds it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
+   watch's state, until the queue holds it. NOT QUEUED is a pull request AT THE BRANCH'S TIP: one left at an older head
+   (a finisher's fix committed locally, auto-merge still on at the old head, its check red or conflicting) is the old
+   landing's, which the watch ended (a moved head is a new landing), and the branch reads by its report again, WAITING
+   TO LAND once reviewed CLEAN, so the lane's next tick lands the tip and `enqueue.py` force-pushes it onto the same
+   pull request (kb/Work PB3628: read NOT QUEUED, a re-armed branch waited hours, no reader acting on it). `status`
+   says of a pending re-arm whether the next tick lands it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
    `ENQUEUED` and holds nothing: the tick already runs every few minutes, while a waiting landing would keep its
    runner alive for the whole CI time, and a runner that died would leave its pull request with no watcher at all. Mid-wave landing meets exit 3 more often than the enqueue unit
 did, because a wave's other groups are still in flight; the lane waits them out instead of handing the stop to the
