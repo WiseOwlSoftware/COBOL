@@ -22835,6 +22835,24 @@
   ],
   "expect": "COBOLNET1511"
  },
+ "pb3570_floating_literal_group_move_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3570_numeric_literal_group_formal_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3587_content_group_formal_usage_values_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3586-function-returning-usage-bit-85": {
   "refuse-at": [
    "85"
