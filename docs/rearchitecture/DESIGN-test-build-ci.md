@@ -835,8 +835,8 @@ DECLARATION change (an override, virtual, operator, conversion, extension method
 with a base list or an attribute, or any removed or changed line no method owns) reaches every test that executed
 the file plus every test that executed a file naming one of its outermost types; a static constructor's change
 reaches every test that touched its type. A test's reach is its own recorded context plus its class's and its
-collection's (constructors, fixtures). The test assemblies are recorded too, so an edited test body or theory harness
-reaches exactly the rows that executed it. From that:
+collection's (constructors, fixtures). The test assemblies are recorded too, so an edited theory harness reaches
+exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14.2). From that:
 
 | tier | the tests | runs |
 |---|---|---|
@@ -989,13 +989,31 @@ because the raw name is not stable (`b7`):
   118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
   the gate run just before it on another branch, on the same host and the same shared timings.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
-- **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
-  into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
-  gate. Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
+- **Tier 0a** — a case of a test METHOD the diff ADDS OR EDITS (matched by method name in the assemblies the file is
+  compiled into): `impacted_tests.tests_changed` takes every test method whose lines — its attribute block, its
+  declaration, its body — a `-U0` hunk of the diff touches, and every theory whose `[MemberData]` source a hunk
+  touches (its rows are that member's values); a hunk of comment lines and blank lines outside every string literal
+  touches nothing, decided from the LEXED source on each side (`cs_members.code_lines`, carried per line by the
+  `Hunk`), never from a diff line alone, since a test's embedded COBOL program is a string whose lines may start `*`
+  or `//` or be blank (PB3190 review R1-1; the method level's `method_ids` reads the same flags). The member spans
+  come from `scripts/spec/cs_members.py`, a lexer that blanks comments, preprocessor lines, characters and every
+  string form (verbatim, interpolated holes, raw) so the braces left are code; a source whose braces do not balance
+  once lexed puts every test method of the file here, and `impacted_tests.py --audit-members` (run by
+  `ImpactedTestsDriftTests`) holds the lexer to every source of the gated test projects (kb/Work PB3190: until
+  2026-10-23 only an ADDED method was here, so under batched gating an edited test ran in leg 1 only if the tier-1
+  budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
+  gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
+  a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
+  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184). Every live tool that writes a trx file into a
+  worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
+  own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
+  --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
+  and read GREEN (w1076a / PB2921). Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
   construction. ⚠ **Corrected by the M11 acceptance (kb/Work PB1717):** this tier first held every case DECLARED IN a
   changed test file. 68b X edits the corpus and continuity harnesses (`CorpusRunnerTests.cs`, `VersionMatrixTests.cs`),
   so that rule put 5,774 cases and 8,037 test-seconds in tier 0a, and its first red ran after **62.8 %** of the work
-  (`b4`, measured through `gate_plan.py`). An EDITED test or harness is tier 1 through the map instead (the test
+  (`b4`, measured through `gate_plan.py`). An edited HARNESS — a helper the tests call — is tier 1 through the map
+  instead, while an edited test method is tier 0a by its own span, never by its file's (the test
   assemblies are recorded, §3.13), where cheapest-first finds X's first red after **0.32 %**.
 - **Tier 0u** — a case no timing source and no map knows (genuinely new, after `NameKey`). Each is charged the
   assembly's median recorded time and admitted to leg 1 within its OWN budget, `LEG_ONE_UNKNOWN_BUDGET` = 2 % of the
@@ -1024,7 +1042,8 @@ because the raw name is not stable (`b7`):
   gate publishes to (section 3.14.3 step 6; kb/Work PB2527), so a FRESH worktree's plan is timed too — before it,
   every implementer gate ran in a fresh worktree and printed `timings none`, and its leg 2 ran in declaration order;
   the worktree's own previous run times the plan only while no gate on the machine has published. Reds always come
-  from the worktree's own previous run.
+  from the worktree's own previous gates (tier 0a, both hosts'), never from the store; the Linux gate's durations
+  never time the plan (another host's).
 
 **The plan file** (`plan.json` in the gate's run directory) holds, per assembly, the leg-1 KEYS, the leg-2 KEYS, the
 per-key rank, and the plan's SHA-256. Its format (schema 1), written by `gate_plan.py --out` as canonical JSON (UTF-8,
