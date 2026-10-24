@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -17,8 +18,7 @@ public sealed class DifferentialHarness
     [Fact]
     public void Scaffold_NewCompilerCompilesATrivialProgram()
     {
-        string tempDir = Path.Combine(Path.GetTempPath(), "CobolNet_Conf_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(tempDir);
+        string tempDir = ScratchDirectory.Create("CobolNet_Conf_");
         try
         {
             string src = Path.Combine(tempDir, "p.cob");
@@ -29,7 +29,7 @@ public sealed class DifferentialHarness
         }
         finally
         {
-            try { Directory.Delete(tempDir, recursive: true); } catch { /* best-effort */ }
+            ScratchDirectory.Remove(tempDir);
         }
     }
 }

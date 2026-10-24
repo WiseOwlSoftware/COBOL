@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -25,7 +26,7 @@ public sealed class ReportFileRegistrationEmitterTests
 {
     private static string EmitCSharp(string source)
     {
-        string dir = Directory.CreateTempSubdirectory("pb1880report").FullName;
+        string dir = ScratchDirectory.Create("pb1880report");
         try
         {
             string src = Path.Combine(dir, "p.cob");
@@ -36,7 +37,7 @@ public sealed class ReportFileRegistrationEmitterTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private const string ReportAndRecordFiles = """

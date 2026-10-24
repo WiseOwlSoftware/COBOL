@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -129,7 +130,7 @@ public sealed class SortWorkSpillConformanceTests
     [Fact]
     public void ASortAndAMergeAHundredTimesTheLimit_OrderAsTheyDoInMemory_AndLeaveNoFile()
     {
-        string dir = CutRunner.NewTempDir("pb3339");
+        string dir = ScratchDirectory.Create("pb3339");
         try
         {
             string dll = Compile(dir);
@@ -151,7 +152,7 @@ public sealed class SortWorkSpillConformanceTests
             Assert.True(fitOk, fitDetail);
             Assert.Equal(spilled, fit);   // the order does not depend on the limit (D-SWK (c))
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>D-SWK (d): a work directory the statement cannot write is a loud stop that names it and the variable —
@@ -159,7 +160,7 @@ public sealed class SortWorkSpillConformanceTests
     [Fact]
     public void AMissingWorkDirectory_StopsTheRunUnit_NamingIt()
     {
-        string dir = CutRunner.NewTempDir("pb3339n");
+        string dir = ScratchDirectory.Create("pb3339n");
         try
         {
             string dll = Compile(dir);
@@ -173,6 +174,6 @@ public sealed class SortWorkSpillConformanceTests
             Assert.Contains(DirectoryVariable, detail, StringComparison.Ordinal);
             Assert.Contains("no-such-directory", detail, StringComparison.Ordinal);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

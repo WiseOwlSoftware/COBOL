@@ -131,8 +131,7 @@ public sealed class ExternalCorpusPopulationDriftTests
     [Fact]
     public void TheDriftCheck_ActuallyFails_WhenTheExtractionIsEmptied()
     {
-        string empty = Path.Combine(Path.GetTempPath(), "cobolnet-pb209-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(empty);
+        string empty = ScratchDirectory.Create("cobolnet-pb209-");
         try
         {
             // (a) the population check alone goes red, and NAMES the drift rather than reporting a zero.
@@ -155,7 +154,7 @@ public sealed class ExternalCorpusPopulationDriftTests
         }
         finally
         {
-            try { Directory.Delete(empty, recursive: true); } catch (IOException) { /* best effort */ }
+            ScratchDirectory.Remove(empty);
         }
     }
 

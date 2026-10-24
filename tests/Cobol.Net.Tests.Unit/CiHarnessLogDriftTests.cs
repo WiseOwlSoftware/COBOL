@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// The test harness records every retry and non-observation of a child process, with its budget, the work it covered
-/// and the host's load (<c>ProcessObserver.LogPath</c>). On a hosted runner that file was the temp directory's, gone
+/// and the host's load (<c>HarnessLog.Path</c>). On a hosted runner that file was the temp directory's, gone
 /// with the runner, so a CI retry or a red non-observation could not be read after the run: PB3108's open item. The
 /// local gates write it beside each leg's log (<c>scripts/run_gate_legs.py</c>'s <c>leg_env</c>,
 /// <c>scripts/linux-gate.sh</c>'s <c>test_leg</c>).

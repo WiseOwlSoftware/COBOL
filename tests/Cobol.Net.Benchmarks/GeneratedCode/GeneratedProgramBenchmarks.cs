@@ -38,7 +38,7 @@ public class GeneratedProgramBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _workDirectory = Directory.CreateTempSubdirectory("pb2117-run-").FullName;
+        _workDirectory = ScratchDirectory.Create("pb2117-run-");
         string source = ProgramsDirectory(Program + ".cob");
         string dll = Path.Combine(_workDirectory, Program + ".dll");
         var result = CompilerDriver.Compile(new CompilerDriver.Options(source, dll));
@@ -46,7 +46,7 @@ public class GeneratedProgramBenchmarks
             throw new InvalidOperationException(
                 $"{Program}: compile failed ({result.Status}): {string.Join("; ", result.Errors)}");
 
-        _entryPoint = Assembly.LoadFrom(dll).EntryPoint
+        _entryPoint = ScratchDirectory.LoadAssembly(dll).EntryPoint
                       ?? throw new InvalidOperationException($"{Program}: the generated assembly has no entry point");
         _expected = ExpectedWitness(Program);
         // A file the program ASSIGNs by a relative name resolves against the current directory, so every run's
@@ -68,9 +68,7 @@ public class GeneratedProgramBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        try { Directory.Delete(_workDirectory, recursive: true); }
-        catch (IOException) { /* the loaded assembly can still be mapped; the temp root is the OS's to reclaim */ }
-        catch (UnauthorizedAccessException) { /* same */ }
+        ScratchDirectory.Remove(_workDirectory);
     }
 
     /// <summary>One whole run of the program: its single DISPLAY goes to a null writer, and the method returns the

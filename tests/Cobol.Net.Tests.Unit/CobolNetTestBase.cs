@@ -18,14 +18,13 @@ public abstract class CobolNetTestBase : IDisposable
 
     protected CobolNetTestBase()
     {
-        TempDir = Path.Combine(Path.GetTempPath(), "CobolNet_Tests_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(TempDir);
+        TempDir = ScratchDirectory.Create("CobolNet_Tests_");
     }
 
     public void Dispose()
     {
         if (Directory.Exists(TempDir))
-            try { Directory.Delete(TempDir, recursive: true); } catch { /* best-effort cleanup */ }
+            ScratchDirectory.Remove(TempDir);
         GC.SuppressFinalize(this);
     }
 

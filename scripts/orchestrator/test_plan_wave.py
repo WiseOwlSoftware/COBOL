@@ -22,7 +22,7 @@ sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import plan_wave as pw  # noqa: E402
 sys.path.insert(0, str(HERE.parent))
-from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+from scratch_repo import ScratchRepo, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582)
 
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
@@ -30,7 +30,7 @@ import check_practices  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
 
 RULES = coord.rules()
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="plan-wave-test-"))
+TMP = scratch_dir("plan-wave-test-")
 WORK = TMP / "Work"
 WORK.mkdir()
 REPORTS = TMP / "reports"

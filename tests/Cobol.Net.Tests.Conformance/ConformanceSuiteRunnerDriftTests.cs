@@ -37,7 +37,7 @@ public sealed class ConformanceSuiteRunnerDriftTests
         Assert.True(File.Exists(cli),
             $"{cli} does not exist: the Conformance project builds the cobol command (its ProjectReference to "
             + "Cobol.Net.Cli) so that run.py can drive it");
-        string scratch = CutRunner.NewTempDir("suitedrift");
+        string scratch = ScratchDirectory.Create("suitedrift");
         try
         {
             string suites = Path.Combine(scratch, "suites");
@@ -67,7 +67,7 @@ public sealed class ConformanceSuiteRunnerDriftTests
             Assert.True(differing.Count == 0,
                 $"{differing.Count} test(s) of the suite have different verdicts in the two runners:\n{string.Join("\n", differing)}");
         }
-        finally { CutRunner.TryDelete(scratch); }
+        finally { ScratchDirectory.Remove(scratch); }
     }
 
     /// <summary>The processes run.py starts for one test, at most: an accepted test's compile and run, or a flagged

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -68,7 +69,7 @@ public sealed class NonCobolActivatorReturnTests
     [Fact]
     public void GobackAndExitProgram_ReturnToANonCobolHost_WhichContinuesAtItsCallSite()
     {
-        string dir = CutRunner.NewTempDir("l1host");
+        string dir = ScratchDirectory.Create("l1host");
         try
         {
             NonCobolElement.CompileCobol(dir, "L1HSTGB", GobackSub);
@@ -86,6 +87,6 @@ public sealed class NonCobolActivatorReturnTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

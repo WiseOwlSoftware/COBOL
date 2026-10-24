@@ -460,10 +460,7 @@ public sealed class ConflictMarkerDriftTests
     /// <summary>A GUID-unique scratch directory — never a fixed shared path (<c>kb/Work/PB376</c>).</summary>
     private sealed class Scratch : IDisposable
     {
-        public Scratch() => Directory.CreateDirectory(Root);
-
-        public string Root { get; } =
-            Path.Combine(Path.GetTempPath(), "cobolnet-conflict-marker-" + Guid.NewGuid().ToString("N"));
+        public string Root { get; } = ScratchDirectory.Create("cobolnet-conflict-marker-");
 
         public void Write(string name, string text) => WriteBytes(name, Encoding.UTF8.GetBytes(text));
 
@@ -471,8 +468,7 @@ public sealed class ConflictMarkerDriftTests
 
         public void Dispose()
         {
-            try { Directory.Delete(Root, recursive: true); }
-            catch (IOException) { /* a scratch directory left behind is not a test failure */ }
+            ScratchDirectory.Remove(Root);
         }
     }
 }

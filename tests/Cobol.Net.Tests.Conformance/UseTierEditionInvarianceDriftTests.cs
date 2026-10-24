@@ -153,8 +153,7 @@ public sealed class UseTierEditionInvarianceDriftTests
 
     private static string Emit(string directives, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_UseTier_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_UseTier_");
         try
         {
             string src = Path.Combine(dir, "usetier.cob");
@@ -165,7 +164,7 @@ public sealed class UseTierEditionInvarianceDriftTests
             Assert.NotNull(r.GeneratedCsPath);
             return File.ReadAllText(r.GeneratedCsPath!);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The text of the first method whose declaration contains <paramref name="signature"/>, from the

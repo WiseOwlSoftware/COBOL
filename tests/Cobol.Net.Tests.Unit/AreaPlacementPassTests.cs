@@ -3,6 +3,7 @@
 using CobolNet;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -24,7 +25,7 @@ public sealed class AreaPlacementPassTests
 
     private static CompilerDriver.Result Check(int edition, string source, params (string Name, string Text)[] library)
     {
-        string dir = Directory.CreateTempSubdirectory("areas").FullName;
+        string dir = ScratchDirectory.Create("areas");
         try
         {
             string src = Path.Combine(dir, "MAIN.cob");
@@ -33,7 +34,7 @@ public sealed class AreaPlacementPassTests
             return CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: edition, CopyPaths: [dir],
                 CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private static void AssertRejectedAt85Only(string source, string expected, params (string Name, string Text)[] library)

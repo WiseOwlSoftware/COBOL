@@ -3,18 +3,16 @@
 Run: python scripts/orchestrator/test_checkpoint.py   (a fabricated repo with real worktrees in a temp directory)."""
 import json
 import pathlib
-import shutil
 import subprocess
 import sys
-import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-from scratch_repo import ScratchRepo  # noqa: E402  (scripts/: the one scratch-repository fixture)
+from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 CP = HERE / "checkpoint.py"
 SCHEMA = json.loads((HERE / "handoff.schema.json").read_text(encoding="utf-8"))
-TMP = pathlib.Path(tempfile.mkdtemp(prefix="checkpoint-test-"))
+TMP = scratch_dir("checkpoint-test-")
 REPO, COORD = TMP / "repo", TMP / "coord"
 fails = []
 
@@ -72,7 +70,7 @@ run("synthesize", "--unit", "meter", "--out", str(out))
 h = json.loads(out.read_text(encoding="utf-8"))
 check("with no checkpoint and no milestones it still synthesizes", ("no checkpoint" in h["summary"], h["next_unit"]), (True, "resume"))
 
-shutil.rmtree(TMP, ignore_errors=True)   # the scratch repository, its worktrees and the coordination directory
+remove_tree(TMP)   # the scratch repository, its worktrees and the coordination directory
 if fails:
     print("\n".join("FAIL: " + f for f in fails))
     sys.exit(1)

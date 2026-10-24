@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -416,7 +417,7 @@ public sealed class StopGobackExitCodeTests
             SUBP.
                 STOP RUN WITH ERROR STATUS 16.
             """;
-        string dir = CutRunner.NewTempDir("v47xasm");
+        string dir = ScratchDirectory.Create("v47xasm");
         try
         {
             CompileTo(main, dir, "V47MAIN");
@@ -425,6 +426,6 @@ public sealed class StopGobackExitCodeTests
             Assert.Equal("before", stdout);   // the sub's STOP RUN ends the run unit — "unreached" never prints
             Assert.Equal(16, exit);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }
