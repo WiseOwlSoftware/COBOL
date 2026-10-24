@@ -1,0 +1,4 @@
+## Entry 2480 — 2026-10-24 14:46 PDT — Filed three queue-lead notes (PB3651 to PB3653) from the PB3170 and PB2974 finisher reports
+
+The finisher reports for PB3170 (PR #509) and PB2974 (PR #512) left four leads. PB3651 records the `prune_worktrees.replays` tie-break that picks the larger branch while the comments and docs say the later report. PB3652 records the branch survey's `contained()` reading a replayed SPLIT branch as a DECISION row; it is a separate mechanism from PB3651. PB3653 records the missing lock-only signal in `prune_worktrees.owned` and carries the second PB2974 residual (two reports naming one branch) in its body, since no state producing it is known. PB3654 stays unused. PB3170.md and PB2974.md are untouched because their PRs are in flight.
+
