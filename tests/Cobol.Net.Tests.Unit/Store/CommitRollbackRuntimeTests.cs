@@ -1424,6 +1424,90 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ AN UNSUCCESSFUL DELETE FILE LEAVES THE FILE AND THE RUN UNIT'S TRANSACTION ON IT AS THE CLOSE LEFT THEM (kb/Work PB3492,
+    /// review finding R1-1; MANDATORY-PRACTICES I11): A changes record 7 under commit control and CLOSEs the file, and its DELETE FILE
+    /// is refused after the kept handle was given back — at the capture's read of the file, or at the removal itself ('30', a
+    /// permanent error condition, §9.1.13.6, which the program handles, so item 8's ROLLBACK does not run). The kept handle, the transaction's liveness
+    /// byte through it and the Table 19 file lock are taken back, so A's COMMIT answers success and makes record 7 permanent
+    /// (§14.9.7.4 GR3, <i>"permanently applies any changes made to the files"</i>): another run unit's writable OPEN after it, whose
+    /// dead-owner step rolls back every transaction without a live owner, reads record 7 as A wrote it. Before the fix the COMMIT
+    /// forgot the transaction (the store held no file) and the next writable OPEN rolled record 7 back.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileSharing.NoOther, "capture")]
+    [InlineData(FileOrg.Relative, FileSharing.NoOther, "delete")]
+    [InlineData(FileOrg.Relative, FileSharing.AllOther, "capture")]
+    [InlineData(FileOrg.Relative, FileSharing.AllOther, "delete")]
+    [InlineData(FileOrg.Indexed, FileSharing.NoOther, "capture")]
+    [InlineData(FileOrg.Indexed, FileSharing.NoOther, "delete")]
+    [InlineData(FileOrg.Indexed, FileSharing.AllOther, "capture")]
+    [InlineData(FileOrg.Indexed, FileSharing.AllOther, "delete")]
+    public void A_refused_delete_file_after_a_close_leaves_the_transaction_for_the_commit(FileOrg org, FileSharing sharing, string refused)
+    {
+        // The operation to refuse, found in a fault-free run of the same program after its CLOSE: the capture's write of the
+        // before file, or the removal of the file.
+        int target;
+        {
+            string dry = Tmp($"pb3492-refused-delete-dry-{org}-{sharing}-{refused}");
+            var medium = new FaultHostMedium();
+            try
+            {
+                Seed(dry, org);
+                var a = new FileRegistry { Medium = medium };
+                Declare(a, dry, org, commit: true, sharing: sharing);
+                a.OpenStatic("F", FileOpenMode.IO);
+                Assert.Equal("00", Write(a, org, 7, "A007"));
+                a.Close("F");
+                int from = medium.Operations;
+                Assert.Equal("00", a.DeleteFile("F"));
+                int at = medium.Log.FindIndex(from, entry => refused == "capture"
+                    ? entry.StartsWith("write ", StringComparison.Ordinal) && entry.EndsWith(".before", StringComparison.Ordinal)
+                    : entry == $"delete {Path.GetFileName(dry)}");
+                Assert.True(at >= 0, $"the DELETE FILE reaches no '{refused}' of the file: {string.Join(", ", medium.Log.Skip(from))}");
+                target = at + 1;
+                _ = a.Rollback();
+                a.CloseAll();
+            }
+            finally
+            {
+                medium.Kill();
+                TryDelete(dry);
+            }
+        }
+        string host = Tmp($"pb3492-refused-delete-{org}-{sharing}-{refused}");
+        var faulty = new FaultHostMedium(FaultHostMedium.Fault.Refuse, target);
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry { Medium = faulty };
+            Declare(a, host, org, commit: true, sharing: sharing);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("30", a.DeleteFile("F"));
+            Assert.True(faulty.Fired, "the refusal fired inside the DELETE FILE");
+            Assert.True(File.Exists(host));
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            b.OpenStatic("B", FileOpenMode.IO);
+            // A's CLOSE kept the file, so its file lock stands (§9.1.15): NO OTHER refuses B ('61'), as does the capture's (ALL)
+            // holding once the before file was written (2.2.2.8); ALL OTHER with no capture admits B (Table 19), and B's writable
+            // OPEN's dead-owner step finds A's transaction alive, its liveness byte taken back with the handle.
+            Assert.Equal(sharing == FileSharing.NoOther || refused == "delete" ? "61" : "00", b.Status("B"));
+            b.CloseAll();
+            Assert.Null(a.Commit());
+            a.CloseAll();
+            var expected = Seeded();
+            expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, org));
+            AssertNoJournalLeft(host);
+        }
+        finally
+        {
+            faulty.Kill();
+            TryDelete(host);
+        }
+    }
+
     /// <summary>⛔ A DEAD RUN UNIT'S CAPTURE IS SETTLED BY THE NEXT ENTRY (2.2.2.8, 2.2.2.14; §9.1.18.5, <i>"When a run unit terminates
     /// abnormally, all file changes made since the previous commit ... are rolled back"</i>): A changes record 7 and DELETEs the file,
     /// which gives every handle of A on it back, and dies (its journal's holder dropped as a death drops it). The next writable
@@ -1503,6 +1587,8 @@ public sealed class CommitRollbackRuntimeTests
         }
         finally { TryDelete(host); }
     }
+
+    /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
     /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. On I-O the OPEN creates

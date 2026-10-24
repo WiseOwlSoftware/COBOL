@@ -366,31 +366,44 @@ public abstract class KeyedConnector : FileConnector
     }
 
     /// <inheritdoc/>
-    /// <remarks>The kept handle's own share mode refuses the host's probe (on Unix its shared lock refuses the probe's exclusive
-    /// one), so it is given back for the instant of the question, and taken again — attached to the store, the transaction's
-    /// liveness byte through it — only when another handle does hold the file (kb/Work PB3492).</remarks>
-    internal override bool HeldByAnotherAtDelete()
+    /// <remarks>The handle goes off the kept store, the transaction's liveness byte with it (<see cref="KeptFile.GiveBack"/>); on
+    /// Unix its shared lock refuses the probe's exclusive one too. Taken back (<see cref="RetakeKeptHandle"/>: attached to the
+    /// store again, the liveness byte held through it) unless the file is removed; once it is, the transaction lived in the file
+    /// the journal's before file now holds (2.2.2.14), so the store has nothing of it left to promote and it ends there
+    /// (<see cref="KeyedStore.ForgetTransaction"/>); a ROLLBACK rolls it back in the restored file. The attachment stays until the
+    /// COMMIT or ROLLBACK.</remarks>
+    internal override RemovalGiveBack? GiveBackForRemoval()
     {
-        if (_kept is not { Handle: { } kept, Adopted: false }) return ProbeHeldByAnother();
-        _kept = _kept with { Handle = null };
-        GiveBack(kept);
-        if (!ProbeHeldByAnother()) return false;
-        RetakeKeptHandle(kept, unpublished: null);
-        return true;
+        if (_kept is not { Adopted: false } kept) return null;
+        var givenBack = new KeptGivenBack(this, kept);
+        if (kept.Handle is not { } handle) return givenBack;
+        _kept = kept with { Handle = null };
+        try { GiveBack(handle); }
+        catch
+        {
+            givenBack.Dispose();
+            throw;
+        }
+        return givenBack;
     }
 
-    /// <inheritdoc/>
-    /// <remarks>The handle goes off the kept store, the transaction's liveness byte with it (<see cref="KeptFile.GiveBack"/>): the
-    /// transaction lives in the file being removed, which the journal's before file now holds (2.2.2.14). The Table 19 file lock
-    /// goes too: where the host publishes it through a handle on the file (<see cref="HandleColumnLockHost"/>) that handle would
-    /// refuse the removal ('62' for the connector's own lock), and from the removal on the journal's (ALL) holding is the lock.
-    /// The attachment stays until the COMMIT or ROLLBACK.</remarks>
-    internal override void GiveBackForRemoval()
+    /// <summary>What <see cref="GiveBackForRemoval"/> gave back of <paramref name="kept"/>, the kept state as the CLOSE left it.</summary>
+    private sealed class KeptGivenBack(KeyedConnector owner, KeptFile kept) : RemovalGiveBack
     {
-        if (_kept is not { Adopted: false } kept) return;
-        _kept = kept with { Handle = null, FileLock = null };
-        try { if (kept.Handle is { } handle) GiveBack(handle); }
-        finally { kept.FileLock?.Dispose(); }
+        internal override void SuspendFileLock() => kept.FileLock?.Suspend();
+
+        private protected override void TakeBack()
+        {
+            if (kept.Handle is { } handle) owner.RetakeKeptHandle(handle, unpublished: null);   // no OPEN handle took the record locks: Attach moves them
+            if (kept.FileLock is { } fileLock && !fileLock.Resume() && owner._kept is { } now) owner._kept = now with { FileLock = null };
+        }
+
+        private protected override void Landed()
+        {
+            kept.FileLock?.Dispose();
+            if (owner._kept is { } now) owner._kept = now with { FileLock = null };
+            kept.Store.ForgetTransaction();
+        }
     }
 
     /// <summary>The file lock of an arm that has a physical file (<see cref="TakeFileLock"/>), taken only for a declaration
