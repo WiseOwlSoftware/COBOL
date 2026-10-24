@@ -1813,6 +1813,17 @@ internal static class RuntimeApi
     public static string SortAfterActivationReturn { get; } =
         $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.AfterActivationReturn)}()";
 
+    /// <summary>The split form of <see cref="SortAfterActivationReturn"/> for a site that emits a propagation pickup (kb/Work
+    /// PB3246, review R1-1): <c>CobolSort.TakeActivationReturnTermination</c> takes THIS activation's request out of the run
+    /// unit's pending slot before the pickup can run a declarative that activates again.</summary>
+    public static string SortTakeActivationReturnTermination { get; } =
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TakeActivationReturnTermination)}()";
+
+    /// <summary>Act on the request <see cref="SortTakeActivationReturnTermination"/> took into the local <paramref name="taken"/>
+    /// - <c>CobolSort.TerminateAfterActivation</c>.</summary>
+    public static string SortTerminateAfterActivation(string taken) =>
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TerminateAfterActivation)}({taken})";
+
     /// <summary>The declining filter an activation's end notes a SORT termination with —
     /// <c>SortTerminationSignal.EndsActivation</c> over the local <paramref name="flag"/> (kb/Work PB1177).</summary>
     public static string SortTerminationEndsActivation(string flag) =>

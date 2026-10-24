@@ -191,6 +191,15 @@ public static class CobolSort
     /// PB3246); a CALL, an INVOKE and the host boundary all ask it.</summary>
     public static void AfterActivationReturn() => Stores.AfterActivationReturn();
 
+    /// <summary>The split form of <see cref="AfterActivationReturn"/> for an activating site whose propagation pickup can run the
+    /// activator's USE procedure: take THIS activation's §14.9.40.4 GR17 request before the pickup
+    /// (<c>SortFileTable.TakeActivationReturnTermination</c>), act on it after (<see cref="TerminateAfterActivation"/>) - kb/Work
+    /// PB3246, review R1-1.</summary>
+    public static string? TakeActivationReturnTermination() => Stores.TakeActivationReturnTermination();
+
+    /// <summary>Terminate the SORT a <see cref="TakeActivationReturnTermination"/> request names; nothing for null.</summary>
+    public static void TerminateAfterActivation(string? terminated) => SortFileTable.TerminateAfterActivation(terminated);
+
     /// <summary>The RELEASE STATEMENT (ISO §14.9.32.4). GR1: "A RELEASE statement may be executed only when it is
     /// within the range of an input procedure being executed by a SORT statement that references the file-name
     /// associated with record-name-1. If it is executed at any other time, the EC-FLOW-RELEASE exception condition

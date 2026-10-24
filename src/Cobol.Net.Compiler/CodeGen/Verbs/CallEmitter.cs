@@ -340,14 +340,31 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// object-property access are INVOKEs bound as their statement's pre-ops) both end here, so the order cannot be taught to
     /// one and not the other. The INVOKE tail is emitted after the RETURNING delivery (§14.9.23.4 GR8) and the copy-outs, so
     /// identifier-4 holds the result exactly as a CALL's RETURNING item does; asked in the method's own epilogue, the
-    /// termination unwound past that delivery and dropped the result. The GR17 question is unconditional: the activated
+    /// termination unwound past that delivery and dropped the result. ⛔ The request is TAKEN before the pickup and ACTED ON
+    /// after it (kb/Work PB3246, review R1-1): the pickup can run the activator's own USE procedure, a declarative may
+    /// CALL, INVOKE or activate a function, and that nested activation's tail would otherwise consume THIS activation's
+    /// request and terminate the SORT in the middle of the declarative (its RESUME and the rest of it skipped). A RESUME AT
+    /// procedure-name the pickup's declarative takes leaves the statement before the termination is acted on: the
+    /// declarative's own transfer supersedes the request (the raise, which GR1 b) puts first, has chosen where control goes).
+    /// The GR17 question is unconditional: the activated
     /// element can be another compilation group's, so whether it has declaratives is not known here. The pickup is gated on
     /// <c>EcState.Active</c>, which spans class units.</summary>
     /// <returns><see cref="EmitPropagationPickup"/>'s raised flag.</returns>
     public string? EmitActivationReturned(IActivatingStatement site, bool reportRaised = false)
     {
+        var w = ctx.Writer;
+        if (!ecState.Active)
+        {
+            // No pickup is emitted, so nothing runs between the return and the question: ask it at once.
+            w.Line($"{RuntimeApi.SortAfterActivationReturn};   // §14.9.40.4 GR17 - a declarative's EXIT PROGRAM / GOBACK ended the SORT this activation ran in");
+            return null;
+        }
+        // The request is THIS activation's: taken before the pickup, which can run the activator's own USE procedure and so
+        // activate again - the nested return must not find it (review R1-1).
+        string taken = $"__gr17{ctx.Names.NextEc()}";
+        w.Line($"var {taken} = {RuntimeApi.SortTakeActivationReturnTermination};   // §14.9.40.4 GR17 request of THIS activation's return");
         string? raised = EmitPropagationPickup(site, reportRaised);
-        ctx.Writer.Line($"{RuntimeApi.SortAfterActivationReturn};   // §14.9.40.4 GR17 - after the pickup (a declarative's EXIT PROGRAM / GOBACK ended the SORT this activation ran in)");
+        w.Line($"{RuntimeApi.SortTerminateAfterActivation(taken)};   // §14.9.40.4 GR17 - after the pickup");
         return raised;
     }
 

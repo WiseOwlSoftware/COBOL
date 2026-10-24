@@ -29,6 +29,13 @@
       *> second "A-CAUGHT" line appears. Before the fix the termination
       *> left before the pickup and the condition was raised at the NEXT
       *> activation instead (an "A-CAUGHT" line after "IN-C" / "IN-MC").
+      *> Review R1-1: A's USE procedure itself CALLs C and INVOKEs MC. Their
+      *> returns carry no request of their own - no USE procedure of C or MC
+      *> failed to complete normally (GR17) - so they terminate nothing, and
+      *> the declarative runs to its end ("IN-C", "IN-MC", "A-DECL-DONE")
+      *> before the SORT, terminated by B's (MB's) return, ends. A pending
+      *> request left in a run-unit slot was consumed by the CALL C inside the
+      *> declarative and cut the declarative off after "IN-C".
 >>TURN EC-ALL CHECKING ON
 IDENTIFICATION DIVISION.
 CLASS-ID. PB3246K INHERITS FROM BASE.
@@ -88,6 +95,9 @@ DA SECTION.
     USE AFTER EXCEPTION CONDITION EC-SIZE-OVERFLOW.
 DA1.
     DISPLAY "A-CAUGHT " FUNCTION EXCEPTION-STATUS
+    CALL "PB3246C"
+    INVOKE O "MC"
+    DISPLAY "A-DECL-DONE"
     RESUME NEXT STATEMENT.
 END DECLARATIVES.
 MAIN SECTION.

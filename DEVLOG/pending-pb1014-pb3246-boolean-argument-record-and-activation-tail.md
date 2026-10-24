@@ -37,3 +37,16 @@ CONFORMANCE.md's GR17 determination are current.
 `OoEmitter.cs#EmitInvocationReturned`, `ProgramTable.cs#CallProgram` for GR17); GAP 63 to 63.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000002-20261024T051855Z`; the first run, `000001-20261024T051528Z`, was RED on the citations audit - the PB1014 note misattributed a "GR4" to the preceding clause - and was fixed before the build). Leg 1 ran the four added goldens/negatives (`pb1014_content_boolean_move_store` and `pb3246_sort_terminated_after_raising_pickup` at 2002, `pb1014-content-boolean-into-numeric-formal` at 2002, 2014, 2023: all Passed in `leg-1-Conformance.trx`). The Linux gate is the lander's (batched gating). Self-review (pr-test-analyzer, silent-failure-hunter, comment-analyzer): the one new throw is loud and unreachable by bind; no catch, fallback or default value was added; the stale comments naming the deleted `EmitInvocationReturned` and the CALL-side `ProgramTable.CallProgram` question were rewritten.
+
+**Branch review round 1 (R1-1, blocking, answered: fixed).** The reviewer's probe: the activator's own USE procedure, run by the
+pickup, CALLs a program; that nested return asked `AfterActivationReturn` and consumed the OUTER activation's pending GR17
+request (the run unit holds one slot), terminating the SORT mid-declarative and skipping its RESUME. Root fix: the request
+belongs to the activation that left it. `CallEmitter.EmitActivationReturned` now TAKES it out of the slot straight after the
+return (`CobolSort.TakeActivationReturnTermination`, into a local) and acts on it after the pickup
+(`CobolSort.TerminateAfterActivation`); a site with no pickup (`EcState.Active` false) keeps the one-call
+`AfterActivationReturn`, which is now `TerminateAfterActivation(Take...())`, as does the host boundary. The golden
+`pb3246_sort_terminated_after_raising_pickup` gains a `CALL` and an `INVOKE` inside A's USE procedure (expected from GR17: the
+nested activations terminate nothing; the declarative runs to its end, then the SORT, terminated by B's/MB's return, ends);
+the reviewer's probes now agree. Determination recorded in the design doc: a RESUME AT procedure-name taken by the pickup's
+declarative leaves the statement before the termination is acted on, so that transfer supersedes the request (GR1 b) puts the
+raise, and so the declarative's choice of where control goes, first).
