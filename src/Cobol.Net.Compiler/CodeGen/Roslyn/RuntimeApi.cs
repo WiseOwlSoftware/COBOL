@@ -1240,6 +1240,26 @@ internal static class RuntimeApi
         $"{nameof(CobolString)}.{nameof(CobolString.WindowInto)}({s}, {start}, {len}, {rhs}"
         + $"{(pad is null ? "" : $", pad: {pad}")})";
 
+    /// <summary>⛔ THE IN-PLACE OVERLAPPING MOVE (ISO §14.6.10 1); kb/Work PB1910, docs/CONFORMANCE.md D-OVL2) — the
+    /// receiver's storage image after a numeric DISPLAY sender is converted into it, in place:
+    /// <c>OverlappingMove.DisplayToDisplay</c>. <paramref name="receiverAt"/> is the receiver's first byte minus the
+    /// sender's (a compile-time constant, <c>MoveOverlap.Classify</c>'s).</summary>
+    public static string OverlapDisplayToDisplay(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.DisplayToDisplay)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
+
+    /// <summary>An alphanumeric sender converted into a numeric DISPLAY receiver, in place
+    /// (<c>OverlappingMove.AlphanumericToDisplay</c>); <paramref name="commaIsPoint"/> is the unit's DECIMAL-POINT IS COMMA.</summary>
+    public static string OverlapAlphanumericToDisplay(string sender, string receiver, int receiverAt, string toProfile, bool commaIsPoint) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.AlphanumericToDisplay)}({sender}, {receiver}, {receiverAt}, {toProfile}, {(commaIsPoint ? "true" : "false")})";
+
+    /// <summary>A PACKED-DECIMAL sender converted into a numeric DISPLAY receiver, in place (<c>OverlappingMove.PackedToDisplay</c>).</summary>
+    public static string OverlapPackedToDisplay(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.PackedToDisplay)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
+
+    /// <summary>A numeric DISPLAY sender converted into a PACKED-DECIMAL receiver, in place (<c>OverlappingMove.DisplayToPacked</c>).</summary>
+    public static string OverlapDisplayToPacked(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.DisplayToPacked)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
+
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
     /// is the trailing collation argument (", __COLLATE" — the program's CobolCollation carrier), possibly empty.</summary>
     public static string StrCompare(string a, string b, string weightsArg) =>

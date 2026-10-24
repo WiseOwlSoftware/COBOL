@@ -44,10 +44,10 @@ public readonly record struct MoveStore(BoundOperand Sender, MoveKind Kind, Move
 {
     /// <summary>What the store does to the RECEIVER before it reads the sender, when the two STATICALLY overlap
     /// (<see cref="MoveOverlap"/>, ISO §14.6.10 1) / Annex A.2 item 36 — undefined, so documented; kb/Work PB1907).
-    /// <see cref="OverlapPrefill.None"/> for every MOVE whose operands cannot be proven to overlap. An init-only
+    /// <see cref="OverlapStore.None"/> for every MOVE whose operands cannot be proven to overlap. An init-only
     /// property, not a positional member, so the three-element deconstruction the emitter is pinned to
     /// (<c>ZeroLengthSubstitutionDriftTests</c>) is unchanged.</summary>
-    public OverlapPrefill Prefill { get; init; }
+    public OverlapStore Overlap { get; init; }
 }
 
 /// <summary>Where one store's SENDING operand came from: the operand the programmer WROTE, or the figurative
@@ -340,7 +340,7 @@ public static class MoveClassifier
             stores[i] = new MoveStore(sender, kind,
                 ReferenceEquals(sender, source) ? MoveSenderOrigin.Written : MoveSenderOrigin.ZeroLengthLiteral)
             {
-                Prefill = MoveOverlap.Classify(sender, targets[i], kind),
+                Overlap = MoveOverlap.Classify(sender, targets[i], kind),
             };
         }
         return stores;
