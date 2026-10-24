@@ -127,16 +127,13 @@ public sealed class ScratchDirectoryDriftTests
         Assert.True(found.Count == 0, $"{what} (tests/_shared/ScratchDirectory.cs, kb/Work PB3194):\n  " + string.Join("\n  ", found));
     }
 
-    /// <summary>Every C# file under tests/ but the build outputs and the home, as (repo-relative path with '/', text).</summary>
+    /// <summary>Every tracked C# file under tests/ but the home, which owns the rules' shapes.</summary>
+    private static readonly TreeScope CSharpTests = new(Under: ["tests/"], Except: ["tests/_shared/ScratchDirectory.cs"], Kinds: [".cs"]);
+
+    /// <summary>The files <see cref="CSharpTests"/> holds, as (repo-relative path with '/', text).</summary>
     private static IEnumerable<(string Path, string Text)> SourceFiles()
     {
-        string tests = Path.Combine(TestRepo.Root, "tests");
-        var files = Directory.EnumerateFiles(tests, "*.cs", SearchOption.AllDirectories)
-            .Select(p => Path.GetRelativePath(TestRepo.Root, p).Replace('\\', '/'))
-            .Where(p => !p.Contains("/obj/", StringComparison.Ordinal) && !p.Contains("/bin/", StringComparison.Ordinal)
-                        && !p.Contains("/BenchmarkDotNet.Artifacts/", StringComparison.Ordinal)
-                        && p != "tests/_shared/ScratchDirectory.cs")
-            .ToList();
+        var files = TrackedTree.Files(CSharpTests);
         Assert.True(files.Count > 500, $"the test tree listing found only {files.Count} C# files; it is broken");
         return files.Select(p => (p, File.ReadAllText(Path.Combine(TestRepo.Root, p))));
     }
