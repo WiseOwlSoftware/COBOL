@@ -9,6 +9,7 @@
     git_batch.diff_names(repo, [(commit, parent), ...])      # `git diff --name-only --no-renames <parent> <commit>`
     git_batch.diff_patches(repo, [(commit, parent), ...])    # `git diff -U0 --no-renames <parent> <commit>`
     git_batch.object_ids(repo, ["<rev>:<path>", ...])        # `git rev-parse -q --verify <rev>:<path>`, each
+    git_batch.patch_ids(repo, [commit, ...])                 # `git show <commit> | git patch-id --stable`, each
 
     python scripts/git_batch.py --self-test                  # each reader against the one-process-per-object form
 
@@ -34,6 +35,8 @@ WHAT EACH READER GUARANTEES
                gets exactly one header line (its commit) in input order, even when its diff is empty; a pair's
                answer is its block. A root commit's pair names git's empty tree as its parent.
   object_ids   one `git cat-file --batch-check` over `<rev>:<path>` lines; an absent path maps to ''.
+  patch_ids    one `git diff-tree --stdin --root -p` piped into one `git patch-id --stable`: each commit's patch id
+               (the key `git cherry` matches on); a merge commit and an empty commit have none and are absent.
 Every reader raises GitError when git fails: an unmeasured answer is never read as an empty one.
 """
 from __future__ import annotations
@@ -97,6 +100,24 @@ def resolve(repo: pathlib.Path | str, names: Iterable[str], git: Runner | None =
 def object_ids(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | None = None) -> list[str]:
     """[the object id of each `<rev>:<path>`, '' when absent], from ONE process."""
     return [a[0] if a else "" for a in _batch_check(repo, list(specs), git)]
+
+
+def patch_ids(repo: pathlib.Path | str, commits: Iterable[str], git: Runner | None = None) -> dict[str, str]:
+    """{commit: its stable patch id} for every commit that HAS one, from TWO processes whatever the count
+    (`git diff-tree --stdin --root -p --no-renames | git patch-id --stable`). Two commits that make the same change
+    (a cherry-pick, a replay onto another base) share an id: it is the key `git cherry` matches on, read for a whole
+    list at once. A merge commit and a commit whose diff is empty have no patch, so they are absent from the answer."""
+    uniq = list(dict.fromkeys(c for c in commits if c))
+    if not uniq:
+        return {}
+    diffs = _checked(repo, "diff-tree", "--stdin", "--root", "-p", "--no-renames",
+                     stdin="".join(f"{c}\n" for c in uniq), git=git)
+    out: dict[str, str] = {}
+    for line in _checked(repo, "patch-id", "--stable", stdin=diffs, git=git).splitlines():
+        pid, _, commit = line.partition(" ")
+        if pid and commit:
+            out[commit.strip()] = pid
+    return out
 
 
 class Ancestry:
@@ -348,6 +369,21 @@ def self_test() -> int:
         check("object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",
               ids == [repo.run("rev-parse", "-q", "--verify", s).stdout.strip()
                       for s in (f"{merge}:a.txt", f"{merge}:b.txt", f"{root}:b.txt")], ids)
+
+        repo.git("switch", "-q", "-c", "orig", root)
+        repo.commit("orig", {"c.txt": "three\n"})
+        orig = repo.git("rev-parse", "HEAD")
+        repo.git("switch", "-q", "-c", "replayed", "main")
+        repo.git("cherry-pick", orig)
+        replayed = repo.git("rev-parse", "HEAD")
+        pids = patch_ids(r, [orig, replayed, merge, empty, root, orig, ""])
+        each_pid = {c: run(r, "patch-id", "--stable", stdin=repo.run("show", c).stdout).stdout.split()[0]
+                    for c in (orig, replayed, root)}
+        check("patch_ids: each commit as `git show | git patch-id --stable` gives it, a root commit included, merges absent",
+              pids == each_pid and merge not in pids and empty not in pids, (pids, each_pid))
+        check("patch_ids: a cherry-pick of a commit shares its id (the key `git cherry` matches on)",
+              pids[orig] == pids[replayed] and orig != replayed)
+        check("patch_ids: no commits, no process", patch_ids(r, []) == {} and patch_ids(r, [""]) == {})
     finally:
         remove_tree(tmp)
     print(f"=== git_batch self-test: {'GREEN' if not fails else 'RED'} ({len(fails)} failure(s)) ===")

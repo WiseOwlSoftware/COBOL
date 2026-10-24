@@ -98,5 +98,7 @@ public sealed class GitBatchDriftTests
             "diff_names: one block per pair, empty diffs included, as `git diff --name-only` per pair",
             "diff_patches: each pair's -U0 patch of the pathspec, as `git diff -U0` per pair",
             "object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",
+            "patch_ids: each commit as `git show | git patch-id --stable` gives it, a root commit included, merges absent",
+            "patch_ids: a cherry-pick of a commit shares its id (the key `git cherry` matches on)",
         ]);
 }
