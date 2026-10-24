@@ -1126,7 +1126,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// the content and never an arithmetic read, so a binary32 item takes the binary32 lane (kb/Work PB961). Every
     /// boundary that meets a native side and an image-carried side of the same numeric description asks it: the
     /// INVOKE copy-out and RETURNING into native storage (kb/Work PB970), the universal (object) crossing's box over
-    /// an image-carried side and the numeric-image place's write arm (kb/Work PB187). It is the inverse of
+    /// an image-carried side, the numeric-image place's write arm (kb/Work PB187) and an overlapping MOVE's in-place
+    /// store into a native receiver (MoveEmitter.EmitInPlaceStore, kb/Work PB1910). It is the inverse of
     /// <see cref="ImageOfCarrier"/>; the fixed-point half is <c>CobolNum.StoreImage</c>, the write half of
     /// <c>FormatImage</c>.</summary>
     internal static string CarrierOfImage(string image, DataItem item) =>

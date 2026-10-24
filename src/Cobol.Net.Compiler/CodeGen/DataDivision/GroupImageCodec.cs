@@ -281,6 +281,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
                 return EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!,
                     item.BlankWhenZero, pic.CurrencyString, pic.DecimalPointIsComma, pic.EditingRules));
+            // A Format-6 `ALL literal-1` is the literal repeated to the item's size (§8.3.3.6.4 GR2) — the SAME reader
+            // the record-struct lane asks (ValueInitializer.AllLiteralInitializer), or the image seeds the parse text.
+            if (vals.AllLiteralInitializer(raw, pic) is { } allFill) return allFill;
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             if (pic.Category is PicCategory.National)
