@@ -1,4 +1,58 @@
-## PB670: at --std 85 the file sharing facility is not in effect, so no clause-less connector refuses another and no OPEN answers 61
+## Entry 2426 — 2026-10-23 17:21 PDT — Commit control on the file registry: a deactivated clause releases its files (PB3541); PB670: at --std 85 the file sharing facility is not in effect, so no clause-less connector refuses another and no OPEN answers 61
+
+### Commit control on the file registry: a deactivated clause releases its files (PB3541)
+
+**PB3541 (wave 1157, group A).** A file connector put under commit control by an APPLY COMMIT clause stayed under it after
+the clause was deactivated. Re-probed on 07bfc3606: a main program whose clause names only WS-X calls a subprogram whose
+clause names the EXTERNAL RELATIVE file RELF, CANCELs it and COMMITs, so §14.9.7.4 GR3 (*"The COMMIT statement also
+deactivates any APPLY COMMIT clauses in exited initial programs and canceled runtime elements"*) deactivates the
+subprogram's clause; a third program, with no clause, then writes record 1 of RELF, and the main program's ROLLBACK undid
+it (`RECORD 1 ABSENT`). §14.9.36.4 GR3 restores only *"files and data-items referenced in active APPLY COMMIT clauses"*, and
+§12.4.6.3.4 GR5 makes a canceled element's clause active only until that deactivation. The mechanism: `TransactionControl`
+dropped the retired participant and nothing undid `FileRegistry.RegisterCommitControl`, which has no inverse, so the
+connector kept `CommitControlled` (its WRITEs journaled into the run unit's transaction, §14.6.13.1.3 item 8 still due on its
+fatal statuses) and the implicit AUTOMATIC posture of §9.1.16.
+
+The fix: each participant keeps the file connectors it put under commit control, and `TransactionControl.DeactivateRetired`,
+the one deactivation (a successful COMMIT and every ROLLBACK), takes each file a deactivated clause named that no remaining
+active clause names out of commit control through the new `FileRegistry.ReleaseCommitControl`, which clears the flag and puts
+back the file control entry's own lock posture (the registration now records it; a displaced connector forgets it with its
+share). A transaction whose rollback the medium refused stays owed: the registry finds it by its open transaction id, not by
+the flag. Witnesses: `TransactionControlTests.A_file_whose_last_clause_is_deactivated_is_no_rollbacks_and_no_item_8s`
+(COMMIT and ROLLBACK arms, RELATIVE and INDEXED), `A_deactivated_clause_gives_the_file_its_declared_lock_posture_back` (the
+entry's MANUAL posture back, RED on a mutant that keeps the AUTOMATIC share) and the golden `cases/14.9.7-COMMIT/pb3541_deactivated_clause_releases_its_file`,
+RED on a mutant that skips the release. DESIGN-runtime-library.md 2.2.1.10's compiler-half paragraph states the release.
+
+**PB3492 re-probed and settled; PB3340 not started (the group SPLIT at the note boundary).** On this branch's build a RELATIVE
+file under APPLY COMMIT answers '62' to a DELETE FILE after its CLOSE (its own kept handle read as another holder's by
+`HostFile.IsHeldByAnother`), and the re-probe found a sibling with the same root: an OPEN OUTPUT of an existing keyed file
+after a COMMIT, then a ROLLBACK, leaves the file empty (`RECORD 1 ABSENT`), because `KeyedConnector.Recreate` ends the kept
+transaction when the creation lands. The owner question PB3492 carried is answered by the standard: the NOTE under §14.9.10.4
+GR15 says such files *"can still be deleted, however if they are, then in the event of a rollback they will be restored"*, and
+GR15's conflict is a file *"locked by another file connector"*. DESIGN-runtime-library.md 2.2.2.14 now settles the shape: the
+keyed organizations' two capture verbs ride PB3340's journal (the before file copied through the kept handle, the `K`
+record, then the creation or the removal; ROLLBACK restores the before file and rolls back the run unit's transaction inside
+it), and it records the one primitive the journal design assumes and the runtime lacks, a directory sync, for the
+`IHostMedium` seam to own.
+
+**PB3340, the journal and its medium (wave 20261024, group A).** The predecessor's five commits were cherry-picked onto
+5229bde65 and re-gated GREEN (run 000001). The sequential journal of DESIGN-runtime-library.md 2.2.2 is now code, written
+from the executable model (`scripts/models/sequential_journal_model.py`) operation for operation:
+`IO/Sharing/SequentialJournal.cs` holds the three transient files, the id drawing, the record format (a 24-byte header with
+its CRC-32C, then `L`, `R`, `K` and `D` records each CRC-framed, a torn tail ending the records), the write-ahead rules R1 to
+R5, COMMIT's three regions, the idempotent ROLLBACK, the settle, the entry step, the lock test's journal arm and the entry
+mutex (`HostRegionLocks.EntryMutexByte`, held through a new handle-free `SidecarRegionLocks.WithoutHandle` on every host).
+Every operation it makes on the operating environment goes through the new `IHostMedium` seam, whose production medium
+spends three new `HostFile` roles (the transient journal file, the restore handle, the directory sync of
+`IO/Sharing/HostDirectory.cs`: `FlushFileBuffers` on a backup-semantics directory handle on Windows, `open` and `fsync`
+elsewhere). `tests/Cobol.Net.Tests.Unit/Journal/` runs 2.2.2.12's rows over real files through a fault-injecting medium that
+refuses, kills or cuts the power at every operation (four power-loss shapes: everything unsynced lost, all kept, the data
+file's kept and the journal's lost, the converse), each followed by the next entry, and asserts the model's I1 and I3. Its
+worth was proved by mutation: each of R1, R2, R3 and R4 broken, and the branch review's R1-1 put back, turned the sweep RED on
+its own rows. The SEQUENTIAL connector does not drive the journal yet; its kept handle, the verb hooks and the compiler's
+acceptance of the operand are the rest of PB3340.
+
+### PB670: at --std 85 the file sharing facility is not in effect, so no clause-less connector refuses another and no OPEN answers 61
 
 Owner determination 2026-10-23, option (i). Re-probe on this build before the change: two clause-less SELECTs on one file at `--std 85`
 (`OPEN INPUT` x2, then `OPEN I-O`, `OPEN EXTEND`, `OPEN OUTPUT` beside them) answered 00 00 61 61 61 and 61 61 for the later pairs; the same program
@@ -54,3 +108,4 @@ Review round 1 (R1-1): gate run 000001-20261023T230921Z RED on `StoreCoherenceTe
 **Review round 2 (R2-1).** Narrowing the 85 reader to the release generation (R1-1) made a sibling OPEN OUTPUT's truncation invisible: `OpenCore`'s OUTPUT arm announced nothing, so an open INPUT reader kept serving read-ahead records the file no longer held (the reviewer's tr.cob: 50 records, OPEN INPUT + READ, OPEN OUTPUT on a second SELECT of the same path, READ answered 00 OLD-0002 where the file is empty; at the round-1 head the per-frame re-anchor answered 10). Root fix: the OUTPUT arm calls `NoteRelease()` (a truncation is a writer of the medium; the old comment "a truncating sibling cannot arise" is true only from 2002, where Table 19 refuses it). Pinned by `AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader` (fails without the call: the READ answers 00) and, as the sibling-arm sweep, `AtCobol85_ASiblingOutputThatTruncatesAKeyedStoreIsHeardByAnOpenReader` (RELATIVE, INDEXED: already correct, the store is read per statement). Other writers of the medium swept: EXTEND appends (reader finds them through the release generation), REWRITE (NoteRelease), the delete/replace of a keyed store (per-statement coherence). Citation checked: 14.9.30.4 21) c) "existing record in the physical file".
 
 Review round 2 gate: run `TestResults/build-local/000001-20261023T234903Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 35,180/35,811 incl. the 4 new truncation rows Passed, Conformance 10,461/18,327); `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD ec063deb2) ===`; semgrep verify PASS.
+
