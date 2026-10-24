@@ -925,13 +925,11 @@ def self_test() -> int:
     check("a change to the file a sweep sets aside by name (its rule's owner) names that sweep (tier 0d)",
           "CatalogCoverageDriftTests" in reach.drift_tests, sorted(reach.drift_tests))
     # Tier 0d with NO impact map (kb/Work PB3247): each changed file names the drift test the landing's Linux leg found
-    # red on it — a test naming the file, and tests reading it only through a shared helper class (TraceabilityInventory,
-    # WorkRegister, SuiteManifest) or a TestRepo helper the index once lacked (`Kb`).
-    for f, want in [("tests/version-matrix/traceability-inventory.json", {"SpecTraceabilityInventoryDriftTests",
-                                                                          "ClosesRowsBackLinkDriftTests"}),
+    # red on it — a test naming the file, and tests reading it only through a shared helper class (SuiteManifest) or a
+    # TestRepo helper the index once lacked.
+    for f, want in [("tests/version-matrix/traceability-inventory.json", {"SpecTraceabilityInventoryDriftTests"}),
                     ("docs/CONFORMANCE.md", {"AnnexA1RegisterDriftTests"}),
                     (copy + "copy-library-text.cob", {"ConstantNameLiteralPositionDriftTests"}),
-                    ("kb/Work/PB3247.md", {"ClosesRowsBackLinkDriftTests", "EcRaiseSiteRegistryDriftTests"}),
                     # kb/Work PB3112: the reads a test spells with a nested call, a constant or a wrapper's callers.
                     ("src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4", {"ArithmeticOperandRoleDriftTests",
                                                                           "SendingOperandDriftTests",

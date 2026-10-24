@@ -33,10 +33,12 @@ What is NOT inert, and why, measured 2026-10-23 (deleting each candidate and run
 then the watch over the whole Linux population): `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every
 doc; twenty-odd Unit and Conformance classes read CONFORMANCE.md, the rule catalog, VERSION_CHANGE_REFERENCE.md);
 `.claude/` and the root `*.md` files (GateLegDriftTests walks them for mode names, ArchReviewFleetDriftTests reads the
-briefs, SelfTestDiscoveryDriftTests classifies the scripts there); `kb/` and `.obsidian/` (LandingPipelineDriftTests'
-`Current` sweep reads every tracked file but the history paths, and the register drift tests read every `kb/Work/`
-note); the `tools/claude-skills` pin. The conflict-marker sweep, which read every tracked file, became an audit
-(scripts/conflict_markers.py) so that it no longer made every path a test input.
+briefs, SelfTestDiscoveryDriftTests classifies the scripts there); the `tools/claude-skills` pin. The conflict-marker
+sweep, which read every tracked file, became an audit (scripts/conflict_markers.py) so that it no longer made every
+path a test input; and `kb/` with `.obsidian/` became inert once the register drift tests (which read every `kb/Work/`
+note through a C# twin of `work.py`'s reader) became the audit `scripts/spec/work_inventory.py`, the retired-name sweep
+of LandingPipelineDriftTests set the vault aside as its siblings do, and EcRaiseSiteRegistryDriftTests stopped reading
+a note.
 """
 from __future__ import annotations
 
@@ -115,6 +117,11 @@ class Classification:
 CLASSIFICATION = Classification(inert={
     "DEVLOG/": "the development log: read by scripts/devlog.py (CI's devlog step, the landing checks, its self-test's "
                "lint of every entry) and by people",
+    "kb/": "the knowledge base and THE work register (kb/Work): read by scripts/spec/work.py and work_inventory.py (the "
+           "gate's WORK REGISTER audit, CI's audits job: the register against the inventory), the audits that cite a "
+           "note, and by people in Obsidian; no test reads it since kb/Work PB2878 (the register drift tests became "
+           "work_inventory.py; the retired-name sweep and the activation-boundary registry stopped reading it)",
+    ".obsidian/": "the Obsidian vault's settings: read by Obsidian alone",
 })
 
 
@@ -243,12 +250,13 @@ def self_test() -> int:
             failures.append(label)
 
     real = CLASSIFICATION
-    expect("the classification: a DEVLOG entry is inert; code, tests, docs, briefs, the register, the knowledge base, "
-           "the root files and the skills pin are not",
-           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "src/a.cs", "tests/b.cs", "docs/CONFORMANCE.md",
-                                        ".claude/skills/x/SKILL.md", "kb/Work/PB1.md", "kb/Spec/x.md", "CLAUDE.md",
-                                        "tools/claude-skills", "DEVLOG", "DEVLOGX/a.md")],
-           [True] + [False] * 10)
+    expect("the classification: a DEVLOG entry, a note of the knowledge base (the register included) and the vault's "
+           "settings are inert; code, tests, docs, briefs, the root files, the skills pin and a name that only starts "
+           "like an inert directory are not",
+           [real.is_inert(p) for p in ("DEVLOG/2428-x.md", "kb/Work/PB1.md", "kb/Compiler/Pipeline.md", ".obsidian/app.json",
+                                        "src/a.cs", "tests/b.cs", "docs/CONFORMANCE.md", ".claude/skills/x/SKILL.md",
+                                        "CLAUDE.md", "tools/claude-skills", "DEVLOG", "DEVLOGX/a.md", "kb", "kbx/a.md")],
+           [True] * 4 + [False] * 10)
     # The mechanics, on a planted classification with a READ entry.
     c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
     expect("a path under an INERT entry is inert; under a READ entry it is not, nor its directory",
