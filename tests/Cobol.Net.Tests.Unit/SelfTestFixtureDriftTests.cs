@@ -42,7 +42,7 @@ public sealed class SelfTestFixtureDriftTests
     /// <summary>
     /// <c>scratch_repo.py --self-test</c> still declares an arm for each guarantee and each audit arm (held from its
     /// source, never run a second time: the self-test runner runs it in every gate and in CI, DESIGN-test-build-ci.md
-    /// §3.14.10, kb/Work PB2882).
+    /// section 3.14.10, kb/Work PB2882).
     /// </summary>
     [Fact]
     public void TheFixtureSelfTest_DeclaresEveryArm() =>
@@ -61,7 +61,17 @@ public sealed class SelfTestFixtureDriftTests
             "audit HELPER: a self-test's nested helper over the module's own git function",
             "audit INIT: a top-level function only self-test code reaches is read by the INIT arm",
             "audit: the code under test's git, and a self-test CALLING it, are no finding",
+            "audit EMPTY: a tree with no self-test code is RED, never a green over nothing",
         ]);
+
+    /// <summary>The tracked Python scripts the text nets read; fewer than a hundred means the listing is broken and the
+    /// nets would pass over nothing.</summary>
+    private static IReadOnlyList<string> Scripts()
+    {
+        var files = TrackedTree.Files(PythonScripts).Where(rel => rel != Fixture).ToList();
+        Assert.True(files.Count > 100, $"only {files.Count} tracked Python scripts listed: the net is broken");
+        return files;
+    }
 
     /// <summary>The fixture's audit: no self-test under the live tools' trees drives git around <c>ScratchRepo</c>.</summary>
     [Fact]
@@ -84,11 +94,8 @@ public sealed class SelfTestFixtureDriftTests
     public void NoScriptButTheFixture_InitsARepository()
     {
         var offenders = new List<string>();
-        foreach (string rel in TrackedTree.Files(PythonScripts))
+        foreach (string rel in Scripts())
         {
-            if (rel == Fixture)
-                continue;
-
             int n = 0;
             foreach (string raw in File.ReadLines(TestRepo.At(rel)))
             {
@@ -117,11 +124,8 @@ public sealed class SelfTestFixtureDriftTests
         Assert.Matches(LocalEnvVarsLiteral, fixture);
         Assert.Matches(OwnIdentityOrMaintenance, fixture);
         var copies = new List<string>();
-        foreach (string rel in TrackedTree.Files(PythonScripts))
+        foreach (string rel in Scripts())
         {
-            if (rel == Fixture)
-                continue;
-
             string text = File.ReadAllText(TestRepo.At(rel));
             if (LocalEnvVarsLiteral.IsMatch(text))
                 copies.Add($"{rel}: runs `git rev-parse --local-env-vars` itself (use scratch_repo.isolate or scrubbed_env)");
