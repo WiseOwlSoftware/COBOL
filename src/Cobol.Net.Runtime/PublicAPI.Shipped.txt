@@ -2643,7 +2643,7 @@ static CobolNet.Runtime.CobolIntrinsics.AbsScaled(System.Int128 v) -> System.Int
 static CobolNet.Runtime.CobolIntrinsics.Acos(CobolNet.Runtime.CobolDec? x) -> double
 static CobolNet.Runtime.CobolIntrinsics.Acos(double x) -> double
 static CobolNet.Runtime.CobolIntrinsics.Annuity(double rate, double periods) -> double
-static CobolNet.Runtime.CobolIntrinsics.AnnuityDec(CobolNet.Runtime.CobolRounding mode, CobolNet.Runtime.CobolDec rate, System.Int128 periods) -> CobolNet.Runtime.CobolDec
+static CobolNet.Runtime.CobolIntrinsics.AnnuityDec(CobolNet.Runtime.CobolRounding mode, CobolNet.Runtime.CobolDec rate, CobolNet.Runtime.CobolDec periods) -> CobolNet.Runtime.CobolDec
 static CobolNet.Runtime.CobolIntrinsics.Asin(CobolNet.Runtime.CobolDec? x) -> double
 static CobolNet.Runtime.CobolIntrinsics.Asin(double x) -> double
 static CobolNet.Runtime.CobolIntrinsics.Atan(double x) -> double

@@ -363,22 +363,13 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     {
         var wide = new Dictionary<string, bool>(StringComparer.Ordinal)
         {
-            ["TestDateYyyymmdd"] = true, ["TestDayYyyyddd"] = true, ["Factorial"] = false, ["Annuity"] = true,
+            ["TestDateYyyymmdd"] = true, ["TestDayYyyyddd"] = true, ["Factorial"] = false,
         };
         Assert.Equal(2, IntakeWidthOffenders(
             """case "TestDateYyyymmdd" or "TestDayYyyyddd": return DateFn(m, IntArg(ic, 0));""", wide).Count);
         Assert.Empty(IntakeWidthOffenders(
             """case "TestDateYyyymmdd" or "TestDayYyyyddd": return DateFn(m, IntArgWide(ic, 0));""", wide));
         Assert.Single(IntakeWidthOffenders("""case "Factorial": return Intrinsic(m, IntArgWide(ic, 0));""", wide));
-        // kb/Work PB637 — ANNUITY's SDIDI arm exactly as it was written (the narrow intake), and as it landed.
-        Assert.Single(IntakeWidthOffenders(
-            """"
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
-            """", wide));
-        Assert.Empty(IntakeWidthOffenders(
-            """"
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
-            """", wide));
         Assert.Empty(IntakeWidthOffenders(
             """/// this arm used to read case "TestDateYyyymmdd": … IntArg(ic, 0)""", wide));
     }
@@ -396,9 +387,6 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         // kb/Work PB636 — RANDOM's seed joined the set: §15.75.3 r2 constrains the sign alone and §15.75.4 r3
         // makes the distinct-sequence subset a floor, so the body declares Int128 and the arm must go wide.
         Assert.True(wide.GetValueOrDefault("Random"), "Random is not paired as a wide body");
-        // kb/Work PB637 — ANNUITY's argument-2 joined the set: §15.9.3 r3 is a sign rule ("a positive integer"), so the
-        // SDIDI body (AnnuityDec) declares Int128 and its arm must go wide.
-        Assert.True(wide.GetValueOrDefault("Annuity"), "Annuity is not paired as a wide body");
         Assert.False(wide.GetValueOrDefault("Factorial", true), "Factorial is not paired as a narrow body");
 
         var examined = new HashSet<string>(StringComparer.Ordinal);
@@ -406,7 +394,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs")), wide, examined);
         // ... and the guard is worthless for an arm it never JUDGED: the four total arms must each have been examined
         // (FIND-STRING's was not, while a mid-line "true" : "false" passed for an arm head).
-        foreach (string arm in new[] { "TestDateYyyymmdd", "TestDayYyyyddd", "FindString", "Random", "Annuity" })
+        foreach (string arm in new[] { "TestDateYyyymmdd", "TestDayYyyyddd", "FindString", "Random" })
             Assert.True(examined.Contains(arm), $"the {arm} arm was not examined — the arm splitter lost it");
 
         Assert.True(offenders.Count == 0,
@@ -415,6 +403,67 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             + "on the VALUE, so §15.3 has no incorrect argument to raise on and the arm must use IntArgWide / "
             + "ArgIntWide; long means the argument rules bound it, so the arm must use IntArg / ArgInt and keep "
             + "the §15.3 landing. Offenders: " + string.Join("; ", offenders));
+    }
+
+    /// <summary>A TOTAL integer argument whose value rides the SDIDI — kb/Work PB637. An SDIDI integer holds 34 significant
+    /// digits at ANY exponent, so it reaches past <c>Int128</c> as well as past <c>long</c>: ANNUITY's argument-2
+    /// (§15.9.3 r3 "a positive integer", no magnitude) is an SDIDI integer the equivalent expression evaluates, and a
+    /// native integer carrier ANYWHERE between the position intake and the body (<c>IntArg</c>, <c>IntArgWide</c>, an
+    /// <c>Int128</c> / <c>long</c> parameter) lands it on a width that ends the run unit
+    /// (<c>ANNUITY(0, 10 ** 40)</c> through <c>IntegerArgWideDec</c> was a fatal EC-SIZE-OVERFLOW). The arm keeps the
+    /// operand on the SDIDI (<c>DecArg</c> over <c>RawArg</c>) and the body takes it as a <c>CobolDec</c>.</summary>
+    private static readonly string[] SdidiIntegerArms = ["Annuity"];
+
+    /// <summary>The arms of <see cref="SdidiIntegerArms"/> that render a native integer intake, by name.</summary>
+    private static List<string> SdidiIntegerOffenders(string rendererSource, ICollection<string>? examined = null)
+    {
+        var offenders = new List<string>();
+        foreach (var (name, arm) in Arms(rendererSource))
+        {
+            if (!SdidiIntegerArms.Contains(name)) continue;
+            examined?.Add(name);
+            if (NarrowIntake.IsMatch(arm) || WideIntake.IsMatch(arm))
+                offenders.Add($"{name}: its integer argument rides the SDIDI past Int128, but the arm lands it on a native carrier");
+        }
+        return offenders;
+    }
+
+    [Fact]
+    public void TheSdidiIntegerDetector_CatchesTheNativeIntakeAndNothingElse()
+    {
+        // kb/Work PB637 — ANNUITY's SDIDI arm as it was written (long), as the first fix wrote it (Int128), and as it stands.
+        Assert.Single(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArg(ic, 1)}")),
+            """"));
+        Assert.Single(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {IntArgWide(ic, 1)}")),
+            """"));
+        Assert.Empty(SdidiIntegerOffenders(
+            """"
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            """"));
+        Assert.Empty(SdidiIntegerOffenders("""// the Annuity arm once read "Annuity" => … IntArg(ic, 1)"""));
+    }
+
+    [Fact]
+    public void IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake()
+    {
+        var examined = new HashSet<string>(StringComparer.Ordinal);
+        var offenders = SdidiIntegerOffenders(
+            File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs")), examined);
+        foreach (string arm in SdidiIntegerArms)
+            Assert.True(examined.Contains(arm), $"the {arm} arm was not examined — the arm splitter lost it");
+        Assert.True(offenders.Count == 0, "kb/Work PB637: " + string.Join("; ", offenders));
+
+        // The body's half: its integer parameter is a CobolDec and no native integer parameter exists beside it.
+        foreach (string arm in SdidiIntegerArms)
+        {
+            var body = typeof(CobolIntrinsics).GetMethod(arm + "Dec", BindingFlags.Public | BindingFlags.Static)
+                ?? throw new InvalidOperationException($"{arm}Dec is gone");
+            Assert.DoesNotContain(body.GetParameters(), p => p.ParameterType == typeof(long) || p.ParameterType == typeof(Int128));
+        }
     }
 
     /// <summary>

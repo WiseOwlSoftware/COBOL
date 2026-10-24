@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb637_annuity_total_periods_unchecked
 *> rules: [AR-15.9.3-3, RV-15.9.4-1]
-*> accept: [2023]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -17,6 +17,8 @@
       *>       31-place receiver holds 1E-19.
       *>   T4  rate 1E-30, n = 10^20: 0.0000000000000000000100000000005 to 31 places (derived in the checked
       *>       program's header: rate / (x - x**2/2 + ...), x = n * ln(1 + rate) = 1E-10 - 5E-41).
+      *>   T5  rate 0, n = N30 * N20 = 10^50, past the 128-bit window: ANNUITY (0 n) = 1 / n, both SDIDI values (§15.4.1
+      *>       NOTE 2); the first fix narrowed the count to 128 bits (review R1-1) and ended the run unit.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB637UNC.
        OPTIONS.
@@ -52,6 +54,11 @@
                DISPLAY "T4=OK"
            ELSE
                DISPLAY "T4=BAD"
+           END-IF
+           IF FUNCTION ANNUITY(0, N30 * N20) = 1 / (N30 * N20)
+               DISPLAY "T5=OK"
+           ELSE
+               DISPLAY "T5=BAD"
            END-IF
            STOP RUN.
        END PROGRAM PB637UNC.

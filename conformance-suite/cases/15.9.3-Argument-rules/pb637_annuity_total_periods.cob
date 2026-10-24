@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb637_annuity_total_periods
 *> rules: [AR-15.9.3-3, RV-15.9.4-1]
-*> accept: [2023]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -28,6 +28,10 @@
       *>       1 - e^(-x) = x - x**2/2 + ..., and the value rate / (x - x**2/2 + ...) = 1E-20 * (1 + 5E-11 + ...)
       *>       = 0.0000000000000000000100000000005 to 31 places. The cancellation costs the written expression ten of
       *>       the SDIDI's 34 digits, which still leaves the 31st place exact.
+      *>   T8  rate 0, n = N30 * N20 = 10^50 - an SDIDI integer far past the 128-bit window (review R1-1: the first fix
+      *>       narrowed the count to 128 bits and a count past 1.7E38 ended the run unit): the value is 1 / 10^50 =
+      *>       1E-50, the same SDIDI value the written expression 1 / (N30 * N20) has (§15.4.1 NOTE 2), too fine for any
+      *>       receiver here, so the relation is the witness.
       *>   T6/T7  rate 0.05: (1 + rate) ** n leaves the decimal128 range (§8.8.1.5.2 r2) at n = 10^6 and at n = 10^20
       *>       alike, so the equivalent expression has no value at either and the function raises ITS size condition
       *>       there - the same one on both sides of the 64-bit window, never an EC-ARGUMENT-FUNCTION that depends on
@@ -99,6 +103,11 @@
                DISPLAY "T5=OK"
            ELSE
                DISPLAY "T5=BAD"
+           END-IF
+           IF FUNCTION ANNUITY(0, N30 * N20) = 1 / (N30 * N20)
+               DISPLAY "T8=OK"
+           ELSE
+               DISPLAY "T8=BAD"
            END-IF
            COMPUTE R5 = FUNCTION ANNUITY(0.05, N6)
                ON SIZE ERROR
