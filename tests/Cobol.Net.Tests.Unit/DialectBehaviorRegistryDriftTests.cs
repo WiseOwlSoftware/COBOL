@@ -66,9 +66,9 @@ public sealed class DialectBehaviorRegistryDriftTests
             Assert.True(ids.Add(row.Id), $"duplicate DialectBehaviors id '{row.Id}'");
             Assert.Matches("^[a-z0-9]+(-[a-z0-9]+)*$", row.Id);
             Assert.Contains(row.ChangedIn, new[] { 2002, 2014, 2023 });
-            Assert.True(row.VcrRow > 0, $"{b}: no VERSION_CHANGE_REFERENCE row");
+            Assert.Matches("^[0-9]+([.][0-9]+)?$", row.VcrRow);
             Assert.False(string.IsNullOrWhiteSpace(row.SpecRef), $"{b}: no normative clause");
-            Assert.False(string.IsNullOrWhiteSpace(row.AnnexRef), $"{b}: no Annex E item");
+            Assert.False(string.IsNullOrWhiteSpace(row.AnnexRef), $"{b}: no Annex E item or Annex A.4 module");
             Assert.False(string.IsNullOrWhiteSpace(row.Title), $"{b}: no title");
         }
     }
@@ -85,7 +85,7 @@ public sealed class DialectBehaviorRegistryDriftTests
         var bad = new List<string>();
         foreach (var row in DialectBehaviors.All.ToArray())
         {
-            string want = row.VcrRow.ToString();
+            string want = row.VcrRow;
             var hit = anchors.FirstOrDefault(a => a.Row == want && a.Id == row.Id);
             if (hit.Line is null)
             {
