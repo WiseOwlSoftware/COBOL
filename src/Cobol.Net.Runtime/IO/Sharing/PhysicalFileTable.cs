@@ -22,12 +22,25 @@ internal enum RecordLockHolder
 /// SELECTs bound to one resolved host path are two connectors over one physical file within one run unit). One
 /// instance owned by the <see cref="FileRegistry"/>: the per-host open-connector table (sharing mode + open mode
 /// — the Table-19 conflict inputs) and the record locks (owner connector per record id).
+/// <para>⛔ THE TABLE IS KEYED BY THE PHYSICAL FILE, NOT BY ITS PATH (kb/Work PB3576; the twin of <see cref="StoreTable"/>'s rule,
+/// kb/Work PB3533): a path names a physical file only at the instant it is asked. A state remembers the host's identity of the
+/// file it stands for (<see cref="State.Identity"/>) and is found by it (<see cref="For"/>): a file removed or renamed away and
+/// another made at its path outside the run unit — which a host that lets a file be unlinked under an open handle (Linux)
+/// permits — gets a state of its own, so the new file meets none of the old file's Table 19 entries, file locks or record locks;
+/// and the old file, reached under its new name, meets them all. The path finds a state only for a file that is absent or whose
+/// identity the host cannot tell. A state stays what its connectors reach through their association
+/// (<see cref="FileConnector.Physical"/>) and what a CLOSE under commit control kept (<see cref="KeptFile.Physical"/>).</para>
 /// </summary>
 internal sealed class PhysicalFileTable
 {
-    /// <summary>The live state of one physical file (keyed by resolved host path).</summary>
+    /// <summary>The live state of one physical file (<see cref="For"/>).</summary>
     internal sealed class State
     {
+        /// <summary>The host's identity of the physical file this state stands for (<see cref="HostFile.IdentityOf"/>), or null
+        /// while no connector's handle or the path has told it (an absent file, or a host that cannot tell). Set once, by
+        /// <see cref="PhysicalFileTable.Learn"/>, which also makes the state findable by it.</summary>
+        public PhysicalFileIdentity? Identity { get; internal set; }
+
         /// <summary>connector name → the (sharing mode, open mode) it is currently open under — Table 19's two
         /// conflict inputs. EVERY successful OPEN is here, not only the connectors that wrote a SHARING or LOCK
         /// MODE clause (§9.1.15's gate is written over the physical file, kb/Work PB321); a connector with
@@ -99,20 +112,48 @@ internal sealed class PhysicalFileTable
     /// <summary>The per-run-unit record-lock ceiling (§12.4.5.9.4 GR7 — implementor max, ≥255) → status 53.</summary>
     private const int RunUnitLockMax = 255;
 
-    private readonly Dictionary<string, State> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
+    /// <summary>The state of a path whose file is absent, or whose identity the host cannot tell (kb/Work PB2748: the path is
+    /// compared under the host's case rule).</summary>
+    private readonly Dictionary<string, State> _byHost = new(HostFile.PhysicalFileComparer);
 
-    /// <summary>The state for <paramref name="host"/>, created on first reference.</summary>
-    public State For(string host)
+    /// <summary>The state of every physical file the host could tell, by the file, whatever it is named.</summary>
+    private readonly Dictionary<PhysicalFileIdentity, State> _byIdentity = [];
+
+    /// <summary>⛔ THE STATE OF THE PHYSICAL FILE <paramref name="host"/> NAMES AT THIS INSTANT, whose host identity is
+    /// <paramref name="identity"/> (<see cref="HostFile.IdentityAt"/>; null: the path names no file, or the host cannot tell),
+    /// created on first reference. A file the table knows by its identity has ITS state, under whatever name; a file it does not
+    /// know takes the state the path held for it while it was absent, or a new one. A path that names no file has the state of
+    /// the absent path (one the table never learned a file for: the file this state's file was is no longer there).</summary>
+    public State For(string host, PhysicalFileIdentity? identity)
     {
-        if (!_byHost.TryGetValue(host, out var st)) _byHost[host] = st = new State();
-        return st;
+        if (identity is { } id)
+        {
+            if (_byIdentity.TryGetValue(id, out var known)) return known;
+            var named = _byHost.TryGetValue(host, out var held) && held.Identity is null ? held : _byHost[host] = new State();
+            Learn(named, id);
+            return named;
+        }
+        if (_byHost.TryGetValue(host, out var st) && st.Identity is null) return st;
+        return _byHost[host] = new State();
     }
 
-    /// <summary>The state for <paramref name="host"/> if one exists (no creation).</summary>
-    public bool TryGet(string host, out State st) => _byHost.TryGetValue(host, out st!);
+    /// <summary>Record that <paramref name="st"/> stands for the physical file of <paramref name="identity"/> (null: the host
+    /// cannot tell) unless it already knows its file, and make it findable by it. A connector's open handle tells it once the
+    /// OPEN has made the file (<c>FileRegistry.SharedOpenAttempt</c>), which an OPEN OUTPUT of an absent path creates. A file the
+    /// table already holds a state for stays with that state (an identity two states claim cannot arise from one host's answers
+    /// unless a file was made while its path was probed: the first state keeps it).</summary>
+    public void Learn(State st, PhysicalFileIdentity? identity)
+    {
+        if (st.Identity is not null || identity is not { } id) return;
+        if (_byIdentity.TryAdd(id, st)) st.Identity = id;
+    }
 
     /// <summary>Drop every physical-file state (run-unit start hygiene).</summary>
-    public void Clear() => _byHost.Clear();
+    public void Clear()
+    {
+        _byHost.Clear();
+        _byIdentity.Clear();
+    }
 
     /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/>; re-locking a
     /// record the connector already holds is idempotent (§9.1.16: <i>"A locked record may be re-accessed by the same
@@ -328,7 +369,9 @@ internal sealed class PhysicalFileTable
     private int TotalRunUnitLocks()
     {
         int n = 0;
-        foreach (var st in _byHost.Values) n += st.RecordLocks.Count;
+        foreach (var st in _byIdentity.Values) n += st.RecordLocks.Count;
+        foreach (var st in _byHost.Values)
+            if (st.Identity is null) n += st.RecordLocks.Count;   // the others are counted above
         return n;
     }
 }

@@ -212,7 +212,7 @@ public sealed class FileRegistry
     /// connector holding anything: every other CLOSE released it all (<see cref="SharedClose"/>).</summary>
     private void Retire(string name)
     {
-        if (_files.TryGetValue(name, out var c) && c is KeyedConnector k && k.TakeKept() is { } kept) _retired.Add((name, kept));
+        if (_files.TryGetValue(name, out var c) && c is KeyedConnector k) k.RetireKept();
     }
 
     /// <summary>⛔ THE ELEMENT'S NEXT ACTIVATION OPENS WHAT ITS PREVIOUS ONE'S CLOSE KEPT (review finding R1-1): the
@@ -258,7 +258,7 @@ public sealed class FileRegistry
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
         {
             IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
-            KeyCheck = KeyCheck, Edition = edition,
+            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)),
         };
     }
 
@@ -275,7 +275,7 @@ public sealed class FileRegistry
             (KeyedAccess)accessMode, primeKey, varyMin, varyMax, primeCollation)
         {
             IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
-            KeyCheck = KeyCheck, Edition = edition,
+            KeyCheck = KeyCheck, Edition = edition, KeptSink = kept => _retired.Add((cobolName, kept)),
         };
     }
 
@@ -804,7 +804,7 @@ public sealed class FileRegistry
         // must still answer '51'), and re-taken when GR11 b)'s NO LOCK release had given it up.
         if (c.RecordLockHeldBeforeRead is { } held && c.LastReadRecordId is { Length: > 0 } lockedId)
         {
-            var st = _physical.For(c.HostPath);
+            var st = PhysicalOf(c);
             if (held) _physical.LockRecord(st, name, lockedId, c);
             else PhysicalFileTable.ReleaseSingle(st, name, lockedId);
         }
@@ -1420,7 +1420,9 @@ public sealed class FileRegistry
         // ImplementorDefaultSharing) and so is one of the three modes Table 19 prints.
         var posture = ShareOf(name);
         FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode, c.Edition);
-        var st = _physical.For(c.HostPath);
+        // ⛔ THE STATE OF THE PHYSICAL FILE THE PATH NAMES AT THIS INSTANT (kb/Work PB3576): a file removed or renamed away outside
+        // the run unit and another made at the path is another file, with none of the first one's Table 19 entries or locks.
+        var st = _physical.For(c.HostPath, HostFile.IdentityAt(c.HostPath));
         // ⛔ THE ARBITRATION BELONGS TO THE FILE SHARING FACILITY, a COBOL-2002 module (kb/Work PB670): a COBOL-85 program
         // is compiled for a processor on which neither Table 19 nor its '61' exists (ISO §A.4.1: the facility's rules and
         // I-O status values are optional with it), and the sharing mode its connectors hold is the implementor's own,
@@ -1480,6 +1482,7 @@ public sealed class FileRegistry
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §9.1.13.2
         {
             st.Open[name] = (sharing, mode);   // register only a successful open
+            if (st.Identity is null && c.FileLock is { } held) _physical.Learn(st, HostFile.IdentityOf(held.SafeFileHandle));   // the handle tells which file (PB3576)
             // ⛔ NOTHING AFTER c.Open(mode) MAY TOUCH THE PHYSICAL FILE (kb/Work PB713). A record-locking
             // participant that is SEQUENTIAL needs its write-ordinal base (§9.1.16 lock identity for the records
             // it releases; §14.9.51.4 GR18/GR19 — EXTEND appends continue the numbering the file had "when it
@@ -1818,7 +1821,7 @@ public sealed class FileRegistry
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         c.RecordLockHeldBeforeRead = null;   // this READ has run no lock action yet (ApplyPostReadLockActions sets it)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
-        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
+        var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — released by the EXECUTION of the statement, so before anything
         // can make it unsuccessful, exactly as the three mutating verbs do it.
         ReleasePriorRecordLocks(meta, st, name);
@@ -1918,7 +1921,7 @@ public sealed class FileRegistry
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         c.RecordLockHeldBeforeRead = null;   // this READ has run no lock action yet (ApplyPostReadLockActions sets it)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
-        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
+        var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — on EXECUTION
         string peek = NoLockQuestion(st, c) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage, areaExtents);
         if (peek.Length > 0)
@@ -1969,7 +1972,7 @@ public sealed class FileRegistry
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
-        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
+        var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.51.4 GR10 / §12.4.5.9.4 GR6
         // GR11. Under commit control the WRITE's implied lock (2.2.1.10, finding R2-3) is the transaction's HOLDING of the
         // record, written into the file by the WRITE itself, never a region byte that dies with the handle (finding R4-1).
@@ -2029,7 +2032,7 @@ public sealed class FileRegistry
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
-        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
+        var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         // The record identity costs an allocation on the keyed organizations, so it is taken only when some
         // §9.1.16 question can have a non-trivial answer; with no lock on the file and none to set, every arm
         // below is a no-op whatever the target is (kb/Work PB669).
@@ -2087,7 +2090,7 @@ public sealed class FileRegistry
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
-        var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
+        var st = PhysicalOf(c);   // the file the connector's last OPEN arbitrated (§12.4.5.3 GR3 associates at the OPEN, kb/Work PB3576)
         // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
         string target = MutationTarget(meta, st, name, c, keyedRecordImage, areaExtents);
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.10.4 GR7 a) 2. — released at the beginning
@@ -2151,7 +2154,7 @@ public sealed class FileRegistry
         // §9.1.13.1 — a permanent error in effect makes UNLOCK unsuccessful too, with the status that began it
         // (kb/Work PB1541); it releases nothing, like every statement the condition holds.
         if (c.PermanentErrorInEffect is { } stuck) { c.SetStatus(stuck); return; }
-        if (_physical.TryGet(c.HostPath, out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
+        PhysicalFileTable.ReleaseAllForConnector(PhysicalOf(c), name);
         c.SetStatus(FileStatusCode.Success);
     }
 
@@ -2160,23 +2163,23 @@ public sealed class FileRegistry
     /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/> (§12.4.5.9.4 GR7
     /// ceilings enforced). Returns 00 on grant.</summary>
     public string LockRecord(string name, string recId) =>
-        _physical.LockRecord(_physical.For(HostPathOf(name)), name, recId, _files.GetValueOrDefault(name));
+        _physical.LockRecord(PhysicalOf(name), name, recId, _files.GetValueOrDefault(name));
 
     /// <summary>True when <paramref name="recId"/> is locked by a connector OTHER than <paramref name="name"/>.</summary>
     public bool IsLockedByOther(string name, string recId) =>
-        PhysicalFileTable.HolderOf(_physical.For(HostPathOf(name)), name, recId, _files.GetValueOrDefault(name))
+        PhysicalFileTable.HolderOf(PhysicalOf(name), name, recId, _files.GetValueOrDefault(name))
             != RecordLockHolder.None;
 
     /// <summary>Release every record lock held by <paramref name="name"/> on its physical file (UNLOCK, CLOSE).</summary>
     public void ReleaseAllForConnector(string name)
     {
-        if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
+        PhysicalFileTable.ReleaseAllForConnector(PhysicalOf(name), name);
     }
 
     /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, §12.4.5.9.4 GR6).</summary>
     public void ReleaseSingle(string name, string recId)
     {
-        if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseSingle(st, name, recId);
+        PhysicalFileTable.ReleaseSingle(PhysicalOf(name), name, recId);
     }
 
     /// <summary>Evaluate <paramref name="attempt"/> under the RETRY discipline (ISO §14.7.9.3 — see
@@ -2289,6 +2292,19 @@ public sealed class FileRegistry
     /// state: it changes at every OPEN/SORT/MERGE, so nothing may cache it.</summary>
     public string HostPathOf(string name) => _files.TryGetValue(name, out var c) ? c.HostPath : name;
 
+    /// <summary>⛔ THE PHYSICAL-FILE STATE A CONNECTOR'S RECORD STATEMENTS AND LOCKS ARE OVER (kb/Work PB3576): the one its last OPEN
+    /// arbitrated (<see cref="FileConnector.AssociatePhysical"/>), which stays the connector's while the file at its path is
+    /// replaced outside the run unit — a path lookup would hand it the new file's state, and the old file's record locks (what a
+    /// CLOSE under commit control keeps among them) would be invisible to it. A connector never opened through this registry has
+    /// no association, and the state is the one its path names now (<see cref="PhysicalFileTable.For"/>).</summary>
+    private PhysicalFileTable.State PhysicalOf(FileConnector c) =>
+        c.Physical ?? _physical.For(c.HostPath, HostFile.IdentityAt(c.HostPath));
+
+    /// <summary><see cref="PhysicalOf(FileConnector)"/> of the connector registered as <paramref name="name"/>; for a name that
+    /// is none, the key stands for its own bucket (<see cref="HostPathOf"/>).</summary>
+    private PhysicalFileTable.State PhysicalOf(string name) =>
+        _files.TryGetValue(name, out var c) ? PhysicalOf(c) : _physical.For(name, null);
+
     private void SetStatusOf(string name, string status) => Require(name).SetStatus(status);
 
     /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (§9.1.15's <i>"The file
@@ -2301,7 +2317,7 @@ public sealed class FileRegistry
     /// deregistered under its OWN host path, before its replacement is stored.</summary>
     private void SharedClose(string name, FileConnector c)
     {
-        if (!_physical.TryGet(c.HostPath, out var st)) return;
+        if (c.Physical is not { } st) return;   // never opened through this registry: nothing registered
         st.Open.Remove(name);
         // The lock release is guarded on there being locks at all: this now runs on EVERY close of EVERY file,
         // and ReleaseAllForConnector's Where/Select/ToList would otherwise allocate a closure and an empty list
