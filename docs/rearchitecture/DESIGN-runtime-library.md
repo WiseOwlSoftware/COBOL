@@ -3190,11 +3190,21 @@ transaction going with the before file. The keyed transaction and the journal ar
 (the journal's), in the journal's place in the order of the open files. **A CREATION** (2.2.2.2 (e): an OPEN OUTPUT of an
 absent relative or indexed file, an OPEN I-O or EXTEND of an absent OPTIONAL one) begins the journal with START `A` before the
 handle creates the file (`KeyedConnector.JournalCreation`, R1), so its ROLLBACK removes the file, every handle of the run unit
-on it given back first (`FileRegistry.KeyedJournalData.Release`). **The determination for a connector still OPEN at that
-ROLLBACK** (§14.9.36.4 GR3 restores files and leaves open connectors open; an open keyed connector stands on a physical file
-and its page store): the file stays as its OPEN created it, the run unit's keyed transaction in it rolled back (no records:
-the state of the creation), and the journal stays open, so the ROLLBACK after the connector's CLOSE removes the file and a
-COMMIT keeps it. **An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
+on it given back first (`FileRegistry.KeyedJournalData.Release`) — **a connector still OPEN on it included** (branch review
+R1-2: §14.9.36.4 GR3 restores the state that had no file, with no implementor latitude, and leaves the open mode as it is, the
+sequential organization's rule of 2.2.2.7). The open connector's keyed transaction is rolled back, then it leaves the file
+(`KeyedConnector.LeaveTheRemovedFile`: the store left, the handle given back, the Table 19 column suspended,
+`FileConnector.SuspendRunUnitFileLock`) and stays in its open mode on no file, holding the absent OPTIONAL file's placeholder
+store: a READ or START answers as for an absent OPTIONAL file ('10', '23'), a REWRITE or DELETE finds no record, and its
+physical-file state stops claiming the removed file (`PhysicalFileTable.ForgetFile`). Its next WRITE, at its last check (so a
+WRITE the empty file refuses creates nothing), creates the file again as its OPEN did — under the entry mutex, a new START `A`
+journal, the creating handle, the empty store, the column resumed (`KeyedConnector.WriteCreatingTheFileAgain`) — and runs
+inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30'). A run
+unit that writes nothing more leaves no file (its normal end commits nothing and its implicit CLOSE keeps nothing). The
+sequential twin gives its column back at the removal too (`SequentialConnector`'s `IJournalData.Release`, resumed by
+`BeginAppending`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
+file (witness `unit:SequentialCommitControlTests`' `A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write`).
+**An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
 created the file, a capture refused before its `K`, a creation refused and undone (`KeyedStore.FileReplaced` false) —
 WITHDRAWS it (`SequentialJournal.Withdraw`: `D R` and the retirement; §14.9.27.4 GR25, *"the file is not affected"*), so the
 kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK. **The entry

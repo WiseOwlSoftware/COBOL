@@ -433,6 +433,17 @@ public abstract class FileConnector
     /// (<see cref="TakeRunUnitFileLock"/>).</summary>
     private bool _runUnitLockWasKept;
 
+    /// <summary>⛔ THE OPEN CONNECTOR'S FILE LOCK WHILE ITS FILE IS NOT THERE (DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review
+    /// finding R1-2): a ROLLBACK removes the file a creation since the last COMMIT made (§14.9.36.4 GR3) while this connector
+    /// stays open, so the column the OPEN published is given back for the removal (<see cref="RunUnitFileLock.Suspend"/>: on a
+    /// host that publishes it through a handle on the file, that handle refuses the removal), and published again when the
+    /// connector's next WRITE creates the file again (<see cref="ResumeRunUnitFileLock"/>).</summary>
+    private protected void SuspendRunUnitFileLock() => _runUnitLock?.Suspend();
+
+    /// <summary>Publish again the column <see cref="SuspendRunUnitFileLock"/> gave back, the file being there again; false when the
+    /// host cannot.</summary>
+    private protected bool ResumeRunUnitFileLock() => _runUnitLock?.Resume() ?? true;
+
     /// <summary>The unsuccessful OPEN gives its file lock back (§9.1.15: only a SUCCESSFUL opening establishes one) — or, when
     /// it is the kept lock this OPEN amended, returns it to the organization's kept state as the CLOSE left it
     /// (<see cref="TryRestoreKeptFileLock"/>).</summary>

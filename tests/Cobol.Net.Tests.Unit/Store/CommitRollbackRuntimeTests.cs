@@ -1555,34 +1555,60 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>⛔ A KEYED FILE CREATED SINCE THE LAST COMMIT IS ABSENT AGAIN AFTER THE ROLLBACK (§14.9.36.4 GR3, the state at the start
-    /// of the run unit had no file; §14.9.27.4 GR18; 2.2.2.14) — and, the determination for a connector still OPEN on it at the
-    /// ROLLBACK, the file stays as its OPEN created it (no records) with the creation standing, so the ROLLBACK after its CLOSE
-    /// removes it, and a COMMIT keeps it.</summary>
+    /// of the run unit had no file; §14.9.27.4 GR17, GR18; 2.2.2.14) — whether the connector is CLOSEd at the ROLLBACK or still OPEN
+    /// on it (review finding R1-2): the open connector stays in its open mode on no file, so a READ finds no record ('23'), its
+    /// next WRITE creates the file again (the next ROLLBACK removes it again, a COMMIT keeps it with that record), and a run unit
+    /// that writes nothing more and ends normally (§9.1.18.5's COMMIT, then the implicit CLOSE) leaves no file — never the empty
+    /// file the rolled-back creation made.</summary>
     [Theory]
-    [InlineData(FileOrg.Relative, false)]
-    [InlineData(FileOrg.Indexed, false)]
-    [InlineData(FileOrg.Relative, true)]
-    [InlineData(FileOrg.Indexed, true)]
-    public void A_keyed_file_created_since_the_last_commit_is_removed_by_the_rollback(FileOrg org, bool openAtTheRollback)
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, "closed")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, "closed")]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, "write-then-rollback")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, "write-then-rollback")]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, "write-then-commit")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, "write-then-commit")]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, "read-then-end")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, "read-then-end")]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, "write-then-commit")]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, "write-then-commit")]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, "write-then-commit", FileSharing.AllOther)]   // the column suspended and resumed
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, "write-then-rollback", FileSharing.AllOther)]
+    public void A_keyed_file_created_since_the_last_commit_is_removed_by_the_rollback(FileOrg org, FileOpenMode mode, string then,
+        FileSharing sharing = FileSharing.NoOther)
     {
-        string host = Tmp($"pb3492-create-{org}-{openAtTheRollback}");
+        string host = Tmp($"pb3492-create-{org}-{mode}-{then}-{sharing}");
         try
         {
             var a = new FileRegistry();
-            Declare(a, host, org, commit: true, sharing: FileSharing.NoOther, optional: true);
-            a.OpenStatic("F", FileOpenMode.Output);
-            Assert.Equal("00", a.Status("F"));
+            Declare(a, host, org, commit: true, sharing: sharing, optional: true);
+            a.OpenStatic("F", mode);
+            Assert.Equal(mode == FileOpenMode.IO ? "05" : "00", a.Status("F"));   // GR17: an absent OPTIONAL file created
             Assert.Equal("00", Write(a, org, 2, "B002"));
-            if (openAtTheRollback)
-            {
-                Assert.Null(a.Rollback());
-                Assert.True(File.Exists(host));                  // the open connector stands on the file its OPEN created
-                Assert.Equal("00", Write(a, org, 2, "C002"));    // record 2 was rolled back: the creation's empty store
-            }
-            a.Close("F");
+            if (then == "closed") a.Close("F");
             Assert.Null(a.Rollback());
-            a.CloseAll();
-            Assert.False(File.Exists(host));
+            Assert.False(File.Exists(host));   // GR3: the state at the start of the run unit had no file
+            AssertNoJournalLeft(host);
+            string?[]? expected = null;
+            switch (then)
+            {
+                case "write-then-rollback":
+                    Assert.Equal("00", Write(a, org, 2, "C002"));   // the WRITE creates the file again
+                    Assert.True(File.Exists(host));
+                    a.Close("F");
+                    Assert.Null(a.Rollback());
+                    break;
+                case "write-then-commit":
+                    Assert.Equal("00", Write(a, org, 3, "C003"));
+                    Assert.Null(a.Commit());
+                    expected = new string?[10];
+                    expected[3] = Rec(3, "C003");
+                    break;
+                case "read-then-end":
+                    Assert.Equal("23", Read(a, org, 2, out _));     // no file, no record
+                    break;
+            }
+            a.CloseAll();   // §9.1.18.5: the normal end commits, then the implicit CLOSE
+            Assert.Equal(expected, StateOf(host, org));
             AssertNoJournalLeft(host);
         }
         finally { TryDelete(host); }

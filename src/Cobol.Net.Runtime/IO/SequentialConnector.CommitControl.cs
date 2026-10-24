@@ -323,6 +323,7 @@ public sealed partial class SequentialConnector : IJournalData
             journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
             _writer = OpenWriter(FileMode.Append);
             _fileRemoved = false;
+            if (!ResumeRunUnitFileLock()) throw new IOException($"the file lock of '{HostPath}' cannot be published again");   // R5: '30'
             return;
         }
         journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
@@ -486,7 +487,10 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <inheritdoc/>
     /// <remarks>The file is about to be removed (a creation rolled back, START <c>A</c>): the writer and reader over the handle go
-    /// with it, and the connector, which stays in its open mode, notes the removal (<see cref="_fileRemoved"/>).</remarks>
+    /// with it, and the connector, which stays in its open mode, notes the removal (<see cref="_fileRemoved"/>). Its Table 19
+    /// column goes too (<see cref="FileConnector.SuspendRunUnitFileLock"/>, kb/Work PB3492's sibling sweep): where the host
+    /// publishes it through a handle on the file (a SHARING WITH ALL OTHER or READ ONLY connector on Windows) that handle refused
+    /// the removal, and the ROLLBACK answered '30'; the WRITE that creates the file again publishes it again.</remarks>
     void IJournalData.Release()
     {
         try
@@ -496,7 +500,11 @@ public sealed partial class SequentialConnector : IJournalData
         }
         finally
         {
-            if (IsOpen) _fileRemoved = true;
+            if (IsOpen)
+            {
+                _fileRemoved = true;
+                SuspendRunUnitFileLock();
+            }
             (_writer, _reader) = (null, null);
             GiveBackHeld();
         }
