@@ -238,6 +238,7 @@ public abstract class KeyedConnector : FileConnector
     protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         ResetPosition();
+        (_begunByOpen, _openChangedFile) = (null, false);
         // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
         // a refusal can never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
@@ -261,8 +262,13 @@ public abstract class KeyedConnector : FileConnector
                 if ((Lock(create: false) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
                 break;
             case FileOpenMode.Output:
-                // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754)
-                if ((Lock(create: true) ?? Attach(create: true)) is { } refusedOutput) return refusedOutput;
+                // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754). Under commit control an
+                // EXISTING file is captured first (R4, through this OPEN's own handle) and an absent one's creation journaled
+                // before the handle creates it (R1): 2.2.2.14.
+                var refusedOutput = exists
+                    ? Lock(create: true) ?? JournalCapture() ?? Attach(create: true)
+                    : JournalCreation() ?? LockCreating() ?? Attach(create: true);
+                if (refusedOutput is not null) return refusedOutput;
                 break;
             case FileOpenMode.IO:
             case FileOpenMode.Extend:
@@ -271,7 +277,7 @@ public abstract class KeyedConnector : FileConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
-                    if (Lock(create: true) is { } refusedCreated) return refusedCreated;
+                    if ((JournalCreation() ?? LockCreating()) is { } refusedCreated) return refusedCreated;
                     // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the
                     // file this OPEN created is a different one, and nothing of the kept store describes it. The OPEN handed the
                     // kept state to the registry before this body (RetireWhatWasKeptOfAnotherFile), whole, so a refused handle
@@ -286,7 +292,105 @@ public abstract class KeyedConnector : FileConnector
         FpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
         if (Opened(mode) is { } unpositioned) return unpositioned;
         CarryKeptOver();   // the OPEN succeeded: what a CLOSE under commit control kept is this OPEN's now
+        (_begunByOpen, _openChangedFile) = (null, false);   // the journal this OPEN began is the run unit's transaction now
         return status;
+    }
+
+    // ── The whole file's changes under commit control: the run unit's transaction journal (2.2.2.14; kb/Work PB3492) ──
+
+    /// <summary>The run unit's transaction journal on the file, when THIS OPEN began it (<see cref="JournalCreation"/>,
+    /// <see cref="JournalCapture"/>), until the OPEN ends: an unsuccessful OPEN that did not affect the file withdraws it
+    /// (<see cref="AbandonOpen"/>).</summary>
+    private SequentialJournal? _begunByOpen;
+
+    /// <summary>Whether this OPEN changed the physical file: its handle created the file, or its creation replaced the store
+    /// (<see cref="KeyedStore.FileReplaced"/>). An unsuccessful OPEN that did is not withdrawn: its journal stands, and item 8's
+    /// ROLLBACK (§14.6.13.1.3 8), the statement's '30' being fatal) restores the file from it.</summary>
+    private bool _openChangedFile;
+
+    /// <summary>⛔ A CREATION UNDER COMMIT CONTROL IS JOURNALED BEFORE THE FILE EXISTS (2.2.2.2 (e), 2.2.2.5 R1, 2.2.2.14): an OPEN that
+    /// creates an absent file — OUTPUT, or I-O or EXTEND of an OPTIONAL one (§14.9.27.4 GR17, GR18) — begins the run unit's
+    /// transaction on it with no file at its start (START <c>A</c>), under the entry mutex (<see cref="FileConnector.EnterPhysicalFile"/>),
+    /// so its ROLLBACK removes the file: §14.9.36.4 GR3 restores <i>"the state they were in at the execution of the last COMMIT
+    /// statement or the start of the run unit"</i>, and that state had no file. A transaction that stands has journaled what it
+    /// needs already. Returns null; throws on a refusal (the OPEN's '30', the file not created).</summary>
+    private string? JournalCreation()
+    {
+        if (!CommitControlled || Journal is not null) return null;
+        _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent, ofKeyedFile: true);
+        return null;
+    }
+
+    /// <summary>The creating arms' file lock (<see cref="Lock"/>): a handle taken with the creating mode creates the file, which
+    /// this OPEN has then changed (<see cref="_openChangedFile"/>).</summary>
+    private string? LockCreating()
+    {
+        var refused = Lock(create: true);
+        if (refused is null) _openChangedFile = true;
+        return refused;
+    }
+
+    /// <summary>⛔ THE CAPTURE OF AN OPEN OUTPUT OF AN EXISTING FILE UNDER COMMIT CONTROL (2.2.2.5 R4, 2.2.2.14; kb/Work PB3492): the
+    /// keyed store's transaction cannot undo the creation (§14.9.27.4 GR18: <i>"After the creation of the file, the file contains no
+    /// records"</i>), whose pages hold the before-images, so the file's bytes are copied — as they stand, the run unit's uncommitted
+    /// changes and their UNDO pages included — through THIS OPEN's own handle into the journal's before file, synced, and the
+    /// <c>K</c> record synced, all before the creation runs (<see cref="Attach"/>, <see cref="Recreate"/>). Under the entry mutex,
+    /// with no other connector's handle on the file (Table 19's OUTPUT row). Nothing for a transaction already replaced (a second
+    /// OPEN OUTPUT, or one after a DELETE FILE). Returns null; throws on a refusal (the OPEN's '30', the file unaffected).</summary>
+    private string? JournalCapture()
+    {
+        if (!CommitControlled) return null;
+        var journal = Journal;
+        if (journal is { Replaced: true }) return null;
+        journal ??= _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Present, ofKeyedFile: true);
+        journal.Capture(SequentialJournal.CaptureVerb.OpenOutput, _store!);
+        return null;
+    }
+
+    /// <summary>The handle a ROLLBACK of the file's journal restores it through (<c>FileRegistry.RollbackKeyed</c>): this connector's
+    /// own when it is open and writable, else the one its CLOSE kept, if writable; null when it holds none.</summary>
+    internal FileStream? WritableHandle => _store is { CanWrite: true } own ? own : _kept?.WritableStream;
+
+    /// <summary>⛔ The ROLLBACK of the file's journal restored the physical file from its before file (2.2.2.14): the run unit's store
+    /// of it adopts it again through <paramref name="through"/> and rolls back the transaction the restored file holds
+    /// (<see cref="KeyedStore.AdoptRestored"/>) — through this connector's handle when it is open, else through what its CLOSE kept
+    /// (<see cref="KeptFile.AdoptRestored"/>). A connector attached to no store (no connector of the run unit holds the file: its
+    /// OPEN OUTPUT was refused after the creation replaced the file) rolls the restored file's transaction back through a store
+    /// made for that alone, which no table holds.</summary>
+    internal StoreStatus AdoptRestored(FileStream through)
+    {
+        if (_regions is null && _kept is { } kept) return kept.AdoptRestored(through);
+        var store = _attached ? AttachedStore : NewStore();
+        return store.AdoptRestored(through.SafeFileHandle, ReferenceEquals(_store, through) ? _regions : null, HostPath,
+            Restoring, HoldingsOrder);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The kept handle's own share mode refuses the host's probe (on Unix its shared lock refuses the probe's exclusive
+    /// one), so it is given back for the instant of the question, and taken again — attached to the store, the transaction's
+    /// liveness byte through it — only when another handle does hold the file (kb/Work PB3492).</remarks>
+    internal override bool HeldByAnotherAtDelete()
+    {
+        if (_kept is not { Handle: { } kept, Adopted: false }) return ProbeHeldByAnother();
+        _kept = _kept with { Handle = null };
+        GiveBack(kept);
+        if (!ProbeHeldByAnother()) return false;
+        RetakeKeptHandle(kept, unpublished: null);
+        return true;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The handle goes off the kept store, the transaction's liveness byte with it (<see cref="KeptFile.GiveBack"/>): the
+    /// transaction lives in the file being removed, which the journal's before file now holds (2.2.2.14). The Table 19 file lock
+    /// goes too: where the host publishes it through a handle on the file (<see cref="HandleColumnLockHost"/>) that handle would
+    /// refuse the removal ('62' for the connector's own lock), and from the removal on the journal's (ALL) holding is the lock.
+    /// The attachment stays until the COMMIT or ROLLBACK.</remarks>
+    internal override void GiveBackForRemoval()
+    {
+        if (_kept is not { Adopted: false } kept) return;
+        _kept = kept with { Handle = null, FileLock = null };
+        try { if (kept.Handle is { } handle) GiveBack(handle); }
+        finally { kept.FileLock?.Dispose(); }
     }
 
     /// <summary>The file lock of an arm that has a physical file (<see cref="TakeFileLock"/>), taken only for a declaration
@@ -331,9 +435,13 @@ public abstract class KeyedConnector : FileConnector
     /// on it (kb/Work PB3499): <see cref="Lock"/>, which opens the handle with it, and <see cref="WillTakeWritableHandle"/>, which
     /// the file lock publishes as "owes writes" when the mode is INPUT (<c>FileConnector.OwesWrites</c>). While the run unit's transaction on the file STANDS and the
     /// handle a CLOSE under commit control kept is WRITABLE, the re-OPEN's handle is writable whatever its mode
-    /// (<see cref="Lock"/>'s determination); otherwise it takes <see cref="HostAccess"/> of its own mode and no more.</summary>
+    /// (<see cref="Lock"/>'s determination); otherwise it takes <see cref="HostAccess"/> of its own mode and no more.
+    /// <para>⛔ So is it while the run unit's journal on the file stands REPLACED (2.2.2.14; kb/Work PB3492): its ROLLBACK restores the
+    /// file from the before file through a handle of the run unit, and an INPUT re-OPEN's read-only handle could neither serve as
+    /// that one nor admit another beside it.</para></summary>
     private FileAccess HandleAccess(FileOpenMode mode) =>
-        _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0 ? FileAccess.ReadWrite : HostAccess(mode);
+        _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0 || Journal is { Replaced: true }
+            ? FileAccess.ReadWrite : HostAccess(mode);
 
     /// <inheritdoc/>
     private protected sealed override bool WillTakeWritableHandle(FileOpenMode mode) =>
@@ -438,6 +546,7 @@ public abstract class KeyedConnector : FileConnector
                 PhysicalFileTable.Rehome(physical, carried.Endpoint, _regions!);
             return status;
         });
+        if (create) _openChangedFile |= store.FileReplaced;
         return Failed(opened);
     }
 
@@ -454,6 +563,9 @@ public abstract class KeyedConnector : FileConnector
     /// refusal whose UNDO the medium refused too (review finding R1-1) — kept, the transaction would stand over a store the
     /// file no longer holds, and its COMMIT would promote it beside the creation's slot and answer success over a file R6 reads
     /// as the empty store.
+    /// <para>⛔ Ending the kept state does not lose the transaction (2.2.2.14; kb/Work PB3492): the OPEN CAPTURED the file before the
+    /// creation (<see cref="JournalCapture"/>), so the before file holds the transaction as it stood, and a ROLLBACK restores the
+    /// file and rolls it back there (<see cref="AdoptRestored"/>); a COMMIT makes the replacement permanent.</para>
     /// <para>Not inside the store mutex: giving the kept handle back takes it through the kept endpoint, a different open file
     /// description from this OPEN's own.</para></summary>
     private string? Recreate()
@@ -464,6 +576,7 @@ public abstract class KeyedConnector : FileConnector
         var created = NewStore();
         AttachHandleTo(created);
         var status = InStoreMutex(() => created.Create(DeclaredAttributes, _coherent, HoldingsOrder));
+        _openChangedFile |= created.FileReplaced;
         if (status != StoreStatus.Ok)
         {
             if (created.FileReplaced) ReleaseKept();
@@ -509,6 +622,11 @@ public abstract class KeyedConnector : FileConnector
     /// <inheritdoc/>
     protected sealed override void AbandonOpen()
     {
+        // ⛔ A journal this OPEN began for its creation or capture is WITHDRAWN when the file was not affected (§14.9.27.4 GR25,
+        // "If the execution of the OPEN statement is unsuccessful, the file is not affected"; 2.2.2.14): no transaction began on
+        // it, and a kept transaction stands as the CLOSE left it. One whose file the OPEN changed stands for item 8's ROLLBACK.
+        if (_begunByOpen is { } begun && !_openChangedFile) Transactions.Withdraw(begun);
+        (_begunByOpen, _openChangedFile) = (null, false);
         // A re-OPEN that ADOPTED the handle its CLOSE under commit control kept gives it back to the kept state unchanged,
         // its liveness byte with it (§14.9.27.4 GR25); the kept column lock this OPEN replaced goes back to the kept state
         // (and its old column) in FileConnector.Open, after this (TryRestoreKeptFileLock).
@@ -588,7 +706,7 @@ public abstract class KeyedConnector : FileConnector
             {
                 _kept = new KeptFile(new KeptHandle(_store!, _handle!, _regions!, _store!.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, HostShare),
                     Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, LockOwner, AttachedStore, SharedStores,
-                    Restoring) { OpenColumn = KeptOpenColumn };
+                    Restoring, HoldingsOrder) { OpenColumn = KeptOpenColumn };
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
             else
@@ -661,13 +779,10 @@ public abstract class KeyedConnector : FileConnector
 
     // ── Commit control: APPLY COMMIT, COMMIT and ROLLBACK on the engine (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337)
 
-    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§12.4.6.3.4; set by
-    /// <c>FileRegistry.RegisterCommitControl</c>): its WRITE, REWRITE and DELETE keep the record's before-image and its
-    /// HOLDINGS in the run unit's transaction on the physical file (<see cref="TransactionFor"/>), which COMMIT makes
-    /// permanent and ROLLBACK restores. A second connector of the same run unit on the file that no APPLY COMMIT names logs
-    /// nothing (D.2.5's independent file connectors), and its statements meet the transaction's holdings like any other
-    /// run unit's.</summary>
-    internal bool CommitControlled { get; set; }
+    // (FileConnector.CommitControlled: a connector under commit control keeps each change's before-image and HOLDINGS in the
+    // run unit's transaction on the physical file, TransactionFor; a second connector of the same run unit on the file that no
+    // APPLY COMMIT names logs nothing, D.2.5's independent file connectors, and meets the transaction's holdings like any
+    // other run unit's.)
 
     /// <summary>A ROLLBACK's view of the organization's trees (<see cref="IRestoringTrees"/>), which the dead-owner step,
     /// the lock test's rollback of a dead holder and a COMMIT's reversal use as well. ⛔ It must stand on its own: a CLOSE under
