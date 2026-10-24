@@ -14,7 +14,7 @@ namespace CobolNet.Runtime.IO;
 /// read-position state machine live on the shared <see cref="FileConnector"/> base; the sequential-specific
 /// stream/framing/LINAGE machinery is here.
 /// </summary>
-public sealed class SequentialConnector : FileConnector
+public sealed partial class SequentialConnector : FileConnector
 {
     private readonly bool _lineSequential;
 
@@ -391,17 +391,21 @@ public sealed class SequentialConnector : FileConnector
     /// is applied to the channel by <see cref="NextFrame"/> alone.</para></summary>
     private StreamReader OpenReader()
     {
-        var stream = HostFile.OpenConnectorStream(HostPath, FileMode.Open, HostAccess(Mode), HostShare,
-            Mode == FileOpenMode.IO ? FileOptions.None : FileOptions.SequentialScan);
+        // Under commit control the reader is built over the handle the connector KEEPS until the COMMIT or ROLLBACK
+        // (DESIGN-runtime-library.md 2.2.2.4), from its start, and leaves it open at the CLOSE (HeldStream).
+        var stream = CommitControlled
+            ? AtStart(HeldStream(Mode == FileOpenMode.IO ? FileMode.OpenOrCreate : FileMode.Open))
+            : Medium.OpenConnectorStream(HostPath, FileMode.Open, HostAccess(Mode), HostShare,
+                Mode == FileOpenMode.IO ? FileOptions.None : FileOptions.SequentialScan);
         StreamReader r;
         try
         {
             r = new StreamReader(stream, Encoding.Latin1, detectEncodingFromByteOrderMarks: false,
-                HostFile.InputOutputAreaBuffer(InputOutputAreas));
+                HostFile.InputOutputAreaBuffer(InputOutputAreas), leaveOpen: CommitControlled);
         }
         catch
         {
-            stream.Dispose();   // the areas could not be allocated: the handle must not outlive the failed OPEN
+            if (!CommitControlled) stream.Dispose();   // the areas could not be allocated: the handle must not outlive the failed OPEN
             throw;
         }
         TakeRegions(stream);
@@ -425,7 +429,8 @@ public sealed class SequentialConnector : FileConnector
         // the guard that keeps that refusal the only answer — never Latin-1's silent '?'.
         FileAccess access = HostAccess(Mode);
         Stream stream;
-        try { stream = HostFile.OpenConnectorWriteStream(HostPath, mode, access, HostShare); }
+        if (CommitControlled) stream = HeldWriteStream(mode);   // over the kept handle (DESIGN-runtime-library.md 2.2.2.4)
+        else try { stream = Medium.OpenConnectorWriteStream(HostPath, mode, access, HostShare); }
         // ⛔ A WRITE-ONLY FILE IS NOT '37' TO AN OUTPUT OPEN (kb/Work PB2848). The read half of a record-locking
         // writer's handle is the lock ANNOUNCEMENT's need (HostAccess), not the open mode's: OUTPUT creates the file,
         // so it has no records to read, and §14.9.27.4 GR3's '37' is "insufficient authority … to open the file" for
@@ -436,17 +441,17 @@ public sealed class SequentialConnector : FileConnector
         catch (UnauthorizedAccessException) when (Mode is FileOpenMode.Output && access != FileLockPosture.AccessOf(Mode))
         {
             access = FileLockPosture.AccessOf(Mode);
-            stream = HostFile.OpenConnectorWriteStream(HostPath, mode, access, HostShare);
+            stream = Medium.OpenConnectorWriteStream(HostPath, mode, access, HostShare);
         }
         StreamWriter w;
         try
         {
-            w = new StreamWriter(stream, FileCharacterSet.Medium, HostFile.InputOutputAreaBuffer(InputOutputAreas))
+            w = new StreamWriter(stream, FileCharacterSet.Medium, HostFile.InputOutputAreaBuffer(InputOutputAreas), leaveOpen: CommitControlled)
                 { NewLine = _lineEnd };
         }
         catch
         {
-            stream.Dispose();   // the areas could not be allocated: the handle must not outlive the failed OPEN
+            if (!CommitControlled) stream.Dispose();   // the areas could not be allocated: the handle must not outlive the failed OPEN
             throw;
         }
         TakeRegions(HostFile.FileOf(stream));
@@ -465,15 +470,21 @@ public sealed class SequentialConnector : FileConnector
     /// writability is what the host GRANTED the handle, never re-derived from the open mode (kb/Work PB2758).</summary>
     private void TakeRegions(FileStream host)
     {
+        if (_regions is not null && ReferenceEquals(_regionsOn, host)) return;   // the kept handle's own endpoint, adopted with it
         _regions?.Dispose();
         _regions = HostRegionLocks.Open(host.SafeFileHandle, HostPath, writable: host.CanWrite);
+        _regionsOn = host;
     }
+
+    /// <summary>The host stream <see cref="_regions"/> was made for.</summary>
+    private FileStream? _regionsOn;
 
     /// <summary>Give the endpoint up with the handle it was made for.</summary>
     private void GiveUpRegions()
     {
         _regions?.Dispose();
         _regions = null;
+        _regionsOn = null;
     }
 
     /// <inheritdoc/>
@@ -546,8 +557,7 @@ public sealed class SequentialConnector : FileConnector
             // ReadStore allocated a string per record purely to take .Count of the list). The REVERSED count is the
             // whole file's walk made through the index, so the SAME pass leaves every checkpoint the first backward
             // READ needs (DESIGN-runtime-library.md 2.2.3).
-            using var fs = HostFile.OpenAuxiliary(HostPath, FileMode.Open, FileAccess.Read);
-            return index is null ? RecordFraming.CountFrames(fs, from, to) : index.Extend(fs);
+            return WithCountingStream(fs => index is null ? RecordFraming.CountFrames(fs, from, to) : index.Extend(fs));
         }
         if (_lineSequential)
         {
@@ -555,22 +565,28 @@ public sealed class SequentialConnector : FileConnector
             // at an LF (a CR LF pair ends at its LF) and a lone CR is data, so the count is the LF bytes plus a
             // final record with no delimiter. StreamReader.ReadLine would also end a record at a lone CR — the
             // rule kb/Work PB1540 removed from the reader — and decode and allocate a string per line besides.
-            using var fs = HostFile.OpenAuxiliary(HostPath, FileMode.Open, FileAccess.Read);
-            fs.Seek(from, SeekOrigin.Begin);
-            Span<byte> buffer = stackalloc byte[4096];
-            long n = 0, left = to - from;
-            bool open = false;   // bytes seen since the last delimiter: a final, undelimited record
-            for (int got; left > 0 && (got = fs.Read(buffer[..(int)Math.Min(buffer.Length, left)])) > 0; left -= got)
-            {
-                ReadOnlySpan<byte> chunk = buffer[..got];
-                n += chunk.Count((byte)'\n');
-                open = chunk[^1] != (byte)'\n';
-            }
-            return open ? n + 1 : n;
+            return WithCountingStream(fs => CountLines(fs, from, to));
         }
         // Fixed-width record-sequential: arithmetic over the file's length. No handle at all, which is why this
         // arm never showed PB713 (FileInfo.Length is metadata).
         return RecordWidth > 0 ? (Math.Min(to, new FileInfo(HostPath).Length) - from) / RecordWidth : 0;
+    }
+
+    /// <summary>The LINE SEQUENTIAL arm of <see cref="CountRecords"/>: the records whose lines start in [<paramref name="from"/>,
+    /// <paramref name="to"/>) of <paramref name="fs"/>.</summary>
+    private static long CountLines(Stream fs, long from, long to)
+    {
+        fs.Seek(from, SeekOrigin.Begin);
+        Span<byte> buffer = stackalloc byte[4096];
+        long n = 0, left = to - from;
+        bool open = false;   // bytes seen since the last delimiter: a final, undelimited record
+        for (int got; left > 0 && (got = fs.Read(buffer[..(int)Math.Min(buffer.Length, left)])) > 0; left -= got)
+        {
+            ReadOnlySpan<byte> chunk = buffer[..got];
+            n += chunk.Count((byte)'\n');
+            open = chunk[^1] != (byte)'\n';
+        }
+        return open ? n + 1 : n;
     }
 
     // A varying file's records are length-framed on disk (the ONE RecordFraming 4-byte little-endian length
@@ -686,7 +702,9 @@ public sealed class SequentialConnector : FileConnector
         LinageCounter = 1;      // GR7d — the counter is set to one at OPEN OUTPUT
         _topMarginPending = true;   // …and the device is at body line 1, i.e. past this page's top margin (GR4)
         _endOfPage = null;
-        return EvaluateLinage(page) ? null : LinageViolationStatus();
+        bool conforms = EvaluateLinage(page);
+        TakePageSnapshot();   // the page a ROLLBACK of a covered file restores (DESIGN-runtime-library.md 2.2.2.7)
+        return conforms ? null : LinageViolationStatus();
     }
 
     /// <summary>⛔ THE END OF THE LINAGE PAGE REGIME — the page model does NOT outlive the open mode that
@@ -1111,6 +1129,10 @@ public sealed class SequentialConnector : FileConnector
         // §14.9.27.4 GR3, so on every mode that consults this an Unauthorized probe has become '37' and can
         // never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
+        // ⛔ UNDER COMMIT CONTROL an OPEN OUTPUT of an existing file CAPTURES it and a creation begins its transaction
+        // (DESIGN-runtime-library.md 2.2.2.2, 2.2.2.5 R4), under the entry mutex the entry step took, before the host
+        // truncates or creates anything.
+        if (CommitControlled) BeginCoveredOpen(mode, exists);
         {
             switch (mode)
             {
@@ -1198,7 +1220,8 @@ public sealed class SequentialConnector : FileConnector
                     // returns '05'. No OptionalAbsent needed — the file now physically exists (empty).
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
                     // create empty, then close — an auxiliary handle, not the connector's stream
-                    if (!exists) using (HostFile.OpenAuxiliary(HostPath, FileMode.Create, FileAccess.Write)) { }
+                    // (under commit control the kept handle OpenReader takes creates it: HeldStream)
+                    if (!exists && !CommitControlled) using (Medium.OpenAuxiliary(HostPath, FileMode.Create, FileAccess.Write)) { }
                     // ReadWrite access and NO FileOptions.SequentialScan for this mode — both decided once, in
                     // OpenReader, the one spelling of the read handle.
                     _reader = OpenReader();
@@ -1210,6 +1233,7 @@ public sealed class SequentialConnector : FileConnector
             // OUTPUT phrase", so the page model is established by the registry's OPEN dispatch once this body has
             // succeeded (FileRegistry.SharedOpenAttempt → BeginLinagePage) — with the page the EXECUTING element's
             // LINAGE clause evaluates to, which is why it cannot be read from connector state here (PB673).
+            TakePageSnapshot();
             return FileStatusCode.Success;
         }
     }
@@ -1228,6 +1252,23 @@ public sealed class SequentialConnector : FileConnector
         // member) — and FileConnector.Open reports the refusal as nothing more than the OPEN's own status. The region
         // endpoint goes FIRST, while the handle it holds its bytes through is still open (HandleRegionLocks: a byte is
         // never left to the handle's close; kb/Work PB3549).
+        if (CommitControlled)
+        {
+            // The reader and writer leave the kept handle open; the handle goes back to the kept state the CLOSE left, or away
+            // when this OPEN took it (§14.9.27.4 GR25: "the file is not affected").
+            try
+            {
+                try { _reader?.Dispose(); }
+                finally { _writer?.Dispose(); }
+            }
+            finally
+            {
+                _reader = null;
+                _writer = null;
+                AbandonHeld();
+            }
+            return;
+        }
         try { GiveUpRegions(); }
         finally
         {
@@ -1288,7 +1329,11 @@ public sealed class SequentialConnector : FileConnector
             // CLOSE removes the file lock. Whatever the outcome, the streams never survive the CLOSE — a stale disposed
             // _writer after a reopen-for-INPUT would take the WRITE arms (kb/Work PB140). OptionalAbsent (the FPI's "not
             // present" state) DOES survive — §14.9.6.4 GR6; the next OPEN resets it.
-            try { GiveUpRegions(); }
+            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE HANDLE, ITS ENDPOINT AND ITS FILE LOCK (§14.9.6.4 GR9, §9.1.15,
+            // §14.9.7.4 GR4; DESIGN-runtime-library.md 2.2.2.9) until the COMMIT or ROLLBACK (ReleaseKept): the reader and the
+            // writer leave it open.
+            bool keep = CloseKeepsLocks;
+            try { if (!keep) GiveUpRegions(); }
             finally
             {
                 try
@@ -1301,6 +1346,7 @@ public sealed class SequentialConnector : FileConnector
                     _reader = null;
                     _writer = null;
                     EndLinagePage();   // …and neither does the logical page — see EndLinagePage
+                    if (keep) KeepHeld();
                 }
             }
         }
@@ -1357,7 +1403,7 @@ public sealed class SequentialConnector : FileConnector
     {
         _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (PermanentErrorReplay() is { } stuck) return Status = stuck;   // §9.1.13.1 — a permanent error in effect (kb/Work PB1541)
-        if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
+        if (!IsOpen || _writer is null && !_fileRemoved) return Status = FileStatusCode.WriteNotOpenForOutput;   // a file a ROLLBACK removed is created again (JournalAppend)
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         // §13.18.34.4 GR6 b) 2 — "all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE
         // exception condition to continue to exist until the file is closed". Ahead of everything, because the
@@ -1396,6 +1442,8 @@ public sealed class SequentialConnector : FileConnector
         if (!_lineSequential && RecordHasCharacterWithoutByteImage(image.AsSpan(0, Math.Min(image.Length, len))))
             return Status = FileStatusCode.CharacterWithoutByteImage;   // '91' §9.1.13.11 (DOC-A.1-110)
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        if (JournalAppend(out var appendStep) is { } held) return Status = held;   // '51': another transaction holds the end (2.2.2.3); R3 written
+        using var releaseStep = appendStep;   // an uncovered sharing writer's entry mutex, held through the release (UncoveredChangeGuard)
         // A LINE SEQUENTIAL record goes out as its characters alone: a line is plain text (§12.4.5.10.3 GR2), so
         // `extents` has nowhere to live and is deliberately not consulted by either line arm below — the READ splits
         // the line by the take step (docs/CONFORMANCE.md §3 D-FRA (x); kb/Work PB1563).
@@ -1474,7 +1522,7 @@ public sealed class SequentialConnector : FileConnector
     {
         _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (PermanentErrorReplay() is { } stuck) return Status = stuck;   // §9.1.13.1 — a permanent error in effect (kb/Work PB1541)
-        if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
+        if (!IsOpen || _writer is null && !_fileRemoved) return Status = FileStatusCode.WriteNotOpenForOutput;   // a file a ROLLBACK removed is created again (JournalAppend)
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_linagePageBroken) return LinageViolationStatus();   // §13.18.34.4 GR6 b) 2's latch — see Write()
         // The ONE length decision (kb/Work PB1190): what the '91' test asks of, GR14's bound, and the characters
@@ -1495,6 +1543,8 @@ public sealed class SequentialConnector : FileConnector
         if (!_lineSequential && RecordHasCharacterWithoutByteImage(image.AsSpan(0, Math.Min(image.Length, len))))
             return Status = FileStatusCode.CharacterWithoutByteImage;   // '91' §9.1.13.11 (DOC-A.1-110)
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53' — as WriteRecord (kb/Work PB2848)
+        if (JournalAppend(out var appendStep) is { } held) return Status = held;   // as WriteRecord (2.2.2.3, 2.2.2.10: the print stream is covered)
+        using var releaseStep = appendStep;   // as WriteRecord
         _printControl = true;
         string text = TrimRecordEnd(IsVarying ? FitRecord(image, len, national) : image, national);
         // §14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
@@ -2054,13 +2104,17 @@ public sealed class SequentialConnector : FileConnector
     /// converted to the file's coded character set.</summary>
     private string OverwriteInPlace(Stream stream, long anchor, ReadOnlySpan<byte> framing, string content, bool national)
     {
-        long resume = stream.Position;
-        stream.Seek(anchor, SeekOrigin.Begin);
-        stream.Write(framing);
         // ⛔ The REWRITE arm's §13.18.13.4 GR6 b boundary, for the same reason EmitRecord is the WRITE arm's:
         // `content` is the record's data in the NATIVE character set, and what goes on the medium is the file's
         // coded character set. Being the ONE in-place overwrite makes this the one place either arm converts.
         byte[] bytes = FileCharacterSet.Medium.GetBytes(ToMedium(content, national));
+        // R2: the record's image is journaled, and synced, before the overwrite (DESIGN-runtime-library.md 2.2.2.5); '51'
+        // when another transaction holds the record (2.2.2.3).
+        if (JournalImage(stream, anchor, framing.Length + bytes.Length, out var imageStep) is { } held) return Status = held;
+        using var releaseStep = imageStep;   // an uncovered sharing writer's entry mutex, held through the release (UncoveredChangeGuard)
+        long resume = stream.Position;
+        stream.Seek(anchor, SeekOrigin.Begin);
+        stream.Write(framing);
         stream.Write(bytes, 0, bytes.Length);
         stream.Flush();                 // §14.9.35.4 GR4 — released to the operating environment
         stream.Seek(resume, SeekOrigin.Begin);

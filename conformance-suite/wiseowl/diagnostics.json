@@ -888,12 +888,6 @@
   ],
   "expect": "COBOLNET0902: the WITH DEBUGGING MODE clause"
  },
- "declined-apply-commit": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1709"
- },
  "declined-ec-validate-raise": {
   "refuse-at": [
    "2002",
@@ -19063,12 +19057,6 @@
    "2023"
   ],
   "expect": "COBOLNET3983"
- },
- "pb695-apply-commit-no-on": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1709"
  },
  "pb695-crt-status-no-is": {
   "refuse-at": [
