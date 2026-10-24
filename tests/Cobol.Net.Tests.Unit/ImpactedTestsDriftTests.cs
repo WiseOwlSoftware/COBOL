@@ -54,6 +54,7 @@ public sealed class ImpactedTestsDriftTests
             "tier 0a holds an edited test method: a changed helper is no test's own change",
             "tier 0a holds an edited test method: a comment line added inside a test body",
             "a source whose braces do not balance once lexed puts every test method it names in tier 0a",
+            "a replayed deletion of a test file names no test",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
             "a changed static constructor", "no map for the base puts every test in tier 1",
             "a documentation-only older map is used", "a STALE map is returned for its durations");

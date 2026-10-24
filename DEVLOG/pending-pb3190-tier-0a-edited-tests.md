@@ -27,7 +27,9 @@ became a `Hunk` named tuple carrying both sides, and `method_ids` reads it by fi
 **Found on the way, fixed here.** The old regex missed every same-line test (`[Fact] public void X() => …;`: 11
 methods in `CobolBoolTests.cs` and `TierCRejectionTests.cs`), so even an added one of that shape was never tier 0a.
 It also counted test methods inside planted C# strings (`VacuousTestDriftTests.cs`). The comment in `reach_of` said a
-changed theory data source left its classes "already tier 0a", which the code did not do; now it does.
+changed theory data source left its classes "already tier 0a", which the code did not do; now it does. A replay
+(`--head`) of a commit that deletes a test file crashed the analysis, because it read the file at the head where it
+no longer exists (`19c9289af` replayed). A deleted file now names no test, and a self-test arm pins it.
 
 **Tests.** `cs_members.py --self-test` (11 arms: every string form, spans, data sources, nested types, a tuple return
 type, hunk touch rules, the audit firing on an unbalanced file and on an orphan attribute). `impacted_tests.py
@@ -35,7 +37,7 @@ type, hunk touch rules, the audit firing on an unbalanced file and on an orphan 
 `[InlineData]` row, a changed `[MemberData]` source, a changed helper (not tier 0a), a comment line (not tier 0a) and
 an unbalanced source (every test). `ImpactedTestsDriftTests` pins them all by name.
 
-**Design.** `DESIGN-test-build-ci.md` §3.14.2 (tier 0a) and §3.13 now say an edited test method is tier 0a by its own
+**Design.** `DESIGN-test-build-ci.md` sections 3.14.2 (tier 0a) and 3.13 now say an edited test method is tier 0a by its own
 span, never its file's; the M11 correction (a whole changed test file is not tier 0a) still stands. An edited harness,
 such as a helper, a constructor or a data file a test reads, is still tier 1 through the map. That residue is reported
 as a lead.

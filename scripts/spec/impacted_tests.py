@@ -562,7 +562,7 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
                 continue
             if ix is not None:
                 reach_cs(ix, path, status, base, reach)
-            if path.startswith(TEST_PROJECTS):
+            if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
                 reach_test_file(path, base, reach)
             continue
         if path.startswith("src/"):
@@ -766,6 +766,17 @@ def self_test() -> int:
     t, reach = tiers_for(["tests/_shared/TestPartitioning.cs"])
     check("a shared test file is compiled into every assembly",
           set(reach.changed_tests) == set(TEST_ASSEMBLIES.values()), sorted(reach.changed_tests))
+    # A replay (--head) of a commit that DELETES a test file: its text is absent at the head, so reading it crashed
+    # the analysis (19c9289af replayed, 2026-10-23); a deleted file has no test to run.
+    global HEAD
+    saved, HEAD = HEAD, "HEAD"
+    try:
+        reach = Reach()
+        reach_of(None, [("D", "tests/Cobol.Net.Tests.Unit/NoSuchDeletedTests.cs")], "HEAD", reach)
+        check("a replayed deletion of a test file names no test and does not read the absent file",
+              not any(reach.changed_tests.values()), reach.changed_tests)
+    finally:
+        HEAD = saved
     copy = "conformance-suite/cases/7.2.3-COPY/"
     got = [suite_tests(copy + f) for f in ("copy-library-text.cob", "copy-library-text.2002.out", "CSCOPY01.cpy",
                                            "NO-SUCH-TEXT.cpy")]
