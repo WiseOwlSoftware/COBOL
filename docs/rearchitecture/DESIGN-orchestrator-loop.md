@@ -844,7 +844,18 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    same-file successor merged its predecessor), its finisher merges that carrier instead of cherry-picking, because the
    commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not: only a
    newer report naming its lead answers its findings, so its `pred` names the carrier (which may land the branch's
-   commits first) and merges the `FINDINGS` branch alone (review R1-2). A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   commits first) and merges the `FINDINGS` branch alone (review R1-2). **A replayed branch** is the other way a
+   branch's work is carried (kb/Work PB3170): the `pred` above tells a `SPLIT` successor to CHERRY-PICK its predecessor,
+   so the successor is no descendant of it and `branch_carrier` cannot see it (wave 1079 planned PB3127 from `…-28e-2`
+   although `…-3a0-2`, planned beside it, replayed all four of its commits). `branch_replays` reads the commits of every
+   unlanded branch beyond `origin/main` by patch id (`git_batch.patch_ids`, two git processes for all of them; the key
+   `git cherry` uses for the `LANDED` class, `prune_worktrees.replays`), and a branch is carried when branches that
+   OUTRANK it (more distinct patches, then the later report, so no two branches carry each other) hold every one of its
+   commits. Such a branch gets no finisher: its notes join the group of the UNCARRIED branch (one with a finisher, never a middle
+   link of a successor chain) that replays the most of it (a tie: the later report), or wait while that branch has none. A branch replayed only in part keeps its finisher, whose `pred` names the commits no other
+   branch holds. The unlanded-branch arm (c) and the half-note arm read the same rule. A branch a kb/Work note records
+   ABANDONED (`prune_worktrees.abandon_records`, the survey's matcher) is never planned from: its reports and notes are
+   not read. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
