@@ -97,20 +97,42 @@ public sealed partial class SequentialConnector : IJournalData
     }
 
     /// <inheritdoc/>
-    internal override bool HeldByAnotherAtDelete() => HeldByAnotherHandle();
-
-    /// <inheritdoc/>
-    /// <remarks>The Table 19 file lock goes with the handle: where the host publishes it through a handle on the file
-    /// (<see cref="HandleColumnLockHost"/>: a covered connector under <c>SHARING WITH READ ONLY</c> or <c>ALL OTHER</c>) that handle
-    /// would refuse the removal ('62' for the connector's own lock), and from the removal on the journal's (ALL) holding is the
-    /// lock (kb/Work PB3492's sibling).</remarks>
-    internal override void GiveBackForRemoval()
+    /// <remarks>Nothing of the transaction lives in the handle (the journal is the registry's, <see cref="SequentialTransactions"/>),
+    /// so taking it back (<see cref="TakeHeld"/>, with the access and share mode it had) restores the file lock its share mode is,
+    /// and the Table 19 one is resumed beside it (kb/Work PB3492's sibling).</remarks>
+    internal override RemovalGiveBack? GiveBackForRemoval()
     {
+        if (!_kept) return null;
+        var givenBack = new HeldGivenBack(this, _held is { } held ? (held.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, _heldShare) : null,
+            _keptFileLock);
         try { GiveBackHeld(); }
-        finally
+        catch
         {
-            _keptFileLock?.Dispose();
-            _keptFileLock = null;
+            givenBack.Dispose();
+            throw;
+        }
+        return givenBack;
+    }
+
+    /// <summary>What <see cref="GiveBackForRemoval"/> gave back: the kept handle's access and share mode (null: none was held) and
+    /// the kept Table 19 file lock.</summary>
+    private sealed class HeldGivenBack(SequentialConnector owner, (FileAccess Access, FileShare Share)? held, RunUnitFileLock? fileLock)
+        : RemovalGiveBack
+    {
+        internal override void SuspendFileLock() => fileLock?.Suspend();
+
+        private protected override void TakeBack()
+        {
+            if (held is { } h && owner._kept && owner._held is null)
+                try { owner.TakeHeld(FileMode.Open, h.Access, h.Share); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }   // the window: the kept state stays without its handle
+            if (fileLock is not null && !fileLock.Resume() && ReferenceEquals(owner._keptFileLock, fileLock)) owner._keptFileLock = null;
+        }
+
+        private protected override void Landed()
+        {
+            fileLock?.Dispose();
+            if (ReferenceEquals(owner._keptFileLock, fileLock)) owner._keptFileLock = null;
         }
     }
 

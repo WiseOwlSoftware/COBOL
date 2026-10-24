@@ -3182,8 +3182,9 @@ on it, which rolls back the captured transaction: its liveness byte went with th
 reads as dead, exactly as a dead run unit's does (a death before the `D R` leaves the journal open, and the next settle and
 the next writable OPEN's dead-owner step do the same); a file no store of the run unit holds is adopted through a store made
 for that alone. **COMMIT** (`FileRegistry.CommitKeyed`) first promotes the run unit's keyed transaction in the file as it
-stands now — or, when that transaction lived in the file the capture removed (its store holds no file), forgets it
-(`KeyedStore.ForgetTransaction`) — and only then decides the journal (2.2.2.6), so a death between the two leaves the journal
+stands now — a transaction that lived in a file the capture removed ended with the removal (`KeyedStore.ForgetTransaction`,
+run when the DELETE FILE's removal lands, `RemovalGiveBack.Removed`), and a store left with no writable file is REFUSED, never
+forgotten (branch review R1-1: a store without its handle is not a removed file) — and only then decides the journal (2.2.2.6), so a death between the two leaves the journal
 open and the next entry restores the last COMMIT; the decision `D C` makes the replacement permanent, the captured
 transaction going with the before file. The keyed transaction and the journal are ONE holder of `FileRegistry.TransactionHolders`
 (the journal's), in the journal's place in the order of the open files. **A CREATION** (2.2.2.2 (e): an OPEN OUTPUT of an
@@ -3203,7 +3204,15 @@ capture is settled before 2.2.1.10's dead-owner step reads the restored store an
 file a later settle would otherwise bring back. **The removal gives the Table 19 file lock back with the kept handle**
 (`GiveBackForRemoval`, both organizations): where the host publishes the column through a handle on the file
 (`HandleColumnLockHost`, a covered connector under `SHARING WITH READ ONLY` or `ALL OTHER`, or a keyed INPUT re-OPEN's READ ONLY
-default) that handle refused the removal, and from the removal on the journal's (ALL) holding is the lock. Witnesses:
+default) that handle refused the removal, and from the removal on the journal's (ALL) holding is the lock. **What the DELETE
+FILE gives back it TAKES BACK unless the removal lands** (`FileConnector.GiveBackForRemoval` returns a `RemovalGiveBack`; branch
+review R1-1): the kept handle goes for each attempt's probe of GR15's conflict and the file lock is suspended
+(`RunUnitFileLock.Suspend`) just before the capture, and an attempt answered '62', GR14's '05', or a capture or removal the
+medium refuses ('30', '37') retakes the handle — for a keyed file the transaction's liveness byte with it — and resumes the
+file lock, under the entry mutex, so an unsuccessful DELETE FILE leaves the file and the transaction on it as the CLOSE left
+them: the COMMIT promotes it and no dead-owner step reads it as a dead one's (witnesses `unit:CommitRollbackRuntimeTests`'
+`A_refused_delete_file_after_a_close_leaves_the_transaction_for_the_commit`, `unit:SequentialCommitControlTests`'
+`A_refused_delete_file_after_a_close_keeps_the_file_lock_until_the_commit`). Witnesses:
 `conformance:cases/14.9.36-ROLLBACK/pb3492_keyed_file_replaced_or_removed` and `unit:CommitRollbackRuntimeTests`'
 `A_keyed_capture_or_creation_refused_at_every_journal_operation_leaves_the_last_commit_or_the_committed_change` (every
 operation of the journal's medium refused), `A_delete_file_after_a_close_is_not_refused_by_the_kept_handle_and_holds_the_file_until_the_rollback`,

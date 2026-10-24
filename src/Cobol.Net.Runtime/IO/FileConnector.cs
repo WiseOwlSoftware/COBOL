@@ -1030,15 +1030,20 @@ public abstract class FileConnector
     }
 
     /// <summary>A DELETE FILE's GR15 question under commit control (<c>FileRegistry.DeleteCovered</c>): is the file held by another
-    /// handle than this connector's own kept one? A kept handle is given back for the instant of the host's probe (its own share
-    /// mode refuses it) and taken again only when another handle does hold the file; otherwise it stays given back, because the
-    /// removal that follows needs it closed (<see cref="GiveBackForRemoval"/>).</summary>
-    internal virtual bool HeldByAnotherAtDelete() => ProbeHeldByAnother();
+    /// handle than this connector's own? Asked once the kept handle is given back for the removal (<see cref="GiveBackForRemoval"/>),
+    /// because its own share mode refuses the host's probe; the kept file lock stays held through the question, which the probe
+    /// admits as the connector's own (<see cref="ProbeHeldByAnother"/>).</summary>
+    internal bool HeldByAnotherAtDelete() => ProbeHeldByAnother();
 
-    /// <summary>A DELETE FILE under commit control closes the kept handle before the file is removed (2.2.2.4: a Windows handle not
-    /// opened for deletion blocks the removal, and after it there is no file to lock); what else the CLOSE kept — the file lock —
-    /// stays until the COMMIT or ROLLBACK, and the transaction's (ALL) holding refuses every other opener.</summary>
-    internal virtual void GiveBackForRemoval() { }
+    /// <summary>⛔ A DELETE FILE UNDER COMMIT CONTROL GIVES BACK THE HANDLE ITS CLOSE KEPT BEFORE THE FILE IS REMOVED, AND TAKES IT
+    /// BACK UNLESS THE REMOVAL LANDS (2.2.2.4, 2.2.2.14; kb/Work PB3492, review finding R1-1): a Windows handle not opened for
+    /// deletion blocks the removal, and its share mode the host's probe (<see cref="HeldByAnotherAtDelete"/>). What it gave back is
+    /// the returned <see cref="RemovalGiveBack"/>'s to put back — the handle and, for a keyed file, the transaction's liveness byte
+    /// with it (2.2.1.10), and the Table 19 file lock once suspended — whenever the DELETE FILE does not remove the file: GR15's
+    /// '62', GR14's '05', a refused capture or removal ('30', '37'). An unsuccessful DELETE FILE leaves the file and the transaction
+    /// on it as they were, so its COMMIT promotes the transaction and no other run unit's dead-owner step reads it as a dead
+    /// one's. Null when the connector kept nothing to give back.</summary>
+    internal virtual RemovalGiveBack? GiveBackForRemoval() => null;
 
     /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
     private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)

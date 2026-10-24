@@ -1014,30 +1014,48 @@ public sealed class FileRegistry
     /// the entry mutex: the entry step, then GR15's sharing conflict ('62', §9.1.13.9 2), re-attempted under a RETRY phrase) —
     /// another live transaction on the file (it holds the file: a DELETE FILE needs no other transaction at all, 2.2.2.8),
     /// another connector of this run unit, or another handle than the connector's own kept one; then GR14's '05' for an
-    /// absent file; then the transaction begun if none stands and the file CAPTURED in its base phase (R4), the kept handle
-    /// closed, the file removed and its directory synced. The mutex is held from the successful test to the removal and given
-    /// back between RETRY attempts, so the transaction it waits for can roll back meanwhile.
+    /// absent file; then the transaction begun if none stands and the file CAPTURED in its base phase (R4), the kept file lock
+    /// suspended, the file removed and its directory synced. The mutex is held from the successful test to the removal and given
+    /// back between RETRY attempts, so the transaction it waits for can roll back meanwhile. The kept handle is given back for
+    /// the probe of each attempt (<see cref="FileConnector.GiveBackForRemoval"/>) and TAKEN BACK by every attempt and every step
+    /// that does not remove the file, with the file lock (review finding R1-1): an unsuccessful DELETE FILE leaves the file and the
+    /// run unit's transaction on it as the CLOSE left them.
     /// <para>A RELATIVE or INDEXED file is captured the same way (2.2.2.14): its keyed transaction lives in the file's own pages,
     /// so the before file holds it as it stood, and a ROLLBACK restores the file and rolls it back there
-    /// (<see cref="RollbackKeyed"/>); the kept handle goes first, the transaction's liveness byte with it
-    /// (<see cref="KeyedConnector.GiveBackForRemoval"/>).</para></summary>
+    /// (<see cref="RollbackKeyed"/>); the kept handle goes first, the transaction's liveness byte with it, and the transaction ends
+    /// with the removal (<see cref="KeyedConnector.GiveBackForRemoval"/>).</para></summary>
     private string DeleteCovered(string name, FileConnector covered, FileRetryKind retryKind, long retryAmount)
     {
         string path = Path.GetFullPath(covered.HostPath);
         RegionLocks? mutex = null;
+        RemovalGiveBack? givenBack = null;
         try
         {
             string sharing = RetryLoop(() =>
             {
                 mutex = Sequential.HoldEntryMutex(path);
                 var holdings = SequentialJournal.Enter(Medium, path, Sequential.Of(path)?.Id, mutex);
-                var attempt =
-                    holdings.Unlistable ? RetryAttempt.InRunUnit(FileStatusCode.PermissionDenied)   // '37' GR16: no authority to read the lock directory
-                    : holdings.RefusesOpen(exclusive: true) is not null ? RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing)
-                    : OpenByAnotherConnector(name, covered) ? RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing)
-                    : covered.HeldByAnotherAtDelete() ? DeleteFileHeld(name, covered)
-                    : RetryAttempt.InRunUnit(FileStatusCode.Success);
-                if (attempt.Status != FileStatusCode.Success) { mutex.Dispose(); mutex = null; }
+                RetryAttempt attempt;
+                if (holdings.Unlistable) attempt = RetryAttempt.InRunUnit(FileStatusCode.PermissionDenied);   // '37' GR16: no authority to read the lock directory
+                else if (holdings.RefusesOpen(exclusive: true) is not null) attempt = RetryAttempt.OutsideRunUnit(FileStatusCode.DeleteFileSharing);
+                else if (OpenByAnotherConnector(name, covered)) attempt = RetryAttempt.InRunUnit(FileStatusCode.DeleteFileSharing);
+                else
+                {
+                    // The kept handle goes first: its own share mode refuses the host's probe, and a Windows handle not opened for
+                    // deletion blocks the removal. Every attempt that does not remove the file takes it back (review finding R1-1).
+                    givenBack = covered.GiveBackForRemoval();
+                    attempt = covered.HeldByAnotherAtDelete() ? DeleteFileHeld(name, covered) : RetryAttempt.InRunUnit(FileStatusCode.Success);
+                }
+                if (attempt.Status != FileStatusCode.Success)
+                {
+                    try { givenBack?.Dispose(); }   // under the mutex, so the RETRY wait finds the kept state whole
+                    finally
+                    {
+                        givenBack = null;
+                        mutex.Dispose();
+                        mutex = null;
+                    }
+                }
                 return attempt;
             }, retryKind, retryAmount);
             if (sharing != FileStatusCode.Success) return sharing;   // '62' GR15 — the file is not deleted
@@ -1048,17 +1066,24 @@ public sealed class FileRegistry
             }
             var journal = Sequential.Of(path)
                 ?? Sequential.Begin(path, SequentialJournal.StartState.Present, ofKeyedFile: covered is KeyedConnector);
-            covered.GiveBackForRemoval();   // the kept handle goes first: a Windows handle not opened for deletion blocks the removal
+            givenBack?.SuspendFileLock();   // a column published through a handle on the file blocks the removal; the journal's holding is the lock now
             if (!journal.Replaced)
                 using (var copy = Medium.OpenAuxiliary(path, FileMode.Open, FileAccess.Read))
                     journal.Capture(SequentialJournal.CaptureVerb.DeleteFile, copy);
             Medium.DeleteFile(path);
+            givenBack?.Removed();
             Medium.SyncDirectory(Path.GetDirectoryName(path)!);
             return FileStatusCode.Success;
         }
         catch (UnauthorizedAccessException) { return FileStatusCode.PermissionDenied; }   // '37' GR16
         catch (IOException ex) { return FileStatusCode.ForDeleteFileFailure(ex); }          // '37' GR17 / '30'
-        finally { mutex?.Dispose(); }
+        finally
+        {
+            // An unsuccessful DELETE FILE leaves the file and the run unit's transaction on it as the CLOSE left them (review finding
+            // R1-1): what was given back is taken back, under the entry mutex.
+            try { givenBack?.Dispose(); }
+            finally { mutex?.Dispose(); }
+        }
     }
 
     /// <summary>§14.9.10.4 GR18 — the fixed-file-attribute match a DELETE FILE performs when the OVERRIDE phrase
@@ -1320,24 +1345,17 @@ public sealed class FileRegistry
         hostPath.Length > 0 && HostFile.PhysicalFileComparer.Equals(Path.GetFullPath(hostPath), physical);
 
     /// <summary>⛔ COMMIT a RELATIVE or INDEXED file's transaction that a creation or a capture journaled (2.2.2.14; kb/Work PB3492):
-    /// first the run unit's keyed transaction in the file as it stands now — promoted (2.2.1.10), or, when it lived in the file
-    /// the capture removed or replaced (its store holds no file any more), forgotten, the replacement having nothing of it to
-    /// keep — then the journal's own three regions (2.2.2.6), through a handle of the run unit on the file. The order is what
-    /// makes the COMMIT atomic: a death between the two leaves the journal open, and the next entry restores the before file, so
-    /// the file reads as at the last COMMIT; a refusal of either is the COMMIT's (item 8's ROLLBACK follows), and a reversed
-    /// decision is rolled back at once.</summary>
+    /// first the run unit's keyed transaction in the file as it stands now, promoted (2.2.1.10) — a transaction that lived in a
+    /// file the capture removed or replaced ended with it (a DELETE FILE's removal, <see cref="RemovalGiveBack.Removed"/>; an OPEN
+    /// OUTPUT's creation, which ends the kept state), and one whose store holds no writable file is REFUSED, never forgotten
+    /// (review finding R1-1: a store left without its handle is not a removed file) — then the journal's own three regions
+    /// (2.2.2.6), through a handle of the run unit on the file. The order is what makes the COMMIT atomic: a death between the
+    /// two leaves the journal open, and the next entry restores the before file, so the file reads as at the last COMMIT; a
+    /// refusal of either is the COMMIT's (item 8's ROLLBACK follows), and a reversed decision is rolled back at once.</summary>
     private CommitOutcome CommitKeyed(SequentialJournal journal)
     {
         foreach (var holder in KeyedTransactionHolders().Where(h => OnPhysicalFile(h.HostPath, journal.HostPath)))
-        {
-            var store = (KeyedStore)holder.Identity.Store;
-            if (store.File is null)
-            {
-                store.ForgetTransaction();
-                continue;
-            }
             if (holder.Commit(this) is var keyed and not CommitOutcome.Committed) return keyed;
-        }
         var outcome = journal.Commit(KeyedHandleOn(journal.HostPath));
         switch (outcome)
         {

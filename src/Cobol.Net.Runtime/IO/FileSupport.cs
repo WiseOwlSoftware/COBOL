@@ -453,6 +453,10 @@ public static class HostFile
         catch (UnauthorizedAccessException) { return LockFileState.Unobservable; }   // another user's file, or a directory
     }
 
+    /// <summary>Whether the directory <paramref name="path"/> (a physical file, or a lock directory beside one) lives in is there.</summary>
+    internal static bool ContainingDirectoryExists(string path) =>
+        Path.GetDirectoryName(Path.GetFullPath(path)) is not { } parent || Directory.Exists(parent);
+
     /// <summary>Create the lock directory <paramref name="directory"/> beside a physical file, ⛔ WITH THE PERMISSIONS OF
     /// THE DIRECTORY THE PHYSICAL FILE IS IN (kb/Work PB2917): the first holder's umask (0755 at the default 022) would
     /// make a second user who may write the physical file's directory unable to publish into the lock directory, and
@@ -469,11 +473,10 @@ public static class HostFile
     /// answers the same race on Windows, which fails an existing name only when a FILE is there: with nothing left at the
     /// name, the publication that follows meets the missing directory and publishes again
     /// (<see cref="SidecarLockFiles.Publish"/>); with a directory there again (a sibling's next publication made it after
-    /// the CLOSE), it is another holder's, as at the first probe above.</para></summary>
-    /// <summary>Whether the directory <paramref name="path"/> (a physical file, or a lock directory beside one) lives in is there.</summary>
-    internal static bool ContainingDirectoryExists(string path) =>
-        Path.GetDirectoryName(Path.GetFullPath(path)) is not { } parent || Directory.Exists(parent);
-
+    /// the CLOSE), it is another holder's, as at the first probe above.</para>
+    /// <para>⛔ NEVER THE PHYSICAL FILE'S OWN DIRECTORY (kb/Work PB3492): a <paramref name="directory"/> whose parent is not there
+    /// (<see cref="ContainingDirectoryExists"/>) throws <see cref="DirectoryNotFoundException"/>, which the publication answers with no
+    /// holder, nothing beside the file being there to hold (<see cref="SidecarLockFiles.Publish"/>).</para></summary>
     internal static void CreateLockDirectory(string directory)
     {
         // ⛔ NEVER THE PHYSICAL FILE'S OWN DIRECTORY (kb/Work PB3492's Linux witness): the lock directory lives BESIDE the file, and
