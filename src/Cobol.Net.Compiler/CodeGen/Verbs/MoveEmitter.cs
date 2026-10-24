@@ -197,7 +197,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             OverlapStoreKind.DisplayToPacked => RuntimeApi.OverlapDisplayToPacked(
                 senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
             _ => RuntimeApi.OverlapAlphanumericToDisplay(
-                senderImage, receiverImage, overlap.ReceiverAt, toProfile, ctx.Data.DecimalPointIsComma),
+                // The mode of the unit that DESCRIBES the receiver (§12.3.7.4 GR14 b), never the emitting unit's.
+                senderImage, receiverImage, overlap.ReceiverAt, toProfile, target.Item.Pic!.DecimalPointIsComma),
         };
         if (target is RedefViewPlace || target.Item.StoreAsImage)
         {
