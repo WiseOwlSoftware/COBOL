@@ -250,9 +250,9 @@ public abstract class KeyedConnector : FileConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
                     // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here. What a CLOSE under commit
-                    // control kept belonged to a file that is not there any more (removed outside the run unit): nothing of its
-                    // store describes this one, and attaching beside it would hand this OPEN the old file's records.
-                    ReleaseKept();
+                    // control kept belonged to a file that is not there any more (removed or renamed away outside the run unit): the
+                    // OPEN handed it to the registry before this body (RetireWhatWasKeptOfAnotherFile), so nothing of its store
+                    // describes this one and this OPEN attaches to none of it.
                     AttachStore(create: false);          // no file, no records
                     _attached = true;
                     status = FileStatusCode.OptionalFileNotFound;
@@ -272,10 +272,10 @@ public abstract class KeyedConnector : FileConnector
                     // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
                     if (Lock(create: true) is { } refusedCreated) return refusedCreated;
-                    // The file the kept state belonged to is not there (it was removed outside the run unit): the file this OPEN
-                    // created is a different one, and nothing of the kept store describes it. The kept state ends once the new
-                    // handle is taken, not before, so a refused handle leaves it as the CLOSE left it (§14.9.27.4 GR25).
-                    ReleaseKept();
+                    // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the
+                    // file this OPEN created is a different one, and nothing of the kept store describes it. The OPEN handed the
+                    // kept state to the registry before this body (RetireWhatWasKeptOfAnotherFile), whole, so a refused handle
+                    // leaves it as the CLOSE left it (§14.9.27.4 GR25) and the COMMIT still reaches it.
                     if (Attach(create: false) is { } failedCreated) return failedCreated;
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
@@ -587,7 +587,7 @@ public abstract class KeyedConnector : FileConnector
             if (CloseKeepsLocks)
             {
                 _kept = new KeptFile(new KeptHandle(_store!, _handle!, _regions!, _store!.CanWrite ? FileAccess.ReadWrite : FileAccess.Read, HostShare),
-                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, AttachedStore, SharedStores,
+                    Adopted: false, KeepRunUnitFileLock(), _regions!, HostPath, HostFile.IdentityOf(_handle!), Physical, LockOwner, AttachedStore, SharedStores,
                     Restoring);
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
@@ -695,7 +695,7 @@ public abstract class KeyedConnector : FileConnector
     /// ROLLBACK or the run unit's end (<see cref="ReleaseKept"/>), or the connector's next successful OPEN of the SAME physical
     /// file, which carries it on (<see cref="CarryKeptOver"/>). It belongs to the physical file, not to this connector: an
     /// ASSIGN USING that associates the connector with another file (<c>FileConnector.Associate</c>) or a replacement of the
-    /// connector hands it to the registry (<see cref="TakeKept"/>).</summary>
+    /// connector hands it to the registry (<see cref="RetireKept"/>).</summary>
     private KeptFile? _kept;
 
     /// <summary>Give a kept handle back (<see cref="KeptFile.GiveBack"/>) off the store this connector is attached to.</summary>
@@ -716,37 +716,46 @@ public abstract class KeyedConnector : FileConnector
         }
     }
 
-    /// <summary>⛔ HAND THE KEPT STATE OVER TO THE REGISTRY (kb/Work PB3494): the connector is displaced by its element's next
-    /// activation, or its next OPEN associates it with another physical file (§12.4.5.3 GR3 b), and what its CLOSE kept
-    /// belongs to the file it was kept on, not to the connector — the COMMIT, the ROLLBACK and the run unit's end still reach it
-    /// there (<c>FileRegistry.Retire</c>), and the connector holds nothing of it any more. Null when it kept nothing.</summary>
-    internal KeptFile? TakeKept()
+    /// <summary>⛔ HAND THE KEPT STATE OVER TO THE REGISTRY (kb/Work PB3494, PB3576): the connector is displaced by its element's next
+    /// activation, or its next OPEN associates it with another physical file (§12.4.5.3 GR3 b), or the path of its OPEN no longer
+    /// names the file it was kept on, and what its CLOSE kept belongs to the file it was kept on, not to the connector — the
+    /// COMMIT, the ROLLBACK and the run unit's end still reach it there (<c>FileRegistry.Retire</c>), and the connector holds
+    /// nothing of it any more. Nothing when it kept nothing. The ONE hand-over: every path that parts a connector from its kept
+    /// state without ending it comes here.</summary>
+    internal void RetireKept()
     {
-        if (_kept is not { } kept) return null;
+        if (_kept is not { } kept) return;
         (_kept, _attached) = (null, false);
         ForgetStore();
-        return kept;
+        (KeptSink ?? throw new InvalidOperationException(
+            $"'{HostPath}' holds a kept state but its connector was not registered through a FileRegistry — a registration defect (kb/Work PB3576)"))(kept);
     }
+
+    /// <summary>Where <see cref="RetireKept"/> hands the kept state: the registry that registered this connector, which keeps it for
+    /// the COMMIT, the ROLLBACK and the run unit's end (<c>FileRegistry._retired</c>). Set at registration; a connector no registry
+    /// holds is never under commit control and keeps nothing.</summary>
+    internal Action<KeptFile>? KeptSink { get; set; }
 
     /// <summary>Whether the kept state is of a physical file at another path than <see cref="FileConnector.HostPath"/> now: the
     /// connector was associated with another file since its CLOSE, and the kept one is still there, under its own path, for the
-    /// COMMIT and the ROLLBACK (<see cref="TakeKept"/>). A kept file the SAME path no longer names (removed or renamed away
-    /// outside the run unit) is the OPEN's to end instead (<see cref="EndWhatWasKeptOfAnotherFile"/>).</summary>
+    /// COMMIT and the ROLLBACK (<see cref="RetireKept"/>). A kept file the SAME path no longer names (removed or renamed away
+    /// outside the run unit) is the OPEN's to hand over the same way (<see cref="RetireWhatWasKeptOfAnotherFile"/>).</summary>
     internal bool KeptIsOfAnotherPath => _kept is { } kept && !HostFile.PhysicalFileComparer.Equals(kept.HostPath, HostPath);
 
     /// <inheritdoc/>
     /// <remarks>⛔ THE DECISION OF kb/Work PB3493 FOR A KEPT FILE THAT IS NOT THERE, made where the path names ANOTHER physical
-    /// file (kb/Work PB3533): the kept state belonged to the file that was removed or renamed away outside the run unit, nothing
-    /// of its store describes the file the path names now, and the run unit's tables hold one physical file per path
-    /// (<see cref="StoreTable"/>, <c>PhysicalFileTable</c>), so the kept state cannot stand beside an OPEN of the new one: it
-    /// ENDS (<see cref="ReleaseKept"/>: its record locks, its handle, its file lock and its attachment are given back), and the
-    /// OPEN is an ordinary OPEN of the file at the path. A transaction it held is left as a death leaves it, in the file it was
-    /// made in (DESIGN-runtime-library.md 2.2.1.10). It ends whatever this OPEN goes on to answer: §14.9.27.4 GR25's
-    /// <i>"the file is not affected"</i> is about the file the path names, and the kept one is not it. A connector that
-    /// inherited the kept state of the connector it replaced (<see cref="InheritKept"/>) meets the same question here.</remarks>
-    private protected sealed override void EndWhatWasKeptOfAnotherFile()
+    /// file or none (kb/Work PB3533, PB3576): the kept state belonged to the file that was removed or renamed away outside the run
+    /// unit, nothing of its store describes the file the path names now, and the OPEN is an ordinary OPEN of that file, or of none.
+    /// The kept state RETIRES (<see cref="RetireKept"/>) as it does where the connector is associated with another file
+    /// (<c>FileRegistry.Associate</c>, kb/Work PB3494): its transaction, record locks and file lock stay the COMMIT's and the
+    /// ROLLBACK's in the physical file they belong to, which the run unit's tables hold apart from the file now at the path
+    /// (<see cref="StoreTable"/>, <c>PhysicalFileTable.For</c>), so a renamed file's changes are committed, not abandoned. It
+    /// retires whatever this OPEN goes on to answer: §14.9.27.4 GR25's <i>"the file is not affected"</i> is about the file the path
+    /// names, and the kept one is not it. A connector that inherited the kept state of the connector it replaced
+    /// (<see cref="InheritKept"/>) meets the same question here.</remarks>
+    private protected sealed override void RetireWhatWasKeptOfAnotherFile(FilePresence presence)
     {
-        if (_kept is { } kept && !kept.IsOfTheFileAt(HostPath)) ReleaseKept();
+        if (_kept is { } kept && (presence is FilePresence.Absent || !kept.IsOfTheFileAt(HostPath))) RetireKept();
     }
 
     /// <summary>The connector's re-OPEN SUCCEEDED (<see cref="OpenCore"/>): what its CLOSE under commit control kept is this
@@ -760,8 +769,9 @@ public abstract class KeyedConnector : FileConnector
         _kept = null;
         try
         {
-            // Nothing is published through a kept endpoint a successful re-OPEN reached Attach with (Attach moved it all); an OPEN
-            // that never attached (an absent OPTIONAL file) leaves the locks here, and they end with the handle.
+            // Nothing is published through a kept endpoint a successful re-OPEN reached Attach with (Attach moved it all). An OPEN
+            // that never attached - an absent OPTIONAL file, a file the path no longer names - holds no kept state here: the OPEN
+            // retired it to the registry before its body (RetireWhatWasKeptOfAnotherFile), so it ends with the COMMIT.
             if (!kept.Adopted && Physical is { } physical) PhysicalFileTable.ReleaseThrough(physical, kept.Endpoint);
             if (kept.Handle is { } handle && !kept.Adopted) GiveBack(handle);
         }
