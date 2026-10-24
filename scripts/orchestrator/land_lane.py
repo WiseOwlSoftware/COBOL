@@ -968,6 +968,7 @@ def collect(cdir: pathlib.Path, branches: list[str], say: Say = print) -> int:
 
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture)
     failures: list[str] = []
 
     def expect(label: str, ok: bool, detail: str = "") -> None:
@@ -1097,9 +1098,7 @@ def self_test() -> int:
                and any("w2b" in ln and "gate lock is free" in ln for ln in status_lines(c3b)), str(status_lines(c3b)))
         f3b.free = True
         expect("exit 12 once the gate lock is free: retried at the same head", f3b.tick(c3b) == ["w2b"], str(f3b.started))
-        lock_wt = root / "wt-lock"
-        lock_wt.mkdir()
-        subprocess.run(["git", "init", "-q"], cwd=lock_wt, check=True, capture_output=True)
+        lock_wt = ScratchRepo.init(root / "wt-lock").path
         import run_gate_legs  # noqa: PLC0415
         held = ExclusiveLock.try_take(run_gate_legs.Host(lock_wt).lock_path(), "gate (pid 356316)")
         try:
@@ -1235,12 +1234,9 @@ def self_test() -> int:
 
         # 10. the real launch path: a DETACHED runner records rc, the verdict and the end head of its argv.
         c10 = fresh("runner")
-        wt = root / "wt-runner"
-        wt.mkdir()
-        g = ["git", "-c", "user.name=lane", "-c", "user.email=lane@invalid", "-c", "init.defaultBranch=main"]
-        subprocess.run(g + ["init", "-q"], cwd=wt, check=True, capture_output=True)
-        subprocess.run(g + ["commit", "-q", "--allow-empty", "-m", "x"], cwd=wt, check=True, capture_output=True)
-        head = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        runner_wt = ScratchRepo.init(root / "wt-runner")
+        runner_wt.commit("x", allow_empty=True)
+        wt, head = runner_wt.path, runner_wt.git("rev-parse", "HEAD")
         fake = [sys.executable, "-c", "print('=== ENQUEUE: GATE RED (Windows) on x (w9a) ==='); raise SystemExit(5)"]
         r = {"name": "w9a", "state": "WAITING TO LAND", "tip": head, "worktree": str(wt), "why": "", "lead": None}
         out: list[str] = []
