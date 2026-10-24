@@ -1375,11 +1375,11 @@ public sealed class FileRegistry
     /// restores the before file through a handle of the run unit (<see cref="KeyedJournalData"/>), and before its decision the run
     /// unit's store of the file adopts the restored file and rolls back the keyed transaction it holds — the run unit's uncommitted
     /// changes of before the capture (<see cref="AdoptRestoredStores"/>); the transaction in the replaced file goes with it. A
-    /// creation (START <c>A</c>): the run unit's handles on the file are given back and the file removed — unless a connector of
-    /// the run unit still has it OPEN: §14.9.36.4 GR3 restores files and leaves open connectors open, and an open keyed connector
-    /// stands on a physical file, so the implementor's determination (DESIGN-runtime-library.md 2.2.2.14) keeps the file its OPEN
-    /// created, its keyed transaction rolled back (no records: the state of the creation), and the creation standing for the
-    /// next ROLLBACK, after the CLOSE, or COMMIT. A journal that never captured (a capture refused
+    /// creation (START <c>A</c>): the run unit's keyed transaction in the file rolled back, every handle of the run unit on the
+    /// file given back and the file removed — a connector of the run unit that still has it OPEN included (review finding R1-2):
+    /// GR3 restores the state that had no file and leaves the open mode as it is, so the connector stays open on no file
+    /// (<see cref="KeyedConnector.LeaveTheRemovedFile"/>) and its next WRITE creates the file again, as the sequential
+    /// organization's does (2.2.2.7). A journal that never captured (a capture refused
     /// before its <c>K</c>) changed nothing: the keyed transaction rolls back as any does. A refused step leaves the rollback OWED.</summary>
     private StoreStatus RollbackKeyed(SequentialJournal journal)
     {
@@ -1388,12 +1388,9 @@ public sealed class FileRegistry
         try
         {
             using var mutex = Sequential.HoldEntryMutex(path);
-            bool createdUnderAnOpenConnector = journal.Start == SequentialJournal.StartState.Absent
-                && _files.Values.Any(c => c is KeyedConnector { IsOpen: true } && OnPhysicalFile(c.HostPath, path));
-            if (!journal.Replaced || createdUnderAnOpenConnector)
+            if (!journal.Replaced)
                 foreach (var holder in keyed)
                     if (holder.Rollback(this) != StoreStatus.Ok) return StoreStatus.PermanentError;
-            if (createdUnderAnOpenConnector) return StoreStatus.Ok;   // the creation stands
             using var data = new KeyedJournalData(this, path);
             if (!journal.Rollback(data, f => AdoptRestoredStores(path, f))) return StoreStatus.PermanentError;
         }
@@ -1442,6 +1439,7 @@ public sealed class FileRegistry
         {
             _opened.Release();
             registry.ReleaseKeptOn(path);
+            registry.LeaveTheRemovedFile(path);
         }
 
         public void Dispose() => _opened.Dispose();
@@ -1457,6 +1455,20 @@ public sealed class FileRegistry
         {
             retired.Kept.Release();
             _retired.Remove(retired);
+        }
+    }
+
+    /// <summary>Every keyed connector of the run unit still OPEN on the keyed file at <paramref name="path"/> leaves it before a ROLLBACK
+    /// removes the file a creation made (<see cref="KeyedJournalData"/>; review finding R1-2): it stays open on no file
+    /// (<see cref="KeyedConnector.LeaveTheRemovedFile"/>), and its physical-file state stops claiming the removed file
+    /// (<see cref="PhysicalFileTable.ForgetFile"/>), so the file its next WRITE creates is that state's again.</summary>
+    private void LeaveTheRemovedFile(string path)
+    {
+        foreach (var c in _files.Values)
+        {
+            if (c is not KeyedConnector { IsOpen: true } k || !OnPhysicalFile(k.HostPath, path)) continue;
+            k.LeaveTheRemovedFile();
+            if (k.Physical is { } st) _physical.ForgetFile(st, k.HostPath);
         }
     }
 
@@ -1511,7 +1523,13 @@ public sealed class FileRegistry
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return StoreStatus.PermanentError; }
         Sequential.End(journal);
-        foreach (var c in covered) c.AfterRollback();
+        foreach (var c in covered)
+        {
+            // A creation rolled back removed the file (START A): a connector still open on it is the path's again, so the file
+            // its next WRITE creates is learned as its state's (PhysicalFileTable.ForgetFile; kb/Work PB3492's sibling sweep).
+            if (journal.Start == SequentialJournal.StartState.Absent && c.IsOpen && c.Physical is { } st) _physical.ForgetFile(st, c.HostPath);
+            c.AfterRollback();
+        }
         return StoreStatus.Ok;
     }
 

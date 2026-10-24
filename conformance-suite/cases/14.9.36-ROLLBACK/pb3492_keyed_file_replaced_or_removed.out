@@ -15,3 +15,13 @@ X 05:
 OPEN OUTPUT X CREATES 00
 R 00: 2=BBBB                                                
 X 05:                                                       
+OPEN I-O X CREATES 05
+READ X AFTER ROLLBACK 23
+WRITE X AFTER ROLLBACK 00
+R 00: 2=BBBB                                                
+X 00: K3=GGGG                                               
+DELETE FILE X 00
+OPEN OUTPUT X CREATES 00
+CLOSE X AFTER ROLLBACK 00
+R 00: 2=BBBB                                                
+X 05:                                                       

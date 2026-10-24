@@ -350,6 +350,32 @@ public sealed class SequentialCommitControlTests
             OkCommit(u);
         });
 
+    /// <summary>The same under SHARING WITH ALL OTHER (kb/Work PB3492 review finding R1-2's sibling sweep): the Table 19 column the
+    /// OPEN published — on Windows a handle on the file of its own — leaves the file with it at the ROLLBACK's removal and is
+    /// published again when the WRITE creates the file, so another run unit's NO OTHER OPEN is refused ('61') again.</summary>
+    [Fact]
+    public void A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true, sharing: FileSharing.AllOther);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("X1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            Ok(a.Write("X2"));
+            var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
+            Assert.Equal("61", b.Open(FileOpenMode.Input));
+            OkCommit(a);
+            a.Reg.CloseAll();
+            Assert.Equal("X2", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // ── The connector's own state, the lock test and the run unit's end ────────────────────────────────────────
 
     [Fact]

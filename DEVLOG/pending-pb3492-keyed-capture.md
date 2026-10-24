@@ -21,14 +21,33 @@ withdraws the journal it began (§14.9.27.4 GR25), so PB3493's refused-creation 
 Table 19 column lock: on Windows its holder is a handle on the file (`HandleColumnLockHost`) and it refused the removal; the
 removal now gives the column back with the kept handle, for the sequential organization too (the same defect under `SHARING
 WITH READ ONLY` or `ALL OTHER`). An uncovered DELETE FILE now runs the entry step (2.2.2.8: "at every DELETE FILE"), so a
-dead run unit's capture is settled before the delete and no later settle brings the deleted file back. Determination (2.2.2.14):
-a creation's ROLLBACK under a connector still OPEN keeps the file its OPEN created, with no records, and the creation standing.
+dead run unit's capture is settled before the delete and no later settle brings the deleted file back. The Linux gate found the
+keyed entry mutex's `HostFile.CreateLockDirectory` re-creating a removed parent directory; the lock directory never creates the
+physical file's own directory now.
+
+**Branch review round 1.** R1-1: a DELETE FILE refused after the kept handle was given back (a capture or removal the medium
+refused, GR14's '05') never took it back, so the keyed transaction lost its liveness byte and `CommitKeyed` read the store's
+missing file as a removal and forgot the transaction: COMMIT answered success and the next writable OPEN's dead-owner step rolled
+the "committed" records back (§14.9.7.4 GR3). `GiveBackForRemoval` now returns a `RemovalGiveBack` that takes the handle and the
+Table 19 column back (`RunUnitFileLock.Suspend`/`Resume`) unless the removal lands, the keyed transaction ends with the removal
+itself, and a store with no file is refused at the COMMIT, never forgotten; the sequential arm shares the mechanism. R1-2: the
+first branch kept the empty file a creation made when its ROLLBACK met the connector still OPEN, an implementor determination
+GR3 does not allow and the sequential organization does not make; a STOP RUN then left an empty file where none is due. The
+ROLLBACK now removes it under the open connector too: the connector stays open on no file (`KeyedConnector.LeaveTheRemovedFile`;
+READ '23'/'10', REWRITE and DELETE find no record), its physical-file state forgets the removed file
+(`PhysicalFileTable.ForgetFile`), and its next WRITE creates the file again at its last check (`WriteCreatingTheFileAgain`).
+The sibling sweep found the sequential twin refused that ROLLBACK '30' under SHARING WITH ALL OTHER on Windows (its column, a
+handle on the file, was kept through the removal): fixed the same way. The CreateLockDirectory doc comment (lead R1-3) is whole
+again; the SequentialJournal/SequentialTransactions naming (lead R1-4) is left for the clerk.
 
 **Witnesses.** Golden `conformance:cases/14.9.36-ROLLBACK/pb3492_keyed_file_replaced_or_removed` (RELATIVE and INDEXED:
 replacement, removal, COMMIT, creation; the edition gate is PB3338's `pb3338_apply_commit_below_2023`). Unit
 (`CommitRollbackRuntimeTests`): the capture, removal and creation rows refused at every operation of the journal's medium
 (I11), the DELETE FILE after a CLOSE under NO OTHER and ALL OTHER, a dead run unit's capture settled by the next OPEN and by an
-uncovered DELETE FILE, and the creation's ROLLBACK with the connector closed and open. Three PB3493 tests that encoded the
+uncovered DELETE FILE, the creation's ROLLBACK with the connector closed and open (READ, re-creating WRITE, COMMIT, normal end;
+NO OTHER and ALL OTHER), and a DELETE FILE refused at the capture or the removal followed by a COMMIT that keeps record 7 (both
+organizations; `SequentialCommitControlTests` carries the sequential rows). The golden gained legs 5 and 6 (the creation rolled
+back under the open connector, then re-created by a WRITE, or left with no file). Three PB3493 tests that encoded the
 defect (the ROLLBACK after a refused final sync found nothing to restore; another run unit's OPEN beside a landed capture) now
 expect the restore and the capture's (ALL) holding.
 

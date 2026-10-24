@@ -665,6 +665,7 @@ public sealed class IndexedConnector : KeyedConnector
             return Status = locked;   // '51' (RETRY: GR16)
         if (reevaluate) return Write(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        if (FileRemovedByRollback) return WriteCreatingTheFileAgain(() => Write(originalImage, length, originalExtents));   // 2.2.2.14 (R1-2)
         // §14.9.51.4 GR40 — the WRITE RELEASES the record, so it is positioned last in the duplicate set of
         // EVERY key at once: one fresh ordinal stamped into every slot (the prime slot doubles as the record's
         // release order in the physical file).

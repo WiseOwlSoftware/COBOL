@@ -19,7 +19,9 @@
 *> item 8's ROLLBACK (ISO 14.6.13.1.3) in. Each leg fails on its own: a replacement a ROLLBACK keeps (record 1 absent,
 *> record 2 present), an uncommitted change made before the capture that the ROLLBACK keeps (record 3 / K3 present), a
 *> DELETE FILE refused 62 or kept (05 at the reopen after the ROLLBACK), a COMMIT that does not keep the replacement and
-*> the removal, and a creation that the ROLLBACK keeps (00 instead of 05).
+*> the removal, and a creation that the ROLLBACK keeps (00 instead of 05), whether its connector was CLOSEd at the
+*> ROLLBACK or is still OPEN on the file (GR3 leaves the open mode: the connector stays open on no file, and its next
+*> WRITE creates the file again).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3492KY.
        ENVIRONMENT DIVISION.
@@ -130,6 +132,40 @@
            WRITE XREC
            CLOSE X
            ROLLBACK
+           PERFORM SHOW-FILES
+      *> Leg 5: a creation rolled back while its connector is still OPEN: the file is gone and the connector
+      *> stays open on no file - a READ finds no record (23) and its next WRITE creates the file again, which
+      *> the COMMIT keeps.
+           OPEN I-O X
+           DISPLAY "OPEN I-O X CREATES " XS
+           MOVE "K6" TO XK
+           MOVE "FFFF" TO XD
+           WRITE XREC
+           ROLLBACK
+           MOVE "K6" TO XK
+           READ X
+               INVALID KEY DISPLAY "READ X AFTER ROLLBACK " XS
+           END-READ
+           MOVE "K3" TO XK
+           MOVE "GGGG" TO XD
+           WRITE XREC
+           DISPLAY "WRITE X AFTER ROLLBACK " XS
+           COMMIT
+           CLOSE X
+           PERFORM SHOW-FILES
+      *> Leg 6: the same creation rolled back while OPEN with nothing written after it: no file, never the
+      *> empty file the rolled-back OPEN made (05 at the reopen).
+           DELETE FILE X
+           DISPLAY "DELETE FILE X " XS
+           COMMIT
+           OPEN OUTPUT X
+           DISPLAY "OPEN OUTPUT X CREATES " XS
+           MOVE "K4" TO XK
+           MOVE "HHHH" TO XD
+           WRITE XREC
+           ROLLBACK
+           CLOSE X
+           DISPLAY "CLOSE X AFTER ROLLBACK " XS
            PERFORM SHOW-FILES
            STOP RUN.
        SHOW-FILES.

@@ -238,7 +238,7 @@ public abstract class KeyedConnector : FileConnector
     protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         ResetPosition();
-        (_begunByOpen, _openChangedFile) = (null, false);
+        (_begunByOpen, _openChangedFile, _fileRemoved) = (null, false, false);
         // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
         // a refusal can never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
@@ -319,6 +319,93 @@ public abstract class KeyedConnector : FileConnector
         if (!CommitControlled || Journal is not null) return null;
         _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent, ofKeyedFile: true);
         return null;
+    }
+
+    /// <summary>⛔ THE RUN UNIT'S ROLLBACK REMOVED THE FILE A CREATION SINCE THE LAST COMMIT MADE, AND THIS CONNECTOR STAYED OPEN
+    /// (§14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement or the start of the
+    /// run unit"</i>, a state with no file; DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review finding R1-2; the
+    /// sequential organization's twin is <c>SequentialConnector</c>'s own): the connector keeps its open mode on no file
+    /// (<see cref="LeaveTheRemovedFile"/>). A READ or START reads it as an absent OPTIONAL file (<see cref="FileConnector.OptionalAbsent"/>:
+    /// '10' at end, '23' for a key), a REWRITE or DELETE finds no record, and its next WRITE creates the file again, as its OPEN
+    /// did, beginning a new transaction with no file at its start (<see cref="WriteCreatingTheFileAgain"/>).</summary>
+    private bool _fileRemoved;
+
+    /// <inheritdoc cref="_fileRemoved"/>
+    private protected bool FileRemovedByRollback => _fileRemoved;
+
+    /// <summary>The ROLLBACK is about to remove the file this OPEN connector stands on (<c>FileRegistry.KeyedJournalData</c>), its run
+    /// unit's transaction in it rolled back already: the store is left and the handle given back (a Windows handle not opened
+    /// for deletion refuses the removal), the Table 19 column suspended (<see cref="FileConnector.SuspendRunUnitFileLock"/>), and
+    /// the connector, still open, holds the absent file's placeholder store (OpenCore's absent OPTIONAL INPUT arm).</summary>
+    internal void LeaveTheRemovedFile()
+    {
+        if (!IsOpen || _fileRemoved) return;
+        try
+        {
+            try { _ = Detach(); }
+            finally { ReleaseFileLock(); }
+        }
+        finally
+        {
+            SuspendRunUnitFileLock();
+            (_fileRemoved, OptionalAbsent) = (true, true);   // the file position indicator stays as it was (§14.9.36.4 GR3 leaves the open mode)
+            AttachStore(create: false);   // no file, no records
+            _attached = true;
+        }
+    }
+
+    /// <summary>⛔ A WRITE THROUGH A CONNECTOR WHOSE FILE THE ROLLBACK REMOVED (<see cref="_fileRemoved"/>) CREATES IT AGAIN, AS ITS OPEN
+    /// DID (§14.9.27.4 GR17, GR18; the sequential twin is <c>SequentialConnector.BeginAppending</c>), then runs
+    /// <paramref name="write"/> against the file it created, inside the statement of its store (2.2.1.7: a connector with no file
+    /// entered none). Each organization's WRITE calls it at its last check before the record is released, so a WRITE the
+    /// absent file refuses (its record rules, its keys, its locks) creates nothing.</summary>
+    private protected string WriteCreatingTheFileAgain(Func<string> write)
+    {
+        if (CreateTheFileAgain() is { } refused) return Status = refused;
+        using (BeginStatement()) return write();
+    }
+
+    /// <summary>The creation of <see cref="WriteCreatingTheFileAgain"/>, under the entry mutex: the journal begun with no file at its
+    /// start (START <c>A</c>, <see cref="JournalCreation"/>), the creating handle taken and the empty store created
+    /// (<see cref="LockCreating"/>, <see cref="Attach"/>), and the Table 19 column published again. A file another run unit made at
+    /// the path meanwhile is not this WRITE's to replace: '30' (§9.1.13.6), as for any refusal. An unsuccessful creation leaves the
+    /// connector on no file, the journal withdrawn when the file was not created and otherwise left to item 8's ROLLBACK, which
+    /// removes it. Returns the failing I-O status, or null.</summary>
+    private string? CreateTheFileAgain()
+    {
+        string? refused;
+        RegionLocks? entry = null;
+        try
+        {
+            if (CommitControlled) entry = Transactions.HoldEntryMutex(HostPath);
+            _ = Detach();   // the placeholder
+            (_begunByOpen, _openChangedFile) = (null, false);
+            refused = HostFile.Probe(HostPath) is FilePresence.Absent
+                ? JournalCreation() ?? LockCreating() ?? Attach(create: true)
+                : FileStatusCode.PermanentError;
+            if (refused is null && !ResumeRunUnitFileLock()) refused = FileStatusCode.PermanentError;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { refused = FileStatusCode.PermanentError; }
+        try
+        {
+            if (refused is null)
+            {
+                (_fileRemoved, OptionalAbsent) = (false, false);
+                return null;
+            }
+            if (_begunByOpen is { } begun && !_openChangedFile) Transactions.Withdraw(begun);
+            try { _ = Detach(); }
+            catch (IOException) { }
+            finally { ReleaseFileLock(); }
+            AttachStore(create: false);
+            _attached = true;
+            return refused;
+        }
+        finally
+        {
+            (_begunByOpen, _openChangedFile) = (null, false);
+            entry?.Dispose();
+        }
     }
 
     /// <summary>The creating arms' file lock (<see cref="Lock"/>): a handle taken with the creating mode creates the file, which
@@ -736,6 +823,7 @@ public abstract class KeyedConnector : FileConnector
         // '30' by FileConnector.Close like a refused promotion. The connector is closed either way.
         if (detached != StoreStatus.Ok)
             throw new IOException($"the medium refused the reader's re-adoption of '{HostPath}' at the CLOSE");
+        _fileRemoved = false;
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
