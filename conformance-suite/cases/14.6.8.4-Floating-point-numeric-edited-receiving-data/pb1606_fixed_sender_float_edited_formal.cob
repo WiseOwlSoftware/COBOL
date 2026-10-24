@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb1606_fixed_sender_float_edited_formal
-*> rules: [GR-14.2.3-9, GR-14.6.8.4-1]
+*> rules: [GR-14.2.3-9, GR-14.6.8.4-1, GR-14.9.25.4-1]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
@@ -20,6 +20,11 @@
       *>      value the program wrote).
       *>      The same function value passed BY CONTENT to the float-edited formal (review round 2, finding R2-1) is the
       *>      sending operand of the same GR9 MOVE, so the formal holds the same +3.0000000000000000E-01.
+      *>      MOVE FUNCTION SQRT (X) TO FE FE2: 14.9.25.4 GR1 writes the MOVE out as MOVE a TO temp / MOVE temp TO each
+      *>      receiver, "where 'temp' is an intermediate result item provided by the implementor", so each receiver
+      *>      holds what the single-receiver MOVE stores -> +3.0000000000000000E-01 twice (the binary64 intermediate is
+      *>      the approximation it holds, never a float data item read by its exact value: it printed
+      *>      +2.9999999999999998E-01 twice, the Linux landing gate's red on pb370_move_function_value_digits).
       *>   FH FLOAT-LONG 0.5 is exactly 0.5 -> +5.0000000000000000E-01.
       *>   F3 FLOAT-LONG 0.3 IS the binary64 0.299999999999999988897769753748..., a floating-point DATA ITEM read by its
       *>      exact value (the PB1606 rule): truncated to 17 digits -> +2.9999999999999998E-01.
@@ -38,6 +43,7 @@ WORKING-STORAGE SECTION.
 01 FH   USAGE FLOAT-LONG VALUE 0.5.
 01 F3   USAGE FLOAT-LONG VALUE 0.3.
 01 FE   PIC +9.9(16)E+99.
+01 FE2  PIC +9.9(16)E+99.
 PROCEDURE DIVISION.
 MAIN.
     MOVE V TO FE
@@ -46,6 +52,8 @@ MAIN.
     CALL PB1606P USING BY CONTENT W
     MOVE FUNCTION SQRT (X) TO FE
     DISPLAY "MOVE SQRT=" FE
+    MOVE FUNCTION SQRT (X) TO FE FE2
+    DISPLAY "MOVE SQRT TWO=" FE " " FE2
     CALL PB1606P USING BY CONTENT FUNCTION SQRT (X)
     CALL PB1606P USING BY CONTENT FH
     CALL PB1606P USING BY CONTENT F3

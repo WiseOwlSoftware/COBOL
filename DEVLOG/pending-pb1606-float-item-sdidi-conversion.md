@@ -92,3 +92,20 @@ and `BoundaryItemLandingTests` and `FloatItemSdidiLiftDriftTests` pin the flag, 
 binary value, as the arithmetic store does). A CALL's function value into a FIXED-point numeric-edited formal truncates the
 binary expansion (`0.29999` for PIC 9.9(5)), exactly as the local `MOVE FUNCTION SQRT (X) TO E2` does on this branch and on
 main; that is the scaled quantizer lead of round 1, reported again.
+
+**Landing finisher (the Linux landing gate's red, fixed).** `enqueue.py land` stopped on cb7e96b83 with one Linux conformance
+red, `2002/pb370_move_function_value_digits` line 15: `MOVE FUNCTION PI TO W (I) W (3)` (PIC +9.9(20)E+99) stored
+`+3.14159265358979311599E+00` where its single-receiver twin `MOVE FUNCTION PI TO WQ` stores `+3.14159265358979300000E+00`.
+It is no host difference: the branch build prints the same on Windows, and the Windows leg 1 never ran the case (it sat in
+`not-run-Conformance.txt`; the gate had no impact map, so its reach tier was cost-ordered, and batched gating left it to the
+landing's all-legs Linux run, which caught it). The cause is the branch's own: §14.9.25.4 GR1 writes the MOVE out as `MOVE a TO
+temp / MOVE temp TO b`, and `SendingValueTemp` holds a float-family value in a FLOAT-LONG intermediate; the renderer reads a
+float item by its exact value (the PB1606 rule), so the frozen approximation lost the shortest-round-trip reading its
+un-frozen self gets. `DataItem.HoldsApproximation` (a synthesized-temp discrimination, like `FunctionValueSeparator`) marks
+that intermediate, set where `SendingValueTemp.IntermediatePic` picks the binary64 for a `FunctionValueLane.ReturnsBinary64`
+value, and the two readers of a float item as a value honor it: `NumericRenderer`'s float field read (and its windowed twin)
+states `NumX.Approximate`, and `FunctionValueLane`'s place carrier answers `ApproximateReal`. The golden
+`pb1606_fixed_sender_float_edited_formal` gains `MOVE FUNCTION SQRT (X) TO FE FE2` (`+3.0000000000000000E-01` twice; it printed
+`+2.9999999999999998E-01` twice before the fix). Sibling sweep: the multi-receiver COMPUTE snapshots the `NumX` itself and
+keeps the flag (probed: `+3.0E-01`); a frozen function argument and an EVALUATE subject share the same intermediate and now read
+it as the un-frozen value; fixed-point and float-item receivers of the intermediate do not read the flag (probed unchanged).
