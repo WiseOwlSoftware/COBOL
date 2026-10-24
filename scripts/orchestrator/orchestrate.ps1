@@ -83,9 +83,18 @@ param(
     # enqueue unit's own `land_lane.py tick`).
     [int]$LandLaneSeconds = 300,
     [int]$StartupTicks = 300,
-    [int]$BackoffBaseSeconds = 60
+    [int]$BackoffBaseSeconds = 60,
+    # THE LOOP ADOPTS LANDED CHANGES BY ITSELF (kb/Work PB2699; design section 4.10). The GitHub CLI adopt_main.py asks for
+    # CI's state of origin/main (a test seam, like -ClaudeExe: the self-test names a fake).
+    [string]$GhExe = 'gh',
+    # What a restart carries over, so a supervisor that re-executes itself between units loses nothing (never set by hand):
+    # the consecutive failures, the units run so far (-MaxUnits counts them) and when the last unit started.
+    [int]$CarryFailures = 0,
+    [int]$CarryRan = 0,
+    [string]$CarryLastStarted = ''
 )
 $ErrorActionPreference = 'Stop'
+$LaunchParameters = @{} + $PSBoundParameters   # for the in-place restart (Restart-Supervisor)
 Set-StrictMode -Version Latest
 
 $Here = $PSScriptRoot
@@ -221,6 +230,41 @@ function Start-LaneTick {
         $proc = [System.Diagnostics.Process]::Start($psi)
         $script:LaneTick = @{ proc = $proc; out = $proc.StandardOutput.ReadToEndAsync(); err = $proc.StandardError.ReadToEndAsync() }
     } catch { Say "land lane tick not started (the unit continues): $_" }
+}
+
+# THE LOOP ADOPTS LANDED CHANGES BY ITSELF (kb/Work PB2699; adopt_main.py owns the rule, design section 4.10). Between units,
+# when nothing runs, the checkout is fast-forwarded to origin/main once CI's run on it has succeeded. When that changed the
+# supervisor's own script, the supervisor restarts in place (below) so a landed process fix applies at the NEXT unit.
+function Invoke-AdoptMain {
+    try {
+        $a = Invoke-Py @((Join-Path $Here 'adopt_main.py'), 'adopt', '--repo', $RepoDir, '--coord', $CoordDir, '--gh', $GhExe, '--json') | ConvertFrom-Json
+        Say $a.line
+        return $a
+    } catch { Say "main not adopted (the loop continues on the checkout as it is): $_"; return $null }
+}
+
+# Re-executes THIS supervisor from the (just fast-forwarded) checkout and returns the child's exit code. All state a
+# successor needs is on disk (handoff files, the operator's steer, units.jsonl); the few counters the loop keeps in memory
+# ride along as -Carry* parameters. A landing the lane started finishes on the code it started with (it runs detached);
+# the lock is released first, so the successor takes it.
+function Restart-Supervisor([int]$failures, [int]$ran, $lastStarted) {
+    $skip = 'Unit', 'Cluster', 'CarryFailures', 'CarryRan', 'CarryLastStarted'   # -Unit was consumed at start; the rest are set below
+    $argList = [Collections.Generic.List[string]]::new()
+    foreach ($k in $LaunchParameters.Keys) {
+        if ($k -in $skip) { continue }
+        $v = $LaunchParameters[$k]
+        if ($v -is [switch]) { if ($v) { $argList.Add("-$k") } } else { $argList.Add("-$k"); $argList.Add("$v") }
+    }
+    if ($Clusters.Count) { $argList.Add('-Cluster'); $argList.Add(($Clusters -join ',')) }
+    $argList.Add('-CarryFailures'); $argList.Add("$failures")
+    $argList.Add('-CarryRan'); $argList.Add("$ran")
+    if ($lastStarted) { $argList.Add('-CarryLastStarted'); $argList.Add($lastStarted.ToString('o')) }
+    $self = Join-Path (Join-Path (Join-Path $RepoDir 'scripts') 'orchestrator') 'orchestrate.ps1'
+    Say "restarting the supervisor from the adopted checkout: pwsh -File $self $($argList -join ' ')"
+    Remove-Item $Lock -Force -ErrorAction SilentlyContinue
+    $script:HandedOver = $true
+    & (Get-Command pwsh).Source -NoProfile -File $self @argList | Out-Host   # the successor's output is the console's, not this function's result
+    return [int]$LASTEXITCODE
 }
 
 function Invoke-Py([string[]]$ArgList) {
@@ -492,6 +536,7 @@ $UnitCluster = ''
 
 if (-not (Take-Lock)) { exit 3 }
 $exitCode = 0
+$script:HandedOver = $false
 # A DRY RUN'S STEER lives in this run's own directory under THIS coordination directory, never in the machine-wide TEMP
 # (kb/Work PB2922; design section 4.8): a fixed TEMP name was seen by every other dry run on the host, and one that a killed
 # dry run left behind (a process-tree kill skips the `finally` below) turned every later check of that name RED.
@@ -524,10 +569,10 @@ try {
         [void](Invoke-Py @((Join-Path $Here 'checkpoint.py'), 'synthesize', '--unit', $cpUnit, '--out', $LastHandoff, '--repo', $RepoDir))
         Move-Item $leftover (Join-Path $CoordDir "logs/$(Get-Date -Format 'yyyyMMdd-HHmmss')-$cpUnit.checkpoint.json") -Force
     }
-    $failures = 0
-    $ran = 0
-    $lastFailed = $false
-    $lastStarted = $null
+    $failures = $CarryFailures
+    $ran = $CarryRan
+    $lastFailed = $failures -gt 0
+    $lastStarted = if ($CarryLastStarted) { [datetime]::Parse($CarryLastStarted, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind) } else { $null }
     while ($true) {
         if (Test-Stop) { Say "STOP file present ($(if (Test-Path $StopFile) { $StopFile } else { "the owner's global $GlobalStop" })): ending the loop"; break }
         if ($failures -ge 3) {
@@ -537,6 +582,16 @@ try {
             Add-OwnerQuestion 'circuit breaker tripped' "Three consecutive units failed (fast exit, nonzero exit or no valid handoff). See $note and the logs it names. The loop stopped; restart it once the cause is fixed."
             Say "circuit breaker: three consecutive failed units; stopped (see $note)"
             $exitCode = 4; break
+        }
+
+        # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it.
+        if ($DryRun) { Say 'DRY RUN: would adopt origin/main here (adopt_main.py adopt) and restart if the supervisor changed' }
+        else {
+            $adopted = Invoke-AdoptMain
+            if ($adopted -and $adopted.supervisor_changed) {
+                $exitCode = Restart-Supervisor $failures $ran $lastStarted
+                break
+            }
         }
 
         $budgetArgs = @((Join-Path $Here 'budget.py'), '--json', '--borrow-days', "$BorrowDays")
@@ -710,7 +765,8 @@ try {
         }
     }
 } finally {
-    Remove-Item $Lock -Force -ErrorAction SilentlyContinue
+    # A restart handed the lock to its successor (Restart-Supervisor): it is not ours to remove.
+    if (-not $script:HandedOver) { Remove-Item $Lock -Force -ErrorAction SilentlyContinue }
     # Not fatal: a directory this cannot remove is reaped, loudly, by the next start (above).
     if ($dryRunDir) { Remove-Item $dryRunDir -Recurse -Force -ErrorAction SilentlyContinue }
 }
