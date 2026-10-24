@@ -1,4 +1,4 @@
-## PB3661 and PB3660 join the PB1957 campaign; PB3609 records a landing-lane recurrence
+## Entry 2489 — 2026-10-24 16:53 PDT — PB3661 and PB3660 join the PB1957 campaign; PB3609 records a landing-lane recurrence
 
 The owner asked on 2026-10-24 whether every loop performance improvement is in use. The operator checked today's gate
 records and found that PB3661 had already cost a whole-population gate. The last gate on PB2974's branch (run
@@ -12,3 +12,4 @@ population run. PB3660 is tier 2, because no branch with a gate record older tha
 PB3609 gains its recurrence. At 16:33 PDT the landing lane started `enqueue.py land` on PB2974's branch 14 minutes after
 pull request #512 merged. The survey read the merged branch IN FLIGHT, so `rearm_hold`'s LANDED arm never applied. The
 attempt ended exit 6 NO ENTRY without harm.
+
