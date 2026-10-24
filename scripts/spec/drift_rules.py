@@ -33,17 +33,27 @@ or the test itself), so the class governs that file SPECIFICALLY too (`owners`):
 (PB3531 review R1-1: CatalogCoverageDriftTests owns scripts/spec/spec_headings.py). `TrackedTreeScopeDriftTests` holds every
 declaration this reads equal to the value the compiler builds (`--scopes`), and every `TrackedTree.Files` call to a
 declared field of a drift test.
+
+A drift test that reads a REGISTER — a data file it names, such as the traceability inventory or docs/CONFORMANCE.md —
+and checks that the register's citations resolve is broken by a change that never touches the register: one that
+deletes a member a code-location names, renames a test a test-ref names, or deletes a file. `citing` answers that
+case for the gate's planner (kb/Work PB3131): given what a diff removes (`removal_of`, fed by
+scripts/spec/impacted_tests.py), the classes that govern each register citing it (`Citations.broken_by` reads the
+three citation shapes a register uses: a path, a path and member, a dotted name).
 """
 import json
 import pathlib
 import re
 import sys
+from dataclasses import dataclass
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HELPERS = {"Src": "src", "Tests": "tests", "Docs": "docs", "Scripts": "scripts", "Specs": "specs",
            "VersionMatrix": "tests/version-matrix", "Nist": "tests/nist", "Suite": "conformance-suite", "At": ""}
 CALL = re.compile(r"TestRepo\.(" + "|".join(HELPERS) + r")\(([^()]*)\)")
-LITERAL = re.compile(r'"((?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)/[^"\s{}*]+)"')
+#: The top-level trees a repo-relative path a test reads, or a register cites, starts with.
+TREE_ROOTS = r"(?:src|tests|docs|scripts|specs|kb|grammars|\.github|adjudication|conformance-suite)"
+LITERAL = re.compile(r'"(' + TREE_ROOTS + r'/[^"\s{}*]+)"')
 SUMMARY = re.compile(r"///\s*<summary>(.*?)</summary>", re.S)
 CLASS = re.compile(r"\bclass\s+(\w*DriftTests)\b")
 CREF = re.compile(r'<(?:see|seealso)\s+(?:cref|langword|href)="(?:[A-Z]:)?([^"]+)"\s*/>')
@@ -252,6 +262,122 @@ def governing(rows, rel):
         elif under or held:
             sweeps.append(r)
     return specific, sweeps
+
+
+@dataclass(frozen=True)
+class Removal:
+    """What a change takes away from one tracked file, as a CITATION can name it: the file itself (`deleted`), the
+    identifiers its old text had and its new text lacks (`names`), and the types it declares (`classes`, old text
+    and new) — the left-hand side of a dotted `Class.Member` citation."""
+    path: str
+    deleted: bool
+    names: frozenset[str]
+    classes: frozenset[str]
+
+
+IDENT = re.compile(r"[A-Za-z_]\w*")
+TYPE_NAME = re.compile(r"\b(?:class|record|struct|interface|enum)\s+([A-Za-z_]\w*)")
+
+
+def removal_of(path, removed, after):
+    """The Removal of `path` from a diff: its `removed` lines, and its text after the change (None: deleted). An
+    identifier the old text had and the new one lacks sits on a removed line, so the removed lines suffice. None when
+    the change removes nothing a citation can name."""
+    removed_text = "\n".join(removed)
+    classes = frozenset(TYPE_NAME.findall(removed_text) + TYPE_NAME.findall(after or ""))
+    if after is None:
+        return Removal(path, True, frozenset(), classes)
+    names = frozenset(IDENT.findall(removed_text)) - frozenset(IDENT.findall(after))
+    return Removal(path, False, names, classes) if names else None
+
+
+def data_files(rows):
+    """The DATA files the drift tests read by name — every non-C# file a row's paths name exactly — each with the
+    classes that govern it specifically: the registers that cite tree symbols (the traceability inventory's
+    code-locations and test-refs, docs/CONFORMANCE.md's pins) and the tests that check those citations resolve."""
+    out = {}
+    for p in sorted({p for r in rows for p in r["paths"] if not p.endswith(".cs")}):
+        if (ROOT / p).is_file():
+            out[p] = sorted(r["test"] for r in governing(rows, p)[0])
+    return out
+
+
+PATH_MEMBER = re.compile(r"(" + TREE_ROOTS + r"/[\w./-]+)#([A-Za-z_][\w.]*)")
+#: Anchored at a word start and possessive: unanchored, the scan of the 18 MB of registers took 2 s, not 0.6 s.
+DOTTED = re.compile(r"\b[A-Za-z_]\w*+(?:\.[A-Za-z_]\w*+)+")
+
+
+class Citations:
+    """A data file's citations of tree symbols, indexed once so a removal is checked by set lookups (a regex per
+    removed identifier over the 7.5 MB inventory cost 12-49 s a plan). A register cites a symbol in three shapes:
+    a PATH (`src/.../File.cs`, `cases/<clause>/<test>`), a PATH AND MEMBER (`src/.../File.cs#Member`, `#Class.Member`,
+    a grammar's `#rule`) and a DOTTED NAME (`unit:Class.Method`, `Namespace.Class.Method`)."""
+
+    def __init__(self, text, wanted):
+        """Index `text`, keeping only the citations whose member is one of the `wanted` (removed) identifiers."""
+        self.text = text
+        self.members = {}   # (path, a segment after its `#`) -> the citation
+        for path, member in PATH_MEMBER.findall(text):
+            for seg in filter(None, member.split(".")):
+                if seg in wanted:
+                    self.members.setdefault((path, seg), f"{path}#{member}")
+        self.qualified = {}   # (a segment, any later segment of the same dotted name) -> the dotted name
+        for name in set(DOTTED.findall(text)):
+            segs = name.split(".")
+            for i, right in enumerate(segs):
+                if right in wanted:
+                    for left in segs[:i]:
+                        self.qualified.setdefault((left, right), name)
+
+    def broken_by(self, removal):
+        """The first citation `removal` breaks, or None: a PATH by deleting the file — matched on its STEM as a whole
+        word, so an extension, a directory prefix or a scheme (`conformance:cases/<clause>/<test>`, a pin's
+        `2023/<test>`) still matches; a PATH AND MEMBER by removing any segment after the `#`; a DOTTED NAME by removing
+        a later segment from a file declaring the earlier one as a type, or by removing the type itself (or its file),
+        which breaks every whole-word mention of it."""
+        words = set(removal.classes if removal.deleted else removal.classes & removal.names)
+        if removal.deleted:
+            words.add(removal.path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
+        for n in sorted(removal.names):
+            if (removal.path, n) in self.members:
+                return self.members[removal.path, n]
+            for c in sorted(removal.classes):
+                if (c, n) in self.qualified:
+                    return self.qualified[c, n]
+        for w in sorted(words):
+            hit = w in self.text and re.search(r"(?<![\w-])" + re.escape(w) + r"(?![\w-])", self.text)
+            if hit:   # the citation is the whitespace-, quote- or backtick-delimited run holding the mention
+                lo = max(self.text.rfind(c, 0, hit.start()) for c in " \t\n\"'`|(") + 1
+                his = [i for i in (self.text.find(c, hit.end()) for c in " \t\n\"'`|)") if i >= 0]
+                return self.text[lo:min(his, default=len(self.text))][:160]
+        return None
+
+
+def citing(rows, removals, read=None):
+    """{drift class: (data file, citation)} for every data file (`data_files`) holding a citation one of `removals`
+    breaks: the classes that govern that file specifically, which the gate's planner puts in leg 1 with the governing
+    ones (tier 0d; scripts/spec/impacted_tests.py). A change that deletes a member, renames a test or deletes a file a
+    register cites breaks the register's check WITHOUT touching the register (kb/Work PB3131: four landings stopped in
+    CI's Linux unit leg on SpecTraceabilityInventoryDriftTests after a Windows leg 1 that never ran it). `read`
+    (repo-relative path -> text) defaults to the tree."""
+    read = read or (lambda p: (ROOT / p).read_text(encoding="utf-8", errors="replace"))
+    out = {}
+    if not removals:
+        return out
+    wanted = frozenset().union(*(r.names for r in removals))
+    for data, classes in data_files(rows).items():
+        if all(c in out for c in classes):
+            continue
+        cites = Citations(read(data), wanted)
+        for removal in removals:
+            if removal.path == data:
+                continue   # the register's own edit is governed (`governed`), not cited
+            cite = cites.broken_by(removal)
+            if cite:
+                for c in classes:
+                    out.setdefault(c, (data, cite))
+                break
+    return out
 
 
 def main(argv):

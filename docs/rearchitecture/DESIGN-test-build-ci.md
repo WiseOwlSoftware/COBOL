@@ -958,6 +958,18 @@ because the raw name is not stable (`b7`):
   430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
   118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
   the gate run just before it on another branch, on the same host and the same shared timings.
+  **A register's citations** (kb/Work PB3131): a drift test that reads a REGISTER by name — the traceability
+  inventory's code-locations (`src/.../File.cs#Member`) and test-refs (`unit:Class.Method`), docs/CONFORMANCE.md's
+  pins — and checks that its citations resolve is broken by a diff that never touches the register: one that deletes a
+  cited member, renames a cited test or deletes a cited file. Tier 0d therefore also holds every class that governs a
+  register citing what the diff REMOVES: `impacted_tests.removals` reads one `git diff -U0` (a deleted file; the
+  identifiers on removed lines that the file's new text lacks; the types it declares) and `drift_rules.citing` looks
+  each up in every non-C# file a drift test names, indexed once per plan by the three citation shapes (`Citations`).
+  Four landings on 2026-10-14..17 stopped in CI's Linux unit leg on `SpecTraceabilityInventoryDriftTests` after a
+  Windows leg 1 that left the class in leg 2 by its cost (4-6 s a case, over `SWEEP_CHEAP_SECONDS`); replayed with no
+  map, each of the four commits (611bdb3a2, 684d01b4b, 1a473341f, c3c6879ab) now names the class, with the citation it
+  breaks, at a plan cost of about 2-5 s. A removed identifier that survives elsewhere in its file (in a comment) is
+  not seen; a register outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
