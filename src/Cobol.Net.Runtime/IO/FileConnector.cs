@@ -1015,7 +1015,9 @@ public abstract class FileConnector
     private string? EnterPhysicalFile(FileOpenMode mode)
     {
         if (mode is FileOpenMode.Input || HostPath.Length == 0) return null;
-        if (CommitControlled) EntryMutex = Transactions.HoldEntryMutex(HostPath);
+        // A file whose directory is not there has no lock directory beside it: nothing to settle and no one to exclude, and the
+        // OPEN's own creation answers for the directory (§9.1.13.6 1)), after what the CLOSE kept of another file has retired.
+        if (CommitControlled && HostFile.ContainingDirectoryExists(HostPath)) EntryMutex = Transactions.HoldEntryMutex(HostPath);
         var holdings = SequentialJournal.Enter(Medium, HostPath, Journal?.Id, EntryMutex);
         return holdings.Unlistable ? FileStatusCode.PermissionDenied : holdings.RefusesOpen(exclusive: mode is FileOpenMode.Output);
     }
