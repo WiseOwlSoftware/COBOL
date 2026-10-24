@@ -1,4 +1,4 @@
-## PB3492: a keyed file replaced, removed or created under commit control is restored by ROLLBACK, and its DELETE FILE after a CLOSE proceeds
+## Entry 2458 — 2026-10-24 05:48 PDT — PB3492: a keyed file replaced, removed or created under commit control is restored by ROLLBACK, and its DELETE FILE after a CLOSE proceeds
 
 kb/Work PB3492 (cluster PB3353), wave 20261028 group A, the fourth attempt at the note and the keyed half of PB3340's journal.
 
@@ -55,3 +55,4 @@ expect the restore and the capture's (ALL) holding.
 GAP 53 → 50); Annex A.4.3 and A.3 items 6–7 Claimed in docs/CONFORMANCE.md, and README's declined list drops commit and rollback.
 
 **Gate.** See the branch report (`w20261028a-PB3492-report.md`) for the verdict lines of the Windows gate and the Linux gate.
+
