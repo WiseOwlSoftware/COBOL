@@ -333,7 +333,7 @@ _cl_git = _branch_git("worktree-wf_cl-1", {"PB13": "landed", "PB10": "retired", 
 
 check("a branch closes the notes it flipped to a terminal status, not the ones it only touched",
       pw.closed_by_branch("worktree-wf_cl-1", _cl_git), ["PB10", "PB13"])
-pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git)
+pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git, lambda a, b: False)
 check("a finished report on an unlanded branch answers its lead, its group and what the branch closes",
       [r.notes for r in cl_reports], [["PB13", "PB10"]])
 pcl = pw.plan(notes, CLUSTERS, HALF, cl_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -342,7 +342,7 @@ check("the note the branch closed is awaiting landing with it, never planned a s
       ({"worktree-wf_cl-1": ["PB13", "PB10"]}, False))
 check("a note the branch only touched is still planned", any("PB9" in g.notes for g in pcl["groups"]), True)
 cl_landed = pw.load_reports(CL_REPORTS, CL_COORD)
-pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git)
+pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git, lambda a, b: False)
 check("a landed branch adds nothing (its notes are closed on main)", [r.notes for r in cl_landed], [["PB13"]])
 # 6b'''00 (R2). THE SAME HOLD FOR AN UNFINISHED BRANCH (branch review R2-1, R2-2). A SPLIT report's finisher takes the
 #         branch's commits, which carry the notes the branch already closed: they belong to that finisher's group, or
@@ -356,7 +356,7 @@ CL_SPLIT.mkdir()
     encoding="utf-8", newline="\n")
 returned(CL_SPLIT)
 cl_split = pw.load_reports(CL_SPLIT, CL_COORD)
-pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git)
+pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git, lambda a, b: False)
 check("a SPLIT report on an unlanded branch answers what the branch closes too", [r.notes for r in cl_split],
       [["PB13", "PB10"]])
 pcs = pw.plan(notes, CLUSTERS, HALF, cl_split, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -379,7 +379,8 @@ pw.record_dispatch(CAP_COORD, "1138", [{"letter": "a", "notes": ["PB13", "PB14"]
 returned(CAP_REPORTS)
 cap_reports = pw.load_reports(CAP_REPORTS, CAP_COORD)
 pw.add_closed_notes(cap_reports, lambda b: "UNLANDED",
-                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}))
+                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}),
+                    lambda a, b: False)
 pcap = pw.plan(notes, CLUSTERS, HALF, cap_reports, lambda b: "UNLANDED", {}, CAP_RULES, budget_points=100)
 check("a FINDINGS branch that closed more notes than the cap has ONE review finisher, not one per chunk",
       sorted((g.kind, tuple(g.notes)) for g in pcap["groups"] if {"PB13", "PB14", "PB10"} & set(g.notes)),
@@ -409,13 +410,13 @@ _pr_succ = _branch_git("worktree-wf_pr-2", {"PB13": "landed", "PB14": "landed"})
 
 
 def _pr_git(*args, cwd=None):
-    if args[:2] == ("merge-base", "--is-ancestor"):
-        return _Shown(0 if args[2:] == ("worktree-wf_pr-1", "worktree-wf_pr-2") else 1)
     pred = _pr_pred(*args)
     return pred if pred.returncode == 0 and pred.stdout else _pr_succ(*args)
 
 
-pw.add_closed_notes(pr_reports, lambda b: "UNLANDED", _pr_git)
+# the one ancestry fact: the predecessor's branch is contained in the successor's (the planner's graph, kb/Work PB3582)
+pw.add_closed_notes(pr_reports, lambda b: "UNLANDED", _pr_git,
+                    lambda a, b: (a, b) == ("worktree-wf_pr-1", "worktree-wf_pr-2"))
 check("the successor's report answers what it closed itself, not what its contained predecessor closed",
       sorted((r.lead, tuple(r.notes)) for r in pr_reports), [("PB13", ("PB13",)), ("PB14", ("PB14",))])
 ppr = pw.plan(notes, CLUSTERS, HALF, pr_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
@@ -662,19 +663,19 @@ check("a branch naming no lead is a judgment row, its non-lead ids never planned
       ("worktree-wf_dr-8" in pj["unlanded_without_note"], any("PB4242" in g.notes for g in pj["groups"])), (True, False))
 # ...and unlanded_branch_notes itself keeps every id the subjects name: it once kept only the open notes, so a
 # superseded FINDINGS branch naming only its unseen lead (owner-task: PB77) reached plan() empty, a judgment row.
-_saved = (prune_worktrees.main_names, prune_worktrees.classify, prune_worktrees.git, prune_worktrees.branch_graph)
+_saved = (prune_worktrees.main_names, prune_worktrees.classify)
 prune_worktrees.main_names = lambda: set()
 prune_worktrees.classify = lambda b, _names, _graph: ("UNLANDED",)
-prune_worktrees.git = lambda *a, **_k: _Shown(0, "main\nowner-task\nworktree-wf_x\n" if a[0] == "branch" else "")
-# the subjects come from the ONE graph of the branches (kb/Work PB3582), never a `git log` per branch
-prune_worktrees.branch_graph = lambda branches, *_a: git_batch.Ancestry.of(
+# the subjects come from the ONE graph of the local branches (kb/Work PB3582), never a `git log` per branch
+_ub_graph = git_batch.Ancestry.of(
     {"o2": ("o1",), "o1": (), "x1": ()}, names={"owner-task": "o2", "worktree-wf_x": "x1"},
     subjects={"o2": "PB77: answer review R1-1", "o1": "PB77: an owner task", "x1": "PB2, PB11: fix"})
 try:
-    check("unlanded_branch_notes names every id, an unseen lead's too (R2-1)", pw.unlanded_branch_notes(),
+    check("unlanded_branch_notes names every id, an unseen lead's too (R2-1)",
+          pw.unlanded_branch_notes({"main", "owner-task", "worktree-wf_x"}, _ub_graph),
           {"owner-task": ["PB77"], "worktree-wf_x": ["PB2", "PB11"]})
 finally:
-    prune_worktrees.main_names, prune_worktrees.classify, prune_worktrees.git, prune_worktrees.branch_graph = _saved
+    prune_worktrees.main_names, prune_worktrees.classify = _saved
 
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
