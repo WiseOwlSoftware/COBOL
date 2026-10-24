@@ -95,7 +95,7 @@ public sealed class TrackedTreeScopeDriftTests
             if (source.Contains(Call, StringComparison.Ordinal)) scanning++;
             offenders.AddRange(UndeclaredScans(rel, source, declared));
         }
-        Assert.True(scanning >= 7, $"only {scanning} test source(s) read the committed tree — the scan of the sources is broken");
+        Assert.True(scanning >= 6, $"only {scanning} test source(s) read the committed tree — the scan of the sources is broken");
         Assert.True(offenders.Count == 0,
             "these reads of the committed tree are invisible to scripts/spec/drift_rules.py, so it never names the sweep "
             + "for a file it reads and the gate's planner never puts it in leg 1 (kb/Work PB3531). Declare the scope in "

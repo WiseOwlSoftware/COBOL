@@ -12,8 +12,10 @@ kb/Work PB3527), which takes the facts the survey read on the same tick.
 WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not be asked):
   - ONE GraphQL query: the merge queue's own entries on main (`mergeQueue(branch: "main")`, the queue's record of who
     is in it) and every OPEN pull request into main with its head commit, `isInMergeQueue`, `mergeStateStatus`, when
-    auto-merge was enabled (`autoMergeRequest.enabledAt`), the newest RemovedFromMergeQueueEvent, and the head commit's
-    check-runs with the workflow run of each;
+    auto-merge was enabled (`autoMergeRequest.enabledAt`), the newest RemovedFromMergeQueueEvent, whether a commit was
+    pushed after it (the last 100 removal and commit timeline items: `headRefOid` is the CURRENT head, which every push
+    moves, so a removal is read against the head it was observed at, kb/Work PB3275), and the head commit's check-runs
+    with the workflow run of each;
   - for each REQUIRED context (ruleset.required_contexts: the committed ruleset's `required_status_checks`) the newest
     check-run on the head commit; and only while that check-run is UNRESOLVED (not COMPLETED), its Actions job's own
     status from the REST jobs API (`actions/jobs/<id>`: for a GitHub Actions check-run the check-run id IS the job id).
@@ -49,6 +51,7 @@ QUERY = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name
          'isInMergeQueue mergeStateStatus autoMergeRequest{enabledAt} '
          'timelineItems(itemTypes:[REMOVED_FROM_MERGE_QUEUE_EVENT],last:1){nodes{'
          '... on RemovedFromMergeQueueEvent{reason createdAt}}} '
+         'pushes:timelineItems(itemTypes:[REMOVED_FROM_MERGE_QUEUE_EVENT,PULL_REQUEST_COMMIT],last:100){nodes{__typename}} '
          'commits(last:1){nodes{commit{oid checkSuites(first:20){nodes{workflowRun{databaseId} '
          'checkRuns(first:50){nodes{databaseId name status conclusion completedAt}}}}}}}}}}}')
 
@@ -95,11 +98,15 @@ class PullRequest:
     removed: str = ''               # the queue removed it: GitHub's reason and time (the newest RemovedFromMergeQueueEvent)
     checks: tuple[CheckRun, ...] = ()   # the required contexts' newest check-runs on the head commit
     repo: str = ''                  # owner/name: the repository the read asked about (a remedy names it)
+    pushed_since_removal: bool = False  # a commit reached the branch AFTER the newest queue removal: a head the queue never saw
 
     @property
     def bounced(self) -> str:
-        """The queue removed it and nothing has queued it again (not in the queue, auto-merge off): GitHub's reason."""
-        return '' if self.in_queue or self.auto_merge_at else self.removed
+        """The queue removed it AT THIS HEAD and nothing has queued it again (not in the queue, auto-merge off, nothing
+        pushed since): GitHub's reason. `head` is the pull request's CURRENT headRefOid, which every push moves, so the
+        removal is read against the head it was observed at: a push after it is the fix, a head the queue has not seen,
+        and the branch reads by its report like an unpushed finisher tip (kb/Work PB3275 variant 3)."""
+        return '' if self.in_queue or self.auto_merge_at or self.pushed_since_removal else self.removed
 
     @property
     def conflicts(self) -> bool:
@@ -147,6 +154,15 @@ def _with_job(gh: Gh, repo: str, cr: CheckRun) -> CheckRun:
     return dataclasses.replace(cr, job_status=str(job['status']), job_completed_at=str(job.get('completed_at') or ''))
 
 
+def pushed_since_removal(timeline: list) -> bool:
+    """Whether a PullRequestCommit follows the newest RemovedFromMergeQueueEvent in the timeline window (oldest first,
+    the last 100 of the two kinds). A window with no removal holds only commits, all newer than a removal older than
+    the window, so a commit in it is a push since; the caller asks only for a pull request the queue removed."""
+    kinds = [str(i.get('__typename') or '') for i in timeline if isinstance(i, dict)]
+    last_removal = max((k for k, kind in enumerate(kinds) if kind == 'RemovedFromMergeQueueEvent'), default=-1)
+    return 'PullRequestCommit' in kinds[last_removal + 1:]
+
+
 def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[str, PullRequest] | None:
     """{head branch: its OPEN pull request into main} (module doc), or None when GitHub could not be asked."""
     run = gh or ruleset.real_gh
@@ -178,7 +194,8 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
                 str((n.get('autoMergeRequest') or {}).get('enabledAt') or ''), str(n.get('mergeStateStatus') or ''),
                 f"{removed[-1].get('reason') or 'no reason given'} at {removed[-1].get('createdAt') or '?'}"
                 if removed else '',
-                tuple(_with_job(run, repo, c) for c in checks), repo)
+                tuple(_with_job(run, repo, c) for c in checks), repo,
+                bool(removed) and pushed_since_removal((n.get('pushes') or {}).get('nodes') or []))
         return prs
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError):
         return None
@@ -214,11 +231,14 @@ def fake(prs: list[dict], entries: list[int] = (), jobs: dict[int, dict] | None 
 
 
 def node(number: int, branch: str, head: str, *, in_queue: bool = False, auto: str = '', state: str = 'BLOCKED',
-         removed: str = '', runs: list[dict] = ()) -> dict:
-    """A planted GraphQL pull-request node; `runs`: check-runs of one suite of workflow run 900 + number."""
+         removed: str = '', runs: list[dict] = (), pushed: int = 0) -> dict:
+    """A planted GraphQL pull-request node; `runs`: check-runs of one suite of workflow run 900 + number; `pushed`:
+    commits pushed to the branch after the queue removed it (the `pushes` window: two commits, the removal, then those)."""
+    commit, removal = {'__typename': 'PullRequestCommit'}, {'__typename': 'RemovedFromMergeQueueEvent'}
     return {'number': number, 'url': f'u{number}', 'headRefName': branch, 'headRefOid': head, 'isInMergeQueue': in_queue,
             'mergeStateStatus': state, 'autoMergeRequest': {'enabledAt': auto} if auto else None,
             'timelineItems': {'nodes': [{'reason': removed, 'createdAt': '2026-10-22T18:00:00Z'}] if removed else []},
+            'pushes': {'nodes': [commit, commit] + ([removal] if removed else []) + [commit] * pushed},
             'commits': {'nodes': [{'commit': {'oid': head, 'checkSuites': {'nodes': [
                 {'workflowRun': {'databaseId': 900 + number}, 'checkRuns': {'nodes': list(runs)}}]}}}]}}
 
@@ -268,6 +288,25 @@ def self_test() -> int:
            prs['removed'].bounced.startswith('FAILED_CHECKS') and prs['red'].red is not None
            and prs['red'].red.job == 61 and prs['stuck'].red is None and not prs['queued'].bounced,
            f'{prs["removed"]} {prs["red"]}')
+    fixed = read(fake([node(11, 'fixed', 'k1', removed='FAILED_CHECKS', pushed=3),
+                       node(12, 'again', 'l1', removed='FAILED_CHECKS', auto='t', pushed=1),
+                       node(13, 'old', 'm1', removed='FAILED_CHECKS')]), required=req) or {}
+    expect("a pull request the queue removed is BOUNCED only at the head it was removed at: a commit pushed after the "
+           "removal makes its current head a new one (PB3275 variant 3: the head is headRefOid, which every push moves), "
+           "so it is not bounced; one with no push since still is",
+           not fixed['fixed'].bounced and fixed['fixed'].removed.startswith('FAILED_CHECKS')
+           and fixed['fixed'].pushed_since_removal and not fixed['again'].bounced and fixed['old'].bounced
+           and not fixed['old'].pushed_since_removal and not prs['removed'].pushed_since_removal, str(fixed))
+    expect("the timeline window is read oldest first: commits before the newest removal are no push since; with no "
+           "removal in the window every commit in it is newer than the removal; a malformed item counts for nothing",
+           not pushed_since_removal([{'__typename': 'PullRequestCommit'}, {'__typename': 'RemovedFromMergeQueueEvent'}])
+           and pushed_since_removal([{'__typename': 'RemovedFromMergeQueueEvent'}, {'__typename': 'PullRequestCommit'}])
+           and pushed_since_removal([{'__typename': 'PullRequestCommit'}, {'__typename': 'RemovedFromMergeQueueEvent'},
+                                     {'__typename': 'RemovedFromMergeQueueEvent'}, {'__typename': 'PullRequestCommit'}])
+           and not pushed_since_removal([{'__typename': 'RemovedFromMergeQueueEvent'}, {'__typename': 'PullRequestCommit'},
+                                         {'__typename': 'RemovedFromMergeQueueEvent'}])
+           and pushed_since_removal([{'__typename': 'PullRequestCommit'}]) and not pushed_since_removal([None, {}, 'x'])
+           and not pushed_since_removal([]))
     dirty = read(fake([node(9, 'dirty', 'i1', auto='t', state='DIRTY', runs=[gate(91, 'COMPLETED', 'SUCCESS', 'v')]),
                        node(10, 'dirtyq', 'j1', in_queue=True, state='DIRTY')]), required=req) or {}
     expect("a pull request whose merge commit GitHub cannot create (mergeStateStatus DIRTY) CONFLICTS with main, its "
@@ -305,7 +344,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     for branch, pr in sorted(prs.items(), key=lambda kv: kv[1].number):
         where = ('IN THE QUEUE' if pr.in_queue else 'RED' if pr.red else 'CONFLICTS' if pr.conflicts
-                 else 'BOUNCED' if pr.bounced else 'NOT QUEUED')
+                 else 'BOUNCED' if pr.bounced else 'PUSHED SINCE ITS REMOVAL' if pr.removed and pr.pushed_since_removal
+                 else 'NOT QUEUED')
         print(f'#{pr.number} {branch} @{pr.head[:12]}: {where} — {describe(pr)}')
     return 0
 
