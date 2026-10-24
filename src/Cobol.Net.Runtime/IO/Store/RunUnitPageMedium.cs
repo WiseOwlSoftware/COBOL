@@ -23,6 +23,9 @@ internal sealed class RunUnitPageMedium : IPageMedium
     /// <summary>Whether any handle is attached.</summary>
     public bool HasHandle => _handles.Count > 0;
 
+    /// <summary>Whether <paramref name="handle"/> is attached.</summary>
+    public bool Holds(SafeFileHandle handle) => _handles.Exists(h => ReferenceEquals(h.Handle, handle));
+
     /// <summary>Attach a connector's handle.</summary>
     public void Attach(SafeFileHandle handle, bool writable)
     {
