@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -416,7 +417,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesGroupsAsPublishedRecords_LandingEachMemberExactlyAndDecodingByTheValidityRule()
     {
-        string dir = CutRunner.NewTempDir("h2host");
+        string dir = ScratchDirectory.Create("h2host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H2PROGS", GroupPrograms);
@@ -442,7 +443,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Programs whose group formals hold OCCURS DEPENDING ON tables: one counted by an item of the record (in a
@@ -532,7 +533,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesOccursDependingTables_AsArraysOfTheirCurrentOccurrences()
     {
-        string dir = CutRunner.NewTempDir("h3host");
+        string dir = ScratchDirectory.Create("h3host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H3PROGS", OdoPrograms);
@@ -550,7 +551,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Programs whose group formal and RETURNING item are VARIABLE-LENGTH groups (ISO §8.5.1.12): a dynamic-length
@@ -679,7 +680,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesVariableLengthGroups_AsTheCallLanesVariableLengthCarrier()
     {
-        string dir = CutRunner.NewTempDir("h5host");
+        string dir = ScratchDirectory.Create("h5host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H5PROGS", VarPrograms);
@@ -699,7 +700,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A program whose group formal is a VARIABLE-LENGTH group holding a dynamic-length NATIONAL item and a
@@ -752,7 +753,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesANationalVariableLengthGroup_AsItsUtf16Image()
     {
-        string dir = CutRunner.NewTempDir("h7host");
+        string dir = ScratchDirectory.Create("h7host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H7PROGS", NationalVarPrograms);
@@ -766,7 +767,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A program whose group formal is a strongly-typed group holding a data pointer, a program pointer and a
@@ -832,7 +833,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesAStrongGroupWithPointers_AsTheCellAreaOfItsReferences()
     {
-        string dir = CutRunner.NewTempDir("h4host");
+        string dir = ScratchDirectory.Create("h4host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H4PROGS", SlotPrograms);
@@ -848,7 +849,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A strongly-typed VARIABLE-LENGTH group holding a data pointer, a dynamic-length item, a dynamic-capacity table
@@ -966,7 +967,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesAStrongVariableLengthGroupWithReferences_AsTheCellAreaOfItsComponentsAndReferences()
     {
-        string dir = CutRunner.NewTempDir("h6host");
+        string dir = ScratchDirectory.Create("h6host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H6PROGS", AreaPrograms);
@@ -984,7 +985,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The nested arms of the cell area (kb/Work PB3273): a subordinate group holding its own dynamic-length item
@@ -1093,7 +1094,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesNestedComponentsAndReferences_ThroughTheCellArea_AndReadsThemBack()
     {
-        string dir = CutRunner.NewTempDir("h7host");
+        string dir = ScratchDirectory.Create("h7host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H7PROGS", NestedAreaPrograms);
@@ -1109,7 +1110,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Whether the module <paramref name="name"/> in <paramref name="dir"/> has an entry point, and whether it
@@ -1124,7 +1125,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_CallsTheGeneratedEntries_LandingExactlyAndDecodingByTheValidityRule()
     {
-        string dir = CutRunner.NewTempDir("h1host");
+        string dir = ScratchDirectory.Create("h1host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H1PROGS", Programs);
@@ -1173,7 +1174,7 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>kb/Work PB3586 (branch review R1-1): an ELEMENTARY <c>USAGE BIT</c> formal and RETURNING item cross the host
@@ -1237,7 +1238,7 @@ public sealed class HostEntryTests
     [Fact]
     public void AHost_PassesAnElementaryUsageBitItem_AsItsBooleanPositions_NotItsStorageOccupancy()
     {
-        string dir = CutRunner.NewTempDir("h8host");
+        string dir = ScratchDirectory.Create("h8host");
         try
         {
             NonCobolElement.CompileCobol(dir, "H8PROGS", BitPrograms);
@@ -1252,6 +1253,6 @@ public sealed class HostEntryTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

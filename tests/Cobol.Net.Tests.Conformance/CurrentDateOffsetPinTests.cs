@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -28,7 +29,7 @@ public sealed class CurrentDateOffsetPinTests
     /// (<c>SystemClock.PinVariable</c> — the cross-process seam the temporal goldens use).</summary>
     private static void AssertCurrentDateUnderClock(string programId, string clock, string expected)
     {
-        string dir = CutRunner.NewTempDir("cd21");
+        string dir = ScratchDirectory.Create("cd21");
         try
         {
             string src = Path.Combine(dir, programId + ".cob");
@@ -53,7 +54,7 @@ public sealed class CurrentDateOffsetPinTests
             Assert.True(ok, detail);
             Assert.Equal(expected, stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]

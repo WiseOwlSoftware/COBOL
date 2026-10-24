@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -41,8 +42,7 @@ public sealed class ParseRecoveryParenGroupTests
 
     private static IReadOnlyList<string> Compile(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB2152_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB2152_");
         try
         {
             string src = Path.Combine(dir, "prpg.cob");
@@ -52,6 +52,6 @@ public sealed class ParseRecoveryParenGroupTests
             Assert.False(r.Success, "the source holds one syntax error and must be rejected");
             return r.Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

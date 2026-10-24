@@ -71,8 +71,7 @@ public static class CompilerProbe
 {
     public static ProbeResult Probe(string sourcePath, int edition, bool emit)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Char_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Char_");
         try
         {
             string dll = Path.Combine(dir, "p.dll");
@@ -82,7 +81,7 @@ public static class CompilerProbe
             string? cs = emit && r.GeneratedCsPath is { } p && File.Exists(p) ? File.ReadAllText(p) : null;
             return new ProbeResult(r.Success, diags, cs);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }
 

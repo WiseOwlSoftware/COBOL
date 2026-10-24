@@ -23,7 +23,7 @@ public sealed class AcceptDifferentialTests
         string source, string stdin = "", string? clock = null, int dialect = 85,
         CobolNet.Binding.NumericDisplayForm numericDisplay = CobolNet.Binding.NumericDisplayForm.Decimal)
     {
-        string dir = CutRunner.NewTempDir("acc");
+        string dir = ScratchDirectory.Create("acc");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -41,7 +41,7 @@ public sealed class AcceptDifferentialTests
             var obs = ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);
             return (obs.ExitCode == 0, CutRunner.Normalize(obs.Stdout), CutRunner.Normalize(obs.Stderr));
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private static void AssertOutputs(string source, string expected, string stdin = "", string? clock = null, int dialect = 85,

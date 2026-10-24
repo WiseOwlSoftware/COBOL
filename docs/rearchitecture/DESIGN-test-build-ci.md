@@ -1643,6 +1643,25 @@ it, three self-tests never removed their scratch and the rest called `shutil.rmt
 Windows cannot delete the read-only files git writes its objects as and says nothing: one host's temp directory held
 7,359 such directories (0.75 GB of files) on 2026-10-23. The audit's SCRATCH arm finds a self-test's `tempfile.mkdtemp`
 outside a directory it already owns, and any `rmtree(ignore_errors=True)` in self-test code.
+**A C# test's scratch directory follows the same rules (kb/Work PB3194, review R1-2): `tests/_shared/ScratchDirectory.cs`.**
+About a hundred test classes made a directory in the temp directory and removed it with `try { Directory.Delete(dir,
+recursive: true); } catch { }`; the witness tests that loaded the program they compiled into the test host
+(`LoadFromAssemblyPath`, `Assembly.LoadFrom`) kept its file mapped, so every one of their deletes failed on Windows, in
+silence, and a test host the gate ends at its first red runs no cleanup at all: 16,096 `CobolNet_Tests_*` directories
+in one host's temp directory on 2026-10-23 (17,331 old-layout `CobolNet_*` directories untouched for over 3 hours were
+removed by hand when this landed). Now `ScratchDirectory.Create(prefix)` makes every scratch directory under ONE
+directory per test host, `<temp>/cobolnet-tests/<pid>-<id>`, beside `<pid>-<id>.lock`, which the host holds exclusively
+(`FileShare.None`, an flock on Linux) until its process ends; `Remove(dir)` deletes a directory whole, read-only entries
+included, and reports what it cannot (`HarnessLog.ReportLeft`: standard error and `COBOLNET_HARNESS_LOG`), never
+throwing from a `finally` or a `Dispose`; the host's directory goes at exit, and every host's first `Create` REAPS each
+host directory whose lock is free or gone, holding that lock while it removes the directory (deleted on close), so a
+starting host can never lose its directory to a reaper. `LoadAssembly(path)` loads a compiled program from its bytes,
+so the host keeps no mapping of the file. `FileHarness.TryDelete` (a test's physical file) reports through the same
+`HarnessLog.ReportLeft`. `ScratchDirectoryDriftTests` holds every C# file under `tests/` to it (no recursive delete, no
+temp directory of its own, no assembly load from a path, no delete in a `try` whose catches are all empty), with its
+two exemptions named and each still checked live; `ScratchDirectoryTests` drives the read-only removal, the report of a
+directory that cannot go (a held handle on Windows, an unsearchable directory on Linux), the reaping rules and the
+unlocked load.
 
 ⛔ **A drift test holds a script self-test's arms from its SOURCE and never runs it a second time (kb/Work PB2882).**
 The runner above is the one place a script self-test RUNS: in every gate, the Linux gate and CI, where a red arm
@@ -1808,7 +1827,13 @@ clones by hand. Now one mechanism in `linux-gate.sh` owns the footprint:
 `linux-gate.sh --self-test` drives each exit path on real directories and processes (status 0, 1 and 2, and a TERM
 mid-way with a background leg and its child, which must both be gone), the reaping rules and both bounds over a
 stand-in `df`; removing the EXIT trap, the signal trap, the kill, the descendant walk, either bound, the liveness test
-or the age rule each turns it red. The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
+or the age rule each turns it red. The signal arm is SYNCHRONIZED, never timed (review R1-1: a 20 s watchdog failed a
+slow correct gate and 5 s polls passed without testing): the leg's grandchild says READY through a fifo once its traps
+are set, the gate signals itself only after reading it, and the arm reads a second fifo the grandchild holds open to its
+end, so it waits for that process's exit itself. A PROBE signal sent after the gate has exited (SIGVTALRM, numbered
+above TERM, so a TERM sent first is always the one handled) ends a grandchild the stop never reached and records it, a
+red; a stop that does not end its jobs hangs the arm, which `self_tests.py` reports HANG, a non-observation, never a
+pass. Measured: GREEN in 40 of 40 runs beside twice as many busy processes as cores, the no-descendant-walk mutant red. The signal arm reads every process's `/proc` entry, which Cygwin's emulation on a
 Windows host serves at about half a second each, so there it prints `n/a` and runs in the Linux gate's `selftests`
 leg and CI's audits job.
 

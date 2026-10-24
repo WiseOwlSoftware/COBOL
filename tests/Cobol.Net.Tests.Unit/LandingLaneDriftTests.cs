@@ -161,7 +161,7 @@ public sealed class LandingLaneDriftTests
     [Fact]
     public void TheRetiredWordingSweep_FindsEachPlantedPhrasing()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "landing-lane-" + Guid.NewGuid().ToString("N"));
+        string dir = ScratchDirectory.Create("landing-lane-");
         Directory.CreateDirectory(Path.Combine(dir, "brief"));
         Directory.CreateDirectory(Path.Combine(dir, "kb"));
         try
@@ -185,7 +185,7 @@ public sealed class LandingLaneDriftTests
         }
         finally
         {
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 

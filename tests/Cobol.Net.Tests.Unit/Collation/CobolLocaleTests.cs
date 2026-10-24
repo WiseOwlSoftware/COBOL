@@ -7,6 +7,7 @@ using CobolNet.Runtime.Collation.Locale;
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Runtime.Globalization;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Collation;
 
@@ -289,8 +290,7 @@ public sealed class CobolLocaleTests
     [Fact]
     public void AvailableLocaleWithoutCultureData_IsInvalid_ForTheTimeFunctions()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cobolnet-locales-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cobolnet-locales-");
         string saved = Environment.GetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable) ?? "";
         try
         {
@@ -338,7 +338,7 @@ public sealed class CobolLocaleTests
             Environment.SetEnvironmentVariable(LocaleConfig.TailoringDirectoryVariable, saved.Length == 0 ? null : saved);
             LocaleManager.ClearCache();
             LocaleFacts.ClearCache();
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 }

@@ -43,7 +43,7 @@ public class CompileBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _outputDirectory = Directory.CreateTempSubdirectory("pb2117-compile-").FullName;
+        _outputDirectory = ScratchDirectory.Create("pb2117-compile-");
         string source = TestRepo.Nist("programs", Program + ".cob");
         _full = new CompilerDriver.Options(source, Path.Combine(_outputDirectory, Program + ".dll"),
             NistTestName: Program, DialectLevel: 85);
@@ -70,8 +70,7 @@ public class CompileBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        try { Directory.Delete(_outputDirectory, recursive: true); }
-        catch (IOException) { /* a scratch directory under the temp root; the OS reclaims it */ }
+        ScratchDirectory.Remove(_outputDirectory);
     }
 
     /// <summary>Preprocess, parse, bind and the version-conformance pass: everything before C# exists.</summary>

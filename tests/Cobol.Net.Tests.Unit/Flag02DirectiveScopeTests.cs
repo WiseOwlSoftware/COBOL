@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -72,8 +73,7 @@ public sealed class Flag02DirectiveScopeTests
 
     private static IReadOnlyList<string> CompileWarnings(string source, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Flag02Scope_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Flag02Scope_");
         try
         {
             string src = Path.Combine(dir, "flag02.cob");
@@ -83,7 +83,7 @@ public sealed class Flag02DirectiveScopeTests
             Assert.True(r.Success, string.Join("\n", r.Errors));
             return r.Warnings;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private static bool Has(IReadOnlyList<string> warnings, string option) =>

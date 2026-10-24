@@ -271,7 +271,7 @@ if [ "${1:-}" = "--self-test" ]; then
   check "no runnable Python exits 2, as every NOT RUN does" "$rc" "2"
   # THE GATE'S FOOTPRINT (kb/Work PB3194), on real directories and real processes in a scratch root of its own.
   st_root="$(mktemp -d "${TMPDIR:-/tmp}/linux-gate-self-test.XXXXXX")"
-  trap 'rm -rf "$st_root"' EXIT
+  trap 'rm -rf "$st_root" "$st_root.sync"' EXIT
   # Each exit path of a gate removes its directory: its verdict (0 GREEN, 1 RED, 2 a NOT RUN after the clone) through
   # the EXIT trap, and a signal mid-way through on_signal, which first ends the legs (a background job and the process
   # under it) so nothing writes into the clone while it goes.
@@ -287,21 +287,40 @@ if [ "${1:-}" = "--self-test" ]; then
     echo "  n/a   a gate stopped by a signal mid-way ends its legs' process trees and removes its clone" \
          "(on $(uname -s); it runs on Linux, the gate's only host)"
   else
+  # SYNCHRONIZED, NEVER TIMED (the owner's rule: no wall-clock limit in a test; review R1-1 of PB3194 found a 20 s
+  # watchdog that failed a slow correct gate and 5 s polls that passed without testing). The leg's GRANDCHILD (a
+  # process under the background job, which only on_signal's /proc walk finds) sets its traps, starts a child of its
+  # own and only then says READY through a fifo: the gate blocks on that before it signals itself. The grandchild and
+  # its child hold the write end of a second fifo, HELD, which the arm reads to its end: end of file is the moment both
+  # have exited, so the arm waits for their exit itself. Its TERM trap records TERM. After the gate has exited (on_signal
+  # sent its TERMs and reaped its jobs), the arm sends the grandchild a PROBE, SIGVTALRM, whose trap records PROBE and
+  # ends it: so a grandchild the stop never reached ends too, and says so. A TERM sent before the probe is always the
+  # one handled: Linux delivers pending signals lowest number first (TERM 15, VTALRM 26) and bash runs pending traps in
+  # ascending order, and the TERM trap exits. A stop that does not end its jobs keeps on_signal's wait, and so this arm,
+  # from returning: the self-test runner reports it HANG (scripts/self_tests.py, a non-observation), never a pass.
+  sync="$st_root.sync"
+  mkdir -p "$sync" && mkfifo "$sync/ready" "$sync/held"
   got="$( ( begin_gate "$st_root" /e/trees/wt-signal; mkdir -p "$snap"
-            ( sleep 300 & echo "$!" > "$st_root/leg-child"; wait ) &
-            echo "$!" > "$st_root/leg"
-            for _ in $(seq 50); do [ -s "$st_root/leg-child" ] && break; sleep 0.1; done
+            ( bash -c 'm=$0
+                       on_term() { echo TERM >> "$m"; exit 143; }
+                       on_probe() { echo PROBE >> "$m"; kill "$s" 2>/dev/null; exit 1; }
+                       trap on_term TERM; trap on_probe VTALRM
+                       sleep infinity & s=$!; echo "$$" > "$1"; wait "$s"' "$sync/marker" "$sync/ready" 3>"$sync/held" &
+              wait ) &
+            leg=$!
+            read -r child < "$sync/ready"; echo "$leg $child" > "$sync/pids"
             kill -TERM "$BASHPID"; wait ) >/dev/null 2>&1 &
           gate_pid=$!
-          # A watchdog, so a stop that fails to end the legs (on_signal's wait would block on them) is a red, never a hang.
-          ( sleep 20; kill -KILL "$gate_pid" ) >/dev/null 2>&1 & dog=$!
-          wait "$gate_pid"; rc=$?; kill "$dog" 2>/dev/null
-          leg="$(cat "$st_root/leg")"; child="$(cat "$st_root/leg-child")"; rm -f "$st_root/leg" "$st_root/leg-child"
-          for _ in $(seq 50); do kill -0 "$child" 2>/dev/null || break; sleep 0.1; done
-          alive=""; kill -0 "$leg" 2>/dev/null && alive="$alive leg"; kill -0 "$child" 2>/dev/null && alive="$alive leg-child"
-          kill -KILL "$leg" "$child" 2>/dev/null
-          echo "rc=$rc alive:${alive:- none}"; ls "$st_root" )"
-  check "a gate stopped by a signal mid-way ends its legs' process trees and removes its clone" "$got" "rc=143 alive: none"
+          exec 5<"$sync/held"
+          wait "$gate_pid"; rc=$?
+          read -r leg child < "$sync/pids"
+          kill -VTALRM "$child" 2>/dev/null
+          cat <&5 >/dev/null; exec 5<&-
+          alive=""; kill -0 "$leg" 2>/dev/null && alive=" leg"
+          echo "rc=$rc alive:${alive:- none} leg-child: $(cat "$sync/marker")"; ls "$st_root" )"
+  rm -rf "$sync"
+  check "a gate stopped by a signal mid-way ends its legs' process trees and removes its clone" "$got" \
+        "rc=143 alive: none leg-child: TERM"
   fi
   # Reaping: an ended gate's directory goes whatever its age, a live one stays; a directory in the layout before this
   # mechanism (no owner file) goes when it is this tree's or older than the bound, and stays otherwise.

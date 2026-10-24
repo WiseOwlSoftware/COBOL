@@ -31,3 +31,21 @@ still cannot go. Its audit gains a SCRATCH arm, run by `SelfTestFixtureDriftTest
 are converted. Three hand-written read-only walks became redundant and were deleted.
 `gnucobol_differential.py`'s per-run work directory and `member_index.py --record`'s are removed now too. All 25
 touched self-tests pass with a private temp directory that is empty afterwards. The 7,359 leftovers were removed.
+
+Branch review round 1 found three things, each fixed at its root. R1-1: the self-test's signal arm decided by the
+clock (a 20 s watchdog that failed a slow correct gate, 5 s polls that passed without testing). It is synchronized
+now: the leg's grandchild says READY through a fifo once its traps are set, the arm waits for its exit by reading a
+fifo it holds to end of file, and a PROBE signal numbered above TERM, sent after the gate exits, ends and records a
+grandchild the stop never reached. It was GREEN in 40 of 40 runs beside twice as many busy processes as cores; the
+mutant without the descendant walk is red, and the one that never kills its jobs hangs, which the self-test runner
+reports HANG. R1-2: the C# tests had the same leak as the Python self-tests. About a hundred classes removed their
+temp directory with `try { Directory.Delete(...) } catch { }`, and the witness tests that load the program they
+compile into the test host kept its file mapped, so all their deletes failed in silence: 16,096 `CobolNet_Tests_*`
+directories on one host. `tests/_shared/ScratchDirectory.cs` is now the one way: one directory per test host beside a
+lock the host holds until it ends, `Remove` that takes read-only entries and reports what it cannot (through
+`HarnessLog.ReportLeft`, shared with `FileHarness.TryDelete`), reaping of every host whose lock is free, and
+`LoadAssembly` from bytes. About 130 test files were converted and `CutRunner`'s two temp wrappers deleted;
+`ScratchDirectoryDriftTests` forbids the old shapes and `ScratchDirectoryTests` drives the mechanism. Its first run
+already reported real handles left open by `CommitRollbackRefusalWitnessTests` (a lead in the report). 17,331
+old-layout `CobolNet_*` directories untouched for over 3 hours were removed. R1-3: DOC_INDEX's linux-gate row now
+describes the per-gate directory, the reaping and NOT RUN [disk].

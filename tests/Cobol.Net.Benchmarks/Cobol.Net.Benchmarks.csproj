@@ -59,6 +59,13 @@
       programs, Programs/*.cob), and TestRepoDriftTests forbids a second root-finder anywhere under tests/.
     -->
     <Compile Include="$(MSBuildThisFileDirectory)../_shared/TestRepo.cs" Link="_shared/TestRepo.cs" />
+    <!--
+      And the one scratch-directory mechanism (kb/Work PB3194): the PB2117 benchmarks compile into a scratch directory
+      and remove it, and ScratchDirectoryDriftTests forbids a second way anywhere under tests/. HarnessLog is where it
+      reports a directory it cannot remove.
+    -->
+    <Compile Include="$(MSBuildThisFileDirectory)../_shared/ScratchDirectory.cs" Link="_shared/ScratchDirectory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../_shared/HarnessLog.cs" Link="_shared/HarnessLog.cs" />
   </ItemGroup>
 
 </Project>

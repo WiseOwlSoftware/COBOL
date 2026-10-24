@@ -173,13 +173,12 @@ public static class ArchOracle
     /// where it is, the outputs go to scratch) and observe it before the directory is removed.</summary>
     private static Observation InScratch(Func<string, CompilerDriver.Result> compile)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Oracle_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Oracle_");
         try
         {
             return Observe(dir, compile(dir));
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Several compiles of one case (a negative fixture's reject-at editions; a continuity cell's two

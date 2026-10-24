@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -59,8 +60,7 @@ public sealed class EvaluateNestedOperandPredictionTests
         for (int i = 0; i < depth; i++) operand = $"FUNCTION ABS({operand})";
         string source = "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB3504U.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n"
             + "01 N PIC S9(8).\nPROCEDURE DIVISION.\nMAIN-PARA.\n" + string.Format(statement, operand) + "\nSTOP RUN.\n";
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB3504_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB3504_");
         try
         {
             string src = Path.Combine(dir, "pb3504u.cob");
@@ -68,6 +68,6 @@ public sealed class EvaluateNestedOperandPredictionTests
             return CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "pb3504u.dll"), DialectLevel: 2014, CheckOnly: true, SourceFormat: InitialReferenceFormat.Free));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

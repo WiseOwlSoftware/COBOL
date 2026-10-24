@@ -42,7 +42,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     private const int SeqAccess = 0;   // KeyedAccess.Sequential
 
     private readonly string _root =
-        Path.Combine(Path.GetTempPath(), $"pb323-{Guid.NewGuid():N}");
+        ScratchDirectory.Create("pb323-");
 
     /// <summary>Where a measured host fact is recorded even when nothing fails — the classification of a host
     /// that BYPASSES file permissions is the one outcome that cannot be an assertion (there is nothing left to
@@ -56,7 +56,6 @@ public sealed class FileAuthorityPresenceTests : IDisposable
     public FileAuthorityPresenceTests(ITestOutputHelper log)
     {
         _log = log;
-        Directory.CreateDirectory(_root);
     }
 
     /// <summary>⛔ THE PRECONDITION WAS NOT ESTABLISHED, AND THAT IS NOT ALLOWED TO BE SILENT (kb/Work PB795).
@@ -78,7 +77,7 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         try
         {
             Restore(_root);
-            Directory.Delete(_root, recursive: true);
+            ScratchDirectory.Remove(_root);
         }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }

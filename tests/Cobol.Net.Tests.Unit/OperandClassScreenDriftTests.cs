@@ -188,8 +188,7 @@ public sealed class OperandClassScreenDriftTests
 
     private static IReadOnlyList<string> CompileErrors(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ocs_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Ocs_");
         try
         {
             string src = Path.Combine(dir, "ocs.cob");
@@ -198,6 +197,6 @@ public sealed class OperandClassScreenDriftTests
                 src, Path.Combine(dir, "ocs.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return r.Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

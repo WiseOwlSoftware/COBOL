@@ -139,7 +139,7 @@ public sealed class NulByteDriftTests
     [Fact]
     public void TheSweepFiresOnAPlantedNul()
     {
-        string scratch = Path.Combine(Path.GetTempPath(), "cobolnet-nul-byte-" + Guid.NewGuid().ToString("N"));
+        string scratch = ScratchDirectory.Create("cobolnet-nul-byte-");
         Directory.CreateDirectory(Path.Combine(scratch, "src"));
         Directory.CreateDirectory(Path.Combine(scratch, "tests", "nist", "valid"));
         try
@@ -185,8 +185,7 @@ public sealed class NulByteDriftTests
         }
         finally
         {
-            try { Directory.Delete(scratch, recursive: true); }
-            catch (IOException) { /* a scratch directory left behind is not a test failure */ }
+            ScratchDirectory.Remove(scratch);
         }
     }
 

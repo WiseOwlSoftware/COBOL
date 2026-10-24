@@ -84,7 +84,7 @@ public sealed class RunUnitTerminationTests
                 DISPLAY BP.
                 GOBACK.
             """;
-        string dir = CutRunner.NewTempDir("v52xasm");
+        string dir = ScratchDirectory.Create("v52xasm");
         try
         {
             CompileTo(main, dir, "V52XMN");
@@ -94,7 +94,7 @@ public sealed class RunUnitTerminationTests
             Assert.Equal(1, exit);
             Assert.Contains("abnormal run-unit termination", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── V53: the §14.6.11 implicit CLOSE reaches a file opened by a separately-compiled sub ──
@@ -133,7 +133,7 @@ public sealed class RunUnitTerminationTests
                 WRITE F-REC.
                 GOBACK.
             """;
-        string dir = CutRunner.NewTempDir("v53xasm");
+        string dir = ScratchDirectory.Create("v53xasm");
         try
         {
             CompileTo(main, dir, "V53MN");
@@ -144,7 +144,7 @@ public sealed class RunUnitTerminationTests
             Assert.True(File.Exists(outFile), $"the sub's output file was not created at run-unit termination (stderr: {stderr})");
             Assert.Contains("HELLO", File.ReadAllText(outFile));
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── V52 (CALL/CANCEL family): a fatal CobolCallException reaches the same abnormal surface, not a raw crash ──
@@ -206,7 +206,7 @@ public sealed class RunUnitTerminationTests
                 DISPLAY BP.
                 STOP RUN.
             """;
-        string dir = CutRunner.NewTempDir("v52f");
+        string dir = ScratchDirectory.Create("v52f");
         try
         {
             CompileTo(source, dir, "V52F");
@@ -217,7 +217,7 @@ public sealed class RunUnitTerminationTests
             Assert.True(File.Exists(outFile), $"an open file must be flushed/closed even on abnormal termination (stderr: {stderr})");
             Assert.Contains("HELLO", File.ReadAllText(outFile));       // §14.6.12 → §14.6.11(2) best-effort CLOSE
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── kb/Work PB2846: the main module's own registration is INSIDE the run-unit boundary ──
@@ -240,7 +240,7 @@ public sealed class RunUnitTerminationTests
                 DISPLAY "must not run".
                 STOP RUN.
             """;
-        string dir = CutRunner.NewTempDir("pb2846");
+        string dir = ScratchDirectory.Create("pb2846");
         try
         {
             CompileTo(source, dir, "PB2846SKEW");
@@ -261,6 +261,6 @@ public sealed class RunUnitTerminationTests
             Assert.Contains("EC-PROGRAM-NOT-FOUND", stderr);
             Assert.DoesNotContain("Unhandled exception", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

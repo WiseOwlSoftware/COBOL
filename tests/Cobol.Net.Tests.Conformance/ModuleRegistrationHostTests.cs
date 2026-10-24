@@ -52,7 +52,7 @@ public sealed class ModuleRegistrationHostTests
                 STOP RUN.
             END PROGRAM P2097NM.
             """;
-        string dir = CutRunner.NewTempDir("pb2097ns");
+        string dir = ScratchDirectory.Create("pb2097ns");
         try
         {
             // The sibling probe finds a program's module by the program's name (COBOLNET -> CobolNet.dll).
@@ -63,7 +63,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.True(exit == 0, detail);
             Assert.Equal("AFTER COBOLNET 0017\nAFTER COBOLNUM 0117", stdout);   // 7 + 10, then + 100
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class ModuleRegistrationHostTests
             END PROGRAM P2097DM.
             """ + "\n" + Callee("P2097DX", 1);
         string sibling = Callee("P2097DB", 1000) + "\n" + Callee("P2097DX", 500);
-        string dir = CutRunner.NewTempDir("pb2097dup");
+        string dir = ScratchDirectory.Create("pb2097dup");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2097DB", sibling);
@@ -99,7 +99,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.Contains("Cobol.P2097DM.__CobolModule", detail, StringComparison.Ordinal);
             Assert.Contains("Cobol.P2097DB.__CobolModule", detail, StringComparison.Ordinal);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public sealed class ModuleRegistrationHostTests
                 }
             }
             """;
-        string dir = CutRunner.NewTempDir("pb2097ver");
+        string dir = ScratchDirectory.Create("pb2097ver");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2097VM", main);
@@ -138,7 +138,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.Contains("major", detail, StringComparison.Ordinal);
             Assert.DoesNotContain("the registrar of a refused module ran", detail, StringComparison.Ordinal);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>kb/Work PB2839: modules <c>P2839-R</c> and <c>P2839_R</c> are two assemblies and two namespaces, because the
@@ -162,7 +162,7 @@ public sealed class ModuleRegistrationHostTests
                 STOP RUN.
             END PROGRAM P2839M.
             """;
-        string dir = CutRunner.NewTempDir("pb2839");
+        string dir = ScratchDirectory.Create("pb2839");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2839-R", Callee("P2839-R", 10));
@@ -172,7 +172,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.True(exit == 0, detail);
             Assert.Equal("AFTER HYPHEN 0017\nAFTER UNDERSCORE 0117", stdout);   // 7 + 10, then + 100
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>kb/Work PB2843: two modules each DECLARE an outermost <c>P2843W</c>, the sibling's <c>AS "P2843X"</c>
@@ -209,7 +209,7 @@ public sealed class ModuleRegistrationHostTests
                 GOBACK.
             END PROGRAM P2843W.
             """;
-        string dir = CutRunner.NewTempDir("pb2843");
+        string dir = ScratchDirectory.Create("pb2843");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2843X", sibling);
@@ -218,7 +218,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.True(exit == 0, detail);
             Assert.Equal("SIBLING\nMAIN'S CONTAINEE\nMAIN'S CONTAINEE", stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>One module of the PB2920 pair: <c>PROGRAM-ID. {prog}</c> invokes its own class's factory methods
@@ -283,7 +283,7 @@ public sealed class ModuleRegistrationHostTests
     {
         string sibling = ClassWithFactoryFile("P2920S", " AS \"P2920-LEDGER\"", "B", "pb2920-b.dat", "");
         string main = ClassWithFactoryFile("P2920M", "", "A", "pb2920-a.dat", "CALL \"P2920S\" ON EXCEPTION DISPLAY \"S NOT FOUND\" END-CALL");
-        string dir = CutRunner.NewTempDir("pb2920f");
+        string dir = ScratchDirectory.Create("pb2920f");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2920S", sibling);
@@ -292,7 +292,7 @@ public sealed class ModuleRegistrationHostTests
             Assert.True(exit == 0, detail);
             Assert.Equal("A OPEN 00\nB OPEN 00\nB CLOSE 00\nA CLOSE 00", stdout);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>One module of the PB2920 EXTERNAL pair: a factory method that shows <paramref name="tag"/>, in a class
@@ -354,7 +354,7 @@ public sealed class ModuleRegistrationHostTests
             """;
         string sibling = ClassWithExternalItem("P2920S", " AS \"P2920-LEDGER\"", "B", 8, declaratives, "");
         string main = ClassWithExternalItem("P2920M", "", "A", 4, "", "CALL \"P2920S\" ON EXCEPTION DISPLAY \"S NOT FOUND\" END-CALL");
-        string dir = CutRunner.NewTempDir("pb2920x");
+        string dir = ScratchDirectory.Create("pb2920x");
         try
         {
             NonCobolElement.CompileCobol(dir, "P2920S", sibling);
@@ -363,6 +363,6 @@ public sealed class ModuleRegistrationHostTests
             Assert.True(exit == 0, detail);
             Assert.Equal("A METHOD\nHANDLED=EC-EXTERNAL-FORMAT-CONFLICT", stdout);   // the host trims the status's trailing spaces
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

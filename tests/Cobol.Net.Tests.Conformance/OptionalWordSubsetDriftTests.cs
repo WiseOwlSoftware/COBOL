@@ -927,7 +927,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             string unit = s.Unit, spelling = s.Words;
             Assert.Contains("PROGRAM-ID. " + unit + ".", s.Source, StringComparison.Ordinal);
 
-            string dir = CutRunner.NewTempDir("optword");
+            string dir = ScratchDirectory.Create("optword");
             try
             {
                 string dll = Path.Combine(dir, unit + ".dll");
@@ -950,7 +950,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                     $"format\", but §{f.Clause} written [{spelling}] differs from [{baselineSpelling}].\n" +
                     $"  [{baselineSpelling}] -> {baseline}\n  [{spelling}] -> {normalized}");
             }
-            finally { CutRunner.TryDelete(dir); }
+            finally { ScratchDirectory.Remove(dir); }
         }
 
         Assert.NotNull(baseline);

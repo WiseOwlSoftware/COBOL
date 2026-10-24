@@ -6,6 +6,7 @@ using System.Linq;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -182,8 +183,7 @@ public sealed class DisplayDirectiveTests
     [Fact] // the CLI's carrier end to end: CompilerDriver hands every transferred line, with its stream, to the caller
     public void CompilerDriverResult_CarriesTheTransferredLines()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB1538_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB1538_");
         try
         {
             string path = Path.Combine(dir, "d.cob");
@@ -195,6 +195,6 @@ public sealed class DisplayDirectiveTests
                 [new CompileOutputLine(CompileOutputStream.Standard, "to-stdout 1"), new CompileOutputLine(CompileOutputStream.Error, "to-stderr")],
                 result.CompileOutput);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

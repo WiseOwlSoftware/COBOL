@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -150,8 +151,7 @@ public sealed class RelationLiteralOperandTests
     /// <summary>Parse + bind only (no Roslyn emit): the rule is settled where the relation is bound.</summary>
     private static (IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) CheckOnly(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Rl_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Rl_");
         try
         {
             string src = CompiledProgramCache.StageSource(Path.Combine(dir, "prog.cob"), source);
@@ -159,6 +159,6 @@ public sealed class RelationLiteralOperandTests
                 DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return (r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")], r.Warnings);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -26,8 +27,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC236A_SearchVaryingOtherTableIndex_ExecutesAllTests()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Pin_");
         try
         {
             var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("NC236A", Path.Combine(dir, "NC236A.dll"), 85, permissive: false, checkOnly: false));
@@ -41,7 +41,7 @@ public sealed class SpecPinnedNistTests
             Assert.Contains("010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY", output);
             Assert.DoesNotContain("TEST DELETED", output);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>NC235A: the golden marks IDX-TEST-F2-9 / F2-12 "TEST DELETED" — a legacy artifact: its SEARCH ALL
@@ -52,8 +52,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC235A_SearchAllConditionNameOverOdo_ExecutesAllTests()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Pin_");
         try
         {
             var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("NC235A", Path.Combine(dir, "NC235A.dll"), 85, permissive: false, checkOnly: false));
@@ -67,7 +66,7 @@ public sealed class SpecPinnedNistTests
             Assert.Contains("013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY", output);
             Assert.DoesNotContain("TEST DELETED", output);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>ST127A at <c>--std 2002</c> — the FREE, EXTERNALLY-AUTHORED witness for kb/Work PB704, and the
@@ -87,8 +86,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void ST127A_SortDuplicatesInOrder_IsNotAReservedWordViolationAt2002()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Pin_");
         try
         {
             var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("ST127A", Path.Combine(dir, "ST127A.dll"), 2002, permissive: false, checkOnly: false));
@@ -99,7 +97,7 @@ public sealed class SpecPinnedNistTests
             // asserted so a future change that silently stops compiling the SORT at all cannot pass this test.
             Assert.Contains("COBOLNET0873", all, StringComparison.Ordinal);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>NC201A PFM-TEST-F4-23 — the one golden in the corpus that records a FAILING CCVS test, and the
@@ -127,8 +125,7 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC201A_VaryingAfterFromOuterInductionVariable_RunsEightBodies()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Pin_");
         try
         {
             var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("NC201A", Path.Combine(dir, "NC201A.dll"), 85, permissive: false, checkOnly: false));
@@ -144,6 +141,6 @@ public sealed class SpecPinnedNistTests
             Assert.Contains("058 OF 059  TESTS WERE EXECUTED SUCCESSFULLY", output, StringComparison.Ordinal);
             Assert.Contains("001 TEST(S) FAILED", output, StringComparison.Ordinal);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

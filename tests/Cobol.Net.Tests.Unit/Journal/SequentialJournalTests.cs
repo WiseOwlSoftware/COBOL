@@ -3,6 +3,7 @@
 using System.Text;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Journal;
 
@@ -19,20 +20,17 @@ namespace CobolNet.Tests.Unit.Journal;
 /// </summary>
 public sealed class SequentialJournalTests : IDisposable
 {
-    private readonly string _root = Path.Combine(Path.GetTempPath(), "cobolnet-journal-" + Guid.NewGuid().ToString("N"));
+    private readonly string _root = ScratchDirectory.Create("cobolnet-journal-");
     private readonly string _file;
 
     public SequentialJournalTests()
     {
-        Directory.CreateDirectory(_root);
         _file = Path.Combine(_root, "DATA.DAT");
     }
 
     public void Dispose()
     {
-        try { Directory.Delete(_root, recursive: true); }
-        catch (IOException) { }
-        catch (UnauthorizedAccessException) { }
+        ScratchDirectory.Remove(_root);
     }
 
     private static byte[] Bytes(string records) => Encoding.ASCII.GetBytes(records);
@@ -192,7 +190,7 @@ public sealed class SequentialJournalTests : IDisposable
 
     private void SetUp(Row row, FaultingHostMedium medium)
     {
-        if (Directory.Exists(LockDirectory)) Directory.Delete(LockDirectory, recursive: true);
+        ScratchDirectory.Remove(LockDirectory);
         if (row.Before is null) File.Delete(_file);
         else File.WriteAllBytes(_file, Bytes(row.Before));
         medium.TreatAsDurable(_file);
