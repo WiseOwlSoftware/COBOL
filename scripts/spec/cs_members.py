@@ -2,7 +2,7 @@
 """cs_members.py — the MEMBERS of a C# source file and the lines each spans (kb/Work PB3190;
 DESIGN-test-build-ci.md §3.14.2, tier 0a).
 
-The gate's tier 0a holds every test method a change ADDS OR EDITS: `impacted_tests.changed_tests` asks which members
+The gate's tier 0a holds every test method a change ADDS OR EDITS: `impacted_tests.tests_changed` asks which members
 the diff's lines fall in, and a test method whose span they touch, or whose `[MemberData]` source they touch, is
 tier 0a. Until PB3190 tier 0a held only ADDED methods, so an edited test body ran in leg 1 only if the tier-1 budget
 reached it, and its red surfaced first at the landing's Linux gate or in CI.
