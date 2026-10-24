@@ -1,4 +1,4 @@
-## PB3625 — the planner orders fix-lane reports by write time, not by wave number
+## Entry 2474 — 2026-10-24 13:25 PDT — PB3625 — the planner orders fix-lane reports by write time, not by wave number
 
 **Defect.** `plan_wave.load_reports` sorted by the integer wave number first. The loop numbers its waves by date
 (20261024) and the Mythos lane serially (1157), so every date-numbered report outranked every serial one. Wave 20261027
@@ -20,3 +20,4 @@ ledger-state self-tests stay green.
 
 **Self-review.** A report rewritten later (the review stamp) moves its mtime forward. A stamp only follows the report it
 stamps, and a finisher's report is always written after it, so a note's newest report stays the newest.
+
