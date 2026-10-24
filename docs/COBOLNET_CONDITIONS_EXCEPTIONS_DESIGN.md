@@ -768,7 +768,11 @@ completes (copy-out, RETURNING), and the SORT is terminated in the activator (`S
 asked by every activating site in `CallEmitter.EmitActivationReturned` — the one tail of a CALL, a function activation
 and every INVOKE form — once §14.9.23.4 GR8 has placed the result AND the propagation pickup has run, so a
 `GOBACK … RAISING` the same activation staged is raised in the activator before the SORT is terminated, never at its next
-activation (kb/Work PB3246; §14.9.18.4 GR1 b), §14.9.40.4 GR17); the host boundary asks it in `ProgramTable.CallFromHost`
+activation (kb/Work PB3246; §14.9.18.4 GR1 b), §14.9.40.4 GR17). The request is the RETURNING activation's own: a site that
+emits a pickup TAKES it out of the run unit's pending slot before the pickup (`SortFileTable.TakeActivationReturnTermination`)
+and acts on it after (`TerminateAfterActivation`), because the pickup can run the activator's USE procedure and a CALL or
+INVOKE inside that declarative would otherwise consume it and cut the declarative short (review R1-1); a RESUME AT
+procedure-name taken by that declarative supersedes the request. The host boundary asks it in `ProgramTable.CallFromHost`
 — never in the method itself, whose
 result the termination would drop; the filter is in every EC-model `__RunUse` and in the EC-free one from the 2002 edition on, where GR17
 arrives). MERGE registers nothing — its rules (§14.9.24.4) carry no such sentence — so a statement of a MERGE output procedure is
