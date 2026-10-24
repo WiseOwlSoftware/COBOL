@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -23,8 +24,7 @@ public sealed class SequentialFileIoSpecTests
     private static (string Stdout, IReadOnlyList<string> Warnings) RunAt(
         string source, int edition, bool permissive, (string Name, string Content)? stage = null)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Seqio_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Seqio_");
         try
         {
             if (stage is { } s) File.WriteAllText(Path.Combine(dir, s.Name), s.Content);
@@ -39,7 +39,7 @@ public sealed class SequentialFileIoSpecTests
             Assert.True(ran, "must run: " + detail);
             return (CutRunner.Normalize(stdout), r.Warnings);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>CA15 — §14.9.30.4 GR15 + NOTE 3 / §9.1.13.2 item 5: an over-length LINE-SEQUENTIAL record is truncated

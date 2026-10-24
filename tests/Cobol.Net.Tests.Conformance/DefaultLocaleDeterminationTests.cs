@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -88,7 +89,7 @@ public sealed class DefaultLocaleDeterminationTests
     public void TheUserAndSystemDefaults_AreDefinedByTheirEnvironmentVariables(
         string environment, string? user, string? system, string? invariantGlobalization, string expected)
     {
-        string dir = CutRunner.NewTempDir("a118loc");
+        string dir = ScratchDirectory.Create("a118loc");
         try
         {
             NonCobolElement.CompileCobol(dir, "A118LOC", Program);
@@ -103,7 +104,7 @@ public sealed class DefaultLocaleDeterminationTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The non-COBOL element: a .NET host that sets the process culture, begins a run unit
@@ -141,7 +142,7 @@ public sealed class DefaultLocaleDeterminationTests
     [Fact]
     public void AHostCultureSwitchDuringARunUnit_IsNotUtilized_ButTheNextRunUnitStartsFromIt()
     {
-        string dir = CutRunner.NewTempDir("a120host");
+        string dir = ScratchDirectory.Create("a120host");
         try
         {
             NonCobolElement.CompileCobol(dir, "A118LOC", Program);
@@ -161,6 +162,6 @@ public sealed class DefaultLocaleDeterminationTests
             Assert.Equal(0, exit);
             Assert.Equal("", stderr);
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

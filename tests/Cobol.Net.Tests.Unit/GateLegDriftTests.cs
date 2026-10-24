@@ -334,7 +334,7 @@ public sealed class GateLegDriftTests
             assemblies = new { Conformance = new { legs = new[] { 1, 2 }, leg1 = new[] { $"{Ns}.A.M" },
                 leg2 = new[] { $"{Ns}.Corpus.Run(n: 1)", KeyCases[0].Key } } },
         };
-        DirectoryInfo dir = Directory.CreateTempSubdirectory("gate-legs-");
+        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
         try
         {
             string namesFile = Path.Combine(dir.FullName, "names.json");
@@ -363,7 +363,7 @@ public sealed class GateLegDriftTests
         }
         finally
         {
-            dir.Delete(recursive: true);
+            ScratchDirectory.Remove(dir.FullName);
         }
     }
 
@@ -391,7 +391,7 @@ public sealed class GateLegDriftTests
         Assert.IsType<GateHandshake.None>(Read(null, null, null));
         Assert.IsType<GateHandshake.None>(Read("", "", ""));        // an empty value is unset
 
-        DirectoryInfo dir = Directory.CreateTempSubdirectory("gate-legs-");
+        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
         try
         {
             string plan = Path.Combine(dir.FullName, "plan.json");
@@ -405,7 +405,7 @@ public sealed class GateLegDriftTests
         }
         finally
         {
-            dir.Delete(recursive: true);
+            ScratchDirectory.Remove(dir.FullName);
         }
     }
 
@@ -414,7 +414,7 @@ public sealed class GateLegDriftTests
     [Fact]
     public void Handshake_EveryPartialOrStaleEnvironment_Refuses()
     {
-        DirectoryInfo dir = Directory.CreateTempSubdirectory("gate-legs-");
+        DirectoryInfo dir = new(ScratchDirectory.Create("gate-legs-"));
         try
         {
             string plan = Path.Combine(dir.FullName, "plan.json");
@@ -460,7 +460,7 @@ public sealed class GateLegDriftTests
         }
         finally
         {
-            dir.Delete(recursive: true);
+            ScratchDirectory.Remove(dir.FullName);
         }
     }
 

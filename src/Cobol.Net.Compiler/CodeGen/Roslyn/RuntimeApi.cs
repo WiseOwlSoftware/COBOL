@@ -367,6 +367,12 @@ internal static class RuntimeApi
     /// arithmetic store of a 16-byte unsigned COMP-5 item into a floating-point edited receiver).</summary>
     private static (string Store, string Try, string Args) FloatEditEntry(Emit.NumX value) => value.Carrier switch
     {
+        // An engine-produced approximation (a function's returned value, a non-integer power) is its SHORTEST ROUND-TRIP
+        // decimal - 0.3 is +3.0000000000000000E-01, not the binary expansion's +2.9999999999999998E-01 - exactly as
+        // beside an operator (CobolDec.FromApproximation, kb/Work PB1606); only a floating-point DATA ITEM is read by its
+        // exact binary value (the Binary64 arm below).
+        Emit.NumXCarrier.Binary64 when value.Approximate =>
+            (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), DecFromApproximation(value.Expr)),
         Emit.NumXCarrier.Binary64 or Emit.NumXCarrier.Sdidi =>
             (nameof(CobolEdit.FormatFloatStore), nameof(CobolEdit.TryFormatFloat), value.Expr),
         Emit.NumXCarrier.UnsignedWide =>
@@ -856,10 +862,16 @@ internal static class RuntimeApi
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
 
-    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI operand conversion — <c>CobolDec.FromDouble</c>
-    /// (the shortest round-trip decimal identity of the IEEE value; P10 Step 12).</summary>
-    public static string DecFromDouble(string doubleExpr) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.FromDouble)}({doubleExpr})";
+    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
+    /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
+    /// ROUNDING mode (§8.8.1.5.2 r1; kb/Work PB1606).</summary>
+    public static string DecFromBinary64(string doubleExpr, string modeExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromBinary64)}({doubleExpr}, {modeExpr})";
+
+    /// <summary>The lift of a binary64 that is an implementor-defined APPROXIMATION (a §15.4.1 function's returned
+    /// value, a non-integer power) - <c>CobolDec.FromApproximation</c>, the shortest round-trip decimal.</summary>
+    public static string DecFromApproximation(string doubleExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromApproximation)}({doubleExpr})";
 
     /// <summary>One SDIDI division of two exactly-lifted fixed-point values — MEAN's §15.60.4 equivalent-expression
     /// division under standard-decimal arithmetic (§15.4.1 r1; P10 Step 12).</summary>
@@ -1240,6 +1252,26 @@ internal static class RuntimeApi
     public static string StrWindowInto(string s, string start, string len, string rhs, string? pad = null) =>
         $"{nameof(CobolString)}.{nameof(CobolString.WindowInto)}({s}, {start}, {len}, {rhs}"
         + $"{(pad is null ? "" : $", pad: {pad}")})";
+
+    /// <summary>⛔ THE IN-PLACE OVERLAPPING MOVE (ISO §14.6.10 1); kb/Work PB1910, docs/CONFORMANCE.md D-OVL2) — the
+    /// receiver's storage image after a numeric DISPLAY sender is converted into it, in place:
+    /// <c>OverlappingMove.DisplayToDisplay</c>. <paramref name="receiverAt"/> is the receiver's first byte minus the
+    /// sender's (a compile-time constant, <c>MoveOverlap.Classify</c>'s).</summary>
+    public static string OverlapDisplayToDisplay(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.DisplayToDisplay)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
+
+    /// <summary>An alphanumeric sender converted into a numeric DISPLAY receiver, in place
+    /// (<c>OverlappingMove.AlphanumericToDisplay</c>); <paramref name="commaIsPoint"/> is the unit's DECIMAL-POINT IS COMMA.</summary>
+    public static string OverlapAlphanumericToDisplay(string sender, string receiver, int receiverAt, string toProfile, bool commaIsPoint) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.AlphanumericToDisplay)}({sender}, {receiver}, {receiverAt}, {toProfile}, {(commaIsPoint ? "true" : "false")})";
+
+    /// <summary>A PACKED-DECIMAL sender converted into a numeric DISPLAY receiver, in place (<c>OverlappingMove.PackedToDisplay</c>).</summary>
+    public static string OverlapPackedToDisplay(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.PackedToDisplay)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
+
+    /// <summary>A numeric DISPLAY sender converted into a PACKED-DECIMAL receiver, in place (<c>OverlappingMove.DisplayToPacked</c>).</summary>
+    public static string OverlapDisplayToPacked(string sender, string receiver, int receiverAt, string fromProfile, string toProfile) =>
+        $"{nameof(OverlappingMove)}.{nameof(OverlappingMove.DisplayToPacked)}({sender}, {receiver}, {receiverAt}, {fromProfile}, {toProfile})";
 
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
     /// is the trailing collation argument (", __COLLATE" — the program's CobolCollation carrier), possibly empty.</summary>
@@ -1806,12 +1838,24 @@ internal static class RuntimeApi
     public static string SortUseProcedureExited(string useScope) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.UseProcedureExited)}({useScope})";
 
-    /// <summary>§14.9.40.4 GR17's question at an INVOKE site once the method has returned and its RETURNING item is
-    /// delivered — <c>CobolSort.AfterActivationReturn</c> (kb/Work PB1177; a CALL's is <c>ProgramTable.CallProgram</c>'s).
-    /// Fully qualified, as <see cref="SortTerminationSignalType"/> is: every INVOKE asks it, and a group whose classes
+    /// <summary>§14.9.40.4 GR17's question at an activating site (a CALL, an INVOKE) once the activation has returned, its
+    /// RETURNING item is delivered and its propagation pickup has run — <c>CobolSort.AfterActivationReturn</c> (kb/Work
+    /// PB1177, PB3246; emitted by <c>CallEmitter.EmitActivationReturned</c>, the one tail of the CALL and INVOKE lanes).
+    /// Fully qualified, as <see cref="SortTerminationSignalType"/> is: every activating site asks it, and a group whose classes
     /// declare no file has no <c>using</c> of the I-O namespace (the PB922 reason).</summary>
     public static string SortAfterActivationReturn { get; } =
         $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.AfterActivationReturn)}()";
+
+    /// <summary>The split form of <see cref="SortAfterActivationReturn"/> for a site that emits a propagation pickup (kb/Work
+    /// PB3246, review R1-1): <c>CobolSort.TakeActivationReturnTermination</c> takes THIS activation's request out of the run
+    /// unit's pending slot before the pickup can run a declarative that activates again.</summary>
+    public static string SortTakeActivationReturnTermination { get; } =
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TakeActivationReturnTermination)}()";
+
+    /// <summary>Act on the request <see cref="SortTakeActivationReturnTermination"/> took into the local <paramref name="taken"/>
+    /// - <c>CobolSort.TerminateAfterActivation</c>.</summary>
+    public static string SortTerminateAfterActivation(string taken) =>
+        $"global::CobolNet.Runtime.IO.{nameof(CobolSort)}.{nameof(CobolSort.TerminateAfterActivation)}({taken})";
 
     /// <summary>The declining filter an activation's end notes a SORT termination with —
     /// <c>SortTerminationSignal.EndsActivation</c> over the local <paramref name="flag"/> (kb/Work PB1177).</summary>
@@ -2354,8 +2398,8 @@ internal static class RuntimeApi
     /// <summary>The sending value aligned at <paramref name="scale"/> — <see cref="MoveSending.AtScale"/>.</summary>
     public static string MoveSendingAtScale(string sending, int scale) => $"{sending}.{nameof(MoveSending.AtScale)}({scale})";
 
-    /// <summary>The sending value as binary64 — <see cref="MoveSending.Binary64"/>.</summary>
-    public static string MoveSendingBinary64(string sending) => $"{sending}.{nameof(MoveSending.Binary64)}";
+    /// <summary>The sending value's exact decimal, for a floating-point edited receiver — <see cref="MoveSending.ExactValue"/>.</summary>
+    public static string MoveSendingExactValue(string sending) => $"{sending}.{nameof(MoveSending.ExactValue)}";
 
     /// <summary>A sending operand the activating element states for its argument (<see cref="MoveSending"/>; kb/Work PB2587):
     /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.
@@ -2377,8 +2421,8 @@ internal static class RuntimeApi
 
     /// <summary>An argument evaluated into its cell, with its sending operand read back from that cell —
     /// <see cref="CobolArgAdapt.WithValueSending"/> (kb/Work PB2587).</summary>
-    public static string ArgWithValueSending(string arg, string? storageImage) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)})";
+    public static string ArgWithValueSending(string arg, string? storageImage, bool approximate) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)}{(approximate ? ", approximate: true" : "")})";
 
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>

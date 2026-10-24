@@ -3,6 +3,7 @@
 using CobolNet;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -58,7 +59,7 @@ public sealed class CheckOnlyCompileTests
     [Fact]
     public void CheckOnly_GoodProgram_SucceedsAndEmitsNothing()
     {
-        string dir = Directory.CreateTempSubdirectory("chkonly").FullName;
+        string dir = ScratchDirectory.Create("chkonly");
         try
         {
             string src = WriteTemp(dir, "CHKOK", GoodProgram);
@@ -68,7 +69,7 @@ public sealed class CheckOnlyCompileTests
             Assert.Empty(Directory.GetFiles(dir, "*.dll"));
             Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Theory]
@@ -77,7 +78,7 @@ public sealed class CheckOnlyCompileTests
     [InlineData(2014, false)]
     public void CheckOnly_EditionGating_MatchesFullCompileVerdict(int edition, bool expectSuccess)
     {
-        string dir = Directory.CreateTempSubdirectory("chkedn").FullName;
+        string dir = ScratchDirectory.Create("chkedn");
         try
         {
             string src = WriteTemp(dir, "CHK23", EditionGated2023);
@@ -88,7 +89,7 @@ public sealed class CheckOnlyCompileTests
             // The edition-gating verdict is identical whether or not the backend runs.
             Assert.Equal(full.Success, check.Success);
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>P6 Step 4 (exit criterion #4): an edition violation under CheckOnly returns <c>BindError</c>
@@ -98,7 +99,7 @@ public sealed class CheckOnlyCompileTests
     [Fact]
     public void CheckOnly_EditionViolation_BindErrorCarriesTheBandCode()
     {
-        string dir = Directory.CreateTempSubdirectory("chkband").FullName;
+        string dir = ScratchDirectory.Create("chkband");
         try
         {
             string src = WriteTemp(dir, "CHK23", EditionGated2023);
@@ -110,7 +111,7 @@ public sealed class CheckOnlyCompileTests
             Assert.Null(r.GeneratedCsPath);
             Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // Binds clean, but its emitted body contains a LOUD NotImplemented guard (ACCEPT into a COMP-1 receiver —
@@ -133,7 +134,7 @@ public sealed class CheckOnlyCompileTests
     [Fact]
     public void CheckOnly_BindCleanEmitLoudProgram_Succeeds()
     {
-        string dir = Directory.CreateTempSubdirectory("chkloud").FullName;
+        string dir = ScratchDirectory.Create("chkloud");
         try
         {
             string src = WriteTemp(dir, "CHKLOUD", BindsCleanEmitsLoud);
@@ -145,6 +146,6 @@ public sealed class CheckOnlyCompileTests
             Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));
             Assert.Empty(Directory.GetFiles(dir, "*.dll"));
         }
-        finally { Directory.Delete(dir, recursive: true); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

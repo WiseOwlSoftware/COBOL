@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -17,8 +18,7 @@ public sealed class ApostropheValueDifferentialTests
 {
     private static string RunOf(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Apos_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Apos_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -30,7 +30,7 @@ public sealed class ApostropheValueDifferentialTests
             Assert.True(ok, detail);
             return stdout;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>Elementary + group-child VALUEs: the ' program equals the " program byte-for-byte.</summary>

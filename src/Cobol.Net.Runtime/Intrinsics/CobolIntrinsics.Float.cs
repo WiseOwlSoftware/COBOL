@@ -11,7 +11,7 @@ namespace CobolNet.Runtime;
 /// ARITHMETIC IS STANDARD / STANDARD-DECIMAL: their returned-value rules are prose approximations, NOT equivalent
 /// arithmetic expressions, so the value is implementor-defined in EVERY mode (§15.4.1 last paragraph), and a
 /// double result entering a standard-decimal expression converts through the one §8.8.1.5.2 r1 operand
-/// conversion (<c>CobolDec.FromDouble</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
+/// conversion (<c>CobolDec.FromApproximation</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
 /// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — under the standard modes they
 /// never reach this file: <c>IntrinsicRenderer.RenderDec</c> evaluates them on their <c>…Dec</c> bodies.</para>
 /// </summary>
@@ -401,7 +401,9 @@ public static partial class CobolIntrinsics
 
     /// <summary>ANNUITY (§15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
     /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §15.9.3 r2 (rate ≥ 0) and r3
-    /// (periods a positive integer — integrality is the upstream IntArg latitude; positivity is checked here).</summary>
+    /// (periods a positive integer — integrality is the §15.3 type-6 position intake's, <c>IntrinsicRenderer.RawArg</c>;
+    /// positivity is checked here; the magnitude is unconstrained, so a count past <c>long</c> reaches this body as a
+    /// binary64 and the SDIDI twin <see cref="AnnuityDec"/> takes it as the SDIDI integer itself — kb/Work PB637).</summary>
     /// <remarks>⛔ THE DENOMINATOR IS −expm1(−periods · ln(1 + rate)), NEVER 1 − Math.Pow(1 + rate, −periods)
     /// (kb/Work PB1310). The two are the same number, but the second forms 1 + rate in binary64 FIRST, which is
     /// exactly 1.0 for every rate below 2^−53: ANNUITY(1E−17, 12) divided by 0 and stored 0 where the value is

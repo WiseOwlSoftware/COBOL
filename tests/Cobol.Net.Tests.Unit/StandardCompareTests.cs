@@ -9,6 +9,7 @@ using CobolNet.Runtime.Collation;
 using CobolNet.Runtime.Exceptions;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -247,8 +248,7 @@ public sealed class StandardCompareTests
     private static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) Compile(
         string specialNames, string body, int edition = 2002)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cn_sc_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cn_sc_");
         try
         {
             string src = Path.Combine(dir, "sc.cob");
@@ -270,7 +270,7 @@ public sealed class StandardCompareTests
                 src, Path.Combine(dir, "sc.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return (r.Success, r.Errors, r.Warnings);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     private const string Ot1 = "           ORDER TABLE OT1 IS \"ISO 14651_2020_TABLE1\".\n";

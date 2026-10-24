@@ -135,10 +135,8 @@ import json
 import os
 import pathlib
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Callable
@@ -1134,10 +1132,10 @@ def main(argv=None):
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     """A scratch repository with one branch in every lifecycle state, surveyed and then pruned (--apply)."""
-    from scratch_repo import ScratchRepo, ScratchRepoError, isolate  # noqa: PLC0415  (scripts/: the one fixture)
+    from scratch_repo import ScratchRepo, ScratchRepoError, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     fails = []
     check = lambda ok, what: None if ok else fails.append(what)  # noqa: E731
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix='prune-selftest-'))
+    tmp = scratch_dir('prune-selftest-')
     try:
         isolate()      # never act on the caller's repository (kb/Work PB1719)
         # Every fixture command is CHECKED (ScratchRepoError carries git's message): an unchecked command that failed
@@ -1758,7 +1756,7 @@ def self_test() -> int:
         r1 = dataclasses.replace(rows['orphan'], name='w99990-other')
         check(lifecycle(r1, in_flight_slugs={'w9999'}, min_age=180, live=live)[0] == 'DECISION', 'slug w9999 does not bind w99990-…')
         # the in-flight slugs are the ledger entries' recorded slugs (kb/Work PB3186): a retired hand entry has none
-        sdir = pathlib.Path(tempfile.mkdtemp(prefix='slugs-'))
+        sdir = scratch_dir('slugs-')
         (sdir / 'inflight-groups.json').write_text(json.dumps({'groups': [
             {'wave': '9998', 'letter': 'B', 'slug': 'w9998b', 'notes': ['PB1'], 'files': ['src/F.cs'], 'at': 1.0},
             {'wave': '9998', 'letter': 'C', 'notes': ['PB2'], 'files': ['src/G.cs'], 'at': 1.0},
@@ -1816,7 +1814,7 @@ def self_test() -> int:
     except ScratchRepoError as e:
         fails.append(f'the fixture could not be built, so nothing above it was measured: {e}')
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
     for f in fails:
         print(f'FAIL  {f}')
     print(f'=== PRUNE_WORKTREES SELF-TEST: {"GREEN" if not fails else f"RED ({len(fails)})"} ===')

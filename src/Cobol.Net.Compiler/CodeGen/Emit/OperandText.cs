@@ -103,8 +103,9 @@ internal static class OperandText
         // A boolean EXPRESSION operand's string is its '0'/'1' image through the ONE boolean renderer (kb/Work PB65
         // — a legal intrinsic argument, §8.4.3.2.3 SR8, and any other string position a boolean expression reaches);
         // intercepted at the ENTRY because the renderer needs the per-unit NumericRenderer (shift counts).
+        // …at §8.8.2 rule 10's item width when it is the sending operand of a CALL / INVOKE argument's MOVE (AtItemWidth).
         : op is BoundBoolOperand bo
-            ? BooleanRenderer.Render(bo.Expr, num, sending)
+            ? bo.AtItemWidth ? BooleanRenderer.RenderAtItemWidth(bo.Expr, num, sending) : BooleanRenderer.Render(bo.Expr, num, sending)
             : op.Accept(Visitor(deSign, sending));
 
     /// <summary>The text image of a NUMERIC-result intrinsic (DA2), across all three shapes a numeric

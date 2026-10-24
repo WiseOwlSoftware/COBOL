@@ -62,7 +62,6 @@ import argparse
 import ast
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -379,6 +378,7 @@ def synthetic_listing(path: Path, names: list[str]) -> str:
 
 
 def self_test() -> int:
+    from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
     results: list[tuple[str, bool, str]] = []
 
     def arm(name: str, ok: bool, detail: str = "") -> None:
@@ -508,7 +508,7 @@ def self_test() -> int:
             "scripts/prose.py" not in sites and "scripts/hooks/hook.sh" not in sites and "scripts/good.sh" in sites
             and "scripts/good_instruction.py" in sites and "scripts/good.py" in sites
             and sum(1 for o in offenders if o.startswith(".github/workflows/bad.yml")) == 2, f"sites {sites}")
-        shutil.rmtree(r, ignore_errors=True)
+        remove_tree(r)
 
     for name, passed, detail in results:
         print(f"  {'PASS' if passed else 'FAIL'}  {name}" + ("" if passed or not detail else f"\n        {detail}"))

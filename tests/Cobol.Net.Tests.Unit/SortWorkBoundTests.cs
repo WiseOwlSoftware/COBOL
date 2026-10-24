@@ -4,6 +4,7 @@ using CobolNet.Runtime;
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -20,12 +21,11 @@ namespace CobolNet.Tests.Unit;
 public sealed class SortWorkBoundTests : IDisposable
 {
     private const long Limit = SortMemory.MinimumLimitBytes;
-    private readonly string _dir = Directory.CreateTempSubdirectory("pb3339-sortwork-").FullName;
+    private readonly string _dir = ScratchDirectory.Create("pb3339-sortwork-");
 
     public void Dispose()
     {
-        try { Directory.Delete(_dir, recursive: true); }
-        catch (IOException) { }
+        ScratchDirectory.Remove(_dir);
     }
 
     private static readonly CobolSort.Key[] AlnumKey = [new(0, 4, false, CobolSort.KeyClass.Alphanumeric, default)];

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -52,8 +53,7 @@ public sealed class OoSpineTests
 
     private static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition = 2002)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Oo_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Oo_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -64,7 +64,7 @@ public sealed class OoSpineTests
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     // ── The adversarial traps (deep-dive "Adversarial regression traps" — each a REAL legacy bug) ──────────

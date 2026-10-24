@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -21,8 +22,7 @@ public sealed class KeyedOffsetSpecTests
 {
     private static (bool Ok, string Stdout, string Detail) CompileAndRun(string source)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Koff_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Koff_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -32,7 +32,7 @@ public sealed class KeyedOffsetSpecTests
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>§13.18.44.3 SR8: a non-level-1 redefinition whose subject is LARGER than the redefined item is
@@ -40,8 +40,7 @@ public sealed class KeyedOffsetSpecTests
     [Fact]
     public void Redefines_WiderThanTarget_NonLevel01_Rejected()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Koff_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Koff_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -63,7 +62,7 @@ public sealed class KeyedOffsetSpecTests
             Assert.False(r.Success, "an SR8-illegal wider redefinition must be rejected");
             Assert.Contains(r.Errors, e => e.Contains("COBOLNET1539"));
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A LEVEL-1 wider redefinition stays legal (the SR8 exception) — the sanity companion.</summary>

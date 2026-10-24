@@ -83,8 +83,7 @@ public sealed class SpecialNamesLocaleEditionTests
     /// runs in the VersionConformancePass after bind.</summary>
     private static IReadOnlyList<string> CompileErrors(string specialNames)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cn_snloc_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cn_snloc_");
         try
         {
             string src = Path.Combine(dir, "snloc.cob");
@@ -98,7 +97,7 @@ public sealed class SpecialNamesLocaleEditionTests
             return CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "snloc.dll"), DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto)).Errors;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>

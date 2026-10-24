@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -82,8 +83,7 @@ public sealed class ResidueWalkNestingTests
         string source = "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB3489U.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n"
             + "01 A PIC X(10).\n01 N PIC 9(8).\nPROCEDURE DIVISION.\nMAIN-PARA.\n"
             + $"MOVE {call} TO N\nSTOP RUN.\n";
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_PB3489_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_PB3489_");
         try
         {
             string src = Path.Combine(dir, "pb3489u.cob");
@@ -93,6 +93,6 @@ public sealed class ResidueWalkNestingTests
             Assert.False(result.Success, "the source is non-conforming and must be rejected");
             return result;
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

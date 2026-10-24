@@ -21,7 +21,7 @@ public sealed class NistWrittenFilesTests
     /// <summary>A scratch golden directory holding <paramref name="files"/>; the caller deletes it.</summary>
     private static string GoldenDirOf(Dictionary<string, byte[]> files)
     {
-        string dir = CutRunner.NewTempDir("nistgold");
+        string dir = ScratchDirectory.Create("nistgold");
         foreach (var (name, bytes) in files) File.WriteAllBytes(Path.Combine(dir, name), bytes);
         return dir;
     }
@@ -32,7 +32,7 @@ public sealed class NistWrittenFilesTests
         var written = Files(("xxxxx014.txt", "REC1\nREC2\n"), ("tf021.txt", "AB"));
         string gold = GoldenDirOf(written);
         try { Assert.Empty(NistOutputs.Grade(written, gold)); }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public sealed class NistWrittenFilesTests
             string problem = Assert.Single(problems);
             Assert.StartsWith("xxxxx049.txt: differs from its golden at byte 13 ", problem);
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class NistWrittenFilesTests
             Assert.StartsWith("tf021.txt: differs from its golden at byte 3 ", Assert.Single(NistOutputs.Grade(Files(("tf021.txt", "ABC")), gold)));
             Assert.StartsWith("tf021.txt: differs from its golden at byte 4 ", Assert.Single(NistOutputs.Grade(Files(("tf021.txt", "ABCDE")), gold)));
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     /// <summary>A line sequential file ends its records with the HOST's newline (DOC-A.1-114), so the same program
@@ -78,7 +78,7 @@ public sealed class NistWrittenFilesTests
             Assert.StartsWith("lone.txt: differs", Assert.Single(NistOutputs.Grade(
                 Files(("report.txt", "A\nB\n"), ("binary.dat", "A\u0001\nB"), ("lone.txt", "A\nB\n")), gold)));
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class NistWrittenFilesTests
             string problem = Assert.Single(problems);
             Assert.StartsWith("xxxxx001.txt: the program wrote it (3 bytes) and it has no golden", problem);
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class NistWrittenFilesTests
             Assert.StartsWith("xxxxx014.txt: it has a golden", problem);
             Assert.EndsWith("but the program did not write it", problem);
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public sealed class NistWrittenFilesTests
     [Fact]
     public void Written_IsExactlyTheFilesCreatedOrModifiedSinceTheSnapshot()
     {
-        string dir = CutRunner.NewTempDir("nistwritten");
+        string dir = ScratchDirectory.Create("nistwritten");
         try
         {
             // What the harness leaves before the program runs: the compiled program, a chain predecessor's files.
@@ -151,13 +151,13 @@ public sealed class NistWrittenFilesTests
             Assert.Equal(["tf021.txt", "xxxxx049.txt"], written.Keys);
             Assert.Equal("after", System.Text.Encoding.UTF8.GetString(written["tf021.txt"]));
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
     public void Capture_ReplacesStaleGoldens_AndAProgramThatWroteNothingLeavesNoDirectory()
     {
-        string root = CutRunner.NewTempDir("nistcapture");
+        string root = ScratchDirectory.Create("nistcapture");
         try
         {
             string dir = Path.Combine(root, "XX101A");
@@ -169,7 +169,7 @@ public sealed class NistWrittenFilesTests
             NistOutputs.Capture(dir, Files());
             Assert.False(Directory.Exists(dir));
         }
-        finally { CutRunner.TryDelete(root); }
+        finally { ScratchDirectory.Remove(root); }
     }
 
     /// <summary>The falsification PB804 asks for, on the real program: RW104A writes its report-writer output to
@@ -186,7 +186,7 @@ public sealed class NistWrittenFilesTests
         string real = NistOutputs.GoldenDir("RW104A");
         Assert.Empty(NistOutputs.Grade(run.Written, real));                  // the control: graded, and clean
 
-        string copy = CutRunner.NewTempDir("nistfalsify");
+        string copy = ScratchDirectory.Create("nistfalsify");
         try
         {
             foreach (string f in Directory.EnumerateFiles(real)) File.Copy(f, Path.Combine(copy, Path.GetFileName(f)));
@@ -199,7 +199,7 @@ public sealed class NistWrittenFilesTests
             string problem = Assert.Single(NistOutputs.Grade(run.Written, copy));
             Assert.StartsWith($"xxxxx049.txt: differs from its golden at byte {at} ", problem);
         }
-        finally { CutRunner.TryDelete(copy); }
+        finally { ScratchDirectory.Remove(copy); }
     }
 
     /// <summary>The console output is graded on the acceptance basis in BOTH arms (guard-verdict.sh compares it with
@@ -219,11 +219,11 @@ public sealed class NistWrittenFilesTests
             Assert.StartsWith("(stdout): differs from its golden", Assert.Single(NistOutputs.Grade(Files((NistOutputs.StdoutName, "HELLO\nWORLD!\n")), gold)));
             Assert.StartsWith("(stdout): differs from its golden", Assert.Single(NistOutputs.Grade(Files((NistOutputs.StdoutName, "HELLO\n\nWORLD\n")), gold)));
         }
-        finally { CutRunner.TryDelete(gold); }
+        finally { ScratchDirectory.Remove(gold); }
         // The same trailing blanks in a FILE are a difference: only the console is host-shaped text.
         string fileGold = GoldenDirOf(Files(("tf021.txt", "HELLO\n")));
         try { Assert.Single(NistOutputs.Grade(Files(("tf021.txt", "HELLO  \n")), fileGold)); }
-        finally { CutRunner.TryDelete(fileGold); }
+        finally { ScratchDirectory.Remove(fileGold); }
 
         var written = new Dictionary<string, byte[]>();
         NistOutputs.AddStdout(written, "   \n\n");
@@ -249,7 +249,7 @@ public sealed class NistWrittenFilesTests
         string real = NistOutputs.GoldenDir("ST146A");
         Assert.Empty(NistOutputs.Grade(run.Written, real));
 
-        string copy = CutRunner.NewTempDir("nistst146a");
+        string copy = ScratchDirectory.Create("nistst146a");
         try
         {
             foreach (string f in Directory.EnumerateFiles(real)) File.Copy(f, Path.Combine(copy, Path.GetFileName(f)));
@@ -261,7 +261,7 @@ public sealed class NistWrittenFilesTests
             string problem = Assert.Single(NistOutputs.Grade(run.Written, copy));
             Assert.StartsWith($"xxxxx014.txt: differs from its golden at byte {at} ", problem);
         }
-        finally { CutRunner.TryDelete(copy); }
+        finally { ScratchDirectory.Remove(copy); }
     }
 
     [Fact]

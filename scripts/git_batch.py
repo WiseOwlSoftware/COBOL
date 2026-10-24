@@ -274,9 +274,7 @@ def diff_patches(repo: pathlib.Path | str, pairs: Sequence[tuple[str, str]], *pa
 
 # ── self-test: each reader against the one-process-per-object form it replaces ──────────────────────────────────────
 def self_test() -> int:
-    import tempfile  # noqa: PLC0415
-    import shutil  # noqa: PLC0415
-    from scratch_repo import ScratchRepo, isolate  # noqa: PLC0415  (scripts/: the one fixture)
+    from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one fixture)
     fails: list[str] = []
 
     def check(name: str, ok: bool, detail: object = "") -> None:
@@ -284,7 +282,7 @@ def self_test() -> int:
         if not ok:
             fails.append(name)
 
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix="git-batch-selftest-"))
+    tmp = scratch_dir("git-batch-selftest-")
     try:
         isolate()
         repo = ScratchRepo.init(tmp / "repo")
@@ -351,7 +349,7 @@ def self_test() -> int:
               ids == [repo.run("rev-parse", "-q", "--verify", s).stdout.strip()
                       for s in (f"{merge}:a.txt", f"{merge}:b.txt", f"{root}:b.txt")], ids)
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        remove_tree(tmp)
     print(f"=== git_batch self-test: {'GREEN' if not fails else 'RED'} ({len(fails)} failure(s)) ===")
     return 1 if fails else 0
 

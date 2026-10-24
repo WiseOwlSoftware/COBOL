@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.Collation;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Collation;
 
@@ -179,8 +180,7 @@ public sealed class CollationTailoringTests
     [Fact]
     public void Load_FromDisk_AndAppliedOverrides_AreIndependentOfTheRoot()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "cobolnet-collation-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("cobolnet-collation-");
         try
         {
             // Put 'z' before 'a' (a nonsense tailoring that is easy to observe): z takes a primary just below a's.
@@ -199,7 +199,7 @@ public sealed class CollationTailoringTests
         }
         finally
         {
-            Directory.Delete(dir, recursive: true);
+            ScratchDirectory.Remove(dir);
         }
     }
 

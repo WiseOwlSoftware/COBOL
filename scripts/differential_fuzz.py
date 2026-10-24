@@ -1482,6 +1482,7 @@ def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int,
 # ── self-test ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def self_test() -> int:
+    from scratch_repo import remove_tree  # noqa: PLC0415  (scripts/: the one scratch fixture)
     rc = 0
 
     def check(name: str, ok: bool, got: object = None) -> None:
@@ -1867,14 +1868,14 @@ def self_test() -> int:
     except Exception as e:  # noqa: BLE001 — the check below reports it
         staged.append(repr(e))  # type: ignore[arg-type]
     finally:
-        shutil.rmtree(stale.parent, ignore_errors=True)
+        remove_tree(stale.parent)
     check("observe_fresh: an earlier attempt's work directory is removed before the program is staged again (the first PB3488 bake-off lost 3 of 20 programs to FileExistsError)",
           staged == [False], staged)
     def stubbed_one(sides: dict[str, Any]) -> tuple[dict[str, Any], list[str], list[str]]:
         """Fuzz._one over a stubbed model (one fixed program, line 4 "DISPLAY WS-X") and stubbed compilers: sides[name](k) is
         that compiler's Observation of its k-th compile. Returns the row, the calls in order and every user message sent."""
         one_dir = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-one"
-        shutil.rmtree(one_dir, ignore_errors=True)
+        remove_tree(one_dir)
         (one_dir / "programs").mkdir(parents=True)
         calls: list[str] = []
         asked: list[str] = []
@@ -1900,7 +1901,7 @@ def self_test() -> int:
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
         finally:
             globals()["ollama_chat"], globals()["observe_fresh"] = saved_chat, saved_fresh
-            shutil.rmtree(one_dir, ignore_errors=True)
+            remove_tree(one_dir)
         return row, calls, asked
 
     gnu_refuses = lambda k: Observation(False, 1, f"fz00000.cob:4: error: 'WS-X{k}' is not defined", [])  # noqa: E731

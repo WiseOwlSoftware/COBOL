@@ -393,7 +393,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
         // Under standard-decimal, §8.8.4.2.4 requires EACH operand converted to standard-decimal intermediate form
         // and compared decimally — a float lifts via the §8.8.1.5.1 float→SDIDI conversion (DecOperand →
-        // CobolDec.FromDouble) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
+        // CobolDec.FromBinary64: its exact value, so a COMP-2 holding 0.1 is NOT equal to the literal 0.1, kb/Work
+        // PB1606) and a fixed operand lifts EXACTLY (CobolDec.From), preserving decimal precision that a
         // native (double)-rounded compare would lose. A native STANDARD-DECIMAL intermediate (.Dec) also lands here.
         if (l.Dec || rr.Dec || l.Real || rr.Real)
             return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";

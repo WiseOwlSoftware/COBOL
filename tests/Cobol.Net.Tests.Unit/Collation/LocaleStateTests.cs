@@ -5,6 +5,7 @@ using CobolNet.Runtime.Collation.Locale;
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Runtime.IO;
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit.Collation;
 
@@ -249,7 +250,7 @@ public sealed class LocaleStateTests
     public void ASortMergingRuns_KeepsOneCollator_AcrossACacheClearBetweenReturns()
     {
         const string sd = "PB3331-PIN";
-        string dir = Directory.CreateTempSubdirectory("pb3331-pin-").FullName;
+        string dir = ScratchDirectory.Create("pb3331-pin-");
         var rng = new Random(7);
         var records = new List<string>(6000);
         string[] syllables = ["aa", "ab", "zz", "za", "æa", "øa"];
@@ -281,7 +282,7 @@ public sealed class LocaleStateTests
         finally
         {
             LocaleManager.ClearCache();
-            try { Directory.Delete(dir, recursive: true); } catch (IOException) { /* best-effort temp cleanup */ }
+            ScratchDirectory.Remove(dir);
         }
     }
 }

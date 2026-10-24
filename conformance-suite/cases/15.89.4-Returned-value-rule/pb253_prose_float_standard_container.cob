@@ -17,7 +17,7 @@
       *>
       *> HAND-DERIVED: TINY is the exact scale-20 value 1E-20. For that argument sin x = x - x**3/6 and
       *> tan x = x + x**3/3 with |x**3/3| ~ 3.3E-61, some 25 decades below the ULP of x (~1.6E-36), so each
-      *> binary64 result IS x. The 8.8.1.5.1 float -> SDIDI conversion is the shortest round-trip decimal
+      *> binary64 result IS x. The conversion of a function's approximation (15.4.1) is the shortest round-trip decimal
       *> identity, so the SDIDI is exactly 1E-20 and its 15.4.1 item-92 text is the fixed-point digit string
       *> 0.00000000000000000001 — never the binary64 E-notation "1E-20" the un-contained value printed. The
       *> scale-20 store of that SDIDI is exact: unscaled 1, DISPLAY image 19 zeros then the overpunched +1.
@@ -34,6 +34,7 @@
        01 T1   PIC SV9(20).
        01 T2   PIC SV9(20).
        01 FL   USAGE COMP-2.
+       01 FL2  USAGE COMP-2.
        PROCEDURE DIVISION.
        MAIN.
            DISPLAY "SIN-T=" FUNCTION SIN(TINY)
@@ -42,8 +43,13 @@
            COMPUTE T2 = FUNCTION SIN(TINY)
            DISPLAY "SIN-MOVE=" T1
            DISPLAY "SIN-COMP=" T2
+      *> The float-receiver channels land that same value: a MOVE and a COMPUTE into FLOAT-LONG receivers hold
+      *> one binary64. (They are not compared with the function itself: a float ITEM enters the SDIDI by its
+      *> exact binary value, 8.8.1.5.1's conversion as WiseOwl defines it, and the double nearest 1E-20 is
+      *> 9.99999999999999945...E-21, not the SDIDI 1E-20 the function returned.)
            MOVE FUNCTION SIN(TINY) TO FL
-           IF FL = FUNCTION SIN(TINY)
+           COMPUTE FL2 = FUNCTION SIN(TINY)
+           IF FL = FL2
                DISPLAY "FLOAT-CHANNEL-AGREES"
            ELSE
                DISPLAY "FLOAT-CHANNEL-DIFFERS"

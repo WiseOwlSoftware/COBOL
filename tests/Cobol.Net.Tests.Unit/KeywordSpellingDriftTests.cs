@@ -4,6 +4,7 @@ using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -137,8 +138,7 @@ public sealed class KeywordSpellingDriftTests
 
     private static (bool Ok, IReadOnlyList<string> Errors) Compile(string source, int edition)
     {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ksd_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
+        string dir = ScratchDirectory.Create("CobolNet_Ksd_");
         try
         {
             string src = Path.Combine(dir, "prog.cob");
@@ -147,6 +147,6 @@ public sealed class KeywordSpellingDriftTests
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             return (r.Success, r.Success ? [] : [.. r.Errors]);
         }
-        finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 }

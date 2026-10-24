@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Conformance;
 
@@ -103,7 +104,7 @@ public sealed class RunUnitScopeHostTests
     /// twice in one host process, and return the host's stdout (asserting a clean exit).</summary>
     private static string RunTwice(string program, string source, int dialect)
     {
-        string dir = CutRunner.NewTempDir("ruscope");
+        string dir = ScratchDirectory.Create("ruscope");
         try
         {
             NonCobolElement.CompileCobol(dir, program, source, dialect);
@@ -113,7 +114,7 @@ public sealed class RunUnitScopeHostTests
             Assert.Equal("", stderr);
             return stdout;
         }
-        finally { CutRunner.TryDelete(dir); }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     [Fact]
