@@ -328,6 +328,7 @@ public abstract class FileConnector
     /// <c>OpenCore</c> reads them, so assigning afterwards would open every stream on the PREVIOUS open's
     /// answer).</summary>
     /// <param name="physical">The physical file's shared state — every connector gets it.</param>
+    /// <param name="lockOwner">The connector's registry name, which the physical file's record-lock table holds its locks under (<see cref="LockOwner"/>).</param>
     /// <param name="locksRecords">Whether this open's connector SETS record locks (<c>FileRegistry.RecordLocksSetUnder</c>: a LOCK MODE clause under a mode other than NO OTHER). A registered SHARING posture alone is NOT participation.</param>
     internal void AssociatePhysical(PhysicalFileTable.State physical, string lockOwner, bool locksRecords)
     {

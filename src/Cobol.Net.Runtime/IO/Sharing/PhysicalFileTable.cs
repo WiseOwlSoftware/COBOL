@@ -126,7 +126,6 @@ internal sealed class PhysicalFileTable
     /// the absent path (one the table never learned a file for: the file this state's file was is no longer there).</summary>
     public State For(string host, PhysicalFileIdentity? identity)
     {
-        identity = null;   // TEMP PROBE: the old path-only behaviour
         if (identity is { } id)
         {
             if (_byIdentity.TryGetValue(id, out var known)) return known;
