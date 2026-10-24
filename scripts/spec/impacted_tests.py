@@ -495,6 +495,9 @@ def reach_test_file(path: str, base: str | None, reach: Reach) -> None:
     existed = base is not None and subprocess.run(["git", "cat-file", "-e", f"{base}:{path}"], cwd=REPO,
                                                   capture_output=True).returncode == 0
     changed = tests_changed(text, hunks(base, path) if existed else None)
+    if existed and cs_members.balance(text):
+        reach.notes.append(f"{path}: its code braces do not balance once lexed (cs_members.balance) — every test "
+                           f"method of it is taken as edited")
     for asm in assemblies_of(path):
         reach.changed_tests.setdefault(asm, set()).update(changed)
     if changed:
