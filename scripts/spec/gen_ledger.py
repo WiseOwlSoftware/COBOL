@@ -129,7 +129,7 @@ SCHEMA = REPO / "tests/version-matrix/inventory-schema.json"
 
 def verdict_classes(schema: pathlib.Path = SCHEMA) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """(RESOLVING, DEFECTIVE), read from the schema's `resolves` flag — the same derivation
-    `DefectiveRowCoverageDriftTests` makes (`TraceabilityInventory.DefectiveVerdicts`).
+    `work_inventory.py`'s coverage check makes (`inventory_schema.Schema.defective`).
 
     ⛔ READ, NOT COPIED (kb/Work PB3338, wave 1154). Until then both tuples were literals "mirroring" the flag, and
     the first row ever verdicted NEEDS-OWNER-DECISION (a non-resolving verdict the literal lacked) made the hero bands
@@ -141,8 +141,7 @@ def verdict_classes(schema: pathlib.Path = SCHEMA) -> tuple[tuple[str, ...], tup
 
 
 #: Verdicts that RESOLVE a row — the row still needs a spec-derived witness to close, but no further adjudication.
-#: Verdicts that name a DEFECT (or a question) — the rows `DefectiveRowCoverageDriftTests` requires a live `kb/Work`
-#: note to own.
+#: Verdicts that name a DEFECT (or a question) — the rows `work_inventory.py` requires a live `kb/Work` note to own.
 RESOLVING, DEFECTIVE = verdict_classes()
 NL = chr(10)
 
@@ -1126,7 +1125,7 @@ TEMPLATE = """<title>{title}</title>
     <div class="tile">
       <div class="label">Known-defective rules</div>
       <div class="value num">{defective}</div>
-      <div class="note">every row claimed by a live work note, held there by <span class="mono">DefectiveRowCoverageDriftTests</span></div>
+      <div class="note">every row claimed by a live work note, held there by <span class="mono">work.py check</span></div>
     </div>
     <div class="tile">
       <div class="label">Open register items</div>

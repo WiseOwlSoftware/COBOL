@@ -1,4 +1,4 @@
-## PB3628: NOT QUEUED reads only a pull request at the branch's tip, so a re-armed branch is no longer stranded
+## Entry 2472 — 2026-10-24 13:05 PDT — PB3628: NOT QUEUED reads only a pull request at the branch's tip, so a re-armed branch is no longer stranded
 
 **What happened.** On 2026-10-24 branch `worktree-wf_0e51b14b-ced-6` (PB3155) bounced in the merge queue (PR #467, ci-gate
 failed). A finisher fixed it, a reviewer stamped the new tip CLEAN and `land_lane.py rearm` re-armed it at 08:12Z. By 09:45Z
@@ -31,3 +31,14 @@ launches, a re-armed NOT QUEUED row does not, and its status line says why.
 
 **Left alone.** A pull request IN the merge queue reads ENQUEUED whatever the local tip. A commit made after the queue took
 it cannot be pushed without ejecting it, so the queue merges first and the branch then reads by its content.
+
+**Reconciled with PB3275 (landed first, DEVLOG 2471).** PB3275 made a head that cannot be queued (a conflict, a failed
+required check) promise nothing for a tip past it, but kept a tip past a HEALTHY auto-merge head NOT QUEUED. The two
+rules met in one conflicting hunk of `lifecycle`, and the one rule kept is this entry's: NOT QUEUED reads only a pull
+request at the tip, whatever an older head's health. Auto-merge at a healthy old head promises that head's commits,
+never the tip's, so waiting on it lands the old head and leaves the fix for a second landing; and PB3275's rule also
+left a head the queue REMOVED with auto-merge still on (neither red nor conflicting) NOT QUEUED, the PR #467 strand
+again (mutation-checked: main's rule reads `removed` and `healthy` NOT QUEUED). PB3275's self-test cases stay, with
+its `healthy` expectation now WAITING TO LAND and a `removed` case beside it. The landing lane's re-arm predicate is now
+one function (`rearm_hold`) that `candidates` and the REARMED status line both ask (review lead R1-1: the status line's
+copy had dropped the worktree arm), and `QUEUE_OWNED`'s comment says what each state means (review lead R1-2).

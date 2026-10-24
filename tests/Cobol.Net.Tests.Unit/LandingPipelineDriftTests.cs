@@ -44,9 +44,11 @@ public sealed class LandingPipelineDriftTests
 
     /// <summary>The files that PERFORM the landing: the whole tree but the paths that describe it (design docs, the work
     /// register, the history, frozen evidence and adjudication records, the spec, and the test sources, as this file
-    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them.</summary>
+    /// names the patterns). Declared (kb/Work PB3531), so the drift-rule index names this class for each of them. The
+    /// knowledge base and the vault's settings are set aside whole: a sweep that read them made the vault a test input
+    /// (kb/Work PB2878).</summary>
     private static readonly TreeScope NotNarrative = new(Under: [""],
-        Except: ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
+        Except: ["docs/", "kb/", ".obsidian/", "adjudication/", "specs/", "tests/", "DEVLOG/"]);
 
     private const string TheGuardedStep = "scripts/orchestrator/enqueue.py";
 
@@ -155,11 +157,14 @@ public sealed class LandingPipelineDriftTests
     private static readonly TreeScope RetiredOracleRecords = new(Under: ["docs/rearchitecture/evidence/arch-oracle/"]);
 
     /// <summary>The files that describe the current landing (DESIGN-test-build-ci.md §3.17.8): the whole tree but the
-    /// paths that keep the HISTORY, where a retired name is a fact about the past (the DEVLOG, frozen evidence, the work
-    /// register and adjudication records). This file names the retired scripts to forbid them, and is set aside by
-    /// <see cref="FilesNamingARetiredScript"/>. Declared (kb/Work PB3531).</summary>
+    /// paths that keep the HISTORY, where a retired name is a fact about the past (the DEVLOG, frozen evidence, the
+    /// knowledge base with its work register, and adjudication records). This file names the retired scripts to forbid
+    /// them, and is set aside by <see cref="FilesNamingARetiredScript"/>. Declared (kb/Work PB3531). The knowledge base
+    /// (<c>kb/</c>, with the Obsidian settings in <c>.obsidian/</c>) is set aside whole, as the sibling sweeps set it aside:
+    /// a sweep that read every note of it made the vault a test input, and no register-only change could then skip the
+    /// test legs (kb/Work PB2878).</summary>
     private static readonly TreeScope Current = new(Under: [""],
-        Except: ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/Work/", "adjudication/"]);
+        Except: ["DEVLOG/", "docs/rearchitecture/evidence/", "kb/", ".obsidian/", "adjudication/"]);
 
     private const string ThisFile = "tests/Cobol.Net.Tests.Unit/LandingPipelineDriftTests.cs";
 
@@ -225,7 +230,8 @@ public sealed class LandingPipelineDriftTests
         string dir = ScratchDirectory.Create("landing-retired-");
         try
         {
-            string[] files = ["scripts/x.py", "skill/SKILL.md", "fine.md", "DEVLOG/0001-x.md", "kb/Work/PB1.md", ThisFile];
+            string[] files = ["scripts/x.py", "skill/SKILL.md", "fine.md", "DEVLOG/0001-x.md", "kb/Work/PB1.md",
+                              "kb/Compiler/Pipeline.md", ".obsidian/app.json", ThisFile];
             foreach (string f in files)
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(dir, f))!);
             File.WriteAllText(Path.Combine(dir, "scripts/x.py"), "# run by push-main.sh");
@@ -233,6 +239,8 @@ public sealed class LandingPipelineDriftTests
             File.WriteAllText(Path.Combine(dir, "fine.md"), "land with `enqueue.py land`; the former direct-push landing script");
             File.WriteAllText(Path.Combine(dir, "DEVLOG/0001-x.md"), "train_apply.py landed it");
             File.WriteAllText(Path.Combine(dir, "kb/Work/PB1.md"), "push-main.sh held the lease");
+            File.WriteAllText(Path.Combine(dir, "kb/Compiler/Pipeline.md"), "push-main.sh held the lease");
+            File.WriteAllText(Path.Combine(dir, ".obsidian/app.json"), "push-main.sh");
             File.WriteAllText(Path.Combine(dir, ThisFile), "push-main.sh");
             Assert.Equal(new[] { "scripts/x.py", "skill/SKILL.md" }, FilesNamingARetiredScript(dir, files.Where(Current.Holds)));
         }
@@ -240,6 +248,43 @@ public sealed class LandingPipelineDriftTests
         {
             ScratchDirectory.Remove(dir);
         }
+    }
+
+    /// <summary>ONE <c>land</c> OF A BRANCH AT A TIME (kb/Work PB3310): enqueue.py's <c>land</c> takes the worktree's land
+    /// lock before it reads the worktree (a second run would find the first's merge half done) and before anything is
+    /// merged, gated, stamped or pushed; the loop's landing lane waits on that same lock for the exit it answers; and
+    /// the Linux gate answers BUSY, which the gate driver's one reader and enqueue.py already treat as a stop that is
+    /// no red. On 2026-10-16 a second land of one branch deleted the first's Linux clone mid-test and the first held a
+    /// gate slot for 6 h 40 min.</summary>
+    [Fact]
+    public void TheLandLock_PrecedesEveryReadOfTheWorktree_AndTheLaneAndTheLinuxGateAnswerIt()
+    {
+        string source = File.ReadAllText(TestRepo.Scripts("orchestrator", "enqueue.py"));
+        int landDef = source.IndexOf("\ndef land(", StringComparison.Ordinal);
+        Assert.True(landDef > 0, "enqueue.py has no `def land(` — the landing step moved; re-point this test");
+        string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
+        int lockAt = body.IndexOf("gate_slot.ExclusiveLock.try_take(", StringComparison.Ordinal);
+        Assert.True(lockAt > 0, "enqueue.py's land() no longer takes the worktree's land lock (kb/Work PB3310)");
+        foreach (string step in new[] { "worktree_state(wt)", "fetch_main(wt)", "merge_main(wt", "gates(wt)", "(stamp or _stamp)", "queue(wt" })
+        {
+            int at = body.IndexOf(step, StringComparison.Ordinal);
+            Assert.True(at > lockAt, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the land lock")}");
+        }
+        Assert.Contains("EXIT_LAND_BUSY", body);
+
+        string lane = File.ReadAllText(TestRepo.Scripts("orchestrator", "land_lane.py"));
+        Assert.Matches(new Regex(@"WAITS = \{[^}]*EXIT_LAND_BUSY", RegexOptions.Singleline), lane);
+        Assert.Contains("if rc == EXIT_LAND_BUSY:", lane);
+
+        string linux = File.ReadAllText(TestRepo.Scripts("linux-gate.sh")).ReplaceLineEndings("\n");
+        int begin = linux.IndexOf("\nbegin_gate() {", StringComparison.Ordinal);
+        Assert.True(begin > 0, "linux-gate.sh has no begin_gate");
+        int busy = linux.IndexOf("=== LINUX GATE: BUSY", begin, StringComparison.Ordinal);
+        int owner = linux.IndexOf("> \"$gate/owner\"", begin, StringComparison.Ordinal);
+        Assert.True(busy > begin && owner > busy, "linux-gate.sh's begin_gate must answer BUSY before it registers its own gate");
+        Assert.True(linux.IndexOf("rm -rf \"$out\"; mkdir -p \"$out\"", StringComparison.Ordinal)
+                    > linux.IndexOf("\nbegin_gate \"$GATES_ROOT\" \"$tree\"", StringComparison.Ordinal),
+            "linux-gate.sh empties the tree's results directory before begin_gate: a second run would delete the first's logs");
     }
 
     [Fact]
@@ -296,8 +341,13 @@ public sealed class LandingPipelineDriftTests
             // kb/Work PB3527: a held gate lock is BUSY, never a red; the queue watch's remedies live in the only file that queues
             "land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
                 + "no stamp, nothing queued (kb/Work PB3527)",
+            "land: a second land of a branch whose first still runs is REFUSED at the land lock, exit 13, naming the "
+                + "holder: nothing gated, stamped or reported (kb/Work PB3310); a dry run takes no lock; an early "
+                + "outcome releases it",
             "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
-                + "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527)",
+                + "a red), the Linux gate's own BUSY line included (kb/Work PB3310), and a GREEN line with a non-zero "
+                + "exit is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN "
+                + "(kb/Work PB3526)",
             // kb/Work PB3526, review R2-1 of wave 1150: a NOT RUN blocks by its cause's class, and main is measured
             "land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
                 + "2, never a red",

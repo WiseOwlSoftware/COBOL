@@ -32,10 +32,20 @@
 #     clone that is an ordinary Linux repository.
 # The clone builds COMMITTED HEAD: commit before running it. Uncommitted tracked changes are counted and reported.
 #
+# THE INERT LANE AND ITS PROOF (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A HEAD whose change against origin/main
+# touches only paths no test reads (scripts/inert_lane.py classify, THE one classification: CI's `changes` job and the
+# Windows gate use it too) runs no leg: `=== LINUX GATE: GREEN (inert lane, …) ===`. Every other run watches every inert
+# path with inotify while the test legs run (`inert_lane.py watch`), so a test that starts reading one is a RED here
+# (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The watched clone runs the
+# three `dotnet test` legs and nothing else: the self-tests (audits, which read inert paths by design: the register, the
+# DEVLOG, the skills submodule they initialize) and the guard run in a second clone with its own build, so no read of
+# theirs reaches the watch.
+#
 # Output: TestResults/linux-gate/<leg>.log (+ .trx, + <leg>.observations.log: the test harness's retries and
 # non-observations, copied in as the gate ends) and build logs in the tree, one `leg <name>: GREEN|RED|NOT RUN`
 # line each, and ONE verdict:
 #   === LINUX GATE: GREEN (legs …) ===   |   === LINUX GATE: RED (…) ===   |   === LINUX GATE: NOT RUN [<cause>] (…) ===
+#   === LINUX GATE: BUSY — … ===  (exit 3: another gate of this tree is running; this run touched nothing, kb/Work PB3310)
 # Exit 0 only on GREEN. A NOT RUN names its cause by tag, one row of run_gate_legs.NOT_RUN_CAUSES, which classifies it
 # ONCE (ENVIRONMENT or BRANCH: kb/Work PB3526); the driver's self-test holds every NOT RUN line here to a known tag.
 set -u
@@ -183,13 +193,43 @@ check_disk() {
     exit 2
   fi
 }
+# live_gate_of <root> <tree>: the pid of a RUNNING gate of the same tree, if any (its owner file names the tree and a
+# pid whose process started when the gate's did).
+live_gate_of() {
+  local d pid start path
+  for d in "$1"/*/; do
+    d="${d%/}"
+    [ -f "$d/owner" ] || continue
+    read -r pid start path < "$d/owner" 2>/dev/null || continue
+    [ "$path" = "$2" ] && gate_alive "$d" && { printf '%s' "$pid"; return 0; }
+  done
+  return 1
+}
 # begin_gate <root> <tree>: make this gate's own directory (gate, snap, gtmp) and arm its removal on every exit path.
+# ⛔ ONE GATE PER TREE AT A TIME (kb/Work PB3310). Two runs on one tree share its results directory
+# (TestResults/linux-gate, which the planner reads as the tree's newest run) and, before PB3194, shared and deleted each
+# other's clone: on 2026-10-16 the second `enqueue.py land` of a branch deleted the first's clone mid-test, and its
+# `dotnet test` hung 6 h 40 min in the deleted directory holding a gate slot. Each run now has its own clone (the pid in
+# the directory name), and a second run on a tree whose gate is RUNNING answers `=== LINUX GATE: BUSY ...` (exit 3) before
+# it touches anything: BUSY is the driver's verdict for another gate holding the tree (run_gate_legs.BUSY), neither a
+# pass nor a red, and enqueue.py reads it as exit 12. The check and the registration (the owner file) are one step under
+# an flock on a dotfile (reap_gates' glob skips it), so two gates started together cannot both pass.
 begin_gate() {
-  local name="${2##*/}" me="$BASHPID"   # captured here: inside $( ) BASHPID is that subshell's
+  local name="${2##*/}" me="$BASHPID" other   # captured here: inside $( ) BASHPID is that subshell's
+  mkdir -p "$1"
+  # util-linux's flock is on every Linux the gate runs on; the Windows host that runs this script's self-test has none,
+  # and starts no two gates on one tree.
+  exec 8>"$1/.begin.lock"
+  if command -v flock >/dev/null 2>&1; then flock 8; fi
+  if other="$(live_gate_of "$1" "$2")"; then
+    exec 8>&-
+    echo "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $other); this run touched nothing ==="; exit 3
+  fi
   gate="$1/$name.$me"
   snap="$gate/$name"
   gtmp="$gate/guard-tmp"
   mkdir -p "$gate" && printf '%s %s %s\n' "$me" "$(proc_field "$me" 20)" "$2" > "$gate/owner"
+  exec 8>&-
   trap remove_gate EXIT
   trap 'on_signal 129' HUP
   trap 'on_signal 130' INT
@@ -343,6 +383,23 @@ under.wait()
   check "a gate stopped by a signal mid-way ends its legs' process trees and removes its clone" "$got" \
         "rc=143 alive: none leg-child: TERM"
   fi
+  # ONE GATE PER TREE (kb/Work PB3310): a second gate on a tree whose gate is RUNNING answers BUSY (exit 3) and touches
+  # nothing (the running gate's directory stays, no directory of its own); another tree, or a tree whose gate has
+  # ended, starts.
+  ( : ) & wait $!; dead=$!
+  me="$BASHPID"; mkdir -p "$st_root"/{busy.1,ended.2}
+  echo "$me $(proc_field "$me" 20) /e/trees/wt-busy" > "$st_root/busy.1/owner"
+  echo "$dead 12345 /e/trees/wt-ended" > "$st_root/ended.2/owner"
+  got="$( ( begin_gate "$st_root" /e/trees/wt-busy; echo "started" ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  check "a second gate on a tree whose gate runs answers BUSY, exit 3, and creates nothing" "$got" \
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me); this run touched nothing ===
+rc=3
+busy.1 ended.2 "
+  got="$( ( begin_gate "$st_root" /e/trees/wt-other; echo "started" ) 2>&1 | tail -1 )"
+  check "a gate on another tree starts beside it" "$got" "started"
+  got="$( ( begin_gate "$st_root" /e/trees/wt-ended; echo "started" ) 2>&1 | tail -1 )"
+  check "a gate on a tree whose earlier gate has ended starts" "$got" "started"
+  rm -rf "${st_root:?}"/*
   # Reaping: an ended gate's directory goes whatever its age, a live one stays; a directory in the layout before this
   # mechanism (no owner file) goes when it is this tree's or older than the bound, and stays otherwise.
   ( : ) & wait $!; dead=$!
@@ -450,13 +507,14 @@ state_before="$(repo_state)"
 # this worktree's next gate, so a finisher's re-gate after a landing's Linux red runs it in leg 1. It holds only the
 # newest run: emptied first.
 out="$tree/TestResults/linux-gate"
-rm -rf "$out"; mkdir -p "$out"
 # This gate's footprint (kb/Work PB3194, above): reap what ended gates left, refuse on a full filesystem, then work in
-# this gate's own directory, removed on every exit path.
+# this gate's own directory, removed on every exit path. begin_gate answers BUSY before the results directory below is
+# emptied (kb/Work PB3310): a second run on the tree never deletes the first's logs.
 mkdir -p "$GATES_ROOT"
 reap_gates "$GATES_ROOT" "$(basename "$tree")"
 check_disk "$GATES_ROOT"
 begin_gate "$GATES_ROOT" "$tree"
+rm -rf "$out"; mkdir -p "$out"
 if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$snap" > "$out/clone.log" 2>&1 \
    || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
   echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
@@ -473,6 +531,21 @@ if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corp
   corpus_red=" corpus-fetch"
 fi
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
+# THE INERT LANE (kb/Work PB2878): the change is HEAD against its merge base with the tree's origin/main (the clone
+# shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
+main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
+lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
+if [ -n "$lane_base" ]; then
+  lane_out="$("$PY" "$snap/scripts/inert_lane.py" classify --root "$snap" --base "$lane_base" --head HEAD 2>&1)"
+else
+  lane_out=$'lane=full\nreason=no merge base with origin/main: the full lane'
+fi
+lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
+if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
+  echo "linux-gate: inert lane — $lane_reason"
+  echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878: $lane_reason; no leg runs; HEAD ${head:0:9}) ==="; exit 0
+fi
+echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
 [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 
 bad="$corpus_red"; ran=""
@@ -485,11 +558,11 @@ bad="$corpus_red"; ran=""
 # reads the built test assemblies. They are path-sensitive: a drive-letter path that Linux reads as relative turned CI
 # red on 2026-10-07 after a green Windows run (kb/Work PB2142).
 leg_status() { printf '%s\n' "$2" > "$out/$1.status"; }   # <leg> <GREEN|RED|NOT RUN>
-selftests_leg() {  # <leg name> [runner arguments…]
-  local name="$1"; shift
+selftests_leg() {  # <leg name> <clone> [runner arguments…]
+  local name="$1" dir="$2"; shift 2
   local start rc secs verdict
   start=$(date +%s)
-  ( cd "$snap" && "${nice_prefix[@]}" "$PY" scripts/self_tests.py "$@" ) > "$out/$name.log" 2>&1
+  ( cd "$dir" && "${nice_prefix[@]}" "$PY" scripts/self_tests.py "$@" ) > "$out/$name.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))
   verdict="$(grep -E '^=== SELF-TESTS: ' "$out/$name.log" | tail -1)"
@@ -507,8 +580,8 @@ guard_leg() {
   # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
   # `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
   # every local leg. Its scratch is private to this clone (guard-fast.sh's own mktemp directory and every
-  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). Its own `dotnet build` of
-  # the CLI is up to date after the ONE build (a second build of the tree is a no-op, kb/Work PB3529).
+  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). It runs in the AUDIT clone
+  # (kb/Work PB2878), whose build its own `dotnet build` of the CLI finds up to date (kb/Work PB3529).
   # ⛔ The scratch lies BESIDE the clone, never inside it (kb/Work PB2989): `selftests-built` runs at the same time and
   # keys its inputs by every untracked file of the clone (scripts/self_test_inputs.py), so a guard temp file listed by
   # `git ls-files -o` and deleted before `git hash-object` read it made that leg NOT RUN (train 1056b, 2026-10-11).
@@ -517,7 +590,7 @@ guard_leg() {
   local start rc secs summary
   start=$(date +%s)
   mkdir -p "$gtmp"
-  ( cd "$snap" && TMPDIR="$gtmp" GUARD_FORENSICS="$out/guard-forensics" "${nice_prefix[@]}" bash scripts/guard-fast.sh ) \
+  ( cd "$auditsnap" && TMPDIR="$gtmp" GUARD_FORENSICS="$out/guard-forensics" "${nice_prefix[@]}" bash scripts/guard-fast.sh ) \
     > "$out/guard.log" 2>&1
   rc=$?
   secs=$(( $(date +%s) - start ))
@@ -561,15 +634,54 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   fi
 }
 
+# THE AUDIT CLONE (kb/Work PB2878): the script self-tests are AUDITS that read inert paths by design, and the guard is
+# no `dotnet test` leg, so they run in a clone of their own, with its own build, outside the inert watch of the test
+# legs below. `selftests` starts at once; the clone's build then starts `selftests-built` (it reads the unit and
+# conformance assemblies) and the guard. Every one writes its leg's .status and .result like any leg.
+auditsnap="$snap.audits"
+rm -rf "$auditsnap"
 order=(selftests)
-selftests_leg selftests > "$out/selftests.result" 2>&1 &
+audit_built_legs() {  # the audit clone's build, then the legs that need it
+  local abrc
+  ( cd "$auditsnap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build-audits.log" 2>&1
+  abrc=$?
+  if [[ " ${wanted[*]} " == *" guard "* ]]; then
+    if [ $abrc -eq 0 ]; then guard_leg > "$out/guard.result" 2>&1 &
+    else leg_status guard RED; echo "leg guard: RED — the audit clone's build failed (rc=$abrc; TestResults/linux-gate/build-audits.log)" > "$out/guard.result"; fi
+  fi
+  case ",$legs," in
+    *,unit,*conformance,*|*,conformance,*unit,*)
+      if [ $abrc -eq 0 ]; then
+        selftests_leg selftests-built "$auditsnap" --built > "$out/selftests-built.result" 2>&1 &
+      else
+        leg_status selftests-built RED
+        echo "leg selftests-built: RED — the audit clone's build failed (rc=$abrc; TestResults/linux-gate/build-audits.log)" > "$out/selftests-built.result"
+      fi ;;
+    *)
+      # Not run because the legs asked for build neither unit nor conformance: said, never silent.
+      leg_status selftests-built "NOT RUN"
+      echo "leg selftests-built: NOT RUN (it reads the unit and conformance assemblies, and --legs '$legs' asks for" \
+           "neither of them)" > "$out/selftests-built.result" ;;
+  esac
+  wait
+}
+if git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$auditsnap" >> "$out/clone.log" 2>&1 \
+   && git -C "$auditsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
+  selftests_leg selftests "$auditsnap" > "$out/selftests.result" 2>&1 &
+  audit_built_legs &
+else
+  for leg in selftests guard selftests-built; do
+    leg_status "$leg" RED
+    echo "leg $leg: RED — could not clone HEAD ${head:0:9} into $auditsnap (TestResults/linux-gate/clone.log)" > "$out/$leg.result"
+  done
+fi
 start=$(date +%s)
 ( cd "$snap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build.log" 2>&1 &
 wait $!   # in the background, so a signal reaches on_signal during the build (bash defers a trap past a foreground command)
 brc=$?
-echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the legs run in parallel against it"
-# THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI while the guard leg's own `dotnet build` of it runs, which
-# is safe only while a second build of the tree is a no-op. A fresh clone's second build once recompiled the frontend
+echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the test legs run in parallel against it"
+# THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI, which is safe only while nothing builds this clone again
+# (the guard's own `dotnet build` of the CLI now runs in the audit clone, kb/Work PB2878). A fresh clone's second build once recompiled the frontend
 # and everything above it (the generated parser joined Compile after the SDK hashed it), replacing the `cobol` apphost
 # while the conformance leg ran it: "No such file or directory", "Text file busy". The fix is the build's own
 # (Cobol.Net.Frontend.csproj, AntlrGenerationDriftTests); this fingerprint of the CLI's output names a recurrence as
@@ -580,42 +692,52 @@ if [ $brc -ne 0 ]; then
   echo "linux-gate: the Linux BUILD failed; see TestResults/linux-gate/build.log"
   grep -E ' error ' "$out/build.log" | sort -u | head -10 | sed 's/^/    /'
 fi
+# THE INERT WATCH (kb/Work PB2878): every inert path of the clone is watched while the legs run; the watcher's command
+# waits for the stop file this script writes once the legs end. Its readiness is its events file.
+watch_events="$out/inert-watch.events"; watch_stop="$out/inert-watch.stop"; watch_pid=""
+rm -f "$watch_events" "$watch_stop"
+if [ $brc -eq 0 ]; then
+  ( cd "$snap" && "$PY" scripts/inert_lane.py watch --root "$snap" --events "$watch_events" \
+      -- bash -c 'while [ ! -e "$1" ]; do sleep 1; done' inert-watch "$watch_stop" ) > "$out/inert-watch.log" 2>&1 &
+  watch_pid=$!
+  for _ in $(seq 1 240); do [ -e "$watch_events" ] || ! kill -0 "$watch_pid" 2>/dev/null && break; sleep 0.25; done
+fi
 for leg in "${wanted[@]}"; do
   order+=("$leg")
   case "$leg" in
     unit)             proj="tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj" ;;
     characterization) proj="tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj" ;;
     conformance)      proj="tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj" ;;
-    guard)            guard_leg > "$out/guard.result" 2>&1 & continue ;;
+    guard)            continue ;;   # the audit clone runs it (audit_built_legs)
   esac
   if [ $brc -ne 0 ]; then
     leg_status "$leg" RED; echo "leg $leg: RED — the Linux BUILD failed (rc=$brc)" > "$out/$leg.result"; continue
   fi
   test_leg "$leg" "$proj" > "$out/$leg.result" 2>&1 &
 done
-# selftests-built reads the unit and conformance assemblies, which the ONE build made; it needs no leg to finish first.
+# selftests-built runs in the audit clone, after that clone's build (audit_built_legs).
 order+=(selftests-built)
-case ",$legs," in
-  *,unit,*conformance,*|*,conformance,*unit,*)
-    if [ $brc -eq 0 ]; then
-      selftests_leg selftests-built --built > "$out/selftests-built.result" 2>&1 &
-    else
-      leg_status selftests-built "NOT RUN"
-      echo "leg selftests-built: NOT RUN (the Linux build failed)" > "$out/selftests-built.result"
-    fi ;;
-  *)
-    # Not run because the legs asked for build neither unit nor conformance: said, never silent.
-    leg_status selftests-built "NOT RUN"
-    echo "leg selftests-built: NOT RUN (it reads the unit and conformance assemblies, and --legs '$legs' asks for" \
-         "neither of them)" > "$out/selftests-built.result" ;;
-esac
-wait
+# Every leg, never the watcher: it ends only once the stop file exists.
+for job in $(jobs -p); do [ "$job" = "$watch_pid" ] || wait "$job"; done
+if [ -n "$watch_pid" ]; then
+  order+=(inert-watch)
+  touch "$watch_stop"
+  wait "$watch_pid"; wrc=$?
+  wverdict="$(grep -E '^=== INERT WATCH: ' "$out/inert-watch.log" | tail -1)"
+  if [ $wrc -eq 0 ] && [[ "$wverdict" == "=== INERT WATCH: GREEN"* ]]; then
+    leg_status inert-watch GREEN; echo "leg inert-watch: GREEN — $wverdict" > "$out/inert-watch.result"
+  else
+    leg_status inert-watch RED
+    { echo "leg inert-watch: RED (rc=$wrc) — ${wverdict:-no watch verdict; see TestResults/linux-gate/inert-watch.log}"
+      sed 's/^/    /' "$out/inert-watch.log"; } > "$out/inert-watch.result"
+  fi
+fi
 for leg in "${order[@]}"; do
   cat "$out/$leg.result"
   st="$(cat "$out/$leg.status" 2>/dev/null)"
   case "$st" in
     GREEN) ran="$ran $leg" ;;
-    "NOT RUN") [ $brc -ne 0 ] && bad="$bad $leg" ;;   # only selftests-built is ever NOT RUN (every --legs name was checked)
+    "NOT RUN") ;;   # only selftests-built is ever NOT RUN, when --legs asks for neither assembly it reads (said in its line)
     *) bad="$bad $leg" ;;
   esac
 done

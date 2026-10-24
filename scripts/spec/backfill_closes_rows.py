@@ -35,7 +35,7 @@ landed note still holding a closed row is a landing whose rows closed while it o
 ⛔ WHAT IS WRITTEN. Both sources are filtered by the row's `state` TODAY — the schema's computed OK/GAP, which
 is what the burn-down counts and is strictly stronger than 'the verdict resolves' (a CONFORMS row whose
 covering test is missing is still GAP). A row that closed and later regressed is not a closed row, and
-claiming it would turn `ClosesRowsBackLinkDriftTests` red for a reason that is not the note's fault. A `kind: defect` note that derives nothing gets `closes_rows: []` plus a
+claiming it would turn `work.py check` red for a reason that is not the note's fault. A `kind: defect` note that derives nothing gets `closes_rows: []` plus a
 `closes_rows_reason` that SAYS it is derived, so a reader can tell a back-filled answer from a stated one.
 
 ⛔ IDEMPOTENT, AND IT NEVER OVERWRITES A HUMAN. A note that already carries `closes_rows` is left exactly as it
@@ -136,7 +136,7 @@ def derive(items: list[dict], state_now: dict[str, str],
     ⚠ THE FILTER IS THE ROW'S `state`, NOT ITS VERDICT. `state` is what the schema computes from the
     verdict AND the evidence that verdict requires, and it is what the burn-down counts: a CONFORMS row
     whose covering test is missing is still a GAP row, and writing it here would claim work the GAP has
-    not been told about — while turning `ClosesRowsBackLinkDriftTests` red, since that gate asks the same
+    not been told about — while turning `work.py check` red, since that audit asks the same
     question. (Measured 2026-09-20: the two answers coincide on all 4,348 rows. The stronger one is free.)
     """
     out: dict[str, list[str]] = {}

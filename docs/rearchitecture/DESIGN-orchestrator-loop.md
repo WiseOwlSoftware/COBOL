@@ -515,6 +515,7 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
 | exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; nothing ran and nothing is red, kb/Work PB3527) | retries at this head once the worktree's gate lock is free (`wait_free`); never the enqueue unit's |
+| exit 13, another `land` of the branch runs (the worktree's land lock, `<git dir>/cobol-land.lock`, is held: a hand-run `land` beside the lane's, or two by hand; nothing ran, nothing is red, no report line, kb/Work PB3310) | retries at this head once the worktree's land lock is free (`wait_free`); never the enqueue unit's |
 | exit 2 (main moved under every catch-up merge; or GATE NOT RUN: the gate measured nothing, for an ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES` — malformed shared gate settings, a host with no WSL, Python or SDK — or a BRANCH cause main fails the same way at the same step, and so writes no BLOCKED line, kb/Work PB3526; a BRANCH cause main does not share — the tree's gate driver, its population listing, no verdict line — is exit 5, below), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
 | exit 4, 5, 6, 7, 11, or a second exit 2 or 9 at this head | STOPPED: never relaunched at this head unless re-armed; the enqueue unit's |
@@ -553,8 +554,9 @@ by the lane's own attempt record, never by the survey.
    the watch reads but acts on nothing. `land_lane.py status` prints each exit-0 attempt's watch, and
    `prune_worktrees.py --brief` lists such a branch NOT QUEUED with how long it has waited, what GitHub says and the
    watch's state, until the queue holds it. NOT QUEUED is a pull request AT THE BRANCH'S TIP: one left at an older head
-   (a finisher's fix committed locally, auto-merge still on at the old head, its check red or conflicting) is the old
-   landing's, which the watch ended (a moved head is a new landing), and the branch reads by its report again, WAITING
+   (a finisher's fix committed locally, auto-merge still on at the old head) is the old landing's whatever that head's
+   health: a red, conflicting or removed head promises nothing, and a healthy one promises only its own commits, so
+   waiting on it would land the old head and leave the fix for a second landing (kb/Work PB3275, PB3628); and the branch reads by its report again, WAITING
    TO LAND once reviewed CLEAN, so the lane's next tick lands the tip and `enqueue.py` force-pushes it onto the same
    pull request (kb/Work PB3628: read NOT QUEUED, a re-armed branch waited hours, no reader acting on it). `status`
    says of a pending re-arm whether the next tick lands it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
@@ -770,7 +772,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
    `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
    finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
-2. **Finishers first.** (a) A note whose newest report (by wave, then time; header lines only) says `SPLIT` or
+2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
    PB3027: the landing step never fixes a finding; the finisher's `pred` names the findings file and asks for every
