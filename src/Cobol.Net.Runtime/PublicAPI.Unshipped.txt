@@ -10,6 +10,7 @@ CobolNet.Runtime.Collation.ResolvedLocaleCollation.Failure.get -> CobolNet.Runti
 CobolNet.Runtime.Collation.ResolvedLocaleCollation.Failure.init -> void
 CobolNet.Runtime.ConfigEntry.FamilyMember.get -> System.Func<string!, bool>?
 CobolNet.Runtime.ConfigEntry.FamilyMember.init -> void
+CobolNet.Runtime.DialectBehavior.FileSharingFacility = 2 -> CobolNet.Runtime.DialectBehavior
 CobolNet.Runtime.ProgramTable.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
 CobolNet.Runtime.RunUnitEndedException
 CobolNet.Runtime.RunUnitEndedException.Abnormal.get -> bool

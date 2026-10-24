@@ -351,10 +351,26 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         var table = new StoreTable();
         var file = new PhysicalFileIdentity(1, 7);
         var held = table.Attach<RelativeStore>("pb754-host", file);
-        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", file, new RelativeStore()));
-        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", null, new RelativeStore()));
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", file, new RelativeStore(), arbitrated: true));
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", null, new RelativeStore(), arbitrated: true));
         table.Detach("pb754-host", held);
-        Assert.Null(table.AttachCreated("pb754-host", file, new RelativeStore()).File);   // a store being created holds no file yet
+        Assert.Null(table.AttachCreated("pb754-host", file, new RelativeStore(), arbitrated: true).File);   // a store being created holds no file yet
+    }
+
+    /// <summary>Where Table 19 is not asked (COBOL-85, kb/Work PB670: <c>FileConnector.SharingFacilityInEffect</c> false) the
+    /// creation beside a holder is a normal open: the created store replaces the path's entry, the holder keeps the store it
+    /// has, and its detach leaves the new entry alone.</summary>
+    [Fact]
+    public void WhereNothingIsArbitrated_ACreationReplacesTheStoreTheHoldersKeep()
+    {
+        var table = new StoreTable();
+        var file = new PhysicalFileIdentity(1, 7);
+        var held = table.Attach<RelativeStore>("pb670-host", file);
+        var created = table.AttachCreated("pb670-host", file, new RelativeStore(), arbitrated: false);
+        Assert.NotSame(held, created);
+        Assert.Same(created, table.Attach<RelativeStore>("pb670-host", file));
+        table.Detach("pb670-host", held);   // the holder leaves: the path's entry is the creation's
+        Assert.Same(created, table.Attach<RelativeStore>("pb670-host", file));
     }
 
     /// <summary>⛔ ONE STORE PER PHYSICAL FILE, NOT PER PATH (kb/Work PB3533): an attachment through a handle on another physical
@@ -374,7 +390,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
         foreach (var _ in Enumerable.Range(0, 3)) table.Detach("pb3533-host", old);   // the old store's holders leave: the path's entry stays
         Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
-        var created = table.AttachCreated("pb3533-host", new PhysicalFileIdentity(1, 9), new RelativeStore());
+        var created = table.AttachCreated("pb3533-host", new PhysicalFileIdentity(1, 9), new RelativeStore(), arbitrated: true);
         Assert.NotSame(current, created);
         Assert.Same(created, table.Attach<RelativeStore>("pb3533-host", null));
     }
