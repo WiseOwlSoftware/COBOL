@@ -1581,6 +1581,26 @@ check("... and the refusal names the rule and the planner's UNKNOWN set",
       all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNKNOWN", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
+# A NOTE OF A CAMPAIGN NEEDS ITS SITE BLOCK WHATEVER ITS ID (kb/Work PB3640). The campaign is the cluster a `tier:` entry
+# names: wave 20261030 planned PB3628 and PB3275 side by side because PB3275, a PB1957 note filed before the cutover, had
+# no block, and both rewrote one rule of prune_worktrees.lifecycle. The register holds no list of running campaigns.
+OLD = NEW - 100
+CAMP = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": k, "status": s, "cluster": cl, "tier": t, "_body": b}
+        for n, k, s, cl, t, b in [
+            (OLD, "defect", "open", ["K"], ["K:2"], "Tiered, no block."),
+            (OLD + 1, "defect", "open", ["K"], [], "A member the owner left untiered, no block."),
+            (OLD + 2, "defect", "open", ["K", "Z"], [], "**Sites:** `src/A.cs`\n"),
+            (OLD + 3, "defect", "open", ["Z"], [], "In a cluster no note tiers, filed before the cutover."),
+            (OLD + 4, "decision", "open", ["K"], ["K:1"], "An owner question."),
+            (OLD + 5, "defect", "landed", ["K"], ["K:3"], "Landed, no block."),
+            (OLD + 6, "defect", "open", ["K"], ["K:3"], "**Sites:** none (it changes no code file)\n")]]
+check("work.sites_problems: an open note of a cluster some note tiers needs a block whatever its id; a decision, a "
+      "terminal note, a declaration and a cluster no note tiers are as before",
+      [s.split(":")[0] for s in work.sites_problems(CAMP)], [f"PB{OLD}.md", f"PB{OLD + 1}.md"])
+check("... and the refusal names the campaign",
+      all("campaign cluster(s) K" in s and "PB3640" in s for s in work.sites_problems(CAMP)), True)
+check("work.campaign_leads: the clusters the register's tier entries name, malformed entries left out",
+      work.campaign_leads(CAMP + TIERS), {"K", "C", "D"})
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/

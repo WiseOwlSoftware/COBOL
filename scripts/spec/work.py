@@ -850,27 +850,43 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
 #: when the rule landed). Every cluster is a campaign the moment an operator runs it (orchestrate.ps1 -Cluster), and on
 #: 2026-10-19 198 open notes naming 218 clusters declared no site block, most of them in long-idle clusters: refusing
 #: those would turn the check into a backlog, so they stay readable (the planner reads each one's
-#: set UNKNOWN and plans it alone on its subsystem, plan_wave.collision), and the open notes of the RUNNING campaigns
-#: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
-#: into a cluster carries its block from its first commit.
+#: set UNKNOWN and plans it alone on its subsystem, plan_wave.collision). From here on, a note filed into a cluster
+#: carries its block from its first commit. A note of a cluster the owner RANKS AS A CAMPAIGN needs one whatever its
+#: id (campaign_leads, kb/Work PB3640): the campaign's notes are planned side by side, and two of them planned
+#: unsited ran in parallel on one function (wave 20261030: PB3628 and PB3275 on prune_worktrees.lifecycle).
 SITES_REQUIRED_FROM = 3443
 SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming the files it "
               "changes, or `**Sites:** none (why)` when it changes no code file")
 
 
+def campaign_leads(items: list[dict]) -> set[str]:
+    """The clusters the owner runs as CAMPAIGNS: every campaign a note's `tier:` names (tier_entries). The register
+    holds no list of running campaigns and must not grow one (CLAUDE.md rule 8); a `tier:` entry IS the owner's word
+    that the campaign's ready notes are ranked and planned (`work.py next --cluster`), so it is the one place the
+    register already says which clusters run."""
+    return {c for it in items for c in tier_entries(it)[0]}
+
+
 def sites_problems(items: list[dict]) -> list[str]:
-    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block leaves
-    the planner's file-set partition an UNKNOWN set, which it can only plan alone on its subsystem. A `decision` note
-    changes no file by itself and is exempt."""
+    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263), and for every open note of a
+    campaign cluster or that tiers a campaign, whatever its id (campaign_leads, kb/Work PB3640): a note with no site
+    block leaves the planner's file-set partition an UNKNOWN set, which it can only plan alone on its subsystem. A
+    `decision` note changes no file by itself and is exempt."""
     bad = []
+    campaigns = campaign_leads(items)
     for it in items:
         nid = str(it.get("id") or "")
-        if (not it.get("cluster") or it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES
-                or not (m := re.fullmatch(r"PB(\d+)", nid)) or int(m.group(1)) < SITES_REQUIRED_FROM):
+        clusters = it.get("cluster") if isinstance(it.get("cluster"), list) else []
+        in_campaign = bool(campaigns & set(clusters)) or bool(tier_entries(it)[0])
+        number = re.fullmatch(r"PB(\d+)", nid)
+        from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
+        if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
         if not note_sites(it.get("_body", "")).declared:
-            bad.append(f"{it['_file']}: names the cluster(s) {', '.join(it['cluster'])} but declares no site block — "
-                       f"{SITES_RULE}; without one the wave planner reads its file set as UNKNOWN (kb/Work PB3263)")
+            where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
+                     if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
+            bad.append(f"{it['_file']}: {where} but declares no site block — {SITES_RULE}; without one the wave "
+                       f"planner reads its file set as UNKNOWN (kb/Work PB3263, PB3640)")
     return bad
 
 
