@@ -16,9 +16,10 @@ implementer's, a re-gate after a fix, a landing's — makes the order plan (scri
 repository-wide, runs its audits BEFORE it queues for the slot (kb/Work PB2524), and runs leg 1 FAIL-FAST. Leg 1 is
 the change's own tests and goldens and the previous gates' reds, either host's (tier 0a, kb/Work PB3155), the
 host-only witnesses (tier 0h: the Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap
-tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file (tier 0d, kb/Work
-PB3531) and the cheapest cases the change reaches; so a re-gate after a fix runs leg 1 again — seconds for a
-bookkeeping fix, never a population run. The local whole-population run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
+tree-wide sweeps (tier 0c), the drift tests the drift-rule index says govern a changed file or a register citing
+what the change removes (tier 0d, kb/Work PB3531, PB3131) and the cheapest cases the change reaches; so a re-gate
+after a fix runs leg 1 again — seconds for a bookkeeping fix, never a population run. The local whole-population
+run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
 2026-10-10); CI's merge-group run is the whole-population regression net.
 Its SCOPE is a shared gate setting (gate_slot.py, read once at the start): `leg1` (the coded default, batched gating,
 kb/Work PB2515) runs leg 1 only and names every leg-2 case NOT RUN, and its verdict line says
