@@ -27,7 +27,9 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      unit gets STOP-UNIT only (start no new step, launch no fleet; a running fleet finishes), past -HardContextTokens or
      on STOP also the loop's fleet stop, and only then a kill after the grace period (kb/Work PB2597, design 4.3);
      BESIDE the unit, the LANDING LANE: `land_lane.py tick` as the unit starts and every -LandLaneSeconds while it runs,
-     in the background and never fatal, lands every branch WAITING TO LAND (kb/Work PB3103, design 4.9)
+     in the background and never fatal, lands every branch WAITING TO LAND (kb/Work PB3103, design 4.9); the lane
+     ticks on the same period for as long as the supervisor lives, between units, through a budget hold and a
+     failure backoff too (Step-Lane, kb/Work PB3639)
   7. validate handoff.json against handoff.schema.json
   8. append one line to units.jsonl
 The Claude ACCOUNT the loop spends is a parameter (kb/Work PB2479; design section 2.1): -ConfigDir names its config dir,
@@ -78,9 +80,10 @@ param(
     [int]$FastFailSeconds = 120,
     [int]$IdleCloseSeconds = 20,
     [int]$CheckpointSeconds = 300,
-    # THE LANDING LANE (kb/Work PB3103; design section 4.9): while any unit runs, `land_lane.py tick` every this many
-    # seconds, in the background, and once as each unit starts. 0 runs no lane (a branch then lands only through an
-    # enqueue unit's own `land_lane.py tick`).
+    # THE LANDING LANE (kb/Work PB3103, PB3639; design section 4.9): for as long as the supervisor lives, `land_lane.py
+    # tick` every this many seconds, in the background, and once as each unit starts: while a unit runs, between units,
+    # through a budget hold and through a failure backoff. 0 runs no lane (a branch then lands only through an enqueue
+    # unit's own `land_lane.py tick`).
     [int]$LandLaneSeconds = 300,
     [int]$StartupTicks = 300,
     [int]$BackoffBaseSeconds = 60,
@@ -153,11 +156,15 @@ function Take-Lock {
 # The loop ends on its own STOP or on the owner's global stop (which stops every agent anyway).
 function Test-Stop { return (Test-Path $StopFile) -or (Test-Path $GlobalStop) }
 
-# Sleep until $until, waking every minute so STOP is honoured. Returns $false when STOP appeared.
+# Sleep until $until, waking every minute so STOP is honoured, and when the landing lane's tick is due (the lane spends no
+# tokens, so a budget hold or a failure backoff is no reason to stop it, kb/Work PB3639). Returns $false when STOP appeared.
 function Wait-Until([datetime]$until) {
     while ((Get-Date) -lt $until) {
         if (Test-Stop) { return $false }
-        Start-Sleep -Seconds ([Math]::Max(1, [Math]::Min(60, ($until - (Get-Date)).TotalSeconds)))
+        Step-Lane
+        $nap = ($until - (Get-Date)).TotalSeconds
+        if ($LandLaneSeconds -gt 0) { $nap = [Math]::Min($nap, $LandLaneSeconds - ((Get-Date) - $script:LastLaneTick).TotalSeconds) }
+        Start-Sleep -Seconds ([Math]::Max(1, [Math]::Min(60, $nap)))
     }
     return -not (Test-Stop)
 }
@@ -236,6 +243,20 @@ function Start-LaneTick {
         $proc = [System.Diagnostics.Process]::Start($psi)
         $script:LaneTick = @{ proc = $proc; out = $proc.StandardOutput.ReadToEndAsync(); err = $proc.StandardError.ReadToEndAsync() }
     } catch { Say "land lane tick not started (the unit continues): $_" }
+}
+
+# THE ONE LANE TIMER (kb/Work PB3639): every wait and every stretch of the loop calls this, so the lane ticks whether or
+# not an LLM unit runs. It says a finished tick, and starts one when -LandLaneSeconds have passed since the last start
+# (-Now: at once, as a unit starts, so a branch that became ready while no unit ran lands without waiting a period). It
+# starts nothing under STOP: the callers check STOP first, and the tick itself launches nothing under any stop file.
+$script:LastLaneTick = [datetime]::MinValue
+function Step-Lane([switch]$Now) {
+    if ($LandLaneSeconds -le 0) { return }
+    Complete-LaneTick
+    if ($Now -or ((Get-Date) - $script:LastLaneTick).TotalSeconds -ge $LandLaneSeconds) {
+        Start-LaneTick
+        $script:LastLaneTick = Get-Date
+    }
 }
 
 # THE LOOP ADOPTS LANDED CHANGES BY ITSELF (kb/Work PB2699; adopt_main.py owns the rule, design section 4.10). Between units,
@@ -371,8 +392,7 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
     $lastCheckpoint = Get-Date
     $lastBgChecked = 0
     Write-Checkpoint $unit $sessionId $unitStarted $stats $bgTasks $lastEventAt   # one at once: a crash in the first minutes still leaves one
-    Start-LaneTick   # one at once too: a branch that became ready while no unit ran lands without waiting a period
-    $lastLaneTick = Get-Date
+    Step-Lane -Now   # one at once too: a branch that became ready while no unit ran lands without waiting a period
     if ($Watch -and $unit -eq 'wave') {
         try {
             $watcher = Start-Process -PassThru -WindowStyle Hidden -FilePath (Get-Command pwsh).Source -ArgumentList @(
@@ -462,11 +482,7 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
                 $lastBgChecked = $bgTasks
             }
             # The landing lane beside the unit (kb/Work PB3103): a tick every -LandLaneSeconds, in the background.
-            Complete-LaneTick
-            if ($LandLaneSeconds -gt 0 -and ((Get-Date) - $lastLaneTick).TotalSeconds -ge $LandLaneSeconds) {
-                Start-LaneTick
-                $lastLaneTick = Get-Date
-            }
+            Step-Lane
             # THE CONTEXT POLICY (kb/Work PB2597; design section 4.3). Two levels, so a fleet the unit paid to launch is
             # never thrown away for the unit's own size:
             #   soft  context > -MaxContextTokens: STOP-UNIT only. The unit starts no new step and launches no fleet
@@ -589,6 +605,9 @@ try {
             Say "circuit breaker: three consecutive failed units; stopped (see $note)"
             $exitCode = 4; break
         }
+
+        # The landing lane ticks between units too (kb/Work PB3639): its period, not the unit's life, decides.
+        if (-not $DryRun) { Step-Lane }
 
         # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it.
         if ($DryRun) { Say 'DRY RUN: would adopt origin/main here (adopt_main.py adopt) and restart if the supervisor changed' }

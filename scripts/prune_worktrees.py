@@ -345,7 +345,7 @@ def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int]
         fresh = tuple(x for x in mine if pid[x] not in everywhere)
         counted = [(c, sum(1 for x in mine if pid[x] in held[c])) for c in above if settled[c].carrier is None]
         by = tuple(sorted(((c, n) for c, n in counted if n), key=lambda t: (-t[1], t[0])))
-        best = max(by, key=lambda t: (t[1], key(t[0])), default=None)   # most replayed, then the LATER report
+        best = max(by, key=lambda t: (t[1], rank(t[0]), t[0]), default=None)   # most replayed, then the LATER report
         settled[b] = Replay(best[0] if mine and not fresh and best else None, fresh, by)
     return {b: settled[b] for b in branches}
 
