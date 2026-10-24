@@ -26,7 +26,6 @@ namespace CobolNet.Tests.Unit;
 /// one audit; adding an arm means adding its case here, which is the point.
 /// </para>
 /// </remarks>
-[Trait("Sweep", "tree")]
 public sealed class CitationAuditSelfTestDriftTests
 {
     /// <summary>The audit's self-test still DECLARES every case (kb/Work PB2882, PB3022): the runner
