@@ -72,11 +72,15 @@ public sealed record BoundInvoke(
 
 /// <summary>One bound INVOKE argument (deep-dive D6; §14.9.23.4 GR6): the FORMAL it corresponds to
 /// positionally (its description drives the marshaling — §14.8.2's strict conformance was validated at bind,
-/// so the crossing is type-preserving), the identifier source place OR the literal (decoded string / raw
-/// numeric text), and whether the argument writes back (BY REFERENCE identifier — changes visible to the
-/// caller; BY CONTENT and the §14.9.23.3 SR 10 object-data auto-CONTENT case do not).</summary>
+/// so the crossing is type-preserving), the identifier source place OR the literal (the bound nonnumeric literal,
+/// which keeps its CATEGORY, or the raw numeric text), and whether the argument writes back (BY REFERENCE identifier —
+/// changes visible to the caller; BY CONTENT and the §14.9.23.3 SR 10 object-data auto-CONTENT case do not).
+/// <para>⛔ THE NONNUMERIC LITERAL IS THE BOUND LITERAL, NOT ITS DECODED STRING (kb/Work PB3587): a national literal is
+/// "usage NATIONAL" (§8.3.3.5.4 GR3 a), and the crossing into a plain-group formal is §14.9.25.4 GR4's unconverted move,
+/// which sends the sender's representation - a fact the characters alone do not state. (A boolean literal rides
+/// <see cref="ContentBool"/>.)</para></summary>
 public sealed record BoundInvokeArg(
-    DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack,
+    DataItem Formal, Place? Source, string? NumericLiteral, BoundStringLiteral? StringLiteral, bool WriteBack,
     bool ByContent = false)
 {
     /// <summary>A BY CONTENT <b>arithmetic-expression-1</b> argument (ISO §14.9.23.2; fix-queue PB46) — the

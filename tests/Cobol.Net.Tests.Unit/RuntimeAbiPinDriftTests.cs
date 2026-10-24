@@ -45,10 +45,10 @@ namespace CobolNet.Tests.Unit;
 public sealed class RuntimeAbiPinDriftTests
 {
     // ── The pins. Change a hash only with the decision the class summary describes. ──
-    private const int PinnedMajor = 15;
-    private const string PinnedRuntimeHash = "73A78A4D36EC72FC";
-    private const int PinnedCallAbi = 1;
-    private const string PinnedBoundaryHash = "F1BA4F9B825BEC61";
+    private const int PinnedMajor = 16;
+    private const string PinnedRuntimeHash = "532D124EA8F80CF6";
+    private const int PinnedCallAbi = 2;
+    private const string PinnedBoundaryHash = "82F4263ED6B4BC0A";
 
     /// <summary>The boundary-layout fixture: every elementary category and byte form a Format 1 CALL passes BY
     /// REFERENCE and BY CONTENT, a group and a table, and a RETURNING item, with EC-PROGRAM-ARG-MISMATCH checking on
