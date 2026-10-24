@@ -17,6 +17,7 @@ namespace CobolNet.Tests.Unit;
 /// function's returned value, a non-integer power): <c>CobolDec.FromApproximation</c>. This test keeps both spellings
 /// closed lists, so a new float lift states which kind of value it carries.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FloatItemSdidiLiftDriftTests
 {
     private static IEnumerable<(string File, string Line)> CodeLines(string project)
