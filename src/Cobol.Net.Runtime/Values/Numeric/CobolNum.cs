@@ -1021,10 +1021,15 @@ public static partial class CobolNum
     {
         int end = text.IndexOfAny(['E', 'e']);
         ReadOnlySpan<char> significand = end >= 0 ? text.AsSpan(0, end) : text;
-        var digits = new System.Text.StringBuilder(significand.Length);
+        int count = 0;
         foreach (char c in significand)
-            if (c is >= '0' and <= '9') digits.Append(c);
-        return digits.ToString();
+            if (c is >= '0' and <= '9') count++;
+        if (count == text.Length) return text;   // the common case, a bare digit run: no copy
+        Span<char> digits = count <= 128 ? stackalloc char[count] : new char[count];
+        int at = 0;
+        foreach (char c in significand)
+            if (c is >= '0' and <= '9') digits[at++] = c;
+        return new string(digits);
     }
 
     // ── THE ALPHANUMERIC SENDING OPERAND (ISO §14.9.25.4 GR6 d) ─────────────────────────────────────────────
