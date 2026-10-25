@@ -225,15 +225,25 @@ internal sealed class FaultHostMedium : IHostMedium
         return HostMedium.Production.ListNames(directory, prefix);
     }
 
-    public SidecarLockFiles.LockFileHolder? PublishHolder(string directory, string name)
+    public RegionLockResult PublishHolder(string directory, string name, out SidecarLockFiles.LockFileHolder? holder)
     {
         string path = Path.Combine(directory, name);
         Track(path);
         Operation("publish", path);
-        var holder = HostMedium.Production.PublishHolder(directory, name);
+        if (PublicationAnswer is { } answer)
+        {
+            holder = null;
+            return answer;
+        }
+        var result = HostMedium.Production.PublishHolder(directory, name, out holder);
         if (holder is not null) _holders.Add(holder);
-        return holder;
+        return result;
     }
+
+    /// <summary>When set, a holder's publication is counted and then ANSWERED with this result, publishing nothing: the host that
+    /// takes no lock here (<see cref="RegionLockResult.Unavailable"/>) or the publication every try of which lost its race
+    /// (<see cref="RegionLockResult.Held"/>, kb/Work PB3675), the two causes <see cref="PublishHolder"/> tells apart.</summary>
+    internal RegionLockResult? PublicationAnswer { get; init; }
 
     public HostFile.LockFileState ProbeHolder(string path)
     {
