@@ -1,4 +1,4 @@
-## Four holes between what the local gates run and what CI runs close (PB3646, PB3649, PB3661, PB3648)
+## Entry 2523 — 2026-10-24 22:49 PDT — Four holes between what the local gates run and what CI runs close (PB3646, PB3649, PB3661, PB3648)
 
 Group A2 of the PB1957 wave 20261104. It merged group A's branch (PB3662, PB3145) at its stamped head, so it carries
 DEVLOG 2522 as main will have it and lands after group A's pull request (exit 15, PREDECESSOR QUEUED, waits for it).
@@ -62,3 +62,4 @@ yet", the gate now writes `gate.pid` itself UNDER its lock and the launcher writ
 lock reads PENDING; a BUSY gate leaves no pid file; `test_plan_wave` and `test_rolling_wave` plant a real worktree and hold its
 lock for the RUNNING arms and add a reused-pid arm that reads ENDED. R1-2 (lead): `profile-test-parallelism.py` in single-file
 mode returned 0 for an unreadable trx; it now prints the error to stderr and returns 2, as for "no test results".
+
