@@ -1650,8 +1650,9 @@ Python function, a Markdown section, `scripts/arch/source_units.py`), a file wit
 note's declared set is its STRUCTURED sites only, read by ONE reader, the register's
 `work.note_sites` (kb/Work PB3242), which the planner, the member index, the spec renderer and the landing check all
 call: the paths of its Code site / Site / Sites blocks (a bold label's paragraph and the list under it, or a heading's
-section; a `:line` suffix dropped, and the members a `#member` suffix or a parenthesis opening with a code span names
-kept as that file's claim, `work.NoteSites.members`) and of the `**The files this step edits**` line
+section; a `:line` suffix dropped, and the members a `#member` suffix or a parenthesis opening with a code span names,
+after the path or its `:line`, kept as that file's claim, `work.NoteSites.members`, when the file declares a unit
+each of them matches, and the file claimed whole otherwise) and of the `**The files this step edits**` line
 `file_census_notes` writes into a multi-step note (`work.STEP_FILES_LABEL`: a step's files can lie outside the census
 finding's Sites, as PB2300's `IntrinsicCatalog.cs` does) under the campaign roots of `model_rules.json` (never a
 literal list: `scripts/` was a root the register's own reader ignored), plus, for a restructuring note, every
