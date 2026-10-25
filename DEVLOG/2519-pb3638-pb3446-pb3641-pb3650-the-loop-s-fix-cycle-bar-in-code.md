@@ -1,4 +1,4 @@
-## PB3638 + PB3446 + PB3641 + PB3650: the loop's fix-cycle bar in code (tier-ordered chains, one link per wave, a 60-minute hand-off, progress lines, per-stage landing measure), one report-coverage reader, the group cap's honest measurement
+## Entry 2519 — 2026-10-24 21:44 PDT — PB3638 + PB3446 + PB3641 + PB3650: the loop's fix-cycle bar in code (tier-ordered chains, one link per wave, a 60-minute hand-off, progress lines, per-stage landing measure), one report-coverage reader, the group cap's honest measurement
 
 Wave 20261106 group A (PB1957 campaign), finishing wave 20261031 A, which the operator's 16:39 fleet stop split.
 The predecessor's one commit (c90a3f3a0, PB3446 + PB3650) was cherry-picked onto main 302648e01; its conflicts with
@@ -51,3 +51,4 @@ Gate (run 000002-20261025T042734Z, on 11f9c688e): `=== BUILD-LOCAL GATE: LEG 1 O
 … Conformance 8,158/18,508 · Unit 36,898/38,220 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux
 half (WSL clone of HEAD) GREEN …`. The first gate (000001) was RED at the LINE ENDINGS audit (two self-test writes in
 turns_by_group_size.py stated no `newline=`), fixed before any leg ran.
+
