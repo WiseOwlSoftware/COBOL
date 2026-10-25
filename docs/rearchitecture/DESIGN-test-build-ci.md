@@ -2200,7 +2200,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   each finding that still holds; branch review R1-1, R2-1, R3-1). `capped` is one definition, `review_findings.capped`
+   (the verdict blocked on `BLOCKING_AT_CAP`), and gives each case ONE owner (kb/Work PB3404): a capped verdict's
+   findings are the predecessor's next-wave finisher's and hold the successor until it lands; an uncapped one's are
+   the successor's, whose review answers them, so `carrying_findings` does not hold a successor reviewed CLEAN over a
+   head that contains the verdict's head (`prune_worktrees.review_answers`), and no finisher fixes them twice. Every content problem is a TEAR, and a TORN
    findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
    when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
    holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
