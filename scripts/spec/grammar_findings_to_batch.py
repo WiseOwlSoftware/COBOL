@@ -40,6 +40,8 @@ import pathlib
 import sys
 
 from inventory_schema import Schema, load_catalog as load_rules, load_schema
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 VERDICT_MAP = {
     "MATCHES": "CONFORMS",
@@ -212,11 +214,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
     if "--self-test" in argv:
         return self_test()
 
@@ -259,4 +256,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

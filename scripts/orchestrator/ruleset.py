@@ -50,6 +50,8 @@ import subprocess
 import sys
 import tempfile
 from typing import Callable
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 COMMITTED = HERE / "ruleset-main.json"
@@ -424,10 +426,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="verb")
@@ -460,4 +458,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

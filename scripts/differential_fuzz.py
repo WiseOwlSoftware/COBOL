@@ -123,6 +123,7 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
+from standard_streams import ensure_utf8  # noqa: E402
 
 SPEC = REPO / "specs" / "ISO_COBOL.md"
 OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
@@ -2058,7 +2059,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    # A Windows console in cp1252 cannot print the report's and a model's non-Latin characters; never die on a print.
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(errors="replace")
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

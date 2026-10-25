@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Diagnostics;
 using System.Text.Json;
 using CobolNet.Tests.Shared;
 using Xunit;
@@ -47,37 +46,13 @@ public sealed class ExternalCorpusPopulationDriftTests
 {
     private const string Baseline = "gnucobol-verdict-baseline.tsv";
 
-    /// <summary>
-    /// The interpreter name that actually launches here, resolved once. <c>ProcessObserver.Observe</c> is the
-    /// non-throwing form on purpose — a probe wants LaunchFailed REPORTED, not raised and retried.
-    /// </summary>
-    private static readonly Lazy<string> Python = new(() =>
-    {
-        foreach (string exe in new[] { "python", "python3" })
-        {
-            var psi = new ProcessStartInfo(exe);
-            psi.ArgumentList.Add("--version");
-            if (ProcessObserver.Observe(psi, null, ObservationBudget.OneProcess).Outcome != ProcessOutcome.LaunchFailed) return exe;
-        }
-
-        throw new InvalidOperationException(
-            "neither `python` nor `python3` launches here — scripts/corpus_sweep.py is a Python instrument and "
-            + "this gate cannot run without it. That is a hard failure rather than a skip on purpose: an unrun "
-            + "population check reporting green is precisely the defect (PB209) this test exists to prevent.");
-    });
-
+    /// <summary>The sweep, through the one launcher of the repository's Python instruments (its interpreter probe and
+    /// the child's UTF-8 streams are written once, in <see cref="PythonInstrument"/>; kb/Work PB3637).</summary>
     private static ProcessObservation RunSweep(params string[] args)
     {
         string script = TestRepo.Scripts("corpus_sweep.py");
         Assert.True(File.Exists(script), $"the sweep instrument is missing: {script}");
-
-        var psi = new ProcessStartInfo(Python.Value) { WorkingDirectory = TestRepo.Root };
-        psi.ArgumentList.Add(script);
-        foreach (string a in args) psi.ArgumentList.Add(a);
-        // ProcessObserver decodes both streams as UTF-8; tell CPython to encode them that way rather than
-        // falling back to the host ANSI code page, or a corpus title with a non-ASCII byte reads back mangled.
-        psi.Environment["PYTHONIOENCODING"] = "utf-8";
-        return ProcessObserver.ObserveOrThrow(psi);
+        return PythonInstrument.Run(ObservationBudget.OneProcess, script, args);
     }
 
     private static JsonElement JsonLineOf(ProcessObservation r)

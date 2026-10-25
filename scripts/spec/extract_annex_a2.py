@@ -45,6 +45,8 @@ import sys
 #: definition of that lives with the schema. The dependency runs ONE way — `inventory_schema` reads this
 #: script's ARTIFACT rather than importing this module, so there is no cycle.
 from inventory_schema import section_matches
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC = REPO / "specs" / "ISO_COBOL.md"
@@ -252,10 +254,6 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="re-derive and diff; exit 1 on any difference")
     ap.add_argument("--self-test", action="store_true", help="prove every check here can fail")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if args.self_test:
         return self_test()
@@ -294,4 +292,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

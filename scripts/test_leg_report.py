@@ -51,6 +51,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from standard_streams import ensure_utf8
 
 #: vstest's per-assembly summary line. The same shape `filter_population.py` and `battery.sh` key on.
 VERDICT = re.compile(r"^(Passed!|Failed!)")
@@ -195,10 +196,6 @@ def self_test() -> int:
 
 
 def main() -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001 — a stream without reconfigure keeps its encoding; the report still prints
-        pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="prove a failing leg's message reaches the report")
     ap.add_argument("--name", help="the leg's name, as the gate's verdict lines call it")
@@ -223,4 +220,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

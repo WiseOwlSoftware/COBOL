@@ -15,6 +15,8 @@ sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
 import plan_wave  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 T = HERE / 'templates'
 POINTER = 'MANDATORY-PRACTICES.md'
 
@@ -382,4 +384,5 @@ def main():
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

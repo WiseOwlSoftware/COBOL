@@ -58,6 +58,8 @@ from typing import NamedTuple
 # it excludes the build-time COPIES under obj/, blanks comments and actions, and refuses an empty population.
 import grammar_source
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -370,11 +372,6 @@ def main() -> int:
     ap.add_argument("--list-unanchored", action="store_true",
                     help="name the prose-titled formats that carry no anchor keyword")
     args = ap.parse_args()
-    for stream in (sys.stdout, sys.stderr):        # the failure branch writes to stderr, and it must be legible
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
                  "git submodule update --init specs-private")
@@ -513,4 +510,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
