@@ -1327,7 +1327,8 @@ def self_test() -> int:
         for code in (1, 0):
             tree = root / f"register-{code}"
             (tree / "scripts" / "spec").mkdir(parents=True)
-            (tree / "scripts" / "spec" / "work.py").write_text(f"import sys; sys.exit({code})", encoding="utf-8")
+            fake = tree / "scripts" / "spec" / "work.py"
+            fake.write_text(f"import sys; sys.exit({code})", encoding="utf-8", newline=chr(10))
             expect(f"the register check runs the worktree's own scripts/spec/work.py (exit {code})",
                    _script_runner(tree)(CHECKS[2], []) == code
                    and CHECKS[2].in_tree and not CHECKS[0].in_tree and not CHECKS[1].in_tree, f"code {code}")
