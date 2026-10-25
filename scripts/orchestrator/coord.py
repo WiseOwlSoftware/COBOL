@@ -112,6 +112,28 @@ def reports_dir(override: str | None = None) -> pathlib.Path:
     return coord_path(override) / "scratch" / "reports"
 
 
+# THE TURN CAP OF A ROLE (kb/Work PB3701). The harness ENFORCES one number per role, the `maxTurns` of its frontmatter in
+# `.claude/agents/<role>.md`, so that field is the one home; every other statement of a cap (a rendered spec's `Turn cap`
+# line, MANDATORY-PRACTICES P5 and O4, the cost-law table, the workstream skill, the finisher brief) is read from it or
+# checked against it by check_practices.py (`turn_cap_copies`). The implementer cap was written two ways for three weeks
+# (400 in P5 and the agent file, 220 in the spec template and in the check that required it), so implementers SPLIT at
+# 220 and each split cost a finisher.
+AGENTS_DIR = REPO / ".claude" / "agents"
+_FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---", re.DOTALL)
+_MAX_TURNS = re.compile(r"^maxTurns:\s*(\d+)\s*$", re.MULTILINE)
+
+
+def agent_turn_cap(role: str, agents_dir: pathlib.Path | None = None) -> int:
+    """The `maxTurns` of the role `role` (`cobol-implementer`): the one turn cap, read from its agent definition.
+    Raises ValueError when the file has no frontmatter `maxTurns`, so a role without a cap cannot render one."""
+    path = (agents_dir or AGENTS_DIR) / f"{role}.md"
+    front = _FRONTMATTER.match(path.read_text(encoding="utf-8"))
+    cap = _MAX_TURNS.search(front.group(1)) if front else None
+    if cap is None:
+        raise ValueError(f"{path}: no frontmatter `maxTurns:` (the role's turn cap, kb/Work PB3701)")
+    return int(cap.group(1))
+
+
 def fleet_stop(scratch: pathlib.Path | str, scope: str) -> pathlib.Path:
     """One fleet's own stop file in its scratch directory: `STOP-<scope>` (a wave `w1033`, the loop's `loop`)."""
     if not STOP_SCOPE.fullmatch(scope):
@@ -437,6 +459,22 @@ def _self_test() -> int:
             pass
         if coord_path(str(tmp)) != tmp:
             fails.append(f"coord_path: an absolute --coord reads {coord_path(str(tmp))}, want {tmp}")
+    # the turn cap (kb/Work PB3701): the frontmatter's `maxTurns` only, LF or CRLF, and a role without one is refused
+    with tempfile.TemporaryDirectory() as d:
+        agents = pathlib.Path(d)
+        for name, body, want in (("lf", "---\nname: x\nmaxTurns: 321\n---\nmaxTurns: 9\n", 321),
+                                 ("crlf", "---\r\nname: x\r\nmaxTurns: 77\r\n---\r\n", 77),
+                                 ("body", "---\nname: x\n---\nmaxTurns: 9\n", None),
+                                 ("none", "no frontmatter\nmaxTurns: 9\n", None)):
+            (agents / f"{name}.md").write_bytes(body.encode("utf-8"))
+            try:
+                got = agent_turn_cap(name, agents)
+            except ValueError:
+                got = None
+            if got != want:
+                fails.append(f"agent_turn_cap({name}): want {want}, got {got}")
+    if agent_turn_cap("cobol-implementer") < 1:
+        fails.append("agent_turn_cap(cobol-implementer) is not a positive number")
     # process_table reads the REAL table (a kernel snapshot on Windows, /proc elsewhere): this process is in it, under
     # its parent, with its own command line (mailbox.py's watcher check walks exactly these fields, kb/Work PB2814)
     me = [p for p in process_table() if p["pid"] == os.getpid()]
