@@ -23,9 +23,10 @@ namespace CobolNet.Binding;
 /// (§8.3.2.2: "all instances of a given name that is externalized to the operating environment shall identify the same
 /// kind of entity"), spelled <c>TO name</c> as a pointer's USAGE clause
 /// spells it. A prototype that took ISO §12.3.8.4 GR10 c) / GR11 c) — the details come from the external repository, so
-/// there is no compile-time signature to compare — is a class of its own: <c>TO name</c> of its own name, exactly the
-/// identity every relation compared before. A prototype that is its own founder therefore keeps the identity it always
-/// had; only an ALIAS of a founder changes.</para>
+/// there is no compile-time signature to compare — is a class of its own, marked as such:
+/// <see cref="PrototypeSignatures.ExternalIdentity"/> of its own name, which the conformance relations let conform to any
+/// restricted pointer of its kind, as <see cref="PrototypeSignatures.Same"/> lets an unresolved signature conform (kb/Work
+/// PB3162). A prototype that is its own founder keeps the identity it always had; only an ALIAS of a founder changes.</para>
 /// <para><b>Scope.</b> One instance per compilation group (<see cref="BindSession"/>): the identity is the founder's
 /// name, so it is comparable between the two descriptions of one run unit only while both were compiled in one group —
 /// which is every universal dispatch this implementation can make until the external repository of
@@ -119,7 +120,7 @@ internal sealed class PrototypeSignatureClasses
 
         public string Identity(string externalizedName, CalleeSignature? signature)
         {
-            if (signature is null) return PrototypeSignatures.OwnIdentity(externalizedName);   // GR10 c) / GR11 c)
+            if (signature is null) return PrototypeSignatures.ExternalIdentity(externalizedName);   // GR10 c) / GR11 c)
             if (_members.TryGetValue(externalizedName, out var known)) return known.Block!.Founder.Identity;
             var member = _members[externalizedName] = new Member(externalizedName, signature);
             var home = _blocks.Find(b => PrototypeSignatures.Same(b.Founder.Signature, signature));
