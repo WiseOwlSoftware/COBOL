@@ -1,0 +1,6 @@
+## Entry 2577 — 2026-10-25 14:55 PDT — SequentialJournal's Held refusal names all three ways a publication loses a try
+
+PB3749 (review lead R1-1 of PB3675). After PB3675, `SequentialJournal.Begin` refused a `Held` publication as "lost its race to another run unit's removal of the lock directory", but `SidecarLockFiles.Publish` also counts a try lost when a tester reaps the pending holder file (`FileNotFoundException`, `LockFileState.Gone`) or holds it as it is locked or renamed (a sharing refusal). Re-probe: read against `Publish`'s losing arms (directory gone, `Gone` probe, `FileNotFoundException`, sharing refusal); the wording named one of the three.
+
+Fix: one wording in the exception message, the `Begin` comment, `Publish`'s `Held` remark and DESIGN-runtime-library 2.2.2.5 R1: another run unit removed the lock directory, or reaped or held the pending holder file. No new type: the `RegionLockResult` still carries only the verdict, since every caller answers the three losses the same way. Golden: `SequentialJournalHolderPublicationTests` now asserts the full cause text. No ISO rule governs the message text; no inventory row closed.
+

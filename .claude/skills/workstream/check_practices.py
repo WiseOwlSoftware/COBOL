@@ -137,6 +137,10 @@ CAP_COPIES = [
 # The implementer briefs state NO number (they point at the spec's `Turn cap` line), so none can differ from the cap.
 NUMBERLESS_CAP_BRIEFS = ('fix-lane-implementer-brief.md', 'implementer-brief.md')
 LITERAL_CAP = re.compile(r'\b\d{2,3}[- ]turns?\b|turn cap \d|cap of \d|hard cap:? \d|~\d{3}\b', re.IGNORECASE)
+# kb/Work PB3741: the orchestrator's rules file also states no cap. Its prose quotes MEASURED turns ("about 147 turns"),
+# which are data, so only a number written as the cap itself is refused ("the 220-turn cap", "a turn cap of 220", "cap of 220 turns").
+NUMBERLESS_CAP_FILES = ('scripts/orchestrator/model_rules.json',)
+TYPED_CAP = re.compile(r'\b\d{2,3}[- ]turn cap|turn cap (?:of )?\d|cap of \d{2,3} turns', re.IGNORECASE)
 
 
 # P2: the blocking wait must RETURN when the verdict appears. `tail -f <log> | grep -m1 <verdict>` does not: grep exits
@@ -171,6 +175,9 @@ def turn_cap_copies(repo=None, agents_dir=None):
     for name in NUMBERLESS_CAP_BRIEFS:
         text = (repo / '.claude' / 'skills' / 'workstream' / 'templates' / name).read_text(encoding='utf-8')
         found += [f'{name}: types a turn cap ({m.group(0)!r}); point at the spec\'s `Turn cap` line' for m in LITERAL_CAP.finditer(text)]
+    for rel in NUMBERLESS_CAP_FILES:
+        text = (repo / rel).read_text(encoding='utf-8')
+        found += [f'{rel}: types a turn cap ({m.group(0)!r}); point at coord.agent_turn_cap' for m in TYPED_CAP.finditer(text)]
     return found
 
 
