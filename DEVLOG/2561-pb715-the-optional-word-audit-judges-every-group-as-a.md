@@ -1,4 +1,4 @@
-## PB715: the optional-word audit judges every group as a spelling of its own, and fails on a construct it cannot anchor
+## Entry 2561 — 2026-10-25 12:58 PDT — PB715: the optional-word audit judges every group as a spelling of its own, and fails on a construct it cannot anchor
 
 kb/Work PB715 (wave 20261501 C). `scripts/spec/audit_grammar_optional_words.py` finds grammar rules that demand a
 word the printed general format leaves un-underlined (§8.3.2.4.3, "may be specified at the user's option with no
@@ -44,3 +44,4 @@ words are measured only when a construct needs them, and a full run still takes 
 
 **Gate.** `build-local -Priority BelowNormal` on this head, leg 1 with its Linux half; the verdict line is in the
 wave report `w20261501c-PB715-report.md`.
+
