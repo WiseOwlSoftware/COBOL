@@ -90,14 +90,36 @@ neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-
 per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
-Eleven jobs. `changes` decides whether the matrix runs at all; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
+Twelve jobs. `changes` decides whether the matrix runs at all; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
 ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
 `inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
-on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The nightly
+on a Windows checkout, no build, kb/Work PB3581); `dotnet-sdk-cache` (push to main only, both OSes: saves the pinned
+SDK under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
+
+**⛔ One pinned .NET SDK, installed one way, never through the aka.ms redirect (kb/Work PB3308;
+`DotnetSdkInstallDriftTests`).** `scripts/install-dotnet-sdk.sh` pins the exact SDK version (one `global.json`'s
+`10.0.100` and `rollForward: latestMinor` accept; the drift test checks it) and lists its feeds,
+`builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. It downloads `dotnet-sdk-<version>-<os>-<arch>` from
+the first feed that serves it and its `.sha512`, checks the archive against that SHA-512, unpacks it, and only then writes
+a completion marker. A transfer that breaks off is retried on the same feed, while a refusal (an HTTP error, a 404 or a
+409) moves on to the next feed. Every building job gets its SDK from the composite action `.github/actions/setup-dotnet`:
+it restores the SDK from the Actions cache keyed on the version, the OS and the architecture, runs the script (a no-op on
+a cache hit), saves the SDK, puts it first on `PATH`, and fails unless `dotnet --version` reports the pinned version. A
+merge group's run restores only what its own ref or main saved, and its ref is new every time, so `dotnet-sdk-cache`
+saves the SDK under main on every push to main: a merge group then finds it even while every feed refuses. A warm-up
+that fails warns and passes, because the merge group's own install still tries the feeds. `scripts/wsl/setup-wsl.sh`
+calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
+block byte for byte between the `dotnet-sdk-install` markers. Before this, every building job ran `actions/setup-dotnet`
+with `dotnet-version: 10.0.x`, which resolves "the newest 10.0" through aka.ms on every job, with no cache. A dropped
+transfer cost one merge group (run 38974314534, 2026-10-16). From about 18:50Z on 2026-10-25 the redirect's storage
+origin answered `409 PublicAccessNotPermitted`, so every code merge group failed `Setup .NET 10` while
+builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms. The pin is also kb/Work
+PB1957 row 8's (a): CI and the local Linux hosts build with the same SDK patch. Moving to a newer SDK is one edit to
+`DOTNET_SDK_VERSION`, copied into `setup-env.sh`.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -1836,6 +1858,10 @@ Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train
 two driver tests (train 1058;
 `self_tests.py --self-test` 19 s alone, over 120 s twice in that train's first gate).
 
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under
+`scripts/selftests/`, found by this runner's rule (b) with no change here; the layout, its collector and its drift test
+are `DESIGN-orchestrator-loop.md` §16.2.
+
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
 **The rule.** A name on PATH is not an interpreter: on the Windows dev box `python3` is the Microsoft Store alias,
@@ -2459,8 +2485,9 @@ demand and not committed.
   construct, sorted, so it merges line by line; separating it is a lead, not part of this change) and `kb/Work.base` (a view
   DEFINITION, a query over the notes).
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
-  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` rows
-  stay hand-written (rare collisions bounce and re-enqueue; measured before any further change).
+  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
+  (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
+  per determination with a rendered index: the design is `DESIGN-orchestrator-loop.md` §16.8 (kb/Work PB3726, PB3738).
 
 #### 3.17.5 The loop's units and the fleet after this design (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
