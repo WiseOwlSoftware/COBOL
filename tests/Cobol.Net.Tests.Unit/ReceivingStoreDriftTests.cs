@@ -70,6 +70,46 @@ public sealed class ReceivingStoreDriftTests
             + "(ISO §14.9.25.4 GR4; kb/Work PB3512):\n" + string.Join("\n", offenders));
     }
 
+    /// <summary>kb/Work PB3666, determination D-B5 — EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM. ISO §14.6.8.6
+    /// transfers "after any necessary conversion, into the corresponding boolean positions"; the implementation converts
+    /// each character ('1' to boolean one, every other to zero) in <c>CobolBool.FromCharacters</c>, so DISPLAY of the item and
+    /// the boolean operators over it cannot disagree. The fitting store <c>CobolBool.Store</c> is emitted ONLY by
+    /// <c>RuntimeApi.StrStoreBoolean</c>; the sites that fit by another rule (a reference-modified slice's splice, a STRING image,
+    /// a GR4 group move into a USAGE DISPLAY boolean item) convert through the same two entry points. A new emitter that
+    /// deposits characters into a boolean item and spells <c>CobolString.Store(..., pad: '0')</c> itself would leave
+    /// <c>AB000</c> in the item again. Goldens: <c>pb3666_boolean_receiver_converts_characters</c>.</summary>
+    [Fact]
+    public void EveryStoreIntoABooleanItem_ConvertsItsCharacters()
+    {
+        var offenders = new List<string>();
+        var privateBooleanStore = new Regex(@"Store[^\n]*pad:\s*'0'");
+        foreach (var file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler", "CodeGen"), "*.cs", SearchOption.AllDirectories))
+        {
+            string[] lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+                if (privateBooleanStore.IsMatch(lines[i]) && !lines[i].TrimStart().StartsWith("//"))
+                    offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
+        }
+        Assert.True(offenders.Count == 0,
+            "A CodeGen file builds the boolean-zero-padded character store itself instead of RuntimeApi.StrStoreBoolean, "
+            + "so it deposits the characters unconverted (D-B5; kb/Work PB3666):\n" + string.Join("\n", offenders));
+
+        // Make the scan able to FAIL: the converting entry points must still be spelled where each store reaches them.
+        string runtimeApi = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Roslyn", "RuntimeApi.cs"));
+        Assert.Contains("nameof(CobolBool.Store)", runtimeApi);
+        Assert.Contains("nameof(CobolBool.FromCharacters)", runtimeApi);
+        string verbs(string f) => File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", f));
+        Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("ReceivingStore.cs"));      // a GR4 group move into a USAGE DISPLAY boolean item
+        // ...and ONLY one whose area holds characters: a national boolean's area is UTF-16BE pairs and a BIT one's packed
+        // bytes, which are not characters to convert (review R1-1: N"101" became three CJK characters). Golden: the L12 line.
+        Assert.Contains("AreaHoldsCharacters(target)", verbs("ReceivingStore.cs"));
+        Assert.Contains("is not { Usage: Usage.National or Usage.Bit }", verbs("ReceivingStore.cs"));
+        Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("MoveEmitter.cs"));         // the elementary MOVE
+        Assert.Contains("RuntimeApi.BoolFromCharacters(", verbs("StringEmitter.cs"));    // STRING into a USAGE DISPLAY boolean item
+        Assert.Contains("RuntimeApi.BoolFromCharacters(",
+            File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs")));   // a reference-modified boolean slice
+    }
+
     [Fact]
     public void TheOneHome_StillCarriesBothArms()
     {

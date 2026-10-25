@@ -1611,6 +1611,26 @@ check("... and the refusal names the rule and the planner's UNPARTITIONED plan",
       all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNPARTITIONED", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
+# A NOTE OF A CAMPAIGN NEEDS ITS SITE BLOCK WHATEVER ITS ID (kb/Work PB3640). The campaign is the cluster a `tier:` entry
+# names: wave 20261030 planned PB3628 and PB3275 side by side because PB3275, a PB1957 note filed before the cutover, had
+# no block, and both rewrote one rule of prune_worktrees.lifecycle. The register holds no list of running campaigns.
+OLD = NEW - 100
+CAMP = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": k, "status": s, "cluster": cl, "tier": t, "_body": b}
+        for n, k, s, cl, t, b in [
+            (OLD, "defect", "open", ["K"], ["K:2"], "Tiered, no block."),
+            (OLD + 1, "defect", "open", ["K"], [], "A member the owner left untiered, no block."),
+            (OLD + 2, "defect", "open", ["K", "Z"], [], "**Sites:** `src/A.cs`\n"),
+            (OLD + 3, "defect", "open", ["Z"], [], "In a cluster no note tiers, filed before the cutover."),
+            (OLD + 4, "decision", "open", ["K"], ["K:1"], "An owner question."),
+            (OLD + 5, "defect", "landed", ["K"], ["K:3"], "Landed, no block."),
+            (OLD + 6, "defect", "open", ["K"], ["K:3"], "**Sites:** none (it changes no code file)\n")]]
+check("work.sites_problems: an open note of a cluster some note tiers needs a block whatever its id; a decision, a "
+      "terminal note, a declaration and a cluster no note tiers are as before",
+      [s.split(":")[0] for s in work.sites_problems(CAMP)], [f"PB{OLD}.md", f"PB{OLD + 1}.md"])
+check("... and the refusal names the campaign",
+      all("campaign cluster(s) K" in s and "PB3640" in s for s in work.sites_problems(CAMP)), True)
+check("work.campaign_leads: the clusters the register's tier entries name, malformed entries left out",
+      work.campaign_leads(CAMP + TIERS), {"K", "C", "D"})
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/
@@ -2044,6 +2064,9 @@ check("the spec body names an UNPARTITIONED group and the Sites paragraph (files
       True)
 check("a group with a file set is never named UNPARTITIONED", "UNPARTITIONED" in pw.body_of(uw["groups"][0], notes),
       False)
+check("every spec body, sited or not, asks its implementer to add to a note's Sites what its diff changes beyond them "
+      "(kb/Work PB3640: a declared set is a prediction)",
+      [("SITES FOLLOW THE DIFF" in pw.body_of(g, notes)) for g in (uw["groups"][0], ub["groups"][0])], [True, True])
 mb = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), on_members(F_BIND, ["Binder.Sync"], "PB11")], [], [],
              lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy={"worktree w (worktree-w)": pw.InFlight({F_BIND}, "worktree-w", {"PB70"}, state="IN FLIGHT",
@@ -2371,6 +2394,22 @@ RG.git("switch", "-q", "-c", "x2", "x")
 tie = prune.replays(["x", "x2"], ["x", "x2"], {"x": 0, "x2": 1}.get, git_batch.Ancestry.read(RG.path, ["x", "x2"]))
 check("PB3170 (a): two branches holding the same commits: the later report carries the earlier, never both ways",
       (tie["x"].carrier, tie["x2"].carrier), ("x2", None))
+# PB3651: the tie is on the NUMBER of x's commits each carrier replays, and then on the LATER report, never on the
+# carrier's size: lg (an EARLIER report) holds x's four commits and three of its own (seven patches), mid (a LATER
+# report) holds them and one of its own (five). Both are uncarried and both replay all four, so x rides on mid.
+for br, extra in (("lg", 3), ("mid", 1)):
+    RG.git("switch", "-q", "-c", br, "main")
+    RG.git("cherry-pick", *x_commits)
+    for i in range(extra):
+        RG.commit(f"{br}{i}", {f"{br}{i}.txt": f"{i}\n"})
+TB_ORDER = ["x", "lg", "mid"]
+tb = prune.replays(TB_ORDER, TB_ORDER, TB_ORDER.index, git_batch.Ancestry.read(RG.path, TB_ORDER))
+check("PB3651: x is replayed in full by a larger earlier carrier and a smaller later one: the LATER report carries it",
+      (tb["x"].carrier, [n for n, _ in tb["x"].by]), ("mid", ["lg", "mid"]))
+check("PB3651: ... and the two uncarried branches carry nothing", (tb["lg"].carrier, tb["mid"].carrier), (None, None))
+tb_rev = prune.replays(TB_ORDER, TB_ORDER, ["x", "mid", "lg"].index, git_batch.Ancestry.read(RG.path, TB_ORDER))
+check("PB3651: ... with the reports' order reversed the larger branch is the later report, and carries x",
+      tb_rev["x"].carrier, "lg")
 # the successor CHAIN (review R1-1): c-x holds four commits; a-mid (a later report) cherry-picks them; b-top (the latest)
 # cherry-picks a-mid and adds one. a-mid is carried by b-top, so it gets no finisher: c-x's carrier is b-top, never the
 # carried middle link a-mid. The names are chosen so that the name order and the report order disagree (the old rule
