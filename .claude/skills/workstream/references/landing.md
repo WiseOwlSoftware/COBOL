@@ -52,7 +52,9 @@
   gate of the tree runs (kb/Work PB3527, PB3662, PB3649); exit 15 (PREDECESSOR
   QUEUED: the branch merged a predecessor whose pull request is still open, so it carries that pull request's stamped
   DEVLOG entry beside its own, nothing queued, nothing red) is the same: the lane retries it once no open pull request
-  owns an entry the branch carries (kb/Work PB3145); exit 13 (another
+  owns an entry the branch carries (kb/Work PB3145); exit 16 (DRIVER FILE QUEUED: an open pull request changes a
+  merge-driver file the branch changes too, and GitHub's merge queue merges without the drivers; nothing stamped or
+  queued, nothing red) is the same: the lane retries it once none does (kb/Work PB3642); exit 13 (another
   `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
   once the lock is free. A gate NOT RUN (it
   measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause

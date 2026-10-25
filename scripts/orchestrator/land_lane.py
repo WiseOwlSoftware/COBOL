@@ -23,7 +23,9 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
   attempts/<id>.json  one per `enqueue.py land` run, <id> = `<n>-<UTC stamp>-<branch>` (n: the attempt NUMBER, one
                       past every attempt, taken under the tick lock; the order of attempts, never the clock, kb/Work
                       PB3536): branch, head (its tip at launch), worktree, argv, log
-                      (`<coord>/logs/land-lane-<id>.log`), runner pid, and once it ends rc, the log's
+                      (`<coord>/logs/land-lane-<id>.log`), runner pid (the runner is ALIVE only while that pid's
+                      process is a Python whose command line names this record: `runner_alive`, so a pid the OS
+                      reused for another program never reads RUNNING, kb/Work PB3113), and once it ends rc, the log's
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
                       pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
                       unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
@@ -76,6 +78,12 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 request is still open (kb/Work PB3145; nothing queued, nothing red)  retried at this head once no open
                                                                    pull request into main owns an entry the branch
                                                                    carries (`wait_free`); never the enqueue unit's
+       exit 16 — DRIVER FILE QUEUED: an open pull request changes a file a merge driver covers that the branch changes
+                too, and GitHub's merge queue merges without the drivers (kb/Work PB3642; nothing stamped or queued,
+                nothing red)                                        retried at this head once no open pull request
+                                                                   shares such a file with the branch (`wait_free`);
+                                                                   main then comes in through the drivers; never the
+                                                                   enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock, the branch's own gate had not written its      is free (`wait_free`; a gate holds it until
                 verdict yet (kb/Work PB3527, PB3662), or the gate's  its verdict is written) AND no Linux gate of the
@@ -130,11 +138,12 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_PREDECESSOR_QUEUED,
-                     EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE, VERDICT,
+from enqueue import (EXIT_CONFLICT, EXIT_DRIVER_FILE_QUEUED, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY,
+                     EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE,
                      land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
+import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
 
 LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
@@ -148,7 +157,8 @@ EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved un
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
 WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written) and any Linux gate of the tree (linux-gate.sh --probe)",
          EXIT_LAND_BUSY: "the worktree's land lock",
-         EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries"}
+         EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries",
+         EXIT_DRIVER_FILE_QUEUED: "the open pull request(s) that change a merge-driver file the branch changes too (kb/Work PB3642)"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, for as long as it lives, unit or no unit, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -161,7 +171,6 @@ RETRYABLE = (FREE, ONCE, HALTED)
 #: re-arm included (rearm_hold). prune_worktrees.lifecycle reads NOT QUEUED only for a pull request at the tip, so a
 #: tip past an older pull-request head reads by its report and lands here (kb/Work PB3275, PB3628; review lead R1-2).
 QUEUE_OWNED = ("ENQUEUED", "NOT QUEUED", "LANDED")
-VERDICT_LINE = re.compile(r"^" + re.escape(VERDICT) + r"(?P<outcome>.*?)(?: \((?P<branch>[^()]*)\))? ===\s*$")
 
 Say = Callable[[str], None]
 
@@ -288,11 +297,7 @@ def last_verdict(log: pathlib.Path) -> str | None:
         text = log.read_bytes().decode("utf-8", errors="replace")
     except OSError:
         return None
-    found = None
-    for line in text.splitlines():
-        if m := VERDICT_LINE.match(line.strip()):
-            found = m.group("outcome").strip()
-    return found
+    return (verdict_line.outcomes(text) or [None])[-1]
 
 
 def queued_pr(log: pathlib.Path) -> int | None:
@@ -412,16 +417,16 @@ def main_of(worktree: str, git: Git) -> str:
 def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None = None) -> dict[str, str]:
     """Write the brief of a CONFLICT attempt `a` beside the attempt records and return the fields that name it on the
     attempt: `brief` (its path) and `brief_main` (the origin/main it was computed against, so `conflict-brief` serves it
-    only while main is still that commit). Its files are the ones the verdict names (merge_drivers.outcome_files), or,
+    only while main is still that commit). Its files are the ones the verdict names (verdict_line.outcome_files), or,
     when the verdict line is unreadable (a log not in UTF-8), the ones the drivers' dry run leaves in conflict against
     origin/main (merge_drivers.merge_conflicts)."""
-    import merge_drivers  # noqa: PLC0415  (scripts/: the one reader of the CONFLICT outcome and the one dry-run merge)
+    import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
     import plan_wave  # noqa: PLC0415
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
     reports = plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)
     main_sha = main_of(a["worktree"], git)
-    files = merge_drivers.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
+    files = verdict_line.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
     text = conflict_brief(a["branch"], a["worktree"], files, git=git, reports=reports)
     path = brief_path(cdir, a)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -510,12 +515,24 @@ def tip_of(worktree: str | None) -> str | None:
 
 
 # ── the collaborators (the self-test replaces each) ────────────────────────────────────────────────────────────────
-def pid_alive(pid: int | None) -> bool:
-    """The runner is alive: a live process with that id whose image is a Python (a reused id is another program)."""
-    if not isinstance(pid, int):
+def runner_alive(a: dict[str, Any]) -> bool:
+    """The attempt's runner is alive (kb/Work PB3113): the process with the recorded pid is a Python whose command line
+    names this attempt's own record (`launch` starts `land_lane.py run <record>`). A pid the OS has reused for another
+    program after the runner died, a Python one included, carries another command line, so it is not the runner: the
+    lane no longer reads RUNNING until that stranger exits."""
+    pid = a.get("pid")
+    if not isinstance(pid, int) or not a.get("_path"):
         return False
     name = coord.process_name(pid)
-    return bool(name) and "python" in name.lower()
+    if not name or "python" not in name.lower():
+        return False
+    cmd = coord.process_command(pid)
+    if not cmd:
+        # None: the process ended since the name was read. "": its command line cannot be read (not ours to open), which
+        # cannot tell the runner from a stranger; calling a live runner dead would relaunch its branch beside it, so an
+        # unreadable line reads as before this check existed: a live Python is alive.
+        return cmd == ""
+    return os.path.normcase(str(a["_path"])) in os.path.normcase(cmd)
 
 
 def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str], dict | None]:
@@ -616,17 +633,34 @@ def predecessor_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, st
     return True, ""
 
 
+def driver_files_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, str]]) -> tuple[bool, str]:
+    """Whether exit 16's wait is over (kb/Work PB3642): no open pull request into main changes a file a merge driver
+    covers that the branch changes too. enqueue.py's own reader (`driver_file_holders`) answers, as it answered `land`,
+    against the worktree's last fetched origin/main; GitHub or the range unreadable is NOT free (with why)."""
+    import enqueue  # noqa: PLC0415  (the one reader of which open pull requests share a driver-merged file)
+    wt = pathlib.Path(worktree)
+    here = enqueue.worktree_state(wt)
+    if here is None or not here.branch:
+        return False, f"{worktree} has no branch checked out"
+    held, problem = enqueue.driver_file_holders(wt, "refs/remotes/origin/main", here.branch, gh=gh)
+    if problem:
+        return False, problem
+    if held:
+        return False, "open: " + ", ".join(f"#{n} ({', '.join(files[:2])})" for n, files in sorted(held.items()))
+    return True, ""
+
+
 def wait_free(rc: int | None, worktree: str, *,
               gh: Callable[[list[str]], tuple[int, str, str]] | None = None,
               holder: Callable[[str], str | None] = linux_gate_holder) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
     branch; exit 12, the worktree's gate lock is free AND no Linux gate of the tree runs (`holder`: the real probe unless
     a self-test plants it; kb/Work PB3649); exit 13, the worktree's land lock
-    is free; exit 15, no open pull request owns a DEVLOG entry the branch carries (`gh`: GitHub's reader, the real one
-    unless a self-test plants it)."""
-    if rc == EXIT_PREDECESSOR_QUEUED:
+    is free; exit 15, no open pull request owns a DEVLOG entry the branch carries; exit 16, no open pull request changes
+    a merge-driver file the branch changes too (`gh`: GitHub's reader, the real one unless a self-test plants it)."""
+    if rc in (EXIT_PREDECESSOR_QUEUED, EXIT_DRIVER_FILE_QUEUED):
         import ruleset  # noqa: PLC0415
-        return predecessor_free(worktree, gh or ruleset.real_gh)
+        return (predecessor_free if rc == EXIT_PREDECESSOR_QUEUED else driver_files_free)(worktree, gh or ruleset.real_gh)
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree, holder=holder)
     if rc == EXIT_LAND_BUSY:
@@ -921,11 +955,11 @@ def stop_reason(cdir: pathlib.Path) -> str | None:
     return None
 
 
-def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | None], bool], say: Say) -> None:
+def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[str, Any]], bool], say: Say) -> None:
     for a in atts:
         if finished(a):
             continue
-        if alive(a.get("pid")):
+        if alive(a):
             continue
         # Its tip now is its end head: a runner that died after `enqueue.py land` committed (main merged in, the stamp)
         # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it. A runner that wrote
@@ -1002,7 +1036,7 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
 def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
          survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str], dict | None]] = survey_rows,
          start: Callable[[list[str], pathlib.Path], int] = spawn_detached,
-         alive: Callable[[int | None], bool] = pid_alive,
+         alive: Callable[[dict[str, Any]], bool] = runner_alive,
          wait_free: Callable[[int | None, str], tuple[bool, str]] = wait_free,
          argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None,
          effects: WatchEffects | None = None, now: dt.datetime | None = None, say: Say = print) -> int:
@@ -1254,7 +1288,7 @@ def self_test() -> int:
     def wait_runners(cdir: pathlib.Path) -> None:
         """Wait until every runner an attempt names has EXITED: bounded by the runner's own exit (its outcome is
         written before it exits), never by a fixed wall-clock ceiling (kb/Work PB3022; PB3640 review R1-5)."""
-        while any(pid_alive(a.get("pid")) for a in attempts(cdir)):
+        while any(runner_alive(a) for a in attempts(cdir)):
             time.sleep(0.2)
 
     root = scratch_dir("land-lane-selftest-")
@@ -1294,8 +1328,8 @@ def self_test() -> int:
                 self.live.add(pid)
                 return pid
 
-            def alive(self, pid: int | None) -> bool:
-                return pid in self.live
+            def alive(self, a: dict[str, Any]) -> bool:
+                return a.get("pid") in self.live
 
             def overlap(self, rc: int | None, wt: str) -> tuple[bool, str]:
                 self.asked.append(wt)
@@ -1505,6 +1539,45 @@ def self_test() -> int:
                and not (lane_dir(c3d) / REARM).exists(), f"{pred_waiting} {pred_said} {pred_open} {pred_unread} "
                                                            f"{pred_own_only} {pred_relaunched}")
 
+        # 3e. PB3642: exit 16, DRIVER FILE QUEUED. The same worktree, on a branch that changes a driver-covered note while
+        #     an open pull request changes it too: the lane waits at that head, and relaunches the SAME head once no open
+        #     pull request shares a driver file with it (an unrelated pull request, or the branch's own, holds nothing).
+        pw.git("switch", "--quiet", "-c", "w2e", "main")
+        (pw.path / "kb" / "Work").mkdir(parents=True)
+        (pw.path / "kb" / "Work" / "PB9999.md").write_text("the branch's note", encoding="utf-8", newline="\n")
+        pw.git("add", "kb")
+        pw.git("commit", "--quiet", "-m", "the branch changes a work note")
+        drv_listing = {"number": 801, "headRefName": "other", "headRefOid": predecessor_oid,
+                       "files": [{"path": "kb/Work/PB9999.md"}, {"path": "src/x.cs"}]}
+        github["open"] = [drv_listing]
+        c3e = fresh("driver-file")
+        f3e = Fake([row("w2e", "WAITING TO LAND", "d1")])
+        f3e.wait = lambda rc, wt_: wait_free(rc, wt_, gh=planted_gh)
+        f3e.rows[0]["worktree"] = str(pw.path)
+        f3e.tick(c3e)
+        finish(c3e, "w2e", EXIT_DRIVER_FILE_QUEUED, "DRIVER FILE QUEUED — #801 changes kb/Work/PB9999.md", end_head="d1")
+        f3e.live.clear()
+        drv_waiting = f3e.tick(c3e)
+        drv_said = " | ".join(f3e.said)
+        drv_open = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = True
+        drv_unread = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = False
+        github["open"] = [{"number": 802, "headRefName": "w2e", "headRefOid": predecessor_oid, "files": [{"path": "kb/Work/PB9999.md"}]},
+                          {"number": 803, "headRefName": "elsewhere", "headRefOid": predecessor_oid, "files": [{"path": "src/y.cs"}]}]
+        drv_unrelated = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)   # its own pull request and a stranger's file
+        drv_relaunched = f3e.tick(c3e)
+        expect("exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class, "
+               "never the enqueue unit's; the lane waits at that head while enqueue.py's reader finds the pull request "
+               "(naming it and the file), an unreadable GitHub is not free, the branch's own pull request and one that "
+               "changes other files hold nothing; it relaunches the SAME head once none shares a file, with no rearm "
+               "(kb/Work PB3642)",
+               classify({"rc": EXIT_DRIVER_FILE_QUEUED}) == FREE and drv_waiting == [] and "still waits on" in drv_said
+               and drv_open == (False, "open: #801 (kb/Work/PB9999.md)")
+               and drv_unread[0] is False and "rate limited" in drv_unread[1] and drv_unrelated == (True, "")
+               and drv_relaunched == ["w2e"] and agent_work(c3e).reasons == [] and not (lane_dir(c3e) / REARM).exists(),
+               f"{drv_waiting} {drv_said} {drv_open} {drv_unread} {drv_unrelated} {drv_relaunched}")
+
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")
         f4 = Fake([row("w3a", "WAITING TO LAND", "k1")])
@@ -1633,7 +1706,8 @@ def self_test() -> int:
         runner_wt = ScratchRepo.init(root / "wt-runner")
         runner_wt.commit("x", allow_empty=True)
         wt, head = runner_wt.path, runner_wt.git("rev-parse", "HEAD")
-        fake = [sys.executable, "-c", "print('=== ENQUEUE: GATE RED (Windows) on x (w9a) ==='); raise SystemExit(5)"]
+        fake = [sys.executable, "-c",
+                f"print({verdict_line.render('GATE RED (Windows) on x', 'w9a')!r}); raise SystemExit(5)"]
         r = {"name": "w9a", "state": "WAITING TO LAND", "tip": head, "worktree": str(wt), "why": "", "lead": None}
         out: list[str] = []
         tick(c10, root, survey=lambda repo, cdir: ([r], ["w9a"], None), argv_for=lambda row: fake, say=out.append)
@@ -1642,6 +1716,36 @@ def self_test() -> int:
         expect("a detached runner runs the attempt and records rc 5, the verdict and the end head",
                a.get("rc") == 5 and a.get("verdict") == "GATE RED (Windows) on x" and a.get("end_head") == head,
                f"{a} {out}")
+
+        # 10b. PB3113: a pid the OS reused. A live Python process holds the recorded pid but is not the runner (its command
+        # line does not name the attempt's record), so the attempt is not RUNNING; the process whose command line does
+        # name the record is the runner. Both are real processes, started here and ended in the `finally`.
+        c10b = fresh("reused-pid")
+        rec10b = {"id": "000001-x", "branch": "w10b", "_path": str(c10b / "attempts" / "000001-x.json")}
+        sleeper = "import time; time.sleep(600)"
+        stranger = subprocess.Popen([sys.executable, "-c", sleeper], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        runner = subprocess.Popen([sys.executable, "-c", sleeper, "run", rec10b["_path"]], stdin=subprocess.DEVNULL,
+                                  stdout=subprocess.DEVNULL)
+        try:
+            expect("a live Python process that is not the runner holds the recorded pid (a reused id): not alive; the "
+                   "process whose command line names the record is",
+                   not runner_alive({**rec10b, "pid": stranger.pid}) and runner_alive({**rec10b, "pid": runner.pid}),
+                   f"stranger {runner_alive({**rec10b, 'pid': stranger.pid})} runner {runner_alive({**rec10b, 'pid': runner.pid})}")
+        finally:
+            for proc in (stranger, runner):
+                proc.kill()
+                proc.wait()
+        real_command = coord.process_command
+        coord.process_command = lambda pid: ""          # a Python whose command line cannot be read: unknown, so alive
+        try:
+            unreadable = runner_alive({**rec10b, "pid": os.getpid()})
+        finally:
+            coord.process_command = real_command
+        expect("a live Python process whose command line cannot be read is not called dead (it could be the runner)",
+               unreadable)
+        expect("a dead pid, no pid and no record path are not alive",
+               not runner_alive({**rec10b, "pid": stranger.pid}) and not runner_alive({**rec10b, "pid": None})
+               and not runner_alive({"pid": runner.pid}))
 
         # 11. a runner that died AFTER enqueue.py committed: the survey reads the branch IN FLIGHT at its new tip, and
         #     the lane retries it from its own record (the DIED attempt's end head is the worktree's tip at the reap).
@@ -1890,7 +1994,7 @@ def self_test() -> int:
         stale = next(a for a in attempts(c15) if a["branch"] == "w15b")
         late = next(a for a in attempts(c15) if a["branch"] == "w15b")
         update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": _now().isoformat(), "end_head": "x1"})
-        reap(c15, [stale], lambda pid: False, say=lambda s: None)
+        reap(c15, [stale], lambda a: False, say=lambda s: None)
         expect("one writer per field: a runner that wrote its rc after reap read the record is not marked DIED (the "
                "fresh record decides, under the record's lock)",
                "outcome" not in stale and stale.get("rc") == 0
@@ -1979,7 +2083,7 @@ def self_test() -> int:
         c17 = fresh("conflict")
         fake4 = [sys.executable, "-c",
                  "import sys; sys.stdout.reconfigure(encoding='utf-8'); "   # enqueue.py's own output encoding
-                 f"print({'=== ENQUEUE: ' + merge_drivers.conflict_outcome(['scripts/x.py']) + ' (wbrief) ==='!r}); "
+                 f"print({verdict_line.render(verdict_line.conflict_outcome(['scripts/x.py']), 'wbrief')!r}); "
                  "raise SystemExit(4)"]
         r17 = {"name": "wbrief", "state": "WAITING TO LAND", "tip": cbr.git("rev-parse", "HEAD"),
                "worktree": str(cbr.path), "why": "", "lead": None}

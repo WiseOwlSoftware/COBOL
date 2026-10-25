@@ -299,6 +299,20 @@ def process_name(pid: int) -> str | None:
         return None
 
 
+def process_command(pid: int) -> str | None:
+    """The command line of the live process `pid` ('' when it cannot be read), or None when no process has that id
+    (read-only). With `process_name` it tells a process from a REUSED process id: an id Windows (or Linux) hands to
+    another program after its owner exited answers `process_name`, but its command line is not the owner's."""
+    if process_name(pid) is None:
+        return None
+    if os.name == "nt":
+        return _nt_command_line(pid)
+    try:
+        return pathlib.Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode("utf-8", "replace").strip()
+    except OSError:
+        return ""
+
+
 def _nt_snapshot() -> list[dict[str, Any]]:
     """Every live Windows process as {pid, ppid, name}, from ONE Toolhelp32 snapshot through the kernel (about 0.1 s).
     It replaced `tasklist` and a PowerShell CIM query of Win32_Process, which took 6 to 12 s on a loaded host: too slow
@@ -482,6 +496,8 @@ def _self_test() -> int:
         fails.append(f"process_table: this process (pid {os.getpid()}, ppid {os.getppid()}) not found as itself: {me}")
     if "python" not in (process_name(os.getpid()) or "").lower() or process_name(2 ** 22 + 12345) is not None:
         fails.append(f"process_name: this process reads {process_name(os.getpid())!r}; a dead pid must read None")
+    if "coord.py" not in (process_command(os.getpid()) or "") or process_command(2 ** 22 + 12345) is not None:
+        fails.append(f"process_command: this process reads {process_command(os.getpid())!r}; a dead pid must read None")
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== COORD SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")
