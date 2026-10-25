@@ -21,17 +21,21 @@ internal static class FixedFormLayout
 
     /// <summary>The program <paramref name="logicalProgram"/> (one logical line per <c>\n</c>, indentation kept) as a
     /// fixed-form source that starts with its own <c>&gt;&gt;SOURCE FORMAT FIXED</c> directive, so no reference-format
-    /// detection is involved.</summary>
-    public static string Source(string logicalProgram)
+    /// detection is involved. With <paramref name="classic"/> the layout is COBOL-85's own: no directive (the
+    /// <c>&gt;&gt;</c> facility is a COBOL-2002 introduction) and a literal continued by the HYPHEN in position 7 of the
+    /// continuation line (the fixed continuation indicator of §6.2.2, whose use §6.2.2 NOTE 1 calls obsolete from 2023; the continuation of §6.3.5 1)): the continued
+    /// line is filled to position 72 with no closing quotation symbol and the next resumes the literal at a quotation
+    /// symbol in position 12 — the one continuation a program targeting COBOL-85 can write (kb/Work PB1615).</summary>
+    public static string Source(string logicalProgram, bool classic = false)
     {
-        var sb = new StringBuilder(">>SOURCE FORMAT FIXED\n");
+        var sb = new StringBuilder(classic ? "" : ">>SOURCE FORMAT FIXED\n");
         foreach (string logical in logicalProgram.Split('\n'))
-            foreach (string physical in LayLine(logical.TrimEnd()))
+            foreach (string physical in LayLine(logical.TrimEnd(), classic))
                 sb.Append(physical).Append('\n');
         return sb.ToString();
     }
 
-    private static IEnumerable<string> LayLine(string text)
+    private static IEnumerable<string> LayLine(string text, bool classic)
     {
         int indent = text.Length - text.TrimStart().Length;
         var lines = new List<string>();
@@ -68,6 +72,16 @@ internal static class FixedFormLayout
             string rest = token;
             while (cur.Length + rest.Length > MarginR)
             {
+                if (classic)
+                {
+                    // §6.3.5 1) (fixed continuation indicator): fill to position 72, no closing quotation symbol; the continuation line carries the
+                    // hyphen in position 7 and resumes the literal at a quotation symbol in position 12.
+                    int fill = MarginR - cur.Length;
+                    lines.Add(cur + rest[..fill]);
+                    rest = rest[fill..];
+                    cur = "      -" + new string(' ', TextStart + 4 - 7) + quote;
+                    continue;
+                }
                 int take = MarginR - cur.Length - 2;   // two positions for the indicator
                 if (rest[take - 1] == quote) take--;
                 lines.Add(cur + rest[..take] + quote + "-");

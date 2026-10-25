@@ -245,6 +245,49 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("AA-X", text);
     }
 
+    [Theory] // §7.2.3.2: the literal forms of text-name-1 and library-name-1 are a COBOL-2002 introduction (kb/Work PB1601,
+             // constructs row copy-literal-name-2002): COBOLNET0900 below 2002, clean from it — each literal written, so
+             // both names of one statement report; a name written as a WORD is 1985's own form and draws nothing.
+    [InlineData("COPY \"bk1\".", 85, 1)]
+    [InlineData("COPY 'bk1'.", 85, 1)]
+    [InlineData("COPY X\"626B31\".", 85, 1)]
+    [InlineData("COPY bk1 OF \"lib1\".", 85, 1)]
+    [InlineData("COPY \"bk1\" IN \"lib1\".", 85, 2)]
+    [InlineData("COPY bk1.", 85, 0)]
+    [InlineData("COPY bk1 OF lib1.", 85, 0)]
+    [InlineData("COPY \"bk1\".", 2002, 0)]
+    [InlineData("COPY \"bk1\" IN \"lib1\".", 2002, 0)]
+    [InlineData("COPY \"bk1\".", 2014, 0)]
+    public void LiteralLibraryName_IsACobol2002Introduction(string statement, int edition, int expectedGates)
+    {
+        Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
+        Directory.CreateDirectory(Path.Combine(_dir, "lib1"));
+        Copybook(Path.Combine("lib1", "bk1.cpy"), "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
+        var (_, bag) = Run(statement + "\n", edition);
+        var gates = bag.Diagnostics.Where(d => d.Code == "COBOLNET0900").ToList();
+        Assert.Equal(expectedGates, gates.Count);
+        Assert.All(gates, g => Assert.True(g.IsError, "an introduction is an error, never a warning"));
+        Assert.All(gates, g => Assert.Contains("COBOL-2002", g.Message));
+    }
+
+    [Theory] // §7.2.3.2 / §7.2.3.4 GR4: [SUPPRESS [PRINTING]] is a COBOL-2002 introduction (kb/Work PB1601, constructs row
+             // copy-suppress-2002), asked once per phrase written; REPLACING after it is still applied (PB1354).
+    [InlineData("COPY bk1 SUPPRESS.", 85, 1)]
+    [InlineData("COPY bk1 SUPPRESS PRINTING.", 85, 1)]
+    [InlineData("COPY bk1 SUPPRESS PRINTING REPLACING ==AA-X== BY ==BB-Y==.", 85, 1)]
+    [InlineData("COPY bk1 REPLACING ==AA-X== BY ==BB-Y==.", 85, 0)]
+    [InlineData("COPY bk1 SUPPRESS PRINTING.", 2002, 0)]
+    [InlineData("COPY bk1 SUPPRESS.", 2023, 0)]
+    public void Suppress_IsACobol2002Introduction(string statement, int edition, int expectedGates)
+    {
+        Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
+        var (text, bag) = Run(statement + "\n", edition);
+        var gates = bag.Diagnostics.Where(d => d.Code == "COBOLNET0900").ToList();
+        Assert.Equal(expectedGates, gates.Count);
+        Assert.All(gates, g => Assert.True(g.IsError, "an introduction is an error, never a warning"));
+        Assert.Contains(statement.Contains("REPLACING") ? "BB-Y" : "AA-X", text);   // the library text is spliced either way
+    }
+
     [Theory] // SR1: a COPY statement within a COPY statement (its REPLACING operands or its header) — COBOLNET2451,
              // and the inner COPY is NOT spliced from the operand.
     [InlineData("COPY bk1 REPLACING ==AA-X== BY ==COPY bk2.==.")]

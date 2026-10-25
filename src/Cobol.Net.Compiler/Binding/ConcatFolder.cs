@@ -42,7 +42,7 @@ using Core = CobolParserCore;
 /// pair's class fails the same rule).</item>
 /// <item>§8.8.3.2 SR1 second sentence — neither operand a figurative constant beginning with ALL →
 /// <c>COBOLNET1541</c>.</item>
-/// <item>§8.8.3.2 SR2–SR4 — the resulting value at most 8,191 character positions (per class) →
+/// <item>§8.8.3.2 SR2–SR4 — the resulting value at most 8,191 character positions (per class; 160 below COBOL-2014) →
 /// <c>COBOLNET1545</c>.</item>
 /// <item>§8.8.3.1 — a word operand that is neither a constant-name nor a symbolic-character is no literal →
 /// <c>COBOLNET2473</c>; inside SPECIAL-NAMES, §12.3.7.3 SR11's literals shall not specify a symbolic-character →
@@ -191,20 +191,23 @@ internal static class ConcatFolder
     public static Folded Fold(Core.ConcatenationExpressionContext ctx, EditionContext edition, LiteralEnvironment env)
     {
         var folded = Walk(ctx, env, edition);
-        if (ResultLengthViolation(folded) is { } tooLong) edition.Error(DiagnosticCatalog.ConcatResultTooLong, tooLong);
+        if (ResultLengthViolation(folded, edition.DialectLevel) is { } tooLong)
+            edition.Error(DiagnosticCatalog.ConcatResultTooLong, tooLong);
         return folded;
     }
 
     /// <summary>§8.8.3.2 SR2–SR4 — the value a concatenation results in is at most 8,191 character positions of its
-    /// class (alphanumeric / boolean / national): the message, or null when <paramref name="folded"/> is within
-    /// bounds. ONE statement of the rule for both concatenation forms — the <c>&amp;</c> expression, reported by
-    /// <see cref="Fold"/>, and the concatenated ALL literal-1, whose fold is diagnostic-free and whose §8.8.3.2 rules
-    /// the version pass's ALL arm reports once per written figurative (kb/Work PB1393: that form had no length check
-    /// at all).</summary>
-    internal static string? ResultLengthViolation(Folded folded) =>
-        folded.Value.Length <= CobolLiteral.MaxLiteralPositions ? null
+    /// class (alphanumeric / boolean / national) — the bound of the EDITION targeted
+    /// (<see cref="CobolLiteral.MaxPositions"/>: 160 below COBOL-2014, kb/Work PB1615, the number a literal itself is
+    /// held to, so the result of a concatenation and the literal it is equivalent to (§8.8.3.3 GR3) agree): the message,
+    /// or null when <paramref name="folded"/> is within bounds. ONE statement of the rule for every concatenation form —
+    /// the <c>&amp;</c> expression and the concatenated ALL literal-1 both reach it through <see cref="Fold"/> (kb/Work
+    /// PB1393: the ALL form had no length check at all).</summary>
+    internal static string? ResultLengthViolation(Folded folded, int dialectLevel) =>
+        folded.Value.Length <= CobolLiteral.MaxPositions(dialectLevel) ? null
             : $"the concatenated {Name(folded.Category)} value is {folded.Value.Length} character positions — the "
-              + $"maximum is {CobolLiteral.MaxLiteralPositionsText} (ISO §8.8.3.2 SR2–SR4)";
+              + $"maximum is {CobolLiteral.MaxPositionsText(dialectLevel)}{CobolLiteral.BoundProvenance(dialectLevel)} "
+              + "(ISO §8.8.3.2 SR2–SR4)";
 
     /// <summary>THE ONE CHARACTER a KEYWORD figurative constant (ZERO · SPACE · QUOTE · HIGH-VALUE · LOW-VALUE ·
     /// NULL, with or without ALL) stands for in class <paramref name="cat"/> wherever its string is one character
