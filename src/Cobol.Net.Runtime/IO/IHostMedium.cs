@@ -44,8 +44,13 @@ internal interface IHostMedium
     /// does not exist. Throws <see cref="UnauthorizedAccessException"/> for a directory this process may not list.</summary>
     IReadOnlyList<string> ListNames(string directory, string prefix);
 
-    /// <summary><see cref="SidecarLockFiles.Publish"/> of a holder whose published name is <paramref name="name"/>.</summary>
-    SidecarLockFiles.LockFileHolder? PublishHolder(string directory, string name);
+    /// <summary><see cref="SidecarLockFiles.Publish"/> of a holder whose published name is <paramref name="name"/>, answering the
+    /// publication's <see cref="RegionLockResult"/> and not a bare "no holder", because its two ways to fail are different findings
+    /// (kb/Work PB3632, PB3675). <see cref="RegionLockResult.Ok"/>: published, in <paramref name="holder"/>.
+    /// <see cref="RegionLockResult.Unavailable"/>: the host takes no lock here (a filesystem that does not hold the advisory lock,
+    /// or no directory beside which to hold one). <see cref="RegionLockResult.Held"/>: every try lost its race, a failure to
+    /// publish that says nothing about the host. <paramref name="holder"/> is null unless <c>Ok</c>.</summary>
+    RegionLockResult PublishHolder(string directory, string name, out SidecarLockFiles.LockFileHolder? holder);
 
     /// <summary><see cref="HostFile.ProbeLockFile"/>.</summary>
     HostFile.LockFileState ProbeHolder(string path);
@@ -89,11 +94,8 @@ internal sealed class HostMedium : IHostMedium
         catch (DirectoryNotFoundException) { return []; }
     }
 
-    public SidecarLockFiles.LockFileHolder? PublishHolder(string directory, string name)
-    {
-        SidecarLockFiles.Publish(directory, _ => name, out var holder);
-        return holder;
-    }
+    public RegionLockResult PublishHolder(string directory, string name, out SidecarLockFiles.LockFileHolder? holder) =>
+        SidecarLockFiles.Publish(directory, _ => name, out holder);
 
     public HostFile.LockFileState ProbeHolder(string path) => HostFile.ProbeLockFile(path);
 
