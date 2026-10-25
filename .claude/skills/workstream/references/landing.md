@@ -44,8 +44,12 @@
   offline the states are git-only) is the branch's own: one
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
-  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, nothing ran,
-  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527); exit 13 (another
+  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, or the
+  branch's own gate is still running and has not written its verdict, nothing ran, nothing is red) is no stop either: the
+  lane retries it once the lock is free (kb/Work PB3527, PB3662); exit 15 (PREDECESSOR
+  QUEUED: the branch merged a predecessor whose pull request is still open, so it carries that pull request's stamped
+  DEVLOG entry beside its own, nothing queued, nothing red) is the same: the lane retries it once no open pull request
+  owns an entry the branch carries (kb/Work PB3145); exit 13 (another
   `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
   once the lock is free. A gate NOT RUN (it
   measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause

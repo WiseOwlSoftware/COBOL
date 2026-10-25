@@ -366,6 +366,14 @@ public sealed class LandingPipelineDriftTests
                 + "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
                 + "failed close stops before anything else (kb/Work PB3527)",
             "the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
+            // kb/Work PB3662: a gate still running owes a verdict; it is exit 12, never the terminal exit 14
+            "land: a gate of the worktree still RUNNING (its gate lock is held, no verdict file) is exit 12, GATE "
+                + "BUSY, never exit 14",
+            // kb/Work PB3145: a merged predecessor's stamped entry, its pull request still open, is a wait (exit 15)
+            "land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into "
+                + "main",
+            "land: GitHub that cannot list the open pull requests is exit 9",
+            "land: once the predecessor's pull request has merged the same head lands",
         });
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "ruleset.py"), new[]
         {

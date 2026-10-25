@@ -272,6 +272,8 @@ class LinuxLeg:
 
 #: A run directory's other fixed names (kb/Work PB3536): the gate process's pid, and its output when it runs detached.
 PID_FILE = "gate.pid"
+#: What a detached gate's lock label says before the run directory it writes (`Gate.run`; `live_gate` reads it back).
+RUN_LABEL = ", run "
 LOG_FILE = "gate.log"
 #: `--await`'s answer while the gate still runs, and its default window (under a tool call's 10-minute limit).
 AWAIT_PENDING = "=== GATE AWAIT: PENDING"
@@ -864,6 +866,40 @@ def run_order(name: str) -> tuple[int, str]:
     return int(m["n"] or 0), name
 
 
+def run_dirs(run_root: Path) -> list[Path]:
+    """Every run directory in the run root, oldest first (`run_order`): THE listing of a worktree's gate runs, the gate's
+    own and the landing's (enqueue.tested_locally) alike."""
+    return sorted((p for p in run_root.iterdir() if p.is_dir() and RUN_DIR.fullmatch(p.name)),
+                  key=lambda p: run_order(p.name)) if run_root.is_dir() else []
+
+
+@dataclass(frozen=True)
+class LiveGate:
+    """A gate that runs in a worktree now: its lock's label (`holder`: the gate's own `gate <repo> (pid N, since T, run R)`)
+    and the run it writes (`run`, named in that label; None before the gate has a run directory)."""
+    holder: str
+    run: Path | None
+
+    @property
+    def what(self) -> str:
+        """How a message names it: its run, else its lock's label."""
+        return f"the gate run {self.run.name}" if self.run is not None else f"a gate ({self.holder or 'no label'})"
+
+
+def live_gate(lock_path: Path) -> LiveGate | None:
+    """THE ONE READER OF "A GATE IS RUNNING HERE" (kb/Work PB3662): the worktree's gate lock is held. `Gate.run` takes it
+    before anything else and holds it until its verdict file is written; it is an OS lock the OS drops when its holder
+    dies, so it is held exactly while a gate runs: a gate that died without a verdict frees it, and no process id
+    (which Windows reuses) is ever trusted. Taken and released at once to read it. None when no gate runs."""
+    lock = ExclusiveLock.try_take(lock_path, f"live_gate probe (pid {os.getpid()})")
+    if lock is not None:
+        lock.release()
+        return None
+    holder = ExclusiveLock.holder(lock_path)
+    run = Path(holder.partition(RUN_LABEL)[2].removesuffix(")")) if RUN_LABEL in holder else None
+    return LiveGate(holder, run)
+
+
 class Gate:
     def __init__(self, host: Host, run_root: Path, base: str | None = None,
                  say: Callable[[str], None] = lambda s: print(s, flush=True), run_dir: Path | None = None,
@@ -899,7 +935,7 @@ class Gate:
         if run is not None:  # a detached gate: its pid, before anything can fail, so `--await` can tell it from a death
             write_pid(run, os.getpid())
         label = (f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')}"
-                 + (f", run {run}" if run is not None else "") + ")")
+                 + (f"{RUN_LABEL}{run}" if run is not None else "") + ")")
         lock_path = self.host.lock_path()
         lock = ExclusiveLock.try_take(lock_path, label)
         if lock is None:
@@ -947,7 +983,7 @@ class Gate:
         no run qualifies: a RED is never reused, and another tree (a landing's merged head) always runs."""
         if not out.tree:
             return None
-        for p in reversed(self._runs()):
+        for p in reversed(run_dirs(self.run_root)):
             rec = read_record(p) if p != current else None
             if (rec is not None and rec.get("exit_code") == 0 and rec.get("tree") == out.tree
                     and rec.get("tree_end") == out.tree and rec.get("base") == out.base
@@ -1020,25 +1056,20 @@ class Gate:
                                    f"{ExclusiveLock.holder(lock_path) or '(no label)'}")
             time.sleep(0.01)
         with lock:
-            runs = self._runs()
+            runs = run_dirs(self.run_root)
             run = self.run_root / f"{(run_order(runs[-1].name)[0] if runs else 0) + 1:06d}-{self.now():%Y%m%dT%H%M%SZ}"
             run.mkdir()
         return run
 
-    def _runs(self) -> list[Path]:
-        """Every run directory in the run root, oldest first (`run_order`)."""
-        return sorted((p for p in self.run_root.iterdir() if p.is_dir() and RUN_DIR.fullmatch(p.name)),
-                      key=lambda p: run_order(p.name)) if self.run_root.is_dir() else []
-
     def previous_run(self, current: Path) -> Path | None:
         """The newest EARLIER run that reached a verdict and kept a trx: the plan's timings and reds."""
-        for p in reversed(self._runs()):
+        for p in reversed(run_dirs(self.run_root)):
             if p != current and (p / VERDICT_FILE).exists() and any(p.glob("*.trx")):
                 return p
         return None
 
     def _prune(self, current: Path) -> None:
-        for p in self._runs()[:-KEEP_RUNS]:
+        for p in run_dirs(self.run_root)[:-KEEP_RUNS]:
             if p != current:
                 shutil.rmtree(p, ignore_errors=True)
 
@@ -2056,7 +2087,7 @@ def self_test() -> int:
             "stopped instant and three more after the clock turned back are the newest, in the order they started, "
             "and a run named before the numbers is the oldest (the plan's newest earlier run, the reuse rule's, the "
             "pruning's)",
-            [p.name for p in ordered._runs()] == ["20261022T225440Z-2797b8", *made]
+            [p.name for p in run_dirs(ordered.run_root)] == ["20261022T225440Z-2797b8", *made]
             and [run_order(n)[0] for n in made] == list(range(1, 24)) and all(RUN_DIR.fullmatch(n) for n in made)
             and made[-1].endswith("-20261023T010000Z"), str(made))
         # two gates starting AT ONCE never take one number: eight threads, five runs each, on the stopped clock
@@ -2074,7 +2105,24 @@ def self_test() -> int:
         arm("gates starting at once each take their own number, under the run root's lock, and each one's runs are "
             "ordered as it made them",
             numbers == list(range(1, 41)) and all(ns == sorted(ns) for ns in took.values())
-            and len(racing._runs()) == 40, str(took))
+            and len(run_dirs(racing.run_root)) == 40, str(took))
+        # A GATE THAT IS STILL RUNNING OWES A VERDICT (kb/Work PB3662): the one reader the landing and the lane share.
+        # The reader is the gate lock itself (review R1-1: a pid file's process id is reused by Windows, an OS lock is not).
+        livelock = d / "live-gate.lock"
+        none_yet = live_gate(livelock)
+        dead_run = Gate(FakeHost(d, livelock), root / "live", say=sink.append).new_run()
+        write_pid(dead_run, os.getpid())   # a gate that DIED with no verdict, its pid since reused by a live process
+        reused = live_gate(livelock)
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 7, since T{RUN_LABEL}{dead_run})"):
+            seen = live_gate(livelock)
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 8, since T)"):
+            starting = live_gate(livelock)
+        arm("live_gate: a gate runs exactly while its gate lock is held (the holder's label names the run it writes, "
+            "else the label is all there is); a free lock is none, even beside a run with no verdict whose gate.pid "
+            "names a live process (a gate that died, its pid reused), and a lock the OS dropped reads free again",
+            none_yet is None and reused is None and seen is not None and seen.run == dead_run
+            and starting is not None and starting.run is None and "pid 8" in starting.what
+            and live_gate(livelock) is None, f"{none_yet} {reused} {seen} {starting}")
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
@@ -2119,7 +2167,7 @@ def self_test() -> int:
         d.mkdir()
         lin, hl = regate(d, plant={"linux"})
         def newest(dd: Path) -> Path:
-            return Gate(FakeHost(dd, dd / "gate.lock"), dd / "runs")._runs()[-1]
+            return run_dirs(dd / "runs")[-1]
         lrec = read_record(newest(d))
         arm("the Linux half runs the SAME plan's legs after the Windows half's, inside the slot, prints its output, and "
             "is recorded with the committed tree it measured (the evidence enqueue.py reads)",
