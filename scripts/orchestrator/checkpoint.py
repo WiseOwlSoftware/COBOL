@@ -44,7 +44,10 @@ def listed_worktrees(repo: pathlib.Path) -> list[dict]:
     """`git worktree list --porcelain`, one dict per worktree: its `worktree`, `HEAD` and `branch` lines keyed by name."""
     listing = git(repo, "worktree", "list", "--porcelain")
     if listing is None:
-        raise RuntimeError(f"git worktree list --porcelain failed in {repo}")     # an unreadable listing is not an empty one
+        # Not fatal: a unit that died still needs its handoff synthesized, and a checkpoint without the worktree view beats
+        # none (the supervisor's self-tests run these commands against a directory that is no repository). Said, not hidden.
+        print(f"checkpoint.py: git worktree list --porcelain failed in {repo}; no worktrees recorded", file=sys.stderr)
+        return []
     out, cur = [], {}
     for line in listing.splitlines() + [""]:
         if not line.strip():
