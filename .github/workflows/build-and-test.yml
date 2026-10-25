@@ -382,10 +382,8 @@ jobs:
           # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text,
           # referenced from doc comments). Skipping it keeps CI credential-free.
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -450,10 +448,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -498,10 +494,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -591,10 +585,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -680,10 +672,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -731,10 +721,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -802,6 +790,38 @@ jobs:
         shell: pwsh
         run: python scripts/line_endings.py --check
 
+  # ── ⛔ THE SDK CACHE IS SAVED UNDER MAIN (kb/Work PB3308; .github/actions/setup-dotnet). A merge group's run restores
+  # only what its own ref or main saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new every time, so what
+  # a merge group's jobs save is never read again; main's push run skips the matrix (the already-verified short-circuit
+  # in `changes`), so no building job saves it there either. This job does, on every push to main, on both OSes: it
+  # restores the pinned SDK in seconds when main's cache holds it and installs and saves it when not, so a merge group
+  # finds it even while every feed refuses. A warm-up that fails warns and passes: a merge group's own install still
+  # tries the feeds, and only a building job decides a verdict. ──
+  dotnet-sdk-cache:
+    name: dotnet-sdk-cache (${{ matrix.os }})
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions
+            scripts/install-dotnet-sdk.sh
+            global.json
+          sparse-checkout-cone-mode: false
+      - id: warm
+        name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        continue-on-error: true
+        uses: ./.github/actions/setup-dotnet
+      - if: ${{ steps.warm.outcome == 'failure' }}
+        shell: bash
+        run: echo "::warning::the pinned .NET SDK is not in main's cache (its install failed above); a merge group's jobs install it from the feeds"
+
   # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
   # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
   #   • the conformance jobs are MATRICES — their check names carry the shard value (`Greenfield conformance
@@ -817,7 +837,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests]
+    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, dotnet-sdk-cache]
     runs-on: ubuntu-26.04
     steps:
       - name: Verdict
