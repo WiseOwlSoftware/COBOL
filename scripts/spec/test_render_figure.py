@@ -30,6 +30,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import render_figure as R  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 # name: (measured words as (text, x0, x1, y0, underlined), measured stems as (x, y0, y1, kind, side), the drawing)
 FIGURES = {
@@ -597,8 +599,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
+    ensure_utf8()
     sys.exit(main())

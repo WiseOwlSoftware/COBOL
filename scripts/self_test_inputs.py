@@ -55,6 +55,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 #: The runner itself: a change to how a self-test is run (its environment, isolation, tracer) re-runs every self-test.
@@ -489,8 +490,6 @@ def run_deps(test: str, tree: Tree, deriver: Deriver, trace: Trace) -> Deps:
 
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if args[:1] == ["--self-test"]:
         return self_test()
     sys.path.insert(0, str(REPO / "scripts"))
@@ -603,4 +602,5 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

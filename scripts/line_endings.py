@@ -46,6 +46,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import live_tools  # this directory's: the one list of the live tools' trees, where the WRITERS arm looks
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 CR, LF, NUL = b"\r", b"\n", b"\0"
@@ -545,7 +546,6 @@ def main() -> int:
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8")
     if args.self_test:
         return self_test()
     if args.fix:
@@ -563,4 +563,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

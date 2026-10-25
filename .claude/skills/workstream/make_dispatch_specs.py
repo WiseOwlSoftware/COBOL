@@ -64,6 +64,8 @@ sys.path.insert(0, str(REPO / 'scripts' / 'spec'))
 import coord  # noqa: E402  (the one definition of the stop files and the reports directory)
 import plan_wave  # noqa: E402  (record_dispatch: THE ledger writer; computed_file_set: THE computed file set)
 import work  # noqa: E402  (the register: which notes are terminal)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 PB = re.compile(r'\bPB\d+\b')
 
@@ -192,4 +194,5 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

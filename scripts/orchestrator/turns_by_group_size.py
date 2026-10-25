@@ -35,6 +35,8 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import coord  # noqa: E402
 from plan_wave import REPORT_NAME  # noqa: E402  (the ONE fix-lane report name, kb/Work PB3711: group letter AND successor digit)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 TURNS = re.compile(r"(?:\*\*turns:\*\*\s*(?:about\s+)?|\bturns\s+~|Turns used[^:\n]*:\s*(?:about\s*)?)~?\s*(\d+)", re.I)
 STATUS = re.compile(r"^\s*(?:\*\*Status:\*\*\s*|Status:\s*)?(DONE|SPLIT|DISCHARGED|BLOCKED|GATE-PENDING)\b", re.M)
@@ -202,4 +204,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

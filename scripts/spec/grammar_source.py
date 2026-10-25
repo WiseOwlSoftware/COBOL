@@ -40,6 +40,8 @@ import pathlib
 import re
 import sys
 from typing import NamedTuple
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 GRAMMAR_DIR = REPO / "src" / "Cobol.Net.Frontend" / "Grammar"
@@ -262,10 +264,6 @@ def private_readers(root: pathlib.Path = REPO / "scripts") -> list[str]:
 
 
 def main() -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, ValueError):
-        pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="prove every trap is handled, on planted grammar")
     args = ap.parse_args()
@@ -279,4 +277,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -12,6 +12,10 @@ fails when a regex or substring test of the heading is written anywhere else.
 from __future__ import annotations
 
 import re
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The noun phrase, both nouns, singular and plural. Compose it; never re-type it.
 GENERAL_FORMAT_NOUN = r"general\s+(?:formats?|forms?)"
@@ -75,6 +79,7 @@ def _self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     import sys
 
     sys.exit(_self_test() if sys.argv[1:] == ["--self-test"] else 2)
