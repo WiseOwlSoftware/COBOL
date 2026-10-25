@@ -52,6 +52,46 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
             "INSPECT's elementary arm reads the usage itself again; ask ItemCategory.IsDisplayOrNationalUsage.");
     }
 
+    /// <summary>kb/Work PB3665: the same sentence reaches a FUNCTION-IDENTIFIER, which §15.2 describes by its type (an
+    /// alphanumeric function is usage display, a national one usage national, a boolean one usage bit, and the numeric,
+    /// integer and index functions state none). STRING SR1 and INSPECT SR2 ask the ONE function reader beside the
+    /// data-item predicate, and the usage-by-type table is written once, in <c>IntrinsicSig</c>; a binder that
+    /// spells the function's usage out itself (or lets the folded FUNCTION LENGTH fall to the numeric-literal arm)
+    /// is how STRING came to admit <c>FUNCTION INTEGER(N)</c> and call <c>FUNCTION LENGTH(G)</c> a literal.</summary>
+    [Fact]
+    public void FunctionIdentifierUsage_IsAskedOfTheOneReader_ByStringAndInspect()
+    {
+        string str = Code("Binding", "Procedure", "Verbs", "StringUnstringBinder.cs");
+        Assert.Contains("IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(", str);
+        Assert.True(str.IndexOf("FunctionIsNotDisplayOrNational(", StringComparison.Ordinal)
+            < str.IndexOf("BoundNumericLiteral =>", StringComparison.Ordinal),
+            "STRING SR1's function arm must precede its numeric-literal arm, or the folded FUNCTION LENGTH is called a literal.");
+        Assert.Contains("IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(", Code("Binding", "Validation", "StatementValidation.cs"));
+        Assert.Contains("CheckInspectFunctionUsage(", Code("Binding", "Procedure", "Verbs", "InspectBinder.cs"));
+        Assert.Contains("IntrinsicSig.ImplicitUsageOf(", Code("Binding", "IntrinsicArgumentRules.cs"));
+    }
+
+    [Fact]
+    public void TheFunctionUsageTable_ExistsOnce()
+    {
+        var definitions = new List<string>();
+        string root = TestRepo.Src("Cobol.Net.Compiler");
+        foreach (string file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+        {
+            string sep = Path.DirectorySeparatorChar.ToString();
+            if (file.Contains($"{sep}obj{sep}", StringComparison.Ordinal)) continue;
+            string src = StripComments(File.ReadAllText(file));
+            foreach (Match m in Regex.Matches(src, @"static\s+[\w<>?\.]+\s+(?<n>ImplicitUsageOf)\s*\("))
+                definitions.Add($"{Path.GetFileName(file)}#{m.Groups["n"].Value}");
+            // A second spelling of 'an alphanumeric function has usage display' is the table written again (ConditionBinder
+            // and StaticUsageOf each carried one before kb/Work PB3665).
+            if (Regex.IsMatch(src, @"PicCategory\.Alphanumeric\s*=>\s*Usage\.Display"))
+                definitions.Add($"{Path.GetFileName(file)}#PicCategory.Alphanumeric=>Usage.Display");
+        }
+        Assert.Equal(["IntrinsicCatalog.cs#ImplicitUsageOf", "IntrinsicCatalog.cs#PicCategory.Alphanumeric=>Usage.Display"],
+            definitions.OrderBy(d => d, StringComparer.Ordinal));
+    }
+
     [Fact]
     public void TheStronglyTypedLeafWalk_ExistsOnce_InItemCategory()
     {
