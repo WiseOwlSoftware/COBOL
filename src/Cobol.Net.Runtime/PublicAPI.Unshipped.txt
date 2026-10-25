@@ -61,6 +61,11 @@ CobolNet.Runtime.Exceptions.SortTerminationSignal
 CobolNet.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 CobolNet.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
 CobolNet.Runtime.Exceptions.SortTerminationSignal.SortTerminationSignal(string! file, int action) -> void
+CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.BooleanCharacters = 3 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Other = 0 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Space = 2 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Zero = 1 -> CobolNet.Runtime.FigurativeSender
 CobolNet.Runtime.HostLanding
 CobolNet.Runtime.IO.FileConnector.StartPositioned() -> string!
 CobolNet.Runtime.IO.FileConnector.Unsuccessful(string! status) -> string!
@@ -130,6 +135,7 @@ CobolNet.Runtime.StorageCell.Received(System.ReadOnlySpan<long> path, long at, i
 CobolNet.Runtime.StorageCell.Received(long at, int width) -> void
 CobolNet.Runtime.StorageCell.VarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CellGroupShape?[]? elems = null, bool byReference = false) -> CobolNet.Runtime.CobolVarGroup!
 const CobolNet.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
+const CobolNet.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
 const CobolNet.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
 const CobolNet.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
 override CobolNet.Runtime.CobolDecWithPrecision.GetHashCode() -> int
@@ -141,6 +147,8 @@ override sealed CobolNet.Runtime.IO.KeyedConnector.CloseCore() -> string!
 override sealed CobolNet.Runtime.IO.KeyedConnector.InvalidateFilePosition() -> void
 override sealed CobolNet.Runtime.IO.KeyedConnector.OpenCore(CobolNet.Runtime.IO.FileOpenMode mode, CobolNet.Runtime.IO.FilePresence presence) -> string!
 static CobolNet.Runtime.AcceptSource.DeviceNumeric(in CobolNet.Runtime.NumProfile receiver, int size, bool commaMode) -> System.Int128
+static CobolNet.Runtime.ActivationCategory.FigurativeSenderOf(string? category) -> CobolNet.Runtime.FigurativeSender?
+static CobolNet.Runtime.ActivationCategory.OfFigurative(CobolNet.Runtime.FigurativeSender sender) -> string!
 static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
 static CobolNet.Runtime.ActivationRelations.MatchViolation(CobolNet.Runtime.ActivationDescription! argument, CobolNet.Runtime.ActivationDescription! formal) -> string?
 static CobolNet.Runtime.ActivationRelations.SignatureDifference(CobolNet.Runtime.ActivationDescription! first, CobolNet.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
@@ -240,7 +248,7 @@ static CobolNet.Runtime.IO.FileLockPosture.WhenOwedWritesAreAdmitted(CobolNet.Ru
 static CobolNet.Runtime.IO.KeySegment.operator !=(CobolNet.Runtime.IO.KeySegment left, CobolNet.Runtime.IO.KeySegment right) -> bool
 static CobolNet.Runtime.IO.KeySegment.operator ==(CobolNet.Runtime.IO.KeySegment left, CobolNet.Runtime.IO.KeySegment right) -> bool
 static CobolNet.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, CobolNet.Runtime.ReceivingReferences?>! store) -> CobolNet.Runtime.ManagedPointer<T>!
-static CobolNet.Runtime.MoveValidity.FigurativeRefusal(bool zero, bool booleanCharacters, CobolNet.Runtime.Table16Category receiver) -> string?
+static CobolNet.Runtime.MoveValidity.FigurativeRefusal(CobolNet.Runtime.FigurativeSender sender, CobolNet.Runtime.Table16Category receiver) -> string?
 static CobolNet.Runtime.ObjectReferenceOperand.operator !=(CobolNet.Runtime.ObjectReferenceOperand left, CobolNet.Runtime.ObjectReferenceOperand right) -> bool
 static CobolNet.Runtime.ObjectReferenceOperand.operator ==(CobolNet.Runtime.ObjectReferenceOperand left, CobolNet.Runtime.ObjectReferenceOperand right) -> bool
 static CobolNet.Runtime.ObjectReferenceSet.Refusal(CobolNet.Runtime.ObjectReferenceOperand send, CobolNet.Runtime.ObjectReferenceOperand recv, bool activeClassSenderAdmitted = true) -> string?

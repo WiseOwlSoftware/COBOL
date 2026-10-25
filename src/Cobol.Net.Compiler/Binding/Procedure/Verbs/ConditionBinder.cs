@@ -1570,7 +1570,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// as the computed operand it is makes the screen see an arithmetic expression for all of them; against a
     /// numeric operand the comparison is numeric either way, so no conforming value changes. The bind keeps the
     /// §8.8.1.1 operand screen, so no index-name or index data item is inside it (kb/Work PB2018).</summary>
-    private BoundOperand CompoundOperand(Core.ArithmeticExpressionContext expr) =>
+    internal BoundOperand CompoundOperand(Core.ArithmeticExpressionContext expr) =>
         host.Expr.BindExpr(expr) switch
         {
             BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),

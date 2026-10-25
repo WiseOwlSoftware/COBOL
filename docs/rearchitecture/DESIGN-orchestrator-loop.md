@@ -27,7 +27,7 @@ closed per weekly-quota point.
 | `scripts/orchestrator/steer.ps1` | the OPERATOR's one way to name the loop's next unit: a validated `handoff.operator.json` (section 4.8) |
 | `scripts/orchestrator/units/*.md` | `common.md` (the rules every unit obeys) plus one short prompt per unit type; they reference files, never paste them |
 | `scripts/orchestrator/handoff.schema.json` | the contract between a unit and the supervisor (section 5) |
-| `scripts/orchestrator/alloc.py` | the one locked allocator for DEVLOG numbers, `PB` ids and `COBOLNET` codes (section 6) |
+| `scripts/orchestrator/alloc.py` | the one locked allocator for DEVLOG numbers, `PB` ids, `COBOLNET` codes and wave numbers (section 6) |
 | `scripts/orchestrator/inventory_ratchet.py` | the closed-rows ratchet (section 7) |
 | `scripts/orchestrator/budget.py` | the weekly and session quota estimator (section 8) |
 | `scripts/orchestrator/plan_wave.py` + `model_rules.json` | the deterministic wave planner and its routing and cost constants (section 9) |
@@ -63,7 +63,7 @@ the tools it runs). Contents:
 | `land-lane\` | `land_lane.py` (the supervisor's tick, its detached runners, the enqueue unit's `collect` and `rearm`, the operator's `clear-halt`) | the landing lane's state (section 4.9): `attempts\<id>.json` (one per `enqueue.py land` run: branch, head, log, runner pid, exit code, verdict, end head, collected), `survey.json` (the last tick's branch survey, which `next_unit.py` reads), `rearm\<branch>.json` (the enqueue unit's re-arm of a branch at its tip: one more attempt at an unchanged head), `HALT` (a run ended QUEUE NOT ACTIVE) and `tick.lock` |
 | `clusters-open.json`, `clusters-half.json` | `plan_wave.py` | the latest `fix_clusters.py --json` views it planned from |
 | `clusters-campaign-<lead>.json` | `plan_wave.py --cluster` | the latest campaign view it planned from: the open and half clusters, `deps` and `waiting` (section 9.1) |
-| `inflight-groups.json` | `make_dispatch_specs.py`, for every group it renders once its `check_practices.py` run is GREEN (a RED render records nothing, kb/Work PB3114; the planner's waves, which it runs, and a hand-planned wave alike), through `plan_wave.record_dispatch`, an upsert keyed on (wave, letter); `plan_wave.py --release` | the dispatch ledger: every rendered group whose notes are not all landed or retired, with its slug, notes, exact file set and when it was first recorded (`at`, kept by a re-render, kb/Work PB3392); every plan's file-set partition reads it (section 9 item 1b), so a dispatched group is in flight before its agent has a worktree or a commit, and the landing check (`landing_check.py`, run by `enqueue.py land`) reads it for a landing's declared set, its dispatch order and an in-flight branch's identity (the ONE group its report names, else the one that best covers its diff); a wave entry never expires and an aborted one is released with `plan_wave.py --release <wave|group|note>`. It is never written from a scrape of a prompt (kb/Work PB3186: the dispatch guard's retired recorder took every note id a brief mentioned); an entry with `hand: true` or a non-numeric wave is ignored by every reader and dropped by the next record (`plan_wave.ledger_groups`; section 9.1; kb/Work PB2118 Drafts 7–10) |
+| `inflight-groups.json` | `make_dispatch_specs.py`, for every group it renders once its `check_practices.py` run is GREEN (a RED render records nothing, kb/Work PB3114; the planner's waves, which it runs, and a hand-planned wave alike), through `plan_wave.record_dispatch`, an upsert keyed on (wave, letter); `plan_wave.py --release` | the dispatch ledger: every rendered group whose notes are not all landed or retired, with its slug, notes, exact file set and when it was first recorded (`at`, kept by a re-render, kb/Work PB3392); every plan's file-set partition reads it (section 9 item 1b), so a dispatched group is in flight before its agent has a worktree or a commit, and the landing check (`landing_check.py`, run by `enqueue.py land`) reads it for a landing's declared set, its dispatch order and an in-flight branch's identity (the ONE group its report names, else the one that best covers its diff); a wave entry never expires and an aborted one is released with `plan_wave.py --release <wave|group|note>`. It is never written from a scrape of a prompt (kb/Work PB3186: the dispatch guard's retired recorder took every note id a brief mentioned); an entry with `hand: true` or a non-numeric wave is ignored by every reader and dropped by the next record (`coord.ledger_groups`; section 9.1; kb/Work PB2118 Drafts 7–10) |
 | `member-index/<treeKey>.members.json.gz` | `plan_wave.py --cluster` (`member_index.current`) | the member index regenerated for the planner's own tree when no committed record has its `treeKey`: the planner never plans on a stale index (kb/Work PB2118 Draft 9) |
 | `scratch/train<label>-manifest.json` | the retired train landers (none written since kb/Work PB3023) | a past train's members; `prune_worktrees.py` still reads the landed ones (`train_heads`) to classify the branches those trains carried |
 | `units.jsonl` | the supervisor | one line per unit (section 4.5) |
@@ -731,7 +731,7 @@ Every unit's checkpoint and milestones are kept beside its log: `logs\<time>-<un
 
 ## 6. The allocator (`alloc.py`)
 
-`python scripts/orchestrator/alloc.py devlog | pb N | code N` prints the allocated value or the range
+`python scripts/orchestrator/alloc.py devlog | pb N | code N | wave` prints the allocated value or the range
 (`PB1982-PB1986`, `COBOLNET2799-COBOLNET2801`); `peek <kind>` prints the next free value without reserving, with
 the truth-source detail. `--coord DIR` (or `COBOL_COORD_DIR`) and `--repo DIR` select the coordination directory
 and the repository.
@@ -743,11 +743,17 @@ and the repository.
   - `code`: the ceiling of BOTH scans: every `COBOLNET\d{4}` in `src/**/*.cs` (outside `bin`/`obj`) and every
     quoted `"COBOLNET\d{4}"` in `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
     `session-probe.ps1` used to compute itself; it now calls `alloc.py peek code --probe` and prints that line, so
-    the rule exists once.
+    the rule exists once;
+  - `wave`: the highest wave OR train number in use (`alloc.wave_top`): in a report's name in the reports directory
+    (`coord.REPORT_NAME`; a hand dispatch's report included), in the dispatch ledger (`coord.ledger_groups`) or in the
+    newest DEVLOG entries' wave and train labels (a train label counts: a wave's first train carries the wave number,
+    kb/Work PB2562). `plan_wave.py --wave next` peeks it while it plans and reserves it once the specs check GREEN
+    (as it does the codes, PB3114); a hand dispatch asks `alloc.py wave` before it names its report, so a number handed
+    out and not yet written anywhere (the reservation) is never given again (kb/Work PB3700).
 - **The lock** is `coord.locked(cdir, "alloc.lock")`, the coordination directory's one short mutex: an atomic create (`os.open` with `O_CREAT | O_EXCL`) holding the PID and time.
   A lock older than 60 seconds is stale (the allocator holds it for milliseconds) and is broken by an atomic rename
   to a unique name, so two breakers cannot both win. A waiter retries for 30 seconds, then fails loudly.
-- **Reservations** persist in `alloc.json` (`{"devlog": n, "pb": n, "code": n}`), written to a temporary file and
+- **Reservations** persist in `alloc.json` (`{"devlog": n, "pb": n, "code": n, "wave": n}`), written to a temporary file and
   renamed, so a crash never leaves it half-written. A reservation is never returned: an unused id is a gap, which
   costs nothing, while a reused one costs a renumbering pass.
 - Truth wins over a stale reservation file and a reservation wins over a truth that has not caught up (an id handed
@@ -834,8 +840,9 @@ of one account bracket a measured spend (open decisions D6, D8).
 
 `python scripts/orchestrator/plan_wave.py (--budget-points P | --from-budget) [--wave N|next] [--scratch DIR]
 [--reports DIR] [--clusters-json FILE] [--half-clusters-json FILE] [--no-branches] [--max-groups N] [--drain] [--dry-run]`.
-`--wave` defaults to one past the highest wave in the reports directory, the dispatch ledger or the newest DEVLOG
-lines (a wave planned with no report yet, another session's included, holds its number: kb/Work PB2806).
+`--wave` defaults to the allocator's next wave number (`alloc.py wave`, section 6: one past the highest wave in the
+reports directory, the dispatch ledger or the newest DEVLOG lines, and past every number handed out; a wave planned with
+no report yet, another session's included, holds its number: kb/Work PB2806, PB3700).
 
 The plannable notes are exactly those `fix_clusters.py --json` lists (the submodule's view of `kb/Work`, which
 applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status: open`, once over `status: half`.
@@ -910,7 +917,8 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
    repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to
    `<coord>/partition-measure.jsonl` (`plan_wave.partition_record`: the same-file pairs run side by side, the notes a
-   collision held and why), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
+   collision held and why, and WHAT each hold shared as data, `collided_on`, the files and `file#member`s
+   `collision_hits` found, so no reader parses a reason's prose: kb/Work PB3695), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
    bounce causes for the conflicts. `test_plan_wave.py` section 12 pins each arm.
 2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
@@ -922,11 +930,16 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    diff-only re-review, and the note waits, named, never a group: kb/Work PB3394; where the REPORT does not cover the
    tip either (commits after its HEAD that no report describes), the survey reads the branch IN FLIGHT or a DECISION,
    never WAITING FOR REVIEW, and the planner says so from `Coverage.report`, the survey's own `report_since`: kb/Work
-   PB3446): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
-   the fix lane cannot see (a `process_only` note, or an owner task's note that exists only on its own branch, read
-   from that branch: `branch_lead_notes`) is decided by the same rule as an open note: its newest report naming it, on
-   any branch, so its review finisher's later report on the finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`)
-   supersedes the `FINDINGS` one (kb/Work PB3150, review R1-1). Every other arm decides such a lead as it decides an
+   PB3446): one finisher group per predecessor report. STARTED WORK IS THE PLANNER'S WHICHEVER LANE PLANNED IT: the lead
+   of a live `FINDINGS` report that the fix lane cannot see (a `process_only` note, or an owner task's note that exists
+   only on its own branch, read from that branch: `branch_lead_notes`), and every still-open note a live `SPLIT`,
+   `NOT STARTED` or gate-ended report answers whose branch is not on main (a campaign's notes cut short by a fleet stop:
+   wave 20261031's groups A, C and D, which `--drain` listed as judgment rows, kb/Work PB3699), is decided by the same
+   rule as an open note: its newest report naming it, on any branch, so its review finisher's later report on the
+   finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`) supersedes the `FINDINGS` one (kb/Work PB3150, review R1-1). The
+   branch survey promises exactly this for a covered `FINDINGS` stamp, whatever the report's age (`findings_open`:
+   an old report with findings is the finisher's, never "land it"; kb/Work PB3118), and its self-test plans the same
+   rows with no cluster holding their leads. Every other arm decides such a lead as it decides an
    open note: a dispatch that holds it waits (item 1: its review finisher dispatched and not yet reported is never
    planned twice), the frontier-model hold (item 9) and (c) below all read the planner's leads, never the open notes
    alone (review R2-1). (b) The half
@@ -964,10 +977,11 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    note nobody had started.
 3. **Clusters**, minus every note above, ranked by inventory rows claimed (the sum of each note's
    `inventory_rows`, read with `work.py`'s one frontmatter reader), then by harm.
-4. **One group per primary file and member**: a later group on the same file whose claim there meets an earlier
-   group's (the whole file, or a shared member: `plan_wave.unit_meet`) becomes a same-file successor (`after:
-   <letter>`, letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2, a shared-MEMBER
-   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670). **The placement order is
+4. **One group per file and member claimed**: a later group whose claim meets an earlier group's on ANY file both
+   claim (the whole file, or a shared member: `plan_wave.collision` over `unit_meet`, the question the in-flight check
+   asks too, kb/Work PB3696) becomes a successor (`after: <letter>`, letter suffixed `2`, `3`), the rule
+   `check_practices.py` (O2) enforces on a groups file through the same `collision`; a group on other members of a file,
+   and nothing else shared, runs beside it (kb/Work PB3670). **The placement order is
    the tier** (kb/Work PB3638): groups are placed, lettered and chained in tier order, a campaign's effective tier
    (`work.cluster_order`, passed to `plan` as `tiers`; a finisher takes its notes', a group its lowest, lowered by
    `lift_tiers` to that of every group waiting on it), finishers first inside one tier, so the owner's highest tier
@@ -1069,7 +1083,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
   top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
   linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a
-  shared primary file on which the two claims meet (item 4), so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
+  claim meeting another placed group's (item 4). A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.
