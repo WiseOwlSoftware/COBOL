@@ -80,7 +80,16 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      stamped in one commit; an entry stamped by an earlier run keeps its number, even when main has since landed a
      higher one (kb/Work PB3123: the queue orders landings after their stamps). Then `queue`, the pull request titled with
      that entry's title and carrying the entry and the commit list as its body. Should main move again between the
-     fetch and `queue`'s own (seconds), step 4 runs again, at most CATCH_UP times.
+     fetch and `queue`'s own (seconds), step 4 runs again, at most CATCH_UP times. A branch that merged a PREDECESSOR
+     (a branch of its own lineage that was stamped and queued first) carries that branch's stamped entry beside its
+     own until the predecessor's pull request merges; `devlog.py stamp` folds only pending entries (a stamped entry is
+     another pull request's title and keeps its number, kb/Work PB3123), so the branch adds two entries and has no
+     single one to title its pull request with. When every extra stamped entry belongs to an OPEN pull request into
+     main whose head the branch contains (`open_predecessors`, GitHub's own list; the branch's own pull request is
+     none), and exactly one entry is left, that is exit 15, PREDECESSOR QUEUED: nothing is queued, no report line, the
+     branch keeps the merge and the stamp, and the lane lands it again at this head once no such pull request is open
+     (`land_lane.predecessor_free`, the same reader; kb/Work PB3145). A pull request that CLOSED without merging is
+     no longer open, so the same branch then ends exit 6 NO ENTRY as before: a stop for a finisher, not a wait.
 Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to block on (MANDATORY-PRACTICES P2).
 
 `queue`, run in the landing worktree on its committed, up-to-date HEAD:
@@ -122,7 +131,8 @@ the push, the pull request or the queue (main untouched; re-run after the cause 
 11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
 gate lock (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
 is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
-recorded GREEN local gate covers it (`land` only; nothing merged; step 3).
+recorded GREEN local gate covers it (`land` only; nothing merged; step 3) · 15 the branch carries a stamped entry of a
+predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4).
 
 AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
 checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
@@ -161,6 +171,7 @@ EXIT_UNREVIEWED = 11
 EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate lock, or its verdict is not in yet, kb/Work PB3662): nothing ran, nothing is red (kb/Work PB3527)
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
+EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
@@ -643,6 +654,57 @@ def pull_request_text(wt: pathlib.Path, base: str, branch: str) -> tuple[str, st
     return title, f"{body.strip()}\n\nBranch: `{branch}`\n\nCommits:\n{commits}\n"
 
 
+def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[dict[int, list[str]], str]:
+    """THE ONE READER of "which still-open pull requests own a DEVLOG entry this branch carries" (kb/Work PB3145): (the
+    open pull requests into main whose head the branch CONTAINS and main does not, each mapped to the new DEVLOG
+    entries it adds to `base` — those with none are left out —, "" | why GitHub or the range could not be read). The
+    branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land` asks it to tell a
+    wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
+    import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
+    try:
+        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200",
+                           "--json", "number,headRefName,headRefOid"])
+    except ruleset.Unobserved as exc:
+        return {}, f"GitHub gave no answer ({exc})"
+    if rc != 0:
+        return {}, f"gh could not list the open pull requests (exit {rc}): {(out + err).strip()}"
+    try:
+        listed = json.loads(out or "[]")
+        heads = [(int(pr["number"]), str(pr["headRefOid"])) for pr in listed if pr.get("headRefName") != branch]
+    except (ValueError, KeyError, TypeError) as exc:
+        return {}, f"the open pull request list is not the JSON asked for ({exc})"
+    found: dict[int, list[str]] = {}
+    for number, oid in heads:
+        # contained: the branch merged the predecessor's tip; not in main: its entry has not landed yet.
+        if _git(wt, "merge-base", "--is-ancestor", oid, "HEAD").returncode != 0 \
+                or _git(wt, "merge-base", "--is-ancestor", oid, base).returncode == 0:
+            continue
+        try:
+            entries = devlog.landing_entries(wt, base, oid)[1]
+        except devlog.RangeError as exc:
+            return {}, f"pull request #{number}'s DEVLOG entries could not be read ({exc})"
+        if entries:
+            found[number] = entries
+    return found, ""
+
+
+def awaited_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[list[int], str]:
+    """The open pull requests `land` waits for when the branch adds no single stamped entry (kb/Work PB3145): (their
+    numbers, "") when the landing's new entries, less those the open predecessors own (`open_predecessors`), leave
+    EXACTLY ONE — the branch's own, which main will then add alone —; ([], "") when waiting would not help (no such
+    pull request, or a residue other than one: a real NO ENTRY); ([], why) when GitHub or the range was unreadable."""
+    import devlog  # noqa: PLC0415
+    queued, problem = open_predecessors(wt, base, branch, gh=gh)
+    if problem or not queued:
+        return [], problem
+    try:
+        new = devlog.landing_entries(wt, base, "HEAD")[1]
+    except devlog.RangeError as exc:
+        return [], f"the landing's DEVLOG entries could not be read ({exc})"
+    owned = {name for names in queued.values() for name in names}
+    return (sorted(queued), "") if len([n for n in new if n not in owned]) == 1 else ([], "")
+
+
 def fetch_main(wt: pathlib.Path) -> str | None:
     """Fetch origin's main into refs/remotes/origin/main: None, or why it failed (a usage/state stop, never a pass)."""
     f = _git(wt, "fetch", "--quiet", "origin", "+refs/heads/main:refs/remotes/origin/main")
@@ -911,6 +973,18 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
             return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md`")
         title, body = pull_request_text(wt, base, branch)
         if not title:
+            # A merged predecessor's stamped entry rides beside this branch's own until ITS pull request merges
+            # (kb/Work PB3145): a wait, with nothing queued and no report line; the lane lands this head again once no
+            # open pull request owns an entry the branch carries (land_lane.predecessor_free).
+            waiting, problem = awaited_predecessors(wt, base, branch, gh=gh)
+            if problem:
+                return end(EXIT_GITHUB, f"NOT QUEUED — the branch adds no single stamped DEVLOG entry and whether an open "
+                                        f"predecessor owns the others could not be read: {problem}")
+            if waiting:
+                return end(EXIT_PREDECESSOR_QUEUED,
+                           f"PREDECESSOR QUEUED — the branch carries the stamped DEVLOG entries of the open pull "
+                           f"request(s) {', '.join('#' + str(n) for n in waiting)} beside its own: nothing queued; landed "
+                           "again once they merge")
             return end(6, "NO ENTRY — the branch adds no single stamped DEVLOG entry to title its pull request")
         body_file = pathlib.Path(_git(wt, "rev-parse", "--absolute-git-dir").stdout.strip()) / "enqueue-pr-body.md"
         body_file.write_text(body, encoding="utf-8", newline="\n")
@@ -1755,6 +1829,85 @@ def self_test() -> int:
                "--lane, lands without a stamp",
                "FINDINGS" in findings and "--lane" in no_report and rc_lane == 0 and not ran,
                f"{findings!r} {no_report!r} {rc_lane}")
+
+        # ── a merged predecessor's open pull request (kb/Work PB3145) ──────────────────────────────────────────────
+        # `succ` merged `pred`, whose entry 0050 was stamped when its pull request #701 was queued; #701 is still open,
+        # so `succ` adds two stamped entries (0050 and its own 0051) and has no single one to title its pull request.
+        assert fetch_main(wt) is None
+        pred = scratch.worktree(root / "pred-wt", branch="pred", start="origin/main")
+        (pred.path / "DEVLOG").mkdir()
+        (pred.path / "DEVLOG" / "0050-pb9-the-predecessor.md").write_text(
+            "## Entry 50 — 2026-10-24 10:00 PDT — PB9: the predecessor\n\nWhy.\n", encoding="utf-8", newline="\n")
+        pred.git("add", "DEVLOG")
+        pred.git("commit", "--quiet", "-m", "the predecessor, stamped and queued as #701")
+        pred_tip = pred.git("rev-parse", "HEAD")
+        succ = scratch.worktree(root / "succ-wt", branch="succ", start="origin/main")
+        succ.git("merge", "--quiet", "--no-edit", "pred")
+        own_before_stamp = succ.git("rev-parse", "HEAD")
+        (succ.path / "DEVLOG" / "pending-successor.md").write_text("## PB9: the successor\n\nWhy.\n",
+                                                                    encoding="utf-8", newline="\n")
+        succ.git("add", "DEVLOG")
+        succ.git("commit", "--quiet", "-m", "the successor's entry")
+
+        def stamp_successor(w: pathlib.Path, b: str) -> int:
+            if not (w / "DEVLOG" / "0051-pb9-the-successor.md").is_file():
+                for pending in (w / "DEVLOG").glob("pending-*.md"):
+                    pending.unlink()
+                (w / "DEVLOG" / "0051-pb9-the-successor.md").write_text(
+                    "## Entry 51 — 2026-10-24 10:30 PDT — PB9: the successor\n\nWhy.\n", encoding="utf-8", newline="\n")
+                ScratchRepo(w).git("add", "DEVLOG")
+                ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 51: stamp the entry")
+            return 0
+
+        def listing_gh(listed: list[tuple[int, str, str]], log: list[list[str]], fail: bool = False) -> Gh:
+            """GitHub as `open_predecessors` reads it: `pr list --json number,headRefName,headRefOid` (any other call is
+            the queue's: answered like fake_gh)."""
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                log.append(list(args))
+                if args[:2] == ["pr", "list"] and "number,headRefName,headRefOid" in args:
+                    return (1, "", "GraphQL: rate limited") if fail else (0, json.dumps(
+                        [{"number": n, "headRefName": h, "headRefOid": o} for n, h, o in listed]), "")
+                return fake_gh([], log)(args)
+            return gh
+        own_pr = (702, "succ", own_before_stamp)    # a bounce's pull request: the branch's own, never a predecessor
+        succ_land = lambda gh, **kw: land(   # noqa: E731
+            root, "succ", succ.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
+            gates=gates_of(green, []), stamp=stamp_successor, blocked=record, say=lines.append, **kw)
+        notes[:] = []
+        log_wait: list[list[str]] = []
+        rc_wait = succ_land(listing_gh([(701, "pred", pred_tip), own_pr], log_wait))
+        wait_line, tip_wait = lines[-1], succ.git("rev-parse", "HEAD")
+        asked, problem_wait = open_predecessors(succ.path, base_ref, "succ", gh=listing_gh([(701, "pred", pred_tip), own_pr], []))
+        expect("land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into "
+               "main (and the branch's own pull request, which is none) waits: exit 15, PREDECESSOR QUEUED naming the "
+               "pull request, with nothing pushed, opened or queued and no report line (kb/Work PB3145)",
+               rc_wait == EXIT_PREDECESSOR_QUEUED and wait_line.startswith(VERDICT + "PREDECESSOR QUEUED")
+               and "#701" in wait_line and "#702" not in wait_line and not notes
+               and not [a for a in log_wait if a[:2] in (["pr", "create"], ["pr", "merge"])]
+               and "succ" not in scratch.git("ls-remote", "--heads", "origin")
+               and asked == {701: ["0050-pb9-the-predecessor.md"]} and not problem_wait,
+               f"{rc_wait} {wait_line} {notes} {log_wait} {asked} {problem_wait}")
+        rc_unread = succ_land(listing_gh([], [], fail=True))
+        unread_line = lines[-1]
+        rc_closed = succ_land(listing_gh([own_pr], []))
+        closed_line = lines[-1]
+        expect("land: GitHub that cannot list the open pull requests is exit 9 (retried once by the lane), never a wait; a "
+               "predecessor whose pull request is no longer open (closed unmerged) leaves two stamped entries and no "
+               "pull request to wait for: exit 6, NO ENTRY, as before (kb/Work PB3145)",
+               rc_unread == EXIT_GITHUB and "could not be read" in unread_line and rc_closed == 6
+               and closed_line.startswith(VERDICT + "NO ENTRY") and succ.git("rev-parse", "HEAD") == tip_wait,
+               f"{rc_unread} {unread_line} {rc_closed} {closed_line}")
+        scratch.git("merge", "--quiet", "--no-edit", "pred")      # #701 reaches main: the queue merged it
+        scratch.git("push", "--quiet", "origin", "main")
+        log_after: list[list[str]] = []
+        measured_after: list[int] = []
+        rc_after = succ_land(listing_gh([own_pr], log_after), measure=lambda w, b, n, g: measured_after.append(n))
+        create_after = next((a for a in log_after if a[:2] == ["pr", "create"]), [])
+        expect("land: once the predecessor's pull request has merged the same head lands: main brought in, ONE new entry "
+               "left, the pull request titled from it and queued (kb/Work PB3145)",
+               rc_after == 0 and lines[-1].startswith(VERDICT + "ENQUEUED") and create_after
+               and create_after[create_after.index("--title") + 1] == "DEVLOG 51: PB9: the successor",
+               f"{rc_after} {lines[-2:]} {log_after}")
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
         # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
         # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
