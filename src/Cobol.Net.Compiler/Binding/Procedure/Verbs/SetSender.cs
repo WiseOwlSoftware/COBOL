@@ -43,7 +43,7 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     /// <summary>The bound operand of a function-identifier / invocation sender (null for a <see cref="Ref"/> or a
     /// non-identifier sender). <see cref="IntrinsicBinder.OperandOf"/> is the ONE expression→operand mapping: a user
     /// function's or invocation's result temporary is a <see cref="BoundFieldOperand"/> over its own data item.</summary>
-    public BoundOperand? Operand => Bound is { } b ? IntrinsicBinder.OperandOf(b) : null;
+    public BoundOperand? Operand => Bound is { } b ? IntrinsicBinder.OperandOf(b, functionValue: false) : null;
 
     /// <summary>The temporary data item a user function or inline invocation RETURNS — the item whose class and
     /// category §8.4.3.2.1 / §8.4.3.4.4 GR1 give the identifier. Null for an intrinsic function (a computed value
