@@ -91,8 +91,13 @@ def merge_text(base: str, ours: str, theirs: str) -> str | None:
 
 
 def needs_settle(repo: pathlib.Path) -> bool:
+    """True when a hash LINE reads UNMEASURED (merge_text wrote it), read through `parse`. The header's prose names the
+    word too ("the hashes read UNMEASURED"), so a text search was true for every tree and every merge of main ran a
+    solution build and the measuring test (kb/Work PB3671). A pin `parse` refuses (conflict markers) is no settle's to
+    fix: RuntimeAbiPinDriftTests reports it."""
     path = repo / PIN_PATH
-    return path.is_file() and UNMEASURED in path.read_text(encoding="utf-8")
+    values = parse(path.read_text(encoding="utf-8")) if path.is_file() else None
+    return values is not None and any(values[k] == UNMEASURED for k in HASHES)
 
 
 def _sub(path: pathlib.Path, pattern: re.Pattern, number: str) -> None:
@@ -184,6 +189,13 @@ def self_test() -> int:
            mixed == pin(18, UNMEASURED, 3, UNMEASURED), repr(mixed))
     expect("merge: a side that is not a pin, or a counter that is not a number, is a conflict (None)",
            merge_text(base, "x", base) is None and merge_text(base, base.replace("2", "two"), base) is None)
+    shipped = (HERE.parent / PIN_PATH).read_text(encoding="utf-8")
+    measured = parse(shipped)
+    expect("needs_settle: the shipped pin's header names UNMEASURED in its prose, and that alone never needs a settle "
+           "(kb/Work PB3671: a text search made every merge of main build and measure)",
+           measured is not None and UNMEASURED in shipped
+           and (any(measured[k] == UNMEASURED for k in HASHES) or not needs_settle(HERE.parent)),
+           f"parse={measured}")
 
     root = scratch_dir("abi-pin-selftest-")
     try:
