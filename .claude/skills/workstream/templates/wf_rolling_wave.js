@@ -240,14 +240,18 @@ function settled(letter) {
 //                 torn file, whatever its records say, so it is never read as capped.
 //   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
 //                 successor's, as its own.
-// In both FINDINGS cases prune_worktrees.py carrying_findings holds the successor: it reads the SAME findings file
-// through the same reader (review_findings.last_verdict), never the report's stamp, which the finisher removes
-// (review R3-1: deciding from the head or the stamp told the successor "prune_worktrees.py holds" while nothing did).
+// ONE FINDINGS CASE, ONE OWNER (kb/Work PB3404): 'capped' findings are the predecessor's next-wave finisher's, and
+// prune_worktrees.py carrying_findings holds the successor until that finisher has landed them; 'unanswered' findings
+// are the SUCCESSOR's: its review answers them and its finisher fixes them, and carrying_findings does not hold a
+// successor whose review is CLEAN over a head that contains the predecessor's (prune_worktrees.review_answers). Both
+// read the SAME findings file through the same reader (review_findings.last_verdict, whose `capped` is the one
+// definition of the capped round), never the report's stamp, which the finisher removes (review R3-1: deciding from
+// the head or the stamp told the successor "prune_worktrees.py holds" while nothing did).
 function predecessorEnd(p) {
   if (p.review === 'CLEAN') return 'clean'
   if (!/^FINDINGS/.test(p.review || '')) return 'unreviewed'
   const v = p.last_verdict
-  return v && v.unanswered && !v.torn && v.round > REVIEW_FIX_ROUNDS && sameHead(v.head, p.head) ? 'capped' : 'unanswered'
+  return v && v.unanswered && !v.torn && v.capped && sameHead(v.head, p.head) ? 'capped' : 'unanswered'
 }
 
 // THE ONE READER OF A GROUP'S FINDINGS FILE (kb/Work PB3381 review R3-1): `review_findings.py last-verdict`, run by
@@ -295,7 +299,7 @@ function successorNote(g) {
         `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS, read from ${findingsFile({ letter: g.after })}). `,
       unanswered: `Its review ended ${p.review} and its review finisher came back ${p.finisher || 'without a verdict'} without answering them: those findings (${findingsFile({ letter: g.after })}) are UNANSWERED, ` +
         `its report no longer shows them (the finisher rewrote it for its own branch), and your branch carries them with whatever that finisher left half done. ` +
-        `prune_worktrees.py holds your branch while that findings file's last verdict is FINDINGS at a head your branch contains, and your own review covers the predecessor's commits as yours and records again each of those findings that still holds, ` +
+        `they are YOURS, with no next-wave finisher of the predecessor to answer them: your own review covers the predecessor's commits as yours and records again each of those findings that still holds, your review finisher answers them, and prune_worktrees.py holds your branch for that findings file only until your own review is CLEAN over a head that contains the predecessor's (review_answers, kb/Work PB3404), ` +
         `so read \`python scripts/orchestrator/review_findings.py show ${findingsFile({ letter: g.after })}\` and fix the ones your change reaches (I9). A branch of it that has not landed by your landing lands with yours. `,
       unreviewed: `Its review did not finish (${review}), so its commits on your branch are reviewed with yours, and a branch of it that has not landed by your landing lands with yours. `,
     }[predecessorEnd(p)]

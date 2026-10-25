@@ -89,7 +89,12 @@ public static partial class CobolNum
     ///         integer digits past the item's capacity lose their HIGH-ORDER end, so the item keeps the low-order digits
     ///         (§14.6.8.2 rule 4, "zero fill or truncation on either end", the alignment a MOVE applies) — the unscaled value is
     ///         reduced to the PICTURE's digit count here, a BINARY-CAPACITY item's container excepted: it keeps every digit its
-    ///         container holds and the value wraps to the container (<see cref="WrapBinary"/>, DOC-A.1-208), as GnuCOBOL's does;</item>
+    ///         container holds and the value wraps to the container (<see cref="WrapBinary"/>, DOC-A.1-208), as GnuCOBOL's does.
+    ///         The characters ahead of the last integer digit dropped are skipped unexamined, a non-digit among them
+    ///         included (kb/Work PB3573: <c>Y123</c> into <c>PIC 9(2)V99</c> is 23.00, <c>1Y23</c> is invalid); an item
+    ///         stored as characters drops what passes its own integer positions, a binary or packed one converts through a
+    ///         <see cref="DeviceReadDigits"/>-digit intermediate, so a non-digit ahead of its surplus is skipped only past
+    ///         that many integer digits;</item>
     ///   <item>an item whose characters ARE the window (<see cref="NumericByteForm.Zoned"/>, DISPLAY and NATIONAL) is read
     ///         only until its last digit position is filled, so whatever follows is never examined (<c>12.50CR</c> into
     ///         <c>PIC 9(5)V99</c> is 12.50); a binary or packed item reads the whole text, so the same <c>CR</c> is invalid.</item>
@@ -115,15 +120,24 @@ public static partial class CobolNum
         int fractionCap = Math.Max(scale, 0);
         int integerCap = Math.Min(Math.Max(digits - scale, 0), DeviceReadDigits);
 
-        // The integer digits the text carries: every digit before the first separator, junk or not, so the item's
-        // high-order surplus (count - integerCap) is dropped from the FRONT of the run, never from its end.
+        // The integer digits the text carries: every digit before the first separator, junk or not. The FIRST-stage
+        // conversion holds only so many of them (readCap): an item stored as characters converts into itself, so its
+        // own integer positions; a binary or packed one converts through a DeviceReadDigits-wide intermediate, so a
+        // surplus past its PICTURE is cut by the second stage (the value reduction below), not here. The surplus of the
+        // first stage (count - readCap) is dropped from the FRONT of the run, never from its end, and the characters
+        // that stand ahead of the last dropped digit are skipped unexamined, a non-digit among them included
+        // (GnuCOBOL 3.2.0's cob_move_alphanum_to_display, which advances over characters until that many digits are
+        // consumed; measured 2026-10-25: `Y123` into PIC 9(2)V99 holds 23.00, where `1Y23` is invalid).
+        int readCap = characterForm ? integerCap : DeviceReadDigits;
         int count = 0;
         for (int k = i; k < n && window[k] != point; k++)
             if (char.IsAsciiDigit(window[k])) count++;
-        int skip = Math.Max(0, count - integerCap);
+        int skip = Math.Max(0, count - readCap);
+        for (int dropped = 0; dropped < skip; i++)
+            if (char.IsAsciiDigit(window[i])) dropped++;
 
         Int128 integer = 0, fraction = 0;
-        int integerRead = 0, fractionRead = 0;
+        int integerRead = skip, fractionRead = 0;
         bool pointSeen = false;
         for (; i < n; i++)
         {
@@ -135,7 +149,8 @@ public static partial class CobolNum
                 int d = c - '0';
                 if (!pointSeen)
                 {
-                    if (++integerRead > skip) integer = integer * 10 + d;
+                    integerRead++;
+                    integer = integer * 10 + d;
                 }
                 else if (fractionRead < fractionCap)
                 {
@@ -151,8 +166,10 @@ public static partial class CobolNum
             else if (c != ' ' && c != group) return 0;
         }
 
-        // The unscaled value: integer digits at the scale plus the fraction padded to the scale, then the store's
-        // high-order truncation to the item's digits.
+        // The unscaled value: the integer digits cut to the item's integer positions (the high-order end of a surplus
+        // a binary or packed item's wider first stage let through), then at the scale plus the fraction padded to the
+        // scale, then the store's high-order truncation to the item's digits.
+        integer %= Pow10.AsWide(integerCap);
         Int128 value;
         if (scale >= 0)
         {

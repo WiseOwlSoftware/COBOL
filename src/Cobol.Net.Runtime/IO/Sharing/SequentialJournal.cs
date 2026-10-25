@@ -180,13 +180,14 @@ internal sealed class SequentialJournal
     {
         string directory = DirectoryOf(hostPath);
         int id = DrawId(medium, directory);
-        // The publication's result says WHY no holder came back (kb/Work PB3675): a host that takes no lock here, or twelve tries all
-        // lost to another run unit's removal of the lock directory. Either way the transaction cannot begin and the statement answers
-        // '30' with the file unaffected (§14.9.27.4 GR25), but the refusal names the cause that happened.
+        // The publication's result says WHY no holder came back (kb/Work PB3675, PB3749): a host that takes no lock here, or twelve tries
+        // all lost to another run unit. SidecarLockFiles.Publish counts three ways to lose a try: the unit removed the lock directory,
+        // reaped the pending holder file, or held it as it was locked or renamed. Either way the transaction cannot begin and the
+        // statement answers '30' with the file unaffected (§14.9.27.4 GR25), but the refusal names the cause that happened.
         var published = medium.PublishHolder(directory, HolderName(id), out var holder);
         if (holder is null)   // the holder is null unless the result is Ok (IHostMedium.PublishHolder)
             throw new IOException(published == RegionLockResult.Held
-                ? $"every try to publish a transaction's holder in '{directory}' lost its race to another run unit's removal of the lock directory"
+                ? $"every try to publish a transaction's holder in '{directory}' lost its race to another run unit (it removed the lock directory, or reaped or held the pending holder file)"
                 : $"the host cannot hold a transaction's holder in '{directory}' (DOC-A.1-75)");
         FileStream? record = null;
         try

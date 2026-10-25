@@ -1378,6 +1378,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSTRD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\n01 B PIC X(6) VALUE SPACES.\nPROCEDURE DIVISION.\nMAIN.\n    STRING A A INTO B.\n    DISPLAY B.\n    STOP RUN.\n"
   },
   {
+   "id": "perform-varying-by-omitted-2002",
+   "description": "A PERFORM varying-phrase (the VARYING phrase or an AFTER phrase) with its BY phrase omitted (ISO §14.9.28.4 GR12: 'For any BY phrase that is omitted, the augment value is 1'). PRESENT at 2002: the same sentence is general rule 9 of ISO/IEC 1989:2002 clause 14.8.27.3 (the 2001-12-04 J4 text), so the omission is legal 2002 source. THE 1985 EDGE IS DERIVED, NOT QUOTED (VCR row 7.42; no ANSI X3.23-1985 text in the archive): every one of the 241 VARYING / AFTER phrases in the NIST CCVS-85 suite writes BY, and GnuCOBOL 3.2 refuses the omission at -std=cobol85 ('PERFORM VARYING without BY phrase does not conform to COBOL 85') while accepting it at cobol2002 and later (CLAUDE.md rule 1's precedence where the standard is silent). Against it: the 2002 list of 1985-to-2002 changes (Annex F.2) does not name the BY omission, so a 1985 text could still move the edge. Gated in ONE place per site, VersionConformancePass.VisitPerformVarying and VisitPerformVaryingAfter, at the phrase that omits BY (kb/Work PB2282).",
+   "display": "a PERFORM VARYING or AFTER phrase with the BY phrase omitted",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §14.9.28.4 GR12; ISO/IEC 1989:2002 14.8.27.3 GR9; a post-1985 form (derived: VCR row 7.42)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "PERFORM varying-phrase BY optional (post-85; 2002 quoted, 1985 derived); VCR row 7.42",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPVBY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM VARYING N FROM 1 UNTIL N > 2\n        DISPLAY N\n    END-PERFORM.\n    STOP RUN.\n"
+  },
+  {
    "id": "record-key-source-2002",
    "description": "The SOURCE phrase of the RECORD KEY and ALTERNATE RECORD KEY clauses (ISO §12.4.5.12.2 / §12.4.5.6.2: record-key-name-1 SOURCE IS { data-name-2 } ...) - a key that is 'the concatenation of all occurrences of data-name-2 in the order specified' (§12.4.5.12.4 GR2 / §12.4.5.6.4 GR2), with the record-key-name word class (§8.3.2.2.24) and its scope (§8.4.6.2.4). ANSI X3.23-1985 prints RECORD KEY IS data-name-1 only, so the form is post-1985. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.36; the repo holds no 1985/2002/2014 text, ratified decision #1): Annex E (2014->2023) does not list it, so it predates 2023; the 2002-versus-2014 split is not derivable in-repo and takes the provisional 2002 edge rows 7.21/7.31 carry - the edge that never refuses a legal 2002 program. Annex A.3 item 40 makes the capability processor-dependent; this implementation provides it (kb/Work PB1099 Q1, owner rule R65). Gated in ONE place, VersionConformancePass.VisitRecordKeySourcePhrase - the one grammar rule both clauses share.",
    "display": "the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause",
@@ -1638,15 +1650,15 @@
   },
   {
    "id": "move-alphanumeric-figurative-removed-2023",
-   "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case; QUOTE rides its own dual row move-quote-numeric-obsolete-2014 (obsolete 2014 first, Annex E.2 item 21 - the adversarial-review correction). Documented residues (DEVLOG 595): pre-removal image semantics cover elementary numeric-DISPLAY receivers - a Tier-A REDEFINES-class or BINARY/PACKED/COMP-5/float receiver stays a NARROW runtime-loud guard (legal-per-ISO-2014 shapes, no corpus hits); a MULTI-CHARACTER ALL literal is not this row's - it is 8.3.3.6.3 SR3's, row all-literal-multichar-numeric-removed-2002 (kb/Work PB422, VCR 7.13). Gate: VersionConformancePass.GateSr5 (W2 track A, DEVLOG 593; PB879).",
-   "display": "MOVE of an alphanumeric figurative constant (SPACE/HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item",
+   "description": "MOVE of an alphanumeric figurative constant (QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case; QUOTE rides its own dual row move-quote-numeric-obsolete-2014 (obsolete 2014 first, Annex E.2 item 21 - the adversarial-review correction). Documented residues (DEVLOG 595): pre-removal image semantics cover elementary numeric-DISPLAY receivers - a Tier-A REDEFINES-class or BINARY/PACKED/COMP-5/float receiver stays a NARROW runtime-loud guard (legal-per-ISO-2014 shapes, no corpus hits); a MULTI-CHARACTER ALL literal is not this row's - it is 8.3.3.6.3 SR3's, row all-literal-multichar-numeric-removed-2002 (kb/Work PB422, VCR 7.13). SPACE is NOT this row's (kb/Work PB3605): 'The figurative constant SPACE shall not be moved to a numeric or numeric-edited item' is syntax rule 5 of ISO/IEC 1989:2002 clause 14.8.24.2 and of the 2009 committee draft that led to 2014, and VCR row 7.41 derives the same at 1985, so MOVE SPACE to a numeric or numeric-edited item is refused at every edition by the binder's MOVE chain (MoveValidity.FigurativeRefusal, COBOLNET0819). Gate: VersionConformancePass.GateSr5 (W2 track A, DEVLOG 593; PB879).",
+   "display": "MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item",
    "diagnosticCode": "COBOLNET0902",
    "citation": "Annex E.2 item 1 bullet 1; §14.9.25.3 SR5; VCR row 1 — permitted through 2014 (pre-removal semantics preserved permissive), REMOVED 2023 except the digit-only-ALL-to-integer case; QUOTE rides its own dual row (obsolete 2014 first — E.2 item 21)",
    "introducedIn": 85,
    "removedIn": 2023,
    "expectDiagnostic": "COBOLNET0902",
    "vcr": "VCR row 1 (E.2 item 1 bullet 1; 14.9.25.3 SR5)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVFIG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE SPACE TO W-NUM.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVFIG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE HIGH-VALUE TO W-NUM.\n    STOP RUN.\n"
   },
   {
    "id": "move-all-digit-integer-obsolete-2023",

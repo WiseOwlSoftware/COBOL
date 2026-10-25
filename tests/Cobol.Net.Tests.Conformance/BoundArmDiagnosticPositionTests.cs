@@ -210,10 +210,11 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         AssertAt(lines, 9, 12, "error", "COBOLNET0900");   // the SET, not the USAGE POINTER entry at line 6 (also refused)
     }
 
-    [Fact] // MOVE SPACE TO a numeric item is a 2023 removal (§14.9.25.3 SR5; Annex E.2 item 1)
+    [Fact] // MOVE HIGH-VALUE TO a numeric item is a 2023 removal (§14.9.25.3 SR5; Annex E.2 item 1); SPACE is no
+           // removal, it is refused at every edition (kb/Work PB3605)
     public void MoveFigurativeToNumeric_At2023_NamesTheStatement()
     {
-        var (ok, lines) = CompileProgram("           MOVE 1 TO N.\n           MOVE SPACE TO N.\n",
+        var (ok, lines) = CompileProgram("           MOVE 1 TO N.\n           MOVE HIGH-VALUE TO N.\n",
             "       01 N PIC 9.\n", 2023);
         Assert.False(ok);
         AssertAt(lines, 8, 12, "error", "COBOLNET0902");

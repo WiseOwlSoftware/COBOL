@@ -274,6 +274,37 @@ public sealed class AcceptDifferentialTests
             expected: "00000.00|\n00012.50|\n+00000.00|\n+00000.00|\n000.00|\n012.50|",
             stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.50CR\n12.50\n");
 
+    // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§14.6.8.2 4), and the
+    // characters ahead of the last digit dropped are skipped unexamined, a non-digit among them included, as GnuCOBOL 3.2.0
+    // does (the results below are its own, measured 2026-10-25): "Y123" into PIC 9(2)V99 holds 23.00 where "1Y23" is not a
+    // number; a binary or packed item converts through a 38-digit intermediate, so a non-digit is skipped there only
+    // ahead of a 39th integer digit.
+    [Fact]
+    public void Device_NumericReceiver_SkipsANonDigitAheadOfADroppedHighOrderDigit()
+        => AssertOutputs(
+            Program("ACCDEC6", """
+                01 WS-A PIC 9(2)V99.
+                01 WS-L PIC S9(2)V99 SIGN LEADING SEPARATE.
+                01 WS-D PIC S9(3)V99 COMP.
+                01 WS-E PIC S9(3)V99 COMP-3.
+                """, """
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-L.
+                DISPLAY WS-L "|".
+                ACCEPT WS-D.
+                DISPLAY WS-D "|".
+                ACCEPT WS-D.
+                DISPLAY WS-D "|".
+                ACCEPT WS-E.
+                DISPLAY WS-E "|".
+            """),
+            expected: "23.00|\n00.00|\n-23.00|\n+000.00|\n+678.00|\n+678.50|",
+            stdin: "Y123\n1Y23\n-X123\nX12345678901234567890123456789012345678\nX912345678901234567890123456789012345678\n" +
+                   "Y912345678901234567890123456789012345678.5\n");
+
     // §12.3.7.4 GR14 (DECIMAL-POINT IS COMMA exchanges the decimal separator and the grouping separator): the comma is the point
     // the item reads, and a period is a grouping separator, skipped like a space.
     [Fact]
