@@ -158,7 +158,9 @@ ISO/IEC 1989:2023 — which two comments in the tree nevertheless described AS �
 the vendor surface cannot drift away from the standard one. The three braced arms carry §8.4.3.13.3 SR1 / SR2 /
 SR3 on COBOLNET2157, the prototype arm resolves through the EXTERNALIZED program-name §8.4.3.13.4 GR2 names, and
 GR3's restricted-pointer characteristic meets a restricted receiver through the SAME `PrototypeSignatures.Same`
-test SR22 and SR20 already share. Edition row: `set-program-pointer-2002`, beside `set-function-pointer-2014`.
+test SR22 and SR20 already share. The vendor ENTRY spelling is an UNRESTRICTED sender (it names a program by value), so a
+restricted receiver is refused it by the same `RestrictedReceiverNeedsPrototype` helper the literal-1 / identifier-1 arms
+use — §13.18.60.4 GR25 binds the item whatever loads it (kb/Work PB935). Edition row: `set-program-pointer-2002`, beside `set-function-pointer-2014`.
 
 **Two determinations on §14.9.39.4 GR14's run-time screen.**
 1. GR14 says the address shall be *“the address of a function defined with the same signature as the function referenced in the definition of identifier-13”*, which cannot be read literally when identifier-13 is a function-address-identifier of the `identifier-1` form (§8.4.3.12.4 GR1 a) — that form names no prototype at all. The screen is therefore implemented against the RECEIVING item's declared function-prototype, which is §13.18.60.4 GR26's own standing invariant and is what GR14 enforces statement by statement; wherever the sender DOES carry a prototype, SR20 has already made the two identical at bind, so no conforming program can observe the difference.
