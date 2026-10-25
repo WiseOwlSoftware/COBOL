@@ -13,7 +13,9 @@ namespace CobolNet.Tests.Unit;
 /// <c>scripts/abi_pin.py</c> measures; <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
 /// together. <c>enqueue.py land</c> merges main in through <c>merge_drivers.merge</c>, so two branches that each added an
 /// entry are no conflict; the review's coverage rule (<c>prune_worktrees.mechanical</c>) reads the same function, so a
-/// merge the drivers made reads as mechanical and a hand resolution does not.
+/// merge the drivers made reads as mechanical and a hand resolution does not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work
+/// PB3643): <c>merge_drivers.py --hunks</c> replays the merges in history and classifies each conflict hunk, and the
+/// design documents' conflicts are REVISIONS of one paragraph, never two appended sections.
 /// </summary>
 /// <remarks>
 /// Until PB3610 these landings stopped at CONFLICT and cost a finisher cycle each (the landing logs counted
@@ -40,6 +42,8 @@ public sealed class MergeDriverDriftTests
             "keyed rows: an array of objects is keyed by a member",
             "keyed nested: entries at a deeper indentation inside a member are keyed too",
             "note: frontmatter merges per key and the bodies by union",
+            "hunks: two insertions at one place are an INSERTION hunk",
+            "hunks: the history replay counts a merge both parents changed",
             "git: WITHOUT the drivers the same merge conflicts (the premise)",
             "git: merge() brings main in through the drivers",
             "git: merge-tree with config_args reproduces the merge's tree",
