@@ -23022,6 +23022,19 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3666_boolean_receiver_converts_characters_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3666_dynamic_table_group_move_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3586-function-returning-usage-bit-85": {
   "refuse-at": [
    "85"
