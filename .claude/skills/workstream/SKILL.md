@@ -109,7 +109,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   (main merged in, the gate on both hosts under the gate slot, the DEVLOG stamp, the landing checks, one pull request
   into the merge queue); the `enqueue` unit handles the reviews, the finishers, the re-arms and the leads.
 - **Same-file successors.** A file with more open notes than the cluster cap (`model_rules.json` `wave.max_notes_per_group`, the cap `plan_wave.py` hands `fix_clusters.py`) becomes
-  two or more groups, and each later one declares `after: '<predecessor letter>'`. The successor waits until its
+  two or more groups, and each later one declares `after: '<predecessor letter>'`. A wave dispatches only the first
+  `wave.links_per_chain` links of each chain (the owner's ONE, kb/Work PB3638: "no wave may take hours"), placed in
+  tier order so the highest tier heads the chain; the rest wait for the next wave. Where a wave does run a successor, it waits until its
   predecessor is SETTLED (its review loop ended: CLEAN, FINDINGS n, STOPPED, NO-RESULT or STALE; or it returned
   unfinished), merges the predecessor's FINAL branch (the review finisher's, when one ran: the reviewed head), and
   orients from that report's "For the next implementer" section and STATUS.md instead of re-surveying the file.

@@ -912,7 +912,14 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
 4. **One group per primary file and member**: a later group on the same file whose claim there meets an earlier
    group's (the whole file, or a shared member: `plan_wave.unit_meet`) becomes a same-file successor (`after:
    <letter>`, letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2, a shared-MEMBER
-   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670).
+   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670). **The placement order is
+   the tier** (kb/Work PB3638): groups are placed, lettered and chained in tier order, a campaign's effective tier
+   (`work.cluster_order`, passed to `plan` as `tiers`; a finisher takes its notes', a group its lowest, lowered by
+   `lift_tiers` to that of every group waiting on it), finishers first inside one tier, so the owner's highest tier
+   heads its chain (wave 20261029 chained two untiered finishers ahead of the tier-1 PB3612). **One chain link per
+   wave** (the owner, 2026-10-23; `model_rules.json` `wave.links_per_chain`, 1): a wave runs until its last group
+   returns, so only each chain's first link is dispatched, and the later links wait, named, for the next wave, which
+   plans them from the branch the earlier link leaves (the partition's continuation, item 1).
 5. **Model per group** from `model_rules.json`: Opus when the primary file or a code site matches a design-heavy
    pattern (`/Oo/`, `.g4`, `Frontend/Grammar/`), a note's area matches (`oo`, `grammar`), a note's body says a
    design question is open, or a note already appears in two reports while still open (a note that fails twice is a
@@ -921,7 +928,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    `tokens_per_point`; each group's landing at `landing_tokens` on Opus (the enqueue unit's turns per branch, kb/Work
    PB3023; seeded at the retired lander's cost over its five-group train). Groups are taken in rank
    order while they fit; a group that does not fit is skipped and a smaller later one may still fit; a successor
-   only with its predecessor; at most `wave.max_groups` (8) groups.
+   only with its predecessor, and only within `wave.links_per_chain` (item 4); at most `wave.max_groups` (8) groups.
+   `per_group_tokens` and `per_note_tokens` are the unmeasured 2026-10-04 seed (their `cost.source` says why, kb/Work
+   PB3641); the group cap's turns measurement is `turns_by_group_size.py`.
 7. **Allocation** through `alloc.py`: three codes per group, reserved only after the wave's specs, rendered on the
    PEEKED codes, check GREEN (item 8). The planner allocates no lead ids (the enqueue unit's clerk takes them when it
    files the landed reports' leads, kb/Work PB3023). No DEVLOG number is planned: an entry is written unnumbered
