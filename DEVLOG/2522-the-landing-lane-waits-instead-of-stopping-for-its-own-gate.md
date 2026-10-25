@@ -1,4 +1,4 @@
-## The landing lane waits, instead of stopping, for its own gate and for a merged predecessor's pull request
+## Entry 2522 — 2026-10-24 22:36 PDT — The landing lane waits, instead of stopping, for its own gate and for a merged predecessor's pull request
 
 Two landing stops (kb/Work PB3662, PB3145) shared one cause: `enqueue.py land` read a state that only time resolves as a
 terminal stop, so each branch sat STOPPED until the operator re-armed it by hand.
@@ -43,3 +43,4 @@ head still owns its entry; a wait with the branch's own pull request in the list
 the merged predecessor lands and is titled from its one entry), `land_lane` (exit 12 for a held gate lock and exit 15 each wait
 and relaunch the same head with no rearm). `LandingLaneDriftTests` and `LandingPipelineDriftTests` hold the new arms by name.
 No registry rows are claimed (process-only notes).
+
