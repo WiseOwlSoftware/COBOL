@@ -186,6 +186,74 @@ public sealed class LandingLaneDriftTests
             + string.Join("\n  ", sites));
     }
 
+    /// <summary>The scripts that could write or read a landing's verdict line, set apart from the line's one home
+    /// (<c>scripts/verdict_line.py</c>, kb/Work PB3714). Declared (kb/Work PB3531), so the drift-rule index names this
+    /// class for each of them.</summary>
+    private static readonly TreeScope VerdictLineUsers = new(Under: ["scripts/"], Except: ["scripts/verdict_line.py"],
+        Kinds: [".py", ".ps1", ".sh"]);
+
+    /// <summary>A string literal that opens with the verdict line's prefix (<c>"=== ENQUEUE: "</c>, <c>f'=== ENQUEUE: {o}'</c>):
+    /// the spelling of the line in code. A comment, a docstring or a message that NAMES the line in backticks is prose and
+    /// does not open a literal with it.</summary>
+    private static readonly Regex VerdictLiteral = new(@"[""']=== ENQUEUE", RegexOptions.Compiled);
+
+    /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="VerdictLineUsers"/>) with a line
+    /// that spells the verdict line's prefix in a string literal, as <c>path:line</c>.</summary>
+    internal static IReadOnlyList<string> VerdictLiteralSites(string root, IEnumerable<string> tracked) =>
+        [.. tracked.Where(p => File.Exists(Path.Combine(root, p)))
+                   .SelectMany(p => File.ReadLines(Path.Combine(root, p))
+                       .Select((line, i) => (line, i))
+                       .Where(x => VerdictLiteral.IsMatch(x.line))
+                       .Select(x => $"{p}:{x.i + 1}"))];
+
+    /// <summary>⭐ THE VERDICT LINE HAS ONE HOME (kb/Work PB3714): the prefix, the writer (<c>render</c>), the readers
+    /// (<c>parse</c>, <c>outcomes</c>) and the CONFLICT outcome live in <c>scripts/verdict_line.py</c>, and
+    /// <c>enqueue.py</c>, <c>land_lane.py</c> and <c>merge_drivers.py</c> go through it. Before it, the prefix was a
+    /// literal in each of the three and a change of the line's shape had to be made in all of them with no test to say
+    /// one was missed. A script that spells the prefix in a string literal is a fourth copy.</summary>
+    [Fact]
+    [Trait("Sweep", "tree")]
+    public void NoScriptSpellsTheVerdictLine_OutsideItsOneHome()
+    {
+        IReadOnlyList<string> tracked = TrackedTree.Files(VerdictLineUsers);
+        Assert.True(tracked.Count >= 50, $"`git ls-files` reported only {tracked.Count} scripts — the sweep would scan nothing");
+        Assert.Contains("scripts/orchestrator/enqueue.py", tracked);
+        Assert.True(File.Exists(TestRepo.Scripts("verdict_line.py")), "scripts/verdict_line.py is the verdict line's one home");
+        IReadOnlyList<string> sites = VerdictLiteralSites(TestRepo.Root, tracked);
+        Assert.True(sites.Count == 0,
+            "these lines spell the landing's `=== ENQUEUE: ` verdict line in a string literal; write it with "
+            + "verdict_line.render and read it with verdict_line.parse / outcomes (kb/Work PB3714):\n  "
+            + string.Join("\n  ", sites));
+    }
+
+    /// <summary>⭐ The verdict-literal sweep's failure branch, fired: each spelling of the prefix in a literal is found by
+    /// the same function, and prose that names the line in backticks is not.</summary>
+    [Fact]
+    public void TheVerdictLiteralSweep_FindsEachPlantedSpelling()
+    {
+        string dir = ScratchDirectory.Create("verdict-line-");
+        try
+        {
+            File.WriteAllLines(Path.Combine(dir, "writer.py"),
+            [
+                "VERDICT = \"=== ENQUEUE: \"",
+                "say(f'=== ENQUEUE: {outcome} ({branch}) ===')",
+                "log = 'land lane\\n=== ENQUEUE: ENQUEUED (b) ==='",
+            ]);
+            File.WriteAllLines(Path.Combine(dir, "prose.py"),
+            [
+                "# the landing ends on `=== ENQUEUE: <OUTCOME> (<branch>) ===` (P2)",
+                "\"\"\"Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to block on.\"\"\"",
+            ]);
+            Assert.Equal(new[] { "writer.py:1", "writer.py:2", "writer.py:3" },
+                VerdictLiteralSites(dir, new[] { "writer.py", "prose.py" }));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
     /// <summary>⭐ The retired-wording sweep's failure branch, fired: each retired phrasing is found by the same
     /// function, and the current pipeline's sentences and a history path are not.</summary>
     [Fact]
