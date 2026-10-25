@@ -548,6 +548,60 @@ public sealed class RegionLocksDriftTests
         }
     }
 
+    /// <summary>⛔ THE EXTRA ROUND IS GRANTED TO EVERY LOST ROUND, NOT ONCE PER WAITING HOLD (kb/Work PB3676, the long-wait twin of
+    /// the test above): a lost round beside a holder that has since left earns one more round, and a round that SAW a live
+    /// holder is progress, so the lost round after the wait for it earns another. Driven in ONE thread in the order of a long
+    /// wait: round 1 is lost as the first holder lets go (the look finds nothing in the way: the extra round); round 2 is lost
+    /// as a second holder takes the byte (the look finds it: the hold waits); the second holder lets go as the wait pauses
+    /// (<see cref="SidecarRegionLocks.BackoffObserver"/>); round 3 is lost with nothing in the way again and the hold takes the
+    /// extra round it was owed, and publishes in round 4. Before the fix the one extra round was spent in round 1 and the hold
+    /// answered <see cref="RegionLockResult.Unavailable"/> at round 3: the interleaving the extra round exists to absorb.</summary>
+    [Fact]
+    public void AWaitingHoldThatSawALiveHolderBetweenTwoLostRounds_IsOwedAnotherRound()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        var a = site.Endpoint();
+        var b = site.Endpoint();
+        var c = site.Endpoint();
+        SidecarLockFiles.PauseObserver.Value = _ => { };
+        try
+        {
+            Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: true, wait: false));
+            int rounds = 0, backoffs = 0;
+            bool inside = false;
+            RegionLockResult second = RegionLockResult.Unavailable;
+            SidecarLockFiles.RaceInjector.Value = attempt =>
+            {
+                if (inside) return false;   // c's own publication (below) is not a round of b's, and wins
+                if (attempt != 0) return rounds < 4;
+                int round = Interlocked.Increment(ref rounds);
+                if (round == 1) a.Release(Byte1);   // the first holder lets go as the first round begins
+                if (round == 2)
+                {
+                    inside = true;
+                    try { second = c.Hold(Byte1, exclusive: true, wait: false); }   // a second holder takes the byte as the second begins
+                    finally { inside = false; }
+                }
+                return round < 4;
+            };
+            SidecarRegionLocks.BackoffObserver.Value = _ =>
+            {
+                backoffs++;
+                c.Release(Byte1);   // the second holder lets go as the wait pauses for it
+            };
+            Assert.Equal(RegionLockResult.Ok, b.Hold(Byte1, exclusive: true, wait: true));
+            Assert.Equal(RegionLockResult.Ok, second);
+            Assert.Equal(4, rounds);   // lost, lost beside a live holder, lost, published
+            Assert.Equal(1, backoffs);   // and the wait paused exactly once, for the live holder
+        }
+        finally
+        {
+            SidecarRegionLocks.BackoffObserver.Value = null;
+            SidecarLockFiles.RaceInjector.Value = null;
+            SidecarLockFiles.PauseObserver.Value = null;
+        }
+    }
+
     /// <summary>The names are a contract between run units (two runtime versions must find each other): a held byte is a
     /// file of the physical file's lock directory named <c>r</c>, the byte as 16 hex digits, the mode, and a GUID; the
     /// directory goes with its last file.</summary>
