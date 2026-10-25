@@ -1,4 +1,4 @@
-## PB3308: CI installs one pinned .NET SDK from the feeds, cached, never through the aka.ms redirect
+## Entry 2562 — 2026-10-25 12:58 PDT — PB3308: CI installs one pinned .NET SDK from the feeds, cached, never through the aka.ms redirect
 
 From about 18:50Z on 2026-10-25 every code merge group failed `Setup .NET 10` in every building job, and PRs #576, #578,
 #580 and #581 bounced. Each job ran `actions/setup-dotnet` with `dotnet-version: 10.0.x`, which resolves "the newest
@@ -32,3 +32,4 @@ makes (checkout, NuGet restore, pip, the GnuCOBOL testsuite, the vendored ANTLR 
 a redirect. Self-review: one install procedure with one drift-pinned copy (setup-env.sh cannot reach the repository); no
 hand edits to six steps. Owner actions remain: paste the new setup-env.sh into the cloud environment, re-run setup-wsl.sh,
 and re-arm #576 and #578 once this lands. No inventory row (process tooling).
+
