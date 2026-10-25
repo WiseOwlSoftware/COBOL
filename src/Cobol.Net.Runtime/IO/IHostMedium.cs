@@ -89,7 +89,11 @@ internal sealed class HostMedium : IHostMedium
         catch (DirectoryNotFoundException) { return []; }
     }
 
-    public SidecarLockFiles.LockFileHolder? PublishHolder(string directory, string name) => SidecarLockFiles.Publish(directory, _ => name);
+    public SidecarLockFiles.LockFileHolder? PublishHolder(string directory, string name)
+    {
+        SidecarLockFiles.Publish(directory, _ => name, out var holder);
+        return holder;
+    }
 
     public HostFile.LockFileState ProbeHolder(string path) => HostFile.ProbeLockFile(path);
 
