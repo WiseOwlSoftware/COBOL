@@ -65,6 +65,10 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    on the branch (the overlap is gone); never as is
        exit 13 — another `land` of the branch runs (kb/Work     retried at this head once the worktree's land lock
                 PB3310; nothing ran, nothing red)           is free (`wait_free`); never the enqueue unit's
+       exit 15 — PREDECESSOR QUEUED: the branch carries the stamped DEVLOG entry of a branch it merged, whose pull
+                request is still open (kb/Work PB3145; nothing queued, nothing red)  retried at this head once no open
+                                                                   pull request into main owns an entry the branch
+                                                                   carries (`wait_free`); never the enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock, or the branch's own gate had not written its   is free and no gate run owes a verdict
                 verdict yet (kb/Work PB3527, PB3662; nothing ran,    (`wait_free`); never the enqueue unit's
@@ -118,8 +122,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT,
-                     land_lock_path)  # noqa: E402  (the landing's contract)
+from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE,
+                     QUEUED_LINE, VERDICT, land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
@@ -134,7 +138,8 @@ EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved un
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
 WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate (its lock, or a run without its verdict)",
-         EXIT_LAND_BUSY: "the worktree's land lock"}
+         EXIT_LAND_BUSY: "the worktree's land lock",
+         EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -422,9 +427,32 @@ def lock_free(locate: Callable[[], pathlib.Path], what: str) -> tuple[bool, str]
     return True, ""
 
 
-def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
+def predecessor_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, str]]) -> tuple[bool, str]:
+    """Whether exit 15's wait is over (kb/Work PB3145): no open pull request into main owns a DEVLOG entry the branch
+    carries. enqueue.py's own reader (`open_predecessors`) answers, as it answered `land`, against the worktree's last
+    fetched origin/main; GitHub or the range unreadable is NOT free (with why), never a launch into the same wait."""
+    import enqueue  # noqa: PLC0415  (the one reader of which open pull requests own a carried entry)
+    wt = pathlib.Path(worktree)
+    here = enqueue.worktree_state(wt)
+    if here is None or not here.branch:
+        return False, f"{worktree} has no branch checked out"
+    queued, problem = enqueue.open_predecessors(wt, "refs/remotes/origin/main", here.branch, gh=gh)
+    if problem:
+        return False, problem
+    if queued:
+        return False, "open: " + ", ".join(f"#{n}" for n in sorted(queued))
+    return True, ""
+
+
+def wait_free(rc: int | None, worktree: str, *,
+              gh: Callable[[list[str]], tuple[int, str, str]] | None = None) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free and no gate run owes a verdict; exit 13, the worktree's land lock is free."""
+    branch; exit 12, the worktree's gate lock is free and no gate run owes a verdict; exit 13, the worktree's land lock
+    is free; exit 15, no open pull request owns a DEVLOG entry the branch carries (`gh`: GitHub's reader, the real one
+    unless a self-test plants it)."""
+    if rc == EXIT_PREDECESSOR_QUEUED:
+        import ruleset  # noqa: PLC0415
+        return predecessor_free(worktree, gh or ruleset.real_gh)
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree)
     if rc == EXIT_LAND_BUSY:
@@ -880,7 +908,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 revi
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free and no gate run owes a verdict; exit 13: the worktree's land lock is free)",
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free and no gate run owes a verdict; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -1200,6 +1228,59 @@ def self_test() -> int:
                "the exit is a retry-when-free class, never the enqueue unit's",
                land_while_held[0] is False and "pid 356317" in land_while_held[1] and land_after == (True, "")
                and classify({"rc": EXIT_LAND_BUSY}) == FREE, f"{land_while_held} {land_after}")
+        # exit 15 (kb/Work PB3145): the branch merged a predecessor whose pull request (#701) is still open, so it adds the
+        # predecessor's stamped entry beside its own. The lane waits on enqueue.py's own reader (open_predecessors) and
+        # relaunches the SAME head once no open pull request owns an entry the branch carries, with no rearm.
+        pw = ScratchRepo.init(root / "wt-w2d")
+        (pw.path / "DEVLOG").mkdir()
+        (pw.path / "DEVLOG" / "0001-pb1-base.md").write_text(
+            "## Entry 1 — 2026-10-01 09:00 PDT — PB1: base\n\nWhy.\n", encoding="utf-8", newline="\n")
+        pw.git("add", "DEVLOG")
+        pw.git("commit", "--quiet", "-m", "base")
+        pw.origin(root / "origin-w2d.git")
+        pw.git("push", "--quiet", "origin", "main")
+        pw.git("switch", "--quiet", "-c", "w2d")
+        (pw.path / "DEVLOG" / "0050-pb9-the-predecessor.md").write_text(
+            "## Entry 50 — 2026-10-24 10:00 PDT — PB9: the predecessor\n\nWhy.\n", encoding="utf-8", newline="\n")
+        pw.git("add", "DEVLOG")
+        pw.git("commit", "--quiet", "-m", "the merged predecessor's stamped entry")
+        predecessor_oid = pw.git("rev-parse", "HEAD")
+        (pw.path / "own.txt").write_text("the branch's own work", encoding="utf-8", newline="\n")
+        pw.git("add", "own.txt")
+        pw.git("commit", "--quiet", "-m", "the branch's own work")
+        github: dict[str, Any] = {"open": [{"number": 701, "headRefName": "pred", "headRefOid": predecessor_oid}], "fail": False}
+
+        def planted_gh(args: list[str]) -> tuple[int, str, str]:
+            assert args[:2] == ["pr", "list"] and "number,headRefName,headRefOid" in args, args
+            return (1, "", "rate limited") if github["fail"] else (0, json.dumps(github["open"]), "")
+        c3d = fresh("predecessor")
+        f3d = Fake([row("w2d", "WAITING TO LAND", "p1")])
+        f3d.wait = lambda rc, wt_: wait_free(rc, wt_, gh=planted_gh)
+        f3d.rows[0]["worktree"] = str(pw.path)
+        f3d.tick(c3d)
+        finish(c3d, "w2d", EXIT_PREDECESSOR_QUEUED, "PREDECESSOR QUEUED — the branch carries the stamped DEVLOG entries of "
+               "the open pull request(s) #701 beside its own", end_head="p1")
+        f3d.live.clear()
+        pred_waiting = f3d.tick(c3d)
+        pred_said = " | ".join(f3d.said)
+        pred_open = wait_free(EXIT_PREDECESSOR_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = True
+        pred_unread = wait_free(EXIT_PREDECESSOR_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = False
+        github["open"] = [{"number": 702, "headRefName": "w2d", "headRefOid": predecessor_oid}]   # the branch's own pull request
+        pred_own_only = wait_free(EXIT_PREDECESSOR_QUEUED, str(pw.path), gh=planted_gh)
+        github["open"] = []                                       # #701 merged into main (or closed): nothing is open
+        pred_relaunched = f3d.tick(c3d)
+        expect("exit 15 (a merged predecessor's pull request is still open): a retry-when-free class, never the enqueue "
+               "unit's; the lane waits at that head while enqueue.py's reader finds the pull request open (naming it), "
+               "an unreadable GitHub is not free, the branch's own pull request is none; it relaunches the SAME head "
+               "once none is open, with no rearm (kb/Work PB3145)",
+               classify({"rc": EXIT_PREDECESSOR_QUEUED}) == FREE and pred_waiting == []
+               and "still waits on" in pred_said and pred_open == (False, "open: #701")
+               and pred_unread[0] is False and "rate limited" in pred_unread[1] and pred_own_only == (True, "")
+               and pred_relaunched == ["w2d"] and agent_work(c3d).reasons == []
+               and not (lane_dir(c3d) / REARM).exists(), f"{pred_waiting} {pred_said} {pred_open} {pred_unread} "
+                                                           f"{pred_own_only} {pred_relaunched}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")
