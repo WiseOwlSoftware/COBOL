@@ -1,4 +1,4 @@
-## File the 2026-10-24 evening leads as kb/Work notes
+## Entry 2525 — 2026-10-24 23:20 PDT — File the 2026-10-24 evening leads as kb/Work notes
 
 The repository owner ordered all pending pipeline work to reach main (2026-10-24 ~20:10 PDT), and CLAUDE.md rule 8 makes every found
 defect a `kb/Work` note. This change files the leads the loop's reviews, finisher reports and handoff left in prose. It changes no code.
@@ -28,3 +28,4 @@ PB2427 (recurrence: the attended session's one-off report took wave 20261104's n
 Not filed, already fixed on main when read: the `run_gate_legs.watch` and `plan_wave.Report.gate_state` liveness by `gate.pid` (both now
 read the gate lock through `gate_running`), the single-file mode of `profile-test-parallelism.py` returning 0 on an unreadable trx (now
 exit 2), and `enqueue.open_predecessors` on a long file list (the contained head's own entries are now read).
+
