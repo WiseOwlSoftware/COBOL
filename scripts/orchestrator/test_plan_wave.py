@@ -1167,6 +1167,19 @@ check("PB3638: the later link waits, naming the rule and the link it follows",
       [("one chain link per wave" in tp3["waiting"].get(i, ""), "group A " in tp3["waiting"].get(i, ""))
        for i in ("PB2", "PB5")], [(True, True), (True, True)])
 check("PB3638: a deferred link is no budget skip", any(g.notes == ["PB2", "PB5"] for g in tp3["skipped"]), False)
+# kb/Work PB3712: a deferred link's reason says what the wave does with its predecessor. Three notes chain on one file
+# (A, A2, A3); under the live one link per chain, A runs, A2 is deferred behind a group "which this wave runs", and A3
+# follows A2, which this wave does NOT run: its reason may not say it does. With the head cut (the budget fits none, or
+# the group cap is 0) neither link is behind a group this wave runs.
+CHAIN3 = [cl("src/X/Chain.cs", "PB5"), cl("src/X/Chain.cs", "PB6"), cl("src/X/Chain.cs", "PB7")]   # ranked PB6, PB7, PB5 (by rows): A, A2, A3
+for what, budget, cap, head_runs in (("the head runs", 100, None, True), ("the budget cuts the head", 0.0, None, False),
+                                     ("the group cap cuts the head", 100, 0, False)):
+    pc = pw.plan(notes, CHAIN3, [], [], lambda b: "ABSENT", {}, LIVE_RULES, budget_points=budget, max_groups=cap)
+    say = {i: ("which this wave runs" in pc["waiting"][i], "does not run either" in pc["waiting"][i])
+           for i in ("PB7", "PB5")}
+    check(f"PB3712: {what}: a deferred link says its predecessor runs only if the wave runs it",
+          ([g.letter for g in pc["groups"]], say),
+          (["A"] if head_runs else [], {"PB7": (head_runs, not head_runs), "PB5": (False, True)}))
 
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
@@ -2102,18 +2115,59 @@ check("in a wave two groups on DIFFERENT MEMBERS of one primary file run side by
       ([(g.letter, g.after, g.notes) for g in mw["groups"]],
        "different successor chains" in mw["waiting"].get("PB11", "")),
       ([("A", "", ["PB5"]), ("B", "", ["PB9"]), ("B2", "B", ["PB10"])], True))
-MREC = pw.partition_record("9", mw["groups"], {**mw["waiting"], "PB70": pw.COLLISION_WAIT + "worktree w [IN FLIGHT] "
-                                                                         "(src/X/Binder.cs#Binder.Bind): it waits"},
-                           1_800_000_000.0)
+# kb/Work PB3696: the in-wave rule asks the in-flight rule's question (collision) over EVERY file both groups claim, not
+# the primary file alone: two groups on different members of one primary file that both claim a third file whole, and two
+# on different primary files that share one, follow each other; the same pair with nothing shared still runs side by side
+SHARED = "src/X/Shared.cs"
+
+
+def two_files(primary, members, secondary, nid):
+    return {"file": primary, "harm": 1, "files": [primary, secondary], "members": {primary: members},
+            "notes": [{"id": nid, "area": "", "harm": 1, "title": ""}]}
+
+
+for label, pair, want in (
+        ("on different members of one primary file that both claim a third file whole",
+         [two_files(F_BIND, ["Binder.Bind"], SHARED, "PB5"), two_files(F_BIND, ["Binder.Sync"], SHARED, "PB9")],
+         [("A", "", ["PB5"]), ("A2", "A", ["PB9"])]),
+        ("on different primary files that share a secondary file whole",
+         [two_files(F_BIND, ["Binder.Bind"], SHARED, "PB5"), two_files(F_EMIT, ["Emitter.Emit"], SHARED, "PB9")],
+         [("A", "", ["PB5"]), ("A2", "A", ["PB9"])]),
+        ("on different members of one primary file that share nothing else (the control)",
+         [two_files(F_BIND, ["Binder.Bind"], "src/X/A.cs", "PB5"), two_files(F_BIND, ["Binder.Sync"], "src/X/B.cs", "PB9")],
+         [("A", "", ["PB5"]), ("B", "", ["PB9"])])):
+    sw = pw.plan(notes, pair, [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+    check(f"in a wave two groups {label} are planned {'in one chain' if len(want) and want[1][1] else 'side by side'} "
+          f"(PB3696)", [(g.letter, g.after, g.notes) for g in sw["groups"]], want)
+    claims = [g.claim for g in sw["groups"]]
+    held = pw.plan(notes, pair[1:], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+                   busy={"worktree w (worktree-w)": pw.InFlight(set(pair[0]["files"]), "worktree-w", {"PB70"}, state="IN FLIGHT",
+                                                                members={F_BIND: frozenset(pair[0]["members"][F_BIND])})})
+    check(f"... and the in-flight rule reads the same pair the same way (one rule, PB3696): {label}",
+          (bool(pw.collision(claims[0], claims[1])), bool(held["waiting"])), (bool(want[1][1]), bool(want[1][1])))
+# kb/Work PB3695: real owner labels carry parentheses too (`worktree <name> (<branch>)`, `dispatched <slug> (PB547)`), so
+# what a hold SHARED is recorded as data (plan()'s `collided`), never parsed back out of its prose: the owners' branch
+# names and note ids are no "most named file"
+mh = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), cl(F_EMIT, "PB6")], [], [], lambda b: "ABSENT", {}, RULES,
+             budget_points=100,
+             busy={"worktree wf_x (worktree-wf_x)": pw.InFlight({F_BIND}, "worktree-wf_x", {"PB70"}, state="RUNNING",
+                                                                members={F_BIND: frozenset({"Binder.Bind"})}),
+                   "dispatched w9a (PB547)": pw.InFlight({F_EMIT}, notes={"PB547"}, state="DISPATCHED, NO REPORT YET")})
+check("a hold's plan records what it shared: the file and member per owner, as data (PB3695)",
+      (mh["collided"], sorted(mh["waiting"])), ({"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}, ["PB6", "PB9"]))
+MREC = pw.partition_record("9", mw["groups"], {**mw["waiting"], **mh["waiting"]}, mh["collided"], 1_800_000_000.0)
 check("the partition's measurement records the same-file pairs run side by side and every hold with its reason",
-      (MREC["groups"], MREC["same_file_parallel"], MREC["held_in_wave"], list(MREC["held_by_collision"])),
-      (3, ["A+B on src/X/Binder.cs"], ["PB11"], ["PB70"]))
+      (MREC["groups"], MREC["same_file_parallel"], MREC["held_in_wave"], sorted(MREC["held_by_collision"]),
+       MREC["collided_on"]),
+      (3, ["A+B on src/X/Binder.cs"], ["PB11"], ["PB6", "PB9"],
+       {"PB9": [F_BIND + "#Binder.Bind"], "PB6": [F_EMIT]}))
 MCOORD = TMP / "coord-measure"
 MCOORD.mkdir()
 pw.record_partition(MCOORD, MREC)
-check("... and --partition-summary reads it back per day, naming the colliding member",
-      pw.partition_summary(MCOORD), ["2027-01-15: 1 waves, 3 groups, 1 same-file pairs side by side, 1 notes held by a "
-                                     "collision (most named: src/X/Binder.cs#Binder.Bind x1)"])
+check("... and --partition-summary reads it back per day, naming the colliding members and files, never an owner's "
+      "branch or note",
+      pw.partition_summary(MCOORD), ["2027-01-15: 1 waves, 3 groups, 1 same-file pairs side by side, 2 notes held by a "
+                                     "collision (most named: src/X/Binder.cs#Binder.Bind x1, src/X/Emitter.cs x1)"])
 uw = pw.plan(notes, [cl(F_BIND, "PB5"), unsited("PB9"), unsited("PB10"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
 check("in a wave a group with an EMPTY set runs beside every other group: it holds nothing and nothing holds it",
@@ -2297,7 +2351,7 @@ def main3114(scratch, stop, specs):
     saved_plan, saved_specs = pw.plan, pw.MAKE_SPECS
     pw.plan = lambda *_a, **_k: {"groups": [pw.Group("cluster", ["PB3114"], "scripts/orchestrator/plan_wave.py",
                                                      ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
-                                 "points": 0.1, "awaiting_landing": {}, "waiting": {}, "unlanded_without_note": [],
+                                 "points": 0.1, "awaiting_landing": {}, "waiting": {}, "collided": {}, "unlanded_without_note": [],
                                  "drain_not_started": [], "skipped": []}
     pw.MAKE_SPECS = specs
     try:
