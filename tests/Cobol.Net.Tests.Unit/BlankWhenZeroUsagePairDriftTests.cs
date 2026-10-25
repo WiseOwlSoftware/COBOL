@@ -30,7 +30,6 @@ namespace CobolNet.Tests.Unit;
 /// <c>pb508_blank_when_zero_national</c> and <c>pb508_blank_when_zero_national_resultant</c> are the end-to-end
 /// witnesses.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class BlankWhenZeroUsagePairDriftTests
 {
     /// <summary>The file's code with its whole-line comments removed (a trailing comment and a string literal that
