@@ -132,7 +132,8 @@ PDT: "Archiving to a bundle serves no use and wastes disk space"). A branch that
 is ABANDONED: `--apply --abandon <branch>` removes a clean, idle DECISION row only when a kb/Work note already records
 the decision (a line where the word ABANDONED directly follows the branch's name, with the reason; the word abandons
 that branch, never a successor the line names). Each removed branch's `origin/<branch>`
-goes with it unless it holds commits the local branch did not (drop_remote). --include-locked also takes a landed
+goes with it unless it holds commits the local branch did not (drop_remote); --apply first drops the remote-tracking refs whose
+branch origin no longer holds (prune_stale_remote_refs, kb/Work PB3409). --include-locked also takes a landed
 worktree locked by hand (no pid). A DETACHED worktree (a read-only fleet's pin)
 has no branch: it is listed with its lifecycle and never removed here. On Windows a worktree can refuse to delete
 ("Invalid argument", "Access is denied") because the C# language server (csharp-ls) loaded an analyzer DLL from it:
@@ -963,8 +964,8 @@ CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED
 
 
 #: The states of a branch with NO clean review stamp at its tip that contained() can read as carried: a finished report
-#: still WAITING FOR REVIEW (no stamp, or a stamp at an older head), and a DECISION (with no report or a FINDINGS stamp,
-#: below). Every other state keeps its own lifecycle inside a carrier: a CLEAN stamp at the tip (WAITING TO LAND,
+#: still WAITING FOR REVIEW (no stamp, or a stamp at an older head), and a DECISION, whatever its report says or whether
+#: it has one (kb/Work PB3386). Every other state keeps its own lifecycle inside a carrier: a CLEAN stamp at the tip (WAITING TO LAND,
 #: STOPPED) or a pull request (ENQUEUED, BOUNCED) is that branch's own landing, which nothing postpones (kb/Work PB3381).
 CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
 
@@ -973,8 +974,8 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
     """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
     tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
     (CARRIER_STATES) or whose review ended FINDINGS (finisher_due: the planner owns its finisher, and everything it
-    contains lands with that branch, kb/Work PB3267), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
-    FINDINGS-stamped one, or a finished report WAITING FOR REVIEW), so it cannot land by itself: an unreviewed checkpoint
+    contains lands with that branch, kb/Work PB3267), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION, or a
+    finished report WAITING FOR REVIEW), so it cannot land by itself: an unreviewed checkpoint
     never lands alone (kb/Work PB3381 section G). That is a branch a review finisher merged (kb/Work PB3027: the wave's
     finisher rewrites the report for its own branch; a later wave's finisher writes a new report and leaves the
     FINDINGS-stamped one behind), an unfinished predecessor its successor merged, and a DONE predecessor whose own
@@ -997,19 +998,26 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
     the planner's own rule (`replay_view`, the same function): a branch every commit of which an outranking, uncarried
     branch holds lands through that branch. The replay arm reads only a DECISION row the planner plans from (no report,
     or an unfinished one; never a FINDINGS stamp: its finisher answers the findings), and the carrier may be in any
-    state: the planner owns its finisher, so the carried row is no decision either."""
+    state: the planner owns its finisher, so the carried row is no decision either.
+
+    THE REPORT DECIDES NOTHING HERE (kb/Work PB3386): the ancestry arm carries every DECISION row, whatever its report
+    says, because a report describes the branch and the carrier's tip contains the branch's commits, so they land with the
+    carrier and its review covers them. A DONE report 30 h old, one a later commit has outrun, and one whose lead note
+    already landed each read DECISION (land it or abandon it) beside a carrier that lands the same commits. The arm's
+    first form skipped every DECISION that had a report unless its review ended FINDINGS, and PB3652 added the
+    unfinished ones, so a SPLIT predecessor its successor merged read DECISION until then."""
     import plan_wave  # noqa: PLC0415  (it imports this module back, lazily: no cycle at import time)
     carriers = [c for c in rows if c.report and c.tip and (c.state in CARRIER_STATES or finisher_due(c))]
     candidates = []
     replayable = set()   # the candidates the replay arm reads too: the rows the planner plans a finisher from
     for r in rows:
-        findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
-        unfinished = bool(r.report) and r.report.status in plan_wave.FINISH_STATUSES
-        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES \
-                or (r.state == 'DECISION' and r.report is not None and not findings and not unfinished):
+        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES:
             continue
         candidates.append(r)
-        if r.state == 'DECISION' and not findings:
+        # the replay arm is the planner's own: it plans a finisher only from a DECISION with no report or an unfinished
+        # one (never from a FINDINGS stamp, whose finisher answers the findings), so only those rows are read for it
+        findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
+        if r.state == 'DECISION' and not findings and (r.report is None or r.report.status in plan_wave.FINISH_STATUSES):
             replayable.add(r.name)
     if not candidates:
         return
@@ -1220,10 +1228,32 @@ def abandon_records(branches: list[str], work_dir: pathlib.Path) -> dict[str, st
     return found
 
 
+def prune_stale_remote_refs(*, repo=REPO, say: Callable[[str], None] = print) -> int:
+    """Drop the remote-tracking refs whose branch is gone from origin (`git remote prune origin`), so that
+    `refs/remotes/origin/*` says what origin holds before drop_remote reads it (kb/Work PB3409). GitHub deletes a merged
+    pull request's head branch itself (`delete_branch_on_merge`, ruleset.py), and nothing pruned the tracking refs: 178
+    were listed beside 21 on origin, and a `git push --delete` of one failed with `remote ref does not exist`, which
+    --apply reported as an error beside a real one. Returns how many were dropped. A prune that fails (no network, a
+    refused credential) is said and drops nothing: the deletes that follow then report their own real failures."""
+    def tracking() -> set[str]:
+        return set(git('for-each-ref', '--format=%(refname)', 'refs/remotes/origin/', cwd=repo).stdout.split())
+    before = tracking()
+    res = git('remote', 'prune', 'origin', cwd=repo)
+    if res.returncode != 0:
+        say(f'could not prune the stale origin refs: {res.stderr.strip()[:120]}')
+        return 0
+    dropped = len(before - tracking())
+    if dropped:
+        say(f'pruned {dropped} remote-tracking ref(s) whose branch origin no longer holds')
+    return dropped
+
+
 def drop_remote(branch: str, tip: str, *, repo=REPO, say: Callable[[str], None] = print) -> None:
     """Delete `origin/<branch>` with the local branch just removed, when it holds nothing the local one did not (its
     commit is the local tip or an ancestor of it). A squash landing leaves the pushed branch on origin, and nothing else
-    ever deleted one (kb/Work PB2708: `note-budget-borrow`, `r1-pb2118`). A remote that moved on is kept, said so."""
+    ever deleted one (kb/Work PB2708: `note-budget-borrow`, `r1-pb2118`). A remote that moved on is kept, said so. It
+    reads `refs/remotes/origin/<branch>` as origin's state, which apply() made true with prune_stale_remote_refs: a
+    branch origin already deleted has no ref here, so a failing push is a real failure (PB3409)."""
     remote = git('rev-parse', '--verify', '--quiet', f'refs/remotes/origin/{branch}', cwd=repo).stdout.strip()
     if not remote:
         return
@@ -1259,6 +1289,7 @@ def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: 
             say(f'abandoning {b}: decision recorded in kb/Work/{note}.md')
             doomed.append(r)
     removed = 0
+    prune_stale_remote_refs(repo=repo, say=say)
     for r in doomed:
         if r.worktree:
             # re-measured at the moment of removal: an agent may have started writing since the survey
@@ -1411,6 +1442,21 @@ def self_test() -> int:
         commit('src/AP.cs', 'class AnPredX {}\n', 'an-pred')
         scratch.git('switch', '-q', '-c', 'an-succ', 'an-pred')
         commit('src/AS.cs', 'class AnSuccX {}\n', 'an-succ')
+        # kb/Work PB3386: a branch is carried whatever its own report says. `cw-pred` (SPLIT), `cw-stale` (a DONE report
+        # 30 h old), `cw-moved` (a DONE report, then a commit it does not describe) and `cw-lost` (a DONE report whose lead
+        # note is already landed) are each an ancestor of `cw-succ`, DONE and reviewed CLEAN at its tip (WAITING TO LAND)
+        scratch.git('switch', '-q', '-c', 'cw-pred', 'main')
+        commit('src/CP.cs', 'class CwPredX {}\n', 'cw-pred')
+        scratch.git('switch', '-q', '-c', 'cw-stale', 'cw-pred')
+        commit('src/CS.cs', 'class CwStaleX {}\n', 'cw-stale')
+        scratch.git('switch', '-q', '-c', 'cw-moved', 'cw-stale')
+        commit('src/CM.cs', 'class CwMovedX {}\n', 'cw-moved')
+        cw_moved_at = scratch.git('rev-parse', 'cw-moved')
+        commit('src/CM.cs', 'class CwMovedX { int AfterTheReport; }\n', 'a commit no report describes')
+        scratch.git('switch', '-q', '-c', 'cw-lost', 'cw-moved')
+        commit('src/CL.cs', 'class CwLostX {}\n', 'cw-lost')
+        scratch.git('switch', '-q', '-c', 'cw-succ', 'cw-lost')
+        commit('src/CU.cs', 'class CwSuccX {}\n', 'cw-succ')
         scratch.git('switch', '-q', 'main')
         scratch.write({'kb/Work/PB9.md': '`rp-dead` is ABANDONED, superseded by nothing.\n'})
         lane_at = {b: scratch.git('rev-parse', b) for b in ('lane-stopped', 'lane-free', 'lane-done', 'lane-running',
@@ -1669,6 +1715,13 @@ def self_test() -> int:
                 ('w9990f-PB65-report.md', 'SPLIT\nBranch: rp-dead\n', 10),
                 ('w9990g-PB66-report.md', 'SPLIT\nBranch: an-pred\n', 10),
                 ('w9990h-PB67-report.md', f'Status: DONE\nBranch: an-succ\nHEAD: {scratch.git("rev-parse", "an-succ")}\n', 10),
+                # kb/Work PB3386: every DECISION that is an ancestor of a finished branch lands through it, whatever its report
+                ('w9990i-PB68-report.md', 'SPLIT\nBranch: cw-pred\n', 10),
+                ('w9990j-PB69-report.md', f'Status: DONE\nBranch: cw-stale\nHEAD: {scratch.git("rev-parse", "cw-stale")}\n', 30),
+                ('w9990k-PB70-report.md', f'Status: DONE\nBranch: cw-moved\nHEAD: {cw_moved_at}\n', 10),
+                ('w9990l-PB4-report.md', f'Status: DONE\nBranch: cw-lost\nHEAD: {scratch.git("rev-parse", "cw-lost")}\n', 10),
+                ('w9990m-PB71-report.md', f'Status: DONE\nBranch: cw-succ\nHEAD: {scratch.git("rev-parse", "cw-succ")}\n'
+                                          f'**Review:** CLEAN w9990m-r1 {scratch.git("rev-parse", "cw-succ")}\n', 10),
                 ('w9998b-PB2-report.md', 'SPLIT\nBranch: split-branch\n', 10),
                 ('w9998c-PB3-report-v2.md', 'Status: DONE\nBranch: orphan\n', 10),        # suffixed: invisible
                 ('w9998d-PB4-report.md', '**Status:** DONE · **branch:** `superseded`\n', 10),
@@ -1744,12 +1797,14 @@ def self_test() -> int:
                 'discharged-empty': 'DECISION', 'no-head': 'WAITING TO LAND', 'no-head-bare': 'DECISION',
                 'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
-                'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
+                'rpred': 'IN FLIGHT', 'rpred-fix': 'IN FLIGHT', 'rsucc': 'IN FLIGHT',
                 'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT',
                 'gpred': 'IN FLIGHT', 'gsucc': 'DECISION', 'hpred': 'IN FLIGHT', 'hsucc': 'WAITING FOR REVIEW',
                 'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION',
                 'rp-pred': 'IN FLIGHT', 'rp-succ': 'DECISION', 'rp-part': 'DECISION', 'rp-partc': 'DECISION',
                 'rp-gone': 'DECISION', 'rp-dead': 'DECISION', 'an-pred': 'IN FLIGHT', 'an-succ': 'WAITING FOR REVIEW',
+                'cw-pred': 'IN FLIGHT', 'cw-stale': 'IN FLIGHT', 'cw-moved': 'IN FLIGHT', 'cw-lost': 'IN FLIGHT',
+                'cw-succ': 'WAITING TO LAND',
                 'findings-resumed': 'DECISION'}
         for name, state in want.items():
             got = rows.get(name)
@@ -1832,6 +1887,10 @@ def self_test() -> int:
               == ('an-succ', True),
               f'a SPLIT branch that a finished branch contains lands through it (the planner\'s branch_carrier): '
               f'{rows["an-pred"].why}')
+        cw = ('cw-pred', 'cw-stale', 'cw-moved', 'cw-lost')
+        check(all(rows[b].carrier == 'cw-succ' and 'contained in cw-succ (WAITING TO LAND)' in rows[b].why for b in cw),
+              f'a SPLIT, a stale, a resumed and a superseded DECISION that a branch WAITING TO LAND contains land through '
+              f'it, whatever their reports say (kb/Work PB3386): {[(b, rows[b].carrier, rows[b].why) for b in cw]}')
         check('contained in fnd-fix' in rows['fnd-pred'].why,
               f'a FINDINGS branch its finisher merged lands through the finisher: {rows["fnd-pred"].why}')
         # owned(): IN FLIGHT by the branch's OWN lifecycle only; a contained branch names its carrier and is not owned
@@ -1839,7 +1898,7 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred', 'rp-pred', 'an-pred'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rpred-fix', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred', 'rp-pred', 'an-pred', 'cw-pred', 'cw-stale', 'cw-moved', 'cw-lost'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
         # kb/Work PB3653: locked() is the LOCK-ONLY half of owned(): a live agent's lock, never a ledger group or a
         # recent touch (which owned() folds in), and never a lock whose pid is dead
@@ -2131,8 +2190,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 67 · 17 in flight · 6 waiting for review · '
-                                                      '10 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 72 · 22 in flight · 6 waiting for review · '
+                                                      '11 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
@@ -2162,6 +2221,13 @@ def self_test() -> int:
         (notes / 'PB8.md').write_text('---\nid: PB8\n---\nsplit-branch carries the rest, so the orphan branch: ABANDONED '
                                       '2026-10-08, the approach was replaced by PB9 on split-branch.\nsplit-branch: not '
                                       'abandoned, a finisher takes it.\n', encoding='utf-8', newline="\n")
+        # kb/Work PB3409: GitHub deleted the merged head branch of `picked` behind the tracking ref (nothing prunes it)
+        origin_git = tmp / 'origin.git'
+        scratch.git('push', '-q', 'origin', 'picked')
+        scratch.git('fetch', '-q', 'origin')
+        scratch.git('update-ref', '-d', 'refs/heads/picked', cwd=origin_git)
+        check(bool(git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/picked', cwd=repo).stdout.strip()),
+              'the stale tracking ref of a branch origin deleted is the fixture of the apply below')
         out = []
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
@@ -2196,6 +2262,22 @@ def self_test() -> int:
               f'a landed branch is deleted on origin too: {out}')
         check('refs/heads/merged' in heads and any('kept origin/merged' in l for l in out),
               f'a remote branch holding commits the local one did not is kept: {out}')
+        # kb/Work PB3409: a branch origin already deleted is no failure: apply pruned its tracking ref first, so no
+        # `could not delete` line stands beside the real ones, and origin/* says what origin holds
+        check(not any('could not delete' in l for l in out)
+              and not git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/picked', cwd=repo).stdout.strip()
+              and any('pruned 1 remote-tracking ref' in l for l in out),
+              f'a branch origin already deleted reports no error and loses its tracking ref: {out}')
+        # ... and a delete origin REFUSES still reports (the real failure the old noise buried), its ref kept
+        scratch.git('branch', 'denied', 'main')
+        scratch.git('push', '-q', 'origin', 'denied')
+        scratch.git('fetch', '-q', 'origin')
+        scratch.git('config', 'receive.denyDeletes', 'true', cwd=origin_git)
+        denied = []
+        drop_remote('denied', scratch.git('rev-parse', 'denied'), repo=repo, say=denied.append)
+        check(len(denied) == 1 and denied[0].startswith('could not delete origin/denied:')
+              and bool(git('rev-parse', '--verify', '--quiet', 'refs/remotes/origin/denied', cwd=repo).stdout.strip()),
+              f'a delete origin refuses is reported as the failure it is, the tracking ref kept: {denied}')
     except ScratchRepoError as e:
         fails.append(f'the fixture could not be built, so nothing above it was measured: {e}')
     finally:

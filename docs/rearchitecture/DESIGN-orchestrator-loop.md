@@ -948,7 +948,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    not read. The branch SURVEY reads the same rule (kb/Work PB3652): `replay_view` builds `replays`' inputs for both
    readers, and `prune_worktrees.contained` lists an unfinished (`SPLIT`, `NOT STARTED`) branch that another branch
    replays, or that a branch IN FLIGHT, waiting or `STOPPED` contains, as carried (`IN FLIGHT`, its row naming the
-   carrier), never as a `DECISION` row beside the carrier the planner already plans from. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   carrier), never as a `DECISION` row beside the carrier the planner already plans from. The ancestry arm carries every `DECISION` row whatever its report says (kb/Work PB3386): a stale `DONE` report, one a later commit outran and one whose lead note already landed describe a branch whose commits land with the carrier. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
