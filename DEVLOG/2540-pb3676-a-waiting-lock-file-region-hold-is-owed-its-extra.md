@@ -1,4 +1,4 @@
-## PB3676: a waiting lock-file region hold is owed its extra publication round after every lost round that follows progress
+## Entry 2540 — 2026-10-25 11:29 PDT — PB3676: a waiting lock-file region hold is owed its extra publication round after every lost round that follows progress
 
 PB3632's review fix (R1-1) let a WAITING `SidecarRegionLocks.Hold` publish one more round when a lost round found nothing in the
 way, so a holder that left during the round did not turn the hold into `Unavailable`. The allowance was a flag set once per call
@@ -17,3 +17,4 @@ sleeping, so the test lets a holder go between two attempts without a thread or 
 Witness: `RegionLocksDriftTests.AWaitingHoldThatSawALiveHolderBetweenTwoLostRounds_IsOwedAnotherRound` (red before, green after;
 the PB3632 bounded-wait half of `AWaitingHoldWhoseHolderLetGoDuringTheLostRound_IsGrantedOnTheNextRound` still holds). Sibling
 sweep: no other waiting hold keeps a once-per-call allowance. Rows: none claimed, none closed. Note: PB3676 landed.
+
