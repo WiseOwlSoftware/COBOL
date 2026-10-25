@@ -1028,6 +1028,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                     // storage image (kb/Work PB3562 - the same codec as the literal arm above and a MOVE to the group).
                     + (GroupFormal(a) is not null ? OperandText.NonElementaryMoveSender(sc, num, "CALL argument") : OperandText.AsString(sc, num))
                     + "), null)";
+            // ⛔ A NUMERIC FUNCTION'S VALUE INTO A KNOWN PLAIN-GROUP FORMAL IS GR4's UNCONVERTED MOVE (kb/Work PB3613): it crosses as the
+            // digits of its value through the one group-move sender (OperandText.NonElementaryMoveSender; docs/CONFORMANCE.md D-B4),
+            // as the numeric literal arm above and `MOVE FUNCTION f TO G` store them - not as a numeric cell, which the group formal's
+            // text adapter would read as the cell's own 38-digit image. A formal this activating element cannot see (a Format-1 CALL)
+            // reads the same digits from the argument's Sending (CobolArgAdapt.WithValueSending).
+            case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } } nf when GroupFormal(a) is not null:
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(nf, num, "CALL argument")}), null)";
             case BoundComputedOperand expr:
             {
                 // A GENUINE runtime expression snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY
