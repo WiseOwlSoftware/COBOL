@@ -104,7 +104,11 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   line, so the operand screen cannot see it; §3.2b's driver check does (§7.3.3 SR8 b), and names §7.2.3.3 SR10 /
   §7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
   introducing edition by constructs row `replacing-partial-word-2002` — ONE check, `OperandScreen.PartialWord`, asked
-  by `ParseReplacingOperands` for both statements, once per statement (kb/Work PB1670).
+  by `ParseReplacingOperands` for both statements, once per statement (kb/Work PB1670). The statement's OWN phrases
+  that 1985's `COPY text-name [{OF | IN} library-name] [REPLACING …]` did not have are gated by ONE method,
+  `CopyProcessor.GateCopyPhrase`: each literal written as text-name-1 / library-name-1 (`copy-literal-name-2002`,
+  asked by `ReadCopyName`) and the SUPPRESS phrase (`copy-suppress-2002`, asked by `ParseCopyStatement`) —
+  COBOLNET0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.44).
 - **The REPLACE states** — `ApplyReplaceStatements` parses format 1 `REPLACE [ALSO] …` and format 2
   `REPLACE [LAST] OFF` and drives `ReplaceStates` (§7.2.4.4 GR4–GR7): the active operands plus a LIFO stack of
   inactive ones; ALSO pushes and activates current-then-pushed operands, LAST OFF pops, a plain format 1 or OFF
