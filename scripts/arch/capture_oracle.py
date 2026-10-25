@@ -45,6 +45,8 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 HOST_PROJECT = REPO / "tests" / "Cobol.Net.ArchOracle" / "Cobol.Net.ArchOracle.csproj"
@@ -133,7 +135,6 @@ def capture(*, build: bool = True, jobs: int | None = None, configuration: str =
 
 
 def main() -> int:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--no-build", action="store_true", help="run the already-built host")
     parser.add_argument("--jobs", type=int, help="parallel compiles (default: the processor count)")
@@ -143,4 +144,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

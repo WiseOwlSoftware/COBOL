@@ -50,6 +50,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -305,7 +306,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    sys.stdout.reconfigure(encoding="utf-8")
     if argv[:1] == ["--self-test"]:
         return self_test()
     command: list[str] = []
@@ -347,4 +347,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

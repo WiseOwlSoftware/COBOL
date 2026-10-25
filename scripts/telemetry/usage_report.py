@@ -22,6 +22,8 @@ import pathlib
 import sys
 
 from otlp_sink import OUT_DIR as DIR  # the sink writes it; one definition of the location
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ACCOUNT_ATTR = "user.account_uuid"
 TOKENS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
@@ -107,4 +109,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

@@ -18,6 +18,8 @@ import json
 import pathlib
 import sys
 from collections import Counter
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 DIR = REPO / "docs" / "rearchitecture" / "spec-reconciliation"
@@ -45,10 +47,6 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--expect", type=int, default=0, help="expected page count, to report coverage")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if not DIR.exists():
         sys.exit(f"nothing to merge: {DIR} does not exist")
@@ -140,4 +138,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
