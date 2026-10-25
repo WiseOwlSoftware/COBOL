@@ -69,6 +69,7 @@ import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parent.parent
 LISTED_MARK = "The following Tests are available:"
@@ -549,10 +550,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
-        pass
     if argv[:1] == ["scrubbed"]:
         if len(argv) < 2:
             print("test_population.py scrubbed: no command given", file=sys.stderr)
@@ -615,4 +612,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

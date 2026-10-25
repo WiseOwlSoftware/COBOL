@@ -44,6 +44,8 @@ from typing import Callable
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: What the running supervisor process holds in memory: PowerShell reads its script once. A change to one of these
 #: needs a restart; every other loop file is read afresh at each use.
@@ -221,10 +223,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--loaded", default="", help="adopt: the checkout's HEAD when the calling supervisor loaded its script")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     repo, cdir = pathlib.Path(a.repo), coord.coord_dir(a.coord)
     if a.cmd == "require":
         problem = require_current(repo, cdir)
@@ -236,4 +234,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

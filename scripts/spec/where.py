@@ -13,6 +13,8 @@ Measured motivation (waves 45–57, 81 implementer/finisher transcripts): search
 46 % of their tokens, the single largest cost; each agent re-surveyed the same subsystems from scratch.
 """
 import argparse, collections, pathlib, re, sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -23,12 +25,6 @@ def main():
     ap.add_argument('rule', nargs='?', help='optional rule token, e.g. SR2, GR4, r6')
     ap.add_argument('--top', type=int, default=12)
     ap.add_argument('--lines', type=int, default=3)
-    # The cited lines it prints carry characters a cp1252 console cannot encode (a source comment's ⛔, a §), and
-    # printing one raised UnicodeEncodeError mid-listing; cite.py does the same before its parse_args.
-    try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    except Exception:  # noqa: BLE001
-        pass
     a = ap.parse_args()
     clause = re.escape(a.clause.lstrip('§'))
     cpat = re.compile(r'§\s?' + clause + r'(?![0-9])')
@@ -71,4 +67,5 @@ def main():
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

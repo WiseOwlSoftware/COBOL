@@ -321,8 +321,10 @@ public sealed class DocA1Item103WitnessTests
             """, "AFTER-SORT EC-I-O-PERMANENT-ERROR");
 
     // The implementor-defined '91' (§9.1.13.11 item 1; DOC-A.1-110: a record character with no byte image in the file's
-    // coded character set) is FATAL by its first digit (§9.1.13.1) and maps to EC-I-O-IMP. Both halves are pinned for a
-    // WRITE whose record holds U+2603 (kb/Work PB3681): the FILE STATUS item receives '91' and execution continues while
+    // coded character set) is FATAL because WiseOwl COBOL defines it so: §9.1.13.1 makes a status that begins with the
+    // digit 9 fatal only when the implementor defines it as fatal (3, 4 and 7 are fatal by their first digit alone), and
+    // DOC-A.1-110 records that definition. Its status-to-condition correspondence is EC-I-O-IMP. Both halves are
+    // pinned for a WRITE whose record holds U+2603 (kb/Work PB3681): the FILE STATUS item receives '91' and execution continues while
     // checking is not enabled, and with checking ENABLED §14.6.13.1.3 rule 7 ends the run unit although the file has a
     // FILE STATUS clause (DOC-A.1-103) -- the same rule that ends it for '48' and '35'.
     private static string CharacterWithoutByteImageWrite(string turn) => """

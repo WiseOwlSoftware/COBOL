@@ -13,6 +13,8 @@ Read-only. Silent for every other file.
 import json
 import pathlib
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 REMOVED = REPO / "tests" / "conformance"
@@ -42,4 +44,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

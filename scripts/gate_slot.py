@@ -81,6 +81,7 @@ from pathlib import Path
 from typing import Callable
 
 import sharedfile  # this directory's: the one Windows share-retry rule for the settings file (kb/Work PB2564)
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 SLOT_DIR_NAME = "cobol-gate-slots"
@@ -1327,10 +1328,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")  # the status lines carry em dashes; a cp1252 console mangled them
-    except (AttributeError, ValueError):
-        pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="run every arm of DESIGN-test-build-ci.md §3.14.6")
     sub = ap.add_subparsers(dest="action")
@@ -1378,4 +1375,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

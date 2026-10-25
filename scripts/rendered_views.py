@@ -47,6 +47,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from standard_streams import ensure_utf8
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -263,10 +264,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("names", nargs="*", help="views to render or check (default: all)")
     ap.add_argument("--check", action="store_true",
@@ -297,4 +294,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

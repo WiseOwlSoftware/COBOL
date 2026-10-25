@@ -36,6 +36,8 @@ from typing import NamedTuple
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: Printed folio = PDF page − FRONT_MATTER (plan §0: "the `#page-N` anchors remain PDF sequence, which runs
 #: folio + 30"). Kept as a named constant because it is a fact about this document, not a magic number.
@@ -112,11 +114,6 @@ def resolve(clauses: list[str], doc=None) -> dict[str, tuple[int, int, str]]:
 
 
 def main(argv: list[str]) -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
 
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("clauses", nargs="+", help="clause numbers, e.g. 14.9.1 13.18.40")
@@ -152,4 +149,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

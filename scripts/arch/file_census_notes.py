@@ -76,6 +76,8 @@ from collections import OrderedDict
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "scripts", "spec"))
 import work  # noqa: E402 — named_missing_paths: the one rule that a path a note names exists
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 NOTES_DIR = os.path.join(REPO, "kb", "Work")
 RECORD_DIR = "docs/rearchitecture/evidence/arch-census"
 
@@ -1047,7 +1049,6 @@ def self_test():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")   # titles carry §, → and em dashes; a cp1252 console cannot print them
     ap = argparse.ArgumentParser()
     ap.add_argument("findings", nargs="?")
     ap.add_argument("--ids")
@@ -1095,4 +1096,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
