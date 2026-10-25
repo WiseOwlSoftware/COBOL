@@ -1,4 +1,4 @@
-## PB3250 — the checkpoint survey skips a worktree that vanished after it was listed
+## Entry 2512 — 2026-10-24 20:23 PDT — PB3250 — the checkpoint survey skips a worktree that vanished after it was listed
 
 `checkpoint.py` (the supervisor's frequent handoff, DESIGN-orchestrator-loop.md 5.1) lists the linked worktrees and then
 measures each one. It ran git with the worktree as the subprocess `cwd`, so a worktree removed between the listing and the
@@ -25,3 +25,4 @@ the unreadable one and the failed listing.
 
 Gate: the first gate (run 000001-20261025T030851Z) stopped RED in its self-test audit on the three orchestrate self-tests
 above; the fix is the stderr-and-continue listing.
+
