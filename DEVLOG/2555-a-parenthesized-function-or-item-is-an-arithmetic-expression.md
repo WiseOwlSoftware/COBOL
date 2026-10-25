@@ -1,4 +1,4 @@
-## A parenthesized function or item is an arithmetic expression, whatever tree it binds to
+## Entry 2555 — 2026-10-25 12:32 PDT — A parenthesized function or item is an arithmetic expression, whatever tree it binds to
 
 PB3678 (a branch-review lead from PB3613). `BoundComputedOperand.IsNumericFunctionValue`, the one question every channel that sends a
 value into a plain group asks, answered true for ANY numeric `BoundIntrinsicCall` and read the binder's `FunctionValue` flag only for other
@@ -38,3 +38,4 @@ numeric literal (`NumericLiteralOperand`). Golden `pb3678_numeric_constant_by_co
 **Left open.** A parenthesized numeric LITERAL, `(3)` or `(-3)`, is still taken for the literal: `Gr8ArgumentLiteral.NumericText` recovers a
 literal from a computed operand for the BY VALUE `-1.234E-5` spelling and cannot tell a parenthesized one. A different mechanism, reported as a
 lead. Rows re-verdicted: none (the note claimed 0). The ordered gate's verdict is in the branch report.
+
