@@ -1,4 +1,4 @@
-## PB3714, PB3113, PB3157, PB3642, PB3674: the landing's verdict line has one home, the lane's runner check cannot be fooled by a reused pid, a merged branch is nothing to land, two landings of one driver file never queue together, and a language server holding SourceGen.dll no longer fails the next build
+## Entry 2548 — 2026-10-25 11:42 PDT — PB3714, PB3113, PB3157, PB3642, PB3674: the landing's verdict line has one home, the lane's runner check cannot be fooled by a reused pid, a merged branch is nothing to land, two landings of one driver file never queue together, and a language server holding SourceGen.dll no longer fails the next build
 
 Five landing-lane tooling defects, one group (wave 20261107 group D, campaign PB1957). None touches COBOL semantics: no inventory row, no diagnostic code, no conformance golden. Each is pinned by script self-test arms, which the self-test runner runs in every gate and in CI, and by drift tests that keep the arms and the wiring from going away.
 
@@ -19,3 +19,4 @@ Five landing-lane tooling defects, one group (wave 20261107 group D, campaign PB
 **Review round 1.** The reviewer's blocking finding R1-1: the driver-file guard (PB3642) held a branch on every open pull request that shared a driver-covered file, a bounced one included, so one unfixed bounce would have held every later catalogue landing silently. `driver_file_holders` now counts only a pull request that enters the queue (`queue_facts.PullRequest.entering`: in the queue or auto-merge on, and not bounced, conflicting or red), read through `queue_facts.read`; an unnamed pull request is still held and unreadable facts are exit 9. Tests in the `queue_facts`, `enqueue` and `land_lane` self-tests. The lead R1-2 (the design doc still named `merge_drivers.outcome_files` and `conflict_outcome`, which PB3714 moved to `verdict_line.py`) is fixed in DESIGN-orchestrator-loop. Branch merged with main (PB3693's predecessor wait and the stamp exits sit beside the driver guard in `land`).
 
 Notes PB3113, PB3157, PB3714, PB3642, PB3674 flip to landed with `closes_rows: []` (landing tooling; no ISO rule or inventory row).
+
