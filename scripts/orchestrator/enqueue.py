@@ -47,7 +47,9 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      equals the `tree` it measured) with its Linux half GREEN (the inert lane's is the script self-tests alone, kb/Work PB3646), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
-     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
+     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip (or, when
+     the newest GREEN record was written by a gate OLDER than this lander, `run_gate_legs.predates_landing`, merges
+     main into the branch first, since gating with the branch's own older driver writes the same record: kb/Work PB3660). A run
      that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_gate`: the worktree's gate lock is held, an OS
      lock freed when its holder dies, so never a reused process id; the landing lane launches a landing beside its own
      implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
