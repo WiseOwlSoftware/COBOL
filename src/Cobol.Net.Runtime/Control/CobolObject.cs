@@ -77,13 +77,39 @@ public abstract class CobolObject
         receiver ?? throw new CobolFatalException("EC-OO-NULL",
             "INVOKE: the object reference used as the receiver is null (ISO §14.9.23.4 GR5)");
 
+    /// <summary>⛔ THE ACTIVE-CLASS RETURNING ITEM'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §14.9.23.4 GR7 c) with
+    /// §14.8.3.3 rule 2 b) 4.; kb/Work PB2985), asked BEFORE the bound method runs by every method whose returning item is
+    /// described ACTIVE-CLASS — each emitted <c>__CobolInvoke</c> case that has one, and the standard class BASE's New and
+    /// FactoryObject (§16.2). The method was invoked through a universal reference, so its ACTIVE-CLASS item is sent as a
+    /// universal object reference (<see cref="ActivationRelations.ActiveClassReturningViolation"/>) and a receiving item
+    /// described with a class, an interface or ACTIVE-CLASS does not conform, whichever class the returned object has.
+    /// EC-OO-UNIVERSAL is set to exist "if checking for it is enabled in both the activated method and the activating
+    /// runtime element" (<paramref name="enabledInMethod"/> is the method's half, a property of its source; the standard
+    /// class has none, so BASE passes true), the invocation is not successful and the method does not run. Unchecked,
+    /// nothing is set and the invocation proceeds: the delivery narrows the object to the receiving item
+    /// (<see cref="NarrowUniversal{T}"/>), so a typed field still never holds an object it cannot.</summary>
+    /// <param name="enabledInMethod">Checking for EC-OO-UNIVERSAL is enabled in the activated method.</param>
+    /// <param name="what">The INVOKE and method, for the message.</param>
+    /// <param name="receiving">The invocation's returning item.</param>
+    /// <param name="sending">The method's returning item.</param>
+    public static void CheckActiveClassReturning(bool enabledInMethod, string what, ActivationDescription receiving,
+                                                 ActivationDescription sending)
+    {
+        if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
+        if (ActivationRelations.ActiveClassReturningViolation(receiving, sending) is { } why)
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §14.9.23.4 GR7 c))");
+    }
+
     /// <summary>Deliver an object reference that crossed a UNIVERSAL invocation (D10) into a receiving item of type
     /// <typeparamref name="T"/>. The delivery follows the SET rules (§14.8.3.3), and through a universal receiver the
     /// class of the object is a RUNTIME fact: the §9.3.6 rule 6 match (<see cref="ActivationRelations.ReturningMatches"/>)
     /// already refused a method whose returning item's DESCRIPTION a SET could not send into the receiving item (an
     /// unrelated class, an interface the class does not implement; kb/Work PB2463), but a returning item described
     /// ACTIVE-CLASS — the standard class BASE's New and FactoryObject among them (§16.2) — references an object of the
-    /// class the method was invoked on (§13.18.60.4 GR22 e)), which only the object can answer. A non-conforming object
+    /// class the method was invoked on (§13.18.60.4 GR22 e)), which only the object can answer. This is the FLOOR under
+    /// the conformance rules, never the rule: §14.8.3.3 rule 2 conformance of an ACTIVE-CLASS item is decided by how the
+    /// method was invoked, before the method runs (<see cref="CheckActiveClassReturning"/>; kb/Work PB2985), and this
+    /// delivery runs for the invocation that proceeds because no checking was enabled. A non-conforming object
     /// is §14.9.23.4 GR7c's EC-OO-UNIVERSAL when the activator checks for it,
     /// and otherwise still cannot proceed into typed code (<see cref="CobolImplementorFatalException"/>) — never an
     /// unchecked cast's InvalidCastException.</summary>

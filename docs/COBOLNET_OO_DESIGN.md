@@ -681,8 +681,12 @@ prescribes (kb/Work PB1500):
   compatibility of a variable-length pair (`GroupCompatibility.Walk` over the `GroupAtom` layouts both descriptions
   carry — the ONE walk the compiler's bind-time screens ask too, kb/Work PB480; a fixed partner is that walk's other side,
   its record image a carrier in its own shape, kb/Work PB2690), §14.8.2.3.2 "Additionally" b)/c) for bit / national groups, and §14.8.3
-  for the RETURNING pair (§14.8.3.2's same length, §14.8.3.3's clause identity; an object reference is delivered by the
-  SET-rule narrowing `CobolObject.NarrowUniversal`). The EC-OO-UNIVERSAL
+  for the RETURNING pair (§14.8.3.2's same length, §14.8.3.3's clause identity, rule 1's SET table for an object
+  reference). An ACTIVE-CLASS returning item is §14.8.3.3 rule 2 b) 4. through a universal invoking reference: its sending
+  operand is a UNIVERSAL object reference, so only a universal receiving item conforms
+  (`ActivationRelations.ActiveClassReturningViolation`, asked by `CobolObject.CheckActiveClassReturning` before the
+  method runs — an emitted case with an ACTIVE-CLASS item, and BASE's New / FactoryObject; kb/Work PB2985), and it
+  proceeds when checking is off (the delivery's class narrowing `CobolObject.NarrowUniversal` is the floor under it). The EC-OO-UNIVERSAL
   exception condition is set to exist WHEN checking for it is enabled in BOTH the activated method and the
   activating runtime element; the method invocation is then unsuccessful and control continues per GR7g through
   the §14.6.13 EC machinery (declaratives / >>TURN), like every other EC. When checking is not enabled in both,
@@ -752,9 +756,11 @@ ends in EC-OO-METHOD. The standard class BASE's New and FactoryObject describe t
 (`StandardMethodCrossing`), so through a universal receiver they match a universal item, one described with BASE (FACTORY
 OF BASE) or ACTIVE-CLASS of the same FACTORY presence. §14.8.3.3 rule 1 is the same table at the bound method's and a
 CALL's conformance (`ActivationRelations.ReturningConformance`), and §14.8.2.3.3's object-reference BY CONTENT argument
-of a CALL asks it through `MaySet`. **Residue:** §14.8.3.3 rule 2 describes an ACTIVE-CLASS returning item's sending
-operand by how the method was INVOKED (2 b) 1.–4.), which a run-time dispatch does not carry, so the object's own class is
-what the delivery (`CobolObject.NarrowUniversal`) checks. A PROGRAM- or FUNCTION-pointer's restriction is its prototype's SIGNATURE
+of a CALL asks it through `MaySet`. §14.8.3.3 rule 2 describes an ACTIVE-CLASS returning item's sending
+operand by how the method was INVOKED (2 b) 1.–4.); a universal dispatch is always 2 b) 4. with a universal invoking
+reference, so `ActivationRelations.ActiveClassReturningViolation` asks the table with a universal sender (kb/Work
+PB2985), and the delivery's class narrowing (`CobolObject.NarrowUniversal`) stays the floor for the unchecked
+invocation. A PROGRAM- or FUNCTION-pointer's restriction is its prototype's SIGNATURE
 class, not its name (§13.18.60.4 GR25 / GR26; kb/Work PB2464): `PrototypeSignatureClasses` partitions a group's
 prototypes by `PrototypeSignatures.Same`, and `BinderDriver.ResolvePointerRestrictions` stamps each pointer item in two
 passes over every forest — `DataBinder.ResolveRestrictedPrototypes` attaches the prototype its `TO` phrase resolves to
@@ -1038,7 +1044,7 @@ The emitter's 'emit a data item reference' consults the bound item's owning scop
 
 The bound model carries an `ObjectRefDescriptor` (Binding/Model/ObjectRefDescriptor.cs) on `PicInfo.ObjectRef`: **Kind ∈ {Universal, Interface, ObjectClass, ActiveClass} × Name × Factory × Only** — the four axes §13.18.60.2 prints. `DataBinder.OoBindObjectRefDescriptor` is the ONE adjudication of a written phrase (kind resolution against the pass-1 class table → 0813; the interface alternative's FACTORY/ONLY ban → 1925; §13.18.60.3 SR16 placement → 1924), and every consumer ASKS the descriptor rather than re-deriving the kind. ⛔ It replaced a single `string? ObjectClassName`, whose one axis made ACTIVE-CLASS and ONLY unrepresentable (and therefore REJECTED as legal source), left FACTORY OF loud-staged, and spelled "universal" as "no class name recorded" — a test equally true of every other shape (kb/Work PB389). INVOKE binding reads the descriptor to pick the roster: universal → the dynamic path, interface-name → `AllPrototypes()`, object-class-name/ACTIVE-CLASS → the named/containing class, and its FACTORY roster when FACTORY OF was written (§9.3.6 — a class has two separate method interfaces). A class-name target (not a data item) means NEW/factory dispatch.
 
-**Conformance that depends on the INVOCATION (kb/Work PB1112).** An ACTIVE-CLASS formal or returning item means "the class of the object the method runs on", so ISO §14.8.2.3.2 rule 4, §14.8.2.3.3's ACTIVE-CLASS paragraph and §14.8.3.3 rule 2 state its conformance in terms of how the method is invoked. The INVOKE binder describes that invocation ONCE, as an `ObjectRefDescriptor` (`invokedWith` — §14.8.3.3 rule 2 b)'s four cases: a class-name is that object-class-name with ONLY, SELF and SUPER are ACTIVE-CLASS, an object reference is its own description), and hands it to the one entry: an ACTIVE-CLASS formal of an activation is asked `OoConformance.ActiveClassFormalMismatch` (by `OoBinder` and `OoConformance.ObjectReferenceContentMismatch`), and an ACTIVE-CLASS returning item is delivered as `OoConformance.ReturningSender(returning, invokedWith)`. The standard class BASE's New / FactoryObject results (`OoBindStandardInvoke`) read the same view. The override / implements PAIR (§9.3.8.2.3 rule 2 d)) passes none and compares the two descriptions.
+**Conformance that depends on the INVOCATION (kb/Work PB1112).** An ACTIVE-CLASS formal or returning item means "the class of the object the method runs on", so ISO §14.8.2.3.2 rule 4, §14.8.2.3.3's ACTIVE-CLASS paragraph and §14.8.3.3 rule 2 state its conformance in terms of how the method is invoked. The INVOKE binder describes that invocation ONCE, as an `ObjectRefDescriptor` (`invokedWith` — §14.8.3.3 rule 2 b)'s four cases: a class-name is that object-class-name with ONLY, SELF and SUPER are ACTIVE-CLASS, an object reference is its own description), and hands it to the one entry: an ACTIVE-CLASS formal of an activation is asked `OoConformance.ActiveClassFormalMismatch` (by `OoBinder` and `OoConformance.ObjectReferenceContentMismatch`), and an ACTIVE-CLASS returning item is delivered as `OoConformance.ReturningSender(returning, invokedWith)`. The standard class BASE's New / FactoryObject results (`OoBindStandardInvoke`) read the same view. The run-time lane is the same rule with the one invocation a universal dispatch can be — rule 2 b) 4. through a universal reference, a universal sender (`ActivationRelations.ActiveClassReturningViolation`, kb/Work PB2985). The override / implements PAIR (§9.3.8.2.3 rule 2 d)) passes none and compares the two descriptions.
 
 ### Cross-compilation-unit resolution: the driver PROGRAM and each CLASS are separate program units in one compilation group; INVOKE in the driver references a class defined later in the file, and a method body references sibling methods/inherited members.
 
