@@ -1,4 +1,4 @@
-## The sequential journal reads an R record's length word in 64 bits, so a wrapped or oversized word is a torn tail (PB3614)
+## Entry 2501 — 2026-10-24 19:03 PDT — The sequential journal reads an R record's length word in 64 bits, so a wrapped or oversized word is a torn tail (PB3614)
 
 PB3614 was filed against two sizing sites of SequentialJournal that the PB3340 review rounds had already replaced: `Parse`'s
 `at + 1 + payload + 4 > bytes.Length` bound and `Read`'s `checked((int)medium.Length(record))` no longer exist, because
@@ -14,3 +14,4 @@ restores F to its state at the last COMMIT (§14.9.36.4 GR3). Unit witnesses: si
 through `ReadRecord`, a sparse 3 GiB record file, and a dead transaction's record with a wrapped word settled by the next entry
 (the I11 exception path of the rollback). The sibling readers (`RecordFraming.ReadFrame`, `SortRunFile.Next`) were checked: the
 first bounds every length by `Holds` already, the second reads a file the same process wrote. Gate: see the report.
+
