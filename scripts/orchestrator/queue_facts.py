@@ -25,6 +25,10 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
 A third caller asks for the REDS of a bounce (kb/Work PB3644): `fetch_bounce_results` downloads the test results of the
 newest failed merge-group run of a branch's open pull request into the worktree (`gate_plan.CI_BOUNCE_RESULTS`), where the
 gate planner reads them as tier 0a, called by `run_gate_legs.Host.fetch_bounce_results` before every gate's plan.
+A fourth asks which commits the queue is TESTING (kb/Work PB3769): `live_heads` returns the head commit of each of the
+queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
+for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
+head commit no entry heads any more; an unreadable, absent or incomplete queue is None there too.
 A pull request is IN THE QUEUE when the queue's entries name it or GitHub says `isInMergeQueue`. Auto-merge on is NOT
 in the queue: it is GitHub's promise to queue the pull request once its required checks pass, and that promise is what
 PR #385 broke. Offline, unauthenticated, with no gh, or on any malformed answer the read is None: a non-observation,
@@ -204,6 +208,41 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
                 tuple(_with_job(run, repo, c) for c in checks), repo,
                 bool(removed) and pushed_since_removal((n.get('pushes') or {}).get('nodes') or []))
         return prs
+    except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError):
+        return None
+
+
+# ── THE COMMITS THE QUEUE IS TESTING (kb/Work PB3769) ─────────────────────────────────────────────────────────────
+#: Each current entry's head commit: the merge-group commit (`gh-readonly-queue/main/pr-<n>-<sha>`) its workflow run
+#: tests. `pageInfo`, so a queue longer than one page is an INCOMPLETE read, never a short one.
+LIVE_QUERY = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name){'
+              'mergeQueue(branch:"main"){entries(first:100){pageInfo{hasNextPage} '
+              'nodes{headCommit{oid} pullRequest{number}}}}}}')
+
+
+def live_heads(gh: Gh | None = None, repo: str = '') -> dict[str, int] | None:
+    """{head commit of a current merge-queue entry on main: its pull request's number}, or None when the queue could not
+    be read WHOLE: gh failed or is absent, the answer is malformed, main has no merge queue (`mergeQueue` null), or the
+    queue holds more entries than one page returns. An entry GitHub has not built a commit for yet has no run to keep,
+    so it adds nothing. `{}` is an empty queue, which the caller judges (cancel_superseded.decide cancels nothing on it)."""
+    run = gh or ruleset.real_gh
+    try:
+        repo = repo or ruleset.repo_name(run)
+        owner, _, name = repo.partition('/')
+        if not owner or not name:
+            return None
+        rc, out, _ = run(['api', 'graphql', '-f', f'query={LIVE_QUERY}', '-F', f'owner={owner}', '-F', f'name={name}'])
+        if rc != 0:
+            return None
+        entries = json.loads(out)['data']['repository']['mergeQueue']['entries']
+        if entries['pageInfo']['hasNextPage'] is not False:
+            return None
+        heads: dict[str, int] = {}
+        for e in entries['nodes']:
+            oid = str(((e or {}).get('headCommit') or {}).get('oid') or '')
+            if oid:
+                heads[oid] = int(((e or {}).get('pullRequest') or {}).get('number') or 0)
+        return heads
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError):
         return None
 
@@ -480,6 +519,27 @@ def self_test() -> int:
                "branches or malformed items",
                bounce_run(runs, 547)['id'] == 800 and bounce_run(runs, 5)['id'] == 900 and bounce_run(runs, 9) is None
                and bounce_run([None, {}, 'x', {'head_branch': 'main'}], 547) is None, str(bounce_run(runs, 547)))
+    # THE COMMITS THE QUEUE IS TESTING (kb/Work PB3769): CI's supersede job keeps exactly these runs.
+    def queue_gh(queue: object, rc: int = 0) -> Gh:
+        def gh(args: list[str]) -> tuple[int, str, str]:
+            if args[:2] == ['repo', 'view']:
+                return 0, 'o/r\n', ''
+            if args[:2] == ['api', 'graphql'] and 'headCommit' in args[3]:
+                return (rc, json.dumps({'data': {'repository': {'mergeQueue': queue}}}), '') if rc == 0 else (1, '', 'x')
+            return 1, '', 'unrouted'
+        return gh
+
+    page = lambda nodes, more=False: {'entries': {'pageInfo': {'hasNextPage': more}, 'nodes': nodes}}  # noqa: E731
+    entry = lambda oid, n: {'headCommit': {'oid': oid} if oid else None, 'pullRequest': {'number': n}}  # noqa: E731
+    expect("live_heads: each current entry's head commit, with its pull request; an entry with no commit built yet adds "
+           "nothing; an empty queue is {}",
+           live_heads(queue_gh(page([entry('aa', 1), entry('bb', 2), entry('', 3)]))) == {'aa': 1, 'bb': 2}
+           and live_heads(queue_gh(page([]))) == {}, str(live_heads(queue_gh(page([entry('aa', 1)])))))
+    expect("live_heads: a queue longer than one page, no merge queue on main, a failed call, a malformed answer or an "
+           "offline gh is None (an incomplete read), never a short list",
+           live_heads(queue_gh(page([entry('aa', 1)], more=True))) is None and live_heads(queue_gh(None)) is None
+           and live_heads(queue_gh(page([]), rc=1)) is None and live_heads(queue_gh({'entries': None})) is None
+           and live_heads(queue_gh({'entries': {'nodes': []}})) is None and live_heads(offline) is None)
     print(f"=== queue_facts.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 
