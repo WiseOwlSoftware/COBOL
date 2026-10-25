@@ -96,13 +96,21 @@ public sealed class ConditionNameAssociationDriftTests
         just.Justified = true;
         Assert.Equal('d', Excl(Group("G", 1, just)));
         var sync = Elem("S", Alnum(), 5);
-        sync.Synchronized = true;
+        sync.Synchronized = SynchronizedPhrase.Right;
         Assert.Equal('d', Excl(Group("G", 1, sync)));
-        // §13.18.55.3 SR1 permits SYNCHRONIZED on the GROUP and §13.18.55.4 GR1 makes that a description of
-        // its members, so the subject's OWN clause reaches d) — the binder does not propagate the flag down.
-        var syncGroup = Group("G", 1, Elem("A", Alnum(), 5));
-        syncGroup.Synchronized = true;
+        // §13.18.55.3 SR1 permits SYNCHRONIZED on the GROUP and §13.18.55.4 GR1 makes that a description of its
+        // members: DataBinder.InheritSynchronized writes the group's clause onto each member for which it is
+        // permitted (kb/Work PB539), and d) reads the members — the shape that walk leaves is what fires here.
+        var syncMember = Elem("A", Alnum(), 5);
+        syncMember.Synchronized = SynchronizedPhrase.Unqualified;
+        var syncGroup = Group("G", 1, syncMember);
+        syncGroup.Synchronized = SynchronizedPhrase.Unqualified;
         Assert.Equal('d', Excl(syncGroup));
+        // A group whose clause reached NO member (each is below a group-level VALUE, §13.18.63.3 SR14) contains no
+        // item described with the clause, so d) does not fire on the group's own flag.
+        var unreached = Group("G", 1, Elem("B", Alnum(), 5));
+        unreached.Synchronized = SynchronizedPhrase.Unqualified;
+        Assert.Null(DataBinder.ConditionalVariableExclusion(unreached));
 
         Assert.Equal('e', Excl(Elem("IX", PicInfo.IndexItem)));
         var anyLen = Elem("AL", Alnum());
