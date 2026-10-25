@@ -32,3 +32,21 @@ found exactly those two.
 **Rows.** SR-14.9.43.3-1, SR-14.9.22.3-2 and SR-14.9.48.3-2 gained witnesses (batch w20261102a-pb3665); no row opened or closed
 (`closes_rows: []` with a reason). **Not changed:** the 8.8.4.2.5 relation (an INTEGER function against an alphanumeric operand is admitted
 as the 15.4 temporary, DOC-A.1-92) is another rule's decision; it is a lead in the report.
+
+**For the next implementer.** `IntrinsicSig.ImplicitUsageOf` (IntrinsicCatalog.cs) is the one 15.2 usage-by-type table: ask it, never respell it.
+`IntrinsicArgumentRules.FunctionIsNotDisplayOrNational` / `FunctionIdentifierCategory` classify a function-identifier in its three shapes
+(`BoundComputedOperand` over a `BoundIntrinsicCall`, `BoundComputedOperand.FunctionValue`, `BoundNumericLiteral.FunctionValue`): a rule
+that reads `BoundNumericLiteral` first sees the folded LENGTH as a literal. `StringUnstringBinder.Sr1Offence` and
+`StatementValidation.CheckInspectFunctionUsage` are the two callers. The trap: `ConditionBinder` and `StaticUsageOf` each had their own
+copy of the table. A conformance program that sends a numeric function to STRING or INSPECT is illegal source (sweep: compile every
+`.cob` mentioning FUNCTION and a verb, with the header's `source-format` and `accept`).
+
+**Self-review.** Architecture: one table, one reader, no C# text in a bound node, the catalog descriptor registered. Full code: the rule is
+15.2 by type, three shapes, both verbs; a user FUNCTION-ID result is a data item and keeps its own usage. Performance: nothing on a hot
+path (bind time, one switch). Duplication: two private copies of the usage table folded into the one (ConditionBinder, StaticUsageOf).
+Found and fixed on the way: the UNSTRING delimiter wording, two goldens that sent a numeric function to STRING, a raw `COBOLNET0847`
+literal at three INSPECT sites.
+
+**Gate.** Run `TestResults/build-local/000001-20261025T021404Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
+Conformance 7,927/18,457 · Unit 36,947/38,168 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of
+HEAD) GREEN`. All 44 `pb3665` Conformance results passed (leg-1-Conformance.trx), and the five `DisplayOrNationalUsagePredicateDriftTests`.
