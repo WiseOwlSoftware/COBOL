@@ -8,7 +8,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 CP = HERE / "checkpoint.py"
 SCHEMA = json.loads((HERE / "handoff.schema.json").read_text(encoding="utf-8"))
@@ -69,6 +69,55 @@ check("branch statuses are schema values", {b["status"] for b in h["branches_pen
 run("synthesize", "--unit", "meter", "--out", str(out))
 h = json.loads(out.read_text(encoding="utf-8"))
 check("with no checkpoint and no milestones it still synthesizes", ("no checkpoint" in h["summary"], h["next_unit"]), (True, "resume"))
+
+# kb/Work PB3250: a worktree removed between the listing and its measurement is left out; the checkpoint is still written.
+# The subject runs git itself, in this process, so the caller's repository-selection variables are dropped first.
+isolate()
+sys.path.insert(0, str(HERE))
+import checkpoint  # noqa: E402
+
+vanishing = TMP / "wt-vanishing"
+scratch.worktree(vanishing, branch="vanishing")
+real_git = checkpoint.git
+
+
+def git_then_vanish(cwd, *args):
+    """The real git; right after the worktree listing the worktree it names is deleted (prune_worktrees.py --apply, an
+    agent's cleanup), the race the note measured: the next call's directory is gone."""
+    out = real_git(cwd, *args)
+    if args[:2] == ("worktree", "list"):
+        remove_tree(vanishing)
+    return out
+
+
+checkpoint.git = git_then_vanish
+try:
+    survivors = checkpoint.worktrees(REPO)
+except OSError as e:     # NotADirectoryError (WinError 267) on Windows, FileNotFoundError elsewhere
+    fails.append(f"a worktree removed after the listing aborted the survey with {type(e).__name__}: {e}")
+    survivors = []
+finally:
+    checkpoint.git = real_git
+check("a worktree gone after the listing is left out, the others measured",
+      sorted(t["branch"] for t in survivors), ["clean", "committed", "dirty"])
+check("the survivors are still measured", {t["branch"]: t["ahead_of_main"] for t in survivors}.get("committed"), 1)
+
+# a worktree whose directory is there but whose git cannot read it stays, its uncommitted count unknown (never a clean 0)
+broken = TMP / "wt-broken"
+scratch.worktree(broken, branch="broken")
+(broken / ".git").unlink()                                       # a hidden file on Windows: replaced, not rewritten in place
+(broken / ".git").write_text("not a gitdir pointer\n", encoding="utf-8", newline="\n")
+unreadable = {t["branch"]: t for t in checkpoint.worktrees(REPO)}
+check("an unreadable worktree stays, uncommitted unknown", (sorted(unreadable), unreadable.get("broken", {}).get("uncommitted", "absent")),
+      (["broken", "clean", "committed", "dirty"], None))
+
+# a listing that fails (the directory is no repository) records no worktrees and says so on stderr, and does not raise: a
+# dead unit's handoff is still synthesized (the supervisor's own self-tests run these commands against a plain directory)
+(TMP / "no-such-repo").mkdir()
+r = subprocess.run([sys.executable, str(CP), "synthesize", "--unit", "wave", "--out", str(TMP / "plain.json"),
+                    "--coord", str(COORD), "--repo", str(TMP / "no-such-repo")], capture_output=True, text=True)
+check("a failed listing still synthesizes", (r.returncode, (TMP / "plain.json").is_file()), (0, True))
+check("a failed listing is said on stderr", "worktree list" in r.stderr, True)
 
 remove_tree(TMP)   # the scratch repository, its worktrees and the coordination directory
 if fails:
