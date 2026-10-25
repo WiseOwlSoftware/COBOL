@@ -60,7 +60,7 @@ ONE GATE, in this order (§3.14.3):
      makes the gate RED and names the host; one that measured nothing (no WSL, no SDK, a full disk) ends the gate NOT RUN
      with the Linux gate's own cause. The verdict file records it (`linux`: verdict, the committed `tree` it measured),
      beside `head_tree`: that record is the landing's evidence that the branch was "tested locally" (enqueue.py
-     `tested_locally`), and a reused answer needs it. A Linux host's own legs are the Linux half; the inert lane has none.
+     `tested_locally`), and a reused answer needs it. A Linux host's own legs are the Linux half; the inert lane's is the script self-tests alone (PB3646).
 It is GREEN only when every leg ran, every leg is green, every population is exact and every identity matches. Under
 the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or `…: RED` instead, whenever the
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
@@ -128,8 +128,9 @@ from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Se
 from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
-from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, check as check_population,  # noqa: E402
-                             list_population, scrubbed_env, synthetic_listing, synthetic_trx)
+from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, UnreadableTrx,  # noqa: E402
+                             check as check_population, list_population, scrubbed_env, synthetic_listing,
+                             synthetic_trx)
 
 VERDICT = "=== BUILD-LOCAL GATE: "
 #: The Linux half's verdict prefix (scripts/linux-gate.sh), which `read_verdict` reads like this driver's own.
@@ -138,6 +139,9 @@ LINUX_VERDICT = "=== LINUX GATE: "
 #: into its own `=== LINUX GATE: ` line.
 PLAN_LEG_VERDICT = "=== PLAN LEG: "
 LINUX_LEG_LOG = "linux-leg.log"
+#: How long `Host.linux_gate_holder` waits for `linux-gate.sh --probe` (a WSL cold start is the slow part; the probe reads
+#: a few files): a hung hand-off is read as no holder, never waited on.
+LINUX_PROBE_TIMEOUT_S = 120
 #: The verdict prefix of a gate that ran leg 1 only under the `leg1` scope (kb/Work PB2515): never a whole-population
 #: GREEN, and never mistaken for one — `GATE: GREEN` does not match it.
 LEG1_ONLY = "LEG 1 ONLY (batched gating, PB2515)"
@@ -453,14 +457,18 @@ class Host:
         2026-10-23): a Windows host does. On a Linux host this gate's own legs are the Linux half."""
         return os.name == "nt"
 
-    def linux_leg(self, run: Path, plan: Path | None, legs: list[int], spawn: Spawn) -> LinuxLeg:
+    def linux_leg(self, run: Path, plan: Path | None, legs: list[int], spawn: Spawn, inert: bool = False) -> LinuxLeg:
         """The Linux half: the SAME plan's `legs`, run in a WSL clone of the committed HEAD by `scripts/linux-gate.sh
         --legs targeted` (the clone is built there and runs this driver's `--plan-leg`), the whole output to `run`'s
         LINUX_LEG_LOG. Its verdict line is read by `read_verdict`, like every gate's. No plan (`plan` None) is the whole
-        population in one leg, as this gate runs it."""
-        where = "none" if plan is None else Path(os.path.relpath(plan, self.repo)).as_posix()
-        cmd = ["bash", "scripts/linux-gate.sh", "--legs", "targeted", "--plan", where, "--plan-legs",
-               ",".join(map(str, legs)), "--nice"]
+        population in one leg, as this gate runs it. `inert`: the INERT LANE's Linux half (kb/Work PB3646), `--legs
+        inert`: the script self-tests alone in the clone, with no plan and no leg."""
+        if inert:
+            cmd = ["bash", "scripts/linux-gate.sh", "--legs", "inert", "--nice"]
+        else:
+            where = "none" if plan is None else Path(os.path.relpath(plan, self.repo)).as_posix()
+            cmd = ["bash", "scripts/linux-gate.sh", "--legs", "targeted", "--plan", where, "--plan-legs",
+                   ",".join(map(str, legs)), "--nice"]
         log = run / LINUX_LEG_LOG
         with open(log, "wb") as fh:
             rc = subprocess.run(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT, **spawn()).returncode
@@ -471,6 +479,33 @@ class Host:
                                                 "measured nothing", log.name)
         reading = read_verdict(lines[-1][len(LINUX_VERDICT):])
         return LinuxLeg(RED_READING if reading == GREEN_READING and rc != 0 else reading, lines[-1], log.name)
+
+    def linux_gate_holder(self, run=subprocess.run, which=shutil.which,
+                          say: Callable[[str], None] = lambda m: print(m, file=sys.stderr)) -> str | None:
+        """The Linux gate of this worktree that runs NOW (kb/Work PB3649), as `scripts/linux-gate.sh --probe` words it (its
+        BUSY line: pid and start time), or None. A caller that waits for a landing's exit 12 asks it beside the gate lock:
+        exit 12 has two sources, and a Linux gate does not hold the Windows lock (a hand run of linux-gate.sh does not
+        take it; the driver's own Linux half runs under it). None is also the answer where no Linux gate can run (a
+        Windows host with no WSL) and where the probe itself could not answer (a hand-off that failed): a retry costs
+        one landing attempt that touches nothing when it meets BUSY again, while a wait that never ends costs the
+        branch, so an unanswerable probe is never read as a busy one; it is SAID (`say`, stderr by default) instead."""
+        if os.name == "nt" and which("wsl.exe") is None:
+            return None
+        try:
+            probe = run(["bash", "scripts/linux-gate.sh", "--probe"], cwd=self.repo, capture_output=True, text=True,
+                        encoding="utf-8", errors="replace", timeout=LINUX_PROBE_TIMEOUT_S)
+        except (OSError, subprocess.SubprocessError) as e:
+            say(f"run_gate_legs: the Linux gate probe of {self.repo} was not answered ({type(e).__name__}: {e}); read as "
+                "no Linux gate running")
+            return None
+        if probe.returncode not in (0, EXIT_BUSY):
+            say(f"run_gate_legs: the Linux gate probe of {self.repo} was not answered (exit {probe.returncode}: "
+                f"{probe.stdout.strip().splitlines()[-1][:160] if probe.stdout.strip() else 'no output'}); read as no "
+                "Linux gate running")
+        if probe.returncode != EXIT_BUSY:
+            return None
+        lines = [ln.strip() for ln in probe.stdout.splitlines() if ln.strip().startswith(LINUX_VERDICT)]
+        return lines[-1][len(LINUX_VERDICT):].removesuffix(" ===") if lines else "a Linux gate of this tree (no detail)"
 
     def measured_tree(self) -> str | None:
         """THE TREE A GATE MEASURES (kb/Work PB3536): the git tree id of the WORKING TREE — every tracked file as it is on
@@ -728,11 +763,45 @@ def resolve_run(run: str | os.PathLike, worktree: str | os.PathLike | None) -> P
     return p if p.is_absolute() else (Path(worktree) if worktree else Path.cwd()) / p
 
 
-def watch(run: Path, wait_s: float | None, echo: Callable[[str], None] | None = None,
-          alive: Callable[[int], bool] = _pid_alive, poll_s: float = 0.5) -> tuple[int, str]:
+def lock_of_run(run: Path) -> Path | None:
+    """The gate lock of the worktree a run directory belongs to (`<worktree>/TestResults/build-local/<run>`), or None when
+    the run is not under a worktree's run root or that worktree is gone: no gate can run there."""
+    wt = run.parent.parent.parent
+    if run.parent != wt / RUN_ROOT or not wt.is_dir():
+        return None
+    try:
+        return Host(wt).lock_path()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def gate_running(run: Path) -> Callable[[], bool]:
+    """THE READER'S TEST OF "THIS RUN'S GATE IS STILL RUNNING" (kb/Work PB3662, review R1-1 of wave 20261104): the gate
+    lock (`live_gate`) is held by a gate that writes this run, never a process id, which the OS reuses: a reader that
+    arrives after a reboot or a long death (the planner's survey of a handed-over gate, `--await` from the rolling wave)
+    must not read a stranger holding the dead gate's pid as the gate. A run with no `gate.pid` is a gate that has not
+    taken its lock yet (`Gate.run` writes the pid UNDER the lock) or one from before kb/Work PB3536: the reader cannot
+    tell it from a gate not started, so it reads as running, and `watch` words it as such."""
+    return lock_running(run, lock_of_run(run))
+
+
+def lock_running(run: Path, lock: Path | None) -> Callable[[], bool]:
+    """`gate_running` over a named gate lock (None: no gate can run there)."""
+    def running() -> bool:
+        if read_pid(run) is None:
+            return True
+        live = live_gate(lock) if lock is not None else None
+        return live is not None and (live.run is None or live.run.name == run.name)
+    return running
+
+
+def watch(run: Path, wait_s: float | None, running: Callable[[], bool], echo: Callable[[str], None] | None = None,
+          poll_s: float = 0.5) -> tuple[int, str]:
     """THE ONE WAY TO WAIT FOR A GATE (kb/Work PB3536): its run directory's VERDICT FILE, never a log's tail.
+    `running()` says whether the gate that writes the run still runs: `gate_running(run)` for every reader of a gate it
+    did not start (the lock, never a reused pid), the follower's own child's liveness for the gate it just launched.
     Returns (exit code, verdict line): the record's own once `verdict.json` is there; NOT RUN [verdict] (2) when the
-    process `gate.pid` names DIED without one; PENDING (AWAIT_PENDING_EXIT) once `wait_s` passes (None: no limit); NOT
+    gate DIED without one; PENDING (AWAIT_PENDING_EXIT) once `wait_s` passes (None: no limit); NOT
     RUN [run] (2) when there is no such run directory (`resolve_run` makes a worktree-relative name absolute first). `echo` (the follower) is handed the run's `gate.log` line by line as it grows, to its end."""
     log, offset, t = run / LOG_FILE, 0, time.monotonic()
 
@@ -757,18 +826,18 @@ def watch(run: Path, wait_s: float | None, echo: Callable[[str], None] | None = 
         pid = read_pid(run)
         if rec is not None:
             # the gate writes its record, then prints the line and exits: the follower echoes its output to the end
-            while echo is not None and pid is not None and alive(pid):
+            while echo is not None and running():
                 drain()
                 time.sleep(poll_s)
             drain(final=True)
             return _record_exit(rec), str(rec["line"])
-        if pid is not None and not alive(pid):
+        if not running():
             if (rec := read_record(run)) is not None:  # it wrote the record and ended between the two reads
                 continue
             drain(final=True)
-            return 2, (f"{VERDICT}{NOT_RUN_CAUSES['verdict'].verdict} — the gate process {pid} DIED with no verdict "
-                       f"(run {run}; its output: "
-                       f"{log}) ===")
+            return 2, (f"{VERDICT}{NOT_RUN_CAUSES['verdict'].verdict} — the gate "
+                       f"{f'process {pid} ' if pid is not None else ''}DIED with no verdict "
+                       f"(run {run}; its output: {log}) ===")
         if wait_s is not None and time.monotonic() - t >= wait_s:
             who = (f"the gate process {pid} is running" if pid is not None else
                    f"no {PID_FILE} names its process (one not started yet, or a run from before kb/Work PB3536, which "
@@ -792,11 +861,12 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
     except OSError as e:
         say(f"{VERDICT}{NOT_RUN_CAUSES['launch'].verdict} — the gate could not be started detached: {e} ===")
         return 2
-    if read_pid(run) is None:
-        write_pid(run, pid)
+    # the gate writes its own gate.pid UNDER its lock (`Gate.run`), so a reader that finds a pid file knows the gate took the
+    # lock: the launcher writes none (a pid written at the spawn would read a gate still starting as a dead one). The
+    # follower alone has watched its child since the spawn, so its liveness is the child's.
     say(f"build-local: the gate runs DETACHED (pid {pid}, run directory {run}): it outlives this process; "
         f"`python scripts/run_gate_legs.py --await {run}` reads its verdict (kb/Work PB3536)")
-    code, line = watch(run, None, echo=say)
+    code, line = watch(run, None, lambda: _pid_alive(pid), echo=say)
     if not (run / LOG_FILE).exists() or line not in (run / LOG_FILE).read_text(encoding="utf-8", errors="replace"):
         say(line)  # a verdict the gate's own output does not carry (DIED): the caller's last line is still the verdict
     return code
@@ -932,8 +1002,6 @@ class Gate:
         out = Outcome()
         started = time.monotonic()
         run = self.run_dir
-        if run is not None:  # a detached gate: its pid, before anything can fail, so `--await` can tell it from a death
-            write_pid(run, os.getpid())
         label = (f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')}"
                  + (f"{RUN_LABEL}{run}" if run is not None else "") + ")")
         lock_path = self.host.lock_path()
@@ -944,6 +1012,8 @@ class Gate:
                                 "re-run once it ends, or `python scripts/run_gate_legs.py --await <its run>` reads "
                                 "its verdict", EXIT_BUSY)
         with lock:
+            if run is not None:  # a detached gate's pid goes UNDER its lock: a pid file then proves the lock was taken,
+                write_pid(run, os.getpid())   # and the lock (`gate_running`), never the reusable pid, proves it still runs
             try:
                 out.scope, setting = self.host.implementer_scope()
             except ValueError as e:  # malformed shared gate settings stop the gate, with the reason
@@ -994,8 +1064,9 @@ class Gate:
     def _linux_attested(self, rec: dict, out: Outcome) -> bool:
         """A recorded GREEN answers for this gate only if it carries what this gate measures (kb/Work PB3612): on a host
         that runs the Linux half, a GREEN Linux half of the COMMITTED tree this head has (the Linux clone measures HEAD,
-        the Windows half the working tree); the inert lane runs none."""
-        if not self.host.runs_linux_leg() or rec.get("lane") == "inert":
+        the Windows half the working tree). The inert lane's is the Linux self-tests (kb/Work PB3646), so it is
+        required there too."""
+        if not self.host.runs_linux_leg():
             return True
         linux = rec.get("linux") or {}
         return linux.get("verdict") == "GREEN" and out.head_tree is not None and linux.get("tree") == out.head_tree
@@ -1096,10 +1167,11 @@ class Gate:
             # (the classification the CI `changes` job and the Linux gate use, proved by the inotify watch of every
             # Linux test run), so no slot, build or leg can measure anything about it; the audits above, which read it,
             # were the gate. GREEN under either scope: there is no leg 2 left unrun, so the record covers both.
-            out.tree_end = self.host.measured_tree()
-            verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
-            return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are "
-                                f"GREEN, and no slot, build or test leg ran (run {run.name})", 0)
+            # ⭐ ... and one thing more (kb/Work PB3646): CI's `audits` job also runs the script self-tests on LINUX on every
+            # event, the inert ones included, and no test-leg watch covers them (they are audits that read the inert
+            # paths by design). So a Windows host runs them in a WSL clone of HEAD too, under a slot: the Linux half of
+            # the inert lane, and `tested_locally` requires it as it requires the full lane's.
+            return self._inert(out, label, run, lane)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
         t = time.monotonic()
         try:
@@ -1112,6 +1184,37 @@ class Gate:
             return self._tested(out, run, slot, started)
         finally:
             slot.release()
+
+    def _inert(self, out: Outcome, label: str, run: Path, lane: inert_lane.Lane) -> Outcome:
+        """THE INERT LANE's end (kb/Work PB2878, PB3646): no build and no test leg, because no test reads the change; the
+        audits ran before. A host that runs the Linux half (`Host.runs_linux_leg`) also runs the script self-tests in a WSL
+        clone of HEAD, under a gate slot (the clone and its interpreters are the load the cap rations), exactly the job
+        CI's `audits` runs on Linux on every event. A Linux host's audits ARE that run. GREEN under either scope: there is no
+        leg 2 left unrun, so the record covers both."""
+        linux = ""
+        if self.host.runs_linux_leg():
+            t = time.monotonic()
+            try:
+                slot = self.host.take_slot(label, self.say)
+            except ValueError as e:  # the shared gate settings turned malformed while this gate queued
+                return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
+            out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
+            out.slot = slot.describe()
+            try:
+                stop = self._linux_leg(out, run, None, [], slot.spawn_kwargs, inert=True)
+            finally:
+                slot.release()
+            if stop is not None:
+                return self._linux_stopped(out, run, stop, "the audits ran and no test leg was due (inert lane)")
+            if out.reasons:
+                out.tree_end = self.host.measured_tree()
+                return self._finish(out, run, "RED", f"{'; '.join(out.reasons)} — the inert lane's Linux self-tests "
+                                    f"(kb/Work PB3646) are not GREEN: {out.linux['line']} (run {run.name})", 1)
+            linux = " and the Linux self-tests (WSL clone of HEAD) are GREEN"
+        out.tree_end = self.host.measured_tree()
+        verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
+        return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN{linux}, "
+                            f"and no build or test leg ran (run {run.name})", 0)
 
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
         """The build, the listings, the plan, the legs and the checks: the part of the gate the slot rations."""
@@ -1174,31 +1277,40 @@ class Gate:
             # FAIL FAST, Windows first (kb/Work PB3022 item 10, PB3612): the Linux half runs only on a Windows half that
             # is green, under the slot this gate still holds.
             if (stop := self._linux_leg(out, run, plan, sorted(to_run), spawn)) is not None:
-                out.tree_end = self.host.measured_tree()
-                if stop.reading == BUSY_READING:
-                    return self._finish(
-                        out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
-                        "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
-                        f"once it ends; the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))} "
-                        f"(run {run.name})", EXIT_BUSY)
-                return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
-                                    f"the Linux half of the targeted leg was NOT RUN ({stop.line}); the Windows half ran "
-                                    f"leg(s) {', '.join(map(str, sorted(to_run)))} (run {run.name})", 2)
+                return self._linux_stopped(out, run, stop, f"the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))}")
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
         self._prune(run)
         return self._verdict(out, run, plan, legs)
 
-    def _linux_leg(self, out: Outcome, run: Path, plan: dict | None, legs: list[int], spawn: Spawn) -> LinuxLeg | None:
+    def _linux_stopped(self, out: Outcome, run: Path, stop: LinuxLeg, ran: str) -> Outcome:
+        """The gate's end when its Linux half measured nothing (`_linux_leg` returned `stop`): BUSY (another Linux gate of
+        the worktree runs; never a red) or NOT RUN with the Linux gate's own cause. `ran` says what the Windows half did."""
+        out.tree_end = self.host.measured_tree()
+        if stop.reading == BUSY_READING:
+            return self._finish(
+                out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
+                "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
+                f"once it ends; {ran} (run {run.name})", EXIT_BUSY)
+        return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
+                            f"the Linux half of the targeted leg was NOT RUN ({stop.line}); {ran} (run {run.name})", 2)
+
+    def _linux_leg(self, out: Outcome, run: Path, plan: dict | None, legs: list[int], spawn: Spawn,
+                   inert: bool = False) -> LinuxLeg | None:
         """THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): the plan's `legs`, the
         legs the Windows half just ran, in a WSL clone of the committed HEAD (`Host.linux_leg`), printed here and recorded
         in `out.linux`. A red is a reason (the verdict is RED and names the host); a NOT RUN, which measured nothing, is
         returned so the gate ends NOT RUN with the Linux gate's own cause; a BUSY (another Linux gate of this worktree
-        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red."""
+        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red.
+        `inert`: the INERT LANE's Linux half (kb/Work PB3646): the script self-tests alone, no plan and no leg."""
         t = time.monotonic()
-        self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
-                 "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
-        leg = self.host.linux_leg(run, run / "plan.json" if plan is not None else None, legs, spawn)
+        if inert:
+            self.say("build-local: the Linux half of the INERT lane — the script self-tests in a WSL clone of HEAD "
+                     "(scripts/linux-gate.sh --legs inert; kb/Work PB3646), under this gate's slot")
+        else:
+            self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
+                     "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
+        leg = self.host.linux_leg(run, run / "plan.json" if plan is not None else None, legs, spawn, inert=inert)
         out.timings["linux_leg_s"] = round(time.monotonic() - t, 1)
         log = run / leg.log
         if log.is_file():
@@ -1224,7 +1336,15 @@ class Gate:
             previous = self.previous_run(run)
             plan, digest = self.host.plan(listings, base, previous, run / "plan.json")
         except Exception as e:  # noqa: BLE001 — ANY planning failure falls back to the whole population in one leg
-            out.plan_note = f"no plan ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ''})"
+            if isinstance(e, UnreadableTrx):
+                # The plan's reds and timings come from the previous gates' trx files; one it cannot read is named and
+                # KEPT in this run (kb/Work PB3661): the Linux half empties TestResults/linux-gate/ before it writes, so
+                # the file would be gone by the verdict. The whole-population fallback stays: with a source of reds
+                # unreadable the gate cannot know what was red, and leg 2 is not run locally (PB2515), so dropping that
+                # source's tier 0a could hide a red.
+                out.plan_note = f"no plan ({e}; {self._keep_unreadable(run, e.path)})"
+            else:
+                out.plan_note = f"no plan ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ''})"
             self.say(f"build-local: ⚠ the order plan could not be made — {out.plan_note}; ONE leg in the plain order")
             return None, None
         for line in gate_plan.summary_lines(plan, run / "plan.json"):
@@ -1233,6 +1353,18 @@ class Gate:
         out.plan_note = (f"plan {plan['sha256'][:12]}: map {(plan['map'] or 'none')[:12]} ({plan['map_state']}), "
                          f"timings {plan['timings']}")
         return plan, digest
+
+    @staticmethod
+    def _keep_unreadable(run: Path, path: Path) -> str:
+        """Copy a trx the plan could not read into the run directory as `unreadable-<its directory>-<its name>.bad`
+        (never a `.trx`: later readers glob a run directory's trx files and must not meet it), and say where it is, or
+        why it could not be kept."""
+        kept = run / f"unreadable-{path.parent.name}-{path.name}.bad"
+        try:
+            shutil.copy2(path, kept)
+        except OSError as e:
+            return f"not kept: {e}"
+        return f"kept as {kept.name}"
 
     @staticmethod
     def _legs(plan: dict | None) -> dict[int, list[str]]:
@@ -1532,8 +1664,9 @@ class FakeHost(Host):
         half)."""
         return any(p.startswith("linux") for p in self.plant)
 
-    def linux_leg(self, run, plan, legs, spawn) -> LinuxLeg:
-        self.events.append(f"linux {plan.name if plan else 'none'} legs {','.join(map(str, legs))}")
+    def linux_leg(self, run, plan, legs, spawn, inert=False) -> LinuxLeg:
+        self.events.append("linux inert" if inert
+                           else f"linux {plan.name if plan else 'none'} legs {','.join(map(str, legs))}")
         if "linux-silent" in self.plant:
             (run / LINUX_LEG_LOG).write_text("PLANTED-LINUX-NOISE\n", encoding="utf-8", newline="\n")
             return LinuxLeg(not_run("verdict"), "no `=== LINUX GATE: ` line", LINUX_LEG_LOG)
@@ -1544,6 +1677,8 @@ class FakeHost(Host):
                     "nothing ===")
         elif "linux-red" in self.plant:
             line = f"{LINUX_VERDICT}RED (failed or not run: unit; HEAD head-1; logs in TestResults/linux-gate/) ==="
+        elif inert:
+            line = f"{LINUX_VERDICT}GREEN (inert lane, kb/Work PB2878, PB3646: planted; legs selftests; HEAD head-1) ==="
         else:
             line = f"{LINUX_VERDICT}GREEN (targeted legs {','.join(map(str, legs))}; HEAD head-1) ==="
         (run / LINUX_LEG_LOG).write_text(f"PLANTED-LINUX-LEG-OUTPUT\n{line}\n", encoding="utf-8", newline="\n")
@@ -1596,6 +1731,11 @@ class FakeHost(Host):
     def plan(self, listings, base, previous, out):
         if self.plan_fails:
             raise RuntimeError("planted: the impact analysis crashed")
+        if "plan-torn" in self.plant:   # the Linux gate's newest run left a torn trx (kb/Work PB3661)
+            torn = self.root / "linux-gate" / "unit.trx"
+            torn.parent.mkdir(exist_ok=True)
+            torn.write_text("<TestRun><Results><UnitTestResult outcome=\"" + chr(1) + "\"/>", encoding="utf-8", newline="\n")
+            gate_plan.read_reds(torn.parent)
         plan = {"schema": 1, "base": base, "map": None, "map_state": "none", "every_tier1": ["planted"],
                 "constants": {}, "timings": "none", "reds": {},
                 "assemblies": {a: {"legs": legs, "leg1": l1, "leg2": l2, "stats": {
@@ -1720,6 +1860,57 @@ def self_test() -> int:
         arm("no plan (the planner failed): ONE leg in the plain order, every assembly, no handshake — named, GREEN",
             o.verdict == "GREEN" and o.legs_invoked == {1: list(GATED_ASSEMBLIES)}
             and all(not v for v in o.handshakes.values()) and "no plan (RuntimeError" in o.line, o.line)
+        o, h = gate("plan-torn", plant={"plan-torn"})
+        run_dirs_torn = sorted((h.root / "runs").iterdir())
+        kept = [p for r in run_dirs_torn if r.is_dir() for p in r.glob("unreadable-*")]
+        arm("an unreadable previous-gate trx is NAMED by its path in the plan note, KEPT in the run directory (never as "
+            "a .trx a later reader would glob) and still costs the plan: ONE leg in the plain order, GREEN (kb/Work "
+            "PB3661)",
+            o.verdict == "GREEN" and o.legs_invoked == {1: list(GATED_ASSEMBLIES)}
+            and str(h.root / "linux-gate" / "unit.trx") in o.line and "unreadable-linux-gate-unit.trx.bad" in o.line
+            and len(kept) == 1 and kept[0].name == "unreadable-linux-gate-unit.trx.bad"
+            and kept[0].read_bytes() == (h.root / "linux-gate" / "unit.trx").read_bytes(), o.line)
+        # THE LINUX GATE'S HOLDER (kb/Work PB3649): `linux-gate.sh --probe` through the real Host, with stand-ins for the
+        # process (no WSL is started) and for the lookup of wsl.exe.
+        class _Probed:
+            def __init__(self, rc: int, out: str):
+                self.returncode, self.stdout = rc, out
+
+        busy_text = (LINUX_VERDICT + "BUSY — another Linux gate of this tree is running (pid 4242, started Fri Oct 24 "
+                     "11:00:00 2026); this run touched nothing ===\n")
+        calls: list[list[str]] = []
+
+        def probing(rc: int, out: str = "", raises: BaseException | None = None):
+            def run(cmd, **kw):
+                calls.append(cmd)
+                if raises is not None:
+                    raise raises
+                return _Probed(rc, out)
+            return run
+
+        real = Host(root)
+        held = real.linux_gate_holder(run=probing(EXIT_BUSY, "wsl noise\n" + busy_text), which=lambda _: "wsl.exe")
+        arm("the Linux gate's holder is the --probe's BUSY line (pid and start time), asked as `linux-gate.sh --probe`",
+            held is not None and held.startswith("BUSY — another Linux gate of this tree is running (pid 4242, started")
+            and not held.endswith("===") and calls == [["bash", "scripts/linux-gate.sh", "--probe"]], f"{held} {calls}")
+        said_probe: list[str] = []
+        free_ok = real.linux_gate_holder(run=probing(0, "linux-gate probe: FREE — no Linux gate of this tree runs\n"),
+                                         which=lambda _: "wsl.exe", say=said_probe.append) is None and not said_probe
+        unanswered = [real.linux_gate_holder(run=probing(2, LINUX_VERDICT + "NOT RUN [tree] (x) ===\n"),
+                                             which=lambda _: "wsl.exe", say=said_probe.append),
+                      real.linux_gate_holder(run=probing(0, raises=subprocess.TimeoutExpired("bash", 1)),
+                                             which=lambda _: "wsl.exe", say=said_probe.append),
+                      real.linux_gate_holder(run=probing(0, raises=FileNotFoundError("bash")),
+                                             which=lambda _: "wsl.exe", say=said_probe.append)]
+        arm("no holder when the probe says FREE (said nothing), and when it could not answer (exit 2), hangs or cannot "
+            "start (each SAID, never silent): a retry that meets BUSY again touches nothing, a wait that never ends costs "
+            "the branch",
+            free_ok and unanswered == [None, None, None] and len(said_probe) == 3
+            and all("was not answered" in m and "read as no Linux gate running" in m for m in said_probe), str(said_probe))
+        if os.name == "nt":
+            calls.clear()
+            arm("a Windows host with no WSL has no Linux gate to hold anything, and is not asked",
+                real.linux_gate_holder(run=probing(EXIT_BUSY, busy_text), which=lambda _: None) is None and not calls)
         stray = {"COBOLNET_GATE_LEG": "2", "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
         os.environ.update(stray)
         try:
@@ -2123,6 +2314,16 @@ def self_test() -> int:
             none_yet is None and reused is None and seen is not None and seen.run == dead_run
             and starting is not None and starting.run is None and "pid 8" in starting.what
             and live_gate(livelock) is None, f"{none_yet} {reused} {seen} {starting}")
+        # the pid goes UNDER the lock (`gate_running` reads a pid file as proof the gate took its lock): a detached gate
+        # that finds the lock held ends BUSY and writes none
+        busy_run = root / "busy-run"
+        busy_run.mkdir()
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 9, since T)"):
+            busy = Gate(FakeHost(d, livelock), root / "busy", say=sink.append, run_dir=busy_run).run()
+        arm("a detached gate that finds the gate lock held ends BUSY without a pid file: a gate.pid proves its writer "
+            "took the lock",
+            busy.verdict == BUSY and busy.exit_code == EXIT_BUSY and read_pid(busy_run) is None
+            and read_record(busy_run) is not None, f"{busy.line} {read_pid(busy_run)}")
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
@@ -2217,9 +2418,30 @@ def self_test() -> int:
             o.exit_code == EXIT_BUSY and o.verdict == BUSY and o.linux["verdict"] == BUSY
             and "LINUX HALF RED" not in o.line and read_verdict(o.line[len(VERDICT):]) == BUSY_READING, o.line)
         o, h = gate("linux-inert", plant={"linux", "inert"}, scope=None)
-        arm("the inert lane runs no Linux half (no test reads the change), and its record is reused with no Linux half",
-            o.exit_code == 0 and o.lane == "inert" and o.linux is None and not any(e.startswith("linux ") for e in h.events),
-            o.line)
+        arm("the inert lane runs no build and no test leg, but its Linux half is the script self-tests alone (kb/Work "
+            "PB3646: CI's audits job runs them on Linux on every event), run after the audits under a gate slot, "
+            "recorded, and named in the verdict",
+            o.exit_code == 0 and o.lane == "inert" and o.linux is not None and o.linux["verdict"] == "GREEN"
+            and h.events == ["audits", "slot", "linux inert"] and not h.built and h.slots_taken == 1
+            and "Linux self-tests (WSL clone of HEAD) are GREEN" in o.line, f"{o.line} {h.events}")
+        o_red, _ = gate("linux-inert-red", plant={"linux-red", "inert"}, scope=None)
+        o_sdk, _ = gate("linux-inert-sdk", plant={"linux-sdk", "inert"}, scope=None)
+        o_busy, _ = gate("linux-inert-busy", plant={"linux-busy", "inert"}, scope=None)
+        arm("a red Linux self-test run in the inert lane is a RED gate (exit 1) that names the host; one that measured "
+            "nothing is NOT RUN with the Linux gate's cause and a BUSY one is BUSY, exactly as in the full lane",
+            o_red.exit_code == 1 and o_red.verdict == "RED" and "Linux self-tests" in o_red.line
+            and o_sdk.exit_code == 2 and o_sdk.verdict == "NOT RUN [sdk]"
+            and o_busy.exit_code == EXIT_BUSY and o_busy.verdict == BUSY,
+            f"{o_red.line} | {o_sdk.line} | {o_busy.line}")
+        d_inert = root / "linux-inert-records"
+        d_inert.mkdir()
+        regate(d_inert, plant={"inert"})     # a Linux host's inert record: its audits are the Linux run, it has no Linux half
+        on_windows, h_inert = regate(d_inert, plant={"inert", "linux"})
+        reused_inert, h_reused = regate(d_inert, plant={"inert", "linux"})
+        arm("an inert-lane record with no Linux half is no evidence on a host that runs one (the gate runs the Linux "
+            "self-tests); once it carries one, a re-gate reuses it",
+            "REUSED" not in on_windows.line and "linux inert" in h_inert.events
+            and "REUSED" in reused_inert.line and h_reused.events == [], f"{on_windows.line} | {reused_inert.line}")
         o, h = gate("linux-leg1-of-whole", plant={"linux"})
         arm("under the `whole` scope the Linux half runs both legs the Windows half ran",
             o.exit_code == 0 and h.events[-1] == "linux plan.json legs 1,2" and o.linux["legs"] == [1, 2], str(h.events))
@@ -2266,29 +2488,40 @@ def self_test() -> int:
                                                      "exit_code": 1}), encoding="utf-8", newline="\n")
         live = d / "live"
         live.mkdir()
-        write_pid(live, os.getpid())  # this process: alive for the whole arm
-        dead_proc = subprocess.Popen([sys.executable, "-c", "pass"])
-        dead_proc.wait()
-        dead = d / "dead"
-        dead.mkdir()
-        write_pid(dead, dead_proc.pid)
-        got = {n: watch(d / n, 0) for n in ("done", "live", "dead", "missing")}
+        write_pid(live, os.getpid())  # a pid that is ALIVE for the whole arm (this process)
+        dead = d / "dead"             # a gate that died with no verdict: its pid since taken by a live process (this
+        dead.mkdir()                  # one), the very case Windows and Linux both produce when they reuse a pid
+        write_pid(dead, os.getpid())
+        fresh = d / "fresh"           # a gate that has not taken its lock yet, so wrote no pid
+        fresh.mkdir()
+        wlock = d / "worktree.lock"
+        with ExclusiveLock.try_take(wlock, f"gate {d} (pid 7, since T{RUN_LABEL}{live})"):   # the gate that runs `live`
+            got = {n: watch(d / n, 0, lock_running(d / n, wlock)) for n in ("done", "live", "dead", "fresh", "missing")}
+            other = watch(dead, 0, lock_running(dead, wlock))   # the lock is held, but by another run's gate
         arm("--await reads the verdict file (its line and exit code), PENDING (its own exit, never BUSY's) while the "
-            "gate's process runs, NOT RUN [verdict] (exit 2, BRANCH) when it DIED without a verdict, NOT RUN [run] "
-            "(exit 2, ENVIRONMENT) with no run directory",
+            "run's gate holds the gate lock (or has not taken it yet), NOT RUN [verdict] (exit 2, BRANCH) when it DIED "
+            "without a verdict EVEN WHEN gate.pid names a live process (a reused pid) or another run's gate holds the "
+            "lock, NOT RUN [run] (exit 2, ENVIRONMENT) with no run directory",
             got["done"] == (1, f"{VERDICT}RED — planted ===")
-            and got["live"][0] == AWAIT_PENDING_EXIT != EXIT_BUSY and got["live"][1].startswith(AWAIT_PENDING)
-            and got["dead"][0] == 2 and read_verdict(got["dead"][1][len(VERDICT):]) == not_run("verdict")
-            and "DIED" in got["dead"][1]
+            and got["live"][0] == got["fresh"][0] == AWAIT_PENDING_EXIT != EXIT_BUSY
+            and got["live"][1].startswith(AWAIT_PENDING)
+            and got["dead"][0] == other[0] == 2 and read_verdict(got["dead"][1][len(VERDICT):]) == not_run("verdict")
+            and "DIED" in got["dead"][1] and "DIED" in other[1]
             and got["missing"][0] == 2 and read_verdict(got["missing"][1][len(VERDICT):]) == not_run("run"), str(got))
+        arm("a run directory outside any worktree's run root, or of a worktree that is gone, has no gate lock to ask (no "
+            "gate can run there); a run of the repository's own checkout asks that checkout's gate lock",
+            lock_of_run(d / "dead") is None and lock_of_run(root / "gone" / RUN_ROOT / "r") is None
+            and lock_of_run(REPO / RUN_ROOT / "r") == Host(REPO).lock_path(),
+            f"{lock_of_run(d / 'dead')} {lock_of_run(root / 'gone' / RUN_ROOT / 'r')}")
         # A handed run's name (review R1-1 of wave 1152): an agent returns `TestResults/build-local/<run>`, relative to
         # ITS worktree, and the wave and the planner read it from the main checkout.
         cwd = Path.cwd()
         os.chdir(live)   # a reader elsewhere: the handed name means the worktree's run, never one of the reader's own
         try:
-            from_elsewhere = [watch(resolve_run(Path("await") / "done", w), 0)[0] for w in (root, None)]
+            from_elsewhere = [watch(r, 0, gate_running(r))[0]
+                              for r in (resolve_run(Path("await") / "done", w) for w in (root, None))]
             os.chdir(d)
-            relative_here = watch(resolve_run("done", None), 0)[0]
+            relative_here = watch(r := resolve_run("done", None), 0, gate_running(r))[0]
         finally:
             os.chdir(cwd)
         arm("a relative run name resolves against the worktree that gated it, wherever the reader runs; an absolute one "
@@ -2302,14 +2535,22 @@ def self_test() -> int:
             == [0, 0, EXIT_BUSY, 2, 1])
 
         # The follower and the detached gate, as real processes: a planted gate that prints, waits for a go file,
-        # writes its verdict file and exits 1.
+        # writes its verdict file and exits 1. Like `Gate.run` it takes the worktree's gate lock first, then writes its pid
+        # under it, and holds the lock until the verdict file is written.
+        plock = root / "planted-gate.lock"
+
         def planted_gate(run: Path, go: Path | None = None) -> list[str]:
-            wait = f"g = pathlib.Path({str(go)!r})\nwhile not g.exists(): time.sleep(0.05)\n" if go else ""
-            return [sys.executable, "-c", "import json, pathlib, time\n"
-                    f"r = pathlib.Path({str(run)!r})\nprint('PLANTED-GATE-OUTPUT', flush=True)\n{wait}"
+            wait = f"gof = pathlib.Path({str(go)!r})\nwhile not gof.exists(): time.sleep(0.05)\n" if go else ""
+            return [sys.executable, "-c", "import json, os, pathlib, sys, time\n"
+                    f"sys.path.insert(0, {str(REPO / 'scripts')!r})\nimport run_gate_legs as g\n"
+                    f"r = pathlib.Path({str(run)!r})\n"
+                    f"lock = g.ExclusiveLock.try_take(pathlib.Path({str(plock)!r}), "
+                    f"'gate x (pid %d, since T{RUN_LABEL}%s)' % (os.getpid(), r))\n"
+                    "g.write_pid(r, os.getpid())\nprint('PLANTED-GATE-OUTPUT', flush=True)\n"
+                    f"{wait}"
                     f"line = {VERDICT!r} + 'LEG 1 ONLY (batched gating, PB2515): RED — planted ==='\n"
                     "(r / 'verdict.json').write_text(json.dumps({'verdict': 'x', 'line': line, 'exit_code': 1}))\n"
-                    "print(line, flush=True)\n"]
+                    "lock.release()\nprint(line, flush=True)\n"]
         d = root / "follow"
         d.mkdir()
         heard: list[str] = []
@@ -2354,7 +2595,7 @@ def self_test() -> int:
         follower.wait()
         survived = gate_pid is not None and _pid_alive(gate_pid)
         go.touch()
-        handed = watch(run2, 120)
+        handed = watch(run2, 120, lock_running(run2, plock))
         arm("a detached gate OUTLIVES its follower's tree kill and its verdict is read from the run directory",
             survived and handed == (1, f"{VERDICT}LEG 1 ONLY (batched gating, PB2515): RED — planted ==="),
             f"survived {survived}; {handed}")
@@ -2402,7 +2643,8 @@ def main() -> int:
         return plan_leg(Host(), args.plan_leg, [int(n) for n in args.plan_legs.split(",")], Path(args.results),
                         print_flush)
     if args.await_run:
-        code, line = watch(resolve_run(args.await_run, args.worktree), args.wait_s)
+        run = resolve_run(args.await_run, args.worktree)
+        code, line = watch(run, args.wait_s, gate_running(run))
         print(line, flush=True)
         return code
     if args.run:

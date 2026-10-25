@@ -1766,8 +1766,13 @@ with tempfile.TemporaryDirectory() as td:
     ended = subprocess.Popen([sys.executable, "-c", "pass"])
     ended.wait()
 
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate's own reader and its lock)
+
     def gate_run(name, rec=None, pid=None):
-        run = gdir / "runs" / name
+        # a run that names a gate pid sits in a real worktree: the reader asks THAT worktree's gate lock (review R1-1 of
+        # wave 20261104: a pid is reused, the lock is not), so the arm can hold it
+        wt = ScratchRepo.init(gdir / "wts" / name).path if pid is not None else None
+        run = (wt / run_gate_legs.RUN_ROOT if wt else gdir / "runs") / name
         run.mkdir(parents=True)
         if rec is not None:
             (run / "verdict.json").write_text(json.dumps({"verdict": "x", "line": "=== BUILD-LOCAL GATE: x ===", **rec}),
@@ -1781,7 +1786,12 @@ with tempfile.TemporaryDirectory() as td:
             "c": gate_run("running", pid=os.getpid()), "d": gate_run("died", pid=ended.pid),
             "e": gate_run("other-tree", {**green, "tree": "f" * 40, "tree_end": "f" * 40}),
             "f": gate_run("edited-while-gated", {**green, "tree_end": "e" * 40}),
-            "g": gate_run("other-head", {**green, "head": "0" * 40})}
+            "g": gate_run("other-head", {**green, "head": "0" * 40}),
+            "j": gate_run("pid-reused", pid=os.getpid())}   # no verdict, gate.pid names a LIVE process, nobody holds the lock
+    # run "c" is the one gate that runs: its worktree's gate lock is held, its label naming the run (what `Gate.run` writes)
+    c_lock = run_gate_legs.ExclusiveLock.try_take(
+        run_gate_legs.Host(runs["c"].parents[2]).lock_path(),
+        f"gate {runs['c'].parents[2]} (pid 7, since T{run_gate_legs.RUN_LABEL}{runs['c']})")
     for letter, run in runs.items():
         (gdir / f"w9g1{letter}-PB1-report.md").write_text(
             f"Status: GATE-PENDING\nBranch: b\nHEAD: {head[:12]}\nGate run: {run}\n\n## Gate\n", encoding="utf-8",
@@ -1800,19 +1810,19 @@ with tempfile.TemporaryDirectory() as td:
     got = {n[4]: (r.status, r.gate_state, r.finished) for n in sorted(p.name for p in gdir.glob("*.md"))
            if (r := pw.parse_report(gdir / n))}
     check("PB3536: a GATE-PENDING report is finished only when its gate run is GREEN for its HEAD and that commit's "
-          "tree; RUNNING while the gate's process lives; ENDED on a red, a death, another tree or head, or no run named; "
-          "a run named relative to the report's worktree is that worktree's",
+          "tree; RUNNING while the gate holds its worktree's gate lock; ENDED on a red, a death (even when gate.pid names "
+          "a live process: a reused pid), another tree or head, or no run named; a run named relative to the report's "
+          "worktree is that worktree's",
           got, {"a": ("GATE-PENDING", "GREEN", True), "b": ("GATE-PENDING", "ENDED", False),
                 "c": ("GATE-PENDING", "RUNNING", False), "d": ("GATE-PENDING", "ENDED", False),
                 "e": ("GATE-PENDING", "ENDED", False), "f": ("GATE-PENDING", "ENDED", False),
                 "g": ("GATE-PENDING", "ENDED", False), "h": ("GATE-PENDING", "ENDED", False),
-                "i": ("GATE-PENDING", "GREEN", True)})
+                "j": ("GATE-PENDING", "ENDED", False), "i":("GATE-PENDING", "GREEN", True)})
     check("PB3536: --finished answers a GATE-PENDING report from its gate run (GREEN 0, running 1, red 1)",
           [pw.main(["--finished", str(gdir / f"w9g1{x}-PB1-report.md")]) for x in "acb"], [0, 1, 1])
     # review R1-2 of wave 1152, end to end: a HARNESS worktree (a clean commit plus the harness's edit of its TRACKED
     # .claude/settings.local.json) whose gate's record carries the tree the gate's own Host.measured_tree measures
     # there: the report at that HEAD is GREEN, so the wave reviews it and no finisher re-runs the gate.
-    import run_gate_legs  # noqa: PLC0415
     hw = gdir / "worktrees" / "wf_gp-harness"
     (hw / ".claude").mkdir(parents=True)
     (hw / ".claude" / "settings.local.json").write_text("{}\n", encoding="utf-8", newline="\n")
@@ -1852,6 +1862,7 @@ with tempfile.TemporaryDirectory() as td:
           ("still running" in pg["waiting"].get("PB5", ""), not gp["PB5"],
            bool(gp["PB10"]) and gp["PB10"][0].kind == "finisher", not gp["PB11"]),
           (True, True, True, True))
+    c_lock.release()
 
 # 10. A NOTE'S DECLARED FILE SET IS ITS STRUCTURED SITES, READ BY ONE READER (kb/Work PB3242; DESIGN-architecture-review
 #     §8.7). The planner once declared every path a note's prose mentioned (fix_clusters' scored reading), so the R2

@@ -6,12 +6,21 @@
 #   arguments, and its verdict is that run's (run_on_linux, kb/Work PB2999).
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
 #
+#   bash scripts/linux-gate.sh --probe
+#     Whether a Linux gate of THIS tree runs now (kb/Work PB3649), without starting one: exit 3 and the BUSY line naming
+#     the running gate's pid and start time, or exit 0 and `linux-gate probe: FREE`. The landing lane waits on exactly this
+#     after a landing ends exit 12 because a Linux gate was BUSY (land_lane.wait_free; run_gate_legs.Host.linux_gate_holder).
+#
 #   bash scripts/linux-gate.sh --legs targeted --plan <plan.json|none> [--plan-legs 1[,2]] [--nice]
 #     THE LINUX HALF OF THE LOCAL GATE (owner 2026-10-23, kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): not CI's whole
 #     legs but the legs of the plan the Windows half just made, built and run in the clone by the gate driver's
 #     `--plan-leg`. The Windows gate (scripts/build-local.ps1 → run_gate_legs.py) runs it after its own green legs, under
 #     the slot it holds, and records the verdict as the branch's "tested locally" evidence; nobody else needs it. The
 #     default legs below stay the tool that reproduces a Linux CI red on this box.
+#
+#   bash scripts/linux-gate.sh --legs inert [--nice]
+#     THE LINUX HALF OF THE LOCAL GATE'S INERT LANE (kb/Work PB3646): the script self-tests alone, in a clone of HEAD, no
+#     build; the gate that started it classified the change inert (scripts/inert_lane.py).
 #
 # ⛔ WHY IT EXISTS (kb/Work PB1732). The implementer and lander gates ran on Windows only, so CI's Linux jobs were the
 # first Linux run a change ever got. On 2026-09-28 train 71b's first push went RED in `Greenfield unit +
@@ -41,7 +50,10 @@
 #
 # THE INERT LANE AND ITS PROOF (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A HEAD whose change against origin/main
 # touches only paths no test reads (scripts/inert_lane.py classify, THE one classification: CI's `changes` job and the
-# Windows gate use it too) runs no leg: `=== LINUX GATE: GREEN (inert lane, …) ===`. Every other run watches every inert
+# Windows gate use it too) runs no test leg and builds nothing, but it runs the script self-tests (`selftests`, no build)
+# exactly as CI's `audits` job does on every event, inert ones included (kb/Work PB3646): `=== LINUX GATE: GREEN (inert
+# lane, …; legs selftests …) ===`. `--legs inert` is the same run for a caller that already classified the change (the
+# Windows gate's Linux half in its inert lane, run_gate_legs.py). Every other run watches every inert
 # path with inotify while the test legs run (`inert_lane.py watch`), so a test that starts reading one is a RED here
 # (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The watched clone runs the
 # three `dotnet test` legs and nothing else: the self-tests (audits, which read inert paths by design: the register, the
@@ -90,22 +102,24 @@ check_legs() {
   for leg in "${wanted[@]}"; do
     case "$leg" in
       unit|characterization|conformance|guard) ;;
-      targeted)  # the Linux half of the local gate (kb/Work PB3612): one mode, not one leg among the others
+      targeted|inert)  # the Linux half of the local gate (kb/Work PB3612, PB3646): one mode, not one leg among the others
         if [ "${#wanted[@]}" -ne 1 ]; then
-          echo "linux-gate: --legs targeted stands alone (it runs a plan's legs, not CI's whole legs)"
+          echo "linux-gate: --legs $leg stands alone (it is the Linux half of a gate, not CI's whole legs)"
           echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
         fi ;;
       *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard,"\
-              "or targeted alone;" \
+              "or targeted or inert alone;" \
               "selftests always runs, and selftests-built with unit or conformance)"
          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
   done
 }
 
-# `targeted` ($targeted, set from $legs) and --plan (<plan.json|none>) go together: neither alone is a run.
+# `targeted` ($targeted, set from $legs) and --plan (<plan.json|none>) go together: neither alone is a run. `inert`
+# ($inert_started) takes no plan.
 check_plan() {
   targeted=0; [ "$legs" = "targeted" ] && targeted=1
+  inert_started=0; [ "$legs" = "inert" ] && inert_started=1
   if { [ "$targeted" = 1 ] && [ -z "$plan" ]; } || { [ "$targeted" = 0 ] && [ -n "$plan" ]; }; then
     echo "linux-gate: --plan <plan.json|none> belongs to --legs targeted, and --legs targeted needs it"
     echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
@@ -124,7 +138,7 @@ resolve_py() {
 }
 
 # ⛔ A GATE LEAVES NOTHING BEHIND ON THE LINUX FILESYSTEM (kb/Work PB3194). Every gate cloned into ~/linux-gate/<tree>
-# (about 1 GB and 80,000 inodes once built) plus a <tree>.guard-tmp beside it, and removed them only when the SAME tree
+# (a gigabyte and tens of thousands of inodes once built, measured below) plus a <tree>.guard-tmp beside it, and removed them only when the SAME tree
 # was gated again. Worktrees come and go, so the clones accumulated: 345 of them filled the WSL disk on 2026-10-15
 # (`No space left on device` mid-leg read as 2,919 conformance failures, then the distro remounted read-only), 430
 # exhausted every inode on 2026-10-19 and 394 again on 2026-10-22, each time ending every Linux gate on the host until
@@ -143,12 +157,22 @@ resolve_py() {
 #    LEGACY_MAX_AGE_S;
 #  - then it measures the filesystem (check_disk) and refuses, NOT RUN [disk], below MIN_FREE_INODES free inodes or
 #    MIN_FREE_KB free space: a full disk is said before any leg, never discovered as a red inside one.
-# The bounds: one built gate is ~80,000 inodes and ~1 GB (measured 2026-10-23); the bounds hold about twelve of them,
-# the gate cap (3, kb/Work PB2514) plus every implementer gate the host runs beside it.
+# ⛔ THE BOUNDS ARE DERIVED FROM ONE MEASURED GATE, AND EVERY GATE CHECKS THE MEASUREMENT (kb/Work PB3648). The bounds are
+# GATES_HELD times what ONE gate holds at its peak, GATE_INODES and GATE_KB, the dearest lane's: the full lane builds TWO
+# clones (the test legs' and the audit clone's, kb/Work PB2878), the targeted and inert lanes one or none. Measured
+# 2026-10-24 on the full lane (a hand `linux-gate.sh --nice`, sampled every 20 s): 1,714,628 KB and 101,682 inodes at the
+# peak, against the ~1 GB and ~80,000 inodes PB3194 measured for one clone on 2026-10-23, which is why the bound could not
+# stay a hand-kept number: the audit clone was added a day later and nothing re-measured. GATES_HELD is the gate cap (3,
+# kb/Work PB2514) plus every implementer gate the host runs beside it. `footprint_report` measures THIS gate before its
+# verdict and says so when it holds more than the constants (and always prints the figures, which the gate driver keeps
+# in the run's linux-leg.log), so the next growth of the gate is a line in a log, not a full disk.
 GATES_ROOT="$HOME/linux-gate"
 LEGACY_MAX_AGE_S=$((3 * 3600))
-MIN_FREE_INODES=1000000
-MIN_FREE_KB=$((20 * 1024 * 1024))
+GATES_HELD=12
+GATE_INODES=110000
+GATE_KB=$((1800 * 1024))
+MIN_FREE_INODES=$((GATES_HELD * GATE_INODES))
+MIN_FREE_KB=$((GATES_HELD * GATE_KB))
 
 # /proc/<pid>/stat, read past the command name (which may hold spaces and parentheses): its fields after the LAST ')'
 # are fixed. proc_field <pid> <n> prints field n of those (1 state, 2 parent pid, 20 start time), nothing if no process.
@@ -194,6 +218,20 @@ reap_gates() {
   [ "$gone" -gt 0 ] && echo "linux-gate: removed $gone leftover gate director$([ "$gone" -eq 1 ] && echo y || echo ies) under $root:$names"
   return 0
 }
+# footprint_report <dir> <max KB> <max inodes>: what THIS gate's directory holds now (kb/Work PB3648, above), one line,
+# worded as a NOTE when it is over the figures the disk bounds are sized by. Never a verdict: a gate that holds more than
+# it was sized for is still a gate, and the line is the evidence the constants need re-measuring.
+footprint_report() {
+  local kb inodes
+  kb="$(du -sk "$1" 2>/dev/null | cut -f1)"
+  inodes="$(find "$1" 2>/dev/null | wc -l)"
+  if [[ "$kb" =~ ^[0-9]+$ ]] && [ "$kb" -le "$2" ] && [ "$inodes" -le "$3" ]; then
+    echo "linux-gate: footprint of this gate: $kb KB, $inodes inodes (the disk bound is sized for up to $2 KB and $3 inodes)"
+  else
+    echo "linux-gate: FOOTPRINT NOTE — this gate holds ${kb:-?} KB and $inodes inodes, over the $2 KB and $3 inodes the" \
+         "disk bound is sized by (GATE_KB, GATE_INODES; kb/Work PB3648): re-measure the full lane and raise them"
+  fi
+}
 # check_disk <dir>: NOT RUN [disk] when the filesystem holding <dir> has too few free inodes or too little free space.
 # A filesystem that keeps no inode count (df -i says `-` or 0, as btrfs does) is held to the space bound alone.
 check_disk() {
@@ -227,6 +265,22 @@ live_gate_of() {
   done
   return 1
 }
+# busy_line <pid>: the BUSY verdict, naming the gate that holds the tree (its pid and when it started, so a person can find
+# it), shared by a second gate's refusal (begin_gate) and the probe (probe_tree) so they cannot word it differently.
+busy_line() {
+  local since
+  since="$(LC_ALL=C ps -o lstart= -p "$1" 2>/dev/null | sed 's/^ *//; s/ *$//')"
+  printf '=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid %s%s); this run touched nothing ===' \
+    "$1" "${since:+, started $since}"
+}
+# probe_tree <root> <tree> (--probe; kb/Work PB3649): whether a Linux gate of the tree runs now, WITHOUT starting one: the
+# answer a caller that waits for this script's BUSY (the landing lane, exit 12) needs. BUSY is the same line and exit 3 a
+# second gate would get; free is exit 0. It reads the owner files and nothing else (no reaping, no clone, no results).
+probe_tree() {
+  local other
+  if other="$(live_gate_of "$1" "$2")"; then busy_line "$other"; echo; exit 3; fi
+  echo "linux-gate probe: FREE — no Linux gate of this tree runs"; exit 0
+}
 # begin_gate <root> <tree>: make this gate's own directory (gate, snap, gtmp) and arm its removal on every exit path.
 # ⛔ ONE GATE PER TREE AT A TIME (kb/Work PB3310). Two runs on one tree share its results directory
 # (TestResults/linux-gate, which the planner reads as the tree's newest run) and, before PB3194, shared and deleted each
@@ -245,7 +299,7 @@ begin_gate() {
   if command -v flock >/dev/null 2>&1; then flock 8; fi
   if other="$(live_gate_of "$1" "$2")"; then
     exec 8>&-
-    echo "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $other); this run touched nothing ==="; exit 3
+    busy_line "$other"; echo; exit 3
   fi
   gate="$1/$name.$me"
   snap="$gate/$name"
@@ -328,6 +382,12 @@ if [ "${1:-}" = "--self-test" ]; then
   check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
   got="$( legs=targeted; plan=none; check_legs; check_plan; echo "accepted ${wanted[*]} targeted=$targeted" )"
   check "--legs targeted with a --plan is the Linux half of the local gate (kb/Work PB3612)" "$got" "accepted targeted targeted=1"
+  got="$( legs=inert; plan=""; check_legs; check_plan; echo "accepted ${wanted[*]} inert=$inert_started targeted=$targeted" )"
+  check "--legs inert, with no plan, is the Linux half of the inert lane (kb/Work PB3646)" "$got" \
+        "accepted inert inert=1 targeted=0"
+  got="$( legs=inert,unit; plan=""; check_legs; echo "accepted" )"; rc=$?
+  check "--legs inert stands alone: with another leg it is NOT RUN (bad arguments), exit 2" \
+        "$(echo "$got" | tail -1) $rc" "=== LINUX GATE: NOT RUN [arguments] (bad arguments) === 2"
   got="$( legs=targeted,unit; plan=none; check_legs; echo "accepted" )"; rc=$?
   check "--legs targeted stands alone: with another leg it is NOT RUN (bad arguments)" "$(echo "$got" | tail -1)" \
         "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
@@ -425,10 +485,26 @@ under.wait()
   echo "$me $(proc_field "$me" 20) /e/trees/wt-busy" > "$st_root/busy.1/owner"
   echo "$dead 12345 /e/trees/wt-ended" > "$st_root/ended.2/owner"
   got="$( ( begin_gate "$st_root" /e/trees/wt-busy; echo "started" ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  since="$(LC_ALL=C ps -o lstart= -p "$me" 2>/dev/null | sed 's/^ *//; s/ *$//')"
   check "a second gate on a tree whose gate runs answers BUSY, exit 3, and creates nothing" "$got" \
-        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me); this run touched nothing ===
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me${since:+, started $since}); this run touched nothing ===
 rc=3
 busy.1 ended.2 "
+  # --probe (kb/Work PB3649): the same BUSY line and exit 3 for a tree whose gate runs, exit 0 FREE for a tree whose gate
+  # has ended or that has none, and it creates and removes nothing.
+  got="$( ( probe_tree "$st_root" /e/trees/wt-busy ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  check "--probe on a tree whose gate runs answers the BUSY line, exit 3, and creates nothing" "$got" \
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me${since:+, started $since}); this run touched nothing ===
+rc=3
+busy.1 ended.2 "
+  got="$( for t in wt-ended wt-never; do ( probe_tree "$st_root" /e/trees/$t ) 2>&1; echo "rc=$?"; done; ls "$st_root" | tr '\n' ',' )"
+  check "--probe on a tree whose earlier gate has ended, or on a tree with none, is FREE, exit 0, and creates nothing" \
+        "$got" \
+        "linux-gate probe: FREE — no Linux gate of this tree runs
+rc=0
+linux-gate probe: FREE — no Linux gate of this tree runs
+rc=0
+busy.1,ended.2,"
   got="$( ( begin_gate "$st_root" /e/trees/wt-other; echo "started" ) 2>&1 | tail -1 )"
   check "a gate on another tree starts beside it" "$got" "started"
   got="$( ( begin_gate "$st_root" /e/trees/wt-ended; echo "started" ) 2>&1 | tail -1 )"
@@ -465,6 +541,17 @@ busy.1 ended.2 "
   check "room on both bounds starts the gate" "$got" "started"
   got="$( fake_df - 207000000; check_disk /x; echo "started" )"
   check "a filesystem that counts no inodes is held to the space bound alone" "$got" "started"
+  # THE BOUNDS ARE DERIVED FROM ONE MEASURED GATE (kb/Work PB3648): twelve gates of the dearest lane's footprint, never a
+  # hand-kept number; and a gate measures itself, saying so when it is over the figures the bounds are sized by.
+  check "the disk bounds are GATES_HELD gates of the measured footprint (inodes and space), so a growth of the gate is one constant" \
+        "$MIN_FREE_INODES $MIN_FREE_KB" "$((GATES_HELD * GATE_INODES)) $((GATES_HELD * GATE_KB))"
+  mkdir -p "$st_root/fp/a/b" && : > "$st_root/fp/a/b/f1" && : > "$st_root/fp/a/f2"
+  got="$( footprint_report "$st_root/fp" 1024 100 )"
+  check "a gate under the figures its bound is sized by reports its footprint, without a note" "$(echo "$got" | sed 's/[0-9][0-9]* KB, [0-9][0-9]* inodes (the disk bound is sized for up to/N KB, M inodes (the disk bound is sized for up to/')" \
+        "linux-gate: footprint of this gate: N KB, M inodes (the disk bound is sized for up to 1024 KB and 100 inodes)"
+  got="$( footprint_report "$st_root/fp" 1024 3 )"
+  check "a gate over the figures its bound is sized by says so (a NOTE naming the constants and the note), never fails" \
+        "$(echo "$got" | grep -c 'FOOTPRINT NOTE.*GATE_KB, GATE_INODES; kb/Work PB3648')" "1"
   got="$( df() { return 1; }; check_disk /x; echo "started" )"
   check "a filesystem df cannot measure is NOT RUN [disk], never assumed roomy" "$got" \
         "=== LINUX GATE: NOT RUN [disk] (cannot measure the free space of the filesystem holding /x: df -Pk gave no number) ==="
@@ -475,10 +562,11 @@ fi
 run_on_linux "$@"
 
 legs="unit,characterization,conformance,guard"
-plan=""; plan_legs="1"
+plan=""; plan_legs="1"; probe=0
 nice_prefix=()
 while [ $# -gt 0 ]; do
   case "$1" in
+    --probe) probe=1; shift ;;                 # whether a Linux gate of this tree runs now (probe_tree); starts nothing
     --legs) legs="$2"; shift 2 ;;
     --plan) plan="$2"; shift 2 ;;              # --legs targeted: the Windows half's plan file, or `none`
     --plan-legs) plan_legs="$2"; shift 2 ;;    # --legs targeted: which legs of that plan (default 1)
@@ -486,6 +574,13 @@ while [ $# -gt 0 ]; do
     *) echo "linux-gate: unknown argument '$1'"; echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
   esac
 done
+if [ "$probe" = 1 ]; then   # needs no SDK and no interpreter: it reads the owner files (kb/Work PB3649)
+  if [ ! -f Cobol.Net.sln ]; then
+    echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
+  fi
+  tree="$(pwd)"
+  probe_tree "$GATES_ROOT" "$tree"
+fi
 check_legs
 check_plan
 [ -d "$HOME/.dotnet" ] && export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.local/bin:$PATH"
@@ -539,6 +634,13 @@ dirty="$(wgit status --porcelain --untracked-files=no 2>/dev/null | tr -d '\r' |
 # and remove worktrees of the shared repository while this runs.)
 repo_state() { printf '%s|%s' "$(wgit rev-parse HEAD 2>/dev/null)" "$(wgit config --get core.worktree 2>/dev/null)"; }
 state_before="$(repo_state)"
+repo_written() {   # 0 (and the RED line) when something wrote to the REAL repository since state_before
+  local state_after
+  state_after="$(repo_state)"
+  [ "$state_after" != "$state_before" ] || return 1
+  echo "repository: RED — something wrote to the REAL repository (HEAD|core.worktree before: $state_before," \
+       "after: $state_after). Undo it, then find what escaped the clone."
+}
 
 # THE PLANNER READS THIS DIRECTORY (gate_plan.TRX_WRITERS, kb/Work PB3155): a case red in a trx file here is tier 0a of
 # this worktree's next gate, so a finisher's re-gate after a landing's Linux red runs it in leg 1. It holds only the
@@ -556,37 +658,41 @@ if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$
    || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
   echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
 fi
-# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without
-# it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery
-# apply (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red.
 corpus_red=""
-if [ -d tests/external/gnucobol ]; then
-  mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
-fi
-if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
-  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
-  corpus_red=" corpus-fetch"
-fi
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
 # THE INERT LANE (kb/Work PB2878): the change is HEAD against its merge base with the tree's origin/main (the clone
 # shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
 main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
 lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
 if [ "$targeted" = 1 ]; then
-  # The Windows half decided the lane before it started this one (an inert change runs no Linux half, run_gate_legs.py).
+  # The Windows half decided the lane before it started this one (run_gate_legs.py).
   lane_out=$'lane=full\nreason=the targeted leg: the gate that started it classified the change'
+elif [ "$inert_started" = 1 ]; then
+  lane_out=$'lane=inert\nreason=the inert leg: the gate that started it classified the change'
 elif [ -n "$lane_base" ]; then
   lane_out="$("$PY" "$snap/scripts/inert_lane.py" classify --root "$snap" --base "$lane_base" --head HEAD 2>&1)"
 else
   lane_out=$'lane=full\nreason=no merge base with origin/main: the full lane'
 fi
 lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
-if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
+inert=0; printf '%s\n' "$lane_out" | grep -qx 'lane=inert' && inert=1
+if [ "$inert" = 1 ]; then
   echo "linux-gate: inert lane — $lane_reason"
-  echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878: $lane_reason; no leg runs; HEAD ${head:0:9}) ==="; exit 0
+else
+  echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
+  # The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without
+  # it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery
+  # apply (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red. The
+  # inert lane runs no test that reads it.
+  if [ -d tests/external/gnucobol ]; then
+    mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
+  fi
+  if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
+    echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
+    corpus_red=" corpus-fetch"
+  fi
+  [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 fi
-echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
-[ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 
 bad="$corpus_red"; ran=""
 # PB2879 (owner 2026-10-09): the legs ran one after another and used about 10 % of a 32-CPU WSL VM (351 s alone). The
@@ -615,6 +721,20 @@ selftests_leg() {  # <leg name> <clone> [runner arguments…]
     grep -vE '^self-test .*: GREEN in ' "$out/$name.log" | sed 's/^/    /'
   fi
 }
+# THE INERT LANE'S ONE LEG (kb/Work PB2878, PB3646; DESIGN-test-build-ci.md §3.18): a change no test reads runs no test leg
+# and builds nothing, but CI's `audits` job runs the script self-tests (scripts/self_tests.py) on Linux on EVERY event,
+# the inert ones included, and those are audits that read the inert paths by design (the register, the DEVLOG, the skills
+# submodule they initialize), so a kb/ or DEVLOG/ change can turn them red on Linux. This leg is that job's self-test
+# step, in the clone of HEAD (no build, no watch: the watch proves what the TEST legs read, and there are none here).
+if [ "$inert" = 1 ]; then
+  selftests_leg selftests "$snap"
+  bad=""; [ "$(cat "$out/selftests.status" 2>/dev/null)" = GREEN ] || bad=" selftests"
+  repo_written && bad="$bad repository-written"
+  if [ -z "$bad" ]; then
+    echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878, PB3646: $lane_reason; legs selftests, no build and no test leg; HEAD ${head:0:9}) ==="; exit 0
+  fi
+  echo "=== LINUX GATE: RED (inert lane; failed or not run:$bad; HEAD ${head:0:9}; logs in TestResults/linux-gate/) ==="; exit 1
+fi
 guard_leg() {
   # CI's `guard` job (kb/Work PB1955, PB1957 row 40): the NIST suite through the `cobol` CLI from bash, the manifest
   # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
@@ -831,12 +951,8 @@ if [ $brc -eq 0 ] && [ "$(cli_fingerprint)" != "$cli_before" ]; then
   bad="$bad build-rewritten"
 fi
 
-state_after="$(repo_state)"
-if [ "$state_after" != "$state_before" ]; then
-  echo "repository: RED — something wrote to the REAL repository (HEAD|core.worktree before: $state_before," \
-       "after: $state_after). Undo it, then find what escaped the clone."
-  bad="$bad repository-written"
-fi
+footprint_report "$gate" "$GATE_KB" "$GATE_INODES"
+repo_written && bad="$bad repository-written"
 
 if [ -z "$bad" ]; then
   echo "=== LINUX GATE: GREEN (legs$ran; HEAD ${head:0:9}) ==="; exit 0

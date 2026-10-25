@@ -262,6 +262,36 @@ public sealed class GateLegDriftTests
         }
     }
 
+    /// <summary>
+    /// ONE READER OF A TRX FILE (kb/Work PB3661; DESIGN-test-build-ci.md §3.14.2): <c>test_population.trx_root</c>, which
+    /// names the file it cannot read. The gate planner and the profiler each parsed a trx themselves, so a torn file
+    /// ended a gate's plan with a parse error that named no path (run 000005 of wf_1973801d-4fe-29, 2026-10-24).
+    /// </summary>
+    [Fact]
+    public void EveryTrxReader_IsTheOneReader_ThatNamesTheFileItCannotRead()
+    {
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("gate_plan.py"),
+            "--audit-trx-readers");
+
+        Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== TRX READER AUDIT: CLEAN", StringComparison.Ordinal),
+            "A live tool parses a trx file itself: read it through scripts/test_population.py trx_root (it raises "
+            + "UnreadableTrx naming the file), so a torn file never fails a gate's plan with an unnamed parse error.\n"
+            + $"(exit {r.ExitCode})\n{r.Stdout}{r.Stderr}");
+
+        // ⛔ THE AUDIT MUST SEE ITS POPULATION: the one reader parses XML, and the two tools that used to read for
+        // themselves still name the schema (the planner's fixtures, the profiler's namespace) and parse nothing.
+        foreach (string line in new[]
+                 {
+                     "  trx-schema  scripts/test_population.py  parses XML",
+                     "  trx-schema  scripts/gate_plan.py  no XML parser",
+                     "  trx-schema  scripts/profile-test-parallelism.py  no XML parser",
+                 })
+        {
+            Assert.True(r.Stdout.Contains(line, StringComparison.Ordinal),
+                $"the trx reader audit no longer reports `{line.Trim()}` — the audit is broken, not the tree clean.\n{r.Stdout}");
+        }
+    }
+
     private const string Ns = "CobolNet.Tests.Conformance";
 
     // ── Arm (1): the name key and the leg function ────────────────────────────────────────────────────────────────

@@ -312,8 +312,8 @@ class Report:
         checkout's) through the gate's ONE reader (`run_gate_legs.watch`, no wait): GREEN — its verdict record is GREEN
         (exit 0) for this report's HEAD and measured that commit's own tree, unchanged while it ran (the measured tree
         leaves out coord.NEVER_WORK, so the harness's edit of its tracked settings file is no difference); RUNNING — no
-        verdict yet and the gate's process lives (or names none yet); ENDED — any other end (RED, NOT RUN, BUSY, a
-        process that DIED, a GREEN of another head or tree), or no run named: a finisher's work. NONE for any other
+        verdict yet and the gate holds its worktree's gate lock (or has taken none yet); ENDED — any other end (RED, NOT
+        RUN, BUSY, a gate that DIED, a GREEN of another head or tree), or no run named: a finisher's work. NONE for any other
         status."""
         if self.status != "GATE-PENDING":
             return "NONE"
@@ -321,7 +321,7 @@ class Report:
             return "ENDED"
         import run_gate_legs  # noqa: PLC0415  (scripts/: the gate's own reader; heavy, so only for this status)
         run = run_gate_legs.resolve_run(self.gate_run, self.worktree)   # a relative name is the WORKTREE's run (R1-1)
-        code, _ = run_gate_legs.watch(run, 0)
+        code, _ = run_gate_legs.watch(run, 0, run_gate_legs.gate_running(run))
         if code == run_gate_legs.AWAIT_PENDING_EXIT:
             return "RUNNING"
         rec = run_gate_legs.read_record(run) if code == 0 else None
