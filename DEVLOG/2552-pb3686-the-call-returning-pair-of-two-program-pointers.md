@@ -1,4 +1,4 @@
-## PB3686 - the CALL RETURNING pair of two program-pointers answers "the same restriction" as the SET and BY REFERENCE lanes do
+## Entry 2552 — 2026-10-25 12:07 PDT — PB3686 - the CALL RETURNING pair of two program-pointers answers "the same restriction" as the SET and BY REFERENCE lanes do
 
 **Re-probe.** On the branch's own build (`--std 2014`, checking on), `CALL U3686 RETURNING PA` and `CALL "U3686" RETURNING PA`
 raised EC-PROGRAM-ARG-MISMATCH when the callee's returning item was a program-pointer restricted to one prototype
@@ -26,3 +26,4 @@ restricted program- and function-pointer pair, plus the unrestricted, data-point
 **Self-review.** The citations were run through `cite.py --check`. A restricted pointer opposite a different restriction
 at INVOKE method matching (`MatchViolation`, §9.3.6 match rule 3 e) still compares strictly; that lane is a method-resolution
 signature and was left alone (registered as a lead in the report).
+
