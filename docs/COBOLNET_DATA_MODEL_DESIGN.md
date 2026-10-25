@@ -1024,10 +1024,12 @@ comparisons, INSPECT/STRING/UNSTRING legality, LENGTH, ref-mod). Therefore:
   back to back), which enumerate the same positions in the same order (kb/Work PB3598). A run holding an OCCURS DEPENDING table has its
   tail measured at the table's MAXIMUM count (the stored field holds the positions past the maximum extent, which no
   occurrence owns, and both receiving stores move it with the characters it lies in at every count: an ordinary group's is
-  GR4's alphanumeric move of whole characters, a variable-length group's `OdoTail.KeepUnused` is GR9 a)'s, which keeps only
-  the unused occurrences' bits and takes the filler past the maximum from the sender). At a smaller count the bits that end the
+  GR4's alphanumeric move of whole characters, a variable-length group's `OdoTail.KeepUnused` keeps only
+  the unused occurrences' bits and takes the filler past the maximum from the sender; GR9 a) moves every character position, as no
+  OCCURS DEPENDING table is a corresponding table, §8.5.1.12.2). At a smaller count the bits that end the
   current extent's last character are the first unused occurrence's, not filler (§8.5.1.6.3 puts the filler after the last
-  data item at its maximum), their content undefined (§13.18.38.4 7)), so the two stores' difference there conforms and
+  data item at its maximum), their content undefined (§13.18.38.4 7)), so the two stores' difference there is implementor
+  latitude, not a rule path, and conforms; and
   INITIALIZE ... WITH FILLER has no in-range filler to reset. The padding of an element of a dynamic-capacity bit table is
   not a filler item and is not stored (a determination, docs/CONFORMANCE.md USAGE BIT; kb/Work PB3598). Concatenating the subordinate bit strings — and taking their SUM as the width — is right
   only while every member is "immediately following … an item of the same level"; a member whose LEVEL NUMBER

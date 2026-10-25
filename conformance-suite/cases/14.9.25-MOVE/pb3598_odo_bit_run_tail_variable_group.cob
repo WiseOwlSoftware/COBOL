@@ -6,13 +6,18 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3598 - THE IMPLICIT FILLER AFTER AN OCCURS DEPENDING BIT RUN TRAVELS IN A VARIABLE-LENGTH GROUP MOVE AT A COUNT
-      *> BELOW THE MAXIMUM, AND THE UNUSED OCCURRENCES DO NOT.  Each group holds a dynamic-length item, so it is a variable-length
-      *> group (8.5.1.12.1) and ISO 14.9.25.4 GR9 a) governs the move: "The content of each character position that is not occupied by
-      *> a corresponding table is moved to the corresponding character position in the receiving group", the table itself
-      *> moving by 14.6.9.2.  The count NS / NR is a data item OUTSIDE the groups, so 13.18.38.4 GR8 a) applies: "only that part of
-      *> the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation
-      *> will be used" - the occurrences past the count are not moved and keep the receiver's bits, even where the first of them
-      *> starts inside the last character of the current extent.
+      *> BELOW THE MAXIMUM.  Each group holds a dynamic-length item, so it is a variable-length group (8.5.1.12.1) and ISO 14.9.25.4
+      *> GR9 a) governs the move: "The content of each character position that is not occupied by a corresponding table is moved to
+      *> the corresponding character position in the receiving group".  No table here is a corresponding table (8.5.1.12.2: "Two
+      *> tables correspond if at least one of them is a dynamic-capacity table"; these are OCCURS DEPENDING tables), so GR9 a) moves
+      *> every character position, the filler included.  The count NS / NR is a data item OUTSIDE the groups, so 13.18.38.4 GR8 a)
+      *> applies: "only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the
+      *> start of the operation will be used", and 13.18.38.4 7) says "The content of a data item whose occurrence number exceeds
+      *> the value of the data item referenced by data-name-1 is undefined".  So the bits of an occurrence past the count are
+      *> IMPLEMENTOR LATITUDE, and the standard does not decide them: this implementation keeps the receiver's (as it has since
+      *> kb/Work PB3030), where the fixed-length lane (pb3598_odo_bit_run_tail_travels_with_the_group) moves whole characters.  The
+      *> expected values below spell that choice for T(4) (V1, V4) and T(2) (V3), and they are not the standard's; only the
+      *> filler bits are bound by the rule above.
       *>
       *> The group is B PIC 1(2) and T PIC 1(3) OCCURS 1 TO 4: its maximum extent is 2 + 12 = 14 bits, two characters, and the two
       *> bits past T(4) are 8.5.1.6.3's implicit filler ("as needed to increase the number of bits to fill an integral number of
