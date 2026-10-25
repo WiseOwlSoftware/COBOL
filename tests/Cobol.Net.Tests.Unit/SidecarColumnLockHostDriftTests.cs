@@ -455,6 +455,54 @@ public sealed class SidecarColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ AN EXHAUSTED PUBLICATION DOES NOT HIDE A CONFLICT THE HOST CAN SEE (kb/Work PB3632, the lock-file host's twin of
+    /// <c>HandleColumnLockHostDriftTests.APublicationThatEveryTryCollidesInIsRefusedByAHeldColumnTable19Refuses</c>, PB3518): Table 19
+    /// (§14.9.27.4) prints <i>Unsuccessful open</i> for a SHARING WITH ALL OTHER I-O request beside a READ ONLY INPUT connector,
+    /// and §9.1.13.9 1) makes that '61'. When every try of the request's own publication loses its race
+    /// (<see cref="SidecarLockFiles.RaceInjector"/>) the request cannot be held, but the file the other holder published is
+    /// still there to be seen, so the answer is <see cref="RunUnitFileLock.Outcome.Refused"/> and not
+    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, which would let the OPEN go on beside a connector the table refuses it.
+    /// The same holds for a superseding request (the asker's own file stands, §14.9.27.4 GR25 <i>"the file is not affected"</i>).
+    /// A request nothing refuses stays Unavailable (no request is refused for failing to publish), and an exhausted
+    /// publication leaves no pending file behind.</summary>
+    [Fact]
+    public void AnExhaustedPublicationBesideAHolderTable19RefusesIsRefused_AndOneNothingRefusesIsUnavailable()
+    {
+        var (dir, file) = NewFile();
+        SidecarLockFiles.PauseObserver.Value = _ => { };
+        try
+        {
+            var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.IO);
+            Assert.True(Table19.Conflicts((sharing, mode), (FileSharing.ReadOnly, FileOpenMode.Input)));   // the premise: the table refuses this request
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var second));
+            SidecarLockFiles.RaceInjector.Value = _ => true;
+
+            // A first request: refused by the kept holder, nothing held, nothing left behind.
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, sharing, mode, out var none));
+            Assert.Null(none);
+            Assert.Equal(2, HolderFilesBeside(dir).Length);
+
+            // A superseding request: refused by the OTHER holder (the asker's own file is skipped), and the kept file stands.
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, second!.Amend(sharing, mode, owesWrites: false));
+            Assert.Equal(2, HolderFilesBeside(dir).Length);
+            kept!.Dispose();
+            // No other holder is left to refuse it: the host could not publish it, so the OPEN has the share mode alone.
+            Assert.Equal(RunUnitFileLock.Outcome.Unavailable, second.Amend(sharing, mode, owesWrites: false));
+            Assert.Single(HolderFilesBeside(dir));
+            second.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Unavailable, RunUnitFileLock.Take(Host, file, sharing, mode, out none));
+            Assert.Null(none);
+            Assert.Empty(System.IO.Directory.EnumerateDirectories(dir).SelectMany(d => System.IO.Directory.EnumerateFileSystemEntries(d)));   // no pending file of a lost try
+        }
+        finally
+        {
+            SidecarLockFiles.RaceInjector.Value = null;
+            SidecarLockFiles.PauseObserver.Value = null;
+            Clean(dir);
+        }
+    }
+
     /// <summary>A host that cannot put a lock beside the file — here a directory that is really a file — holds
     /// nothing and refuses nothing: the connector keeps the file lock its <see cref="FileShare"/> gives. It is an
     /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, never an exception out of an OPEN.</summary>

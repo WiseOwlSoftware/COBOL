@@ -12,15 +12,17 @@
       *> clause is specified shall be display or national."  Every SIGN clause below is on a subject SR1 admits,
       *> with a usage SR2 admits - kb/Work PB537's screen must accept each one, including a group whose SIGN
       *> clause covers an ALPHANUMERIC subordinate (SR1 speaks of the entry that specifies the clause, and
-      *> 13.18.52.4 GR1 applies it "for each numeric item subordinate to the group"), a group whose USAGE clause
-      *> makes a subordinate binary (SR2 speaks of an ELEMENTARY item for which the clause is specified), and a
-      *> numeric report group description entry.
+      *> 13.18.52.4 GR1 applies it "for each numeric item subordinate to the group"), and a numeric report group
+      *> description entry. A group whose USAGE clause makes a SIGNED subordinate binary is legal by the 2023 text
+      *> (SR2 speaks of an ELEMENTARY item for which the clause is specified) but not by COBOL-85, whose SIGN rules
+      *> require "the numeric data description entries to which the SIGN clause applies" to be USAGE DISPLAY
+      *> (kb/Work PB1319; the derived 2002 edge, VCR row 7.40): that subject is the 2002 golden
+      *> pb1319_sign_group_subjects_2002, and its 85 refusal is conformance:negative/pb1319-sign-group-comp-85.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.  13.18.52.4 GR6 a)/b): with SEPARATE CHARACTER the sign occupies the
       *> leading (or trailing) character position, '+' for positive and '-' for negative.
       *>   A  PIC S9(3) SIGN LEADING SEPARATE VALUE -12     -> "-012"
       *>   G  (SIGN TRAILING SEPARATE) = GX "AB" + GN S9(2) -7 -> GX = "AB", GN = "07-"
-      *>   H  (USAGE COMP SIGN LEADING) is an alphanumeric group; its binary GB is not displayed (no image to pin)
       *>   B  PIC S9(2) SIGN TRAILING SEPARATE VALUE +5      -> "05+"
       *>   The report item COLUMN 1 PIC S9(3) SIGN LEADING SEPARATE SOURCE WN, WN = -5, is "-005" (13.18.53.4 GR1's
       *>   implicit MOVE into the printable item, then GR6); the report file is read back one character per record
@@ -42,8 +44,6 @@
        01 G  SIGN IS TRAILING SEPARATE.
           05 GX PIC X(2) VALUE "AB".
           05 GN PIC S9(2) VALUE -7.
-       01 H  USAGE COMP SIGN IS LEADING.
-          05 GB PIC S9(4) VALUE -3.
        01 B  PIC S9(2) SIGN TRAILING SEPARATE VALUE +5.
        01 WN PIC S9(3) VALUE -5.
        01 EOF-SW PIC 9 VALUE 0.

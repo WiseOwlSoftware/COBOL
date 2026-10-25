@@ -138,6 +138,17 @@ public sealed record ActivationDescription
     /// <summary>The <see cref="Clauses"/> of a class pointer described without a TO phrase (an unrestricted pointer).</summary>
     public const string Unrestricted = "*";
 
+    /// <summary>The <see cref="Clauses"/> prefix of a program- or function-pointer restricted to a prototype that has NO
+    /// compile-time signature: ISO §12.3.8.4 GR10 c) / GR11 c) take its details "from the external repository", which in
+    /// this implementation is the run unit, so its signature — the pointer's TYPE (§13.18.60.4 GR25 / GR26) — is not known
+    /// to the compilation that describes it (kb/Work PB3162). Followed by the prototype's folded name.</summary>
+    public const string ExternalRestrictionPrefix = "EXTERNAL TO ";
+
+    /// <summary>True when <paramref name="clauses"/> is the restriction of a pointer whose prototype's signature is
+    /// unknown at compile time (<see cref="ExternalRestrictionPrefix"/>).</summary>
+    public static bool IsExternalRestriction(string clauses) =>
+        clauses.StartsWith(ExternalRestrictionPrefix, StringComparison.Ordinal);
+
     /// <summary>ISO §9.3.6 match rule 3 e) — the identity of "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC
     /// LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses", with rule 3 e) 1.'s currency strings and 2.'s
     /// DECIMAL-POINT IS COMMA state folded into the PICTURE part, as one canonical text (empty for a group, which

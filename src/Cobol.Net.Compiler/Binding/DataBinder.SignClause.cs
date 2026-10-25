@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
+using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding;
@@ -56,11 +57,54 @@ public sealed partial class DataBinder
             string? defect = item.IsGroup
                 ? SignClauseGroupDefect(ItemCategory.GroupKindsOf(item))
                 : SignClauseElementaryDefect(item.Pic, item.PictureText, "data description entry");
-            if (defect is null) continue;
-            using var _ = Edition.At(item);
-            Edition.Error(DiagnosticCatalog.SignClauseSubject,
-                $"data item '{item.CobolName ?? "FILLER"}': {defect}");
-            item.OwnSign = null;
+            if (defect is not null)
+            {
+                using var _ = Edition.At(item);
+                Edition.Error(DiagnosticCatalog.SignClauseSubject,
+                    $"data item '{item.CobolName ?? "FILLER"}': {defect}");
+                item.OwnSign = null;
+            }
+            else if (item.IsGroup)
+                GateGroupSignSubordinates(item);
+        }
+    }
+
+    /// <summary>⛔ THE COBOL-85 GROUP SUBJECT IS NARROWER (kb/Work PB1319). ANSI X3.23-1985 admitted the clause on "a
+    /// numeric data description entry whose PICTURE contains the character S, or a group item containing at least one
+    /// such numeric data description entry", and required "The numeric data description entries to which the SIGN clause
+    /// applies" to be "described … as USAGE IS DISPLAY". The 2023 §13.18.52.3 keeps neither: SR1 admits any alphanumeric,
+    /// national or strongly-typed group and SR2 restricts only "an elementary item for which the SIGN clause is
+    /// specified". Each relaxation is a construct row introduced at 2002 (the derived edge, VCR row 7.40), so the 85
+    /// compiler refuses what the 85 text refuses through the canonical funnel, and later editions take the 2023 rules.
+    /// A subordinate that writes its own SIGN clause is the subject of that clause (§13.18.52.4 GR2/GR3), so the group's
+    /// clause applies neither to it nor below it.</summary>
+    private void GateGroupSignSubordinates(DataItem group)
+    {
+        if (Edition.DialectLevel >= 2002) return;
+        string where = $"data item '{group.CobolName ?? "FILLER"}'";
+        using var _ = Edition.At(group);
+        if (!DataItem.DescendantsOf(group).Any(IsSignedNumericEntry))
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SignGroupUnsignedSubordinates2002, where);
+        if (SignedSubordinatesTheClauseReaches(group).FirstOrDefault(d => d.Pic!.Usage is not Usage.Display) is { } other)
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SignGroupNondisplaySubordinate2002,
+                $"{where} over '{other.CobolName ?? "FILLER"}' (USAGE {UsageFamilies.UsageWord(other.Pic!.Usage)})");
+    }
+
+    /// <summary>A numeric data description entry whose WRITTEN picture character-string contains the symbol 'S' — the
+    /// entry both editions' SIGN rules name.</summary>
+    private static bool IsSignedNumericEntry(DataItem d) =>
+        d.IsElementary && d.Pic is { Category: PicCategory.Numeric, Signed: true, IsRecovery: false }
+        && d.PictureText is not null;
+
+    /// <summary>The signed numeric items below <paramref name="group"/> that its own clause applies to: every one not
+    /// at or under a subordinate entry that writes its own SIGN clause (§13.18.52.4 GR2/GR3).</summary>
+    private static IEnumerable<DataItem> SignedSubordinatesTheClauseReaches(DataItem group)
+    {
+        foreach (var c in group.Children)
+        {
+            if (c.OwnSign is not null) continue;
+            if (IsSignedNumericEntry(c)) yield return c;
+            foreach (var d in SignedSubordinatesTheClauseReaches(c)) yield return d;
         }
     }
 
