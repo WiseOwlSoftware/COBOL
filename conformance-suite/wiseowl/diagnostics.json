@@ -13249,7 +13249,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0828: INVOKE \"MB\": figurative-constant argument SPACE for formal 'B': the argument (a figurative constant or an ALL literal) is not a valid sending operand of a MOVE to the formal parameter (an elementary boolean item described with PICTURE 1(4) USAGE DISPLAY): a figurative constant whose characters are not boolean characters shall not be moved to a boolean data item (ISO \u00a714.9.25.3 SR7)"
+  "expect": "COBOLNET0828: INVOKE \"MB\": figurative-constant argument SPACE for formal 'B': the argument (the figurative constant SPACE) is not a valid sending operand of a MOVE to the formal parameter (an elementary boolean item described with PICTURE 1(4) USAGE DISPLAY): a figurative constant whose characters are not boolean characters shall not be moved to a boolean data item (ISO \u00a714.9.25.3 SR7)"
  },
  "pb3101-content-zero-into-alphabetic": {
   "refuse-at": [
