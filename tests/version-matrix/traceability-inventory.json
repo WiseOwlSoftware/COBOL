@@ -17377,11 +17377,11 @@
   "subject": "Physical subdivisions of a report",
   "rule-digest": "ee9bcb0a7dc4",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#SumFamilyOf; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindSumClause; src/Cobol.Net.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/Cobol.Net.Runtime/IO/ReportWriter.cs#SumOccurrence",
-  "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity; conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences; conformance:cases/13.8.6.2.3-Report-Items/pb1271-sum-counter-occurrence-not-subscripted",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#SumFamilyOf; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindSumClause; src/Cobol.Net.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/Cobol.Net.Runtime/IO/ReportWriter.cs#SumOccurrence; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused",
+  "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity; conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences; conformance:cases/13.8.6.2.3-Report-Items/pb1271-sum-counter-occurrence-not-subscripted; conformance:cases/13.8.6.2.3-Report-Items/pb1046_report_sum_counter_in_contained_program; unit:ReportItemReferenceTests.ASumCounter_IsStillReferenceableInTheProcedureDivision",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Landed by kb/Work PB1271 (w1007a). 13.8.6.2.3 1) 'Sum counters may be inspected or altered in the procedure division.' (cite.py --check OK 13.8.6.2.3 1)) with 13.18.54.4 GR12 (OK 12)). A repeating SUM entry's counter is now a table (ReportSumFamily: one counter per occurrence, 13.18.54.4 GR8 a) OK 8) a); 13.18.14.4 GR12 / 13.18.35.4 GR9 make multiple COLUMN / LINE simple OCCURS levels, OK 12) / OK 9)), so CF-U(2), CF-U(WS-I), CF-V(2 WS-J), CF-U IN R1 (3) read and alter the selected occurrence (golden prints 0009 0509 0010), and the unsubscripted CF-U of a repeating entry is the 8.4.2.3.3 SR5 refusal COBOLNET2270 (OK 5)). Before: COBOLNET1639 'not defined' on every subscript; one counter shared by all columns.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -17392,11 +17392,11 @@
   "subject": "Physical subdivisions of a report",
   "rule-digest": "ee72bfe6a916",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument",
-  "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused",
+  "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-group-referenced-in-procedure-division; unit:ReportItemReferenceTests.AGenerateOfADetailGroup_IsNotAReportItemReference",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Landed by kb/Work PB1271 (w1007a). The refuter's PARTIAL half: an elementary report item that is a REPEATING sum counter may now be a function argument - FUNCTION INTEGER(CF-U(2)) = 509, FUNCTION SUM(CF-U(ALL)) = 528, SUM(CF-V(ALL, ALL)) = 83, SUM(CF-V(2, ALL)) = 25 (8.4.2.3.3 SR6, cite.py OK 6)); the table(ALL) argument reads the counter family's OCCURS levels off its register. The GENERATE/DETAIL half and the group-item refusal are unchanged (only sum counters, always elementary, enter the name space).",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -17841,13 +17841,13 @@
   "ordinal": 7,
   "subject": "Report group description entry",
   "rule-digest": "1850002beb1a",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportSectionOnlyNames; src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportEntriesNamed; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportEntryReferenceRefused; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportNamedEntry; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ReportUnidentified; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/Cobol.Net.Compiler/Binding/DataBinder.Odo.cs; src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs",
+  "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-referenced-in-procedure-division; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-group-referenced-in-procedure-division; conformance:cases/13.8.6.2.3-Report-Items/pb1046-global-report-item-referenced-in-contained-program; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-referenced-by-file-status; conformance:cases/13.8.6.2.3-Report-Items/pb1046-report-item-as-occurs-depending-object; conformance:cases/13.8.6.2.3-Report-Items/pb1046_report_sum_counter_in_contained_program; unit:ReportItemReferenceTests.AReportEntryReferencedByAProcedureStatement_IsRefusedAsAReportItem; unit:ReportItemReferenceTests.AReportEntryNamedByAClauseOfAnotherSection_IsRefusedAsAReportItem",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Owned by kb/Work PB1046. SR7 has two halves. The first ('The data-name format of the entry-name clause shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase ..., or as an operand in a SUM clause') is satisfied by construction: those references resolve by name through ReportGroupResolution and the SUM resolvers, and an unnamed entry has no name to resolve. The second ('The data-name shall not be referenced in any other way') is enforced only incidentally. Report-section names never enter ByName, so a procedure reference fails RESOLUTION: probe sr7move `DISPLAY PX` (PX a printable report item) and sr7grp `DISPLAY D1` (a report group) both draw COBOLNET1639 \"'PX' is not defined ... no declaration in this source element gives the name\". That is the right verdict under the wrong rule, and the message is false because PX IS declared. The open analysis kb/Work PB1046 owns exactly this ('either the name is referenceable there and the compiler rejects legal source, or it is not and the diagnostic names the wrong rule'), so no new finding is filed here. cite.py --check 13.15.3 'The data-name shall not be referenced in any other way' -> OK §13.15.3 7). PARTIAL: the prohibition is not diagnosed as SR7, and its interaction with §13.18.54 sum-counter references is PB1046's open question. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the report group description entry is Report Writer nucleus syntax at every edition; no Annex E item changes §13.15 between 2014 and 2023)",
-  "state": "GAP"
+  "notes": "SR7 has two halves. The first (the entry-name format shall be specified when the data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause) holds by construction: those references resolve by name through ReportGroupResolution and the SUM resolvers, and an unnamed entry has no name to resolve. The second (the data-name shall not be referenced in any other way) is enforced as its own rule: a reference that reaches an unidentified-name report AND names a report section entry (DataBinder.ReportEntriesNamed - the entry's real qualification, the report-name last, the GLOBAL reports of containers included) draws COBOLNET5092 citing 13.8.6.2.3 and 13.15.3 SR7 instead of the false COBOLNET1639 'not defined', from a procedure division statement, a FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT clause, and an OCCURS DEPENDING ON of another section. A sum counter (13.8.6.2.3 1) and a DETAIL group named by GENERATE (13.8.6.2.3 2) never reach it. Closed by kb/Work PB1046.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.15.3-8",
