@@ -1,4 +1,4 @@
-## PB3664: an editing sign follows the value the receiver holds, not the sending value
+## Entry 2504 — 2026-10-24 19:33 PDT — PB3664: an editing sign follows the value the receiver holds, not the sending value
 
 The fourth fuzz night (fz05181) found `MOVE -0.000092 TO PIC -Z(7)9.99` printing `-       0.00`. The owner approved the
 fix on 2026-10-24 after the operator laid out the ISO text and GnuCOBOL's behavior.
@@ -35,3 +35,4 @@ zero. The determination is recorded in `docs/CONFORMANCE.md` section 3.
 because the behavior does not differ by edition) and `CobolEditStoredSignTests` (the fixed and floating signs, the FOR form
 fixed and floating, the locale editor; also the nonzero controls that keep their sign). The inventory rows: the note claimed
 none, and none is closed.
+
