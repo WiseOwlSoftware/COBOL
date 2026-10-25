@@ -1,4 +1,4 @@
-## PB3639, PB3651: the landing lane ticks without a unit, and a replay tie goes to the later report
+## Entry 2517 — 2026-10-24 21:24 PDT — PB3639, PB3651: the landing lane ticks without a unit, and a replay tie goes to the later report
 
 **PB3639.** The supervisor ticked `land_lane.py tick` only from `Invoke-Unit`. Between units it slept in `Wait-Until`
 (a budget hold, a failure backoff) and never ticked, so a branch that became WAITING TO LAND or was re-armed in such a
@@ -28,3 +28,4 @@ Self-review: sibling arms checked (`plan_wave.branch_replays` is the only caller
 other timers that sleep, `Wait-Until`'s two callers, share the one function).
 
 Merged onto main 302648e01 by its successor (wave 20261106 group C), which re-probed both on its own build: the lane test 6/6 (2/6 with Step-Lane taken out of Wait-Until), test_plan_wave 413/413 (412/413 with the old tie key). Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261025T040639Z, Linux half (WSL clone of HEAD) GREEN; LandingLaneDriftTests passed in leg 1).
+
