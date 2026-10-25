@@ -1633,7 +1633,11 @@ reorder, nothing incompatible); and the driver's patterns are matched by git's r
 (`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
 span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
 the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
-catalogues.
+catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
+(`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
+by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
+landing (its `.gitattributes` still says `merge=union`) merging the main that sorted the baseline got the union: a
+measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
 ### 16.10 The order, the waves and PB3637
 

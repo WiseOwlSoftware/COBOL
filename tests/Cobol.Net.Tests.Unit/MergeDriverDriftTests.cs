@@ -46,6 +46,7 @@ public sealed class MergeDriverDriftTests
             "publicapi: the header stays first and the rest is sorted",
             "publicapi: the same line added by both is one line",
             "git: a public-API baseline both branches changed merges through its driver as a set",
+            "git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver",
             "patterns: a driver's pattern names a path as git does",
             "git: WITHOUT the drivers the same merge conflicts (the premise)",
             "git: merge() brings main in through the drivers",
