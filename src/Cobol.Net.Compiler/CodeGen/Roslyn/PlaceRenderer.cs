@@ -190,7 +190,10 @@ internal static class PlaceRenderer
         // or truncation to the right". `OperandPic` is the ONE category reader — it answers the bit group's as-if
         // PICTURE 1(m) (Boolean), which is what RefModPlace.Category on the very next line of Place.cs already
         // used; D20's consumer-switch sweep named that site and omitted these two, and that omission IS the bug.
-        RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(SpliceBase(r.Inner), RmStart(r), RmLen(r), rhs,
+        // The characters a boolean slice RECEIVES are converted to boolean positions first (D-B5, kb/Work PB3666: '1' to
+        // one, every other character to zero): the splice fits them, it does not judge them.
+        RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(SpliceBase(r.Inner), RmStart(r), RmLen(r),
+            r.Inner.Item.OperandPic is { Category: PicCategory.Boolean } ? RuntimeApi.BoolFromCharacters(rhs) : rhs,
             r.Inner.Item.OperandPic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).

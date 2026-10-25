@@ -154,4 +154,49 @@ public sealed class CobolBoolTests
     [Fact]
     public void ItemWidth_LiteralOnlyKeepsItsLength() =>
         Assert.Equal("0101", CobolBool.ToItemWidth(CobolBool.And(CobolBool.Literal("1111"), CobolBool.Literal("0101"))));
+
+    // ── The boolean-receiver store: docs/CONFORMANCE.md D-B5 (kb/Work PB3666) ──────────────────────────────
+    // ISO §14.6.8.6 transfers the data "after any necessary conversion, into the corresponding boolean positions
+    // of the receiving data item, with zero fill or truncation to the right"; §13.18.32.4 GR1/GR2 align a
+    // JUSTIFIED receiver on the right. A boolean character is the value zero or one (§3.21), and the standard
+    // converts no other character, so the implementor's choice is: '1' is boolean one, every other character zero.
+
+    [Theory]
+    [InlineData("AB", 5, false, "00000")]      // the PB3666 repro: stored as "AB000" before the fix
+    [InlineData("B1", 5, false, "01000")]
+    [InlineData("B1", 5, true, "00001")]       // JUSTIFIED: right aligned, zero fill on the left
+    [InlineData("1A0B1", 5, false, "10001")]
+    [InlineData("101", 5, false, "10100")]
+    [InlineData("101", 5, true, "00101")]
+    [InlineData("1 1", 3, false, "101")]       // a space is a character that is not '1'
+    [InlineData("11A11", 3, false, "110")]     // truncation to the right keeps the leftmost positions
+    [InlineData("11A11", 3, true, "011")]      // JUSTIFIED truncation keeps the rightmost: "A11" converts to 011
+    [InlineData("", 3, false, "000")]
+    public void Store_ConvertsEachCharacterThenFits(string sent, int width, bool justifiedRight, string expected)
+    {
+        Assert.Equal(expected, CobolBool.Store(sent, width, justifiedRight));
+        // DISPLAY of the item and the operators over it agree: B-NOT sees exactly the positions the item holds.
+        Assert.Equal(new string(expected.Select(c => c == '1' ? '0' : '1').ToArray()), CobolBool.Not(CobolBool.Store(sent, width, justifiedRight)));
+    }
+
+    [Fact]
+    public void FromCharacters_BooleanContentIsReturnedUnchanged()
+    {
+        string boolean = "0110";
+        Assert.Same(boolean, CobolBool.FromCharacters(boolean));
+        Assert.Equal("", CobolBool.FromCharacters(null));
+        Assert.Equal("", CobolBool.FromCharacters(""));
+        Assert.Equal("1000", CobolBool.FromCharacters("1abc"));
+    }
+
+    /// <summary>An ACCEPT into a boolean item (ISO §14.9.1.4 GR1) applies the same conversion — one rule, one place.</summary>
+    [Fact]
+    public void FromCharacters_IsTheRuleTheOperatorsAlreadyApply()
+    {
+        // The operators read a position outside {'0','1'} as boolean zero (CobolBool.Bit), so converting first
+        // changes no operator result.
+        const string raw = "1Q01";
+        Assert.Equal(CobolBool.Not(raw), CobolBool.Not(CobolBool.FromCharacters(raw)));
+        Assert.Equal(CobolBool.And(raw, "1111"), CobolBool.And(CobolBool.FromCharacters(raw), "1111"));
+    }
 }

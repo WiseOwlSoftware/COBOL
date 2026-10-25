@@ -23,7 +23,7 @@ closed per weekly-quota point.
 |---|---|
 | `scripts/orchestrator/orchestrate.ps1` | the supervisor loop (section 4); PowerShell 7 |
 | `scripts/orchestrator/next_unit.py` | the deterministic choice of the next unit (section 3.2) |
-| `scripts/orchestrator/land_lane.py` | the LANDING LANE: the supervisor ticks it beside every unit, and it starts `enqueue.py land` for every branch WAITING TO LAND the moment it is ready (section 4.9) |
+| `scripts/orchestrator/land_lane.py` | the LANDING LANE: the supervisor ticks it for as long as it lives, beside every unit and between them (PB3639), and it starts `enqueue.py land` for every branch WAITING TO LAND the moment it is ready (section 4.9) |
 | `scripts/orchestrator/steer.ps1` | the OPERATOR's one way to name the loop's next unit: a validated `handoff.operator.json` (section 4.8) |
 | `scripts/orchestrator/units/*.md` | `common.md` (the rules every unit obeys) plus one short prompt per unit type; they reference files, never paste them |
 | `scripts/orchestrator/handoff.schema.json` | the contract between a unit and the supervisor (section 5) |
@@ -469,11 +469,23 @@ the merge queue, no implementer ran. The machine alternated between two half-idl
 "Supervisor lane (Recommended)") a deterministic landing lane in the supervisor over the wave unit's model running
 `enqueue.py land` as branches came back CLEAN, which would have put every landing log into a long Opus transcript.
 
-**What runs.** While any unit runs, the supervisor starts `python scripts/orchestrator/land_lane.py --coord <coord>
-tick --repo <repo>` as a BACKGROUND process as the unit starts and every `-LandLaneSeconds` (300 by default; 0 runs no
+**What runs.** For as long as the supervisor lives, it starts `python scripts/orchestrator/land_lane.py --coord <coord>
+tick --repo <repo>` as a BACKGROUND process as each unit starts and every `-LandLaneSeconds` (300 by default; 0 runs no
 lane), never on its event loop and never fatal (the checkpoint's pattern, section 5.1, kb/Work PB2590): one tick at a
 time (a tick due while one runs is skipped, and `tick.lock`, an OS lock, refuses a second from anywhere), its lines
-said in the supervisor's log, a failure said and the unit continuing. A tick:
+said in the supervisor's log, a failure said and the unit continuing. **The lane is not bound to a unit** (kb/Work PB3639):
+the tick spends no tokens, so one timer, `Step-Lane`, starts it from every place the supervisor waits or loops, and the
+lane ticks on its period while a unit runs (`Invoke-Unit`), between units (the top of the loop, before the adoption
+and the budget read), through a budget hold (`Wait-Until`, which sleeps no longer than the time to the next tick) and
+through a failure backoff (the same `Wait-Until`). A branch reviewed CLEAN or re-armed in any of those windows lands
+within `-LandLaneSeconds` plus `Wait-Until`'s one-minute wake, not at the next unit's start. `Wait-Until` checks STOP
+before it steps the lane, so no tick starts once the loop's STOP or the owner's global stop exists, and the tick itself
+launches nothing under any stop file (step 3); a quota hold is no reason to stop the lane. The lane lives as long as
+the supervisor process: its exits (STOP, the circuit breaker's 4, an owner question's 5, `-MaxUnits`) end it with the
+process, and the landings it already started run on, detached. `orchestrate.ps1 -LandLaneSeconds 0` runs no lane at
+all. `test_orchestrate_lane.ps1` drives a failure backoff over a fake `python` that records each tick (the Nth tick
+creates STOP: the wait ends and no further tick starts), and `LandingLaneDriftTests` holds that `Step-Lane` is called
+from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 
 1. REAPS: an attempt whose detached runner is gone without an exit code is DIED; a run that ended QUEUE NOT ACTIVE
    (exit 8) writes `land-lane\HALT` and names it in the operator's mailbox.
@@ -526,6 +538,22 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
 
 A run that commits (main merged in, the DEVLOG stamp) makes the survey read the branch IN FLIGHT, so a retry is driven
 by the lane's own attempt record, never by the survey.
+
+A run that ends CONFLICT (exit 4) leaves its finisher a CONFLICT BRIEF (kb/Work PB3640): no file-set partition removes
+every merge conflict (a declared set is a prediction), so the lane cuts what the conflict costs the finisher. The runner,
+after recording the outcome, writes `<coord>/land-lane/conflicts/<id>.md` (`land_lane.conflict_brief`): the files the
+verdict names, the commits origin/main gained on them since the branch's merge base (one `git log` over every file), the
+notes those commits and the branch name with their status, and each note's newest report; the attempt names it
+(`brief`, or `brief_error` when it could not be written, and `brief_main`, the origin/main it was computed against). The
+verdict's files are read by `merge_drivers.outcome_files`, the one reader of the outcome `merge_drivers.conflict_outcome`
+writes for `enqueue.py land`. `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
+that attempt's end head and origin/main is still `brief_main`, and otherwise computes one now against origin/main
+through the merge drivers (`merge_drivers.merge_conflicts`: `git merge-tree` with the drivers' configuration, the merge's
+own definition, so a keyed catalogue is named exactly when its driver declines, a real conflict): the case of a pull
+request the queue BOUNCED as DIRTY, which no attempt recorded, or of a branch or a main that moved. The
+status line of a STOPPED exit-4 attempt names the command, and the enqueue unit's step 4 puts its output in the
+finisher's prompt verbatim. The lane still dispatches no model: launching that finisher the moment the stop is recorded,
+instead of at the next enqueue unit, is the headless lane's second job (kb/Work PB3608's standing requirements).
 
 4. WATCHES THE QUEUE (kb/Work PB3527), right after the survey and before the stops are read. `ENQUEUED` means only
    that the pull request was opened and HANDED to the merge queue (auto-merge on): GitHub queues it once its required
@@ -851,7 +879,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    fuzz fixes PB3664 and PB3665 on files neither touched), so it is deleted, and a fix-lane note's folder site reserves
    nothing (`member_index.note_file_set`). The plan table and the group's spec name an empty group `UNPARTITIONED`, and
    the spec asks its implementer to give each note a `**Sites:**` paragraph naming its files and members in its first
-   checkpoint; from its first edit its worktree's actual diff is in flight like any other. A finisher's set includes
+   checkpoint; from its first edit its worktree's actual diff is in flight like any other. Every spec, sited or not,
+   asks its implementer to add to a note's block each code file or member its diff changes that no block names, in the
+   same change (`plan_wave.body_of`, kb/Work PB3640), and `work.py check` requires a block of every open note of a
+   cluster some note's `tier:` ranks as a campaign, whatever its id (`work.campaign_leads`). A finisher's set includes
    the files and units of the branch it continues (its actual diff). PB3640's finding stands: no partition removes
    every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
    repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to
