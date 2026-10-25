@@ -10,7 +10,7 @@ measurement lives here, and it counts the notes where the planner wrote them: th
 SPEC (`DISPATCH SPEC — wave <n> (<L>), <label>: PB…, PB…`, written by `make_dispatch_specs.py`).
 
 THE JOIN. A report in the coordination directory's reports directory (`coord.reports_dir()`) is named
-`w<wave><letter>-<lead>-report.md` (plan_wave.REPORT_NAME, the one fix-lane report name; a same-file successor's
+`w<wave><letter>-<lead>-report.md` (coord.REPORT_NAME, the one fix-lane report name; a same-file successor's
 letter carries its digit, `w1021b2-…`); its spec is `msg-w<wave>-<letter>.txt` under the scratch directory (searched
 three levels down: the wave's own scratch, or the operator's `op/`). A `w*-report.md` that is no group report (a train,
 refute or filing report) is left out and counted as such. A spec name found more than once with different note
@@ -34,7 +34,6 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import coord  # noqa: E402
-from plan_wave import REPORT_NAME  # noqa: E402  (the ONE fix-lane report name, kb/Work PB3711: group letter AND successor digit)
 
 TURNS = re.compile(r"(?:\*\*turns:\*\*\s*(?:about\s+)?|\bturns\s+~|Turns used[^:\n]*:\s*(?:about\s*)?)~?\s*(\d+)", re.I)
 STATUS = re.compile(r"^\s*(?:\*\*Status:\*\*\s*|Status:\s*)?(DONE|SPLIT|DISCHARGED|BLOCKED|GATE-PENDING)\b", re.M)
@@ -67,7 +66,7 @@ def measure(cdir: pathlib.Path) -> dict:
     rows = []
     skipped = {"not a group report": 0, "no turns figure": 0, "no spec": 0, "ambiguous spec": 0, "spec names no note": 0}
     for f in sorted(coord.reports_dir(str(cdir)).glob("w*-report.md")):
-        m = REPORT_NAME.match(f.name)
+        m = coord.REPORT_NAME.match(f.name)
         if not m:
             skipped["not a group report"] += 1     # a train, refute or filing report: no group spec to join
             continue

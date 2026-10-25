@@ -90,14 +90,36 @@ neither guard hard-coding a CLI path or naming the retired engine); `guard-nist-
 per program.
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
-Eleven jobs. `changes` decides whether the matrix runs at all; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
+Twelve jobs. `changes` decides whether the matrix runs at all; `audits` runs on every push; then, concurrently, `guard` (WiseOwl COBOL parallel NIST,
 ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubuntu) ·
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
 `inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
-on a Windows checkout, no build, kb/Work PB3581); and finally `ci-gate`. (The nightly
+on a Windows checkout, no build, kb/Work PB3581); `dotnet-sdk-cache` (push to main only, both OSes: saves the pinned
+SDK under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
 PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
+
+**⛔ One pinned .NET SDK, installed one way, never through the aka.ms redirect (kb/Work PB3308;
+`DotnetSdkInstallDriftTests`).** `scripts/install-dotnet-sdk.sh` pins the exact SDK version (one `global.json`'s
+`10.0.100` and `rollForward: latestMinor` accept; the drift test checks it) and lists its feeds,
+`builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. It downloads `dotnet-sdk-<version>-<os>-<arch>` from
+the first feed that serves it and its `.sha512`, checks the archive against that SHA-512, unpacks it, and only then writes
+a completion marker. A transfer that breaks off is retried on the same feed, while a refusal (an HTTP error, a 404 or a
+409) moves on to the next feed. Every building job gets its SDK from the composite action `.github/actions/setup-dotnet`:
+it restores the SDK from the Actions cache keyed on the version, the OS and the architecture, runs the script (a no-op on
+a cache hit), saves the SDK, puts it first on `PATH`, and fails unless `dotnet --version` reports the pinned version. A
+merge group's run restores only what its own ref or main saved, and its ref is new every time, so `dotnet-sdk-cache`
+saves the SDK under main on every push to main: a merge group then finds it even while every feed refuses. A warm-up
+that fails warns and passes, because the merge group's own install still tries the feeds. `scripts/wsl/setup-wsl.sh`
+calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
+block byte for byte between the `dotnet-sdk-install` markers. Before this, every building job ran `actions/setup-dotnet`
+with `dotnet-version: 10.0.x`, which resolves "the newest 10.0" through aka.ms on every job, with no cache. A dropped
+transfer cost one merge group (run 38974314534, 2026-10-16). From about 18:50Z on 2026-10-25 the redirect's storage
+origin answered `409 PublicAccessNotPermitted`, so every code merge group failed `Setup .NET 10` while
+builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms. The pin is also kb/Work
+PB1957 row 8's (a): CI and the local Linux hosts build with the same SDK patch. Moving to a newer SDK is one edit to
+`DOTNET_SDK_VERSION`, copied into `setup-env.sh`.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -1836,6 +1858,10 @@ Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train
 two driver tests (train 1058;
 `self_tests.py --self-test` 19 s alone, over 120 s twice in that train's first gate).
 
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under
+`scripts/selftests/`, found by this runner's rule (b) with no change here; the layout, its collector and its drift test
+are `DESIGN-orchestrator-loop.md` §16.2.
+
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
 **The rule.** A name on PATH is not an interpreter: on the Windows dev box `python3` is the Microsoft Store alias,
@@ -2200,7 +2226,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   each finding that still holds; branch review R1-1, R2-1, R3-1). `capped` is one definition, `review_findings.capped`
+   (the verdict blocked on `BLOCKING_AT_CAP`), and gives each case ONE owner (kb/Work PB3404): a capped verdict's
+   findings are the predecessor's next-wave finisher's and hold the successor until it lands; an uncapped one's are
+   the successor's, whose review answers them, so `carrying_findings` does not hold a successor reviewed CLEAN over a
+   head that contains the verdict's head (`prune_worktrees.review_answers`), and no finisher fixes them twice. Every content problem is a TEAR, and a TORN
    findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
    when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
    holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
@@ -2245,7 +2275,15 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
-   resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
+   resolution is not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
+   documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
+   conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
+   45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 where both REVISED text the base
+   already held (one mechanism's paragraph, one Annex A.1 register row), so a union merge would keep a stale paragraph
+   beside its replacement in a document that describes the current compiler, and a word-level merge came out different
+   from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
+   says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
+   insertions earns one. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
    origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
@@ -2333,6 +2371,22 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    group's `base_sha` is the head of the group queued ahead of it (run 38360587401's base held entry 1996 before that
    pull request reached main), so the range is this pull request's own change whatever is queued with it.
    `landing_check.py` reads the in-flight branches on purpose, and only locally.
+   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25: "cancelling superseded runs automatically").**
+   When an entry ahead fails or leaves, GitHub rebuilds every group behind it: each entry gets a new merge-group commit
+   and a new run, and the old runs kept running, holding runners under the concurrent-job limit (2026-10-25: after #591
+   was ejected at 20:18Z, runs 40228927401 and 40228888256, later 40230142896, 40230142122 and 40230639741, held
+   runners until cancelled by hand). A `concurrency` group cannot catch them, since each group's ref
+   (`gh-readonly-queue/main/pr-<n>-<base sha>`) is unique. So every merge-group run starts with the `supersede` job (no
+   `needs`): `scripts/orchestrator/cancel_superseded.py` lists the unfinished merge-group runs, THEN reads the head
+   commit of every current queue entry (`queue_facts.live_heads`, the one reader of the queue's facts; in that order,
+   because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
+   whose head commit no entry heads, never its own run and never a live entry's. The replacement groups' runs are
+   created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
+   the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
+   does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
+   superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
+   never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
+   which the queue no longer reads.
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2459,8 +2513,9 @@ demand and not committed.
   construct, sorted, so it merges line by line; separating it is a lead, not part of this change) and `kb/Work.base` (a view
   DEFINITION, a query over the notes).
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
-  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` rows
-  stay hand-written (rare collisions bounce and re-enqueue; measured before any further change).
+  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
+  (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
+  per determination with a rendered index: the design is `DESIGN-orchestrator-loop.md` §16.8 (kb/Work PB3726, PB3738).
 
 #### 3.17.5 The loop's units and the fleet after this design (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
@@ -2515,7 +2570,9 @@ demand and not committed.
   cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
   matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
   DEVLOG-entry check runs only on `pull_request` and `merge_group`. `ci-gate`'s `needs:` and its drift check (every job
-  wired) are unchanged.
+  wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
+  `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
+  cancels the runs the queue has replaced (§3.17.2 step 4).
 - A **ruleset** on `main` (classic branch protection has no merge queue, and GitHub offers a merge queue only to an
   ORGANIZATION-owned repository — the second apply, 2026-10-11 18:44, was refused with `Invalid rule 'merge_queue'` on
   the personal account's repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work
@@ -2585,7 +2642,11 @@ carries the `Host` trait). Landed with kb/Work PB3025: `DEVLOG.md` does not exis
 well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm over the repository's own `DEVLOG/`, run
 by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
 (no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
-landing is held to a record of its own tree.
+landing is held to a record of its own tree. Landed with kb/Work PB3769:
+`TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
+with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
+is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+are declared), the supersession rule of §3.17.2 step 4.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 

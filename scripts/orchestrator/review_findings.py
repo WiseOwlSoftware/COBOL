@@ -47,9 +47,10 @@ plan_wave.py plans a finisher for a FINDINGS stamp.
 UNANSWERED FINDINGS ARE READ FROM THIS FILE, NEVER FROM A REPORT (kb/Work PB3381 review R3-1). `last_verdict(file)` is
 the ONE answer to "does this group's branch carry unanswered blocking findings": the newest verdict the file records
 (its round, branch, head, verdict and `blocking`, the number of findings of a blocking severity under the thresholds
-that round used), `unanswered` when it is FINDINGS with blocking > 0. The rolling wave reads it (the CLI's
-`last-verdict`, through one mechanical agent) to tell a predecessor capped at the round cap from one whose review
-finisher came back without answering, and prune_worktrees.py reads it (`unanswered()` over `findings_files()`) to hold
+that round used), `unanswered` when it is FINDINGS with blocking > 0, and `capped` when it is the round after the last
+review finisher (the severities it blocked on are BLOCKING_AT_CAP: ONE FINDINGS CASE, ONE OWNER, kb/Work PB3404).
+The rolling wave reads it (the CLI's `last-verdict`, through one mechanical agent) to tell a predecessor capped at the
+round cap from one whose review finisher came back without answering, and prune_worktrees.py reads it (`unanswered()` over `findings_files()`) to hold
 a branch that carries another note's unanswered findings. The report stamp is only their human-readable rendering: a
 review finisher rewrites the group's one report for its own branch with no Review line, whatever it returns (BLOCKED,
 SPLIT, STALLED, killed), so a hold read from the stamp let a successor reviewed CLEAN carry the predecessor's findings
@@ -513,8 +514,8 @@ def torn_reading(path: pathlib.Path, s: Scan, data: bytes) -> dict:
     if not branches and by_name and not WAVE_FINDINGS.match(path.name):
         branches = [by_name["branch"]]
     return {"file": str(path), "round": None, "branch": "", "head": "", "verdict": "TORN", "blocking": None,
-            "unanswered": True, "torn": s.torn, "reason": s.reason, "line": s.line, "branches": branches,
-            "heads": heads}
+            "unanswered": True, "capped": False, "torn": s.torn, "reason": s.reason, "line": s.line,
+            "branches": branches, "heads": heads}
 
 
 def last_verdict(path: pathlib.Path) -> dict | None:
@@ -532,7 +533,8 @@ def last_verdict(path: pathlib.Path) -> dict | None:
 def reading(data: bytes, path: pathlib.Path, s: Scan | None = None) -> dict | None:
     """The newest verdict findings-file bytes record, as {file, round, branch, head, verdict, blocking, unanswered,
     torn}, or None when no round has one yet. `blocking` is the number of findings of a blocking severity under the
-    thresholds that round used (the verdict's own count); `unanswered` is FINDINGS with blocking > 0. A round started
+    thresholds that round used (the verdict's own count); `unanswered` is FINDINGS with blocking > 0; `capped` is
+    the round after the last review finisher (capped). A round started
     after it and never finished (its reviewer died) answers nothing, so the verdict before it still stands; `torn` is ''.
     TORN bytes are never read for a verdict (EVERY CONTENT PROBLEM IS A TEAR): their reading is torn_reading's, verdict
     TORN and `unanswered` true, whatever the records say, so every caller holds it and the wave never reads it capped."""
@@ -544,7 +546,16 @@ def reading(data: bytes, path: pathlib.Path, s: Scan | None = None) -> dict | No
         return None
     v = max(verdicts, key=lambda r: r["round"])
     return {"file": str(path), "round": v["round"], "branch": v["branch"], "head": v["head"], "verdict": v["verdict"],
-            "blocking": v["findings"], "unanswered": v["findings"] > 0, "torn": ""}
+            "blocking": v["findings"], "unanswered": v["findings"] > 0, "capped": capped(v), "torn": ""}
+
+
+def capped(v: dict) -> bool:
+    """Was the verdict `v` the round AFTER the last review finisher (kb/Work PB3404)? That round passes BLOCKING_AT_CAP,
+    the wave's other rounds the default, so the verdict's own record of the severities it blocked on says which it was.
+    ONE FINDINGS CASE, ONE OWNER: a capped verdict's findings belong to its branch's next-wave finisher (no review
+    finisher followed it), while an uncapped one had a review finisher dispatched that did not answer them, so they
+    belong to the review of a successor that merged the branch (prune_worktrees.carrying_findings releases it)."""
+    return set(v.get("blocking") or ()) == set(BLOCKING_AT_CAP)
 
 
 #: The two names a branch review's findings file takes: the rolling wave's `<scratch>/review-w<wave>-<letter>.jsonl`
@@ -761,7 +772,7 @@ def self_test() -> int:
         got = last_verdict(lv)
         check(f"arm: a FINDINGS round is unanswered at its head, counting only its blocking findings: {got}",
               got == {"file": str(lv), "round": 1, "branch": "bL", "head": "abc1234", "verdict": "FINDINGS",
-                      "blocking": 1, "unanswered": True, "torn": ""})
+                      "blocking": 1, "unanswered": True, "capped": False, "torn": ""})
         start(lv, 2, "bL2", "def5678", "w9l-review-r2")
         check("arm: a round started and never finished answers nothing: the FINDINGS before it stands",
               (last_verdict(lv) or {}).get("round") == 1 and last_verdict(lv)["unanswered"])
@@ -769,6 +780,17 @@ def self_test() -> int:
         got = last_verdict(lv)
         check(f"arm: a later CLEAN round answers them: {got}",
               (got["round"], got["branch"], got["head"], got["verdict"], got["unanswered"]) == (2, "bL2", "def5678", "CLEAN", False))
+        # kb/Work PB3404: the round after the last review finisher passes BLOCKING_AT_CAP, and the verdict's own record of
+        # the severities it blocked on says so: `capped` is true there and only there (a medium finding does not block it)
+        cp = tmp / "cap" / "review-w9-m.jsonl"
+        for k, sev, at_cap in ((1, "medium", False), (2, "high", True)):
+            start(cp, k, "bM", "c0ffee1", f"w9m-review-r{k}")
+            finding(cp, k, json.dumps({"file": "a.py", "line": 1, "category": "c", "summary": "s", "severity": sev,
+                                       "failure_scenario": "x"}))
+            verdict(cp, k, BLOCKING_AT_CAP if at_cap else BLOCKING_DEFAULT)
+            got = last_verdict(cp)
+            check(f"arm: round {k}'s verdict is capped exactly when it blocked on BLOCKING_AT_CAP: {got}",
+                  (got["round"], got["unanswered"], got["capped"]) == (k, True, at_cap))
         held = tmp / "last" / "w77" / "review-w77-h.jsonl"
         start(held, 1, "bH", "fed4321", "w77h-review-r1")
         finding(held, 1, json.dumps({"file": "a.py", "line": 1, "category": "c", "summary": "s", "severity": "medium",

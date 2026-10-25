@@ -39,7 +39,8 @@ on:
 # `pull_request` run, by contrast, is superseded the moment its head moves, so cancelling it costs no coverage
 # and saves the minutes this group was added for. A merge group's ref is unique to the group
 # (`gh-readonly-queue/main/pr-<n>-<sha>`), so two groups never collide anyway; this expression makes that safety
-# explicit instead of incidental.
+# explicit instead of incidental. For the same reason no concurrency group can cancel a merge-group run the queue has
+# replaced: the `supersede` job does (kb/Work PB3769).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -241,6 +242,38 @@ jobs:
           fi
           echo "drift: ci-gate needs all $((n - 1)) other jobs — $flat"
 
+  # ── SUPERSEDED MERGE-GROUP RUNS ARE CANCELLED, SO THEY RELEASE THEIR RUNNERS (kb/Work PB3769;
+  # DESIGN-test-build-ci.md §3.17.2 step 4). When an entry ahead fails or leaves, GitHub rebuilds every group behind it with new commits and new
+  # runs, and the old runs kept their runners until they finished (2026-10-25: five such runs after #591's ejection,
+  # cancelled by hand). `concurrency` cannot catch them: each group's ref is unique. So every merge-group run starts
+  # with this job (no `needs`): it cancels each unfinished merge-group run whose head commit no current queue entry
+  # heads, never its own and never a live entry's, and cancels NOTHING when the queue cannot be read whole
+  # (scripts/orchestrator/cancel_superseded.py, whose self-test holds every arm). It is the ONE job with `actions:
+  # write`, and its step is `continue-on-error`: housekeeping never decides a verdict (LandingPipelineDriftTests). ──
+  supersede:
+    name: supersede (cancel the merge-group runs the queue replaced)
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: write          # cancel a superseded workflow run: this job only
+      contents: read          # the sparse checkout of the script
+      pull-requests: read     # the merge queue's entries (GraphQL mergeQueue), each a pull request
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          sparse-checkout: |
+            scripts/orchestrator
+          sparse-checkout-cone-mode: false
+      - name: Cancel the superseded merge-group runs (cancel_superseded.py)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: python3 scripts/orchestrator/cancel_superseded.py --repo "$REPO" --run-id "$RUN_ID" --sha "$SHA"
+
   # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
   # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md
   # rule 1 is enforced by these scripts and nothing else — and until PB1574 they ran only in the local gate
@@ -382,10 +415,8 @@ jobs:
           # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text,
           # referenced from doc comments). Skipping it keeps CI credential-free.
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -450,10 +481,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -498,10 +527,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -591,10 +618,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -680,10 +705,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -731,10 +754,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
+      - name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        uses: ./.github/actions/setup-dotnet
       - name: Cache NuGet packages
         uses: actions/cache@v6
         with:
@@ -802,6 +823,38 @@ jobs:
         shell: pwsh
         run: python scripts/line_endings.py --check
 
+  # ── ⛔ THE SDK CACHE IS SAVED UNDER MAIN (kb/Work PB3308; .github/actions/setup-dotnet). A merge group's run restores
+  # only what its own ref or main saved, and its ref (`gh-readonly-queue/main/pr-<n>-<sha>`) is new every time, so what
+  # a merge group's jobs save is never read again; main's push run skips the matrix (the already-verified short-circuit
+  # in `changes`), so no building job saves it there either. This job does, on every push to main, on both OSes: it
+  # restores the pinned SDK in seconds when main's cache holds it and installs and saves it when not, so a merge group
+  # finds it even while every feed refuses. A warm-up that fails warns and passes: a merge group's own install still
+  # tries the feeds, and only a building job decides a verdict. ──
+  dotnet-sdk-cache:
+    name: dotnet-sdk-cache (${{ matrix.os }})
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions
+            scripts/install-dotnet-sdk.sh
+            global.json
+          sparse-checkout-cone-mode: false
+      - id: warm
+        name: Setup .NET SDK (the pinned version, cached; kb/Work PB3308)
+        continue-on-error: true
+        uses: ./.github/actions/setup-dotnet
+      - if: ${{ steps.warm.outcome == 'failure' }}
+        shell: bash
+        run: echo "::warning::the pinned .NET SDK is not in main's cache (its install failed above); a merge group's jobs install it from the feeds"
+
   # ── ⛔ `ci-gate` IS THE ONE STABLE CHECK NAME `main`'s branch protection REQUIRES (owner decision 2026-09-06
   # on question 23, kb/Work/PB796). Nothing else in this file can be that name:
   #   • the conformance jobs are MATRICES — their check names carry the shard value (`Greenfield conformance
@@ -817,7 +870,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests]
+    needs: [changes, supersede, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, dotnet-sdk-cache]
     runs-on: ubuntu-26.04
     steps:
       - name: Verdict

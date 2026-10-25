@@ -134,7 +134,15 @@ static CobolNet.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string
 static CobolNet.Runtime.IO.CobolSort.TerminateAfterActivation(string? terminated) -> void
 static CobolNet.Runtime.Exceptions.SortTerminationSignal.EndsActivation(ref bool ended) -> bool
 const CobolNet.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
-static CobolNet.Runtime.MoveValidity.FigurativeRefusal(bool zero, bool booleanCharacters, CobolNet.Runtime.Table16Category receiver) -> string?
+static CobolNet.Runtime.MoveValidity.FigurativeRefusal(CobolNet.Runtime.FigurativeSender sender, CobolNet.Runtime.Table16Category receiver) -> string?
+const CobolNet.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
+static CobolNet.Runtime.ActivationCategory.OfFigurative(CobolNet.Runtime.FigurativeSender sender) -> string!
+static CobolNet.Runtime.ActivationCategory.FigurativeSenderOf(string? category) -> CobolNet.Runtime.FigurativeSender?
+CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Other = 0 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Zero = 1 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.Space = 2 -> CobolNet.Runtime.FigurativeSender
+CobolNet.Runtime.FigurativeSender.BooleanCharacters = 3 -> CobolNet.Runtime.FigurativeSender
 CobolNet.Runtime.ActivationDescription.ObjectNameIsParameter.get -> bool
 CobolNet.Runtime.ActivationDescription.ObjectNameIsParameter.init -> void
 static CobolNet.Runtime.ActivationRelations.SignatureDifference(CobolNet.Runtime.ActivationDescription! first, CobolNet.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
