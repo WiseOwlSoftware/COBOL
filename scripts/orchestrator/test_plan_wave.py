@@ -2360,6 +2360,22 @@ RG.git("switch", "-q", "-c", "x2", "x")
 tie = prune.replays(["x", "x2"], ["x", "x2"], {"x": 0, "x2": 1}.get, git_batch.Ancestry.read(RG.path, ["x", "x2"]))
 check("PB3170 (a): two branches holding the same commits: the later report carries the earlier, never both ways",
       (tie["x"].carrier, tie["x2"].carrier), ("x2", None))
+# PB3651: the tie is on the NUMBER of x's commits each carrier replays, and then on the LATER report, never on the
+# carrier's size: lg (an EARLIER report) holds x's four commits and three of its own (seven patches), mid (a LATER
+# report) holds them and one of its own (five). Both are uncarried and both replay all four, so x rides on mid.
+for br, extra in (("lg", 3), ("mid", 1)):
+    RG.git("switch", "-q", "-c", br, "main")
+    RG.git("cherry-pick", *x_commits)
+    for i in range(extra):
+        RG.commit(f"{br}{i}", {f"{br}{i}.txt": f"{i}\n"})
+TB_ORDER = ["x", "lg", "mid"]
+tb = prune.replays(TB_ORDER, TB_ORDER, TB_ORDER.index, git_batch.Ancestry.read(RG.path, TB_ORDER))
+check("PB3651: x is replayed in full by a larger earlier carrier and a smaller later one: the LATER report carries it",
+      (tb["x"].carrier, [n for n, _ in tb["x"].by]), ("mid", ["lg", "mid"]))
+check("PB3651: ... and the two uncarried branches carry nothing", (tb["lg"].carrier, tb["mid"].carrier), (None, None))
+tb_rev = prune.replays(TB_ORDER, TB_ORDER, ["x", "mid", "lg"].index, git_batch.Ancestry.read(RG.path, TB_ORDER))
+check("PB3651: ... with the reports' order reversed the larger branch is the later report, and carries x",
+      tb_rev["x"].carrier, "lg")
 # the successor CHAIN (review R1-1): c-x holds four commits; a-mid (a later report) cherry-picks them; b-top (the latest)
 # cherry-picks a-mid and adds one. a-mid is carried by b-top, so it gets no finisher: c-x's carrier is b-top, never the
 # carried middle link a-mid. The names are chosen so that the name order and the report order disagree (the old rule
