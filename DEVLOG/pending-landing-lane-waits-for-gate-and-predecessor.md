@@ -95,3 +95,16 @@ watch runs perturbs the watch, which is why `footprint_report` runs after the wa
 `run_gate_legs` (torn trx kept and named; the Linux holder; the inert lane's Linux half, its RED/NOT RUN/BUSY, an old inert
 record), `land_lane`, `enqueue`, `gate_plan`, `test_population`. Drift tests: `InertLaneDriftTests`, `GateLegDriftTests`,
 `LandingPipelineDriftTests`, `LinuxGateDriftTests`.
+
+**Review round 1 of group A2 (R1-1, the sibling arm of the reused process id).** The landing's reader of a running gate had
+become the held gate lock because Windows reuses a dead gate's pid, but `run_gate_legs.watch` (the reader behind `--await`,
+the rolling wave's await and `plan_wave.Report.gate_state`) still decided "alive" by `alive(read_pid(run))`. A handed-over gate
+whose host rebooted mid-gate read RUNNING for as long as any process held its pid, so the report was never finished and the wave
+waited on it. `watch` now takes the running test as an argument: `gate_running(run)` (the run's worktree's gate lock, held by a
+gate writing THIS run; `lock_of_run` derives the lock from the run's path) for every reader of a gate it did not start, and the
+follower's own spawned child for the gate it just launched. Because a lock-based reader cannot tell "dead" from "not started
+yet", the gate now writes `gate.pid` itself UNDER its lock and the launcher writes none: a pid file proves the lock was taken
+(a BUSY gate writes none). Self-tests: a reused pid (alive process, free lock) and another run's lock read DIED; the run's own
+lock reads PENDING; a BUSY gate leaves no pid file; `test_plan_wave` and `test_rolling_wave` plant a real worktree and hold its
+lock for the RUNNING arms and add a reused-pid arm that reads ENDED. R1-2 (lead): `profile-test-parallelism.py` in single-file
+mode returned 0 for an unreadable trx; it now prints the error to stderr and returns 2, as for "no test results".

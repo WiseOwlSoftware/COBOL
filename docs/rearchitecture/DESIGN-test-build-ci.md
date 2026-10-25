@@ -1876,11 +1876,14 @@ The landing lane starts its runners through the same function (§DESIGN-orchestr
 holds `gate.log` (the gate's whole output), `gate.pid` and, at the end, `verdict.json`. The caller FOLLOWS it: it
 echoes the log as it grows and exits with the gate's own exit code once the verdict file is written, so every caller
 that blocks on the `=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees exactly what it saw before. A
-caller that is killed leaves the gate running to its verdict. To stop a gate, end the process `gate.pid` names.
+caller that is killed leaves the gate running to its verdict. The gate writes `gate.pid` itself, UNDER its worktree's gate lock (the launcher writes none), so a
+pid file proves the gate took the lock. To stop a gate, end the process `gate.pid` names.
 
 **2. One way to wait: the verdict file.** `run_gate_legs.watch` — the CLI `run_gate_legs.py --await <run> [--worktree
 W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
-there; `NOT RUN [verdict]` (exit 2, BRANCH) when the process `gate.pid` names DIED without one; PENDING (exit 4: exit 3
+there; `NOT RUN [verdict]` (exit 2, BRANCH) when the gate DIED without one (`gate_running`: the run has a `gate.pid` and its
+worktree's gate lock is not held by a gate writing that run; never the pid's liveness, which the OS reuses; only the follower
+watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
 that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
