@@ -40,11 +40,11 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
 PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643). `docs/CONFORMANCE.md` and the `DESIGN-*.md` documents look append-only
 and conflict at landings, but `--hunks <path>…` (replay every merge in history that touched the file, classify each
 conflict hunk of git's line merge) measured otherwise over CONFORMANCE.md, DESIGN-runtime-library.md and
-DESIGN-test-build-ci.md: 37 conflicted merges holding ONE hunk where both sides inserted at one place and 89 hunks where
+DESIGN-test-build-ci.md: 45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 hunks where
 both sides REVISED text the base already held (the same paragraph of a mechanism, the same row of the Annex A.1
 register). A union driver would keep both versions of a revised paragraph, stale text beside its replacement in a
-document that must describe the CURRENT compiler (CLAUDE.md rule 6); a word-level merge of the first two documents' 32 conflicted
-merges resolved 9, and 3 of those 9 came out different from the resolution a person made (text the person had removed
+document that must describe the CURRENT compiler (CLAUDE.md rule 6); a word-level merge of 32 of those merges (the first two documents', before `--hunks` walked full history)
+resolved 9, and 3 of those 9 came out different from the resolution a person made (text the person had removed
 was still there). Such a conflict is a decision about what the text now says: it stays the finisher's. Run `--hunks`
 again before proposing a prose driver; a file whose conflicts turn out to be insertions earns one.
 A file a driver declines (a real conflict at its level) falls back to git's own line merge of the three files: where that
@@ -291,12 +291,16 @@ def history_hunks(repo: pathlib.Path, paths: list[str]) -> dict[str, dict[str, i
     two parents, so the answer is what a driver would have been asked, not what a finisher happened to do (`unreadable`:
     git could not merge the three texts, counted so that a failure never reads as a clean merge)."""
     out = {p: {"both-changed": 0, "conflicted": 0, "insertion": 0, "revision": 0, "unreadable": 0} for p in paths}
-    for ln in git(repo, "log", "--merges", "--format=%H %P", "--", *paths).stdout.splitlines():
-        parents = ln.split()[1:]
-        base = git(repo, "merge-base", *parents).stdout.strip() if len(parents) == 2 else ""
-        for p in paths if base else ():
-            blobs = [git(repo, "show", f"{rev}:{p}") for rev in (base, *parents)]
-            if any(b.returncode for b in blobs) or blobs[1].stdout == blobs[2].stdout:
+    for p in paths:
+        # One walk per path, `--full-history`: git's default simplification drops a merge TREESAME to one parent (a
+        # resolution that took one side whole) with the side history behind it, and drops different merges for each set
+        # of paths asked about. A merge both of whose parents changed the file differs from at least one parent, so the
+        # full-history walk lists every one of them, and the count for a file never depends on the other paths asked.
+        for ln in git(repo, "log", "--merges", "--full-history", "--format=%H %P", "--", p).stdout.splitlines():
+            parents = ln.split()[1:]
+            base = git(repo, "merge-base", *parents).stdout.strip() if len(parents) == 2 else ""
+            blobs = [git(repo, "show", f"{rev}:{p}") for rev in (base, *parents)] if base else []
+            if not blobs or any(b.returncode for b in blobs) or blobs[1].stdout == blobs[2].stdout:
                 continue
             b, o, t = (x.stdout for x in blobs)
             if o == b or t == b:
@@ -706,6 +710,22 @@ def self_test() -> int:
                "its hunks by kind; a file only one parent changed is not counted",
                got["d.md"] == {"both-changed": 1, "conflicted": 1, "insertion": 1, "revision": 1, "unreadable": 0}
                and got["e.md"]["both-changed"] == 0, f"{got}")
+        # A merge that took one side whole (`-s ours`) is TREESAME to that parent, which git's default history simplification
+        # drops from `git log -- <path>` (review finding R1-1): the replay must still count it, and the count for a file
+        # must not change with the other paths asked about.
+        ho = ScratchRepo.init(root / "history-ours")
+        ho.commit("base", {"f.md": lines(*twelve), "g.md": lines(*twelve)})
+        ho.git("switch", "-q", "-c", "topic")
+        ho.commit("topic", {"f.md": lines("l1", "l2-ours", *twelve[2:])})
+        ho.git("switch", "-q", "main")
+        ho.commit("main", {"f.md": lines("l1", "l2-theirs", *twelve[2:]), "g.md": lines(*twelve, "y")})
+        ho.git("switch", "-q", "topic")
+        ho.run("merge", "--no-ff", "-s", "ours", "-m", "Merge main (took ours whole)", "main")
+        alone, together = history_hunks(ho.path, ["f.md"])["f.md"], history_hunks(ho.path, ["f.md", "g.md"])["f.md"]
+        expect("hunks: a merge that took one parent's file whole is counted, and a file's counts do not depend on the other "
+               "paths asked about",
+               alone == together == {"both-changed": 1, "conflicted": 1, "insertion": 0, "revision": 1, "unreadable": 0},
+               f"{alone} {together}")
         # The ABI pin through git: both branches raise the major; the merge adds them and settles before its commit.
         import abi_pin  # noqa: PLC0415
         pr = ScratchRepo.init(root / "pin")
