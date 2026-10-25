@@ -514,8 +514,24 @@ public sealed record BoundNumericLiteral(string Text) : BoundOperand
     /// <summary>The literal's character image as the program wrote it (DOC-A.1-56: a numeric literal displays as
     /// written, the program's decimal separator included, as GnuCOBOL does outside its vendor configurations that
     /// set <c>pretty-display: no</c>): <see cref="Text"/> with its decimal point spelled
-    /// <see cref="DecimalSeparator"/>.</summary>
-    public string Image => DecimalSeparator == '.' ? Text : Text.Replace('.', DecimalSeparator);
+    /// <see cref="DecimalSeparator"/>, and the sign of a ZERO value written <c>-</c> shown as <c>+</c> (kb/Work PB2508):
+    /// §14.9.11.4 GR1 leaves the literal's device conversion to the implementor, and GnuCOBOL 3.2.0 (default,
+    /// cobol2014) prints <c>-0</c> as <c>+0</c>, <c>-0.00</c> as <c>+0.00</c> and <c>-.0</c> as <c>+.0</c> — the
+    /// precedence tiebreaker of DOC-A.1-56 — because a zero is neither negative nor positive. Only the image changes:
+    /// <see cref="Text"/> keeps the sign the program wrote.</summary>
+    public string Image
+    {
+        get
+        {
+            string text = IsNegativeZero(Text) ? "+" + Text[1..] : Text;
+            return DecimalSeparator == '.' ? text : text.Replace('.', DecimalSeparator);
+        }
+    }
+
+    /// <summary>True for a literal spelled with a leading <c>-</c> whose every digit is zero (<c>-0</c>, <c>-00</c>,
+    /// <c>-0.0</c>, <c>-.0</c>; a floating-point literal cannot be one, §8.3.3.3.3 SR4).</summary>
+    private static bool IsNegativeZero(string text) =>
+        text.Length > 1 && text[0] == '-' && text.AsSpan(1).IndexOfAnyExcept('0', '.') < 0;
 }
 
 /// <summary>A reference to a data item (its category decides string-vs-numeric rendering).</summary>
