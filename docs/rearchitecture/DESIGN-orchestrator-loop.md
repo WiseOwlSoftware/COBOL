@@ -23,7 +23,7 @@ closed per weekly-quota point.
 |---|---|
 | `scripts/orchestrator/orchestrate.ps1` | the supervisor loop (section 4); PowerShell 7 |
 | `scripts/orchestrator/next_unit.py` | the deterministic choice of the next unit (section 3.2) |
-| `scripts/orchestrator/land_lane.py` | the LANDING LANE: the supervisor ticks it beside every unit, and it starts `enqueue.py land` for every branch WAITING TO LAND the moment it is ready (section 4.9) |
+| `scripts/orchestrator/land_lane.py` | the LANDING LANE: the supervisor ticks it for as long as it lives, beside every unit and between them (PB3639), and it starts `enqueue.py land` for every branch WAITING TO LAND the moment it is ready (section 4.9) |
 | `scripts/orchestrator/steer.ps1` | the OPERATOR's one way to name the loop's next unit: a validated `handoff.operator.json` (section 4.8) |
 | `scripts/orchestrator/units/*.md` | `common.md` (the rules every unit obeys) plus one short prompt per unit type; they reference files, never paste them |
 | `scripts/orchestrator/handoff.schema.json` | the contract between a unit and the supervisor (section 5) |
@@ -469,11 +469,23 @@ the merge queue, no implementer ran. The machine alternated between two half-idl
 "Supervisor lane (Recommended)") a deterministic landing lane in the supervisor over the wave unit's model running
 `enqueue.py land` as branches came back CLEAN, which would have put every landing log into a long Opus transcript.
 
-**What runs.** While any unit runs, the supervisor starts `python scripts/orchestrator/land_lane.py --coord <coord>
-tick --repo <repo>` as a BACKGROUND process as the unit starts and every `-LandLaneSeconds` (300 by default; 0 runs no
+**What runs.** For as long as the supervisor lives, it starts `python scripts/orchestrator/land_lane.py --coord <coord>
+tick --repo <repo>` as a BACKGROUND process as each unit starts and every `-LandLaneSeconds` (300 by default; 0 runs no
 lane), never on its event loop and never fatal (the checkpoint's pattern, section 5.1, kb/Work PB2590): one tick at a
 time (a tick due while one runs is skipped, and `tick.lock`, an OS lock, refuses a second from anywhere), its lines
-said in the supervisor's log, a failure said and the unit continuing. A tick:
+said in the supervisor's log, a failure said and the unit continuing. **The lane is not bound to a unit** (kb/Work PB3639):
+the tick spends no tokens, so one timer, `Step-Lane`, starts it from every place the supervisor waits or loops, and the
+lane ticks on its period while a unit runs (`Invoke-Unit`), between units (the top of the loop, before the adoption
+and the budget read), through a budget hold (`Wait-Until`, which sleeps no longer than the time to the next tick) and
+through a failure backoff (the same `Wait-Until`). A branch reviewed CLEAN or re-armed in any of those windows lands
+within `-LandLaneSeconds` plus `Wait-Until`'s one-minute wake, not at the next unit's start. `Wait-Until` checks STOP
+before it steps the lane, so no tick starts once the loop's STOP or the owner's global stop exists, and the tick itself
+launches nothing under any stop file (step 3); a quota hold is no reason to stop the lane. The lane lives as long as
+the supervisor process: its exits (STOP, the circuit breaker's 4, an owner question's 5, `-MaxUnits`) end it with the
+process, and the landings it already started run on, detached. `orchestrate.ps1 -LandLaneSeconds 0` runs no lane at
+all. `test_orchestrate_lane.ps1` drives a failure backoff over a fake `python` that records each tick (the Nth tick
+creates STOP: the wait ends and no further tick starts), and `LandingLaneDriftTests` holds that `Step-Lane` is called
+from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 
 1. REAPS: an attempt whose detached runner is gone without an exit code is DIED; a run that ended QUEUE NOT ACTIVE
    (exit 8) writes `land-lane\HALT` and names it in the operator's mailbox.
