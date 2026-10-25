@@ -33,6 +33,10 @@ who acts next:
                    LAND branch a TORN findings file names or that contains a head it names. Only the first kind has a live
                    owner of its own (owned(): what the planner's FINDINGS arm waits on; locked(): its lock-only half, a
                    live agent holding the worktree, which the planner's finisher units wait on, kb/Work PB3653).
+                   A branch is landed ONCE (kb/Work PB3693, carrying_landing_branch()): a WAITING TO LAND branch whose
+                   predecessor is itself WAITING TO LAND or ENQUEUED is IN FLIGHT waiting on it (`waits_on`) until that
+                   pull request is on main, and a WAITING TO LAND branch inside an ENQUEUED one lands through it
+                   (`carrier`).
                    An UNFINISHED (SPLIT, NOT STARTED) branch another branch carries is IN FLIGHT too, not a decision
                    (kb/Work PB3652): contained in a branch above, or REPLAYED by one (every commit of it is held, by
                    cherry-pick or identity, by an outranking branch nobody carries; replay_view, the planner's own
@@ -963,6 +967,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Repor
             print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1, R6-1): {v["torn"]}; '
                   f'the operator: {review_findings.remedy(pathlib.Path(v["file"]), v["line"])}', file=sys.stderr)
     carrying_findings(rows, graph, found, reports)
+    carrying_landing_branch(rows, graph)
     return rows
 
 
@@ -1130,6 +1135,41 @@ def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (
             r.why = (f'carries {v["branch"]} ({lead or "note unknown"}), whose review FINDINGS ({v["blocking"]}) at '
                      f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict): it '
                      'lands once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
+
+
+def carrying_landing_branch(rows: list[Row], graph: Ancestry) -> None:
+    """A branch is landed ONCE (kb/Work PB3693): of two branches where one CONTAINS the other's tip, not yet on main, and
+    both have a landing of their own (WAITING TO LAND, or ENQUEUED: a pull request in the merge queue), exactly one
+    lands the contained work. contained() lets a predecessor reviewed CLEAN land on its own (kb/Work PB3381), so the
+    survey must also keep its carrier from landing the same commits again, with the predecessor's DEVLOG entry folded
+    into the carrier's (the PB3665 landing of 2026-10-24: two pull requests, two merge bases, a PublicAPI line twice).
+      * a WAITING TO LAND carrier whose predecessor is WAITING TO LAND or ENQUEUED is IN FLIGHT, waiting on it
+        (`waits_on`), and is WAITING TO LAND again once the predecessor is on main: its landing then merges main first,
+        has ONE merge base, and stamps only its own entry (`enqueue.open_predecessors` and `devlog.stamp` hold the same
+        rule at the landing itself);
+      * a WAITING TO LAND branch contained in an ENQUEUED one lands through it (`carrier`): the queued pull request
+        already carries its commits and stamped its entry.
+    A STOPPED, BOUNCED or NOT QUEUED branch has a finisher to wait for, and holds nothing. The states read are the ones
+    the survey assigned BEFORE this function changed any (a chain A, B, C holds C behind B and B behind A alike)."""
+    landing = [r for r in rows if r.state in ('WAITING TO LAND', 'ENQUEUED') and r.tip]
+    held = []
+    for r in (x for x in landing if x.state == 'WAITING TO LAND'):
+        carried_by = next((q for q in landing if q.state == 'ENQUEUED' and q.tip != r.tip and r.tip in graph.beyond(q.tip)), None)
+        pred = next((p for p in landing if p.tip != r.tip and p.tip in graph.beyond(r.tip)), None)
+        if carried_by or pred:
+            held.append((r, carried_by, pred))
+    for r, carried_by, pred in held:
+        r.state = 'IN FLIGHT'
+        if carried_by:
+            r.carrier = carried_by.name
+            r.why = (f'contained in {carried_by.name} (ENQUEUED): its pull request already carries these commits and '
+                     'its stamped entry, so this branch lands through it and reads LANDED once it merges '
+                     '(kb/Work PB3693); ' + evidence(r))
+        else:
+            r.waits_on = pred.name
+            r.why = (f'carries {pred.name} ({pred.state}), which lands on its own: this branch lands once that pull '
+                     'request is on main, so its landing has one merge base and stamps only its own DEVLOG entry '
+                     '(kb/Work PB3693); ' + evidence(r))
 
 
 def owned(rows: list[Row]) -> set[str]:
@@ -1393,6 +1433,15 @@ def self_test() -> int:
             commit(f, f'class {b.replace("-", "_").title()}X {{}}\n', b)
         scratch.git('switch', '-q', '-c', 'lane-stopped', 'lane-pred')
         commit('src/LS.cs', 'class LaneStoppedX {}\n', 'lane-stopped')
+        # kb/Work PB3693: a branch is landed ONCE. `wpred` and `wsucc` (cut from it) are both reviewed CLEAN, so both are
+        # WAITING TO LAND, and the successor waits for the predecessor's pull request instead of folding its entry.
+        # `qpred` was reviewed CLEAN and `qsucc`, cut from it, is already in the merge queue: the queued pull request
+        # carries `qpred`'s commits, so `qpred` lands through it.
+        for b, f, base in (('wpred', 'src/WP.cs', 'main'), ('wsucc', 'src/WS.cs', 'wpred'), ('qpred', 'src/QP.cs', 'main'),
+                           ('qsucc', 'src/QS.cs', 'qpred')):
+            scratch.git('switch', '-q', '-c', b, base)
+            commit(f, f'class {b.title()}X {{}}\n', b)
+        once_at = {b: scratch.git('rev-parse', b) for b in ('wpred', 'wsucc', 'qpred', 'qsucc')}
         # kb/Work PB3652: an UNFINISHED (SPLIT) branch another branch carries is no decision. `rp-pred` is replayed by
         # cherry-pick (the planner's FINISH-FIRST pred) in `rp-succ`; `rp-part` has one commit `rp-partc` lacks;
         # `rp-gone` is replayed by `rp-dead`, which a kb/Work note records ABANDONED (a dead branch carries nothing);
@@ -1573,6 +1622,7 @@ def self_test() -> int:
                 scratch.git('rev-parse', 'lane-stopped'))
         attempt('lane-free', lane_at['lane-free'], 3, 'NOT QUEUED (exit 3, above)')
         attempt('lane-done', lane_at['lane-done'], 0, 'ENQUEUED')
+        attempt('qsucc', once_at['qsucc'], 0, 'ENQUEUED')
         attempt('lane-running', lane_at['lane-running'], None)
         attempt('done-branch', 'an-older-head', 5, 'GATE RED (Windows) on an-older-head')   # not at this tip: ignored
         wt = tmp / 'worktrees'
@@ -1671,6 +1721,10 @@ def self_test() -> int:
                 ('w9998y-PB25-report.md', 'Status: DONE\nBranch: no-head-bare\n**HEAD:** see the trailing commit\n', 10),
                 # kb/Work PB3652: SPLIT branches another branch carries (replayed by cherry-pick, or an ancestor of a
                 # finished one), and the ones that stay decisions (partly replayed, replayed by an ABANDONED branch)
+                # kb/Work PB3693: both ends of a chain reviewed CLEAN, and a CLEAN predecessor inside a queued successor
+                *((f'w9989{n}-PB7{i}-report.md', f'Status: DONE\nBranch: {b}\nHEAD: {once_at[b]}\n'
+                                                 f'**Review:** CLEAN w9989{n}-r1 {once_at[b]}\n', 10)
+                  for i, (n, b) in enumerate((('a', 'wpred'), ('b', 'wsucc'), ('c', 'qpred'), ('d', 'qsucc')))),
                 ('w9990a-PB60-report.md', 'SPLIT\nBranch: rp-pred\n', 10),
                 ('w9990b-PB61-report.md', 'SPLIT\nBranch: rp-succ\n', 10),
                 ('w9990c-PB62-report.md', 'SPLIT\nBranch: rp-part\n', 10),
@@ -1760,10 +1814,22 @@ def self_test() -> int:
                 'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION',
                 'rp-pred': 'IN FLIGHT', 'rp-succ': 'DECISION', 'rp-part': 'DECISION', 'rp-partc': 'DECISION',
                 'rp-gone': 'DECISION', 'rp-dead': 'DECISION', 'an-pred': 'IN FLIGHT', 'an-succ': 'WAITING FOR REVIEW',
-                'findings-resumed': 'DECISION'}
+                'findings-resumed': 'DECISION', 'wpred': 'WAITING TO LAND', 'wsucc': 'IN FLIGHT',
+                'qpred': 'IN FLIGHT', 'qsucc': 'ENQUEUED'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
+        # kb/Work PB3693: a branch is landed ONCE
+        check((rows['wsucc'].waits_on, rows['wsucc'].carrier, 'which lands on its own' in rows['wsucc'].why,
+               rows['wpred'].waits_on, rows['wpred'].carrier) == ('wpred', '', True, '', ''),
+              f'a WAITING TO LAND successor waits for its WAITING TO LAND predecessor, which lands on its own: '
+              f'{rows["wsucc"].state} {rows["wsucc"].why}')
+        check((rows['qpred'].carrier, rows['qpred'].waits_on, 'contained in qsucc (ENQUEUED)' in rows['qpred'].why,
+               rows['qsucc'].carrier) == ('qsucc', '', True, ''),
+              f'a WAITING TO LAND predecessor inside an ENQUEUED successor lands through it: {rows["qpred"].why}')
+        check('wsucc' not in [r.name for r in landing_order(list(rows.values()), lambda note: (0, 1))]
+              and 'wpred' in [r.name for r in landing_order(list(rows.values()), lambda note: (0, 1))],
+              'the landing lane is offered the predecessor, never its waiting successor')
         # ONE RULE FOR A FINISHED BRANCH (kb/Work PB3181, PB3125): coverage, never age; the lane's attempt at the tip
         check('exit 5' in rows['lane-stopped'].why and 'step 4 finisher' in rows['lane-stopped'].why
               and 'later commits mechanical' in rows['lane-stopped'].why,
@@ -1865,7 +1931,7 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred', 'rp-pred', 'an-pred'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred', 'rp-pred', 'an-pred', 'wsucc', 'qpred'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
         # kb/Work PB3653: locked() is the LOCK-ONLY half of owned(): a live agent's lock, never a ledger group or a
         # recent touch (which owned() folds in), and never a lock whose pid is dead
@@ -2157,8 +2223,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 67 · 17 in flight · 6 waiting for review · '
-                                                      '10 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 71 · 19 in flight · 6 waiting for review · '
+                                                      '11 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
