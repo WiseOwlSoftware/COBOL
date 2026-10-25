@@ -1,4 +1,4 @@
-## PB3677: an SDIDI value crosses a CALL at its own exponent, not at the 6-digit receiver-less floor
+## Entry 2546 — 2026-10-25 11:39 PDT — PB3677: an SDIDI value crosses a CALL at its own exponent, not at the 6-digit receiver-less floor
 
 **What the re-probe showed.** The note's repro (`CALL "W" USING BY CONTENT FUNCTION MIN(F 3)`, F COMP-2 0.0001, sends
 `0000100` where AS NESTED and a MOVE send the value's 24 digits) reproduced on a fresh build, and was one branch of a wider
@@ -27,3 +27,4 @@ value-semantics scalars with no formal to defer to, so the floor stays theirs; t
 `0333333000000` before the fix) with its `_below_2002` negative; `pb3677_format1_sdidi_expression` (STANDARD-DECIMAL `(2 / 3)` and
 `(1 / 8)` at a prototype-name CALL) with its `_below_2014` negative; and `SdidiValueArgumentTests` (9 facts, including the
 cap, the positive exponent and the overflow). Docs: CONFORMANCE D-B4, COBOLNET_INTERPROGRAM_DESIGN. No inventory row closes.
+
