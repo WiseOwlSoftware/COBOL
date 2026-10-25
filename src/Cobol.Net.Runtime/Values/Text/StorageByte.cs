@@ -25,8 +25,9 @@ public static class NativeCollatingSequence
 /// bit, national pair) in a record or REDEFINES image, and the one-byte record medium of a fixed-record file
 /// (<see cref="IO.FileCharacterSet"/>). Design <c>COBOLNET_FILES_DESIGN.md</c> D29, kb/Work PB1759.
 /// <para><b>The law.</b> Byte <c>0xFF</c> is the character U+FFFF — the native HIGH-VALUE
-/// (<see cref="NativeCollatingSequence.HighValue"/>) — and every other byte <c>b</c> is U+00bb. A character's byte
-/// is its low-order byte, so U+00FF and U+FFFF share <c>0xFF</c>.</para>
+/// (<see cref="NativeCollatingSequence.HighValue"/>) — and every other byte <c>b</c> is U+00bb. A character with a byte
+/// image has that byte (U+00FF and U+FFFF share <c>0xFF</c>); any other code unit has none and reads as <c>?</c> with
+/// EC-DATA-CONVERSION (<see cref="StorageByte.ImageByte"/>, kb/Work PB547).</para>
 /// <para><b>Why one law and not a per-leaf medium codec.</b> The collision R52 creates is between two CHARACTERS
 /// (U+00FF, U+FFFF) and one BYTE (0xFF) — not between text and binary. If a byte-form leaf imaged 0xFF as U+00FF,
 /// <c>MOVE HIGH-VALUES TO REC</c> followed by <c>IF REC = HIGH-VALUES</c> would turn FALSE for any record with a
@@ -48,10 +49,36 @@ public static class StorageByte
     /// <summary>The character that stands for <paramref name="b"/>.</summary>
     public static char ToChar(byte b) => b == 0xFF ? NativeCollatingSequence.HighValue : (char)b;
 
-    /// <summary>The byte a character occupies — its low-order byte (U+00FF and U+FFFF are both <c>0xFF</c>). Total, so
-    /// a numeric view over any content decodes deterministically; whether a character HAS a byte image on a medium is
-    /// <see cref="HasByte"/>'s question.</summary>
-    public static byte ToByte(char c) => (byte)c;
+    /// <summary>The byte a character occupies — its low-order byte (U+00FF and U+FFFF are both <c>0xFF</c>), and for a
+    /// character with NO byte image (<see cref="HasByte"/> false: a code unit above U+00FF other than HIGH-VALUE) the
+    /// substitute byte <see cref="SubstituteByte"/> (<c>?</c>), never its truncated low-order byte: a character
+    /// admitted to a DISPLAY item must not turn into an unrelated one at a byte channel (ISO/IEC 1989:2023 §8.1.2 1):
+    /// every character of the alphanumeric coded character set occupies the same number of bytes; §13.18.44.4 GR1: a
+    /// REDEFINES view is the same storage area; docs/CONFORMANCE.md DOC-A.1-31, -33, -46). Total and PURE, so a
+    /// numeric view over any content decodes deterministically and a compile-time caller may ask it; a RUNTIME
+    /// storage-image reader asks <see cref="ImageByte"/>, which also sets EC-DATA-CONVERSION.</summary>
+    public static byte ToByte(char c) => HasByte(c) ? (byte)c : SubstituteByte;
+
+    /// <summary>The byte standing for a character with no byte image: <c>?</c> (0x3F) — the disposition DOC-A.1-33
+    /// decided for CONVERT's byte serialization (RV-15.19.4-2) and DOC-A.1-31 applies to every in-memory byte channel.</summary>
+    private const byte SubstituteByte = (byte)'?';
+
+    /// <summary>⛔ THE RUNTIME STORAGE-IMAGE READER — <see cref="ToByte"/> at a byte channel whose image is read AT RUN
+    /// TIME (the REDEFINES / group storage image seen through a bit, national, binary, packed or floating-point view,
+    /// and CONVERT's BYTE/HEX/ANY legs). A character with no byte image reads as <see cref="SubstituteByte"/> AND sets
+    /// EC-DATA-CONVERSION (visible under checking, never silent): the one decided disposition (DOC-A.1-33), the same
+    /// at every in-memory byte channel (DOC-A.1-46), and the file channel's own refusal is the I-O status '91'
+    /// (<see cref="IO.FileCharacterSet"/>, owner decision kb/Work R47). The common case — a byte-image character — costs
+    /// one comparison.</summary>
+    internal static byte ImageByte(char c) => c <= 'ÿ' ? (byte)c : ImageByteBeyondLatin1(c);
+
+    private static byte ImageByteBeyondLatin1(char c)
+    {
+        if (c == NativeCollatingSequence.HighValue) return 0xFF;
+        Exceptions.ExceptionState.DataConversionError(
+            "the code unit has no one-byte image in the 8-bit usage-DISPLAY storage image (§8.1.2 1; CONFORMANCE.md items 31, 46, 209)");
+        return SubstituteByte;
+    }
 
     /// <summary>True when <paramref name="c"/> has a byte image: U+0000–U+00FF and the HIGH-VALUE character.</summary>
     public static bool HasByte(char c) => c <= 'ÿ' || c == NativeCollatingSequence.HighValue;
