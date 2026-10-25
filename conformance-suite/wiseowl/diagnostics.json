@@ -18274,6 +18274,13 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3598-odo-bit-run-tail-variable-group-below-2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3597-initialize-with-filler-replacing-boolean-below-2002": {
   "refuse-at": [
    "85"
@@ -22906,5 +22913,32 @@
    "2002"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb494-typedef-sync-group-below-2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0900: SYNCHRONIZED on a group item requires COBOL-2023"
+ },
+ "pb538-sync-left-right-differ": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688: CALL … program-prototype 'P538S' argument 1 ('A') does not conform to formal parameter 'L'"
+ },
+ "pb1319-sign-group-unsigned-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a SIGN clause on a group item with no signed numeric subordinate requires COBOL-2002"
+ },
+ "pb1319-sign-group-comp-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY requires COBOL-2002"
  }
 }

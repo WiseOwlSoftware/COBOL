@@ -87,13 +87,12 @@ public sealed class DisplayUsageUnionDriftTests
     {
         var expected = new Dictionary<string, (int DisplayOnly, int Pair)>
         {
-            // KEEPER — the REPORT SECTION composes a printable CHARACTER image by nature (§13.18.x report
-            // items); the question really is "is this a zoned DISPLAY field?". ⚠ Its own screen four lines
-            // above refuses any non-DISPLAY printable item outright, and §13.18.60.3 SR7 — "Only the DISPLAY or
-            // NATIONAL phrase may be specified in any USAGE clause associated with a report group item" — says
-            // the pair; that refusal predates the national-form landing (it refuses a PIC N(3) report item too)
-            // and is a REPORT-WRITER finding, not a predicate one. It is recorded in the PB646 report.
-            ["Binding/DataBinder.Reports.cs"] = (1, 0),
+            // ⛔ DataBinder.Reports.cs LEFT THIS INVENTORY (kb/Work PB3280). Its printable item's image mark
+            // asked the IMAGE-FORM question in the DISPLAY-only spelling, so a numeric printable item of usage
+            // NATIONAL (§13.18.60.3 SR7 admits the usage, SR12 the picture) reached the line as a long and the
+            // backend refused the generated C# (CS1503). It now reads PicInfo.IsCharacterFormNumeric, and a
+            // printable item is composed into its line and stored nowhere else, so the carriage concern that
+            // keeps MarkImageLeaves DISPLAY-only does not reach it.
 
             // DISPLAY-ONLY (2) — both are the CARRIAGE question, and deliberately NOT
             // PicInfo.IsCharacterFormNumeric's IMAGE-FORM one (kb/Work PB646; each site says so):
@@ -104,10 +103,12 @@ public sealed class DisplayUsageUnionDriftTests
             //  the Tier-B StringCanonical split — the DISPLAY arm marks through the CHARACTER pipeline and the
             //        very next arm takes the national-form leaf through Place.NationalWindow. Both arms
             //        present: the deliberate two-lane split, not a missing lane.
-            // PAIR (1) — ApplyEffectiveSign, the ONE site at which an item acquires an ancestor's SIGN clause
-            //        (§13.18.52.4 GR1 inheritance and the §13.18.49.4 GR5 SAME-AS transform both call it), and
-            //        §13.18.52.3 SR2 names exactly that pair: "The usage of an elementary item for which the
-            //        SIGN clause is specified shall be display or national".
+            // PAIR (1) — WithInheritedSign, the ONE rule by which an item acquires an ancestor's SIGN clause
+            //        (§13.18.52.4 GR1 inheritance and the §13.18.49.4 GR5 SAME-AS transform both reach it through
+            //        ApplyEffectiveSign, and a report group entry's inherited clause through
+            //        ReportPrintablePicture, kb/Work PB493), and §13.18.52.3 SR2 names exactly that pair: "The
+            //        usage of an elementary item for which the SIGN clause is specified shall be display or
+            //        national".
             //
             // ⛔ WAS 7, THEN 4. THREE WERE DELETED by kb/Work PB495 — the USAGE half of §13.18.60.4 GR1 group
             // inheritance, each asking "is this leaf still at the default DISPLAY usage?" beside its own
@@ -118,7 +119,7 @@ public sealed class DisplayUsageUnionDriftTests
             // ExpandSameAs carried a SECOND copy of the SIGN transform and kept a DISPLAY-only guard after the
             // pair landed, so `01 TN USAGE NATIONAL SIGN IS LEADING SEPARATE. 05 TNE PIC S9(3). 01 SNX SAME AS
             // TNE.` MEASURED LENGTH 3 / BYTE-LENGTH 6 / [04N] against the inheritance route's 4 / 8 / [-045].
-            // One method (ApplyEffectiveSign), one guard, and that is the remaining PAIR count below.
+            // One method (WithInheritedSign), one guard, and that is the remaining PAIR count below.
             ["Binding/DataBinder.cs"] = (2, 1),
 
             // PAIR — SPEC-REQUIRED, and it is the spec's own pair. §8.4.3.3.3 SR1 admits reference modification

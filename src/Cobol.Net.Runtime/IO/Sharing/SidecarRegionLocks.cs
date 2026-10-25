@@ -89,6 +89,7 @@ internal sealed class SidecarRegionLocks : RegionLocks
                 if (mine.Exclusive || !exclusive) return RegionLockResult.Ok;   // held at least as strongly already
                 Release(offset);                                                 // shared -> exclusive: give back, then take
             }
+            bool roundRetried = false;
             for (int pause = 0; ; pause++)
             {
                 // After a conflict, look before publishing again so a waiting request does not churn lock files.
@@ -98,9 +99,30 @@ internal sealed class SidecarRegionLocks : RegionLocks
                     if (plain == Conflict.Unobservable) return wait ? RegionLockResult.Unavailable : RegionLockResult.Held;
                     if (plain == Conflict.Live) { if (!wait) return RegionLockResult.Held; Backoff(pause); continue; }
                 }
-                var holder = SidecarLockFiles.Publish(_directory, id => $"{Prefix(offset)}{(exclusive ? 'X' : 'S')}-{id:N}");
-                if (holder is null) return RegionLockResult.Unavailable;
-                switch (Look(offset, exclusive, holder.Name))
+                var publication = SidecarLockFiles.Publish(_directory, id => $"{Prefix(offset)}{(exclusive ? 'X' : 'S')}-{id:N}", out var holder);
+                if (publication == RegionLockResult.Unavailable) return RegionLockResult.Unavailable;   // a host that takes no lock here sees no holder
+                if (publication == RegionLockResult.Held)
+                {
+                    // ⛔ EVERY TRY LOST ITS RACE (kb/Work PB3632): no hold of ours, but the holders already published are still
+                    // seen, so a conflicting one is a conflict ('Held', a wait goes on waiting) and not a lock this host cannot
+                    // carry; only with nothing in the way is the hold Unavailable.
+                    switch (Look(offset, exclusive, ownName: null))
+                    {
+                        case Conflict.Live:
+                            if (!wait) return RegionLockResult.Held;
+                            Backoff(pause);
+                            continue;
+                        case Conflict.Unobservable:
+                            return wait ? RegionLockResult.Unavailable : RegionLockResult.Held;
+                        default:
+                            // A WAITING hold publishes ONE more round before it gives up: the holder that made its tries lose
+                            // (its rmdir of the last file) may have let go during the round, so a lock that was free by the
+                            // time we looked is not a lock this host cannot carry (review R1-1).
+                            if (wait && !roundRetried) { roundRetried = true; continue; }
+                            return RegionLockResult.Unavailable;
+                    }
+                }
+                switch (Look(offset, exclusive, holder!.Name))
                 {
                     case Conflict.None:
                         _holds[offset] = new Held(holder, exclusive);

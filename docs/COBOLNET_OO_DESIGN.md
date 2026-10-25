@@ -770,7 +770,13 @@ splits each block by `PrototypeSignatures.Same` (`ActivationRelations.SignatureD
 `OoConformance.SignatureDifference`), and a round that splits nothing is the greatest fixed point, so prototypes that
 name each other or themselves are classified by what they describe and never by what they are called (kb/Work PB2495). Two differently named prototypes of one signature are therefore one
 type on both lanes; the class identity is group-local until the external repository (`DESIGN-external-repository.md`)
-supplies a record's identity. The same relation decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
+supplies a record's identity. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
+own marked as such — `PrototypeSignatures.ExternalIdentity`, `ActivationDescription.ExternalRestrictionPrefix` + its
+name — and the conformance relations (`ActivationRelations.SamePointerRestriction`, read by `MaySet` and the BY REFERENCE
+pointer arm) let a restricted pointer of that type conform to any restricted pointer of its kind, exactly as
+`PrototypeSignatures.Same` lets an unresolved signature conform on the SET lane, so the SET and the argument lanes give one
+answer for the pair (kb/Work PB3162). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
+equivalence (and a key) must stay transitive. The same relation decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
 strongly-typed group formal is compared through §8.5.3.1's type-declaration equivalence
 (`StrongTypeModel.EquivalentTypeDeclarations` / `SameElementaryLayout`), whose per-item profile compare
 (`SameAnalyzedProfile`) elides `PicInfo.RestrictedPrototypeName` and `RestrictedTypeName` from the record equality and

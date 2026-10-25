@@ -228,7 +228,7 @@ public static class StrongTypeModel
     private static string EssentialCharacteristicsKey(DataItem x, List<DataItem> open)
     {
         string entry = string.Create(CultureInfo.InvariantCulture,
-            $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}{(x.Synchronized ? "Y" : "-")}")
+            $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}{SynchronizedKey(x.Synchronized)}")
             + (x.IsDynamicLength ? string.Create(CultureInfo.InvariantCulture, $"D{x.DynMaxSize}/{CobolNames.Fold(x.DynStructure?.Name ?? "")}") : "");
         if (x.Pic is not { } p) return entry;
         string locale = p.LocaleEdit is { } le
@@ -258,6 +258,19 @@ public static class StrongTypeModel
         try { return record.ToString() ?? ""; }
         finally { CultureInfo.CurrentCulture = host; }
     }
+
+    /// <summary>The SYNCHRONIZED clause's letter in <see cref="EssentialCharacteristicsKey"/> — one per form, because
+    /// §8.5.3.1 compares the CLAUSES and <c>SYNC LEFT</c>, <c>SYNC RIGHT</c> and bare <c>SYNC</c> are three of them
+    /// (<see cref="SynchronizedPhrase"/>, kb/Work PB538); the run-time key separates them exactly as
+    /// <see cref="SameEssentialCharacteristics"/> does.</summary>
+    private static char SynchronizedKey(SynchronizedPhrase? phrase) => phrase switch
+    {
+        null => '-',
+        SynchronizedPhrase.Unqualified => 'Y',
+        SynchronizedPhrase.Left => 'L',
+        SynchronizedPhrase.Right => 'R',
+        _ => throw new ArgumentOutOfRangeException(nameof(phrase), phrase, "a SYNCHRONIZED form with no key letter"),
+    };
 
     /// <summary>The type-name of a declaration in either of its two forms — a TYPEDEF template's own name
     /// (§13.18.58: the TYPEDEF clause "declares and names" the type) or the name a TYPE-clause subject
