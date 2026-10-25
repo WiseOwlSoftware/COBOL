@@ -19,13 +19,21 @@ twice. The second is the PB3694 duplicate behind the RS0025 bounce of #541.
 - The registry now matches driver patterns by git's rules. The new `merge_drivers.pattern_matches` is read by
   `covered_by_driver` and `--check`. Before, `pathlib.PurePath.match` let `**` span exactly one directory, which would
   have missed a baseline deeper in `src/`.
+- **Merges now read their attributes from the registry.** A branch cut before this landing still says
+  `merge=union` in its own `.gitattributes`, which git reads by default. Simulated against this head, such a branch,
+  having added two symbols, came out with 31 duplicated lines (RS0025 in the Release build). The new
+  `merge_drivers.attributes_tree` writes a one-file tree: the merged-into side's `.gitattributes` followed by a
+  `merge=<driver>` line per registry pattern, where the later line wins. `merge`, `merge_conflicts` and
+  `is_drivers_merge` pass it as `-c attr.tree=…`. `config_args` already supplied the driver commands this way, so a
+  branch cut before a driver existed now merges that driver's files through it.
 - Because the baselines are now files merged by key, the planner's collision rule and the landing's merge-overlap rule
   both set them aside, as they already do for the catalogues.
 - DESIGN-orchestrator-loop.md section 16.9 records the two corrections. DESIGN-test-build-ci.md section 3.17.2 step 2
   lists the new driver, and DOC_INDEX gains a row for `merge_drivers.py` and `abi_pin.py`.
 
-**Arms.** The self-test gained the four arms section 16.9 names, a git-path arm and a pattern arm.
-`MergeDriverDriftTests` declares all six.
+**Arms.** The self-test gained the four arms section 16.9 names, a git-path arm, an old-attributes arm and a pattern
+arm. `MergeDriverDriftTests` declares all seven. With `attributes_tree` stubbed out, the old-attributes arm fails with
+`D.D` twice.
 
 **Oracle.** The three latest main merges in which both parents changed a baseline were 009f47b01, cdd86463e and
 677c620a0. Re-run through the driver, each reproduces main's baseline as a set.

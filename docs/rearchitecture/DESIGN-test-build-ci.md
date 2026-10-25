@@ -2272,7 +2272,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    is sorted; the line union before it kept a removed line and once a symbol twice, PB3694).
    `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
-   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
+   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale, and the attributes with them
+   (`-c attr.tree=…`, `merge_drivers.attributes_tree`: the merged-into side's `.gitattributes` with a `merge=<driver>`
+   line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it. The review's coverage rule
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
    resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge

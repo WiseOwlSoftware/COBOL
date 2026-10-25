@@ -20,7 +20,12 @@ WHAT A DRIVER IS. A file that `.gitattributes` marks `merge=<name>` is merged by
 own line merge. The configuration is not part of the repository, so every merge this repository makes passes it on the
 command line (`config_args`, a `-c merge.<name>.driver=…` per driver): `enqueue.py land` merges main in through
 `merge()` below, and a finisher resolving a landing's CONFLICT merges through `merge_drivers.py merge`, so the drivers
-cannot be forgotten and no persistent per-checkout configuration can go stale.
+cannot be forgotten and no persistent per-checkout configuration can go stale. The ATTRIBUTES come from the registry
+too (`attributes_tree`, given to git as `-c attr.tree=…`): the merged side's own `.gitattributes` followed by a
+`<pattern> merge=<driver>` line per DRIVERS pattern, so a branch cut before a driver existed (its `.gitattributes`
+still says `merge=union`, or nothing) merges that driver's files through it. Without that, a branch cut before
+kb/Work PB3727 merging a main with the SORTED public-API baseline got its union merge: 31 duplicated symbols in one
+measured case, RS0025 in the Release build.
 
 THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, and `--check` holds the two together):
   KEYED CATALOGUES  a file of entries that are each a block of lines at one indentation, KEYED (an object's member
@@ -299,19 +304,47 @@ def python_posix() -> str:
     return pathlib.Path(sys.executable).as_posix()
 
 
-def config_args() -> list[str]:
-    """The `git -c merge.<name>.driver=…` arguments that make a merge, or a `merge-tree`, use every driver. The script is
+def config_args(attributes: str | None = None) -> list[str]:
+    """The `git -c merge.<name>.driver=…` arguments that make a merge, or a `merge-tree`, use every driver, and with
+    `attributes` (a tree, attributes_tree) the `-c attr.tree=…` that has git read the attributes from it. The script is
     THIS checkout's: a branch cut before the drivers existed still merges through them."""
     script = pathlib.Path(__file__).resolve().as_posix()
     out: list[str] = []
     for d in DRIVERS:
         out += ["-c", f'merge.{d.name}.driver="{python_posix()}" "{script}" driver {d.name} %O %A %B %P']
-    return out
+    return out + (["-c", f"attr.tree={attributes}"] if attributes else [])
 
 
-def git(repo: pathlib.Path, *args: str, config: bool = False) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *(config_args() if config else []), *args], cwd=repo, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace")
+def attributes_tree(repo: pathlib.Path, rev: str) -> str | None:
+    """THE ATTRIBUTES A MERGE READS: a tree written into `repo` whose one file is a `.gitattributes` holding `rev`'s own
+    (none when `rev` has none) followed by a `<pattern> merge=<driver>` line per DRIVERS pattern. In gitattributes(5) a
+    later line wins, so the registry decides the merge attribute of every file it covers and `rev` decides everything
+    else (`text`, `eol`, `-text`, its other merge attributes). `rev` is the side being merged INTO (HEAD for `merge`,
+    the first parent for `is_drivers_merge`), whose attributes git reads by default. None when git could not write the
+    tree; the caller then merges with git's own attribute lookup, and says so. The repository keeps ONE `.gitattributes`,
+    at its root, which is the one this tree carries."""
+    own = git(repo, "show", f"{rev}:.gitattributes")
+    text = own.stdout if own.returncode == 0 else ""
+    text += ("" if not text or text.endswith(NL) else NL) + "".join(f"{p} merge={d.name}{NL}" for d in DRIVERS for p in d.patterns)
+    blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=repo, input=text.encode("utf-8"), capture_output=True)
+    if blob.returncode != 0:
+        return None
+    tree = subprocess.run(["git", "mktree"], cwd=repo, capture_output=True,
+                          input=f"100644 blob {blob.stdout.decode().strip()}{chr(9)}.gitattributes{NL}".encode("utf-8"))
+    made = tree.stdout.decode().strip() if tree.returncode == 0 else ""
+    return made or None
+
+
+def git(repo: pathlib.Path, *args: str, attributes_of: str | None = None) -> subprocess.CompletedProcess:
+    """`git <args>` in `repo`; with `attributes_of` (a revision) through every driver, reading attributes_tree(repo,
+    attributes_of)."""
+    extra: list[str] = []
+    if attributes_of is not None:
+        tree = attributes_tree(repo, attributes_of)
+        if tree is None:
+            print(f"merge_drivers: could not write the attributes tree in {repo}; git reads its own attributes", file=sys.stderr)
+        extra = config_args(tree)
+    return subprocess.run(["git", *extra, *args], cwd=repo, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 # ── the driver entry point ───────────────────────────────────────────────────────────────────────────────────────
@@ -348,7 +381,7 @@ def merge(repo: pathlib.Path, ref: str, message: str, measure: Callable[[pathlib
         return None                                      # the branch already contains `ref`: nothing to merge
     if git(repo, "merge-base", "--is-ancestor", "HEAD", ref).returncode == 0:
         return None if git(repo, "merge", "--ff-only", ref).returncode == 0 else ["?"]
-    if git(repo, "merge", "--no-commit", "--no-ff", ref, config=True).returncode != 0:
+    if git(repo, "merge", "--no-commit", "--no-ff", ref, attributes_of="HEAD").returncode != 0:
         files = git(repo, "diff", "--name-only", "--diff-filter=U").stdout.split()
         if not keep:
             git(repo, "merge", "--abort")
@@ -374,7 +407,7 @@ def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
     declined it (both sides changed one entry differently: a real conflict, kb/Work PB3640 review R1-1); None when git
     cannot say (a missing ref: merge-tree exits 1 for that too, with no tree on stdout, so the tree line decides). The
     runtime ABI pin's settle needs a build, so a pin `merge` could not settle is not foreseen here."""
-    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", "HEAD", ref, config=True)
+    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", "HEAD", ref, attributes_of="HEAD")
     lines = r.stdout.splitlines()
     if r.returncode not in (0, 1) or not lines or not re.fullmatch(r"[0-9a-f]{40,64}", lines[0].strip()):
         return None
@@ -388,7 +421,7 @@ def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) ->
     review's coverage rule for a merge of main (prune_worktrees.mechanical), so it must be exactly the merge's own
     definition: there is no other."""
     import abi_pin  # noqa: PLC0415
-    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", *parents, config=True)
+    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", *parents, attributes_of=parents[0])
     clean = r.stdout.split()[:1]
     if r.returncode != 0 or not clean:
         return False
@@ -634,7 +667,7 @@ def self_test() -> int:
                files is None and baseline.read_text(encoding="utf-8") == api(hdr, "A.D", "A.G", "A.N", "A.X", "A.Z"),
                repr(baseline.read_text(encoding="utf-8")))
         expect("git: merge-tree with config_args reproduces the merge's tree (the review's coverage rule reads it)",
-               git(repo, "merge-tree", "--write-tree", "HEAD^1", "HEAD^2", config=True).stdout.split()[:1]
+               git(repo, "merge-tree", "--write-tree", "HEAD^1", "HEAD^2", attributes_of="HEAD^1").stdout.split()[:1]
                == [scratch.git("rev-parse", "HEAD^{tree}")])
         # A real conflict: both branches change the same entry differently.
         scratch.git("switch", "-q", "-c", "left", "HEAD")
@@ -676,6 +709,28 @@ def self_test() -> int:
                "git merge does (the keyed merger declines, the fallback is clean): no conflict, no markers",
                plain_clean.returncode == 0 and files is None and text == fat("1+", "4+") and not fr.git("status", "--porcelain"),
                f"{plain_clean.returncode} {files} {text!r}")
+        # A branch cut BEFORE a driver existed: its .gitattributes still says merge=union for the baseline, and main (this
+        # landing) switched the attribute to the driver and sorted the baseline. The registry's attributes decide (kb/Work
+        # PB3727): a union of the sorted file with the branch's added line duplicates the lines main moved.
+        old = ScratchRepo.init(root / "old-attributes")
+        unsorted = api(hdr, "C.C", "A.A", "D.D", "B.B", "F.F", "E.E")
+        old.commit("base", {"src/L/PublicAPI.Unshipped.txt": unsorted, ".gitattributes": f"src/**/PublicAPI.*.txt merge=union{NL}"})
+        old.git("switch", "-q", "-c", "topic")
+        old.commit("topic", {"src/L/PublicAPI.Unshipped.txt": api(hdr, "C.C", "A.A", "D.D", "N.N", "B.B", "F.F", "E.E")})
+        old.git("switch", "-q", "main")
+        old.commit("main", {"src/L/PublicAPI.Unshipped.txt": api(hdr, "A.A", "B.B", "C.C", "D.D", "E.E", "F.F"),
+                            ".gitattributes": f"src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi{NL}"})
+        old.git("switch", "-q", "topic")
+        union = union_text(unsorted, api(hdr, "C.C", "A.A", "D.D", "N.N", "B.B", "F.F", "E.E"), api(hdr, "A.A", "B.B", "C.C", "D.D", "E.E", "F.F")) or ""
+        files = merge(old.path, "main", "Merge main (old attributes self-test)")
+        text = (old.path / "src" / "L" / "PublicAPI.Unshipped.txt").read_text(encoding="utf-8")
+        expect("git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver: "
+               "the set, sorted, no symbol twice (the branch's own union would duplicate the lines main moved)",
+               len(union.split()) != len(set(union.split())) and files is None
+               and text == api(hdr, "A.A", "B.B", "C.C", "D.D", "E.E", "F.F", "N.N")
+               and is_drivers_merge(old.path, [old.git("rev-parse", "HEAD^1"), old.git("rev-parse", "HEAD^2")],
+                                    old.git("rev-parse", "HEAD^{tree}")),
+               f"{files} {text!r} {union!r}")
         # `ref` already inside the branch: nothing to merge, as a bare `git merge` answers "Already up to date" (R1-2).
         before = fr.git("rev-parse", "HEAD")
         again = merge(fr.path, "main", "Merge main (again)")
