@@ -292,7 +292,7 @@ of an unsupported facility.
   letter) to boolean zero, then aligns with zero fill or truncation to the right (left, under JUSTIFIED). It is the
   rule the operators already apply and the rule an ACCEPT into a boolean item applies (§14.9.1.4 GR1,
   `AcceptSource.DeviceBoolean`), so DISPLAY of the item and the operators over it agree for both usages (USAGE DISPLAY
-  `PIC 1` and USAGE BIT) and every other path inherits it. GnuCOBOL 3.2 gives no precedent (probed 2026-10-24: it
+  `PIC 1` and USAGE BIT) and every other character store inherits it. GnuCOBOL 3.2 gives no precedent (probed 2026-10-24: it
   warns that USAGE BIT is not implemented and stores a `PIC 1(5)` item in one byte, and its USAGE DISPLAY `PIC 1` moves
   text as a number, right-aligning `"101"` as `00101` against §14.6.8.6's zero fill to the right); IBM Enterprise COBOL
   has no boolean category. The paths that deposit characters into a boolean item and now convert: the elementary
@@ -300,11 +300,15 @@ of an unsupported facility.
   argument landed by §14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
   tables, §14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§14.9.43.4 GR3 a)),
   a group sender into a USAGE DISPLAY boolean item (§14.9.25.4 GR4's alphanumeric move, which now zero-fills where it
-  space-filled), and COMPUTE's boolean result. **The one exemption:** a GROUP sender into a USAGE BIT item is
+  space-filled), and COMPUTE's boolean result. **The exemptions:** a GROUP sender into a USAGE BIT item is
   §14.9.25.4 GR4's move with "no conversion of data from one form of internal representation to another", so the
   sender's BYTES fill the receiving area and the item's bits are the first bits of those bytes (`MOVE GA TO BB` with GA
   holding `1A` stores the bits of x"31", `00110`); every bit pattern is a valid boolean value, so DISPLAY and the operators
-  agree there without a character conversion. VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
+  agree there without a character conversion. The same GR4 move into a USAGE NATIONAL boolean item fits the sender's bytes to
+  the item's UTF-16BE pairs and decodes them as national characters (`MOVE GN TO BN` with GN holding `N"101"` stores `101`);
+  the conversion applies to characters, never to that byte image. Content the character store never sees stays undefined
+  (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver (GR4 moves bytes, so `MOVE "A1Z" TO G` leaves `A1Z` in a
+  boolean member) and a REDEFINES view of other storage. VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
   literals), UNSTRING refuses a boolean receiver (§14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is
   REFUSED when it holds a character other than `0` or `1` (`HostLanding.RequireClass`). Written once, in
   `CobolBool.FromCharacters` and its fitting store `CobolBool.Store` (`RuntimeApi.StrStoreBoolean` is the only emitter of
