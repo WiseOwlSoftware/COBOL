@@ -1085,7 +1085,10 @@ because the raw name is not stable (`b7`):
   `TestResults/ci-bounce/` (`gate_plan.CI_BOUNCE_RESULTS`), which `previous_gates` reads as its third source. The
   directory is replaced by the newest bounce's results (downloaded once per run: it holds a provenance marker), emptied
   when the pull request has no failed merge-group run (a cancelled group is no bounce), and left as it was when GitHub
-  cannot be asked; it orders the gate and never selects it. Every live tool that writes a trx file into a
+  cannot be asked or the download fails (kb/Work PB3716: the download lands in a sibling `ci-bounce.fetching` directory
+  that replaces the results only once whole, so a failed or half-done download neither deletes the previous results nor
+  leaves a partial one, and the line it prints names the run the directory still holds); it orders the gate and never
+  selects it. Every live tool that writes a trx file into a
   worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
   own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
   --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
