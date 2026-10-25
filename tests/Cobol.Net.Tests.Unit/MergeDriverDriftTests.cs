@@ -44,6 +44,7 @@ public sealed class MergeDriverDriftTests
             "note: frontmatter merges per key and the bodies by union",
             "hunks: two insertions at one place are an INSERTION hunk",
             "hunks: the history replay counts a merge both parents changed",
+            "hunks: a merge that took one parent's file whole is counted",
             "git: WITHOUT the drivers the same merge conflicts (the premise)",
             "git: merge() brings main in through the drivers",
             "git: merge-tree with config_args reproduces the merge's tree",

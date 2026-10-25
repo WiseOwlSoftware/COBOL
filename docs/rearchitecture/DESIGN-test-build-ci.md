@@ -2248,7 +2248,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    resolution is not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
    documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
    conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
-   37 conflicted merges holding one hunk where both sides inserted at one place and 89 where both REVISED text the base
+   45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 where both REVISED text the base
    already held (one mechanism's paragraph, one Annex A.1 register row), so a union merge would keep a stale paragraph
    beside its replacement in a document that describes the current compiler, and a word-level merge came out different
    from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
