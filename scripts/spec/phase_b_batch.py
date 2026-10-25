@@ -65,6 +65,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import grammar_source  # noqa: E402  (THE reader of the grammar's rules, kb/Work PB3204)
 import inventory_schema  # noqa: E402  (THE reader of the catalog, the inventory and the §7 register, kb/Work PB3209)
 import work  # noqa: E402  (path must be set first)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 
 def clause_key(c: str) -> tuple:
@@ -684,11 +686,6 @@ def main() -> int:
     # ⚠ BEFORE parse_args, not after. argparse prints this module's docstring for --help, and the docstring
     # carries ⚠/⛔; on a cp1252 Windows console that raises UnicodeEncodeError from inside argparse, so
     # `--help` crashed with a traceback instead of printing help. Reconfiguring afterwards was too late.
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
 
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("clauses", nargs="*", help="clauses or ranges, e.g. 15.32-15.44 or 14.9.1")
@@ -834,4 +831,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -182,6 +182,7 @@ import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one mer
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 import ruleset  # noqa: E402
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
+from standard_streams import ensure_utf8  # noqa: E402
 
 EXIT_CONFLICT = 4
 EXIT_GATE = 5
@@ -2482,10 +2483,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="verb")
@@ -2528,4 +2525,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

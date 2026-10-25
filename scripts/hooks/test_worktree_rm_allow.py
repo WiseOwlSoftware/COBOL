@@ -9,6 +9,8 @@ import json
 import pathlib
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HOOK = pathlib.Path(__file__).with_name("worktree_rm_allow.py")
 REPO = HOOK.resolve().parents[2]
@@ -116,4 +118,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
