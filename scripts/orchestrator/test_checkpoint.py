@@ -9,6 +9,9 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 CP = HERE / "checkpoint.py"
 SCHEMA = json.loads((HERE / "handoff.schema.json").read_text(encoding="utf-8"))

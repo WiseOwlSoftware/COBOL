@@ -79,6 +79,7 @@ from pathlib import Path
 # The listing's shape and the scrub rule are test_population.py's (kb/Work PB1718): ONE parser of a
 # `--list-tests` output, and ONE statement of which environment variables may narrow a `dotnet test` run.
 from test_population import LISTED_MARK as AVAILABLE, PopulationError, parse_listing, scrubbed_env
+from standard_streams import ensure_utf8
 
 # ⛔ The markers below are the ENGLISH strings vstest prints, so the probe pins the CLI's language rather than
 # inheriting the machine's. Without this a non-English machine finds no marker, which this script reports as a
@@ -310,10 +311,6 @@ def main() -> int:
                     help="the discovery may BUILD (drop --no-build) — for a caller whose own `dotnet test` "
                          "does the building, so nothing is built yet when the guard must run (kb/Work PB751)")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if args.self_test:
         return self_test(args.filtered[0] if args.filtered else "tests/Cobol.Net.Tests.Conformance",
@@ -329,4 +326,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -68,6 +68,8 @@ import r2_collect  # noqa: E402  (the launch plan a batch is sized by)
 import r2_cost  # noqa: E402
 import r2_subsystems  # noqa: E402
 import work  # noqa: E402
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 CENSUS_DIR = Path("docs/rearchitecture/evidence/arch-census")
 PERF_DIR = Path("docs/rearchitecture/evidence/perf-baseline")
@@ -554,7 +556,6 @@ def self_test():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--pin", type=Path, help="the built, detached tree at the pinned commit (reviewers read it)")
     ap.add_argument("--out", type=Path)
@@ -619,4 +620,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

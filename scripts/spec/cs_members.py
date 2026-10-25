@@ -39,6 +39,8 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: A string literal's opening: its `$`/`@` prefix and its run of quotes.
 STRING_START = re.compile(r'(?P<pre>\$*@\$*|\$+)?(?P<q>"+)')
@@ -478,10 +480,6 @@ def main() -> int:
     ap.add_argument("files", nargs="*", type=Path, help="C# files whose members to print")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if args.self_test:
         return self_test()
     for f in args.files:
@@ -492,4 +490,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

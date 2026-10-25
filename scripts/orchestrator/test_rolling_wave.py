@@ -45,6 +45,8 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import review_findings  # noqa: E402  (the findings file's own writer and its one reader, kb/Work PB3381 review R3-1)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 WAVE = HERE.parents[1] / ".claude" / "skills" / "workstream" / "templates" / "wf_rolling_wave.js"
 
@@ -438,5 +440,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
+    ensure_utf8()
     sys.exit(main())
