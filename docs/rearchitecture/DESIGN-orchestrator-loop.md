@@ -657,7 +657,10 @@ mechanisms, in order of how little they trust the model:
    every 10 s) and at the unit's end. It holds the stream counters (calls, context, cost), the running background-task
    count, and every linked worktree's branch, head, commits ahead of `origin/main`, uncommitted-file count (the owner's
    `settings.local.json` and `STATUS.md` excluded) and `STATUS.md` headline, plus the unit's last milestones. No model
-   is involved and a failed write never ends the unit. ⛔ The writes during the unit run in the BACKGROUND, one at a
+   is involved and a failed write never ends the unit. A worktree removed between the listing and its measurement
+   (git runs through `git -C`, so the missing directory is an exit 128, not an exception) is left out of the survey and
+   the rest is still written; one whose directory exists but whose status git cannot read stays with `uncommitted: null`
+   (unknown, never a clean 0), and a failed listing fails the write rather than writing an empty one (kb/Work PB3250). ⛔ The writes during the unit run in the BACKGROUND, one at a
    time (a write due while one runs is skipped), and only the end-of-unit write waits: the worktree probe takes minutes
    on a loaded host, and a synchronous write stalled the event loop (no stdout read, no startup-watchdog tick, no STOP
    check) until a hung unit outlived the watchdog (kb/Work PB2590).
