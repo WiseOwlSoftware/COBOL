@@ -209,9 +209,12 @@ Read `references/landing.md` before dispatching a finisher, landing, pushing, ru
 
 The orchestrator allocates `kb/Work` ids and diagnostic-code ranges in the dispatch brief; agents never pick their own
 (five collisions in one day each cost a renumbering pass). Every allocation goes through ONE locked allocator,
-`python scripts/orchestrator/alloc.py pb N | code N | devlog`, which keeps the reservations of in-flight worktrees
+`python scripts/orchestrator/alloc.py pb N | code N | devlog | wave`, which keeps the reservations of in-flight worktrees
 outside every worktree, so two sessions never hand out the same value (`peek <kind>` reads without reserving;
-`scripts/orchestrator/plan_wave.py` allocates a wave's codes through it, the enqueue unit its lead ids). DEVLOG numbers
+`scripts/orchestrator/plan_wave.py` allocates a wave's codes and its wave number through it, the enqueue unit its lead
+ids). A HAND dispatch takes its wave number from `alloc.py wave` too, before it names a report `w<wave><letter>-PB<lead>`:
+the number the loop plans next is the allocator's, so a hand report and a campaign wave can never share one (kb/Work
+PB3700: `w20261104a-PB3690` and the loop's wave 20261104 did). DEVLOG numbers
 are allocated at enqueue: `devlog.py stamp` (run by `enqueue.py land`) takes the next one from `alloc.py devlog`, once:
 a stamped entry keeps its number even when main lands a higher one first (kb/Work PB3025, PB3123: number order is stamp
 order, the merge queue orders the landings later); nobody numbers an entry by hand. `session-probe` prints `alloc.py peek code --probe`: the next free
