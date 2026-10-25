@@ -1,4 +1,4 @@
-## PB3769: CI cancels the merge-group runs the queue has superseded
+## Entry 2572 — 2026-10-25 14:25 PDT — PB3769: CI cancels the merge-group runs the queue has superseded
 
 The owner, 2026-10-25 ~13:45 PDT: "cancelling superseded runs automatically" (PB3765's second requirement, filed and
 landed on its own as PB3769; the fast lane and the bounded bypass stay open in PB3765).
@@ -33,3 +33,4 @@ both scripts' arms. DESIGN-test-build-ci.md sections 3.17.2 step 4, 3.17.6 and 3
 **Self-review.** One mechanism, one reader of the queue's facts (`live_heads` lives in `queue_facts.py`), and least
 privilege. Found and left as a lead: six drift-test classes each carry their own workflow job splitter, with
 different semantics.
+
