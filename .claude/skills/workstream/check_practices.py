@@ -13,6 +13,8 @@ import json, pathlib, re, subprocess, sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
+sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
+import source_units  # noqa: E402  (the name match two member claims meet on, kb/Work PB3670)
 T = HERE / 'templates'
 POINTER = 'MANDATORY-PRACTICES.md'
 
@@ -143,10 +145,19 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: a file with more open notes than the cluster cap is split into same-file SUCCESSOR groups (`after:`), so the
-# file's context is gathered once. Two groups whose `root` names the same primary src/ file with neither reachable
-# from the other through `after:` would each re-orient on it (owner 2026-09-27: "minimize repetitive context gathering").
+# O2: two groups of one wave whose `root` names the same primary src/ file and whose MEMBER claims on it meet (either
+# claims the file whole, or a member of one matches a member of the other: the groups file's `member_set`,
+# scripts/arch/source_units.py `match`) are a same-file SUCCESSOR chain (`after:`), so the second merges the first's
+# branch instead of conflicting with it. Two groups on DIFFERENT MEMBERS of one file run side by side (kb/Work PB3670,
+# the owner 2026-10-24: "Developers do this all the time"); git's three-way merge combines their branches.
 PRIMARY = re.compile(r'src/[\w./-]+\.(?:cs|g4)')
+
+
+def members_meet(a, b, f):
+    """Whether two groups' claims on their shared primary file `f` meet: either claims it whole (no `member_set`
+    entry), or a member of one matches a member of the other (source_units.meet)."""
+    ma, mb = (a.get('member_set') or {}).get(f), (b.get('member_set') or {}).get(f)
+    return ma is None or mb is None or source_units.meet(ma, mb) is not None
 
 
 def same_file_without_successor(groups_path):
@@ -164,13 +175,13 @@ def same_file_without_successor(groups_path):
     for g in groups:
         m = PRIMARY.search(g.get('root', ''))
         if m:
-            by_file.setdefault(m.group(0), []).append(g['letter'])
+            by_file.setdefault(m.group(0), []).append(g)
     found = []
-    for f, letters in by_file.items():
-        for i, a in enumerate(letters):
-            for b in letters[i + 1:]:
-                if a not in chain(b) and b not in chain(a):
-                    found.append(f'{a}+{b} on {f}')
+    for f, on in by_file.items():
+        for i, a in enumerate(on):
+            for b in on[i + 1:]:
+                if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']) and members_meet(a, b, f):
+                    found.append(f"{a['letter']}+{b['letter']} on {f}")
     return found
 
 
@@ -292,7 +303,8 @@ def main():
         clash = same_file_without_successor(gp)
         if clash:
             bad += 1
-            print(f'FAIL     {gp.name}: groups share a primary file without a same-file successor (`after:`, O2): {clash}')
+            print(f'FAIL     {gp.name}: groups share members of a primary file without a same-file successor (`after:`, '
+                  f'O2): {clash}')
         else:
             print(f'ok       {gp.name}')
     specs = [a for a in sys.argv[1:] if not a.endswith('.json')]
