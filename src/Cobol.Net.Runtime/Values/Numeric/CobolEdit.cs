@@ -244,9 +244,10 @@ public static partial class CobolEdit
         // ⛔ THE SIGN IS THE STORED VALUE'S, decided here once, from the digit string above (kb/Work PB3664).
         // §13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an
         // editing sign control symbol, depending on the value of the data item" — and Table 8's first column is
-        // "Positive or zero value". §14.9.25.4 6) d) stores the value as §14.6.8.2 4) defines it, "zero fill or
-        // truncation on either end as required", so a sending -0.001 into PIC -9.99 stores the value ZERO, and
-        // "Zero is considered a unique value regardless of the sign" (§8.8.4.2.4): the sign position shows the
+        // "Positive or zero value". §14.9.25.4 6) d) sends a numeric-edited receiver to §14.6.8.2 5): "further
+        // alignment, zero fill or truncation, and transfer of digits take place as described in the general rules
+        // and editing rules in 13.18.40", so a sending -0.001 into PIC -9.99 stores the value ZERO (§8.8.4.2.4 says
+        // the same of comparisons: "Zero is considered a unique value regardless of the sign"): the sign position shows the
         // Positive-or-zero column. The same holds when the HIGH-order digits truncate (-100 into PIC -99 holds
         // 00; the numeric receiver S9(2) likewise holds +00, the carrier having no negative zero, and
         // GnuCOBOL's cob_move_display_to_edited tests the digits that land the same way).

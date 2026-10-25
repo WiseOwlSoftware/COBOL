@@ -1359,7 +1359,8 @@ of an unsupported facility.
   PB3664, owner 2026-10-24).** An editing sign control symbol (the fixed `+`, `-`, `CR`, `DB`, the floating `+` and
   `-`, and a PICTURE EDITING character-1 under a FOR phrase) shows the Table 8/Table 9 column for "the value of the data
   item", whose first column is "Positive or zero value", and the data item holds the value AFTER alignment and
-  truncation (§14.6.8.2 4), "zero fill or truncation on either end as required"). So `MOVE -0.001 TO PIC -9.99`
+  truncation (§14.6.8.2 5), for a numeric-edited receiver: "further alignment, zero fill or truncation, and transfer of
+  digits take place as described in the general rules and editing rules in 13.18.40"). So `MOVE -0.001 TO PIC -9.99`
   stores zero and prints ` 0.00` (`+0.00` for `PIC +9.99`, `0.00  ` for `PIC 9.99CR`), and `MOVE -100 TO PIC -99`, whose
   high-order digit truncates, prints ` 00`: "Zero is considered a unique value regardless of the sign". The sign is decided
   ONCE per edit, from the digit string the receiver holds (`CobolEdit.Render`), and the format-2 locale editor
