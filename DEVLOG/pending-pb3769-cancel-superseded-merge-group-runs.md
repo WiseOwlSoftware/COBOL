@@ -26,7 +26,7 @@ step in `changes` so that `actions: write` never reaches the job that runs the b
 completed, other events, other branches, malformed items, list-before-read order, dry run, a refused cancel, an
 offline or absent queue, a partial run list, and exit codes. `queue_facts.py --self-test` adds two `live_heads` arms.
 `LandingPipelineDriftTests.TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` holds the job's wiring and
-both scripts' arms. DESIGN-test-build-ci.md §3.17.2 step 4, §3.17.6 and §3.17.8, plus DOC_INDEX, describe the job.
+both scripts' arms. DESIGN-test-build-ci.md sections 3.17.2 step 4, 3.17.6 and 3.17.8, plus DOC_INDEX, describe the job.
 
 **Rows.** None: process tooling, no ISO rule.
 
