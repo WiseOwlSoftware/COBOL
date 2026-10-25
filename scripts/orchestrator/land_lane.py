@@ -524,9 +524,15 @@ def runner_alive(a: dict[str, Any]) -> bool:
     if not isinstance(pid, int) or not a.get("_path"):
         return False
     name = coord.process_name(pid)
+    if not name or "python" not in name.lower():
+        return False
     cmd = coord.process_command(pid)
-    return bool(name) and "python" in name.lower() and bool(cmd) \
-        and os.path.normcase(str(a["_path"])) in os.path.normcase(cmd)
+    if not cmd:
+        # None: the process ended since the name was read. "": its command line cannot be read (not ours to open), which
+        # cannot tell the runner from a stranger; calling a live runner dead would relaunch its branch beside it, so an
+        # unreadable line reads as before this check existed: a live Python is alive.
+        return cmd == ""
+    return os.path.normcase(str(a["_path"])) in os.path.normcase(cmd)
 
 
 def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str], dict | None]:
@@ -1729,6 +1735,14 @@ def self_test() -> int:
             for proc in (stranger, runner):
                 proc.kill()
                 proc.wait()
+        real_command = coord.process_command
+        coord.process_command = lambda pid: ""          # a Python whose command line cannot be read: unknown, so alive
+        try:
+            unreadable = runner_alive({**rec10b, "pid": os.getpid()})
+        finally:
+            coord.process_command = real_command
+        expect("a live Python process whose command line cannot be read is not called dead (it could be the runner)",
+               unreadable)
         expect("a dead pid, no pid and no record path are not alive",
                not runner_alive({**rec10b, "pid": stranger.pid}) and not runner_alive({**rec10b, "pid": None})
                and not runner_alive({"pid": runner.pid}))
