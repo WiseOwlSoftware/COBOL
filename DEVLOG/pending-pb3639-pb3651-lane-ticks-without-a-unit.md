@@ -26,3 +26,5 @@ report wins, so the code was brought to them: the tie key is `(replayed count, r
 
 Self-review: sibling arms checked (`plan_wave.branch_replays` is the only caller and passes the report order as `rank`; the
 other timers that sleep, `Wait-Until`'s two callers, share the one function).
+
+Merged onto main 302648e01 by its successor (wave 20261106 group C), which re-probed both on its own build: the lane test 6/6 (2/6 with Step-Lane taken out of Wait-Until), test_plan_wave 413/413 (412/413 with the old tie key). Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261025T040639Z, Linux half (WSL clone of HEAD) GREEN; LandingLaneDriftTests passed in leg 1).
