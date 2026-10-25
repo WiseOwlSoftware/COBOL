@@ -850,7 +850,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    fuzz fixes PB3664 and PB3665 on files neither touched), so it is deleted, and a fix-lane note's folder site reserves
    nothing (`member_index.note_file_set`). The plan table and the group's spec name an empty group `UNPARTITIONED`, and
    the spec asks its implementer to give each note a `**Sites:**` paragraph naming its files and members in its first
-   checkpoint; from its first edit its worktree's actual diff is in flight like any other. A finisher's set includes
+   checkpoint; from its first edit its worktree's actual diff is in flight like any other. Every spec, sited or not,
+   asks its implementer to add to a note's block each code file or member its diff changes that no block names, in the
+   same change (`plan_wave.body_of`, kb/Work PB3640), and `work.py check` requires a block of every open note of a
+   cluster some note's `tier:` ranks as a campaign, whatever its id (`work.campaign_leads`). A finisher's set includes
    the files and units of the branch it continues (its actual diff). PB3640's finding stands: no partition removes
    every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
    repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to

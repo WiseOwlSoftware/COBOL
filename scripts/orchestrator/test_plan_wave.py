@@ -2053,6 +2053,9 @@ check("the spec body names an UNPARTITIONED group and the Sites paragraph (files
       True)
 check("a group with a file set is never named UNPARTITIONED", "UNPARTITIONED" in pw.body_of(uw["groups"][0], notes),
       False)
+check("every spec body, sited or not, asks its implementer to add to a note's Sites what its diff changes beyond them "
+      "(kb/Work PB3640: a declared set is a prediction)",
+      [("SITES FOLLOW THE DIFF" in pw.body_of(g, notes)) for g in (uw["groups"][0], ub["groups"][0])], [True, True])
 mb = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), on_members(F_BIND, ["Binder.Sync"], "PB11")], [], [],
              lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy={"worktree w (worktree-w)": pw.InFlight({F_BIND}, "worktree-w", {"PB70"}, state="IN FLIGHT",
