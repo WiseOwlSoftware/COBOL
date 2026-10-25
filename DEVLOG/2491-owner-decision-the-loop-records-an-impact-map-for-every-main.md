@@ -1,4 +1,4 @@
-## Owner decision: the loop records an impact map for every main commit it adopts (PB3663)
+## Entry 2491 — 2026-10-24 17:26 PDT — Owner decision: the loop records an impact map for every main commit it adopts (PB3663)
 
 The owner asked whether all of the day's loop performance improvements are in use. The operator found that no impact map
 has ever been recorded, because `.git/cobol-impact` does not exist. Every gate on 2026-10-24 therefore put every case in
@@ -13,3 +13,4 @@ adopted commit, detached, at BelowNormal and inside a gate slot. A newer adoptio
 documentation-only adoption records nothing, and a failure is reported. The note's bar is the measured share of gates
 that find a usable map. It warns that `impacted_tests.py`'s exact-base staleness rule may defeat the recorder, and that a
 re-design to an ancestor map for unchanged files is in scope if the measurement shows that.
+
