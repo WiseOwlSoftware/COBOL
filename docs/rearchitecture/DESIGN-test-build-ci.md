@@ -1648,7 +1648,7 @@ carried the order (§3.13). `M3`, `M4`, `M5`, `M8` and `M10` (the registry restr
 measure (owner, 2026-09-28) and revisited on engineering merit only. `M2` (the cap), `M6` and `M7` are redesigned
 above. The rejected design and both reviews are in the DEVLOG entry that pivoted it and in kb/Work PB1708.
 
-#### 3.14.9 Implementation plan — gateable mechanisms, each ≤ ~220 implementer turns
+#### 3.14.9 Implementation plan — gateable mechanisms, each within one implementer's turn cap
 
 | id | mechanism | files | acceptance (measured, never asserted) | depends on | size |
 |---|---|---|---|---|---|
@@ -2427,7 +2427,14 @@ demand and not committed.
   land` (PB3023) stamps, one branch per landing: a branch that merged an unlanded predecessor (a same-file successor,
   a review finisher; `prune_worktrees.contained`) lands that predecessor THROUGH it, so `devlog.py stamp` folds every
   pending file the branch carries into its one entry, oldest first, each body under its own title
-  (MANDATORY-PRACTICES L8). Rule 6's substance is untouched: one entry per
+  (MANDATORY-PRACTICES L8). A predecessor reviewed CLEAN lands on its own instead (PB3381), and a branch is landed
+  ONCE (PB3693): the survey holds a WAITING TO LAND successor behind its WAITING TO LAND or ENQUEUED predecessor
+  (`prune_worktrees.carrying_landing_branch`), `enqueue.py land` waits (exit 15) while an open pull request already
+  adds the stamped entry of a pending title the branch carries (`open_predecessors`' pending arm), and `devlog.py
+  stamp` drops a pending entry whose title is already a stamped entry of the tree instead of folding it a second time.
+  The stamp is all or nothing (PB3367): its git writes retry on `index.lock`, a failure restores the pending bytes,
+  resets the index and prints git's stderr (exit 3, which `land` maps to exit 2, retried once by the lane), and an
+  interrupted stamp (entry written, pending gone, uncommitted) is completed by the next run. Rule 6's substance is untouched: one entry per
   landing on main, newest first, the only history.
 - **Generated indexes leave the tree (PB3026, landed):** a derived index is a RENDERED VIEW: gitignored, rendered on demand
   by its generator, never committed. `scripts/rendered_views.py` holds the ONE registry (`VIEWS`): `docs/DRIFT_RULES.md`
