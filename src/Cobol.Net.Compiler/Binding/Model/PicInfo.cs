@@ -113,7 +113,8 @@ public enum Usage
     /// <summary>USAGE NATIONAL (ISO §13.18.60.3 SR12/SR13/SR20 / §8.5.2.10) — LIVE (Phase 4a track (a)):
     /// the usage of every category-national item (implied by PIC N without a USAGE clause, SR13a); stored as a
     /// .NET string, one UTF-16 char per national position (D-N1). The SR12 national-form NUMERIC/boolean legs
-    /// (PIC 9/PIC 1 USAGE NATIONAL) are recognized-but-staged (0899).</summary>
+    /// (PIC 9/PIC 1 USAGE NATIONAL) are LIVE too (kb/Work PB646): the item is its DISPLAY twin in a different
+    /// character set, and BLANK WHEN ZERO defines it numeric-edited like the twin (kb/Work PB508).</summary>
     National,
     /// <summary>USAGE BIT (ISO §13.18.60.3 SR5 / §8.5.2.5 category boolean) — LIVE (Phase 4a track (a)):
     /// maps to the SAME one-'0'/'1'-character-per-position string storage as a display-form boolean item (the
@@ -212,6 +213,18 @@ public static class UsageFamilies
     /// out at each reader is where the next reader drifts.</summary>
     public static bool IsFixedWidthBinary(Usage u) =>
         u is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
+
+    /// <summary>⛔ THE USAGE PAIR THE CHARACTER-FORM CLAUSES NAME — "usage display or usage national" — written down
+    /// ONCE (kb/Work PB508). ISO §13.18.8.3 SR2 ("The subject of the entry shall be implicitly or explicitly
+    /// described as usage display or usage national") is the SCREEN of BLANK WHEN ZERO and §13.18.8.4 GR2 ("If the
+    /// subject of the entry is described by its picture character-string as category numeric, the BLANK WHEN ZERO
+    /// clause defines the item as numeric-edited") is its PROMOTION; the promotion once spelled the pair as the
+    /// single <c>Usage.Display</c> its screen had been widened beyond, so a national-usage numeric item was
+    /// admitted by the screen and never defined numeric-edited. Both ask this predicate, so a usage a rule admits
+    /// is admitted by the screen and the promotion alike. It answers the USAGE sentence only; a rule that also
+    /// requires an elementary item or a category adds that itself. The item-level twin (a group's usage, a
+    /// strongly-typed group's leaves) is <c>ItemCategory.IsDisplayOrNationalUsage</c>.</summary>
+    public static bool IsDisplayOrNational(Usage u) => u is Usage.Display or Usage.National;
 
     /// <summary>⛔ THE PICTURE-LESS USAGES — ISO §13.16.3 SR8's named set, written down ONCE. "The PICTURE
     /// clause shall not be specified for the subject of a RENAMES clause or for an item whose usage is
@@ -1034,7 +1047,7 @@ public sealed record PicInfo(
     /// has no other carrier for those characters (kb/Work PB442; <c>DisplayUsageUnionDriftTests</c> records the
     /// probes).</para></summary>
     public bool IsCharacterFormNumeric =>
-        Category is PicCategory.Numeric && !IsFloat && Usage is Usage.Display or Usage.National;
+        Category is PicCategory.Numeric && !IsFloat && UsageFamilies.IsDisplayOrNational(Usage);
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
     /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte
@@ -1133,7 +1146,7 @@ public sealed record PicInfo(
     public static string SignKindFor(Usage usage, bool signed, SignSpec? sign)
     {
         if (!signed) return "TrailingOverpunch";                        // unused for an unsigned item
-        if (usage is not (Usage.Display or Usage.National)) return "BinaryMinus";   // COMP / COMP-3 / COMP-5
+        if (!UsageFamilies.IsDisplayOrNational(usage)) return "BinaryMinus";   // COMP / COMP-3 / COMP-5
         if (sign is { Separate: true }) return sign.Leading ? "LeadingSeparate" : "TrailingSeparate";
         return sign is { Leading: true } ? "LeadingOverpunch" : "TrailingOverpunch";
     }

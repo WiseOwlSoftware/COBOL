@@ -67,6 +67,8 @@ from typing import Callable, NamedTuple
 # it excludes the build-time COPIES under obj/, blanks comments and actions, and refuses an empty population.
 import grammar_source
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -708,11 +710,6 @@ def main() -> int:
                     help="name the formats the run cannot anchor: prose titles, and keywords no parser token spells")
     ap.add_argument("--self-test", action="store_true", help="run the fixture-grammar self-test (needs no PDF)")
     args = ap.parse_args()
-    for stream in (sys.stdout, sys.stderr):        # the failure branch writes to stderr, and it must be legible
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
     if args.self_test:
         return self_test()
     if PDF is None or not PDF.exists():
@@ -867,4 +864,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

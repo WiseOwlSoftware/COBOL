@@ -176,6 +176,7 @@ import gate_slot  # noqa: E402  (the landing gate's class: CLASS_ENV, LANDING)
 import landing_measure  # noqa: E402
 import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one merge of main into a branch, kb/Work PB3610)
 import ruleset  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 EXIT_CONFLICT = 4
 EXIT_GATE = 5
@@ -2246,10 +2247,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="verb")
@@ -2292,4 +2289,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

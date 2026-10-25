@@ -80,6 +80,9 @@ import itertools
 import sys
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ABSENT = "ABSENT"
 ZERO = "ZERO"      # the record a SetLength past the end of F appends: zero bytes, never a committed record
@@ -1395,4 +1398,5 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
