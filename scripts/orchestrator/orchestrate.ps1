@@ -29,7 +29,10 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      BESIDE the unit, the LANDING LANE: `land_lane.py tick` as the unit starts and every -LandLaneSeconds while it runs,
      in the background and never fatal, lands every branch WAITING TO LAND (kb/Work PB3103, design 4.9); the lane
      ticks on the same period for as long as the supervisor lives, between units, through a budget hold and a
-     failure backoff too (Step-Lane, kb/Work PB3639)
+     failure backoff too (Step-Lane, kb/Work PB3639); and the PROGRESS line every -ProgressSeconds (progress.py, in
+     the background: groups running, done and reviewed, landings, the oldest waiting item; each new stall posted once
+     to the operator's mailbox), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
+     owner's hand-off at about 60 minutes; kb/Work PB3638)
   7. validate handoff.json against handoff.schema.json
   8. append one line to units.jsonl
 The Claude ACCOUNT the loop spends is a parameter (kb/Work PB2479; design section 2.1): -ConfigDir names its config dir,
@@ -85,6 +88,11 @@ param(
     # through a budget hold and through a failure backoff. 0 runs no lane (a branch then lands only through an enqueue
     # unit's own `land_lane.py tick`).
     [int]$LandLaneSeconds = 300,
+    # THE OWNER'S FIX-CYCLE BAR (kb/Work PB3638; design section 4.3): the progress line every this many seconds while a
+    # unit runs (0: none), and the unit's hand-off: past this many minutes STOP-UNIT, the soft cap's wind-down (the unit
+    # starts no new step and launches no fleet; a fleet already running finishes and lands). 0 sets no time cap.
+    [int]$ProgressSeconds = 600,
+    [double]$UnitSoftMinutes = 60,
     [int]$StartupTicks = 300,
     [int]$BackoffBaseSeconds = 60,
     # THE LOOP ADOPTS LANDED CHANGES BY ITSELF (kb/Work PB2699; design section 4.10). The GitHub CLI adopt_main.py asks for
@@ -195,15 +203,7 @@ function Write-Checkpoint([string]$unit, [string]$sessionId, [datetime]$started,
         '--bg-tasks', "$bgTasks", '--repo', $RepoDir)
     try {
         if ($Wait) { [void](Invoke-Py $argList); return }
-        $exe, $pre = Resolve-Launch $Python
-        $psi = [System.Diagnostics.ProcessStartInfo]::new($exe)
-        foreach ($a in @($pre) + $argList) { $psi.ArgumentList.Add([string]$a) }
-        $psi.UseShellExecute = $false
-        $psi.CreateNoWindow = $true
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
-        $proc = [System.Diagnostics.Process]::Start($psi)
-        $script:CheckpointWrite = @{ proc = $proc; out = $proc.StandardOutput.ReadToEndAsync(); err = $proc.StandardError.ReadToEndAsync() }
+        $script:CheckpointWrite = Start-PyBackground $argList
     } catch { Say "checkpoint not written (the unit continues): $_" }
 }
 
@@ -216,6 +216,46 @@ function Write-Checkpoint([string]$unit, [string]$sessionId, [datetime]$started,
 # said and the unit continues. The tick itself starts nothing once STOP-UNIT, STOP or the owner's global stop exists
 # (a running landing finishes: enqueue.py is idempotent), or after a landing ended QUEUE NOT ACTIVE (HALT).
 $script:LaneTick = $null   # the background land_lane.py tick in flight: @{ proc; out; err }
+
+# ONE WAY TO START A PYTHON TOOL BESIDE THE UNIT (the checkpoint, the lane tick, the progress tick): hidden, its output
+# read asynchronously in UTF-8, never awaited on the event loop (kb/Work PB2590). Returns @{ proc; out; err }.
+function Start-PyBackground([string[]]$ArgList) {
+    $exe, $pre = Resolve-Launch $Python
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($exe)
+    foreach ($a in @($pre) + $ArgList) { $psi.ArgumentList.Add([string]$a) }
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $psi.Environment['PYTHONUTF8'] = '1'
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    return @{ proc = $proc; out = $proc.StandardOutput.ReadToEndAsync(); err = $proc.StandardError.ReadToEndAsync() }
+}
+
+# THE PROGRESS LINE (kb/Work PB3638 defect 3; design section 4.3). The owner, 2026-10-24: "It's stupid to have work
+# running with no updates or progress for multiple hours." progress.py reads the dispatch ledger, the reports and the
+# landing records (no git, no GitHub), prints one PROGRESS line and a STALL line per item waiting past its limit, and
+# posts each new stall once to the operator's mailbox (--post: the unit's log is the message's ref). Background, one at
+# a time, never fatal, as the lane tick.
+$script:ProgressTick = $null
+
+function Complete-ProgressTick {
+    if (-not $script:ProgressTick -or -not $script:ProgressTick.proc.HasExited) { return }
+    $t = $script:ProgressTick
+    $script:ProgressTick = $null
+    foreach ($l in @("$($t.out.Result)" -split "`r?`n" | Where-Object { $_ })) { Say $l }
+    if ($t.proc.ExitCode -ne 0) { Say "progress line failed (exit $($t.proc.ExitCode); the unit continues)$(if ($t.err.Result) { ": $(([string]$t.err.Result).Trim() -split "`r?`n" | Select-Object -Last 3)" })" }
+}
+
+function Start-ProgressTick([string]$unit, [datetime]$started, [string]$ref) {
+    Complete-ProgressTick
+    if ($script:ProgressTick) { return }   # the previous tick still runs: this one is skipped
+    $argList = @((Join-Path $Here 'progress.py'), '--coord', $CoordDir, '--unit', $unit, '--since', $started.ToString('o'))
+    if (Test-Path $ref) { $argList += @('--post', $ref) }
+    try { $script:ProgressTick = Start-PyBackground $argList }
+    catch { Say "progress line not started (the unit continues): $_" }
+}
 
 function Complete-LaneTick {
     # Non-blocking: says a finished tick's lines and its failure, if any; leaves a running one alone.
@@ -230,19 +270,8 @@ function Start-LaneTick {
     if ($LandLaneSeconds -le 0) { return }
     Complete-LaneTick
     if ($script:LaneTick) { return }   # the previous tick still runs: this one is skipped, the next carries it
-    try {
-        $exe, $pre = Resolve-Launch $Python
-        $psi = [System.Diagnostics.ProcessStartInfo]::new($exe)
-        foreach ($a in @($pre) + @((Join-Path $Here 'land_lane.py'), '--coord', $CoordDir, 'tick', '--repo', $RepoDir)) { $psi.ArgumentList.Add([string]$a) }
-        $psi.UseShellExecute = $false
-        $psi.CreateNoWindow = $true
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
-        $psi.StandardOutputEncoding = [System.Text.UTF8Encoding]::new($false)
-        $psi.Environment['PYTHONUTF8'] = '1'
-        $proc = [System.Diagnostics.Process]::Start($psi)
-        $script:LaneTick = @{ proc = $proc; out = $proc.StandardOutput.ReadToEndAsync(); err = $proc.StandardError.ReadToEndAsync() }
-    } catch { Say "land lane tick not started (the unit continues): $_" }
+    try { $script:LaneTick = Start-PyBackground @((Join-Path $Here 'land_lane.py'), '--coord', $CoordDir, 'tick', '--repo', $RepoDir) }
+    catch { Say "land lane tick not started (the unit continues): $_" }
 }
 
 # THE ONE LANE TIMER (kb/Work PB3639): every wait and every stretch of the loop calls this, so the lane ticks whether or
@@ -393,6 +422,7 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
     $lastBgChecked = 0
     Write-Checkpoint $unit $sessionId $unitStarted $stats $bgTasks $lastEventAt   # one at once: a crash in the first minutes still leaves one
     Step-Lane -Now   # one at once too: a branch that became ready while no unit ran lands without waiting a period
+    $lastProgress = Get-Date   # the first progress line comes one period in: at the start nothing has moved yet
     if ($Watch -and $unit -eq 'wave') {
         try {
             $watcher = Start-Process -PassThru -WindowStyle Hidden -FilePath (Get-Command pwsh).Source -ArgumentList @(
@@ -483,6 +513,12 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
             }
             # The landing lane beside the unit (kb/Work PB3103): a tick every -LandLaneSeconds, in the background.
             Step-Lane
+            # The progress line beside the unit (kb/Work PB3638): every -ProgressSeconds, in the background.
+            Complete-ProgressTick
+            if ($ProgressSeconds -gt 0 -and ((Get-Date) - $lastProgress).TotalSeconds -ge $ProgressSeconds) {
+                Start-ProgressTick $unit $unitStarted "$logBase.jsonl"
+                $lastProgress = Get-Date
+            }
             # THE CONTEXT POLICY (kb/Work PB2597; design section 4.3). Two levels, so a fleet the unit paid to launch is
             # never thrown away for the unit's own size:
             #   soft  context > -MaxContextTokens: STOP-UNIT only. The unit starts no new step and launches no fleet
@@ -496,6 +532,7 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
             if ($stats.context -gt $HardContextTokens) { $windDown = 'context-hard'; $why = "context $($stats.context) > hard cap ${HardContextTokens}"; $stopFleet = $true }
             elseif (Test-Stop) { $windDown = 'stop'; $why = 'STOP file present'; $stopFleet = $true }
             elseif ($stats.context -gt $MaxContextTokens) { $windDown = 'context-soft'; $why = "context $($stats.context) > soft cap ${MaxContextTokens}" }
+            elseif ($UnitSoftMinutes -gt 0 -and ((Get-Date) - $unitStarted).TotalMinutes -gt $UnitSoftMinutes) { $windDown = 'time-soft'; $why = "the unit has run past -UnitSoftMinutes $UnitSoftMinutes (the owner's hand-off, kb/Work PB3638)" }
             if ($stopFleet -and -not $stats.fleet_stop_sent) {
                 Say "${why}: winding the unit and its fleet down (STOP-UNIT and the loop's fleet stop $FleetStop; agents checkpoint and return SPLIT, the unit hands off, the loop then ends if STOP is set)"
                 # The fleet stop FIRST: the unit acts on STOP-UNIT and then expects the fleet stop to exist (its dispatched
@@ -524,6 +561,7 @@ function Invoke-Unit([string]$unit, [string]$model, [string]$sessionId, [string]
         $proc.WaitForExit()
         Write-Checkpoint $unit $sessionId $unitStarted $stats $bgTasks $lastEventAt -Wait   # the final state, for the log and a successor
         Complete-LaneTick   # a tick still running is said when the next unit starts one
+        Complete-ProgressTick
     } finally {
         $log.Close()
         if ($watcher -and -not $watcher.HasExited) { Stop-Process -Id $watcher.Id -Force -ErrorAction SilentlyContinue }

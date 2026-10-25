@@ -553,24 +553,43 @@ def stamp_covers(rv: Review, tip: str | None, *, repo=REPO, graph: Ancestry | No
     return bool(tip) and (rv.covers(tip) or review_holds(rv, tip, repo=repo, graph=graph))
 
 
-def review_coverage(rows: list[Row], repo=REPO) -> Callable[[Review | None, str | None], bool]:
-    """stamp_covers at the tips THIS survey measured: (a stamp, its branch) -> the stamp covers that branch's tip. The
-    planner's FINDINGS arm reads it (plan_wave.main, kb/Work PB3394), so the planner and lifecycle() never disagree on
-    one branch. A branch the survey has no row for has no tip, and no stamp covers it. Every answer reads ONE graph of
-    the measured tips, read at the first question (kb/Work PB3582)."""
-    tips = {r.name: r.tip for r in rows}
-    graph: list[Ancestry] = []
+def report_since(head: str | None, tip: str | None, *, repo=REPO, graph: Ancestry | None = None) -> list[str] | None:
+    """THE REPORT'S COVERAGE OF A BRANCH TIP, the one reader (kb/Work PB3446): the commits of `tip` after the report's
+    HEAD that no report describes (unreviewed_since: the review's coverage rule, mechanical commits aside), newest
+    first. [] = the report covers the tip; None = it names no HEAD, the branch has no tip, or the HEAD is no commit of
+    the tip's history, so it describes nothing. lifecycle() reads it off the row the survey measured (`Row.report_since`)
+    and the planner through `Coverage.report`: both ask this function, so they never read one report two ways."""
+    return unreviewed_since(head, tip, repo=repo, graph=graph) if head and tip else None
 
-    def covers(rv: Review | None, branch: str | None) -> bool:
-        tip = tips.get(branch or '')
+
+class Coverage:
+    """What the tips THIS survey measured say about a branch's two coverages, for the planner (plan_wave.main): the
+    review stamp's (`review`, the FINDINGS arm, kb/Work PB3394) and the report's (`report`, the stale-stamp arm, kb/Work
+    PB3446), each the very function lifecycle() asks (stamp_covers, report_since), so the planner and lifecycle() never
+    disagree on one branch. A branch the survey has no row for has no tip, and nothing covers it. Every answer reads ONE
+    graph of the measured tips, read at the first question that needs it (kb/Work PB3582)."""
+
+    def __init__(self, rows: list[Row], repo=REPO):
+        self.repo = repo
+        self.tips = {r.name: r.tip for r in rows}
+        self._graph: Ancestry | None = None
+
+    def graph(self) -> Ancestry:
+        if self._graph is None:
+            self._graph = Ancestry.read(self.repo, [t for t in self.tips.values() if t])
+        return self._graph
+
+    def review(self, rv: Review | None, branch: str | None) -> bool:
+        """The stamp covers the branch's tip: it names it, or it holds there (stamp_covers)."""
+        tip = self.tips.get(branch or '')
         if not rv or not tip:
             return False
-        if rv.covers(tip):
-            return True
-        if not graph:
-            graph.append(Ancestry.read(repo, [t for t in tips.values() if t]))
-        return stamp_covers(rv, tip, repo=repo, graph=graph[0])
-    return covers
+        return rv.covers(tip) or stamp_covers(rv, tip, repo=self.repo, graph=self.graph())
+
+    def report(self, head: str | None, branch: str | None) -> bool:
+        """The report whose HEAD is `head` covers the branch's tip (report_since == [])."""
+        tip = self.tips.get(branch or '')
+        return bool(head and tip) and report_since(head, tip, repo=self.repo, graph=self.graph()) == []
 
 
 @dataclasses.dataclass
@@ -922,7 +941,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Repor
         if rv:
             r.review_holds = review_holds(rv, r.tip, repo=repo, graph=graph)
         if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
-            r.report_since = unreviewed_since(r.report.head, r.tip, repo=repo, graph=graph)
+            r.report_since = report_since(r.report.head, r.tip, repo=repo, graph=graph)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
                                    prs=prs, lane=lane)
     contained(rows, graph, reports, pathlib.Path(repo) / 'kb' / 'Work')
@@ -1353,7 +1372,7 @@ def self_test() -> int:
                      ('pred', 'src/T.cs'), ('fnd-pred', 'src/W.cs'), ('reviewed-stamped', 'src/Y.cs'),
                      # kb/Work PB3394: a FINDINGS stamp at a head the branch moved past (its answers committed after
                      # the review), and one followed only by the DEVLOG stamp
-                     ('findings-moved', 'src/FM.cs'), ('findings-stamped', 'src/FS.cs'),
+                     ('findings-moved', 'src/FM.cs'), ('findings-stamped', 'src/FS.cs'), ('findings-resumed', 'src/FR.cs'),
                      # ONE RULE FOR A FINISHED BRANCH (kb/Work PB3181, PB3125): the report's coverage, the review's,
                      # and the landing lane's newest attempt at the tip. `lane-pred` carries no report and lands
                      # through `lane-stopped`, cut from it; the other `lane-*` are each one attempt's outcome; a
@@ -1409,6 +1428,10 @@ def self_test() -> int:
         fmoved_at = scratch.git('rev-parse', 'findings-moved')
         scratch.git('switch', '-q', 'findings-moved')
         commit('src/FM.cs', 'class FindingsMovedX { int R1_1Answered; }\n', 'review R1-1: answered after the review')
+        # kb/Work PB3446: a FINDINGS stamp at the report's HEAD, then a commit NO report describes (a resumed agent)
+        fresumed_at = scratch.git('rev-parse', 'findings-resumed')
+        scratch.git('switch', '-q', 'findings-resumed')
+        commit('src/FR.cs', 'class FindingsResumedX { int AfterTheReport; }\n', 'a commit no report describes')
         fstamped_at = scratch.git('rev-parse', 'findings-stamped')
         scratch.git('switch', '-q', 'findings-stamped')
         commit('DEVLOG/0043-the-findings.md', '## Entry 43 — 2026-10-11 21:00 PDT — findings\n\nWhy.\n', 'DEVLOG 43: stamp')
@@ -1584,6 +1607,8 @@ def self_test() -> int:
                                           f'**Review:** FINDINGS 1 w9992a-r1 {fmoved_at[:12]} E:/s/review-w9992-a.jsonl\n', 10),
                 ('w9992b-PB51-report.md', f'Status: DONE\nBranch: findings-stamped\nHEAD: {fstamped_at[:12]}\n'
                                           f'**Review:** FINDINGS 1 w9992b-r1 {fstamped_at[:12]} E:/s/review-w9992-b.jsonl\n', 10),
+                ('w9992c-PB52-report.md', f'Status: DONE\nBranch: findings-resumed\nHEAD: {fresumed_at[:12]}\n'
+                                          f'**Review:** FINDINGS 1 w9992c-r1 {fresumed_at[:12]} E:/s/review-w9992-c.jsonl\n', 10),
                 ('w9998o-PB16-report.md', f'Status: DONE\nBranch: fnd-pred\nHEAD: {tips["fnd-pred"]}\n'
                                           f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} {at_scratch("review-w9998-o.jsonl")}\n', 10),
                 ('w9998p-PB16-report.md', f'Status: DONE\nBranch: fnd-fix\nHEAD: {tips["fnd-fix"]}\n'
@@ -1724,7 +1749,8 @@ def self_test() -> int:
                 'gpred': 'IN FLIGHT', 'gsucc': 'DECISION', 'hpred': 'IN FLIGHT', 'hsucc': 'WAITING FOR REVIEW',
                 'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION',
                 'rp-pred': 'IN FLIGHT', 'rp-succ': 'DECISION', 'rp-part': 'DECISION', 'rp-partc': 'DECISION',
-                'rp-gone': 'DECISION', 'rp-dead': 'DECISION', 'an-pred': 'IN FLIGHT', 'an-succ': 'WAITING FOR REVIEW'}
+                'rp-gone': 'DECISION', 'rp-dead': 'DECISION', 'an-pred': 'IN FLIGHT', 'an-succ': 'WAITING FOR REVIEW',
+                'findings-resumed': 'DECISION'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1761,26 +1787,40 @@ def self_test() -> int:
         check('but the branch is at' in rows['reviewed-moved'].why, 'a stamp at an older head is unreviewed work, said so')
         check('2 finding(s)' in rows['review-findings'].why and 'finisher' in rows['review-findings'].why,
               'a FINDINGS stamp is a finisher DECISION, with the findings file')
-        # kb/Work PB3394 (wave 1127's shape): the planner reads THIS survey's coverage (review_coverage), so a FINDINGS
+        # kb/Work PB3394 (wave 1127's shape): the planner reads THIS survey's coverage (Coverage.review), so a FINDINGS
         # stamp at a head the branch moved past is WAITING FOR REVIEW to both and gets no finisher; one followed only by
         # the DEVLOG stamp still covers its tip, and gets its finisher
         import plan_wave  # noqa: PLC0415  (it imports this module back)
         check('Review FINDINGS at' in rows['findings-moved'].why and 'finding(s)' in rows['findings-stamped'].why,
               f'a FINDINGS stamp at an older head is unreviewed work; one followed only by the DEVLOG stamp covers: '
               f'{rows["findings-moved"].why} / {rows["findings-stamped"].why}')
-        coverage = review_coverage(list(rows.values()), repo=repo)
+        coverage = Coverage(list(rows.values()), repo=repo)
         preps = plan_wave.load_reports(rdir)
-        pnotes = {n: plan_wave.Note(n, 'open', 'process', n, [], '', 0) for n in ('PB50', 'PB51')}
+        pnotes = {n: plan_wave.Note(n, 'open', 'process', n, [], '', 0) for n in ('PB50', 'PB51', 'PB52')}
         plan = plan_wave.plan(pnotes, [{'file': f'src/{f}.cs', 'files': [], 'harm': 0, 'notes': [{'id': n}]}
-                                       for n, f in (('PB50', 'FM'), ('PB51', 'FS'))], [], preps,
+                                       for n, f in (('PB50', 'FM'), ('PB51', 'FS'), ('PB52', 'FR'))], [], preps,
                               lambda b: rows[b].content if b in rows else 'ABSENT', {}, coord.rules(), 100,
-                              review_covers=lambda rep: coverage(rep.review, rep.branch))
+                              review_covers=lambda rep: coverage.review(rep.review, rep.branch),
+                              report_covers=lambda rep: coverage.report(rep.head, rep.branch))
         fins = {i: g.pred for g in plan['groups'] if g.kind == 'finisher' for i in g.notes}
         check(('PB50' in fins, plan['waiting'].get('PB50', '').startswith('WAITING FOR REVIEW'),
                'FINISH-FIRST: the branch review of w9992b' in fins.get('PB51', ''), 'PB51' in plan['waiting'])
               == (False, True, True, False),
               f'the planner plans no finisher for a FINDINGS stamp at an older head (WAITING FOR REVIEW, as the survey '
               f'reads it) and one for a stamp that covers the tip: groups {fins}, waiting {plan["waiting"]}')
+        # kb/Work PB3446 (the drift test): the planner names WAITING FOR REVIEW for a FINDINGS-stamped branch exactly where
+        # lifecycle() reads it WAITING FOR REVIEW; a report followed by a commit no report describes is a DECISION there
+        # and RESUMED here (no reviewer is ever dispatched for it), and neither is a finisher
+        said = {n: ('WAITING FOR REVIEW' if plan['waiting'].get(n, '').startswith('WAITING FOR REVIEW') else
+                    'RESUMED' if plan['waiting'].get(n, '').startswith('RESUMED') else 'planned' if n in fins else '?')
+                for n in ('PB50', 'PB51', 'PB52')}
+        check(said == {'PB50': 'WAITING FOR REVIEW', 'PB51': 'planned', 'PB52': 'RESUMED'}
+              and all((rows[b].state == 'WAITING FOR REVIEW') == (said[n] == 'WAITING FOR REVIEW')
+                      for n, b in (('PB50', 'findings-moved'), ('PB51', 'findings-stamped'), ('PB52', 'findings-resumed'))),
+              f'the planner and lifecycle() read one FINDINGS branch one way (PB3446): planner {said}, survey '
+              f'{[rows[b].state for b in ("findings-moved", "findings-stamped", "findings-resumed")]}')
+        check('1 commit(s) since the report' in rows['findings-resumed'].why,
+              f'a FINDINGS report followed by a commit no report describes is a DECISION: {rows["findings-resumed"].why}')
         check('contained in succ' in rows['pred'].why, f'a predecessor lands through its successor: {rows["pred"].why}')
         # kb/Work PB3652: the survey reads the planner's own carrier rule (replay_view) and ancestry for a SPLIT branch too
         check((rows['rp-pred'].carrier, 'replayed by rp-succ (DECISION)' in rows['rp-pred'].why,
@@ -2091,7 +2131,7 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 66 · 17 in flight · 6 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 67 · 17 in flight · 6 waiting for review · '
                                                       '10 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')

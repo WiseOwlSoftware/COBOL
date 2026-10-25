@@ -273,7 +273,7 @@ Each iteration, in this order:
 8. **Record** one line in `units.jsonl`: `{unit, reason, model, session_id, started_at, ended_at, duration_s,
    exit_code, handoff_outcome, next_unit, failed, log, calls, input, output, cache_read, cache_creation,
    peak_context, peak_subagent_context, cost_usd, stop_unit_sent, fleet_stop_sent, wind_down (null, context-soft,
-   context-hard or stop), fleet_at_wind_down, killed}`, plus, with `-Cluster`, `cluster` (the lead a `campaign` unit ran)
+   time-soft, context-hard or stop), fleet_at_wind_down, killed}`, plus, with `-Cluster`, `cluster` (the lead a `campaign` unit ran)
    and `campaigns` (each lead's lane state at this choice), which `next_unit.py` reads back for the campaign turns and
    the starvation measure (section 3.2). This is the per-unit cost record PB1981 item 9 refits the cost
    law from. An owner question in a valid handoff then stops the loop (exit 5).
@@ -352,6 +352,25 @@ So the soft cap is 200,000, about 1.45 times the largest normal peak (headroom f
 under the soft cap still has more than three times the largest measured supervision growth before the hard cap.
 Re-measure both from `units.jsonl` (`peak_context`, `wind_down`, `fleet_at_wind_down`) when the prompts or the model
 change.
+
+**The time cap and the progress line (kb/Work PB3638, the owner's fix-cycle bar of 2026-10-24).** The owner: "It's
+stupid to have work running with no updates or progress for multiple hours", and on 2026-10-23 "no wave may take hours;
+one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
+- **One chain link per wave** (`model_rules.json` `wave.links_per_chain`, 1; section 9 item 4): a wave runs until its
+  last group returns, so a wave plans only each chain's first link and its length is one group's.
+- **The time soft cap** (`-UnitSoftMinutes`, default 60): past it the supervisor writes `STOP-UNIT` and records the
+  wind-down `time-soft`, exactly as at the context soft cap: the unit starts no new step and launches no fleet, a fleet
+  already running finishes and lands, and the unit then hands off. It never sends the fleet stop: a running
+  implementer's work is not thrown away for the clock.
+- **The progress line** (`-ProgressSeconds`, default 600): `progress.py`, started in the background like the lane tick
+  (never on the event loop, never fatal), prints `PROGRESS <unit> at <n> min:` with the dispatch-ledger groups by state
+  (running, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
+  and the oldest waiting item, plus a `STALL` line for each group running past 60 minutes or DONE and unreviewed past 15
+  (half the 30-minute dispatch-to-queue bar). The supervisor says every line in its log, and `progress.py --post` sends
+  each stalled item to the operator's mailbox once (`kind: info`, `--unless-pending`, again only an hour later while it
+  stays stalled: every message wakes the attended session, so a message per tick would cost it a turn every ten minutes
+  for news it has). The stages of the bar are measured per landing by `landing_measure.py summary` (dispatch, DONE,
+  review clean, enqueued, merged; DESIGN-test-build-ci.md section 3.17.5).
 
 ### 4.4 Replacing the daily-resume cron
 
@@ -894,9 +913,12 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
    PB3027: the landing step never fixes a finding; the finisher's `pred` names the findings file and asks for every
    finding answered by its id) that COVERS the branch tip (`prune_worktrees.stamp_covers`, the branch survey's own
-   coverage rule, read through `review_coverage` over the survey's tips: the stamp names the tip, or every commit
-   since is mechanical; a stamp at an older head followed by real commits is WAITING FOR REVIEW, a diff-only
-   re-review, and the note waits, named, never a group: kb/Work PB3394): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
+   coverage rule, read through `prune_worktrees.Coverage.review` over the survey's tips: the stamp names the tip, or
+   every commit since is mechanical; a stamp at an older head followed by real commits is WAITING FOR REVIEW, a
+   diff-only re-review, and the note waits, named, never a group: kb/Work PB3394; where the REPORT does not cover the
+   tip either (commits after its HEAD that no report describes), the survey reads the branch IN FLIGHT or a DECISION,
+   never WAITING FOR REVIEW, and the planner says so from `Coverage.report`, the survey's own `report_since`: kb/Work
+   PB3446): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
    the fix lane cannot see (a `process_only` note, or an owner task's note that exists only on its own branch, read
    from that branch: `branch_lead_notes`) is decided by the same rule as an open note: its newest report naming it, on
    any branch, so its review finisher's later report on the finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`)
@@ -941,7 +963,14 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
 4. **One group per primary file and member**: a later group on the same file whose claim there meets an earlier
    group's (the whole file, or a shared member: `plan_wave.unit_meet`) becomes a same-file successor (`after:
    <letter>`, letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2, a shared-MEMBER
-   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670).
+   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670). **The placement order is
+   the tier** (kb/Work PB3638): groups are placed, lettered and chained in tier order, a campaign's effective tier
+   (`work.cluster_order`, passed to `plan` as `tiers`; a finisher takes its notes', a group its lowest, lowered by
+   `lift_tiers` to that of every group waiting on it), finishers first inside one tier, so the owner's highest tier
+   heads its chain (wave 20261029 chained two untiered finishers ahead of the tier-1 PB3612). **One chain link per
+   wave** (the owner, 2026-10-23; `model_rules.json` `wave.links_per_chain`, 1): a wave runs until its last group
+   returns, so only each chain's first link is dispatched, and the later links wait, named, for the next wave, which
+   plans them from the branch the earlier link leaves (the partition's continuation, item 1).
 5. **Model per group** from `model_rules.json`: Opus when the primary file or a code site matches a design-heavy
    pattern (`/Oo/`, `.g4`, `Frontend/Grammar/`), a note's area matches (`oo`, `grammar`), a note's body says a
    design question is open, or a note already appears in two reports while still open (a note that fails twice is a
@@ -950,7 +979,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    `tokens_per_point`; each group's landing at `landing_tokens` on Opus (the enqueue unit's turns per branch, kb/Work
    PB3023; seeded at the retired lander's cost over its five-group train). Groups are taken in rank
    order while they fit; a group that does not fit is skipped and a smaller later one may still fit; a successor
-   only with its predecessor; at most `wave.max_groups` (8) groups.
+   only with its predecessor, and only within `wave.links_per_chain` (item 4); at most `wave.max_groups` (8) groups.
+   `per_group_tokens` and `per_note_tokens` are the unmeasured 2026-10-04 seed (their `cost.source` says why, kb/Work
+   PB3641); the group cap's turns measurement is `turns_by_group_size.py`.
 7. **Allocation** through `alloc.py`: three codes per group, reserved only after the wave's specs, rendered on the
    PEEKED codes, check GREEN (item 8). The planner allocates no lead ids (the enqueue unit's clerk takes them when it
    files the landed reports' leads, kb/Work PB3023). No DEVLOG number is planned: an entry is written unnumbered

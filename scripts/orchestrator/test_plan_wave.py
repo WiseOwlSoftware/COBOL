@@ -30,7 +30,12 @@ sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
 
+LIVE_RULES = coord.rules()   # the rules as model_rules.json states them (the PB3638 block reads the owner's one link)
 RULES = coord.rules()
+# The chain mechanics (letters A2, A3, `after:`, a successor's continuation) are what a wave dispatches when it runs more
+# than one link of a chain; the owner's rule runs one (wave.links_per_chain, kb/Work PB3638), so the fixtures below,
+# which test the chains themselves, plan every link, and the PB3638 block tests the live value.
+RULES["wave"]["links_per_chain"] = 99
 TMP = scratch_dir("plan-wave-test-")
 WORK = TMP / "Work"
 WORK.mkdir()
@@ -510,7 +515,7 @@ for drain in (False, True):
     check("a SPLIT report's branch IN FLIGHT is the SPLIT arm's (PB2974), not this rule's",
           any("PB6" in g.notes for g in pf2["groups"]), True)
 # kb/Work PB3394 (wave 1127's A, B and C): a FINDINGS stamp makes a finisher only when it COVERS the branch tip
-# (`review_covers`: prune_worktrees.review_coverage over the survey in plan_wave.main, the survey's own rule; the
+# (`review_covers`: prune_worktrees.Coverage.review over the survey in plan_wave.main, the survey's own rule; the
 # end-to-end case on a real git history is prune_worktrees.py --self-test's findings-moved and findings-stamped). A stamp
 # at an older head is WAITING FOR REVIEW, named in `waiting`, never a group, in either mode. Without a survey the
 # report's own HEAD stands for the tip: a report rewritten after the review (HEAD past the stamp) is not covered.
@@ -1098,6 +1103,35 @@ if fc:
     check("so the mixed dependent cluster follows the one Alpha.cs chain instead of waiting",
           ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
           ([("A", "", ["PB961", "PB962"]), ("A2", "A", ["PB963"]), ("A3", "A2", ["PB964", "PB965"])], {}))
+
+# 9c. THE PLACEMENT ORDER IS THE TIER, AND A WAVE RUNS ONE LINK PER CHAIN (kb/Work PB3638, the owner's fix-cycle bar).
+#     Wave 20261029 chained two untiered FINISHERS (PB3112, PB2878) ahead of the tier-1 cluster PB3612 on one file,
+#     because every finisher was placed before every cluster, and ran all three links in one wave: PB3612 started two
+#     hours in. Here F_BIND holds the cluster (PB2, PB5) and its successor (PB14); the base fixture's finishers are
+#     untiered.
+tp1 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100,
+              tiers={"PB14": 1})
+check("PB3638: a tier-1 group heads its file's chain and is placed before every untiered finisher",
+      [(g.letter, g.after, g.notes) for g in tp1["groups"]][:3],
+      [("A", "", ["PB14"]), ("B", "", list(FIN)), ("C", "", ["PB4"])])
+check("PB3638: the untiered cluster on that file follows the tier-1 group",
+      next((g.letter, g.after) for g in tp1["groups"] if g.notes == ["PB2", "PB5"]), ("A2", "A"))
+tp2 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100,
+              tiers={"PB13": 1, "PB14": 2})
+check("PB3638: a finisher takes its notes' tier; inside one tier the finishers keep their order",
+      [g.notes for g in tp2["groups"]][:4], [["PB13"], ["PB14"], list(FIN), ["PB4"]])
+check("PB3638: the fix lane passes no tiers, so its order is the one check 2 holds", [g.notes for g in p["groups"]][:3],
+      [list(FIN), ["PB4"], ["PB13"]])
+check("PB3638: model_rules.json states the owner's one link per chain", LIVE_RULES["wave"]["links_per_chain"], 1)
+tp3 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, LIVE_RULES,
+              budget_points=100, tiers={"PB14": 1})
+check("PB3638: under the live rules no dispatched group follows another (one link per chain)",
+      ([g.notes for g in tp3["groups"] if g.after], ["PB2", "PB5"] in [g.notes for g in tp3["groups"]],
+       ["PB14"] in [g.notes for g in tp3["groups"]]), ([], False, True))
+check("PB3638: the later link waits, naming the rule and the link it follows",
+      [("one chain link per wave" in tp3["waiting"].get(i, ""), "group A " in tp3["waiting"].get(i, ""))
+       for i in ("PB2", "PB5")], [(True, True), (True, True)])
+check("PB3638: a deferred link is no budget skip", any(g.notes == ["PB2", "PB5"] for g in tp3["skipped"]), False)
 
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's

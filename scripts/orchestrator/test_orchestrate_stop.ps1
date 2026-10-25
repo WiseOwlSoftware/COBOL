@@ -2,8 +2,8 @@
 # SELF-TEST-PLATFORM: windows — the orchestrator loop is Windows-hosted: these cases drive Windows Terminal (a fake wt.exe), Win32_Process, USERPROFILE and directory junctions
 # Self-test for orchestrate.ps1 (stop), driven by a fake -ClaudeExe (testdata/fake-claude.ps1); no Pester, no real
 # session. Proves: stop.ps1, a second instance refused, the hard and soft context caps (the soft cap never stops a
-# running fleet and a loop unit cannot launch one after STOP-UNIT, kb/Work PB2597) and a subagent's context, an owner
-# question.
+# running fleet and a loop unit cannot launch one after STOP-UNIT, kb/Work PB2597) and a subagent's context, the time
+# soft cap and the progress line (kb/Work PB3638), an owner question.
 # One of the parallel parts of the orchestrate.ps1 self-test (testdata/orchestrate_test_lib.ps1 is their harness;
 # kb/Work PB2563). Run: pwsh -NoProfile -File scripts/orchestrator/test_orchestrate_stop.ps1, or every
 # self-test at once: python scripts/self_tests.py
@@ -62,6 +62,15 @@ Check 'soft cap: a fleet launch after STOP-UNIT is refused by the dispatch guard
 Check 'soft cap: the fleet finished and the unit handed off done, not killed' "$($r.units[0].handoff_outcome) $($r.units[0].killed)" 'done False'
 Check 'soft cap: the supervisor says the fleet finishes first' ($r.out -match 'soft cap 1000: STOP-UNIT .*its running fleet finishes and lands first') $true
 Check 'the shipped soft and hard caps (measured, design 4.3)' ((Get-Content $Orch -Raw) -match '\[int\]\$MaxContextTokens = 200000,' -and (Get-Content $Orch -Raw) -match '\[int\]\$HardContextTokens = 500000,') $true
+
+# 7d. THE OWNER'S HAND-OFF AT ABOUT 60 MINUTES AND THE PROGRESS LINE (kb/Work PB3638): past -UnitSoftMinutes the unit gets
+# STOP-UNIT exactly as at the context soft cap (no fleet stop, its running fleet finishes), recorded as `time-soft`; and
+# the supervisor logs a PROGRESS line every -ProgressSeconds while the unit runs
+$r = Run-Orch 'timecap' 'softcap' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-UnitSoftMinutes', '0.01', '-ProgressSeconds', '1')
+Check 'time cap: STOP-UNIT sent, recorded as the time soft wind-down, no fleet stop' "$($r.units[0].stop_unit_sent) $($r.units[0].wind_down) $($r.units[0].fleet_stop_sent)" 'True time-soft False'
+Check 'time cap: the fleet finished and the unit handed off done, not killed' "$($r.units[0].handoff_outcome) $($r.units[0].killed)" 'done False'
+Check 'progress: the supervisor logs the PROGRESS line while the unit runs' ($r.out -match 'PROGRESS wave at \d+ min: groups running 0') $true
+Check 'the shipped hand-off and progress period (the owner''s bar, design 4.3)' ((Get-Content $Orch -Raw) -match '\[double\]\$UnitSoftMinutes = 60,' -and (Get-Content $Orch -Raw) -match '\[int\]\$ProgressSeconds = 600,') $true
 
 # 7b. a SUBAGENT's context past the cap is not the unit's context: the unit is not wound down
 $r = Run-Orch 'capsub' 'bigsubagent' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-MaxContextTokens', '50000')
