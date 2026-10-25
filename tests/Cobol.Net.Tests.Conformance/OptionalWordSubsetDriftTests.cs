@@ -616,10 +616,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     """;
 
     // INHERITS (§11.3.2). PDF p294 / folio 264: INHERITS carries a rule (95.0%) and FROM's box 140.01–168.09
-    // carries none. ⛔ FROM is REQUIRED INSIDE the optional `[ INHERITS FROM … ]` group, so
-    // audit_grammar_optional_words.py structurally cannot report it (kb/Work PB715) — this row is the only
-    // mechanical guard the omission has. §11.3.4 GR1 gives the subclass its superclass's methods, so the
-    // inherited MIX must answer in both spellings.
+    // carries none. ⛔ FROM sits inside the optional `[ INHERITS FROM … ]` group, the shape
+    // audit_grammar_optional_words.py reports only since kb/Work PB715 — and that audit reads the private PDF and
+    // runs in no gate, so this row is the mechanical guard the gates run. §11.3.4 GR1 gives the subclass its
+    // superclass's methods, so the inherited MIX must answer in both spellings.
     private const string InheritsFromWord = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWS.
@@ -745,7 +745,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // function-prototype-name-1, PROGRAM-POINTER [ TO program-prototype-name-1 ] (kb/Work PB848). RENDERED — PDF
     // p533 / folio 503: the underline rule sits under POINTER / FUNCTION-POINTER / PROGRAM-POINTER, never under TO.
     // ⛔ TO IS REQUIRED-INSIDE-AN-OPTIONAL-GROUP in the grammar's old `(TO cobolWord)?`, the shape
-    // audit_grammar_optional_words.py cannot see (kb/Work PB715), so this row is the mechanical guard. Each TO slot
+    // audit_grammar_optional_words.py reports only since kb/Work PB715 and in no gate (it reads the private PDF),
+    // so this row is the mechanical guard the gates run. Each TO slot
     // sits on the TO-FULL twin of a TO-less entry, and §14.9.39.3 SR19/SR20/SR22 admit the copy between the twins
     // only because both name the same type / prototype — a TO-less operand that bound as nothing would fail to
     // compile rather than print something else.
@@ -798,7 +799,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                SET FP1 TO ADDRESS OF FUNCTION OPWVF
                SET FP2 TO FP1
                IF FP2 = FP1 DISPLAY "FP-SAME" END-IF
-               SET PP1 TO ENTRY "OPWVP"
+               SET PP1 TO ADDRESS OF PROGRAM OPWVP
                SET PP2 TO PP1
                IF PP2 = PP1 DISPLAY "PP-SAME" END-IF
                CALL PP2 USING WS-N

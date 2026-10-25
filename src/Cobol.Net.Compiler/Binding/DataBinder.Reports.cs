@@ -95,6 +95,16 @@ public sealed class ReportModel
     /// and never the bound products, which exist only for the entries that make one (kb/Work PB1289).</summary>
     public IReadOnlyList<Core.ReportGroupEntryContext> WrittenEntries { get; init; } = [];
 
+    /// <summary>⛔ THE ONE LIST OF THE DATA-NAMES THIS REPORT DECLARES (kb/Work PB1046): every WRITTEN entry that has a
+    /// data-name, with the names of the levels above it (<see cref="ReportNamedEntry.Qualification"/>) and whether it
+    /// establishes a sum counter. Read off <see cref="WrittenEntries"/> once, because the questions asked of "the report
+    /// section's names" — which names no ordinary item also carries (§13.18.16.3 SR2, §13.15.3 SR16), which entry a
+    /// procedure division or other-section reference reaches (§13.8.6.2.3), whether a word is a sum counter (§8.4.2.3.3
+    /// SR8) — are about NAMES the programmer declared, never about the bound products (lines, fields, counters), which
+    /// exist only for the entries that make one (kb/Work PB1289).</summary>
+    public IReadOnlyList<ReportNamedEntry> NamedEntries => _namedEntries ??= ReportNamedEntry.ReadAll(WrittenEntries);
+    private IReadOnlyList<ReportNamedEntry>? _namedEntries;
+
     /// <summary>The report groups in declaration order.</summary>
     public List<ReportGroupModel> Groups { get; } = [];
 
@@ -147,6 +157,33 @@ public sealed class ReportModel
     /// engine's, so it allocates no storage. LINE-COUNTER has no such register: SR3 bars it from the receiving
     /// side, and the sending side of both counters is <c>BoundReportCounterRef</c>.</summary>
     public required DataItem PageCounterRegister { get; init; }
+}
+
+/// <summary>One report group description entry that carries a data-name (ISO §13.15.3 SR7's "entry-name"):
+/// <paramref name="Name"/>, the names of the levels it is subordinate to INNERMOST FIRST ending at its 01 report group
+/// (a null for an unnamed level — FILLER — as <see cref="ReportEntryFamily.Qualification"/> keeps them), and whether the
+/// entry contains a SUM clause and so names a sum counter (§13.18.54.4 GR5). Group entries, intermediate groups and
+/// the 01 itself are here as well as the printable items: all of them are "report items" in §13.8.6.2.3's sense.</summary>
+public sealed record ReportNamedEntry(string Name, IReadOnlyList<string?> Qualification, bool IsSumCounter)
+{
+    /// <summary>The named entries of <paramref name="written"/> (a report's entries in source order), each with the
+    /// level stack above it — the same level-number walk <c>BindReportEntry</c> keeps for its chain.</summary>
+    internal static IReadOnlyList<ReportNamedEntry> ReadAll(IReadOnlyList<Core.ReportGroupEntryContext> written)
+    {
+        var entries = new List<ReportNamedEntry>();
+        var above = new List<(int Level, string? Name)>();
+        foreach (var ge in written)
+        {
+            int.TryParse(ge.levelNumber().GetText(), out int level);
+            while (above.Count > 0 && above[^1].Level >= level) above.RemoveAt(above.Count - 1);
+            string? name = ge.dataName().NameOrNull();
+            if (name is not null)
+                entries.Add(new ReportNamedEntry(name, [.. Enumerable.Reverse(above).Select(a => a.Name)],
+                    ge.reportGroupClause().Any(c => c.reportSumClause() is not null)));
+            above.Add((level, name));
+        }
+        return entries;
+    }
 }
 
 /// <summary>The RD CODE clause (ISO §13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>): the characters "automatically
@@ -2772,7 +2809,7 @@ public sealed partial class DataBinder
         if (spec.DependingName is null || !seen.Add(spec)) return;
         // The ONE clause-operand resolver (§8.4.2.2 uniqueness; silent for an operand the capture refused).
         spec.DependingItem = ResolveClauseOperand(spec.DependingName, spec.DependingQualifiers,
-            $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt);
+            $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt, inReportSection: true);
         if (spec.DependingItem is null) return;
         // SR17 read exactly as the data-division OCCURS reads it (an index item is NOT an integer data item).
         if (spec.DependingItem.Pic is not { IsIntegerDescription: true })
@@ -4985,9 +5022,8 @@ public sealed partial class DataBinder
     private bool IsReportSubscriptCounter(string word) =>
         CobolNames.Same(word, "LINE-COUNTER")
         || CobolNames.Same(word, "PAGE-COUNTER")
-        || (!ByName.ContainsKey(word) && Reports.Any(r => r.WrittenEntries.Any(ge =>
-            ge.dataName().NameOrNull() is { } n && CobolNames.Same(n, word)
-            && ge.reportGroupClause().Any(c => c.reportSumClause() is not null))));
+        || (!ByName.ContainsKey(word) && Reports.Any(r => r.NamedEntries.Any(e =>
+            e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
     /// <summary>⛔ ISO §8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
     /// and PAGE-COUNTER identifiers may be used as a subscript." Asked ONCE per written entry, over every clause that
@@ -5034,11 +5070,58 @@ public sealed partial class DataBinder
     private List<string> ReportSectionOnlyNames(ReportModel model)
     {
         var names = new List<string>();
-        foreach (var ge in model.WrittenEntries)
-            if (ge.dataName().NameOrNull() is { } name && !ByName.ContainsKey(name)
-                && !names.Contains(name, CobolNames.Comparer))
-                names.Add(name);
+        foreach (var entry in model.NamedEntries)
+            if (!ByName.ContainsKey(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
+                names.Add(entry.Name);
         return names;
+    }
+
+    /// <summary>⛔ THE ONE LOOKUP OF A WRITTEN NAME AMONG THE REPORT SECTION'S ENTRIES, for the references §13.8.6.2.3
+    /// bars (kb/Work PB1046): every named entry of every report this source element can name — its own and the GLOBAL
+    /// ones of its containers (<see cref="VisibleReports"/>, ISO §13.18.27.4 GR1/GR2) — that the written
+    /// <paramref name="qualifiers"/> reach. The walk is the ONE §8.4.2.2.3 SR4 qualifier walk a sum counter's
+    /// qualification goes through (<see cref="QualifierWalk"/>): the named levels above the entry, innermost first,
+    /// then the report-name last (§8.4.2.2.2 Format 1's file-report-qualifier). Candidates of more than one source
+    /// element are narrowed to the nearest, as every report-scoped name is (§8.4.6.2.1 rule 3,
+    /// <see cref="NearestInScope{T}"/>). Empty when the word names no report entry under those qualifiers.</summary>
+    internal List<(ReportModel Report, ReportNamedEntry Entry)> ReportEntriesNamed(string name, IReadOnlyList<string> qualifiers)
+    {
+        var hits = new List<(ReportModel Report, ReportNamedEntry Entry)>();
+        foreach (var report in VisibleReports)
+            foreach (var entry in report.NamedEntries)
+                if (CobolNames.Same(entry.Name, name)
+                    && QualifierWalk(entry.Qualification, qualifiers, q => CobolNames.Same(q, report.Name)))
+                    hits.Add((report, entry));
+        return NearestInScope(hits, h => h.Report);
+    }
+
+    /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
+    /// procedure division statement, or a clause of any section of the data division other than the report section.
+    /// ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
+    /// data division or by any other procedure division statements, except in the following cases: 1) Sum counters may
+    /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
+    /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way" than in a GENERATE
+    /// statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM
+    /// clause, or as an operand in a SUM clause. A reference of those admitted shapes never reaches here (the
+    /// statements name a report group through <see cref="ReportGroupResolution"/>, and a procedure division sum
+    /// counter resolves before name lookup fails), so a word that reaches an unidentified-reference report AND names a
+    /// report entry is a reference the standard forbids — and saying "not defined" about a name the report section
+    /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
+    /// reported; false when the written reference names no report entry, leaving the caller's own verdict.</summary>
+    /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
+    internal bool ReportEntryReferenceRefused(string subject, string name, IReadOnlyList<string> qualifiers)
+    {
+        if (ReportEntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
+        Edition.Error(DiagnosticCatalog.ReportItemReference,
+            $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
+            + "here may not name. ISO §13.8.6.2.3: \"Report items shall not be accessed or referred to by any clauses in any "
+            + "other section of the data division or by any other procedure division statements, except in the following "
+            + "cases: 1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type "
+            + "DETAIL are accessed by the GENERATE statement\"; and ISO §13.15.3 SR7: \"The data-name shall not be "
+            + "referenced in any other way\" than in a GENERATE statement, a USE BEFORE REPORTING statement, as a "
+            + "qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause."
+            + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : ""));
+        return true;
     }
 
     /// <summary>⛔ THE ONE CAPTURE OF A CONTROL-CLAUSE OPERAND REFERENCE, shared by the THREE clauses that write
