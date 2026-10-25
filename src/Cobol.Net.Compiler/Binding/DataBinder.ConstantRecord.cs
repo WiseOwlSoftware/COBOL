@@ -74,7 +74,7 @@ public sealed partial class DataBinder
         if (item.IsBased) found |= DataClauseKind.Based;
         if (item.BlankWhenZero) found |= DataClauseKind.BlankWhenZero;
         if (item.IsDynamicLength) found |= DataClauseKind.DynamicLength;
-        if (item.Synchronized) found |= DataClauseKind.Synchronized;
+        if (item.Synchronized is not null) found |= DataClauseKind.Synchronized;
         if (item.IsTypedef) found |= DataClauseKind.Typedef;
         return found & DataClauseKinds.ConstantRecordExcluded;
     }

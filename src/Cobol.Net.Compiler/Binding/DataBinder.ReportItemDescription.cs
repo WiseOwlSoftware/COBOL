@@ -38,12 +38,15 @@ public sealed partial class DataBinder
     /// <param name="Editing">The PICTURE EDITING phrases (§13.18.40.2), or null.</param>
     /// <param name="Locale">The PICTURE LOCALE phrase (format 2), or null.</param>
     /// <param name="OwnSign">The SIGN clause, or null.</param>
+    /// <param name="InheritedSign">The SIGN clause written on the nearest enclosing entry that writes one
+    /// (§13.18.52.4 GR1/GR2), or null.</param>
     /// <param name="Justified">The JUSTIFIED clause is written.</param>
     /// <param name="BlankWhenZero">The BLANK WHEN ZERO clause is written.</param>
     /// <param name="ValueRaws">The VALUE clause's literal operands (§13.18.63.2 format 4), in the order written.</param>
     private sealed record ReportItemDescription(
         string? PicText, string? UsageText, string? InheritedUsage, List<EditingPhraseSpec>? Editing,
-        LocaleEditSpec? Locale, SignSpec? OwnSign, bool Justified, bool BlankWhenZero, IReadOnlyList<string> ValueRaws);
+        LocaleEditSpec? Locale, SignSpec? OwnSign, SignSpec? InheritedSign, bool Justified, bool BlankWhenZero,
+        IReadOnlyList<string> ValueRaws);
 
     private readonly Dictionary<Core.ReportGroupEntryContext, ReportItemDescription> _reportItemDescriptions = [];
 
@@ -120,26 +123,36 @@ public sealed partial class DataBinder
             else if (clause.valueClause() is { } value && ExtractValueOperandList(value, where) is { } raws)
                 valueRaws.AddRange(raws);
         }
-        var described = new ReportItemDescription(picText, usageText, InheritedReportUsage(at), editing, locale, ownSign,
-            justified, blankWhenZero, valueRaws);
+        var enclosing = EnclosingReportItem(at);
+        var described = new ReportItemDescription(picText, usageText, enclosing?.UsageText ?? enclosing?.InheritedUsage,
+            editing, locale, ownSign, enclosing?.OwnSign ?? enclosing?.InheritedSign, justified, blankWhenZero,
+            valueRaws);
         // A constant the PICTURE names may have measured this very entry meanwhile (the SR4 cycle, reported there).
         return _reportItemDescriptions.TryAdd(ge, described) ? described : _reportItemDescriptions[ge];
     }
 
-    /// <summary>§13.18.60.4 GR1 — the usage the entry at <paramref name="at"/> inherits: the one written on the nearest
-    /// enclosing report group description entry that writes one, or null. The enclosing entries are the ones before it
-    /// at a lower level-number, up to its level 1 entry (§13.15's level hierarchy, read as
-    /// <see cref="ReportEntryLocation.Qualification"/> reads it).</summary>
-    private string? InheritedReportUsage(ReportEntryLocation at)
+    /// <summary>The description of the report group description entry IMMEDIATELY enclosing the entry at
+    /// <paramref name="at"/>, or null for a level 1 entry. The enclosing entries are the ones before it at a lower
+    /// level-number, up to its level 1 entry (§13.15's level hierarchy, read as
+    /// <see cref="ReportEntryLocation.Qualification"/> reads it). Its own clause, else what IT inherited, is what the
+    /// entry inherits — so the nearest enclosing clause wins — for both clauses a report group entry hands down:
+    /// <list type="bullet">
+    /// <item>USAGE — §13.18.60.4 GR1: "If the USAGE clause is specified or implied at a group level, it applies only
+    /// to each elementary item in the group";</item>
+    /// <item>SIGN — §13.18.52.4 GR1: the clause applies "for the numeric item to which it applies, or for each numeric
+    /// item subordinate to the group to which it applies", and GR2/GR3 give a subordinate entry's own clause
+    /// precedence. A report group description entry that is a group is a subject §13.18.52.3 SR1's third bullet
+    /// admits and §13.15.3 does not restrict, so its clause is inherited exactly as a data division group's is
+    /// (kb/Work PB493: this walk handed down the USAGE and dropped the SIGN, so
+    /// <c>01 DET TYPE DE SIGN LEADING SEPARATE. 02 COLUMN 1 PIC S9(3) SOURCE WN.</c> printed the trailing
+    /// over-punch <c>00N</c> for -5 where GR6 a) and b) require <c>-005</c>).</item>
+    /// </list></summary>
+    private ReportItemDescription? EnclosingReportItem(ReportEntryLocation at)
     {
         int level = ReportEntryLevel(at.Entry);
         for (int j = at.Index - 1; j >= 0 && level > 1; j--)
-        {
-            int l = ReportEntryLevel(at.Entries[j]);
-            if (l >= level) continue;
-            var enclosing = DescribeReportItem(at with { Index = j });
-            return enclosing.UsageText ?? enclosing.InheritedUsage;
-        }
+            if (ReportEntryLevel(at.Entries[j]) < level)
+                return DescribeReportItem(at with { Index = j });
         return null;
     }
 
@@ -151,7 +164,7 @@ public sealed partial class DataBinder
     {
         string itemWhere = $"RD '{reportName}' printable item '{entryName ?? "FILLER"}'";
         Usage itemUsage = PictureAnalyzer.ParseUsage(d.UsageText ?? d.InheritedUsage, Edition, itemWhere);
-        return d.PicText is not null
+        var pic = d.PicText is not null
             ? PictureAnalyzer.Analyze(d.PicText, itemUsage, Edition, itemWhere, d.OwnSign, currencies: CurrencySigns,
                 blankWhenZero: d.BlankWhenZero, editing: d.Editing, localeFormat2: d.Locale,
                 decimalPointIsComma: DecimalPointIsComma)
@@ -170,5 +183,8 @@ public sealed partial class DataBinder
             : d.ValueRaws is [{ } value] && Sr9ImpliedFor(value, itemUsage) is { } implied
                 ? ImpliedReportPicture(implied, itemUsage, d.UsageText is not null, d.OwnSign, itemWhere)
                 : null;
+        // §13.18.52.4 GR1/GR3 — an enclosing entry's SIGN clause reaches the item when the item wrote none, through the
+        // ONE rule every inherited SIGN clause takes (WithInheritedSign, shared with the data division's walk).
+        return d.OwnSign is null && d.InheritedSign is { } inherited ? WithInheritedSign(pic, inherited) : pic;
     }
 }
