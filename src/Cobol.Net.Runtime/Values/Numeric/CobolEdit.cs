@@ -182,12 +182,12 @@ public static partial class CobolEdit
         // The currency STRING replaces the canonical '$' the mask carries whenever it is not that single
         // character — a one-character '#' (§12.3.7.4 GR13) as much as a multi-character "USD" (§12.3.7.3 r23).
         bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
-        var (logical, placed) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
+        var (logical, placed, negative) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
         if (commaMode)
             for (int i = 0; i < pattern.Length; i++)
                 if (pattern[i] is '.' or ',')
                     logical[i] = logical[i] switch { '.' => ',', ',' => '.', _ => logical[i] };
-        return Materialize(pattern, logical, placed, edits, currency, currencyString, value < 0);
+        return Materialize(pattern, logical, placed, edits, currency, currencyString, negative);
     }
 
     /// <summary>⭐ THE LOGICAL RENDER — one character per picture SYMBOL, which is the image every editing rule
@@ -195,12 +195,13 @@ public static partial class CobolEdit
     /// two variable-width symbols of §13.18.40.4 GR14 — the currency symbol ('cs', whose currency string "may
     /// have any length") and a PICTURE EDITING character-1 ('es', whose literal may be 50 characters) — the
     /// width GR14 gives them. <paramref name="placed"/> is null (and never read) unless some symbol IS wider
-    /// than one character, so an ordinary program's render allocates and walks exactly what it did before.</summary>
-    private static (char[] Logical, bool[]? Placed) Render(Int128 value, int valueScale, string picture,
+    /// than one character, so an ordinary program's render allocates and walks exactly what it did before.
+    /// <c>Negative</c> is THE sign every editing path reads (the fixed <c>+ - CR DB</c>, the floating <c>+ -</c>,
+    /// the extended editing sign control symbols and <see cref="Materialize"/>), decided ONCE from the value the
+    /// receiver ends up holding (see the comment where it is computed).</summary>
+    private static (char[] Logical, bool[]? Placed, bool Negative) Render(Int128 value, int valueScale, string picture,
         string pattern, bool blankWhenZero, char currency, EditRule[]? edits, bool wideCurrency)
     {
-        bool negative = value < 0;
-
         // ⛔ THE VARIABLE-WIDTH MARKER. `placed[i]` says the symbol at position i renders its whole STRING here
         // — the currency string, or literal-2/literal-3/literal-1 — as opposed to holding a digit, a space or a
         // replacement character. It is the ONE fact Materialize cannot re-derive, because where a FLOATING
@@ -240,6 +241,17 @@ public static partial class CobolEdit
         if (digits.Length < effectiveDigitCount) digits = digits.PadLeft(effectiveDigitCount, '0');
         else if (digits.Length > effectiveDigitCount) digits = digits[^effectiveDigitCount..];
 
+        // ⛔ THE SIGN IS THE STORED VALUE'S, decided here once, from the digit string above (kb/Work PB3664).
+        // §13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an
+        // editing sign control symbol, depending on the value of the data item" — and Table 8's first column is
+        // "Positive or zero value". §14.9.25.4 6) d) stores the value as §14.6.8.2 4) defines it, "zero fill or
+        // truncation on either end as required", so a sending -0.001 into PIC -9.99 stores the value ZERO, and
+        // "Zero is considered a unique value regardless of the sign" (§8.8.4.2.4): the sign position shows the
+        // Positive-or-zero column. The same holds when the HIGH-order digits truncate (-100 into PIC -99 holds
+        // 00; the numeric receiver S9(2) likewise holds +00, the carrier having no negative zero, and
+        // GnuCOBOL's cob_move_display_to_edited tests the digits that land the same way).
+        bool negative = value < 0 && digits.AsSpan().IndexOfAnyExcept('0') >= 0;
+
         // ⛔ BLANK WHEN ZERO (ISO §13.18.8.4 GR1) — "the content of the data item is set to all spaces when the
         // item is a receiving operand and THE VALUE BEING STORED is zero", which is the value the item ENDS UP
         // HOLDING: exactly the digit string above. §14.9.25.4 GR6 d) closes "Alignment of the numeric value by
@@ -254,7 +266,7 @@ public static partial class CobolEdit
         // (kb/Work PB566 — MOVE 0.4 TO PIC ZZZ9 BLANK WHEN ZERO rendered '   0'). It is the same "value being
         // stored" that rule 7 b)'s all-suppressed test below already reads.
         if (blankWhenZero && digits.AsSpan().IndexOfAnyExcept('0') < 0)
-            return (Filled(' ', pattern.Length), placed);
+            return (Filled(' ', pattern.Length), placed, false);
 
         // Pass 1 — right-to-left: fill digit positions, place insertion and fixed characters.
         var output = new char[pattern.Length];
@@ -418,7 +430,7 @@ public static partial class CobolEdit
                 if (placed is not null) placed[i] = false;
             }
         }
-        if (fullFieldBlanked && !asteriskFill) return (output, placed);
+        if (fullFieldBlanked && !asteriskFill) return (output, placed, negative);
 
         // Floating symbol placement: the symbol lands at the rightmost suppressed position of its floating zone.
         if (plusCount > 0 && plusCount + minusCount > 1)
@@ -450,7 +462,7 @@ public static partial class CobolEdit
                 if (placed is not null) placed[pos] = true;
             }
 
-        return (output, placed);
+        return (output, placed, negative);
     }
 
     /// <summary>⛔ ISO §13.18.8.4 GR3's CONTENT TEST — "the content of the sending data item is all spaces",
