@@ -57,6 +57,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import work  # noqa: E402 — the register's one frontmatter reader and DONE vocabulary (note_is_open, kb/Work PB3196)
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 SCHEMA = 1
 RECORD_DIR = Path("docs/rearchitecture/evidence/arch-census")
@@ -815,10 +817,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
-        pass
     if argv[:1] == ["--self-test"]:
         return self_test()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -840,4 +838,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

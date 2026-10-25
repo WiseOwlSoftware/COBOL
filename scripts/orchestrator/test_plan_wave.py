@@ -29,6 +29,9 @@ import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 LIVE_RULES = coord.rules()   # the rules as model_rules.json states them (the PB3638 block reads the owner's one link)
 RULES = coord.rules()
@@ -118,6 +121,19 @@ r3 = next(r for r in reports if r.lead == "PB3")
 check("report parse", (r3.status, r3.branch, r3.head, r3.not_started, r3.worktree),
       ("SPLIT", "worktree-wf_bbb-2", "2222222bb", True, r"E:\COBOL\.claude\worktrees\wf_bbb-2"))
 check("status from **Status:** line", next(r for r in reports if r.slug == "w1013c").status, "DONE")
+# A damaged note leaves the plan as silently as it left the register unless the planner's own reader refuses it (kb/Work
+# PB3654): a note named PB<n>.md whose fence is not its first line stops the plan, an index is skipped.
+DAMAGED = TMP / "damaged-register"
+DAMAGED.mkdir()
+(DAMAGED / "PB98.md").write_text("`---\n`id: PB98\n`---\n", encoding="utf-8", newline="\n")
+(DAMAGED / "PBindex.md").write_text("an index, not a note\n", encoding="utf-8", newline="\n")
+try:
+    pw.load_notes(DAMAGED, {})
+    unreadable = "the planner read a register holding a damaged note"
+except SystemExit as stop:
+    unreadable = str(stop)
+check("the planner refuses a damaged note by name", ("PB98.md" in unreadable, "PBindex" in unreadable),
+      (True, False))
 
 p = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100)
 G = {tuple(g.notes): g for g in p["groups"]}
@@ -1035,7 +1051,7 @@ def cnote(nid, cluster=("PB901",), blocked_by=(), body="", status="open", kind="
     bb = ", ".join(blocked_by)
     (CW / f"{nid}.md").write_text(
         f'---\ntitle: "{nid} — campaign step"\nid: {nid}\nkind: {kind}\nstatus: {status}\narea: build/ci\n'
-        f"wrong_answer: false\nprocess_only: true\nblocked: {'true' if blocked_by and status != 'landed' else 'false'}\n"
+        f"wrong_answer: false\nprocess_only: true\n"
         f"blocked_by: [{bb}]\ncluster: [{', '.join(cluster)}]\n---\n\n# {nid}\n\n{body}\n", encoding="utf-8", newline="\n")
 
 
@@ -1119,7 +1135,7 @@ def tnote(nid, tier=None, blocked_by=(), site="", wrong=False):
     # subsystem (kb/Work PB3263, section 9g), which a shared area would turn into one chain and hide the tier order
     (TW / f"{nid}.md").write_text(
         f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/{nid.lower()}\n'
-        f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\nblocked: {'true' if blocked_by else 'false'}\n"
+        f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\n"
         f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940, PB949]\n" +
         (f'tier: ["PB940:{tier}", "PB949:{9 - tier}"]\n' if tier else "") +
         f"---\n\n# {nid}\n\n" + (f"**Sites:**\n- `{site}`\n" if site else "Prose only.\n"), encoding="utf-8", newline="\n")
@@ -1182,7 +1198,7 @@ if fc:
                                 ("PB964", 1, "PB961", "Beta"), ("PB965", 0, "PB963", "Beta")):
         (LW / f"{nid}.md").write_text(
             f'---\ntitle: "{nid} — lift step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
-            f"wrong_answer: false\nprocess_only: true\nblocked: {'true' if bb else 'false'}\nblocked_by: [{bb}]\n"
+            f"wrong_answer: false\nprocess_only: true\nblocked_by: [{bb}]\n"
             f"cluster: [PB960]\n" + (f'tier: ["PB960:{tier}"]\n' if tier else "") +
             f"---\n\n# {nid}\n\n**Sites:**\n- `src/Lib/{site}.cs`\n", encoding="utf-8", newline="\n")
     litems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(LW.glob("*.md"))]
@@ -1539,7 +1555,7 @@ if fc:
                       ("PB951", f"**Sites:**{NL}- `src/Lib/Beta.cs`{NL}{NL}Move its members (callers computed).")):
         (W2 / f"{nid}.md").write_text(
             f'---{NL}title: "{nid} — step"{NL}id: {nid}{NL}kind: analysis{NL}status: open{NL}area: architecture{NL}'
-            f"wrong_answer: false{NL}process_only: true{NL}blocked: false{NL}blocked_by: []{NL}cluster: [PB950]{NL}---"
+            f"wrong_answer: false{NL}process_only: true{NL}blocked_by: []{NL}cluster: [PB950]{NL}---"
             f"{NL}{NL}# {nid}{NL}{NL}{body}{NL}", encoding="utf-8", newline="\n")
     items2 = [dict(work.parse_frontmatter(q.read_text(encoding="utf-8")), _file=q.name) for q in sorted(W2.glob("*.md"))]
     view2 = work.cluster_order(items2, "PB950")
@@ -1703,30 +1719,60 @@ check("changed_files passes --no-renames",
       pw.changed_files(lambda *a, **k: _R(NL.join(a) + NL) if "--no-renames" in a else _R(""), "x...y"),
       {"diff", "--name-only", "--no-renames", "x...y"})
 
-# 10. work.py check holds blocked to blocked_by: a stale flag, an unknown blocker, a cycle
-TOPO = [{"_file": "T1.md", "id": "T1", "status": "open", "blocked": True, "blocked_by": ["T9"], "cluster": []},
-        {"_file": "T9.md", "id": "T9", "status": "landed", "blocked": False, "blocked_by": [], "cluster": []},
-        {"_file": "T2.md", "id": "T2", "status": "open", "blocked": True, "blocked_by": ["nobody"], "cluster": []},
-        {"_file": "T3.md", "id": "T3", "status": "open", "blocked": True, "blocked_by": ["T4"], "cluster": ["T3"]},
-        {"_file": "T4.md", "id": "T4", "status": "open", "blocked": True, "blocked_by": ["T3"], "cluster": "T3"},
-        {"_file": "T5.md", "id": "T5", "status": "open", "blocked": False, "blocked_by": ["T3"], "cluster": []},
-        {"_file": "T6.md", "id": "T6", "status": "open", "blocked": True, "blocked_by": ["T7"], "cluster": ["C"]},
-        {"_file": "T7.md", "id": "T7", "status": "open", "blocked": True, "blocked_by": ["T6"], "cluster": ["C"]}]
+# 10. whether a note is blocked is DERIVED (kb/Work PB3389): work.waiting_on is the one reading, so a blocker that lands
+# changes the dependent's answer with no edit to the dependent, and `check` refuses a stored `blocked:` flag, which could
+# only go stale. Also work.py check's other topology rules: an unknown blocker, a cycle
+TOPO = [{"_file": "T1.md", "id": "T1", "status": "open", "blocked_by": ["T9"], "cluster": []},
+        {"_file": "T9.md", "id": "T9", "status": "landed", "blocked_by": [], "cluster": []},
+        {"_file": "T2.md", "id": "T2", "status": "open", "blocked_by": ["nobody"], "cluster": []},
+        {"_file": "T3.md", "id": "T3", "status": "open", "blocked_by": ["T4"], "cluster": ["T3"]},
+        {"_file": "T4.md", "id": "T4", "status": "open", "blocked_by": ["T3"], "cluster": "T3"},
+        {"_file": "T5.md", "id": "T5", "status": "open", "blocked_by": ["T3"], "cluster": []},
+        {"_file": "T6.md", "id": "T6", "status": "open", "blocked_by": ["T7"], "cluster": ["C"]},
+        {"_file": "T7.md", "id": "T7", "status": "open", "blocked_by": ["T6"], "cluster": ["C"]},
+        {"_file": "T8.md", "id": "T8", "status": "open", "blocked": False, "blocked_by": [], "cluster": []},
+        {"_file": "T10.md", "id": "T10", "status": "owner", "blocked_by": [], "cluster": []},
+        {"_file": "T11.md", "id": "T11", "status": "blocked", "blocked_by": ["T9"], "cluster": []},
+        {"_file": "T12.md", "id": "T12", "status": "landed", "blocked_by": ["T3"], "cluster": []}]
+TOPO_BY_ID = {i["id"]: i for i in TOPO}
 probs = work.topology_problems(TOPO)
-check("stale blocked flag", any(s.startswith("T1.md: blocked is True") for s in probs), True)
+check("a blocker that landed leaves its dependent unblocked, with no edit to the dependent",
+      work.waiting_on(TOPO_BY_ID["T1"], TOPO_BY_ID), [])
+check("an open blocker holds its dependent, a landed one does not",
+      [work.waiting_on(TOPO_BY_ID[n], TOPO_BY_ID) for n in ("T5", "T2", "T3")], [["T3"], ["nobody"], ["T4"]])
+check("a hold on something that is no note is a status: owner or blocked, whatever the blockers",
+      [work.waiting_on(TOPO_BY_ID[n], TOPO_BY_ID) for n in ("T10", "T11", "T8")], [["status: owner"], ["status: blocked"], []])
+check("a stored blocked flag is refused, true or false",
+      [s.split(":")[0] for s in probs if "`blocked:` is stored" in s], ["T8.md"])
+check("the planner's cluster view waits on what waiting_on says",
+      [(r["id"], r["waiting_on"]) for r in work.cluster_order(TOPO + [dict(TOPO_BY_ID["T5"], id="T13", cluster=["Q"]),
+                                                                       dict(TOPO_BY_ID["T10"], id="T14", cluster=["Q"])], "Q")["notes"]],
+      [("T13", ["T3"]), ("T14", ["status: owner"])])
+# the fix lane's population is the ready notes (kb/Work PB3389): fix_clusters.py skips by a stored flag, so the planner
+# hands it a directory of the notes that wait on nothing
+FL = TMP / "fix-lane-register"
+FL.mkdir()
+for nid, status, bb in (("PB801", "open", ""), ("PB802", "open", "PB801"), ("PB803", "open", "PB804"),
+                        ("PB804", "landed", ""), ("PB805", "owner", ""), ("PB806", "half", ""), ("PB807", "open", "PB802")):
+    (FL / f"{nid}.md").write_text(f"---{NL}id: {nid}{NL}kind: defect{NL}status: {status}{NL}area: x{NL}blocked_by: [{bb}]{NL}---{NL}b{NL}",
+                                  encoding="utf-8", newline="")
+view = pw.ready_notes_view("open", TMP / "fix-lane-view", FL)
+check("the fix lane reads the open notes that wait on nothing: a landed blocker is no hold, an open one, an owner status and "
+      "a chain are", sorted(p.stem for p in view.iterdir()), ["PB801", "PB803"])
+check("an earlier view is replaced, never merged into", sorted(p.stem for p in pw.ready_notes_view("half", view, FL).iterdir()),
+      ["PB806"])
 check("unknown blocker", any(s.startswith("T2.md: blocked_by names 'nobody'") for s in probs), True)
 check("cycle", any("cycle among open notes: T3 -> T4 -> T3" in s for s in probs), True)
 check("cluster must be a list", any(s.startswith("T4.md: cluster must be a list") for s in probs), True)
-check("an open blocker needs the flag", any(s.startswith("T5.md: blocked is False") for s in probs), True)
 check("a second cycle", any("cycle among open notes: T6 -> T7 -> T6" in s for s in probs), True)
-check("exactly those six", len(probs), 6)
+check("exactly those five", len(probs), 5)
 check("a cycle never reads as ready", [(r["id"], r["depth"], r["ready"]) for r in work.cluster_order(TOPO, "C")["notes"]],
       [("T6", None, False), ("T7", None, False)])
 check("a scalar cluster is no member (no substring match)", [r["id"] for r in work.cluster_order(TOPO, "T3")["notes"]],
       ["T3"])
 # a tier (kb/Work PB3423) is a list of CAMPAIGN:N entries naming the note's own campaigns once; anything else is
 # reported, and only the well-formed entries are read
-TIERS = [{"_file": f"U{k}.md", "id": f"U{k}", "status": "open", "blocked": False, "blocked_by": [], "cluster": cl, "tier": t}
+TIERS = [{"_file": f"U{k}.md", "id": f"U{k}", "status": "open", "blocked_by": [], "cluster": cl, "tier": t}
          for k, (t, cl) in enumerate([(["C:1"], ["C"]), (["C:12", "D:2"], ["C", "D"]), (["C:0"], ["C"]),
                                        (["C:x"], ["C"]), ("1", ["C"]), (["C:1", "C:2"], ["C"]), (["D:2"], ["C"]),
                                        (["C"], ["C"])])]
@@ -1755,6 +1801,38 @@ check("... and the refusal names the rule and the planner's UNPARTITIONED plan",
       all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNPARTITIONED", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
+# A SITE BLOCK THAT NAMES SOMETHING MUST DECLARE IT (kb/Work PB3721): a glob is a sweep over the tracked files it matches,
+# claimed whole; a block that names files the reader cannot claim declares nothing, and a note held to a block is refused
+SWEEP = "**Sites:** every `scripts/spec/work*.py` that reads the register, and `scripts/spec/work.py` (`load`)."
+check("a glob is read as a glob without a tree, and claims no file there",
+      (work.note_sites(SWEEP).globs, work.note_sites(SWEEP).paths, work.note_sites(SWEEP).members),
+      (("scripts/spec/work*.py",), ("scripts/spec/work.py",), {"scripts/spec/work.py": ("load",)}))
+SWEPT = work.note_sites(SWEEP, repo=coord.REPO)
+check("with a tree, the glob claims every tracked file it matches, and a sweep claims each file WHOLE (it outranks a member)",
+      ("scripts/spec/work.py" in SWEPT.paths, "scripts/spec/work_inventory.py" in SWEPT.paths, SWEPT.members),
+      (True, True, {}))
+check("a glob matching nothing tracked expands to nothing; placeholders and `...` are still no site",
+      (work.expand_globs(("scripts/nothing-here/**/*.zz",), coord.REPO),
+       work.note_sites("**Sites:** `src/<P>/X.cs`, `src/.../Y.cs`, `src/{A,B}/Z.cs`").globs), ((), ()))
+check("`none (why)` is a declaration, in the label form and the heading form",
+      [work.note_sites(t).no_code for t in ("**Sites:** none (it changes no code file)", "- **Code site.** None - a finding",
+                                              "## Code site\n\nNone, that is the finding.\n", "**Sites:** `src/A.cs`")],
+      [True, True, True, False])
+GUARD = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": "defect", "status": "open", "cluster": ["C"], "_body": b}
+         for n, b in [(NEW, "**Sites:** `kb/Work/PB1.md` and `conformance-suite/cases/x.cob`."),
+                      (NEW + 1, "**Sites:** none (a golden only)"),
+                      (NEW + 2, "**Sites:** every `scripts/spec/work*.py` that reads the register"),
+                      (NEW + 3, "**Sites:** `scripts/spec/work.py` and `scripts/nothing-here/**/*.zz`"),
+                      (NEW + 4, "**Sites:** `scripts/nothing-here/**/*.zz`"),
+                      (NEW + 5, "**Sites:** `docs/A.md`"),
+                      (NEW + 6, "**Sites:** `.claude/skills/workstream/check_practices.py`")]]
+gp = work.sites_problems(GUARD)
+check("a held note whose block names files it cannot claim is refused, a `none (why)`, a live glob, a path under a root "
+      "(the .claude process code included) are not, and a dead glob is named whether or not a path stands beside it",
+      [s.split(":")[0] for s in gp], [f"PB{NEW}.md", f"PB{NEW + 3}.md", f"PB{NEW + 4}.md"])
+check("... and the refusal says what the planner does with such a note and how to declare it",
+      (all(t in gp[0] for t in ("UNPARTITIONED", "PB3721", "none (why)")), "matches no tracked file" in gp[1],
+       "matches no tracked file" in gp[2]), (True, True, True))
 # A NOTE OF A CAMPAIGN NEEDS ITS SITE BLOCK WHATEVER ITS ID (kb/Work PB3640). The campaign is the cluster a `tier:` entry
 # names: wave 20261030 planned PB3628 and PB3275 side by side because PB3275, a PB1957 note filed before the cutover, had
 # no block, and both rewrote one rule of prune_worktrees.lifecycle. The register holds no list of running campaigns.
@@ -1828,7 +1906,7 @@ REAL_SET = work.slice_file_set()
 def r3_plant(pid, site):
     body = (NL + "**Wave kind:** extract. **Model:** Opus." + NL + NL + "**Sites:**" + NL + "- `" + site + "`" + NL + NL
             + "**Blocked by:** PB2118, PB2417." + NL)
-    return {"_file": pid + ".md", "id": pid, "title": pid + " — Extract: planted", "status": "open", "blocked": True,
+    return {"_file": pid + ".md", "id": pid, "title": pid + " — Extract: planted", "status": "open",
             "blocked_by": ["PB2118", "PB2417"], "cluster": ["PB2119"], "_body": body}
 
 

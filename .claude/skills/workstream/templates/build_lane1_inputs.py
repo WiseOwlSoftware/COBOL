@@ -10,8 +10,11 @@ import pathlib
 import re
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[4] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
-sys.stdout.reconfigure(encoding="utf-8")
+ensure_utf8()
+
 REPO = pathlib.Path(r"E:\COBOL")
 OUT = pathlib.Path(__file__).resolve().parent / "in"
 OUT.mkdir(parents=True, exist_ok=True)

@@ -42,6 +42,8 @@ from extract_rule_catalog import (  # noqa: E402
     UNHARVESTED,
     kind_of,
 )
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 
 def squash(text: str) -> str:
@@ -126,10 +128,6 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="non-zero exit if any clause disagrees")
     ap.add_argument("--json", action="store_true", help="machine-readable report")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
     bodies, titles, interior = clause_bodies(lines)
@@ -236,4 +234,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

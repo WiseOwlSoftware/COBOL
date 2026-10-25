@@ -54,6 +54,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
@@ -333,10 +335,6 @@ def main() -> int:
     ap.add_argument("--suspects", action="store_true", help="rows still non-OK whose notes name a landed item")
     ap.add_argument("--self-test", action="store_true", help="prove every derivation step here can fail")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if args.self_test:
         return self_test()
 
@@ -386,4 +384,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

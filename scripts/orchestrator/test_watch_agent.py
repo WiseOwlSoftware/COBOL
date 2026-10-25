@@ -13,6 +13,9 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import watch_agent as w  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 fails, checked = [], []
 

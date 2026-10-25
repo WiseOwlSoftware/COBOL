@@ -32,6 +32,9 @@ import struct
 import sys
 import zlib
 from collections import OrderedDict
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 FORMAT_VERSION = 1
 MAGIC = b"CNGB"            # "WiseOwl COBOL Grapheme Break"
@@ -178,4 +181,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
