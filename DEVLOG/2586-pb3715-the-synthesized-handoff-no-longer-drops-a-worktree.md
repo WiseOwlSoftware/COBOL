@@ -1,4 +1,4 @@
-## PB3715 — the synthesized handoff no longer drops a worktree git could not measure
+## Entry 2586 — 2026-10-25 16:43 PDT — PB3715 — the synthesized handoff no longer drops a worktree git could not measure
 
 `checkpoint.py synthesize` builds a dead unit's handoff from the CURRENT worktrees, and kept only those with
 `t["ahead_of_main"] or t["uncommitted"]`. PB3250 had made `worktrees()` report `None` for a count git could not read ("unknown,
@@ -25,3 +25,4 @@ these fields (`landing_check.py` and `plan_wave.py` carry an unrelated `uncommit
 not; `holds_work` and `unmeasured` over (0,0), (2,0), (0,3), (None,0), (0,None), (None,None).
 
 **Register.** PB3715 flipped to landed; it claims no inventory row, so `closes_rows` stays empty with its reason.
+
