@@ -120,6 +120,26 @@ public sealed class GroupMoveSenderChannelDriftTests
         Assert.Contains("ContentFunctionValue", Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "OoEmitter.cs"));
     }
 
+    /// <summary>⛔ A PARENTHESIZED FUNCTION IS AN ARITHMETIC EXPRESSION, WHATEVER TREE IT BINDS TO (kb/Work PB3678). The expression
+    /// binder drops grouping parentheses, so <c>(FUNCTION MIN(N 3))</c> binds to the sole call's own <c>BoundIntrinsicCall</c>; the
+    /// property that tells a MOVE sender from an expression therefore reads ONLY the binder's statement
+    /// (<c>BoundComputedOperand.FunctionValue</c>, plus the result category), never the tree's shape, and the CALL argument
+    /// binder wraps what is left after its sole-shape arms as the computed operand it is (<c>ConditionBinder.CompoundOperand</c>,
+    /// kb/Work PB1935) instead of mapping it back to the item or call it encloses.</summary>
+    [Fact]
+    public void ParenthesizedFunction_IsAnExpression_TheTreeShapeIsNeverAsked()
+    {
+        string tree = Src("Cobol.Net.Compiler", "Binding", "Bound", "BoundTree.cs");
+        var property = Regex.Match(tree, @"public\s+bool\s+IsNumericFunctionValue\s*=>(?<b>[^;]*);");
+        Assert.True(property.Success, "BoundComputedOperand.IsNumericFunctionValue is no longer recognizable");
+        string body = property.Groups["b"].Value;
+        Assert.Matches(@"^\s*FunctionValue\s*&&", body);
+        Assert.DoesNotMatch(@"Expr\s+is\s+BoundIntrinsicCall\s+\w+\s*\?", body);
+        string call = Src("Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "CallBinder.cs");
+        Assert.Contains("host.Cond.CompoundOperand(ax)", call);
+        Assert.DoesNotContain("OperandOf(host.Expr.BindExpr(ax)", call);
+    }
+
     /// <summary>"Is this a group operation?" - a group that is not a bit or national group acting as an elementary item - is
     /// <c>DataItem.IsPlainGroup</c> and written nowhere else (kb/Work PB3613): the INVOKE binder's guard, the CALL and INVOKE
     /// emitters and the MOVE classifier ask the one property, so the binder's routing and the emitter's arm cannot disagree.</summary>
