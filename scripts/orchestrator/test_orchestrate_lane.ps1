@@ -26,16 +26,19 @@ function Run-Lane([string]$case, [string[]]$extra) {
         ticks = $(if (Test-Path $ticks) { @(Get-Content $ticks).Count } else { 0 }) }
 }
 
-# 1. THE LANE TICKS IN A BACKOFF, AND NOT ONCE STOP EXISTS. One unit fails at once and the supervisor backs off 30 s: no unit
+# 1. THE LANE TICKS IN A BACKOFF, AND NOT ONCE STOP EXISTS. One unit fails at once and the supervisor backs off 600 s: no unit
 # runs. The lane ticks every second of it (the unit's own are few: the loop's top and its start, and a period of 1 s if it lasts that long), until the
 # fake python's 8th tick creates STOP: the wait ends at once ('STOP during the backoff') and no 9th tick starts, so the count
-# is exactly 8. Without the fix the backoff never ticks, STOP never appears and the supervisor runs a second unit after 30 s.
+# is exactly 8. Without the fix the backoff never ticks, STOP never appears and the supervisor runs a second unit after 600 s
+# (-MaxUnits 2 ends the run there, so the regression fails instead of looping on).
+# The backoff is long enough that only STOP can end it: a fixed time limit must never decide the verdict (kb/Work PB3708). At 30 s it
+# raced the 8th tick, one `pwsh` start of the fake python per second, so a host where a tick took over about 5 s ran a second unit.
 $env:FAKE_PYTHON_CHECKPOINT_SECONDS = '0'   # the fake's slow first checkpoint (PB2590) would keep the unit, and its ticks, alive for 40 s
 $env:FAKE_PYTHON_STOP_AFTER_TICKS = '8'
-$r = Run-Lane 'lanebackoff' @('-BackoffBaseSeconds', '30', '-LandLaneSeconds', '1')
+$r = Run-Lane 'lanebackoff' @('-BackoffBaseSeconds', '600', '-LandLaneSeconds', '1', '-MaxUnits', '2')
 Remove-Item Env:\FAKE_PYTHON_STOP_AFTER_TICKS
 Check 'backoff: the lane ticked until STOP appeared, then never again' $r.ticks 8
-Check 'backoff: only the one unit ran (the 30 s backoff ended on STOP, not on its timer)' $r.runs 1
+Check 'backoff: only the one unit ran (the 600 s backoff ended on STOP, not on its timer)' $r.runs 1
 Check 'backoff: the wait ended on STOP' ($r.out -match 'STOP during the backoff') $true
 Check 'backoff: a clean stop' $r.code 0
 
