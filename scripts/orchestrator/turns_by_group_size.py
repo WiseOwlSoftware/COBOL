@@ -10,11 +10,14 @@ measurement lives here, and it counts the notes where the planner wrote them: th
 SPEC (`DISPATCH SPEC — wave <n> (<L>), <label>: PB…, PB…`, written by `make_dispatch_specs.py`).
 
 THE JOIN. A report in the coordination directory's reports directory (`coord.reports_dir()`) is named
-`w<wave><letter>-<lead>-report.md`; its spec is `msg-w<wave>-<letter>.txt` under the scratch directory (searched three
-levels down: the wave's own scratch, or the operator's `op/`). A spec name found more than once with different note
-sets is AMBIGUOUS and left out (counted); a report with no spec, or no turns figure, is left out (counted). The turns
-are the agent's own figure in its report header (`**turns:** ~N of 220`, or `Turns used: about N`): an estimate the
-agent writes, never a transcript count, so the fit is a planning figure, not a cost.
+`w<wave><letter>-<lead>-report.md` (plan_wave.REPORT_NAME, the one fix-lane report name; a same-file successor's
+letter carries its digit, `w1021b2-…`); its spec is `msg-w<wave>-<letter>.txt` under the scratch directory (searched
+three levels down: the wave's own scratch, or the operator's `op/`). A `w*-report.md` that is no group report (a train,
+refute or filing report) is left out and counted as such. A spec name found more than once with different note
+sets is AMBIGUOUS and left out (counted); a report with no spec, or no turns figure, is left out (counted). Every
+`w*-report.md` is therefore either joined or counted under exactly one cause (kb/Work PB3711). The turns
+are the agent's own figure in its report header (`**turns:** ~N of 220`, `**turns:** about N`, `turns ~N` or
+`Turns used: about N`): an estimate the agent writes, never a transcript count, so the fit is a planning figure, not a cost.
 
 Usage:
     python scripts/orchestrator/turns_by_group_size.py [--coord <dir>] [--json]
@@ -31,9 +34,9 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import coord  # noqa: E402
+from plan_wave import REPORT_NAME  # noqa: E402  (the ONE fix-lane report name, kb/Work PB3711: group letter AND successor digit)
 
-REPORT_NAME = re.compile(r"^w(\d+)([a-z]+)-.*-report\.md$")
-TURNS = re.compile(r"\*\*turns:\*\*\s*~?\s*(\d+)|Turns used[^:\n]*:\s*(?:about\s*)?~?\s*(\d+)", re.I)
+TURNS = re.compile(r"(?:\*\*turns:\*\*\s*(?:about\s+)?|\bturns\s+~|Turns used[^:\n]*:\s*(?:about\s*)?)~?\s*(\d+)", re.I)
 STATUS = re.compile(r"^\s*(?:\*\*Status:\*\*\s*|Status:\s*)?(DONE|SPLIT|DISCHARGED|BLOCKED|GATE-PENDING)\b", re.M)
 NOTE = re.compile(r"\bPB\d{3,5}\b")
 HEAD_BYTES = 4000   # the header block, where the template puts the status and the turns
@@ -61,17 +64,20 @@ def spec_notes(scratch: pathlib.Path) -> dict[str, frozenset[str] | None]:
 def measure(cdir: pathlib.Path) -> dict:
     """One row per report joined to its spec, and the counts of what could not be joined."""
     specs = spec_notes(cdir / "scratch")
-    rows, skipped = [], {"no turns figure": 0, "no spec": 0, "ambiguous spec": 0, "spec names no note": 0}
+    rows = []
+    skipped = {"not a group report": 0, "no turns figure": 0, "no spec": 0, "ambiguous spec": 0, "spec names no note": 0}
     for f in sorted(coord.reports_dir(str(cdir)).glob("w*-report.md")):
         m = REPORT_NAME.match(f.name)
         if not m:
+            skipped["not a group report"] += 1     # a train, refute or filing report: no group spec to join
             continue
         head = f.read_text(encoding="utf-8", errors="replace")[:HEAD_BYTES]
         t = TURNS.search(head)
         if not t:
             skipped["no turns figure"] += 1
             continue
-        name = f"msg-w{m.group(1)}-{m.group(2)}.txt"
+        # A same-file successor (`w1021b2-…`) is the group `b2`, whose spec is `msg-w1021-b2.txt` (make_dispatch_specs.py).
+        name = f"msg-w{m.group('wave')}-{m.group('letter')}.txt"
         if name not in specs:
             skipped["no spec"] += 1
             continue
@@ -83,7 +89,7 @@ def measure(cdir: pathlib.Path) -> dict:
             skipped["spec names no note"] += 1
             continue
         s = STATUS.search(head)
-        rows.append({"report": f.name, "notes": len(notes), "turns": int(t.group(1) or t.group(2)),
+        rows.append({"report": f.name, "notes": len(notes), "turns": int(t.group(1)),
                      "status": s.group(1) if s else "?"})
     return {"rows": rows, "skipped": skipped}
 
@@ -143,25 +149,36 @@ def self_test() -> int:
     spec("op/msg-w9001-c.txt", "PB1005")
     spec("w9001/msg-w9001-c.txt", "PB1006")        # the same name, other notes: ambiguous
     spec("op/msg-w9001-e.txt", "PB1007, PB1008, PB1009")
+    spec("w9001/msg-w9001-b2.txt", "PB1012, PB1013")              # a same-file successor's spec
     report("w9001a-PB1001-report.md", "DONE\n**Status:** DONE · **turns:** ~80 of 220 · **worktree:** x")
     report("w9001b-PB1002-report.md", "SPLIT\n**Status:** SPLIT · **turns:** ~120 of 220")
     report("w9001c-PB1005-report.md", "DONE\n**Status:** DONE · **turns:** ~50 of 220")
     report("w9001d-PB1010-report.md", "DONE\n**Status:** DONE · **turns:** ~50 of 220")   # no spec
     report("w9001e-PB1007-report.md", "DONE\nTurns used: about 100.")
     report("w9001f-PB1011-report.md", "DONE\nno figure here")
-    report("clerk-w9001-leads-report.md", "DONE\n**turns:** ~10")                        # not a group report
+    spec("w9001/msg-w9001-g.txt", "PB1014")
+    spec("w9001/msg-w9001-h.txt", "PB1015")
+    report("w9001g-PB1014-report.md", "DONE\n**Status:** DONE · **turns:** about 60 of 220")      # the bold "about" form
+    report("w9001h-PB1015-report.md", "DONE\n# implementer report · turns ~75 of 220 · x")        # the unbolded form
+    report("clerk-w9001-leads-report.md", "DONE\n**turns:** ~10")                        # not named w*: never read
+    report("w9001b2-PB1012-report.md", "DONE\n**Status:** DONE · **turns:** ~95 of 220")  # the successor of group b
+    report("w9001a-train-report.md", "DONE\n**turns:** ~10")                             # not a group report: counted
     m = measure(root)
     got = {r["report"]: (r["notes"], r["turns"], r["status"]) for r in m["rows"]}
     check(got == {"w9001a-PB1001-report.md": (1, 80, "DONE"), "w9001b-PB1002-report.md": (3, 120, "SPLIT"),
-                  "w9001e-PB1007-report.md": (3, 100, "DONE")},
-          f"the notes come from the spec's first line, the turns from the header, in both forms: {got}")
-    check(m["skipped"] == {"no turns figure": 1, "no spec": 1, "ambiguous spec": 1, "spec names no note": 0},
+                  "w9001e-PB1007-report.md": (3, 100, "DONE"), "w9001b2-PB1012-report.md": (2, 95, "DONE"),
+                  "w9001g-PB1014-report.md": (1, 60, "DONE"), "w9001h-PB1015-report.md": (1, 75, "DONE")},
+          f"the notes come from the spec's first line, the turns from the header, in every form: {got}")
+    check(m["skipped"] == {"not a group report": 1, "no turns figure": 1, "no spec": 1, "ambiguous spec": 1,
+                           "spec names no note": 0},
           f"every report left out is counted by its cause: {m['skipped']}")
     f = fit(m["rows"])
     check(f["sizes"][3] == {"n": 2, "mean": 110, "median": 110.0, "max": 120, "split": 1},
           f"per size n, mean, median, max and SPLITs: {f['sizes']}")
-    check(f["line"] == {"per_group": 65.0, "per_note": 15.0} and f["largest"] == 3,
-          f"the least-squares line over (1,80), (3,120), (3,100) is 65 + 15 per note: {f['line']}")
+    check(f["largest"] == 3, f"the largest group observed is three notes: {f['largest']}")
+    line = fit([{"notes": n, "turns": t, "status": "DONE"} for n, t in ((1, 80), (3, 120), (3, 100))])["line"]
+    check(line == {"per_group": 65.0, "per_note": 15.0},
+          f"the least-squares line over (1,80), (3,120), (3,100) is 65 + 15 per note: {line}")
     check(fit([{"notes": 2, "turns": 90, "status": "DONE"}])["line"] is None, "one group size fits no line")
     for x in fails:
         print(f"FAIL: {x}")
