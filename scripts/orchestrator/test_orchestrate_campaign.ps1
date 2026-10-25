@@ -21,10 +21,9 @@ $fxWork = Join-Path $fx 'Work'
 $fxRepo = Join-Path $fx 'repo'
 New-Item -ItemType Directory -Force -Path $fxWork, $fxRepo | Out-Null
 function New-FxNote([string]$id, [string]$status, [string]$cluster, [string]$blockedBy) {
-    $blocked = if ($blockedBy -and $status -ne 'landed') { 'true' } else { 'false' }
     Set-Content -Path (Join-Path $fxWork "$id.md") -Encoding utf8 -Value @(
         '---', "title: `"$id - a campaign step`"", "id: $id", 'kind: defect', "status: $status", 'area: build/ci',
-        'process_only: true', "blocked: $blocked", "blocked_by: [$blockedBy]", "cluster: [$cluster]", '---', '', "# $id")
+        'process_only: true', "blocked_by: [$blockedBy]", "cluster: [$cluster]", '---', '', "# $id")
 }
 New-FxNote 'PB901' 'open' 'CAMP' ''
 New-FxNote 'PB902' 'open' 'CAMP' 'PB901'

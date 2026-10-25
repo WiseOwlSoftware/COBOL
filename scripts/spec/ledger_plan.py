@@ -55,8 +55,6 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 #: The fix lane's population: `.agent-fleet.json`'s `kind` and `skip_flag`, the file fix_clusters.py reads.
 FLEET = REPO / ".agent-fleet.json"
-#: A skip flag that is a STATE, not a population rule: a blocked defect is still the fix lane's, waiting.
-STATE_FLAGS = ("blocked",)
 
 #: The owner's decision of 2026-10-10 (kb/Work PB2911): the loop runs these clusters as campaign lanes beside the fix
 #: lane (`orchestrate.ps1 -Cluster PB2911,PB1086`) ...
@@ -98,17 +96,15 @@ def live(items: list[dict]) -> list[dict]:
 def fleet_population(path: pathlib.Path = FLEET) -> tuple[str, tuple[str, ...]]:
     """(kind, population skip flags) of the fix lane, read from `.agent-fleet.json`."""
     cfg = json.loads(path.read_text(encoding="utf-8"))
-    return str(cfg.get("kind", "")), tuple(f for f in cfg.get("skip_flag", []) if f not in STATE_FLAGS)
+    return str(cfg.get("kind", "")), tuple(cfg.get("skip_flag", []))
 
 
 def note_state(it: dict, by_id: dict[str, dict]) -> str:
-    """`waiting` on an open blocker note, `blocked` on something that is not a note (status owner or blocked, or the
-    `blocked` flag with no open blocker), `ready` otherwise: work.py's cluster_order reading, for any note."""
+    """`waiting` on an open blocker note, `blocked` on something that is not a note (status owner or blocked), `ready`
+    otherwise: work.py's `waiting_on`, the one reading of "blocked" (kb/Work PB3389), for any note."""
     if work.open_blockers(it, by_id):
         return "waiting"
-    if it.get("status") in ("owner", "blocked") or it.get("blocked"):
-        return "blocked"
-    return "ready"
+    return "blocked" if work.waiting_on(it, by_id) else "ready"
 
 
 def lanes_of(it: dict, fleet: tuple[str, tuple[str, ...]]) -> list[str]:
