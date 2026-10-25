@@ -31,3 +31,5 @@ instance methods, BASE New and FactoryObject, the activated method's checking of
 below-2002 negative, and `ActiveClassReturningUniversalSenderTests` (the relation's matrix, the two-halves rule, a drift
 guard that every BASE method storing a RETURNING box asks the check). `docs/COBOLNET_OO_DESIGN.md` states the arm; the
 work note PB2985 is landed with `closes_rows: []` (no inventory row claims this corner).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 74c7d8072, run 000001-20261025T221909Z: Conformance 8,139/18,587, Unit 36,807/38,285, Characterization 8/36, Linux half (WSL clone of HEAD) GREEN. The new golden and its negative, the re-derived pb2463 golden and the 8 new unit cases all passed in leg 1.
