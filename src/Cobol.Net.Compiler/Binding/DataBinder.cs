@@ -7264,11 +7264,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// GR5 names "an alphanumeric group item, national group item, or strongly-typed group item" explicitly.
     /// <see cref="PicInfo.SignKindFor"/> owns what each usage's sign representation IS; this owns WHEN an
     /// inherited clause reaches it.</para></summary>
-    private static void ApplyEffectiveSign(DataItem item, SignSpec sign)
-    {
-        if (item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display or Usage.National } pic)
-            item.Pic = pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) };
-    }
+    private static void ApplyEffectiveSign(DataItem item, SignSpec sign) => item.Pic = WithInheritedSign(item.Pic, sign);
+
+    /// <summary>⛔ THE ONE RULE FOR A SIGN CLAUSE AN ITEM DID NOT WRITE: the profile <paramref name="pic"/> takes
+    /// <paramref name="sign"/> when it is a signed numeric item (§13.18.52.4 GR1: "The SIGN clause applies only to
+    /// numeric items whose picture character-string contains the symbol 'S'") of usage display or national (the usage
+    /// pair §13.18.52.3 SR2 names, kb/Work PB646 — a binary or packed item has no sign position for the clause to
+    /// place, so it keeps its own representation); any other profile is returned unchanged. Read by
+    /// <see cref="ApplyEffectiveSign"/> (the data division's group inheritance and the SAME AS ancestor transform)
+    /// and by <see cref="ReportPrintablePicture"/> (a report group entry's inherited clause, kb/Work PB493).</summary>
+    private static PicInfo? WithInheritedSign(PicInfo? pic, SignSpec sign) =>
+        pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display or Usage.National }
+            ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
+            : pic;
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY/NATIONAL items (ISO
     /// §13.18.52 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
