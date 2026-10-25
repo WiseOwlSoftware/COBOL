@@ -110,8 +110,9 @@ internal static class SidecarLockFiles
     /// differently and a bare null covered both. <see cref="RegionLockResult.Ok"/>: published, in
     /// <paramref name="holder"/>. <see cref="RegionLockResult.Unavailable"/>: the host takes no lock here (a filesystem
     /// that does not hold the advisory lock, or no directory beside which to hold one), so it cannot see a holder either.
-    /// <see cref="RegionLockResult.Held"/>: every one of the <see cref="PublishAttempts"/> tries lost its race, a failure
-    /// to publish and not a finding about the host, so the holders already published ARE there to be seen and a request
+    /// <see cref="RegionLockResult.Held"/>: every one of the <see cref="PublishAttempts"/> tries lost its race (kb/Work PB3749:
+    /// a closing sibling removed the lock directory, or a tester reaped the pending file, or held it as it was locked or
+    /// renamed), a failure to publish and not a finding about the host, so the holders already published ARE there to be seen and a request
     /// one of them refuses is refused (<see cref="SidecarColumnLockHost.Establish"/>, <see cref="SidecarRegionLocks.Hold"/>);
     /// the same vocabulary as <see cref="HandleColumnLockHost"/>'s publication loop. <paramref name="holder"/> is null
     /// unless <c>Ok</c>.</para></summary>

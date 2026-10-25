@@ -1032,8 +1032,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // digits of its value through the one group-move sender (OperandText.NonElementaryMoveSender; docs/CONFORMANCE.md D-B4),
             // as the numeric literal arm above and `MOVE FUNCTION f TO G` store them - not as a numeric cell, which the group formal's
             // text adapter would read as the cell's own 38-digit image. A formal this activating element cannot see (a Format-1 CALL)
-            // reads the digits of the argument's Sending (CobolArgAdapt.WithValueSending) - of the value the receiver-less evaluation
-            // below delivers, which a STANDARD-DECIMAL function (COMP-2 0.0001) has already cut to the 6 working fraction digits.
+            // reads the digits of the argument's Sending - of the value the receiver-less evaluation below delivers, at its OWN
+            // exponent for an SDIDI value (CobolArgAdapt.SdidiValue, kb/Work PB3677: a STANDARD-DECIMAL function, COMP-2 0.0001, was
+            // cut to the 6 working fraction digits before the Format-1 formal saw it).
             case BoundComputedOperand { IsNumericFunctionValue: true } nf when GroupFormal(a) is not null:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(nf, num, "CALL argument")}), null)";
             case BoundComputedOperand expr:
@@ -1062,7 +1063,15 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                                       && a.Formal is { IsGroup: false, Pic: { IsClassNumeric: true } formalPic }
                     ? ReceiverContext.Of(formalPic, CobolRounding.Truncation, ecState.SizeChecking)
                     : ReceiverContext.None;
-                NumX x = num.Landed(NumericRenderer.DeU(num.Render(expr.Expr, rcv, outermost: !rcv.Receiverless)), rcv);
+                NumX rendered = NumericRenderer.DeU(num.Render(expr.Expr, rcv, outermost: !rcv.Receiverless));
+                // ⛔ …AND AN SDIDI VALUE NO FORMAL CAN CUT CROSSES AT ITS OWN EXPONENT (kb/Work PB3677). Landing it at the receiver-less
+                // floor (6 fraction digits) cut the value before any formal saw it: GR9 moves it "without conversion" and GR10 / GR9's
+                // second regime COMPUTE it into the formal "without the ROUNDED phrase", so only the formal cuts. A Format-1 CALL of
+                // FUNCTION MIN(F 3), F COMP-2 0.0001, sent 0000100 where AS NESTED and MOVE send the value's 24 digits, and the value 2
+                // sent 2000000; with a program-specifier the COMPUTE into PIC 9V9(12) landed 0.333333000000 of 0.3333333333333333.
+                if (rcv.Receiverless && num.SdidiOf(rendered) is { } dec)
+                    return RuntimeApi.ArgSdidiValue(RuntimeApi.PassModeText(a.Mode), dec, ctx.SignEncoding);
+                NumX x = num.Landed(rendered, rcv);
                 // ⛔ THE FLOAT LANE CROSSES AS A FLOAT (kb/Work PB238). `Landed` documents its own contract:
                 // "A float under NATIVE arithmetic stays binary64 — the consumer's own float arm applies", and
                 // this consumer had none, so `(Int128)(…)` TRUNCATED the fraction away: `01 F FLOAT-LONG
