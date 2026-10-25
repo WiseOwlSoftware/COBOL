@@ -1,5 +1,6 @@
-## drift_rules.py constants resolve to a true fixed point (PB3645)
+## Entry 2515 — 2026-10-24 20:58 PDT — drift_rules.py constants resolve to a true fixed point (PB3645)
 
 `Sources.constants` in `scripts/spec/drift_rules.py` reads the string constants a drift test spells as repo paths. Its docstring promised a fixed point, but the loop was `for _ in range(8)` and the `ambiguous` set was never cleared between passes. A reverse-ordered chain of more than eight constants therefore resolved to a partial path (a 12-constant chain gave eight segments, incomplete), and a name declared twice whose two partial values differed in an early pass and agreed once a later constant resolved stayed dropped. Either made a drift test's read path too short or absent, so `impacted_tests.py` planned fewer tests for a change than it should.
 
 Re-probe: both reproduced on the old function by planting the two shapes in `--self-test`. Fix: each pass reads every declaration against the previous pass's resolved names, rebuilds the ambiguous set, and stops when a pass changes nothing; the bound is the declaration count + 1 (a chain of n settles in n + 1 passes; a cycle of constants never settles, and the bound stops it). Two planted arms in `drift_rules.py --self-test` fail on the old function and pass on the new. `impacted_tests.py` needs no change (its `range(8)` walks the bits of a byte); `DESIGN-test-build-ci.md` names the fixed point. No inventory row is claimed or closed.
+
