@@ -425,14 +425,14 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     (`register` False skips the notes: a caller that wants only the inventory's counts reads no `kb/Work` blob).
 
     ⛔ THE TREND'S COST IS PAID IN PROCESSES, NOT IN BYTES (kb/Work PB3315). `--check` measures every commit since the
-    series' last recorded point (`missed_points`), and until now each cost a `git show` of the inventory twice, a
-    `git ls-tree` and a `git cat-file --batch` over all ~2,900 notes: 334 processes for 81 commits, 117 s of them in
-    `cat-file` alone with the machine idle, and 20-28 minutes in the gate's pre-slot audit with ten gates running. A
-    process start costs tens of milliseconds on Windows and much more under load, so the cost grew with the commit
-    count and with the contention. Now the trees of every commit are read in one process (`git_batch.tree_entries`)
-    and the distinct blobs they name in a second (`git_batch.blobs`): a note or an inventory that two commits share is
-    read and parsed ONCE, so a commit that moved one note costs one blob. `--self-test` holds the process count
-    constant in the number of commits (a structural bound, never a wall-clock one)."""
+    series' last recorded point (`missed_points`); a process start costs tens of milliseconds on Windows and much more
+    under load, so a read per commit would grow with the commit count and with the contention. The trees of every
+    commit are read in one process (`git_batch.tree_entries`) and the distinct blobs they name in a second
+    (`git_batch.blobs`): a note or an inventory that two commits share is read and parsed ONCE, so a commit that moved
+    one note costs one blob. Each blob is reduced to its summary (the inventory's counts and open rule ids, a note's
+    frontmatter) as it arrives and then dropped, so the peak memory is one inventory (7.5 MB), not one per distinct
+    version. `--self-test` holds the process count constant in the number of commits (a structural bound, never a
+    wall-clock one)."""
     uniq = list(dict.fromkeys(shas))
     if not uniq:
         return {}
@@ -442,13 +442,18 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
     work_trees, inventory_trees = (trees[0::2], trees[1::2]) if register else ([None] * len(uniq), trees)
     inventory_ids = [(t or {}).get(inventory_name) for t in inventory_trees]
     note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
-    content = git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)])
     import work  # noqa: PLC0415
 
+    inventory_oids = set(o for o in inventory_ids if o)
     summaries: dict[str, tuple[dict, frozenset[str]] | None] = {}
-    for oid in dict.fromkeys(o for o in inventory_ids if o):
+    notes: dict[str, dict | None] = {}   # a file without frontmatter is not a note, exactly as `work.load` skips it
+    for oid, data in git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)]):
+        text = data.decode("utf-8", errors="replace")
+        if oid not in inventory_oids:
+            notes[oid] = work.parse_frontmatter(text)
+            continue
         try:
-            rows = json.loads(content[oid].decode("utf-8", errors="replace"))
+            rows = json.loads(text)
         except ValueError:
             summaries[oid] = None
             continue
@@ -456,9 +461,6 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
                            "closed": sum(1 for x in rows if x["state"] == "OK"),
                            "dns": sum(1 for x in rows if x["verdict"] == "DOCUMENTED-NON-SUPPORT")},
                           frozenset(r["rule-id"] for r in rows if r.get("state") == "GAP"))
-    # a file without frontmatter is not a note, exactly as `work.load` skips it
-    notes = {oid: work.parse_frontmatter(content[oid].decode("utf-8", errors="replace"))
-             for oid in dict.fromkeys(o for ids in note_ids for o in ids)}
     out: dict[str, Committed] = {}
     for sha, inventory_id, ids in zip(uniq, inventory_ids, note_ids):
         summary = summaries.get(inventory_id) if inventory_id else None

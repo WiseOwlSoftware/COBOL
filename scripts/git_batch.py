@@ -11,7 +11,7 @@
     git_batch.object_ids(repo, ["<rev>:<path>", ...])        # `git rev-parse -q --verify <rev>:<path>`, each
     git_batch.patch_ids(repo, [commit, ...])                 # `git show <commit> | git patch-id --stable`, each
     git_batch.tree_entries(repo, ["<rev>:<dir>", ...])       # `git ls-tree <rev>:<dir>`, each: {file name: object id}
-    git_batch.blobs(repo, [object id, ...])                  # `git cat-file blob <object id>`, each: {object id: bytes}
+    git_batch.blobs(repo, [object id, ...])                  # `git cat-file blob <object id>`, each: (object id, bytes), one at a time
 
     python scripts/git_batch.py --self-test                  # each reader against the one-process-per-object form
 
@@ -50,7 +50,8 @@ from __future__ import annotations
 import pathlib
 import subprocess
 import sys
-from typing import Callable, Iterable, Sequence
+import tempfile
+from typing import Callable, Iterable, Iterator, Sequence
 
 BASE = "refs/remotes/origin/main"
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: a root commit's diff is taken against it
@@ -108,34 +109,35 @@ def object_ids(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | Non
     return [a[0] if a else "" for a in _batch_check(repo, list(specs), git)]
 
 
-def _objects(repo: pathlib.Path | str, specs: Sequence[str]) -> list[tuple[str, str, bytes] | None]:
-    """[(object id, type, content) | None] per spec, from ONE `git cat-file --batch` (`<spec> missing` and an ambiguous
-    abbreviation -> None). The answers arrive in the questions' order, so a short or torn output raises GitError."""
+def _object_stream(repo: pathlib.Path | str, specs: Sequence[str]) -> Iterator[tuple[str, str, bytes] | None]:
+    """(object id, type, content) | None per spec, in the questions' order, from ONE `git cat-file --batch` (`<spec>
+    missing` and an ambiguous abbreviation -> None). The answers are written to a temporary file and read back one at a
+    time, so a caller that reduces each object as it arrives holds one object, not the whole output. A short or torn
+    output raises GitError."""
     if not specs:
-        return []
+        return
     bad = [s for s in specs if not s or "\n" in s]
     if bad:
         raise GitError(f"git cat-file --batch cannot ask about {bad[0]!r}")
-    r = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], capture_output=True,
-                       input="".join(f"{s}\n" for s in specs).encode("utf-8"))
-    if r.returncode != 0:
-        raise GitError(f"git cat-file --batch in {repo} failed ({r.returncode}): {r.stderr.decode('utf-8', 'replace').strip()[:300]}")
-    out, at = r.stdout, 0
-    answers: list[tuple[str, str, bytes] | None] = []
-    try:
-        for _ in specs:
-            eol = out.index(b"\n", at)
-            header = out[at:eol].split()
-            if header[-1] in (b"missing", b"ambiguous"):
-                answers.append(None)
-                at = eol + 1
-                continue
-            size = int(header[2])
-            answers.append((header[0].decode("ascii"), header[1].decode("ascii"), out[eol + 1:eol + 1 + size]))
-            at = eol + 1 + size + 1
-    except (ValueError, IndexError) as e:
-        raise GitError(f"git cat-file --batch answered {len(answers)} objects for {len(specs)} questions: {e}") from e
-    return answers
+    with tempfile.TemporaryFile() as out:
+        r = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], stdout=out, stderr=subprocess.PIPE,
+                           input="".join(f"{s}\n" for s in specs).encode("utf-8"))
+        if r.returncode != 0:
+            raise GitError(f"git cat-file --batch in {repo} failed ({r.returncode}): {r.stderr.decode('utf-8', 'replace').strip()[:300]}")
+        out.seek(0)
+        for answered in range(len(specs)):
+            try:
+                header = out.readline().split()
+                if header[-1] in (b"missing", b"ambiguous"):
+                    yield None
+                    continue
+                size = int(header[2])
+                data = out.read(size)
+                if len(data) != size or out.read(1) != b"\n":
+                    raise ValueError("the output ends inside an object")
+            except (ValueError, IndexError) as e:
+                raise GitError(f"git cat-file --batch answered {answered} objects for {len(specs)} questions: {e}") from e
+            yield header[0].decode("ascii"), header[1].decode("ascii"), data
 
 
 def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[str, str] | None]:
@@ -143,7 +145,7 @@ def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[st
     from ONE process (`git ls-tree <rev>:<path>` for each, without the process). Files only: a subdirectory or a
     submodule is not an entry. A spec that names a file, not a directory, raises GitError."""
     out: list[dict[str, str] | None] = []
-    for spec, found in zip(specs, _objects(repo, specs)):
+    for spec, found in zip(specs, _object_stream(repo, specs)):
         if found is None:
             out.append(None)
             continue
@@ -161,16 +163,15 @@ def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[st
     return out
 
 
-def blobs(repo: pathlib.Path | str, oids: Iterable[str]) -> dict[str, bytes]:
-    """{object id: its content} for every distinct id, from ONE process. An id that names no blob raises GitError: a
-    caller that read it out of a tree must find it."""
+def blobs(repo: pathlib.Path | str, oids: Iterable[str]) -> Iterator[tuple[str, bytes]]:
+    """(object id, its content) for every distinct id, from ONE process, one blob at a time: a caller that reduces each
+    blob as it arrives (counts, a parsed frontmatter) holds one blob, however many ids it asked. An id that names no
+    blob raises GitError: a caller that read it out of a tree must find it."""
     uniq = list(dict.fromkeys(o for o in oids if o))
-    out: dict[str, bytes] = {}
-    for oid, found in zip(uniq, _objects(repo, uniq)):
+    for oid, found in zip(uniq, _object_stream(repo, uniq)):
         if found is None or found[1] != "blob":
             raise GitError(f"{oid} is not a blob in {repo}")
-        out[oid] = found[2]
-    return out
+        yield oid, found[2]
 
 
 def patch_ids(repo: pathlib.Path | str, commits: Iterable[str], git: Runner | None = None) -> dict[str, str]:
@@ -454,16 +455,16 @@ def self_test() -> int:
         except GitError:
             check("tree_entries: a spec that names a file raises", True)
         wanted = [oid for entries in listed if entries for oid in entries.values()]
-        got_blobs = blobs(r, [*wanted, *wanted, ""])
+        got_blobs = list(blobs(r, [*wanted, *wanted, ""]))
         check("blobs: each distinct object id as `cat-file blob` reads it, once however often it is asked",
-              got_blobs == {o: repo.run("cat-file", "blob", o, binary=True).stdout for o in set(wanted)}
+              dict(got_blobs) == {o: repo.run("cat-file", "blob", o, binary=True).stdout for o in set(wanted)}
               and len(got_blobs) == len(set(wanted)), got_blobs)
         try:
-            blobs(r, ["0" * 40])
+            list(blobs(r, ["0" * 40]))
             check("blobs: an id that names no blob raises", False)
         except GitError:
             check("blobs: an id that names no blob raises", True)
-        check("tree_entries and blobs: no questions, no process", tree_entries(r, []) == [] and blobs(r, []) == {})
+        check("tree_entries and blobs: no questions, no process", tree_entries(r, []) == [] and list(blobs(r, [])) == [])
 
         repo.git("switch", "-q", "-c", "orig", root)
         repo.commit("orig", {"c.txt": "three\n"})
