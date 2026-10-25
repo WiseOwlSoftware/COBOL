@@ -69,7 +69,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (ins.inlineMethodInvocation() is { } imiTarget)
             return BindFunctionTarget(host.Oo.OoInlineInvocationOperand(imiTarget), imiTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
-            return BindFunctionTarget(IntrinsicBinder.OperandOf(kof), ins.dataReference().GetText());
+            return BindFunctionTarget(IntrinsicBinder.OperandOf(kof, functionValue: true), ins.dataReference().GetText());
         // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §13.18.38.3 r7's five index-name
         // contexts — a compile diagnostic, not the unresolvable-item runtime stage below.
         // ⛔ Both lanes, deliberately: identifier-1 is an IDENTIFIER SLOT, so there is no occurrence-number
@@ -385,7 +385,15 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // arm was still missing and the operand fell through to the not-implemented tail, which reported a
         // MISLEADING reason — "a numeric literal is not a valid INSPECT literal" — for something that is neither
         // numeric nor a literal. Routed through the ONE intrinsic-operand entry the other verbs use.
-        if (c.functionCall() is { } fc) return (host.Intrinsic.IntrinsicOperand(fc), false);
+        // ⛔ SR2 reaches it as it reaches a data item (kb/Work PB3665): the function is described by its §15.2 type, and a
+        // numeric, integer, index or boolean one (FUNCTION LENGTH folded to a literal included) is not usage display
+        // or national — `INSPECT … FOR ALL FUNCTION INTEGER(N)` compiled and examined the value's digits.
+        if (c.functionCall() is { } fc)
+        {
+            var function = host.Intrinsic.IntrinsicOperand(fc);
+            ctx.Validation.CheckInspectFunctionUsage(function, DataBinder.WrittenText(c));   // SR2 — pure check
+            return (function, false);
+        }
         if (c.inlineMethodInvocation() is { } imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
             return (host.Oo.OoInlineInvocationOperand(imi), false);
         // ⛔ THE ONE nonNumericLiteral MAPPING (kb/Work DA3), not a private copy of it (kb/Work PB1427). This arm

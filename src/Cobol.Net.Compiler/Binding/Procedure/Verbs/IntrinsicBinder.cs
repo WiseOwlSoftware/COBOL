@@ -221,9 +221,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>FUNCTION call as a MOVE sending operand (the <c>BindMove</c> hook) — and the operand shape every
     /// general-operand channel shares: the bound expression wrapped as a <see cref="BoundComputedOperand"/> (a
     /// LENGTH fold surfaces as its literal; an error stays a loud named operand).</summary>
-    public BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => OperandOf(BindIntrinsic(fc));
+    public BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => OperandOf(BindIntrinsic(fc), functionValue: true);
 
-    public static BoundOperand OperandOf(BoundExpr e) => e switch
+    /// <summary>The operand a bound expression is. <paramref name="functionValue"/> is true when the expression is a bound
+    /// FUNCTION-IDENTIFIER (the word FUNCTION written or omitted, §8.4.3.2.3 SR2) and false for an arithmetic expression:
+    /// both can be the same <see cref="BoundBinary"/>, and only the first is a MOVE sender (<see cref="BoundComputedOperand.FunctionValue"/>).
+    /// Required, so a new position states which it is.</summary>
+    public static BoundOperand OperandOf(BoundExpr e, bool functionValue) => e switch
     {
         BoundNumLiteral l => new BoundNumericLiteral(l.Text) { FunctionValue = l.FunctionValue, FunctionType = l.FunctionType, DecimalSeparator = l.DecimalSeparator },   // a folded function (LENGTH …) keeps saying so, and its type
         // A user-function result temp (M2-UDF-1). ⚠ Nothing here can tell it from a numeric data item whose grouping
@@ -232,14 +236,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // PB1935), never maps it through here.
         BoundNumRef r => new BoundFieldOperand(r.Place),
         BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),
-        _ => new BoundComputedOperand(e),
+        _ => new BoundComputedOperand(e) { FunctionValue = functionValue },
     };
 
     /// <summary>The temporary data item a bound function-identifier or inline method invocation REFERENCES — the item
     /// whose class and category §8.4.3.2.1 / §8.4.3.4.4 GR1 give the identifier — or null for an intrinsic function
     /// (a computed value with no item of its own) and for any other expression. The ONE reading every position that
     /// asks an identifier's item asks (a SET sender, an object-reference operand).</summary>
-    public static Place? TemporaryItemOf(BoundExpr e) => OperandOf(e) is BoundFieldOperand f ? f.Place : null;
+    public static Place? TemporaryItemOf(BoundExpr e) => OperandOf(e, functionValue: true) is BoundFieldOperand f ? f.Place : null;
 
     /// <summary>The FUNCTION-POINTER data item <paramref name="name"/> resolves to in the active scope, as a Place,
     /// or null — the ONE §8.4.3.2.3 SR4 test ("Function-pointer-name-1 shall be defined as a function-pointer data
@@ -2969,7 +2973,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
         // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
         // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
-        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()));
+        return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()), functionValue: false);
     }
 
     /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
