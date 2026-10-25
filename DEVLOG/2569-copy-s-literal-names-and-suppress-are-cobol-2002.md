@@ -1,4 +1,4 @@
-## COPY's literal names and SUPPRESS are COBOL-2002 introductions, and the literal length bound is the edition's: 160 below COBOL-2014, 8,191 from it (PB1601, PB1615)
+## Entry 2569 — 2026-10-25 14:01 PDT — COPY's literal names and SUPPRESS are COBOL-2002 introductions, and the literal length bound is the edition's: 160 below COBOL-2014, 8,191 from it (PB1601, PB1615)
 
 Two edition edges the compiler had never drawn, found by the analyses sweep of 2026-10-23 and confirmed on this build
 before any change: `COPY "CB1.cpy".` and `COPY CB1 SUPPRESS PRINTING.` compiled clean at `--std 85` (PB1601), and a
@@ -58,3 +58,4 @@ of HEAD) GREEN`. All 51 new or changed goldens and edition cells passed in `leg-
 `SuiteTest_IsNoWorseThanItsVerdictAllows` for `pb1615_literal_160_positions` (85, 2002, 2014, 2023),
 `pb1615_literal_over_160_positions` (2014, 2023), `pb1355_library_text_literal` (2002, 2014, 2023) and
 `pb1354_copy_header_2002` (2002), and `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic` for the three negatives.
+
