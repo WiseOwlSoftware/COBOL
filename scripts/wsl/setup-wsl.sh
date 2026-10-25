@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# User-space WSL toolchain refresh for WiseOwl COBOL (parity target: scripts/cloud/setup-env.sh / CI setup-dotnet 10.0.x).
+# User-space WSL toolchain refresh for WiseOwl COBOL (parity target: scripts/cloud/setup-env.sh and CI's .NET SDK).
 set -u
 log() { echo "[wsl-tooling] $*"; }
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The installers' downloads and logs: a directory of this run's own, never fixed names in the machine-wide /tmp (kb/Work
 # PB2922). Each failure prints its log's tail, so the directory goes when the script ends.
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/setup-wsl.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
-# .NET 10 SDK -> ~/.dotnet
-curl -fsSL https://dot.net/v1/dotnet-install.sh -o "$WORK/dotnet-install.sh" \
-  && bash "$WORK/dotnet-install.sh" --channel 10.0 --install-dir "$HOME/.dotnet" > "$WORK/dotnet-install.log" 2>&1 \
-  && log "dotnet-install ok" || { log "dotnet-install FAILED"; tail -5 "$WORK/dotnet-install.log"; }
+# .NET SDK -> ~/.dotnet: the version CI builds with, installed the way CI installs it (scripts/install-dotnet-sdk.sh:
+# the pinned version, from its feeds in their order, never through the aka.ms redirect; kb/Work PB3308).
+bash "$SCRIPTS/install-dotnet-sdk.sh" "$HOME/.dotnet" > "$WORK/dotnet-sdk.log" 2>&1 \
+  && log "dotnet sdk $(bash "$SCRIPTS/install-dotnet-sdk.sh" --version) ok" || { log "dotnet sdk FAILED"; tail -5 "$WORK/dotnet-sdk.log"; }
 
 # PATH wiring in ~/.profile (login shells) and ~/.bashrc (interactive)
 for rc in "$HOME/.profile" "$HOME/.bashrc"; do
