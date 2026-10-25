@@ -76,7 +76,7 @@ public static class CobolBits
         {
             int p = startBit + i, b = p / BitsPerByte;
             bits[i] = b >= 0 && b < image.Length
-                      && (StorageByte.ToByte(image[b]) & (1 << (BitsPerByte - 1 - p % BitsPerByte))) != 0 ? '1' : '0';
+                      && (StorageByte.ImageByte(image[b]) & (1 << (BitsPerByte - 1 - p % BitsPerByte))) != 0 ? '1' : '0';
         }
         return new string(bits);
     }
@@ -118,7 +118,7 @@ public static class CobolBits
             if (b < 0) continue;
             if (b >= buf.Length) break;
             int mask = 1 << (BitsPerByte - 1 - p % BitsPerByte);
-            int bite = StorageByte.ToByte(buf[b]);
+            int bite = StorageByte.ImageByte(buf[b]);
             buf[b] = StorageByte.ToChar((byte)(bits[i] == '1' ? bite | mask : bite & ~mask));
         }
     }
@@ -203,7 +203,12 @@ public static class CobolBits
     /// pair that runs past the end of the image decodes as the national SPACE — the same benign short-window
     /// decode <see cref="ReadWindow"/> gives a bit run, never a throw (a shared storage area may legitimately be
     /// shorter than a view over it, §13.18.44.4 GR1's larger-of-the-two allocation notwithstanding, and a BASED
-    /// window over a hand-sized ALLOCATE is the reachable case).</summary>
+    /// window over a hand-sized ALLOCATE is the reachable case).
+    /// <para>⛔ A position holding a character with no byte image (an alphanumeric item may hold any UTF-16 code unit,
+    /// DOC-A.1-31) reads through <see cref="StorageByte.ImageByte"/>: the byte is <c>?</c> and EC-DATA-CONVERSION is
+    /// set (§8.1.2 1: every character of the alphanumeric coded character set occupies the same number of bytes, so
+    /// the storage image of one that cannot is decided once, DOC-A.1-33) — never the code unit's truncated low-order
+    /// byte, which turned U+20AC into U+00AC through a national REDEFINES view (kb/Work PB547).</para></summary>
     public static string NatReadWindow(string image, int startByte, int positions)
     {
         var chars = new char[positions];
@@ -211,7 +216,7 @@ public static class CobolBits
         {
             int hi = startByte + BytesPerNational * i;
             chars[i] = hi >= 0 && hi + 1 < image.Length
-                ? (char)((StorageByte.ToByte(image[hi]) << 8) | StorageByte.ToByte(image[hi + 1]))
+                ? (char)((StorageByte.ImageByte(image[hi]) << 8) | StorageByte.ImageByte(image[hi + 1]))
                 : ' ';
         }
         return new string(chars);
@@ -248,8 +253,8 @@ public static class CobolBits
         for (int i = 0; i < chars.Length; i++)
         {
             int hi = BytesPerNational * i;
-            byte lo = hi + 1 < image.Length ? StorageByte.ToByte(image[hi + 1]) : StorageByte.ToByte(' ');
-            chars[i] = (char)((StorageByte.ToByte(image[hi]) << 8) | lo);
+            byte lo = hi + 1 < image.Length ? StorageByte.ImageByte(image[hi + 1]) : StorageByte.ToByte(' ');
+            chars[i] = (char)((StorageByte.ImageByte(image[hi]) << 8) | lo);
         }
         return new string(chars);
     }

@@ -374,27 +374,18 @@ public static partial class CobolIntrinsics
     /// exactly one expression (fix-queue PB59; the triage measured DISPLAY-OF(N"Š") → '?', ORD 64).</summary>
     private static string Repertoire(string arg) => arg;
 
-    /// <summary>The 8-bit BYTE-serialization substitution (the §8.1.2 NOTE 2 usage-representation determination —
-    /// see the CONVERT char-set model above): a UTF-16 code unit above 0xFF has no one-byte image, so the
-    /// ANUM/ANY→byte reduction substitutes '?' and sets EC-DATA-CONVERSION. ⚠ NOT the item-33 character
-    /// correspondence (that is total, and raises nothing). This is the DOCUMENTED item-209 disposition
-    /// (RV-15.19.4-2, decided 2026-08-09): §15.19.4 r2 carries no substitution sentence because the spec's model
-    /// assumes the serialization is total; where ours is partial, the r1/r3-analogous substitution+EC is the
-    /// smallest extension of the standard's own machinery — visible under checking, never silent.</summary>
-    private static byte ByteSub()
-    {
-        Exceptions.ExceptionState.DataConversionError(
-            "the code unit has no one-byte image in the 8-bit usage-DISPLAY serialization (§8.1.2; CONFORMANCE.md item 209)");
-        return (byte)'?';
-    }
-
     /// <summary>The shared char==byte reduction of the bit/byte pathway: one byte per code unit by the storage-byte
-    /// law (<see cref="StorageByte"/> — the HIGH-VALUE character U+FFFF is the byte 0xFF, owner R52), with the
-    /// documented item-209 substitution (<see cref="ByteSub"/>) for any other unit above 0xFF.</summary>
+    /// law (<see cref="StorageByte"/> — the HIGH-VALUE character U+FFFF is the byte 0xFF, owner R52), and for a unit
+    /// with no byte image the documented item-209 disposition (RV-15.19.4-2, decided 2026-08-09; §15.19.4 r2 carries
+    /// no substitution sentence because the spec's model assumes the serialization is total, so where ours is partial
+    /// the r1/r3-analogous substitution+EC is the smallest extension of the standard's own machinery): '?' and
+    /// EC-DATA-CONVERSION, visible under checking, never silent. ⚠ NOT the item-33 character correspondence (that is
+    /// total, and raises nothing). The substitution is <see cref="StorageByte.ImageByte"/>, the ONE runtime
+    /// storage-image reader every byte channel shares (kb/Work PB547).</summary>
     private static byte[] RawBytes(string s)
     {
         var b = new byte[s.Length];
-        for (int i = 0; i < s.Length; i++) b[i] = StorageByte.HasByte(s[i]) ? StorageByte.ToByte(s[i]) : ByteSub();
+        for (int i = 0; i < s.Length; i++) b[i] = StorageByte.ImageByte(s[i]);
         return b;
     }
 
