@@ -671,7 +671,7 @@ def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tu
     try:
         listed = json.loads(out or "[]")
         heads = [(int(pr["number"]), str(pr["headRefOid"])) for pr in listed if pr.get("headRefName") != branch]
-    except (ValueError, KeyError, TypeError) as exc:
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
         return {}, f"the open pull request list is not the JSON asked for ({exc})"
     found: dict[int, list[str]] = {}
     for number, oid in heads:
