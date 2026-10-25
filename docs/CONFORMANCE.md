@@ -1438,6 +1438,18 @@ of an unsupported facility.
   Witnessed by `conformance:cases/13.18.52-SIGN/pb493_report_group_sign_inherited` and
   `conformance:cases/13.18.52-SIGN/pb536_code_set_group_sign`.
 
+- **D-SIGN2 — the COBOL-85 group SIGN subject (kb/Work PB1319; VCR row 7.40).** ANSI X3.23-1985, as the vendor
+  manuals transcribe it, admits a group SIGN clause only on "a group item containing at least one such numeric data
+  description entry" (one whose PICTURE contains the character S), and requires "The numeric data description entries
+  to which the SIGN clause applies" to be USAGE DISPLAY. The 2023 §13.18.52.3 keeps neither restriction. At `--std 85`
+  each is refused with COBOLNET0900 through its construct row (`sign-group-unsigned-subordinates-2002`,
+  `sign-group-nondisplay-subordinate-2002`; `DataBinder.GateGroupSignSubordinates`); at 2002 and later the 2023
+  rules and D-SIGN1 apply. The 2002 edge is DERIVED (the repo holds no 1985 or 2002 text) and stated in the VCR row
+  so it can be overturned. A subordinate that writes its own SIGN clause is outside the group's reach (§13.18.52.4
+  GR2/GR3), so `01 G SIGN LEADING SEPARATE. 05 C PIC S9(3) COMP SIGN TRAILING.` is refused for C's own clause
+  (§13.18.52.3 SR2, COBOLNET2422), never twice. Witnessed by `conformance:cases/13.18.52-SIGN/pb1319_sign_group_subjects_2002`,
+  `conformance:cases/13.18.52-SIGN/pb1319-sign-group-unsigned-85` and `conformance:cases/13.18.52-SIGN/pb1319-sign-group-comp-85`.
+
 - **NUMVAL-F — a space may not SPLIT the exponent's `n` (§15.69.3 r1/r5 · §15.95.4 r1 b) 1; kb/Work PB256).**
   §15.69.3 r5 says "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are
   ignored **except** between the first numeric digit and the last digit that precedes a letter 'E'" — i.e. its

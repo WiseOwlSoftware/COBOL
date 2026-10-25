@@ -22921,5 +22921,17 @@
    "2023"
   ],
   "expect": "COBOLNET1688: CALL … program-prototype 'P538S' argument 1 ('A') does not conform to formal parameter 'L'"
+ },
+ "pb1319-sign-group-unsigned-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a SIGN clause on a group item with no signed numeric subordinate requires COBOL-2002"
+ },
+ "pb1319-sign-group-comp-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY requires COBOL-2002"
  }
 }

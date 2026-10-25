@@ -2945,6 +2945,32 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SYNCHRONIZED.\n  05 A PIC X.\n  05 B PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
+   "id": "sign-group-unsigned-subordinates-2002",
+   "status": "active",
+   "description": "A SIGN clause on a GROUP item that contains no signed numeric data description entry (kb/Work PB1319). COBOL-85 admitted the clause only on 'a numeric data description entry whose PICTURE contains the character S, or a group item containing at least one such numeric data description entry'; the 2023 text of 13.18.52.3 SR1 admits any alphanumeric, national or strongly-typed group item. THE EDGE IS DERIVED, NOT QUOTED (the repo holds no 1985, 2002 or 2014 text, ratified decision #1): the 1985 wording is the vendor transcriptions of ANSI X3.23-1985 (Micro Focus, Veryant isCOBOL, Fujitsu, IBM Enterprise COBOL); Annex E lists no SIGN change, so 2014 = 2023; 2002 is the edition that recast SR1 around group categories with national group items (VCR row 7.40). GnuCOBOL 3.2 has no per-dialect arm here (silence, not evidence). Gated in ONE place, DataBinder.CheckSignClauses.",
+   "display": "a SIGN clause on a group item with no signed numeric subordinate",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.18.52.3 SR1 (2023 text); ANSI X3.23-1985 SIGN clause syntax rule (vendor transcriptions); VCR row 7.40 (derived 2002 edge)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "VCR row 7.40 (85->2002: the SIGN clause's group subject no longer needs a signed numeric subordinate)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SGU.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SIGN IS LEADING SEPARATE.\n  05 X PIC X(3).\n  05 N PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+   "id": "sign-group-nondisplay-subordinate-2002",
+   "status": "active",
+   "description": "A SIGN clause on a GROUP item that applies to a signed numeric subordinate whose usage is not DISPLAY (kb/Work PB1319). COBOL-85 required 'The numeric data description entries to which the SIGN clause applies must be described as USAGE IS DISPLAY'; the 2023 text of 13.18.52.3 SR2 restricts only 'an elementary item for which the SIGN clause is specified', and 13.18.52.4 GR1 applies a group's clause to a binary or packed item without effect (CONFORMANCE.md D-SIGN1). THE EDGE IS DERIVED, NOT QUOTED, exactly as sign-group-unsigned-subordinates-2002's (VCR row 7.40). A subordinate that writes its own SIGN clause is the subject of that clause (GR2/GR3), so the group's clause does not apply to it or to anything below it. Gated in ONE place, DataBinder.CheckSignClauses.",
+   "display": "a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.18.52.3 SR2 (2023 text); ANSI X3.23-1985 SIGN clause syntax rule (vendor transcriptions); VCR row 7.40 (derived 2002 edge)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "VCR row 7.40 (85->2002: a group SIGN clause may cover a signed numeric item of another usage)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SGC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SIGN IS LEADING SEPARATE.\n  05 C PIC S9(3) COMP.\n  05 D PIC S9(3).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "call-returning-2002",
    "description": "CALL ... RETURNING status-item, ISO 14.9.4 - the RETURNING phrase is a 2002 introduction (folded from the inline CallBinder gate, Exec Step E).",
    "display": "CALL ... RETURNING",
