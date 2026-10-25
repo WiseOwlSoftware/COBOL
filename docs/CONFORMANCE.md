@@ -1430,13 +1430,15 @@ of an unsupported facility.
   Witnesses: `conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb1606_fixed_sender_float_edited_formal`, `conformance:cases/14.9.25-MOVE/pb370_move_function_value_digits`, `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
   (every position, the rounding modes, the negative and the huge), `15.60.4-Returned-value-rule/arith_standard`,
   `_unassigned/pb3017_sdidi_divide_remainder_beyond_the_int128_carrier`, `CobolDecBinary64ConversionTests`.
-- **The editing sign of a value the store truncates to zero (§13.18.40.5 5), §14.9.25.4 6), §8.8.4.2.4; kb/Work
+- **The editing sign of a value the store truncates to zero (§13.18.40.5 5), §14.9.25.4 6), §14.6.8.2 5); kb/Work
   PB3664, owner 2026-10-24).** An editing sign control symbol (the fixed `+`, `-`, `CR`, `DB`, the floating `+` and
   `-`, and a PICTURE EDITING character-1 under a FOR phrase) shows the Table 8/Table 9 column for "the value of the data
   item", whose first column is "Positive or zero value", and the data item holds the value AFTER alignment and
-  truncation (§14.6.8.2 4), "zero fill or truncation on either end as required"). So `MOVE -0.001 TO PIC -9.99`
+  truncation (§14.6.8.2 5), for a numeric-edited receiver: "further alignment, zero fill or truncation, and transfer of
+  digits take place as described in the general rules and editing rules in 13.18.40"). So `MOVE -0.001 TO PIC -9.99`
   stores zero and prints ` 0.00` (`+0.00` for `PIC +9.99`, `0.00  ` for `PIC 9.99CR`), and `MOVE -100 TO PIC -99`, whose
-  high-order digit truncates, prints ` 00`: "Zero is considered a unique value regardless of the sign". The sign is decided
+  high-order digit truncates, prints ` 00` (§8.8.4.2.4 says the same of comparisons: "Zero is considered a unique value
+  regardless of the sign"). The sign is decided
   ONCE per edit, from the digit string the receiver holds (`CobolEdit.Render`), and the format-2 locale editor
   (`CobolLocaleEdit.Format`, GR18 `+`) reads the same stored value. GnuCOBOL 3.2 agrees for the edited receiver
   (`cob_move_display_to_edited` guards every `-`, CR and DB with `neg && !is_zero`, `is_zero` taken from the digits that

@@ -12,11 +12,13 @@
       * editing, shows the character(s) produced by an editing sign
       * control symbol, depending on the value of the data item" -
       * Table 8's first column is "Positive or zero value". 14.9.25.4
-      * rule 6 takes alignment and truncation from 14.6.8.2 rule 4,
-      * "zero fill or truncation on either end as required", so a
-      * sending -0.001 moved into an item with two fraction digits
-      * stores ZERO, and 8.8.4.2.4 says "Zero is considered a unique
-      * value regardless of the sign".
+      * rule 6 sends a numeric-edited receiver to 14.6.8.2 rule 5,
+      * "further alignment, zero fill or truncation, and transfer of
+      * digits take place as described in the general rules and
+      * editing rules in 13.18.40", so a sending -0.001 moved into an
+      * item with two fraction digits stores ZERO (8.8.4.2.4 says the
+      * same of comparisons: "Zero is considered a unique value
+      * regardless of the sign").
       *
       *   S  PIC S9V999 VALUE -0.001, moved to each edited item:
       *        -9.99  -> " 0.00"    +9.99 -> "+0.00"
