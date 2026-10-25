@@ -1,4 +1,4 @@
-## The branch survey and the review-findings hand-off: four fixes in one root (PB3386, PB3409, PB3404, PB3713)
+## Entry 2554 — 2026-10-25 12:17 PDT — The branch survey and the review-findings hand-off: four fixes in one root (PB3386, PB3409, PB3404, PB3713)
 
 Wave 20261107 group E. The four notes share `scripts/prune_worktrees.py` and the merge drivers; each was re-probed on
 this tree's scratch repository (`python scripts/prune_worktrees.py --self-test`) before it was touched.
@@ -38,3 +38,4 @@ is now the one definition of a clean merge's tree; `is_drivers_merge` and `merge
 report their own failures); `findings_answered_by` answers False for a torn reading, a missing head or no CLEAN review,
 each pinned; the PB3713 proof keeps the strict tree comparison rather than `is_drivers_merge`'s pin leniency; comments
 cite the notes. Gate: filled in by the report.
+
