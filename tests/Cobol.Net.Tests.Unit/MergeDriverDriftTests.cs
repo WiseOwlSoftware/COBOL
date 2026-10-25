@@ -9,8 +9,9 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, AND ONE FUNCTION MERGES MAIN IN (kb/Work PB3610;
 /// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 2). <c>scripts/merge_drivers.py</c> keeps a registry
 /// (<c>DRIVERS</c>) of the catalogues a landing appends to — <c>wiseowl/diagnostics.json</c> and <c>options.json</c>, the
-/// traceability inventory, <c>constructs.json</c>, the work notes — and of the runtime ABI pin, which
-/// <c>scripts/abi_pin.py</c> measures; <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
+/// traceability inventory, <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
+/// <c>scripts/abi_pin.py</c> measures, and of the public-API baselines, merged as SETS of symbol lines (kb/Work PB3727;
+/// docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.9); <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
 /// together. <c>enqueue.py land</c> merges main in through <c>merge_drivers.merge</c>, so two branches that each added an
 /// entry are no conflict; the review's coverage rule (<c>prune_worktrees.mechanical</c>) reads the same function, so a
 /// merge the drivers made reads as mechanical and a hand resolution does not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work
@@ -42,6 +43,13 @@ public sealed class MergeDriverDriftTests
             "keyed rows: an array of objects is keyed by a member",
             "keyed nested: entries at a deeper indentation inside a member are keyed too",
             "note: frontmatter merges per key and the bodies by union",
+            "publicapi: lines each side added are both kept",
+            "publicapi: a line one side removed is gone",
+            "publicapi: the header stays first and the rest is sorted",
+            "publicapi: the same line added by both is one line",
+            "git: a public-API baseline both branches changed merges through its driver as a set",
+            "git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver",
+            "patterns: a driver's pattern names a path as git does",
             "hunks: two insertions at one place are an INSERTION hunk",
             "hunks: the history replay counts a merge both parents changed",
             "hunks: a merge that took one parent's file whole is counted",
