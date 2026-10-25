@@ -44,7 +44,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      does not gate the merge with main, and does not gate again when main moves: the merge queue's CI (`ci-gate`, the
      whole population on the exact merge) is the gate for the merge. It READS the record instead (`tested_locally`):
      the worktree's newest gate verdict files must hold a GREEN run of the committed head's own tree (`head_tree`
-     equals the `tree` it measured) with its Linux half GREEN (the inert lane has none), whose head covers this one
+     equals the `tree` it measured) with its Linux half GREEN (the inert lane's is the script self-tests alone, kb/Work PB3646), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
      merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
@@ -53,8 +53,8 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
      PB3662), retried once no gate runs; a run whose gate died with none (its lock free) still counts as no record. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
-     landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
-     seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
+     landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane:
+     the audits, then the Linux self-tests in a WSL clone, kb/Work PB3646). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
      also changes (a true textual merge in a shared file: `merge_overlap`, set aside the files a merge driver merges
      by key and the inert ones no test reads), the one gate runs once on the merged head. "Changed" is read against
      the head the covering record measured, so a re-run after a run whose gate was BUSY or NOT RUN (it left the merge
@@ -748,7 +748,8 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
       * measured the COMMITTED head's own tree (`tree` equals `head_tree`: an implementer who gated with uncommitted
         edits tested something no commit carries);
       * on a host that runs the Linux half (a Windows host: `Host.runs_linux_leg`), carries a GREEN Linux half of that
-        same tree; the inert lane runs none (no test reads the change);
+        same tree; the inert lane's is the script self-tests alone (kb/Work PB3646: CI's `audits` job runs them on
+        Linux on every event);
       * has a head that COVERS `head`: it IS `head`, or every later commit is main's, a clean merge of main or
         DEVLOG-only (`prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too).
     The newest run is not special: a REUSED answer is a run too, and a later RED does not unrecord an earlier GREEN of
@@ -777,7 +778,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             problem = f"it read {str(rec.get('verdict', '?'))[:40]}"
         elif not head_tree or tree != head_tree:
             problem = "it measured a working tree that was not the committed head's (uncommitted changes)"
-        elif linux_half and rec.get("lane") != "inert" and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
+        elif linux_half and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
             problem = "it carries no GREEN Linux half of the committed tree"
         elif not gated:
             problem = "it records no head"
@@ -785,8 +786,8 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             problem = (f"it gated {gated[:12]}, and the commits since are not all main's, a clean merge of main or "
                        "DEVLOG-only")
         else:
-            half = "inert lane, no Linux half" if rec.get("lane") == "inert" else (
-                "Linux half GREEN" if linux_half else "Linux host: its own legs")
+            half = (("inert lane, Linux self-tests GREEN" if rec.get("lane") == "inert" else "Linux half GREEN")
+                    if linux_half else "Linux host: its own legs")
             return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
                           str(gated))
         why.append(f"{run.name}: {problem}")
@@ -1425,6 +1426,8 @@ def self_test() -> int:
         no_linux = seen()
         no_linux_ok_on_linux = seen(linux_half=False)
         gate_run(1, linux=None, lane="inert")
+        inert_no_linux = seen()       # PB3646: the inert lane's Linux self-tests are evidence like the full lane's half
+        gate_run(1, lane="inert")
         inert_run = seen()
         shutil.rmtree(results_dir)
         gate_run(1, exit_code=1)
@@ -1435,12 +1438,14 @@ def self_test() -> int:
         expect("tested_locally: a GREEN gate run of the committed head's own tree with its Linux half GREEN covers the "
                "tip, an earlier one survives a later RED; no run, a tree that was not the head's, a run with no GREEN "
                "Linux half (on a host that runs one; a Linux host's own legs are it), a non-zero exit and a head the tip "
-               "does not descend from are none; the inert lane has no Linux half (kb/Work PB3612)",
+               "does not descend from are none; the inert lane carries the Linux self-tests as its Linux half, and a record of it "
+               "without one is none on a host that runs one (kb/Work PB3612, PB3646)",
                not none_yet.ok and "no gate run" in none_yet.text and covered.ok and "Linux half GREEN" in covered.text
                and red_after.ok and not dirty_run.ok and "uncommitted" in dirty_run.text
                and not no_linux.ok and "no GREEN Linux half" in no_linux.text and no_linux_ok_on_linux.ok
-               and inert_run.ok and "inert lane" in inert_run.text and not lying.ok and not elsewhere.ok,
-               f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {lying} {elsewhere}")
+               and inert_run.ok and "inert lane, Linux self-tests GREEN" in inert_run.text and not inert_no_linux.ok
+               and "no GREEN Linux half" in inert_no_linux.text and not lying.ok and not elsewhere.ok,
+               f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {inert_no_linux} {lying} {elsewhere}")
 
         # kb/Work PB3662: a gate that is RUNNING (its worktree gate lock is held) owes a verdict; the landing lane launches
         # a landing beside the branch's own running gate, and that exit was a terminal STOP (14) waiting for a re-arm.

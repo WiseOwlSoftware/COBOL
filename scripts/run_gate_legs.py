@@ -60,7 +60,7 @@ ONE GATE, in this order (§3.14.3):
      makes the gate RED and names the host; one that measured nothing (no WSL, no SDK, a full disk) ends the gate NOT RUN
      with the Linux gate's own cause. The verdict file records it (`linux`: verdict, the committed `tree` it measured),
      beside `head_tree`: that record is the landing's evidence that the branch was "tested locally" (enqueue.py
-     `tested_locally`), and a reused answer needs it. A Linux host's own legs are the Linux half; the inert lane has none.
+     `tested_locally`), and a reused answer needs it. A Linux host's own legs are the Linux half; the inert lane's is the script self-tests alone (PB3646).
 It is GREEN only when every leg ran, every leg is green, every population is exact and every identity matches. Under
 the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or `…: RED` instead, whenever the
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
@@ -457,14 +457,18 @@ class Host:
         2026-10-23): a Windows host does. On a Linux host this gate's own legs are the Linux half."""
         return os.name == "nt"
 
-    def linux_leg(self, run: Path, plan: Path | None, legs: list[int], spawn: Spawn) -> LinuxLeg:
+    def linux_leg(self, run: Path, plan: Path | None, legs: list[int], spawn: Spawn, inert: bool = False) -> LinuxLeg:
         """The Linux half: the SAME plan's `legs`, run in a WSL clone of the committed HEAD by `scripts/linux-gate.sh
         --legs targeted` (the clone is built there and runs this driver's `--plan-leg`), the whole output to `run`'s
         LINUX_LEG_LOG. Its verdict line is read by `read_verdict`, like every gate's. No plan (`plan` None) is the whole
-        population in one leg, as this gate runs it."""
-        where = "none" if plan is None else Path(os.path.relpath(plan, self.repo)).as_posix()
-        cmd = ["bash", "scripts/linux-gate.sh", "--legs", "targeted", "--plan", where, "--plan-legs",
-               ",".join(map(str, legs)), "--nice"]
+        population in one leg, as this gate runs it. `inert`: the INERT LANE's Linux half (kb/Work PB3646), `--legs
+        inert`: the script self-tests alone in the clone, with no plan and no leg."""
+        if inert:
+            cmd = ["bash", "scripts/linux-gate.sh", "--legs", "inert", "--nice"]
+        else:
+            where = "none" if plan is None else Path(os.path.relpath(plan, self.repo)).as_posix()
+            cmd = ["bash", "scripts/linux-gate.sh", "--legs", "targeted", "--plan", where, "--plan-legs",
+                   ",".join(map(str, legs)), "--nice"]
         log = run / LINUX_LEG_LOG
         with open(log, "wb") as fh:
             rc = subprocess.run(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT, **spawn()).returncode
@@ -1018,8 +1022,9 @@ class Gate:
     def _linux_attested(self, rec: dict, out: Outcome) -> bool:
         """A recorded GREEN answers for this gate only if it carries what this gate measures (kb/Work PB3612): on a host
         that runs the Linux half, a GREEN Linux half of the COMMITTED tree this head has (the Linux clone measures HEAD,
-        the Windows half the working tree); the inert lane runs none."""
-        if not self.host.runs_linux_leg() or rec.get("lane") == "inert":
+        the Windows half the working tree). The inert lane's is the Linux self-tests (kb/Work PB3646), so it is
+        required there too."""
+        if not self.host.runs_linux_leg():
             return True
         linux = rec.get("linux") or {}
         return linux.get("verdict") == "GREEN" and out.head_tree is not None and linux.get("tree") == out.head_tree
@@ -1120,10 +1125,11 @@ class Gate:
             # (the classification the CI `changes` job and the Linux gate use, proved by the inotify watch of every
             # Linux test run), so no slot, build or leg can measure anything about it; the audits above, which read it,
             # were the gate. GREEN under either scope: there is no leg 2 left unrun, so the record covers both.
-            out.tree_end = self.host.measured_tree()
-            verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
-            return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are "
-                                f"GREEN, and no slot, build or test leg ran (run {run.name})", 0)
+            # ⭐ ... and one thing more (kb/Work PB3646): CI's `audits` job also runs the script self-tests on LINUX on every
+            # event, the inert ones included, and no test-leg watch covers them (they are audits that read the inert
+            # paths by design). So a Windows host runs them in a WSL clone of HEAD too, under a slot: the Linux half of
+            # the inert lane, and `tested_locally` requires it as it requires the full lane's.
+            return self._inert(out, label, run, lane)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
         t = time.monotonic()
         try:
@@ -1136,6 +1142,37 @@ class Gate:
             return self._tested(out, run, slot, started)
         finally:
             slot.release()
+
+    def _inert(self, out: Outcome, label: str, run: Path, lane: inert_lane.Lane) -> Outcome:
+        """THE INERT LANE's end (kb/Work PB2878, PB3646): no build and no test leg, because no test reads the change; the
+        audits ran before. A host that runs the Linux half (`Host.runs_linux_leg`) also runs the script self-tests in a WSL
+        clone of HEAD, under a gate slot (the clone and its interpreters are the load the cap rations), exactly the job
+        CI's `audits` runs on Linux on every event. A Linux host's audits ARE that run. GREEN under either scope: there is no
+        leg 2 left unrun, so the record covers both."""
+        linux = ""
+        if self.host.runs_linux_leg():
+            t = time.monotonic()
+            try:
+                slot = self.host.take_slot(label, self.say)
+            except ValueError as e:  # the shared gate settings turned malformed while this gate queued
+                return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
+            out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
+            out.slot = slot.describe()
+            try:
+                stop = self._linux_leg(out, run, None, [], slot.spawn_kwargs, inert=True)
+            finally:
+                slot.release()
+            if stop is not None:
+                return self._linux_stopped(out, run, stop, "the audits ran and no test leg was due (inert lane)")
+            if out.reasons:
+                out.tree_end = self.host.measured_tree()
+                return self._finish(out, run, "RED", f"{'; '.join(out.reasons)} — the inert lane's Linux self-tests "
+                                    f"(kb/Work PB3646) are not GREEN: {out.linux['line']} (run {run.name})", 1)
+            linux = " and the Linux self-tests (WSL clone of HEAD) are GREEN"
+        out.tree_end = self.host.measured_tree()
+        verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
+        return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN{linux}, "
+                            f"and no build or test leg ran (run {run.name})", 0)
 
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
         """The build, the listings, the plan, the legs and the checks: the part of the gate the slot rations."""
@@ -1198,31 +1235,40 @@ class Gate:
             # FAIL FAST, Windows first (kb/Work PB3022 item 10, PB3612): the Linux half runs only on a Windows half that
             # is green, under the slot this gate still holds.
             if (stop := self._linux_leg(out, run, plan, sorted(to_run), spawn)) is not None:
-                out.tree_end = self.host.measured_tree()
-                if stop.reading == BUSY_READING:
-                    return self._finish(
-                        out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
-                        "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
-                        f"once it ends; the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))} "
-                        f"(run {run.name})", EXIT_BUSY)
-                return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
-                                    f"the Linux half of the targeted leg was NOT RUN ({stop.line}); the Windows half ran "
-                                    f"leg(s) {', '.join(map(str, sorted(to_run)))} (run {run.name})", 2)
+                return self._linux_stopped(out, run, stop, f"the Windows half ran leg(s) {', '.join(map(str, sorted(to_run)))}")
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
         self._prune(run)
         return self._verdict(out, run, plan, legs)
 
-    def _linux_leg(self, out: Outcome, run: Path, plan: dict | None, legs: list[int], spawn: Spawn) -> LinuxLeg | None:
+    def _linux_stopped(self, out: Outcome, run: Path, stop: LinuxLeg, ran: str) -> Outcome:
+        """The gate's end when its Linux half measured nothing (`_linux_leg` returned `stop`): BUSY (another Linux gate of
+        the worktree runs; never a red) or NOT RUN with the Linux gate's own cause. `ran` says what the Windows half did."""
+        out.tree_end = self.host.measured_tree()
+        if stop.reading == BUSY_READING:
+            return self._finish(
+                out, run, BUSY, f"the Linux half of the targeted leg is BUSY ({stop.line}): another Linux "
+                "gate of this worktree runs, so the Linux half measured nothing and nothing is red: re-run "
+                f"once it ends; {ran} (run {run.name})", EXIT_BUSY)
+        return self._finish(out, run, NOT_RUN_CAUSES[stop.reading.cause.tag].verdict,
+                            f"the Linux half of the targeted leg was NOT RUN ({stop.line}); {ran} (run {run.name})", 2)
+
+    def _linux_leg(self, out: Outcome, run: Path, plan: dict | None, legs: list[int], spawn: Spawn,
+                   inert: bool = False) -> LinuxLeg | None:
         """THE LINUX HALF OF THE TARGETED LEG (kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): the plan's `legs`, the
         legs the Windows half just ran, in a WSL clone of the committed HEAD (`Host.linux_leg`), printed here and recorded
         in `out.linux`. A red is a reason (the verdict is RED and names the host); a NOT RUN, which measured nothing, is
         returned so the gate ends NOT RUN with the Linux gate's own cause; a BUSY (another Linux gate of this worktree
-        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red."""
+        runs: linux-gate.sh's one gate per tree, kb/Work PB3310) is returned so the gate ends BUSY, never a red.
+        `inert`: the INERT LANE's Linux half (kb/Work PB3646): the script self-tests alone, no plan and no leg."""
         t = time.monotonic()
-        self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
-                 "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
-        leg = self.host.linux_leg(run, run / "plan.json" if plan is not None else None, legs, spawn)
+        if inert:
+            self.say("build-local: the Linux half of the INERT lane — the script self-tests in a WSL clone of HEAD "
+                     "(scripts/linux-gate.sh --legs inert; kb/Work PB3646), under this gate's slot")
+        else:
+            self.say(f"build-local: the Linux half — leg(s) {', '.join(map(str, legs))} of the same plan in a WSL clone of "
+                     "HEAD (scripts/linux-gate.sh --legs targeted; kb/Work PB3612), under this gate's slot")
+        leg = self.host.linux_leg(run, run / "plan.json" if plan is not None else None, legs, spawn, inert=inert)
         out.timings["linux_leg_s"] = round(time.monotonic() - t, 1)
         log = run / leg.log
         if log.is_file():
@@ -1576,8 +1622,9 @@ class FakeHost(Host):
         half)."""
         return any(p.startswith("linux") for p in self.plant)
 
-    def linux_leg(self, run, plan, legs, spawn) -> LinuxLeg:
-        self.events.append(f"linux {plan.name if plan else 'none'} legs {','.join(map(str, legs))}")
+    def linux_leg(self, run, plan, legs, spawn, inert=False) -> LinuxLeg:
+        self.events.append("linux inert" if inert
+                           else f"linux {plan.name if plan else 'none'} legs {','.join(map(str, legs))}")
         if "linux-silent" in self.plant:
             (run / LINUX_LEG_LOG).write_text("PLANTED-LINUX-NOISE\n", encoding="utf-8", newline="\n")
             return LinuxLeg(not_run("verdict"), "no `=== LINUX GATE: ` line", LINUX_LEG_LOG)
@@ -1588,6 +1635,8 @@ class FakeHost(Host):
                     "nothing ===")
         elif "linux-red" in self.plant:
             line = f"{LINUX_VERDICT}RED (failed or not run: unit; HEAD head-1; logs in TestResults/linux-gate/) ==="
+        elif inert:
+            line = f"{LINUX_VERDICT}GREEN (inert lane, kb/Work PB2878, PB3646: planted; legs selftests; HEAD head-1) ==="
         else:
             line = f"{LINUX_VERDICT}GREEN (targeted legs {','.join(map(str, legs))}; HEAD head-1) ==="
         (run / LINUX_LEG_LOG).write_text(f"PLANTED-LINUX-LEG-OUTPUT\n{line}\n", encoding="utf-8", newline="\n")
@@ -2312,9 +2361,30 @@ def self_test() -> int:
             o.exit_code == EXIT_BUSY and o.verdict == BUSY and o.linux["verdict"] == BUSY
             and "LINUX HALF RED" not in o.line and read_verdict(o.line[len(VERDICT):]) == BUSY_READING, o.line)
         o, h = gate("linux-inert", plant={"linux", "inert"}, scope=None)
-        arm("the inert lane runs no Linux half (no test reads the change), and its record is reused with no Linux half",
-            o.exit_code == 0 and o.lane == "inert" and o.linux is None and not any(e.startswith("linux ") for e in h.events),
-            o.line)
+        arm("the inert lane runs no build and no test leg, but its Linux half is the script self-tests alone (kb/Work "
+            "PB3646: CI's audits job runs them on Linux on every event), run after the audits under a gate slot, "
+            "recorded, and named in the verdict",
+            o.exit_code == 0 and o.lane == "inert" and o.linux is not None and o.linux["verdict"] == "GREEN"
+            and h.events == ["audits", "slot", "linux inert"] and not h.built and h.slots_taken == 1
+            and "Linux self-tests (WSL clone of HEAD) are GREEN" in o.line, f"{o.line} {h.events}")
+        o_red, _ = gate("linux-inert-red", plant={"linux-red", "inert"}, scope=None)
+        o_sdk, _ = gate("linux-inert-sdk", plant={"linux-sdk", "inert"}, scope=None)
+        o_busy, _ = gate("linux-inert-busy", plant={"linux-busy", "inert"}, scope=None)
+        arm("a red Linux self-test run in the inert lane is a RED gate (exit 1) that names the host; one that measured "
+            "nothing is NOT RUN with the Linux gate's cause and a BUSY one is BUSY, exactly as in the full lane",
+            o_red.exit_code == 1 and o_red.verdict == "RED" and "Linux self-tests" in o_red.line
+            and o_sdk.exit_code == 2 and o_sdk.verdict == "NOT RUN [sdk]"
+            and o_busy.exit_code == EXIT_BUSY and o_busy.verdict == BUSY,
+            f"{o_red.line} | {o_sdk.line} | {o_busy.line}")
+        d_inert = root / "linux-inert-records"
+        d_inert.mkdir()
+        regate(d_inert, plant={"inert"})     # a Linux host's inert record: its audits are the Linux run, it has no Linux half
+        on_windows, h_inert = regate(d_inert, plant={"inert", "linux"})
+        reused_inert, h_reused = regate(d_inert, plant={"inert", "linux"})
+        arm("an inert-lane record with no Linux half is no evidence on a host that runs one (the gate runs the Linux "
+            "self-tests); once it carries one, a re-gate reuses it",
+            "REUSED" not in on_windows.line and "linux inert" in h_inert.events
+            and "REUSED" in reused_inert.line and h_reused.events == [], f"{on_windows.line} | {reused_inert.line}")
         o, h = gate("linux-leg1-of-whole", plant={"linux"})
         arm("under the `whole` scope the Linux half runs both legs the Windows half ran",
             o.exit_code == 0 and h.events[-1] == "linux plan.json legs 1,2" and o.linux["legs"] == [1, 2], str(h.events))

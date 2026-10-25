@@ -18,6 +18,10 @@
 #     the slot it holds, and records the verdict as the branch's "tested locally" evidence; nobody else needs it. The
 #     default legs below stay the tool that reproduces a Linux CI red on this box.
 #
+#   bash scripts/linux-gate.sh --legs inert [--nice]
+#     THE LINUX HALF OF THE LOCAL GATE'S INERT LANE (kb/Work PB3646): the script self-tests alone, in a clone of HEAD, no
+#     build; the gate that started it classified the change inert (scripts/inert_lane.py).
+#
 # ⛔ WHY IT EXISTS (kb/Work PB1732). The implementer and lander gates ran on Windows only, so CI's Linux jobs were the
 # first Linux run a change ever got. On 2026-09-28 train 71b's first push went RED in `Greenfield unit +
 # characterization (Linux)`: group F's new GateLegDriftTests.Arm5 planted the Windows root `E:\COBOL-wt\battery87`,
@@ -46,7 +50,10 @@
 #
 # THE INERT LANE AND ITS PROOF (kb/Work PB2878; DESIGN-test-build-ci.md §3.18). A HEAD whose change against origin/main
 # touches only paths no test reads (scripts/inert_lane.py classify, THE one classification: CI's `changes` job and the
-# Windows gate use it too) runs no leg: `=== LINUX GATE: GREEN (inert lane, …) ===`. Every other run watches every inert
+# Windows gate use it too) runs no test leg and builds nothing, but it runs the script self-tests (`selftests`, no build)
+# exactly as CI's `audits` job does on every event, inert ones included (kb/Work PB3646): `=== LINUX GATE: GREEN (inert
+# lane, …; legs selftests …) ===`. `--legs inert` is the same run for a caller that already classified the change (the
+# Windows gate's Linux half in its inert lane, run_gate_legs.py). Every other run watches every inert
 # path with inotify while the test legs run (`inert_lane.py watch`), so a test that starts reading one is a RED here
 # (the `inert-watch` leg) before CI's Linux steps, which run under the same watch, see it. The watched clone runs the
 # three `dotnet test` legs and nothing else: the self-tests (audits, which read inert paths by design: the register, the
@@ -95,22 +102,24 @@ check_legs() {
   for leg in "${wanted[@]}"; do
     case "$leg" in
       unit|characterization|conformance|guard) ;;
-      targeted)  # the Linux half of the local gate (kb/Work PB3612): one mode, not one leg among the others
+      targeted|inert)  # the Linux half of the local gate (kb/Work PB3612, PB3646): one mode, not one leg among the others
         if [ "${#wanted[@]}" -ne 1 ]; then
-          echo "linux-gate: --legs targeted stands alone (it runs a plan's legs, not CI's whole legs)"
+          echo "linux-gate: --legs $leg stands alone (it is the Linux half of a gate, not CI's whole legs)"
           echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
         fi ;;
       *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard,"\
-              "or targeted alone;" \
+              "or targeted or inert alone;" \
               "selftests always runs, and selftests-built with unit or conformance)"
          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
   done
 }
 
-# `targeted` ($targeted, set from $legs) and --plan (<plan.json|none>) go together: neither alone is a run.
+# `targeted` ($targeted, set from $legs) and --plan (<plan.json|none>) go together: neither alone is a run. `inert`
+# ($inert_started) takes no plan.
 check_plan() {
   targeted=0; [ "$legs" = "targeted" ] && targeted=1
+  inert_started=0; [ "$legs" = "inert" ] && inert_started=1
   if { [ "$targeted" = 1 ] && [ -z "$plan" ]; } || { [ "$targeted" = 0 ] && [ -n "$plan" ]; }; then
     echo "linux-gate: --plan <plan.json|none> belongs to --legs targeted, and --legs targeted needs it"
     echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2
@@ -349,6 +358,12 @@ if [ "${1:-}" = "--self-test" ]; then
   check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
   got="$( legs=targeted; plan=none; check_legs; check_plan; echo "accepted ${wanted[*]} targeted=$targeted" )"
   check "--legs targeted with a --plan is the Linux half of the local gate (kb/Work PB3612)" "$got" "accepted targeted targeted=1"
+  got="$( legs=inert; plan=""; check_legs; check_plan; echo "accepted ${wanted[*]} inert=$inert_started targeted=$targeted" )"
+  check "--legs inert, with no plan, is the Linux half of the inert lane (kb/Work PB3646)" "$got" \
+        "accepted inert inert=1 targeted=0"
+  got="$( legs=inert,unit; plan=""; check_legs; echo "accepted" )"; rc=$?
+  check "--legs inert stands alone: with another leg it is NOT RUN (bad arguments), exit 2" \
+        "$(echo "$got" | tail -1) $rc" "=== LINUX GATE: NOT RUN [arguments] (bad arguments) === 2"
   got="$( legs=targeted,unit; plan=none; check_legs; echo "accepted" )"; rc=$?
   check "--legs targeted stands alone: with another leg it is NOT RUN (bad arguments)" "$(echo "$got" | tail -1)" \
         "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
@@ -584,6 +599,13 @@ dirty="$(wgit status --porcelain --untracked-files=no 2>/dev/null | tr -d '\r' |
 # and remove worktrees of the shared repository while this runs.)
 repo_state() { printf '%s|%s' "$(wgit rev-parse HEAD 2>/dev/null)" "$(wgit config --get core.worktree 2>/dev/null)"; }
 state_before="$(repo_state)"
+repo_written() {   # 0 (and the RED line) when something wrote to the REAL repository since state_before
+  local state_after
+  state_after="$(repo_state)"
+  [ "$state_after" != "$state_before" ] || return 1
+  echo "repository: RED — something wrote to the REAL repository (HEAD|core.worktree before: $state_before," \
+       "after: $state_after). Undo it, then find what escaped the clone."
+}
 
 # THE PLANNER READS THIS DIRECTORY (gate_plan.TRX_WRITERS, kb/Work PB3155): a case red in a trx file here is tier 0a of
 # this worktree's next gate, so a finisher's re-gate after a landing's Linux red runs it in leg 1. It holds only the
@@ -601,37 +623,41 @@ if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$
    || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
   echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
 fi
-# The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without
-# it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery
-# apply (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red.
 corpus_red=""
-if [ -d tests/external/gnucobol ]; then
-  mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
-fi
-if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
-  echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
-  corpus_red=" corpus-fetch"
-fi
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
 # THE INERT LANE (kb/Work PB2878): the change is HEAD against its merge base with the tree's origin/main (the clone
 # shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
 main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
 lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
 if [ "$targeted" = 1 ]; then
-  # The Windows half decided the lane before it started this one (an inert change runs no Linux half, run_gate_legs.py).
+  # The Windows half decided the lane before it started this one (run_gate_legs.py).
   lane_out=$'lane=full\nreason=the targeted leg: the gate that started it classified the change'
+elif [ "$inert_started" = 1 ]; then
+  lane_out=$'lane=inert\nreason=the inert leg: the gate that started it classified the change'
 elif [ -n "$lane_base" ]; then
   lane_out="$("$PY" "$snap/scripts/inert_lane.py" classify --root "$snap" --base "$lane_base" --head HEAD 2>&1)"
 else
   lane_out=$'lane=full\nreason=no merge base with origin/main: the full lane'
 fi
 lane_reason="$(printf '%s\n' "$lane_out" | sed -n 's/^reason=//p')"
-if printf '%s\n' "$lane_out" | grep -qx 'lane=inert'; then
+inert=0; printf '%s\n' "$lane_out" | grep -qx 'lane=inert' && inert=1
+if [ "$inert" = 1 ]; then
   echo "linux-gate: inert lane — $lane_reason"
-  echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878: $lane_reason; no leg runs; HEAD ${head:0:9}) ==="; exit 0
+else
+  echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
+  # The GPL GnuCOBOL corpus is git-ignored, so a clone never has it; ExternalCorpusPopulationDriftTests is RED without
+  # it by design (PB209). Copy the tree's (no network), then apply THE one corpus rule the Windows gate and the battery
+  # apply (scripts/external_corpus.py, kb/Work PB2611): fetch when still absent, and a failed fetch is a named red. The
+  # inert lane runs no test that reads it.
+  if [ -d tests/external/gnucobol ]; then
+    mkdir -p "$snap/tests/external" && cp -r tests/external/gnucobol "$snap/tests/external/"
+  fi
+  if ! "$PY" "$snap/scripts/external_corpus.py" ensure --repo "$snap" > "$out/corpus-fetch.log" 2>&1; then
+    echo "linux-gate: EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED (TestResults/linux-gate/corpus-fetch.log); the two ExternalCorpusPopulationDriftTests reds in the unit leg are attributable to it"
+    corpus_red=" corpus-fetch"
+  fi
+  [ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 fi
-echo "linux-gate: full lane — ${lane_reason:-$lane_out}"
-[ "$dirty" -gt 0 ] && echo "linux-gate: NOTE — $dirty uncommitted tracked change(s) are NOT tested (the clone is HEAD)"
 
 bad="$corpus_red"; ran=""
 # PB2879 (owner 2026-10-09): the legs ran one after another and used about 10 % of a 32-CPU WSL VM (351 s alone). The
@@ -660,6 +686,20 @@ selftests_leg() {  # <leg name> <clone> [runner arguments…]
     grep -vE '^self-test .*: GREEN in ' "$out/$name.log" | sed 's/^/    /'
   fi
 }
+# THE INERT LANE'S ONE LEG (kb/Work PB2878, PB3646; DESIGN-test-build-ci.md §3.18): a change no test reads runs no test leg
+# and builds nothing, but CI's `audits` job runs the script self-tests (scripts/self_tests.py) on Linux on EVERY event,
+# the inert ones included, and those are audits that read the inert paths by design (the register, the DEVLOG, the skills
+# submodule they initialize), so a kb/ or DEVLOG/ change can turn them red on Linux. This leg is that job's self-test
+# step, in the clone of HEAD (no build, no watch: the watch proves what the TEST legs read, and there are none here).
+if [ "$inert" = 1 ]; then
+  selftests_leg selftests "$snap"
+  bad=""; [ "$(cat "$out/selftests.status" 2>/dev/null)" = GREEN ] || bad=" selftests"
+  repo_written && bad="$bad repository-written"
+  if [ -z "$bad" ]; then
+    echo "=== LINUX GATE: GREEN (inert lane, kb/Work PB2878, PB3646: $lane_reason; legs selftests, no build and no test leg; HEAD ${head:0:9}) ==="; exit 0
+  fi
+  echo "=== LINUX GATE: RED (inert lane; failed or not run:$bad; HEAD ${head:0:9}; logs in TestResults/linux-gate/) ==="; exit 1
+fi
 guard_leg() {
   # CI's `guard` job (kb/Work PB1955, PB1957 row 40): the NIST suite through the `cobol` CLI from bash, the manifest
   # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
@@ -876,12 +916,7 @@ if [ $brc -eq 0 ] && [ "$(cli_fingerprint)" != "$cli_before" ]; then
   bad="$bad build-rewritten"
 fi
 
-state_after="$(repo_state)"
-if [ "$state_after" != "$state_before" ]; then
-  echo "repository: RED — something wrote to the REAL repository (HEAD|core.worktree before: $state_before," \
-       "after: $state_after). Undo it, then find what escaped the clone."
-  bad="$bad repository-written"
-fi
+repo_written && bad="$bad repository-written"
 
 if [ -z "$bad" ]; then
   echo "=== LINUX GATE: GREEN (legs$ran; HEAD ${head:0:9}) ==="; exit 0
