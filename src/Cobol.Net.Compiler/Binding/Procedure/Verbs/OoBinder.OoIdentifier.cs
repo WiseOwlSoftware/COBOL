@@ -38,7 +38,7 @@ internal sealed partial class OoBinder
     /// <summary><see cref="OoBindOoIdentifier"/> as an operand — the ONE expression→operand mapping
     /// (<see cref="IntrinsicBinder.OperandOf"/>) turns the temporary into a field operand, so a relation's class
     /// dispatch reads the item's class object (§8.8.4.2.15).</summary>
-    internal BoundOperand OoIdentifierOperand(ParserRuleContext id) => IntrinsicBinder.OperandOf(OoBindOoIdentifier(id));
+    internal BoundOperand OoIdentifierOperand(ParserRuleContext id) => IntrinsicBinder.OperandOf(OoBindOoIdentifier(id), functionValue: false);
 
     /// <summary>SELF or SUPER written as an operand. SELF binds to the temporary <see cref="BoundSelfReference"/> fills
     /// (§8.4.3.8.4 GR1: "SELF and SUPER both reference the object that was used to invoke the method"); SUPER is
