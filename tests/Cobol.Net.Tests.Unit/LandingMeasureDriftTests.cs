@@ -50,8 +50,9 @@ public sealed class LandingMeasureDriftTests
                 + "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls",
             // kb/Work PB3638: the owner's fix-cycle bar is measured per stage, each span against its budget
             "the dispatch and review-clean stamps are read at enqueue from the dispatch ledger and the CLEAN verdict's "
-                + "findings record, a stamp out of order stays null, and summary prints each stage and marks a span over "
-                + "the owner's bar",
+                + "findings record, a stamp out of order stays null, a re-enqueue after a bounce and a re-review is "
+                + "bounded by the record's first enqueue (its record is never refused, kb/Work PB3710), and summary "
+                + "prints each stage and marks a span over the owner's bar",
         });
     }
 
