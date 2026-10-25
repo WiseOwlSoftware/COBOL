@@ -66,3 +66,7 @@ brought a semantic conflict no textual merge shows: `turns_by_group_size.py` (PB
 which this branch moved to `coord.REPORT_NAME`; the gate's self-test leg caught it and the script now reads `coord`
 (recorded in PB3700's Sites). `coord.py` merged both sides (PB3701 `agent_turn_cap`, PB3700 `REPORT_NAME` and
 `ledger_groups`).
+
+**Re-gate.** The first re-gate went RED on the `turns_by_group_size.py` self-test (the moved name); after the fix,
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000002-20261025T180514Z`, Conformance
+8,127/18,516 · Unit 36,927/38,235 · Characterization 36/36 cases ran, Linux half in a WSL clone of the head GREEN).
