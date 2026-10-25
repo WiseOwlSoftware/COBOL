@@ -28,8 +28,8 @@ public enum ActivationShape
     /// element's: a literal, a figurative constant, an ALL literal or an intrinsic function's value, a numeric one included
     /// (kb/Work PB165, PB3613: a function-identifier is a MOVE sender, whose digits a plain-group formal's record takes).
     /// <see cref="ActivationDescription.Category"/> is its category (a figurative constant's is
-    /// <see cref="ActivationCategory.Figurative"/>, <see cref="ActivationCategory.FigurativeZero"/> or
-    /// <see cref="ActivationCategory.FigurativeBoolean"/>, whose category
+    /// <see cref="ActivationCategory.Figurative"/>, <see cref="ActivationCategory.FigurativeZero"/>,
+    /// <see cref="ActivationCategory.FigurativeSpace"/> or <see cref="ActivationCategory.FigurativeBoolean"/>, whose category
     /// the receiving context chooses, §8.3.3.6.4 GR1) and <see cref="ActivationDescription.Table16"/> its §14.9.25.3 Table 16
     /// row.</summary>
     Literal,
@@ -92,6 +92,34 @@ public static class ActivationCategory
     /// <see cref="ActivationShape.Literal"/>): a <see cref="Figurative"/> that §14.9.25.3 SR7 lets move to a boolean
     /// receiver (kb/Work PB3101).</summary>
     public const string FigurativeBoolean = "figurative-boolean";
+    /// <summary>The figurative constant SPACE (a <see cref="ActivationShape.Literal"/>): a <see cref="Figurative"/> that
+    /// §14.9.25.3 SR5 keeps out of a numeric or numeric-edited receiver at every edition (kb/Work PB3605).</summary>
+    public const string FigurativeSpace = "figurative-space";
+
+    /// <summary>The figurative categories, each paired with the §14.9.25.3 sender it stands for — the ONE table both
+    /// directions read (<see cref="OfFigurative"/> when the compiler describes an argument, <see cref="FigurativeSenderOf"/>
+    /// when a relation asks the MOVE rules of it), so a figurative category cannot exist on one side only.</summary>
+    private static readonly (string Category, FigurativeSender Sender)[] FigurativeCategories =
+    [
+        (Figurative, FigurativeSender.Other),
+        (FigurativeZero, FigurativeSender.Zero),
+        (FigurativeSpace, FigurativeSender.Space),
+        (FigurativeBoolean, FigurativeSender.BooleanCharacters),
+    ];
+
+    /// <summary>The category of a figurative-constant or ALL-literal argument whose §14.9.25.3 sender is
+    /// <paramref name="sender"/>.</summary>
+    public static string OfFigurative(FigurativeSender sender) =>
+        Array.Find(FigurativeCategories, p => p.Sender == sender).Category;
+
+    /// <summary>The §14.9.25.3 sender a figurative <paramref name="category"/> stands for, or null when the category is
+    /// no figurative one.</summary>
+    public static FigurativeSender? FigurativeSenderOf(string? category)
+    {
+        foreach (var (c, s) in FigurativeCategories)
+            if (string.Equals(c, category, StringComparison.Ordinal)) return s;
+        return null;
+    }
 }
 
 /// <summary>
@@ -291,6 +319,7 @@ public sealed record ActivationDescription
         {
             ActivationCategory.Figurative => "a figurative constant or an ALL literal",
             ActivationCategory.FigurativeZero => "the figurative constant ZERO",
+            ActivationCategory.FigurativeSpace => "the figurative constant SPACE",
             ActivationCategory.FigurativeBoolean => "an ALL literal of boolean characters",
             ActivationCategory.Alphanumeric => "an alphanumeric value",
             _ => $"a {Category} value",

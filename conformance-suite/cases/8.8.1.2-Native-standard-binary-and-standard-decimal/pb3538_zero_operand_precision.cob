@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb3538_zero_operand_precision
-      *> rules: [GR-8.8.1.2-3]
+      *> rules: [GR-8.8.1.2-3, GR-11.9.11.2-1]
       *> accept: [2014, 2023]
       *> source-format: fixed
       *>---
