@@ -1,4 +1,4 @@
-## PB3727: the public-API baselines are merged as sets of symbol lines (cobol-keyed-publicapi), not by line union
+## Entry 2575 — 2026-10-25 14:45 PDT — PB3727: the public-API baselines are merged as sets of symbol lines (cobol-keyed-publicapi), not by line union
 
 **What changed.** kb/Work PB3727 is tier 1 of the PB3726 restructure, and DESIGN-orchestrator-loop.md section 16.9 is
 its design. `src/**/PublicAPI.*.txt` no longer merges by `merge=union`. It merges through a new driver,
@@ -39,3 +39,4 @@ arm. `MergeDriverDriftTests` declares all seven. With `attributes_tree` stubbed 
 677c620a0. Re-run through the driver, each reproduces main's baseline as a set.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===` on 502c2fd01 (run 000001-20261025T211812Z): Conformance 8,305, Unit 36,573 and Characterization 8 cases ran, and the Linux half (a WSL clone of HEAD) was GREEN. The self-tests of `merge_drivers`, `enqueue`, `prune_worktrees`, `land_lane` and `test_plan_wave` re-ran GREEN, and all four `MergeDriverDriftTests` facts passed.
+
