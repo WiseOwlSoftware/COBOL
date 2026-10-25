@@ -49,6 +49,7 @@ public sealed class SequentialJournalHolderPublicationTests
             var ex = Assert.Throws<IOException>(() =>
                 WithLostTries(_ => true, () => SequentialJournal.Begin(HostMedium.Production, f, SequentialJournal.StartState.Present)));
             Assert.Contains("lost its race", ex.Message);
+            Assert.Contains("removed the lock directory, or reaped or held the pending holder file", ex.Message);   // the three ways SidecarLockFiles.Publish loses a try (kb/Work PB3749)
             Assert.DoesNotContain("cannot hold", ex.Message);
             Assert.Equal("C1C2", File.ReadAllText(f));
             AssertNoLitter(f);
