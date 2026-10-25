@@ -748,14 +748,21 @@ ushort using virtual void volatile while global record var dynamic""".split())
 class NoteSites:
     """What a note DECLARES it works on (kb/Work PB3242): the repo-relative `paths` of its site blocks (files and
     folders; `:line`, `#member` and `(member)` suffixes dropped), the `names` it moves or changes (member_index.py
-    resolves them to files and adds their callers), and its `**Wave kind:**` (`wave`, empty for a fix-lane note): only
-    a restructuring note with no names falls back to the types its sites declare (member_index.note_names)."""
+    resolves them to files and adds their callers), its `**Wave kind:**` (`wave`, empty for a fix-lane note): only
+    a restructuring note with no names falls back to the types its sites declare (member_index.note_names), and the
+    MEMBERS it names in a file (`members`, kb/Work PB3670)."""
     paths: tuple[str, ...]
     names: tuple[str, ...]
     wave: str
     #: The note HAS a site block, whatever it names: `**Sites:** none (…)` declares that it changes no code file, which
-    #: sites_problems accepts, while a note with no block at all leaves the planner an UNKNOWN set (kb/Work PB3263).
+    #: sites_problems accepts, while a note with no block at all reserves nothing and is dispatched UNPARTITIONED
+    #: (plan_wave.unpartitioned, kb/Work PB3263, PB3670).
     declared: bool = False
+    #: {path: the members its site blocks name in it} (kb/Work PB3670), for a path EVERY mention of which names its
+    #: members: `path#Member`, or `path (`member`, `Type.Member`, …)` (a parenthesis right after the path that opens
+    #: with a code span; `(§8.7)` for a document's section). A path mentioned bare, with a `:line`, or with a prose
+    #: parenthesis is the whole file and is absent here: the partition reads it whole (scripts/arch/source_units.py).
+    members: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
 
     @property
     def fix_lane(self) -> bool:
@@ -827,13 +834,16 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
     blocks = _site_blocks(text)
     token = _path_token(roots or campaign_domain().roots)
     paths: set[str] = set()
+    mentions: dict[str, list[tuple[str, ...]]] = {}   # path -> the members each mention names (() = the whole file)
     for b in blocks:
-        for raw in token.findall(b):
+        for m in token.finditer(b):
+            raw = m.group(1)
             if _NOT_A_PATH.search(raw):
                 continue
             p = re.split(r"[:#]", raw, maxsplit=1)[0].rstrip(".,:").rstrip("/")
             if "/" in p:   # a root alone ("src/") is no site
                 paths.add(p)
+                mentions.setdefault(p, []).append(_mention_members(raw, b, m.end()))
     names: list[str] = []
     moves = _MOVES_LINE.search(text)
     if moves:
@@ -843,14 +853,52 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
     for part in blocks + ([moves.group(1)] if moves else []):
         names += [d.split("~", 1)[0] for d in _DOC_ID.findall(part)]
     wave = m.group(1).lower() if (m := _WAVE_KIND.search(text)) else ""
-    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks))
+    members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
+    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members)
+
+
+#: A member a site block names after its path: an identifier, dotted (`Type.Member`), with an optional `()`; a `~`
+#: names a finalizer. A code span that names a file (`Foo.cs`) or holds a space is no member.
+_MEMBER_NAME = re.compile(r"~?[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?:\(\))?")
+_FILE_NAME = re.compile(r"\.(?:cs|py|md|json|ps1|psm1|g4|js|ts|txt|ya?ml|sh|csproj|props|targets|sln)$", re.I)
+_SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
+
+
+def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
+    """The members ONE mention of a site path names (kb/Work PB3670), or () for the whole file: its `#Member` suffix,
+    else the code spans (and `§N.N` section numbers) of a parenthesis right after it (past its closing backtick) that
+    OPENS with a code span or a section sign (`plan_wave.py` (`collision`, `collision_set`)); a `:line` suffix, a bare
+    mention and a prose parenthesis ("(the shared-primary-file rule)", "(the planner side that honours `x`)") name the
+    whole file."""
+    if "#" in raw:
+        frag = raw.split("#", 1)[1].rstrip(".,:")
+        return (frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()
+    if ":" in raw:
+        return ()
+    rest = block[end:]
+    rest = rest[1:] if rest.startswith("`") else rest
+    opened = re.match(r"[ \t]*\(", rest)
+    if not opened:
+        return ()
+    depth, k = 0, opened.end() - 1
+    for k in range(opened.end() - 1, len(rest)):
+        depth += {"(": 1, ")": -1}.get(rest[k], 0)
+        if depth == 0:
+            break
+    inner = rest[opened.end():k]
+    if not inner.lstrip().startswith(("`", "§")):
+        return ()
+    names = [s.strip() for s in _CODE_SPAN.findall(inner)]
+    out = [n.removesuffix("()") for n in names if _MEMBER_NAME.fullmatch(n) and not _FILE_NAME.search(n)]
+    out += [f"§{s}" for s in _SECTION_REF.findall(_CODE_SPAN.sub("", inner))]
+    return tuple(dict.fromkeys(out))
 
 
 #: The first note id `check` holds to SITES_RULE (kb/Work PB3263, filed 2026-10-19 at PB3443, the next id unallocated
 #: when the rule landed). Every cluster is a campaign the moment an operator runs it (orchestrate.ps1 -Cluster), and on
 #: 2026-10-19 198 open notes naming 218 clusters declared no site block, most of them in long-idle clusters: refusing
-#: those would turn the check into a backlog, so they stay readable (the planner reads each one's
-#: set UNKNOWN and plans it alone on its subsystem, plan_wave.collision), and the open notes of the RUNNING campaigns
+#: those would turn the check into a backlog, so they stay readable (the planner reads each one's set as empty: it
+#: holds nothing and is planned UNPARTITIONED, plan_wave.collision, kb/Work PB3670), and the open notes of the RUNNING campaigns
 #: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
 #: into a cluster carries its block from its first commit.
 SITES_REQUIRED_FROM = 3443
@@ -859,8 +907,8 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
 
 
 def sites_problems(items: list[dict]) -> list[str]:
-    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block leaves
-    the planner's file-set partition an UNKNOWN set, which it can only plan alone on its subsystem. A `decision` note
+    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block gives
+    the planner's partition nothing to hold or check (kb/Work PB3670: it is planned UNPARTITIONED). A `decision` note
     changes no file by itself and is exempt."""
     bad = []
     for it in items:
@@ -870,7 +918,8 @@ def sites_problems(items: list[dict]) -> list[str]:
             continue
         if not note_sites(it.get("_body", "")).declared:
             bad.append(f"{it['_file']}: names the cluster(s) {', '.join(it['cluster'])} but declares no site block — "
-                       f"{SITES_RULE}; without one the wave planner reads its file set as UNKNOWN (kb/Work PB3263)")
+                       f"{SITES_RULE}; without one the wave planner partitions nothing for it and plans it UNPARTITIONED "
+                       f"(kb/Work PB3263, PB3670)")
     return bad
 
 

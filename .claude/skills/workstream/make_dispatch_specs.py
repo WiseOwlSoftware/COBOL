@@ -13,6 +13,8 @@ groups.json:
      "file_set": ["src/...", ...],   # the files the group changes, a LIST (plan_wave.py writes it); when absent or
                                       # empty, the set computed now from its notes (plan_wave.computed_file_set);
                                       # a file under src/Cobol.Net.Runtime/IO/ makes it a host-I-O group (below)
+     "member_set": {"src/...": ["Type.Member", ...]},   # optional: the members it claims in those files (a file
+                                      # absent is claimed whole; kb/Work PB3670), recorded in the ledger with them
      "pred": "",          # optional: predecessor-branch / resume instruction, rendered into the spec
      "after": "K"}        # optional: SAME-FILE SUCCESSOR of group K — ignored here; wf_rolling_wave.js runs this group
                           # only after K returns and hands it K's branch and report (workstream SKILL §2)
@@ -23,8 +25,8 @@ coord.fleet_stop_problem: absolute, the scratch outside the checkout, the stop f
 made `E:COBOL-coordscratch` of an unquoted Windows path three times). Writes <scratch>\\msg-w<wave>-<letter
 lower-cased>.txt per group (the file wf_rolling_wave.js opens), runs check_practices.py over the specs AND the groups
 file (exit 1 on a miss), and only when that is GREEN RECORDS every rendered group in the dispatch ledger
-(<coord>/inflight-groups.json) through plan_wave.record_dispatch, an upsert on (wave, letter) with the group's notes and
-file set: a RED render records nothing, so it holds no note from a later plan (kb/Work PB3114). `--no-record` renders
+(<coord>/inflight-groups.json) through plan_wave.record_dispatch, an upsert on (wave, letter) with the group's notes,
+file set and member claims: a RED render records nothing, so it holds no note from a later plan (kb/Work PB3114). `--no-record` renders
 and checks only (the planner's first pass on peeked codes, before it reserves any).
 
 The ledger has exactly two structured writers, this renderer (every wave, the planner's and a hand-planned one alike)
@@ -41,7 +43,7 @@ Every spec's report path is in `coord.reports_dir()`, never under the wave's `sc
 and the branch survey read that one directory, and a report anywhere else is never landed.
 
 A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381, MANDATORY-PRACTICES I8). A group whose file set
-(`group_files`: its `file_set`, or, when that is empty, the set its notes declare) holds a file under HOST_IO
+(`group_claim`: its `file_set`, or, when that is empty, the set its notes declare) holds a file under HOST_IO
 (`src/Cobol.Net.Runtime/IO/`: the connectors, the keyed-store engine, the host file medium) is `host_io`, and its spec's
 LINUX GATE paragraph tells the implementer to run CI's Linux unit and conformance legs from WSL after the Windows gate
 is GREEN; every other group keeps the paragraph that says the targeted Linux half is inside its own gate. Wave 1118 measured why:
@@ -93,18 +95,18 @@ def host_io(files):
     return any(f.replace('\\', '/').startswith(HOST_IO) for f in files)
 
 
-def group_files(g, file_set_of):
-    """A group's file set: its `file_set` LIST (plan_wave.py writes it), or, when that is absent or empty,
-    `file_set_of(its note ids)` (the set its notes declare, plan_wave.computed_file_set). The one reading the ledger's
-    record and the host-I-O paragraph share."""
+def group_claim(g, claim_of):
+    """A group's declared set (plan_wave.Claim): its `file_set` LIST with its `member_set` (plan_wave.py writes both),
+    or, when that is absent or empty, `claim_of(its note ids)` (the set its notes declare, plan_wave.computed_file_set).
+    The one reading the ledger's record and the host-I-O paragraph share."""
     if isinstance(g.get('file_set'), list) and g['file_set']:
-        return g['file_set']
-    return sorted(file_set_of(list(dict.fromkeys(PB.findall(g.get('notes', ''))))))
+        return plan_wave.Claim.of(g['file_set'], g.get('member_set'))
+    return claim_of(list(dict.fromkeys(PB.findall(g.get('notes', '')))))
 
 
 def render(cfg, g, files, tpl=None):
     """One group's spec: the template filled from the groups file `cfg`, the group `g` and its file set `files`
-    (group_files: it decides the LINUX GATE paragraph) — the one render; the planner's self-test calls it too. Raises
+    (group_claim's files: they decide the LINUX GATE paragraph) — the one render; the planner's self-test calls it too. Raises
     KeyError naming a placeholder the inputs do not fill."""
     tpl = tpl if tpl is not None else TEMPLATE.read_text(encoding='utf-8')
     if not cfg.get('stop_file'):
@@ -115,25 +117,27 @@ def render(cfg, g, files, tpl=None):
                       linux_gate=LINUX_GATE[host_io(files)], **{k: v for k, v in g.items() if k != 'pred'})
 
 
-def record(cfg, coord_dir, terminal=None, file_set_of=None):
+def record(cfg, coord_dir, terminal=None, claim_of=None):
     """Record every group of the groups file `cfg` in the dispatch ledger (plan_wave.record_dispatch, an upsert on
-    (wave, letter)) and return the entries written. A group's notes are its `notes` field's ids; its files are
-    group_files(g, file_set_of): its `file_set` LIST, or, when a hand-built groups file carries none, `file_set_of(note
-    ids)` (default computed_files(coord_dir)). `terminal(note id)` defaults to the register's landed or retired."""
+    (wave, letter)) and return the entries written. A group's notes are its `notes` field's ids; its files and members
+    are group_claim(g, claim_of): its `file_set` LIST and `member_set`, or, when a hand-built groups file carries none,
+    `claim_of(note ids)` (default computed_claims(coord_dir)). `terminal(note id)` defaults to the register's landed or
+    retired."""
     if terminal is None:
         status = {i.get('id'): i.get('status') for i in work.load()}
         terminal = lambda n: status.get(n) in work.TERMINAL_STATUSES  # noqa: E731
-    file_set_of = file_set_of or computed_files(coord_dir)
+    claim_of = claim_of or computed_claims(coord_dir)
     groups = [{'letter': g['letter'], 'slug': g.get('slug'), 'notes': list(dict.fromkeys(PB.findall(g.get('notes', '')))),
-               'files': group_files(g, file_set_of)} for g in cfg['groups']]
+               'files': sorted(c.files), 'members': c.member_lists()}
+              for g in cfg['groups'] for c in [group_claim(g, claim_of)]]
     return plan_wave.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal)
 
 
-def computed_files(coord_dir):
-    """`file_set_of`: plan_wave.computed_file_set over this tree, on the planner's index policy (THE index of the tree,
+def computed_claims(coord_dir):
+    """`claim_of`: plan_wave.computed_file_set over this tree, on the planner's index policy (THE index of the tree,
     cached in `coord_dir`, kb/Work PB3203), memoized per note list so the render and the record compute it once."""
     policy = plan_wave.IndexPolicy.of(coord_dir)
-    once = functools.cache(lambda ids: frozenset(plan_wave.computed_file_set(REPO, list(ids), policy)))
+    once = functools.cache(lambda ids: plan_wave.computed_file_set(REPO, list(ids), policy))
     return lambda ids: once(tuple(ids))
 
 
@@ -153,11 +157,11 @@ def main(argv=None):
     tpl = TEMPLATE.read_text(encoding='utf-8')
     scratch = pathlib.Path(cfg['scratch'])
     ledger = coord.coord_dir(a.coord)
-    file_set_of = computed_files(ledger)
+    claim_of = computed_claims(ledger)
     out = []
     for g in cfg['groups']:
         try:
-            body = render(cfg, g, group_files(g, file_set_of), tpl)
+            body = render(cfg, g, sorted(group_claim(g, claim_of).files), tpl)
         except KeyError as e:
             print(f"{a.groups}: group {g.get('letter')}: no value for {e}")
             return 1
@@ -171,7 +175,7 @@ def main(argv=None):
     # ONLY A GREEN WAVE IS RECORDED (kb/Work PB3114): a ledger entry holds its notes from every later plan until its
     # report or a `--release`, so a RED render that recorded left its notes "held by dispatch" with nothing in flight
     if rc == 0 and not a.no_record:
-        for e in record(cfg, ledger, file_set_of=file_set_of):
+        for e in record(cfg, ledger, claim_of=claim_of):
             print(f"recorded {e['slug']} ({', '.join(e['notes'])}): {len(e['files'])} files in "
                   f"{ledger / plan_wave.DISPATCH_LEDGER}")
     elif rc:
