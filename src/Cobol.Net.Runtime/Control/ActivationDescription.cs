@@ -25,16 +25,17 @@ public enum ActivationShape
     /// <summary>A strongly-typed group item (§8.5.3): its class and category are its type-name (§8.5.2.1).</summary>
     StrongGroup,
     /// <summary>A BY CONTENT / BY VALUE argument that is a VALUE with a character image and no storage of the activating
-    /// element's: a literal, a figurative constant, an ALL literal or a character-valued intrinsic function's value
-    /// (kb/Work PB165). <see cref="ActivationDescription.Category"/> is its category (a figurative constant's is
+    /// element's: a literal, a figurative constant, an ALL literal or an intrinsic function's value, a numeric one included
+    /// (kb/Work PB165, PB3613: a function-identifier is a MOVE sender, whose digits a plain-group formal's record takes).
+    /// <see cref="ActivationDescription.Category"/> is its category (a figurative constant's is
     /// <see cref="ActivationCategory.Figurative"/>, <see cref="ActivationCategory.FigurativeZero"/> or
     /// <see cref="ActivationCategory.FigurativeBoolean"/>, whose category
     /// the receiving context chooses, §8.3.3.6.4 GR1) and <see cref="ActivationDescription.Table16"/> its §14.9.25.3 Table 16
     /// row.</summary>
     Literal,
-    /// <summary>A BY CONTENT / BY VALUE argument that is an arithmetic expression or a numeric function's value: a numeric
-    /// COMPUTE sender with no character image, so a group formal's §14.9.25.4 GR4 character copy has nothing to copy
-    /// (kb/Work PB165, PB1946).</summary>
+    /// <summary>A BY CONTENT / BY VALUE argument that is an arithmetic expression: a numeric COMPUTE sender that is no MOVE
+    /// sender, with no character image, so a group formal's §14.9.25.4 GR4 character copy has nothing to copy
+    /// (kb/Work PB165, PB1946). A numeric FUNCTION's value is not one (<see cref="Literal"/>, kb/Work PB3613).</summary>
     Expression,
     /// <summary>The predefined NULL written as an argument (§8.4.3.10.3 SR1 a)): an identifier whose category is the
     /// formal's class, so only a formal of class pointer or object reference takes it, by a SET (§14.8.2.3.3).</summary>

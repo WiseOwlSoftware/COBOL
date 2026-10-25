@@ -157,7 +157,7 @@ public static class MoveOverlap
     private static bool IsCharacterSender(Place from) =>
         from is RefModPlace { Inner.Item: var inner } r
             ? r.Category is PicCategory.Alphanumeric && inner.OperandPic is null or { Usage: Usage.Display }
-            : from.Item.IsGroup && !from.Item.IsAsIfElementary
+            : from.Item.IsPlainGroup
               || from.Item.Pic is { Category: PicCategory.Alphanumeric, Usage: Usage.Display, IsCharacterEdited: false };
 
     /// <summary>A whole numeric PACKED-DECIMAL item (not a slice).</summary>
