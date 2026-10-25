@@ -1,4 +1,4 @@
-## PB3630 — COMMIT and ROLLBACK reach a kept file whose retake the medium refused
+## Entry 2505 — 2026-10-24 19:34 PDT — PB3630 — COMMIT and ROLLBACK reach a kept file whose retake the medium refused
 
 A CLOSE under commit control keeps the connector's handle, its Table 19 file lock, the transaction's liveness byte and the
 record locks (§9.1.15, §14.9.6.4 GR9, §14.9.7.4 GR4). A re-OPEN that the share mode refuses gives the kept handle back to take
@@ -23,3 +23,4 @@ Goldens: the theory runs both organizations, COMMIT and ROLLBACK, with a healthy
 leaves the transaction to the dead-owner step, which another run unit's writable OPEN then runs). It asserts the record locks and
 the file lock are gone, the changes are committed or restored, and nothing is left standing. Rows re-verdicted: none (the note
 claims none).
+
