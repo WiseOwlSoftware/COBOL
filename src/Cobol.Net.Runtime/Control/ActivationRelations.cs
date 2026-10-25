@@ -172,8 +172,9 @@ public static class ActivationRelations
     /// <summary>ISO §14.8.2 for a BY REFERENCE parameter of a method §9.3.6 has BOUND: asked at run time of a method
     /// bound through a universal receiver (§14.9.23.4 GR7 c)) and at compile time of a typed one (§14.9.23.3 SR5 c),
     /// §14.8.1) — one relation read at two times (kb/Work PB2077). Null when the pair conforms, else the reason. The
-    /// elementary and object-reference identities of §14.8.2.3.2 rule 2 / rule 4 are what match rule 3 d)/e) already
-    /// proved; what remains is the group rules of §14.8.2.2. GR7 c)'s own ANY LENGTH ban is not a relation of a pair:
+    /// elementary and object-reference identities of §14.8.2.3.2 rules 1-3 are what match rule 3 d)/e) already
+    /// proved (rule 4, an ACTIVE-CLASS formal, depends on the invocation and is <see cref="ActiveClassFormalViolation"/>'s);
+    /// what remains is the group rules of §14.8.2.2. GR7 c)'s own ANY LENGTH ban is not a relation of a pair:
     /// it bans the bound METHOD's description whatever its arguments (an OMITTED one included, which §9.3.6 3 b) exempts
     /// from further checking), and only for a universal receiver, so the universal switch raises it unconditionally for
     /// such a method (<c>OoEmitter.EmitCobolInvokeCase</c>) and the typed lane, which it does not govern, never meets it.</summary>
@@ -697,6 +698,30 @@ public static class ActivationRelations
               + $"which is not a valid sending operand of a SET into the receiving item ({receiving}): {why}"
             : null;
     }
+
+    /// <summary>⛔ ISO §14.8.2.3.2 rule 4 — the conformance of an ACTIVE-CLASS FORMAL parameter, which depends on HOW THE
+    /// METHOD WAS INVOKED, for a method invoked through a UNIVERSAL object reference (kb/Work PB2985; the formal half of
+    /// <see cref="ActiveClassReturningViolation"/>, one invocation read twice). "If the formal parameter is described with
+    /// the ACTIVE-CLASS phrase, one of the following conditions shall be true": a) "the method to be activated shall be
+    /// invoked with the predefined object references SELF or SUPER, or with an object reference described with the
+    /// ACTIVE-CLASS phrase", or b) "the method to be activated shall be invoked with that object-class-name or with an
+    /// object reference described with that object-class-name and the ONLY phrase". A universal invoking reference is
+    /// none of them, so an ACTIVE-CLASS formal that is handed an argument violates the rule whatever the argument is and
+    /// whatever class the object has (every argument of a universal INVOKE is BY REFERENCE, §14.9.23.3 SR6, so §14.8.2.3.3's
+    /// BY CONTENT paragraph is never reached; its two alternatives name the same two invocations). The compile-time lane
+    /// asks the same rule of a typed invocation (<c>OoConformance.ActiveClassFormalMismatch</c>).
+    /// <para>Asked ONLY for an ACTIVE-CLASS formal of an object-reference argument that was supplied: an OMITTED argument
+    /// has no description to conform (§9.3.6 3 b)), and an argument of another shape never matched (<see cref="Matches"/>).
+    /// A separate relation, like <see cref="ActiveClassReturningViolation"/>, because the invocation proceeds when no
+    /// checking is enabled — the match (§9.3.6 3 d) 4./5.) has already required the argument to be an object of the class
+    /// the method runs on, so a typed formal never holds an object it cannot. Null when it does not apply.</para></summary>
+    public static string? ActiveClassFormalViolation(ActivationDescription argument, ActivationDescription formal) =>
+        formal is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass }
+        && argument.Shape is ActivationShape.ObjectReference
+            ? $"the formal parameter ({formal}) is described ACTIVE-CLASS and the method is invoked through a UNIVERSAL "
+              + "object reference, which is neither SELF, SUPER, an ACTIVE-CLASS reference nor an object-class-name or "
+              + $"ONLY reference, so the argument ({argument}) cannot conform (ISO §14.8.2.3.2 rule 4)"
+            : null;
 
     /// <summary>§14.8.3.3 rule 2 b) 4. through a universal invoking reference: "the same description as that object
     /// reference" — universal, which names no class, interface or phrase.</summary>

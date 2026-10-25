@@ -699,6 +699,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 is { ObjectKind: ObjectReferenceKind.ActiveClass })
             w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.OoUniversalCheckingHere ? "true" : "false",
                 $"INVOKE '{cobolName}' '{m.Name}'", "__ret!.Description", CaseDescription(c, -1)) + ";");
+        // ⛔ AN ACTIVE-CLASS FORMAL IS HANDED ITS ARGUMENT BY A UNIVERSAL INVOCATION (§14.8.2.3.2 rule 4; kb/Work PB2985): the
+        // invoking reference is neither SELF, SUPER, ACTIVE-CLASS nor an object-class-name, so the argument cannot conform.
+        // The returning item's twin — its own check, not a __viol term: unchecked, the invocation proceeds (the match,
+        // §9.3.6 3 d) 4./5., already required an object of the class the method runs on). A trailing OMITTED position
+        // has no argument to ask.
+        for (int i = 0; i < formals; i++)
+            if (ActivationDescriptions.OfFormal(formalsList[i], ecState.OoClasses)
+                    is { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass })
+                w.Line((i < minArgs ? "" : $"if (__a.Length > {i}) ")
+                    + RuntimeApi.ObjCheckActiveClassFormal(m.OoUniversalCheckingHere ? "true" : "false",
+                        $"INVOKE '{cobolName}' '{m.Name}'", $"__a[{i}].Description", CaseDescription(c, i)) + ";");
         // An ANY LENGTH formal or returning item is a violation whatever the arguments (GR7 c) bans the DESCRIPTION) —
         // including an OPTIONAL one whose argument is OMITTED or trailing-omitted, which no relation is asked about — so
         // the bound method's stop is unconditional here: no activation of the method is emitted (its ANY LENGTH
