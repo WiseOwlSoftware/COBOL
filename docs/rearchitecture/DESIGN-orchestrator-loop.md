@@ -796,7 +796,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    unlanded branch whose commit subjects name several, every other note of that branch waits with the
    holder named (`plan()` after the held loop; the unit is keyed by the BRANCH, so a half note, a report's notes and
    the unreported notes its branch carries hold together; and two DIFFERENT unfinished reports about one branch are
-   one group, the newest report's: kb/Work PB3653). A live agent's LOCK on the branch's worktree holds the unit
+   one group, the newest UNFINISHED report's, never a newer DONE report about another lead: kb/Work PB3653). A live agent's LOCK on the branch's worktree holds the unit
    exactly as a dispatch does (`prune_worktrees.locked`, the lock-only half of `owned`; a hand-started agent leaves no
    ledger entry), while a touch inside `--min-age` alone holds nothing, because it is how a branch reads for three
    hours after its agent has just returned. Wave 1056's first plan, with a dispatch recorded for only some of each

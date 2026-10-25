@@ -1412,10 +1412,16 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     rep_of_branch = {r.branch: r for r in live if r.branch}   # oldest first: the newest report of each branch
     # ONE FINISHER PER BRANCH (kb/Work PB3653, the second residual of PB2974): a note is decided by ITS newest report, so
     # two notes whose newest reports are two DIFFERENT unfinished reports about the same branch would each get a
-    # finisher over it (one hold, two groups). The branch's work is one unit, so its reports' notes join the group of
-    # the branch's newest report, the report that describes the branch as it stands.
-    for path in [x for x in finisher_by_rep if (b := rep_by_path[x].branch) and rep_of_branch[b].path != x]:
-        finisher_by_rep.setdefault(rep_of_branch[rep_by_path[path].branch].path, []).extend(finisher_by_rep.pop(path))
+    # finisher over it (one hold, two groups). The branch's work is one unit, so its unfinished reports' notes join the
+    # group of the newest UNFINISHED report of the branch (one that already holds a finisher group). A newer DONE or
+    # FINDINGS-free report about another lead is no target: its pred would name the wrong report (branch review R1-1).
+    live_order = {r.path: i for i, r in enumerate(live)}
+    newest_unfinished: dict[str, pathlib.Path] = {}
+    for path in sorted(finisher_by_rep, key=lambda x: live_order.get(x, -1)):
+        if b := rep_by_path[path].branch:
+            newest_unfinished[b] = path
+    for path in [x for x in finisher_by_rep if (b := rep_by_path[x].branch) and newest_unfinished[b] != x]:
+        finisher_by_rep[newest_unfinished[rep_by_path[path].branch]].extend(finisher_by_rep.pop(path))
     riders: dict[pathlib.Path, dict[str, list[str]]] = {}
     for nid, (r, to) in replayed_to.items():
         if (rc := rep_of_branch.get(to)) and rc.path in finisher_by_rep:

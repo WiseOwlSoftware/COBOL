@@ -36,7 +36,7 @@ who acts next:
                    An UNFINISHED (SPLIT, NOT STARTED) branch another branch carries is IN FLIGHT too, not a decision
                    (kb/Work PB3652): contained in a branch above, or REPLAYED by one (every commit of it is held, by
                    cherry-pick or identity, by an outranking branch nobody carries; replay_view, the planner's own
-                   rule, so the survey and the planner never disagree on who carries whom).
+                   rule, so the survey and the planner never disagree on WHO carries whom).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
@@ -968,10 +968,12 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
     train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
     the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing.
 
-    AN UNFINISHED (SPLIT, NOT STARTED) BRANCH IS CARRIED TOO (kb/Work PB3652): the planner plans no finisher for one a
-    finished branch contains (plan_wave.branch_carrier) or that another branch REPLAYS (plan_wave.branch_replays: the
-    planner's own FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor, so the successor is no
-    descendant of it), and the survey listed it as a DECISION row regardless: the predecessor of a merge stayed a
+    AN UNFINISHED (SPLIT, NOT STARTED) BRANCH IS CARRIED TOO (kb/Work PB3652): the planner reads one a finished branch
+    contains (plan_wave.branch_carrier) or that another branch REPLAYS (plan_wave.branch_replays: the planner's own
+    FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor, so the successor is no descendant of it)
+    as carried: under --drain it waits for the carrier, and otherwise its finisher's pred names the carrier (as for a
+    carried FINDINGS branch). Either way the work lands through the carrier, and the survey listed it as a DECISION row
+    regardless: the predecessor of a merge stayed a
     DECISION beside its carrier, and a cherry-picked one until its successor landed. Its row now names its carrier by
     the planner's own rule (`replay_view`, the same function): a branch every commit of which an outranking, uncarried
     branch holds lands through that branch. The replay arm reads only a DECISION row the planner plans from (no report,
