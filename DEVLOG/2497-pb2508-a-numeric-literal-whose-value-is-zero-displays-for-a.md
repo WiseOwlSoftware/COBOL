@@ -1,7 +1,8 @@
-## PB2508 — a numeric literal whose value is zero displays `+` for a written `-`
+## Entry 2497 — 2026-10-24 18:24 PDT — PB2508 — a numeric literal whose value is zero displays `+` for a written `-`
 
 Re-probe on this worktree's build: `DISPLAY -0`, `-0.0`, `-00`, `-0.00`, `-.0` and a constant-name declared AS -0 printed their minus sign; GnuCOBOL 3.2.0 (cobc under WSL, `-std=default` and `cobol2014`) prints `+0`, `+0.0`, `+00`, `+0.00`, `+.0`, `+0`, and under DECIMAL-POINT IS COMMA `+0,0`, `+0`, `+,0` (and `-1,50` unchanged). ISO §14.9.11.4 GR1 leaves a literal's device conversion to the implementor, and DOC-A.1-56 already settles that latitude GnuCOBOL's way, so the sign of a zero value was a measured departure from the documented choice, not a new question.
 
 Fix at the one literal image: `BoundNumericLiteral.Image` (BoundTree.cs) writes `+` for the leading `-` when every digit of the text is zero, then applies the program's decimal separator as before. `Text`, the value every numeric decoder reads, keeps the sign written. A floating-point literal cannot be a negative zero (§8.3.3.3.3 SR4; COBOLNET1661 refuses it), so there is no sibling arm; a folded `FUNCTION NUMVAL("-0")` prints `0` and `MOVE -0 TO PIC X(4)` keeps the de-signed `0`, both as cobc does.
 
 Tests: goldens `pb2508_display_negative_zero_literal` and `pb2508_display_negative_zero_literal_comma` (conformance-suite/cases/_unassigned; no edition differs, so one program per separator), and a unit theory in `NumericLiteralImageDriftTests` over both separators including the non-zero neighbours (`-0.5`, `-10`, `-5`, `+0`, `0.0`). DOC-A.1-56 carries the sentence and the two witnesses. No inventory row is claimed; `closes_rows: []` with its reason.
+
