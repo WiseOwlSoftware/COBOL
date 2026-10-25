@@ -1,4 +1,4 @@
-## The owner approves the fourth fuzz night's three findings for fixing (PB3664 to PB3666)
+## Entry 2495 — 2026-10-24 18:06 PDT — The owner approves the fourth fuzz night's three findings for fixing (PB3664 to PB3666)
 
 The operator explained each finding: the ISO text, what it requires, and what GnuCOBOL 3.2 does and why, read in the
 pinned 3.2 source. The owner then wrote (2026-10-24 ~18:00 PDT): "Approve all three for fix, and make DISPLAY and the
@@ -16,3 +16,4 @@ campaign.
   so DISPLAY and the boolean operators agree. The choice is recorded in `docs/CONFORMANCE.md` because the standard
   defines no conversion. GnuCOBOL has no precedent: USAGE BIT is "not implemented", and its display `PIC 1` moves text as
   a number, right-aligned, against §14.6.8.6.
+
