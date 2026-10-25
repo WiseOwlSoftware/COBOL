@@ -29,6 +29,9 @@ import re
 import sys
 import zipfile
 from collections import OrderedDict
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)     # zip epoch — no build-time timestamp leaks into the artifact
 
@@ -102,4 +105,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -31,6 +31,8 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 INVENTORY = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
@@ -150,10 +152,6 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="render in memory and exit non-zero when the inventory no longer produces a view")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if not INVENTORY.exists():
         sys.exit(f"inventory not found: {INVENTORY}\nRun: python scripts/spec/build_inventory.py")
 
@@ -196,4 +194,5 @@ def write_view(rows: list[dict], notes: dict[str, str], out: pathlib.Path) -> in
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

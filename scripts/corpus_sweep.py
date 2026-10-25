@@ -36,6 +36,7 @@ import argparse, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gnucobol_extract as gx                                                              # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -236,4 +237,5 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

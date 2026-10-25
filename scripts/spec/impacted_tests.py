@@ -74,6 +74,7 @@ import drift_rules  # noqa: E402  (scripts/spec, beside this file)
 import cs_members  # noqa: E402  (scripts/spec, beside this file)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/ (as run_gate_legs.py)
 from coord import is_work  # noqa: E402  (THE paths that are never work: coord.NEVER_WORK, kb/Work PB3465, PB3474)
+from standard_streams import ensure_utf8  # noqa: E402
 SCHEMA = 2
 CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
@@ -1161,11 +1162,6 @@ def main() -> int:
                     help="the C# member reader's net over the gated test projects (cs_members.audit)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if args.self_test:
         return self_test()
     if args.audit_members:
@@ -1195,4 +1191,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

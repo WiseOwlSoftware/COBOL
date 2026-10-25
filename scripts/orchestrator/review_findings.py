@@ -95,6 +95,8 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import plan_wave  # noqa: E402  (the one reader of the stamp, and the one definition of a stamp line: PB3077)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The fields a finding's reviewer supplies (`finding`'s JSON object); the tool adds `kind`, `round`, `id` and `at`.
 FINDING_FIELDS = ("file", "line", "category", "severity", "summary", "failure_scenario")
@@ -1163,5 +1165,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
+    ensure_utf8()
     sys.exit(main())

@@ -19,6 +19,8 @@ import pathlib
 import sys
 import time
 from typing import Iterator
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 TOOL_KEYS = ("command", "file_path", "pattern", "path", "description", "skill", "query", "prompt", "url")
 
@@ -99,10 +101,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--once", action="store_true", help="render what is there and exit")
     ap.add_argument("--poll", type=float, default=0.5)
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     path, st = pathlib.Path(a.transcript), State()
     try:
         while True:
@@ -116,4 +114,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

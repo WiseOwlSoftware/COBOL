@@ -15,6 +15,9 @@ sys.path.insert(0, str(HERE.parent))
 from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 import alloc  # noqa: E402
 import coord  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 TMP = scratch_dir("alloc-test-")
 REPO = TMP / "repo"
