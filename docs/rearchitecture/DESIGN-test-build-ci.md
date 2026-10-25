@@ -900,7 +900,16 @@ acceptance (§3.14.9) records the time to the first red of every implementer gat
   9,317/9,317 · Unit 29,703/29,703 · Characterization 33/33 cases ran (skipped 0) in 2 legs (plan 3f1c…: map dbea124,
   timings run 20260928T2210-7c1e) ===`. A case "ran" when it has a Passed or Failed result; a case whose only result
   is NotExecuted (a `[Fact(Skip)]`) is counted SEPARATELY as skipped, never as ran (`b3`).
-- **No plan input, a stale one, or a broken one → ONE leg in the plain order.** Never a skip.
+- **No plan input, a stale one, or a broken one → ONE leg in the plain order.** Never a skip. A previous gate's trx the
+  plan cannot read is one such input, and it is NAMED and KEPT (kb/Work PB3661): every reader of a trx file reads
+  through `test_population.trx_root`, which raises `UnreadableTrx` naming the file (the gate planner and the profiler
+  each parsed one themselves, and a torn Linux-gate file ended run 000005 of wf_1973801d-4fe-29 with `ParseError: not
+  well-formed … line 104295, column 36` and no path, the file gone by the verdict because the Linux half empties
+  `TestResults/linux-gate/` before it writes). The gate driver copies the unreadable file into the run directory as
+  `unreadable-<its directory>-<its name>.bad` (never `.trx`: later readers glob a run's trx files) and its plan note
+  names both. The whole-population fallback stays for an unreadable SIDE source too: with the Linux gate's reds unknown
+  the gate cannot know what was red, and leg 2 is not run locally (PB2515), so dropping that source's tier 0a could hide
+  a red. `gate_plan.py --audit-trx-readers` (`GateLegDriftTests`) holds the tree to the one reader.
 - **The gate has ONE shape** (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; §3.17.3): `build-local.ps1` takes no
   mode (`-Priority` only sets the process priority) — a plan, leg 1 fail-fast, a gate slot (§3.14.6), the worktree's
   gate lock and the population check, for an implementer's commit, a re-gate after a fix and a landing alike. The
@@ -2240,7 +2249,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `TestResults/build-local/*/verdict.json` runs and refuses the tip no run covers (exit 14, UNTESTED, before anything is
    merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
    covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
-   GREEN Linux half of that tree on a host that runs one (the inert lane has none), and its head IS the tip or every later
+   GREEN Linux half of that tree on a host that runs one (the inert lane's is the script self-tests alone, §3.18), and its head IS the tip or every later
    commit is main's, a clean merge of main or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
    A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
    (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
@@ -2250,7 +2259,12 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
-   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527); a gate NOT RUN, which measured
+   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit when the gate's Linux half found a Linux gate of the tree running (`linux-gate.sh` BUSY: its message names the running gate's pid and start time, and `linux-gate.sh --probe` is what the lane's wait asks, kb/Work PB3649); the same exit, for the same wait, when the
+   worktree's own gate is still running and has written no verdict, `run_gate_legs.live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
+   otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
+   whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
+   (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
+   branch carries, kb/Work PB3145); a gate NOT RUN, which measured
    nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an ENVIRONMENT cause or a BRANCH cause main fails
    the same way at the same step, else exit 5 like a red. Bring main in AGAIN when it moved while the pull request is
    queued, without a gate (review R1-2, corrected at implementation: the queue merges other pull requests meanwhile,
@@ -2323,7 +2337,7 @@ only whole-population run.
   binaries; no audits, no build, no slot of its own, and a case the plan never heard of runs in leg 1). It runs in the
   IMPLEMENTER'S gate and nowhere else (the landing reads that gate's record: §3.17.2 step 3, owner 2026-10-23). The verdict
   file records the Linux half (`linux`: verdict, cause, the committed `tree` it measured) and `head_tree`; a reused
-  answer needs a GREEN Linux half of this head's tree; the inert lane runs none; a Windows half that is not green never
+  answer needs a GREEN Linux half of this head's tree (the inert lane's: the script self-tests, §3.18); a Windows half that is not green never
   starts the clone; a Linux half that measured nothing ends the gate NOT RUN with the Linux gate's own cause, and a BUSY one (another Linux gate of the worktree runs: linux-gate.sh runs one gate per tree, kb/Work PB3310) ends it BUSY, never RED. Measured why: on 2026-10-10 three of 38 clusters had Linux-only reds, all in the clusters' OWN
   tests (a locale golden's Linux text, a lock-race fix red 10 of 10 on Linux, a host-path length test), and the WSL
   run caught each before a CI round trip; a leg-1 run under WSL costs the clone and build (~1–2 min) plus the leg,
@@ -2589,11 +2603,23 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
 | Runner | Inert lane | Full lane |
 |---|---|---|
 | CI `changes` (`classify --base <group base or before> --head <sha>`) | `run_matrix=false`: `audits` + `ci-gate` | the matrix |
-| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then `… GREEN — INERT LANE (kb/Work PB2878): …`, no slot, build or leg; under either scope | the ordered gate |
-| Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main; the targeted mode takes the lane from the gate that started it, which runs no Linux half in the inert lane) | `=== LINUX GATE: GREEN (inert lane, …) ===`, no leg | every leg, under the watch |
+| local gate (`run_gate_legs.py`, `Host.lane`, over the measured working tree against the base) | the audits, then (on a host that runs the Linux half) the Linux script self-tests in a WSL clone of HEAD under a slot (`linux-gate.sh --legs inert`), then `… GREEN — INERT LANE (kb/Work PB2878): …`, no build or test leg; under either scope | the ordered gate |
+| Linux gate (`linux-gate.sh`, HEAD against its merge base with origin/main; the targeted and inert modes take the lane from the gate that started it) | no test leg and no build, but the script self-tests (`selftests`, no clone build): `=== LINUX GATE: GREEN (inert lane, …; legs selftests …) ===` | every leg, under the watch |
 
 The audits run in every lane (they are where a register note, a citation or a DEVLOG entry is checked); CI's `audits`
 job runs on every event.
+
+**The script self-tests run on Linux in the inert lane too (kb/Work PB3646).** CI's `audits` job runs `self_tests.py` on
+Linux on every event, and those self-tests are audits that read the inert paths by design (the register, the DEVLOG,
+the skills submodule they initialize), so the inert watch cannot vouch for them and a `kb/` or `DEVLOG/` change can turn
+them red on Linux. Until PB3646 both local Linux processes ended GREEN in the inert lane before any of them ran, so
+CI could fail on code the local gates passed (the CI invariant, PB1957). Now `linux-gate.sh` runs its `selftests` leg
+in the inert lane (a clone of HEAD, no build, no corpus: measured 25 s of self-tests, 45 s for the whole run) and
+`--legs inert` is the same run for the Windows gate, whose inert lane takes a slot, runs it after the audits
+(`Gate._inert`, `Host.linux_leg(inert=True)`), records it as the Linux half, and ends BUSY, NOT RUN or RED on it exactly
+as the full lane does. `tested_locally` and the gate's reuse rule therefore require a GREEN Linux half for an inert
+record on a host that runs one (an inert record from before PB3646 has none, and the gate runs again).
+`InertLaneDriftTests` holds the wiring. A Linux host's audits ARE the Linux self-tests.
 
 **The proof — the inert watch.** A list of "what no test reads" that nobody proves drifts from the tests, and a test
 that starts reading an inert path would let an inert change land untested. So every whole-assembly test run on Linux
