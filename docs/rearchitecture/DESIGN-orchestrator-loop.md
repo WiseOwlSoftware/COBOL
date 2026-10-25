@@ -825,20 +825,34 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    PB3456): a campaign's plan holds only the restructuring program's groups for them (R69 §2, `work.restructuring`),
    never a fix campaign's or the fix lane's, and names them OPEN (RESERVED) while nobody runs one. The landing check stays the
    guarantee for R3 work; fix lane against fix lane is never stopped there, and costs at most a conflict finisher.
-   **An empty file set is UNKNOWN, never "collides with nothing"** (`plan_wave.collision`, kb/Work PB3263). A group
-   none of whose notes declares a site block has an empty set, and so does a dispatch the ledger recorded with none
-   (wave 1117 recorded six of its eight PB3353 groups so; wave 1126 C, PB1587, was planned beside the in-flight
-   storage engine and landed on six of its files). Two known sets meet on a shared file. An unknown side meets the
-   other on a shared SUBSYSTEM, the notes' `area:` values (`plan_wave.subsystems`), and meets everything when that is
-   unknown too (an owner none of whose notes is known). A meeting by subsystem waits even for FINISHED work, because a
-   continuation would merge a branch the group may share nothing with. Within the wave an unknown group is planned
-   ALONE ON ITS SUBSYSTEMS, by the same meeting rule: it follows EVERY group of the wave it meets (`after:`, the tail
-   of their one chain), and every later group that meets it joins its chain. A chain is linear, so when the groups it
-   meets lie in two chains it waits for a later wave (two known groups of one subsystem on different files are two
-   chains, and an unknown group beside either could edit the other's files). A dispatch recorded with no files stays in flight with its empty set and its notes. The plan
-   table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
-   `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
-   finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
+   **The partition meets on MEMBERS, and an empty set holds nothing** (`plan_wave.collision`, kb/Work PB3670, the
+   owner's top priority of 2026-10-24: "I do not understand why we cannot update separate regions of code in a single
+   source file from different groups such that a merge conflict doesn't occur"). A declared set is a `plan_wave.Claim`:
+   its files and, per file, the members it changes there (`scripts/arch/source_units.py`: a C# member, a Python
+   function, a Markdown section; a file with none named is claimed whole). Two claims meet only on a file either claims
+   whole or on a member of one that matches a member of the other (`collision` meets `plan_wave.collision`, a type its
+   members, a section its subsections); a file a merge driver merges by key never meets
+   (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
+   `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
+   `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
+   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`); an in-flight worktree's or branch's from the units its
+   ACTUAL diff touches in each file another claim shares (`plan_wave.inflight_units`: both sides of every hunk, read
+   from one `git diff-tree --stdin -p -U0` and two `git cat-file` batches, plus one `git diff -U0 HEAD` per worktree
+   with an uncommitted shared edit); a ledger group's from its recorded `members`. An EMPTY set (no note declares a
+   site block and no primary file was located, or a dispatch the ledger recorded with no files) meets NOTHING, in
+   flight and within the wave: PB3263's rule (an unknown set meets its subsystem, the notes' `area:`) reserved a whole
+   subsystem for such a note and held unrelated fixes for hours (wave w20261032's groups A and B recorded 234 and 222
+   files, all of `Binding/` and `Cobol.Net.Runtime/` from a fix-lane note's FOLDER site, and held the owner-approved
+   fuzz fixes PB3664 and PB3665 on files neither touched), so it is deleted, and a fix-lane note's folder site reserves
+   nothing (`member_index.note_file_set`). The plan table and the group's spec name an empty group `UNPARTITIONED`, and
+   the spec asks its implementer to give each note a `**Sites:**` paragraph naming its files and members in its first
+   checkpoint; from its first edit its worktree's actual diff is in flight like any other. A finisher's set includes
+   the files and units of the branch it continues (its actual diff). PB3640's finding stands: no partition removes
+   every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
+   repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to
+   `<coord>/partition-measure.jsonl` (`plan_wave.partition_record`: the same-file pairs run side by side, the notes a
+   collision held and why), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
+   bounce causes for the conflicts. `test_plan_wave.py` section 12 pins each arm.
 2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
@@ -888,8 +902,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    note nobody had started.
 3. **Clusters**, minus every note above, ranked by inventory rows claimed (the sum of each note's
    `inventory_rows`, read with `work.py`'s one frontmatter reader), then by harm.
-4. **One group per primary file**: a later group on the same file becomes a same-file successor (`after: <letter>`,
-   letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2) enforce.
+4. **One group per primary file and member**: a later group on the same file whose claim there meets an earlier
+   group's (the whole file, or a shared member: `plan_wave.unit_meet`) becomes a same-file successor (`after:
+   <letter>`, letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2, a shared-MEMBER
+   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670).
 5. **Model per group** from `model_rules.json`: Opus when the primary file or a code site matches a design-heavy
    pattern (`/Oo/`, `.g4`, `Frontend/Grammar/`), a note's area matches (`oo`, `grammar`), a note's body says a
    design question is open, or a note already appears in two reports while still open (a note that fails twice is a
@@ -964,12 +980,12 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   blocks under `model_rules.json` `campaign.src`; never what its prose, a `Gate:` line or a tool command mentions,
   kb/Work PB3242) with `fix_clusters.py`'s own `cluster` (imported, never forked), one topological depth at a time
   so a cluster never mixes a blocker with what it blocks. A note declaring no site file is a group of its own, ordered
-  by its chain; when it declares no site block at all its set is UNKNOWN and it is planned alone on its subsystem
-  (item 1b). `work.py check` (`sites_problems`) refuses an open note filed into any cluster from
+  by its chain; when it declares no site block at all its set is empty and it holds nothing (item 1b). `work.py check` (`sites_problems`) refuses an open note filed into any cluster from
   `work.SITES_REQUIRED_FROM` (PB3443) on that has no site block, a `**Sites:**` list or `**Sites:** none (why)`: every
   cluster is a campaign once an operator runs it, so the rule names no campaign. The 198 older notes with none (2026-10-19)
-  stay readable as UNKNOWN; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand. A
-  group's file set, the one the partition checks, is its notes' declared sets plus its primary file
+  stay readable, each an empty set; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand. A
+  group's declared set, the one the partition checks, is its notes' declared sets (files and members) plus its
+  primary file, claimed whole unless every note declares a site block and one names it
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent
   can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts the tier first
   (a cluster's is its lowest note's, and `plan_wave.lift_tiers` lowers a blocker's cluster to the tier of every cluster
@@ -981,8 +997,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   review loop ended), merges that tail's reviewed branch and builds on it (the rolling wave's same-file mechanism).
   Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
   top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
-  linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a shared primary file, whose chain tail is that
-  file's last group, so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
+  linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a
+  shared primary file on which the two claims meet (item 4), so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.
