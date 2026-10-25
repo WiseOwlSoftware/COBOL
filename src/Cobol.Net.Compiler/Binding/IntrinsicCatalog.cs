@@ -114,6 +114,20 @@ public readonly record struct IntrinsicSig(
         IntrinsicType.Boolean => PicCategory.Boolean,
         _ => PicCategory.Numeric,
     };
+
+    /// <summary>⛔ THE USAGE ISO §15.2 GIVES A FUNCTION'S RESULT, in ONE place (kb/Work PB3665), asked by the category
+    /// that <see cref="CategoryOf"/> folds the §15.2 type to. §15.2 1) "Alphanumeric functions have an implicit usage
+    /// display", 2) "Boolean functions have an implicit usage bit" and 3) "National functions have an implicit usage
+    /// national"; 4) numeric, 5) integer and 6) index functions state NO usage (only an operational sign and the shape
+    /// of the value), so they answer <see langword="null"/> — a rule worded "described implicitly or explicitly as
+    /// usage display or national" (STRING §14.9.43.3 SR1, INSPECT §14.9.22.3 SR2) therefore does not admit them.</summary>
+    public static Usage? ImplicitUsageOf(PicCategory resultCategory) => resultCategory switch
+    {
+        PicCategory.Alphanumeric => Usage.Display,
+        PicCategory.National => Usage.National,
+        PicCategory.Boolean => Usage.Bit,
+        _ => null,
+    };
 }
 
 /// <summary>

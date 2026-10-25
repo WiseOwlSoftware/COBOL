@@ -727,19 +727,50 @@ internal static class IntrinsicArgumentRules
         // null ("leave it to the runtime"), and `CONVERT(ADDRESS OF X ANY ANUM HEX)` / `BASECONVERT(ADDRESS OF X
         // 16 10)` compiled and aborted in a NotImplemented render (kb/Work PB1060, train 1021 review C-2).
         BoundAddressOperand a => a.Data is not null ? Usage.Pointer : Usage.ProgramPointer,
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory switch
-        {
-            PicCategory.National => Usage.National,
-            PicCategory.Alphanumeric => Usage.Display,
-            // §15.2 item 2 (kb/Work PB124 wave 5c, GR-15.2-2): "Boolean functions … have an implicit usage
-            // bit." The old Display answer let a boolean FUNCTION pass CONCAT's §15.18.3 r2 usage screen as a
-            // display argument, though §15.18.1's own result table enumerates only display and national
-            // boolean rows — usage bit satisfies neither of r2's families, so the screen now rejects it.
-            PicCategory.Boolean => Usage.Bit,
-            _ => null,   // a numeric result is a VALUE, not a stored character string
-        },
+        // §15.2 items 1-3 (kb/Work PB124 wave 5c, GR-15.2-2): "Boolean functions … have an implicit usage bit." The old
+        // Display answer let a boolean FUNCTION pass CONCAT's §15.18.3 r2 usage screen as a display argument, though
+        // §15.18.1's own result table enumerates only display and national boolean rows — usage bit satisfies neither of
+        // r2's families, so the screen rejects it. A numeric result answers null here (a VALUE, not a stored character
+        // string): §15.2 states no usage for it. The usage-by-type table is the ONE IntrinsicSig.ImplicitUsageOf
+        // (kb/Work PB3665).
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => IntrinsicSig.ImplicitUsageOf(ic.ResultCategory),
         _ => null,
     };
+
+    /// <summary>The §15.2 result category of a FUNCTION-IDENTIFIER operand (§8.4.3.1.2 Format 1), or
+    /// <see langword="null"/> when the operand is not one. A function reaches a verb binder in three shapes — the
+    /// runtime call (<see cref="BoundIntrinsicCall"/>), an arithmetic tree it was lowered to (FUNCTION LENGTH of a
+    /// variable-length group, <see cref="BoundComputedOperand.FunctionValue"/>) and a literal it was FOLDED to at bind
+    /// (FUNCTION LENGTH of a fixed item, <see cref="BoundNumericLiteral.FunctionValue"/>) — and only the first carries
+    /// its type, so the other two answer numeric, the only category the folds and the lowering produce.</summary>
+    public static PicCategory? FunctionIdentifierCategory(BoundOperand op) => op switch
+    {
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
+        BoundComputedOperand { FunctionValue: true } or BoundNumericLiteral { FunctionValue: true } => PicCategory.Numeric,
+        _ => null,
+    };
+
+    /// <summary>⛔ ISO §15.2 AS THE ANSWER TO "DESCRIBED IMPLICITLY OR EXPLICITLY AS USAGE DISPLAY OR NATIONAL" FOR A
+    /// FUNCTION-IDENTIFIER (kb/Work PB3665), the function twin of <see cref="ItemCategory.IsDisplayOrNationalUsage"/>:
+    /// true when <paramref name="op"/> is a function-identifier whose result is NOT of usage display or national —
+    /// a numeric or integer function (§15.2 4), 5): no usage stated), an index function (6)) or a boolean one
+    /// (2): usage bit). <paramref name="category"/> is the result category. STRING SR1 and INSPECT SR2 ask this
+    /// beside the data-item predicate, so a rule that refuses a COMP item refuses the function that has no better
+    /// description; the folded LENGTH literal is a function-identifier, never "a numeric literal" (§8.4.3.2.1: it
+    /// "references the unique data item that results from the evaluation of a function").</summary>
+    public static bool FunctionIsNotDisplayOrNational(BoundOperand op, out PicCategory category)
+    {
+        category = default;
+        if (FunctionIdentifierCategory(op) is not { } result) return false;
+        category = result;
+        return IntrinsicSig.ImplicitUsageOf(result) is not (Usage.Display or Usage.National);
+    }
+
+    /// <summary>The words that say WHY a function-identifier of <paramref name="category"/> is not usage display or
+    /// national — the one spelling STRING and INSPECT put in their diagnostic (ISO §15.2 2), 4), 5), 6)).</summary>
+    public static string FunctionUsageReason(PicCategory category) => category == PicCategory.Boolean
+        ? "a boolean function, which §15.2 2) gives the implicit usage bit"
+        : "a numeric, integer or index function, to which §15.2 4), 5) and 6) give no usage";
 
     /// <summary>
     /// ⛔ THE SCREEN IS DRIVEN FROM HERE, NOT FROM <c>ArgKinds</c> — and the difference is the whole lesson.
