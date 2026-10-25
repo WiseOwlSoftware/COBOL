@@ -115,7 +115,7 @@ public sealed class Gr4GroupDecisionDriftTests
     /// <c>CallContentRead</c> alone.</summary>
     [Theory]
     [InlineData("Verbs", "CallEmitter.cs", "GroupFormal(a)")]
-    [InlineData("Verbs", "OoEmitter.cs", "CallEmitter.IsPlainGroupFormal(a.Formal)")]
+    [InlineData("Verbs", "OoEmitter.cs", "a.Formal.IsPlainGroup")]
     public void GroupFormalCrossings_ReadTheSenderThroughTheOneRepresentationCodec(string dir, string file, string guard)
     {
         string src = Src("Cobol.Net.Compiler", "CodeGen", dir, file);
