@@ -407,6 +407,34 @@ of an unsupported facility.
   `StringUnstringBinder.BindUnstring` over the shared `AllOrNothingClass` predicate (COBOLNET2306); witnessed by
   `conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national` (national sender into two usage-national numeric receivers)
   and `conformance:cases/14.9.48-UNSTRING/pb980-unstring-national-mix`.
+- **D-FNUSE — a numeric, integer, index or boolean function-identifier is not "described … as usage display or
+  national", so it is no STRING character operand and no INSPECT identifier-n** (owner 2026-10-24; kb/Work PB3665,
+  rules `SR-14.9.43.3-1`, `SR-14.9.22.3-2`). §14.9.43.3 SR1 requires every identifier of STRING but the POINTER to be
+  *"described implicitly or explicitly as usage display or national"*, and §14.9.22.3 SR2 requires *"an elementary item
+  described implicitly or explicitly as usage display or national"* of INSPECT's identifier-3 … identifier-n. A
+  function-identifier references *"the unique data item that results from the evaluation of a function"* (§8.4.3.2.1),
+  and §15.2 describes that item by the function's type: an alphanumeric function has *"an implicit usage display"*
+  (1)), a national function *"an implicit usage national"* (3)), a boolean function *"an implicit usage bit"* (2)); the
+  numeric (4)), integer (5)) and index (6)) functions are given a class, a category and (for the first two) an
+  operational sign, and **no usage**. §15.2's opening sentence (a function *"may be used anywhere a sending data item
+  of that class and category may be specified"*) and §15.4.1 (the returned value's characteristics are the
+  implementor's) leave the usage of a numeric value open, and the choice is the owner's: **WiseOwl COBOL reads the
+  silence as "not described as usage display or national", so only the alphanumeric and national functions are
+  admitted** — `STRING FUNCTION UPPER-CASE(S) …`, `INSPECT … FOR ALL FUNCTION LOWER-CASE(P)` — and `STRING FUNCTION
+  INTEGER(N) …`, `STRING … DELIMITED BY FUNCTION ORD(C)`, `STRING FUNCTION BOOLEAN-OF-INTEGER(N 4) …` and the INSPECT
+  forms are refused (COBOLNET1626, COBOLNET0847). The same refusal reaches `FUNCTION LENGTH(item)`, which the binder
+  FOLDS to a number: it is the function it folds, never "a numeric literal", and the diagnostic says so (a real numeric
+  literal keeps the literal wording, §14.9.43.3 SR1). UNSTRING needed no new rule: SR2 (category alphanumeric or
+  national) already refused the numeric and boolean functions, and its delimiter now names the folded LENGTH as
+  category numeric. **GnuCOBOL 3.2 is no precedent**: `cb_emit_string` checks usage only for a data item (a literal
+  carries a `TODO`, a function call falls to `default: break;`), and stores the raw four bytes of
+  `cob_intr_integer`'s binary field (`FUNCTION INTEGER(N)` with N = 7 gives `\a\0\0\0`), so the precedence stops at the
+  standard. Implemented once: `IntrinsicSig.ImplicitUsageOf` (the §15.2 usage by type) behind
+  `IntrinsicArgumentRules.FunctionIsNotDisplayOrNational`, asked by `StringUnstringBinder.Sr1Offence` and
+  `StatementValidation.CheckInspectFunctionUsage`; pinned by `DisplayOrNationalUsagePredicateDriftTests`; witnessed by
+  `conformance:cases/14.9.43-STRING/pb3665_string_function_usage_controls` and
+  `conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls` (the admitted functions) and the
+  `pb3665-*` refusals.
 - **D-FRA — the record area of a file whose record is a dynamic-length item, a variable-length group or a pointer,
   and the record image such a record sends and receives** (2026-09-22; kb/Work PB981, row `GR-13.18.33.4-3`).
   §13.18.33.4 GR3 makes every level-1 entry of an FD or SD *"implicit redefinitions of the same area"*, and no rule
