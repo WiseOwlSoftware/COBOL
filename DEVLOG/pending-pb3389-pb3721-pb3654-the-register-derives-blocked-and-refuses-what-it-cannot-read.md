@@ -56,3 +56,5 @@ same rule only in CI. `enqueue.py checks` gained a third landing check, `work.py
 `scripts/spec/work.py` from the worktree (the copy CI runs), exit 6 with the DEVLOG refusal (a finisher's); the check
 table became a `Check` named tuple (name, command, exit, range arguments, `in_tree`) in place of a five-field tuple, and
 the self-test maps all three refusals and runs a worktree copy of work.py that refuses and one that passes.
+
+Merging the reviewed head into current main also met `scripts/orchestrator/cancel_superseded.py`, a script main added after PB3637's sweep that carried its own `sys.stdout.reconfigure`: the standard-streams audit (COPY and ENTRY rules) was red on the merged tree, so it now calls `ensure_utf8()` first in its `__main__` block and its private copy is deleted.
