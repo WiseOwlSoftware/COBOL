@@ -1358,7 +1358,7 @@ planner expected them to share. `docs/CONFORMANCE.md` took 93 commits (50 hunks 
 `src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt` 20 (a line union once duplicated a symbol, PB3694). The owner:
 "why do so many changes affect the same scripts?" — and the decision to restructure, designed by a Mythos model,
 implemented by Opus implementers through the workstream skill, in the Mythos lane (PB3726). This section is the design
-every step implements; `DESIGN-test-build-ci.md` §3.14.10 and §3.17.4 point here and carry nothing of their own.
+every step implements; `DESIGN-test-build-ci.md` §3.14.10 and section 3.17.4 point here and carry nothing of their own.
 
 The three rules, each paired with a drift test so the next case is automatic (CLAUDE.md rule 5):
 
@@ -1601,8 +1601,8 @@ would be the same cells as frontmatter, read by a new parser on each side. Appen
 week) merge through a keyed-table driver instead: `Driver("cobol-keyed-table", ("docs/conformance/*.md",),
 lambda: merge_keyed_table, …)` in `merge_drivers.DRIVERS`, keyed on the first cell of each table row, header rows
 required equal, prose outside tables merged by `union_text` — the keyed JSON driver's rule over markdown rows. This
-is an owner question in PB3738 (the owner's words were "one file per determination"); the design records the
-cheaper shape and its reason, and the implementer takes the owner's answer.
+is the owner's decision (2026-10-25, asked in the Mythos-lane session: "Keyed tables" over one file per row), 
+recorded in PB3738.
 
 **The migration** is one script, `scripts/spec/conformance_migrate.py`, run once by the landing that splits the file
 and deleted by it (the `devlog_migrate.py` shape, §3.17.4): it cuts the committed `docs/CONFORMANCE.md` into the
@@ -1673,7 +1673,7 @@ conflict briefs), which PB3723 reports.
 The §2 component table of this document gains the new modules as each split lands (the implementer's sweep, rule 6);
 §12 names `scripts/selftests/` and the collector once PB3729 lands; `docs/DOC_INDEX.md` rows for the five scripts, for
 `docs/CONFORMANCE.md` and for `scripts/merge_drivers.py` change with their steps; `DESIGN-test-build-ci.md` §3.14.10
-and §3.17.4 keep their one-sentence pointers here; MANDATORY-PRACTICES I-rules that say "a fix ships its self-test arm"
+and section 3.17.4 keep their one-sentence pointers here; MANDATORY-PRACTICES I-rules that say "a fix ships its self-test arm"
 say "its case" after PB3729; the `gate`, `workstream` and `kb-sync` skills name the case layout where they name
 `--self-test`. Nothing in this section is a worklist: the steps are the kb/Work notes, and `python scripts/spec/work.py
 next --cluster PB3726` is their order.
