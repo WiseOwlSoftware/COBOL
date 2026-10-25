@@ -131,10 +131,11 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_PREDECESSOR_QUEUED,
-                     EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE, VERDICT,
+                     EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE,
                      land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
+import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
 
 LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
@@ -161,7 +162,6 @@ RETRYABLE = (FREE, ONCE, HALTED)
 #: re-arm included (rearm_hold). prune_worktrees.lifecycle reads NOT QUEUED only for a pull request at the tip, so a
 #: tip past an older pull-request head reads by its report and lands here (kb/Work PB3275, PB3628; review lead R1-2).
 QUEUE_OWNED = ("ENQUEUED", "NOT QUEUED", "LANDED")
-VERDICT_LINE = re.compile(r"^" + re.escape(VERDICT) + r"(?P<outcome>.*?)(?: \((?P<branch>[^()]*)\))? ===\s*$")
 
 Say = Callable[[str], None]
 
@@ -288,11 +288,7 @@ def last_verdict(log: pathlib.Path) -> str | None:
         text = log.read_bytes().decode("utf-8", errors="replace")
     except OSError:
         return None
-    found = None
-    for line in text.splitlines():
-        if m := VERDICT_LINE.match(line.strip()):
-            found = m.group("outcome").strip()
-    return found
+    return (verdict_line.outcomes(text) or [None])[-1]
 
 
 def queued_pr(log: pathlib.Path) -> int | None:
@@ -412,16 +408,16 @@ def main_of(worktree: str, git: Git) -> str:
 def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None = None) -> dict[str, str]:
     """Write the brief of a CONFLICT attempt `a` beside the attempt records and return the fields that name it on the
     attempt: `brief` (its path) and `brief_main` (the origin/main it was computed against, so `conflict-brief` serves it
-    only while main is still that commit). Its files are the ones the verdict names (merge_drivers.outcome_files), or,
+    only while main is still that commit). Its files are the ones the verdict names (verdict_line.outcome_files), or,
     when the verdict line is unreadable (a log not in UTF-8), the ones the drivers' dry run leaves in conflict against
     origin/main (merge_drivers.merge_conflicts)."""
-    import merge_drivers  # noqa: PLC0415  (scripts/: the one reader of the CONFLICT outcome and the one dry-run merge)
+    import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
     import plan_wave  # noqa: PLC0415
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
     reports = plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)
     main_sha = main_of(a["worktree"], git)
-    files = merge_drivers.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
+    files = verdict_line.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
     text = conflict_brief(a["branch"], a["worktree"], files, git=git, reports=reports)
     path = brief_path(cdir, a)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1633,7 +1629,8 @@ def self_test() -> int:
         runner_wt = ScratchRepo.init(root / "wt-runner")
         runner_wt.commit("x", allow_empty=True)
         wt, head = runner_wt.path, runner_wt.git("rev-parse", "HEAD")
-        fake = [sys.executable, "-c", "print('=== ENQUEUE: GATE RED (Windows) on x (w9a) ==='); raise SystemExit(5)"]
+        fake = [sys.executable, "-c",
+                f"print({verdict_line.render('GATE RED (Windows) on x', 'w9a')!r}); raise SystemExit(5)"]
         r = {"name": "w9a", "state": "WAITING TO LAND", "tip": head, "worktree": str(wt), "why": "", "lead": None}
         out: list[str] = []
         tick(c10, root, survey=lambda repo, cdir: ([r], ["w9a"], None), argv_for=lambda row: fake, say=out.append)
@@ -1979,7 +1976,7 @@ def self_test() -> int:
         c17 = fresh("conflict")
         fake4 = [sys.executable, "-c",
                  "import sys; sys.stdout.reconfigure(encoding='utf-8'); "   # enqueue.py's own output encoding
-                 f"print({'=== ENQUEUE: ' + merge_drivers.conflict_outcome(['scripts/x.py']) + ' (wbrief) ==='!r}); "
+                 f"print({verdict_line.render(verdict_line.conflict_outcome(['scripts/x.py']), 'wbrief')!r}); "
                  "raise SystemExit(4)"]
         r17 = {"name": "wbrief", "state": "WAITING TO LAND", "tip": cbr.git("rev-parse", "HEAD"),
                "worktree": str(cbr.path), "why": "", "lead": None}

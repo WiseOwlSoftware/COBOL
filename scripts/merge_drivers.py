@@ -56,6 +56,7 @@ from typing import Callable
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import verdict_line  # noqa: E402  (the one home of the `=== ENQUEUE: ` verdict line and the CONFLICT outcome, kb/Work PB3714)
 
 #: A merge function: (base, ours, theirs) texts -> the merged text, or None for a real conflict.
 Merger = Callable[[str, str, str], "str | None"]
@@ -406,30 +407,6 @@ def check(repo: pathlib.Path) -> list[str]:
     return findings
 
 
-# THE CONFLICT OUTCOME: one writer (`conflict_outcome`: enqueue.py land's exit 4 and this script's `merge`) and one
-# reader (`outcome_files`: the landing lane's verdict, and the landing logs' `=== ENQUEUE: <outcome> (<branch>) ===`).
-CONFLICT_OUTCOME = re.compile(r"^CONFLICT in (?P<files>.+?) — merge aborted")
-ENQUEUE_VERDICT = "=== ENQUEUE: "
-
-
-def conflict_outcome(files: list[str]) -> str:
-    """The outcome of a merge of main that conflicted and was aborted: `CONFLICT in <a>, <b> — merge aborted, branch
-    unchanged`."""
-    return f"CONFLICT in {', '.join(files)} — merge aborted, branch unchanged"
-
-
-def outcome_files(outcome: str | None) -> list[str]:
-    """The files a CONFLICT outcome (conflict_outcome) names, or [] for any other outcome."""
-    m = CONFLICT_OUTCOME.match(outcome or "")
-    return [f.strip() for f in m["files"].split(",") if f.strip()] if m else []
-
-
-def conflict_files(log_text: str) -> list[str]:
-    """The files the landing lane's logs name in their `=== ENQUEUE: CONFLICT in <files> — merge aborted …` lines."""
-    return [f for ln in log_text.split(NL) if ln.startswith(ENQUEUE_VERDICT)
-            for f in outcome_files(ln[len(ENQUEUE_VERDICT):])]
-
-
 def covered_by_driver(path: str) -> bool:
     return any(pathlib.PurePosixPath(path).match(p) for d in DRIVERS for p in d.patterns)
 
@@ -442,7 +419,7 @@ def conflict_report(logs: pathlib.Path) -> tuple[dict[str, int], int]:
     read = 0
     for log in sorted(logs.glob("land-lane-*.log")):
         read += 1
-        for f in conflict_files(log.read_text(encoding="utf-8", errors="replace")):
+        for f in verdict_line.conflict_files(log.read_text(encoding="utf-8", errors="replace")):
             counts[f] = counts.get(f, 0) + 1
     return dict(sorted(counts.items(), key=lambda kv: -kv[1])), read
 
@@ -647,16 +624,17 @@ def self_test() -> int:
                "were edited by hand is not the drivers' merge (kb/Work PB3671 review R1-1)",
                not is_drivers_merge(p2.path, [p2.git("rev-parse", "HEAD^1"), p2.git("rev-parse", "HEAD^2")],
                                     p2.git("rev-parse", "HEAD^{tree}")))
-        log = (f"land lane: attempt 1 ended exit 4{NL}=== ENQUEUE: CONFLICT in conformance-suite/wiseowl/diagnostics.json, "
-               f"src/A.cs — merge aborted, branch unchanged (b) ==={NL}")
+        logs = root / "landing-logs"
+        logs.mkdir()
+        (logs / "land-lane-1-x.log").write_text(
+            f"land lane: attempt 1 ended exit 4{NL}"
+            + verdict_line.render(verdict_line.conflict_outcome(["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]), "b")
+            + NL, encoding="utf-8")
+        counts, read = conflict_report(logs)
         expect("conflicts: the landing logs' CONFLICT lines name their files, and a driver's file is told from the rest",
-               conflict_files(log) == ["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]
+               counts == {"conformance-suite/wiseowl/diagnostics.json": 1, "src/A.cs": 1} and read == 1
                and covered_by_driver("conformance-suite/wiseowl/diagnostics.json") and covered_by_driver("kb/Work/PB3610.md")
                and not covered_by_driver("src/A.cs"))
-        expect("conflicts: the one CONFLICT outcome reads back its own files (enqueue's verdict, the lane's brief); any "
-               "other outcome names none",
-               outcome_files(conflict_outcome(["scripts/x.py", "kb/a.json"])) == ["scripts/x.py", "kb/a.json"]
-               and outcome_files("GATE RED (Windows) on x") == [] and outcome_files(None) == [])
         expect("check: the registry and this repository's .gitattributes agree",
                not check(HERE.parent), "; ".join(check(HERE.parent)))
         bad = root / "bad"
@@ -722,7 +700,7 @@ def main() -> int:
                   f"{abi_pin_path()} says UNMEASURED, `python scripts/abi_pin.py settle --stage`; then `git add` and `git commit`")
             return 1
         if files:
-            print(conflict_outcome(files))
+            print(verdict_line.conflict_outcome(files))
             return 1
         return 0
     ap.print_help()
