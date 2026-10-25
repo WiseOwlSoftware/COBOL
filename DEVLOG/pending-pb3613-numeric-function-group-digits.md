@@ -47,3 +47,8 @@ pins that a real arithmetic expression stays refused. `GroupMoveSenderChannelDri
 
 **Self-review.** The sibling sweep found the arithmetic-expression/function ambiguity above. Left open, as a lead: a STANDARD-DECIMAL function
 (COMP-2 argument) is cut to the receiver-less 6 fraction digits in a Format-1 CALL, so its digits there differ from AS NESTED and MOVE.
+
+**Gate.** The first gate of the review fix read RED on one drift test whose guard string named the deleted `CallEmitter.IsPlainGroupFormal`
+(`Gr4GroupDecisionDriftTests`, now guarding `a.Formal.IsPlainGroup`); the re-gate, run `000002-20261025T013211Z`:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run — Conformance 8,367/18,407 · Unit 36,832/38,153 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN ===`;
+`scripts/semgrep/verify.py` PASS (no rule up).
