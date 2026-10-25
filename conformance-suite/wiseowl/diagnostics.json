@@ -21522,6 +21522,22 @@
   ],
   "expect": "COBOLNET1655"
  },
+ "pb935-set-entry-restricted-identifier-list": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb935-set-entry-restricted-literal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
  "pb94-value-alphanumeric-on-numeric": {
   "refuse-at": [
    "85",
