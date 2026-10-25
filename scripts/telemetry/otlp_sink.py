@@ -28,6 +28,8 @@ import pathlib
 import socket
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HOST, PORT = "127.0.0.1", 4318
 OUT_DIR = pathlib.Path.home() / ".claude" / "telemetry"
@@ -76,4 +78,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

@@ -25,6 +25,7 @@ Bracket quoting nests, so all payload extraction is bracket-balanced rather than
 from __future__ import annotations
 import argparse, json, os, re, sys
 from dataclasses import dataclass, field, asdict
+from standard_streams import ensure_utf8
 
 # ── bracket-balanced m4 payload reader ────────────────────────────────────────────────────────────────────
 def read_bracketed(s: str, i: int) -> tuple[str, int]:
@@ -336,4 +337,5 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

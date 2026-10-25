@@ -8,6 +8,10 @@ import json
 import pathlib
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 

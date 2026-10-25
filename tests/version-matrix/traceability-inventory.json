@@ -562,11 +562,11 @@
   "subject": "COPY statement",
   "rule-digest": "f4cc4e51b376",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName",
-  "test-ref": "unit:TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5",
+  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+  "test-ref": "unit:TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5; conformance:cases/7.2.3-COPY/pb1601-copy-literal-name-below-2002; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal; unit:TextManipulationTextWordTests.LiteralLibraryName_IsACobol2002Introduction",
   "derivation": "",
-  "editions": "2023",
-  "notes": "kb/Work PB1354 landed (w61a): Concatenation and figurative constants for literal-1/literal-2 are COBOLNET2450 (probes p05, s04). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location)",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1354 landed (w61a): Concatenation and figurative constants for literal-1/literal-2 are COBOLNET2450 (probes p05, s04). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) kb/Work PB1601: the literal names and SUPPRESS are COBOL-2002 introductions (constructs rows copy-literal-name-2002, copy-suppress-2002; VCR row 7.44, edge DERIVED); band widened from 2023 (the literal forms exist from 2002).",
   "state": "OK"
  },
  {
@@ -577,11 +577,11 @@
   "subject": "COPY statement",
   "rule-digest": "1d1d1ca39ad6",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexDigits",
-  "test-ref": "unit:TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5; unit:TextManipulationTextWordTests.AlphanumericLiteral_NamesTheLibraryText; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002",
+  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexDigits; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+  "test-ref": "unit:TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5; unit:TextManipulationTextWordTests.AlphanumericLiteral_NamesTheLibraryText; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1601-copy-literal-name-below-2002; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal; unit:TextManipulationTextWordTests.LiteralLibraryName_IsACobol2002Introduction",
   "derivation": "",
-  "editions": "2023",
-  "notes": "kb/Work PB1354 landed (w61a): National/boolean literal-1/literal-2 are COBOLNET2450 (probe p06); an alphanumeric literal (plain or X\"..\") names the text by its value (DOC-A.1-40). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#DecodeHexadecimal (kb/Work PB2919 folded the COPY name's private hexadecimal decoder into the one alphanumeric hex decoder; its successor CobolLiteral.DecodeHexDigits is named in code-location)",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1354 landed (w61a): National/boolean literal-1/literal-2 are COBOLNET2450 (probe p06); an alphanumeric literal (plain or X\"..\") names the text by its value (DOC-A.1-40). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#DecodeHexadecimal (kb/Work PB2919 folded the COPY name's private hexadecimal decoder into the one alphanumeric hex decoder; its successor CobolLiteral.DecodeHexDigits is named in code-location) kb/Work PB1601: the literal names and SUPPRESS are COBOL-2002 introductions (constructs rows copy-literal-name-2002, copy-suppress-2002; VCR row 7.44, edge DERIVED); band widened from 2023 (the literal forms exist from 2002).",
   "state": "OK"
  },
  {
@@ -757,11 +757,11 @@
   "subject": "COPY statement",
   "rule-digest": "143cf48b8053",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
   "test-ref": "",
   "derivation": "docs/CONFORMANCE.md#DRV-GR-7.2.3.4-4",
-  "editions": "85,2002,2014,2023",
-  "notes": "GR4: 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed. If a listing is being produced, the COPY statement itself is listed.' cite.py --check 7.2.3.4 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed' -> OK §7.2.3.4 4). COBOL.NET produces no source listing (docs/CONFORMANCE.md: '>>LISTING / >>PAGE ... no source listing is produced'; A.1 item 200 is conditioned on the implementor producing listings), so both halves hold vacuously; SUPPRESS [PRINTING] is accepted (ResolveOneCopy scans past it to the period) — probe p2c (COPY p2book SUPPRESS.) incorporated the text. ⚠ The SUPPRESS phrase is NOT harmless: because it is skipped by the scan-to-period rather than parsed, a REPLACING phrase that follows it (the general-format order) is silently discarded — filed against GR8/GR6 (finding 'COPY phrase parse is positional'). The legacy integration test SourceTextSpecTests.CopySuppressPrinting_IsBenignAndStillCopies exercises CobolSharp.Compiler, not Cobol.Net, so it does not close this row. probe dir E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d2/out/probe/copy-p2/ || editions (adjudicator): 85, 2002, 2014, 2023 (COPY statement present in every edition; Annex E.2 item 1 bullet 4 touches only non-pseudo-text REPLACING operands at 2023)",
+  "editions": "2002,2014,2023",
+  "notes": "GR4: 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed. If a listing is being produced, the COPY statement itself is listed.' cite.py --check 7.2.3.4 'If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed' -> OK §7.2.3.4 4). COBOL.NET produces no source listing (docs/CONFORMANCE.md: '>>LISTING / >>PAGE ... no source listing is produced'; A.1 item 200 is conditioned on the implementor producing listings), so both halves hold vacuously; SUPPRESS [PRINTING] is accepted (ResolveOneCopy scans past it to the period) — probe p2c (COPY p2book SUPPRESS.) incorporated the text. ⚠ The SUPPRESS phrase is NOT harmless: because it is skipped by the scan-to-period rather than parsed, a REPLACING phrase that follows it (the general-format order) is silently discarded — filed against GR8/GR6 (finding 'COPY phrase parse is positional'). The legacy integration test SourceTextSpecTests.CopySuppressPrinting_IsBenignAndStillCopies exercises CobolSharp.Compiler, not Cobol.Net, so it does not close this row. probe dir E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d2/out/probe/copy-p2/ || editions (adjudicator): 85, 2002, 2014, 2023 (COPY statement present in every edition; Annex E.2 item 1 bullet 4 touches only non-pseudo-text REPLACING operands at 2023) kb/Work PB1601: the SUPPRESS phrase is a COBOL-2002 introduction (constructs row copy-suppress-2002; VCR row 7.44, edge DERIVED), so the rule exists from 2002; below it COBOLNET0900.",
   "state": "OK"
  },
  {
@@ -4192,11 +4192,11 @@
   "subject": "Alphanumeric literals",
   "rule-digest": "5d34f280ee4c",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment",
-  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; unit:LiteralScreenDriftTests.LiteralRule_HasOneReportingSite; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedAtEveryDirectivePosition",
+  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; unit:LiteralScreenDriftTests.LiteralRule_HasOneReportingSite; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedAtEveryDirectivePosition; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions; conformance-test:LiteralScreenTests.LiteralLength_Over8191_IsRefusedAtEveryEdition; unit:CobolLiteralTests.LengthViolation_TheBoundaryFromBothSides_PerEdition; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615_literal_160_positions; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615_literal_over_160_positions; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1615-literal-above-160-below-2014",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.2.3 \"The length of an alphanumeric literal, excluding the separators that delimit the literal, shall\" -> OK SR1. The rule is asked of EVERY literal token (DEFAULT-mode and SUBSCRIPT-mode twins) by LiteralScreenPass -> COBOLNET0814: MOVE, VALUE (Format 1 and X\"...\" hex, 8,192 pairs), VALUE ALL, CONSTANT all rejected at 8,192 and accepted at 8,191 (LiteralScreenTests). Before: only the national/boolean procedure-operand arms checked any length; an over-long alphanumeric literal compiled clean everywhere. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.2.3 \"The length of an alphanumeric literal, excluding the separators that delimit the literal, shall\" -> OK SR1. The rule is asked of EVERY literal token (DEFAULT-mode and SUBSCRIPT-mode twins) by LiteralScreenPass -> COBOLNET0814: MOVE, VALUE (Format 1 and X\"...\" hex, 8,192 pairs), VALUE ALL, CONSTANT all rejected at 8,192 and accepted at 8,191 (LiteralScreenTests). Before: only the national/boolean procedure-operand arms checked any length; an over-long alphanumeric literal compiled clean everywhere. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path) kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -4492,11 +4492,11 @@
   "subject": "Boolean literals",
   "rule-digest": "b40cdd5515b3",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs",
-  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; conformance-test:NationalBooleanLiteralTests.BooleanLiteral_Over8191Positions_Rejects0814; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedForEveryClass",
+  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; conformance-test:NationalBooleanLiteralTests.BooleanLiteral_Over8191Positions_Rejects0814; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedForEveryClass; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions; conformance-test:LiteralScreenTests.LiteralLength_Over8191_IsRefusedAtEveryEdition; unit:CobolLiteralTests.LengthViolation_TheBoundaryFromBothSides_PerEdition",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.4.3 \"The length of a boolean literal, excluding the separators that delimit the literal, shall\" -> OK SR1. Measured in boolean positions of the decoded value, so BX\"<2048 digits>\" is 8,192 (8.3.3.4.4 GR5 maps each digit to four boolean characters). VALUE, BX VALUE, level-88 VALUE, MOVE ALL B\"...\" and DISPLAY B\"...\" each rejected COBOLNET0814 exactly once at 8,192, accepted at 8,191. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.4.3 \"The length of a boolean literal, excluding the separators that delimit the literal, shall\" -> OK SR1. Measured in boolean positions of the decoded value, so BX\"<2048 digits>\" is 8,192 (8.3.3.4.4 GR5 maps each digit to four boolean characters). VALUE, BX VALUE, level-88 VALUE, MOVE ALL B\"...\" and DISPLAY B\"...\" each rejected COBOLNET0814 exactly once at 8,192, accepted at 8,191. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path) kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -4642,11 +4642,11 @@
   "subject": "National literals",
   "rule-digest": "95492ee31c56",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs",
-  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; conformance-test:NationalBooleanLiteralTests.NationalLiteral_Over8191Positions_Rejects0814; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedForEveryClass",
+  "code-location": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs#LengthViolation; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.LiteralLength_IsScreenedAtEveryPosition; conformance-test:NationalBooleanLiteralTests.NationalLiteral_Over8191Positions_Rejects0814; conformance-test:DirectiveLiteralScreenTests.LiteralLength_IsScreenedForEveryClass; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions; conformance-test:LiteralScreenTests.LiteralLength_Over8191_IsRefusedAtEveryEdition; unit:CobolLiteralTests.LengthViolation_TheBoundaryFromBothSides_PerEdition",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.5.3 \"The length of a national literal, excluding the separators that delimit the literal, shall\" -> OK SR1. VALUE N\"<8192>\" (formerly compiled clean) and DISPLAY N\"<8192>\" rejected COBOLNET0814 once each; 8,191 accepted. One screen for every class and position (LiteralScreenPass). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.3.3.5.3 \"The length of a national literal, excluding the separators that delimit the literal, shall\" -> OK SR1. VALUE N\"<8192>\" (formerly compiled clean) and DISPLAY N\"<8192>\" rejected COBOLNET0814 once each; 8,191 accepted. One screen for every class and position (LiteralScreenPass). retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path) kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -9127,11 +9127,11 @@
   "subject": "Concatenation expressions",
   "rule-digest": "a2f070a1f8a0",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant",
-  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class alphanumeric, the length of the value resulting from concatenation shall\" -> OK SR2. Both concatenation forms: the & expression (ConcatFolder.Fold, boundary exact 8,191/8,192 per the adjudicator) and the concatenated ALL literal-1 (8.3.3.6.3 SR2), whose fold is diagnostic-free and which the refuter found unchecked - now ALL \"<4096>\" & \"<4096>\" is COBOLNET1545 once, 4096+4095 legal. One statement of the rule: ConcatFolder.ResultLengthViolation.",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class alphanumeric, the length of the value resulting from concatenation shall\" -> OK SR2. Both concatenation forms: the & expression (ConcatFolder.Fold, boundary exact 8,191/8,192 per the adjudicator) and the concatenated ALL literal-1 (8.3.3.6.3 SR2), whose fold is diagnostic-free and which the refuter found unchecked - now ALL \"<4096>\" & \"<4096>\" is COBOLNET1545 once, 4096+4095 legal. One statement of the rule: ConcatFolder.ResultLengthViolation. kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -9142,11 +9142,11 @@
   "subject": "Concatenation expressions",
   "rule-digest": "56d52531c3d7",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant",
-  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class boolean, the length of the value resulting from concatenation shall\" -> OK SR3. ALL B\"<4096>\" & B\"<4096>\" rejected COBOLNET1545 once; 4096+4095 legal; the & expression form unchanged (ConcatFolder.Fold).",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class boolean, the length of the value resulting from concatenation shall\" -> OK SR3. ALL B\"<4096>\" & B\"<4096>\" rejected COBOLNET1545 once; 4096+4095 legal; the & expression form unchanged (ConcatFolder.Fold). kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -9157,11 +9157,11 @@
   "subject": "Concatenation expressions",
   "rule-digest": "34beffd4e616",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant",
-  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFigurativeConstant; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#MaxPositions",
+  "test-ref": "conformance-test:LiteralScreenTests.ConcatenatedAllLiteral_ResultLength_IsScreened; conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class national, the length of the value resulting from concatenation shall\" -> OK SR4. ALL N\"<4096>\" & N\"<4096>\" rejected COBOLNET1545 once; 4096+4095 legal (national accept side now pinned, which the adjudicator left unprobed).",
+  "notes": "kb/Work PB1393 (w61g). cite.py --check 8.8.3.2 \"For operands of class national, the length of the value resulting from concatenation shall\" -> OK SR4. ALL N\"<4096>\" & N\"<4096>\" rejected COBOLNET1545 once; 4096+4095 legal (national accept side now pinned, which the adjudicator left unprobed). kb/Work PB1615: the bound is the EDITION's - 8,191 from COBOL-2014, 160 below it (constructs row literal-length-8191-2014; VCR row 7.43, edge DERIVED from GnuCOBOL 3.2 cobol85.conf/cobol2002.conf literal-length 160 and cobol2014.conf 8191): CobolLiteral.MaxPositions(edition), read by LiteralScreen and ConcatFolder.ResultLengthViolation.",
   "state": "OK"
  },
  {
@@ -19191,13 +19191,13 @@
   "ordinal": 2,
   "subject": "BLANK WHEN ZERO clause",
   "rule-digest": "cde28cc30641",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#UsageFamilies.IsDisplayOrNational; src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation",
+  "test-ref": "conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb508_blank_when_zero_national; conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb508_blank_when_zero_national_resultant; conformance:cases/13.18.8-BLANK-WHEN-ZERO/pb566_blank_when_zero_stored_value; unit:BlankWhenZeroUsagePairDriftTests.GR2_PromotesExactlyTheUsagesTheScreenAdmits_OverEveryUsage; unit:BlankWhenZeroUsagePairDriftTests.PromotionAndScreen_AskTheOnePredicate_AndNeitherSpellsUsageDisplay",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB508 — The usage-display arm CONFORMS and is measured three ways, not merely by reading the flag: `01 WS-PLAIN PIC 9(5) BLANK WHEN ZERO.` is rejected as an arithmetic RESULTANT with COBOLNET1675 citing ISO 14.9.2.3 SR2 (`ADD 0 TO WS-PLAIN`, probe a6) and as an arithmetic OPERAND with COBOLNET0844 citing ISO 8.8.1.1 (`COMPUTE WS-NUM = WS-PLAIN + 5`, probe a7) - both of which are only correct if the subject really is category numeric-edited - and the item edits and de-edits through the numeric-edited machinery (probes a7/a9). PARTIAL because the predicate hard-codes `usage is Usage.Display` where SR2 expressly admits usage NATIONAL as well: a `PIC 9(5) USAGE NATIONAL BLANK WHEN ZERO` subject would fall through to the plain-numeric return at PictureAnalyzer.cs:356 and never be defined numeric-edited. That arm is presently unobservable - national-form numeric data is refused upstream as a Phase-4a residue (COBOLNET0899 / DiagnosticCatalog.NationalData at PictureAnalyzer.cs:252, probe a5) - so this is a LATENT gap that will surface silently when national numeric lands, not a live wrong answer. See finding bwz-gr2-national-not-promoted. No spec-derived test discriminates the category: tests/Cobol.Net.Tests.Conformance/ValueLiteralClassTests.LegalShapes_StillCompileStrict carries `01 A PIC 999 VALUE \"000\" BLANK WHEN ZERO.` but its expectation `[000]` is the same under either category, so it does not close this row. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:342-352 - `if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display))` returns PicInfo with PicCategory.NumericEdited. || editions, verbatim from the adjudication: 85/2002/2014/2023 (the national subject is COBOL-2002 and later)",
-  "state": "GAP"
+  "notes": "kb/Work PB508 landed. GR2 defines a category-numeric subject numeric-edited for BOTH usages SR2 admits, display and national. The promotion once tested usage display alone (PB508's finding); PB646 widened it when national-form numerics became real, and PB508's landing pins it: the promotion and SR2's own screen (DataBinder.BlankWhenZeroViolation) ask the one predicate UsageFamilies.IsDisplayOrNational, and BlankWhenZeroUsagePairDriftTests measures promotion against the predicate over every Usage member. Goldens: pb508_blank_when_zero_national (a PIC 9(5) USAGE NATIONAL BLANK WHEN ZERO item blanks on a stored zero exactly as its display twin does, shows 00012 after MOVE 12 and de-edits to a numeric receiver) and pb508_blank_when_zero_national_resultant (ADD 1 TO the item is COBOLNET1675, the arithmetic-resultant refusal that is only true if GR2 defined the item numeric-edited; refused 2002-2023). Both were mutation-checked: with the promotion reverted to usage display alone the first prints 00000 for the zero store and the second compiles. Below 2002 USAGE NATIONAL is itself refused (pb646-national-form-numeric-at-85, COBOLNET0900).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.8.4-3",
@@ -23931,13 +23931,13 @@
   "ordinal": 12,
   "subject": "PICTURE clause",
   "rule-digest": "6f08c242e36d",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureComposition.cs#Validate; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
-  "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_editing_transparency_2023; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934; conformance-test:PictureEditingTests.FixedSignControl_Renders; conformance-test:PictureEditingTests.UnequalForLiteralWidth_Rejected1595",
+  "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; conformance:cases/13.18.40-PICTURE/pb528_picture_editing_transparency_2023; unit:PictureCompositionTests.ACompositionViolation_IsCOBOLNET1934; conformance-test:PictureEditingTests.FixedSignControl_Renders; conformance-test:PictureEditingTests.UnequalForLiteralWidth_Rejected1595; conformance:cases/_unassigned/pb866_float_edited_is_form; conformance:cases/_unassigned/pb866-float-edited-for-form",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "PB528's LEG IS LANDED 2026-09-09; the row stays PARTIAL for PB498's. Part (3) of the earlier adjudication - 'the If the FOR phrase is not specified branch is ENTIRELY unimplemented', unreachable because ValidateEditing returned before any picture without an EDITING phrase was examined - is now PictureComposition, at all four editions: a) 'Character-string-1 shall contain at least on[e] one of the symbols from the set A, N, X, Z, 1, 9, *, or at least two occurrences of one of the symbols from the set character-1, x, +, -, and the currency symbol' and b) 'Each of the symbols from the set CR, DB, E, S, V . may appear only once in character-string-1', each COBOLNET1934. Negative golden entries PB13/PB14/PB15 (b: two V, two '.', two CR) and PB16/PB17 (a: BBB, a lone '+'), with the legal complements PIC ++ and PIC LL EDITING \"L\" IS \":\" in the positive goldens. Part (1), the FOR branch, was already measured CONFORMS. PART (2) REMAINS OPEN AND IS kb/Work PB498's: AnalyzeFloatEdited rejects ANY editing phrase on a float-edited picture, IS-form included, citing 'SR12 a)', which speaks only of EXTENDED editing sign control symbols - a citation that answers a different question, and (since 13.18.40.6 gives a Table-10 precedence to 'es' alone, i.e. the FOR form) an over-fire whose authority for the IS form is not settled. Not touched here: it is PB498's mechanism and PB498 carries three other rows.",
-  "state": "GAP"
+  "notes": "PB528 landed the 'If the FOR phrase is not specified' branch (PictureComposition: a) at least one of A, N, X, Z, 1, 9, * or at least two occurrences of one of character-1, x, +, -, the currency symbol; b) CR, DB, E, S, V and '.' at most once, each COBOLNET1934, negative goldens PB13-PB17) and the FOR branch was measured CONFORMS. PB866 landed the float-edited leg that PB498 carried: AnalyzeFloatEdited refuses only the FOR form (an extended editing sign control symbol, SR12's FOR-phrase rules, COBOLNET1658) and compiles the IS form, a FIXED editing sign control symbol (goldens pb866_float_edited_is_form, pb866-float-edited-for-form). PB498's remaining leg was the citation of the three sites that named 13.18.63 GR6 for 13.18.63.3 SR6; re-cited in its landing, and the COBOLNET1658 and COBOLNET0801 messages cite SR12's FOR-phrase rules and SR14 respectively (re-probed on the landing build).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.40.3-13",
@@ -55057,11 +55057,11 @@
   "subject": "COPY statement",
   "rule-digest": "81b200d18277",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
-  "test-ref": "unit:TextManipulationTextWordTests.SuppressThenReplacing_AppliesTheReplacing; unit:TextManipulationTextWordTests.MalformedHeader_DrawsSyntaxError; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1354_copy_header_syntax; conformance:cases/7.2.3-COPY/pb1670_replacing_partial_word_copy_replace; conformance:cases/7.2.3-COPY/pb1670-replacing-partial-word-below-2002; unit:TextManipulationStatementTests.PartialWordPhrases_AreGatedBelow2002_OncePerStatement",
+  "code-location": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+  "test-ref": "unit:TextManipulationTextWordTests.SuppressThenReplacing_AppliesTheReplacing; unit:TextManipulationTextWordTests.MalformedHeader_DrawsSyntaxError; conformance:cases/7.2.2.5-Text-words/pb1354_copy_header_2002; conformance:cases/7.2.3-COPY/pb1354_copy_header_syntax; conformance:cases/7.2.3-COPY/pb1670_replacing_partial_word_copy_replace; conformance:cases/7.2.3-COPY/pb1670-replacing-partial-word-below-2002; unit:TextManipulationStatementTests.PartialWordPhrases_AreGatedBelow2002_OncePerStatement; conformance:cases/7.2.3-COPY/pb1601-copy-literal-name-below-2002; conformance:cases/7.2.3-COPY/pb1601-copy-suppress-below-2002; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal; unit:TextManipulationTextWordTests.LiteralLibraryName_IsACobol2002Introduction; unit:TextManipulationTextWordTests.Suppress_IsACobol2002Introduction",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1354 landed (w61a): The COPY statement is parsed in general-format order over text-words; SUPPRESS [PRINTING] before REPLACING is applied (probes p01 / p2 / p2b HELLO / AAA); words outside the format are COBOLNET2449 (s01 s02 s03 s06). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. kb/Work PB1670 (w1032c): the LEADING / TRAILING partial-word phrases are gated at their introducing edition by constructs row replacing-partial-word-2002 (COBOLNET0900 at 85; a derived 2002 edge, VCR row 7.33), by the one gate OperandScreen.PartialWord that both statements' parser asks. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacements (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the COPY statement exists at every edition (X3.23-1985 text manipulation); later phrases such as LEADING/TRAILING (Table 7 row 7.33) and the 2023 removal of REPLACING non-pseudo-text (Annex E.2 item 1) change its content, not its existence. cite.py --check 7.2.3.1 \"The COPY statement\" OK.",
+  "notes": "kb/Work PB1354 landed (w61a): The COPY statement is parsed in general-format order over text-words; SUPPRESS [PRINTING] before REPLACING is applied (probes p01 / p2 / p2b HELLO / AAA); words outside the format are COBOLNET2449 (s01 s02 s03 s06). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. kb/Work PB1670 (w1032c): the LEADING / TRAILING partial-word phrases are gated at their introducing edition by constructs row replacing-partial-word-2002 (COBOLNET0900 at 85; a derived 2002 edge, VCR row 7.33), by the one gate OperandScreen.PartialWord that both statements' parser asks. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacements (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ReadTextNameOrLiteral (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location) || editions 85,2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the COPY statement exists at every edition (X3.23-1985 text manipulation); later phrases such as LEADING/TRAILING (Table 7 row 7.33) and the 2023 removal of REPLACING non-pseudo-text (Annex E.2 item 1) change its content, not its existence. cite.py --check 7.2.3.1 \"The COPY statement\" OK. kb/Work PB1601: the literal names and SUPPRESS are COBOL-2002 introductions (constructs rows copy-literal-name-2002, copy-suppress-2002; VCR row 7.44, edge DERIVED); the 1985 format has neither phrase.",
   "state": "OK"
  },
  {

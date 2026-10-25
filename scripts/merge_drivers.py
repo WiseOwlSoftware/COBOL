@@ -80,6 +80,7 @@ from typing import Callable
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+from standard_streams import ensure_utf8
 
 #: A merge function: (base, ours, theirs) texts -> the merged text, or None for a real conflict.
 Merger = Callable[[str, str, str], "str | None"]
@@ -1049,4 +1050,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

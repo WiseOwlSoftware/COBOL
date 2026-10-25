@@ -115,6 +115,7 @@ from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS 
 # this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
 # the private global config and every self-test's environment share (kb/Work PB3584)
 from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE, ScratchRepo, config_text, scrubbed_env
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
@@ -651,8 +652,6 @@ def main(argv: list[str] | None = None) -> int:
                     help="report a self-test REUSED while a recorded PASS's inputs are unchanged (every gate)")
     ap.add_argument("--self-test", action="store_true", help="prove the discovery rule and the verdict")
     args = ap.parse_args(argv)
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if args.self_test:
         return self_test()
     platform = this_platform()
@@ -988,4 +987,5 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -73,6 +73,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import live_tools  # noqa: E402  (this directory's: the one list of the live tools' trees, which the audit reads)
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The git identity every self-test commits under: written into each scratch repository's config by `init`, and into
 #: scripts/self_tests.py's private global config, from this one place.
@@ -586,4 +587,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

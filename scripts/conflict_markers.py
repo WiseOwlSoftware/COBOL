@@ -37,6 +37,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 RUN = 7
@@ -196,9 +197,9 @@ def main() -> int:
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8")
     return self_test() if args.self_test else check(args.root)
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
