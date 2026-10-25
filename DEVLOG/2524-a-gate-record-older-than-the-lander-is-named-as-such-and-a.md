@@ -1,4 +1,4 @@
-## A gate record older than the lander is named as such, and a merge-queue bounce's reds reach tier 0a (PB3660, PB3644)
+## Entry 2524 — 2026-10-24 23:04 PDT — A gate record older than the lander is named as such, and a merge-queue bounce's reds reach tier 0a (PB3660, PB3644)
 
 Two process-tooling defects in the files the gate and the landing share (`scripts/run_gate_legs.py`, `scripts/gate_plan.py`,
 `scripts/orchestrator/enqueue.py`, `scripts/orchestrator/queue_facts.py`), no COBOL, grammar or runtime change.
@@ -32,3 +32,4 @@ never selects it. Arms in `queue_facts` (9), `gate_plan` (2) and `run_gate_legs`
 Docs: `DESIGN-test-build-ci.md` (tier 0a's sources, the record's schema and the lander's reading), the finisher brief.
 Self-review: the `queue_facts` fetch has no wall-clock dependence; the 200 MB download happens only for a branch with an
 open pull request whose newest merge group failed. No inventory row is claimed or closed.
+
