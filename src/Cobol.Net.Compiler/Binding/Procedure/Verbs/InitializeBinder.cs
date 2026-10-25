@@ -856,8 +856,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// prohibition has three EDITION rows, which are the post-bind <c>VersionConformancePass</c>'s. The written
     /// REPLACING phrase rides <see cref="BoundInitialize.Replacing"/> and <c>VersionConformancePass.GateInitialize</c>
     /// asks the same rows <c>GateMove</c> asks, per category (kb/Work PB879) — so <c>INITIALIZE g REPLACING NUMERIC
-    /// DATA BY SPACE</c> is COBOLNET0902 at 2023 exactly as the explicit MOVE is, without a second, edition-blind
-    /// copy of the rule here.</para></summary>
+    /// DATA BY HIGH-VALUE</c> is COBOLNET0902 at 2023 exactly as the explicit MOVE is, without a second, edition-blind
+    /// copy of the rule here. SR5's SPACE arm IS asked here, through the chain below: it holds at every edition, so it
+    /// is <c>MoveValidity.FigurativeRefusal</c>'s flat refusal, not an edition row (kb/Work PB3605).</para></summary>
     private void CheckReplacingMoveValidity(InitializeCategorySet cats, BoundOperand value, string senderText)
     {
         // ⛔ SR4'S SECOND PARAGRAPH IS WHAT THIS METHOD IMPLEMENTS, AND IT SAYS "the OTHER categories"

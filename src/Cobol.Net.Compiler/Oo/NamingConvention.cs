@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
+using CobolNet.Runtime;
 
 namespace CobolNet.Compiler.Oo;
 
@@ -58,11 +59,20 @@ public static class NamingConvention
     /// <summary>The pinned accessor-roster name of a property GET method (§11.7.4 GR1a —
     /// <c>__GET_&lt;P&gt;</c>; override/0829/implements machinery applies to accessors unchanged).</summary>
     public static string GetAccessorName(string propertyName) =>
-        "__GET_" + DataItem.WordIdentifier(propertyName);
+        "__GET_" + AccessorSuffix(propertyName);
 
     /// <summary>The pinned accessor-roster name of a property SET method (<c>__SET_&lt;P&gt;</c>).</summary>
     public static string SetAccessorName(string propertyName) =>
-        "__SET_" + DataItem.WordIdentifier(propertyName);
+        "__SET_" + AccessorSuffix(propertyName);
+
+    /// <summary><c>&lt;P&gt;</c> of an accessor name: the property-name's one upper-case spelling
+    /// (<see cref="CobolNames.UpperFold"/>, the Annex C fold) written by <see cref="DataItem.IdentifierCharacters"/> ALONE. The
+    /// prefix already keeps the name off every C# keyword and every leading digit, so <see cref="DataItem.Sanitize"/>'s two
+    /// guards (the underscore of a digit-leading word, the verbatim <c>@</c> of a keyword) have nothing to guard here, and
+    /// they made the emitted name (<c>__GET__1LONG</c>) differ from the documented one (docs/CONFORMANCE.md DOC-A.1-121,
+    /// <c>__GET_1LONG</c>) for a property-name that starts with a digit (kb/Work PB929).</summary>
+    private static string AccessorSuffix(string propertyName) =>
+        DataItem.IdentifierCharacters(CobolNames.UpperFold(propertyName));
 
     // ── COBOL-word-derived synthesized C# names (kb/Work PB973) ────────────────────────────────────────────
     // A synthesized member whose C# name EMBEDS a user-defined word lives in the same identifier space as the
