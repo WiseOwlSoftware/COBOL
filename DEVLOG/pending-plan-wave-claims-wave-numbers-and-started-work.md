@@ -53,3 +53,7 @@ corrected the docstrings that said "primary file" and "same-file rule".
 **Rows.** None: no ISO rule, no inventory row; all six notes close none. **Tests.** `test_plan_wave.py` (442 checks),
 `test_alloc.py` (31), `prune_worktrees.py --self-test`, and the landing_check, landing_measure, progress, coord and
 turns_by_group_size self-tests that import what moved.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000001-20261025T174341Z`, Conformance
+8,271/18,516 · Unit 36,897/38,235 · Characterization 36/36 cases ran, Linux half in a WSL clone of the head GREEN, 55
+self-tests ran and 56 reused their recorded PASS). The change adds no golden: it touches no compiler or runtime path.
