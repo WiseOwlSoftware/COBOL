@@ -1,4 +1,4 @@
-## The wave planner: started work in every lane, claims that meet on any file, data instead of prose, and one allocator for wave numbers (PB3699, PB3118, PB3696, PB3695, PB3712, PB3700)
+## Entry 2544 — 2026-10-25 11:36 PDT — The wave planner: started work in every lane, claims that meet on any file, data instead of prose, and one allocator for wave numbers (PB3699, PB3118, PB3696, PB3695, PB3712, PB3700)
 
 Group C of wave 20261107: six process-tooling defects with one root, `scripts/orchestrator/plan_wave.py` and the three
 scripts it shares its rules with. Each was re-probed on this build first; one (PB3118) turned out to be half fixed
@@ -70,3 +70,4 @@ which this branch moved to `coord.REPORT_NAME`; the gate's self-test leg caught 
 **Re-gate.** The first re-gate went RED on the `turns_by_group_size.py` self-test (the moved name); after the fix,
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000002-20261025T180514Z`, Conformance
 8,127/18,516 · Unit 36,927/38,235 · Characterization 36/36 cases ran, Linux half in a WSL clone of the head GREEN).
+
