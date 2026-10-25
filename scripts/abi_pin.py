@@ -90,9 +90,19 @@ def merge_text(base: str, ours: str, theirs: str) -> str | None:
     return with_values(ours, {**merged, **{k: UNMEASURED for k in HASHES}})
 
 
+def unmeasured(text: str) -> bool:
+    """THE test of an unsettled pin, for every reader (needs_settle, merge_drivers.is_drivers_merge): a hash LINE reads
+    UNMEASURED, which merge_text writes when both sides changed the pin. The header's prose names the word too ("the hashes
+    read UNMEASURED"), so a text search was true for every tree: every merge of main ran a solution build and the
+    measuring test, and the review's coverage rule passed hand edits of the ABI files (kb/Work PB3671 and its review
+    R1-1). A pin `parse` refuses (conflict markers) is not unmeasured: RuntimeAbiPinDriftTests reports it."""
+    values = parse(text)
+    return values is not None and any(values[k] == UNMEASURED for k in HASHES)
+
+
 def needs_settle(repo: pathlib.Path) -> bool:
     path = repo / PIN_PATH
-    return path.is_file() and UNMEASURED in path.read_text(encoding="utf-8")
+    return path.is_file() and unmeasured(path.read_text(encoding="utf-8"))
 
 
 def _sub(path: pathlib.Path, pattern: re.Pattern, number: str) -> None:
@@ -184,6 +194,12 @@ def self_test() -> int:
            mixed == pin(18, UNMEASURED, 3, UNMEASURED), repr(mixed))
     expect("merge: a side that is not a pin, or a counter that is not a number, is a conflict (None)",
            merge_text(base, "x", base) is None and merge_text(base, base.replace("2", "two"), base) is None)
+    prose = f"# the hashes read {UNMEASURED} and are measured on the merged tree{NL}"
+    expect("unmeasured: a pin whose header names UNMEASURED only in its prose is measured, one whose hash line reads it "
+           "is not, and a pin parse refuses (conflict markers) is not unmeasured (kb/Work PB3671: a text search made "
+           "every merge of main build and measure)",
+           not unmeasured(prose + base) and unmeasured(prose + pin(17, UNMEASURED, 2, "BBBB"))
+           and not unmeasured(f"<<<<<<< ours{NL}{base}======={NL}{base}>>>>>>> theirs{NL}"))
 
     root = scratch_dir("abi-pin-selftest-")
     try:

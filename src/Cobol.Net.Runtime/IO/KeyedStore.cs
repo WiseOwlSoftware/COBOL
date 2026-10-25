@@ -80,12 +80,32 @@ internal abstract class KeyedStore
         _coherent = coherent;
         if (File is { } live && (!writable || (live.Writable && !_fenceOwed))) return StoreStatus.Ok;
         if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent, holdingsOrder) : StoreStatus.Ok;
-        var status = PagedFile.Open(_medium, writable, coherent, holdingsOrder, out var opened, _cachePages);
+        return Adopt(writable, holdingsOrder);
+    }
+
+    /// <summary>Read the physical file's store through the run unit's handles (2.2.1.6 R6) and make it the live <see cref="File"/>; a
+    /// writable adoption fences, which clears <see cref="_fenceOwed"/>. A refused read leaves the store as it was.</summary>
+    private StoreStatus Adopt(bool writable, IKeyOrder holdingsOrder)
+    {
+        var status = PagedFile.Open(_medium, writable, _coherent, holdingsOrder, out var opened, _cachePages);
         if (status != StoreStatus.Ok) return status;
         File = opened;
         _fenceOwed = false;
         return status;
     }
+
+    /// <summary>⛔ A STORE THAT HOLDS A STANDING TRANSACTION AND NO FILE, THROUGH A WRITABLE HANDLE, ADOPTS ITS FILE AGAIN BEFORE THE
+    /// COMMIT OR THE ROLLBACK REACHES IT (kb/Work PB3630; §14.9.7.4 GR3, §14.9.36.4 GR3): a re-OPEN that gave the kept handle back
+    /// detached the store's last handle, and its unsuccessful end retook the handle though the medium refused the store's
+    /// adoption (<c>KeyedConnector.RetakeKeptHandle</c>, kb/Work PB3497) — so the state a CLOSE kept has its handle, its file lock, its
+    /// liveness byte and its record locks, and its store has no file until the connector's next OPEN reads it. Neither statement
+    /// depends on that OPEN: it adopts through the writable handle the way <see cref="Open"/> does, and answers the medium's own
+    /// refusal if the medium still refuses ('30', §9.1.13.6 item 1). Nothing to do while the store holds its file, holds no
+    /// transaction, has no writable handle (the refusal the statements already answer) or the medium holds no bytes (a file lost
+    /// outside the run unit holds no store to promote or restore). The caller holds the store mutex.</summary>
+    private StoreStatus AdoptAgainForTransaction(IKeyOrder holdingsOrder) =>
+        File is not null || Transaction == 0 || !_handles.HasWritable || _medium.Length == 0
+            ? StoreStatus.Ok : Adopt(writable: true, holdingsOrder);
 
     /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
     /// records"</i>), and the creation of a file of no bytes: <see cref="PagedFile.Create"/> through the connector's own
@@ -473,9 +493,10 @@ internal abstract class KeyedStore
     /// (<see cref="PagedFile.Commit"/>). Committed, or reversed by a refused sync 2: the transaction is over and its byte
     /// given back. Refused before the slot write: the transaction stands, intact, for the unconditional ROLLBACK
     /// (§14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
-    internal CommitOutcome Commit(RestoringTreesFactory reverse)
+    internal CommitOutcome Commit(RestoringTreesFactory reverse, IKeyOrder holdingsOrder)
     {
         if (Transaction == 0) return CommitOutcome.Committed;
+        if (AdoptAgainForTransaction(holdingsOrder) != StoreStatus.Ok) return CommitOutcome.Refused;
         // ⛔ A transaction a ROLLBACK is owed (one refused, or its COMMIT left the file UNACKNOWLEDGED) never reaches this
         // promotion: the registry refuses its COMMIT for every storage engine in one place (FileRegistry.CommitHolder, review
         // finding R1-4). Nor is a transaction whose file the run unit no longer holds a writable handle on committed (a
@@ -494,10 +515,12 @@ internal abstract class KeyedStore
     /// gives the byte back; a refusal ('30') — the statement's entry (which unwinds a COMMIT's unlanded claim, R5's restart
     /// rule), the rollback itself, or a store with no handle left — leaves it standing for the next attempt or the
     /// dead-owner step, and never committed (<c>FileRegistry.CommitHolder</c>). The caller holds the mutex.</summary>
-    internal StoreStatus Rollback(RestoringTreesFactory restoring)
+    internal StoreStatus Rollback(RestoringTreesFactory restoring, IKeyOrder holdingsOrder)
     {
         if (Transaction == 0) return StoreStatus.Ok;
-        var status = File is not { Writable: true } file ? StoreStatus.PermanentError   // no writable handle left: refused
+        var adopted = AdoptAgainForTransaction(holdingsOrder);
+        var status = adopted != StoreStatus.Ok ? adopted
+            : File is not { Writable: true } file ? StoreStatus.PermanentError   // no writable handle left: refused
             : Unacknowledged ? file.RollBackUnacknowledged(Transaction, restoring)
             : file.Enter() != StoreStatus.Ok ? StoreStatus.PermanentError   // the statement's entry (R5's restart rule)
             : RollBack(Transaction, restoring);
