@@ -1,4 +1,4 @@
-## PB547: a character with no one-byte image is read as `?` with EC-DATA-CONVERSION at every in-memory byte channel, never truncated to its low byte
+## Entry 2498 — 2026-10-24 18:35 PDT — PB547: a character with no one-byte image is read as `?` with EC-DATA-CONVERSION at every in-memory byte channel, never truncated to its low byte
 
 An alphanumeric item holds any UTF-16 code unit in memory (DOC-A.1-31, -33), one byte per position at a byte channel
 (DOC-A.1-209, ISO/IEC 1989:2023 §8.1.2 1)). The file arm of PB547 had already been settled by owner decision R47 (PB690: a WRITE
@@ -41,3 +41,4 @@ literal fill above U+00FF it now images `?` instead of the truncated byte). Perf
 Unit 36,741/38,143, Characterization 36/36; Linux half (WSL clone of HEAD) GREEN; the six pb547 conformance runs, three editions
 by two cases, Passed in leg-1-Conformance.trx) and `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built
 inert-watch; HEAD 758e3c99b)`.
+
