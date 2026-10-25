@@ -1,4 +1,4 @@
-## PB3598 closes: a variable-length group's receiving store keeps the implicit filler past an ODO bit table's maximum, and the two questions the first landing left to the owner are answered by the standard
+## Entry 2499 — 2026-10-24 18:58 PDT — PB3598 closes: a variable-length group's receiving store keeps the implicit filler past an ODO bit table's maximum, and the two questions the first landing left to the owner are answered by the standard
 
 PB3598 registered three shapes where the implicit filler of a USAGE BIT run is not stored. The first landing (entry 2422) stored shape 3 and the half of shape 1 that lies past the table's maximum extent, and left shape 2 and an "owner question" open. This change closes the note. No inventory row is claimed or closed.
 
@@ -13,3 +13,4 @@ PB3598 registered three shapes where the implicit filler of a USAGE BIT run is n
 **Goldens.** `14.9.25-MOVE/pb3598_odo_bit_run_tail_variable_group` (2014, 2023: V1 and V4, a working-storage and a cell-backed receiver, read 0x60 before the fix and 0x62 after; V2 and V3 are the controls) and the negative `pb3598-odo-bit-run-tail-variable-group-below-2014` (COBOLNET0900 at 85 and 2002). The first landing's golden comment now states the rule path instead of an open question.
 
 **Self-review.** Architecture: one splice law in `OdoTail`, the three consumers read it; the ordinary group's `PlaceRenderer.ReceiveInto` stays GR4's whole-character store by design. Full code: the strided-table trailing filler (`Trailing`) is given back by the same `TrimmedExtent` the extent channels read; a count at the maximum and a zero-width keep window both return the received run. Performance: the splice runs per variable-length group MOVE with an ODO bit run, one `WriteWindow` as before. Duplication: no second copy of the rule.
+
