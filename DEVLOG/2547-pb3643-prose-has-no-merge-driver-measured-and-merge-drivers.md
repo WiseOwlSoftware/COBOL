@@ -1,4 +1,4 @@
-## PB3643: prose has no merge driver, measured, and `merge_drivers.py --hunks` is the measurement
+## Entry 2547 — 2026-10-25 11:42 PDT — PB3643: prose has no merge driver, measured, and `merge_drivers.py --hunks` is the measurement
 
 **The note.** PB3643 (filed from PB3610's landing-log measurement) asked for a union merge driver for
 `docs/CONFORMANCE.md` and `docs/rearchitecture/DESIGN-runtime-library.md`, "restricted to files whose edits are appends",
@@ -38,3 +38,4 @@ differs from at least one parent, so none is missed, and a file's counts do not 
 figures: `CONFORMANCE.md` 199 both-changed, 17 conflicted, 1 insertion, 31 revision; `DESIGN-runtime-library.md` 59/22/1/79;
 `DESIGN-test-build-ci.md` 50/6/1/5, so 45 conflicted merges, 3 insertion hunks and 115 revision hunks. The conclusion stands
 (revisions are 97 % of the hunks). A third self-test arm pins a `-s ours` merge and the path-list independence.
+
