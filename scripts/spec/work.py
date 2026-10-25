@@ -558,7 +558,7 @@ def actionable(items: list[dict]) -> list[dict]:
 # of `blocked_by:` and drifted both ways: a flag left true after its blocker landed HID a live defect from every work
 # list (PB1940 after PB2087 landed, PB1956 after PB322), and `check` answered by holding the flag to the list, which made
 # its verdict depend on OTHER notes' status, so a blocker landing ahead of its dependent in the merge queue turned a
-# branch's green check red with no change to the branch (PR 256, 268, 275, 444 and 493 were bounced from the queue so).
+# branch's green check red with no change to the branch (PR 256, 268, 275, 444 and 493 failed CI so).
 # `waiting_on` is the ONE reading: a note waits on each `blocked_by` note that is not terminal (an id the register lacks
 # counts as open), and is held while its `status` is `owner` or `blocked`: a hold on something that is not a note (the
 # owner, a document) is spelled with that status and said in the body. `check` REFUSES a stored `blocked:` key
@@ -699,7 +699,7 @@ def topology_problems(items: list[dict]) -> list[str]:
             bad.append(f"{f}: `blocked:` is stored, and whether a note is blocked is DERIVED (kb/Work PB3389): it waits "
                        f"while a `blocked_by` note is open and is held while its status is owner or blocked, so a "
                        f"stored copy can only go stale (a stale true hid PB1940 and PB1956; a blocker landing ahead "
-                       f"in the merge queue bounced five pull requests) — delete the line")
+                       f"in the merge queue failed five pull requests' CI) — delete the line")
         if "tier" in it:
             good, malformed = tier_entries(it)
             for e in malformed:
@@ -778,10 +778,11 @@ _MOVES_LINE = re.compile(r"^\*\*Moves or changes:\*\*(.*)$", re.M)
 _R2_MEMBERS = re.compile(r"^r2_members:[ \t]*(.*)$", re.M)
 _CODE_SPAN = re.compile(r"`([^`]+)`")
 _DOC_ID = re.compile(r"`[MPFETN]:([^`\s@]+)")
-#: A path token in a site block ends at whitespace, a quote, a bracket or a separator; a token holding a placeholder,
-#: a glob or an ellipsis is not a path.
+#: A path token in a site block ends at whitespace, a quote, a bracket or a separator. A token holding a placeholder or
+#: an ellipsis is no path and declares nothing; one holding `*` is a GLOB, a sweep over the tracked files it matches
+#: (note_sites, expand_globs; kb/Work PB3721).
 _PATH_CHAR = r"[^\s`'\"()\[\],;|]"
-_NOT_A_PATH = re.compile(r"[<>*{}…]|\.\.\.")
+_PLACEHOLDER = re.compile(r"[<>{}…]|\.\.\.")
 #: The external-repository slices are the notes whose title says so (kb/Work PB2097-PB2104).
 EXTERNAL_SLICE_TITLE = re.compile(r"\A\S+ — external repository slice \d+\b")
 
@@ -837,6 +838,11 @@ class NoteSites:
     #: with a code span; `(§8.7)` for a document's section). A path mentioned bare, with a `:line`, or with a prose
     #: parenthesis is the whole file and is absent here: the partition reads it whole (scripts/arch/source_units.py).
     members: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
+    #: The GLOBS its site blocks name (`scripts/**/*.py`, kb/Work PB3721): a sweep over the tracked files they match,
+    #: which `paths` holds, each claimed whole, only when the claim is read on a tree (`repo`: expand_globs).
+    globs: tuple[str, ...] = ()
+    #: A site block says `none (why)`: the note changes no code file, so a claim of nothing is its declaration.
+    no_code: bool = False
 
     @property
     def fix_lane(self) -> bool:
@@ -905,19 +911,25 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     block and only under a campaign root (`roots`, default campaign_domain()'s); a path in prose, a `Gate:` line or a
     tool command, and a bare type name, declare nothing. With `repo` (the tree the claim is planned on), a file's
     members count only when every one of them names a unit that file declares there (_members_located): a stale,
-    misspelt or prose name claims the file WHOLE, never a part of it no code matches (kb/Work PB3670 review R1-3)."""
+    misspelt or prose name claims the file WHOLE, never a part of it no code matches (kb/Work PB3670 review R1-3); and
+    a GLOB a block names (`scripts/**/*.py`: `globs`, always) is a sweep that claims every tracked file it matches
+    whole (expand_globs; added to `paths`, and a file a sweep matches loses any member claim), which is read only on a
+    tree: without `repo`, `paths` holds the literal paths and `globs` the patterns (kb/Work PB3721)."""
     text = text.replace(chr(13) + chr(10), chr(10))
     blocks = _site_blocks(text)
     token = _path_token(roots or campaign_domain().roots)
     paths: set[str] = set()
+    globs: set[str] = set()
     mentions: dict[str, list[tuple[str, ...]]] = {}   # path -> the members each mention names (() = the whole file)
     for b in blocks:
         for m in token.finditer(b):
             raw = m.group(1)
-            if _NOT_A_PATH.search(raw):
+            if _PLACEHOLDER.search(raw):
                 continue
             p = re.split(r"[:#]", raw, maxsplit=1)[0].rstrip(".,:").rstrip("/")
-            if "/" in p:   # a root alone ("src/") is no site
+            if "*" in p:
+                globs.add(p)
+            elif "/" in p:   # a root alone ("src/") is no site
                 paths.add(p)
                 mentions.setdefault(p, []).append(_mention_members(raw, b, m.end()))
     names: list[str] = []
@@ -932,7 +944,36 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
     if repo is not None:
         members = {p: ms for p, ms in members.items() if _members_located(repo / p, ms)}
-    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members)
+        swept = expand_globs(tuple(sorted(globs)), repo)
+        paths |= set(swept)
+        members = {p: ms for p, ms in members.items() if p not in swept}   # a sweep claims each file it matches whole
+    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members,
+                     tuple(sorted(globs)), any(_says_none(b) for b in blocks))
+
+
+def expand_globs(globs: tuple[str, ...], repo: pathlib.Path) -> tuple[str, ...]:
+    """The tracked files of `repo` that `globs` match, sorted (kb/Work PB3721): git's own `:(glob)` pathspec, where `*`
+    stays inside a folder and `**/` crosses folders (`scripts/**/*.py` matches `scripts/a.py` too), over the COMMITTED
+    tree, never the filesystem, so a build output or a worktree copy is no match and the answer is the same in CI. A
+    sweep note (PB3637: every `scripts/**/*.py` that calls `sys.stdout.reconfigure`, 71 files) is claimed through its
+    pattern, never through a hand list of the files it rewrites, which would drift."""
+    if not globs:
+        return ()
+    out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z", "--", *(f":(glob){g}" for g in globs)],
+                         capture_output=True, check=True).stdout
+    return tuple(sorted({f for f in out.decode("utf-8").split("\0") if f and not is_build_output(f)}))
+
+
+#: What a site block that changes no code file says after its label: `**Sites:** none (why)`, or the heading form
+#: `## Code site` over a line that opens with None.
+_NONE_AFTER_LABEL = re.compile(r"\A[ \t]*(?:[-*][ \t]+)?none\b", re.I)
+
+
+def _says_none(block: str) -> bool:
+    """Whether a site block declares that the note changes no code file (`none (why)`)."""
+    first, _, rest = block.partition(chr(10))
+    label = _SITE_LABEL.match(first)
+    return bool(_NONE_AFTER_LABEL.match(first[label.end():] if label else rest.lstrip()))
 
 
 #: A member a site block names after its path: an identifier, dotted (`Type.Member`), with an optional `()`; a `~`
@@ -1037,7 +1078,15 @@ def sites_problems(items: list[dict]) -> list[str]:
     """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263), and for every open note of a
     campaign cluster or that tiers a campaign, whatever its id (campaign_leads, kb/Work PB3640): a note with no site
     block gives the planner's partition nothing to hold or check (kb/Work PB3670: it is planned UNPARTITIONED). A
-    `decision` note changes no file by itself and is exempt."""
+    `decision` note changes no file by itself and is exempt.
+
+    ⛔ A BLOCK THAT NAMES SOMETHING MUST DECLARE IT (kb/Work PB3721). The reader drops a path it cannot claim without a
+    word (a path outside every campaign root, a glob that matches no tracked file), and a note whose block names its
+    files that way declares an EMPTY set, which meets nothing: wave 20261107 planned PB3637 (71 scripts, named by a
+    glob) beside five groups on files it rewrites. So a note held to a site block must also CLAIM something: a path
+    under a campaign root, a glob matching tracked files, or `**Sites:** none (why)`; and every glob it names must
+    match a tracked file. The notes before SITES_REQUIRED_FROM that sit in no campaign keep their old shape (a block
+    naming files outside the roots, 15 of them on 2026-10-25): refusing them would turn the check into a backlog."""
     bad = []
     campaigns = campaign_leads(items)
     for it in items:
@@ -1048,11 +1097,21 @@ def sites_problems(items: list[dict]) -> list[str]:
         from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
         if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
-        if not note_sites(it.get("_body", "")).declared:
+        sites = note_sites(it.get("_body", ""))
+        if not sites.declared:
             where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
                      if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
             bad.append(f"{it['_file']}: {where} but declares no site block — {SITES_RULE}; without one the wave "
                        f"planner partitions nothing for it and plans it UNPARTITIONED (kb/Work PB3263, PB3640, PB3670)")
+            continue
+        dead = [g for g in sites.globs if not expand_globs((g,), REPO)]
+        bad += [f"{it['_file']}: its site glob `{g}` matches no tracked file, so it claims nothing (kb/Work PB3721)"
+                for g in dead]
+        if not (sites.paths or sites.no_code or sites.globs):
+            bad.append(f"{it['_file']}: its site block names no file the planner can claim, so the note is planned "
+                       f"UNPARTITIONED beside every group on the files it changes (kb/Work PB3721): name each file "
+                       f"under a campaign root ({', '.join(campaign_domain().roots)}), or a glob over tracked files "
+                       f"such as `scripts/**/*.py`, or write `**Sites:** none (why)` when it changes no code file")
     return bad
 
 

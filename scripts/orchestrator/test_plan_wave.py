@@ -1789,6 +1789,38 @@ check("... and the refusal names the rule and the planner's UNPARTITIONED plan",
       all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNPARTITIONED", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
+# A SITE BLOCK THAT NAMES SOMETHING MUST DECLARE IT (kb/Work PB3721): a glob is a sweep over the tracked files it matches,
+# claimed whole; a block that names files the reader cannot claim declares nothing, and a note held to a block is refused
+SWEEP = "**Sites:** every `scripts/spec/work*.py` that reads the register, and `scripts/spec/work.py` (`load`)."
+check("a glob is read as a glob without a tree, and claims no file there",
+      (work.note_sites(SWEEP).globs, work.note_sites(SWEEP).paths, work.note_sites(SWEEP).members),
+      (("scripts/spec/work*.py",), ("scripts/spec/work.py",), {"scripts/spec/work.py": ("load",)}))
+SWEPT = work.note_sites(SWEEP, repo=coord.REPO)
+check("with a tree, the glob claims every tracked file it matches, and a sweep claims each file WHOLE (it outranks a member)",
+      ("scripts/spec/work.py" in SWEPT.paths, "scripts/spec/work_inventory.py" in SWEPT.paths, SWEPT.members),
+      (True, True, {}))
+check("a glob matching nothing tracked expands to nothing; placeholders and `...` are still no site",
+      (work.expand_globs(("scripts/nothing-here/**/*.zz",), coord.REPO),
+       work.note_sites("**Sites:** `src/<P>/X.cs`, `src/.../Y.cs`, `src/{A,B}/Z.cs`").globs), ((), ()))
+check("`none (why)` is a declaration, in the label form and the heading form",
+      [work.note_sites(t).no_code for t in ("**Sites:** none (it changes no code file)", "- **Code site.** None - a finding",
+                                              "## Code site\n\nNone, that is the finding.\n", "**Sites:** `src/A.cs`")],
+      [True, True, True, False])
+GUARD = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": "defect", "status": "open", "cluster": ["C"], "_body": b}
+         for n, b in [(NEW, "**Sites:** `kb/Work/PB1.md` and `conformance-suite/cases/x.cob`."),
+                      (NEW + 1, "**Sites:** none (a golden only)"),
+                      (NEW + 2, "**Sites:** every `scripts/spec/work*.py` that reads the register"),
+                      (NEW + 3, "**Sites:** `scripts/spec/work.py` and `scripts/nothing-here/**/*.zz`"),
+                      (NEW + 4, "**Sites:** `scripts/nothing-here/**/*.zz`"),
+                      (NEW + 5, "**Sites:** `docs/A.md`"),
+                      (NEW + 6, "**Sites:** `.claude/skills/workstream/check_practices.py`")]]
+gp = work.sites_problems(GUARD)
+check("a held note whose block names files it cannot claim is refused, a `none (why)`, a live glob, a path under a root "
+      "(the .claude process code included) are not, and a dead glob is named whether or not a path stands beside it",
+      [s.split(":")[0] for s in gp], [f"PB{NEW}.md", f"PB{NEW + 3}.md", f"PB{NEW + 4}.md"])
+check("... and the refusal says what the planner does with such a note and how to declare it",
+      (all(t in gp[0] for t in ("UNPARTITIONED", "PB3721", "none (why)")), "matches no tracked file" in gp[1],
+       "matches no tracked file" in gp[2]), (True, True, True))
 # A NOTE OF A CAMPAIGN NEEDS ITS SITE BLOCK WHATEVER ITS ID (kb/Work PB3640). The campaign is the cluster a `tier:` entry
 # names: wave 20261030 planned PB3628 and PB3275 side by side because PB3275, a PB1957 note filed before the cutover, had
 # no block, and both rewrote one rule of prune_worktrees.lifecycle. The register holds no list of running campaigns.

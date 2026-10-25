@@ -1054,7 +1054,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   nothing. Whether a note is blocked is DERIVED and never stored (kb/Work PB3389): a stored `blocked:` flag was a second
   spelling of `blocked_by`, and it went stale both ways (a stale `true` hid PB1940 and PB1956 from every work list; a
   blocker landing ahead of its dependent in the merge queue turned the check that held the flag to the list red with no
-  change to the branch, and bounced five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
+  change to the branch, and failed the CI of five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
   `next`, `cluster_order`, the ledger, the fix lane's population (`plan_wave.ready_notes_view`) and, in the Bases language,
   `kb/Work.base`'s `blocked` formula. A hold on something that is no note (the owner, a document) is `status: blocked`
   or `owner`, said in the note's body. `check` also holds `blocked_by` to notes that exist and open notes to no cycle.
@@ -1074,7 +1074,17 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   by its chain; when it declares no site block at all its set is empty and it holds nothing (item 1b). `work.py check` (`sites_problems`) refuses an open note filed into any cluster from
   `work.SITES_REQUIRED_FROM` (PB3443) on that has no site block, a `**Sites:**` list or `**Sites:** none (why)`: every
   cluster is a campaign once an operator runs it, so the rule names no campaign. The 198 older notes with none (2026-10-19)
-  stay readable, each an empty set; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand. A
+  stay readable, each an empty set; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand.
+  A site that is a GLOB (`scripts/**/*.py`) is a SWEEP (kb/Work PB3721): on a tree (`note_sites(text, repo=...)`) it
+  expands with git's `:(glob)` pathspec over the COMMITTED files (`work.expand_globs`: `*` stays in a folder, `**/`
+  crosses folders) and claims each file it matches WHOLE, even beside a member of one of them, so a note that rewrites
+  seventy scripts holds every group on exactly those files, and the note never lists them by hand (the arm chosen:
+  refusing a glob would force a hand list that drifts from what the sweep touches, the shape CLAUDE.md rule 5 refuses).
+  A glob and a placeholder (`<P>`, `{A,B}`, `...`) differ: a placeholder declares nothing. The reader no longer drops
+  silently what a held note names: `sites_problems` refuses a note held to a block whose block claims nothing (a path
+  outside every campaign root, a glob matching no tracked file) unless it says `**Sites:** none (why)`, and names every
+  glob that matches no tracked file. The campaign roots name `.claude/skills`, `.claude/agents` and `.claude/workflows`
+  (kb/Work PB3720), never `.claude` whole, because `.claude/worktrees` holds whole working copies. A
   group's declared set, the one the partition checks, is its notes' declared sets (files and members) plus its
   primary file, claimed whole unless every note declares a site block and one names it
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent

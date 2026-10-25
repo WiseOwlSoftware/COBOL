@@ -1260,7 +1260,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
     by_status: dict[str, dict[int, list[dict]]] = {"open": {}, "half": {}}
     for nid, r in plannable.items():
         entry = {"id": nid, "area": r["area"], "harm": notes[nid].harm, "title": r["title"][:140], "tier": r["tier"],
-                 "sites": {p: 3 for p in work.note_sites(texts[nid]).paths if (repo / p).is_file()},
+                 "sites": {p: 3 for p in work.note_sites(texts[nid], repo=repo).paths if (repo / p).is_file()},
                  "fileset": declared(texts[nid])}
         by_status["half" if r["status"] == "half" else "open"].setdefault(r["depth"], []).append(entry)
     out: dict[str, list[dict]] = {"open": [], "half": []}
