@@ -856,6 +856,10 @@ valueClause
       // puts alphabet-names and constant-names in disjoint types, so a LAST operand that names a declared
       // alphabet is the phrase. alphabet-name-1 is a user-defined word, so the IN spelling takes `cobolWord`
       // (the EVALUATE range-expression's own spelling), not the narrower IDENTIFIER token.
+      // The optional-word audit reads the next line and reports IN as DECIDED rather than as a candidate (kb/Work
+      // PB3751; the IN-less spelling is pinned by the pb983_range_alphabet_in_optional golden and
+      // TrailingInPhraseDriftTests):
+      // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
       (IN cobolWord)?
       valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
