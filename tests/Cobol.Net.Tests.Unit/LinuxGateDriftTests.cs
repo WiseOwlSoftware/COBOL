@@ -149,7 +149,9 @@ public sealed class LinuxGateDriftTests
         Assert.Contains("\"--nice\"", driver);
         Assert.Matches(new Regex(@"^\s*--plan\)", RegexOptions.Multiline), gate);
         Assert.Matches(new Regex(@"^\s*--plan-legs\)", RegexOptions.Multiline), gate);
-        Assert.Matches(new Regex(@"^\s*targeted\)", RegexOptions.Multiline), gate);
+        // `targeted|inert)`: the two stand-alone modes check_legs accepts (kb/Work PB3612, PB3646).
+        Assert.Matches(new Regex(@"^\s*targeted\|inert\)", RegexOptions.Multiline), gate);
+        Assert.Contains("\"bash\", \"scripts/linux-gate.sh\", \"--legs\", \"inert\", \"--nice\"", driver);
         Assert.Contains("scripts/run_gate_legs.py --plan-leg", gate);
         Assert.Contains("add_argument(\"--plan-leg\"", driver);
         Assert.Contains("add_argument(\"--plan-legs\"", driver);

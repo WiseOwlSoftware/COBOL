@@ -83,6 +83,36 @@ public sealed class InertLaneDriftTests
         Assert.Contains("inert_lane.CLASSIFICATION.classify(", driver, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// THE INERT LANE RUNS THE LINUX SCRIPT SELF-TESTS, BECAUSE CI'S <c>audits</c> JOB DOES ON EVERY EVENT (kb/Work PB3646).
+    /// The self-tests are audits that read the inert paths by design, so no test-leg watch covers them and a kb/ or
+    /// DEVLOG/ change can turn them red on Linux; before PB3646 the Linux gate's inert lane and the Windows gate's both
+    /// ended GREEN before any Linux self-test ran. Both local runners now run them, and neither names a self-test: the
+    /// one discovering runner does.
+    /// </summary>
+    [Fact]
+    public void TheInertLane_RunsTheLinuxSelfTests_ThatTheAuditsJobRunsOnEveryEvent()
+    {
+        string audits = Assert.Single(Jobs(), j => j.Id == "audits").Text;
+        Assert.Contains("python3 scripts/self_tests.py", audits, StringComparison.Ordinal);
+        Assert.DoesNotContain("run_matrix", audits, StringComparison.Ordinal);   // no event skips it
+
+        string linuxGate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh")).ReplaceLineEndings("\n");
+        int inert = linuxGate.IndexOf("if [ \"$inert\" = 1 ]; then\n  selftests_leg selftests \"$snap\"", StringComparison.Ordinal);
+        Assert.True(inert > 0, "linux-gate.sh's inert lane no longer runs the selftests leg before it ends (kb/Work PB3646)");
+        int exitGreen = linuxGate.IndexOf("exit 0", inert, StringComparison.Ordinal);
+        Assert.True(linuxGate.IndexOf("selftests_leg()", StringComparison.Ordinal) < inert
+                    && inert < exitGreen && linuxGate.IndexOf("--legs inert", StringComparison.Ordinal) > 0,
+            "the inert lane's selftests leg must run before its verdict, and `--legs inert` must be a mode (the Windows gate's Linux half)");
+
+        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py")).ReplaceLineEndings("\n");
+        int inertArm = driver.IndexOf("return self._inert(out, label, run, lane)", StringComparison.Ordinal);
+        Assert.True(inertArm > 0, "the gate driver's inert lane no longer ends in _inert, which runs the Linux self-tests");
+        string body = driver[driver.IndexOf("    def _inert(", StringComparison.Ordinal)..driver.IndexOf("    def _tested(", StringComparison.Ordinal)];
+        Assert.Contains("self._linux_leg(out, run, None, [], slot.spawn_kwargs, inert=True)", body, StringComparison.Ordinal);
+        Assert.Contains("runs_linux_leg()", body, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void EveryInertAndReadEntry_NamesATrackedPath()
     {

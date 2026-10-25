@@ -44,20 +44,26 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      does not gate the merge with main, and does not gate again when main moves: the merge queue's CI (`ci-gate`, the
      whole population on the exact merge) is the gate for the merge. It READS the record instead (`tested_locally`):
      the worktree's newest gate verdict files must hold a GREEN run of the committed head's own tree (`head_tree`
-     equals the `tree` it measured) with its Linux half GREEN (the inert lane has none), whose head covers this one
+     equals the `tree` it measured) with its Linux half GREEN (the inert lane's is the script self-tests alone, kb/Work PB3646), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
-     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. The
+     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
+     that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_gate`: the worktree's gate lock is held, an OS
+     lock freed when its holder dies, so never a reused process id; the landing lane launches a landing beside its own
+     implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
+     PB3662), retried once no gate runs; a run whose gate died with none (its lock free) still counts as no record. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
-     landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
-     seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
+     landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane:
+     the audits, then the Linux self-tests in a WSL clone, kb/Work PB3646). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
      also changes (a true textual merge in a shared file: `merge_overlap`, set aside the files a merge driver merges
      by key and the inert ones no test reads), the one gate runs once on the merged head. "Changed" is read against
      the head the covering record measured, so a re-run after a run whose gate was BUSY or NOT RUN (it left the merge
      commit) gates just the same. THAT RUN is read by the
      gate driver's one reader (`run_gate_legs.read_verdict`), under the shared gate slot (build-local takes its own;
      no row runs while one would run outside it, kb/Work PB3104). BUSY — another gate holds the worktree's gate
-     lock: it measured nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527). NOT RUN
+     lock, or the gate's Linux half found a Linux gate of the tree running (linux-gate.sh BUSY; its message quotes the
+     gate's own verdict line, which names which, kb/Work PB3649): it measured nothing and nothing is red — is exit 12
+     with NO report line (kb/Work PB3527), and the landing lane waits on BOTH holders. NOT RUN
      [<cause>] — the gate measured nothing — is read with its cause's class from the driver's ONE classification
      (run_gate_legs.NOT_RUN_CAUSES; kb/Work PB3526, review R2-1 of wave 1150), never re-derived here. An ENVIRONMENT
      cause is exit 2 (usage or state) with NO report line: the lane retries it once, and a second at the head is the
@@ -76,7 +82,16 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      stamped in one commit; an entry stamped by an earlier run keeps its number, even when main has since landed a
      higher one (kb/Work PB3123: the queue orders landings after their stamps). Then `queue`, the pull request titled with
      that entry's title and carrying the entry and the commit list as its body. Should main move again between the
-     fetch and `queue`'s own (seconds), step 4 runs again, at most CATCH_UP times.
+     fetch and `queue`'s own (seconds), step 4 runs again, at most CATCH_UP times. A branch that merged a PREDECESSOR
+     (a branch of its own lineage that was stamped and queued first) carries that branch's stamped entry beside its
+     own until the predecessor's pull request merges; `devlog.py stamp` folds only pending entries (a stamped entry is
+     another pull request's title and keeps its number, kb/Work PB3123), so the branch adds two entries and has no
+     single one to title its pull request with. When every extra stamped entry belongs to an OPEN pull request into
+     main that add the entry (`open_predecessors`: GitHub's own list of the files each current head changes, else
+     the branch containing the head; the branch's own pull request is none), and exactly one entry is left, that is exit 15, PREDECESSOR QUEUED: nothing is queued, no report line, the
+     branch keeps the merge and the stamp, and the lane lands it again at this head once no such pull request is open
+     (`land_lane.predecessor_free`, the same reader; kb/Work PB3145). A pull request that CLOSED without merging is
+     no longer open, so the same branch then ends exit 6 NO ENTRY as before: a stop for a finisher, not a wait.
 Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to block on (MANDATORY-PRACTICES P2).
 
 `queue`, run in the landing worktree on its committed, up-to-date HEAD:
@@ -116,9 +131,10 @@ run, a gate was NOT RUN for a cause in the environment or one main shares, main 
 code the branch carries that main does not share) · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
 11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
-gate lock (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
+gate lock, or a Linux gate of the tree runs (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
 is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
-recorded GREEN local gate covers it (`land` only; nothing merged; step 3).
+recorded GREEN local gate covers it (`land` only; nothing merged; step 3) · 15 the branch carries a stamped entry of a
+predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4).
 
 AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
 checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
@@ -154,9 +170,10 @@ EXIT_GATE = 5
 EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
-EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
+EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate lock, or its verdict is not in yet, kb/Work PB3662; or a Linux gate of the tree, kb/Work PB3649): nothing ran, nothing is red (kb/Work PB3527)
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
+EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
@@ -639,6 +656,67 @@ def pull_request_text(wt: pathlib.Path, base: str, branch: str) -> tuple[str, st
     return title, f"{body.strip()}\n\nBranch: `{branch}`\n\nCommits:\n{commits}\n"
 
 
+#: What `open_predecessors` asks GitHub for: each open pull request's CURRENT head and the files it changes (GitHub lists
+#: the first FILES_LISTED of them, so a longer list may be cut off).
+PR_LIST_FIELDS = "number,headRefName,headRefOid,files"
+FILES_LISTED = 100
+
+
+def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[dict[int, list[str]], str]:
+    """THE ONE READER of "which still-open pull requests own a DEVLOG entry this branch carries" (kb/Work PB3145): (the
+    open pull requests into main that add a stamped DEVLOG entry the branch carries and `base` does not have yet, each
+    mapped to those entries, "" | why GitHub or the range could not be read). A pull request owns an entry when its
+    CURRENT head adds it (its `files`) or, for a file list GitHub cut off, when the branch CONTAINS its head: the head
+    moves after the branch merged it (a bounce re-landed with newer main, a catch-up merge) and the entry stays its own
+    (review R1-2). The branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land`
+    asks it to tell a wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
+    import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
+    try:
+        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200", "--json", PR_LIST_FIELDS])
+    except ruleset.Unobserved as exc:
+        return {}, f"GitHub gave no answer ({exc})"
+    if rc != 0:
+        return {}, f"gh could not list the open pull requests (exit {rc}): {(out + err).strip()}"
+    try:
+        listed = [(int(pr["number"]), str(pr["headRefOid"]), {str(f["path"]) for f in pr.get("files") or []})
+                  for pr in json.loads(out or "[]") if pr.get("headRefName") != branch]
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        return {}, f"the open pull request list is not the JSON asked for ({exc})"
+    try:
+        carried = devlog.landing_entries(wt, base, "HEAD")[1]   # the entries main does not have yet
+    except devlog.RangeError as exc:
+        return {}, f"the landing's DEVLOG entries could not be read ({exc})"
+    found: dict[int, list[str]] = {}
+    for number, oid, paths in listed:
+        if owned := [n for n in carried if f"{devlog.DIR}/{n}" in paths]:
+            found[number] = owned
+        elif len(paths) >= FILES_LISTED and _git(wt, "merge-base", "--is-ancestor", oid, "HEAD").returncode == 0 \
+                and _git(wt, "merge-base", "--is-ancestor", oid, base).returncode != 0:
+            try:   # a file list cut off: the entries the contained head adds, read from the head itself
+                if owned := [n for n in devlog.landing_entries(wt, base, oid)[1] if n in carried]:
+                    found[number] = owned
+            except devlog.RangeError as exc:
+                return {}, f"pull request #{number}'s DEVLOG entries could not be read ({exc})"
+    return found, ""
+
+
+def awaited_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[list[int], str]:
+    """The open pull requests `land` waits for when the branch adds no single stamped entry (kb/Work PB3145): (their
+    numbers, "") when the landing's new entries, less those the open predecessors own (`open_predecessors`), leave
+    EXACTLY ONE — the branch's own, which main will then add alone —; ([], "") when waiting would not help (no such
+    pull request, or a residue other than one: a real NO ENTRY); ([], why) when GitHub or the range was unreadable."""
+    import devlog  # noqa: PLC0415
+    queued, problem = open_predecessors(wt, base, branch, gh=gh)
+    if problem or not queued:
+        return [], problem
+    try:
+        new = devlog.landing_entries(wt, base, "HEAD")[1]
+    except devlog.RangeError as exc:
+        return [], f"the landing's DEVLOG entries could not be read ({exc})"
+    owned = {name for names in queued.values() for name in names}
+    return (sorted(queued), "") if len([n for n in new if n not in owned]) == 1 else ([], "")
+
+
 def fetch_main(wt: pathlib.Path) -> str | None:
     """Fetch origin's main into refs/remotes/origin/main: None, or why it failed (a usage/state stop, never a pass)."""
     f = _git(wt, "fetch", "--quiet", "origin", "+refs/heads/main:refs/remotes/origin/main")
@@ -660,6 +738,7 @@ class Tested(NamedTuple):
     ok: bool
     text: str
     gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
+    running: str = ""  # "": no gate runs in this worktree; else the live gate a verdict is still owed by (`LiveGate.what`, kb/Work PB3662)
 
 
 def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
@@ -669,7 +748,8 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
       * measured the COMMITTED head's own tree (`tree` equals `head_tree`: an implementer who gated with uncommitted
         edits tested something no commit carries);
       * on a host that runs the Linux half (a Windows host: `Host.runs_linux_leg`), carries a GREEN Linux half of that
-        same tree; the inert lane runs none (no test reads the change);
+        same tree; the inert lane's is the script self-tests alone (kb/Work PB3646: CI's `audits` job runs them on
+        Linux on every event);
       * has a head that COVERS `head`: it IS `head`, or every later commit is main's, a clean merge of main or
         DEVLOG-only (`prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too).
     The newest run is not special: a REUSED answer is a run too, and a later RED does not unrecord an earlier GREEN of
@@ -678,17 +758,17 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its record and its verdict's vocabulary)
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
     root = wt / run_gate_legs.RUN_ROOT
-    runs = (sorted((p for p in root.iterdir() if p.is_dir() and run_gate_legs.RUN_DIR.fullmatch(p.name)),
-                   key=lambda p: run_gate_legs.run_order(p.name), reverse=True) if root.is_dir() else [])
+    runs = run_gate_legs.run_dirs(root)[::-1]
     if not runs:
         return Tested(False, f"{root} holds no gate run: nobody gated this worktree (`pwsh scripts/build-local.ps1`)")
     if linux_half is None:
         linux_half = run_gate_legs.Host(wt).runs_linux_leg()
     why: list[str] = []
+    live = run_gate_legs.live_gate(run_gate_legs.Host(wt).lock_path())   # a gate owes its verdict while it runs (PB3662)
     for run in runs:
         rec = run_gate_legs.read_record(run)
         if rec is None:
-            why.append(f"{run.name}: no verdict file (a gate still running, or one that died)")
+            why.append(f"{run.name}: no verdict file ({'a gate still running' if live and (live.run is None or live.run.name == run.name) else 'a gate that died'})")
             continue
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         linux = rec.get("linux") or {}
@@ -698,7 +778,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             problem = f"it read {str(rec.get('verdict', '?'))[:40]}"
         elif not head_tree or tree != head_tree:
             problem = "it measured a working tree that was not the committed head's (uncommitted changes)"
-        elif linux_half and rec.get("lane") != "inert" and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
+        elif linux_half and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
             problem = "it carries no GREEN Linux half of the committed tree"
         elif not gated:
             problem = "it records no head"
@@ -706,12 +786,13 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             problem = (f"it gated {gated[:12]}, and the commits since are not all main's, a clean merge of main or "
                        "DEVLOG-only")
         else:
-            half = "inert lane, no Linux half" if rec.get("lane") == "inert" else (
-                "Linux half GREEN" if linux_half else "Linux host: its own legs")
+            half = (("inert lane, Linux self-tests GREEN" if rec.get("lane") == "inert" else "Linux half GREEN")
+                    if linux_half else "Linux host: its own legs")
             return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
                           str(gated))
         why.append(f"{run.name}: {problem}")
-    return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]))
+    return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]),
+                  running=live.what if live else "")
 
 
 def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
@@ -812,6 +893,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     gate_why = ""
     if proof.ok:
         say(f"enqueue: {proof.text}; the merge with main is the merge queue's to test")
+    elif proof.running:
+        # A gate of this worktree is still running, so its verdict is OWED, not absent (kb/Work PB3662): the lane that
+        # launched this landing beside its own implementer's gate would otherwise read the exit as a terminal STOP and
+        # wait for a hand re-arm. It is the same stop as a held gate lock, exit 12: nothing ran, nothing is red, no
+        # report line, and the lane retries this head once no gate runs here (land_lane.gate_lock_free).
+        return end(EXIT_GATE_BUSY, f"GATE BUSY — {proof.running} of this worktree is still running and its "
+                                   f"verdict is not in yet on {here.head[:12]}: nothing ran and nothing is red; landed "
+                                   "again once the gate ends")
     elif lane:
         gate_why = f"the {lane} lane gates nowhere else ({proof.text})"
     else:
@@ -838,11 +927,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         results = gates(wt)
         for host, _, line in results:
             say(f"enqueue: {host} gate: {line}")
-        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
-        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
+        # A busy gate is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what is not
+        # broken; the landing lane retries the branch at this head once nothing holds it. Exit 12 has TWO sources (kb/Work
+        # PB3649): the worktree's gate lock (another gate of the Windows driver) and a Linux gate of the tree that the
+        # driver's Linux half found running. The message quotes the gate's own verdict line, which names the one that
+        # was busy, and the lane's wait (land_lane.wait_free) probes both.
         if busy := next(((h, line) for h, r, line in results if r == run_gate_legs.BUSY_READING), None):
-            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
-                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
+            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — nothing ran and nothing is red; landed "
+                                       f"again once no gate of the worktree runs. The gate said: {busy[1]}")
         # A gate that measured nothing (kb/Work PB3526) blocks only when its cause is code the gated tree carries and
         # main, measured at the same step, does not fail the same way: the class is the driver's one classification
         # (run_gate_legs.NOT_RUN_CAUSES), read here, never re-derived.
@@ -897,6 +989,18 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
             return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md`")
         title, body = pull_request_text(wt, base, branch)
         if not title:
+            # A merged predecessor's stamped entry rides beside this branch's own until ITS pull request merges
+            # (kb/Work PB3145): a wait, with nothing queued and no report line; the lane lands this head again once no
+            # open pull request owns an entry the branch carries (land_lane.predecessor_free).
+            waiting, problem = awaited_predecessors(wt, base, branch, gh=gh)
+            if problem:
+                return end(EXIT_GITHUB, f"NOT QUEUED — the branch adds no single stamped DEVLOG entry and whether an open "
+                                        f"predecessor owns the others could not be read: {problem}")
+            if waiting:
+                return end(EXIT_PREDECESSOR_QUEUED,
+                           f"PREDECESSOR QUEUED — the branch carries the stamped DEVLOG entries of the open pull "
+                           f"request(s) {', '.join('#' + str(n) for n in waiting)} beside its own: nothing queued; landed "
+                           "again once they merge")
             return end(6, "NO ENTRY — the branch adds no single stamped DEVLOG entry to title its pull request")
         body_file = pathlib.Path(_git(wt, "rev-parse", "--absolute-git-dir").stdout.strip()) / "enqueue-pr-body.md"
         body_file.write_text(body, encoding="utf-8", newline="\n")
@@ -1322,6 +1426,8 @@ def self_test() -> int:
         no_linux = seen()
         no_linux_ok_on_linux = seen(linux_half=False)
         gate_run(1, linux=None, lane="inert")
+        inert_no_linux = seen()       # PB3646: the inert lane's Linux self-tests are evidence like the full lane's half
+        gate_run(1, lane="inert")
         inert_run = seen()
         shutil.rmtree(results_dir)
         gate_run(1, exit_code=1)
@@ -1332,12 +1438,50 @@ def self_test() -> int:
         expect("tested_locally: a GREEN gate run of the committed head's own tree with its Linux half GREEN covers the "
                "tip, an earlier one survives a later RED; no run, a tree that was not the head's, a run with no GREEN "
                "Linux half (on a host that runs one; a Linux host's own legs are it), a non-zero exit and a head the tip "
-               "does not descend from are none; the inert lane has no Linux half (kb/Work PB3612)",
+               "does not descend from are none; the inert lane carries the Linux self-tests as its Linux half, and a record of it "
+               "without one is none on a host that runs one (kb/Work PB3612, PB3646)",
                not none_yet.ok and "no gate run" in none_yet.text and covered.ok and "Linux half GREEN" in covered.text
                and red_after.ok and not dirty_run.ok and "uncommitted" in dirty_run.text
                and not no_linux.ok and "no GREEN Linux half" in no_linux.text and no_linux_ok_on_linux.ok
-               and inert_run.ok and "inert lane" in inert_run.text and not lying.ok and not elsewhere.ok,
-               f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {lying} {elsewhere}")
+               and inert_run.ok and "inert lane, Linux self-tests GREEN" in inert_run.text and not inert_no_linux.ok
+               and "no GREEN Linux half" in inert_no_linux.text and not lying.ok and not elsewhere.ok,
+               f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {inert_no_linux} {lying} {elsewhere}")
+
+        # kb/Work PB3662: a gate that is RUNNING (its worktree gate lock is held) owes a verdict; the landing lane launches
+        # a landing beside the branch's own running gate, and that exit was a terminal STOP (14) waiting for a re-arm.
+        # The reader is the lock, never the run's gate.pid (review R1-1: Windows reuses a dead gate's process id).
+        shutil.rmtree(results_dir)
+        tip_before = fix.git("rev-parse", "HEAD")
+        owed = results_dir / "000001-20261029T000000Z"
+        owed.mkdir(parents=True)
+        run_gate_legs.write_pid(owed, os.getpid())                 # this very process: alive, and no verdict file yet
+        died = seen()                                              # ... but no gate lock is held: a gate that died
+        notes[:] = []
+        rc_died = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                           gates=gates_of(green, []), stamped=[])
+        died_notes = list(notes)
+        notes[:] = []
+        gate_lock = run_gate_legs.Host(lw).lock_path()
+        with gate_slot.ExclusiveLock.try_take(gate_lock, f"gate {lw} (pid 4243, since T{run_gate_legs.RUN_LABEL}{owed})"):
+            awaiting = seen()
+            ran, stamped = [], []
+            rc_owed = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                               gates=gates_of(green, ran), stamped=stamped)
+            owed_line, owed_notes, owed_ran, owed_stamped = lines[-1], list(notes), list(ran), list(stamped)
+            gate_run(2)                                            # a GREEN run of the head beside a running gate
+            covered_beside = seen()
+        expect("land: a gate of the worktree still RUNNING (its gate lock is held, no verdict file) is exit 12, GATE "
+               "BUSY, never exit 14: no report line, no gate, no stamp, the branch unchanged, and the evidence says "
+               "which run owes the verdict; a run with no verdict whose gate.pid names a live process but whose gate "
+               "lock is free is a gate that died, whatever reuses its process id (UNTESTED, exit 14); a GREEN run "
+               "covering the head stands beside a running gate (kb/Work PB3662, review R1-1)",
+               not awaiting.ok and awaiting.running == f"the gate run {owed.name}" and "still running" in awaiting.text
+               and rc_owed == EXIT_GATE_BUSY and not owed_ran and not owed_stamped and not owed_notes
+               and owed_line.startswith(VERDICT + "GATE BUSY — the gate run 000001-20261029T000000Z")
+               and not died.ok and died.running == "" and "gate that died" in died.text
+               and rc_died == EXIT_UNTESTED and len(died_notes) == 1 and covered_beside.ok
+               and fix.git("rev-parse", "HEAD") == tip_before,
+               f"{awaiting} {rc_owed} {owed_line} {died} {rc_died} {died_notes} {covered_beside}")
         shutil.rmtree(results_dir)
         gate_run(1)
         gated_head = fix.git("rev-parse", "HEAD")
@@ -1379,7 +1523,21 @@ def self_test() -> int:
         expect("land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
                "no stamp, nothing queued (kb/Work PB3527)",
                rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
-               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)"), f"{rc_busy} {notes} {lines[-1:]}")
+               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)")
+               and "holds this worktree's gate lock" in lines[-1], f"{rc_busy} {notes} {lines[-1:]}")
+        # kb/Work PB3649: the SAME exit has a second source, the Linux half of the gate finding a Linux gate of the tree
+        # running (linux-gate.sh BUSY). Its message names that one, never the Windows gate lock.
+        linux_held_line = ("=== BUILD-LOCAL GATE: BUSY — the Linux half of the targeted leg is BUSY (=== LINUX GATE: BUSY — "
+                           "another Linux gate of this tree is running (pid 4242, started Fri Oct 24 11:00:00 2026); this "
+                           "run touched nothing ===): another Linux gate of this worktree runs, so the Linux half "
+                           "measured nothing and nothing is red ===")
+        ran, stamped, notes[:] = [], [], []
+        rc_linux_busy = gated_land(gates=gates_of([("Windows", linux_held_line)], ran), stamped=stamped)
+        expect("land: a gate whose Linux half is BUSY (another Linux gate of the tree runs) is exit 12 too, and its message "
+               "names the Linux gate that runs, not the Windows gate lock (kb/Work PB3649)",
+               rc_linux_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
+               and "another Linux gate of this tree is running (pid 4242" in lines[-1]
+               and "holds this worktree's gate lock" not in lines[-1], f"{rc_linux_busy} {notes} {lines[-1:]}")
 
         # kb/Work PB3310: a second `land` of a branch whose first still runs is REFUSED at the land lock (exit 13): it
         # touches nothing (no gate, no stamp, no report line), a dry run takes no lock, and every outcome releases it.
@@ -1708,6 +1866,105 @@ def self_test() -> int:
                "--lane, lands without a stamp",
                "FINDINGS" in findings and "--lane" in no_report and rc_lane == 0 and not ran,
                f"{findings!r} {no_report!r} {rc_lane}")
+
+        # ── a merged predecessor's open pull request (kb/Work PB3145) ──────────────────────────────────────────────
+        # `succ` merged `pred`, whose entry 0050 was stamped when its pull request #701 was queued; #701 is still open,
+        # so `succ` adds two stamped entries (0050 and its own 0051) and has no single one to title its pull request.
+        assert fetch_main(wt) is None
+        pred = scratch.worktree(root / "pred-wt", branch="pred", start="origin/main")
+        (pred.path / "DEVLOG").mkdir()
+        (pred.path / "DEVLOG" / "0050-pb9-the-predecessor.md").write_text(
+            "## Entry 50 — 2026-10-24 10:00 PDT — PB9: the predecessor\n\nWhy.\n", encoding="utf-8", newline="\n")
+        pred.git("add", "DEVLOG")
+        pred.git("commit", "--quiet", "-m", "the predecessor, stamped and queued as #701")
+        pred_tip = pred.git("rev-parse", "HEAD")
+        succ = scratch.worktree(root / "succ-wt", branch="succ", start="origin/main")
+        succ.git("merge", "--quiet", "--no-edit", "pred")
+        own_before_stamp = succ.git("rev-parse", "HEAD")
+        (succ.path / "DEVLOG" / "pending-successor.md").write_text("## PB9: the successor\n\nWhy.\n",
+                                                                    encoding="utf-8", newline="\n")
+        succ.git("add", "DEVLOG")
+        succ.git("commit", "--quiet", "-m", "the successor's entry")
+
+        def stamp_successor(w: pathlib.Path, b: str) -> int:
+            if not (w / "DEVLOG" / "0051-pb9-the-successor.md").is_file():
+                for pending in (w / "DEVLOG").glob("pending-*.md"):
+                    pending.unlink()
+                (w / "DEVLOG" / "0051-pb9-the-successor.md").write_text(
+                    "## Entry 51 — 2026-10-24 10:30 PDT — PB9: the successor\n\nWhy.\n", encoding="utf-8", newline="\n")
+                ScratchRepo(w).git("add", "DEVLOG")
+                ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 51: stamp the entry")
+            return 0
+
+        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False) -> Gh:
+            """GitHub as `open_predecessors` reads it: `pr list --json PR_LIST_FIELDS`, each pull request's number, branch,
+            current head and the files it changes (any other call is the queue's: answered like fake_gh)."""
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                log.append(list(args))
+                if args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args:
+                    return (1, "", "GraphQL: rate limited") if fail else (0, json.dumps(
+                        [{"number": n, "headRefName": h, "headRefOid": o, "files": [{"path": f} for f in files]}
+                         for n, h, o, files in listed]), "")
+                return fake_gh([], log)(args)
+            return gh
+        pred_files = ["DEVLOG/0050-pb9-the-predecessor.md"]
+        own_pr = (702, "succ", own_before_stamp, pred_files)   # a bounce's pull request: the branch's own, never a predecessor
+        succ_land = lambda gh, **kw: land(   # noqa: E731
+            root, "succ", succ.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
+            gates=gates_of(green, []), stamp=stamp_successor, blocked=record, say=lines.append, **kw)
+        notes[:] = []
+        log_wait: list[list[str]] = []
+        rc_wait = succ_land(listing_gh([(701, "pred", pred_tip, pred_files), own_pr], log_wait))
+        wait_line, tip_wait = lines[-1], succ.git("rev-parse", "HEAD")
+        asked, problem_wait = open_predecessors(succ.path, base_ref, "succ", gh=listing_gh([(701, "pred", pred_tip, pred_files), own_pr], []))
+        expect("land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into "
+               "main (and the branch's own pull request, which is none) waits: exit 15, PREDECESSOR QUEUED naming the "
+               "pull request, with nothing pushed, opened or queued and no report line (kb/Work PB3145)",
+               rc_wait == EXIT_PREDECESSOR_QUEUED and wait_line.startswith(VERDICT + "PREDECESSOR QUEUED")
+               and "#701" in wait_line and "#702" not in wait_line and not notes
+               and not [a for a in log_wait if a[:2] in (["pr", "create"], ["pr", "merge"])]
+               and "succ" not in scratch.git("ls-remote", "--heads", "origin")
+               and asked == {701: ["0050-pb9-the-predecessor.md"]} and not problem_wait,
+               f"{rc_wait} {wait_line} {notes} {log_wait} {asked} {problem_wait}")
+        # Review R1-2: #701's head MOVED after the successor merged it (a bounce re-landed with newer main): the new head
+        # is no ancestor of the successor, and the entry the successor carries is still #701's. The files GitHub lists
+        # for its current head say so; a pull request that lists no such file owns nothing.
+        pred.git("commit", "--quiet", "--allow-empty", "-m", "the predecessor's bounce re-landed with newer main")
+        pred_moved = pred.git("rev-parse", "HEAD")
+        moved, problem_moved = open_predecessors(succ.path, base_ref, "succ",
+                                                 gh=listing_gh([(701, "pred", pred_moved, pred_files)], []))
+        stranger, _ = open_predecessors(succ.path, base_ref, "succ",
+                                        gh=listing_gh([(703, "other", pred_moved, ["README.md"])], []))
+        rc_moved = succ_land(listing_gh([(701, "pred", pred_moved, pred_files), own_pr], []))
+        moved_line = lines[-1]
+        expect("land: a predecessor whose pull request head MOVED after the branch merged it (no ancestor of the branch "
+               "now) still owns the entry it carried, by the files GitHub lists for its current head: exit 15, not "
+               "exit 6; a pull request that lists no such file owns nothing (review R1-2)",
+               pred_moved != pred_tip and moved == {701: ["0050-pb9-the-predecessor.md"]} and not problem_moved
+               and stranger == {} and rc_moved == EXIT_PREDECESSOR_QUEUED
+               and moved_line.startswith(VERDICT + "PREDECESSOR QUEUED"),
+               f"{moved} {problem_moved} {stranger} {rc_moved} {moved_line}")
+        rc_unread = succ_land(listing_gh([], [], fail=True))
+        unread_line = lines[-1]
+        rc_closed = succ_land(listing_gh([own_pr], []))
+        closed_line = lines[-1]
+        expect("land: GitHub that cannot list the open pull requests is exit 9 (retried once by the lane), never a wait; a "
+               "predecessor whose pull request is no longer open (closed unmerged) leaves two stamped entries and no "
+               "pull request to wait for: exit 6, NO ENTRY, as before (kb/Work PB3145)",
+               rc_unread == EXIT_GITHUB and "could not be read" in unread_line and rc_closed == 6
+               and closed_line.startswith(VERDICT + "NO ENTRY") and succ.git("rev-parse", "HEAD") == tip_wait,
+               f"{rc_unread} {unread_line} {rc_closed} {closed_line}")
+        scratch.git("merge", "--quiet", "--no-edit", "pred")      # #701 reaches main: the queue merged it
+        scratch.git("push", "--quiet", "origin", "main")
+        log_after: list[list[str]] = []
+        measured_after: list[int] = []
+        rc_after = succ_land(listing_gh([own_pr], log_after), measure=lambda w, b, n, g: measured_after.append(n))
+        create_after = next((a for a in log_after if a[:2] == ["pr", "create"]), [])
+        expect("land: once the predecessor's pull request has merged the same head lands: main brought in, ONE new entry "
+               "left, the pull request titled from it and queued (kb/Work PB3145)",
+               rc_after == 0 and lines[-1].startswith(VERDICT + "ENQUEUED") and create_after
+               and create_after[create_after.index("--title") + 1] == "DEVLOG 51: PB9: the successor",
+               f"{rc_after} {lines[-2:]} {log_after}")
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
         # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
         # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
@@ -1725,8 +1982,8 @@ def self_test() -> int:
         # The line linux-gate.sh prints when another Linux gate of the tree runs (kb/Work PB3310), read from the script
         # itself: it must be the one reader's BUSY, so the gate driver ends a gate whose Linux half prints it BUSY
         # (run_gate_legs._linux_leg, kb/Work PB3612), which the landing answers with exit 12, never a red.
-        linux_busy = re.search(r'echo "=== LINUX GATE: (BUSY[^"]*)"', (HERE.parent / "linux-gate.sh").read_text(
-            encoding="utf-8")).group(1).replace("$other", "4242")
+        linux_busy = re.search(r"printf '=== LINUX GATE: (BUSY[^']*)'", (HERE.parent / "linux-gate.sh").read_text(
+            encoding="utf-8")).group(1).replace("%s%s", "4242")
         expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
                "a red), the Linux gate's own BUSY line included (kb/Work PB3310), and a GREEN line with a non-zero exit "
                "is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN (kb/Work PB3526)",

@@ -96,6 +96,15 @@ class PopulationError(Exception):
     """The check could not run — a missing observation, never a negative one (exit 2)."""
 
 
+class UnreadableTrx(PopulationError):
+    """A trx file that cannot be read or is not a trx file: it names the file (`path`), so a caller that keeps the
+    evidence (the gate driver) and a reader of the message both know which one (kb/Work PB3661)."""
+
+    def __init__(self, path: str | Path, why: str):
+        super().__init__(f"{path}: {why}")
+        self.path = Path(path)
+
+
 def is_scrubbed(name: str) -> bool:
     """THE scrub rule: may this environment variable narrow a `dotnet test` run? Case-insensitive, because both
     the Windows environment and MSBuild property names are."""
@@ -172,13 +181,21 @@ class TrxCases:
     skipped: Counter       # the definitions with no Passed or Failed result
 
 
-def read_trx(path: str | Path) -> TrxCases:
+def trx_root(path: str | Path) -> ET.Element:
+    """THE ONE READER of a trx file (kb/Work PB3661): its root element, or an `UnreadableTrx` that names the file. Every
+    consumer of a trx under scripts/ (the population check's `read_trx`, the gate planner's `gate_plan.trx_results`,
+    the profiler) reads through it, so none can fail with a parse error that names no file."""
     try:
         root = ET.parse(path).getroot()
     except (OSError, ET.ParseError) as e:
-        raise PopulationError(f"{path}: cannot read the trx ({e})") from e
+        raise UnreadableTrx(path, f"cannot read the trx ({e})") from e
     if root.tag != TRX_NS + "TestRun":
-        raise PopulationError(f"{path}: not a trx file (root element {root.tag})")
+        raise UnreadableTrx(path, f"not a trx file (root element {root.tag})")
+    return root
+
+
+def read_trx(path: str | Path) -> TrxCases:
+    root = trx_root(path)
     outcomes: dict[str, set[str]] = defaultdict(set)
     for r in root.iter(TRX_NS + "UnitTestResult"):
         outcomes[r.get("testId", "")].add(r.get("outcome", ""))
@@ -448,6 +465,16 @@ def self_test() -> int:
         (d / "bad.trx").write_text("<not-a-trx/>", encoding="utf-8", newline="\n")
         rc, why = rc_of(lambda: check("bad", listed, [str(d / "bad.trx")]).exact)
         arm("a file that is not a trx is an ERROR", rc == RC_ERROR, why)
+        (d / "torn.trx").write_text("<TestRun><Results><UnitTestResult outcome=\"" + chr(1) + "\"/>", encoding="utf-8",
+                                    newline="\n")
+        try:
+            trx_root(d / "torn.trx")
+            torn = None
+        except UnreadableTrx as e:
+            torn = e
+        arm("a torn trx is an UnreadableTrx that names the file and carries its path (kb/Work PB3661), the one reader "
+            "every trx consumer shares", torn is not None and torn.path == d / "torn.trx" and str(d / "torn.trx") in str(torn),
+            str(torn))
         (d / "nomark.txt").write_text("No test is available in X.dll\n", encoding="utf-8", newline="\n")
         rc, why = rc_of(lambda: read_listings([str(d / "nomark.txt")]))
         arm("a listing without the vstest marker is an ERROR", rc == RC_ERROR, why)

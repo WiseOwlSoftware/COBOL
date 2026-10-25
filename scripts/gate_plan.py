@@ -73,6 +73,7 @@ Usage:
         --list Characterization=char.txt [--base <sha> [--head <sha>]] [--map <file> | --store <dir>] \\
         [--previous-run <dir>] [--worktree <dir>]
     python scripts/gate_plan.py --audit-trx-writers  # every live tool writing a trx is a row of TRX_WRITERS
+    python scripts/gate_plan.py --audit-trx-readers  # no live tool but test_population.py parses a trx (PB3661)
     python scripts/gate_plan.py --traits          # the class traits the scan finds, per assembly (JSON)
     python scripts/gate_plan.py --self-test
 """
@@ -88,7 +89,6 @@ import statistics
 import subprocess
 import sys
 import tempfile
-import xml.etree.ElementTree as ET
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -97,7 +97,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "spec"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import impacted_tests  # noqa: E402
 from live_tools import ROOTS as LIVE_ROOTS  # noqa: E402 — the one list of the live tools' trees
-from test_population import GATED_ASSEMBLIES, LISTED_MARK, PopulationError, parse_listing  # noqa: E402
+from test_population import (GATED_ASSEMBLIES, LISTED_MARK, TRX_NS, PopulationError, UnreadableTrx,  # noqa: E402
+                             parse_listing, trx_root)
 
 PLAN_SCHEMA = 1
 LEG_ONE_BUDGET = 0.02            # of the assembly's recorded test-seconds, for tier 1
@@ -133,7 +134,6 @@ CLASS_TRAIT_RE = re.compile(
     r'(?:[ \t]*(?:\[[^\n]*\][ \t]*(?://[^\n]*)?|///[^\n]*)[ \t]*\r?\n)*'
     r'[ \t]*(?:(?:public|internal|private|protected|sealed|static|partial|abstract|file)\s+)*class\s+(?P<cls>\w+)',
     re.MULTILINE)
-TRX_NS = "{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}"
 PARTITION_CLASS_RE = re.compile(r"(?P<family>.+)_P\d+")
 
 
@@ -225,12 +225,13 @@ def trx_secs(duration: str) -> float:
 
 
 def trx_results(run: Path):
-    """(display name, seconds or None, outcome) of every result in every trx file of a gate run directory."""
+    """(display name, seconds or None, outcome) of every result in every trx file of a gate run directory. A file that
+    cannot be read raises `UnreadableTrx` naming it (test_population.trx_root, THE one trx reader: kb/Work PB3661)."""
     files = sorted(run.glob("*.trx"))
     if not files:
         raise SystemExit(f"{run}: no trx file — not a gate run directory")
     for trx in files:
-        for r in ET.parse(trx).getroot().iter(TRX_NS + "UnitTestResult"):
+        for r in trx_root(trx).iter(TRX_NS + "UnitTestResult"):
             d = r.get("duration")
             yield r.get("testName") or "", (trx_secs(d) if d else None), r.get("outcome")
 
@@ -313,6 +314,35 @@ def audit_trx_writers(repo: Path) -> tuple[list[str], list[str]]:
             bad.append(f"  {f}: a TRX_WRITERS row, but no tracked live tool of that name writes a trx file")
         elif results is not None and results not in (repo / f).read_text(encoding="utf-8", errors="replace"):
             bad.append(f"  {f}: its row says it writes {results}/, which it never names")
+    return seen, bad
+
+
+#: ⛔ ONE READER OF A TRX FILE (kb/Work PB3661): `test_population.trx_root`, which names the file it cannot read. A live
+#: tool that names the trx schema and imports an XML parser is a second reader, and it fails with a parse error that
+#: names no file (the gate planner did, and so did the profiler). Both marks are built from parts, so this file's own
+#: audit is not a hit.
+TRX_READER = "scripts/test_population.py"
+TRX_SCHEMA_MARK = "Team" + "Test/2010"
+XML_PARSER_RE = re.compile("Element" + "Tree|mini" + "dom|l" + "xml|xml[.]sax|from" + "string")
+
+
+def audit_trx_readers(repo: Path) -> tuple[list[str], list[str]]:
+    """(the live tools that name the trx schema, each marked reader or not; the offenders): every live tool that names the
+    trx schema AND imports an XML parser, other than TRX_READER, reads a trx file itself."""
+    listed = subprocess.run(["git", "ls-files", "-z", "--", *LIVE_ROOTS], cwd=repo, check=True, capture_output=True,
+                            text=True, encoding="utf-8").stdout.split("\0")
+    seen, bad = [], []
+    for f in sorted(x for x in listed if x.endswith((".py", ".sh", ".ps1")) and (repo / x).is_file()):
+        text = (repo / f).read_text(encoding="utf-8", errors="replace")
+        if TRX_SCHEMA_MARK not in text:
+            continue
+        parses = XML_PARSER_RE.search(text) is not None
+        seen.append(f"  trx-schema  {f}  {'parses XML' if parses else 'no XML parser'}")
+        if parses and f != TRX_READER:
+            bad.append(f"  {f}: names the trx schema and imports an XML parser, so it reads a trx file itself — read "
+                       f"it through {TRX_READER}'s trx_root (the one reader, which names a file it cannot read)")
+    if not any(TRX_READER in line and "parses XML" in line for line in seen):
+        bad.append(f"  {TRX_READER}: the one trx reader is not seen — the audit is broken, not the tree clean")
     return seen, bad
 
 
@@ -897,6 +927,27 @@ def self_test() -> int:
                                    f"linux gate {wt / LINUX_GATE_RESULTS}": {"keys": 2, "listed": 1}}
               and any("red keys (tier 0a)" in line for line in summary_lines(full, Path(tmp) / "plan.json")),
               (u["stats"]["tiers"], full["reds"]))
+        # AN UNREADABLE TRX NAMES ITS FILE (kb/Work PB3661): wave 20261104's run 000005 printed `ParseError: not
+        # well-formed (invalid token): line 104295, column 36` and no path, and the file was gone by the verdict. Both
+        # sources go through the one reader (test_population.trx_root), and the error names the file and carries it.
+        torn = wt / LINUX_GATE_RESULTS / "unit.trx"
+        torn.write_text('<?xml version="1.0" encoding="utf-8"?><TestRun xmlns="http://microsoft.com/schemas/'
+                        'VisualStudio/TeamTest/2010"><Results><UnitTestResult testName="x" outcome="\x01"/>',
+                        encoding="utf-8", newline="\n")
+        not_trx = run / "leg-1-Conformance.trx"
+        not_trx.write_text('<?xml version="1.0" encoding="utf-8"?><html/>', encoding="utf-8", newline="\n")
+        named = []
+        for source in (lambda: previous_gates(wt, None), lambda: previous_gates(wt, run)):
+            try:
+                source()
+                named.append(None)
+            except UnreadableTrx as e:
+                named.append(e)
+        check("a trx the plan cannot read is an UnreadableTrx that names the file and carries its path, from the "
+              "Linux gate's directory and from the previous run alike (a torn file and a file that is no trx)",
+              named[0] is not None and named[0].path == torn and str(torn) in str(named[0])
+              and named[1] is not None and named[1].path == not_trx and str(named[1].path) in str(named[1]),
+              [str(n) for n in named])
 
     # THE TRX WRITERS AUDIT (GateLegDriftTests): a live tool that writes a trx file and has no row, a row whose tool
     # writes none, and a row whose results directory its tool never names are each a finding.
@@ -919,6 +970,24 @@ def self_test() -> int:
               and "scripts/battery.sh: a TRX_WRITERS row, but no tracked live tool" in findings
               and "scripts/linux-gate.sh: its row says it writes TestResults/linux-gate/" in findings
               and len(seen) == 2 and not any("reader.py" in x for x in seen + bad), "\n".join(seen + bad))
+
+    # THE TRX READERS AUDIT (kb/Work PB3661): a second parser of the trx schema is a finding; the one reader is seen.
+    with tempfile.TemporaryDirectory() as tmp:
+        scratch = ScratchRepo.init(Path(tmp) / "repo")
+        schema = TRX_SCHEMA_MARK
+        parser = "import xml.etree." + "Element" + "Tree as ET"
+        scratch.write({TRX_READER: f"{parser}  # {schema}\n", "scripts/second_reader.py": f"{parser}\nNS='{schema}'\n",
+                       "scripts/writer_only.py": f"NS='{schema}'  # builds a trx, parses none\n",
+                       "scripts/junit.py": f"{parser}  # parses no trx\n"})
+        scratch.git("add", "-A")
+        seen, bad = audit_trx_readers(scratch.path)
+        scratch.write({TRX_READER: "pass\n"})
+        scratch.git("add", "-A")
+        _, lost = audit_trx_readers(scratch.path)
+        check("the trx readers audit: a second parser of the trx schema is a finding, the one reader and a mere "
+              "writer or another XML file are not, and a tree whose one reader is not seen is broken, not clean",
+              len(bad) == 1 and "scripts/second_reader.py" in bad[0] and len(seen) == 3
+              and any("one trx reader is not seen" in x for x in lost), "\n".join(seen + bad + lost))
 
     # the file: canonical, digested, readable back.
     listing = f"Test run for x.dll\n{LISTED_MARK}\n" + "\n".join("    " + d for d in cheap[:3]) + "\n"
@@ -953,6 +1022,8 @@ def main() -> int:
                     help="the worktree whose Linux gate's reds are read too (default: this script's)")
     ap.add_argument("--audit-trx-writers", action="store_true",
                     help="hold every live tool that writes a trx file to its TRX_WRITERS row (GateLegDriftTests)")
+    ap.add_argument("--audit-trx-readers", action="store_true",
+                    help="hold every live tool that parses a trx file to the one reader, test_population.trx_root")
     ap.add_argument("--traits", action="store_true",
                     help="print every gated assembly's class traits as JSON (HostWitnessTraitDriftTests reads it)")
     ap.add_argument("--self-test", action="store_true")
@@ -972,6 +1043,15 @@ def main() -> int:
             print(f"=== TRX WRITER AUDIT: {len(bad)} FINDING(S) ===")
             return 1
         print(f"=== TRX WRITER AUDIT: CLEAN ({len(seen)} writers) ===")
+        return 0
+    if args.audit_trx_readers:
+        seen, bad = audit_trx_readers(args.worktree)
+        print("\n".join(seen))
+        if bad:
+            print("\n".join(bad))
+            print(f"=== TRX READER AUDIT: {len(bad)} FINDING(S) ===")
+            return 1
+        print(f"=== TRX READER AUDIT: CLEAN ({len(seen)} tools name the trx schema) ===")
         return 0
     if args.traits:
         repo = Path(__file__).resolve().parents[1]
