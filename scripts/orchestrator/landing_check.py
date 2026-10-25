@@ -41,7 +41,7 @@ fix-lane REPORT (the newest whose branch field names it) and that report's ledge
 commit subjects or whose status it flips, else the ONE ledger group that best covers its actual diff (best_group). The
 union of every ledger group its diff met made a fix-lane worktree on a file one R3 group also declared R3 work, and with
 the scraped hand entries the dispatch guard once wrote (six of 303-910 files) it stopped 23 fix-lane landings on
-2026-10-14/15. The ledger is read through plan_wave.ledger_groups, which ignores those retired entries. A dispatch
+2026-10-14/15. The ledger is read through coord.ledger_groups, which ignores those retired entries. A dispatch
 entry stays in flight with its whole declared set, started or not, until its notes are terminal or its report answers it
 (its agent returned: its work is then its branch's actual diff, kb/Work PB2795). A branch this landing
 contains (it merged it) is the landing's own: only its later, uncommitted edits count; and so is a file whose version
@@ -208,7 +208,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
             r3_notes |= hit
             mine_r3_files |= {p for p in changed if inside(p)}
     mine_r3 = sorted(r3_notes, key=lambda s: int(s[2:]))
-    full_ledger = plan_wave.ledger_groups(coord_dir)   # THE reader: a retired hand entry is no dispatch (PB3186)
+    full_ledger = coord.ledger_groups(coord_dir)   # THE reader: a retired hand entry is no dispatch (PB3186)
     ledger = [g for g in full_ledger if not all(terminal(i) for i in g.get("notes", []))]
     my_at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & notes]
                 + [first_commit_time(graph, rev) or float("inf")])
@@ -392,7 +392,7 @@ def self_test() -> int:
              {"id": "PB9100", "status": "open", "cluster": []},
              {"id": "PB9101", "status": "open", "cluster": []}]
     rules = {"campaign": {"src": ["src", "docs"], "ext": ".cs,.md", "exclude_dir": []}}
-    coord.write_json(cdir / plan_wave.DISPATCH_LEDGER, {"groups": [
+    coord.write_json(cdir / coord.DISPATCH_LEDGER, {"groups": [
         {"wave": "1", "letter": "a", "notes": ["PB9001"], "files": ["src/A.cs"], "at": 1_000_100},
         {"wave": "1", "letter": "b", "notes": ["PB9002"], "files": ["src/C.cs"], "at": 1_000_300}]})
     never = lambda ids: set()  # noqa: E731
@@ -447,7 +447,7 @@ def self_test() -> int:
     # a hand wave whose subject names no note but which flips its note's status IS R3 work (the status flip)
     branch("r-hand", "Hand wave: extract", {"src/B.cs": "// hand\n",
                                              "kb/Work/PB9002.md": "---\nid: PB9002\nstatus: landed\n---\n"}, 1_000_800)
-    coord.write_json(cdir / plan_wave.DISPATCH_LEDGER, {"groups": []})
+    coord.write_json(cdir / coord.DISPATCH_LEDGER, {"groups": []})
     expect("an unrecorded R3 landing is checked against the set computed now (outside it: STOP)",
            check(repo, "origin/main", "r-hand", cdir, items, rules, lambda ids: {"src/C.cs"}, git), 1, 0)
     expect("... and inside it: lands",
@@ -458,7 +458,7 @@ def self_test() -> int:
     # ── Draft 10: the ninth refuter's K1 (renames), K2 (identity), K3 (a landing's own members), N2, N5 ──
     items[0]["status"] = "open"
     def ledger(*groups: dict) -> None:
-        coord.write_json(cdir / plan_wave.DISPATCH_LEDGER, {"groups": list(groups)})
+        coord.write_json(cdir / coord.DISPATCH_LEDGER, {"groups": list(groups)})
 
     def moved(name: str, msg: str, old: str, new: str, when: int) -> None:
         scratch.git("checkout", "-q", "-b", name, "origin/main")
