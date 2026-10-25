@@ -34,16 +34,18 @@ group.
 
 **Part C: the conflict brief.** When an attempt stops CONFLICT (exit 4), the landing lane's runner records the outcome
 first. It then writes `<coord>/land-lane/conflicts/<id>.md` (`land_lane.conflict_brief`), which holds:
-- the files the verdict names (or, if the log line cannot be read, the files `git merge-tree` finds);
+- the files the verdict names (or, if the log line cannot be read, the files the merge drivers' dry run leaves in
+  conflict, `merge_drivers.merge_conflicts`);
 - the commits origin/main gained on those files since the branch's merge base, from one `git log`;
 - the notes those commits and the branch name, with their status and each note's newest report.
-The attempt records `brief`, or `brief_error` with the reason. `land_lane.py conflict-brief <branch>` prints the recorded
-brief while the branch is still at that attempt's end head. Otherwise it computes one against origin/main, setting aside
-the files a merge driver merges: this covers a pull request the queue BOUNCED as DIRTY, which no attempt recorded. The
+The attempt records `brief` and `brief_main` (the origin/main it read), or `brief_error` with the reason.
+`land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is still at that attempt's end head and
+origin/main has not moved. Otherwise it computes one against origin/main through the merge drivers: this covers a pull
+request the queue BOUNCED as DIRTY, which no attempt recorded. The
 STOPPED status line names the command. units/enqueue.md step 4, finisher-brief.md (CONFLICT) and the landing reference
 pass the brief to the finisher verbatim. DESIGN-orchestrator-loop 4.9 describes it. The lane still dispatches no model, so
 launching the finisher the moment the stop is recorded is now a standing requirement of PB3608's headless lane.
-`land_lane.py --self-test` has nine new cases over a real scratch conflict: the outcome parser, merge-tree, the brief's
+`land_lane.py --self-test` has nine new cases over a real scratch conflict: the outcome parser, the dry-run merge, the brief's
 sections, the runner's record, the status pointer, the recorded and the computed brief, and the clean case. One of them
 caught a bug before it shipped: the blank line after each commit header would have produced an empty `### ` heading.
 
@@ -52,5 +54,19 @@ and of notes (`plan_wave.note_of`), and the lane still launches no model. Silent
 is stated in the brief, and a brief that cannot be written is recorded on the attempt and in the log. Performance: at most
 24 `git show` calls per conflict, never on a tick path. Duplication: the merge-driver file list is
 `merge_drivers.covered_by_driver`.
+
+**Branch review round 1 (one blocking finding, four leads, all fixed).** R1-1: the computed brief ran a plain
+`git merge-tree` and then dropped every file a merge driver covers, so a keyed catalogue the driver DECLINES (one entry
+both sides changed differently, a real conflict) vanished: `conflict-brief` on a DIRTY bounce said "nothing to brief".
+The dry run is now `merge_drivers.merge_conflicts`, `git merge-tree` with the drivers' configuration (the definition
+`is_drivers_merge` already reads), so a driver-merged file is not named and a declined one is. Writing it found a second
+defect in the same function: `merge-tree` exits 1 for a ref it cannot read as well as for a conflict, so "git cannot
+say" read as "nothing conflicts"; the tree line on stdout now decides. A mutation back to the old filter turns the new
+self-test arm red with the reviewer's exact message. R1-3: enqueue's CONFLICT outcome had a writer in two places and a
+reader in two; `merge_drivers.conflict_outcome` and `outcome_files` are now the only ones (enqueue, `merge_drivers merge`,
+the lane's brief, the landing-log count). R1-2: a note several branch subjects name is listed once. R1-4: the recorded
+brief is served only while origin/main is still the commit it was computed against (`brief_main`). R1-5: the self-test's
+two waits on a detached runner (cases 10 and 17) now wait for the runner's exit, not a fixed 120 s ceiling (kb/Work
+PB3022). `MergeDriverDriftTests` pins the new arms and holds the lane to the drivers' dry run and the one outcome reader.
 
 **Gate.** Recorded in the report.

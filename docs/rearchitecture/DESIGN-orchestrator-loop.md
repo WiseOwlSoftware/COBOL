@@ -531,9 +531,13 @@ every merge conflict (a declared set is a prediction), so the lane cuts what the
 after recording the outcome, writes `<coord>/land-lane/conflicts/<id>.md` (`land_lane.conflict_brief`): the files the
 verdict names, the commits origin/main gained on them since the branch's merge base (one `git log` over every file), the
 notes those commits and the branch name with their status, and each note's newest report; the attempt names it
-(`brief`, or `brief_error` when it could not be written). `land_lane.py conflict-brief <branch>` prints it while the
-branch is at that attempt's end head, and otherwise computes one now against origin/main (`git merge-tree`, the files a
-merge driver merges set aside): the case of a pull request the queue BOUNCED as DIRTY, which no attempt recorded. The
+(`brief`, or `brief_error` when it could not be written, and `brief_main`, the origin/main it was computed against). The
+verdict's files are read by `merge_drivers.outcome_files`, the one reader of the outcome `merge_drivers.conflict_outcome`
+writes for `enqueue.py land`. `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
+that attempt's end head and origin/main is still `brief_main`, and otherwise computes one now against origin/main
+through the merge drivers (`merge_drivers.merge_conflicts`: `git merge-tree` with the drivers' configuration, the merge's
+own definition, so a keyed catalogue is named exactly when its driver declines, a real conflict): the case of a pull
+request the queue BOUNCED as DIRTY, which no attempt recorded, or of a branch or a main that moved. The
 status line of a STOPPED exit-4 attempt names the command, and the enqueue unit's step 4 puts its output in the
 finisher's prompt verbatim. The lane still dispatches no model: launching that finisher the moment the stop is recorded,
 instead of at the next enqueue unit, is the headless lane's second job (kb/Work PB3608's standing requirements).
