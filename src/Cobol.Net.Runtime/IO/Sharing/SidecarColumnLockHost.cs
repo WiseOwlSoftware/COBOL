@@ -28,6 +28,10 @@ namespace CobolNet.Runtime.IO;
 /// deletes the <c>.wolk-*</c> directory; a refusal is loud and a silent grant is not (docs/CONFORMANCE.md DOC-A.1-75).
 /// A user who may not WRITE the lock directory cannot publish, but can still look: a live or unobservable conflicting
 /// holder refuses, and with none the OPEN has no file lock of its own beyond the share mode (<see cref="RunUnitFileLock.Outcome.Unavailable"/>).
+/// <b>A publication every try of which lost its race is the same case</b> (kb/Work PB3632): the OPEN cannot publish, but the holders already
+/// there are still seen, so one Table 19 refuses is refused ('61') and with none the OPEN is Unavailable; only a host that
+/// takes no lock at all (<see cref="RegionLockResult.Unavailable"/> from <see cref="SidecarLockFiles.Publish"/>) sees no holder, and
+/// is Unavailable without a test.
 /// A user who may enter the lock directory but not LIST it cannot look either: every holder is unobservable to it, so
 /// its request is refused whenever its row refuses a column.</para>
 /// </summary>
@@ -49,21 +53,25 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
         {
             string directory = SidecarLockFiles.LockDirectoryOf(hostPath);
             SidecarLockFiles.LockFileHolder? published;
-            try { published = SidecarLockFiles.Publish(directory, id => $"{RunUnitFileLock.WireNumber(own)}-{id:N}"); }
+            RegionLockResult publication;
+            try { publication = SidecarLockFiles.Publish(directory, id => $"{RunUnitFileLock.WireNumber(own)}-{id:N}", out published); }
             catch (UnauthorizedAccessException)
             {
                 // This user may not write the lock directory (PB2917): it cannot publish, but it can still refuse.
-                return TestOthers(directory, previous is null ? [] : [previous.Name], refused) == RunUnitFileLock.Outcome.Refused
-                    ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
+                return Unpublishable(directory, previous, refused);
             }
-            if (published is null) return RunUnitFileLock.Outcome.Unavailable;
+            // A host that takes no lock here sees no holder either: Unavailable. Every try lost to a race is a failure to
+            // publish and no finding about the host, so the holders there are still seen (kb/Work PB3632).
+            if (publication == RegionLockResult.Unavailable) return RunUnitFileLock.Outcome.Unavailable;
+            if (publication == RegionLockResult.Held) return Unpublishable(directory, previous, refused);
+            var mine = published!;   // Ok: published
             bool kept = false;
             try
             {
-                var outcome = TestOthers(directory, previous is null ? [published.Name] : [published.Name, previous.Name], refused);
+                var outcome = TestOthers(directory, previous is null ? [mine.Name] : [mine.Name, previous.Name], refused);
                 if (outcome == RunUnitFileLock.Outcome.Held)
                 {
-                    hold = published;
+                    hold = mine;
                     kept = true;
                     // The replacement stands; the column it replaced goes. A file the host will not remove is a dead holder's
                     // litter the next tester reaps (its lock dies with the descriptor), never a reason to undo the replacement.
@@ -73,7 +81,7 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
                 }
                 return outcome;
             }
-            finally { if (!kept) published.Dispose(); }
+            finally { if (!kept) mine.Dispose(); }
         }
         // An OPEN has only I-O statuses as outcomes (SharedExtendOpenDriftTests): a host that refuses the directory,
         // the file or the listing is a lock this host cannot hold here, never an escaping exception.
@@ -82,6 +90,18 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
         catch (ArgumentException) { return RunUnitFileLock.Outcome.Unavailable; }
         catch (NotSupportedException) { return RunUnitFileLock.Outcome.Unavailable; }
     }
+
+    /// <summary>⛔ A REQUEST THAT CANNOT PUBLISH CAN STILL BE REFUSED (kb/Work PB2917, PB3632): a holder another run unit has
+    /// published and Table 19 refuses this request is a conflict this host SEES, so the request is
+    /// <see cref="RunUnitFileLock.Outcome.Refused"/> (§9.1.13.9 1) '61', §14.9.27.4 Table 19 <i>Unsuccessful open</i>), and with none the
+    /// OPEN has the share mode alone, <see cref="RunUnitFileLock.Outcome.Unavailable"/>: no request is refused for failing
+    /// to publish. The asker's own superseded file (<paramref name="previous"/>) is no other holder, and stands. The twin of
+    /// <see cref="HandleColumnLockHost.Unpublishable"/>; reached for a lock directory this user may not write and for
+    /// a publication every try of which lost its race.</summary>
+    private static RunUnitFileLock.Outcome Unpublishable(string directory, SidecarLockFiles.LockFileHolder? previous,
+        IReadOnlyList<ExistingSharingColumn> refused) =>
+        TestOthers(directory, previous is null ? [] : [previous.Name], refused) == RunUnitFileLock.Outcome.Refused
+            ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
 
     /// <summary>Test every column in <paramref name="refused"/> for a holder other than the files in
     /// <paramref name="ownNames"/> (empty: this process published nothing):

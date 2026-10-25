@@ -396,7 +396,7 @@ public static class ActivationRelations
         if (IsPointerClass(formal) || IsPointerClass(argument))
             return IsPointerClass(formal) && IsPointerClass(argument)
                    && string.Equals(formal.Category, argument.Category, StringComparison.Ordinal)
-                   && string.Equals(formal.Clauses, argument.Clauses, StringComparison.Ordinal)
+                   && SamePointerRestriction(formal.Clauses, argument.Clauses)
                 ? null
                 : $"the formal parameter ({formal}) and the argument ({argument}) are not pointers of the same category and "
                   + "restriction (ISO §14.8.2.3.2)" + ClauseDifference(argument, formal);
@@ -592,13 +592,28 @@ public static class ActivationRelations
         return setClass switch
         {
             ActivationCategory.ProgramPointer => receiving.Clauses == ActivationDescription.Unrestricted
-                                                 || string.Equals(receiving.Clauses, sending.Clauses, StringComparison.Ordinal),
+                                                 || SamePointerRestriction(receiving.Clauses, sending.Clauses),
             ActivationCategory.DataPointer or ActivationCategory.FunctionPointer =>
-                string.Equals(receiving.Clauses, sending.Clauses, StringComparison.Ordinal),
+                SamePointerRestriction(receiving.Clauses, sending.Clauses),
             ActivationCategory.Object => ObjectReferenceSet.Refusal(ObjectOperand(sending), ObjectOperand(receiving)) is null,
             _ => true,   // index — SR2 asks only the class, which SetClass compared
         };
     }
+
+    /// <summary>⛔ ONE ANSWER TO "THE SAME RESTRICTION" FOR TWO CLASS POINTERS — §14.8.2.3.2's "If either is a restricted
+    /// pointer, both shall be restricted and of the same type", and §14.9.39.3 SR19 / SR20 / SR22's SET conditions that
+    /// §14.8.2.3.3 makes the BY CONTENT rule ("the same as if a SET statement were performed"). Equal restrictions are the
+    /// same; so is a pair of RESTRICTED pointers either of which is restricted to a prototype with no compile-time
+    /// signature (<see cref="ActivationDescription.IsExternalRestriction"/>): ISO §12.3.8.4 GR10 c) / GR11 c) leave that
+    /// signature to the run unit, so nothing can show the two types differ, and the bind-time SET relation
+    /// (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits exactly that pair. Before this
+    /// the two lanes answered one pair two ways: <c>SET PB TO PA</c> compiled and ran, while passing PA BY REFERENCE or BY
+    /// CONTENT to a formal of PB's type raised EC-PROGRAM-ARG-MISMATCH, because two unresolved prototypes' own names never
+    /// match (kb/Work PB3162). A data-pointer's restriction is a TYPE identity and is never external.</summary>
+    private static bool SamePointerRestriction(string a, string b) =>
+        string.Equals(a, b, StringComparison.Ordinal)
+        || (a != ActivationDescription.Unrestricted && b != ActivationDescription.Unrestricted
+            && (ActivationDescription.IsExternalRestriction(a) || ActivationDescription.IsExternalRestriction(b)));
 
     /// <summary>An object-reference description as the §14.9.39.3 Format 5 table reads it. An ACTIVE-CLASS description
     /// names its containing class through its class facts (the first of <see cref="ActivationDescription.ObjectClasses"/>),

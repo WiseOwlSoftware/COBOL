@@ -104,7 +104,7 @@ internal static class PrototypeSignatures
     /// (<see cref="PrototypeSignatureClasses"/>) the item's prototype belongs to, so two pointers restricted to
     /// differently named prototypes of ONE signature have equal identities (ISO §13.18.60.4 GR25 / GR26 type the pointer
     /// by that signature; §14.8.2.3.2 "of the same type"). For a prototype the unit's tables do not hold, and for one
-    /// with no compile-time signature, the identity is the prototype's own name (<see cref="UnclassifiedIdentity"/>).
+    /// with no compile-time signature, the identity is its <see cref="ExternalIdentity"/> (<see cref="UnclassifiedIdentity"/>).
     /// Null for an unrestricted pointer and for any other item. Every relation that asks whether two restricted
     /// prototype-pointers are of the same type reads THIS: §8.5.3.1's type-declaration equivalence, through
     /// <see cref="SameType"/>, and, through <c>ActivationDescriptions</c>, the §9.3.6 match, the §14.8.2 / §14.8.3
@@ -121,18 +121,29 @@ internal static class PrototypeSignatures
     public static bool SameType(DataItem a, DataItem b) =>
         string.Equals(RestrictionIdentity(a), RestrictionIdentity(b), StringComparison.Ordinal);
 
-    /// <summary>The identity of a restricted pointer whose prototype is a signature class of its own: <c>TO</c> the
-    /// prototype's externalized name when the unit's tables resolved it, else <c>TO</c> the restriction's own word —
-    /// the identity <see cref="PrototypeSignatureClasses"/> gives a prototype with no compile-time signature. Null for
+    /// <summary>The identity of a restricted pointer <see cref="PrototypeSignatureClasses"/> has not stamped: the
+    /// prototype's <see cref="ExternalIdentity"/> when it has no compile-time signature — the unit's tables do not hold
+    /// it, or GR10 c) / GR11 c) left its details to the external repository — else its <see cref="OwnIdentity"/>. Null for
     /// an item that is not a restricted program- or function-pointer.</summary>
     private static string? UnclassifiedIdentity(DataItem pointer) =>
         pointer.Pic is { RestrictedPrototypeName: { } name }
-            ? OwnIdentity(pointer.RestrictedPrototype?.ExternalizedName ?? name)
+            ? pointer.RestrictedPrototype is { Signature: not null } resolved
+                ? OwnIdentity(resolved.ExternalizedName)
+                : ExternalIdentity(pointer.RestrictedPrototype?.ExternalizedName ?? name)
             : null;
 
     /// <summary>The identity of a prototype that is a signature class of its own — <c>TO name</c> (folded), the spelling
     /// of a pointer's USAGE clause.</summary>
     public static string OwnIdentity(string prototypeName) => "TO " + CobolNames.Fold(prototypeName);
+
+    /// <summary>The identity of a prototype with NO compile-time signature (ISO §12.3.8.4 GR10 c) / GR11 c): the details
+    /// come from the external repository, the run unit here) — <see cref="ActivationDescription.ExternalRestrictionPrefix"/>
+    /// and the folded name. It differs from every <see cref="OwnIdentity"/>, so the §8.5.3.1 type-declaration key keeps two
+    /// such prototypes apart by name, while the conformance relations read the mark and let the pair conform, as
+    /// <see cref="Same"/> lets an unresolved signature conform (<c>ActivationRelations.SamePointerRestriction</c>; kb/Work
+    /// PB3162).</summary>
+    public static string ExternalIdentity(string prototypeName) =>
+        ActivationDescription.ExternalRestrictionPrefix + CobolNames.Fold(prototypeName);
 
     /// <summary>The number of positional USING formals a prototype declares — the RUN-TIME screen's granularity
     /// (ISO §14.9.39.4 GR14 via <c>ProgramTable.FunctionSignatureMatches</c>, which can see only the run-unit

@@ -642,13 +642,20 @@ public sealed class DataItem
         "BLANK WHEN ZERO (ISO §13.18.8) — in neither GR-1 exclusion list")]
     public bool BlankWhenZero { get; set; }
 
-    /// <summary>The entry carried a SYNCHRONIZED / SYNC clause (ISO §13.18.55). A no-op in the typed-native model
-    /// (no byte alignment), but recorded so the edition validator can gate SYNCHRONIZED on a GROUP item — a
-    /// COBOL-2023 introduction (Annex E.3.2 item 6) — below 2023 (P3 step 10). Not emitted. Settable for the
-    /// <c>ExpandTypes</c> description copy (§13.18.49 GR1 — SYNCHRONIZED is not in the exclusion list).</summary>
+    /// <summary>The form of the SYNCHRONIZED clause that describes the item (ISO §13.18.55), or null when none does.
+    /// Changes no offset and no width (the one-byte natural boundary, docs/CONFORMANCE.md DOC-A.1-195/197), so it is
+    /// not emitted; it is read by the rules that ask about the clause: the COBOL-2023 group-item edition gate
+    /// (Annex E.3.2 item 6), §13.16.3 SR24 d), §13.18.63.3 SR14, §13.16.3 SR13 (CONSTANT RECORD) and the §8.5.3.1
+    /// type-equivalence comparison, which compares the PHRASE (<see cref="SynchronizedPhrase"/>, kb/Work PB538).
+    /// <para>An elementary item carries the clause its own entry wrote, else the one an enclosing group wrote: a
+    /// group's clause "is treated as though it had instead been separately specified for each of the subordinate
+    /// elementary items for which this clause is permitted" (§13.18.55.4 GR1; <c>DataBinder.InheritSynchronized</c>,
+    /// kb/Work PB539). A group carries only the clause its own entry wrote, which the edition gate reads.</para>
+    /// Settable for the <c>ExpandTypes</c> description copy (§13.18.49 GR1 — SYNCHRONIZED is not in the exclusion
+    /// list).</summary>
     [DescriptionCopy(DescriptionCopyKind.Alignment,
         "SYNCHRONIZED (ISO §13.18.55) IS 'alignment': §13.18.57.4 GR1 excludes it from a TYPE subject (GR2d re-aligns that subject 'as though it were a level 1 item'); §13.18.49.4 GR1 does not exclude it")]
-    public bool Synchronized { get; set; }
+    public SynchronizedPhrase? Synchronized { get; set; }
 
     /// <summary>Subordinate items (group members), in source order. Empty for an elementary item. Appended only by
     /// <see cref="AddMember"/>.</summary>

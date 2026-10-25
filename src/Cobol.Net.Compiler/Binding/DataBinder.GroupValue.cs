@@ -192,7 +192,7 @@ public sealed partial class DataBinder
                 // SR14 conjunct 1 — no JUSTIFIED, no SYNCHRONIZED anywhere in the subtree. (Unlike the usage
                 // conjunct this one is NOT scoped to alphanumeric groups: the sentence's first clause says
                 // "subordinate items within that group", full stop.)
-                if (sub.Justified || sub.Synchronized)
+                if (sub.Justified || sub.Synchronized is not null)
                     Edition.Error(DiagnosticCatalog.GroupValueSubordinate, $"data item '{name}' is subordinate to "
                         + $"'{subject}', which specifies a group-level VALUE clause, and is described with a "
                         + $"{(sub.Justified ? "JUSTIFIED" : "SYNCHRONIZED")} clause — subordinate items within that "
