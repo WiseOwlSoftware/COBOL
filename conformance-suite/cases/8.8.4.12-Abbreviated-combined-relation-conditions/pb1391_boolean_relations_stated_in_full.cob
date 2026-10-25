@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1391_boolean_relations_stated_in_full
 *> rules: [SR-8.8.4.12.3-1]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---
