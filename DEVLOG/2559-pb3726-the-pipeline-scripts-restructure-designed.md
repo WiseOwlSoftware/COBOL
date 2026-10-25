@@ -1,4 +1,4 @@
-## PB3726: the pipeline-scripts restructure designed
+## Entry 2559 — 2026-10-25 12:53 PDT — PB3726: the pipeline-scripts restructure designed
 
 The owner asked on 2026-10-25 why so many changes touch the same scripts, and handed the planning and design of the
 restructure to a Mythos model, the implementation to Opus (kb/Work PB3726). This landing is the design and the plan,
@@ -26,3 +26,4 @@ CONFORMANCE split (PB3738); then the case layout with plan_wave's cases (PB3729)
 driver, enqueue and the lane in turn, cases out (PB3730, PB3732, PB3734, PB3736) before the split by job (PB3731,
 PB3733, PB3735, PB3737). One owner question is recorded in PB3738: whether the §7/§8 register tables stay keyed tables
 or become one file per row.
+
