@@ -2359,6 +2359,22 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    group's `base_sha` is the head of the group queued ahead of it (run 38360587401's base held entry 1996 before that
    pull request reached main), so the range is this pull request's own change whatever is queued with it.
    `landing_check.py` reads the in-flight branches on purpose, and only locally.
+   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25: "cancelling superseded runs automatically").**
+   When an entry ahead fails or leaves, GitHub rebuilds every group behind it: each entry gets a new merge-group commit
+   and a new run, and the old runs kept running, holding runners under the concurrent-job limit (2026-10-25: after #591
+   was ejected at 20:18Z, runs 40228927401 and 40228888256, later 40230142896, 40230142122 and 40230639741, held
+   runners until cancelled by hand). A `concurrency` group cannot catch them, since each group's ref
+   (`gh-readonly-queue/main/pr-<n>-<base sha>`) is unique. So every merge-group run starts with the `supersede` job (no
+   `needs`): `scripts/orchestrator/cancel_superseded.py` lists the unfinished merge-group runs, THEN reads the head
+   commit of every current queue entry (`queue_facts.live_heads`, the one reader of the queue's facts; in that order,
+   because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
+   whose head commit no entry heads, never its own run and never a live entry's. The replacement groups' runs are
+   created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
+   the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
+   does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
+   superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
+   never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
+   which the queue no longer reads.
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2542,7 +2558,9 @@ demand and not committed.
   cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
   matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
   DEVLOG-entry check runs only on `pull_request` and `merge_group`. `ci-gate`'s `needs:` and its drift check (every job
-  wired) are unchanged.
+  wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
+  `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
+  cancels the runs the queue has replaced (§3.17.2 step 4).
 - A **ruleset** on `main` (classic branch protection has no merge queue, and GitHub offers a merge queue only to an
   ORGANIZATION-owned repository — the second apply, 2026-10-11 18:44, was refused with `Invalid rule 'merge_queue'` on
   the personal account's repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work
@@ -2612,7 +2630,11 @@ carries the `Host` trait). Landed with kb/Work PB3025: `DEVLOG.md` does not exis
 well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm over the repository's own `DEVLOG/`, run
 by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
 (no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
-landing is held to a record of its own tree.
+landing is held to a record of its own tree. Landed with kb/Work PB3769:
+`TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
+with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
+is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+are declared), the supersession rule of §3.17.2 step 4.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 
