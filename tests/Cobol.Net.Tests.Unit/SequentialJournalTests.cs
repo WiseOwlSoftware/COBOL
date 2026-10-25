@@ -392,6 +392,117 @@ public sealed class SequentialJournalTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>The journal's bytes up to and including its <c>L</c> record, then an <c>R</c> record's kind and fixed head whose
+    /// length word is <paramref name="lengthWord"/> and whose payload is <paramref name="payload"/> bytes of 'x' (none: a tail torn
+    /// at the head). 2.2.2.4: the header, then records each with its own CRC-32C; a torn tail ends them.</summary>
+    private static byte[] JournalWithTornImage(int lengthWord, int payload)
+    {
+        var (dir, f) = NewFile(C1C2);
+        try
+        {
+            var o = new Owner(HostMedium.Production, f);
+            o.Begin(SequentialJournal.StartState.Present);
+            o.Append("X1");
+            string record = Path.Combine(SequentialJournal.DirectoryOf(f), $"txn-{o.Journal!.Id}.journal");
+            byte[] prefix;
+            using (var read = new FileStream(record, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            {
+                prefix = new byte[SequentialJournal.JournalHeaderBytes + 13];   // the header and the L record
+                read.ReadExactly(prefix);
+            }
+            Assert.True(o.Rollback());
+            o.Release();
+            var tail = new byte[1 + 20 + payload];
+            tail[0] = (byte)'R';
+            BitConverter.TryWriteBytes(tail.AsSpan(1 + 16), lengthWord);
+            tail.AsSpan(21).Fill((byte)'x');
+            return [.. prefix, .. tail];
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A record file read from memory for its first <c>prefix.Length</c> bytes and from there as zeros up to
+    /// <paramref name="length"/>: a journal over 2 GiB that no test has to write.</summary>
+    private sealed class SparseStream(byte[] prefix, long length) : Stream
+    {
+        private long _position;
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length => length;
+        public override long Position { get => _position; set => _position = value; }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int n = (int)Math.Min(count, length - _position);
+            for (int k = 0; k < n; k++) buffer[offset + k] = _position + k < prefix.Length ? prefix[_position + k] : (byte)0;
+            _position += n;
+            return n;
+        }
+        public override long Seek(long offset, SeekOrigin origin) =>
+            _position = origin switch { SeekOrigin.Begin => offset, SeekOrigin.Current => _position + offset, _ => length + offset };
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
+    [Theory]
+    [InlineData(int.MaxValue)]            // 1 + 20 + length + 4 wraps negative
+    [InlineData(int.MaxValue - 10)]       // wraps too
+    [InlineData(int.MaxValue - 24)]       // 1 + 20 + length + 4 is exactly 2^31: wraps to int.MinValue
+    [InlineData(int.MaxValue - 60)]       // fits an int, exceeds the record: no 2 GiB allocation for a record that cannot fill it
+    [InlineData(1 << 20)]                 // an ordinary oversized word
+    [InlineData(-1)]                      // negative
+    public void An_image_record_whose_length_word_the_record_cannot_hold_is_a_torn_tail_not_an_exception(int lengthWord)
+    {
+        // 2.2.2.4: "a torn tail ends them". The R record carries 2 payload bytes of the length it claims and no checksum.
+        byte[] bytes = JournalWithTornImage(lengthWord, payload: 2);
+        var contents = SequentialJournal.ReadRecord(new MemoryStream(bytes))!;
+        Assert.Equal(4, contents.CommittedLength);
+        Assert.Empty(contents.Images);
+    }
+
+    [Fact]
+    public void A_journal_over_two_gibibytes_reads_its_records_without_loading_it_whole()
+    {
+        // The reader streams, so a record file past int.MaxValue bytes is read as any other: its whole records, then its torn
+        // tail (here the first byte of the zeros that follow the records, an unknown kind).
+        byte[] prefix = JournalWithTornImage(2, payload: 2 + 4);   // a WHOLE-LENGTH image claim; its checksum is zeros: torn
+        using var sparse = new SparseStream(prefix, 3L * 1024 * 1024 * 1024);
+        var contents = SequentialJournal.ReadRecord(sparse)!;
+        Assert.Equal(4, contents.CommittedLength);
+        Assert.Empty(contents.Images);
+        // The same journal with a length word claiming more than the record still holds: torn at the head, whatever the file size.
+        using var claims = new SparseStream(JournalWithTornImage(int.MaxValue - 60, payload: 0), 3L * 1024 * 1024 * 1024);
+        Assert.Empty(SequentialJournal.ReadRecord(claims)!.Images);
+    }
+
+    [Fact]
+    public void A_dead_transactions_record_with_a_wrapped_image_length_is_rolled_back_by_the_next_entry()
+    {
+        // 2.2.2.7 / §14.9.36.4 GR3: the settle reads the record through ReadRecord, so a tail torn by a length word that wraps an
+        // int bound is the end of the records, and the entering run unit restores F to its state at the last COMMIT.
+        var (dir, f) = NewFile(C1C2);
+        try
+        {
+            var medium = new FaultHostMedium();
+            var a = new Owner(medium, f);
+            a.Begin(SequentialJournal.StartState.Present);
+            a.Append("X1");
+            string record = Path.Combine(SequentialJournal.DirectoryOf(f), $"txn-{a.Journal!.Id}.journal");
+            a.Release();
+            byte[] tail = new byte[1 + 20];
+            tail[0] = (byte)'R';
+            BitConverter.TryWriteBytes(tail.AsSpan(1 + 16), int.MaxValue - 10);
+            using (var raw = new FileStream(record, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete)) raw.Write(tail);
+            medium.Kill();
+            var after = SequentialJournal.Enter(HostMedium.Production, f, null, null);
+            Assert.False(after.Any);
+            Assert.Equal("C1C2", Show(State(f)));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     [Fact]
     public void A_live_transactions_holdings_are_read_and_a_dead_ones_settled_by_the_next_entry()
     {
