@@ -16,7 +16,7 @@ registry for the new rows `copy-literal-name-2002` (from `ReadCopyName`, for eve
 library-name) and `copy-suppress-2002` (from `ParseCopyStatement`); COBOLNET0900 below 2002, an error under
 `--permissive` too. A name written as a word is never gated. The sweep found one sibling in our own tests: the WiseOwl
 case `pb1355_library_text_located` (accepted at 85) wrote `COPY "pb1355c.txt"`; its literal leg moved to the new 2002
-case `pb1355_library_text_literal` and the 85 case keeps its three word legs. VCR row 7.42.
+case `pb1355_library_text_literal` and the 85 case keeps its three word legs. VCR row 7.44.
 
 **PB1615, the literal length.** §8.3.3.2.3 SR1, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1 and §8.8.3.2 SR2–SR4 print 8,191
 positions; the older editions bound a literal at 160. The edge follows kb/Work R61's method: GnuCOBOL 3.2's per-standard
@@ -29,7 +29,7 @@ fold (`ConcatFolder.Fold` → `ResultLengthViolation(folded, dialectLevel)`) bot
 concatenated ALL literal-1 and the literal they equal agree. A relaxation, not an introduction (the word-length
 ceiling's posture): the longer literal is COBOLNET0814 / COBOLNET1545 with a message naming the edition and where 8,191
 begins, an error also under `--permissive`; above 8,191 every edition refuses. The old `MaxLiteralPositionsText`
-property is replaced by `MaxPositionsText(dialectLevel)` with every caller changed. VCR row 7.41.
+property is replaced by `MaxPositionsText(dialectLevel)` with every caller changed. VCR row 7.43.
 
 **Goldens.** `pb1615_literal_160_positions` (the boundary, legal at 85–2023), `pb1615_literal_over_160_positions`
 (2014–2023) and the negative `pb1615-literal-above-160-below-2014` (85 and 2002); `pb1354_copy_header_2002` now names

@@ -12,7 +12,7 @@
       *> positions" (cite.py --check OK 1)). That number is the
       *> 2014 and 2023 bound; COBOL-85 and COBOL-2002 bound the
       *> literal at 160 (constructs row literal-length-8191-2014,
-      *> VCR row 7.41, derived). A literal of EXACTLY 160 positions is
+      *> VCR row 7.43, derived). A literal of EXACTLY 160 positions is
       *> therefore legal at every edition: this program is the
       *> boundary twin of pb1615_literal_over_160_positions.
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):

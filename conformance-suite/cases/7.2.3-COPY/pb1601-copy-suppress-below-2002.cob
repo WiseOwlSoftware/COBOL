@@ -9,7 +9,7 @@
       *> 7.2.3.4 4): "If the SUPPRESS phrase is specified, library text
       *> incorporated as a result of COPY statement processing is not
       *> listed") is a COBOL-2002 introduction (constructs row
-      *> copy-suppress-2002, VCR row 7.42; kb/Work PB1601): ANSI
+      *> copy-suppress-2002, VCR row 7.44; kb/Work PB1601): ANSI
       *> X3.23-1985's COPY has no such phrase. The statement below draws
       *> COBOLNET0900 at --std 85; the positive twin at 2002 is
       *> pb1354_copy_header_2002.

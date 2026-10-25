@@ -108,7 +108,7 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   that 1985's `COPY text-name [{OF | IN} library-name] [REPLACING …]` did not have are gated by ONE method,
   `CopyProcessor.GateCopyPhrase`: each literal written as text-name-1 / library-name-1 (`copy-literal-name-2002`,
   asked by `ReadCopyName`) and the SUPPRESS phrase (`copy-suppress-2002`, asked by `ParseCopyStatement`) —
-  COBOLNET0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.42).
+  COBOLNET0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.44).
 - **The REPLACE states** — `ApplyReplaceStatements` parses format 1 `REPLACE [ALSO] …` and format 2
   `REPLACE [LAST] OFF` and drives `ReplaceStates` (§7.2.4.4 GR4–GR7): the active operands plus a LIFO stack of
   inactive ones; ALSO pushes and activates current-then-pushed operands, LAST OFF pops, a plain format 1 or OFF

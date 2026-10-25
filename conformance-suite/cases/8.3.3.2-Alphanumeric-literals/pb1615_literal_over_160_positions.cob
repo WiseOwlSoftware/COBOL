@@ -11,7 +11,7 @@
       *> shall be less than or equal to 8,191 alphanumeric character
       *> positions" (cite.py --check OK 1)). A 200-position literal is
       *> inside that bound, and legal from COBOL-2014 (constructs row
-      *> literal-length-8191-2014, VCR row 7.41, derived: the bound is
+      *> literal-length-8191-2014, VCR row 7.43, derived: the bound is
       *> 160 below 2014). The twin below 2014 is
       *> pb1615-literal-above-160-below-2014 (COBOLNET0814).
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):

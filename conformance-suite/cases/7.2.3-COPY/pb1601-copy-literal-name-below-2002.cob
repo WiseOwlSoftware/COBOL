@@ -8,7 +8,7 @@
       *> A COPY statement naming its library text by LITERAL (7.2.3.2:
       *> COPY { text-name-1 | literal-1 } [ { OF | IN } { library-name-1
       *> | literal-2 } ]) is a COBOL-2002 introduction (constructs row
-      *> copy-literal-name-2002, VCR row 7.42; kb/Work PB1601): ANSI
+      *> copy-literal-name-2002, VCR row 7.44; kb/Work PB1601): ANSI
       *> X3.23-1985's COPY names its text by a user-defined word only.
       *> The statement below draws COBOLNET0900 at --std 85; the positive
       *> twin at 2002 is pb1355_library_text_literal.
