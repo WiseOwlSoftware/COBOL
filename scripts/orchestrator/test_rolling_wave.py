@@ -253,6 +253,8 @@ def main() -> int:
         check("3: the predecessor's result says FINDINGS after its review rounds, with the file's last verdict",
               (res["A"].get("review"), res["A"].get("review_rounds"), (res["A"].get("last_verdict") or {}).get("round"))
               == ("FINDINGS 1", 2, 2), res.get("A"))
+        check("3: the file's last verdict is CAPPED, the reader's one definition (kb/Work PB3404): the predecessor owns it",
+              (res["A"].get("last_verdict") or {}).get("capped") is True, res.get("A"))
         # ... and a last verdict that cannot be read (no findings file) is never taken for the cap: unanswered
         r = run(tmp, "cap-unread", {"args": args(groups, review_fix_rounds=1), "agents": {
             "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("FINDINGS", A1, 1)],
@@ -309,9 +311,10 @@ def main() -> int:
               and res["A"].get("finisher") == "SPLIT" and res["A"].get("head") == A2, (r["out"]["ready"], res.get("A")))
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("3a unanswered-split: the successor merges the finisher's branch and is told the findings are UNANSWERED "
-              "and that the survey holds it through the findings file",
+              "and are YOURS (kb/Work PB3404): the survey holds it for the file only until its own review is CLEAN over them",
               "merge_drivers.py merge bA2" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
-              and "NEXT-WAVE FINISHER" not in bp and "prune_worktrees.py holds your branch" in bp, bp)
+              and "NEXT-WAVE FINISHER" not in bp and "they are YOURS" in bp and "review_answers" in bp
+              and (res["A"].get("last_verdict") or {}).get("capped") is False, bp)
         rp = (pr.get("w9b-review-r1") or [""])[0]
         check("3a unanswered-split: the successor's reviewer reviews the predecessor's content and records those findings again",
               "record again here each of those findings that still holds" in rp and "review-w9-a.jsonl" in rp
@@ -338,8 +341,8 @@ def main() -> int:
             bp = (pr.get("impl-B-PB2") or [""])[0]
             check(f"3a' {name}: the successor merges the reviewed branch and is told the findings are UNANSWERED and held "
                   "through the findings file, never its next-wave finisher's alone",
-                  "merge_drivers.py merge bA" in bp and "head a1" in bp and "UNANSWERED" in bp and "prune_worktrees.py holds your branch" in bp
-                  and want in bp and "review-w9-a.jsonl" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
+                  "merge_drivers.py merge bA" in bp and "head a1" in bp and "UNANSWERED" in bp and "they are YOURS" in bp
+                  and "review_answers" in bp and want in bp and "review-w9-a.jsonl" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
             rp = (pr.get("w9b-review-r1") or [""])[0]
             check(f"3a' {name}: the successor's reviewer reviews the predecessor's content and records those findings again",
                   "record again here each of those findings that still holds" in rp and "do not record them again" not in rp, rp)
