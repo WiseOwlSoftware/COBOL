@@ -8,18 +8,23 @@ using Xunit;
 
 namespace CobolNet.Tests.Unit;
 
-/// <summary>⛔ A BYTE BECOMES A CHARACTER IN EXACTLY ONE PLACE, AND HIGH-VALUE IS ANSWERED BY EXACTLY ONE MEMBER
+/// <summary>⛔ A BYTE BECOMES A CHARACTER, AND A CHARACTER BECOMES A BYTE, IN EXACTLY ONE PLACE EACH, AND HIGH-VALUE IS
+/// ANSWERED BY EXACTLY ONE MEMBER
 /// (kb/Work PB1759; owner decisions R51/R52; design COBOLNET_FILES_DESIGN D29). The storage-byte law — byte 0xFF is
 /// the character U+FFFF, every other byte b is U+00bb — lives in <c>CobolNet.Runtime.StorageByte</c>, and the native
 /// HIGH-VALUE in <c>NativeCollatingSequence</c>. A new <c>(char)(byte)…</c> cast in the compiler or runtime images a
 /// byte outside the law (a binary 0xFF would become U+00FF and <c>IF REC = HIGH-VALUES</c> would turn false after
 /// <c>MOVE HIGH-VALUES TO REC</c>), and a U+00FF character literal is the retired Latin-1 HIGH-VALUE pin coming back
 /// (kb/Work PB1093). Both are refused here, so the next byte-form codec or figurative site is routed through the one
-/// law by construction.</summary>
+/// law by construction. The reverse direction is the same rule (kb/Work PB547): a character above U+00FF other than
+/// HIGH-VALUE has no byte image, and a <c>(byte)</c> cast of one is its truncated low-order byte — the euro read as 0xAC
+/// through a national REDEFINES view — so every character-to-byte reduction goes through <c>StorageByte.ToByte</c> (the
+/// pure law) or <c>StorageByte.ImageByte</c> (the run-time storage-image reader that also sets EC-DATA-CONVERSION).</summary>
 [Trait("Sweep", "tree")]
 public sealed class StorageByteLawDriftTests
 {
     private static readonly Regex ByteToCharCast = new(@"\(char\)\s*\(byte\)", RegexOptions.Compiled);
+    private static readonly Regex CharacterToByteCast = new(@"\(byte\)\s*[A-Za-z_][\w!.]*\[[^\]]*\]", RegexOptions.Compiled);
     private static readonly Regex LatinHighValuePin =
         new(@"'\\u00[fF][fF]'|'\u00FF'|\(char\)\s*0x[fF][fF]\b|\(char\)\s*255\b", RegexOptions.Compiled);
 
@@ -45,6 +50,17 @@ public sealed class StorageByteLawDriftTests
     {
         var hits = Hits(ByteToCharCast).ToList();
         Assert.True(hits.Count == 0, "image the byte through StorageByte.ToChar, never (char)(byte):\n"
+            + string.Join("\n", hits.Select(h => $"{h.File}:{h.Line}: {h.Text}")));
+    }
+
+    /// <summary>⛔ NO CHARACTER IS REDUCED TO A BYTE BY A CAST (kb/Work PB547): <c>(byte)image[i]</c> keeps the low-order
+    /// byte of a code unit that has none, silently changing the character a REDEFINES view or a write back through it
+    /// sees. The reduction is <c>StorageByte.ToByte</c> or <c>StorageByte.ImageByte</c>.</summary>
+    [Fact]
+    public void NoCharacterIsReducedToAByteOutsideTheStorageByteLaw()
+    {
+        var hits = Hits(CharacterToByteCast).ToList();
+        Assert.True(hits.Count == 0, "reduce the character through StorageByte.ToByte / ImageByte, never (byte)x[i]:\n"
             + string.Join("\n", hits.Select(h => $"{h.File}:{h.Line}: {h.Text}")));
     }
 

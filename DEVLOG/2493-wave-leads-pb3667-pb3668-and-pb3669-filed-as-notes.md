@@ -1,0 +1,4 @@
+## Entry 2493 — 2026-10-24 17:42 PDT — Wave leads PB3667, PB3668 and PB3669 filed as notes
+
+Filed three review leads as `kb/Work` notes. PB3667: a `gen_ledger.measure_commits` docstring states a 7.5 MB peak memory while the PB3647 finisher measured 167 MB (report `w20261031e-PB3647-report.md`, R2-1). PB3668: `prune_worktrees.contained()`'s docstring says a carried unfinished branch gets a finisher naming its carrier by either arm, but the replay arm never gets a finisher of its own (report `w20261031b-PB3476-report.md`, R2-1). PB3669: `scripts/linux-gate.sh` writes the never-work rule a second time on its `dirty=` line, so the settings file counts as a tracked change (same report, new defects). No code changed.
+
