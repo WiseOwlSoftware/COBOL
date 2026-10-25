@@ -349,7 +349,7 @@ def callers(index: dict, names: list[str], repo: Path = REPO, drifted: dict[str,
 
 def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict] | None = None,
                   drifted: dict[str, str] | Callable[[], dict[str, str]] | None = None) -> dict:
-    """{sites, names, how, unknown, files, members, index} of one note: its DECLARED set (DESIGN-architecture-review
+    """{sites, names, how, unknown, files, members, sited, index} of one note: its DECLARED set (DESIGN-architecture-review
     §8.7; kb/Work PB3242, PB3670), what plan_wave.declared_sets returns and file_census_notes renders. `files` is its
     structured sites (work.note_sites: the files they name, and, for a RESTRUCTURING note only, every tracked code file
     under a folder they name) plus every caller the index finds of the names it moves or changes. `members` is {file:
@@ -379,7 +379,7 @@ def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict]
         commit = idx["commit"]
     members = {p: list(ms) for p, ms in sorted(sites.members.items()) if p in files and p not in found}
     return {"sites": list(sites.paths), "names": names, "how": how, "unknown": unknown, "files": sorted(files),
-            "members": members, "index": commit}
+            "members": members, "sited": sites.declared, "index": commit}
 
 
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────
