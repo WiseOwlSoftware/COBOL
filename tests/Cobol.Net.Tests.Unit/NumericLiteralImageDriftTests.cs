@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using CobolNet.Binding.Bound;
 using CobolNet.Tests.Shared;
 using Xunit;
 
@@ -50,8 +51,31 @@ public sealed class NumericLiteralImageDriftTests
     public void TheLiteralImage_IsBuiltFromTheSeparator_AndTheDisplayArmReadsIt()
     {
         string tree = File.ReadAllText(Binding("Bound", "BoundTree.cs"));
-        Assert.Contains("Text.Replace('.', DecimalSeparator)", tree);
+        Assert.Contains("text.Replace('.', DecimalSeparator)", tree);
         string text = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "OperandText.cs"));
         Assert.Contains("Visit(BoundNumericLiteral n) => EmitText.CsLiteral(deSign ? DeSign(n.Image) : n.Image)", text);
+    }
+
+    /// <summary>kb/Work PB2508: the image of a literal whose VALUE is zero shows '+' for a written '-' (GnuCOBOL 3.2.0
+    /// default and cobol2014, DOC-A.1-56), in either separator; the value text and every non-zero literal are untouched.</summary>
+    [Theory]
+    [InlineData("-0", '.', "+0")]
+    [InlineData("-00", '.', "+00")]
+    [InlineData("-0.0", '.', "+0.0")]
+    [InlineData("-0.00", '.', "+0.00")]
+    [InlineData("-.0", '.', "+.0")]
+    [InlineData("-0.0", ',', "+0,0")]
+    [InlineData("-.0", ',', "+,0")]
+    [InlineData("+0", '.', "+0")]
+    [InlineData("0.0", '.', "0.0")]
+    [InlineData("-5", '.', "-5")]
+    [InlineData("-0.5", '.', "-0.5")]
+    [InlineData("-10", '.', "-10")]
+    [InlineData("-0.5", ',', "-0,5")]
+    public void TheLiteralImage_OfANegativeZero_ShowsAPlus_AndNothingElseChanges(string text, char separator, string image)
+    {
+        var literal = new BoundNumericLiteral(text) { DecimalSeparator = separator };
+        Assert.Equal(image, literal.Image);
+        Assert.Equal(text, literal.Text);
     }
 }
