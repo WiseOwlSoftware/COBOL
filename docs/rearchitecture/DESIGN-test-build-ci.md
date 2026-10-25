@@ -1836,6 +1836,10 @@ Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train
 two driver tests (train 1058;
 `self_tests.py --self-test` 19 s alone, over 120 s twice in that train's first gate).
 
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under
+`scripts/selftests/`, found by this runner's rule (b) with no change here; the layout, its collector and its drift test
+are `DESIGN-orchestrator-loop.md` §16.2.
+
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
 **The rule.** A name on PATH is not an interpreter: on the Windows dev box `python3` is the Microsoft Store alias,
@@ -2459,8 +2463,9 @@ demand and not committed.
   construct, sorted, so it merges line by line; separating it is a lead, not part of this change) and `kb/Work.base` (a view
   DEFINITION, a query over the notes).
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
-  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` rows
-  stay hand-written (rare collisions bounce and re-enqueue; measured before any further change).
+  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
+  (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
+  per determination with a rendered index: the design is `DESIGN-orchestrator-loop.md` §16.8 (kb/Work PB3726, PB3738).
 
 #### 3.17.5 The loop's units and the fleet after this design (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
