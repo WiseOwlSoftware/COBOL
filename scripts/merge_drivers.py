@@ -629,7 +629,7 @@ def self_test() -> int:
         (logs / "land-lane-1-x.log").write_text(
             f"land lane: attempt 1 ended exit 4{NL}"
             + verdict_line.render(verdict_line.conflict_outcome(["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]), "b")
-            + NL, encoding="utf-8")
+            + NL, encoding="utf-8", newline="\n")
         counts, read = conflict_report(logs)
         expect("conflicts: the landing logs' CONFLICT lines name their files, and a driver's file is told from the rest",
                counts == {"conformance-suite/wiseowl/diagnostics.json": 1, "src/A.cs": 1} and read == 1
