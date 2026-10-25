@@ -913,7 +913,8 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
    repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to
    `<coord>/partition-measure.jsonl` (`plan_wave.partition_record`: the same-file pairs run side by side, the notes a
-   collision held and why), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
+   collision held and why, and WHAT each hold shared as data, `collided_on`, the files and `file#member`s
+   `collision_hits` found, so no reader parses a reason's prose: kb/Work PB3695), and `plan_wave.py --partition-summary` prints it per day, beside `landing_measure.py`'s
    bounce causes for the conflicts. `test_plan_wave.py` section 12 pins each arm.
 2. **Finishers first.** (a) A note whose newest report (by write time, then wave number, `plan_wave.report_order`, kb/Work PB3625; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
@@ -925,11 +926,16 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    diff-only re-review, and the note waits, named, never a group: kb/Work PB3394; where the REPORT does not cover the
    tip either (commits after its HEAD that no report describes), the survey reads the branch IN FLIGHT or a DECISION,
    never WAITING FOR REVIEW, and the planner says so from `Coverage.report`, the survey's own `report_since`: kb/Work
-   PB3446): one finisher group per predecessor report. The lead of a live `FINDINGS` report that
-   the fix lane cannot see (a `process_only` note, or an owner task's note that exists only on its own branch, read
-   from that branch: `branch_lead_notes`) is decided by the same rule as an open note: its newest report naming it, on
-   any branch, so its review finisher's later report on the finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`)
-   supersedes the `FINDINGS` one (kb/Work PB3150, review R1-1). Every other arm decides such a lead as it decides an
+   PB3446): one finisher group per predecessor report. STARTED WORK IS THE PLANNER'S WHICHEVER LANE PLANNED IT: the lead
+   of a live `FINDINGS` report that the fix lane cannot see (a `process_only` note, or an owner task's note that exists
+   only on its own branch, read from that branch: `branch_lead_notes`), and every still-open note a live `SPLIT`,
+   `NOT STARTED` or gate-ended report answers whose branch is not on main (a campaign's notes cut short by a fleet stop:
+   wave 20261031's groups A, C and D, which `--drain` listed as judgment rows, kb/Work PB3699), is decided by the same
+   rule as an open note: its newest report naming it, on any branch, so its review finisher's later report on the
+   finisher's own branch (`SPLIT`, `DONE` or `FINDINGS`) supersedes the `FINDINGS` one (kb/Work PB3150, review R1-1). The
+   branch survey promises exactly this for a covered `FINDINGS` stamp, whatever the report's age (`findings_open`:
+   an old report with findings is the finisher's, never "land it"; kb/Work PB3118), and its self-test plans the same
+   rows with no cluster holding their leads. Every other arm decides such a lead as it decides an
    open note: a dispatch that holds it waits (item 1: its review finisher dispatched and not yet reported is never
    planned twice), the frontier-model hold (item 9) and (c) below all read the planner's leads, never the open notes
    alone (review R2-1). (b) The half
@@ -967,10 +973,11 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    note nobody had started.
 3. **Clusters**, minus every note above, ranked by inventory rows claimed (the sum of each note's
    `inventory_rows`, read with `work.py`'s one frontmatter reader), then by harm.
-4. **One group per primary file and member**: a later group on the same file whose claim there meets an earlier
-   group's (the whole file, or a shared member: `plan_wave.unit_meet`) becomes a same-file successor (`after:
-   <letter>`, letter suffixed `2`, `3`), the rule `wf_rolling_wave.js` and `check_practices.py` (O2, a shared-MEMBER
-   refusal) enforce; a group on other members of the file runs beside it (kb/Work PB3670). **The placement order is
+4. **One group per file and member claimed**: a later group whose claim meets an earlier group's on ANY file both
+   claim (the whole file, or a shared member: `plan_wave.collision` over `unit_meet`, the question the in-flight check
+   asks too, kb/Work PB3696) becomes a successor (`after: <letter>`, letter suffixed `2`, `3`), the rule
+   `check_practices.py` (O2) enforces on a groups file through the same `collision`; a group on other members of a file,
+   and nothing else shared, runs beside it (kb/Work PB3670). **The placement order is
    the tier** (kb/Work PB3638): groups are placed, lettered and chained in tier order, a campaign's effective tier
    (`work.cluster_order`, passed to `plan` as `tiers`; a finisher takes its notes', a group its lowest, lowered by
    `lift_tiers` to that of every group waiting on it), finishers first inside one tier, so the owner's highest tier
@@ -1072,7 +1079,7 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
   top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
   linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a
-  shared primary file on which the two claims meet (item 4), so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
+  claim meeting another placed group's (item 4). A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.

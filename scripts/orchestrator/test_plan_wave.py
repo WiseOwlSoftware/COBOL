@@ -910,7 +910,7 @@ check("lead is the note with most rows", next(j["lead"] for j in gjson if j["let
 gfile = TMP / "groups.json"
 gfile.write_text(__import__("json").dumps({"wave": "77", "scratch": "X", "base": "abc", "stop_file": CFG77["stop_file"],
                                           "groups": gjson}), encoding="utf-8", newline="\n")
-check("check_practices O2 same-file rule", check_practices.same_file_without_successor(gfile), [])
+check("check_practices O2 same-file rule", check_practices.claims_meet_without_successor(gfile), [])
 MEMBER_GROUPS = TMP / "groups-members.json"
 
 
@@ -919,14 +919,31 @@ def member_groups(*member_sets):
     gs = [{"letter": chr(65 + k), "root": "src/X/Binder.cs", **({"member_set": {"src/X/Binder.cs": ms}} if ms else {})}
           for k, ms in enumerate(member_sets)]
     MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": gs}), encoding="utf-8", newline="\n")
-    return check_practices.same_file_without_successor(MEMBER_GROUPS)
+    return check_practices.claims_meet_without_successor(MEMBER_GROUPS)
 
 
 check("check_practices O2 is a shared-MEMBER rule (kb/Work PB3670): different members of one primary file pass; one "
       "member, or the whole file, refused without `after:`",
       (member_groups(["Binder.Bind"], ["Binder.Sync"]), member_groups(["Binder.Bind"], ["Bind"]),
        member_groups(["Binder.Bind"], None)),
-      ([], ["A+B on src/X/Binder.cs"], ["A+B on src/X/Binder.cs"]))
+      ([], ["A+B on src/X/Binder.cs#Binder.Bind"], ["A+B on src/X/Binder.cs"]))
+
+
+def claim_groups(*claims):
+    """A groups file of groups A, B, ... each with the file_set and member_set given (the planner writes both)."""
+    gs = [{"letter": chr(65 + k), "file_set": fs, **({"member_set": ms} if ms else {})} for k, (fs, ms) in enumerate(claims)]
+    MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": gs}), encoding="utf-8", newline="\n")
+    return check_practices.claims_meet_without_successor(MEMBER_GROUPS)
+
+
+BIND_A = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Bind"]})
+BIND_B = ([F_BIND, "src/X/Shared.cs"], {F_BIND: ["Binder.Sync"]})
+EMIT_B = ([F_EMIT, "src/X/Shared.cs"], {F_EMIT: ["Emitter.Emit"]})
+check("check_practices O2 asks the planner's rule over the WHOLE claim (kb/Work PB3696): a secondary file both groups "
+      "claim whole is a meeting, on one primary file or two; nothing shared is not",
+      (claim_groups(BIND_A, BIND_B), claim_groups(BIND_A, EMIT_B),
+       claim_groups(([F_BIND, "src/X/A.cs"], {F_BIND: ["Binder.Bind"]}), ([F_BIND, "src/X/B.cs"], {F_BIND: ["Binder.Sync"]}))),
+      (["A+B on src/X/Shared.cs"], ["A+B on src/X/Shared.cs"], []))
 
 # 8. THE FIX LANE WITHOUT --cluster IS UNCHANGED (kb/Work PB2120): the whole plan of this fixture, every group's
 #    rendered JSON included, equals the golden that the planner wrote BEFORE the campaign lane existed (committed
@@ -1034,7 +1051,7 @@ if fc:
     cg = [pw.as_group_json(g, "78", cnotes, "COBOLNET0001-COBOLNET0003") for g in cp["groups"]]
     cfile = TMP / "campaign-groups.json"
     cfile.write_text(JSON.dumps({"wave": "78", "scratch": "X", "base": "abc", "groups": cg}), encoding="utf-8", newline="\n")
-    check("campaign groups pass check_practices' successor rule", check_practices.same_file_without_successor(cfile), [])
+    check("campaign groups pass check_practices' successor rule", check_practices.claims_meet_without_successor(cfile), [])
     for g in cg:
         mds.render(dict(CFG77, wave="78"), g, FILES(g))
     only_b = pw.group_cost("opus", 1, RULES) + pw.landing_cost(RULES)
