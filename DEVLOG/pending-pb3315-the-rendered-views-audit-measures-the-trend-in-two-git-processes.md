@@ -18,6 +18,12 @@ rides the one `git log`. One `--check` now starts 12 processes and takes 9.7 s, 
 identical (209,687), and `rendered_views.py --check` takes 11 s. Equivalence was measured against the old functions on
 60 real commits, HEAD and a bogus sha: no difference.
 
+Review round 1: PB3324 (the same mechanism, filed earlier) is flipped to landed with its Landing section. `blobs` now
+yields (object id, content) one blob at a time from a temporary file, and `measure_commits` reduces each to its summary
+as it arrives, so the peak memory is one inventory plus the summaries (167 MB over 150 commits, measured with
+tracemalloc) instead of every distinct inventory version at once. The design doc's section 3.17.4 and the
+`measure_commits` docstring state the current mechanism only; the history stays here.
+
 Guard: `gen_ledger.py --self-test` counts the processes of `missed_points` over 3 and over 15 planted commits and
 requires the counts equal and at most 6 (a structural bound; the old shape would have started 15 and 75).
 `git_batch.py --self-test` holds `tree_entries` and `blobs` to `ls-tree` and `cat-file blob`, and GitBatchDriftTests
