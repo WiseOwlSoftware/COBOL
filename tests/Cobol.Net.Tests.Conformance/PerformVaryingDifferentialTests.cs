@@ -70,11 +70,13 @@ public sealed class PerformVaryingDifferentialTests
 
     /// <summary>SPEC-PINNED (not differential): an omitted BY phrase means augment 1 (ISO §14.9.28 GR12 — "for any
     /// BY phrase that is omitted, the augment value is 1"); three 1..2 levels run the body 2×2×2 = 8 times. The
-    /// former legacy binder crashes (IndexOutOfRange) on omitted BY with multiple AFTER levels, so it cannot oracle this.</summary>
+    /// former legacy binder crashes (IndexOutOfRange) on omitted BY with multiple AFTER levels, so it cannot oracle this.
+    /// Run at 2002, the edition that introduced the omission: COBOL-85 writes BY in every VARYING and AFTER phrase, and
+    /// --std 85 refuses its omission COBOLNET0900 (perform-varying-by-omitted-2002; kb/Work PB2282, VCR row 7.42).</summary>
     [Fact]
     public void Varying_ThreeLevels_OmittedBy()
     {
-        var (ok, output, detail) = new CobolNetCompiler().CompileAndRun(Program(
+        var (ok, output, detail) = new CobolNetCompiler(2002).CompileAndRun(Program(
             "01 WS-I PIC 9.\n01 WS-J PIC 9.\n01 WS-K PIC 9.\n01 WS-N PIC 999 VALUE 0.", """
             MAIN-PARA.
                 PERFORM BUMP VARYING WS-I FROM 1 UNTIL WS-I > 2

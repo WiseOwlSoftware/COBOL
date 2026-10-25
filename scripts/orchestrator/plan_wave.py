@@ -46,9 +46,10 @@ cost the orchestrator a hand-written groups.json; this computes it.
 3. CLUSTERS from fix_clusters.py --json (the public submodule's view of kb/Work), minus the notes above, ranked by
    inventory rows claimed (the sum of each note's `inventory_rows`), then harm. A finisher on a cluster's primary
    file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
-4. ONE GROUP PER PRIMARY FILE AND MEMBER: a later group on the same file whose claim there meets an earlier one's (the
-   whole file, or a shared member) is a same-file successor (`after:`, MANDATORY-PRACTICES O2); one on other members of
-   the file runs beside it (kb/Work PB3670). Groups are placed in TIER order (a campaign's effective tiers; a finisher
+4. ONE GROUP PER CLAIMED FILE AND MEMBER: a later group whose claim meets an earlier one's on ANY file both claim, the
+   primary file or a secondary one (the whole file, or a shared member: `collision`), is a same-file successor
+   (`after:`, MANDATORY-PRACTICES O2); one whose claims meet nowhere, such as other members of one file, runs beside
+   it (kb/Work PB3670, PB3696). Groups are placed in TIER order (a campaign's effective tiers; a finisher
    takes its notes'), finishers first inside one tier, so the highest tier heads its chain, and a wave dispatches only
    the first `wave.links_per_chain` links of each chain (the owner's one): the later links wait for the next wave,
    which plans them from the branch the earlier link leaves (kb/Work PB3638).
@@ -126,8 +127,9 @@ landing) is planned as their CONTINUATION, its pred telling it to merge each fir
 PB3670, superseding PB3263's subsystem rule): a group none of whose notes declares a site block and with no primary
 file located, or a dispatch the ledger recorded with no files, meets nothing, in flight and within the wave; the plan
 table and its spec name it UNPARTITIONED, and its implementer adds the notes' `**Sites:**` paragraphs in its first
-checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups on one
-primary file are a same-file successor chain only when their claims on that file meet. A finisher's set includes the
+checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups are a
+successor chain when their claims MEET on ANY file they both claim (collision, the rule the in-flight check applies,
+kb/Work PB3696), not only on a shared primary file. A finisher's set includes the
 files and units of the branch it continues. A branch ANOTHER group of the same wave continues is planned work, never a
 hold (kb/Work PB3528): the group that meets it follows that group (a successor, `after:`), so two SPLIT branches sharing
 a file are finished in one chain instead of each waiting on the other forever. Every dispatched wave appends its
@@ -188,7 +190,6 @@ REPO = coord.REPO
 FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "references" / "fix_clusters.py"
 MAKE_SPECS = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.py"
 PB = re.compile(r"\bPB\d+\b")
-REPORT_NAME = re.compile(r"^w(?P<wave>\d+)(?P<letter>[a-z0-9]*)-(?P<lead>PB\d+)-report\.md$")
 STATUS_WORD = re.compile(r"^\**(?:Status:\**)?\s*\**\s*(?P<s>DONE|SPLIT|DISCHARGED|BLOCKED|NOT STARTED|GATE-PENDING)\b",
                          re.I)
 #: A GATE-PENDING report's gate run (kb/Work PB3536): `Gate run: <run directory>`, read at a field position like
@@ -374,12 +375,14 @@ def load_notes(work_dir: pathlib.Path, harm_weights: dict[str, int]) -> dict[str
 
 def branch_lead_notes(reports: list[Report], notes: dict[str, Note], harm_weights: dict[str, int],
                       git: Callable[..., Any]) -> dict[str, Note]:
-    """The lead notes of FINDINGS reports that main does not have, read from each report's own branch: an owner task
-    files its note on its own branch (memory: owner-task-branch-needs-a-note), and the planner reads main's register,
-    so the review finisher of `license-product-name` (PB3146) was never planned (kb/Work PB3150)."""
+    """The lead notes of FINDINGS and unfinished (SPLIT, NOT STARTED) reports that main does not have, read from each
+    report's own branch: an owner task files its note on its own branch (memory: owner-task-branch-needs-a-note), and
+    the planner reads main's register, so the review finisher of `license-product-name` (PB3146) was never planned
+    (kb/Work PB3150), nor was the finisher of a SPLIT branch that filed its lead the same way (kb/Work PB3699)."""
     out: dict[str, Note] = {}
     for r in reports:
-        if r.lead in notes or r.lead in out or not r.branch or not (r.review and r.review.verdict == "FINDINGS"):
+        if (r.lead in notes or r.lead in out or not r.branch
+                or not ((r.review and r.review.verdict == "FINDINGS") or r.status in FINISH_STATUSES)):
             continue
         shown = git("show", f"{r.branch}:kb/Work/{r.lead}.md")
         if shown.returncode == 0 and (n := note_of(shown.stdout, r.lead, harm_weights)):
@@ -447,7 +450,7 @@ def status_line(header: list[str]) -> tuple[int, str] | None:
 
 
 def parse_report(p: pathlib.Path) -> Report | None:
-    m = REPORT_NAME.match(p.name)
+    m = coord.REPORT_NAME.match(p.name)
     if not m:
         return None
     header = header_lines(p.read_text(encoding="utf-8", errors="replace").splitlines())
@@ -500,7 +503,7 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     alone."""
     if not reports_dir or not reports_dir.is_dir():
         return []
-    groups = ledger_groups(coord_dir) if coord_dir else []
+    groups = coord.ledger_groups(coord_dir) if coord_dir else []
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
     for r in reps:
         r.notes = answered_notes(r, groups)
@@ -588,22 +591,8 @@ def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[
     return out
 
 
-DISPATCH_LEDGER = "inflight-groups.json"
-
-
-def ledger_groups(coord_dir: pathlib.Path) -> list[dict[str, Any]]:
-    """THE reader of the dispatch ledger (<coord>/inflight-groups.json): its wave GROUPS, each keyed by (wave, letter),
-    written only by record_dispatch from a planned or rendered wave (kb/Work PB3186). An entry with `hand: true` or a
-    wave that is not a number is no dispatch: the retired guard hook wrote it from a scrape of every note id a prompt
-    mentioned, with the union of their file sets (six entries of 303-910 files on 2026-10-15). Every reader ignores
-    such an entry, and the next record_dispatch drops it."""
-    groups = coord.read_json(coord_dir / DISPATCH_LEDGER, {"groups": []}).get("groups", [])
-    return [g for g in groups if isinstance(g, dict) and not g.get("hand") and str(g.get("wave", "")).isdigit()
-            and isinstance(g.get("letter"), str) and g["letter"]]
-
-
 def ledger_slug(g: dict[str, Any]) -> str:
-    """A ledger group's report slug, `w<wave><letter>` (its report is `<slug>-<lead>-report.md`, REPORT_NAME): the
+    """A ledger group's report slug, `w<wave><letter>` (its report is `<slug>-<lead>-report.md`, coord.REPORT_NAME): the
     group's recorded `slug`, else the planner's own spelling."""
     return str(g.get("slug") or f"w{g['wave']}{g['letter'].lower()}").lower()
 
@@ -684,7 +673,7 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
       1. every worktree but this checkout: `_still_differs(HEAD)` plus its uncommitted and untracked files (an agent's
          first edits precede its first commit);
       2. every local branch with no worktree whose tip is not on origin/main: `_still_differs(branch)`;
-      3. every group in the dispatch ledger (<coord>/inflight-groups.json, read through ledger_groups) with a note that
+      3. every group in the dispatch ledger (<coord>/inflight-groups.json, read through coord.ledger_groups) with a note that
          is not terminal and that no report in `reports` ANSWERS (`answers`: a report whose slug is the group's,
          `w<wave><letter>`, written at or after the dispatch: its agent returned, so its work is its branch's, which sources 1-2 read by their actual diff, and a SPLIT
          group's unstarted residue holds no file; kb/Work PB2795): the files the group was planned on, which exist
@@ -752,7 +741,7 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
                 if meta is not None:
                     meta[f"branch {b}"] = {"rev": b, "uncommitted": set(), "path": None, "branch": b, "sha": sha,
                                            "base": differs.get(sha, (set(), ""))[1], "committed": files}
-    for g in ledger_groups(coord_dir or coord.coord_dir()):
+    for g in coord.ledger_groups(coord_dir or coord.coord_dir()):
         if (terminal is not None and all(terminal(i) for i in g.get("notes", []))) or any(answers(r, g) for r in reports):
             continue
         # A group recorded with NO files is in flight all the same, with its notes (its own notes are never held twice:
@@ -777,13 +766,13 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
     lane's re-render of wave 1118's specs at 16:42, a wave dispatched about 05:00, had made the engine the LATER
     dispatch than wave 1126 C, 14:02). A group recorded under a key whose entry shares NO note with it is a DIFFERENT
     dispatch (two sessions planning one wave number) and takes the time of its own recording. Every other group of
-    every wave stays, except the entries whose notes are all terminal and the entries ledger_groups does not read (the retired hand entries), which are
+    every wave stays, except the entries whose notes are all terminal and the entries coord.ledger_groups does not read (the retired hand entries), which are
     dropped, so the ledger holds exactly the dispatched work still in flight (inflight_file_sets, source 3).
     make_dispatch_specs.py calls it for every wave it renders, the planner's included; nothing else writes the
     ledger but release_dispatch."""
-    path = coord_dir / DISPATCH_LEDGER
+    path = coord_dir / coord.DISPATCH_LEDGER
     mine = {(str(wave), str(g["letter"]).upper()) for g in groups}
-    live = [g for g in ledger_groups(coord_dir) if not all(terminal(i) for i in g.get("notes", []))]
+    live = [g for g in coord.ledger_groups(coord_dir) if not all(terminal(i) for i in g.get("notes", []))]
     keep = [g for g in live if (str(g["wave"]), g["letter"].upper()) not in mine]
     earlier = {(str(g["wave"]), g["letter"].upper()): g for g in live if (str(g["wave"]), g["letter"].upper()) in mine}
     at = time.time()   # the dispatch order the landing check reads (the later of two overlapping branches re-plans):
@@ -806,7 +795,7 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
 
 
 def held_by_dispatch(coord_dir: pathlib.Path, reports: list[Report], terminal: Callable[[str], bool]) -> dict[str, str]:
-    """{open note: the dispatch holding it}: every note a dispatch-ledger group names (ledger_groups, the entries
+    """{open note: the dispatch holding it}: every note a dispatch-ledger group names (coord.ledger_groups, the entries
     inflight_file_sets reads as source 3) unless the note is terminal or the group is answered (`answers`: its own
     report, by slug, written at or after the group's `at`; the predicate inflight_file_sets reads too, kb/Work
     PB3311). Such a report answers the dispatch, and step 1 (awaiting landing) and step 2
@@ -814,7 +803,7 @@ def held_by_dispatch(coord_dir: pathlib.Path, reports: list[Report], terminal: C
     (another session's wave waiting for the operator's GO), so its notes are not planned again (kb/Work PB2806: the
     fix lane read no ledger, and wave 1044 re-planned seven of wave 1045's eight groups)."""
     held: dict[str, str] = {}
-    for g in ledger_groups(coord_dir):
+    for g in coord.ledger_groups(coord_dir):
         if any(answers(r, g) for r in reports):
             continue
         for nid in sorted(i for i in set(g.get("notes", [])) if not terminal(i)):
@@ -826,9 +815,9 @@ def release_dispatch(coord_dir: pathlib.Path, selector: str) -> list[dict[str, A
     """Drop the dispatch-ledger entries `selector` names (a wave `1040`, a group `1040a`, or a note id `PB2249`) and
     return them. A wave entry never expires on a clock (an expired entry would release the files of a wave still
     running), so an ABORTED dispatch is released here, by hand, explicitly (the ninth refuter's N5). The rewrite keeps
-    only what ledger_groups reads."""
-    path = coord_dir / DISPATCH_LEDGER
-    groups = ledger_groups(coord_dir)
+    only what coord.ledger_groups reads."""
+    path = coord_dir / coord.DISPATCH_LEDGER
+    groups = coord.ledger_groups(coord_dir)
     if re.fullmatch(r"PB\d+", selector):
         hit = lambda g: selector in g.get("notes", [])  # noqa: E731
     else:
@@ -967,10 +956,16 @@ def collision(mine: Claim, theirs: Claim) -> str | None:
     return None
 
 
+def collision_hits(mine: Claim, busy: Mapping[str, Claim]) -> list[tuple[str, str]]:
+    """The in-flight owners a group meets, each with what they share, as (owner, hit), by THE one rule (collision):
+    `mine` is the group's claim, `busy` each owner's. `hit` is a file or `file#member`, never prose."""
+    return [(owner, hit) for owner, theirs in sorted(busy.items()) if (hit := collision(mine, theirs))]
+
+
 def file_set_collisions(mine: Claim, busy: Mapping[str, Claim]) -> list[str]:
-    """The in-flight owners a group meets, each as '<owner> (<what they share>)', by THE one rule (collision): `mine`
-    is the group's claim, `busy` each owner's."""
-    return [f"{owner} ({hit})" for owner, theirs in sorted(busy.items()) if (hit := collision(mine, theirs))]
+    """The same owners as the text of a hold reason, each '<owner> (<what they share>)' (collision_hits). The text is
+    for a person: the partition's measurement records the hits themselves (partition_record), never parses this."""
+    return [f"{owner} ({hit})" for owner, hit in collision_hits(mine, busy)]
 
 
 @dataclasses.dataclass
@@ -1458,8 +1453,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     meets RUNNING work (collision: a whole file, or a member of it, kb/Work PB3670) waits, the collision named, and so
     does every group that would follow it; a group whose claim meets only FINISHED branches is planned as their
     continuation (continuation_pred: merge each first, no `after:`). An EMPTY set meets nothing (kb/Work PB3670): such a
-    group runs beside everything, named UNPARTITIONED. Within the wave a group follows the groups on its primary file
-    whose claims on that file meet its own (unit_meet), never one on other members of it. The group's own work never
+    group runs beside everything, named UNPARTITIONED. Within the wave a group follows the placed groups whose claims meet
+    its own on any file both claim (collision: one rule for the wave and for the in-flight work, kb/Work PB3696), never
+    one on other members of a file they share and nothing else. The group's own work never
     collides: a branch its pred already continues (`Group.continues`), or a dispatch of its own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
     to a golden).
 
@@ -1539,9 +1535,25 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # (branch_carrier) does not, and is named in its finisher's pred instead (review R1-1, R1-2). Every arm below that
     # asks "is this note the planner's to decide" reads `leads`, never `open_ids`: the dispatch hold, the frontier-model
     # hold and an unlanded branch's notes (review R2-1). Only the clusters' own arms read the clusters.
-    leads = open_ids | {r.lead for r in live if r.review and r.review.verdict == "FINDINGS" and
-                        r.lead not in open_ids and r.lead in notes and
-                        stamped(r, classify(r.branch) if r.branch else "ABSENT")}
+    # STARTED WORK IS THE PLANNER'S WHICHEVER LANE PLANNED IT (kb/Work PB3699): a SPLIT, NOT STARTED or gate-ended report
+    # on an unlanded branch is checkpointed work, and its notes are as much a lead as a FINDINGS report's. The fix lane's
+    # clusters skip `process_only` and `blocked` notes, so wave 20261031's groups A, C and D (campaign notes cut short by
+    # a fleet stop, SPLIT reports, committed branches) read as "UNLANDED branches naming no open note (judgment)" in the
+    # fix lane's `--drain` plan, and the owner's drain would have left them. Every note such a report answers that is still
+    # open on main (not terminal) and that no cluster holds joins the leads; a report whose branch is on main or gone
+    # started no work a finisher could continue (its notes are the cluster arms' to restart).
+    def unfinished(r: Report) -> bool:
+        return r.status in FINISH_STATUSES or r.gate_state in ("RUNNING", "ENDED")
+
+    unseen: set[str] = set()
+    for r in live:
+        cls = classify(r.branch) if r.branch else "ABSENT"
+        if stamped(r, cls):
+            if r.lead not in open_ids and r.lead in notes:
+                unseen.add(r.lead)
+        elif cls not in LANDED_CLASSES and unfinished(r):
+            unseen |= {i for i in r.notes if i in notes and i not in open_ids and notes[i].status not in work.TERMINAL_STATUSES}
+    leads = open_ids | unseen
     # A branch another branch replays in full is planned from through THAT branch (kb/Work PB3170): its commit subjects
     # name the same notes, so the carrier's own entry plans them; two finishers on one note's commits land them twice.
     unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()
@@ -1565,6 +1577,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     finisher_by_rep: dict[pathlib.Path, list[str]] = {}
     replayed_to: dict[str, tuple[Report, str]] = {}   # note -> (its newest report, the branch that replays its branch)
     waiting: dict[str, str] = {}
+    collided: dict[str, list[str]] = {}   # note -> what its group shares with in-flight work, one hit per owner (PB3695)
     for nid, r in newest.items():
         cls = classify(r.branch) if r.branch else "ABSENT"
         # A SPLIT or NOT STARTED report is unfinished whatever its branch's state: the landing lane lands only DONE
@@ -1807,11 +1820,13 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     groups.sort(key=lambda g: work.tier_rank(g.tier))
 
     # Letters, successors, models, costs. A successor chain is linear (A, A2, A3: each merges the one before it), so
-    # a group that must follow another joins the TAIL of that one's chain. In the fix lane the only link is a shared
-    # primary file on which the two groups' claims MEET (unit_meet: a member of it, or the whole file; kb/Work PB3670):
-    # two groups on DIFFERENT MEMBERS of one primary file run side by side, and git's merge combines their branches.
+    # a group that must follow another joins the TAIL of that one's chain. In the fix lane the only link is a claim
+    # MEETING another placed group's (collision, on ANY file both claim: a whole file, or a member of it; kb/Work PB3670,
+    # PB3696 - the in-flight check below asks the same question): two groups on DIFFERENT MEMBERS of one file, and on
+    # nothing else, run side by side, and git's merge combines their branches. The claim, never the primary file alone:
+    # two groups on different members of one primary file that both claim a third file whole ran side by side while the
+    # same pair was held when one was in flight.
     gen = letters()
-    on_file: dict[str, list[Group]] = {}     # primary file -> the placed groups on it
     chain_of: dict[int, int] = {}            # id(group) -> id(its chain's head)
     tail: dict[int, Group] = {}              # id(chain head) -> the chain's last group
     group_of: dict[str, Group] = {}          # note -> the group planned for it
@@ -1840,7 +1855,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             if x.branch and x.branch in g.continues:
                 g.take(x.claim)
         mine = g.claim
-        links = [x for x in on_file.get(g.file, []) if unit_meet(g.file, mine, x.claim)] if g.file else []
+        links = [x for x in placed if collision(mine, x.claim)]
         links += [x for x in must_follow.pop(id(g), []) if id(x) in chain_of and x not in links]   # R1-1, above
         if busy:   # THE PARTITION, one rule for both lanes (kb/Work PB2807, PB3670; classify_inflight)
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
@@ -1856,10 +1871,11 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                     must_follow.setdefault(id(f), []).append(g)
             met = {o: x for o, x in met.items() if o not in planned}
             if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None}:
+                hits = collision_hits(mine, {o: x.claim for o, x in held_by.items()})
                 for i in g.notes:
-                    waiting[i] = ("file-set collision with in-flight work " + "; ".join(file_set_collisions(
-                        mine, {o: x.claim for o, x in held_by.items()}))
-                        + ": it waits until that work finishes (then continues it) or is decided")
+                    waiting[i] = (COLLISION_WAIT + "; ".join(f"{o} ({hit})" for o, hit in hits)
+                                  + ": it waits until that work finishes (then continues it) or is decided")
+                    collided[i] = [hit for _, hit in hits]
                 continue
             done = {x.finished.branch: x.finished for x in met.values() if x.finished and x.finished.branch}
             if done:
@@ -1877,7 +1893,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         chains = {chain_of[id(x)] for x in links}
         if len(chains) > 1:
             for i in g.notes:
-                waiting[i] = ("its blockers and the groups whose members it meets on its file are in different "
+                waiting[i] = ("its blockers and the groups whose claims it meets are in different "
                               "successor chains (" + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
             continue
         prev = tail[chains.pop()] if chains else None
@@ -1891,8 +1907,6 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             g.letter = next(gen)
             chain_of[id(g)] = id(g)
         tail[chain_of[id(g)]] = g
-        if g.file:
-            on_file.setdefault(g.file, []).append(g)
         for i in g.notes:
             group_of[i] = g
         g.model, g.why_model = choose_model(g, notes, reports, rules)
@@ -1912,10 +1926,16 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     spent = 0.0
     for g in groups:
         if g.link >= links:
+            # The predecessor's FATE is known here (groups are in placement order, so it was decided first): the reason
+            # says what this wave does with it, never that it "runs" a group the budget, the group cap or its own link
+            # cap already cut (kb/Work PB3712).
+            ahead = ("which this wave runs; the next wave plans it from that group's branch"
+                     if g.after in {c.letter for c in chosen} else
+                     "which this wave does not run either (the group cap, the budget or its own link cap); the next "
+                     "wave plans the chain again")
             for i in g.notes:
                 waiting[i] = (f"one chain link per wave (wave.links_per_chain {links}, kb/Work PB3638): it follows "
-                              f"group {g.after} on {g.file or 'the notes it waits on'}, which this wave runs; the next "
-                              f"wave plans it from that group's branch")
+                              f"group {g.after} on {g.file or 'the notes it waits on'}, {ahead}")
             continue
         if max_groups is not None and len(chosen) >= max_groups:
             skipped.append(g)
@@ -1932,7 +1952,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     return {"groups": chosen, "skipped": skipped, "awaiting_landing": awaiting, "points": spent,
             "unlanded_without_note": sorted(b for b, ids in unlanded.items()
                                             if not ids and b not in {rep_by_path[p].branch for p in finisher_by_rep}),
-            "waiting": waiting,
+            "waiting": waiting, "collided": collided,
             "drain_not_started": not_started}
 
 
@@ -2067,37 +2087,20 @@ def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str,
     return out
 
 
-#: How much of the newest DEVLOG the wave and train numbering reads (one file per entry, kb/Work PB3025): the newest
-#: RECENT_ENTRIES entries, and of those the first RECENT_LINES lines for wave and train labels.
-RECENT_ENTRIES = 20
-RECENT_LINES = 200
-
-
-def next_wave(repo: pathlib.Path, reports: list[Report], coord_dir: pathlib.Path | None = None) -> int:
-    """One past the highest wave OR train number in the reports directory, the dispatch ledger (`coord_dir`) or the
-    newest RECENT_LINES lines of the DEVLOG's newest entries. A wave's first train is labelled with the wave number, so a train label counts as taken
-    too (kb/Work PB2562: trains 1035 and 1036 came from waves 1031 and 1032, the planner proposed wave 1035, and
-    "Train 1034" had already landed twice). A wave planned but with no report yet (another session's, awaiting the
-    operator's GO) is taken as well, or the next wave reuses its number and overwrites its specs (kb/Work PB2806)."""
-    seen = [r.wave for r in reports]
-    if coord_dir is not None:
-        seen += [int(g["wave"]) for g in ledger_groups(coord_dir)]
-    for line in "".join(devlog.newest(repo, RECENT_ENTRIES)).split("\n")[:RECENT_LINES]:
-        seen += [int(w) for w in re.findall(r"\b(?:[Ww]aves?|[Tt]rains?) (\d{3,})", line)]
-    return max(seen, default=0) + 1
-
-
 #: The partition's measurement (kb/Work PB3670 item 5): one JSON line per wave a plan dispatches, in the coordination
 #: directory, read by `--partition-summary`.
 PARTITION_MEASURE = "partition-measure.jsonl"
 COLLISION_WAIT = "file-set collision with in-flight work "
 
 
-def partition_record(wave: str, groups: Sequence[Group], waiting: Mapping[str, str], at: float) -> dict[str, Any]:
+def partition_record(wave: str, groups: Sequence[Group], waiting: Mapping[str, str],
+                     collided: Mapping[str, Sequence[str]], at: float) -> dict[str, Any]:
     """One wave's partition measurement (kb/Work PB3670 item 5): how many groups it planned, the pairs of them that
     share a primary file and run side by side (different members: the case the member partition made possible), the
-    notes a collision with in-flight work held and each one's reason, and the notes the in-wave rule held (blockers or
-    member meetings in two chains)."""
+    notes a collision with in-flight work held and each one's reason (`held_by_collision`, prose for a person), WHAT
+    each shared (`collided_on`: the files and `file#member`s of plan()'s `collided`, one per in-flight owner met, kept as
+    data so no reader parses the prose; kb/Work PB3695), and the notes the in-wave rule held (blockers or claim
+    meetings in two chains)."""
     by_file: dict[str, list[Group]] = {}
     for g in groups:
         if g.file:
@@ -2106,6 +2109,7 @@ def partition_record(wave: str, groups: Sequence[Group], waiting: Mapping[str, s
                 for b in on[k + 1:] if not (a.after or b.after)]
     return {"at": at, "wave": wave, "groups": len(groups), "same_file_parallel": parallel,
             "held_by_collision": {i: why[len(COLLISION_WAIT):] for i, why in waiting.items() if why.startswith(COLLISION_WAIT)},
+            "collided_on": {i: list(hits) for i, hits in collided.items()},
             "held_in_wave": sorted(i for i, why in waiting.items() if "different successor chains" in why)}
 
 
@@ -2133,12 +2137,12 @@ def partition_summary(coord_dir: pathlib.Path) -> list[str]:
         d["groups"] += r.get("groups", 0)
         d["parallel"] += len(r.get("same_file_parallel", []))
         d["held"] += len(r.get("held_by_collision", {}))
-        for why in r.get("held_by_collision", {}).values():
-            for f in re.findall(r"\(([^()\s]+)\)", why):
+        for hits in r.get("collided_on", {}).values():
+            for f in hits:
                 d["files"][f] = d["files"].get(f, 0) + 1
     return [f"{day}: {d['waves']} waves, {d['groups']} groups, {d['parallel']} same-file pairs side by side, "
             f"{d['held']} notes held by a collision"
-            + (" (most named: " + ", ".join(f"{f} x{n}" for f, n in sorted(d["files"].items(), key=lambda kv: -kv[1])[:5])
+            + (" (most named: " + ", ".join(f"{f} x{n}" for f, n in sorted(d["files"].items(), key=lambda kv: (-kv[1], kv[0]))[:5])
                + ")" if d["files"] else "") for day, d in sorted(days.items())]
 
 
@@ -2146,7 +2150,7 @@ def finished_main(path: pathlib.Path) -> int:
     """`--finished REPORT`: the one finished-report predicate (Report.finished) as an exit code, for the rolling wave,
     which has no Python of its own: 0 finished, 1 not (a SPLIT, BLOCKED or NOT STARTED report, a header with no status
     line, a DISCHARGED report whose HEAD is its base or names none), 2 unreadable (missing, or not a fix-lane report
-    name: plan_wave.REPORT_NAME)."""
+    name: coord.REPORT_NAME)."""
     try:
         rep = parse_report(path)
     except OSError as e:
@@ -2162,7 +2166,9 @@ def finished_main(path: pathlib.Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--wave", default="next", help="the wave number, or next (default): one past the highest seen")
+    ap.add_argument("--wave", default="next", help="the wave number, or next (default): the allocator's next wave "
+                    "number (alloc.py wave: one past the highest seen in the reports, the dispatch ledger and the DEVLOG, "
+                    "and past every number handed out)")
     b = ap.add_mutually_exclusive_group()
     b.add_argument("--budget-points", type=float, help="weekly points this wave may spend")
     b.add_argument("--from-budget", action="store_true", help="use budget.py's headroom_pct")
@@ -2330,7 +2336,10 @@ def main(argv: list[str] | None = None) -> int:
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
 
-    wave = str(next_wave(REPO, reports, cdir)) if a.wave == "next" else str(a.wave)
+    # THE WAVE NUMBER comes from the one allocator (alloc.py `wave`, kb/Work PB3700): peeked while the plan is made and
+    # reserved once its specs check GREEN, like the codes (PB3114), so a hand dispatch that took a number through
+    # `alloc.py wave` and has no report yet can never be given it again.
+    wave = str(alloc.peek("wave", REPO, cdir)) if a.wave == "next" else str(a.wave)
     peek_code = alloc.peek("code", REPO, cdir)
     per = rules["wave"]["codes_per_group"]
     # the standing requirements each group must meet, by the campaigns its notes belong to: they reach its spec, the args
@@ -2394,6 +2403,13 @@ def main(argv: list[str] | None = None) -> int:
         print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
               "ledger, no wf-args file; fix the cause and plan again)")
         return rc
+    if a.wave == "next":
+        got, _ = alloc.allocate("wave", 1, REPO, cdir)
+        if str(got) != wave:
+            print(f"  wave number moved while the specs were checked (another allocation): reserved {got}")
+            wave = str(got)
+            if not a.stop_file:
+                stop_file = coord.fleet_stop(scratch, f"w{wave}")
     first, _ = alloc.allocate("code", per * len(p["groups"]), REPO, cdir)
     if first != peek_code:
         print(f"  codes moved while the specs were checked (another allocation): reserved from "
@@ -2410,7 +2426,7 @@ def main(argv: list[str] | None = None) -> int:
                        for j in gjson]}
     afile = scratch / f"wf-args-w{wave}.json"
     afile.write_text(json.dumps(args, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    record_partition(cdir, partition_record(wave, p["groups"], waiting, time.time()))
+    record_partition(cdir, partition_record(wave, p["groups"], waiting, p["collided"], time.time()))
     print(f"wrote {gfile} and {afile}")
     return 0
 
