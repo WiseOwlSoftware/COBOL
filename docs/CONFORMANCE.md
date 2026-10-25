@@ -245,8 +245,8 @@ of an unsupported facility.
   national there too. Pinned by `GroupMoveSenderChannelDriftTests`;
   witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3562_boolean_literal_group_move` and
   `conformance:cases/14.2-Procedure-division-structure/pb3587_content_group_formal_usage_values`.
-- **D-B4 - a numeric literal sent to a group stores its DIGITS ONLY** (kb/Work PB3570; owner decision 2026-10-23, on a
-  point of implementor latitude). A MOVE to a group item is §14.9.25.4 GR4's move, "treated exactly as if it were an
+- **D-B4 - a numeric literal, and the value of a numeric function, sent to a group store their DIGITS ONLY** (kb/Work
+  PB3570, PB3613; owner decision 2026-10-23, on a point of implementor latitude). A MOVE to a group item is §14.9.25.4 GR4's move, "treated exactly as if it were an
   alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal
   representation to another": it preserves the sender's representation, and a numeric literal has none, so the standard
   does not say what `MOVE -456 TO G` stores. CLAUDE.md rule 1's precedence for implementor latitude is the standard,
@@ -260,13 +260,25 @@ of an unsupported facility.
   notation, as GnuCOBOL's literal data does, and `1.0E+6144` does not become 6145 characters); the group then aligns left with space fill or truncation to the right
   (§14.6.8.5). The same characters cross a CALL ... AS NESTED or INVOKE BY CONTENT argument into a plain-group formal
   (§14.2.3 GR9, "otherwise, a MOVE statement"). This supersedes kb/Work PB1113's determination, which kept the literal's
-  own characters, sign included. Not covered: the value of a numeric FUNCTION, which is a computed value rather than a
-  literal and keeps its signed rendering (`MOVE FUNCTION MIN(N 3) TO G` stores `-15`; a call the compiler folds to a
-  literal keeps it too, so the answer never depends on whether the call could be folded); an ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already
-  gives. Written once, in `OperandText.NonElementaryMoveSender`; witnessed by
+  own characters, sign included. **The value of a numeric or integer FUNCTION is the same sender** (kb/Work PB3613): §15.2 4)-5)
+  give it "an operational sign" and no usage, and §15.4.1 leaves a returned value's "characteristics and representation" to
+  the implementor under native arithmetic, so §14.9.25.4 GR4 has no internal representation of it to preserve, exactly as for
+  a literal, and the one determination covers both: `MOVE FUNCTION MIN(N 3) TO G` (N = -15) stores 15 and `FUNCTION MIN(M 3)`
+  (M = -1.5) stores 15, the same characters an elementary alphanumeric receiver takes (GR6 a); under DECIMAL-POINT IS COMMA
+  the separator is no digit either, and a floating-point value sends its significand digits as a literal does). A call the
+  compiler folds to a literal and the same call evaluated at run time send the same characters. GnuCOBOL sends the function's
+  own internal field instead (`1u` for the S99 minimum, a 4-byte binary for INTEGER, `15` for ABS), which is no rule for a value
+  the standard gives no representation, so the determination follows the literal, not the engine. The same characters cross
+  a CALL ... AS NESTED, a Format-1 CALL and an INVOKE argument BY CONTENT into a plain-group formal; a function-identifier is a
+  MOVE sender (§14.9.25.4 GR1), so §14.8.2.2 rule 2 admits it there (only an arithmetic expression, which is no MOVE sender, is
+  refused). An ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already gives.
+  Written once, in `OperandText.NonElementaryMoveSender`, whose digit rule is `CobolNum.GroupDigits`; witnessed by
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move`,
-  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_floating_literal_group_move` and
-  `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3570_numeric_literal_group_formal`.
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_floating_literal_group_move`,
+  `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3570_numeric_literal_group_formal`,
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move`,
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move_comma` and
+  `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3613_numeric_function_group_formal`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
   GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is
