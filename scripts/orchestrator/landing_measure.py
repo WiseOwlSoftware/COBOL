@@ -569,11 +569,15 @@ def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr:
     """What `enqueue.py queue` can record the moment a pull request is queued: the branch, the enqueue time, each
     carried change's finish (`done_times`, run in the landing worktree), the dispatch and review-clean times
     (`stage_times`, from the coordination directory that holds `path`) and the local gate seconds from the worktree's
-    verdict.json files. `changes` defaults to the changes found (one per lead note), else 1."""
+    verdict.json files. `changes` defaults to the changes found (one per lead note), else 1. A pull request already
+    recorded is judged against its FIRST enqueue, by `done_times` and `stage_times` alike, so the re-enqueue's update
+    is never one `validate` refuses (kb/Work PB3710)."""
     at = enqueued or now_iso()
     g = local_gate(worktree)
-    each = done_times(branch, reports_dir, at, git or git_runner(worktree))
     old = next((r for r in read_all(path) if r.get("pr") == pr), None)    # an earlier enqueue of this pull request
+    # a re-enqueue after a bounce is the same landing, still waiting since its FIRST enqueue (`patch_record` keeps it):
+    # a change finished after that time is no DONE of this landing, so it is not written (kb/Work PB3710)
+    each = done_times(branch, reports_dir, (old or {}).get("enqueued") or at, git or git_runner(worktree))
     stages = stage_times(branch, reports_dir, path.parent, each[0] if each else None, at, old)
     return record(path, {"pr": pr, "branch": branch, "changes": changes or len(each) or None, "enqueued": at,
                          "done": each[0] if each else None, "done_each": each, **stages,
@@ -743,7 +747,8 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls",
         "the dispatch and review-clean stamps are read at enqueue from the dispatch ledger and the CLEAN verdict's "
         "findings record, a stamp out of order stays null, a re-enqueue after a bounce and a re-review is bounded by "
-        "the record's first enqueue (its record is never refused, kb/Work PB3710), and summary prints each stage and "
+        "the record's first enqueue, for its DONE and its CLEAN alike (its record is never refused, kb/Work PB3710), "
+        "and summary prints each stage and "
         "marks a span over the owner's bar")
 
 
@@ -882,6 +887,19 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
             or (second.get("enqueued"), second.get("review_clean"), second.get("done")) \
             != (t("09:40"), t("09:20"), t("09:00")):
         fails.append(f"{stage_arm}: a re-enqueue after a re-review: first {first}, second {second}")
+    # the same for DONE: b170 is first enqueued at 05:00 with no DONE report (its report's HEAD is committed 06:00),
+    # bounces, is finished after that enqueue and re-enqueued at 07:00: the finish follows the first enqueue, is no
+    # DONE of this landing, and used to make `done` follow `enqueued` so the record was refused (review finding R1-1)
+    redone = sc / "redone.jsonl"
+    d1 = record_enqueued(redone, tmp / "no-worktree", "b170", 93, rd, enqueued=t("05:00"), git=fake_git())
+    try:
+        d2 = record_enqueued(redone, tmp / "no-worktree", "b170", 93, rd, enqueued=t("07:00"), git=fake_git())
+    except ValueError as e:
+        d2 = {"refused": str(e)}
+    if (d1["done"], d1["done_each"], d2.get("enqueued"), d2.get("done"), d2.get("done_each")) \
+            != (None, [], t("05:00"), None, []) \
+            or done_times("b170", rd, t("07:00"), fake_git()) != [t("06:00")]:
+        fails.append(f"{stage_arm}: a re-enqueue with a DONE after the first enqueue: first {d1}, second {d2}")
     # a re-enqueue that finds the first one's clean stamp missing still bounds the new one by the first enqueue
     # (stage_times alone: the record is the caller's), and an earlier dispatch is never replaced by a later one
     bare = {"pr": 91, "branch": "bs", "enqueued": t("09:40"), "done": t("09:00")}
