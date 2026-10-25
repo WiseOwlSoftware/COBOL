@@ -41,10 +41,10 @@ factoryParagraph
       END FACTORY DOT
     ;
 
-// ⛔ FROM IS AN OPTIONAL WORD, AND NO AUDIT COULD SEE IT (kb/Work PB695 family 3 sibling sweep / PB715): a word
-// REQUIRED INSIDE an optional group never becomes an optional-word candidate, because the enclosing `( … )?`
-// already excuses it. MEASURED on printed page 294 / folio 264: INHERITS' box 90.94–136.92 carries a rule at
-// 92.40–136.05 (95.0% cover) while FROM's box 140.01–168.09 has NO rule in its band — so
+// ⛔ FROM IS AN OPTIONAL WORD (kb/Work PB695 family 3 sibling sweep): a word REQUIRED INSIDE an optional group was
+// invisible to `audit_grammar_optional_words.py`, which excused it by the enclosing `( … )?`, until kb/Work PB715
+// made the audit judge each group as a unit of its own. MEASURED on printed page 294 / folio 264: INHERITS' box
+// 90.94–136.92 carries a rule at 92.40–136.05 (95.0% cover) while FROM's box 140.01–168.09 has NO rule in its band — so
 // `CLASS-ID. C INHERITS B.` is conforming source (§8.3.2.4.3) that this rule refused with COBOL0001. FROM is
 // §8.9-reserved at every edition, so it can never be a className and `FROM?` cannot mis-bind one.
 classIdParagraph

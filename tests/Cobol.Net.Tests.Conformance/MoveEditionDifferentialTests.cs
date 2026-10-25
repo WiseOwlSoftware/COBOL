@@ -14,7 +14,9 @@ namespace CobolNet.Tests.Conformance;
 /// 2023 (the SR5 NOTE; Annex F.2 item 2 → COBOLNET0903); "in all other cases" the move of an alphanumeric
 /// figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal") to a numeric or numeric-edited item
 /// is prohibited — NEWLY removed by 2023 (Annex E.2 item 1 bullet 1: permitted through ISO 2014 → COBOLNET0902,
-/// error strict / warning permissive, silent below 2023). Value semantics: §8.3.3.6.4 GR2 (character-by-character
+/// error strict / warning permissive, silent below 2023) for every member of the list EXCEPT SPACE, which was
+/// already prohibited (ISO/IEC 1989:2002 clause 14.8.24.2 SR5: "The figurative constant SPACE shall not be moved to a
+/// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOLNET0819 at every edition (kb/Work PB3605). Value semantics: §8.3.3.6.4 GR2 (character-by-character
 /// repetition to the associated size) + §14.9.25.4 GR6d3b (a figurative sending operand takes the RECEIVER's
 /// digit count, fraction digits included). Pre-removal semantics of the prohibited shapes are a provisional
 /// adjudication (ratified owner decision 1): the fill characters become the receiver's character
@@ -103,20 +105,20 @@ public sealed class MoveEditionDifferentialTests
     // ═══ Item 4 — the pre-removal figurative→numeric semantics (provisional, ratified decision 1) ═════════════
 
     [Fact]
-    // Annex E.2 item 1 bullet 1: MOVE SPACE TO a numeric item was permitted through 2014. Pre-removal semantics
-    // (legacy-adjudicated, provisional): the receiver's character image is space-filled at its fixed width
-    // (§8.3.3.6.4 GR2; §14.6.8 fixed-width alignment) and the item is then NOT NUMERIC (§8.8.4.4 — its content
-    // is not digits). Pinned (no legacy cross-check): the legacy renders the space-filled numeric as EMPTY, an
-    // artifact inconsistent with its own numeric-edited receiver ("   ") and QUOTE fill (three quotes).
-    public void SpaceToNumeric_ImageFill_NotNumeric_At85_E2Item1()
+    // Annex E.2 item 1 bullet 1: MOVE of a non-digit ALL literal to a numeric item was permitted through 2014.
+    // Pre-removal semantics (legacy-adjudicated, provisional): the receiver's character image is filled with the
+    // literal's characters at its fixed width (§8.3.3.6.4 GR2; §14.6.8 fixed-width alignment) and the item is then
+    // NOT NUMERIC (§8.8.4.4 — its content is not digits). (SPACE witnessed this until kb/Work PB3605: SPACE into a
+    // numeric item was never permitted, so it has no pre-removal semantics.)
+    public void NonDigitAllToNumeric_ImageFill_NotNumeric_At85_E2Item1()
         => AssertSpec(Program("MVEDB1", "01 W-INT PIC 9(3).", """
-                MOVE SPACE TO W-INT.
+                MOVE ALL "X" TO W-INT.
                 DISPLAY "R[" W-INT "]".
                 IF W-INT IS NUMERIC
                     DISPLAY "C[NUMERIC]"
                 ELSE
                     DISPLAY "C[NOT-NUMERIC]".
-            """), "R[   ]\nC[NOT-NUMERIC]");
+            """), "R[XXX]\nC[NOT-NUMERIC]");
 
     [Fact]
     // QUOTE fill (§8.3.3.6.4 GR8: one or more quotation marks) — the former legacy engine's RUNTIME confirms three
@@ -126,17 +128,17 @@ public sealed class MoveEditionDifferentialTests
             "    MOVE QUOTE TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[\"\"\"]");
 
     [Fact]
-    // A space-filled numeric read in a numeric context decodes deterministically to 0 (§14.6.13.2 — incompatible
-    // data; a non-digit contributes no digit), so ADD 1 yields 001. The former legacy engine agrees end-to-end here.
-    public void SpaceFilledNumeric_DecodesZeroInArithmetic_1461312()
+    // A non-digit-filled numeric read in a numeric context decodes deterministically to 0 (§14.6.13.2 — incompatible
+    // data; a non-digit contributes no digit), so ADD 1 yields 001.
+    public void NonDigitFilledNumeric_DecodesZeroInArithmetic_1461312()
         => AssertSpec(Program("MVEDB3", "01 W-INT PIC 9(3).",
-            "    MOVE SPACE TO W-INT.\n    ADD 1 TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[001]");
+            "    MOVE ALL \"X\" TO W-INT.\n    ADD 1 TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[001]");
 
     [Fact]
-    // A NUMERIC-EDITED receiver is string-backed: the figurative fills its width (legacy-confirmed "   ").
-    public void SpaceToNumericEdited_FillsWidth_At85_E2Item1()
+    // A NUMERIC-EDITED receiver is string-backed: the ALL literal fills its width (§8.3.3.6.4 GR2).
+    public void NonDigitAllToNumericEdited_FillsWidth_At85_E2Item1()
         => AssertSpec(Program("MVEDB4", "01 W-ED PIC ZZ9.",
-            "    MOVE SPACE TO W-ED.\n    DISPLAY \"R[\" W-ED \"]\"."), "R[   ]");
+            "    MOVE ALL \"X\" TO W-ED.\n    DISPLAY \"R[\" W-ED \"]\"."), "R[XXX]");
 
     [Fact]
     // ALL "literal" containing a non-digit → numeric: character repetition to the receiver width (GR2) — the
@@ -148,10 +150,10 @@ public sealed class MoveEditionDifferentialTests
     [Fact]
     // The pre-removal semantics MUST also run at 2023 --permissive (VERSION_TEST_MATRIX_DESIGN §10 #1 — the
     // migration posture preserves pre-removal behavior under the 0902 warning).
-    public void SpaceToNumeric_RunsAt2023Permissive_PreRemovalSemantics()
+    public void NonDigitAllToNumeric_RunsAt2023Permissive_PreRemovalSemantics()
     {
         var (ok, stdout, detail) = RunAt(Program("MVEDB6", "01 W-INT PIC 9(3).", """
-                MOVE SPACE TO W-INT.
+                MOVE ALL "X" TO W-INT.
                 DISPLAY "R[" W-INT "]".
                 IF W-INT IS NUMERIC
                     DISPLAY "C[NUMERIC]"
@@ -159,7 +161,7 @@ public sealed class MoveEditionDifferentialTests
                     DISPLAY "C[NOT-NUMERIC]".
             """), 2023, permissive: true);
         Assert.True(ok, detail);
-        Assert.Equal("R[   ]\nC[NOT-NUMERIC]", stdout);
+        Assert.Equal("R[XXX]\nC[NOT-NUMERIC]", stdout);
     }
 
     // ═══ Item 2 — the 0903 obsolete flag ("move-all-digit-integer-obsolete-2023"; SR5 NOTE / F.2 item 2) ══════
@@ -192,24 +194,24 @@ public sealed class MoveEditionDifferentialTests
 
     // ═══ Item 3 — the 0902 removal gate ("move-alphanumeric-figurative-removed-2023"; SR5 / E.2 item 1) ═══════
 
-    private static string SpaceToNumericSource(string id) => Program(id, "01 W-NUM PIC 9(3).",
-        "    MOVE SPACE TO W-NUM.");
+    private static string HighValueToNumericSource(string id) => Program(id, "01 W-NUM PIC 9(3).",
+        "    MOVE HIGH-VALUE TO W-NUM.");
 
     [Fact]
     // §14.9.25.3 SR5 prohibits the move at 2023 — an error under the strict (default) axis.
-    public void SpaceToNumeric_Error0902_At2023Strict_Sr5()
+    public void HighValueToNumeric_Error0902_At2023Strict_Sr5()
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(SpaceToNumericSource("MVEDD1"), 2023);
+        var (ok, errors, _) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD1"), 2023);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
-        EditionHarness.AssertHasDiagnostic(errors, "MOVE SPACE TO W-NUM");
+        EditionHarness.AssertHasDiagnostic(errors, "MOVE HIGH-VALUE TO W-NUM");
     }
 
     [Fact]
     // Permissive: the removal is a WARNING and the pre-removal semantics are preserved (§10 #1 posture).
-    public void SpaceToNumeric_Warning0902_At2023Permissive()
+    public void HighValueToNumeric_Warning0902_At2023Permissive()
     {
-        var (ok, _, warnings) = EditionHarness.CompileFull(SpaceToNumericSource("MVEDD2"), 2023, permissive: true);
+        var (ok, _, warnings) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD2"), 2023, permissive: true);
         Assert.True(ok);
         EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0902");
     }
@@ -219,9 +221,9 @@ public sealed class MoveEditionDifferentialTests
     [InlineData(2002)]
     [InlineData(2014)]
     // Permitted through 2014 (Annex E.2 item 1 bullet 1 — "not even flagged obsolete in 2014"): silent.
-    public void SpaceToNumeric_Silent_Pre2023(int edition)
+    public void HighValueToNumeric_Silent_Pre2023(int edition)
     {
-        var (ok, _, warnings) = EditionHarness.CompileFull(SpaceToNumericSource("MVEDD3"), edition);
+        var (ok, _, warnings) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD3"), edition);
         Assert.True(ok);
         EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0902");
         EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
@@ -231,8 +233,7 @@ public sealed class MoveEditionDifferentialTests
     [InlineData("QUOTE")]
     [InlineData("HIGH-VALUE")]
     [InlineData("LOW-VALUE")]
-    [InlineData("SPACES")]
-    // Every SR5-listed alphanumeric figurative is gated — including a NUMERIC-EDITED receiver ("to either a
+    // Every SR5-listed alphanumeric figurative whose prohibition is an edition row is gated — including a NUMERIC-EDITED receiver ("to either a
     // numeric item or a numeric-edited item is prohibited").
     public void AlphanumericFigurativeToNumericEdited_Error0902_At2023(string figurative)
     {
@@ -243,6 +244,59 @@ public sealed class MoveEditionDifferentialTests
         var (ok85, _, w85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85);
         EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
+    }
+
+    [Theory]
+    [InlineData(85, "PIC 9(3)", false)]
+    [InlineData(2002, "PIC 9(3)", false)]
+    [InlineData(2014, "PIC 9(3)", false)]
+    [InlineData(2023, "PIC 9(3)", false)]
+    [InlineData(2023, "PIC 9(3)", true)]
+    [InlineData(85, "PIC ZZ9", false)]
+    [InlineData(2014, "PIC ZZ9", true)]
+    [InlineData(2023, "PIC S9V9 COMP", false)]
+    // kb/Work PB3605: SR5's SPACE arm holds at EVERY edition — "The figurative constant SPACE shall not be moved to a
+    // numeric or numeric-edited item" is syntax rule 5 of ISO/IEC 1989:2002 clause 14.8.24.2 and of the 2009 committee
+    // draft, and the 2023 SR5 keeps SPACE on its list ("In all other cases, the move of an alphanumeric figurative
+    // constant (SPACE, …) to either a numeric item or a numeric-edited item is prohibited"). So it is no removal
+    // (no COBOLNET0902, and --permissive does not admit it): the MOVE chain refuses it, COBOLNET0819 naming SR5.
+    public void SpaceToNumeric_Refused0819_AtEveryEdition_Sr5(int edition, string picture, bool permissive)
+    {
+        var source = Program("MVEDS1", $"01 W-N {picture}.", "    MOVE SPACES TO W-N.");
+        var (ok, errors, _) = EditionHarness.CompileFull(source, edition, permissive);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(errors, "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");
+    }
+
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    // §14.9.20.3 SR4 makes INITIALIZE REPLACING's implicit MOVE ask the whole MOVE question, so the SPACE arm reaches
+    // it through the same chain: REPLACING NUMERIC DATA BY SPACE is refused at every edition too (kb/Work PB3605).
+    public void InitializeReplacingNumericBySpace_Refused_AtEveryEdition_Sr5(int edition)
+    {
+        var source = Program("MVEDS2", "01 W-G.\n   05 W-N PIC 9(3).", "    INITIALIZE W-G REPLACING NUMERIC DATA BY SPACE.");
+        var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");
+    }
+
+    [Theory]
+    [InlineData("MOVE SPACE TO W-X.")]
+    [InlineData("MOVE SPACE TO W-N (1:2).")]
+    [InlineData("MOVE SPACE TO W-G.")]
+    [InlineData("MOVE SPACE TO W-A.")]
+    // The SPACE arm's scope boundary at 85: an alphanumeric or alphabetic receiver, a reference-modified view of a
+    // numeric item (an alphanumeric item, §8.4.3.3.4 GR6) and a group (§14.9.25.4 GR4) are none of them numeric.
+    public void SpaceToNonNumeric_NotRefused_At85(string statement)
+    {
+        var source = Program("MVEDS3", "01 W-X PIC X(3).\n01 W-A PIC A(3).\n01 W-N PIC 9(3).\n01 W-G.\n   05 W-GN PIC 9(3).",
+            "    " + statement);
+        var (ok, errors) = EditionHarness.Compile(source, 85);
+        Assert.True(ok, string.Join("\n", errors));
     }
 
     [Fact]
@@ -372,7 +426,7 @@ public sealed class MoveEditionDifferentialTests
     public void MatrixRowSource_MoveFigurative_CompilesStrictPreRemoval(int edition)
     {
         var source = "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVFIG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n"
-            + "01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE SPACE TO W-NUM.\n    STOP RUN.\n";
+            + "01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE HIGH-VALUE TO W-NUM.\n    STOP RUN.\n";
         var (ok, errors) = EditionHarness.Compile(source, edition);
         Assert.True(ok, string.Join("\n", errors));
     }

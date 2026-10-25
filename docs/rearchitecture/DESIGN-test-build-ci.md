@@ -1858,6 +1858,10 @@ Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train
 two driver tests (train 1058;
 `self_tests.py --self-test` 19 s alone, over 120 s twice in that train's first gate).
 
+**The case layout (kb/Work PB3726).** A converted script's self-test is a directory of case files under
+`scripts/selftests/`, found by this runner's rule (b) with no change here; the layout, its collector and its drift test
+are `DESIGN-orchestrator-loop.md` §16.2.
+
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
 **The rule.** A name on PATH is not an interpreter: on the Windows dev box `python3` is the Microsoft Store alias,
@@ -2222,7 +2226,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   each finding that still holds; branch review R1-1, R2-1, R3-1). `capped` is one definition, `review_findings.capped`
+   (the verdict blocked on `BLOCKING_AT_CAP`), and gives each case ONE owner (kb/Work PB3404): a capped verdict's
+   findings are the predecessor's next-wave finisher's and hold the successor until it lands; an uncapped one's are
+   the successor's, whose review answers them, so `carrying_findings` does not hold a successor reviewed CLEAN over a
+   head that contains the verdict's head (`prune_worktrees.review_answers`), and no finisher fixes them twice. Every content problem is a TEAR, and a TORN
    findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
    when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
    holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
@@ -2379,6 +2387,22 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    group's `base_sha` is the head of the group queued ahead of it (run 38360587401's base held entry 1996 before that
    pull request reached main), so the range is this pull request's own change whatever is queued with it.
    `landing_check.py` reads the in-flight branches on purpose, and only locally.
+   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25: "cancelling superseded runs automatically").**
+   When an entry ahead fails or leaves, GitHub rebuilds every group behind it: each entry gets a new merge-group commit
+   and a new run, and the old runs kept running, holding runners under the concurrent-job limit (2026-10-25: after #591
+   was ejected at 20:18Z, runs 40228927401 and 40228888256, later 40230142896, 40230142122 and 40230639741, held
+   runners until cancelled by hand). A `concurrency` group cannot catch them, since each group's ref
+   (`gh-readonly-queue/main/pr-<n>-<base sha>`) is unique. So every merge-group run starts with the `supersede` job (no
+   `needs`): `scripts/orchestrator/cancel_superseded.py` lists the unfinished merge-group runs, THEN reads the head
+   commit of every current queue entry (`queue_facts.live_heads`, the one reader of the queue's facts; in that order,
+   because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
+   whose head commit no entry heads, never its own run and never a live entry's. The replacement groups' runs are
+   created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
+   the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
+   does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
+   superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
+   never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
+   which the queue no longer reads.
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2505,8 +2529,9 @@ demand and not committed.
   construct, sorted, so it merges line by line; separating it is a lead, not part of this change) and `kb/Work.base` (a view
   DEFINITION, a query over the notes).
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
-  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` rows
-  stay hand-written (rare collisions bounce and re-enqueue; measured before any further change).
+  fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
+  (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
+  per determination with a rendered index: the design is `DESIGN-orchestrator-loop.md` §16.8 (kb/Work PB3726, PB3738).
 
 #### 3.17.5 The loop's units and the fleet after this design (PB3023, PB3024, PB3027; DESIGN-orchestrator-loop.md §3, §4.7, §9)
 
@@ -2561,7 +2586,9 @@ demand and not committed.
   cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
   matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
   DEVLOG-entry check runs only on `pull_request` and `merge_group`. `ci-gate`'s `needs:` and its drift check (every job
-  wired) are unchanged.
+  wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
+  `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
+  cancels the runs the queue has replaced (§3.17.2 step 4).
 - A **ruleset** on `main` (classic branch protection has no merge queue, and GitHub offers a merge queue only to an
   ORGANIZATION-owned repository — the second apply, 2026-10-11 18:44, was refused with `Invalid rule 'merge_queue'` on
   the personal account's repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work
@@ -2631,7 +2658,11 @@ carries the `Host` trait). Landed with kb/Work PB3025: `DEVLOG.md` does not exis
 well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm over the repository's own `DEVLOG/`, run
 by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
 (no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
-landing is held to a record of its own tree.
+landing is held to a record of its own tree. Landed with kb/Work PB3769:
+`TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
+with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
+is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+are declared), the supersession rule of §3.17.2 step 4.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 

@@ -169,14 +169,14 @@ performUntilTarget
 performVarying
     : (WITH? TEST (BEFORE | AFTER))?
       VARYING receivingIdentifier FROM valueOperand
-      (BY valueOperand)?    // BY is optional per COBOL-85 spec (default = 1, §14.9.28.4 GR12)
+      (BY valueOperand)?    // §14.9.28.4 GR12: an omitted BY augments by 1; a post-85 form, VCR row 7.42 (ParseArm gate)
       UNTIL performUntilTarget    // EXIT is the superset spelling §14.9.28.3 SR8 refuses at bind
       performVaryingAfter*
     ;
 
 performVaryingAfter
     : AFTER receivingIdentifier FROM valueOperand
-      (BY valueOperand)?    // BY is optional per COBOL-85 spec (default = 1, §14.9.28.4 GR12)
+      (BY valueOperand)?    // §14.9.28.4 GR12: an omitted BY augments by 1; a post-85 form, VCR row 7.42 (ParseArm gate)
       UNTIL performUntilTarget    // EXIT is the superset spelling §14.9.28.3 SR8 refuses at bind
     ;
 

@@ -821,7 +821,8 @@ public static class CobolArgAdapt
     /// which only the activating element knows (<see cref="MoveSending.Approximate"/>, kb/Work PB1606).</summary>
     public static CobolArg WithValueSending(CobolArg arg, Func<string, string>? storageImage = null, bool approximate = false) => arg with
     {
-        Sending = arg.Carrier switch
+        // A cell that stated its own sending operand (SdidiValue) keeps it: its characters are the value's, not the cell's.
+        Sending = arg.Sending ?? arg.Carrier switch
         {
             // storageImage is stated when the value's usage is NATIONAL or BIT (a national or boolean function): its characters
             // are then not its representation, and the compiler names the codec from the value's usage (kb/Work PB3587).
@@ -838,11 +839,48 @@ public static class CobolArgAdapt
 
     /// <summary>The sending operand of an evaluated fixed-point value (<see cref="WithValueSending"/>): its characters and
     /// algebraic value, and its digits as the group-move image (<see cref="CobolNum.GroupDigits"/>, kb/Work PB3613).</summary>
-    private static MoveSending NumericSending(Int128 unscaled, int scale)
+    private static MoveSending NumericSending(Int128 unscaled, int scale, string? characters = null)
     {
-        string characters = CobolNum.FormatFunctionText(unscaled, scale, deSign: true);
+        characters ??= CobolNum.FormatFunctionText(unscaled, scale, deSign: true);
         return new MoveSending(characters, Numeric: true, Unscaled: unscaled, Scale: scale, StorageImage: CobolNum.GroupDigits(characters));
     }
+
+    /// <summary>⛔ AN SDIDI VALUE CROSSES AT ITS OWN EXPONENT, NOT AT A SCALE THE ACTIVATING ELEMENT CHOSE (kb/Work PB3677): the
+    /// <see cref="CobolArg"/> of a BY CONTENT / BY VALUE argument whose value is a <see cref="CobolDec"/> (a STANDARD-DECIMAL
+    /// expression, or a numeric function that returned an SDIDI) and whose formal the activating element cannot see (a Format-1
+    /// CALL, or a program located at run time). §14.2.3 GR9 moves the argument "without conversion" into a record "of the same
+    /// length as the argument" and GR10 / GR9's second regime COMPUTE it into the formal's description "without the ROUNDED
+    /// phrase", so what the callee reads is the value, cut only by ITS formal. The activating element used to land the value at
+    /// 6 fraction digits (<c>ReceiverContext.SdidiLandingScaleFloor</c>), which cut the value BEFORE any formal: the group formal
+    /// of <c>CALL "W" USING BY CONTENT FUNCTION MIN(F 3)</c> with <c>F</c> COMP-2 0.0001 read <c>0000100</c> where the same
+    /// argument to a nested program and <c>MOVE FUNCTION MIN(F 3) TO G</c> store the 24 digits of the value, and the value 2 read
+    /// <c>2000000</c> where they store <c>2</c>.
+    /// <para>The cell is the exact <see cref="Int128"/> carrier at the value's fraction digits (<c>-Exp</c>), capped at the
+    /// carrier's 38 digits <see cref="CobolNum.Rescale"/> can still scale from; a value beyond that cap keeps its
+    /// characters exactly in <see cref="CobolArg.Sending"/>, which is stated here from the value itself
+    /// (<see cref="CobolDec.ToFunctionText"/>, the text a MOVE of the function's value sends) so the cell's cap never shows in
+    /// a character formal. A magnitude the carrier cannot hold at that scale is the §14.7.5 case-5 size error of every
+    /// intermediate landing (<see cref="CobolDec.ToUnscaledIntermediate"/>).</para></summary>
+    public static CobolArg SdidiValue(CobolPassMode mode, CobolDec value, SignEncoding signEncoding)
+    {
+        int scale = Math.Clamp(-value.Exp, 0, SdidiCellScaleCap);
+        Int128 unscaled = value.ToUnscaledIntermediate(scale, CobolRounding.Truncation);
+        var profile = new NumProfile
+        {
+            Digits = SdidiCellScaleCap,
+            FractionDigits = scale,
+            Signed = true,
+            SignKind = NumericSign.TrailingOverpunch,
+            Truncation = NumericTruncation.DigitCount,
+            ByteForm = NumericByteForm.Zoned,
+            SignEncoding = signEncoding,
+        };
+        return new CobolArg(mode, ManagedPointer<Int128>.Cell(unscaled), profile, Sending: NumericSending(unscaled, scale, value.ToFunctionText(deSign: true)));
+    }
+
+    /// <summary>The fraction digits the Int128 cell of <see cref="SdidiValue"/> can carry: the carrier's own 38 digits, the
+    /// widest scale difference <see cref="CobolNum.Rescale"/> divides or multiplies by.</summary>
+    private const int SdidiCellScaleCap = 38;
 
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
     private static bool WriteNumericCell(ManagedPointer p, Int128 v)
