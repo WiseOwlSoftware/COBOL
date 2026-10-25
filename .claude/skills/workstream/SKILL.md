@@ -175,8 +175,12 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
   (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
   `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
-  `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file unless one
-  declares `after:` the other.
+  `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file AND whose
+  member claims on it meet (either has no `member_set` entry for it, so claims it whole, or a member of one matches a
+  member of the other) unless one declares `after:` the other: two groups on different members of one file run side
+  by side (kb/Work PB3670). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
+  give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``), or the planner
+  claims the whole file; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
 
 ⭐ **COMMAND CHAINING — MANDATORY-PRACTICES P14, enforced by the guard hook.** Never chain anything after a verdict
 command (build, test, gate, `enqueue.py land`, battery); capture its status with `; echo "EXIT=$?"` if needed. Independent
