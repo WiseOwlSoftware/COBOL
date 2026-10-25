@@ -381,7 +381,14 @@ PICTURE, …, Truncation, …)` — the one derivation the arithmetic statements
 `PIC S9(5)V9(20)` formal is 0.33333333333333333333, not the receiver-less 6-digit working scale's 0.333333), a nested
 product past the `Int128` carrier is rounded once at the formal's scale (kb/Work PB1900), and an expression into a
 floating-point formal evaluates in binary64 as any COMPUTE into one does (D16). Where `BoundCallArg.Formal` is null
-(GR9's first branch) there is no resultant description and the receiver-less render stands.
+(GR9's first branch) there is no resultant description and the receiver-less render stands - **but an SDIDI value (a
+STANDARD-DECIMAL expression, or a numeric function that returned an SDIDI) is not cut at a scale the activating element
+chose (kb/Work PB3677):** it crosses at its OWN exponent through `CobolArgAdapt.SdidiValue` (`NumericRenderer.SdidiOf` names
+the value; the `Int128` cell holds the value at `-Exp` fraction digits, capped at the carrier's 38, and its `Sending`
+states the value's own characters and digits), so only the formal cuts it: a Format-1 `CALL "W" USING BY CONTENT FUNCTION
+MIN(F 3)` sends the group formal the same digits as `CALL … AS NESTED` and `MOVE` (it sent `0000100` of 0.0001, and `2000000`
+of 2, from the 6-digit floor), and a formal the activation boundary lands by GR9's COMPUTE (a REPOSITORY program-specifier)
+takes `0.333333333333` of 0.3333333333333333 where the floor gave `0.333333000000`.
 
 **When the caller cannot: the activation boundary lands, through the formal's registered carrier (kb/Work
 PB2549).** GR9's FIRST branch — a program with no program-specifier in the activating element's REPOSITORY
