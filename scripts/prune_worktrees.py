@@ -29,7 +29,9 @@ who acts next:
                    lifecycle, contained or not: a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at
                    once (kb/Work PB3381). A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
                    IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings(): read from the findings file's
-                   last verdict, review_findings.last_verdict, never from a report's stamp), and so is every WAITING TO
+                   last verdict, review_findings.last_verdict, never from a report's stamp; a verdict that is not the round
+                   after the last review finisher is the successor's own review's, which releases the branch once it is
+                   CLEAN over that head: review_answers, kb/Work PB3404), and so is every WAITING TO
                    LAND branch a TORN findings file names or that contains a head it names. Only the first kind has a live
                    owner of its own (owned(): what the planner's FINDINGS arm waits on; locked(): its lock-only half, a
                    live agent holding the worktree, which the planner's finisher units wait on, kb/Work PB3653).
@@ -1076,16 +1078,49 @@ def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
     return row.report.lead if row else ''
 
 
+def review_answers(v: dict, r: Row, graph: Ancestry) -> bool:
+    """Does `r`'s own review answer the findings of the reading `v` (kb/Work PB3404)? See findings_answered_by."""
+    return findings_answered_by(v, r.report.review if r.report else None, graph)
+
+
+def answered_by_carrier(findings_review, carrier_review, graph: Ancestry) -> bool:
+    """The planner's side of the same rule (kb/Work PB3404): are the FINDINGS a report's stamp names (`findings_review`,
+    whose findings file is read for its last verdict, the one reader) answered by the CLEAN review of the branch that
+    carries it (`carrier_review`)? Then a finisher of the carried branch would fix again what the carrier's own review
+    and finisher fixed, and the planner plans none."""
+    import review_findings  # noqa: PLC0415  (scripts/orchestrator)
+    if not findings_review or not findings_review.file:
+        return False
+    v = review_findings.last_verdict(pathlib.Path(findings_review.file))
+    return bool(v) and findings_answered_by(v, carrier_review, graph)
+
+
+def findings_answered_by(v: dict, rv, graph: Ancestry) -> bool:
+    """Does the review `rv` (plan_wave.Review, or None) answer the findings of the reading `v` (kb/Work PB3404)? ONE FINDINGS CASE, ONE OWNER
+    (review_findings.capped): a CAPPED verdict (the round after the last review finisher) belongs to its branch's
+    next-wave finisher, which no review of a successor answers; an UNCAPPED one had a review finisher dispatched that
+    came back without answering, and the successor that merged the branch is reviewed over the whole branch, the
+    predecessor's commits as its own (wf_rolling_wave.js predecessorScope, case 'unanswered'), so a CLEAN review of
+    a head that contains the verdict's head answers them. A torn reading answers nothing."""
+    if v['torn'] or v['capped'] or not rv or rv.verdict != 'CLEAN' or not v['head']:
+        return False
+    return any(c.startswith(v['head']) for c in graph.beyond(graph.sha(rv.sha) or rv.sha))
+
+
 def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (), reports: list[Report] = ()) -> None:
     """A WAITING TO LAND branch that carries ANOTHER note's unanswered review findings waits for them (kb/Work PB3381):
     its tip contains, not yet on main, the head at which a branch review's LAST verdict is FINDINGS with blocking
     findings (`findings`: review_findings.unanswered over review_findings.findings_files, the ONE reader the rolling
     wave's predecessorEnd reads too), and that review is of a different note (findings_lead). That is a same-file
     successor of a predecessor whose review ended FINDINGS: at the round cap, or with a review finisher that came back
-    without answering them (BLOCKED, SPLIT, STALLED, killed). The findings belong to the predecessor's next-wave
-    finisher (plan_wave.py plans it), and the successor's own CLEAN stamp says nothing about them: landing it would put
-    them on main. It reads IN FLIGHT, waiting on the branch that review stamped (`waits_on`), and is WAITING TO LAND
-    again once a later round of that review records CLEAN or that head is on main. The FINDINGS file decides, never a
+    without answering them (BLOCKED, SPLIT, STALLED, killed). EACH CASE HAS ONE OWNER (kb/Work PB3404, review_answers):
+    a CAPPED verdict's findings belong to the predecessor's next-wave finisher (plan_wave.py plans it), and the
+    successor's own CLEAN stamp says nothing about them: landing it would put them on main. It reads IN FLIGHT, waiting
+    on the branch that review stamped (`waits_on`), and is WAITING TO LAND again once a later round of that review
+    records CLEAN or that head is on main. An UNCAPPED verdict's findings belong to the SUCCESSOR's review, which the
+    wave told to cover the predecessor's commits as its own, so a successor CLEAN over a head that contains the
+    verdict's head is not held: waiting for the predecessor's finisher to fix again what the successor's finisher fixed
+    held finished work behind the slower of the two. The FINDINGS file decides, never a
     report's stamp (review R3-1): a review finisher rewrites the group's one report for its own branch with no Review
     line whatever it returns, so a hold read from the stamp released the successor exactly when nobody had answered
     them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands.
@@ -1112,7 +1147,7 @@ def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (
             continue
         unlanded = graph.beyond(r.tip)
         hit = next(((v, lead, names) for v, lead, names, heads in holds
-                    if (v['torn'] or not (lead and lead == r.report.lead))
+                    if (v['torn'] or not (lead and lead == r.report.lead)) and not review_answers(v, r, graph)
                     and (r.name in names or any(c.startswith(h) for h in heads for c in unlanded))), None)
         if not hit:
             continue
@@ -1750,7 +1785,7 @@ def self_test() -> int:
                     review_findings.finding(path, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'correctness',
                                                                  'summary': 's', 'severity': sev, 'failure_scenario': 'x'}))
                 review_findings.verdict(path, k, review_findings.BLOCKING_AT_CAP if k == cap else review_findings.BLOCKING_DEFAULT)
-        review_file(fscratch / 'w9997' / 'review-w9997-c.jsonl', [('xpred', tips['xpred'], ['high'])])
+        review_file(fscratch / 'w9997' / 'review-w9997-c.jsonl', [('xpred', tips['xpred'], ['high'])], cap=1)
         review_file(fscratch / 'review-w9998-o.jsonl', [('fnd-pred', tips['fnd-pred'], ['high'])])
         review_file(fscratch / 'w9996' / 'review-w9996-a.jsonl', [('rpred', tips['rpred'], ['high', 'low'])])
         review_file(fscratch / 'w9995' / 'review-w9995-a.jsonl', [('pred', tips['pred'], ['high']), ('pred', tips['pred'], [])])
@@ -1797,7 +1832,7 @@ def self_test() -> int:
                 'discharged-empty': 'DECISION', 'no-head': 'WAITING TO LAND', 'no-head-bare': 'DECISION',
                 'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
-                'rpred': 'IN FLIGHT', 'rpred-fix': 'IN FLIGHT', 'rsucc': 'IN FLIGHT',
+                'rpred': 'IN FLIGHT', 'rpred-fix': 'IN FLIGHT', 'rsucc': 'WAITING TO LAND',
                 'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT',
                 'gpred': 'IN FLIGHT', 'gsucc': 'DECISION', 'hpred': 'IN FLIGHT', 'hsucc': 'WAITING FOR REVIEW',
                 'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION',
@@ -1914,12 +1949,35 @@ def self_test() -> int:
         check((rows['xsucc'].waits_on, 'carries xpred (PB32)' in rows['xsucc'].why, rows['xpred'].carrier)
               == ('xpred', True, 'xsucc'),
               f'a successor carrying its predecessor\'s unanswered FINDINGS waits on it: {rows["xsucc"].why}')
-        # review R3-1: the hold is read from the FINDINGS FILE. rpred's finisher came back BLOCKED with no commit and
-        # rewrote the report for its own branch with no Review line; rsucc still carries rpred's unanswered findings
-        check((rows['rsucc'].waits_on, 'carries rpred (PB40)' in rows['rsucc'].why,
-               'review-w9996-a.jsonl' in rows['rsucc'].why, rows['rpred'].carrier) == ('rpred', True, True, 'rsucc'),
-              f'a successor whose predecessor\'s finisher rewrote the report and committed nothing still waits on the '
-              f'findings file\'s last verdict: {rows["rsucc"].why}')
+        # review R3-1: the hold is read from the FINDINGS FILE, never a report's stamp: rpred's finisher came back BLOCKED
+        # with no commit and rewrote the report for its own branch with no Review line, so no report shows the findings
+        # any more. kb/Work PB3404, ONE OWNER PER CASE: rpred's verdict is UNCAPPED (a review finisher followed it), so
+        # rsucc's own review, CLEAN over a head that contains rpred's, answers it and rsucc lands; xsucc's predecessor
+        # ended CAPPED (no finisher followed), whose findings belong to xpred's next-wave finisher, so xsucc waits
+        # (above). review_answers pins the rule at each of its edges.
+        check((rows['rsucc'].waits_on, rows['rsucc'].carrier, rows['rpred'].carrier, 'the landing lane lands it' in rows['rsucc'].why)
+              == ('', '', 'rsucc', True),
+              f'a successor CLEAN over its predecessor\'s UNCAPPED findings is not held: {rows["rsucc"].state} {rows["rsucc"].why}')
+        graph_now = branch_graph([r.tip for r in rows.values() if r.tip], repo)
+        uncapped = {'torn': '', 'capped': False, 'head': tips['rpred']}
+        check([review_answers(v, rows[b], graph_now) for v, b in (
+                  (uncapped, 'rsucc'), ({**uncapped, 'capped': True}, 'rsucc'), ({**uncapped, 'torn': 'cut'}, 'rsucc'),
+                  ({**uncapped, 'head': tips['xpred']}, 'rsucc'), ({**uncapped, 'head': ''}, 'rsucc'),
+                  (uncapped, 'rpred'), (uncapped, 'orphan'))]
+              == [True, False, False, False, False, False, False],
+              'review_answers: only an uncapped, untorn verdict whose head the row\'s CLEAN review contains is answered')
+        # the planner's side reads the same rule from the findings file itself (answered_by_carrier): rpred's uncapped
+        # file is answered by rsucc's CLEAN review, xpred's capped one is not, a stamp naming no file answers nothing
+        import plan_wave  # noqa: PLC0415
+        stamp_of = lambda b, f: plan_wave.Review('FINDINGS', 1, 'w-self-test', tips[b], str(f) if f else None)  # noqa: E731
+        rs_review = rows['rsucc'].report.review
+        check([answered_by_carrier(stamp_of('rpred', fscratch / 'w9996' / 'review-w9996-a.jsonl'), rs_review, graph_now),
+               answered_by_carrier(stamp_of('xpred', fscratch / 'w9997' / 'review-w9997-c.jsonl'), rows['xsucc'].report.review,
+                                   graph_now),
+               answered_by_carrier(stamp_of('rpred', None), rs_review, graph_now),
+               answered_by_carrier(stamp_of('rpred', fscratch / 'w9996' / 'review-w9996-a.jsonl'), None, graph_now)]
+              == [True, False, False, False],
+              'answered_by_carrier: the planner reads the findings file\'s last verdict through the survey\'s rule')
         # review R4-1, R5-1: a torn file holds every branch it names and every branch containing a head it names. tpred's
         # file is torn by a round-4 append after its capped round 3, so tsucc is HELD (never WAITING TO LAND), and its
         # why names the tear and the repair
@@ -1947,7 +2005,7 @@ def self_test() -> int:
         # its records' verdict (round 1 CLEAN: tsucc lands; round 2 FINDINGS: held).
         kept = tfile.read_bytes()
 
-        def body(name: str, rounds: list[tuple[str, list[str]]], then: bytes = b'') -> bytes:
+        def body(name: str, rounds: list[tuple[str, list[str]]], then: bytes = b'', capped_at: int = 0) -> bytes:
             p = tmp / 'cuts' / f'review-{name}.jsonl'
             for k, (summary, severities) in enumerate(rounds, 1):
                 review_findings.start(p, k, 'tpred', tips['tpred'], f'w-cut-r{k}')
@@ -1955,10 +2013,10 @@ def self_test() -> int:
                     review_findings.finding(p, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'c', 'severity': sev,
                                                               'summary': summary, 'failure_scenario': 'x'},
                                                              ensure_ascii=False))
-                review_findings.verdict(p, k)
+                review_findings.verdict(p, k, review_findings.BLOCKING_AT_CAP if k == capped_at else review_findings.BLOCKING_DEFAULT)
             return p.read_bytes() + then
 
-        two = body('two', [('s', []), ('s', ['high'])])
+        two = body('two', [('s', []), ('s', ['high'])], capped_at=2)
         glued = json.dumps({'kind': 'start', 'round': 3, 'branch': 'tpred', 'head': tips['tpred'],
                             'reviewer': 'w-cut-r3'}).encode() + b'\n'
         sect = json.dumps({'kind': 'finding', 'round': 2, 'summary': '§14.9 wrong'}, ensure_ascii=False).encode()
@@ -1969,7 +2027,11 @@ def self_test() -> int:
                     {'kind': 'start', 'round': 2, 'branch': 'tpred', 'head': tips['tpred'], 'reviewer': 'w-cut-r2'}).encode()
                  + b'\n' + sect[:sect.index('§'.encode()) + 1], 'IN FLIGHT', True),
                 ('at a record boundary after round 1 CLEAN', one, 'WAITING TO LAND', False),
-                ('at a record boundary after round 2 FINDINGS', two, 'IN FLIGHT', False),
+                ('at a record boundary after a CAPPED round 2 FINDINGS', two, 'IN FLIGHT', False),
+                # kb/Work PB3404: the same cut after an UNCAPPED round 2 (a review finisher followed it): tsucc's own
+                # CLEAN review answers it
+                ('at a record boundary after an UNCAPPED round 2 FINDINGS', body('uncapped', [('s', []), ('s', ['high'])]),
+                 'WAITING TO LAND', False),
                 # review R6-1: discovery is BY NAME, so a file the survey cannot read, or whose first line is no record,
                 # is still listed and read TORN. Each is made at the file's FIRST read (where the round-5 discovery
                 # opened it and dropped it): a BOM (an operator's hand edit through Windows PowerShell 5.1), a read
@@ -2190,8 +2252,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 72 · 22 in flight · 6 waiting for review · '
-                                                      '11 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 72 · 21 in flight · 6 waiting for review · '
+                                                      '12 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
