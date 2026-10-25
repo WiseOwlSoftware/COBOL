@@ -1,4 +1,4 @@
-## The fix lane's group cap is 4 notes, and the turns measurement behind it now counts every report (PB3704, PB3711)
+## Entry 2533 — 2026-10-25 10:34 PDT — The fix lane's group cap is 4 notes, and the turns measurement behind it now counts every report (PB3704, PB3711)
 
 Two notes, one root: `scripts/orchestrator/model_rules.json` and `scripts/orchestrator/turns_by_group_size.py`.
 
@@ -25,3 +25,4 @@ self-tests pass at 4 (`test_plan_wave.py` 425 checks). The 400-turn cap (PB3701)
 stay their own notes; PB3718 was blocked on this one and is unblocked.
 
 No diagnostic code was used. Gate: see the checkpoint that follows.
+
