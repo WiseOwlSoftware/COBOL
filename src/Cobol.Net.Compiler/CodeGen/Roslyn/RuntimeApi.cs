@@ -1017,7 +1017,9 @@ internal static class RuntimeApi
     /// <summary>⛔ THE BOOLEAN-receiver store (§14.6.8.6 — "after any necessary conversion", boolean-ZERO pad, explicit
     /// justification) — <c>CobolBool.Store</c>: each sending character converts to a boolean position ('1' to one, every
     /// other character to zero, determination D-B5, kb/Work PB3666) and the result is fitted with boolean zeros. Every
-    /// emitter that stores into a boolean item asks THIS, so no store can leave a non-boolean character in one.</summary>
+    /// emitter that stores CHARACTERS into a boolean item asks THIS. Content it does not reach stays undefined
+    /// (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver's byte image (GR4 has no conversion) and a
+    /// REDEFINES view of other storage.</summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Store)}({value}, {width}, justifiedRight: {(justifiedRight ? "true" : "false")})";
 

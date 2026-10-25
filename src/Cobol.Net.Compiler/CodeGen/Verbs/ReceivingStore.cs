@@ -32,10 +32,13 @@ internal static class ReceivingStore
     public static string Characters(DataItem target, string sendingChars, string width) =>
         target.IsDynamicLength
             ? RuntimeApi.DynStore(sendingChars, target.DynMaxSize.ToString())
-            // A USAGE DISPLAY boolean receiver's storage area IS its boolean characters, so the area a GR4 group move
-            // fits takes the boolean store: converted, zero filled — never space filled (§14.6.8.6; D-B5, kb/Work
-            // PB3666). A USAGE BIT receiver's area is its packed BYTES (StorageBytes), which are never characters.
-            : target.OperandPic is { Category: PicCategory.Boolean, Usage: not Usage.Bit }
+            // A USAGE DISPLAY boolean receiver's storage area IS its boolean characters (StorageCharacters' pass-through
+            // arm), so the area a GR4 group move fits takes the boolean store: converted, zero filled, never space
+            // filled (§14.6.8.6; D-B5, kb/Work PB3666). A USAGE BIT receiver's area is its packed BYTES and a USAGE
+            // NATIONAL one's its UTF-16BE pairs (StorageBytes): neither is characters, and converting the bytes as
+            // characters turned a national N"101" group image into three CJK characters (PB3666 review R1-1), so they
+            // keep the byte fit.
+            : target.OperandPic is { Category: PicCategory.Boolean, Usage: Usage.Display }
                 ? RuntimeApi.StrStoreBoolean(sendingChars, width, target.Justified)
                 : RuntimeApi.StrStoreAligned(sendingChars, width, target.Justified);
 

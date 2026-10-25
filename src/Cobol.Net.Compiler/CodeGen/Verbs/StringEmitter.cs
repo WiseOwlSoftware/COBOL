@@ -424,9 +424,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // stage here could only fire on LEGAL source and mislabel it an SR1 violation (kb/Work PB1179: the national
         // and the USAGE DISPLAY boolean receiver both did).
         // The characters a USAGE DISPLAY boolean receiver takes are converted to boolean positions first ('1' to one,
-        // every other character to zero — D-B5, kb/Work PB3666), exactly as a MOVE's are: GR3 a) transfers them "in
-        // accordance with the MOVE statement rules". The image carries every untouched position (GR7), already
-        // boolean, so converting the whole image changes only what this statement wrote.
+        // every other character to zero — D-B5, kb/Work PB3666), exactly as a MOVE's are. The authority is D-B5, not
+        // GR3 a): that rule transfers the characters "in accordance with the MOVE statement rules for
+        // alphanumeric-to-alphanumeric moves" (which do not convert), so the conversion of content the standard leaves
+        // undefined (§14.6.13.2 1)) is the implementor's choice, made once for every store into a boolean item. The
+        // image carries every untouched position (GR7), already boolean, so converting the whole image changes only
+        // what this statement wrote.
         w.Line(PlaceRenderer.Write(p, p.Item.OperandPic is { Category: PicCategory.Boolean }
             ? RuntimeApi.BoolFromCharacters(imageExpr) : imageExpr));
     }

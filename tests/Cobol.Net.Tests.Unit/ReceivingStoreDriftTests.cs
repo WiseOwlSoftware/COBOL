@@ -100,6 +100,9 @@ public sealed class ReceivingStoreDriftTests
         Assert.Contains("nameof(CobolBool.FromCharacters)", runtimeApi);
         string verbs(string f) => File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", f));
         Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("ReceivingStore.cs"));      // a GR4 group move into a USAGE DISPLAY boolean item
+        // ...and ONLY a USAGE DISPLAY one: a national boolean's area is UTF-16BE pairs and a BIT one's packed bytes, which
+        // are not characters to convert (review R1-1: N"101" became three CJK characters). Golden: the L12 line.
+        Assert.Contains("{ Category: PicCategory.Boolean, Usage: Usage.Display }", verbs("ReceivingStore.cs"));
         Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("MoveEmitter.cs"));         // the elementary MOVE
         Assert.Contains("RuntimeApi.BoolFromCharacters(", verbs("StringEmitter.cs"));    // STRING into a USAGE DISPLAY boolean item
         Assert.Contains("RuntimeApi.BoolFromCharacters(",
