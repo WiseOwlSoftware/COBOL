@@ -212,7 +212,8 @@ public static class ActivationDescriptions
     /// asked of, at bind time (<c>ParameterConformance.ContentConformanceReason</c>) and at run time alike: a nonnumeric literal is its category's Table 16 row; a
     /// numeric literal (and a BY VALUE literal bound as an expression, §14.9.4.4 GR8) the numeric row of its own digits;
     /// a figurative constant or an ALL literal an alphanumeric value of any category, ZERO also a numeric COMPUTE sender
-    /// (§8.8.1.1), and the two §14.9.25.3 SR6 / SR7 read apart (ZERO; an ALL literal of boolean characters); a
+    /// (§8.8.1.1), and the §14.9.25.3 SR5 / SR6 / SR7 senders read apart (SPACE; ZERO; an ALL literal of boolean
+    /// characters); a
     /// intrinsic function its §15.2 type's row, a numeric one a value a MOVE sends whose digits a plain-group formal takes
     /// (kb/Work PB3613); an arithmetic expression a numeric value with no character image, which is no MOVE sender, of the
     /// noninteger row (it carries no compile-time integer guarantee, kb/Work PB1946); NULL a SET sender only. Null for a
@@ -220,12 +221,10 @@ public static class ActivationDescriptions
     public static ActivationDescription? OfValue(BoundOperand value) => value switch
     {
         BoundPredefinedNull => new ActivationDescription { Shape = ActivationShape.PredefinedNull },
-        BoundFigurative f => Value(ActivationShape.Literal,
-            f.Kind == 'Z' ? ActivationCategory.FigurativeZero : ActivationCategory.Figurative, Table16Category.None),
-        // §14.9.25.3 SR7 reads an ALL literal's characters: one of '0' and '1' only may move to a boolean receiver.
-        BoundAllLiteral all => Value(ActivationShape.Literal,
-            MoveTable16.HasBooleanCharacters(all) ? ActivationCategory.FigurativeBoolean : ActivationCategory.Figurative,
-            Table16Category.None),
+        // §14.9.25.3 SR5 / SR6 / SR7 read the sender apart (SPACE, ZERO, an ALL literal of '0' and '1' only): the ONE
+        // reader MoveTable16.FigurativeSenderOf, so the run-time relation asks the rules the bound MOVE asks.
+        BoundFigurative or BoundAllLiteral => Value(ActivationShape.Literal,
+            ActivationCategory.OfFigurative(MoveTable16.FigurativeSenderOf(value)), Table16Category.None),
         BoundStringLiteral s => Value(ActivationShape.Literal, CategoryName(s.Category), MoveTable16.SenderPosition(s).Heading),
         BoundNumericLiteral n => Value(ActivationShape.Literal, ActivationCategory.Numeric, MoveTable16.SenderPosition(n).Heading),
         BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } text =>
