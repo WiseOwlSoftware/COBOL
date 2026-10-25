@@ -520,8 +520,9 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
       review_clean  the `at` of the CLEAN verdict the newest report naming the branch is stamped with: the findings
                     file's verdict record with that reviewer and head (review_findings.findings_files; a torn file is
                     skipped, review_findings.load refuses it).
-    A stamp that would break the order a landing passes (dispatched after `done`, review_clean before `done` or after
-    `enqueued`) is None: a missing observation, never a guessed one."""
+    A stamp that would break the order a landing passes (review_clean before `done` or after `enqueued`, dispatched
+    after any later stamp) is None: a missing observation, never a guessed one, and never a record `validate` refuses
+    (enqueue.py would then write no record at all)."""
     import plan_wave  # noqa: PLC0415  (THE report and dispatch-ledger reader)
     import review_findings  # noqa: PLC0415  (THE findings-file reader)
     reps = plan_wave.load_reports(reports_dir)
@@ -531,8 +532,6 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
     ats = [g["at"] for g in plan_wave.ledger_groups(coord_dir)
            if plan_wave.ledger_slug(g) in slugs and isinstance(g.get("at"), (int, float))]
     dispatched = dt.datetime.fromtimestamp(min(ats)).astimezone().isoformat(timespec="seconds") if ats else None
-    if dispatched and done and iso_time(dispatched) > iso_time(done):
-        dispatched = None
     clean = None
     stamp = next((r.review for r in reversed(mine) if r.review and r.review.verdict == "CLEAN"), None)
     if stamp:
@@ -548,6 +547,8 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
                 break
     if clean and ((done and iso_time(clean) < iso_time(done)) or iso_time(clean) > iso_time(enqueued)):
         clean = None
+    if dispatched and iso_time(dispatched) > min(iso_time(x) for x in (done, clean, enqueued) if x):
+        dispatched = None
     return {"dispatched": dispatched, "review_clean": clean}
 
 
