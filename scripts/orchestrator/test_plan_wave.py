@@ -547,7 +547,7 @@ for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", Tru
     rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
                                 tip=_dr_tips[b])
             for b, lead, st in (("worktree-wf_dr-2", "PB7", carrier_state), ("worktree-wf_dr-5", "PB79", "DECISION"))]
-    prune_worktrees.contained(rows, _dr_graph)
+    prune_worktrees.contained(rows, _dr_graph, [], None)
     survey_owned = prune_worktrees.owned(rows)
     pr = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
                  budget_points=100, carrier=DR_CARRIER.get, owned=survey_owned)
@@ -2360,6 +2360,111 @@ lone = pw.plan(notes, [cl(F_EMIT, "PB7")], [], [], lambda b: "UNLANDED", {"b-1":
 check("PB3170 x PB2974: a report-less branch partly replayed is ONE finisher naming only its fresh commits",
       [(g.continues, "cherry-pick ONLY" in g.pred, "012345678" in g.pred) for g in lone["groups"]],
       [(["b-1"], True, True)])
+
+# PB3653: A LIVE AGENT'S LOCK HOLDS A BRANCH'S UNIT, a touch alone does not (prune_worktrees.locked is the lock-only half of
+# `owned`). A hand-started agent on a SPLIT branch leaves no ledger entry, so the dispatch hold (6d above) cannot see it.
+LK = "worktree-wf_un-1"   # w1053b's branch (6d): SPLIT report, notes PB301 and PB303 (PB302 is w1055a's, on another branch); nothing is held
+for drain in (False, True):
+    mode = "drain" if drain else "normal"
+    lk = pw.plan(UN_NOTES, UN_CL, [], pw.load_reports(UN_REPORTS, UN), lambda b: "UNLANDED", {}, RULES,
+                 budget_points=100, drain=drain, locked={LK})
+    check(f"PB3653 {mode}: a SPLIT branch whose worktree a live agent LOCKS gets no finisher for any of its notes",
+          [g.notes for g in lk["groups"] if {"PB301", "PB303"} & set(g.notes)], [])
+    check(f"PB3653 {mode}: ... each note waits naming the branch and the lock",
+          [("locked by a live agent" in lk["waiting"].get(i, "") and LK in lk["waiting"].get(i, ""))
+           for i in ("PB301", "PB303")], [True, True])
+    own = pw.plan(UN_NOTES, UN_CL, [], pw.load_reports(UN_REPORTS, UN), lambda b: "UNLANDED", {}, RULES,
+                  budget_points=100, drain=drain, owned={LK})
+    check(f"PB3653 {mode}: a branch merely OWNED (a touch inside --min-age, the state of one whose agent just returned) "
+          "is still finished: only a lock or a dispatch holds the SPLIT arm",
+          [(g.notes, g.continues) for g in own["groups"] if "PB301" in g.notes], [(["PB301", "PB303"], [LK])])
+check("PB3653: another branch's lock holds nothing here",
+      [g.notes for g in pw.plan(UN_NOTES, UN_CL, [], pw.load_reports(UN_REPORTS, UN), lambda b: "UNLANDED", {}, RULES,
+                                budget_points=100, locked={"worktree-wf_other-1"})["groups"] if "PB301" in g.notes],
+      [["PB301", "PB303"]])
+lk_ub = pw.plan(UN_NOTES, UN_CL, [], [], lambda b: "UNLANDED", UB, RULES, budget_points=100, locked={"worktree-wf_ub-1"})
+check("PB3653: ... and an unlanded branch with no report is held by its lock too (one hold loop for every arm)",
+      ([g.notes for g in lk_ub["groups"] if {"PB311", "PB312", "PB313"} & set(g.notes)],
+       ["locked by a live agent" in lk_ub["waiting"].get(i, "") for i in ("PB311", "PB312", "PB313")]),
+      ([], [True, True, True]))
+
+# PB3653's residual: two DIFFERENT unfinished reports about one branch are one finisher group, the newest report's. A
+# note is decided by its newest report, so PB5's (w1090a) and PB6's (w1090b) both name the branch, and they planned two.
+TWO = TMP / "reports-two-on-one"
+TWO.mkdir()
+for slug, lead, when in (("w1090a", "PB5", 1_000_000_000), ("w1090b", "PB6", 1_000_003_600)):
+    q = TWO / f"{slug}-{lead}-report.md"
+    q.write_text(f"SPLIT\n# {lead} group\n**Status:** SPLIT · **branch:** `worktree-two-1` · **HEAD:** `7777777aa`\n\n"
+                 "## Reproduced?\n", encoding="utf-8", newline="\n")
+    os.utime(q, (when, when))
+two_on_one = pw.plan(notes, [cl(F_BIND, "PB5", "PB6")], [], pw.load_reports(TWO), lambda b: "UNLANDED", {}, RULES,
+                     budget_points=100)
+check("PB3653: two unfinished reports about one branch plan ONE finisher over it, naming the newest report",
+      [(g.kind, sorted(g.notes), g.continues, "w1090b" in g.pred) for g in two_on_one["groups"]],
+      [("finisher", ["PB5", "PB6"], ["worktree-two-1"], True)])
+
+# PB3476: THE COMMIT A REPORT DESCRIBES is its header's HEAD, else the head its review stamp names; the one parser
+# (parse_report) is read by the branch survey, the landing lane and the landing measure.
+HD = TMP / "reports-head"
+HD.mkdir()
+STAMP = "**Review:** CLEAN w1136c-review-r1 bf1cfafc7981"
+
+
+def head_of(name, header):
+    q = HD / name
+    q.write_text(header + "\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+    return pw.parse_report(q).head
+
+
+check("PB3476: a HEAD field that gives no sha ('see the trailing commit') takes the head of the review stamp",
+      head_of("w1136c-PB3471-report.md",
+              f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-1\n**HEAD:** see the trailing commit (code at `ac4f3be8`)\n"),
+      "bf1cfafc7981")
+check("PB3476: ... a header with a HEAD sha keeps it, the stamp notwithstanding",
+      head_of("w1136d-PB3472-report.md", f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-2\n**HEAD:** 1234567abc\n"),
+      "1234567abc")
+check("PB3476: ... and a header with neither describes no commit",
+      head_of("w1136e-PB3473-report.md", "Status: DONE\n**Branch:** worktree-x-3\n**HEAD:** see the trailing commit\n"),
+      None)
+
+
+# PB3474: THE NEVER-WORK RULE HAS ONE HOME, coord.NEVER_WORK (coord.is_work, coord.NEVER_WORK_PATHSPECS). A module that
+# tests a path against STATUS.md, TestResults/ or the settings file in its own way is a second copy of it: prune_worktrees'
+# classify() kept one (with a `tools/` exclusion NEVER_WORK lacks, which hid every file added under tools/), and
+# impacted_tests.changed_files another.
+def never_work_copies(sources):
+    """The modules (not coord.py, the owner, nor a test file: its fixtures name these paths) that compare a path with
+    one of coord.NEVER_WORK's entries or test its prefix by hand."""
+    shape = re.compile(r"""startswith\(\s*\(?\s*['"](?:TestResults/|STATUS\.md)"""
+                       r"""|[!=]=\s*['"](?:STATUS\.md|\.claude/settings\.local\.json)['"]"""
+                       r"""|['"](?:STATUS\.md|\.claude/settings\.local\.json)['"]\s*[!=]=""")
+    return sorted(p for p, t in sources.items() if p != "scripts/orchestrator/coord.py"
+                  and not pathlib.PurePosixPath(p).name.startswith("test_") and shape.search(t))
+
+
+check("PB3474: no module outside coord.py tests a path against coord.NEVER_WORK by hand", never_work_copies(TREE), [])
+check("PB3474: the scan fails on the planted shapes of the old copies",
+      never_work_copies({"scripts/a.py": "f for f in names if not f.startswith(('TestResults/', 'tools/')) and f != 'STATUS.md'",
+                         "scripts/b.py": "{p for p in out if p and p != \"STATUS.md\"}",
+                         "scripts/c.py": "if path == '.claude/settings.local.json': continue",
+                         "scripts/orchestrator/coord.py": "p == 'STATUS.md'", "scripts/test_d.py": "p != 'STATUS.md'",
+                         "scripts/e.py": "(repo / 'STATUS.md').write_text(x)"}),
+      ["scripts/a.py", "scripts/b.py", "scripts/c.py"])
+
+
+# PB3652: ONE RULE FOR WHO CARRIES WHOM. The planner's branch_replays and the survey's contained() read the same
+# function (prune_worktrees.replay_view); a second call of `replays` from anywhere else is a second reading of its inputs.
+def replay_callers(sources):
+    shape = re.compile(r"\breplays\(")
+    return sorted(p for p, t in sources.items() if p != "scripts/prune_worktrees.py"
+                  and not pathlib.PurePosixPath(p).name.startswith("test_") and shape.search(t))
+
+
+check("PB3652: only prune_worktrees calls `replays` (the planner and the survey go through replay_view)",
+      replay_callers(TREE), [])
+check("PB3652: the scan fails on a planted direct call",
+      replay_callers({"scripts/orchestrator/x.py": "prune_worktrees.replays(branches, carriers, rank, graph)"}),
+      ["scripts/orchestrator/x.py"])
 
 for f in fails:
     print("FAIL:", f)

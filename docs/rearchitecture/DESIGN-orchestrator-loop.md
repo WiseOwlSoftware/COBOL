@@ -488,7 +488,10 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
    head" and the survey agree), exit 0 at the tip reads ENQUEUED, and only a tip with no attempt, a running one or a
    retryable one (exit 3, 2, 9, 8, or a re-arm) reads WAITING TO LAND. A STOPPED branch carries the predecessors it
    contains that have no clean stamp at their tips (they read IN FLIGHT); a predecessor reviewed CLEAN keeps its own
-   state and lands on its own (kb/Work PB3381). A report that names no HEAD, or that a later non-mechanical commit outdates, is a
+   state and lands on its own (kb/Work PB3381). The commit a report describes is its header's HEAD, else the head its
+   review stamp names (`plan_wave.parse_report`, the one reader: the reviewer stamps the head it reviewed, so a header whose
+   HEAD gives no sha, "see the trailing commit", no longer strands a branch reviewed CLEAN at its tip, kb/Work PB3476).
+   A report that names neither, or that a later non-mechanical commit outdates, is a
    DECISION with that evidence: its author rewrites it. The rolling wave asks the same predicate before it reviews a
    return (`plan_wave.py --finished <report>`, through one mechanical `cobol-locator`, since a workflow script runs no
    process), and `review_findings.py stamp` refuses an unfinished report.
@@ -792,7 +795,11 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    continues ONE branch, so when an unanswered dispatch holds any note of a SPLIT or FINDINGS report, or of an
    unlanded branch whose commit subjects name several, every other note of that branch waits with the
    holder named (`plan()` after the held loop; the unit is keyed by the BRANCH, so a half note, a report's notes and
-   the unreported notes its branch carries hold together). Wave 1056's first plan, with a dispatch recorded for only some of each
+   the unreported notes its branch carries hold together; and two DIFFERENT unfinished reports about one branch are
+   one group, the newest report's: kb/Work PB3653). A live agent's LOCK on the branch's worktree holds the unit
+   exactly as a dispatch does (`prune_worktrees.locked`, the lock-only half of `owned`; a hand-started agent leaves no
+   ledger entry), while a touch inside `--min-age` alone holds nothing, because it is how a branch reads for three
+   hours after its agent has just returned. Wave 1056's first plan, with a dispatch recorded for only some of each
    wave-1053 branch's notes, made three more finishers that cherry-picked the branches wave 1055's finishers were
    finishing. An unlanded branch's finisher is one group whatever the cap, as a report's is, so the notes past the cap
    are never planned a second time as clusters beside it; a half note on an unlanded branch is that branch's finisher
@@ -866,7 +873,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    link of a successor chain) that replays the most of it (a tie: the later report), or wait while that branch has none. A branch replayed only in part keeps its finisher, whose `pred` names the commits no other
    branch holds. The unlanded-branch arm (c) and the half-note arm read the same rule. A branch a kb/Work note records
    ABANDONED (`prune_worktrees.abandon_records`, the survey's matcher) is never planned from: its reports and notes are
-   not read. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   not read. The branch SURVEY reads the same rule (kb/Work PB3652): `replay_view` builds `replays`' inputs for both
+   readers, and `prune_worktrees.contained` lists an unfinished (`SPLIT`, `NOT STARTED`) branch that another branch
+   replays, or that a branch IN FLIGHT, waiting or `STOPPED` contains, as carried (`IN FLIGHT`, its row naming the
+   carrier), never as a `DECISION` row beside the carrier the planner already plans from. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
