@@ -927,7 +927,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         };
         if (bound is BoundExprError) return null;   // the identifier's own binder reported
         string text = DataBinder.WrittenText(syntax);
-        var operand = IntrinsicBinder.OperandOf(bound);
+        var operand = IntrinsicBinder.OperandOf(bound, functionValue: syntax is Core.FunctionCallContext);
         if (operand is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National } folded)
             return (folded.Value, null);
         Place? place = operand is BoundFieldOperand f ? f.Place

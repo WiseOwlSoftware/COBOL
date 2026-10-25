@@ -92,6 +92,11 @@ public sealed record BoundInvokeArg(
     /// </remarks>
     public BoundExpr? ContentExpr { get; init; }
 
+    /// <summary>True when <see cref="ContentExpr"/> is a sole FUNCTION-IDENTIFIER's value rather than an arithmetic expression
+    /// (<see cref="BoundComputedOperand.FunctionValue"/>): a MOVE sender (§14.9.25.4 GR1) that crosses into a plain-group formal
+    /// as the digits GR4's move stores (kb/Work PB3613).</summary>
+    public bool ContentFunctionValue { get; init; }
+
     /// <summary>A BY CONTENT <b>boolean-expression-1</b> argument (ISO §14.9.23.2; fix-queue PB46) — the third
     /// operand shape the format's BY CONTENT branch admits, and the one BY VALUE deliberately does not.</summary>
     /// <remarks>

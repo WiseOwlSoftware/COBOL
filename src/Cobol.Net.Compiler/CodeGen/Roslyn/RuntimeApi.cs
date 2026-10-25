@@ -104,6 +104,11 @@ internal static class RuntimeApi
     public static string NumFormatFunctionText(string value, int scale, bool deSign, bool commaMode) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatFunctionText)}({value}, {scale}{FunctionTextFlags(deSign, commaMode, ", ")})";
 
+    /// <summary>The DIGITS-ONLY characters a numeric value's text sends to a group - <c>CobolNum.GroupDigits</c> (ISO §14.9.25.4 GR4;
+    /// kb/Work PB3613, docs/CONFORMANCE.md D-B4). The same method the compiler calls on a numeric literal's text.</summary>
+    public static string NumGroupDigits(string text) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.GroupDigits)}({text})";
+
     /// <summary>The same text image for a STANDARD-DECIMAL intermediate — <c>CobolDec.ToFunctionText</c>.</summary>
     public static string DecFunctionText(string value, bool deSign, bool commaMode) =>
         $"({value}).{nameof(CobolDec.ToFunctionText)}({FunctionTextFlags(deSign, commaMode, "")})";
