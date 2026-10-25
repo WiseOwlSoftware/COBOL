@@ -31,15 +31,25 @@ MILESTONES = "milestones.jsonl"
 SUMMARY_CAP = 900     # handoff.schema.json: summary is at most 900 characters
 
 
-def git(cwd: pathlib.Path, *args: str) -> str:
-    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    return r.stdout if r.returncode == 0 else ""
+def git(cwd: pathlib.Path, *args: str) -> str | None:
+    """git's stdout, or None when git failed. The directory goes through `git -C`, never `subprocess.run(cwd=)`: a worktree
+    removed after it was listed (prune_worktrees.py --apply, a finished agent's cleanup) makes a subprocess `cwd` raise
+    NotADirectoryError (WinError 267) or FileNotFoundError and abort the whole checkpoint write (kb/Work PB3250), where
+    `git -C` on it merely fails (exit 128), which the caller reads as "gone"."""
+    r = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    return r.stdout if r.returncode == 0 else None
 
 
-def worktrees(repo: pathlib.Path) -> list[dict]:
-    """Every linked worktree except the main checkout: path, branch, head, commits ahead of origin/main, dirty files."""
+def listed_worktrees(repo: pathlib.Path) -> list[dict]:
+    """`git worktree list --porcelain`, one dict per worktree: its `worktree`, `HEAD` and `branch` lines keyed by name."""
+    listing = git(repo, "worktree", "list", "--porcelain")
+    if listing is None:
+        # Not fatal: a unit that died still needs its handoff synthesized, and a checkpoint without the worktree view beats
+        # none (the supervisor's self-tests run these commands against a directory that is no repository). Said, not hidden.
+        print(f"checkpoint.py: git worktree list --porcelain failed in {repo}; no worktrees recorded", file=sys.stderr)
+        return []
     out, cur = [], {}
-    for line in git(repo, "worktree", "list", "--porcelain").splitlines() + [""]:
+    for line in listing.splitlines() + [""]:
         if not line.strip():
             if cur:
                 out.append(cur)
@@ -47,22 +57,34 @@ def worktrees(repo: pathlib.Path) -> list[dict]:
             continue
         key, _, val = line.partition(" ")
         cur[key] = val
+    return out
+
+
+def worktrees(repo: pathlib.Path) -> list[dict]:
+    """Every linked worktree except the main checkout: path, branch, head, commits ahead of origin/main, dirty files.
+    A worktree that vanishes between the listing and its measurement (git cannot read its status and its directory is
+    gone) is no worktree any more and is left out; the rest of the checkpoint is still written (kb/Work PB3250). One
+    whose directory exists but whose status git cannot read stays, its `uncommitted` None: unknown, never a clean 0."""
     main = str(repo.resolve()).replace("\\", "/").lower()
     result = []
-    for w in out:
+    for w in listed_worktrees(repo):
         path = pathlib.Path(w.get("worktree", ""))
         if str(path.resolve()).replace("\\", "/").lower() == main or "branch" not in w:
             continue
-        dirty = coord.porcelain_work(git(path, "status", "--porcelain").splitlines())
-        ahead = git(path, "rev-list", "--count", "origin/main..HEAD").strip()
-        status = path / "STATUS.md"
+        status_out = git(path, "status", "--porcelain")
+        if status_out is None and not path.is_dir():
+            continue
+        ahead = (git(path, "rev-list", "--count", "origin/main..HEAD") or "").strip()
         headline = ""
-        if status.exists():
-            headline = status.read_text(encoding="utf-8", errors="replace").splitlines()[0:1]
-            headline = headline[0][:120] if headline else ""
+        try:
+            first = (path / "STATUS.md").read_text(encoding="utf-8", errors="replace").splitlines()[0:1]
+            headline = first[0][:120] if first else ""
+        except OSError:
+            pass                                   # no STATUS.md (yet), or the worktree went away mid-read: no headline
         result.append({"worktree": str(path).replace("\\", "/"), "branch": w["branch"].removeprefix("refs/heads/"),
                        "head": w.get("HEAD", "")[:9], "ahead_of_main": int(ahead) if ahead.isdigit() else None,
-                       "uncommitted": len(dirty), "status_md": headline})
+                       "uncommitted": None if status_out is None else len(coord.porcelain_work(status_out.splitlines())),
+                       "status_md": headline})
     return result
 
 

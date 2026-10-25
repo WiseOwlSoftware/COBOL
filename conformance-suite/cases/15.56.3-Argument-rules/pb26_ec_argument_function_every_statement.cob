@@ -62,9 +62,11 @@
            COMPUTE W-R = FUNCTION ABS(FUNCTION LOG10(W-Z)).
       *> 6 - THE ONE THAT WAS SILENT. STRING holds its sending operands in a LIST
       *> OF HELPER RECORDS, two hops from the statement - the shape the old switch
-      *> had no arm for and a one-level walk still misses.
+      *> had no arm for and a one-level walk still misses. The sender is the alphanumeric
+      *> FUNCTION CHAR(0) (15.15.3 AR2 raises exactly as LOG10(0) does): a numeric function
+      *> is no STRING sender (14.9.43.3 SR1 with 15.2 4), kb/Work PB3665).
            DISPLAY "6-STRING".
-           STRING FUNCTION LOG10(W-Z) DELIMITED BY SIZE INTO W-T.
+           STRING FUNCTION CHAR(W-Z) DELIMITED BY SIZE INTO W-T.
            DISPLAY "7-UNSTRING".
       *> The delimiter must be CATEGORY ALPHANUMERIC (14.9.48.3 SR2 -
       *> kb/Work PB155's screen; numeric LOG10 was illegal here), so the

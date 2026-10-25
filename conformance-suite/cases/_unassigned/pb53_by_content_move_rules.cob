@@ -30,6 +30,16 @@
       *> them. It does now: 14.6.8.6 truncates on the right into a boolean
       *> receiver, and the crossing reaches MoveEmitter.ConvertSource - the one
       *> place that discipline is written - rather than re-deriving it.
+      *>
+      *> THE VALUES of pairs 2, 3 and 5 are determination D-B5 (docs/CONFORMANCE.md;
+      *> kb/Work PB3666): 14.6.8.6 transfers the sending data "after any necessary
+      *> conversion, into the corresponding boolean positions of the receiving data
+      *> item, with zero fill or truncation to the right", and no rule converts a
+      *> character that is not a boolean one, so the conversion is the
+      *> implementor's: '1' is boolean one and every other character boolean zero.
+      *> "WXYZ" and N"WXYZ" both become 0000, and "ABCDEF" truncates to ABCD and
+      *> becomes 0000. Pairs 1, 4 and 6 move boolean values (14.9.25.4 GR6a) and
+      *> are untouched by it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB53MOVERULES.
        ENVIRONMENT DIVISION.

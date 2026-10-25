@@ -17,7 +17,7 @@ ACTUALLY changed with
      work no dispatch of the landing records, the set computed now (plan_wave.computed_file_set, on the planner's own
      index policy, THE index of this tree: kb/Work PB3203). A file an R3 commit changed that existed on main and lies
      outside that set STOPS the landing, the stop naming the arm the set came from: the wave touched a file nothing
-     protected. A consulted group recorded with NO files declared nothing: the set is UNKNOWN (plan_wave.collision),
+     protected. A consulted group recorded with NO files declared nothing: its set is UNKNOWN to this check,
      so such a file is named in a warning instead, and check 2 still applies to it;
   2. every OTHER in-flight branch's actual changes (plan_wave.inflight_file_sets: worktrees, unlanded branches, the
      dispatch ledger's declared sets), when the shared file is R3 work on either side. A shared file stops the LATER
@@ -241,7 +241,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
                    if oid}
         outside = sorted(existed - declared)
         listed = f"{', '.join(outside[:8])}{' …' if len(outside) > 8 else ''}"
-        # a group recorded with NO files declared nothing: its set is UNKNOWN (plan_wave.collision), so a file outside
+        # a group recorded with NO files declared nothing: its set is UNKNOWN to this check, so a file outside
         # the rest cannot be judged here; it is named, and arm 2 still checks it against every in-flight branch
         if outside and (unknown := [plan_wave.ledger_slug(g) for g in consulted if not g.get("files")]):
             warnings.append(f"R3 work ({', '.join(mine_r3)}) changed {len(outside)} file(s) its declared file set "
@@ -778,7 +778,7 @@ def main(argv: list[str] | None = None) -> int:
     cdir = coord.coord_dir(a.coord)
     policy = plan_wave.IndexPolicy.of(cdir)   # the planner's policy: THE index of this tree (kb/Work PB3203)
     stops, warnings = check(repo, a.base, a.rev, cdir, work.load(repo / "kb" / "Work"),
-                            coord.rules(), lambda ids: plan_wave.computed_file_set(repo, ids, policy),
+                            coord.rules(), lambda ids: set(plan_wave.computed_file_set(repo, ids, policy).files),
                             reports=plan_wave.load_reports(coord.reports_dir(a.coord)))
     for w in warnings:
         print(f"⚠ landing check: {w}")

@@ -101,7 +101,7 @@ while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 == 9. CLAUSES: SYNCHRONIZED / JUSTIFIED / BLANK WHEN ZERO ==
   • SYNCHRONIZED: alignment is a BYTE-LAYOUT concept. In a typed-native model there are no byte boundaries to align to (a `long` field is naturally aligned by the CLR). DECISION: SYNC is a NO-OP for in-memory typed data; it only matters at the file/byte serialization boundary (G6), where the record-image builder honors it. Capture IsSynchronized for that future use. (Rationale: the only observable effect of SYNC absent byte access is on REDEFINES-overlay size, which is already the G6 byte path.)
   • JUSTIFIED RIGHT: already threaded — CobolString.Store(value,width,justifiedRight) pads/truncates on the left. `DataItem.Justified` carries the flag; the Place's WriteStmt for an alphanumeric receiver passes it.
-  • BLANK WHEN ZERO: a STORE-time rule (ISO §13.18.8.4 GR1) — "the content of the data item is set to all spaces when the item is a receiving operand and THE VALUE BEING STORED is zero". DECISION: a property of the item's rendering, applied in the ONE numeric-edited formatter (`CobolEdit.Render`, and `CobolLocaleEdit.Format` for PICTURE format 2), and applied to THE STORED VALUE — the aligned, truncated digit positions, NOT the sending value. §14.9.25.4 GR6 d) sends the store to §14.6.8 and §14.6.8.2 r4 transfers "with zero fill or truncation on either end as required", so `MOVE 0.4 TO PIC 9(3) BLANK WHEN ZERO` and `MOVE 100 TO PIC 99 BLANK WHEN ZERO` both store zero and both blank. ⛔ The guard therefore sits AFTER the mask rescale, never before it: a guard on the raw sending pair blanks for the arithmetic arms (whose emitters hand the formatter a value already at the resultant's scale) and not for MOVE, on identical items (kb/Work PB566). GR3 is the same rule read backwards — an all-spaces BLANK WHEN ZERO item that is a SENDER has the value zero whenever the object of the operation is a numeric or numeric-edited data item, which reaches the de-editing MOVE and the relation condition alike (kb/Work PB509). Capture BlankWhenZero on PicInfo.
+  • BLANK WHEN ZERO: a STORE-time rule (ISO §13.18.8.4 GR1) — "the content of the data item is set to all spaces when the item is a receiving operand and THE VALUE BEING STORED is zero". DECISION: a property of the item's rendering, applied in the ONE numeric-edited formatter (`CobolEdit.Render`, and `CobolLocaleEdit.Format` for PICTURE format 2), and applied to THE STORED VALUE — the aligned, truncated digit positions, NOT the sending value. §14.9.25.4 GR6 d) sends the store to §14.6.8 and §14.6.8.2 5) gives a numeric-edited receiver "further alignment, zero fill or truncation", so `MOVE 0.4 TO PIC 9(3) BLANK WHEN ZERO` and `MOVE 100 TO PIC 99 BLANK WHEN ZERO` both store zero and both blank. ⛔ The guard therefore sits AFTER the mask rescale, never before it: a guard on the raw sending pair blanks for the arithmetic arms (whose emitters hand the formatter a value already at the resultant's scale) and not for MOVE, on identical items (kb/Work PB566). GR3 is the same rule read backwards — an all-spaces BLANK WHEN ZERO item that is a SENDER has the value zero whenever the object of the operation is a numeric or numeric-edited data item, which reaches the de-editing MOVE and the relation condition alike (kb/Work PB509). Capture BlankWhenZero on PicInfo.
 
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §13.18.63 / §14.9.4 ==
 Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, pointer→null. Already implemented for flat items. Extensions needed:
@@ -785,6 +785,19 @@ or implied "is an **alphanumeric group item**"; §13.16.4 GR1 implies GROUP-USAG
 *subordinate to a bit group*. So `01 G. 05 A PIC 1(5) BIT. 05 B PIC 1(3) BIT.` is an alphanumeric group and
 `FUNCTION LENGTH(G)` is **§15.50.4 r3** — character positions, = **1** — not r1's boolean positions. Misreading
 "bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
+
+⛔ **EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM, SO THE CARRIER HOLDS ONLY `'0'` AND `'1'` UNLESS A STORE BYPASSES
+THE CHARACTER STORE (kb/Work PB3666, determination D-B5 in `CONFORMANCE.md` §3).** Two things bypass it and leave undefined content
+(§14.6.13.2 1)), so the boolean operators keep their tolerance of a position outside `{'0','1'}`: a GROUP receiver (GR4 moves bytes,
+with no conversion) and a REDEFINES view over other storage. A MOVE of an alphanumeric or national operand to a boolean item is Table 16 "Yes", and §14.6.8.6
+transfers "after any necessary conversion", but the standard names no conversion of a character that is not a boolean one.
+The one store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBoolean`), converts each character (`'1'` to one, every other
+character to zero) and then fits with boolean zeros; a reference-modified slice and a STRING image convert through
+`CobolBool.FromCharacters`, and a GR4 group move into a USAGE DISPLAY boolean item takes the same store through
+`ReceivingStore.Characters`. Two exemptions: the group sender into a USAGE BIT item, whose receiving area is the sender's BYTES
+(GR4, "no conversion"; every bit is valid), and the same move into a USAGE NATIONAL boolean item, whose area is UTF-16BE pairs
+decoded by `NatReadWindow` — converting the pairs as characters turns the item into garbage (review R1-1), so it keeps the byte fit. A new emitter that deposits characters into a boolean item
+asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`.
 
 #### The architecture: V59's numeric byte forms, one granularity finer
 

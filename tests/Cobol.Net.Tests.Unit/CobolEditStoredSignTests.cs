@@ -9,9 +9,10 @@ namespace CobolNet.Tests.Unit;
 /// The editing sign follows the value the receiver ENDS UP HOLDING, never the sending value (kb/Work PB3664).
 /// ISO §13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an editing
 /// sign control symbol, depending on the value of the data item" — its first column is "Positive or zero value".
-/// §14.9.25.4 6) takes the alignment and truncation from §14.6.8.2 4) ("zero fill or truncation on either end as
-/// required"), so a sending -0.001 into an item with two fraction digits stores ZERO, and "Zero is considered a
-/// unique value regardless of the sign" (§8.8.4.2.4). Every expected string is hand-derived from those rules.
+/// §14.9.25.4 6) sends a numeric-edited receiver to §14.6.8.2 5) ("further alignment, zero fill or truncation, and
+/// transfer of digits take place as described in the general rules and editing rules in 13.18.40"), so a sending
+/// -0.001 into an item with two fraction digits stores ZERO (§8.8.4.2.4 says the same of comparisons: "Zero is
+/// considered a unique value regardless of the sign"). Every expected string is hand-derived from those rules.
 /// </summary>
 public sealed class CobolEditStoredSignTests
 {

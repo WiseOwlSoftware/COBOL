@@ -234,7 +234,7 @@ public static partial class CobolEdit
         // render the absolute digit string at the mask's capacity (excess INTEGER digits truncate high-order).
         // ⛔ The widening is the STORE-CAP form (kb/Work PB639): the digits this mask could never show are
         // dropped decimally BEFORE the multiply, so the high-order truncation two lines below is the LOW-ORDER
-        // digits of the true value (§14.6.8.2 r4 "zero fill or truncation on either end"), not the low-order
+        // digits of the true value (§14.6.8.2 5): a numeric-edited receiver takes "further alignment, zero fill or truncation"), not the low-order
         // digits of an Int128 wrap. MOVE 10^30 TO PIC Z(8)9.9(9) showed 123822295.304634368 for 0.000000000.
         Int128 scaled = CobolNum.RescaleStoreCap(value, valueScale, fracDigits, CobolRounding.Truncation);
         string digits = CobolDec.UAbs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -244,9 +244,10 @@ public static partial class CobolEdit
         // ⛔ THE SIGN IS THE STORED VALUE'S, decided here once, from the digit string above (kb/Work PB3664).
         // §13.18.40.5 5): "Table 8, Results of fixed insertion editing, shows the character(s) produced by an
         // editing sign control symbol, depending on the value of the data item" — and Table 8's first column is
-        // "Positive or zero value". §14.9.25.4 6) d) stores the value as §14.6.8.2 4) defines it, "zero fill or
-        // truncation on either end as required", so a sending -0.001 into PIC -9.99 stores the value ZERO, and
-        // "Zero is considered a unique value regardless of the sign" (§8.8.4.2.4): the sign position shows the
+        // "Positive or zero value". §14.9.25.4 6) d) sends a numeric-edited receiver to §14.6.8.2 5): "further
+        // alignment, zero fill or truncation, and transfer of digits take place as described in the general rules
+        // and editing rules in 13.18.40", so a sending -0.001 into PIC -9.99 stores the value ZERO (§8.8.4.2.4 says
+        // the same of comparisons: "Zero is considered a unique value regardless of the sign"): the sign position shows the
         // Positive-or-zero column. The same holds when the HIGH-order digits truncate (-100 into PIC -99 holds
         // 00; the numeric receiver S9(2) likewise holds +00, the carrier having no negative zero, and
         // GnuCOBOL's cob_move_display_to_edited tests the digits that land the same way).
@@ -256,8 +257,8 @@ public static partial class CobolEdit
         // item is a receiving operand and THE VALUE BEING STORED is zero", which is the value the item ENDS UP
         // HOLDING: exactly the digit string above. §14.9.25.4 GR6 d) closes "Alignment of the numeric value by
         // decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data
-        // into the receiving data item, take place as defined in 14.6.8", and §14.6.8.2 r4 is "zero fill or
-        // truncation on either end as required" — so a store that truncates to zero at EITHER end (0.4 into
+        // into the receiving data item, take place as defined in 14.6.8", and §14.6.8.2 5) gives a numeric-edited
+        // receiver "further alignment, zero fill or truncation" — so a store that truncates to zero at EITHER end (0.4 into
         // PIC 9(3), 100 into PIC 99) stores zero and blanks. §13.18.8.1 says the same in one line: the clause
         // "causes the blanking of an item when a value of zero is being stored in it".
         // ⛔ THE GUARD BELONGS HERE, AFTER THE STORE RESCALE, and nowhere else: every arm reaches this one

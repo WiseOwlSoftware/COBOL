@@ -980,7 +980,7 @@ because the raw name is not stable (`b7`):
   spells out (24 such reads in 16 drift tests were invisible; seven of those classes scan a whole tree and now carry
   the `Sweep` trait). A call's path is what its arguments SPELL, read by one evaluator with balanced parentheses
   (kb/Work PB3112, `drift_rules.path_expr`): literals, `TestRepo.Root`, a class constant (`const string`,
-  `static readonly string`; never a local or a parameter, which is another method's), a nested `Path.Combine(..)` or
+  `static readonly string`; never a local or a parameter, which is another method's; a constant may name a later one however long the chain, resolved pass by pass to a fixed point bounded by the declaration count, kb/Work PB3645), a nested `Path.Combine(..)` or
   `TestRepo.X(..)`, up to the first argument it cannot spell. 62 of the 391 drift tests read a path the earlier
   single-level regex missed (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
   GrammarDir)`, `Path.Combine("src", ..)`; five grammar-scanning classes governed no grammar file). A method that wraps
