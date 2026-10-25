@@ -36,3 +36,8 @@ channel substitutes `?` (it refuses with '91').
 grep (zero left), `LineSequentialCharacterSet` keeps the pure `ToByte` after its own `HasCharacterWithoutByteImage` test, and the
 compile-time `InitialStateBackground` caller keeps the pure form (it must not raise at compile time; for an OPTIONS INITIALIZE
 literal fill above U+00FF it now images `?` instead of the truncated byte). Performance: the byte-image case is one comparison.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 000001-20261025T005721Z: Conformance 8,681/18,400,
+Unit 36,741/38,143, Characterization 36/36; Linux half (WSL clone of HEAD) GREEN; the six pb547 conformance runs, three editions
+by two cases, Passed in leg-1-Conformance.trx) and `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built
+inert-watch; HEAD 758e3c99b)`.
