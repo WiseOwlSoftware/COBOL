@@ -1,4 +1,4 @@
-## model_rules.json stops typing the implementer's turn cap (PB3741)
+## Entry 2578 — 2026-10-25 14:58 PDT — model_rules.json stops typing the implementer's turn cap (PB3741)
 
 `scripts/orchestrator/model_rules.json` (`wave.max_notes_per_group_source`) ended its re-measure paragraph with "inside the
 220-turn cap the dispatch spec states". The implementer cap is 400 (`.claude/agents/cobol-implementer.md` `maxTurns`, read
@@ -18,3 +18,4 @@ total with the existing three).
 
 Rows: none claimed, none closed (process tooling). Self-review: the new regex is deliberately narrower than the briefs'
 `LITERAL_CAP`, because the rules file's prose legitimately quotes measured turns per group size.
+
