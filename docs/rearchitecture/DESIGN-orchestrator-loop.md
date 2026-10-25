@@ -529,7 +529,8 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
 | exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
-| exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; nothing ran and nothing is red, kb/Work PB3527) | retries at this head once the worktree's gate lock is free (`wait_free`); never the enqueue unit's |
+| exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the branch's own gate is still running, `run_gate_legs.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free (`wait_free`); never the enqueue unit's |
+| exit 15, PREDECESSOR QUEUED (the branch merged a predecessor whose pull request is still open into main, so it adds that pull request's stamped DEVLOG entry beside its own and `devlog.landing_entries` finds no single entry to title its pull request with; `enqueue.open_predecessors` names the pull requests; nothing queued, nothing red, no report line, kb/Work PB3145) | retries at this head once the same reader finds no open pull request owning an entry the branch carries (`wait_free`, `predecessor_free`; GitHub unreadable is not free); a predecessor pull request that closed unmerged is no longer open, and the same head then ends exit 6 NO ENTRY, the finisher's; never the enqueue unit's |
 | exit 13, another `land` of the branch runs (the worktree's land lock, `<git dir>/cobol-land.lock`, is held: a hand-run `land` beside the lane's, or two by hand; nothing ran, nothing is red, no report line, kb/Work PB3310) | retries at this head once the worktree's land lock is free (`wait_free`); never the enqueue unit's |
 | exit 2 (main moved under every catch-up merge; or GATE NOT RUN: the gate measured nothing, for an ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES` — malformed shared gate settings, a host with no WSL, Python or SDK — or a BRANCH cause main fails the same way at the same step, and so writes no BLOCKED line, kb/Work PB3526; a BRANCH cause main does not share — the tree's gate driver, its population listing, no verdict line — is exit 5, below), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
@@ -1156,8 +1157,10 @@ real dispatch-spec template and `check_practices.py`'s same-file rule; the fix l
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `LandingMeasureDriftTests` also pins its arms), `landing_check.py
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
-in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, and an exit 12
-(GATE BUSY) only once the worktree's gate lock is free; the queue watch on stubbed GitHub facts: queued, merged,
+in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, an exit 12
+(GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running
+owes none, kb/Work PB3662), and an exit 15 (PREDECESSOR QUEUED) only once no open pull request owns a DEVLOG
+entry the branch carries (kb/Work PB3145); the queue watch on stubbed GitHub facts: queued, merged,
 stuck then cleared by the re-run, stuck then cleared by the reopen, the alert, nothing acted on under a stop, a
 conflict ends it BOUNCED, a remedy GitHub does not answer is a failed read and the tick still launches; one writer per
 field of an attempt record (a concurrent `collect` is kept, a runner's late rc is never overwritten DIED); an exit 5 is
