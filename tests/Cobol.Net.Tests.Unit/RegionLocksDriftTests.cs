@@ -510,6 +510,44 @@ public sealed class RegionLocksDriftTests
         }
     }
 
+    /// <summary>⛔ A WAITING HOLD WHOSE HOLDER LET GO DURING THE LOST ROUND IS GRANTED, NOT UNAVAILABLE (review R1-1 of kb/Work
+    /// PB3632): the holder's removal of the last lock file is what loses the publication races, so the holder is gone by the
+    /// time the hold looks. Driven in ONE thread, in the order that interleaving has: the first attempt of the first round
+    /// is the instant the holder lets go (<c>RaceInjector</c> releases it there), every try of that round is lost, and the
+    /// look after the round finds nothing in the way. A waiting hold publishes once more and is <see cref="RegionLockResult.Ok"/>;
+    /// a non-waiting one has nobody to wait for and answers Unavailable as before.</summary>
+    [Fact]
+    public void AWaitingHoldWhoseHolderLetGoDuringTheLostRound_IsGrantedOnTheNextRound()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        var a = site.Endpoint();
+        var b = site.Endpoint();
+        SidecarLockFiles.PauseObserver.Value = _ => { };
+        try
+        {
+            Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: true, wait: false));
+            int rounds = 0;
+            SidecarLockFiles.RaceInjector.Value = attempt =>
+            {
+                if (attempt == 0 && Interlocked.Increment(ref rounds) == 1) a.Release(Byte1);   // the holder lets go as the round begins
+                return rounds < 2;
+            };
+            Assert.Equal(RegionLockResult.Ok, b.Hold(Byte1, exclusive: true, wait: true));
+            Assert.Equal(2, rounds);   // one lost round, then the round that published
+
+            // Nothing in the way and nobody to let go: the wait is bounded (one extra round) and the answer is Unavailable.
+            b.Release(Byte1);
+            rounds = 0;
+            SidecarLockFiles.RaceInjector.Value = _ => true;
+            Assert.Equal(RegionLockResult.Unavailable, b.Hold(Byte2, exclusive: true, wait: true));
+        }
+        finally
+        {
+            SidecarLockFiles.RaceInjector.Value = null;
+            SidecarLockFiles.PauseObserver.Value = null;
+        }
+    }
+
     /// <summary>The names are a contract between run units (two runtime versions must find each other): a held byte is a
     /// file of the physical file's lock directory named <c>r</c>, the byte as 16 hex digits, the mode, and a GUID; the
     /// directory goes with its last file.</summary>
