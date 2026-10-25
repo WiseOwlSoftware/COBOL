@@ -189,7 +189,6 @@ REPO = coord.REPO
 FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "references" / "fix_clusters.py"
 MAKE_SPECS = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.py"
 PB = re.compile(r"\bPB\d+\b")
-REPORT_NAME = re.compile(r"^w(?P<wave>\d+)(?P<letter>[a-z0-9]*)-(?P<lead>PB\d+)-report\.md$")
 STATUS_WORD = re.compile(r"^\**(?:Status:\**)?\s*\**\s*(?P<s>DONE|SPLIT|DISCHARGED|BLOCKED|NOT STARTED|GATE-PENDING)\b",
                          re.I)
 #: A GATE-PENDING report's gate run (kb/Work PB3536): `Gate run: <run directory>`, read at a field position like
@@ -450,7 +449,7 @@ def status_line(header: list[str]) -> tuple[int, str] | None:
 
 
 def parse_report(p: pathlib.Path) -> Report | None:
-    m = REPORT_NAME.match(p.name)
+    m = coord.REPORT_NAME.match(p.name)
     if not m:
         return None
     header = header_lines(p.read_text(encoding="utf-8", errors="replace").splitlines())
@@ -503,7 +502,7 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     alone."""
     if not reports_dir or not reports_dir.is_dir():
         return []
-    groups = ledger_groups(coord_dir) if coord_dir else []
+    groups = coord.ledger_groups(coord_dir) if coord_dir else []
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
     for r in reps:
         r.notes = answered_notes(r, groups)
@@ -591,22 +590,8 @@ def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[
     return out
 
 
-DISPATCH_LEDGER = "inflight-groups.json"
-
-
-def ledger_groups(coord_dir: pathlib.Path) -> list[dict[str, Any]]:
-    """THE reader of the dispatch ledger (<coord>/inflight-groups.json): its wave GROUPS, each keyed by (wave, letter),
-    written only by record_dispatch from a planned or rendered wave (kb/Work PB3186). An entry with `hand: true` or a
-    wave that is not a number is no dispatch: the retired guard hook wrote it from a scrape of every note id a prompt
-    mentioned, with the union of their file sets (six entries of 303-910 files on 2026-10-15). Every reader ignores
-    such an entry, and the next record_dispatch drops it."""
-    groups = coord.read_json(coord_dir / DISPATCH_LEDGER, {"groups": []}).get("groups", [])
-    return [g for g in groups if isinstance(g, dict) and not g.get("hand") and str(g.get("wave", "")).isdigit()
-            and isinstance(g.get("letter"), str) and g["letter"]]
-
-
 def ledger_slug(g: dict[str, Any]) -> str:
-    """A ledger group's report slug, `w<wave><letter>` (its report is `<slug>-<lead>-report.md`, REPORT_NAME): the
+    """A ledger group's report slug, `w<wave><letter>` (its report is `<slug>-<lead>-report.md`, coord.REPORT_NAME): the
     group's recorded `slug`, else the planner's own spelling."""
     return str(g.get("slug") or f"w{g['wave']}{g['letter'].lower()}").lower()
 
@@ -687,7 +672,7 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
       1. every worktree but this checkout: `_still_differs(HEAD)` plus its uncommitted and untracked files (an agent's
          first edits precede its first commit);
       2. every local branch with no worktree whose tip is not on origin/main: `_still_differs(branch)`;
-      3. every group in the dispatch ledger (<coord>/inflight-groups.json, read through ledger_groups) with a note that
+      3. every group in the dispatch ledger (<coord>/inflight-groups.json, read through coord.ledger_groups) with a note that
          is not terminal and that no report in `reports` ANSWERS (`answers`: a report whose slug is the group's,
          `w<wave><letter>`, written at or after the dispatch: its agent returned, so its work is its branch's, which sources 1-2 read by their actual diff, and a SPLIT
          group's unstarted residue holds no file; kb/Work PB2795): the files the group was planned on, which exist
@@ -755,7 +740,7 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
                 if meta is not None:
                     meta[f"branch {b}"] = {"rev": b, "uncommitted": set(), "path": None, "branch": b, "sha": sha,
                                            "base": differs.get(sha, (set(), ""))[1], "committed": files}
-    for g in ledger_groups(coord_dir or coord.coord_dir()):
+    for g in coord.ledger_groups(coord_dir or coord.coord_dir()):
         if (terminal is not None and all(terminal(i) for i in g.get("notes", []))) or any(answers(r, g) for r in reports):
             continue
         # A group recorded with NO files is in flight all the same, with its notes (its own notes are never held twice:
@@ -780,13 +765,13 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
     lane's re-render of wave 1118's specs at 16:42, a wave dispatched about 05:00, had made the engine the LATER
     dispatch than wave 1126 C, 14:02). A group recorded under a key whose entry shares NO note with it is a DIFFERENT
     dispatch (two sessions planning one wave number) and takes the time of its own recording. Every other group of
-    every wave stays, except the entries whose notes are all terminal and the entries ledger_groups does not read (the retired hand entries), which are
+    every wave stays, except the entries whose notes are all terminal and the entries coord.ledger_groups does not read (the retired hand entries), which are
     dropped, so the ledger holds exactly the dispatched work still in flight (inflight_file_sets, source 3).
     make_dispatch_specs.py calls it for every wave it renders, the planner's included; nothing else writes the
     ledger but release_dispatch."""
-    path = coord_dir / DISPATCH_LEDGER
+    path = coord_dir / coord.DISPATCH_LEDGER
     mine = {(str(wave), str(g["letter"]).upper()) for g in groups}
-    live = [g for g in ledger_groups(coord_dir) if not all(terminal(i) for i in g.get("notes", []))]
+    live = [g for g in coord.ledger_groups(coord_dir) if not all(terminal(i) for i in g.get("notes", []))]
     keep = [g for g in live if (str(g["wave"]), g["letter"].upper()) not in mine]
     earlier = {(str(g["wave"]), g["letter"].upper()): g for g in live if (str(g["wave"]), g["letter"].upper()) in mine}
     at = time.time()   # the dispatch order the landing check reads (the later of two overlapping branches re-plans):
@@ -809,7 +794,7 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
 
 
 def held_by_dispatch(coord_dir: pathlib.Path, reports: list[Report], terminal: Callable[[str], bool]) -> dict[str, str]:
-    """{open note: the dispatch holding it}: every note a dispatch-ledger group names (ledger_groups, the entries
+    """{open note: the dispatch holding it}: every note a dispatch-ledger group names (coord.ledger_groups, the entries
     inflight_file_sets reads as source 3) unless the note is terminal or the group is answered (`answers`: its own
     report, by slug, written at or after the group's `at`; the predicate inflight_file_sets reads too, kb/Work
     PB3311). Such a report answers the dispatch, and step 1 (awaiting landing) and step 2
@@ -817,7 +802,7 @@ def held_by_dispatch(coord_dir: pathlib.Path, reports: list[Report], terminal: C
     (another session's wave waiting for the operator's GO), so its notes are not planned again (kb/Work PB2806: the
     fix lane read no ledger, and wave 1044 re-planned seven of wave 1045's eight groups)."""
     held: dict[str, str] = {}
-    for g in ledger_groups(coord_dir):
+    for g in coord.ledger_groups(coord_dir):
         if any(answers(r, g) for r in reports):
             continue
         for nid in sorted(i for i in set(g.get("notes", [])) if not terminal(i)):
@@ -829,9 +814,9 @@ def release_dispatch(coord_dir: pathlib.Path, selector: str) -> list[dict[str, A
     """Drop the dispatch-ledger entries `selector` names (a wave `1040`, a group `1040a`, or a note id `PB2249`) and
     return them. A wave entry never expires on a clock (an expired entry would release the files of a wave still
     running), so an ABORTED dispatch is released here, by hand, explicitly (the ninth refuter's N5). The rewrite keeps
-    only what ledger_groups reads."""
-    path = coord_dir / DISPATCH_LEDGER
-    groups = ledger_groups(coord_dir)
+    only what coord.ledger_groups reads."""
+    path = coord_dir / coord.DISPATCH_LEDGER
+    groups = coord.ledger_groups(coord_dir)
     if re.fullmatch(r"PB\d+", selector):
         hit = lambda g: selector in g.get("notes", [])  # noqa: E731
     else:
@@ -2101,26 +2086,6 @@ def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str,
     return out
 
 
-#: How much of the newest DEVLOG the wave and train numbering reads (one file per entry, kb/Work PB3025): the newest
-#: RECENT_ENTRIES entries, and of those the first RECENT_LINES lines for wave and train labels.
-RECENT_ENTRIES = 20
-RECENT_LINES = 200
-
-
-def next_wave(repo: pathlib.Path, reports: list[Report], coord_dir: pathlib.Path | None = None) -> int:
-    """One past the highest wave OR train number in the reports directory, the dispatch ledger (`coord_dir`) or the
-    newest RECENT_LINES lines of the DEVLOG's newest entries. A wave's first train is labelled with the wave number, so a train label counts as taken
-    too (kb/Work PB2562: trains 1035 and 1036 came from waves 1031 and 1032, the planner proposed wave 1035, and
-    "Train 1034" had already landed twice). A wave planned but with no report yet (another session's, awaiting the
-    operator's GO) is taken as well, or the next wave reuses its number and overwrites its specs (kb/Work PB2806)."""
-    seen = [r.wave for r in reports]
-    if coord_dir is not None:
-        seen += [int(g["wave"]) for g in ledger_groups(coord_dir)]
-    for line in "".join(devlog.newest(repo, RECENT_ENTRIES)).split("\n")[:RECENT_LINES]:
-        seen += [int(w) for w in re.findall(r"\b(?:[Ww]aves?|[Tt]rains?) (\d{3,})", line)]
-    return max(seen, default=0) + 1
-
-
 #: The partition's measurement (kb/Work PB3670 item 5): one JSON line per wave a plan dispatches, in the coordination
 #: directory, read by `--partition-summary`.
 PARTITION_MEASURE = "partition-measure.jsonl"
@@ -2184,7 +2149,7 @@ def finished_main(path: pathlib.Path) -> int:
     """`--finished REPORT`: the one finished-report predicate (Report.finished) as an exit code, for the rolling wave,
     which has no Python of its own: 0 finished, 1 not (a SPLIT, BLOCKED or NOT STARTED report, a header with no status
     line, a DISCHARGED report whose HEAD is its base or names none), 2 unreadable (missing, or not a fix-lane report
-    name: plan_wave.REPORT_NAME)."""
+    name: coord.REPORT_NAME)."""
     try:
         rep = parse_report(path)
     except OSError as e:
@@ -2200,7 +2165,9 @@ def finished_main(path: pathlib.Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--wave", default="next", help="the wave number, or next (default): one past the highest seen")
+    ap.add_argument("--wave", default="next", help="the wave number, or next (default): the allocator's next wave "
+                    "number (alloc.py wave: one past the highest seen in the reports, the dispatch ledger and the DEVLOG, "
+                    "and past every number handed out)")
     b = ap.add_mutually_exclusive_group()
     b.add_argument("--budget-points", type=float, help="weekly points this wave may spend")
     b.add_argument("--from-budget", action="store_true", help="use budget.py's headroom_pct")
@@ -2368,7 +2335,10 @@ def main(argv: list[str] | None = None) -> int:
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
 
-    wave = str(next_wave(REPO, reports, cdir)) if a.wave == "next" else str(a.wave)
+    # THE WAVE NUMBER comes from the one allocator (alloc.py `wave`, kb/Work PB3700): peeked while the plan is made and
+    # reserved once its specs check GREEN, like the codes (PB3114), so a hand dispatch that took a number through
+    # `alloc.py wave` and has no report yet can never be given it again.
+    wave = str(alloc.peek("wave", REPO, cdir)) if a.wave == "next" else str(a.wave)
     peek_code = alloc.peek("code", REPO, cdir)
     per = rules["wave"]["codes_per_group"]
     # the standing requirements each group must meet, by the campaigns its notes belong to: they reach its spec, the args
@@ -2432,6 +2402,13 @@ def main(argv: list[str] | None = None) -> int:
         print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
               "ledger, no wf-args file; fix the cause and plan again)")
         return rc
+    if a.wave == "next":
+        got, _ = alloc.allocate("wave", 1, REPO, cdir)
+        if str(got) != wave:
+            print(f"  wave number moved while the specs were checked (another allocation): reserved {got}")
+            wave = str(got)
+            if not a.stop_file:
+                stop_file = coord.fleet_stop(scratch, f"w{wave}")
     first, _ = alloc.allocate("code", per * len(p["groups"]), REPO, cdir)
     if first != peek_code:
         print(f"  codes moved while the specs were checked (another allocation): reserved from "

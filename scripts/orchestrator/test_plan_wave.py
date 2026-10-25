@@ -626,15 +626,15 @@ HD_REPORTS.mkdir(parents=True)
 pw.record_dispatch(HD, "1045", [{"letter": "a", "notes": ["PB5", "PB2"], "files": ["src/X.cs"]},
                                 {"letter": "b", "notes": ["PB8"], "files": ["src/Y.cs"]},
                                 {"letter": "c", "notes": ["PB9"], "files": ["src/Z.cs"]}], lambda i: False)
-HD_AT = {g["letter"]: g["at"] for g in coord.read_json(HD / pw.DISPATCH_LEDGER, {})["groups"]}
+HD_AT = {g["letter"]: g["at"] for g in coord.read_json(HD / coord.DISPATCH_LEDGER, {})["groups"]}
 for name, nid, when in (("w1045b-PB8-report.md", "PB8", HD_AT["b"] + 60), ("w1031c-PB9-report.md", "PB9", HD_AT["c"] - 3600)):
     (HD_REPORTS / name).write_text(f"DONE\n# {nid} group\n**branch:** `worktree-wf_held-{nid}` · **HEAD:** `5555555ee`\n\n"
                                    "## Reproduced?\n", encoding="utf-8", newline="\n")
     __import__("os").utime(HD_REPORTS / name, (when, when))
-LEDGER_DOC = coord.read_json(HD / pw.DISPATCH_LEDGER, {})
+LEDGER_DOC = coord.read_json(HD / coord.DISPATCH_LEDGER, {})
 LEDGER_DOC["groups"].append({"wave": "hand", "letter": "", "notes": ["PB10"], "files": ["src/W.cs"], "hand": True,
                              "at": HD_AT["a"]})
-coord.write_json(HD / pw.DISPATCH_LEDGER, LEDGER_DOC)
+coord.write_json(HD / coord.DISPATCH_LEDGER, LEDGER_DOC)
 check("held: unanswered groups only, terminal notes and retired hand entries never",
       pw.held_by_dispatch(HD, pw.load_reports(HD_REPORTS), lambda i: i == "PB2"),
       {"PB5": "dispatch w1045a", "PB9": "dispatch w1045c"})
@@ -1429,7 +1429,7 @@ def fake_git(*args, cwd=None, stdin=None):
 
 LEDGER = TMP / "coord"
 LEDGER.mkdir()
-coord.write_json(LEDGER / pw.DISPATCH_LEDGER, {"groups": [
+coord.write_json(LEDGER / coord.DISPATCH_LEDGER, {"groups": [
     {"wave": "1040", "letter": "a", "notes": ["PB70"], "files": ["src/Dispatched.cs"]},
     {"wave": "1039", "letter": "b", "notes": ["PB71"], "files": ["src/Done.cs"]}]})
 fly = pw.inflight_file_sets(git=fake_git, repo=pathlib.Path("/r"), coord_dir=LEDGER,
@@ -1497,19 +1497,19 @@ if fc:
           ["train t (src/Lib/Caller.cs)"])
 HL = TMP / "coord-hand"
 HL.mkdir()
-coord.write_json(HL / pw.DISPATCH_LEDGER, {"groups": [
+coord.write_json(HL / coord.DISPATCH_LEDGER, {"groups": [
     {"wave": "hand", "letter": "", "label": "cobol-clerk: x", "hand": True, "notes": ["PB961"], "files": ["src/Junk.cs"],
      "at": 1.0},
     {"wave": "1060", "letter": "A", "notes": ["PB962"], "files": ["src/Old.cs"], "at": 2.0}]})
 check("a retired hand entry is no dispatch: not in flight, not held, no wave number",
       ({f for fs in pw.inflight_file_sets(coord_dir=HL, terminal=lambda i: False, with_git=False).values() for f in fs},
-       pw.held_by_dispatch(HL, [], lambda i: False), pw.next_wave(TMP / "no-devlog", [], HL)),
+       pw.held_by_dispatch(HL, [], lambda i: False), pw.alloc.peek("wave", TMP / "no-devlog", HL)),
       ({"src/Old.cs"}, {"PB962": "dispatch w1060a"}, 1061))
 first = pw.record_dispatch(HL, "1061", [{"letter": "A", "notes": ["PB960"], "files": ["src" + chr(92) + "Hand.cs"]},
                                         {"letter": "B", "notes": ["PB963"], "files": ["src/B.cs"]}], lambda i: False)
 again = pw.record_dispatch(HL, "1061", [{"letter": "a", "notes": ["PB960"], "files": ["src/Hand.cs", "src/More.cs"]}],
                            lambda i: False)
-LG = coord.read_json(HL / pw.DISPATCH_LEDGER, {})["groups"]
+LG = coord.read_json(HL / coord.DISPATCH_LEDGER, {})["groups"]
 check("record_dispatch drops the retired hand entry and keeps the other waves", [(g["wave"], g["letter"]) for g in LG],
       [("1060", "A"), ("1061", "B"), ("1061", "a")])
 check("record_dispatch UPSERTS on (wave, letter): the re-recorded group replaces its entry, its files exact, POSIX",
@@ -1520,12 +1520,12 @@ check("PB3392: the group recorded again keeps its first `at`; the group beside i
       (again[0]["at"] == first[0]["at"], first[0]["at"] < first[1]["at"]), (True, True))
 HA = TMP / "coord-at"
 HA.mkdir()
-coord.write_json(HA / pw.DISPATCH_LEDGER, {"groups": [
+coord.write_json(HA / coord.DISPATCH_LEDGER, {"groups": [
     {"wave": "1118", "letter": "A5", "notes": ["PB3330"], "files": ["src/Engine.cs"], "slug": "w1118a5", "at": 5.0},
     {"wave": "1126", "letter": "C", "notes": ["PB1587"], "files": [], "slug": "w1126c", "at": 14.0}]})
 rerender = pw.record_dispatch(HA, "1118", [{"letter": "A5", "notes": ["PB3330", "PB3331"], "files": ["src/Engine.cs", "src/More.cs"]},
                                            {"letter": "A7", "notes": ["PB3332"], "files": ["src/New.cs"]}], lambda i: False)
-AT = {(g["wave"], g["letter"]): g for g in coord.read_json(HA / pw.DISPATCH_LEDGER, {})["groups"]}
+AT = {(g["wave"], g["letter"]): g for g in coord.read_json(HA / coord.DISPATCH_LEDGER, {})["groups"]}
 check("PB3392: a re-rendered early dispatch is still EARLIER than a later wave's group, though its files and notes grew",
       (AT[("1118", "A5")]["at"], AT[("1118", "A5")]["files"], AT[("1118", "A5")]["notes"], AT[("1118", "A5")]["at"] < AT[("1126", "C")]["at"]),
       (5.0, ["src/Engine.cs", "src/More.cs"], ["PB3330", "PB3331"], True))
@@ -1566,7 +1566,7 @@ check("an ANSWERED group (its report exists, SPLIT residue included) holds no de
 RV = TMP / "coord-review"
 RV.mkdir()
 pw.record_dispatch(RV, "1101", [{"letter": "AR1", "notes": ["PB3198"], "files": ["src/Review.cs"]}], lambda i: False)
-RV_AT = coord.read_json(RV / pw.DISPATCH_LEDGER, {})["groups"][0]["at"]
+RV_AT = coord.read_json(RV / coord.DISPATCH_LEDGER, {})["groups"][0]["at"]
 
 
 def rv_state(*reports):
@@ -1590,7 +1590,7 @@ check("a report whose file is gone answers nothing (the safe side of a double di
       rv_state(dataclasses.replace(RETURNED, path=HL_REPORTS / "gone-PB3198-report.md")), HELD)
 pw.record_dispatch(HL, "1062", [], lambda i: i == "PB962")
 check("an entry whose notes all landed is dropped at the next record",
-      [g["wave"] for g in coord.read_json(HL / pw.DISPATCH_LEDGER, {})["groups"]], ["1061", "1061"])
+      [g["wave"] for g in coord.read_json(HL / coord.DISPATCH_LEDGER, {})["groups"]], ["1061", "1061"])
 MDS = TMP / "coord-mds"
 MDS.mkdir()
 MCFG = {"wave": "1070", "groups": [{"letter": "A", "slug": "w1070a", "notes": "PB970, PB971", "file_set": ["src/M.cs"],
@@ -1600,7 +1600,7 @@ mds.record(MCFG, MDS, terminal=lambda i: False, claim_of=lambda ids: pw.Claim.of
 check("make_dispatch_specs records every rendered group: its file_set list and member claims, else the set computed "
       "from its notes",
       [(g["slug"], g["notes"], g["files"], g["members"])
-       for g in coord.read_json(MDS / pw.DISPATCH_LEDGER, {})["groups"]],
+       for g in coord.read_json(MDS / coord.DISPATCH_LEDGER, {})["groups"]],
       [("w1070a", ["PB970", "PB971"], ["src/M.cs"], {"src/M.cs": ["T.M"]}), ("w1070b", ["PB972"], ["src/PB972.cs"], {})])
 LM: dict = {}
 check("... and the in-flight enumeration reads a recorded group's member claims back (kb/Work PB3670)",
@@ -1631,7 +1631,7 @@ RL.mkdir()
 pw.record_dispatch(RL, "1050", [{"letter": "a", "notes": ["PB80"], "files": ["src/X.cs"]},
                                 {"letter": "b", "notes": ["PB81"], "files": ["src/Y.cs"]},
                                 {"letter": "c", "notes": ["PB82"], "files": ["src/Z.cs"]}], terminal=lambda i: False)
-ATS = [g["at"] for g in coord.read_json(RL / pw.DISPATCH_LEDGER, {})["groups"]]
+ATS = [g["at"] for g in coord.read_json(RL / coord.DISPATCH_LEDGER, {})["groups"]]
 check("one wave's groups never tie and keep letter order", ATS == sorted(ATS) and len(set(ATS)) == 3, True)
 check("release by group", [g["letter"] for g in pw.release_dispatch(RL, "1050b")], ["b"])
 check("release by note", [g["letter"] for g in pw.release_dispatch(RL, "PB82")], ["c"])
@@ -1798,10 +1798,10 @@ with tempfile.TemporaryDirectory() as td:
     (tdir / "DEVLOG").mkdir()                                    # one file per entry (kb/Work PB3025)
     (tdir / "DEVLOG" / "0002-train-1036.md").write_text("## Entry 2 — Train 1036 (wave 1032: D, E)" + NL, encoding="utf-8", newline="\n")
     (tdir / "DEVLOG" / "0001-wave-1034.md").write_text("## Entry 1 — wave 1034 dispatched" + NL, encoding="utf-8", newline="\n")
-    check("next_wave counts a train label above every wave number", pw.next_wave(tdir, []), 1037)
+    check("the wave number counts a train label above every wave number", pw.alloc.peek("wave", tdir, tdir), 1037)
     # PB2806: a wave recorded in the dispatch ledger with no report yet (another session's) is a taken number too
     pw.record_dispatch(tdir, "1045", [{"letter": "a", "notes": ["PB5"], "files": ["src/X.cs"]}], lambda i: False)
-    check("next_wave counts a dispatched wave with no report", pw.next_wave(tdir, [], tdir), 1046)
+    check("the wave number counts a dispatched wave with no report", pw.alloc.peek("wave", tdir, tdir), 1046)
 
 # PB3181: THE ONE "FINISHED REPORT" PREDICATE (Report.finished) and its `--finished` arm, which the rolling wave asks
 # before it reviews a return; the header's HEAD and BASE fields are read field-first.
@@ -2322,7 +2322,7 @@ check("a fix campaign's group on a reserved file is planned; a restructuring not
       ([["PB11"]], ["PB9"], True))
 UL = TMP / "coord-unknown"
 UL.mkdir()
-coord.write_json(UL / pw.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
+coord.write_json(UL / coord.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
 UM: dict = {}
 check("a dispatch recorded with no files stays in flight: its set empty (it meets nothing), its notes known",
       (pw.inflight_file_sets(coord_dir=UL, terminal=lambda i: False, with_git=False, meta=UM),
@@ -2347,7 +2347,7 @@ FAKE_SPECS.write_text("import pathlib, sys\npathlib.Path(sys.argv[1]).with_name(
                       "' '.join(sys.argv[2:]) + chr(10))\nsys.exit(1)\n", encoding="utf-8", newline="\n")
 
 
-def main3114(scratch, stop, specs):
+def main3114(scratch, stop, specs, wave="9114"):
     saved_plan, saved_specs = pw.plan, pw.MAKE_SPECS
     pw.plan = lambda *_a, **_k: {"groups": [pw.Group("cluster", ["PB3114"], "scripts/orchestrator/plan_wave.py",
                                                      ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
@@ -2355,7 +2355,7 @@ def main3114(scratch, stop, specs):
                                  "drain_not_started": [], "skipped": []}
     pw.MAKE_SPECS = specs
     try:
-        return pw.main(["--wave", "9114", "--budget-points", "3", "--no-branches", "--coord", str(C3114),
+        return pw.main(["--wave", wave, "--budget-points", "3", "--no-branches", "--coord", str(C3114),
                         "--reports", str(TMP / "reports-3114"), "--clusters-json", str(C3114 / "clusters-open.json"),
                         "--half-clusters-json", str(C3114 / "clusters-half.json"), "--scratch", str(scratch),
                         "--stop-file", str(stop)])
@@ -2364,7 +2364,7 @@ def main3114(scratch, stop, specs):
 
 
 def state3114():
-    return (pw.alloc.peek("code", coord.REPO, C3114), pw.ledger_groups(C3114))
+    return (pw.alloc.peek("code", coord.REPO, C3114), coord.ledger_groups(C3114))
 
 
 before = state3114()
@@ -2385,6 +2385,22 @@ check("PB3114 (c): GREEN reserves the group's codes after the check, renders the
        [(g["wave"], g["letter"], g["notes"]) for g in after_ledger], (S3114 / "wf-args-w9114.json").is_file()),
       (0, 3, True, [("9114", "A", ["PB3114"])], True))
 pw.release_dispatch(C3114, "9114")
+# kb/Work PB3700: `--wave next` takes its number from the allocator (alloc.py wave) and RESERVES it only once the specs
+# check GREEN, like the codes: a RED check leaves it free, a GREEN one renders the spec under it and the next plan, or a
+# hand dispatch asking the allocator, gets the one after
+N3114 = TMP / "scratch-3114-next"
+next_before = pw.alloc.peek("wave", coord.REPO, C3114)
+check("PB3700 (a): a RED check with --wave next reserves no wave number",
+      (main3114(N3114, N3114 / "STOP-loop", FAKE_SPECS, "next"), pw.alloc.peek("wave", coord.REPO, C3114)),
+      (1, next_before))
+rc_next = main3114(N3114, N3114 / "STOP-loop", pw.MAKE_SPECS, "next")
+check("PB3700 (b): a GREEN check with --wave next reserves the number it rendered; the next asker gets the one after",
+      (rc_next, (N3114 / f"msg-w{next_before}-a.txt").is_file(), pw.alloc.peek("wave", coord.REPO, C3114),
+       [g["wave"] for g in coord.ledger_groups(C3114)]),
+      (0, True, next_before + 1, [str(next_before)]))
+pw.release_dispatch(C3114, str(next_before))
+check("PB3700 (c): a hand dispatch takes its wave number from the same allocator, past the planner's",
+      pw.alloc.allocate("wave", 1, coord.REPO, C3114), (next_before + 1, next_before + 1))
 # a hand-planned groups file whose practices check is RED: a standing requirement its spec body does not carry (PB3359)
 g3114 = json.loads((S3114 / "groups.json").read_text(encoding="utf-8"))["groups"][0]
 gred = TMP / "groups-3114-red.json"
@@ -2393,7 +2409,7 @@ gred.write_text(json.dumps({"wave": "9115", "scratch": str(S3114), "base": "abc"
                                         "requirements": {"PB1": ["a requirement no rendered spec carries (3114)"]}}]}),
                 encoding="utf-8", newline="\n")
 check("PB3114 (d): make_dispatch_specs.py records nothing when its practices check is RED",
-      (mds.main([str(gred), "--coord", str(C3114)]), pw.ledger_groups(C3114)), (1, []))
+      (mds.main([str(gred), "--coord", str(C3114)]), coord.ledger_groups(C3114)), (1, []))
 
 # PB3528: two SPLIT branches whose file sets share a file. Each finisher met the OTHER branch (a DECISION owner, read
 # RUNNING) in the partition and waited, so neither was ever planned. A branch another group of this same wave
