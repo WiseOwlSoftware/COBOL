@@ -136,6 +136,26 @@ def agent_turn_cap(role: str, agents_dir: pathlib.Path | None = None) -> int:
     return int(cap.group(1))
 
 
+#: A fix-lane report's file name, `w<wave><letter>-PB<lead>-report.md` (in reports_dir): the wave number, the group
+#: letter and the lead note. THE one definition: plan_wave parses reports by it, and alloc.py's `wave` kind reads the
+#: highest wave number taken from the names in the directory (kb/Work PB3700).
+REPORT_NAME = re.compile(r"^w(?P<wave>\d+)(?P<letter>[a-z0-9]*)-(?P<lead>PB\d+)-report\.md$")
+
+#: The dispatch ledger's file name in the coordination directory.
+DISPATCH_LEDGER = "inflight-groups.json"
+
+
+def ledger_groups(coord_dir: pathlib.Path) -> list[dict[str, Any]]:
+    """THE reader of the dispatch ledger (<coord>/inflight-groups.json): its wave GROUPS, each keyed by (wave, letter),
+    written only by plan_wave.record_dispatch from a planned or rendered wave (kb/Work PB3186). An entry with `hand: true`
+    or a wave that is not a number is no dispatch: the retired guard hook wrote it from a scrape of every note id a prompt
+    mentioned, with the union of their file sets (six entries of 303-910 files on 2026-10-15). Every reader ignores
+    such an entry, and the next record_dispatch drops it."""
+    groups = read_json(coord_dir / DISPATCH_LEDGER, {"groups": []}).get("groups", [])
+    return [g for g in groups if isinstance(g, dict) and not g.get("hand") and str(g.get("wave", "")).isdigit()
+            and isinstance(g.get("letter"), str) and g["letter"]]
+
+
 def fleet_stop(scratch: pathlib.Path | str, scope: str) -> pathlib.Path:
     """One fleet's own stop file in its scratch directory: `STOP-<scope>` (a wave `w1033`, the loop's `loop`)."""
     if not STOP_SCOPE.fullmatch(scope):

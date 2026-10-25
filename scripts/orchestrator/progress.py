@@ -9,7 +9,7 @@ ticks, says the line in its log, and posts each NEW stall to the operator's mail
 per tick would wake the attended session every ten minutes for news it already has).
 
 THE LINE, read from the coordination directory only (no git, no GitHub: it runs every few minutes):
-  groups        every dispatch-ledger group (plan_wave.ledger_groups: the dispatched work still in flight) by its
+  groups        every dispatch-ledger group (coord.ledger_groups: the dispatched work still in flight) by its
                 state: RUNNING (no report answers it, plan_wave.answers), DONE and reviewed CLEAN, DONE with review
                 FINDINGS, DONE and not yet reviewed, or another status (SPLIT, DISCHARGED, BLOCKED, GATE-PENDING)
   landings      the landing records (landing_measure.read_all) enqueued and merged since the unit started (whether a
@@ -52,7 +52,7 @@ def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict
     reps = plan_wave.load_reports(coord.reports_dir(str(cdir)))
     groups: dict[str, int] = {"running": 0, "clean": 0, "findings": 0, "unreviewed": 0, "other": 0}
     waiting: list[dict] = []   # {slug, notes, minutes, on}
-    for g in plan_wave.ledger_groups(cdir):
+    for g in coord.ledger_groups(cdir):
         slug, notes = plan_wave.ledger_slug(g), list(g.get("notes", []))
         mine = [r for r in reps if plan_wave.answers(r, g)]
         if not mine:
@@ -142,7 +142,7 @@ def self_test() -> int:
     rd = cdir / "scratch" / "reports"
     rd.mkdir(parents=True)
     now = 1_900_000_000.0
-    coord.write_json(cdir / plan_wave.DISPATCH_LEDGER, {"groups": [
+    coord.write_json(cdir / coord.DISPATCH_LEDGER, {"groups": [
         {"wave": "7", "letter": "A", "notes": ["PB701"], "files": [], "at": now - 90 * 60},    # running 90 min: a stall
         {"wave": "7", "letter": "B", "notes": ["PB702"], "files": [], "at": now - 20 * 60},    # running 20 min
         {"wave": "7", "letter": "C", "notes": ["PB703"], "files": [], "at": now - 80 * 60},    # DONE, CLEAN

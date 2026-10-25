@@ -187,9 +187,9 @@ def main(argv=None):
     if rc == 0 and not a.no_record:
         for e in record(cfg, ledger, claim_of=claim_of):
             print(f"recorded {e['slug']} ({', '.join(e['notes'])}): {len(e['files'])} files in "
-                  f"{ledger / plan_wave.DISPATCH_LEDGER}")
+                  f"{ledger / coord.DISPATCH_LEDGER}")
     elif rc:
-        print(f"check_practices.py RED: nothing recorded in {ledger / plan_wave.DISPATCH_LEDGER}")
+        print(f"check_practices.py RED: nothing recorded in {ledger / coord.DISPATCH_LEDGER}")
     return rc
 
 
