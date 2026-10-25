@@ -563,6 +563,15 @@ for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", Tru
            bool(g79) and "contained in worktree-wf_dr-2" in g79.pred,
            any("PB7" in g.notes for g in pr["groups"]), "being answered" in pr["waiting"].get("PB7", "")),
           ("IN FLIGHT", "worktree-wf_dr-2", False, False, True, pb7_planned, not pb7_planned))
+# PB3404, ONE FINDINGS CASE, ONE OWNER: when the carrier's own CLEAN review answers the carried branch's findings
+# (prune_worktrees.answered_by_carrier: the uncapped case, whose findings the successor's review took over), the planner
+# plans no second finisher for them; it says who answers, and plans one again if the carrier does not land
+pa = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+             budget_points=100, carrier=DR_CARRIER.get, owned=set(),
+             answered=lambda rep: "worktree-wf_dr-2" if rep.branch == "worktree-wf_dr-5" else None)
+check("PB3404: a carried FINDINGS branch whose carrier's review answers them gets no finisher and names who does",
+      (any(g.notes == ["PB79"] for g in pa["groups"]), "answered by worktree-wf_dr-2's own review" in pa["waiting"].get("PB79", ""),
+       any("PB77" in g.notes for g in pa["groups"])), (False, True, True))
 pn = dr_plan(False)
 check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == ["PB77"] for g in pn["groups"]), True)
 # R1-2: PB79's branch is contained in worktree-wf_dr-2, PB7's DONE branch, whose report never answers PB79's findings:
