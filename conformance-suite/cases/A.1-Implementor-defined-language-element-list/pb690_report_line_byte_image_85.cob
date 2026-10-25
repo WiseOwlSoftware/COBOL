@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb690_report_line_byte_image_85
-      *> rules: [DOC-A.1-159]
+      *> rules: [DOC-A.1-159, GR-13.4.5.4-4]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
