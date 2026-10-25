@@ -41,7 +41,7 @@ stay as they were. The new fixtures are red with the old `contained`, which I ra
 lock alone. `prune_worktrees.locked(rows)` is the lock-only half, `plan(locked=...)` reads it in the PB2974 branch-unit
 hold loop (the dispatch hold and the lock hold are one loop, units keyed by `unit_of(branch)`), and a touch alone still
 holds nothing. The residual the note recorded without a state is a real one: two different SPLIT reports about one branch
-planned two finishers over it. `finisher_by_rep` now merges them into the newest report's group; the self-test is red on
+planned two finishers over it. `finisher_by_rep` now merges them into the newest UNFINISHED report's group (branch review R1-1: the first form merged into the newest report whatever its status, so a newer DONE report about another lead made the finisher's pred say "returned DONE" and name the wrong report; a self-test fixture covers it); the self-test is red on
 the old code.
 
 Docs: DESIGN-orchestrator-loop.md (the survey's coverage, the planner's branch unit, the replay rule), the module

@@ -2403,6 +2403,21 @@ check("PB3653: two unfinished reports about one branch plan ONE finisher over it
       [(g.kind, sorted(g.notes), g.continues, "w1090b" in g.pred) for g in two_on_one["groups"]],
       [("finisher", ["PB5", "PB6"], ["worktree-two-1"], True)])
 
+# Branch review R1-1: the merge target is the newest UNFINISHED report. A newer DONE report about another lead on the same
+# branch is no target: the finisher's pred would say "w1090b returned DONE for PB5" and name the wrong report.
+TDN = TMP / "reports-two-done-newest"
+TDN.mkdir()
+for slug, lead, status, when in (("w1090a", "PB5", "SPLIT", 1_000_000_000), ("w1090b", "PB6", "DONE", 1_000_003_600)):
+    q = TDN / f"{slug}-{lead}-report.md"
+    q.write_text(f"{status}\n# {lead} group\n**Status:** {status} · **branch:** `worktree-two-1` · **HEAD:** `7777777aa`\n\n"
+                 "## Reproduced?\n", encoding="utf-8", newline="\n")
+    os.utime(q, (when, when))
+two_done = pw.plan(notes, [cl(F_BIND, "PB5", "PB6")], [], pw.load_reports(TDN), lambda b: "UNLANDED", {}, RULES,
+                   budget_points=100)
+check("PB3653 R1-1: an unfinished report's finisher is not merged into a newer DONE report of its branch (pred names the SPLIT one)",
+      [(g.kind, sorted(g.notes), "w1090a" in g.pred, "w1090b" in g.pred) for g in two_done["groups"]],
+      [("finisher", ["PB5"], True, False)])
+
 # PB3476: THE COMMIT A REPORT DESCRIBES is its header's HEAD, else the head its review stamp names; the one parser
 # (parse_report) is read by the branch survey, the landing lane and the landing measure.
 HD = TMP / "reports-head"
