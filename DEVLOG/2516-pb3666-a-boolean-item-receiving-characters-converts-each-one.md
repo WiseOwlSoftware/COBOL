@@ -1,4 +1,4 @@
-## PB3666: a boolean item receiving characters converts each one ('1' to one, every other to zero), so DISPLAY and the boolean operators agree
+## Entry 2516 — 2026-10-24 21:22 PDT — PB3666: a boolean item receiving characters converts each one ('1' to one, every other to zero), so DISPLAY and the boolean operators agree
 
 `MOVE "AB"` into `PIC 1(5)` (USAGE DISPLAY or USAGE BIT) stored the characters themselves: DISPLAY showed `AB000`
 (`000AB` under JUSTIFIED) while `B-NOT` of the same item gave `11111`, because the operators read a position outside
@@ -46,3 +46,4 @@ No inventory row is claimed or closed; the register note PB3666 is flipped to la
 The change reaches no file I/O status, sort or declarative path (READ INTO is an implicit MOVE through the same store).
 
 Review round 1 (wave 20261105, finisher): the new boolean arm of `ReceivingStore.Characters` caught a USAGE NATIONAL boolean receiver too, so a GR4 group move converted and zero-filled the UTF-16BE BYTE image before `StorageCharacters` decoded it (`MOVE GN TO BN` with GN holding N"101" displayed three CJK characters and B-NOT gave 111; main gave 101 and 010). The arm is now `Usage: Usage.Display` only (a BIT area is packed bytes, a national one UTF-16BE pairs; neither is characters), pinned by line L12 of the golden and by `ReceivingStoreDriftTests`. The two LEAD comment findings were fixed in the files already changed: the design invariant and D-B5 now name the two bypasses that leave undefined content (a group receiver under GR4, a REDEFINES view; section 14.6.13.2 1)), and the STRING comment and golden header no longer present GR3 a) as the authority for the conversion (it prescribes the alphanumeric move; D-B5 is the authority).
+
