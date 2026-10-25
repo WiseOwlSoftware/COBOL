@@ -29,6 +29,9 @@ import git_batch  # noqa: E402  (scripts/: the batched git reads, kb/Work PB3582
 sys.path.insert(0, str(coord.REPO / ".claude" / "skills" / "workstream"))
 import check_practices  # noqa: E402
 import make_dispatch_specs as mds  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 LIVE_RULES = coord.rules()   # the rules as model_rules.json states them (the PB3638 block reads the owner's one link)
 RULES = coord.rules()

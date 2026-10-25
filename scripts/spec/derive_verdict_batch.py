@@ -46,6 +46,8 @@ import sys
 from collections import Counter
 
 from inventory_schema import DerivedSelector, load_catalog, load_inventory, load_schema
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 RECORD = "python scripts/spec/record_verdicts.py --dry-run {0}"
 
@@ -256,10 +258,6 @@ def main() -> int:
     ap.add_argument("-o", "--out", type=pathlib.Path, help="write the batch file here")
     ap.add_argument("--notes", default="", help="notes text for every record (default: the selector's decision)")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if args.self_test:
         return self_test()
@@ -394,4 +392,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

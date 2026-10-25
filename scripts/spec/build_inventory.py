@@ -37,6 +37,9 @@ from collections import Counter
 
 from inventory_schema import (ADJUDICATED as CARRIED, CATALOG_PATH as CATALOG,
                               INVENTORY_PATH as INVENTORY, REPO, load_schema, write_inventory)
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: Whitespace and the transcription's markdown escapes are not content — two texts that differ only there are the
 #: same rule, and a digest that said otherwise would cry wolf on every re-transcription.
@@ -63,10 +66,6 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="report only; exit 1 if a carried verdict landed on CHANGED rule text")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if not CATALOG.exists():
         sys.exit(f"catalog not found: {CATALOG}\nRun: python scripts/spec/extract_rule_catalog.py")
@@ -175,4 +174,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

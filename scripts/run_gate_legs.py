@@ -134,6 +134,7 @@ import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-
 from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, UnreadableTrx,  # noqa: E402
                              check as check_population, list_population, scrubbed_env, synthetic_listing,
                              synthetic_trx)
+from standard_streams import ensure_utf8  # noqa: E402
 
 VERDICT = "=== BUILD-LOCAL GATE: "
 #: The Linux half's verdict prefix (scripts/linux-gate.sh), which `read_verdict` reads like this driver's own.
@@ -2722,11 +2723,6 @@ def print_flush(line: str) -> None:
 
 
 def main() -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
-        sys.stderr.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001 — a stream without reconfigure keeps its encoding; the gate still runs
-        pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", help="the change's cut point (default: git merge-base HEAD origin/main)")
     ap.add_argument("--await", dest="await_run", metavar="RUN", help="read a gate's verdict from its run directory: "
@@ -2765,4 +2761,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8(line_buffering=True)  # the gate log is tailed while the gate runs
     sys.exit(main())

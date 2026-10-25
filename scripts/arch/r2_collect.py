@@ -102,6 +102,8 @@ SEVERITIES = ("Critical", "Warning", "Suggestion")
 HARMS = ("wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import r2_cost  # noqa: E402  (the ONE estimator of what a launch plan spends)
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 TEMPLATE = REPO / ".claude" / "skills" / "workstream" / "templates" / "wf_r2_review.js"
 # the template's one plan line, which `--launch` replaces with the plan (the line's own comment says so)
 PLAN_LINE = re.compile(r"^const A = args\b.*$", re.M)
@@ -768,7 +770,6 @@ def self_test():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path)
     ap.add_argument("--launch", action="store_true",
@@ -823,4 +824,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

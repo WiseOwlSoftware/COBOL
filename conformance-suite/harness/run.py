@@ -70,6 +70,8 @@ sys.path.insert(0, str(HARNESS))
 
 import config  # noqa: E402  (this directory's: the adapter, profile and baseline formats)
 from config import FAIL, NO_VERDICT, NOT_APPLICABLE, PASS, VERDICTS, Step, StepContext  # noqa: E402
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 VERDICT = "=== CONFORMANCE RUN: "
 #: The default hang guard per process, in seconds: generous, a guard against a hang and never a time expectation.
@@ -889,9 +891,5 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
-    for _stream in (sys.stdout, sys.stderr):
-        try:
-            _stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

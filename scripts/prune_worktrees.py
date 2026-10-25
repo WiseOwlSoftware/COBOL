@@ -165,6 +165,7 @@ import merge_drivers  # noqa: E402  (scripts/: the merge drivers, THE definition
 from git_batch import Ancestry  # noqa: E402
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 from queue_facts import PullRequest  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 if TYPE_CHECKING:
     from plan_wave import Review  # noqa: E402  (imported lazily at run time: plan_wave imports this module back)
     from land_lane import Lane  # noqa: E402  (likewise: land_lane imports this module back)
@@ -2299,5 +2300,5 @@ def self_test() -> int:
 
 
 if __name__ == '__main__':
-    sys.stdout.reconfigure(encoding='utf-8')   # the rows carry '·' and '—'; session-probe reads them as UTF-8
+    ensure_utf8()
     sys.exit(main())

@@ -27,6 +27,7 @@ Everything else is left exactly as it is.
 """
 from __future__ import annotations
 import argparse, re, sys
+from standard_streams import ensure_utf8
 
 ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>$')
 PAGE_H = re.compile(r'^#+\s*Page\s+\d+$')
@@ -129,4 +130,5 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

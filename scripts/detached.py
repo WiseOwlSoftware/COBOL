@@ -33,6 +33,7 @@ import signal
 import subprocess
 import sys
 import time
+from standard_streams import ensure_utf8
 
 #: The launcher's one answer line: `DETACHED <json>` with the target's pid and whether it left the caller's job.
 ANSWER = "DETACHED "
@@ -171,6 +172,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:2] == ["--self-test"]:
         sys.exit(self_test())
     if len(sys.argv) == 3 and sys.argv[1] == "--launch":

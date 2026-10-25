@@ -42,6 +42,8 @@ from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an ed
 # The PRINTED level of every sub-list, measured on the PDF (kb/Work PB55) — the key and the opening-item rule are
 # the measuring tool's own, so the recorder and this checker cannot disagree about what a sub-list is.
 from measure_sublist_levels import DATA as SUBLIST_LEVELS, openings as sublist_openings, sublist_key  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC = REPO / "specs" / "ISO_COBOL.md"
@@ -401,12 +403,6 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="parse only; exit non-zero if parse gaps exist")
     args = ap.parse_args()
-
-    # The Windows console defaults to cp1252 and cannot encode the section sign or the warning glyph.
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001 - a reporting nicety must never fail the extraction
-        pass
 
     if not SPEC.exists():
         sys.exit(f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
@@ -1103,4 +1099,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
