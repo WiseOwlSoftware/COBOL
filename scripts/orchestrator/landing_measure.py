@@ -828,7 +828,6 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     if got != want or (rec["done"], rec["done_each"], rec["changes"]) != (t("08:00"), want["train"], 2):
         fails.append(f"{done_arm}: {got} (want {want}); enqueued record {rec}")
     # the stages (kb/Work PB3638): dispatched from the dispatch ledger, review_clean from the CLEAN verdict's record
-    import plan_wave  # noqa: PLC0415
     sc = tmp / "stagecoord"
     srd = sc / "scratch" / "reports"
     srd.mkdir(parents=True)
