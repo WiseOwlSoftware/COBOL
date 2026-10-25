@@ -17290,6 +17290,14 @@
   ],
   "expect": "shall be implicitly or explicitly described as usage display or usage national"
  },
+ "pb508_blank_when_zero_national_resultant": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1675"
+ },
  "pb510-blank-when-zeros": {
   "refuse-at": [
    "85",
