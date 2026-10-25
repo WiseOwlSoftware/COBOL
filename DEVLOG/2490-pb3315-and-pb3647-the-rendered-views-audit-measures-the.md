@@ -1,4 +1,4 @@
-## PB3315 and PB3647: the rendered-views audit measures the ledger's missed trend points in two git processes, and the .gitignore stops naming a deleted test
+## Entry 2490 — 2026-10-24 17:23 PDT — PB3315 and PB3647: the rendered-views audit measures the ledger's missed trend points in two git processes, and the .gitignore stops naming a deleted test
 
 PB3315. The gate's pre-slot `audit RENDERED VIEWS` ran `rendered_views.py --check`, whose ledger view runs
 `gen_ledger.py --check`. That check rebuilds the trend series, and `missed_points` measured every commit since the
@@ -39,3 +39,4 @@ Self-review: silent failures (a tree or blob git cannot read raises GitError and
 answer; an unreadable inventory is None exactly as before), tests (the arms above), comments (the old PB3026 text in the
 docstring corrected), no new type beyond the two-field `Committed` tuple. No inventory row is claimed or closed; both
 notes carry `closes_rows_reason`.
+
