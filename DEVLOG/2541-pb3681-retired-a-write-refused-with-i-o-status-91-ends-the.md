@@ -1,4 +1,4 @@
-## PB3681 retired: a WRITE refused with I-O status 91 ends the run unit only under EC-I-O checking, which is the rule, and now has witnesses
+## Entry 2541 — 2026-10-25 11:29 PDT — PB3681 retired: a WRITE refused with I-O status 91 ends the run unit only under EC-I-O checking, which is the rule, and now has witnesses
 
 The note reported that `pb547a.cob` (a WRITE of a record holding a character above U+00FF) ends with `EC-I-O-IMP (fatal):
 I-O status 91` although the program declares a FILE STATUS item. Re-probed on this worktree's own build: the program is
@@ -17,3 +17,4 @@ organization and every other fatal status. The gap the note exposed was a missin
 both checking settings. Added `DocA1Item103WitnessTests.CharacterWithoutByteImage_Status91_WithFileStatusClause_Continues`
 (unchecked, `FS=91`, continues) and `..._CheckingEnabled_TerminatesAbnormally` (`>>TURN EC-I-O-IMP CHECKING ON`,
 terminates), and listed both in DOC-A.1-103's witness column. The note is `retired` (no inventory row claimed or closed).
+
