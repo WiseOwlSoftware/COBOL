@@ -576,7 +576,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // A sole function-identifier BY VALUE is identifier-5 of the function's class (SR15).
             var expr = host.Expr.BindExpr(ax);
             return expr is not BoundExprError
-                && (!arg.ByValueWritten || ByValueClassAdmitted(IntrinsicBinder.OperandOf(expr), ax.GetText(), subject));
+                && (!arg.ByValueWritten || ByValueClassAdmitted(IntrinsicBinder.OperandOf(expr, functionValue: false), ax.GetText(), subject));
         }
         return true;   // a numeric literal-2 (SR16 asked above)
     }
@@ -1327,6 +1327,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // to the expression arm and an object-reference formal drew COBOLNET0828).
             else if (fnOperand is BoundFieldOperand { Place: { } resultTemp }) inlinePlace = resultTemp;
             else if (fnOperand is not BoundComputedOperand { Expr: BoundIntrinsicCall }) { }
+            // ⛔ …EXCEPT A NUMERIC FUNCTION INTO A PLAIN-GROUP FORMAL (kb/Work PB3613): GR4's group move stores the digits of the
+            // value (docs/CONFORMANCE.md D-B4), which the §15.4 temporary's own text image ("-15", "-1.500") is not. The call stays on
+            // the expression arm, whose value the emitter sends through the one group-move sender (OperandText.NonElementaryMoveSender).
+            else if (fnOperand is BoundComputedOperand { IsNumericFunctionValue: true } && formal.IsPlainGroup) { }
             else if (host.SendingValue.Materialize(fnOperand, "invokearg", use: SendingValueTemp.ValueUse.Text) is { } fnTemp) inlinePlace = fnTemp;
             else
             {
@@ -1453,14 +1457,17 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (arithCtx is { } ax && (explicitContent || impliedContent))   // a SOLE reference / numeric literal / inline invocation was taken above
         {
             var expr = host.Expr.BindExpr(ax);
-            if (host.Params.ContentConformanceReason(formal, LiteralArg(new BoundComputedOperand(expr))) is { } aErr)
+            // A SOLE function-identifier is a MOVE sender, not an arithmetic expression (kb/Work PB3613): whatever tree the
+            // binder lowered it to, the description and the emitter's group arm must read it as the function value it is.
+            bool functionValue = ConditionBinder.SoleFunctionCall(ax) is not null;
+            if (host.Params.ContentConformanceReason(formal, LiteralArg(new BoundComputedOperand(expr) { FunctionValue = functionValue })) is { } aErr)
             {
                 Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for formal "
                     + $"'{formal.CobolName}': {aErr}");
                 return null;
             }
             return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
-                { ContentExpr = expr };
+                { ContentExpr = expr, ContentFunctionValue = functionValue };
         }
 
         // ── literal-2 (ISO §14.9.23.2) — BY CONTENT, because a literal never meets SR9 (§14.9.23.4 GR6 a) 2.) ──
