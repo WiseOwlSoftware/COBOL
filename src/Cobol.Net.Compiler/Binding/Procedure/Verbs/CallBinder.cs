@@ -629,7 +629,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 : ConditionBinder.SoleOoIdentifier(ax) is { } soi ? host.Oo.OoIdentifierOperand(soi)
                 : ConditionBinder.SoleDataReference(ax) is { } kd && host.Intrinsic.KeywordOmittedFunction(kd) is { } kof
                     ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2.3 SR2: the word FUNCTION omitted
-                : IntrinsicBinder.OperandOf(host.Expr.BindExpr(ax), functionValue: false);
+                // Every sole shape has its arm above, so what is left carries an operator, a sign or enclosing parentheses: an
+                // ARITHMETIC EXPRESSION (§14.9.4.4 GR8 regards as an identifier or literal only an argument that "consists
+                // merely of a single identifier or literal"), whatever tree the binder reduced it to - `(C)` binds to C's
+                // BoundNumRef and `(FUNCTION MIN(N 3))` to the sole call's BoundIntrinsicCall (kb/Work PB3678, PB1935).
+                : host.Cond.CompoundOperand(ax);
 
         // A KEYWORD-LESS function-/method-identifier (Format 1's identifier-2, Format 2's GR9). It is never "a data item
         // defined in the file, working-storage, local-storage, or linkage section" (SR3), so GR9 a)2 assumes BY CONTENT
