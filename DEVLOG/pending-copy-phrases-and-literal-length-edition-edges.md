@@ -50,4 +50,11 @@ derived from the cited rule. Comment lens: every citation re-run through `cite.p
 `LiteralRule_HasOneReportingSite` drift test now exempts `ConstructRegistry.g.cs`, which is data that names COBOLNET0814
 as the new row's diagnostic.
 
-Gate: pending.
+Gate. The first gate (000001-20261025T201818Z) was red on one Unit test, `ConstructRegistryDriftTests`: the new rows'
+citations had been edited to the section sign after the registry was generated, so `ConstructRegistry.g.cs` was stale;
+regenerated. The second, on head a5f3cc4a3 (run 000002-20261025T202237Z): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN — Conformance 8,369/18,578 · Unit 36,801/38,270 · Characterization 10/36 cases ran … Linux half (WSL clone
+of HEAD) GREEN`. All 51 new or changed goldens and edition cells passed in `leg-1-Conformance.trx`, among them
+`SuiteTest_IsNoWorseThanItsVerdictAllows` for `pb1615_literal_160_positions` (85, 2002, 2014, 2023),
+`pb1615_literal_over_160_positions` (2014, 2023), `pb1355_library_text_literal` (2002, 2014, 2023) and
+`pb1354_copy_header_2002` (2002), and `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic` for the three negatives.
