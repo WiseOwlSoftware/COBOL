@@ -119,7 +119,7 @@ def fm_line(k: str, v) -> str:
 
 def write_note(item: dict, body: str) -> str:
     keys = ["id", "kind", "status", "severity", "area", "wrong_answer", "crashes", "silent",
-            "rejects_legal_source", "under_rejects", "process_only", "blocked", "blocked_by", "spec_refs"]
+            "rejects_legal_source", "under_rejects", "process_only", "blocked_by", "spec_refs"]
     fm = ["---", f'title: "{item["id"]} — {item["summary"][:70]}"']
     fm += [fm_line(k, item[k]) for k in keys]
     fm += ["tags: [cobolsharp, work, " + item["kind"] + "]", "---", "",
@@ -158,7 +158,6 @@ def migrate() -> int:
             "spec_refs": sorted({c for c in CLAUSE.findall(body)})[:12],
             **harm_fields(flags),
         }
-        item["blocked"] = bool(item["blocked_by"])
         (WORK / f'{item["id"]}.md').write_text(write_note(item, "\n" + body.strip() + "\n"), encoding="utf-8", newline="\n")
         written += 1
 
@@ -172,7 +171,7 @@ def migrate() -> int:
              "blocked" if re.search(r"BLOCKED", " ".join(cells), re.I) else "open"
         item = {
             "id": m.group("id"), "kind": "analysis", "status": st, "severity": "MAJOR",
-            "area": "analysis", "summary": summary, "blocked_by": [], "blocked": st == "blocked",
+            "area": "analysis", "summary": summary, "blocked_by": [],
             "spec_refs": sorted({c for c in CLAUSE.findall(m.group(0))})[:6],
             **harm_fields(["process"]),
         }
@@ -201,7 +200,7 @@ def migrate() -> int:
             item = {
                 "id": f"R{n:02d}", "kind": "defect", "status": "open", "severity": "MINOR",
                 "area": "residue", "summary": re.sub(r"\s+", " ", p)[:110],
-                "blocked_by": [], "blocked": False,
+                "blocked_by": [],
                 "spec_refs": sorted({c for c in CLAUSE.findall(p)})[:6], **harm_fields(flags),
             }
             (WORK / f'{item["id"]}.md').write_text(
@@ -211,7 +210,7 @@ def migrate() -> int:
         declared = int(rm.group("n"))
         if declared != len(parts):
             item = {"id": "R00", "kind": "adjudication", "status": "open", "severity": "MINOR",
-                    "area": "residue", "blocked_by": [], "blocked": False, "spec_refs": [],
+                    "area": "residue", "blocked_by": [], "spec_refs": [],
                     "summary": f"the residue block declares {declared} findings but enumerates {len(parts)}",
                     **harm_fields(["process"])}
             (WORK / "R00.md").write_text(write_note(item,
@@ -385,6 +384,21 @@ def check_base_agrees() -> list[str]:
         f"kb/Work.base 'Fix next' does not select on {missing} — an item whose only harm flag is one of those "
         f"is invisible in the view while work.py next ranks it. Update the filter to match HARM_FLAGS."]
 
+    # ⛔ BLOCKED IS DERIVED (kb/Work PB3389): the views read the `blocked` FORMULA, which spells waiting_on's rule in
+    # the Bases language, so it must name the statuses that rule reads (every terminal status, and owner and blocked),
+    # and no view may read a stored `blocked` property, which no note carries any more.
+    formula = re.search(r"^  blocked:\s*'(?P<expr>.*)'\s*$", text, re.M)
+    if formula is None:
+        out.append("kb/Work.base: no `blocked` formula — blocked is derived (kb/Work PB3389), and the views need it")
+    else:
+        silent = [s for s in (*TERMINAL_STATUSES, "owner", "blocked") if f'"{s}"' not in formula.group("expr")]
+        if silent:
+            out.append(f"kb/Work.base: the `blocked` formula does not name the statuses {silent}, which work.py's "
+                       f"waiting_on reads — a note in one of them would show as unblocked (or blocked) there")
+    if re.search(r"(?<![\w.])blocked\s*[=!]=|note\.blocked", text):
+        out.append("kb/Work.base reads a stored `blocked` property; read `formula.blocked` — no note stores it "
+                   "(kb/Work PB3389)")
+
     # ⛔ THE SAME DUPLICATION ONE PROPERTY OVER. Every view of OPEN work spells the terminal statuses out one by
     # one, and `retired` was added to STATUSES after those views were written — so the first retired note went on
     # showing in "Open but no harm flag set" as though it were open, while `work.py next` (status in open/half)
@@ -525,9 +539,10 @@ HARM_FLAGS = ("wrong_answer", "crashes", "rejects_legal_source", "under_rejects"
 
 def actionable(items: list[dict]) -> list[dict]:
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
+    by_id = {i.get("id"): i for i in items}
     live = [i for i in items if i.get("status") in ("open", "half")
             and any(i.get(f) for f in HARM_FLAGS)
-            and not i.get("process_only") and not i.get("blocked")]
+            and not i.get("process_only") and not waiting_on(i, by_id)]
     return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
 
 
@@ -539,11 +554,15 @@ def actionable(items: list[dict]) -> list[dict]:
 # `blocked_by:` orders the campaign. `cluster_order` is the ONE reader of both: `work.py next --cluster`,
 # `plan_wave.py --cluster` and `next_unit.py` all call it, so "ready" means one thing everywhere.
 #
-# ⛔ `blocked:` IS A SECOND SPELLING OF `blocked_by:`, AND THEY DRIFTED. The fix lane skips a note whose flag is
-# true (`.agent-fleet.json` skip_flag), so a flag left true after its blocker landed HIDES a live defect from every
-# work list; two were found that way when this was written (PB1940 after PB2087 landed, PB1956 after PB322). So
-# `check` holds the flag to the list: when `blocked_by` names notes, `blocked` is true exactly while one of them is
-# still open. A flag with an empty list stays legal: it is a note blocked on something that is not a note.
+# ⛔ WHETHER A NOTE IS BLOCKED IS DERIVED, NEVER STORED (kb/Work PB3389). A stored `blocked:` flag was a second spelling
+# of `blocked_by:` and drifted both ways: a flag left true after its blocker landed HID a live defect from every work
+# list (PB1940 after PB2087 landed, PB1956 after PB322), and `check` answered by holding the flag to the list, which made
+# its verdict depend on OTHER notes' status, so a blocker landing ahead of its dependent in the merge queue turned a
+# branch's green check red with no change to the branch (PR 256, 268, 275, 444 and 493 were bounced from the queue so).
+# `waiting_on` is the ONE reading: a note waits on each `blocked_by` note that is not terminal (an id the register lacks
+# counts as open), and is held while its `status` is `owner` or `blocked`: a hold on something that is not a note (the
+# owner, a document) is spelled with that status and said in the body. `check` REFUSES a stored `blocked:` key
+# (`topology_problems`), so the old spelling cannot silently stop holding anything.
 #
 # ⭐ `tier:` IS THE OWNER'S ORDER INSIDE A CAMPAIGN (kb/Work PB3423). `blocked_by` says what CANNOT start before
 # something else; a tier says what SHOULD start first among notes that are all ready (PB3420: the owner's ten known
@@ -596,6 +615,15 @@ def open_blockers(it: dict, by_id: dict[str, dict]) -> list[str]:
             if by_id.get(b, {}).get("status") not in TERMINAL_STATUSES]
 
 
+def waiting_on(it: dict, by_id: dict[str, dict]) -> list[str]:
+    """What the note waits on, empty when it is READY: every open `blocked_by` note (open_blockers), then
+    `status: owner` or `status: blocked` when the status holds it (a hold on something that is not a note). THE ONE
+    answer to "is this note blocked" (kb/Work PB3389): `actionable`, `cluster_order`, the ledger and the fix lane's
+    population read it, and no note stores the answer."""
+    held = [f"status: {it['status']}"] if it.get("status") in ("owner", "blocked") else []
+    return open_blockers(it, by_id) + held
+
+
 def cluster_members(items: list[dict], lead: str) -> list[dict]:
     """Every note whose `cluster` list names `lead`, terminal or not — THE membership rule, so `cluster_order` and the
     ledger's lanes (`ledger_plan.py`: the campaign and held clusters of WHAT REMAINS) count one population. A list only: a scalar `cluster: PB2108` would
@@ -612,8 +640,8 @@ def cluster_order(items: list[dict], lead: str) -> dict:
     "blockers_in_cluster"}`: `tier` is the note's EFFECTIVE tier in `lead`, the lowest of its own (`tier_of`) and of
     every open cluster member it blocks, or `None` (ranked after every tiered note); `depth` is 0 for a note no open cluster member
     blocks and one past its deepest open in-cluster blocker otherwise (`None` inside a cycle); `waiting_on` lists every
-    open blocker, in the cluster or not, plus the reason a note is held without one (`status: owner`, `status:
-    blocked`, or `blocked: true` with no `blocked_by`); `ready` is `waiting_on == []`. Ties sort by note number.
+    open blocker, in the cluster or not, plus `status: owner` or `status: blocked` when the status holds the note
+    (`waiting_on` the function, the one reading of "blocked"); `ready` is `waiting_on == []`. Ties sort by note number.
     `named` counts every note that names the cluster, landed or not, so a caller can tell a LANDED cluster (named > 0,
     notes empty) from a misspelled one (named == 0)."""
     by_id = {i.get("id"): i for i in items}
@@ -646,11 +674,7 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
     rows = []
     for nid, it in members.items():
-        waiting = open_blockers(it, by_id)
-        if it.get("status") in ("owner", "blocked"):
-            waiting.append(f"status: {it['status']}")
-        elif it.get("blocked") and not it.get("blocked_by"):
-            waiting.append("blocked: true (no blocked_by note)")
+        waiting = waiting_on(it, by_id)
         rows.append({"id": nid, "kind": it.get("kind", ""), "status": it.get("status", ""), "area": it.get("area", ""),
                      "title": str(it.get("title", "")), "tier": tier[nid], "depth": depth_of(nid, set()),
                      "ready": not waiting, "waiting_on": waiting,
@@ -660,8 +684,8 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
 
 def topology_problems(items: list[dict]) -> list[str]:
-    """`blocked_by` names notes that exist, `blocked` agrees with it, open notes form no blocking cycle, `cluster`
-    is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
+    """`blocked_by` names notes that exist, no note stores a `blocked:` flag (it is derived, `waiting_on`), open notes
+    form no blocking cycle, `cluster` is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
     `CAMPAIGN:N` entries, each naming a campaign of the note's own `cluster` list once (a tier ranks the note inside
     that campaign and means nothing outside it)."""
     by_id = {i.get("id"): i for i in items}
@@ -671,6 +695,11 @@ def topology_problems(items: list[dict]) -> list[str]:
         bb, cl = it.get("blocked_by", []), it.get("cluster", [])
         if not isinstance(cl, list) or not all(isinstance(c, str) and c for c in cl):
             bad.append(f"{f}: cluster must be a list of cluster names, got {cl!r}")
+        if "blocked" in it:
+            bad.append(f"{f}: `blocked:` is stored, and whether a note is blocked is DERIVED (kb/Work PB3389): it waits "
+                       f"while a `blocked_by` note is open and is held while its status is owner or blocked, so a "
+                       f"stored copy can only go stale (a stale true hid PB1940 and PB1956; a blocker landing ahead "
+                       f"in the merge queue bounced five pull requests) — delete the line")
         if "tier" in it:
             good, malformed = tier_entries(it)
             for e in malformed:
@@ -682,19 +711,10 @@ def topology_problems(items: list[dict]) -> list[str]:
         if not isinstance(bb, list):
             bad.append(f"{f}: blocked_by must be a list of note ids, got {bb!r}")
             continue
-        unknown = [b for b in bb if b not in by_id]
-        for b in unknown:
+        for b in (b for b in bb if b not in by_id):
             bad.append(f"{f}: blocked_by names {b!r}, which is not a kb/Work note id — name the blocking note "
-                       f"(an owner question is a decision note), or keep `blocked: true` with an empty list and "
-                       f"say what blocks it in the body")
-        if unknown or not bb or it.get("status") in TERMINAL_STATUSES:
-            continue
-        still = open_blockers(it, by_id)
-        if bool(it.get("blocked")) != bool(still):
-            bad.append(f"{f}: blocked is {bool(it.get('blocked'))} but its blocked_by {bb} "
-                       + (f"still has {still} open" if still else "have all landed or retired")
-                       + " — set `blocked: " + ("true" if still else "false")
-                       + "` (a stale true hides the note from every work list)")
+                       f"(an owner question is a decision note), or hold the note with `status: blocked` (or "
+                       f"`owner`) and say what blocks it in the body")
     live = {i["id"]: i for i in items if i.get("status") not in TERMINAL_STATUSES and isinstance(i.get("blocked_by"), list)}
     state: dict[str, int] = {}
 

@@ -27,7 +27,7 @@
   {
    "name": "a note as the register writes it (LF, one-line lists)",
    "file": "PB245.md",
-   "text": "---\ntitle: \"PB245 — the back-link from a landed fix to the rows it closed\"\nid: PB245\nkind: defect\nstatus: landed\nseverity: MAJOR\narea: process/traceability\nprocess_only: true\nblocked: false\nblocked_by: []\nspec_refs: [\"15.4.1\"]\ninventory_rows: []\ncloses_rows: [\"RV-15.4.1-4\"]\ntags: [cobolsharp, work, defect]\n---\n\n# PB245\n\nbody text\n",
+   "text": "---\ntitle: \"PB245 — the back-link from a landed fix to the rows it closed\"\nid: PB245\nkind: defect\nstatus: landed\nseverity: MAJOR\narea: process/traceability\nprocess_only: true\nblocked_by: []\nspec_refs: [\"15.4.1\"]\ninventory_rows: []\ncloses_rows: [\"RV-15.4.1-4\"]\ntags: [cobolsharp, work, defect]\n---\n\n# PB245\n\nbody text\n",
    "expect": {
     "note": true, "id": "PB245", "kind": "defect", "status": "landed", "terminal": true,
     "inventory_rows": [], "closes_rows": ["RV-15.4.1-4"], "closes_rows_reason": "", "errors": [], "refusal": ""

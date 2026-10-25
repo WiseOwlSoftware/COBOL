@@ -163,6 +163,7 @@ import importlib.util
 import json
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -1166,13 +1167,32 @@ def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
           "its tip lands through the branch that carries it; one reviewed CLEAN lands on its own first).")
 
 
+def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | None = None) -> pathlib.Path:
+    """The notes of `status` that wait on nothing (work.waiting_on), copied into the empty directory `view` for
+    fix_clusters.py to read (kb/Work PB3389). fix_clusters skips a note by a flag of its stored frontmatter
+    (`.agent-fleet.json` `skip_flag`), and whether a note is blocked is derived, never stored, so the fix lane's
+    population is the register's own answer and the public script reads only what is ready."""
+    work_dir = work_dir or work.WORK
+    items = work.load(work_dir)
+    by_id = {i.get("id"): i for i in items}
+    if view.exists():
+        shutil.rmtree(view)
+    view.mkdir(parents=True)
+    for it in items:
+        if it.get("status") == status and not work.waiting_on(it, by_id):
+            shutil.copyfile(work_dir / it["_file"], view / it["_file"])
+    return view
+
+
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
-    """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) at the
-    planner's group cap, written to `out` and returned whole (`clusters`, `unsited`). The ONE call, shared by this
-    planner and the ledger's estimate (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
+    """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) of the
+    notes that wait on nothing (ready_notes_view), at the planner's group cap, written to `out` and returned whole
+    (`clusters`, `unsited`). The ONE call, shared by this planner and the ledger's estimate
+    (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
     if not FIX_CLUSTERS.exists():
         raise SystemExit(f"⛔ {FIX_CLUSTERS} is missing: run `git submodule update --init tools/claude-skills`")
-    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--max", str(rules["wave"]["max_notes_per_group"]),
+    view = ready_notes_view(status, out.with_name(f"{out.stem}-notes"))
+    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--notes", str(view), "--max", str(rules["wave"]["max_notes_per_group"]),
                     "--open-status", status, "--json", str(out)], cwd=REPO, check=True, capture_output=True)
     return json.loads(out.read_text(encoding="utf-8"))
 

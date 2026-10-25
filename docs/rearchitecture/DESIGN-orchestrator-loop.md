@@ -1039,7 +1039,9 @@ from that measurement and are refit from `units.jsonl` and `usage_report.py` (PB
 ### 9.1 The campaign lane (`--cluster`, kb/Work PB2120)
 
 The fix lane plans from harm: `fix_clusters.py` reads `.agent-fleet.json`, which keeps `kind: defect`, skips
-`blocked` and `process_only` notes, and resolves sites under `src/Cobol.Net.*` only. A CAMPAIGN (the legacy
+`process_only` notes, and resolves sites under `src/Cobol.Net.*` only, over the notes that wait on nothing
+(`plan_wave.ready_notes_view` copies them into a directory of its own: `fix_clusters.py` skips by a stored flag, and
+whether a note is blocked is derived, kb/Work PB3389). A CAMPAIGN (the legacy
 retirement `PB2108`, the architecture review `PB1754`) is `process_only` work in `tests/`, `scripts/`, `.github/`,
 `docs/` and the legacy tree, so before this lane it could be dispatched only by a hand-written `groups.json`. A
 campaign is a named cluster in the register: every note whose `cluster:` list names the lead (a lead note may list
@@ -1048,10 +1050,14 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
 - **Selection** is `work.py`'s `cluster_order(items, lead)`, the one reader of `cluster`, `tier` and `blocked_by` (also
   behind `python scripts/spec/work.py next --cluster <lead> [--json]`): every non-terminal note naming the cluster, of
   any kind, whatever its harm flags, with its tier, its depth in the `blocked_by` topology and what it waits on (open
-  blockers, in the cluster or not; `status: owner` or `blocked`; or `blocked: true` with no `blocked_by`). A note is
-  READY when it waits on nothing. `work.py check` holds the two spellings together: `blocked_by` names notes, `blocked`
-  is true exactly while a named blocker is open (a stale `true` hid PB1940 and PB1956 from every work list), and open
-  notes form no cycle.
+  blockers, in the cluster or not; `status: owner` or `blocked`: `work.waiting_on`). A note is READY when it waits on
+  nothing. Whether a note is blocked is DERIVED and never stored (kb/Work PB3389): a stored `blocked:` flag was a second
+  spelling of `blocked_by`, and it went stale both ways (a stale `true` hid PB1940 and PB1956 from every work list; a
+  blocker landing ahead of its dependent in the merge queue turned the check that held the flag to the list red with no
+  change to the branch, and bounced five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
+  `next`, `cluster_order`, the ledger, the fix lane's population (`plan_wave.ready_notes_view`) and, in the Bases language,
+  `kb/Work.base`'s `blocked` formula. A hold on something that is no note (the owner, a document) is `status: blocked`
+  or `owner`, said in the note's body. `check` also holds `blocked_by` to notes that exist and open notes to no cycle.
 - **The owner's tier** (kb/Work PB3423) orders the READY notes: `tier: ["PB3353:1"]`, a list of `CAMPAIGN:N` entries
   (N a positive integer, 1 first), scoped because a note belongs to several campaigns and the owner's order for one
   says nothing about another; `work.py check` refuses an entry that is not `CAMPAIGN:N`, names a campaign twice or
