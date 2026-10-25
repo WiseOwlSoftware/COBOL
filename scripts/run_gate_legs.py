@@ -128,8 +128,9 @@ from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Se
 from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
-from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, check as check_population,  # noqa: E402
-                             list_population, scrubbed_env, synthetic_listing, synthetic_trx)
+from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, UnreadableTrx,  # noqa: E402
+                             check as check_population, list_population, scrubbed_env, synthetic_listing,
+                             synthetic_trx)
 
 VERDICT = "=== BUILD-LOCAL GATE: "
 #: The Linux half's verdict prefix (scripts/linux-gate.sh), which `read_verdict` reads like this driver's own.
@@ -138,6 +139,9 @@ LINUX_VERDICT = "=== LINUX GATE: "
 #: into its own `=== LINUX GATE: ` line.
 PLAN_LEG_VERDICT = "=== PLAN LEG: "
 LINUX_LEG_LOG = "linux-leg.log"
+#: How long `Host.linux_gate_holder` waits for `linux-gate.sh --probe` (a WSL cold start is the slow part; the probe reads
+#: a few files): a hung hand-off is read as no holder, never waited on.
+LINUX_PROBE_TIMEOUT_S = 120
 #: The verdict prefix of a gate that ran leg 1 only under the `leg1` scope (kb/Work PB2515): never a whole-population
 #: GREEN, and never mistaken for one — `GATE: GREEN` does not match it.
 LEG1_ONLY = "LEG 1 ONLY (batched gating, PB2515)"
@@ -471,6 +475,26 @@ class Host:
                                                 "measured nothing", log.name)
         reading = read_verdict(lines[-1][len(LINUX_VERDICT):])
         return LinuxLeg(RED_READING if reading == GREEN_READING and rc != 0 else reading, lines[-1], log.name)
+
+    def linux_gate_holder(self, run=subprocess.run, which=shutil.which) -> str | None:
+        """The Linux gate of this worktree that runs NOW (kb/Work PB3649), as `scripts/linux-gate.sh --probe` words it (its
+        BUSY line: pid and start time), or None. A caller that waits for a landing's exit 12 asks it beside the gate lock:
+        exit 12 has two sources, and a Linux gate does not hold the Windows lock (a hand run of linux-gate.sh does not
+        take it; the driver's own Linux half runs under it). None is also the answer where no Linux gate can run (a
+        Windows host with no WSL) and where the probe itself could not answer (a hand-off that failed): a retry costs
+        one landing attempt that touches nothing when it meets BUSY again, while a wait that never ends costs the
+        branch, so an unanswerable probe is never read as a busy one."""
+        if os.name == "nt" and which("wsl.exe") is None:
+            return None
+        try:
+            probe = run(["bash", "scripts/linux-gate.sh", "--probe"], cwd=self.repo, capture_output=True, text=True,
+                        encoding="utf-8", errors="replace", timeout=LINUX_PROBE_TIMEOUT_S)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if probe.returncode != EXIT_BUSY:
+            return None
+        lines = [ln.strip() for ln in probe.stdout.splitlines() if ln.strip().startswith(LINUX_VERDICT)]
+        return lines[-1][len(LINUX_VERDICT):].removesuffix(" ===") if lines else "a Linux gate of this tree (no detail)"
 
     def measured_tree(self) -> str | None:
         """THE TREE A GATE MEASURES (kb/Work PB3536): the git tree id of the WORKING TREE — every tracked file as it is on
@@ -1224,7 +1248,15 @@ class Gate:
             previous = self.previous_run(run)
             plan, digest = self.host.plan(listings, base, previous, run / "plan.json")
         except Exception as e:  # noqa: BLE001 — ANY planning failure falls back to the whole population in one leg
-            out.plan_note = f"no plan ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ''})"
+            if isinstance(e, UnreadableTrx):
+                # The plan's reds and timings come from the previous gates' trx files; one it cannot read is named and
+                # KEPT in this run (kb/Work PB3661): the Linux half empties TestResults/linux-gate/ before it writes, so
+                # the file would be gone by the verdict. The whole-population fallback stays: with a source of reds
+                # unreadable the gate cannot know what was red, and leg 2 is not run locally (PB2515), so dropping that
+                # source's tier 0a could hide a red.
+                out.plan_note = f"no plan ({e}; {self._keep_unreadable(run, e.path)})"
+            else:
+                out.plan_note = f"no plan ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ''})"
             self.say(f"build-local: ⚠ the order plan could not be made — {out.plan_note}; ONE leg in the plain order")
             return None, None
         for line in gate_plan.summary_lines(plan, run / "plan.json"):
@@ -1233,6 +1265,18 @@ class Gate:
         out.plan_note = (f"plan {plan['sha256'][:12]}: map {(plan['map'] or 'none')[:12]} ({plan['map_state']}), "
                          f"timings {plan['timings']}")
         return plan, digest
+
+    @staticmethod
+    def _keep_unreadable(run: Path, path: Path) -> str:
+        """Copy a trx the plan could not read into the run directory as `unreadable-<its directory>-<its name>.bad`
+        (never a `.trx`: later readers glob a run directory's trx files and must not meet it), and say where it is, or
+        why it could not be kept."""
+        kept = run / f"unreadable-{path.parent.name}-{path.name}.bad"
+        try:
+            shutil.copy2(path, kept)
+        except OSError as e:
+            return f"not kept: {e}"
+        return f"kept as {kept.name}"
 
     @staticmethod
     def _legs(plan: dict | None) -> dict[int, list[str]]:
@@ -1596,6 +1640,11 @@ class FakeHost(Host):
     def plan(self, listings, base, previous, out):
         if self.plan_fails:
             raise RuntimeError("planted: the impact analysis crashed")
+        if "plan-torn" in self.plant:   # the Linux gate's newest run left a torn trx (kb/Work PB3661)
+            torn = self.root / "linux-gate" / "unit.trx"
+            torn.parent.mkdir(exist_ok=True)
+            torn.write_text("<TestRun><Results><UnitTestResult outcome=\"" + chr(1) + "\"/>", encoding="utf-8", newline="\n")
+            gate_plan.read_reds(torn.parent)
         plan = {"schema": 1, "base": base, "map": None, "map_state": "none", "every_tier1": ["planted"],
                 "constants": {}, "timings": "none", "reds": {},
                 "assemblies": {a: {"legs": legs, "leg1": l1, "leg2": l2, "stats": {
@@ -1720,6 +1769,52 @@ def self_test() -> int:
         arm("no plan (the planner failed): ONE leg in the plain order, every assembly, no handshake — named, GREEN",
             o.verdict == "GREEN" and o.legs_invoked == {1: list(GATED_ASSEMBLIES)}
             and all(not v for v in o.handshakes.values()) and "no plan (RuntimeError" in o.line, o.line)
+        o, h = gate("plan-torn", plant={"plan-torn"})
+        run_dirs_torn = sorted((h.root / "runs").iterdir())
+        kept = [p for r in run_dirs_torn if r.is_dir() for p in r.glob("unreadable-*")]
+        arm("an unreadable previous-gate trx is NAMED by its path in the plan note, KEPT in the run directory (never as "
+            "a .trx a later reader would glob) and still costs the plan: ONE leg in the plain order, GREEN (kb/Work "
+            "PB3661)",
+            o.verdict == "GREEN" and o.legs_invoked == {1: list(GATED_ASSEMBLIES)}
+            and str(h.root / "linux-gate" / "unit.trx") in o.line and "unreadable-linux-gate-unit.trx.bad" in o.line
+            and len(kept) == 1 and kept[0].name == "unreadable-linux-gate-unit.trx.bad"
+            and kept[0].read_bytes() == (h.root / "linux-gate" / "unit.trx").read_bytes(), o.line)
+        # THE LINUX GATE'S HOLDER (kb/Work PB3649): `linux-gate.sh --probe` through the real Host, with stand-ins for the
+        # process (no WSL is started) and for the lookup of wsl.exe.
+        class _Probed:
+            def __init__(self, rc: int, out: str):
+                self.returncode, self.stdout = rc, out
+
+        busy_text = (LINUX_VERDICT + "BUSY — another Linux gate of this tree is running (pid 4242, started Fri Oct 24 "
+                     "11:00:00 2026); this run touched nothing ===\n")
+        calls: list[list[str]] = []
+
+        def probing(rc: int, out: str = "", raises: BaseException | None = None):
+            def run(cmd, **kw):
+                calls.append(cmd)
+                if raises is not None:
+                    raise raises
+                return _Probed(rc, out)
+            return run
+
+        real = Host(root)
+        held = real.linux_gate_holder(run=probing(EXIT_BUSY, "wsl noise\n" + busy_text), which=lambda _: "wsl.exe")
+        arm("the Linux gate's holder is the --probe's BUSY line (pid and start time), asked as `linux-gate.sh --probe`",
+            held is not None and held.startswith("BUSY — another Linux gate of this tree is running (pid 4242, started")
+            and not held.endswith("===") and calls == [["bash", "scripts/linux-gate.sh", "--probe"]], f"{held} {calls}")
+        arm("no holder when the probe says FREE, when it could not answer (exit 2), or when it hangs or cannot start: a "
+            "retry that meets BUSY again touches nothing, a wait that never ends costs the branch",
+            real.linux_gate_holder(run=probing(0, "linux-gate probe: FREE — no Linux gate of this tree runs\n"),
+                                   which=lambda _: "wsl.exe") is None
+            and real.linux_gate_holder(run=probing(2, LINUX_VERDICT + "NOT RUN [tree] (x) ===\n"),
+                                       which=lambda _: "wsl.exe") is None
+            and real.linux_gate_holder(run=probing(0, raises=subprocess.TimeoutExpired("bash", 1)),
+                                       which=lambda _: "wsl.exe") is None
+            and real.linux_gate_holder(run=probing(0, raises=FileNotFoundError("bash")), which=lambda _: "wsl.exe") is None)
+        if os.name == "nt":
+            calls.clear()
+            arm("a Windows host with no WSL has no Linux gate to hold anything, and is not asked",
+                real.linux_gate_holder(run=probing(EXIT_BUSY, busy_text), which=lambda _: None) is None and not calls)
         stray = {"COBOLNET_GATE_LEG": "2", "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
         os.environ.update(stray)
         try:

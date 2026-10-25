@@ -6,6 +6,11 @@
 #   arguments, and its verdict is that run's (run_on_linux, kb/Work PB2999).
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
 #
+#   bash scripts/linux-gate.sh --probe
+#     Whether a Linux gate of THIS tree runs now (kb/Work PB3649), without starting one: exit 3 and the BUSY line naming
+#     the running gate's pid and start time, or exit 0 and `linux-gate probe: FREE`. The landing lane waits on exactly this
+#     after a landing ends exit 12 because a Linux gate was BUSY (land_lane.wait_free; run_gate_legs.Host.linux_gate_holder).
+#
 #   bash scripts/linux-gate.sh --legs targeted --plan <plan.json|none> [--plan-legs 1[,2]] [--nice]
 #     THE LINUX HALF OF THE LOCAL GATE (owner 2026-10-23, kb/Work PB3612; DESIGN-test-build-ci.md §3.17.3): not CI's whole
 #     legs but the legs of the plan the Windows half just made, built and run in the clone by the gate driver's
@@ -227,6 +232,22 @@ live_gate_of() {
   done
   return 1
 }
+# busy_line <pid>: the BUSY verdict, naming the gate that holds the tree (its pid and when it started, so a person can find
+# it), shared by a second gate's refusal (begin_gate) and the probe (probe_tree) so they cannot word it differently.
+busy_line() {
+  local since
+  since="$(LC_ALL=C ps -o lstart= -p "$1" 2>/dev/null | sed 's/^ *//; s/ *$//')"
+  printf '=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid %s%s); this run touched nothing ===' \
+    "$1" "${since:+, started $since}"
+}
+# probe_tree <root> <tree> (--probe; kb/Work PB3649): whether a Linux gate of the tree runs now, WITHOUT starting one: the
+# answer a caller that waits for this script's BUSY (the landing lane, exit 12) needs. BUSY is the same line and exit 3 a
+# second gate would get; free is exit 0. It reads the owner files and nothing else (no reaping, no clone, no results).
+probe_tree() {
+  local other
+  if other="$(live_gate_of "$1" "$2")"; then busy_line "$other"; echo; exit 3; fi
+  echo "linux-gate probe: FREE — no Linux gate of this tree runs"; exit 0
+}
 # begin_gate <root> <tree>: make this gate's own directory (gate, snap, gtmp) and arm its removal on every exit path.
 # ⛔ ONE GATE PER TREE AT A TIME (kb/Work PB3310). Two runs on one tree share its results directory
 # (TestResults/linux-gate, which the planner reads as the tree's newest run) and, before PB3194, shared and deleted each
@@ -245,7 +266,7 @@ begin_gate() {
   if command -v flock >/dev/null 2>&1; then flock 8; fi
   if other="$(live_gate_of "$1" "$2")"; then
     exec 8>&-
-    echo "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $other); this run touched nothing ==="; exit 3
+    busy_line "$other"; echo; exit 3
   fi
   gate="$1/$name.$me"
   snap="$gate/$name"
@@ -425,10 +446,26 @@ under.wait()
   echo "$me $(proc_field "$me" 20) /e/trees/wt-busy" > "$st_root/busy.1/owner"
   echo "$dead 12345 /e/trees/wt-ended" > "$st_root/ended.2/owner"
   got="$( ( begin_gate "$st_root" /e/trees/wt-busy; echo "started" ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  since="$(LC_ALL=C ps -o lstart= -p "$me" 2>/dev/null | sed 's/^ *//; s/ *$//')"
   check "a second gate on a tree whose gate runs answers BUSY, exit 3, and creates nothing" "$got" \
-        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me); this run touched nothing ===
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me${since:+, started $since}); this run touched nothing ===
 rc=3
 busy.1 ended.2 "
+  # --probe (kb/Work PB3649): the same BUSY line and exit 3 for a tree whose gate runs, exit 0 FREE for a tree whose gate
+  # has ended or that has none, and it creates and removes nothing.
+  got="$( ( probe_tree "$st_root" /e/trees/wt-busy ) 2>&1; echo "rc=$?"; ls "$st_root" | tr '\n' ' ' )"
+  check "--probe on a tree whose gate runs answers the BUSY line, exit 3, and creates nothing" "$got" \
+        "=== LINUX GATE: BUSY — another Linux gate of this tree is running (pid $me${since:+, started $since}); this run touched nothing ===
+rc=3
+busy.1 ended.2 "
+  got="$( for t in wt-ended wt-never; do ( probe_tree "$st_root" /e/trees/$t ) 2>&1; echo "rc=$?"; done; ls "$st_root" | tr '\n' ',' )"
+  check "--probe on a tree whose earlier gate has ended, or on a tree with none, is FREE, exit 0, and creates nothing" \
+        "$got" \
+        "linux-gate probe: FREE — no Linux gate of this tree runs
+rc=0
+linux-gate probe: FREE — no Linux gate of this tree runs
+rc=0
+busy.1,ended.2,"
   got="$( ( begin_gate "$st_root" /e/trees/wt-other; echo "started" ) 2>&1 | tail -1 )"
   check "a gate on another tree starts beside it" "$got" "started"
   got="$( ( begin_gate "$st_root" /e/trees/wt-ended; echo "started" ) 2>&1 | tail -1 )"
@@ -475,10 +512,11 @@ fi
 run_on_linux "$@"
 
 legs="unit,characterization,conformance,guard"
-plan=""; plan_legs="1"
+plan=""; plan_legs="1"; probe=0
 nice_prefix=()
 while [ $# -gt 0 ]; do
   case "$1" in
+    --probe) probe=1; shift ;;                 # whether a Linux gate of this tree runs now (probe_tree); starts nothing
     --legs) legs="$2"; shift 2 ;;
     --plan) plan="$2"; shift 2 ;;              # --legs targeted: the Windows half's plan file, or `none`
     --plan-legs) plan_legs="$2"; shift 2 ;;    # --legs targeted: which legs of that plan (default 1)
@@ -486,6 +524,13 @@ while [ $# -gt 0 ]; do
     *) echo "linux-gate: unknown argument '$1'"; echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
   esac
 done
+if [ "$probe" = 1 ]; then   # needs no SDK and no interpreter: it reads the owner files (kb/Work PB3649)
+  if [ ! -f Cobol.Net.sln ]; then
+    echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
+  fi
+  tree="$(pwd)"
+  probe_tree "$GATES_ROOT" "$tree"
+fi
 check_legs
 check_plan
 [ -d "$HOME/.dotnet" ] && export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.local/bin:$PATH"

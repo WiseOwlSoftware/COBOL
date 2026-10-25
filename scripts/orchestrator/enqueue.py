@@ -61,7 +61,9 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      commit) gates just the same. THAT RUN is read by the
      gate driver's one reader (`run_gate_legs.read_verdict`), under the shared gate slot (build-local takes its own;
      no row runs while one would run outside it, kb/Work PB3104). BUSY — another gate holds the worktree's gate
-     lock: it measured nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527). NOT RUN
+     lock, or the gate's Linux half found a Linux gate of the tree running (linux-gate.sh BUSY; its message quotes the
+     gate's own verdict line, which names which, kb/Work PB3649): it measured nothing and nothing is red — is exit 12
+     with NO report line (kb/Work PB3527), and the landing lane waits on BOTH holders. NOT RUN
      [<cause>] — the gate measured nothing — is read with its cause's class from the driver's ONE classification
      (run_gate_legs.NOT_RUN_CAUSES; kb/Work PB3526, review R2-1 of wave 1150), never re-derived here. An ENVIRONMENT
      cause is exit 2 (usage or state) with NO report line: the lane retries it once, and a second at the head is the
@@ -129,7 +131,7 @@ run, a gate was NOT RUN for a cause in the environment or one main shares, main 
 code the branch carries that main does not share) · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
 11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
-gate lock (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
+gate lock, or a Linux gate of the tree runs (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
 is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
 recorded GREEN local gate covers it (`land` only; nothing merged; step 3) · 15 the branch carries a stamped entry of a
 predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4).
@@ -168,7 +170,7 @@ EXIT_GATE = 5
 EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
-EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate lock, or its verdict is not in yet, kb/Work PB3662): nothing ran, nothing is red (kb/Work PB3527)
+EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate lock, or its verdict is not in yet, kb/Work PB3662; or a Linux gate of the tree, kb/Work PB3649): nothing ran, nothing is red (kb/Work PB3527)
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
@@ -924,11 +926,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         results = gates(wt)
         for host, _, line in results:
             say(f"enqueue: {host} gate: {line}")
-        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
-        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
+        # A busy gate is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what is not
+        # broken; the landing lane retries the branch at this head once nothing holds it. Exit 12 has TWO sources (kb/Work
+        # PB3649): the worktree's gate lock (another gate of the Windows driver) and a Linux gate of the tree that the
+        # driver's Linux half found running. The message quotes the gate's own verdict line, which names the one that
+        # was busy, and the lane's wait (land_lane.wait_free) probes both.
         if busy := next(((h, line) for h, r, line in results if r == run_gate_legs.BUSY_READING), None):
-            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
-                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
+            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — nothing ran and nothing is red; landed "
+                                       f"again once no gate of the worktree runs. The gate said: {busy[1]}")
         # A gate that measured nothing (kb/Work PB3526) blocks only when its cause is code the gated tree carries and
         # main, measured at the same step, does not fail the same way: the class is the driver's one classification
         # (run_gate_legs.NOT_RUN_CAUSES), read here, never re-derived.
@@ -1513,7 +1518,21 @@ def self_test() -> int:
         expect("land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
                "no stamp, nothing queued (kb/Work PB3527)",
                rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
-               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)"), f"{rc_busy} {notes} {lines[-1:]}")
+               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)")
+               and "holds this worktree's gate lock" in lines[-1], f"{rc_busy} {notes} {lines[-1:]}")
+        # kb/Work PB3649: the SAME exit has a second source, the Linux half of the gate finding a Linux gate of the tree
+        # running (linux-gate.sh BUSY). Its message names that one, never the Windows gate lock.
+        linux_held_line = ("=== BUILD-LOCAL GATE: BUSY — the Linux half of the targeted leg is BUSY (=== LINUX GATE: BUSY — "
+                           "another Linux gate of this tree is running (pid 4242, started Fri Oct 24 11:00:00 2026); this "
+                           "run touched nothing ===): another Linux gate of this worktree runs, so the Linux half "
+                           "measured nothing and nothing is red ===")
+        ran, stamped, notes[:] = [], [], []
+        rc_linux_busy = gated_land(gates=gates_of([("Windows", linux_held_line)], ran), stamped=stamped)
+        expect("land: a gate whose Linux half is BUSY (another Linux gate of the tree runs) is exit 12 too, and its message "
+               "names the Linux gate that runs, not the Windows gate lock (kb/Work PB3649)",
+               rc_linux_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
+               and "another Linux gate of this tree is running (pid 4242" in lines[-1]
+               and "holds this worktree's gate lock" not in lines[-1], f"{rc_linux_busy} {notes} {lines[-1:]}")
 
         # kb/Work PB3310: a second `land` of a branch whose first still runs is REFUSED at the land lock (exit 13): it
         # touches nothing (no gate, no stamp, no report line), a dry run takes no lock, and every outcome releases it.
@@ -1958,8 +1977,8 @@ def self_test() -> int:
         # The line linux-gate.sh prints when another Linux gate of the tree runs (kb/Work PB3310), read from the script
         # itself: it must be the one reader's BUSY, so the gate driver ends a gate whose Linux half prints it BUSY
         # (run_gate_legs._linux_leg, kb/Work PB3612), which the landing answers with exit 12, never a red.
-        linux_busy = re.search(r'echo "=== LINUX GATE: (BUSY[^"]*)"', (HERE.parent / "linux-gate.sh").read_text(
-            encoding="utf-8")).group(1).replace("$other", "4242")
+        linux_busy = re.search(r"printf '=== LINUX GATE: (BUSY[^']*)'", (HERE.parent / "linux-gate.sh").read_text(
+            encoding="utf-8")).group(1).replace("%s%s", "4242")
         expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
                "a red), the Linux gate's own BUSY line included (kb/Work PB3310), and a GREEN line with a non-zero exit "
                "is RED (kb/Work PB3527); a gate that printed no verdict line measured nothing: NOT RUN (kb/Work PB3526)",
