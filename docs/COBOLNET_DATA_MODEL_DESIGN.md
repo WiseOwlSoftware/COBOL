@@ -786,6 +786,16 @@ or implied "is an **alphanumeric group item**"; §13.16.4 GR1 implies GROUP-USAG
 `FUNCTION LENGTH(G)` is **§15.50.4 r3** — character positions, = **1** — not r1's boolean positions. Misreading
 "bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
 
+⛔ **THE CARRIER HOLDS ONLY `'0'` AND `'1'` BECAUSE EVERY STORE INTO A BOOLEAN ITEM CONVERTS (kb/Work PB3666, determination
+D-B5 in `CONFORMANCE.md` §3).** A MOVE of an alphanumeric or national operand to a boolean item is Table 16 "Yes", and §14.6.8.6
+transfers "after any necessary conversion", but the standard names no conversion of a character that is not a boolean one.
+The one store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBoolean`), converts each character (`'1'` to one, every other
+character to zero) and then fits with boolean zeros; a reference-modified slice and a STRING image convert through
+`CobolBool.FromCharacters`, and a GR4 group move into a USAGE DISPLAY boolean item takes the same store through
+`ReceivingStore.Characters`. The one exemption is the group sender into a USAGE BIT item: its receiving area is the
+sender's BYTES (GR4, "no conversion"), whose bits are all valid. A new emitter that deposits characters into a boolean item
+asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`.
+
 #### The architecture: V59's numeric byte forms, one granularity finer
 
 A `PIC 9(4) COMP` already holds its VALUE in a native `long` and occupies its **byte form**

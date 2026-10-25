@@ -752,7 +752,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     ///     "12345" → $12,345.00);</item>
     ///   <item>an ALPHANUMERIC or NATIONAL one aligns them (§14.6.8: left-justified, space-filled, a JUSTIFIED one
     ///     right-justified — §13.18.32; the national substrate is the character one under the D-N4 correspondence);</item>
-    ///   <item>a BOOLEAN one pads and left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).</item>
+    ///   <item>a BOOLEAN one CONVERTS each character ('1' to boolean one, every other character to zero — determination
+    ///     D-B5, kb/Work PB3666: §14.6.8.6 transfers "after any necessary conversion" and no rule names the conversion
+    ///     of a character that is not a boolean one) and then pads and left-fills with boolean ZEROS (§14.6.8.6;
+    ///     JUSTIFIED §13.18.32 GR2), so DISPLAY of the item and the boolean operators over it agree.</item>
     /// </list></summary>
     private string CharacterStore(DataItem target, string chars, string width)
     {
@@ -767,7 +770,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
                     ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
             }
-            case PicCategory.Boolean:
+            case PicCategory.Boolean:   // converts, then fits (D-B5): the ONE boolean store, CobolBool.Store
                 return RuntimeApi.StrStoreBoolean(chars, width, target.Justified);
             case PicCategory.Alphanumeric or PicCategory.National:
                 return ReceivingStore.Characters(target, chars, width);

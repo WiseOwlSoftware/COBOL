@@ -423,6 +423,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // SR4 refuses (a reference-modified one) is rejected at BIND time (StringUnstringBinder.BindString), so a loud
         // stage here could only fire on LEGAL source and mislabel it an SR1 violation (kb/Work PB1179: the national
         // and the USAGE DISPLAY boolean receiver both did).
-        w.Line(PlaceRenderer.Write(p, imageExpr));
+        // The characters a USAGE DISPLAY boolean receiver takes are converted to boolean positions first ('1' to one,
+        // every other character to zero — D-B5, kb/Work PB3666), exactly as a MOVE's are: GR3 a) transfers them "in
+        // accordance with the MOVE statement rules". The image carries every untouched position (GR7), already
+        // boolean, so converting the whole image changes only what this statement wrote.
+        w.Line(PlaceRenderer.Write(p, p.Item.OperandPic is { Category: PicCategory.Boolean }
+            ? RuntimeApi.BoolFromCharacters(imageExpr) : imageExpr));
     }
 }
