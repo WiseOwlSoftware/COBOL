@@ -1,4 +1,4 @@
-## Fourth fuzz night triaged: one wrong answer and two questions filed, all held for the owner (PB3664 to PB3666)
+## Entry 2494 — 2026-10-24 17:44 PDT — Fourth fuzz night triaged: one wrong answer and two questions filed, all held for the owner (PB3664 to PB3666)
 
 The owner asked on 2026-10-24 for the fuzz analysis and its findings, with no fixing before explicit approval. The fourth
 overnight run (fuzz-20261023-204437: qwen3.6:35b, 5,247 programs, 811 `WE_REJECT` and 424 `OUTPUT_DIFFERS` rows among
@@ -21,3 +21,4 @@ notes with `status: owner`, which no lane plans:
   operators read it as zero.
 
 The record is `docs/rearchitecture/evidence/fleet-optimization/2026-10-24-differential-fuzz-fourth-night.md`.
+
