@@ -566,6 +566,15 @@ for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", Tru
            bool(g79) and "contained in worktree-wf_dr-2" in g79.pred,
            any("PB7" in g.notes for g in pr["groups"]), "being answered" in pr["waiting"].get("PB7", "")),
           ("IN FLIGHT", "worktree-wf_dr-2", False, False, True, pb7_planned, not pb7_planned))
+# PB3404, ONE FINDINGS CASE, ONE OWNER: when the carrier's own CLEAN review answers the carried branch's findings
+# (prune_worktrees.answered_by_carrier: the uncapped case, whose findings the successor's review took over), the planner
+# plans no second finisher for them; it says who answers, and plans one again if the carrier does not land
+pa = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+             budget_points=100, carrier=DR_CARRIER.get, owned=set(),
+             answered=lambda rep: "worktree-wf_dr-2" if rep.branch == "worktree-wf_dr-5" else None)
+check("PB3404: a carried FINDINGS branch whose carrier's review answers them gets no finisher and names who does",
+      (any(g.notes == ["PB79"] for g in pa["groups"]), "answered by worktree-wf_dr-2's own review" in pa["waiting"].get("PB79", ""),
+       any("PB77" in g.notes for g in pa["groups"])), (False, True, True))
 pn = dr_plan(False)
 check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == ["PB77"] for g in pn["groups"]), True)
 # R1-2: PB79's branch is contained in worktree-wf_dr-2, PB7's DONE branch, whose report never answers PB79's findings:
@@ -878,7 +887,7 @@ check("... and refuses it when it says 220 (the retired figure)",
 spec_file.write_text(spec0, encoding="utf-8", newline="\n")
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
 CAPREPO = TMP / "caprepo"
-for rel in {c[0] for c in check_practices.CAP_COPIES} | {f".claude/skills/workstream/templates/{b}" for b in check_practices.NUMBERLESS_CAP_BRIEFS}:
+for rel in {c[0] for c in check_practices.CAP_COPIES} | {f".claude/skills/workstream/templates/{b}" for b in check_practices.NUMBERLESS_CAP_BRIEFS} | set(check_practices.NUMBERLESS_CAP_FILES):
     (CAPREPO / rel).parent.mkdir(parents=True, exist_ok=True)
     (CAPREPO / rel).write_bytes((coord.REPO / rel).read_bytes())
 p5 = CAPREPO / ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md"
@@ -888,11 +897,14 @@ fb = CAPREPO / ".claude/skills/workstream/templates/finisher-brief.md"
 fb.write_text(fb.read_text(encoding="utf-8").replace("Turn cap", "Cap of"), encoding="utf-8", newline="\n")
 brief = CAPREPO / ".claude/skills/workstream/templates/fix-lane-implementer-brief.md"
 brief.write_text(brief.read_text(encoding="utf-8") + "\nA HARD CAP of 220 turns.\n", encoding="utf-8", newline="\n")
+rules_copy = CAPREPO / check_practices.NUMBERLESS_CAP_FILES[0]
+rules_copy.write_text(rules_copy.read_text(encoding="utf-8").replace("inside the implementer's turn cap", "inside the 220-turn cap"), encoding="utf-8", newline="\n")
 drift = check_practices.turn_cap_copies(CAPREPO)
-check("a copy that differs, a copy whose text is gone and a typed number in a brief are each refused",
+check("a copy that differs, a copy whose text is gone, a typed number in a brief and a typed cap in the rules file are each refused",
       (any(f"states 220 turns for cobol-implementer, whose maxTurns is {IMPL_CAP}" in m for m in drift),
        any("finisher-brief.md: no statement matching" in m for m in drift),
-       any("fix-lane-implementer-brief.md: types a turn cap" in m for m in drift), len(drift)), (True, True, True, 3))
+       any("fix-lane-implementer-brief.md: types a turn cap" in m for m in drift),
+       any("model_rules.json: types a turn cap ('220-turn cap')" in m for m in drift), len(drift)), (True, True, True, True, 4))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/Cobol.Net.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a

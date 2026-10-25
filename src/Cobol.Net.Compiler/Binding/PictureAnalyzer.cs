@@ -447,17 +447,18 @@ public static class PictureAnalyzer
 
         string signKind = PicInfo.SignKindFor(usage, signed, sign);
 
-        // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §13.18.8 GR2;
-        // SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK ZERO`
-        // holds SPACES after a zero store and compares as an alphanumeric item.
-        // ⛔ BOTH USAGES SR2 NAMES, not just display (kb/Work PB646). GR2 is written about the PICTURE
+        // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §13.18.8.4 GR2;
+        // §13.18.8.3 SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK
+        // ZERO` holds SPACES after a zero store and compares as an alphanumeric item.
+        // ⛔ BOTH USAGES SR2 NAMES, not just display (kb/Work PB646, PB508). GR2 is written about the PICTURE
         // CHARACTER-STRING ("If the subject of the entry is described by its picture character-string as
         // category numeric…") and SR2 names the usages the clause may be written with — "display or usage
         // national" — so the display-only arm silently DROPPED the clause on `PIC 9(3) USAGE NATIONAL BLANK
         // WHEN ZERO`: measured storing 000 where GR1 requires spaces, once SR12's staging stopped hiding the
-        // shape. (SR2's own screen — refusing the clause on any OTHER usage — is missing for every usage
-        // alike and is not this arm's; see the report's new-defect paragraph.)
-        if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display or Usage.National))
+        // shape. The usage pair is asked of UsageFamilies.IsDisplayOrNational, the predicate SR2's own screen
+        // (DataBinder.BlankWhenZeroViolation) asks, so the screen and this promotion cannot name different usages
+        // (BlankWhenZeroUsagePairDriftTests).
+        if (anyEdit || (blankWhenZero && digits > 0 && !signed && UsageFamilies.IsDisplayOrNational(usage)))
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
@@ -527,7 +528,7 @@ public static class PictureAnalyzer
         // Asked HERE — the one USAGE × PICTURE screen — so the written clause and a usage acquired from the group
         // (§13.18.60.4 GR1) are screened by the same call; a usage other than display/national is SR3's.
         if (currencyClass is { } literal7Class && category is PicCategory.NumericEdited
-            && (usage is Usage.Display or Usage.National)
+            && UsageFamilies.IsDisplayOrNational(usage)
             && (literal7Class is LiteralClass.National) != (usage is Usage.National))
             edition.Error(DiagnosticCatalog.CurrencySymbolClassUsage, $"{where}: the currency symbol of PICTURE {picture} "
                 + $"is defined by a{(literal7Class is LiteralClass.National ? " national" : "n alphanumeric")} literal-7 "

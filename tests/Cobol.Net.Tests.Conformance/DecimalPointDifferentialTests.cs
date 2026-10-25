@@ -167,7 +167,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """, "Z=       12,34=");
 
-    /// <summary>SPEC-PINNED — §13.18.63 GR6: a NUMERIC literal VALUE on a numeric-edited item is converted to
+    /// <summary>SPEC-PINNED — §13.18.63.3 SR6: a NUMERIC literal VALUE on a numeric-edited item is converted to
     /// its edited form per the MOVE rules ("01.50", not the raw text).</summary>
     [Fact]
     public void NumericValue_OnEditedItem_ConvertsPerMoveRules_SpecPinned()

@@ -94,7 +94,7 @@
            END-IF
            COMPUTE WS-R = FUNCTION PBF848(21)
            DISPLAY "FP-CALL " WS-R
-           SET PP1 TO ENTRY "PBT848"
+           SET PP1 TO ADDRESS OF PROGRAM PBT848
            SET PP2 TO PP1
            IF PP2 = PP1
                DISPLAY "PP-SAME"

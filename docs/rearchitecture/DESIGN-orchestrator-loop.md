@@ -950,7 +950,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    branch's class (cherry-pick if unlanded, orient from the report if landed). **A carried branch** is the exception:
    when another `DONE` report's branch, not on main, contains it (`branch_carrier`, `git merge-base --is-ancestor`: a
    same-file successor merged its predecessor), its finisher merges that carrier instead of cherry-picking, because the
-   commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not: only a
+   commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not, unless its carrier's own `CLEAN` review answers
+   the findings (the uncapped case, whose findings the successor's review took over: `prune_worktrees.answered_by_carrier`,
+   kb/Work PB3404, the survey's `review_answers` rule): then it waits, naming the carrier, and no second finisher fixes
+   them. Otherwise only a
    newer report naming its lead answers its findings, so its `pred` names the carrier (which may land the branch's
    commits first) and merges the `FINDINGS` branch alone (review R1-2). **A replayed branch** is the other way a
    branch's work is carried (kb/Work PB3170): the `pred` above tells a `SPLIT` successor to CHERRY-PICK its predecessor,
@@ -966,7 +969,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    not read. The branch SURVEY reads the same rule (kb/Work PB3652): `replay_view` builds `replays`' inputs for both
    readers, and `prune_worktrees.contained` lists an unfinished (`SPLIT`, `NOT STARTED`) branch that another branch
    replays, or that a branch IN FLIGHT, waiting or `STOPPED` contains, as carried (`IN FLIGHT`, its row naming the
-   carrier), never as a `DECISION` row beside the carrier the planner already plans from. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
+   carrier), never as a `DECISION` row beside the carrier the planner already plans from. The ancestry arm carries every `DECISION` row whatever its report says (kb/Work PB3386): a stale `DONE` report, one a later commit outran and one whose lead note already landed describe a branch whose commits land with the carrier. A finisher on a primary file absorbs the notes of the open clusters on that file up to the cap (`model_rules.json` `wave.max_notes_per_group`).
 
    **`--drain`** (the owner's drain of 2026-10-13: "do not schedule new work items but continue all necessary work to
    get in-process work to main"; kb/Work PB3150) keeps only the finishers of STARTED work: every review-`FINDINGS`
