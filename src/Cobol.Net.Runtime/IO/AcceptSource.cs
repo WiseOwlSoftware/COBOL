@@ -145,13 +145,7 @@ public static class AcceptSource
     /// the device and the data item is implementor-defined): each transferred character <c>'1'</c> converts to
     /// boolean one and EVERY other character (a <c>'0'</c>, a pad space, any other device character) to
     /// boolean zero, so the receiver's §13.18.40.4 GR14 <c>'0'</c>/<c>'1'</c> representation invariant holds
-    /// for any input. SR1 does not exclude a boolean receiver, so this path is conforming source.</summary>
-    public static string DeviceBoolean(int width)
-    {
-        string s = Device(width);
-        return string.Create(s.Length, s, static (span, src) =>
-        {
-            for (int i = 0; i < span.Length; i++) span[i] = src[i] == '1' ? '1' : '0';
-        });
-    }
+    /// for any input. SR1 does not exclude a boolean receiver, so this path is conforming source. The conversion is
+    /// the ONE rule of <see cref="CobolBool.FromCharacters"/> (D-B5), the one every other store into a boolean item applies.</summary>
+    public static string DeviceBoolean(int width) => CobolBool.FromCharacters(Device(width));
 }
