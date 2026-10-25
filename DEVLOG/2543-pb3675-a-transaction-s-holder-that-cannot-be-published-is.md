@@ -1,4 +1,4 @@
-## PB3675 -- a transaction's holder that cannot be published is refused for the cause it had
+## Entry 2543 — 2026-10-25 11:34 PDT — PB3675 -- a transaction's holder that cannot be published is refused for the cause it had
 
 `IHostMedium.PublishHolder` returned a bare holder-or-null, so `SequentialJournal.Begin` threw "the host cannot hold a transaction's
 holder" for two different failures: a host that takes no lock here, and a publication every one of whose twelve tries lost its race to
@@ -21,3 +21,4 @@ unaffected, nothing left in the lock directory), through the new `FaultHostMediu
 not deterministically reachable from a COBOL program (it needs another run unit to remove the lock directory at that instant), and the '30' it answers is the same status as before.
 
 **Rows.** None (the note claims no inventory row).
+
