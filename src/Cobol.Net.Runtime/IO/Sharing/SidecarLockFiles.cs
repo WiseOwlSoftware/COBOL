@@ -33,8 +33,8 @@ namespace CobolNet.Runtime.IO;
 /// reverse (exclusive probes) refused a request '61' for a connector that did not exist.</para>
 /// <para><b>Capability is measured, not assumed (kb/Work PB795).</b> The lock .NET takes is advisory, absent on a network
 /// file system and switched off by <c>DOTNET_SYSTEM_IO_DISABLEFILELOCKING</c>; right after creating its file a holder
-/// probes it and, if the probe is NOT refused, the host cannot hold the lock here and <see cref="Publish"/> answers null
-/// — as it throws for a directory the process may not write. The caller maps both to
+/// probes it and, if the probe is NOT refused, the host cannot hold the lock here and <see cref="Publish"/> answers
+/// <see cref="RegionLockResult.Unavailable"/> — as it throws for a directory the process may not write. The caller maps both to
 /// <see cref="RunUnitFileLock.Outcome.Unavailable"/> (or its region equivalent).</para>
 /// <para><b>No name a prober reads is ever deleted in place</b> (<see cref="Retire"/>): where share modes are mandatory
 /// (Windows), a file deleted while another handle has it open stays listed, DELETE-PENDING, and every open of it is
@@ -101,21 +101,32 @@ internal static class SidecarLockFiles
     /// <summary>Is <paramref name="name"/> a lock file renamed away for deletion (<see cref="Retire"/>)?</summary>
     internal static bool IsRetired(string name) => name.StartsWith(RetiredPrefix, StringComparison.Ordinal);
 
-    /// <summary>Create, lock, verify and name this holder's file, or null when the host cannot hold the lock here.
-    /// <paramref name="finalName"/> maps the publication's unique id to the file's published name. A lost race (a
-    /// vanished directory or pending file) publishes again, paced by <see cref="RetryPauseCeiling"/> because a
-    /// directory mid-<c>rmdir</c> refuses creation for milliseconds (kb/Work PB3314). Throws what a file
-    /// operation throws for a directory the process may not write; the caller maps it.</summary>
-    internal static LockFileHolder? Publish(string directory, Func<Guid, string> finalName)
+    /// <summary>Create, lock, verify and name this holder's file. <paramref name="finalName"/> maps the publication's
+    /// unique id to the file's published name. A lost race (a vanished directory or pending file) publishes again, paced
+    /// by <see cref="RetryPauseCeiling"/> because a directory mid-<c>rmdir</c> refuses creation for milliseconds
+    /// (kb/Work PB3314). Throws what a file operation throws for a directory the process may not write; the caller
+    /// maps it.
+    /// <para>⛔ <b>THE RESULT TELLS THE TWO WAYS TO FAIL APART</b> (kb/Work PB3632), because a caller answers them
+    /// differently and a bare null covered both. <see cref="RegionLockResult.Ok"/>: published, in
+    /// <paramref name="holder"/>. <see cref="RegionLockResult.Unavailable"/>: the host takes no lock here (a filesystem
+    /// that does not hold the advisory lock, or no directory beside which to hold one), so it cannot see a holder either.
+    /// <see cref="RegionLockResult.Held"/>: every one of the <see cref="PublishAttempts"/> tries lost its race, a failure
+    /// to publish and not a finding about the host, so the holders already published ARE there to be seen and a request
+    /// one of them refuses is refused (<see cref="SidecarColumnLockHost.Establish"/>, <see cref="SidecarRegionLocks.Hold"/>);
+    /// the same vocabulary as <see cref="HandleColumnLockHost"/>'s publication loop. <paramref name="holder"/> is null
+    /// unless <c>Ok</c>.</para></summary>
+    internal static RegionLockResult Publish(string directory, Func<Guid, string> finalName, out LockFileHolder? holder)
     {
+        holder = null;
         for (int attempt = 0; attempt < PublishAttempts; attempt++)
         {
             if (attempt > 0) Pause(attempt);
             try { HostFile.CreateLockDirectory(directory); }
             catch (DirectoryNotFoundException) when (!HostFile.ContainingDirectoryExists(directory))
             {
-                return null;   // the physical file's own directory is not there: nothing beside it can be held (CreateLockDirectory)
+                return RegionLockResult.Unavailable;   // the physical file's own directory is not there: nothing beside it can be held (CreateLockDirectory)
             }
+            if (RaceInjector.Value?.Invoke(attempt) == true) continue;   // a test's lost race (RaceInjector)
             var id = Guid.NewGuid();
             string pending = Path.Combine(directory, PendingPrefix + id.ToString("N"));
             FileStream? stream = null;
@@ -126,17 +137,18 @@ internal static class SidecarLockFiles
                 {
                     case HostFile.LockFileState.Live: break;
                     case HostFile.LockFileState.Gone: Abandon(stream, pending); continue;   // a tester reaped it before we locked it
-                    default: Abandon(stream, pending); return null;   // the host takes no lock here (or will not say)
+                    default: Abandon(stream, pending); return RegionLockResult.Unavailable;   // the host takes no lock here (or will not say)
                 }
                 string published = Path.Combine(directory, finalName(id));
                 File.Move(pending, published);
-                return new LockFileHolder(stream, published, directory);
+                holder = new LockFileHolder(stream, published, directory);
+                return RegionLockResult.Ok;
             }
             catch (DirectoryNotFoundException) { Abandon(stream, pending); }   // a closing sibling removed the empty directory
             catch (FileNotFoundException) { Abandon(stream, pending); }        // a tester reaped the pending file
             catch (IOException e) when (HostFile.IsSharingRefusal(e)) { Abandon(stream, pending); }   // a tester held it as we locked or renamed it
         }
-        return null;
+        return RegionLockResult.Held;   // every try lost its race: not a host that takes no lock (the remarks)
     }
 
     /// <summary>The pause before retry <paramref name="retry"/> of <see cref="Publish"/>, on <see cref="RetryPauseCeiling"/>'s
@@ -154,6 +166,13 @@ internal static class SidecarLockFiles
     /// without timing a sleep (the precedent of <c>FileRegistry.PauseObserver</c>, kb/Work PB1590, PB3314). An
     /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes.</summary>
     internal static readonly AsyncLocal<Action<int>?> PauseObserver = new();
+
+    /// <summary>Test seam: when set, attempt N of <see cref="Publish"/> (0 for the first) is LOST when the function answers
+    /// true, as a sibling's removal of the directory loses it (nothing is published and the next attempt is paced), so a
+    /// test drives the publication every try of which is lost without a host that holds a directory mid-<c>rmdir</c> on
+    /// demand (kb/Work PB3632). An <see cref="AsyncLocal{T}"/>, as <see cref="PauseObserver"/> is: only the calling
+    /// test's own flow loses attempts.</summary>
+    internal static readonly AsyncLocal<Func<int, bool>?> RaceInjector = new();
 
     /// <summary>Probe the holder file <paramref name="path"/>, and delete it when its holder is dead. The returned state
     /// is what the caller acts on: <see cref="HostFile.LockFileState.Live"/> and <see cref="HostFile.LockFileState.Unobservable"/>

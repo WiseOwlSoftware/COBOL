@@ -2012,6 +2012,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   filesystem carries no byte-range lock) and only the first goes on to test the refused columns: a handle that cannot lock
   cannot test either, and is `Unavailable`, never a '61' no other connector contradicts
   (`...AHandleThatCarriesNoLockIsUnavailable...`; PB3518 review round 1).
+  **The lock-file host answers the same two ways (kb/Work PB3632).** `SidecarLockFiles.Publish` used to answer null for a
+  host that takes no lock AND for twelve lost races; it now returns the same `RegionLockResult` vocabulary
+  (`Ok` with the holder, `Unavailable`: no lock here, `Held`: every try lost its race), so `SidecarColumnLockHost.Establish`
+  tests the refused columns after an exhausted publication (`Unpublishable`, the lock directory a user may not write takes the
+  same arm, PB2917) and answers `Refused` ('61') beside a holder Table 19 refuses, `Unavailable` otherwise; and
+  `SidecarRegionLocks.Hold` looks at the holders after an exhausted publication, so a conflicting one is `Held` (a waiting hold
+  goes on waiting for it) and not a lock this host cannot carry. Witnesses (the lost races are driven through
+  `SidecarLockFiles.RaceInjector`, the seam beside `PauseObserver`):
+  `SidecarColumnLockHostDriftTests.AnExhaustedPublicationBesideAHolderTable19RefusesIsRefused_AndOneNothingRefusesIsUnavailable`
+  and `RegionLocksDriftTests.AHoldWhoseEveryPublicationTryLostItsRace_IsHeldByAConflictingHolder_AndWaitsForIt`.
   A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN
