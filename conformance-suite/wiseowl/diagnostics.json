@@ -22906,5 +22906,20 @@
    "2002"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb494-typedef-sync-group-below-2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0900: SYNCHRONIZED on a group item requires COBOL-2023"
+ },
+ "pb538-sync-left-right-differ": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688: CALL … program-prototype 'P538S' argument 1 ('A') does not conform to formal parameter 'L'"
  }
 }
