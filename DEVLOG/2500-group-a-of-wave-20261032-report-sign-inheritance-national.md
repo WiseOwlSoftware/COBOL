@@ -1,4 +1,4 @@
-## Group A of wave 20261032: report SIGN inheritance, national report numerics, SYNCHRONIZED as a described clause, the COBOL-85 SIGN subject, and unresolved prototype pointers
+## Entry 2500 — 2026-10-24 19:03 PDT — Group A of wave 20261032: report SIGN inheritance, national report numerics, SYNCHRONIZED as a described clause, the COBOL-85 SIGN subject, and unresolved prototype pointers
 
 Seven kb/Work notes from one root, the data binder (PB493, PB3280, PB539, PB538, PB494, PB1319, PB3162). Every note was
 re-probed on the branch's own build before any change, and every one reproduced.
@@ -53,3 +53,4 @@ helper, `ActivationRelations.SamePointerRestriction`, that lets such a pair conf
 Golden `2002/pb3162_external_prototype_pointer_set_and_pass` (with an unrestricted-pointer control that is still refused).
 
 No diagnostic codes were allocated (COBOLNET4975-4977 returned).
+
