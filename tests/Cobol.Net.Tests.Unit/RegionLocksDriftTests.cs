@@ -308,12 +308,13 @@ public sealed class RegionLocksDriftTests
         try
         {
             int calls = 0;
-            using var holder = SidecarLockFiles.Publish(lockDir, id =>
+            var result = SidecarLockFiles.Publish(lockDir, id =>
             {
                 if (++calls <= lost) throw new DirectoryNotFoundException("lost to a closing sibling");
                 return $"r{Byte1:x16}-X-{id:N}";
-            });
-            Assert.True(holder is not null, "A race lost fewer times than the attempts allow must still publish.");
+            }, out var holder);
+            using var _ = holder;
+            Assert.True(result == RegionLockResult.Ok && holder is not null, "A race lost fewer times than the attempts allow must still publish.");
             Assert.Equal(lost + 1, calls);
             Assert.Equal(Enumerable.Range(1, lost), pauses);
         }
@@ -333,7 +334,8 @@ public sealed class RegionLocksDriftTests
         try
         {
             int calls = 0;
-            var holder = SidecarLockFiles.Publish(lockDir, id => { calls++; throw new DirectoryNotFoundException("always lost"); });
+            var result = SidecarLockFiles.Publish(lockDir, id => { calls++; throw new DirectoryNotFoundException("always lost"); }, out var holder);
+            Assert.Equal(RegionLockResult.Held, result);   // every try lost its race: not a host that takes no lock (kb/Work PB3632)
             Assert.Null(holder);
             Assert.Equal(SidecarLockFiles.PublishAttempts, calls);
             Assert.Equal(Enumerable.Range(1, SidecarLockFiles.PublishAttempts - 1), pauses);
@@ -378,8 +380,9 @@ public sealed class RegionLocksDriftTests
         {
             for (int i = 0; i < 100; i++)
             {
-                using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
-                Assert.True(holder is not null, $"Publication {i} gave up: the host was read as unable to hold a lock.");
+                var result = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}", out var holder);
+                using var _ = holder;
+                Assert.True(result == RegionLockResult.Ok, $"Publication {i} gave up ({result}): the host was read as unable to hold a lock.");
             }
         }
         finally
@@ -399,8 +402,8 @@ public sealed class RegionLocksDriftTests
         using var site = new Site(RegionHostKind.LockFiles);
         string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
         HostFile.CreateLockDirectory(lockDir);
-        using var keep = SidecarLockFiles.Publish(lockDir, id => $"r{Byte2:x16}-S-{id:N}");   // keeps the directory standing
-        Assert.NotNull(keep);
+        Assert.Equal(RegionLockResult.Ok, SidecarLockFiles.Publish(lockDir, id => $"r{Byte2:x16}-S-{id:N}", out var keep));   // keeps the directory standing
+        using var _keep = keep;
         using var stop = new CancellationTokenSource();
         var tester = new Thread(() =>
         {
@@ -420,8 +423,9 @@ public sealed class RegionLocksDriftTests
         {
             for (int i = 0; i < 400; i++)
             {
-                using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
-                Assert.True(holder is not null, $"Publication {i} gave up beside a reaping tester.");
+                var result = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}", out var holder);
+                using var _ = holder;
+                Assert.True(result == RegionLockResult.Ok, $"Publication {i} gave up beside a reaping tester ({result}).");
                 Assert.Equal(HostFile.LockFileState.Live, HostFile.ProbeLockFile(Path.Combine(lockDir, holder!.Name)));
             }
         }
@@ -445,9 +449,65 @@ public sealed class RegionLocksDriftTests
         string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
         // The refusal is the host's, raised where the directory is asked for, and never a lost race that publishes again.
         Assert.Throws<IOException>(() => HostFile.CreateLockDirectory(lockDir));
-        Assert.Throws<IOException>(() => SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}"));
+        Assert.Throws<IOException>(() => SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}", out _));
         Assert.Equal(RegionLockResult.Unavailable, a.Hold(Byte1, exclusive: true, wait: false));
         Assert.Equal(RegionLockResult.Unavailable, a.Hold(Byte1, exclusive: true, wait: true));
+    }
+
+    /// <summary>⛔ A HOLD WHOSE EVERY PUBLICATION TRY LOST ITS RACE STILL SEES THE HOLDERS ALREADY THERE (kb/Work PB3632, the region
+    /// twin of the column host's PB3632 witness): a null from <c>Publish</c> covered both "this host takes no lock" and
+    /// "every try collided", and the hold answered <see cref="RegionLockResult.Unavailable"/> for both, which a caller reads
+    /// as a host with no such lock, so a record lock another run unit holds (§9.1.16) was taken as if free. With a conflicting
+    /// holder standing, the non-waiting hold is <see cref="RegionLockResult.Held"/> (a conflict); the waiting hold waits for it
+    /// (here the holder lets go before the third round, and the hold is <see cref="RegionLockResult.Ok"/>, not Unavailable);
+    /// shared beside shared conflicts with nothing, and a hold nothing is in the way of is Unavailable, as no host that
+    /// cannot publish can hold it.</summary>
+    [Fact]
+    public void AHoldWhoseEveryPublicationTryLostItsRace_IsHeldByAConflictingHolder_AndWaitsForIt()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        var a = site.Endpoint();
+        var b = site.Endpoint();
+        SidecarLockFiles.PauseObserver.Value = _ => { };
+        try
+        {
+            Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: true, wait: false));
+            SidecarLockFiles.RaceInjector.Value = _ => true;
+
+            Assert.Equal(RegionLockResult.Held, b.Hold(Byte1, exclusive: true, wait: false));
+            Assert.Equal(RegionLockResult.Held, b.Hold(Byte1, exclusive: false, wait: false));   // an exclusive holder refuses a shared one
+            Assert.Equal(RegionLockResult.Unavailable, b.Hold(Byte2, exclusive: true, wait: false));   // nobody holds it: only the publication failed
+
+            // The first round of publication loses every try; the holder lets go once it has (another thread, as another run
+            // unit would), and the waiting hold then publishes and is granted instead of answering Unavailable.
+            int rounds = 0;
+            SidecarLockFiles.RaceInjector.Value = attempt =>
+            {
+                if (attempt == 0) Interlocked.Increment(ref rounds);
+                return Volatile.Read(ref rounds) < 2;
+            };
+            var letGo = new Thread(() =>
+            {
+                SpinWait.SpinUntil(() => Volatile.Read(ref rounds) >= 1);
+                a.Release(Byte1);
+            });
+            letGo.Start();
+            Assert.Equal(RegionLockResult.Ok, b.Hold(Byte1, exclusive: true, wait: true));
+            letGo.Join();
+            Assert.Equal(2, rounds);   // lost every try once, waited for the holder, published on the next round
+
+            // Shared beside shared conflicts with nothing: an exhausted publication of one is only Unavailable.
+            b.Release(Byte1);
+            SidecarLockFiles.RaceInjector.Value = null;
+            Assert.Equal(RegionLockResult.Ok, a.Hold(Byte1, exclusive: false, wait: false));
+            SidecarLockFiles.RaceInjector.Value = _ => true;
+            Assert.Equal(RegionLockResult.Unavailable, b.Hold(Byte1, exclusive: false, wait: false));
+        }
+        finally
+        {
+            SidecarLockFiles.RaceInjector.Value = null;
+            SidecarLockFiles.PauseObserver.Value = null;
+        }
     }
 
     /// <summary>The names are a contract between run units (two runtime versions must find each other): a held byte is a
