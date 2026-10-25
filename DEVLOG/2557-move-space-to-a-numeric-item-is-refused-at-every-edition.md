@@ -1,4 +1,4 @@
-## MOVE SPACE to a numeric item is refused at every edition; PERFORM VARYING without BY is refused at 85 (PB3605, PB2282)
+## Entry 2557 — 2026-10-25 12:46 PDT — MOVE SPACE to a numeric item is refused at every edition; PERFORM VARYING without BY is refused at 85 (PB3605, PB2282)
 
 Wave 20261500 group E, two notes on one root, `VersionConformancePass`.
 
@@ -44,3 +44,4 @@ that omits BY. The grammar comments that called BY "optional per COBOL-85 spec" 
 
 Rows: SR-14.9.25.3-5, GR-14.9.25.4-2 and GR-14.9.28.4-12 re-verdicted CONFORMS with their witnesses replaced or added
 (three retired witnesses named), GAP 41 → 41. Diagnostic codes allocated COBOLNET5071-5073: none used.
+
