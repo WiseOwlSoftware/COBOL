@@ -52,6 +52,8 @@ import re
 import sys
 from pathlib import Path
 from typing import Iterable, Sequence
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HEADER, FOOTER, PREAMBLE, MODULE, IMPORTS, OWN = ("<header>", "<footer>", "<preamble>", "<module>", "<imports>",
                                                  "<own>")
@@ -741,4 +743,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

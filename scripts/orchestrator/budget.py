@@ -37,6 +37,8 @@ sys.path.insert(0, str(HERE.parent / "telemetry"))
 import account as accounts  # noqa: E402
 import coord  # noqa: E402
 import usage_report  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 DAY = dt.timedelta(days=1)
 
@@ -202,10 +204,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--session", type=float)
     ap.add_argument("--session-reset", help="ISO time with a zone of the session window's reset")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     now = parse_ts(a.now) if a.now else dt.datetime.now(dt.timezone.utc)
     try:
         acct = accounts.resolve(a.account, coord.rules())
@@ -232,4 +230,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

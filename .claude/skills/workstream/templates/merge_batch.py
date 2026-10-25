@@ -10,7 +10,11 @@ DIVERGES) need a register note in `notes` before record_verdicts accepts them â€
 note-writer can allocate ids and the notes field is filled in a second pass (this script leaves a `@@NOTE@@` marker).
 """
 import json, pathlib, sys, collections, re
-sys.stdout.reconfigure(encoding="utf-8")
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[4] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
+
 out = pathlib.Path(sys.argv[1]); label = sys.argv[2]
 
 #: A refuter telling the registrar that the row is NOT this lane's to record â€” the inventory already

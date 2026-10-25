@@ -18,6 +18,8 @@ stores this JSON beside its write-up, so a later analysis never depends on trans
 defensively: a line that does not parse is counted in `unparsed`, never silently dropped.
 """
 import argparse, datetime, json, pathlib, sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 
 def ts(s):
@@ -80,9 +82,9 @@ def main():
         pathlib.Path(a.out).write_text(text, encoding="utf-8", newline="\n")
         print(f"wrote {a.out}: {out['agents']} agents, {out['returned']} returned")
     else:
-        sys.stdout.reconfigure(encoding="utf-8")
         print(text)
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     main()

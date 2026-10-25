@@ -18,6 +18,9 @@ from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch f
 import account as accounts  # noqa: E402
 import budget  # noqa: E402
 import coord  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 RULES = coord.rules()
 # The estimator's ARITHMETIC is tested against a FIXED calibration, so a refit of model_rules.json's constants never

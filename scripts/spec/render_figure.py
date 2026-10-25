@@ -33,6 +33,8 @@ import re
 import sys
 
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
@@ -1026,10 +1028,6 @@ def main() -> int:
     ap.add_argument("--sheet", metavar="OUT.html", help="render PAGE plus --also into one HTML sheet")
     ap.add_argument("--also", nargs="*", type=int, default=[], help="further pages for --sheet")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a "
                  "PRIVATE submodule: git submodule update --init specs-private")
@@ -1074,4 +1072,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

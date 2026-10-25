@@ -42,6 +42,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import live_tools  # this directory's: the one list of the live tools' trees, which the scan reads
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 SUFFIXES = (".py", ".ps1", ".psm1", ".sh")
@@ -365,9 +366,9 @@ def main() -> int:
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8")
     return self_test() if args.self_test else check(args.root)
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

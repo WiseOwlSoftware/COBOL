@@ -19,6 +19,8 @@ import os
 import pathlib
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PROBE = REPO / "scripts" / "session-probe.ps1"
@@ -234,6 +236,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(_self_test())
     main()

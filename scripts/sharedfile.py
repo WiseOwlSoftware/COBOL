@@ -25,6 +25,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Callable, TypeVar
+from standard_streams import ensure_utf8
 
 T = TypeVar("T")
 
@@ -247,9 +248,8 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
-        if hasattr(sys.stdout, "reconfigure"):
-            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         sys.exit(self_test())
     print(__doc__)
     sys.exit(2)

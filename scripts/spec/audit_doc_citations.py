@@ -65,6 +65,8 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
 import cite as cite_mod  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = citation_corpus.REPO
 
@@ -363,10 +365,6 @@ def main() -> int:
     ap.add_argument("--all", action="store_true", help="also list quotes found nowhere in the spec (noisy)")
     ap.add_argument("--self-test", action="store_true", help="prove the check fires on a real defect")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if args.self_test:
         return self_test()
@@ -407,4 +405,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
