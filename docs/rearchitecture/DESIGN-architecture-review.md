@@ -1642,15 +1642,23 @@ is COMPUTED, never listed (PB2118 Draft 8; the seventh refuter, J2, found PB2296
 naming a file that does not exist, and Draft 7's "the brief computes callers with the rewriter's dry run and
 `where.py`" was no mechanism: `where.py` maps spec clauses to files, and the brief is rendered after the check). It is
 the union of its notes' DECLARED sets plus the group's primary file (`plan_wave.collision_set`, the fix lane's groups
-and a campaign's alike), and a note's declared set is its STRUCTURED sites only, read by ONE reader, the register's
+and a campaign's alike; the primary file is claimed whole unless every note declares a site block and one names it),
+and it is a set of MEMBERS, not only of files (kb/Work PB3670, the owner's top priority of 2026-10-24: "I do not
+understand why we cannot update separate regions of code in a single source file from different groups such that a
+merge conflict doesn't occur"): a `plan_wave.Claim` holds each file and the members claimed in it (a C# member, a
+Python function, a Markdown section, `scripts/arch/source_units.py`), a file with none named being claimed whole. A
+note's declared set is its STRUCTURED sites only, read by ONE reader, the register's
 `work.note_sites` (kb/Work PB3242), which the planner, the member index, the spec renderer and the landing check all
 call: the paths of its Code site / Site / Sites blocks (a bold label's paragraph and the list under it, or a heading's
-section; `:line`, `#member` and `(member)` suffixes dropped) and of the `**The files this step edits**` line
+section; a `:line` suffix dropped, and the members a `#member` suffix or a parenthesis opening with a code span names
+kept as that file's claim, `work.NoteSites.members`) and of the `**The files this step edits**` line
 `file_census_notes` writes into a multi-step note (`work.STEP_FILES_LABEL`: a step's files can lie outside the census
 finding's Sites, as PB2300's `IntrinsicCatalog.cs` does) under the campaign roots of `model_rules.json` (never a
-literal list: `scripts/` was a root the register's own reader ignored), plus every tracked code file under a folder
-its sites name, on the current tree, plus every file the MEMBER INDEX finds using or emitting what the note moves or
-changes: the names on its `**Moves or changes:**` and `r2_members:` lines, the documentation ids in its site blocks,
+literal list: `scripts/` was a root the register's own reader ignored), plus, for a restructuring note, every
+tracked code file under a folder its sites name, on the current tree (a fix-lane note's folder site reserves nothing:
+it named where to look, and once reserved a whole subsystem, 234 and 222 files for wave w20261032's groups A and B, kb/Work
+PB3670), plus every file the MEMBER INDEX finds using or emitting what the note MOVES, RENAMES or RE-SIGNS, each caller
+file whole (a body-only edit is a site member and reserves no caller): the names on its `**Moves or changes:**` and `r2_members:` lines, the documentation ids in its site blocks,
 and every word of its target paragraph that is a member of a type the note names or its sites declare (Draft 9:
 PB2296's hand-listed line left out `DataBinder.Options`, which its target moves and 15 files use; the eighth refuter,
 K1), else, for a restructuring note (one with a `**Wave kind:**`), every type its sites declare (a folder, a class's
@@ -1686,8 +1694,8 @@ committed record plus a text re-scan of every file changed since it. For PB2296 
 (Draft 8: 66; Draft 9's 73 counted prose sites), and holds every one of `DataBinder.Options`'s six users the refuter
 found outside it (`SetBinder.cs`, `InitialStateBackground.cs`, `PhysicalModel.cs`, `ConditionRenderer.cs`,
 `IntrinsicRenderer.cs`, `NumericRenderer.cs`); PB2249's holds the code-generation files that write the runtime signals
-as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`file_set_collisions`, the ONE
-implementation; for EVERY plan, the fix lane's too since kb/Work PB2807), checks it against (a) the in-flight work,
+as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`collision`, the ONE meeting rule, and
+`file_set_collisions`; for EVERY plan, the fix lane's too since kb/Work PB2807), checks it against (a) the in-flight work,
 read from sources a branch classification cannot drop (`inflight_file_sets`): every worktree's changed files, committed
 or not, and every unlanded branch's, each counted only while it still differs from `origin/main`, plus every group of
 the dispatch ledger (`<coord>/inflight-groups.json`, read through `plan_wave.ledger_groups`) whose notes are still
@@ -1715,7 +1723,15 @@ not guessed), and the `tests/` and `docs/` paths the table names. Set (b) is a R
 program's groups, those holding a note of R69 §2's "R2 and every R3 wave" (`work.restructuring`: a `cluster` list
 naming PB1754 or PB2119), whichever campaign plans them. A fix campaign's group (PB3353, PB2911) and the fix lane are
 never held for a slice, and the held row reads OPEN (RESERVED) until in-flight work holds a slice. A collision defers
-the group, with the collision named.
+the group, with the collision named (the file, or `file#member`). Two claims MEET only on a file either claims whole, or
+on a member of one that matches a member of the other (`plan_wave.unit_meet`, `source_units.match`), and never on a
+file a merge driver merges by key (`merge_drivers.covered_by_driver`): two groups on different members of one file run
+side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
+units its ACTUAL diff touches in each file another claim shares (`plan_wave.inflight_units`, batched git reads); a
+ledger group's are the members it recorded. An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "an
+unknown set meets its subsystem"): the group is named UNPARTITIONED and holds nothing, and its implementer adds the
+notes' site blocks. No partition removes every conflict (kb/Work PB3640: a declared set is a prediction), so a conflict
+at the landing is repaired by a conflict finisher (MANDATORY-PRACTICES L12).
 
 **The planner's set is the ADMISSION estimate; the landing check is the GUARANTEE** (PB2118 Drafts 9–10). Three refuter
 rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness), so a

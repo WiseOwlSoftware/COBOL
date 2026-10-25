@@ -897,8 +897,8 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
 #: The first note id `check` holds to SITES_RULE (kb/Work PB3263, filed 2026-10-19 at PB3443, the next id unallocated
 #: when the rule landed). Every cluster is a campaign the moment an operator runs it (orchestrate.ps1 -Cluster), and on
 #: 2026-10-19 198 open notes naming 218 clusters declared no site block, most of them in long-idle clusters: refusing
-#: those would turn the check into a backlog, so they stay readable (the planner reads each one's
-#: set UNKNOWN and plans it alone on its subsystem, plan_wave.collision), and the open notes of the RUNNING campaigns
+#: those would turn the check into a backlog, so they stay readable (the planner reads each one's set as empty: it
+#: holds nothing and is planned UNPARTITIONED, plan_wave.collision, kb/Work PB3670), and the open notes of the RUNNING campaigns
 #: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
 #: into a cluster carries its block from its first commit.
 SITES_REQUIRED_FROM = 3443
@@ -907,8 +907,8 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
 
 
 def sites_problems(items: list[dict]) -> list[str]:
-    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block leaves
-    the planner's file-set partition an UNKNOWN set, which it can only plan alone on its subsystem. A `decision` note
+    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block gives
+    the planner's partition nothing to hold or check (kb/Work PB3670: it is planned UNPARTITIONED). A `decision` note
     changes no file by itself and is exempt."""
     bad = []
     for it in items:
@@ -918,7 +918,8 @@ def sites_problems(items: list[dict]) -> list[str]:
             continue
         if not note_sites(it.get("_body", "")).declared:
             bad.append(f"{it['_file']}: names the cluster(s) {', '.join(it['cluster'])} but declares no site block — "
-                       f"{SITES_RULE}; without one the wave planner reads its file set as UNKNOWN (kb/Work PB3263)")
+                       f"{SITES_RULE}; without one the wave planner partitions nothing for it and plans it UNPARTITIONED "
+                       f"(kb/Work PB3263, PB3670)")
     return bad
 
 

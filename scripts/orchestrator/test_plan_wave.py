@@ -1607,8 +1607,8 @@ SITED = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": k, "status": s, "cluster
 check("work.sites_problems: an open note in a cluster from the cutover on with no site block is refused, prose paths "
       "and all; a block naming none is a declaration",
       [s.split(":")[0] for s in work.sites_problems(SITED)], [f"PB{NEW}.md", f"PB{NEW + 6}.md"])
-check("... and the refusal names the rule and the planner's UNKNOWN set",
-      all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNKNOWN", "PB3263")), True)
+check("... and the refusal names the rule and the planner's UNPARTITIONED plan",
+      all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNPARTITIONED", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
 
