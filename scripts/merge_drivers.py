@@ -26,7 +26,7 @@ cannot be forgotten and no persistent per-checkout configuration can go stale. T
 too (`attributes_tree`, given to git as `-c attr.tree=…`): the merged side's own `.gitattributes` followed by a
 `<pattern> merge=<driver>` line per DRIVERS pattern, so a branch cut before a driver existed (its `.gitattributes`
 still says `merge=union`, or nothing) merges that driver's files through it. Without that, a branch cut before
-kb/Work PB3727 merging a main with the SORTED public-API baseline got its union merge: 31 duplicated symbols in one
+kb/Work PB3727 merging a main whose public-API baseline the driver SORTED got its union merge: 31 duplicated symbols in one
 measured case, RS0025 in the Release build.
 
 THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, and `--check` holds the two together):
@@ -835,8 +835,8 @@ def self_test() -> int:
                "git merge does (the keyed merger declines, the fallback is clean): no conflict, no markers",
                plain_clean.returncode == 0 and files is None and text == fat("1+", "4+") and not fr.git("status", "--porcelain"),
                f"{plain_clean.returncode} {files} {text!r}")
-        # A branch cut BEFORE a driver existed: its .gitattributes still says merge=union for the baseline, and main (this
-        # landing) switched the attribute to the driver and sorted the baseline. The registry's attributes decide (kb/Work
+        # A branch cut BEFORE a driver existed: its .gitattributes still says merge=union for the baseline, and main switched
+        # the attribute to the driver, whose first two-sided merge sorted the baseline. The registry's attributes decide (kb/Work
         # PB3727): a union of the sorted file with the branch's added line duplicates the lines main moved.
         old = ScratchRepo.init(root / "old-attributes")
         unsorted = api(hdr, "C.C", "A.A", "D.D", "B.B", "F.F", "E.E")
