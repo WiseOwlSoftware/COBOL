@@ -2084,6 +2084,19 @@ check("... so a group claiming another member of the file meets it, and one clai
        pw.collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UBUSY[UOWN].claim)),
       ("src/Binder.cs#Bind", None))
 
+
+def failing_git(*args, cwd=None, stdin=None):
+    """git that fails every batched read (diff-tree): an unmeasured unit must never read as "touches nothing"."""
+    r = urepo.run(*args, cwd=cwd, input=stdin)
+    return subprocess.CompletedProcess(r.args, 1, "", "planted failure") if args[:1] == ("diff-tree",) else r
+
+
+UFAIL = pw.classify_inflight(URAW, UMETA, [], {})
+pw.inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
+check("inflight_units: a git failure leaves every file whole, so the owner meets every claim on its files",
+      (UFAIL[UOWN].members, pw.collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UFAIL[UOWN].claim)),
+      ({}, "src/Binder.cs"))
+
 # kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
 # wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
 # PB3353) held PB1278 and the owner's tier-2 chain (PB3337, PB3338, PB3340) on docs/CONFORMANCE.md for four slices no

@@ -45,10 +45,10 @@ refusal. Every dispatched wave appends its measurement to `<coord>/partition-mea
 beside PB3608's review lane, so this change leaves it alone. The operator memory that forbids dispatching an
 UNPARTITIONED plan is outside the repository and is reported to the operator.
 
-**Tests.** `test_plan_wave.py` section 12 is rewritten for the new rule (405 checks): different members of one file run
+**Tests.** `test_plan_wave.py` section 12 is rewritten for the new rule (406 checks): different members of one file run
 side by side, the same member or the whole file chains, an empty set holds and is held by nothing, a running branch's
 member holds only that member, a finisher carries its branch's units, the measurement and its summary, and an end-to-end
-scratch repository whose committed and uncommitted edits become units. `member_index.py --self-test` adds site members,
+scratch repository whose committed and uncommitted edits become units, and a git failure that leaves every file whole. `member_index.py --self-test` adds site members,
 a fix-lane folder that reserves nothing, and a re-signed member that holds its callers (31 checks).
 `source_units.py --self-test` covers every unit kind, each string form, `touched` and `match`. The fix lane's golden
 plan is unchanged apart from the new `member_set` key. Docs: DESIGN-architecture-review §8.7, DESIGN-orchestrator-loop
