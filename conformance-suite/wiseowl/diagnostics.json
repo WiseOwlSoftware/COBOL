@@ -13106,6 +13106,12 @@
   ],
   "expect": "(17,24): error COBOLNET1941"
  },
+ "pb2985-active-class-returning-universal-invocation-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb2988-capacity-register-copies-unqualified": {
   "refuse-at": [
    "2014",

@@ -692,6 +692,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line(OoUnivStop(m, "__viol is not null",
                 $"$\"INVOKE '{cobolName}' '{m.Name}': {{__viol}} (ISO §14.9.23.4 GR7 c))\""));
         }
+        // ⛔ AN ACTIVE-CLASS RETURNING ITEM IS SENT AS A UNIVERSAL OBJECT REFERENCE (§14.8.3.3 rule 2 b) 4.; kb/Work PB2985):
+        // the invoking reference is universal, so the item conforms only to a universal receiving item. Its own check, not
+        // a __viol term: unchecked, the invocation proceeds and the delivery's class narrowing is the floor.
+        if (returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses)
+                is { ObjectKind: ObjectReferenceKind.ActiveClass })
+            w.Line(RuntimeApi.ObjCheckActiveClassReturning(m.OoUniversalCheckingHere ? "true" : "false",
+                $"INVOKE '{cobolName}' '{m.Name}'", "__ret!.Description", CaseDescription(c, -1)) + ";");
         // An ANY LENGTH formal or returning item is a violation whatever the arguments (GR7 c) bans the DESCRIPTION) —
         // including an OPTIONAL one whose argument is OMITTED or trailing-omitted, which no relation is asked about — so
         // the bound method's stop is unconditional here: no activation of the method is emitted (its ANY LENGTH
