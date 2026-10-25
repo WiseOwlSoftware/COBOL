@@ -13,9 +13,12 @@ twice. The second is the PB3694 duplicate behind the RS0025 bounce of #541.
 
 **What else moved.**
 - `.gitattributes` names the new driver, with its reason.
-- Both runtime baselines were sorted once, keeping the same sets.
-- `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's `runtime-hash`, so the pin was repinned with
-  `abi_pin.py repin` (a reorder, nothing incompatible).
+- The two runtime baselines and the runtime ABI pin stay byte for byte as main has them. The branch first sorted both
+  baselines once and repinned the pin, and PR #608 stopped at the landing on `PublicAPI.Unshipped.txt`: the landing
+  merges main in through main's registry, which has no `cobol-keyed-publicapi` driver, so git's line merge met the
+  sorted file against PB3677's additions. A branch that leaves a file as main has it cannot conflict on it, so a new
+  driver lands alone. The baselines' order converges at their first merge that both sides changed, which the driver
+  sorts; a Shipped change carries a pin change, so `abi_pin.settle` measures that sorted file.
 - The registry now matches driver patterns by git's rules. The new `merge_drivers.pattern_matches` is read by
   `covered_by_driver` and `--check`. Before, `pathlib.PurePath.match` let `**` span exactly one directory, which would
   have missed a baseline deeper in `src/`.
@@ -28,8 +31,9 @@ twice. The second is the PB3694 duplicate behind the RS0025 bounce of #541.
   branch cut before a driver existed now merges that driver's files through it.
 - Because the baselines are now files merged by key, the planner's collision rule and the landing's merge-overlap rule
   both set them aside, as they already do for the catalogues.
-- DESIGN-orchestrator-loop.md section 16.9 records the two corrections. DESIGN-test-build-ci.md section 3.17.2 step 2
-  lists the new driver, and DOC_INDEX gains a row for `merge_drivers.py` and `abi_pin.py`.
+- DESIGN-orchestrator-loop.md section 16.9 records the three corrections. DESIGN-test-build-ci.md section 3.17.2 step 2
+  lists the new driver, says a new driver lands alone and names `merged_tree` (kb/Work PB3713), and DOC_INDEX gains a
+  row for `merge_drivers.py` and `abi_pin.py`.
 
 **Arms.** The self-test gained the four arms section 16.9 names, a git-path arm, an old-attributes arm and a pattern
 arm. `MergeDriverDriftTests` declares all seven. With `attributes_tree` stubbed out, the old-attributes arm fails with

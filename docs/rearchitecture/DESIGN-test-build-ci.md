@@ -2278,9 +2278,14 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale, and the attributes with them
    (`-c attr.tree=…`, `merge_drivers.attributes_tree`: the merged-into side's `.gitattributes` with a `merge=<driver>`
-   line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it. The review's coverage rule
-   (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
-   resolution is not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
+   line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it.
+   The other way round fails: until a branch that ADDS a driver lands, its landing merges main in through main's
+   registry, which has no such driver, so that branch leaves the files the driver governs as main has them (a new driver
+   lands alone, DESIGN-orchestrator-loop.md section 16.9). The review's coverage rule (`prune_worktrees.mechanical`)
+   reads the same `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713), the one definition of a clean merge's
+   tree, which the branch survey's LANDED proof (`prune_worktrees.merges_to_main_unchanged`) reads too, with the first
+   parent's attributes through `attributes_tree`; so a merge the drivers made is mechanical and a hand resolution is
+   not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
    documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
    conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
    45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 where both REVISED text the base

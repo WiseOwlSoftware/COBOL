@@ -1642,18 +1642,24 @@ it never declines (a line is atomic; a stale symbol fails the build, RS0017, as 
 line becomes `src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi` with its comment; `merge_drivers.py --check` holds the
 registry and the attributes together as it does for every driver, and `MergeDriverDriftTests.TheSelfTests_DeclareEveryArm`
 names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
-`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`. The
-landing also sorts the two baselines once (the driver's output order), so the first driven merge changes nothing but
-the merged lines. Corrected at implementation: the runtime ABI pin's `runtime-hash` reads `PublicAPI.Shipped.txt` line
-by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), so the sort moves it, and the landing repins it (`abi_pin.py repin`: a
-reorder, nothing incompatible); and the driver's patterns are matched by git's rules in the registry too
+`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`.
+Corrected at the landing: THE LANDING LEAVES THE BASELINES AS MAIN HAS THEM, unsorted. Until a branch lands, its
+landing merges main in through MAIN's registry (`enqueue.py land` runs main's `merge_drivers`), which defines no driver
+for a name only the branch's registry holds, so git falls back to its line merge; a baseline the branch had sorted met
+every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
+that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
+DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
+sides changed them, whose output the driver sorts. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
+`runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
+so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
+implementation: the driver's patterns are matched by git's rules in the registry too
 (`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
 span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
 the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
 catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
 (`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
 by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
-landing (its `.gitattributes` still says `merge=union`) merging the main that sorted the baseline got the union: a
+landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
 measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
 ### 16.10 The order, the waves and PB3637
