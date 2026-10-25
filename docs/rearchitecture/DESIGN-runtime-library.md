@@ -2856,7 +2856,7 @@ the transaction's first append (R3); `R` (ordinal 8, offset 8, length 4, the byt
 phase that is not the transaction's own append; `K` (the kind, `O` for an OPEN OUTPUT or `D` for a DELETE
 FILE, and the before file's length 8), at most one, the capture; and `D` (the decision, `C` committed, `O` open again after a
 reversal, `R` rolled back), the LAST whole one of which is the transaction's decision, and none is `O`. A torn tail (a short
-record, a failed CRC) ENDS the records, exactly as a torn frame ends a stream file's data: the record's step had not changed F
+record, a failed CRC, an `R` length word the rest of the record file cannot hold — judged in 64-bit arithmetic and against the largest array before anything is allocated, PB3614) ENDS the records, exactly as a torn frame ends a stream file's data: the record's step had not changed F
 when the death fell (2.2.2.5), so F is as the records before it say. **The transaction id** is DRAWN under the entry mutex:
 the lowest non-negative integer with neither a holder nor a record file in the directory — a dead transaction's files were
 settled by the entry step just before, under the same hold, so the smallest id is free once the directory is clean, and no
