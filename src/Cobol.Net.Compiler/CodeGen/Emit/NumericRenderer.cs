@@ -1463,12 +1463,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// </summary>
     public NumX Landed(NumX x, ReceiverContext rcv)
     {
-        if (x.Real && StandardDecimal)
-            x = new NumX(DecOperand(x), 0, Dec: true);
-        if (!x.Dec) return x;
+        if (SdidiOf(x) is not { } dec) return x;
         int ws = rcv.WorkingScale(ReceiverContext.SdidiLandingScaleFloor);
-        return new NumX(RuntimeApi.DecToUnscaledIntermediate(x.Expr, ws.ToString(), CobolRounding.Truncation), ws);
+        return new NumX(RuntimeApi.DecToUnscaledIntermediate(dec, ws.ToString(), CobolRounding.Truncation), ws);
     }
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS RENDERED INTERMEDIATE AN SDIDI VALUE?" that <see cref="Landed"/> and a consumer
+    /// which keeps the value's OWN exponent (the Format-1 CALL argument, <c>CallEmitter</c>'s expression arm, kb/Work PB3677)
+    /// both ask: the C# expression of a <c>CobolDec</c> when <paramref name="x"/> IS an SDIDI value, or - under a STANDARD mode,
+    /// where the mode beats the float branch (COBOLNET_NUMERIC_DESIGN.md D3) - the float converted in by §8.8.1.5.1
+    /// (<see cref="DecOperand"/>); null when it is a native scaled value or a binary64 the consumer takes as it is.</summary>
+    public string? SdidiOf(NumX x) =>
+        x.Real && StandardDecimal ? DecOperand(x)
+        : x.Dec ? x.Expr
+        : null;
 
     /// <summary><see cref="Landed"/> for a consumer that computes ONLY in the exact <c>Int128</c> lane and has no
     /// float arm of its own — the NATIVE DIVIDE … REMAINDER subsidiary-quotient kernel (§14.9.12.4 GR7 — kb/Work PB85: a

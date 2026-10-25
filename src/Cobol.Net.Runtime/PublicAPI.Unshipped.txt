@@ -268,3 +268,4 @@ const CobolNet.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERN
 static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
 static CobolNet.Runtime.CobolBool.FromCharacters(string? v) -> string!
 static CobolNet.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
+static CobolNet.Runtime.CobolArgAdapt.SdidiValue(CobolNet.Runtime.CobolPassMode mode, CobolNet.Runtime.CobolDec value, CobolNet.Runtime.SignEncoding signEncoding) -> CobolNet.Runtime.CobolArg
