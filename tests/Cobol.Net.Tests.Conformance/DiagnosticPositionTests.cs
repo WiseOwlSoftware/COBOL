@@ -360,19 +360,20 @@ public sealed class DiagnosticPositionTests : IDisposable
 
     [Fact] // kb/Work PB2490 - a debugging line that is SOURCE (the unit says WITH DEBUGGING MODE) between the parts of a
     // continued literal is diagnosed where it is written, in a copybook too: the copybook is read by the same walker, and
-    // the line is named by its own file and physical line, not by a resultant ordinal.
+    // the line is named by its own file and physical line, not by a resultant ordinal. The text-name is a WORD: the unit
+    // compiles at COBOL-85, where a literal text-name is a COBOL-2002 introduction (kb/Work PB1601).
     public void SourceDebuggingLine_BetweenLiteralParts_InACopybook_IsDiagnosedAtItsOwnLine()
     {
-        Write("dbg.cpy", "           MOVE \"" + new string('A', 55) + "\n      D    DISPLAY \"X\".\n      -    \"TAIL\" TO W.\n");
+        Write("DBG.cpy","           MOVE \"" + new string('A', 55) + "\n      D    DISPLAY \"X\".\n      -    \"TAIL\" TO W.\n");
         string unit(string clause) =>
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB2490C.\n       ENVIRONMENT DIVISION.\n"
             + "       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. IBM-PC" + clause + ".\n       DATA DIVISION.\n"
             + "       WORKING-STORAGE SECTION.\n       01 W PIC X(80).\n       PROCEDURE DIVISION.\n"
-            + "           COPY \"dbg.cpy\".\n           STOP RUN.\n";
+            + "           COPY DBG.\n           STOP RUN.\n";
         Write("dbgon.cob", unit(" WITH DEBUGGING MODE"));
         var (ok, lines) = Compile("dbgon.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("dbg.cpy(2,7): error COBOLNET3473"));
+        Assert.Contains(lines, d => d.Contains("DBG.cpy(2,7): error COBOLNET3473"));
         // without the clause the same line is a comment (§6.3.5 2)), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);
