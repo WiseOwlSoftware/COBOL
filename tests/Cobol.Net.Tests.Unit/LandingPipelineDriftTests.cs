@@ -279,9 +279,17 @@ public sealed class LandingPipelineDriftTests
         string linux = File.ReadAllText(TestRepo.Scripts("linux-gate.sh")).ReplaceLineEndings("\n");
         int begin = linux.IndexOf("\nbegin_gate() {", StringComparison.Ordinal);
         Assert.True(begin > 0, "linux-gate.sh has no begin_gate");
-        int busy = linux.IndexOf("=== LINUX GATE: BUSY", begin, StringComparison.Ordinal);
+        int busy = linux.IndexOf("busy_line \"$other\"", begin, StringComparison.Ordinal);
         int owner = linux.IndexOf("> \"$gate/owner\"", begin, StringComparison.Ordinal);
         Assert.True(busy > begin && owner > busy, "linux-gate.sh's begin_gate must answer BUSY before it registers its own gate");
+        // The one BUSY line (kb/Work PB3649): a second gate's refusal and the --probe the landing lane waits by are
+        // worded by busy_line, and the probe answers before anything is cloned or any results directory is emptied.
+        Assert.Contains("=== LINUX GATE: BUSY — another Linux gate of this tree is running", linux);
+        int probeDef = linux.IndexOf("\nprobe_tree() {", StringComparison.Ordinal);
+        Assert.True(probeDef > 0 && linux.IndexOf("busy_line \"$other\"", probeDef, StringComparison.Ordinal) > probeDef
+                    && linux.IndexOf("probe_tree \"$GATES_ROOT\" \"$tree\"", StringComparison.Ordinal)
+                    < linux.IndexOf("rm -rf \"$out\"; mkdir -p \"$out\"", StringComparison.Ordinal),
+            "linux-gate.sh's --probe (probe_tree) must word BUSY by busy_line and answer before anything is cloned or emptied");
         Assert.True(linux.IndexOf("rm -rf \"$out\"; mkdir -p \"$out\"", StringComparison.Ordinal)
                     > linux.IndexOf("\nbegin_gate \"$GATES_ROOT\" \"$tree\"", StringComparison.Ordinal),
             "linux-gate.sh empties the tree's results directory before begin_gate: a second run would delete the first's logs");

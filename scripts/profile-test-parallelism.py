@@ -33,7 +33,9 @@ import collections
 import datetime
 import pathlib
 import sys
-import xml.etree.ElementTree as ET
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from test_population import UnreadableTrx, trx_root  # noqa: E402  (THE one trx reader, kb/Work PB3661)
 
 NS = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 
@@ -52,9 +54,9 @@ def slowest_tests(paths: list[str], top: int) -> int:
     rows: list[tuple[float, str, str]] = []
     for path in paths:
         try:
-            root = ET.parse(path).getroot()
-        except (OSError, ET.ParseError) as e:
-            print(f'  !! {path}: no readable trx ({e.__class__.__name__}: {e})')
+            root = trx_root(path)
+        except UnreadableTrx as e:
+            print(f'  !! {e}')
             continue
         leg = pathlib.Path(path).stem
         for r in root.iter(f'{{{NS["t"]}}}UnitTestResult'):
@@ -81,7 +83,11 @@ def main(argv: list[str]) -> int:
             sys.exit(__doc__)
         return slowest_tests(argv[2:], int(argv[1]))
     path, top = argv[0], int(argv[1]) if len(argv) > 1 else 15
-    root = ET.parse(path).getroot()
+    try:
+        root = trx_root(path)
+    except UnreadableTrx as e:
+        print(f'  !! {e}')
+        return 0
 
     by_id = {}
     for ut in root.iter(f'{{{NS["t"]}}}UnitTest'):
