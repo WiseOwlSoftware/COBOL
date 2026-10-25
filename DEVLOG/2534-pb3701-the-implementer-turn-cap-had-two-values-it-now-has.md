@@ -1,4 +1,4 @@
-## PB3701 — the implementer turn cap had two values; it now has one home, the agent's `maxTurns`, and a check that every copy matches it
+## Entry 2534 — 2026-10-25 10:39 PDT — PB3701 — the implementer turn cap had two values; it now has one home, the agent's `maxTurns`, and a check that every copy matches it
 
 **What was wrong.** The owner raised the implementer cap from 220 to 400 on 2026-09-30 (kb/Work R67). MANDATORY-PRACTICES P5 and `.claude/agents/cobol-implementer.md` (`maxTurns: 400`) said so, but `dispatch-spec-implementer.md` still rendered `Turn cap 220`, `check_practices.py` REQUIRED that text, the two implementer briefs said "HARD CAP of 220 / ~190", and O4 still said "220 turns". Implementers therefore SPLIT at 220 (PB3641 measured groups of three to five splitting about half the time) and each split cost a finisher dispatch. The re-probe on this build: `check_practices.py` was GREEN while the spec and the harness disagreed by 180 turns, so the check was the defect as much as the template.
 
@@ -14,3 +14,4 @@
 **Rows.** None: process tooling; no ISO rule governs it and the note claims no inventory row.
 
 **Not done here.** Whether eight notes per group still fits at 400 is PB3704 (group cap 4).
+
