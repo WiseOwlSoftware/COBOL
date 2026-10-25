@@ -12,13 +12,14 @@ of the file (a name survives the lines moving under it), never a line number:
   * C# (`.cs`): a member (method, constructor, property, indexer, operator, event, field, delegate, a nested type's
     member) named `Type.Member` (nested types `Outer.Inner.Member`, overloads one unit), an enum or a body-less
     record as one unit, the lines of a type that lie in no member (its header, its closing brace, the trivia after its
-    last member) as the unit `Type`, and the file's own lines outside every type as `<header>` (before the first type)
+    last member) as the unit `Type.<own>` (so a change there meets a claim on the whole type, never one on a
+    member of it), and the file's own lines outside every type as `<header>` (before the first type)
     and `<footer>` (after the last). A member's leading trivia (its doc comment, its attributes, the blank lines before
     it) is part of it. The reading is a tokenizer (comments, every string form: regular, verbatim, interpolated with its
     holes, raw, raw interpolated; char literals; preprocessor lines) and a brace walk; a file it cannot balance has no
     units (the whole file is one unit: a claim on it meets every claim on the file).
   * Python (`.py`): a top-level function or class, a method `Class.method`, a top-level assignment by its first target,
-    the imports as `<imports>`, any other top-level statement as `<module>`; a class's other statements are `Class`.
+    the imports as `<imports>`, any other top-level statement as `<module>`; a class's other statements are `Class.<own>`.
     Read with `ast`; a file that does not parse has no units.
   * Markdown (`.md`): a section, named by its heading text (to the next heading of any level); the lines before the
     first heading are `<preamble>`. A fenced block's `#` lines are no headings.
@@ -46,12 +47,14 @@ from __future__ import annotations
 
 import ast
 import dataclasses
+import functools
 import re
 import sys
 from pathlib import Path
 from typing import Iterable, Sequence
 
-HEADER, FOOTER, PREAMBLE, MODULE, IMPORTS = "<header>", "<footer>", "<preamble>", "<module>", "<imports>"
+HEADER, FOOTER, PREAMBLE, MODULE, IMPORTS, OWN = ("<header>", "<footer>", "<preamble>", "<module>", "<imports>",
+                                                 "<own>")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -68,6 +71,7 @@ class _Unbalanced(Exception):
 
 _ID = re.compile(r"@?[A-Za-z_][A-Za-z0-9_]*")
 _NUM = re.compile(r"[0-9][A-Za-z0-9_.]*")
+_BLANKS = re.compile(r"[ \t\r\f\v\ufeff]+")
 _TWO = ("=>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "??", "?.", "::", "&&", "||")
 _TYPE_KW = ("class", "struct", "interface", "enum", "record", "namespace")
 
@@ -189,7 +193,7 @@ def _cs_tokens(text: str) -> list[tuple[str, int]]:
             line, bol, i = line + 1, True, i + 1
             continue
         if c in " \t\r\f\v\ufeff":
-            i += 1
+            i = _BLANKS.match(text, i).end()
             continue
         if c == "#" and bol:   # a preprocessor line: to its end
             end = text.find("\n", i)
@@ -375,7 +379,7 @@ def _cover(lines: int, decls: list[tuple[str, int, int, bool]], tokens: set[int]
     its children belongs, when it and every line after it up to the NEXT child of that container hold no token
     (`tokens` is the set of lines that hold one: that run of blank and comment lines is the child's leading trivia), to
     that child, and otherwise, or with no next child, to the
-    container itself: a type's own header, braces and tail are the unit `Type`. The file is the outermost container,
+    container's own unit `<name>.<own>`: a type's own header, braces and tail are the unit `Type.<own>`. The file is the outermost container,
     its own lines `<header>` before its last top-level declaration and `<footer>` after it."""
     owner: list[str | None] = [None] * (lines + 2)
     next_token = [lines + 1] * (lines + 2)   # the first line at or after k that holds a token
@@ -400,9 +404,9 @@ def _cover(lines: int, decls: list[tuple[str, int, int, bool]], tokens: set[int]
                 continue
             nxt = next((d for d in kids if d[1] > k), None)
             if nxt is not None and next_token[k] == nxt[1]:   # trivia running straight into the next child
-                owner[k] = nxt[0]
+                owner[k] = f"{nxt[0]}.{OWN}" if nxt[3] else nxt[0]
             elif name is not None:
-                owner[k] = name
+                owner[k] = f"{name}.{OWN}"
             else:
                 owner[k] = HEADER if last is None or k < last else FOOTER
 
@@ -481,8 +485,14 @@ READERS = {".cs": csharp_units, ".py": python_units, ".md": markdown_units}
 
 def units(path: str, text: str) -> list[Unit] | None:
     """The units of `path`'s content `text`, every line in exactly one, or None: the file is one unit (no reader for its
-    kind, or the reader cannot read it)."""
-    reader = READERS.get(Path(path).suffix.lower())
+    kind, or the reader cannot read it). Read once per (kind, content): the planner reads one merge base's version of a
+    file for every branch cut from it."""
+    return _units_of(Path(path).suffix.lower(), text)
+
+
+@functools.lru_cache(maxsize=256)
+def _units_of(suffix: str, text: str) -> list[Unit] | None:
+    reader = READERS.get(suffix)
     return reader(text.replace("\r\n", "\n")) if reader else None
 
 
@@ -620,9 +630,9 @@ def self_test() -> int:
     for u in us or []:
         first_line.setdefault(u.name, u.start)
     expect("C#: every member, nested type member, enum, operator, indexer, ctor and record is a unit",
-           sorted(first_line), sorted(["<header>", "<footer>", "DataBinder", "DataBinder._count", "DataBinder.Text",
+           sorted(first_line), sorted(["<header>", "<footer>", "DataBinder.<own>", "DataBinder._count", "DataBinder.Text",
                                        "DataBinder.Bind", "DataBinder.Count", "DataBinder.operator==",
-                                       "DataBinder.this[]", "DataBinder.Kind", "DataBinder.Inner",
+                                       "DataBinder.this[]", "DataBinder.Kind", "DataBinder.Inner.<own>",
                                        "DataBinder.Inner.Deep", "DataBinder.DataBinder", "Point"]))
     lines = CS_SAMPLE.split("\n")
     expect("C#: a member's doc comment and attribute are its own (leading trivia)",
@@ -632,7 +642,7 @@ def self_test() -> int:
            names_at(us, [k + 1 for k, ln in enumerate(lines) if "raw {" in ln or "verbatim" in ln or "'{'" in ln]),
            {"DataBinder.Bind"})
     expect("C#: the class's closing brace is the type's own unit, the usings the header",
-           (names_at(us, [lines.index("}") + 1]), names_at(us, [1, 2])), ({"DataBinder"}, {"<header>"}))
+           (names_at(us, [lines.index("}") + 1]), names_at(us, [1, 2])), ({"DataBinder.<own>"}, {"<header>"}))
     expect("C#: an unbalanced file has no units (the whole file)", units("x.cs", "class A { void M() { }"), None)
     expect("C#: an unterminated string has no units", units("x.cs", 'class A { string s = "abc\n; }'), None)
 
@@ -640,10 +650,10 @@ def self_test() -> int:
     pu = units("x.py", py)
     expect("Python: imports, an assignment, a function (with its leading comment), a class and a method",
            [(u.name, u.start, u.end) for u in pu or []],
-           [("<imports>", 1, 1), ("X", 2, 2), ("f", 3, 7), ("C", 8, 11), ("C.m", 12, 15), ("<footer>", 16, 16)])
+           [("<imports>", 1, 1), ("X", 2, 2), ("f", 3, 7), ("C.<own>", 8, 11), ("C.m", 12, 15), ("<footer>", 16, 16)])
     expect("Python: a decorated method's decorator is the method's", names_at(pu, [13, 14]), {"C.m"})
     expect("Python: the comment before f is f's", names_at(pu, [5]), {"f"})
-    expect("Python: a class attribute is the class's", names_at(pu, [11]), {"C"})
+    expect("Python: a class attribute is the class's", names_at(pu, [11]), {"C.<own>"})
     expect("Python: a file that does not parse has no units", units("x.py", "def (:\n"), None)
 
     md = "intro\n# 8 Top\ntext\n## 8.7 The partition\nbody\n```\n# not a heading\n```\n### 8.7.1 Sub\nmore\n"
@@ -659,7 +669,7 @@ def self_test() -> int:
     expect("touched: a body edit touches its member only",
            touched("a.cs", old, new_m, [(3, 1, 3, 1)]), frozenset({"A.M"}))
     expect("touched: an appended member touches itself and the class tail it lands before (two appends meet)",
-           touched("a.cs", old, new_add, [(5, 0, 6, 2)]), frozenset({"A.N", "A", "A.O"}))
+           touched("a.cs", old, new_add, [(5, 0, 6, 2)]), frozenset({"A.N", "A.<own>", "A.O"}))
     expect("touched: an added or deleted file is the whole file", (touched("a.cs", None, old, []),
                                                                      touched("a.cs", old, None, [])), (None, None))
     expect("hunks: counts default to one", hunks("@@ -3 +3,2 @@\n@@ -9,0 +11 @@"), [(3, 1, 3, 2), (9, 0, 11, 1)])
@@ -672,6 +682,9 @@ def self_test() -> int:
     expect("match: a section number and its subsections, never a longer number",
            [match("§8.7", "8.7 The partition"), match("8.7", "8.7.1 Sub"), match("§8.7", "8.70 Other"),
             match("§8.7", "8.7")], [True, True, False, True])
+    expect("match: a type's own lines meet a claim on the whole type, never one on a member of it",
+           [match("Binder.<own>", "Binder"), match("Binder.<own>", "Binder.Bind"), match("Binder.<own>", "Bind")],
+           [True, False, False])
     expect("meet: the first shared name, or None", (meet(["b.M", "a.N"], ["N"]), meet(["a"], ["b"])), ("a.N", None))
     print(f"=== SOURCE UNITS SELF-TEST: {'PASS' if not failures else 'FAIL'} ({len(failures)} failed) ===")
     return 1 if failures else 0
