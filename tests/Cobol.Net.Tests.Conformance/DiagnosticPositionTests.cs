@@ -373,7 +373,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("dbgon.cob", unit(" WITH DEBUGGING MODE"));
         var (ok, lines) = Compile("dbgon.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("DBG.cpy(2,7): error COBOLNET3473"));
+        Assert.Contains(lines, d => d.Contains("DBG.cpy(2,7): error COBOLNET3473", StringComparison.OrdinalIgnoreCase));   // a word text-name is folded to upper case: the file name's case is the host's
         // without the clause the same line is a comment (§6.3.5 2)), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);
