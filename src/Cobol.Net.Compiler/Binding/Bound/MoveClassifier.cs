@@ -390,6 +390,6 @@ public static class MoveClassifier
     {
         RefModPlace => false,                            // §8.4.3.3.4 GR6 — an elementary alphanumeric result
         RenamesPlace => true,                            // §13.18.45.4 GR2 — an alphanumeric GROUP item
-        _ => p.Item.IsGroup && !p.Item.IsAsIfElementary, // a bit / national group acts as elementary (D20/PB79)
+        _ => p.Item.IsPlainGroup, // a bit / national group acts as elementary (D20/PB79)
     };
 }
