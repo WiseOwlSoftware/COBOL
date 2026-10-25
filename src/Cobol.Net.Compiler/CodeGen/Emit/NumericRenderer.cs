@@ -1444,8 +1444,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>
     /// Land a rendered intermediate into the exact <c>Int128</c> lane at the receiver's working scale — the ONE
-    /// landing every value-semantics consumer of a <c>(Expr, Scale)</c> pair shares: an intrinsic argument, a CALL
-    /// BY VALUE arithmetic-expression argument, a SET pointer UP/DOWN BY amount, an ALLOCATE character count. A
+    /// landing every value-semantics consumer of a <c>(Expr, Scale)</c> pair shares: an intrinsic argument, a SET
+    /// pointer UP/DOWN BY amount, an ALLOCATE character count (a CALL argument no longer: its SDIDI value crosses at
+    /// its own exponent, <see cref="SdidiOf"/>, kb/Work PB3677). A
     /// native intermediate is already there; an SDIDI (<c>Dec</c>) intermediate — every arithmetic expression under
     /// a standard mode, and under NATIVE arithmetic an integer power (kb/Work PB69) — lands CHECKED at
     /// <c>rcv.WorkingScale(SdidiLandingScaleFloor)</c> (EC-SIZE-OVERFLOW past the carrier — §14.7.5 case 5, A.1 item 179

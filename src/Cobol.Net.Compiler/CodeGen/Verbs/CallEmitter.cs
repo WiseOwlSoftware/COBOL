@@ -1032,8 +1032,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // digits of its value through the one group-move sender (OperandText.NonElementaryMoveSender; docs/CONFORMANCE.md D-B4),
             // as the numeric literal arm above and `MOVE FUNCTION f TO G` store them - not as a numeric cell, which the group formal's
             // text adapter would read as the cell's own 38-digit image. A formal this activating element cannot see (a Format-1 CALL)
-            // reads the digits of the argument's Sending (CobolArgAdapt.WithValueSending) - of the value the receiver-less evaluation
-            // below delivers, which a STANDARD-DECIMAL function (COMP-2 0.0001) has already cut to the 6 working fraction digits.
+            // reads the digits of the argument's Sending - of the value the receiver-less evaluation below delivers, at its OWN
+            // exponent for an SDIDI value (CobolArgAdapt.SdidiValue, kb/Work PB3677: a STANDARD-DECIMAL function, COMP-2 0.0001, was
+            // cut to the 6 working fraction digits before the Format-1 formal saw it).
             case BoundComputedOperand { IsNumericFunctionValue: true } nf when GroupFormal(a) is not null:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(nf, num, "CALL argument")}), null)";
             case BoundComputedOperand expr:

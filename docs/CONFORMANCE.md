@@ -279,6 +279,12 @@ of an unsupported facility.
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move`,
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move_comma` and
   `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3613_numeric_function_group_formal`.
+  **A Format-1 CALL sends the SAME digits** (kb/Work PB3677): the activating element cannot see the formal there, and it used to
+  cut an SDIDI value (a numeric function that returned one, or a STANDARD-DECIMAL expression) to the receiver-less 6 fraction
+  digits before any formal could (`0.0001` sent `0000100`, the value 2 sent `2000000`). GR9 moves the argument "without
+  conversion" and fills a numeric formal by a COMPUTE "without the ROUNDED phrase", so only the formal cuts the value: it
+  crosses at its own exponent (`CobolArgAdapt.SdidiValue`), witnessed by
+  `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3677_format1_sdidi_function_value`.
 - **D-B5 — a boolean item RECEIVING characters converts each one: '1' is boolean one, every other character boolean
   zero** (kb/Work PB3666; owner decision 2026-10-24, on a point of implementor latitude). Table 16 (§14.9.25.3) admits
   an alphanumeric or national sending operand against a boolean receiving operand, and §14.6.8.6 transfers the data
