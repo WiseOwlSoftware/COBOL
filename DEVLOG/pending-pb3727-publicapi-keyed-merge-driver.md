@@ -37,3 +37,5 @@ arm. `MergeDriverDriftTests` declares all seven. With `attributes_tree` stubbed 
 
 **Oracle.** The three latest main merges in which both parents changed a baseline were 009f47b01, cdd86463e and
 677c620a0. Re-run through the driver, each reproduces main's baseline as a set.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===` on 502c2fd01 (run 000001-20261025T211812Z): Conformance 8,305, Unit 36,573 and Characterization 8 cases ran, and the Linux half (a WSL clone of HEAD) was GREEN. The self-tests of `merge_drivers`, `enqueue`, `prune_worktrees`, `land_lane` and `test_plan_wave` re-ran GREEN, and all four `MergeDriverDriftTests` facts passed.
