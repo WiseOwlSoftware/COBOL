@@ -39,3 +39,12 @@ wave's handoff and spends its name, no false orphan). The other fourteen `test_o
 design (`DESIGN-orchestrator-loop.md` sections 3.2, 4, 4.5, 5.1, 12) describes the new rules.
 
 The note flips to landed with `closes_rows: []` (orchestrator tooling; no ISO rule, no inventory row).
+
+**Gate (head 67924686e).** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
+whole-population run … Linux half (WSL clone of HEAD) GREEN` (run `000001-20261025T220536Z`; the self-test audit ran
+the two new tests, `test_next_unit.py` GREEN in 4.4 s and `test_orchestrate_meter.ps1` GREEN in 148 s).
+**Self-review.** Silent-failure lens: an unparseable attempt time makes the gate fail open (the meter is tried, as
+before); `Clear-NamedUnit` says in the log when it cannot spend a name instead of dying; the owner question is asked
+once and its marker is the streak's first attempt. Test lens: the carried-count case turns red if a meter resets or raises the
+breaker's count, because it ends on the work chain's own crash tripping it (exit 4). Comment lens: every figure quoted (39 of 53,
+36, 352 minutes, 31 false lines, $0.56 to $1.58) comes from the note or the 2026-10-22 log.
