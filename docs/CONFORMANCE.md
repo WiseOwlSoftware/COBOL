@@ -279,6 +279,41 @@ of an unsupported facility.
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move`,
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move_comma` and
   `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3613_numeric_function_group_formal`.
+- **D-B5 — a boolean item RECEIVING characters converts each one: '1' is boolean one, every other character boolean
+  zero** (kb/Work PB3666; owner decision 2026-10-24, on a point of implementor latitude). Table 16 (§14.9.25.3) admits
+  an alphanumeric or national sending operand against a boolean receiving operand, and §14.6.8.6 transfers the data
+  "after any necessary conversion, into the corresponding boolean positions of the receiving data item, with zero fill
+  or truncation to the right" (JUSTIFIED per §13.18.32). But a boolean character is "the value zero or one" (§3.21), no rule
+  converts a character that is neither, and §14.6.13.2 1) calls a later reference to non-boolean content undefined with
+  EC-DATA-INCOMPATIBLE, so the standard leaves the conversion to the implementor. Before the determination a MOVE of
+  `"AB"` to `PIC 1(5)` stored the characters themselves, so DISPLAY showed `AB000` while `B-NOT` of the same item
+  gave `11111` (the operators read a position outside `{'0','1'}` as zero). WiseOwl COBOL converts EACH transferred
+  character at the store: `'1'` to boolean one and every other character (a `'0'`, a letter, a space, a national
+  letter) to boolean zero, then aligns with zero fill or truncation to the right (left, under JUSTIFIED). It is the
+  rule the operators already apply and the rule an ACCEPT into a boolean item applies (§14.9.1.4 GR1,
+  `AcceptSource.DeviceBoolean`), so DISPLAY of the item and the operators over it agree for both usages (USAGE DISPLAY
+  `PIC 1` and USAGE BIT) and every other character store inherits it. GnuCOBOL 3.2 gives no precedent (probed 2026-10-24: it
+  warns that USAGE BIT is not implemented and stores a `PIC 1(5)` item in one byte, and its USAGE DISPLAY `PIC 1` moves
+  text as a number, right-aligning `"101"` as `00101` against §14.6.8.6's zero fill to the right); IBM Enterprise COBOL
+  has no boolean category. The paths that deposit characters into a boolean item and now convert: the elementary
+  MOVE and every statement that MOVEs (READ INTO, MOVE CORRESPONDING, INITIALIZE ... REPLACING BOOLEAN DATA, a CALL
+  argument landed by §14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
+  tables, §14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§14.9.43.4 GR3 a)),
+  a group sender into a USAGE DISPLAY boolean item (§14.9.25.4 GR4's alphanumeric move, which now zero-fills where it
+  space-filled), and COMPUTE's boolean result. **The exemptions:** a GROUP sender into a USAGE BIT item is
+  §14.9.25.4 GR4's move with "no conversion of data from one form of internal representation to another", so the
+  sender's BYTES fill the receiving area and the item's bits are the first bits of those bytes (`MOVE GA TO BB` with GA
+  holding `1A` stores the bits of x"31", `00110`); every bit pattern is a valid boolean value, so DISPLAY and the operators
+  agree there without a character conversion. The same GR4 move into a USAGE NATIONAL boolean item fits the sender's bytes to
+  the item's UTF-16BE pairs and decodes them as national characters (`MOVE GN TO BN` with GN holding `N"101"` stores `101`);
+  the conversion applies to characters, never to that byte image. Content the character store never sees stays undefined
+  (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver (GR4 moves bytes, so `MOVE "A1Z" TO G` leaves `A1Z` in a
+  boolean member) and a REDEFINES view of other storage. VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
+  literals), UNSTRING refuses a boolean receiver (§14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is
+  REFUSED when it holds a character other than `0` or `1` (`HostLanding.RequireClass`). Written once, in
+  `CobolBool.FromCharacters` and its fitting store `CobolBool.Store` (`RuntimeApi.StrStoreBoolean` is the only emitter of
+  that store); witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3666_boolean_receiver_converts_characters` and
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3666_dynamic_table_group_move`, and `unit:CobolBoolTests.Store_ConvertsEachCharacterThenFits`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
   GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is

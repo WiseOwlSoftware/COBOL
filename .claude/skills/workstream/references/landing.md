@@ -43,6 +43,8 @@
   (`prune_worktrees.py` reads ENQUEUED, NOT QUEUED and BOUNCED from `queue_facts.py`, the one reader of GitHub's facts;
   offline the states are git-only) is the branch's own: one
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
+  A conflict's finisher (exit 4, or a DIRTY bounce) gets `land_lane.py conflict-brief <branch>` verbatim in its prompt
+  (kb/Work PB3640): the conflicted files, main's commits on them since the merge base, both sides' notes and reports.
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
   `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, the
   branch's own gate is still running and has not written its verdict, or the gate's Linux half found a Linux gate of the

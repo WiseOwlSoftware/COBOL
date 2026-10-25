@@ -21,6 +21,11 @@
       *>     negative pb59-concat-alphabetic-to-boolean).
       *> MX: a MIXED alphabetic+alphanumeric argument list is likewise the "otherwise" arm - r3 demands
       *>     argument-1 AND all argument-2 be class alphabetic for the alphabetic result.
+      *> THE VALUES: RB and XB move only the characters '0' and '1', so each lands as that boolean value. MX moves
+      *>     "AB01", and 14.6.8.6 transfers it "after any necessary conversion, into the corresponding boolean
+      *>     positions"; no rule converts a character that is not a boolean one, so determination D-B5
+      *>     (docs/CONFORMANCE.md; kb/Work PB3666) does: '1' is boolean one and every other character (here A and B)
+      *>     boolean zero, giving 0001.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB72ADMIT.
        DATA DIVISION.

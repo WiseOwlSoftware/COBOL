@@ -130,6 +130,33 @@ public static class CobolBool
         return new string(arr);
     }
 
+    /// <summary>⚖ DETERMINATION D-B5 (docs/CONFORMANCE.md §3; kb/Work PB3666) — the characters a boolean data item
+    /// RECEIVES from a character sender. ISO §14.6.8.6 transfers the data "after any necessary conversion, into the
+    /// corresponding boolean positions of the receiving data item", §3.21 makes a boolean character "the value zero
+    /// or one", and no rule converts any other character: the standard leaves it to the implementor (§14.6.13.2 1)
+    /// calls a later reference to such content undefined). This implementation converts EACH transferred character:
+    /// <c>'1'</c> to boolean one and every other character (a <c>'0'</c>, a letter, a space) to boolean zero. It is
+    /// the rule the boolean OPERATORS already apply to a position outside <c>{'0','1'}</c> (<see cref="Bit"/>) and
+    /// the rule an ACCEPT into a boolean item applies (<c>AcceptSource.DeviceBoolean</c>), so DISPLAY of the item
+    /// and the operators over it can never disagree. Content already boolean is returned as the same instance.</summary>
+    public static string FromCharacters(string? v)
+    {
+        if (string.IsNullOrEmpty(v)) return "";
+        if (!CobolClass.HasNonBooleanPosition(v)) return v;
+        return string.Create(v.Length, v, static (span, src) =>
+        {
+            for (int i = 0; i < span.Length; i++) span[i] = src[i] == '1' ? '1' : '0';
+        });
+    }
+
+    /// <summary>THE boolean-receiver store (ISO §14.6.8.6): the sending characters converted to boolean positions
+    /// (<see cref="FromCharacters"/>), then left-aligned with boolean-zero fill or right truncation, or right-aligned
+    /// with zero fill on the left and left truncation under JUSTIFIED (§13.18.32 GR1/GR2). Every store into a boolean
+    /// item — a MOVE, a COMPUTE result, a VALUE, a group-image bit extent — ends here, so none can deposit a
+    /// character that is not a boolean value.</summary>
+    public static string Store(string? value, int width, bool justifiedRight) =>
+        FromCharacters(CobolString.Store(value, width, justifiedRight, pad: '0'));
+
     /// <summary>Resize a boolean value to <paramref name="width"/> positions (ISO §14.9.8 GR3 / §14.6.8.6): the
     /// value is left-aligned, right-zero-filled when shorter, right-truncated when longer — the boolean store
     /// discipline for a COMPUTE Format-2 receiver.</summary>
