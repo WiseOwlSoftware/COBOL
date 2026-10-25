@@ -1505,9 +1505,17 @@ def self_test() -> int:
         pw.git("commit", "--quiet", "-m", "the branch's own work")
         pred_listing = {"number": 701, "headRefName": "pred", "headRefOid": predecessor_oid,
                         "files": [{"path": "DEVLOG/0050-pb9-the-predecessor.md"}]}
-        github: dict[str, Any] = {"open": [pred_listing], "fail": False}
+        github: dict[str, Any] = {"open": [pred_listing], "fail": False, "bounced": set()}
 
         def planted_gh(args: list[str]) -> tuple[int, str, str]:
+            """GitHub as enqueue.py reads it: the listing of the open pull requests and queue_facts.read's two calls, each
+            open pull request with auto-merge on unless its number is in github["bounced"] (the queue removed it)."""
+            import queue_facts  # noqa: PLC0415
+            if args[:2] in (["repo", "view"], ["api", "graphql"]):
+                return (1, "", "rate limited") if github["fail"] else queue_facts.fake([
+                    queue_facts.node(pr["number"], pr["headRefName"], pr["headRefOid"],
+                                     **({"removed": "FAILED_CHECKS"} if pr["number"] in github["bounced"] else {"auto": "t"}))
+                    for pr in github["open"]])(args)
             assert args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args, args
             return (1, "", "rate limited") if github["fail"] else (0, json.dumps(github["open"]), "")
         c3d = fresh("predecessor")
@@ -1563,6 +1571,9 @@ def self_test() -> int:
         github["fail"] = True
         drv_unread = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
         github["fail"] = False
+        github["bounced"] = {801}                                  # the queue removed #801: it cannot share a merge group
+        drv_bounced = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
+        github["bounced"] = set()
         github["open"] = [{"number": 802, "headRefName": "w2e", "headRefOid": predecessor_oid, "files": [{"path": "kb/Work/PB9999.md"}]},
                           {"number": 803, "headRefName": "elsewhere", "headRefOid": predecessor_oid, "files": [{"path": "src/y.cs"}]}]
         drv_unrelated = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)   # its own pull request and a stranger's file
@@ -1570,12 +1581,12 @@ def self_test() -> int:
         expect("exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class, "
                "never the enqueue unit's; the lane waits at that head while enqueue.py's reader finds the pull request "
                "(naming it and the file), an unreadable GitHub is not free, the branch's own pull request and one that "
-               "changes other files hold nothing; it relaunches the SAME head once none shares a file, with no rearm "
+               "changes other files hold nothing, nor does one the queue BOUNCED (review R1-1); it relaunches the SAME head once none shares a file, with no rearm "
                "(kb/Work PB3642)",
                classify({"rc": EXIT_DRIVER_FILE_QUEUED}) == FREE and drv_waiting == [] and "still waits on" in drv_said
                and drv_open == (False, "open: #801 (kb/Work/PB9999.md)")
                and drv_unread[0] is False and "rate limited" in drv_unread[1] and drv_unrelated == (True, "")
-               and drv_relaunched == ["w2e"] and agent_work(c3e).reasons == [] and not (lane_dir(c3e) / REARM).exists(),
+               and drv_bounced == (True, "") and drv_relaunched == ["w2e"] and agent_work(c3e).reasons == [] and not (lane_dir(c3e) / REARM).exists(),
                f"{drv_waiting} {drv_said} {drv_open} {drv_unread} {drv_unrelated} {drv_relaunched}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).

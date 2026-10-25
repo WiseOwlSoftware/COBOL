@@ -2291,7 +2291,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
    branch carries, kb/Work PB3145); exit 16, never a red, in step 4 (4a) when an open pull request changes a file a
-   merge driver covers that the branch changes too (`enqueue.driver_file_holders`: GitHub's merge queue builds its
+   merge driver covers that the branch changes too and ENTERS the queue (`enqueue.driver_file_holders`, counting
+   `queue_facts.PullRequest.entering`: in the queue or with auto-merge on, not bounced, conflicting or red; a bounced
+   one holds nothing, it re-enters only through a fresh `land`; GitHub's merge queue builds its
    merge groups with plain git and none of `merge_drivers.DRIVERS`, so the two would conflict inside the queue; nothing
    is stamped or queued, and the lane retries it once no open pull request shares such a file, main then coming in
    through the drivers; the repository's queue-entry lock is held from that look to the queueing, so two landings of
