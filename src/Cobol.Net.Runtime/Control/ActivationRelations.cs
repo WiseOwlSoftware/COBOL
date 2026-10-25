@@ -612,7 +612,8 @@ public static class ActivationRelations
     /// (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits exactly that pair. Before this
     /// the two lanes answered one pair two ways: <c>SET PB TO PA</c> compiled and ran, while passing PA BY REFERENCE or BY
     /// CONTENT to a formal of PB's type raised EC-PROGRAM-ARG-MISMATCH, because two unresolved prototypes' own names never
-    /// match (kb/Work PB3162). A data-pointer's restriction is a TYPE identity and is never external.</summary>
+    /// match (kb/Work PB3162); the CALL RETURNING pair (<see cref="ReturningConformance"/>) was the third lane that did
+    /// (kb/Work PB3686). A data-pointer's restriction is a TYPE identity and is never external.</summary>
     private static bool SamePointerRestriction(string a, string b) =>
         string.Equals(a, b, StringComparison.Ordinal)
         || (a != ActivationDescription.Unrestricted && b != ActivationDescription.Unrestricted
@@ -713,8 +714,15 @@ public static class ActivationRelations
                 : $"the returning item ({sending}) and the receiving item ({receiving}) do not match (ISO §14.8.3.3 "
                   + "\"Additionally\" 2) / 3))";
         // §14.8.3.3: "the receiving operand shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
-        // PICTURE, SIGN, and USAGE clauses" (the class-pointer restriction is its USAGE clause's TO phrase).
-        return SameElementaryClauses(receiving, sending)
+        // PICTURE, SIGN, and USAGE clauses" (the class-pointer restriction is its USAGE clause's TO phrase). Two class
+        // pointers are the same USAGE when their restrictions are the same type by the ONE relation the BY REFERENCE and
+        // SET lanes ask, SamePointerRestriction: a pointer's TO phrase names a prototype, its type is that prototype's
+        // SIGNATURE (§13.18.60.4 GR25 / GR26), and a prototype with no compile-time signature is resolved by the run
+        // unit (§12.3.8.4 GR10 c)) — kb/Work PB3686, the RETURNING sibling of PB3162.
+        return (IsPointerClass(receiving) && IsPointerClass(sending)
+                ? string.Equals(receiving.Category, sending.Category, StringComparison.Ordinal)
+                  && SamePointerRestriction(receiving.Clauses, sending.Clauses)
+                : SameElementaryClauses(receiving, sending))
             ? null
             : $"the returning item ({sending}) and the receiving item ({receiving}) are not described with the same "
               + "clauses (ISO §14.8.3.3)";
