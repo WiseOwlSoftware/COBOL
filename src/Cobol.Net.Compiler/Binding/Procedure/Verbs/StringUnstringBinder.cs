@@ -412,7 +412,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <see cref="StrUnstrOperand"/> delegates its two identifier arms here so the shapes cannot drift apart.</summary>
     private BoundOperand StrUnstrSender(Core.StrUnstrSenderContext? snd, string role)
         => snd?.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
-        : snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
+        : snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn), functionValue: true)
         : snd?.dataReference() is { } dref ? ScreenedField(dref, role)
         : BoundOperandError.Refused(ctx.Edition, role);
 

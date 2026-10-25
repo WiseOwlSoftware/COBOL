@@ -148,6 +148,11 @@ public sealed class DataItem
     public bool IsAsIfElementary => Renames is { IsAlias: true, From: { } renamed } ? renamed.IsAsIfElementary   // GR1: the no-THROUGH alias of a bit / national group is one (kb/Work PB2502)
         : Pic is null && GroupUsage is not GroupUsage.None;
 
+    /// <summary>ONE answer to "is this a group operation?" (kb/Work PB3613): a group that is NOT a bit / national group acting
+    /// as an elementary item (<see cref="IsAsIfElementary"/>) - the receiver or sender of §14.9.25.4 GR4's unconverted group
+    /// move, and the formal a BY CONTENT value crosses into as that move (CALL, INVOKE and the binder that routes them).</summary>
+    public bool IsPlainGroup => IsGroup && !IsAsIfElementary;
+
     /// <summary>The DEFERRED adjudication mark of a PICTURE-less <c>USAGE NATIONAL</c>/<c>BIT</c> entry
     /// (ISO §13.18.60.4): whether it is a legal GROUP header (the usage sheds to subordinates, GR1) or an illegal
     /// picture-less elementary item (COBOLNET0881) is unknowable until the forest is complete —

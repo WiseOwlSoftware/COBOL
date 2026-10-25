@@ -310,5 +310,5 @@ internal sealed partial class OoBinder
     /// <see cref="BoundFieldOperand"/>, carrying the cloned category into Table-16 legality, the relation
     /// class dispatch and the LENGTH fold).</summary>
     public BoundOperand OoInlineInvocationOperand(Core.InlineMethodInvocationContext imi) =>
-        IntrinsicBinder.OperandOf(OoBindInlineInvocation(imi));
+        IntrinsicBinder.OperandOf(OoBindInlineInvocation(imi), functionValue: false);
 }
