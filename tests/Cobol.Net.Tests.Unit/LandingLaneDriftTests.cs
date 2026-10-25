@@ -192,10 +192,11 @@ public sealed class LandingLaneDriftTests
     private static readonly TreeScope VerdictLineUsers = new(Under: ["scripts/"], Except: ["scripts/verdict_line.py"],
         Kinds: [".py", ".ps1", ".sh"]);
 
-    /// <summary>A string literal that opens with the verdict line's prefix (<c>"=== ENQUEUE: "</c>, <c>f'=== ENQUEUE: {o}'</c>):
-    /// the spelling of the line in code. A comment, a docstring or a message that NAMES the line in backticks is prose and
-    /// does not open a literal with it.</summary>
-    private static readonly Regex VerdictLiteral = new(@"[""']=== ENQUEUE", RegexOptions.Compiled);
+    /// <summary>The verdict line's prefix spelled in code: at the start of a string literal (<c>"=== ENQUEUE: "</c>,
+    /// <c>f'=== ENQUEUE: {o}'</c>) or at the start of a line inside one (<c>\n=== ENQUEUE</c>, <c>{NL}=== ENQUEUE</c>,
+    /// the way a self-test plants a landing log). A comment, a docstring or a message that NAMES the line in backticks is
+    /// prose and does not match.</summary>
+    private static readonly Regex VerdictLiteral = new(@"([""']|\\n|\{NL\}|\{chr\(10\)\})=== ENQUEUE", RegexOptions.Compiled);
 
     /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="VerdictLineUsers"/>) with a line
     /// that spells the verdict line's prefix in a string literal, as <c>path:line</c>.</summary>
@@ -239,13 +240,14 @@ public sealed class LandingLaneDriftTests
                 "VERDICT = \"=== ENQUEUE: \"",
                 "say(f'=== ENQUEUE: {outcome} ({branch}) ===')",
                 "log = 'land lane\\n=== ENQUEUE: ENQUEUED (b) ==='",
+                "log = f\"land lane: attempt 1{NL}=== ENQUEUE: CONFLICT in x — merge aborted (b) ===\"",
             ]);
             File.WriteAllLines(Path.Combine(dir, "prose.py"),
             [
                 "# the landing ends on `=== ENQUEUE: <OUTCOME> (<branch>) ===` (P2)",
                 "\"\"\"Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to block on.\"\"\"",
             ]);
-            Assert.Equal(new[] { "writer.py:1", "writer.py:2", "writer.py:3" },
+            Assert.Equal(new[] { "writer.py:1", "writer.py:2", "writer.py:3", "writer.py:4" },
                 VerdictLiteralSites(dir, new[] { "writer.py", "prose.py" }));
         }
         finally
