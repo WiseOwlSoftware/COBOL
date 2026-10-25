@@ -787,7 +787,7 @@ check("PB2974 (R1-1): the drain plans the report's finisher over the branch's no
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
 CFG77 = {"wave": "77", "base": "abc", "scratch": str(TMP), "stop_file": str(coord.fleet_stop(TMP, "w77"))}
-FILES = lambda g: mds.group_files(g, lambda ids: set())  # noqa: E731  (a fixture note declares no files)
+FILES = lambda g: sorted(mds.group_claim(g, lambda ids: pw.Claim()).files)  # noqa: E731  (a fixture note declares no files)
 try:
     specs = [mds.render(CFG77, g, FILES(g)) for g in gjson]
     rendered = True
@@ -829,11 +829,13 @@ check("host_io: a compiler file, another runtime folder, a look-alike folder and
       (mds.host_io(["src/Cobol.Net.Compiler/Binding/DataBinder.cs"]), mds.host_io(["src/Cobol.Net.Runtime/Values/CobolDec.cs"]),
        mds.host_io(["src/Cobol.Net.Runtime/IOX/A.cs"]), mds.host_io([])), (False, False, False, False))
 asked = []
-check("group_files: the file_set list when it has files, else the notes' declared set",
-      (mds.group_files({"notes": "PB1", "file_set": ["src/A.cs"]}, lambda ids: asked.append(ids) or {"src/N.cs"}),
-       mds.group_files({"notes": "PB1, PB2", "file_set": []}, lambda ids: asked.append(ids) or {"src/Cobol.Net.Runtime/IO/N.cs"}),
-       mds.group_files({"notes": "PB3"}, lambda ids: asked.append(ids) or set()), asked),
-      (["src/A.cs"], ["src/Cobol.Net.Runtime/IO/N.cs"], [], [["PB1", "PB2"], ["PB3"]]))
+check("group_claim: the file_set list (with its member_set) when it has files, else the notes' declared set",
+      (mds.group_claim({"notes": "PB1", "file_set": ["src/A.cs"], "member_set": {"src/A.cs": ["M"]}},
+                       lambda ids: asked.append(ids) or pw.Claim.of({"src/N.cs"})).member_lists(),
+       sorted(mds.group_claim({"notes": "PB1, PB2", "file_set": []},
+                              lambda ids: asked.append(ids) or pw.Claim.of({"src/Cobol.Net.Runtime/IO/N.cs"})).files),
+       sorted(mds.group_claim({"notes": "PB3"}, lambda ids: asked.append(ids) or pw.Claim()).files), asked),
+      ({"src/A.cs": ["M"]}, ["src/Cobol.Net.Runtime/IO/N.cs"], [], [["PB1", "PB2"], ["PB3"]]))
 IOG = dict(gjson[0], letter="IO", file_set=["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"])
 CMG = dict(gjson[0], letter="CM", file_set=["src/Cobol.Net.Compiler/Binding/DataBinder.cs"])
 io_spec, cm_spec = (mds.render(CFG77, g, FILES(g)) for g in (IOG, CMG))
@@ -869,6 +871,22 @@ gfile = TMP / "groups.json"
 gfile.write_text(__import__("json").dumps({"wave": "77", "scratch": "X", "base": "abc", "stop_file": CFG77["stop_file"],
                                           "groups": gjson}), encoding="utf-8", newline="\n")
 check("check_practices O2 same-file rule", check_practices.same_file_without_successor(gfile), [])
+MEMBER_GROUPS = TMP / "groups-members.json"
+
+
+def member_groups(*member_sets):
+    """A groups file of groups A, B, ... on one primary file, each claiming the members given (None: the whole file)."""
+    gs = [{"letter": chr(65 + k), "root": "src/X/Binder.cs", **({"member_set": {"src/X/Binder.cs": ms}} if ms else {})}
+          for k, ms in enumerate(member_sets)]
+    MEMBER_GROUPS.write_text(__import__("json").dumps({"groups": gs}), encoding="utf-8", newline="\n")
+    return check_practices.same_file_without_successor(MEMBER_GROUPS)
+
+
+check("check_practices O2 is a shared-MEMBER rule (kb/Work PB3670): different members of one primary file pass; one "
+      "member, or the whole file, refused without `after:`",
+      (member_groups(["Binder.Bind"], ["Binder.Sync"]), member_groups(["Binder.Bind"], ["Bind"]),
+       member_groups(["Binder.Bind"], None)),
+      ([], ["A+B on src/X/Binder.cs"], ["A+B on src/X/Binder.cs"]))
 
 # 8. THE FIX LANE WITHOUT --cluster IS UNCHANGED (kb/Work PB2120): the whole plan of this fixture, every group's
 #    rendered JSON included, equals the golden that the planner wrote BEFORE the campaign lane existed (committed
@@ -1274,7 +1292,8 @@ own = pw.plan(notes, [cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {
 check("a branch working on the group's OWN note (an earlier attempt) never defers it",
       [g.notes for g in own["groups"]], [["PB9"]])
 check("the one collision rule, path separators folded",
-      pw.file_set_collisions(["src" + chr(92) + "A.cs"], {"t": {"src/A.cs"}, "u": {"src/B.cs"}}), ["t (src/A.cs)"])
+      pw.file_set_collisions(pw.Claim.of(["src" + chr(92) + "A.cs"]),
+                             {"t": pw.Claim.of({"src/A.cs"}), "u": pw.Claim.of({"src/B.cs"})}), ["t (src/A.cs)"])
 
 # 9d. the in-flight set reads sources a branch CLASSIFICATION cannot drop (PB2118 Draft 7, the sixth refuter's
 #     partition lead): a dispatched worktree with no commit (classifies MERGED) whose agent has edited a file, an
@@ -1342,7 +1361,8 @@ check("a dispatched group whose notes all landed is not", "src/Done.cs" in flat,
 check("STATUS.md is never a product file", "STATUS.md" in flat, False)
 check("the harness's settings file is in no owner's set, so a finisher continuing one worktree meets no other on it "
       "(kb/Work PB3465: wave 1134 held PB3337, PB3460 and PB1278 on it)",
-      (SETTINGS_FILE in flat, pw.file_set_collisions([SETTINGS_FILE, "src/Mine.cs"], fly)), (False, []))
+      (SETTINGS_FILE in flat, pw.file_set_collisions(pw.Claim.of([SETTINGS_FILE, "src/Mine.cs"]),
+                                                    {o: pw.Claim.of(fs) for o, fs in fly.items()})), (False, []))
 check("coord.NEVER_WORK: the settings file, STATUS.md and everything under TestResults/ are never work; a path that "
       "merely contains one of them is",
       [coord.is_work(x) for x in (SETTINGS_FILE, SETTINGS_FILE.replace("/", chr(92)), "STATUS.md",
@@ -1353,7 +1373,8 @@ check("coord.porcelain_work keeps only the work lines of `git status --porcelain
                             "R  STATUS.md -> src/New.cs", ""]),
       [" M src/A.cs", "R  STATUS.md -> src/New.cs"])
 check("the planner's own checkout is not in flight", any("main" in k for k in fly), False)
-check("the collision names the dispatched owner", pw.file_set_collisions(["src/Dispatched.cs"], fly),
+check("the collision names the dispatched owner",
+      pw.file_set_collisions(pw.Claim.of(["src/Dispatched.cs"]), {o: pw.Claim.of(fs) for o, fs in fly.items()}),
       ["dispatched w1040a (PB70) (src/Dispatched.cs)"])
 
 # 9e. the group's file set (kb/Work PB3242; PB2118 Draft 8, the seventh refuter's J2): its notes' DECLARED sets, the
@@ -1382,13 +1403,15 @@ if fc:
     texts2 = {i: (W2 / f"{i}.md").read_text(encoding="utf-8") for i in notes2}
     D2 = pw.declared_sets(C2, pw.IndexPolicy(TMP / "no-cache", regenerate=False))
     o2, _, _, _ = pw.campaign_clusters(view2, notes2, texts2, RULES, fc, C2,
-                                       lambda text: D2(text) | ({"src/Lib/Caller.cs"} if "PB951" in text else set()))
+                                       lambda text: D2(text) | (pw.Claim.of({"src/Lib/Caller.cs"}) if "PB951" in text
+                                                                         else pw.Claim()))
     files2 = {n["id"]: c["files"] for c in o2 for n in c["notes"]}
     check("a bare type name in prose declares nothing (PB3242)", "src/Lib/GammaState.cs" in files2["PB950"], False)
     check("a note's computed callers are in its group's file set", "src/Lib/Caller.cs" in files2["PB951"], True)
     check("callers never steer the clustering (the primary file is a named site)",
           sorted(c["file"] for c in o2), ["src/Lib/Alpha.cs", "src/Lib/Beta.cs"])
-    check("the collision check sees a caller", pw.file_set_collisions(files2["PB951"], {"train t": {"src/Lib/Caller.cs"}}),
+    check("the collision check sees a caller", pw.file_set_collisions(pw.Claim.of(files2["PB951"]),
+                                                    {"train t": pw.Claim.of({"src/Lib/Caller.cs"})}),
           ["train t (src/Lib/Caller.cs)"])
 HL = TMP / "coord-hand"
 HL.mkdir()
@@ -1488,12 +1511,19 @@ check("an entry whose notes all landed is dropped at the next record",
       [g["wave"] for g in coord.read_json(HL / pw.DISPATCH_LEDGER, {})["groups"]], ["1061", "1061"])
 MDS = TMP / "coord-mds"
 MDS.mkdir()
-MCFG = {"wave": "1070", "groups": [{"letter": "A", "slug": "w1070a", "notes": "PB970, PB971", "file_set": ["src/M.cs"]},
+MCFG = {"wave": "1070", "groups": [{"letter": "A", "slug": "w1070a", "notes": "PB970, PB971", "file_set": ["src/M.cs"],
+                                    "member_set": {"src/M.cs": ["T.M"]}},
                                    {"letter": "B", "slug": "w1070b", "notes": "PB972"}]}
-mds.record(MCFG, MDS, terminal=lambda i: False, file_set_of=lambda ids: {f"src/{i}.cs" for i in ids})
-check("make_dispatch_specs records every rendered group: its file_set list, else the set computed from its notes",
-      [(g["slug"], g["notes"], g["files"]) for g in coord.read_json(MDS / pw.DISPATCH_LEDGER, {})["groups"]],
-      [("w1070a", ["PB970", "PB971"], ["src/M.cs"]), ("w1070b", ["PB972"], ["src/PB972.cs"])])
+mds.record(MCFG, MDS, terminal=lambda i: False, claim_of=lambda ids: pw.Claim.of({f"src/{i}.cs" for i in ids}))
+check("make_dispatch_specs records every rendered group: its file_set list and member claims, else the set computed "
+      "from its notes",
+      [(g["slug"], g["notes"], g["files"], g["members"])
+       for g in coord.read_json(MDS / pw.DISPATCH_LEDGER, {})["groups"]],
+      [("w1070a", ["PB970", "PB971"], ["src/M.cs"], {"src/M.cs": ["T.M"]}), ("w1070b", ["PB972"], ["src/PB972.cs"], {})])
+LM: dict = {}
+check("... and the in-flight enumeration reads a recorded group's member claims back (kb/Work PB3670)",
+      [(pw.inflight_file_sets(coord_dir=MDS, terminal=lambda i: False, with_git=False, meta=LM) and None),
+       LM["dispatched w1070a (PB970, PB971)"]["members"]], [None, {"src/M.cs": ["T.M"]}])
 check("the planner's groups file carries the file set as a LIST", gjson[0]["file_set"], sorted(p["groups"][0].files))
 # 9f. (PB2118 Draft 9) the landing check orders two branches by dispatch time: the in-flight enumeration reports each
 #     dispatch entry's notes and time through `meta`; and the planner never plans on a stale member index
@@ -1577,8 +1607,8 @@ SITED = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": k, "status": s, "cluster
 check("work.sites_problems: an open note in a cluster from the cutover on with no site block is refused, prose paths "
       "and all; a block naming none is a declaration",
       [s.split(":")[0] for s in work.sites_problems(SITED)], [f"PB{NEW}.md", f"PB{NEW + 6}.md"])
-check("... and the refusal names the rule and the planner's UNKNOWN set",
-      all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNKNOWN", "PB3263")), True)
+check("... and the refusal names the rule and the planner's UNPARTITIONED plan",
+      all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNPARTITIONED", "PB3263")), True)
 check("note_sites says whether a block is present, whatever it names",
       [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
 
@@ -1818,7 +1848,7 @@ import member_index  # noqa: E402
 GATE_ONLY = (f"**Sites:**{NL}- `scripts/gamma.py`{NL}{NL}Probe it with `python scripts/spec/cite.py --check 14.9 \"x\"`."
              f"{NL}{NL}**Gate:** `python scripts/spec/cite.py --check 14.9 \"x\"` and `pwsh scripts/build-local.ps1`{NL}")
 check("(1) a note whose only mention of cite.py is a Gate: line and prose declares no cite.py",
-      ("scripts/spec/cite.py" in DDECL(GATE_ONLY), sorted(DDECL(GATE_ONLY))), (False, ["scripts/gamma.py"]))
+      ("scripts/spec/cite.py" in DDECL(GATE_ONLY).files, sorted(DDECL(GATE_ONLY).files)), (False, ["scripts/gamma.py"]))
 EVERY_SHAPE = (f"**Sites:**{NL}- `src/Lib/Alpha.cs`{NL}- `src/Lib/Beta.cs#Run` (Run){NL}"
                f"- `tests/Delta.Tests/DeltaTests.cs:12-40`{NL}- scripts/gamma.py (main){NL}"
                f"- `M:N.OoBinder.Err(N.Model.DataItem)~System.String @ src/.../OoBinder.cs:1783`{NL}{NL}"
@@ -1836,6 +1866,20 @@ for shape, text in (("a bold paragraph label", f"**Code site.** src/Lib/Alpha.cs
                                                         f"scripts/gamma.py")):
     want = ("src/Lib/Alpha.cs", "src/Lib/Beta.cs") if shape == "a heading section" else ("src/Lib/Alpha.cs",)
     check(f"(2) the site block as {shape} ends where the block ends", work.note_sites(text).paths, want)
+# Branch review R1-1 (PB3670): the binding rule's site form (R3: the file, a `:line` optional, then a parenthesis of code
+# spans) names MEMBERS, so a note filed by it partitions on them; a `:line` alone claims the file whole; and every text
+# that states the rule quotes the one example note_sites reads members from, so the rule and the parser cannot drift
+# apart again (R3 once prescribed `(file:line)` files only, which the member parser reads as whole files).
+check("R1-1: R3's site form names its members, with or without the :line; a :line alone claims the file whole",
+      (work.note_sites(work.SITES_EXAMPLE).members, work.note_sites("**Sites:** `src/Lib/Beta.cs:12` (`Beta.Run`)").members,
+       work.note_sites("**Sites:** `src/Lib/Beta.cs:12`").members),
+      ({"src/Cobol.Net.Compiler/Binding/DataBinder.cs": ("DataBinder.Bind", "DataBinder.Sync")},
+       {"src/Lib/Beta.cs": ("Beta.Run",)}, {}))
+for doc in (".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+            ".claude/skills/workstream/templates/registrar-brief.md"):
+    check(f"R1-1: {doc} states the site form by quoting work.SITES_EXAMPLE",
+          work.SITES_EXAMPLE in (coord.REPO / doc).read_text(encoding="utf-8"), True)
+check("R1-1: work.SITES_RULE (what `work.py check` prints) quotes it too", work.SITES_EXAMPLE in work.SITES_RULE, True)
 check("(2) a placeholder, a glob and a bare root are no sites",
       work.note_sites(f"**Sites:**{NL}- `src/<Project>/X.cs`{NL}- `tests/**/char_*.txt`{NL}- `src/`{NL}").paths, ())
 check("(2) the roots are model_rules.json's campaign roots, never a literal",
@@ -1846,7 +1890,7 @@ check("(3) the member index's declared set of a note with a name: its sites (the
       (tuple(fs_mi["sites"]), tuple(fs_mi["files"]), fs_mi["unknown"]), (SITES, SITES, ["N.OoBinder.Err(N.Model.DataItem)"]))
 SITES_ONLY = EVERY_SHAPE.replace(f"- `M:N.OoBinder.Err(N.Model.DataItem)~System.String @ src/.../OoBinder.cs:1783`{NL}", "")
 check("(3) the planner, the member index and the register read the same sites for the same note",
-      (tuple(sorted(DDECL(SITES_ONLY))), tuple(member_index.note_file_set(SITES_ONLY, DR)["sites"]),
+      (tuple(sorted(DDECL(SITES_ONLY).files)), tuple(member_index.note_file_set(SITES_ONLY, DR)["sites"]),
        work.note_sites(SITES_ONLY).paths), (SITES, SITES, SITES))
 if fc:
     CD = TMP / "declared-campaign" / "kb" / "Work"
@@ -1890,7 +1934,7 @@ check("R1-2: the fix lane's wave kind is one of the R2 collector's wave kinds (o
 # outside the census finding's Sites (PB2300's IntrinsicCatalog.cs) is declared; the reader reads the writer's line.
 STEP = f"**Sites:**{NL}- `src/Lib/Alpha.cs`{NL}{NL}{file_census_notes.step_files_line(['src/Lib/Alpha.cs', 'src/Lib/Beta.cs'])}{NL}"
 check("R1-1: the step-files line file_census_notes writes declares its files (reader = planner)",
-      (work.note_sites(STEP).paths, tuple(sorted(DDECL(STEP)))), (("src/Lib/Alpha.cs", "src/Lib/Beta.cs"),) * 2)
+      (work.note_sites(STEP).paths, tuple(sorted(DDECL(STEP).files))), (("src/Lib/Alpha.cs", "src/Lib/Beta.cs"),) * 2)
 
 
 def note_path_scanners(sources: dict[str, str]) -> list[str]:
@@ -1914,86 +1958,158 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
                           "scripts/orchestrator/fine.py": "x = 1"}),
       ["scripts/arch/planted.py", "scripts/orchestrator/p2.py"])
 
-# 12. AN EMPTY FILE SET IS UNKNOWN, NEVER "COLLIDES WITH NOTHING" (kb/Work PB3263). Wave 1117 recorded six of its
-#     eight PB3353 groups with `0 files` (their notes declare no site block), and wave 1126 C (PB1587, runtime/io, no
-#     site block) was planned beside the in-flight engine and landed on six of its files. An unknown side meets the
-#     other on a shared SUBSYSTEM (the notes' areas), and meets everything when that is unknown too; within a wave an
-#     unknown group is planned alone on its subsystems (a successor of EVERY group it meets, waiting when they lie in
-#     two chains, and a later group that meets it follows it); a meeting by subsystem waits even for FINISHED work (never a continuation of an unrelated branch);
-#     a dispatch recorded with no files stays in flight; the plan table and the spec name the group UNPARTITIONED.
+# 12. THE PARTITION MEETS ON MEMBERS, AND AN EMPTY SET HOLDS NOTHING (kb/Work PB3670, the owner's top priority,
+#     2026-10-24, superseding PB3263's subsystem rule). Two claims meet on a file only when either holds it whole or a
+#     member of one matches a member of the other (scripts/arch/source_units.py); a file a merge driver merges by key
+#     never meets; an EMPTY set (no note declares a site block and no primary file was located, or a dispatch recorded
+#     with no files) meets nothing, in a wave and in flight alike, and the plan names it UNPARTITIONED. Wave w20261032's
+#     groups A (234 files) and B (222) held the owner-approved fuzz fixes PB3664 and PB3665 on files neither touched.
 def unsited(*ids):
     return {"file": "", "harm": 1, "files": [], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
 
 
-check("collision: two known sets meet on a shared file, never on a subsystem alone",
-      (pw.collision({"a"}, {"runtime"}, {"a", "b"}, set()), pw.collision({"a"}, {"runtime"}, {"b"}, {"runtime"})),
-      ("a", None))
-check("collision: an UNKNOWN set meets on a shared subsystem only; an unknown subsystem meets everything",
-      (pw.collision(set(), {"runtime"}, {"b"}, {"runtime"}), pw.collision(set(), {"runtime"}, set(), {"oo/classes"}),
-       pw.collision({"a"}, {"runtime"}, set(), set())),
-      ("UNKNOWN file set, subsystem runtime", None, "UNKNOWN file set, subsystem unknown"))
-check("subsystems are the notes' areas, case-folded", pw.subsystems(["PB5", "PB8", "PB404"], notes),
-      {"runtime", "oo/classes"})
+def on_members(file, members, *ids):
+    """A cluster on `file` claiming only `members` of it."""
+    return {**cl(file, *ids), "members": {file: list(members)}}
+
+
+C = pw.Claim.of
+check("collision: a whole file meets anything on it; different members never meet; one member (qualified or bare) "
+      "meets; an empty set meets nothing",
+      (pw.collision(C({"a.cs"}), C({"a.cs", "b.cs"}, {"a.cs": ["T.M"]})),
+       pw.collision(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}, {"a.cs": ["T.N"]})),
+       pw.collision(C({"a.cs"}, {"a.cs": ["M"]}), C({"a.cs"}, {"a.cs": ["T.M", "T.N"]})),
+       pw.collision(C(set()), C({"a.cs"})), pw.collision(C({"a.cs"}), C(set()))),
+      ("a.cs", None, "a.cs#M", None, None))
+check("collision: a file a merge driver merges by key (the diagnostics catalogue, a work note) never meets",
+      pw.collision(C({"conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB9.md"}),
+                   C({"conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB9.md"})), None)
+check("Claim union: a file stays whole when either side claims it whole; members unite otherwise",
+      ((C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"}, {"a.cs": ["N"]})).member_lists(),
+       (C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"})).member_lists()),
+      ({"a.cs": ["M", "N"]}, {}))
+check("collision_set: the primary file is whole unless every note declares a site block and one names it by member",
+      (pw.collision_set("a.cs", [C({"a.cs"}, {"a.cs": ["M"]})]).member_lists(),
+       pw.collision_set("a.cs", [C({"a.cs"}, {"a.cs": ["M"]}), pw.Claim(sited=False)]).member_lists(),
+       pw.collision_set("a.cs", [C({"b.cs"}, {"b.cs": ["M"]})]).member_lists(),
+       pw.collision_set("", [pw.Claim(sited=False)]).files),
+      ({"a.cs": ["M"]}, {}, {"b.cs": ["M"]}, frozenset()))
+mw = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB5"), on_members(F_BIND, ["Binder.Sync"], "PB9"),
+                     on_members(F_BIND, ["Sync"], "PB10"), cl(F_BIND, "PB11")],
+             [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("in a wave two groups on DIFFERENT MEMBERS of one primary file run side by side; one on the same member "
+      "follows it; one on the whole file follows both, so it waits for a later wave (two chains)",
+      ([(g.letter, g.after, g.notes) for g in mw["groups"]],
+       "different successor chains" in mw["waiting"].get("PB11", "")),
+      ([("A", "", ["PB5"]), ("B", "", ["PB9"]), ("B2", "B", ["PB10"])], True))
+MREC = pw.partition_record("9", mw["groups"], {**mw["waiting"], "PB70": pw.COLLISION_WAIT + "worktree w [IN FLIGHT] "
+                                                                         "(src/X/Binder.cs#Binder.Bind): it waits"},
+                           1_800_000_000.0)
+check("the partition's measurement records the same-file pairs run side by side and every hold with its reason",
+      (MREC["groups"], MREC["same_file_parallel"], MREC["held_in_wave"], list(MREC["held_by_collision"])),
+      (3, ["A+B on src/X/Binder.cs"], ["PB11"], ["PB70"]))
+MCOORD = TMP / "coord-measure"
+MCOORD.mkdir()
+pw.record_partition(MCOORD, MREC)
+check("... and --partition-summary reads it back per day, naming the colliding member",
+      pw.partition_summary(MCOORD), ["2027-01-15: 1 waves, 3 groups, 1 same-file pairs side by side, 1 notes held by a "
+                                     "collision (most named: src/X/Binder.cs#Binder.Bind x1)"])
 uw = pw.plan(notes, [cl(F_BIND, "PB5"), unsited("PB9"), unsited("PB10"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")],
              [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
-check("in a wave an UNKNOWN group follows the last group on its subsystem, a known one follows the last unknown one, "
-      "and another subsystem runs beside them",
+check("in a wave a group with an EMPTY set runs beside every other group: it holds nothing and nothing holds it",
       [(g.letter, g.after, g.notes) for g in uw["groups"]],
-      [("A", "", ["PB5"]), ("A2", "A", ["PB9"]), ("A3", "A2", ["PB10"]), ("B", "", ["PB8"]), ("A4", "A3", ["PB11"])])
-# The review's probe (w1131g R1-1): two KNOWN groups of one subsystem on different files are two chains; an UNKNOWN
-# group of that subsystem meets BOTH (collision), so following only the last would run it beside the first. It waits.
-u2 = pw.plan(notes, [cl("src/IO/Engine.cs", "PB5"), cl("src/IO/Locks.cs", "PB11"), unsited("PB9")], [], [],
-             lambda b: "ABSENT", {}, RULES, budget_points=100)
-check("an UNKNOWN group meeting groups of its subsystem in two chains waits for a later wave, never beside either",
-      ([(g.letter, g.after, g.notes) for g in u2["groups"]], "meets by subsystem" in u2["waiting"].get("PB9", ""),
-       "different successor chains" in u2["waiting"].get("PB9", "")),
-      ([("A", "", ["PB5"]), ("B", "", ["PB11"])], True, True))
-u3 = pw.plan(notes, [unsited("PB9"), cl("src/IO/Engine.cs", "PB5"), cl("src/IO/Locks.cs", "PB11"), unsited("PB10")],
-             [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
-check("every known group after an UNKNOWN one of its subsystem follows it, and a later UNKNOWN one follows them all",
-      [(g.letter, g.after, g.notes) for g in u3["groups"]],
-      [("A", "", ["PB9"]), ("A2", "A", ["PB5"]), ("A3", "A2", ["PB11"]), ("A4", "A3", ["PB10"])])
-no_area = {**notes, "PB9": dataclasses.replace(notes["PB9"], area="")}
-u4 = pw.plan(no_area, [cl("src/IO/Engine.cs", "PB5"), cl(F_OO, "PB8"), unsited("PB9")], [], [], lambda b: "ABSENT",
-             {}, RULES, budget_points=100)
-check("an UNKNOWN group whose subsystem is unknown too meets every group: groups in two chains, so it waits",
-      ([g.notes for g in u4["groups"]], "different successor chains" in u4["waiting"].get("PB9", "")),
-      ([["PB5"], ["PB8"]], True))
-u5 = pw.plan(no_area, [unsited("PB9"), cl("src/IO/Engine.cs", "PB5"), cl(F_OO, "PB8")], [], [], lambda b: "ABSENT",
-             {}, RULES, budget_points=100)
-check("... and every later group, of any subsystem, follows it",
-      [(g.letter, g.after, g.notes) for g in u5["groups"]],
-      [("A", "", ["PB9"]), ("A2", "A", ["PB5"]), ("A3", "A2", ["PB8"])])
+      [("A", "", ["PB5"]), ("B", "", ["PB9"]), ("C", "", ["PB10"]), ("D", "", ["PB8"]), ("E", "", ["PB11"])])
 ub = pw.plan(notes, [unsited("PB9"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")], [], [], lambda b: "ABSENT", {},
              RULES, budget_points=100,
              busy={"dispatched w1117c (PB5)": pw.InFlight(set(), notes={"PB5"}, state="DISPATCHED, NO REPORT YET"),
                    "worktree done (worktree-done)": pw.InFlight({"src/Y/Engine.cs"}, "worktree-done", {"PB12"}, FIN,
                                                                 "WAITING TO LAND")})
-check("an UNKNOWN group waits on an unknown dispatch and on a FINISHED branch of its subsystem, each named",
-      all(t in ub["waiting"].get("PB9", "") for t in (
-          "dispatched w1117c (PB5) [DISPATCHED, NO REPORT YET] (UNKNOWN file set, subsystem runtime)",
-          "worktree done (worktree-done) [WAITING TO LAND] (UNKNOWN file set, subsystem runtime)")), True)
-check("a known group waits on a dispatch recorded with no files in its subsystem",
-      "dispatched w1117c (PB5) [DISPATCHED, NO REPORT YET] (UNKNOWN file set, subsystem runtime)"
-      in ub["waiting"].get("PB11", ""), True)
-check("an UNKNOWN group of another subsystem runs, and continues nothing",
-      [(g.notes, g.continues) for g in ub["groups"]], [(["PB8"], [])])
-check("the spec body names an UNPARTITIONED group, its subsystem and the Sites paragraph to add",
-      all(t in pw.body_of(ub["groups"][0], notes) for t in ("UNPARTITIONED", "oo/classes", "**Sites:**")), True)
+check("in flight a dispatch recorded with no files holds nothing, and an EMPTY group waits on nothing and continues "
+      "nothing",
+      ([(g.notes, g.continues) for g in ub["groups"]], ub["waiting"]),
+      ([(["PB9"], []), (["PB8"], []), (["PB11"], [])], {}))
+check("the spec body names an UNPARTITIONED group and the Sites paragraph (files and members) to add",
+      all(t in pw.body_of(ub["groups"][0], notes) for t in ("UNPARTITIONED", "holds nothing", "**Sites:**", "members")),
+      True)
 check("a group with a file set is never named UNPARTITIONED", "UNPARTITIONED" in pw.body_of(uw["groups"][0], notes),
       False)
+mb = pw.plan(notes, [on_members(F_BIND, ["Binder.Bind"], "PB9"), on_members(F_BIND, ["Binder.Sync"], "PB11")], [], [],
+             lambda b: "ABSENT", {}, RULES, budget_points=100,
+             busy={"worktree w (worktree-w)": pw.InFlight({F_BIND}, "worktree-w", {"PB70"}, state="IN FLIGHT",
+                                                          members={F_BIND: frozenset({"Binder.Bind"})})})
+check("in flight a group meeting a running branch on a MEMBER waits, the member named; one on another member of the "
+      "same file runs",
+      ([g.notes for g in mb["groups"]], f"({F_BIND}#Binder.Bind)" in mb["waiting"].get("PB9", "")), ([["PB11"]], True))
+check("the spec names the members a group claims, so its implementer keeps its edits inside them",
+      f"{F_BIND} (Binder.Sync)" in pw.body_of(mb["groups"][0], notes), True)
+check("the groups file carries the member claims make_dispatch_specs.py records in the ledger",
+      pw.as_group_json(mb["groups"][0], "9", notes, "X")["member_set"], {F_BIND: ["Binder.Sync"]})
 ufin = pw.plan(notes, [unsited("PB3")], [], [r3], lambda b: "UNLANDED", {}, RULES, budget_points=100,
-               busy={f"worktree pred ({r3.branch})": pw.InFlight({F_EMIT, "src/X/New.cs"}, r3.branch)})
-check("a finisher's set is what the branch it continues changes: known, so planned and recorded with those files",
-      [(g.kind, g.notes, g.files) for g in ufin["groups"]], [("finisher", ["PB3"], [F_EMIT, "src/X/New.cs"])])
+               busy={f"worktree pred ({r3.branch})": pw.InFlight({F_EMIT, "src/X/New.cs"}, r3.branch,
+                                                                 members={F_EMIT: frozenset({"Emitter.Emit"})})})
+check("a finisher's set is what the branch it continues changes, by the units its diff touches: planned and recorded "
+      "with those files and members",
+      [(g.kind, g.notes, g.files, g.members) for g in ufin["groups"]],
+      [("finisher", ["PB3"], [F_EMIT, "src/X/New.cs"], {F_EMIT: ["Emitter.Emit"]})])
 SLI = pw.classify_inflight({"the open external-repository slices": {"src/S.cs"}},
                            {"the open external-repository slices": {"notes": ["PB8"]}}, [], {})
-check("an owner's meta notes (the slices' own) are its notes, so its subsystems are known",
-      SLI["the open external-repository slices"].notes, {"PB8"})
+check("an owner's meta notes (the slices' own) are its notes", SLI["the open external-repository slices"].notes, {"PB8"})
 us = pw.plan(notes, [unsited("PB9"), unsited("PB11")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
              busy=SLI)
-check("... and an UNKNOWN group meets it only on a shared subsystem (PB8 is oo/classes; PB9 and PB11 are runtime)",
-      (sorted(i for g in us["groups"] for i in g.notes), sorted(us["waiting"])), (["PB11", "PB9"], []))
+check("... and an EMPTY group never meets it", (sorted(i for g in us["groups"] for i in g.notes), sorted(us["waiting"])),
+      (["PB11", "PB9"], []))
+DM = pw.classify_inflight({"dispatched w1300a (PB70)": {F_BIND}},
+                          {"dispatched w1300a (PB70)": {"notes": ["PB70"], "slug": "w1300a",
+                                                        "members": {F_BIND: ["Binder.Bind"]}}}, [], {})
+check("classify_inflight: a dispatch's recorded members are its claim", DM["dispatched w1300a (PB70)"].claim.member_lists(),
+      {F_BIND: ["Binder.Bind"]})
+
+# THE UNITS A RUNNING BRANCH TOUCHES are read from its actual diff (inflight_units, kb/Work PB3670), end to end on a
+# scratch repository: a branch that edits Binder.Bind's body holds Bind and nothing else of the file; a file only one
+# side holds is never read; an uncommitted edit in a worktree adds its units; an untracked file is whole.
+UR = scratch_dir("plan-wave-units-")
+urepo = ScratchRepo.init(UR / "repo")
+BINDER = "class Binder\n{\n    void Bind() { int a = 1; }\n\n    void Sync() { int b = 2; }\n}\n"
+urepo.commit("base", {"src/Binder.cs": BINDER, "src/Solo.cs": "class Solo { }\n"})
+urepo.git("update-ref", "refs/remotes/origin/main", "HEAD")
+uwt = urepo.worktree(UR / "wt", branch="worktree-units")
+urepo.commit("edit Bind", {"src/Binder.cs": BINDER.replace("int a = 1;", "int a = 3;"),
+                           "src/Solo.cs": "class Solo { int x; }\n"}, cwd=uwt.path)
+urepo.write({"src/Binder.cs": BINDER.replace("int a = 1;", "int a = 3;").replace("}\n}", "}\n\n    void Tail() { }\n}"),
+             "src/New.cs": "class New { }\n"}, cwd=uwt.path)
+
+
+def ugit(*args, cwd=None, stdin=None):
+    return urepo.run(*args, cwd=cwd, input=stdin)
+
+
+UMETA: dict = {}
+URAW = pw.inflight_file_sets(git=ugit, repo=urepo.path, coord_dir=UR, with_git=True, meta=UMETA)
+UBUSY = pw.classify_inflight(URAW, UMETA, [], {})
+UOWN = next(o for o in UBUSY if "worktree-units" in o)
+pw.inflight_units(UBUSY, UMETA, [C({"src/Binder.cs", "src/New.cs"})], ugit, urepo.path)
+check("inflight_units: a committed body edit and an uncommitted appended member are their units; an untracked file "
+      "and a file no other claim holds are whole (unread)",
+      (UBUSY[UOWN].files, UBUSY[UOWN].claim.member_lists()),
+      ({"src/Binder.cs", "src/Solo.cs", "src/New.cs"}, {"src/Binder.cs": ["Binder.<own>", "Binder.Bind", "Binder.Sync",
+                                                                          "Binder.Tail"]}))
+check("... so a group claiming another member of the file meets it, and one claiming no touched member does not",
+      (pw.collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Bind"]}), UBUSY[UOWN].claim),
+       pw.collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UBUSY[UOWN].claim)),
+      ("src/Binder.cs#Bind", None))
+
+
+def failing_git(*args, cwd=None, stdin=None):
+    """git that fails every batched read (diff-tree): an unmeasured unit must never read as "touches nothing"."""
+    r = urepo.run(*args, cwd=cwd, input=stdin)
+    return subprocess.CompletedProcess(r.args, 1, "", "planted failure") if args[:1] == ("diff-tree",) else r
+
+
+UFAIL = pw.classify_inflight(URAW, UMETA, [], {})
+pw.inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, urepo.path)
+check("inflight_units: a git failure leaves every file whole, so the owner meets every claim on its files",
+      (UFAIL[UOWN].members, pw.collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UFAIL[UOWN].claim)),
+      ({}, "src/Binder.cs"))
 
 # kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
 # wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
@@ -2051,7 +2167,7 @@ UL = TMP / "coord-unknown"
 UL.mkdir()
 coord.write_json(UL / pw.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
 UM: dict = {}
-check("a dispatch recorded with no files stays in flight: its set empty (UNKNOWN), its notes known",
+check("a dispatch recorded with no files stays in flight: its set empty (it meets nothing), its notes known",
       (pw.inflight_file_sets(coord_dir=UL, terminal=lambda i: False, with_git=False, meta=UM),
        UM.get("dispatched w1117c (PB5)", {}).get("notes")),
       ({"dispatched w1117c (PB5)": set()}, ["PB5"]))

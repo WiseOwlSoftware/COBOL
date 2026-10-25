@@ -896,7 +896,7 @@ internal sealed class StatementValidation(DataBinder data)
         // "An elementary numeric data item" is §8.5.2.1 Table 2's class NUMERIC — a USAGE INDEX item is class INDEX, and
         // its storage PicInfo (category Numeric, Digits 0) must not pass for it (kb/Work PB1127, the R27/PB640 trap).
         if (counter.Item.Pic is { Category: PicCategory.Numeric, Usage: not Usage.Index }) return true;
-        data.Edition.Error("COBOLNET0847", $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
+        data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
             + "be an elementary numeric data item (ISO §14.9.22.3 SR5)");
         return false;
     }
@@ -973,8 +973,33 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectOperandUsage(Place p, string refText)
     {
         if (IsInspectElementaryCharacterItem(p.Item)) return true;
-        data.Edition.Error("COBOLNET0847", $"INSPECT operand '{refText}' shall reference an elementary item "
+        data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' shall reference an elementary item "
             + "described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR2)");
+        return false;
+    }
+
+    /// <summary>SR2's function-identifier half (kb/Work PB3665): identifier-3 … identifier-n "shall reference an
+    /// elementary item described implicitly or explicitly as usage display or national", and a function-identifier is
+    /// described by its §15.2 type, so a numeric, integer, index or boolean function (the folded FUNCTION LENGTH
+    /// included) is refused beside the data item that is not display or national, through the ONE function
+    /// reader (<see cref="IntrinsicArgumentRules.FunctionIsNotDisplayOrNational"/>) STRING SR1 asks.</summary>
+    public bool CheckInspectFunctionUsage(BoundOperand function, string refText)
+    {
+        if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
+        data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR2)");
+        return false;
+    }
+
+    /// <summary>SR1's function-identifier half (kb/Work PB3665): identifier-1 "shall reference either an alphanumeric or
+    /// national group item or an elementary item described implicitly or explicitly as usage display or national", and
+    /// a Format 1 (TALLYING only) function-identifier is described by its §15.2 type, so the numeric, integer, index
+    /// and boolean ones are refused through the SAME reader as <see cref="CheckInspectFunctionUsage"/> (SR2).</summary>
+    public bool CheckInspectIdentifier1FunctionUsage(BoundOperand function, string refText)
+    {
+        if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
+        data.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"INSPECT identifier-1 '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR1)");
         return false;
     }
 
