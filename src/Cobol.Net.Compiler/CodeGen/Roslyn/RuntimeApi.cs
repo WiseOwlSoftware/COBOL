@@ -2661,6 +2661,12 @@ internal static class RuntimeApi
         $"{nameof(CobolObject)}.{nameof(CobolObject.CheckActiveClassReturning)}({enabledInMethod}, "
         + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {receiving}, {sending})";
 
+    /// <summary>The bound method's half of an ACTIVE-CLASS formal's conformance for a universal invocation (ISO §14.8.2.3.2
+    /// rule 4 through §14.9.23.4 GR7 c); kb/Work PB2985) — see <see cref="CobolObject.CheckActiveClassFormal"/>.</summary>
+    public static string ObjCheckActiveClassFormal(string enabledInMethod, string what, string argument, string formal) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.CheckActiveClassFormal)}({enabledInMethod}, "
+        + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {argument}, {formal})";
+
     /// <summary>An object-view's checked re-description (ISO §8.4.3.5.4 GR2–GR6) of <paramref name="source"/> as CLR type
     /// <paramref name="clrType"/> (no trailing <c>?</c>), exact-class when the ONLY phrase was written — see
     /// <see cref="CobolObject.ObjectView{T}"/>.</summary>

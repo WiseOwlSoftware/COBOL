@@ -100,6 +100,26 @@ public abstract class CobolObject
             throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §14.9.23.4 GR7 c))");
     }
 
+    /// <summary>⛔ THE ACTIVE-CLASS FORMAL'S CONFORMANCE FOR A UNIVERSAL INVOCATION (ISO §14.9.23.4 GR7 c) with §14.8.2.3.2
+    /// rule 4; kb/Work PB2985) — the formal half of <see cref="CheckActiveClassReturning"/>, asked by each emitted
+    /// <c>__CobolInvoke</c> case for each of its ACTIVE-CLASS formals, after §9.3.6's match bound the method and before
+    /// it runs. The method was invoked through a universal reference, which rule 4 a) / b) do not admit, so the argument
+    /// supplied for an ACTIVE-CLASS formal does not conform (<see cref="ActivationRelations.ActiveClassFormalViolation"/>).
+    /// EC-OO-UNIVERSAL is set to exist "if checking for it is enabled in both the activated method and the activating
+    /// runtime element", the invocation is not successful and the method does not run; unchecked, nothing is set and the
+    /// invocation proceeds (the match already required an object of the class the method runs on).</summary>
+    /// <param name="enabledInMethod">Checking for EC-OO-UNIVERSAL is enabled in the activated method.</param>
+    /// <param name="what">The INVOKE and method, for the message.</param>
+    /// <param name="argument">The argument supplied for the formal.</param>
+    /// <param name="formal">The method's formal parameter.</param>
+    public static void CheckActiveClassFormal(bool enabledInMethod, string what, ActivationDescription argument,
+                                              ActivationDescription formal)
+    {
+        if (!enabledInMethod || !ExceptionState.OoUniversalChecking) return;
+        if (ActivationRelations.ActiveClassFormalViolation(argument, formal) is { } why)
+            throw new CobolFatalException("EC-OO-UNIVERSAL", $"{what}: {why} (ISO §14.9.23.4 GR7 c))");
+    }
+
     /// <summary>Deliver an object reference that crossed a UNIVERSAL invocation (D10) into a receiving item of type
     /// <typeparamref name="T"/>. The delivery follows the SET rules (§14.8.3.3), and through a universal receiver the
     /// class of the object is a RUNTIME fact: the §9.3.6 rule 6 match (<see cref="ActivationRelations.ReturningMatches"/>)
