@@ -369,6 +369,13 @@ internal sealed partial class EcBinder
         // EC-LOCALE-SIZE (§13.18.40.5 r14 b; PB64 T6 — the ONE raise site is CobolLocaleEdit.Format's move of the
         // hypothetical item into the SIZE-declared item): any statement that stores into a format-2 item can raise it.
         new("EC-LOCALE-SIZE"),
+        // EC-DATA-CONVERSION also rides ANY statement (nonfatal; DOC-A.1-31/-33/-46, kb/Work PB547): an alphanumeric item
+        // may hold a UTF-16 code unit with no one-byte image, and every read of the STORAGE IMAGE the item shares through
+        // a REDEFINES (a bit, national, binary, packed or floating-point view; CobolBits / CobolNum.Image, through
+        // StorageByte.ImageByte) substitutes '?' and records the condition. The read renders inline into whichever verb
+        // reaches the view, so no node kind identifies it; the intrinsic-bearing arm (CONVERT's byte legs) stays an
+        // OperandRaises row.
+        new("EC-DATA-CONVERSION"),
         // EC-BOUND-OVERFLOW (nonfatal, §8.5.1.9.6 GR1): a dynamic-capacity table's implicit growth past its expected
         // capacity (CobolDynTable.RefReceiving) records the last exception status while checking is enabled.
         new("EC-BOUND-OVERFLOW"),
