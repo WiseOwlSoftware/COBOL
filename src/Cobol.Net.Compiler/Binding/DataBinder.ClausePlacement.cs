@@ -402,7 +402,7 @@ public sealed partial class DataBinder
             return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
                 + "character-string as category numeric-edited or as numeric without the picture symbol 'S' "
                 + $"(ISO §13.18.8.3 SR1) — this item is of category {ItemCategory.CategoryName(pic)}";
-        if (pic.Usage is not (Usage.Display or Usage.National))
+        if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
             return "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage "
                 + $"display or usage national (ISO §13.18.8.3 SR2) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
