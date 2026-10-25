@@ -895,6 +895,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     base = "refs/remotes/origin/main"
     if here.head == _git(wt, "rev-parse", base).stdout.strip():
         return end(0, "NOTHING TO LAND — the branch is origin/main")
+    # A branch the queue already merged has its tip INSIDE main (the merge commit has it as a parent): a second run of the
+    # landing has nothing to merge, gate, stamp or queue, and used to fall through to exit 6 NO ENTRY, which the lane read
+    # as a stop (kb/Work PB3157). The run that merged it holds the land lock while it queues, so a run that gets here
+    # either follows it or is a re-run after the merge.
+    if _git(wt, "merge-base", "--is-ancestor", here.head, base).returncode == 0:
+        return end(0, "NOTHING TO LAND — the branch's tip is already on origin/main (its pull request merged)")
     # 1. THE QUEUE GUARD, before anything is merged or gated: the queue is the only way onto main (module doc).
     st, detail = state()
     if st != ruleset.ACTIVE:
@@ -2041,6 +2047,22 @@ def self_test() -> int:
                rc_after == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED") and create_after
                and create_after[create_after.index("--title") + 1] == "DEVLOG 51: PB9: the successor",
                f"{rc_after} {lines[-2:]} {log_after}")
+        # ── a branch the queue already merged (kb/Work PB3157) ──────────────────────────────────────────────────────────
+        # The first run queued the branch and the queue merged it (a merge commit: the branch's tip is a parent of main's).
+        # A second run of the landing on it has nothing left to do, and used to end exit 6 NO ENTRY (a stop to the lane).
+        gone = scratch.worktree(root / "merged-wt", branch="merged", start="main")
+        (gone.path / "merged.txt").write_text("merged by the queue", encoding="utf-8", newline="\n")
+        gone.git("add", "merged.txt")
+        gone.git("commit", "--quiet", "-m", "the branch the queue merges")
+        scratch.git("merge", "--quiet", "--no-ff", "-m", "Merge pull request #17 from merged", "merged")
+        scratch.git("push", "--quiet", "origin", "main")
+        ran, stamped_merged, log_merged = [], [], []
+        rc_merged = run_land(branch="merged", wtree=gone.path, gates=gates_of(green, ran), stamped=stamped_merged,
+                             gh=fake_gh([], log_merged))
+        expect("land: a branch whose pull request the queue already merged (its tip is inside origin/main) is NOTHING TO "
+               "LAND, exit 0: nothing gated, stamped or queued, never exit 6 NO ENTRY (kb/Work PB3157)",
+               rc_merged == 0 and lines[-1].startswith(verdict_line.PREFIX + "NOTHING TO LAND") and not ran
+               and not stamped_merged and not log_merged, f"{rc_merged} {lines[-1:]} {ran} {stamped_merged} {log_merged}")
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
         # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
         # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
