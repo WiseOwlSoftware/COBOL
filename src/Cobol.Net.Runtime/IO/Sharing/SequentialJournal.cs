@@ -180,8 +180,14 @@ internal sealed class SequentialJournal
     {
         string directory = DirectoryOf(hostPath);
         int id = DrawId(medium, directory);
-        var holder = medium.PublishHolder(directory, HolderName(id))
-            ?? throw new IOException($"the host cannot hold a transaction's holder in '{directory}' (DOC-A.1-75)");
+        // The publication's result says WHY no holder came back (kb/Work PB3675): a host that takes no lock here, or twelve tries all
+        // lost to another run unit's removal of the lock directory. Either way the transaction cannot begin and the statement answers
+        // '30' with the file unaffected (§14.9.27.4 GR25), but the refusal names the cause that happened.
+        var published = medium.PublishHolder(directory, HolderName(id), out var holder);
+        if (holder is null)   // the holder is null unless the result is Ok (IHostMedium.PublishHolder)
+            throw new IOException(published == RegionLockResult.Held
+                ? $"every try to publish a transaction's holder in '{directory}' lost its race to another run unit's removal of the lock directory"
+                : $"the host cannot hold a transaction's holder in '{directory}' (DOC-A.1-75)");
         FileStream? record = null;
         try
         {
