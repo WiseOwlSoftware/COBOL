@@ -71,11 +71,11 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
 
     /// <summary>⛔ COMMIT the run unit's transaction on this file (§14.9.7.4 GR3; 2.2.1.10), under the store mutex through
     /// the kept endpoint (a kept handle given back early has none, and the body runs as a NO OTHER file's does).</summary>
-    internal CommitOutcome CommitTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Commit(Restoring));
+    internal CommitOutcome CommitTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Commit(Restoring, HoldingsOrder));
 
     /// <summary>⛔ ROLLBACK the run unit's transaction on this file (§14.9.36.4 GR3; 2.2.1.10), under the store mutex through
     /// the kept endpoint.</summary>
-    internal StoreStatus RollbackTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Rollback(Restoring));
+    internal StoreStatus RollbackTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Rollback(Restoring, HoldingsOrder));
 
     /// <summary>Give a kept handle back: off <paramref name="store"/>'s medium under the store mutex its endpoint holds, the
     /// liveness byte it may hold going with it (<see cref="KeyedStore.LivenessGoneWith"/>: what a death does — taken again
