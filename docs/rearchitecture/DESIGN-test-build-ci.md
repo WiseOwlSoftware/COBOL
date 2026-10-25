@@ -2245,7 +2245,15 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
-   resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
+   resolution is not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
+   documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
+   conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
+   37 conflicted merges holding one hunk where both sides inserted at one place and 89 where both REVISED text the base
+   already held (one mechanism's paragraph, one Annex A.1 register row), so a union merge would keep a stale paragraph
+   beside its replacement in a document that describes the current compiler, and a word-level merge came out different
+   from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
+   says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
+   insertions earns one. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
    origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
