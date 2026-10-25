@@ -138,7 +138,7 @@ resolve_py() {
 }
 
 # ⛔ A GATE LEAVES NOTHING BEHIND ON THE LINUX FILESYSTEM (kb/Work PB3194). Every gate cloned into ~/linux-gate/<tree>
-# (about 1 GB and 80,000 inodes once built) plus a <tree>.guard-tmp beside it, and removed them only when the SAME tree
+# (a gigabyte and tens of thousands of inodes once built, measured below) plus a <tree>.guard-tmp beside it, and removed them only when the SAME tree
 # was gated again. Worktrees come and go, so the clones accumulated: 345 of them filled the WSL disk on 2026-10-15
 # (`No space left on device` mid-leg read as 2,919 conformance failures, then the distro remounted read-only), 430
 # exhausted every inode on 2026-10-19 and 394 again on 2026-10-22, each time ending every Linux gate on the host until
@@ -157,12 +157,22 @@ resolve_py() {
 #    LEGACY_MAX_AGE_S;
 #  - then it measures the filesystem (check_disk) and refuses, NOT RUN [disk], below MIN_FREE_INODES free inodes or
 #    MIN_FREE_KB free space: a full disk is said before any leg, never discovered as a red inside one.
-# The bounds: one built gate is ~80,000 inodes and ~1 GB (measured 2026-10-23); the bounds hold about twelve of them,
-# the gate cap (3, kb/Work PB2514) plus every implementer gate the host runs beside it.
+# ⛔ THE BOUNDS ARE DERIVED FROM ONE MEASURED GATE, AND EVERY GATE CHECKS THE MEASUREMENT (kb/Work PB3648). The bounds are
+# GATES_HELD times what ONE gate holds at its peak, GATE_INODES and GATE_KB, the dearest lane's: the full lane builds TWO
+# clones (the test legs' and the audit clone's, kb/Work PB2878), the targeted and inert lanes one or none. Measured
+# 2026-10-24 on the full lane (a hand `linux-gate.sh --nice`, sampled every 20 s): 1,714,628 KB and 101,682 inodes at the
+# peak, against the ~1 GB and ~80,000 inodes PB3194 measured for one clone on 2026-10-23, which is why the bound could not
+# stay a hand-kept number: the audit clone was added a day later and nothing re-measured. GATES_HELD is the gate cap (3,
+# kb/Work PB2514) plus every implementer gate the host runs beside it. `footprint_report` measures THIS gate before its
+# verdict and says so when it holds more than the constants (and always prints the figures, which the gate driver keeps
+# in the run's linux-leg.log), so the next growth of the gate is a line in a log, not a full disk.
 GATES_ROOT="$HOME/linux-gate"
 LEGACY_MAX_AGE_S=$((3 * 3600))
-MIN_FREE_INODES=1000000
-MIN_FREE_KB=$((20 * 1024 * 1024))
+GATES_HELD=12
+GATE_INODES=110000
+GATE_KB=$((1800 * 1024))
+MIN_FREE_INODES=$((GATES_HELD * GATE_INODES))
+MIN_FREE_KB=$((GATES_HELD * GATE_KB))
 
 # /proc/<pid>/stat, read past the command name (which may hold spaces and parentheses): its fields after the LAST ')'
 # are fixed. proc_field <pid> <n> prints field n of those (1 state, 2 parent pid, 20 start time), nothing if no process.
@@ -207,6 +217,20 @@ reap_gates() {
   done
   [ "$gone" -gt 0 ] && echo "linux-gate: removed $gone leftover gate director$([ "$gone" -eq 1 ] && echo y || echo ies) under $root:$names"
   return 0
+}
+# footprint_report <dir> <max KB> <max inodes>: what THIS gate's directory holds now (kb/Work PB3648, above), one line,
+# worded as a NOTE when it is over the figures the disk bounds are sized by. Never a verdict: a gate that holds more than
+# it was sized for is still a gate, and the line is the evidence the constants need re-measuring.
+footprint_report() {
+  local kb inodes
+  kb="$(du -sk "$1" 2>/dev/null | cut -f1)"
+  inodes="$(find "$1" 2>/dev/null | wc -l)"
+  if [[ "$kb" =~ ^[0-9]+$ ]] && [ "$kb" -le "$2" ] && [ "$inodes" -le "$3" ]; then
+    echo "linux-gate: footprint of this gate: $kb KB, $inodes inodes (the disk bound is sized for up to $2 KB and $3 inodes)"
+  else
+    echo "linux-gate: FOOTPRINT NOTE — this gate holds ${kb:-?} KB and $inodes inodes, over the $2 KB and $3 inodes the" \
+         "disk bound is sized by (GATE_KB, GATE_INODES; kb/Work PB3648): re-measure the full lane and raise them"
+  fi
 }
 # check_disk <dir>: NOT RUN [disk] when the filesystem holding <dir> has too few free inodes or too little free space.
 # A filesystem that keeps no inode count (df -i says `-` or 0, as btrfs does) is held to the space bound alone.
@@ -517,6 +541,17 @@ busy.1,ended.2,"
   check "room on both bounds starts the gate" "$got" "started"
   got="$( fake_df - 207000000; check_disk /x; echo "started" )"
   check "a filesystem that counts no inodes is held to the space bound alone" "$got" "started"
+  # THE BOUNDS ARE DERIVED FROM ONE MEASURED GATE (kb/Work PB3648): twelve gates of the dearest lane's footprint, never a
+  # hand-kept number; and a gate measures itself, saying so when it is over the figures the bounds are sized by.
+  check "the disk bounds are GATES_HELD gates of the measured footprint (inodes and space), so a growth of the gate is one constant" \
+        "$MIN_FREE_INODES $MIN_FREE_KB" "$((GATES_HELD * GATE_INODES)) $((GATES_HELD * GATE_KB))"
+  mkdir -p "$st_root/fp/a/b" && : > "$st_root/fp/a/b/f1" && : > "$st_root/fp/a/f2"
+  got="$( footprint_report "$st_root/fp" 1024 100 )"
+  check "a gate under the figures its bound is sized by reports its footprint, without a note" "$(echo "$got" | sed 's/[0-9][0-9]* KB, [0-9][0-9]* inodes (the disk bound is sized for up to/N KB, M inodes (the disk bound is sized for up to/')" \
+        "linux-gate: footprint of this gate: N KB, M inodes (the disk bound is sized for up to 1024 KB and 100 inodes)"
+  got="$( footprint_report "$st_root/fp" 1024 3 )"
+  check "a gate over the figures its bound is sized by says so (a NOTE naming the constants and the note), never fails" \
+        "$(echo "$got" | grep -c 'FOOTPRINT NOTE.*GATE_KB, GATE_INODES; kb/Work PB3648')" "1"
   got="$( df() { return 1; }; check_disk /x; echo "started" )"
   check "a filesystem df cannot measure is NOT RUN [disk], never assumed roomy" "$got" \
         "=== LINUX GATE: NOT RUN [disk] (cannot measure the free space of the filesystem holding /x: df -Pk gave no number) ==="
@@ -916,6 +951,7 @@ if [ $brc -eq 0 ] && [ "$(cli_fingerprint)" != "$cli_before" ]; then
   bad="$bad build-rewritten"
 fi
 
+footprint_report "$gate" "$GATE_KB" "$GATE_INODES"
 repo_written && bad="$bad repository-written"
 
 if [ -z "$bad" ]; then
