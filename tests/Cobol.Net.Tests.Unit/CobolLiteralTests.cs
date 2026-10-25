@@ -35,6 +35,69 @@ public sealed class CobolLiteralTests
     public void IsStringLiteral_BothDelimiters(string raw, bool expected) =>
         Assert.Equal(expected, CobolLiteral.IsStringLiteral(raw));
 
+    /// <summary>kb/Work PB1615 — the literal LENGTH bound is the edition's: 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1,
+    /// §8.3.3.4.3 SR1, §8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.41). The boundary from both sides, per class and
+    /// delimiter, with the measure the rule uses: the literal's VALUE in positions of its class (a doubled embedded
+    /// delimiter is one position; a prefix letter and the delimiters are none; a <c>BX</c> digit is four).</summary>
+    [Theory]
+    [InlineData(85, 160)]
+    [InlineData(2002, 160)]
+    [InlineData(2014, 8191)]
+    [InlineData(2023, 8191)]
+    public void MaxPositions_IsTheEditionsBound(int edition, int expected) =>
+        Assert.Equal(expected, CobolLiteral.MaxPositions(edition));
+
+    [Fact]
+    public void LengthViolation_TheBoundaryFromBothSides_PerEdition()
+    {
+        string Alnum(int n) => "\"" + new string('A', n) + "\"";
+        foreach (int edition in new[] { 85, 2002 })
+        {
+            Assert.Null(CobolLiteral.LengthViolation(Alnum(160), edition));
+            Assert.Null(CobolLiteral.LengthViolation("'" + new string('A', 160) + "'", edition));
+            string over = CobolLiteral.LengthViolation(Alnum(161), edition)!;
+            Assert.Contains("161 alphanumeric", over);
+            Assert.Contains("an alphanumeric literal to 160", over);       // the edition's bound, with its article
+            Assert.Contains($"COBOL-{edition}", over);                      // and whose it is
+            Assert.Contains("8,191 from COBOL-2014", over);                 // where the 2023 text's number begins
+        }
+        foreach (int edition in new[] { 2014, 2023 })
+        {
+            Assert.Null(CobolLiteral.LengthViolation(Alnum(161), edition));
+            Assert.Null(CobolLiteral.LengthViolation(Alnum(8191), edition));
+            string over = CobolLiteral.LengthViolation(Alnum(8192), edition)!;
+            Assert.EndsWith("limits an alphanumeric literal to 8,191", over);   // no edition tail from 2014
+        }
+    }
+
+    [Theory]
+    [InlineData("\"{0}\"", 160, 161, 85)]                 // alphanumeric
+    [InlineData("N\"{0}\"", 160, 161, 2002)]              // national
+    [InlineData("B\"{0}\"", 160, 161, 2002)]              // boolean, the digits themselves
+    public void LengthViolation_MeasuresThePositionsOfTheClass(string template, int atBound, int over, int edition)
+    {
+        string Fill(int n) => string.Format(template, new string(template[0] == 'B' ? '1' : 'A', n));
+        Assert.Null(CobolLiteral.LengthViolation(Fill(atBound), edition));
+        Assert.NotNull(CobolLiteral.LengthViolation(Fill(over), edition));
+    }
+
+    [Fact]
+    public void LengthViolation_CountsADoubledDelimiterOnce_AHexPairOnce_AndABooleanHexDigitFourTimes()
+    {
+        // 160 doubled quotation marks are 160 positions (§8.3.3.2.3 SR3: two contiguous quotation symbols represent a single occurrence of that quotation symbol
+        // character), not 320 and not 162 with the delimiters; 161 are one over.
+        Assert.Null(CobolLiteral.LengthViolation("\"" + string.Concat(Enumerable.Repeat("\"\"", 160)) + "\"", 85));
+        Assert.NotNull(CobolLiteral.LengthViolation("\"" + string.Concat(Enumerable.Repeat("\"\"", 161)) + "\"", 85));
+        // X"41" repeated: two digits per alphanumeric position (§8.3.3.2.3 SR6) — 160 positions are 320 source digits.
+        Assert.Null(CobolLiteral.LengthViolation("X\"" + string.Concat(Enumerable.Repeat("41", 160)) + "\"", 2002));
+        Assert.NotNull(CobolLiteral.LengthViolation("X\"" + string.Concat(Enumerable.Repeat("41", 161)) + "\"", 2002));
+        // BX: §8.3.3.4.4 GR5 — each digit IS four boolean characters, so 40 digits are 160 positions and 41 are 164. The
+        // token is 43 characters long at 41 digits: past a quarter of the bound, so the fast path must not take it.
+        Assert.Null(CobolLiteral.LengthViolation("BX\"" + new string('F', 40) + "\"", 2002));
+        Assert.NotNull(CobolLiteral.LengthViolation("BX\"" + new string('F', 41) + "\"", 2002));
+        Assert.Null(CobolLiteral.LengthViolation("BX\"" + new string('F', 41) + "\"", 2014));
+    }
+
     [Theory]
     [InlineData("ALL 'x'", "x")]
     [InlineData("ALL \"x\"", "x")]

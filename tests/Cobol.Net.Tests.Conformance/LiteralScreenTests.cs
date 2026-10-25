@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -20,11 +21,11 @@ public sealed class LiteralScreenTests
 {
     /// <summary>Laid out in FIXED form (<see cref="FixedFormLayout"/>): an 8,192-position literal cannot be written on
     /// one free-form line (§6.1 3) a) — at most 255 positions, COBOLNET2653) and is continued as fixed form continues it.</summary>
-    private static string Program(string id, string data, string proc, string special = "") =>
+    private static string Program(string id, string data, string proc, string special = "", bool classic = false) =>
         FixedFormLayout.Source("IDENTIFICATION DIVISION.\nPROGRAM-ID. " + id + ".\n"
         + (special.Length > 0 ? "ENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\n" + special + "\n" : "")
         + "DATA DIVISION.\nWORKING-STORAGE SECTION.\n" + data + "\nPROCEDURE DIVISION.\nMAIN.\n" + proc
-        + "\n    STOP RUN.\n");
+        + "\n    STOP RUN.\n", classic);
 
     /// <summary>Each position × class the length rule reaches. <c>{0}</c> is the literal's BODY length in
     /// positions: the case is compiled at 8,191 (legal) and 8,192 (COBOLNET0814). The BX case writes a quarter of
@@ -67,6 +68,84 @@ public sealed class LiteralScreenTests
                 Assert.Single(errors, e => e.Contains("COBOLNET0814"));   // once — one screen, no second funnel
             }
         }
+    }
+
+    /// <summary>⭐ THE LENGTH BOUND IS THE EDITION'S (kb/Work PB1615, constructs row <c>literal-length-8191-2014</c>, VCR row
+    /// 7.41): 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1, §8.8.3.2 SR2–SR4), 160 below
+    /// it — the edge DERIVED from GnuCOBOL 3.2's per-standard dialect files (<c>literal-length</c>: 160 in
+    /// <c>cobol85.conf</c> and <c>cobol2002.conf</c>, 8191 in <c>cobol2014.conf</c>). Each row writes ONE class and ONE
+    /// position at one edition and names the diagnostic it must draw (null: none). The boundary is pinned from both sides
+    /// (160 / 161), for the four classes' formats, the concatenation expression and the concatenated ALL literal-1 — the
+    /// forms that reach the bound through ConcatFolder, not through LiteralScreen. Classes other than alphanumeric,
+    /// the hexadecimal alphanumeric format and the concatenation expression are themselves COBOL-2002 introductions, so
+    /// they are written at 2002 and at 2014 only.</summary>
+    [Theory]
+    [InlineData(85, "alnum", 160, null)]
+    [InlineData(85, "alnum", 161, "COBOLNET0814")]
+    [InlineData(2002, "alnum", 160, null)]
+    [InlineData(2002, "alnum", 161, "COBOLNET0814")]
+    [InlineData(2014, "alnum", 161, null)]
+    [InlineData(2014, "alnum", 8191, null)]
+    [InlineData(85, "alnum-value", 161, "COBOLNET0814")]
+    [InlineData(2014, "alnum-value", 161, null)]
+    [InlineData(2002, "hex", 160, null)]
+    [InlineData(2002, "hex", 161, "COBOLNET0814")]
+    [InlineData(2014, "hex", 161, null)]
+    [InlineData(2002, "boolean", 160, null)]
+    [InlineData(2002, "boolean", 161, "COBOLNET0814")]
+    [InlineData(2014, "boolean", 161, null)]
+    [InlineData(2002, "boolean-hex", 160, null)]
+    [InlineData(2002, "boolean-hex", 164, "COBOLNET0814")]
+    [InlineData(2014, "boolean-hex", 164, null)]
+    [InlineData(2002, "national", 160, null)]
+    [InlineData(2002, "national", 161, "COBOLNET0814")]
+    [InlineData(2014, "national", 161, null)]
+    [InlineData(2002, "concat", 160, null)]
+    [InlineData(2002, "concat", 161, "COBOLNET1545")]
+    [InlineData(2014, "concat", 161, null)]
+    [InlineData(2002, "all-concat", 160, null)]
+    [InlineData(2002, "all-concat", 161, "COBOLNET1545")]
+    [InlineData(2014, "all-concat", 161, null)]
+    public void LiteralLength_BoundIsTheEditions(int edition, string kind, int positions, string? code)
+    {
+        string A(int n) => new string('A', n);
+        (string data, string proc) = kind switch
+        {
+            "alnum" => ("01 W PIC X(9000).", $"    MOVE \"{A(positions)}\" TO W."),
+            "alnum-value" => ($"01 W PIC X(9000) VALUE \"{A(positions)}\".", "    DISPLAY \"X\"."),
+            "hex" => ("01 W PIC X(9000).", $"    MOVE X\"{string.Concat(Enumerable.Repeat("41", positions))}\" TO W."),
+            "boolean" => ("01 B PIC 1(9000).", $"    MOVE B\"{new string('0', positions)}\" TO B."),
+            "boolean-hex" => ("01 B PIC 1(9000).", $"    MOVE BX\"{new string('0', positions / 4)}\" TO B."),
+            "national" => ("01 N PIC N(9000).", $"    MOVE N\"{A(positions)}\" TO N."),
+            "concat" => ("01 W PIC X(9000).", $"    MOVE \"{A(80)}\" & \"{A(positions - 80)}\" TO W."),
+            "all-concat" => ("01 W PIC X(9000).", $"    MOVE ALL \"{A(80)}\" & \"{A(positions - 80)}\" TO W."),
+            _ => throw new ArgumentException(kind),
+        };
+        var (ok, errors, _) = EditionHarness.CompileFull(Program("LSED" + edition, data, proc, classic: edition < 2002), edition);
+        if (code is null)
+            Assert.True(ok, $"[{kind} {positions} at COBOL-{edition}] is within that edition's bound:\n{string.Join("\n", errors)}");
+        else
+        {
+            Assert.False(ok, $"[{kind} {positions} at COBOL-{edition}] exceeds that edition's bound of "
+                + $"{CobolLiteral.MaxPositions(edition)} positions");
+            Assert.Single(errors, e => e.Contains(code));   // once — one screen per rule, no second funnel
+            Assert.Contains(errors, e => e.Contains($"COBOL-{edition}"));   // the message names the edition whose bound it is
+        }
+    }
+
+    /// <summary>A literal longer than 8,191 positions is refused at EVERY edition — the older editions' bound is a
+    /// tighter one, never a looser (kb/Work PB1615): the same code, the 2023 text's own number named.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void LiteralLength_Over8191_IsRefusedAtEveryEdition(int edition)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(
+            Program("LSOVER" + edition, "01 W PIC X(9000).", $"    MOVE \"{new string('A', 8192)}\" TO W.", classic: edition < 2002), edition);
+        Assert.False(ok);
+        Assert.Single(errors, e => e.Contains("COBOLNET0814"));
     }
 
     /// <summary>The hexadecimal grouping rule at the two positions its former checks could not see: a

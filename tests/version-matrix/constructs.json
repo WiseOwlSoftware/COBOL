@@ -234,6 +234,48 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WL63.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 THIS-IS-A-FORTY-CHARACTER-LONG-DATANAME-XX PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
+   "id": "literal-length-8191-2014",
+   "description": "The literal LENGTH bound (ISO §8.3.3.2.3 SR1 alphanumeric, 8.3.3.4.3 SR1 boolean, 8.3.3.5.3 SR1 national; 8.8.3.2 SR2-SR4 for a concatenation's result): 8,191 character positions in the 2023 text, 160 below COBOL-2014 - a RELAXATION, so a 161-position literal compiles at 2014 and 2023 and is rejected below 2014 with COBOLNET0814 (also under --permissive: a length error, not a removed construct), the word-length row's posture. A literal longer than 8,191 positions is rejected at EVERY edition. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.41; the repo holds no 1985, 2002 or 2014 text, ratified decision #1), by the method of owner decision kb/Work R61: GnuCOBOL 3.2's per-standard dialect files carry literal-length 160 in cobol85.conf AND cobol2002.conf and 8191 in cobol2014.conf; Annex E (2014 to 2023) lists no change, so 2014 = 2023. ONE bound, CobolLiteral.MaxPositions(edition), read by LiteralScreen (every literal token) and by ConcatFolder.ResultLengthViolation (kb/Work PB1615).",
+   "display": "a literal longer than 160 character positions",
+   "diagnosticCode": "COBOLNET0814",
+   "citation": "ISO §8.3.3.2.3 SR1 / §8.3.3.4.3 SR1 / §8.3.3.5.3 SR1 / §8.8.3.2 SR2-SR4 (8,191 character positions) - the bound below 2014 is DERIVED (VCR row 7.41); emit site: CobolLiteral.LengthViolation via LiteralScreen.Screen (frontend)",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0814",
+   "vcr": "VCR row 7.41 (literal length bound 160 -> 8,191 at 2014); kb/Work PB1615",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(200).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\" TO W.\n    STOP RUN.\n"
+  },
+  {
+   "id": "copy-literal-name-2002",
+   "description": "The literal forms of the COPY statement's library-text name and library name (ISO §7.2.3.2: COPY { text-name-1 | literal-1 } [ { OF | IN } { library-name-1 | literal-2 } ]; 7.2.3.3 SR4/SR5 restrict them to alphanumeric literals; 7.2.3.4 GR1 \"Text-name-1 or literal-1 identifies the library text\"). ANSI X3.23-1985's COPY is COPY text-name [ { OF | IN } library-name ] [ REPLACING ... ]: the names are user-defined words only. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.42; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes a literal library-text name; Micro Focus's COPY reference marks the external-file-name literal as a dialect extension (OSVS, VSC2, MF, COB370), not ANS85; Annex E lists no COPY name change, so it predates 2023; 2002 is the edition that rewrote COPY as a compiler-directing statement and whose literal-1/literal-2 Micro Focus marks ISO2002; GnuCOBOL 3.2 parses a literal name at every -std (silence, not evidence). The row takes the 2002 edge, the one that never refuses a legal 2002 program. ONE gate for both literals, CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
+   "display": "a literal COPY library-text name or library name",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §7.2.3.2 (COPY general format); 7.2.3.3 SR4, SR5; 7.2.3.4 GR1 - emit site: CopyProcessor.GateCopyPhrase (frontend); a COBOL-2002 introduction (derived: VCR row 7.42)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "ISO §7.2.3.2 literal-1 / literal-2; provisional edge per decision 1; VCR row 7.42",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY \"VMCLNBK\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n",
+   "copybooks": {
+    "VMCLNBK.cpy": "01 W PIC X VALUE \"K\".\n"
+   }
+  },
+  {
+   "id": "copy-suppress-2002",
+   "description": "The SUPPRESS [PRINTING] phrase of the COPY statement (ISO §7.2.3.2: [ SUPPRESS PRINTING ]; 7.2.3.4 GR4 \"If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed\"). ANSI X3.23-1985's COPY has no SUPPRESS phrase. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.42; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes it (the only 'SUPPRESS' text in them is message data); Micro Focus's COPY reference marks SUPPRESS as a dialect extension (OSVS, VSC2, MF), not ANS85; Annex E lists no change, so it predates 2023; the row shares the 2002 edge of the literal-name phrase (the edition that rewrote COPY), the one that never refuses a legal 2002 program. The gate is on the phrase, asked by CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
+   "display": "the SUPPRESS phrase of the COPY statement",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §7.2.3.2 (COPY general format); 7.2.3.4 GR4 - emit site: CopyProcessor.GateCopyPhrase (frontend); a COBOL-2002 introduction (derived: VCR row 7.42)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "ISO §7.2.3.2 SUPPRESS [PRINTING]; provisional edge per decision 1; VCR row 7.42",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCSP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY VMCSPBK SUPPRESS PRINTING.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n",
+   "copybooks": {
+    "VMCSPBK.cpy": "01 W PIC X VALUE \"K\".\n"
+   }
+  },
+  {
    "id": "continue-after-2023",
    "description": "CONTINUE AFTER arithmetic-expression SECONDS (ISO §14.9.9) — a COBOL-2023 addition: a timed pause. Plain CONTINUE is 1985-continuous; only the AFTER … SECONDS phrase is gated. A negative interval is forced to 0 (GR1a) and sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON (GR1b).",
    "display": "CONTINUE AFTER n SECONDS",

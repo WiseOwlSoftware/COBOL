@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Runtime;
 
 namespace CobolNet.Common;
@@ -214,10 +215,10 @@ public static class CobolLiteral
     /// <c>LiteralScreen</c>, which walks the unit's tree and each compiler-directive operand's fragment — lexed apart
     /// from the unit and so never on that tree (kb/Work PB1441, PB1616) — and nothing else.
     /// </summary>
-    public static (LiteralRule Rule, string Message)? SyntaxViolation(string raw) =>
+    public static (LiteralRule Rule, string Message)? SyntaxViolation(string raw, int dialectLevel) =>
         RepertoireViolation(raw) is { } repertoire ? (LiteralRule.Repertoire, repertoire)
         : HexGroupViolation(raw) is { } grouping ? (LiteralRule.HexGrouping, grouping)
-        : LengthViolation(raw) is { } length ? (LiteralRule.Length, length)
+        : LengthViolation(raw, dialectLevel) is { } length ? (LiteralRule.Length, length)
         : null;
 
     /// <summary>A literal as a diagnostic quotes it: whole when short, else its first and last few characters — an
@@ -277,16 +278,46 @@ public static class CobolLiteral
     private static bool IsInRepertoire(string digits) => FirstOutsideRepertoire(digits, hex: true) < 0;
 
     /// <summary>The largest number of character positions a literal of ANY of the three classes may hold, and the
-    /// largest a concatenation expression may produce: ISO §8.3.3.2.3 SR1 (alphanumeric), §8.3.3.4.3 SR1
-    /// (boolean) and §8.3.3.5.3 SR1 (national) each print "shall be less than or equal to 8,191 … character
-    /// positions", and §8.8.3.2 SR2–SR4 print the same bound for the value a concatenation results in. Four rules,
-    /// one number, one symbol.</summary>
+    /// largest a concatenation expression may produce, in the 2023 text: ISO §8.3.3.2.3 SR1 (alphanumeric),
+    /// §8.3.3.4.3 SR1 (boolean) and §8.3.3.5.3 SR1 (national) each print "shall be less than or equal to 8,191 …
+    /// character positions", and §8.8.3.2 SR2–SR4 print the same bound for the value a concatenation results in. Four
+    /// rules, one number, one symbol. The edition's own bound is <see cref="MaxPositions"/>.</summary>
     public const int MaxLiteralPositions = 8191;
 
-    /// <summary><see cref="MaxLiteralPositions"/> as the standard prints it ("8,191"), culture-invariant so a
-    /// diagnostic reads the same on every machine.</summary>
-    public static string MaxLiteralPositionsText { get; } =
-        MaxLiteralPositions.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>The bound below the edition that relaxed it — 160 character positions. ⚠ THE EDGE IS DERIVED, NOT QUOTED
+    /// (kb/Work PB1615; docs/VERSION_CHANGE_REFERENCE.md row 7.41): the repository holds no 1985, 2002 or 2014 text, so the
+    /// method of owner decision kb/Work R61 dates it — GnuCOBOL 3.2's per-standard dialect files carry
+    /// <c>literal-length: 160</c> in <c>cobol85.conf</c> AND <c>cobol2002.conf</c> and 8191 in <c>cobol2014.conf</c>, and
+    /// Annex E (2014 to 2023) lists no change, so 2014 already had 8,191.</summary>
+    public const int MaxLiteralPositionsBeforeRelaxation = 160;
+
+    /// <summary>⭐ THE EDITION-KEYED LITERAL BOUND, in one place beside <see cref="CobolWordRule.MaxLength"/>: how many
+    /// character positions a literal (and a concatenation's result) of <paramref name="dialectLevel"/> may hold —
+    /// <see cref="MaxLiteralPositions"/> where the relaxation is in force, <see cref="MaxLiteralPositionsBeforeRelaxation"/>
+    /// before it. The EDGE is the one the construct registry row <see cref="Constructs.LiteralLength81912014"/> carries
+    /// (<see cref="ConstructRegistry.IsAvailable"/>), so the number of the edition and the matrix that samples it can
+    /// never name different editions. A relaxation, not an introduction: a longer literal is a length error at the older
+    /// edition, so it draws the length rule's own code, also under <c>--permissive</c> (the word-length ceiling's posture).</summary>
+    public static int MaxPositions(int dialectLevel) =>
+        ConstructRegistry.IsAvailable(new EditionInfo(dialectLevel), Constructs.LiteralLength81912014)
+            ? MaxLiteralPositions : MaxLiteralPositionsBeforeRelaxation;
+
+    /// <summary>The bound as the standard prints it ("8,191"), culture-invariant so a diagnostic reads the same on every
+    /// machine.</summary>
+    public static string MaxPositionsText(int dialectLevel) => Text(MaxPositions(dialectLevel));
+
+    private static string Text(int positions) =>
+        positions.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>The tail every length message shares: empty where the 2023 text's bound is in force; before it, the edition
+    /// whose shorter bound it is and where the 2023 text's bound begins (<c> at COBOL-85 (8,191 from COBOL-2014)</c>), so the
+    /// diagnostic says why a literal ISO/IEC 1989:2023 allows is refused.</summary>
+    public static string BoundProvenance(int dialectLevel) =>
+        MaxPositions(dialectLevel) == MaxLiteralPositions ? ""
+            : $" at COBOL-{dialectLevel} ({Text(MaxLiteralPositions)} from COBOL-{RelaxedIn})";
+
+    /// <summary>The edition from which <see cref="MaxLiteralPositions"/> is the bound — the registry row's own edge.</summary>
+    private static int RelaxedIn { get; } = ConstructRegistry.Find(Constructs.LiteralLength81912014)!.IntroducedIn;
 
     /// <summary>
     /// ⭐ THE §8.3.3 LITERAL LENGTH RULE, for all three classes and every format of each — a message naming the
@@ -301,23 +332,25 @@ public static class CobolLiteral
     /// <para>A malformed hexadecimal literal (<see cref="HexGroupViolation"/>) decodes to nothing and is reported
     /// under that rule; its length is not separately judged.</para>
     /// </remarks>
-    public static string? LengthViolation(string raw)
+    public static string? LengthViolation(string raw, int dialectLevel)
     {
-        // Fast path for the overwhelmingly common short literal (this is asked of EVERY literal token): no format
-        // decodes to more positions than four per source character — BX"…" is the widest, four boolean characters
-        // per digit — so a token this short cannot exceed the cap, and no decode is allocated for it.
-        if (raw.Length <= MaxLiteralPositions / 4) return null;
+        // Fast path for the overwhelmingly common short literal (this is asked of EVERY literal token): no format but
+        // BX"…" decodes to more positions than it has source characters, and BX"…" gives four boolean characters per
+        // digit — so a token this short cannot exceed the edition's bound, and no decode is allocated for it.
+        if (raw.Length <= MaxLiteralPositionsBeforeRelaxation / 4) return null;   // under the lowest bound's quarter: no lookup
+        int max = MaxPositions(dialectLevel);
+        if (raw.Length <= max / 4 || (raw.Length <= max && raw[0] is not ('B' or 'b'))) return null;
         if (ClassOf(raw) is not { } cls) return null;
         int positions = Decode(raw).Length;
-        if (positions <= MaxLiteralPositions) return null;
+        if (positions <= max) return null;
         (string name, string clause) = cls switch
         {
             LiteralClass.National => ("national", "§8.3.3.5.3 SR1"),
             LiteralClass.Boolean => ("boolean", "§8.3.3.4.3 SR1"),
             _ => ("alphanumeric", "§8.3.3.2.3 SR1"),
         };
-        return $"is {positions} {name} character positions long — {clause} limits a {name} literal to "
-            + $"{MaxLiteralPositionsText}";
+        return $"is {positions} {name} character positions long — {clause} limits {(cls == LiteralClass.Alphanumeric ? "an" : "a")} {name} literal to "
+            + $"{MaxPositionsText(dialectLevel)}{BoundProvenance(dialectLevel)}";
     }
 
     /// <summary>Decode <paramref name="digits"/> as groups of <paramref name="perChar"/> hexadecimal digits, one
