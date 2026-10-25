@@ -1,4 +1,4 @@
-## PB1046: a report section entry's data-name outside GENERATE and the sum counters is a refused reference (COBOLNET5092), no longer "not defined"
+## Entry 2564 — 2026-10-25 13:18 PDT — PB1046: a report section entry's data-name outside GENERATE and the sum counters is a refused reference (COBOLNET5092), no longer "not defined"
 
 **The question.** kb/Work PB1046 asked whether a printable item's name may be referenced from the procedure division
 (then the compiler rejects legal source) or not (then the diagnostic names the wrong rule). The standard answers it:
@@ -44,3 +44,4 @@ two entry walks removed.
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at head 360313016, Linux half (WSL clone of
 HEAD) GREEN. All 24 conformance results of the six new cases and all 22 `ReportItemReferenceTests` passed in leg 1
 (`TestResults/build-local/000001-20261025T195328Z/leg-1-Conformance.trx`, `leg-1-Unit.trx`).
+
