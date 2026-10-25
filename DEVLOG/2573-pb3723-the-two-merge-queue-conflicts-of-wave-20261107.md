@@ -1,4 +1,4 @@
-## PB3723: the two merge-queue conflicts of wave 20261107, resolved before they bounced, measured
+## Entry 2573 — 2026-10-25 14:32 PDT — PB3723: the two merge-queue conflicts of wave 20261107, resolved before they bounced, measured
 
 The loop's enqueue unit ran the merge queue's entries in order through `git merge-tree`. Two loop branches would
 conflict with an entry ahead of them: #580 (500-26, group D) behind #579 (500-24, H), and #586 (500-20, E) behind
@@ -15,3 +15,4 @@ finisher's minutes:
 The note also gains a fix direction: the landing survey should run the same queue simulation every tick, so a
 foreseen conflict gets its finisher while the predecessor is still queued (a `merge_conflict` removal has no failed
 run for anything to read, PB3772). No code changed.
+
