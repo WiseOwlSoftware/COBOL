@@ -581,10 +581,18 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
     /// when both are a <see cref="BoundBinary"/> (kb/Work PB3613). Set only through <c>IntrinsicBinder.OperandOf</c>.</summary>
     public bool FunctionValue { get; init; }
 
-    /// <summary>True when the operand is the value of a NUMERIC function-identifier: a numeric <see cref="BoundIntrinsicCall"/>,
-    /// or a <see cref="FunctionValue"/> lowered to an arithmetic tree. The one question every channel that sends a value into
-    /// a plain group asks (<c>OperandText.NonElementaryMoveSender</c>, the CALL and INVOKE arms, the activation description).</summary>
-    public bool IsNumericFunctionValue => Expr is BoundIntrinsicCall ic ? ic.ResultCategory is PicCategory.Numeric : FunctionValue;
+    /// <summary>True when the operand is the value of a NUMERIC function-identifier: <see cref="FunctionValue"/> (the binder's
+    /// statement that the source wrote the function-identifier, however it lowered to a tree) whose value is numeric. The one
+    /// question every channel that sends a value into a plain group asks (<c>OperandText.NonElementaryMoveSender</c>, the CALL
+    /// and INVOKE arms, the activation description).
+    /// <para>⛔ THE ANSWER IS THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB3678). A parenthesized function,
+    /// <c>(FUNCTION MIN(N 3))</c>, is an arithmetic expression: §14.9.4.4 GR8 regards as an identifier only "an argument that
+    /// consists merely of a single identifier or literal", and an arithmetic expression is no MOVE sender (§14.8.2.2 rule 2). The
+    /// expression binder drops the parentheses, so its tree is the same <see cref="BoundIntrinsicCall"/> the sole function
+    /// binds to, and an answer read from the tree made <c>(FUNCTION MIN(N 3))</c> a MOVE sender while <c>(FUNCTION
+    /// LENGTH(VG))</c>, whose tree is a <see cref="BoundBinary"/>, was refused. Only the category is read from the call: a
+    /// function-identifier of another class is no numeric value.</para></summary>
+    public bool IsNumericFunctionValue => FunctionValue && Expr is not BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric };
 }
 
 /// <summary>A figurative constant operand (ISO §8.3.3.6). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
