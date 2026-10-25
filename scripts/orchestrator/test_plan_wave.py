@@ -121,6 +121,19 @@ r3 = next(r for r in reports if r.lead == "PB3")
 check("report parse", (r3.status, r3.branch, r3.head, r3.not_started, r3.worktree),
       ("SPLIT", "worktree-wf_bbb-2", "2222222bb", True, r"E:\COBOL\.claude\worktrees\wf_bbb-2"))
 check("status from **Status:** line", next(r for r in reports if r.slug == "w1013c").status, "DONE")
+# A damaged note leaves the plan as silently as it left the register unless the planner's own reader refuses it (kb/Work
+# PB3654): a note named PB<n>.md whose fence is not its first line stops the plan, an index is skipped.
+DAMAGED = TMP / "damaged-register"
+DAMAGED.mkdir()
+(DAMAGED / "PB98.md").write_text("`---\n`id: PB98\n`---\n", encoding="utf-8", newline="\n")
+(DAMAGED / "PBindex.md").write_text("an index, not a note\n", encoding="utf-8", newline="\n")
+try:
+    pw.load_notes(DAMAGED, {})
+    unreadable = "the planner read a register holding a damaged note"
+except SystemExit as stop:
+    unreadable = str(stop)
+check("the planner refuses a damaged note by name", ("PB98.md" in unreadable, "PBindex" in unreadable),
+      (True, False))
 
 p = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, RULES, budget_points=100)
 G = {tuple(g.notes): g for g in p["groups"]}

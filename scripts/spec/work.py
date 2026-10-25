@@ -297,15 +297,57 @@ def parse_frontmatter(text: str) -> dict | None:
     return out
 
 
-def load(work_dir: pathlib.Path = WORK) -> list[dict]:
-    """Every note under `work_dir` (the register; a test passes a fixture directory)."""
-    items = []
+#: The file names of a register entry: `PB<n>.md`, `A<n>.md`, `R<n>.md` (a trailing letter for a split id). A file under
+#: `kb/Work/` with a name like this IS a note; anything else (an index, a README) is not and stays skipped.
+NOTE_FILE = re.compile(r"\A(?:PB|A|R)\d+[a-z]?\.md\Z")
+
+
+def unreadable_why(text: str) -> str:
+    """Why `text` has no frontmatter block (FRONT does not match), naming the first bad line: the file opens with a
+    byte-order mark, or its first line is not the opening `---`, or the block is never closed by a `---` line."""
+    if text.startswith("﻿"):
+        return "the file starts with a byte-order mark, so line 1 is not the opening `---`"
+    first = text.split(chr(10), 1)[0].rstrip(chr(13))
+    if first != "---":
+        return f"line 1 is {first[:60]!r}, not the opening `---`"
+    return "the frontmatter is never closed by a `---` line"
+
+
+def read_note(name: str, text: str) -> tuple[dict | None, str]:
+    """`(the note, "")` for a file whose frontmatter parses; `(None, "")` for a file that is not named like a note (an
+    index, a README: skipped); `(None, why)` for a file NAMED like a note whose frontmatter does not parse (kb/Work
+    PB3654). That last answer is a refusal and never a skip: a damaged note that leaves the register is invisible to
+    `next`, to the planner's `**Sites:**` reader and to the inventory claim gate, and `check` used to call the register
+    "all well-formed" over it (PR #513 merged three such notes, every line prefixed with a backtick)."""
+    d = parse_frontmatter(text)
+    if d is not None:
+        d["_file"] = name
+        return d, ""
+    if NOTE_FILE.match(name):
+        return None, f"{name}: unreadable as a work note — {unreadable_why(text)}"
+    return None, ""
+
+
+def read_notes(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
+    """Every note under `work_dir` and a refusal for every file named like a note that is not one (read_note)."""
+    items, refused = [], []
     for p in sorted(work_dir.glob("*.md")):
-        d = parse_frontmatter(p.read_text(encoding="utf-8"))
-        if d is None:
-            continue
-        d["_file"] = p.name
-        items.append(d)
+        note, why = read_note(p.name, p.read_text(encoding="utf-8"))
+        if note is not None:
+            items.append(note)
+        elif why:
+            refused.append(why)
+    return items, refused
+
+
+def load(work_dir: pathlib.Path = WORK) -> list[dict]:
+    """Every note under `work_dir` (the register; a test passes a fixture directory), or `SystemExit` naming each file
+    named like a note that cannot be read: a register missing a note answers `next` wrongly and says nothing, so no
+    reader of it runs on one (kb/Work PB3654). `check` reports the same files without stopping (read_notes)."""
+    items, refused = read_notes(work_dir)
+    if refused:
+        raise SystemExit("⛔ the work register has " + str(len(refused)) + " unreadable note(s):\n      "
+                         + "\n      ".join(refused) + "\n   repair the frontmatter (python scripts/spec/work.py check)")
     return items
 
 
@@ -404,11 +446,12 @@ def closes_rows_shape(it: dict) -> list[str]:
     return bad
 
 
-def check() -> int:
-    if not WORK.exists():
-        print(f"⛔ {WORK.relative_to(REPO)} does not exist — run: python scripts/spec/work.py migrate")
-        return 1
-    items, bad = load(), []
+def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
+    """`(the notes under work_dir, every problem of the register)`: the unreadable notes (read_notes), each note's own
+    schema, the topology and the site blocks, duplicate ids and, for the repository's OWN register only, the audits
+    that compare it with the rest of the tree (the inventory, the R3 program, the Bases view): a fixture directory
+    (`--work`, the self-test) has none of those to be compared with (kb/Work PB3654)."""
+    items, bad = read_notes(work_dir)
     for it in items:
         for f in ("id", "kind", "status", "area"):
             if not it.get(f):
@@ -435,17 +478,26 @@ def check() -> int:
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
-    import work_inventory  # noqa: PLC0415  (this directory's)
-
-    bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
     bad += topology_problems(items)
     bad += sites_problems(items)
-    bad += r3_program_problems(items)
     ids = [it.get("id") for it in items]
     for i in set(ids):
         if ids.count(i) > 1:
             bad.append(f"duplicate id {i}")
-    bad += check_base_agrees()
+    if work_dir.resolve() == WORK.resolve():
+        import work_inventory  # noqa: PLC0415  (this directory's)
+
+        bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
+        bad += r3_program_problems(items)
+        bad += check_base_agrees()
+    return items, bad
+
+
+def check(work_dir: pathlib.Path = WORK) -> int:
+    if not work_dir.exists():
+        print(f"⛔ {work_dir} does not exist — run: python scripts/spec/work.py migrate")
+        return 1
+    items, bad = register_problems(work_dir)
     if bad:
         print(f"⛔ {len(bad)} problem(s) in the work register:")
         for b in bad[:20]:
@@ -1245,8 +1297,8 @@ FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-cases.json"
 FIXTURE_REL = "tests/version-matrix/work-frontmatter-cases.json"
 
 
-def reading_view(text: str) -> dict:
-    """What a reader of this register SEES in one note — the normalized answer the reader must give.
+def reading_view(file: str, text: str) -> dict:
+    """What a reader of this register SEES in the file `file` holding `text` — the normalized answer it must give.
 
     Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the register's checks
     ask what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
@@ -1254,18 +1306,21 @@ def reading_view(text: str) -> dict:
     fail-open that `kb/Work/PB875` is about.
 
     `terminal` is what the DONE vocabulary (TERMINAL_STATUSES) makes of the status: the register's checks read DONE
-    through it, so it is compared like any field (kb/Work PB3196).
+    through it, so it is compared like any field (kb/Work PB3196). `refusal` is what read_note says of a file that is
+    not a note: empty for an index or a README (skipped), the reason for a file NAMED like a note whose frontmatter
+    does not parse (kb/Work PB3654).
     """
-    d = parse_frontmatter(text)
+    d, refusal = read_note(file, text)
     if d is None:
         return {"note": False, "id": "", "kind": "", "status": "", "terminal": False, "inventory_rows": [],
-                "closes_rows": [], "closes_rows_reason": "", "errors": []}
+                "closes_rows": [], "closes_rows_reason": "", "errors": [], "refusal": refusal}
     scalar = lambda k: (v if isinstance(v := d.get(k, ""), str) else str(v))       # noqa: E731
     lst = lambda k: (v if isinstance(v := d.get(k, []), list) else [])             # noqa: E731
     return {"note": True, "id": scalar("id"), "kind": scalar("kind"), "status": scalar("status"),
             "terminal": scalar("status") in TERMINAL_STATUSES,
             "inventory_rows": lst("inventory_rows"), "closes_rows": lst("closes_rows"),
-            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", []))}
+            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", [])),
+            "refusal": ""}
 
 
 def _wrapped_list(text: str) -> bool:
@@ -1286,6 +1341,55 @@ def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
     return bad
 
 
+def directory_findings(fixture: dict) -> list[str]:
+    """The fixture's files written into a directory and read as a register (kb/Work PB3654): `register_problems` and
+    `load` refuse each file named like a note that does not parse, `check --work` counts the DIRECTORY's notes (it once
+    checked `kb/Work` whatever `--work` said, so the seam could not witness a refusal), and an index is skipped."""
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+    import tempfile  # noqa: PLC0415
+
+    bad: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="work-register-cases-") as tmp:
+        everything = pathlib.Path(tmp, "everything")
+        everything.mkdir()
+        refused = {}
+        for c in fixture["cases"]:
+            (everything / c["file"]).write_bytes(c["text"].encode("utf-8"))
+            if c["expect"]["refusal"]:
+                refused[c["file"]] = c["expect"]["refusal"]
+        _, problems = register_problems(everything)
+        bad += [f"register_problems over the fixture directory does not report: {why}"
+                for why in refused.values() if why not in problems]
+        bad += [f"register_problems reports a file that is no refusal of the fixture: {p}"
+                for p in problems if "unreadable as a work note" in p and p not in refused.values()]
+        try:
+            load(everything)
+            bad.append("load() answered a directory holding an unreadable note instead of stopping")
+        except SystemExit as stop:
+            bad += [f"load()'s refusal does not name {name}" for name in refused if name not in str(stop)]
+        good = pathlib.Path(tmp, "good")
+        good.mkdir()
+        (good / "PB1.md").write_bytes(("---" + chr(10) + "id: PB1" + chr(10) + "kind: defect" + chr(10)
+                                       + "status: landed" + chr(10) + "area: x" + chr(10) + "closes_rows: []"
+                                       + chr(10) + 'closes_rows_reason: "none"' + chr(10) + "---" + chr(10)
+                                       + "body" + chr(10)).encode("utf-8"))
+        (good / "README.md").write_bytes(b"not a note")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = check(good)
+        if code != 0 or "1 work items" not in out.getvalue():
+            bad.append(f"check --work over one good note and an index answered {code}: {out.getvalue().strip()!r}")
+        for name in refused:
+            (good / name).write_bytes(next(c["text"] for c in fixture["cases"] if c["file"] == name).encode("utf-8"))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = check(good)
+        if code == 0 or not all(name in out.getvalue() for name in refused):
+            bad.append(f"check --work over a directory holding unreadable notes answered {code}: {out.getvalue().strip()!r}")
+    return bad
+
+
 def self_test() -> int:
     """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
@@ -1298,7 +1402,7 @@ def self_test() -> int:
         print(f"⛔ fixture not found: {FIXTURE_REL}")
         return 1
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    answers = [{"name": c["name"], **reading_view(c["text"])} for c in fixture["cases"]]
+    answers = [{"name": c["name"], **reading_view(c["file"], c["text"])} for c in fixture["cases"]]
     findings = case_findings(fixture, answers)
 
     # POPULATION — the shapes this register actually contains, each of which broke a reader once.
@@ -1307,6 +1411,7 @@ def self_test() -> int:
         "a malformed value reported as an error": any(a["errors"] for a in answers),
         "a file that is not a note": any(not a["note"] for a in answers),
         "CRLF line endings": any("\r\n" in c["text"] for c in fixture["cases"]),
+        "a file named like a note whose frontmatter does not parse": any(a["refusal"] for a in answers),
     }
     findings += [f"the fixture carries no case for {what} — it cannot be measuring that shape"
                  for what, ok in covered.items() if not ok]
@@ -1321,10 +1426,13 @@ def self_test() -> int:
     if len(fixture["cases"]) < 8:
         findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
+    findings += directory_findings(fixture)
+
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))
     corrupted["cases"][0]["expect"]["id"] = corrupted["cases"][0]["expect"].get("id", "") + "-X"
-    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["text"])} for c in corrupted["cases"]]):
+    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["file"], c["text"])}
+                                     for c in corrupted["cases"]]):
         findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
 
     print(f"cases  : {len(answers)} from {FIXTURE_REL}")
@@ -1354,7 +1462,7 @@ def main() -> int:
     if a.cmd == "migrate":
         return migrate()
     if a.cmd == "check":
-        return check()
+        return check(pathlib.Path(a.work))
     if a.cluster and a.cmd != "next":
         ap.error("--cluster goes with next")
     items = load(pathlib.Path(a.work))
