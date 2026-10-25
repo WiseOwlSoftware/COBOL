@@ -46,9 +46,10 @@ cost the orchestrator a hand-written groups.json; this computes it.
 3. CLUSTERS from fix_clusters.py --json (the public submodule's view of kb/Work), minus the notes above, ranked by
    inventory rows claimed (the sum of each note's `inventory_rows`), then harm. A finisher on a cluster's primary
    file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
-4. ONE GROUP PER PRIMARY FILE AND MEMBER: a later group on the same file whose claim there meets an earlier one's (the
-   whole file, or a shared member) is a same-file successor (`after:`, MANDATORY-PRACTICES O2); one on other members of
-   the file runs beside it (kb/Work PB3670). Groups are placed in TIER order (a campaign's effective tiers; a finisher
+4. ONE GROUP PER CLAIMED FILE AND MEMBER: a later group whose claim meets an earlier one's on ANY file both claim, the
+   primary file or a secondary one (the whole file, or a shared member: `collision`), is a same-file successor
+   (`after:`, MANDATORY-PRACTICES O2); one whose claims meet nowhere, such as other members of one file, runs beside
+   it (kb/Work PB3670, PB3696). Groups are placed in TIER order (a campaign's effective tiers; a finisher
    takes its notes'), finishers first inside one tier, so the highest tier heads its chain, and a wave dispatches only
    the first `wave.links_per_chain` links of each chain (the owner's one): the later links wait for the next wave,
    which plans them from the branch the earlier link leaves (kb/Work PB3638).

@@ -177,10 +177,10 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
   (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
   `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
-  `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file AND whose
-  member claims on it meet (either has no `member_set` entry for it, so claims it whole, or a member of one matches a
-  member of the other) unless one declares `after:` the other: two groups on different members of one file run side
-  by side (kb/Work PB3670). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
+  `check_practices.py <groups.json>` refuses two groups whose claims MEET on ANY file both claim, a primary file or a
+  secondary one (`plan_wave.collision`, the planner's own rule: either has no `member_set` entry for the file, so claims
+  it whole, or a member of one matches a member of the other) unless one declares `after:` the other: two groups on
+  different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
   the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or the planner claims the whole file, as it does for
   a name the file does not declare; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
