@@ -39,6 +39,10 @@ Every spec names TWO stop files (kb/Work PB2483): the owner's global stop (`coor
 `stop_file` (`coord.fleet_stop(scratch, scope)`; plan_wave.py writes it). A fleet stopped by its own file never stops
 another session's agents.
 
+Every spec's `Turn cap` is the `maxTurns` of `.claude/agents/cobol-implementer.md` (`coord.agent_turn_cap`, kb/Work PB3701):
+the number the harness enforces is the one the agent is told, and `check_practices.py` refuses a rendered spec that
+says another.
+
 Every spec's report path is in `coord.reports_dir()`, never under the wave's `scratch` (kb/Work PB2980): the enqueue unit
 and the branch survey read that one directory, and a report anywhere else is never landed.
 
@@ -62,6 +66,9 @@ import plan_wave  # noqa: E402  (record_dispatch: THE ledger writer; computed_fi
 import work  # noqa: E402  (the register: which notes are terminal)
 
 PB = re.compile(r'\bPB\d+\b')
+
+#: The role a rendered spec is for: its `maxTurns` is the spec's `{turn_cap}` (coord.agent_turn_cap, kb/Work PB3701).
+IMPLEMENTER = 'cobol-implementer'
 
 #: The host file I/O layer (module docstring): a group that changes a file under it is a host-I-O group.
 HOST_IO = 'src/Cobol.Net.Runtime/IO/'
@@ -114,6 +121,7 @@ def render(cfg, g, files, tpl=None):
     pred = g.get('pred', '')
     return tpl.format(wave=cfg['wave'], base=cfg['base'], S=str(cfg['scratch']), pred=(pred + '\n') if pred else '',
                       global_stop=str(coord.global_stop()), stop_file=cfg['stop_file'], reports=str(coord.reports_dir()),
+                      turn_cap=coord.agent_turn_cap(IMPLEMENTER),
                       linux_gate=LINUX_GATE[host_io(files)], **{k: v for k, v in g.items() if k != 'pred'})
 
 
