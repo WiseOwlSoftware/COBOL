@@ -3724,6 +3724,51 @@
   ],
   "expect": "COBOLNET1520"
  },
+ "pb1046-global-report-item-referenced-in-contained-program": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-group-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-as-occurs-depending-object": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-by-file-status": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
  "pb1047-two-globals-one-element-ambiguous": {
   "refuse-at": [
    "85",
