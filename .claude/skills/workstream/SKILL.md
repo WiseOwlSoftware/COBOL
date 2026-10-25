@@ -179,10 +179,10 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
   (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
   `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
-  `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file AND whose
-  member claims on it meet (either has no `member_set` entry for it, so claims it whole, or a member of one matches a
-  member of the other) unless one declares `after:` the other: two groups on different members of one file run side
-  by side (kb/Work PB3670). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
+  `check_practices.py <groups.json>` refuses two groups whose claims MEET on ANY file both claim, a primary file or a
+  secondary one (`plan_wave.collision`, the planner's own rule: either has no `member_set` entry for the file, so claims
+  it whole, or a member of one matches a member of the other) unless one declares `after:` the other: two groups on
+  different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
   the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or the planner claims the whole file, as it does for
   a name the file does not declare; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
@@ -211,9 +211,12 @@ Read `references/landing.md` before dispatching a finisher, landing, pushing, ru
 
 The orchestrator allocates `kb/Work` ids and diagnostic-code ranges in the dispatch brief; agents never pick their own
 (five collisions in one day each cost a renumbering pass). Every allocation goes through ONE locked allocator,
-`python scripts/orchestrator/alloc.py pb N | code N | devlog`, which keeps the reservations of in-flight worktrees
+`python scripts/orchestrator/alloc.py pb N | code N | devlog | wave`, which keeps the reservations of in-flight worktrees
 outside every worktree, so two sessions never hand out the same value (`peek <kind>` reads without reserving;
-`scripts/orchestrator/plan_wave.py` allocates a wave's codes through it, the enqueue unit its lead ids). DEVLOG numbers
+`scripts/orchestrator/plan_wave.py` allocates a wave's codes and its wave number through it, the enqueue unit its lead
+ids). A HAND dispatch takes its wave number from `alloc.py wave` too, before it names a report `w<wave><letter>-PB<lead>`:
+the number the loop plans next is the allocator's, so a hand report and a campaign wave can never share one (kb/Work
+PB3700: `w20261104a-PB3690` and the loop's wave 20261104 did). DEVLOG numbers
 are allocated at enqueue: `devlog.py stamp` (run by `enqueue.py land`) takes the next one from `alloc.py devlog`, once:
 a stamped entry keeps its number even when main lands a higher one first (kb/Work PB3025, PB3123: number order is stamp
 order, the merge queue orders the landings later); nobody numbers an entry by hand. `session-probe` prints `alloc.py peek code --probe`: the next free
