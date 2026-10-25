@@ -2917,7 +2917,7 @@ internal static class RuntimeApi
     public static string EditIsBlanked(string read) => $"{nameof(CobolEdit)}.{nameof(CobolEdit.IsBlanked)}({read})";
 
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
-    /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
+    /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63.3 SR6) with the SAME runtime
     /// editor the generated code calls.</summary>
     public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, string? currencyString,
         bool commaMode, IReadOnlyList<CobolEdit.EditRule>? edits = null) =>

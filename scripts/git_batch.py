@@ -52,6 +52,7 @@ import subprocess
 import sys
 import tempfile
 from typing import Callable, Iterable, Iterator, Sequence
+from standard_streams import ensure_utf8
 
 BASE = "refs/remotes/origin/main"
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: a root commit's diff is taken against it
@@ -487,6 +488,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(self_test())
     print(__doc__)

@@ -10,6 +10,7 @@ host, so a fixed name there would let two renders of one page overwrite each oth
 this prints, never a guessed one.
 """
 import sys, os, glob, tempfile, fitz
+from standard_streams import ensure_utf8
 
 # The licensed PDF lives in the PRIVATE submodule (the repo layout changed 2026-07-27; `specs/` is now the
 # public Markdown transcription). Globbed rather than named, so a re-download with a different order suffix
@@ -42,4 +43,5 @@ def main(argv):
         print(f'{f}  ({pix.width}x{pix.height} @ {dpi}dpi)')
 
 if __name__ == '__main__':
+    ensure_utf8()
     main(sys.argv[1:])

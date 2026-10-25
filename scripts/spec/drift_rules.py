@@ -66,6 +66,8 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 #: THE repo-root locator every test project shares. Its path helpers are READ FROM ITS SOURCE (`test_repo`), never
@@ -997,7 +999,6 @@ def through(row, rel):
 def main(argv):
     # The rules quote <summary> text verbatim (⛔, §, em dashes); a Windows console's cp1252 stdout cannot encode
     # them, and the first such rule crashed the per-file query mid-listing.
-    sys.stdout.reconfigure(encoding="utf-8")
     if argv[:1] == ["--self-test"]:
         return self_test()
     rows = index()
@@ -1081,4 +1082,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

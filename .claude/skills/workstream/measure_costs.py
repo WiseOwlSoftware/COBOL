@@ -5,6 +5,11 @@
 First run 2026-09-23 over waves 45-57 (DEVLOG 1663): search 31.7 %, read 14.5 %, edit 13.4 %, probe 9.5 %, git 7.9 %.
 """
 import json, pathlib, re, sys, collections
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
+
 root = pathlib.Path(sys.argv[1])
 B = chr(100) + 'otnet'  # avoid the literal in this file
 pat = [('wait', r'tail -n \+1 -f'), ('gate', B + r' test|build-local'), ('build', B + r' build'),

@@ -1642,9 +1642,25 @@ it never declines (a line is atomic; a stale symbol fails the build, RS0017, as 
 line becomes `src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi` with its comment; `merge_drivers.py --check` holds the
 registry and the attributes together as it does for every driver, and `MergeDriverDriftTests.TheSelfTests_DeclareEveryArm`
 names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
-`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`. The
-landing also sorts the two baselines once (the driver's output order), so the first driven merge changes nothing but
-the merged lines.
+`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`.
+Corrected at the landing: THE LANDING LEAVES THE BASELINES AS MAIN HAS THEM, unsorted. Until a branch lands, its
+landing merges main in through MAIN's registry (`enqueue.py land` runs main's `merge_drivers`), which defines no driver
+for a name only the branch's registry holds, so git falls back to its line merge; a baseline the branch had sorted met
+every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
+that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
+DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
+sides changed them, whose output the driver sorts. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
+`runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
+so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
+implementation: the driver's patterns are matched by git's rules in the registry too
+(`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
+span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
+the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
+catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
+(`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
+by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
+landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
+measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
 ### 16.10 The order, the waves and PB3637
 
@@ -1662,7 +1678,7 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
-| 1 | PB3637 | The UTF-8 switch: one mechanism (`PYTHONUTF8=1` set once, in `python-resolve.{sh,ps1}`, `orchestrate.ps1`, the CI workflow's `env:` and the hooks' environment), every per-script `stdout.reconfigure` deleted, the `--help` drift test | the 71 scripts (the five are among them), the four entry points, one new Unit test | every script's `--help` exits 0 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
+| 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
 | 1 | PB3727 | §16.9, the PublicAPI driver | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
 | 2 | PB3728 | §16.3, `plan_wave.py` split by job, `plan()` in stages | `plan_wave.py`, `test_plan_wave.py`, the five new modules, every importer §16.3 names | `test_plan_wave.py` GREEN with 385 checks; `--dry-run` before/after identical; the golden `testdata/plan_wave_default.json` unchanged |
 | 2 | PB3738 | §16.8, CONFORMANCE.md one file per determination | `docs/CONFORMANCE.md`, `docs/conformance/**`, `rendered_views.py`, `.gitignore`, the five readers, `ConformanceRegister.cs`, `session-probe.ps1`, `DOC_INDEX.md`, the briefs and skills that name the file | the render is byte-identical to the file it cut; every citation resolves (`--check`); `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py --check` and `AnnexA1RegisterDriftTests` GREEN with the same counts |
@@ -1677,8 +1693,8 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 | 11 | PB3737 | §16.7, land_lane split | `land_lane.py`, the five new modules, every importer §16.7 names | the case files GREEN; `status` prints the same lines |
 
 Tier 1's two notes and tier 2's two notes share no file, so each pair runs in one wave; everything else is one note
-per wave. PB3637 goes first because it edits one line in each of the 71 scripts, which every later split would
-otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
+per wave. PB3637 goes first because it edits each live Python entry point (an import and the call, the copy deleted),
+which every later split would otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
 (tiers 4–11) because the split's oracle is then a set of files the split only re-imports, and the self-test stops
 being a 900-line block the split has to carry; plan_wave is the exception (its tests are already out), so its split
 comes first and its conversion carries the mechanism. PB3723's measurement is the before; its "after" is the same

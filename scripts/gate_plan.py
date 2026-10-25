@@ -100,6 +100,7 @@ import impacted_tests  # noqa: E402
 from live_tools import ROOTS as LIVE_ROOTS  # noqa: E402 — the one list of the live tools' trees
 from test_population import (GATED_ASSEMBLIES, LISTED_MARK, TRX_NS, PopulationError, UnreadableTrx,  # noqa: E402
                              parse_listing, trx_root)
+from standard_streams import ensure_utf8  # noqa: E402
 
 PLAN_SCHEMA = 1
 LEG_ONE_BUDGET = 0.02            # of the assembly's recorded test-seconds, for tier 1
@@ -1060,11 +1061,6 @@ def main() -> int:
                     help="print every gated assembly's class traits as JSON (HostWitnessTraitDriftTests reads it)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if args.self_test:
         return self_test()
     if args.audit_trx_writers:
@@ -1110,4 +1106,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

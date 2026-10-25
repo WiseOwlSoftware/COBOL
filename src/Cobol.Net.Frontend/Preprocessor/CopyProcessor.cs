@@ -533,7 +533,9 @@ public sealed class CopyProcessor(
     /// [SUPPRESS [PRINTING]] [REPLACING operands…] .</c> — the statement ends at its separator period (§7.2.3.4 GR6
     /// "beginning with the reserved word COPY and ending with the separator period, inclusive"), so a period inside
     /// pseudo-text or a literal no longer ends it. A word out of that order is COBOLNET2449; SUPPRESS has no effect on
-    /// the resultant text (GR4 governs only a listing, which this compiler does not produce). kb/Work PB1354.</summary>
+    /// the resultant text (GR4 governs only a listing, which this compiler does not produce). kb/Work PB1354. The literal forms
+    /// of the two names and the SUPPRESS phrase are COBOL-2002 introductions COBOL-85's COPY did not have, gated by
+    /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
         var c = new StatementCursor(mapped.Text, copyIdx + "COPY".Length, (p, message) =>
@@ -549,6 +551,7 @@ public sealed class CopyProcessor(
         }
         if (c.TryPeek(out w) && w.IsWord("SUPPRESS"))
         {
+            GateCopyPhrase(mapped, w.Start, Constructs.CopySuppress2002, "the COPY statement's SUPPRESS phrase");
             c.Advance(w);
             if (c.TryPeek(out w) && w.IsWord("PRINTING")) c.Advance(w);
         }
@@ -575,6 +578,20 @@ public sealed class CopyProcessor(
         }
         c.ExpectSeparatorPeriod();
         return new CopyStatement(textName, libraryName, replacing, replacements, c.Pos);
+    }
+
+    /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOLNET0900 below the
+    /// row's edition, an error under <c>--permissive</c> too) of a phrase of the §7.2.3.2 general format that COBOL-85's
+    /// <c>COPY text-name-1 [{OF | IN} library-name-1] [REPLACING …]</c> did not have: the literal forms of
+    /// text-name-1 / library-name-1 (<see cref="Constructs.CopyLiteralName2002"/>) and the SUPPRESS phrase
+    /// (<see cref="Constructs.CopySuppress2002"/>). The one place the statement's phrases are edition-gated (the REPLACING
+    /// phrase's own gates are <see cref="OperandScreen.PartialWord"/> and <see cref="OnNonPseudoTextOperand"/>), reporting
+    /// at the phrase's SOURCE position (kb/Work PB1601).</summary>
+    private void GateCopyPhrase(MappedText mapped, int at, string construct, string what)
+    {
+        if (_diagnostics is null) return;
+        ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(_diagnostics, mapped.LocateAt(at)),
+            construct, what);
     }
 
     /// <summary>The reserved words of the COPY statement's own general format — never a text-name or library-name
@@ -624,6 +641,8 @@ public sealed class CopyProcessor(
         string? name;
         if (w.Kind == TextWordKind.Literal)
         {
+            GateCopyPhrase(mapped, w.Start, Constructs.CopyLiteralName2002,
+                $"the COPY operand {operand} written as the literal {w.Value}");
             var literal = TextWordScanner.DecomposeLiteral(w.Value);
             name = !literal.Terminated || !literal.IsAlphanumeric ? null
                 : literal.Prefix.Length == 0 ? literal.Content
