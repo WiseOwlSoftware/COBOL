@@ -684,14 +684,21 @@ def stamp_held(row: Row) -> bool:
     return bool(rv) and (rv.covers(row.tip) or row.review_holds)
 
 
+def findings_open(row: Row) -> bool:
+    """A finished report on a branch not on main whose review stamp says FINDINGS and covers the tip (stamp_held): the
+    findings are unanswered, whatever the report's age. THE one statement of it: finisher_due reads it, and lifecycle()
+    reads it before its stale-report arm, so an old report with findings never reads "land it" (kb/Work PB3118)."""
+    rep = row.report
+    return bool(row.content not in LANDED_CONTENT and rep and rep.finished
+                and rep.review and rep.review.verdict == 'FINDINGS' and stamp_held(row))
+
+
 def finisher_due(row: Row) -> bool:
     """A finished branch, not on main, whose branch review stamped FINDINGS at its tip: the planner owns its finisher
     (plan_wave.plan's FINDINGS arm, the same stamp_covers test), so the branch lands once that finisher has answered
     the findings, and everything it contains lands with it (contained(), kb/Work PB3267). Its row is a DECISION:
     nothing else decides it."""
-    rep = row.report
-    return bool(row.state == 'DECISION' and row.content not in LANDED_CONTENT and rep and rep.finished
-                and rep.review and rep.review.verdict == 'FINDINGS' and stamp_held(row))
+    return row.state == 'DECISION' and findings_open(row)
 
 
 def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours: float = 24,
@@ -758,7 +765,7 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
             return 'DECISION', (f'{rep.name}: {rep.status}, but {rep.lead} is already landed: superseded (its work '
                                 'reached main through another branch); confirm nothing unique remains, then delete it; '
                                 + evidence(row))
-        if rep.age_min > stale_hours * 60:
+        if rep.age_min > stale_hours * 60 and not findings_open(row):   # an old report WITH findings is the finisher's, below
             return 'DECISION', (f'{rep.name}: {rep.status} {rep.age_min / 60:.0f} h ago and never landed (over '
                                 f'{stale_hours:g} h): land it or record why not; ' + evidence(row))
         uncovered = ('the report names no HEAD and carries no review stamp, so it describes no commit of the branch'
@@ -775,9 +782,11 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         if covered and rv.verdict == 'CLEAN':
             return landing_state(row, rep, rv, lane, observed=prs is not None, pr=pr)
         if covered and rv.verdict == 'FINDINGS':
+            late = (f' (the report is {rep.age_min / 60:.0f} h old: the finisher is overdue, the landing is not)'
+                    if rep.age_min > stale_hours * 60 else '')
             return 'DECISION', (f'{rep.name}: {rep.status}, but its branch review found {rv.findings} finding(s) '
                                 f'({rv.file}): a finisher answers them, and the next wave plans it (plan_wave.py, '
-                                'kb/Work PB3027); ' + evidence(row))
+                                f'kb/Work PB3027){late}; ' + evidence(row))
         unreviewed = ('no review stamp' if rv is None else
                       f'Review {rv.verdict} at {rv.sha[:12]}, but the branch is at {row.tip[:12] or "?"}')
         return 'WAITING FOR REVIEW', (f'{rep.name}: Status {rep.status}, {unreviewed}: one cobol-reviewer reviews it (the '
@@ -1605,8 +1614,9 @@ def self_test() -> int:
                 # tip, the stamp does not), and a FINDINGS stamp followed only by the DEVLOG stamp (it still covers)
                 ('w9992a-PB50-report.md', f'Status: DONE\nBranch: findings-moved\nHEAD: {tips["findings-moved"]}\n'
                                           f'**Review:** FINDINGS 1 w9992a-r1 {fmoved_at[:12]} E:/s/review-w9992-a.jsonl\n', 10),
+                # 30 h old, over --stale-hours: an old report WITH findings is still the finisher's, never "land it" (PB3118)
                 ('w9992b-PB51-report.md', f'Status: DONE\nBranch: findings-stamped\nHEAD: {fstamped_at[:12]}\n'
-                                          f'**Review:** FINDINGS 1 w9992b-r1 {fstamped_at[:12]} E:/s/review-w9992-b.jsonl\n', 10),
+                                          f'**Review:** FINDINGS 1 w9992b-r1 {fstamped_at[:12]} E:/s/review-w9992-b.jsonl\n', 30),
                 ('w9992c-PB52-report.md', f'Status: DONE\nBranch: findings-resumed\nHEAD: {fresumed_at[:12]}\n'
                                           f'**Review:** FINDINGS 1 w9992c-r1 {fresumed_at[:12]} E:/s/review-w9992-c.jsonl\n', 10),
                 ('w9998o-PB16-report.md', f'Status: DONE\nBranch: fnd-pred\nHEAD: {tips["fnd-pred"]}\n'
@@ -1821,6 +1831,22 @@ def self_test() -> int:
               f'{[rows[b].state for b in ("findings-moved", "findings-stamped", "findings-resumed")]}')
         check('1 commit(s) since the report' in rows['findings-resumed'].why,
               f'a FINDINGS report followed by a commit no report describes is a DECISION: {rows["findings-resumed"].why}')
+        # kb/Work PB3118: the survey's promise "a finisher answers them, and the next wave plans it" holds for a lead the
+        # fix lane's clusters do not hold (a `process_only` note, or one only its branch has), and for a report over
+        # --stale-hours (findings-stamped is 30 h old): the DECISION row says the finisher is due, not "land it", and the
+        # planner, asked on the same rows with NO cluster holding PB51, plans that finisher
+        check('next wave plans it' in rows['findings-stamped'].why and 'never landed' not in rows['findings-stamped'].why
+              and 'finisher is overdue' in rows['findings-stamped'].why,
+              f'an old report with unanswered findings is the finisher\'s, not "land it": {rows["findings-stamped"].why}')
+        check(finisher_due(rows['findings-stamped']) and not finisher_due(rows['stale-done']),
+              'finisher_due and the stale-report arm read the same FINDINGS rule (findings_open)')
+        unseen_plan = plan_wave.plan(pnotes, [], [], preps, lambda b: rows[b].content if b in rows else 'ABSENT', {},
+                                     coord.rules(), 100,
+                                     review_covers=lambda rep: coverage.review(rep.review, rep.branch),
+                                     report_covers=lambda rep: coverage.report(rep.head, rep.branch))
+        check([g.notes for g in unseen_plan['groups'] if g.kind == 'finisher'] == [['PB51']],
+              f'every DECISION row that promises the next wave plans a finisher is planned one, with no cluster holding '
+              f'its lead: {[(g.kind, g.notes) for g in unseen_plan["groups"]]}')
         check('contained in succ' in rows['pred'].why, f'a predecessor lands through its successor: {rows["pred"].why}')
         # kb/Work PB3652: the survey reads the planner's own carrier rule (replay_view) and ancestry for a SPLIT branch too
         check((rows['rp-pred'].carrier, 'replayed by rp-succ (DECISION)' in rows['rp-pred'].why,
