@@ -35,3 +35,7 @@ Rows: none claimed; GR-13.18.60.4-25 stays CONFORMS and now has the ENTRY lane u
 **Siblings.** `SET pp TO pp` and `ADDRESS OF PROGRAM` were already screened. Two other lanes still accept an
 unrestricted address into a restricted program-pointer: `INITIALIZE pp REPLACING PROGRAM-POINTER DATA BY unrestricted`
 (measured, compiles clean; outside this group, reported as a lead) and `CALL ... RETURNING pp` (PB3686).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on the head, Linux half (WSL clone of HEAD) GREEN;
+the new negatives ran in leg 1 (`pb935-set-entry-restricted-literal` and `pb935-set-entry-restricted-identifier-list`, each at
+2002, 2014 and 2023, all Passed). Self-review of the diff found nothing further.
