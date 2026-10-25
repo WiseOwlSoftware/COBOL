@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c12_hex_alphanumeric_every_group
-      *> rules: [DOC-A.1-95, DOC-A.1-96]
+      *> rules: [DOC-A.1-95, DOC-A.1-96, GR-8.3.3.2.4-5]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
