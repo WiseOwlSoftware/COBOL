@@ -119,7 +119,7 @@ Say = Callable[[str], None]
 Git = Callable[[list[str]], tuple[int, str]]   # git argv -> (exit, stdout), in the landing worktree
 
 
-def _when(text: str) -> dt.datetime:
+def iso_time(text: str) -> dt.datetime:
     t = dt.datetime.fromisoformat(str(text).strip().replace("Z", "+00:00"))
     if t.tzinfo is None:
         raise ValueError(f"{text!r} has no UTC offset (write e.g. 2026-10-12T09:15:00-07:00)")
@@ -160,10 +160,10 @@ def validate(rec: dict) -> dict:
         raise ValueError(f"pull request {rec['pr']} has no --branch (the first record of a landing names it)")
     if rec["changes"] < 1:
         raise ValueError(f"--changes {rec['changes']} must be at least 1")
-    each = [_when(t) for t in rec["done_each"]]
-    if rec.get("enqueued") and any(t > _when(rec["enqueued"]) for t in each):
+    each = [iso_time(t) for t in rec["done_each"]]
+    if rec.get("enqueued") and any(t > iso_time(rec["enqueued"]) for t in each):
         raise ValueError(f"pull request {rec['pr']}: a change finished after it was enqueued ({rec['done_each']})")
-    stamps = [(k, _when(rec[k])) for k in STAMPS if rec.get(k)]
+    stamps = [(k, iso_time(rec[k])) for k in STAMPS if rec.get(k)]
     for (ka, ta), (kb, tb) in zip(stamps, stamps[1:]):
         if tb < ta:
             raise ValueError(f"pull request {rec['pr']}: {kb} {rec[kb]} is before {ka} {rec[ka]} "
@@ -185,7 +185,7 @@ def validate(rec: dict) -> dict:
         if not isinstance(s, dict) or not isinstance(s.get("read"), int) or s["read"] < 1 \
                 or s.get("cause") not in STALL_CAUSES or s.get("act") not in STALL_ACTS or not s.get("at"):
             raise ValueError(f"stall {s!r} is not {{read >= 1, cause in {STALL_CAUSES}, act in {STALL_ACTS}, at}}")
-        _when(s["at"])
+        iso_time(s["at"])
     return rec
 
 
@@ -206,7 +206,7 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
             continue
         if k in ("enqueued", "done_each") and rec.get(k):
             continue
-        if k == "done" and rec.get("done") and _when(v) >= _when(rec["done"]):
+        if k == "done" and rec.get("done") and iso_time(v) >= iso_time(rec["done"]):
             continue
         rec[k] = v
     return validate(rec)
@@ -242,7 +242,7 @@ def median(values: list[float]) -> float:
 
 
 def _minutes(a: str, b: str) -> float:
-    return (_when(b) - _when(a)).total_seconds() / 60
+    return (iso_time(b) - iso_time(a)).total_seconds() / 60
 
 
 def _spread(mins: list[float]) -> dict | None:
@@ -259,9 +259,9 @@ def after_figures(recs: list[dict]) -> dict:
     """The after column from the landing records (`merged` ones are the landings)."""
     landed = [r for r in recs if r.get("merged")]
     out: dict = {"records": len(recs), "landings": len(landed), "changes": sum(r["changes"] for r in landed)}
-    starts = [_when(r.get("done") or r["enqueued"]) for r in landed if r.get("done") or r.get("enqueued")]
+    starts = [iso_time(r.get("done") or r["enqueued"]) for r in landed if r.get("done") or r.get("enqueued")]
     if landed and starts:
-        window_h = (max(_when(r["merged"]) for r in landed) - min(starts)).total_seconds() / 3600
+        window_h = (max(iso_time(r["merged"]) for r in landed) - min(starts)).total_seconds() / 3600
         out["window_h"] = window_h
         out["per_h"] = out["changes"] / window_h if window_h > 0 else None
     mins = [_minutes(d, r["merged"]) for r in landed for d in _dones(r)]
@@ -298,7 +298,7 @@ def before_figures(trains: list[dict]) -> dict | None:
     if not rs:
         return None
     landed = sum(r["landed"] for r in rs)
-    window_h = (max(_when(r["pushed"]) for r in rs) - min(_when(r["started"]) for r in rs)).total_seconds() / 3600
+    window_h = (max(iso_time(r["pushed"]) for r in rs) - min(iso_time(r["started"]) for r in rs)).total_seconds() / 3600
     if landed < 1 or window_h <= 0:       # a rate needs a landed change over a window above zero
         return None
     per_change = [m for r in rs for m in [_minutes(r["started"], r["pushed"])] * r["landed"]]
@@ -333,7 +333,7 @@ def _cell(v: float | None, fmt: str = "{:.1f}") -> str:
 
 def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = None) -> list[str]:
     if since is not None:
-        recs = [r for r in recs if r.get("enqueued") and _when(r["enqueued"]) >= since]
+        recs = [r for r in recs if r.get("enqueued") and iso_time(r["enqueued"]) >= since]
     a, b = after_figures(recs), before_figures(trains)
     rows: list[tuple[str, str, str]] = []
     rows.append(("changes landed per hour",
@@ -468,14 +468,14 @@ def done_times(branch: str, reports_dir: pathlib.Path, not_after: str, git: Git,
     rc, log = git(["log", "--format=%B", f"{upstream}..HEAD"])
     named = {pathlib.PureWindowsPath(m.group(1).strip()).name for m in TRAILER_REPORT.finditer(log if rc == 0 else "")}
     seeds = [r for r in reps if r.path.name in named or _names_branch(_report_header(r.path), branch)]
-    limit = _when(not_after)
+    limit = iso_time(not_after)
     times: dict[str, str | None] = {}
 
     def finished(sha: str) -> str | None:
         if sha not in times:
             rc, out = git(["show", "-s", "--format=%cI", sha])
             t = out.strip() if rc == 0 and out.strip() else None
-            times[sha] = t if t and _when(t) <= limit else None
+            times[sha] = t if t and iso_time(t) <= limit else None
         return times[sha]
 
     def is_ancestor(a: str, b: str) -> bool:
@@ -491,7 +491,7 @@ def done_times(branch: str, reports_dir: pathlib.Path, not_after: str, git: Git,
     per_lead: dict[str, dt.datetime] = {}
     for s in filter(unlanded, seeds):
         chain = [r for r in reps if r.lead == s.lead and (r is s or is_ancestor(r.head, s.head)) and unlanded(r)]
-        found = [_when(t) for r in chain if (t := finished(r.head))]
+        found = [iso_time(t) for r in chain if (t := finished(r.head))]
         if found:
             per_lead[s.lead] = min([*found, *([per_lead[s.lead]] if s.lead in per_lead else [])])
     return [t.isoformat() for t in sorted(per_lead.values())]
@@ -531,7 +531,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
     ats = [g["at"] for g in plan_wave.ledger_groups(coord_dir)
            if plan_wave.ledger_slug(g) in slugs and isinstance(g.get("at"), (int, float))]
     dispatched = dt.datetime.fromtimestamp(min(ats)).astimezone().isoformat(timespec="seconds") if ats else None
-    if dispatched and done and _when(dispatched) > _when(done):
+    if dispatched and done and iso_time(dispatched) > iso_time(done):
         dispatched = None
     clean = None
     stamp = next((r.review for r in reversed(mine) if r.review and r.review.verdict == "CLEAN"), None)
@@ -546,7 +546,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
             if hits:
                 clean = max(hits)
                 break
-    if clean and ((done and _when(clean) < _when(done)) or _when(clean) > _when(enqueued)):
+    if clean and ((done and iso_time(clean) < iso_time(done)) or iso_time(clean) > iso_time(enqueued)):
         clean = None
     return {"dispatched": dispatched, "review_clean": clean}
 
@@ -619,7 +619,7 @@ def complete(path: pathlib.Path, gh: Gh, only: int | None = None, say: Say = pri
                 "pre-queue reds UNMEASURED")
         if ok:
             x = max(ok, key=lambda y: y["updatedAt"])
-            patch["ci_wall_s"] = round((_when(x["updatedAt"]) - _when(x["startedAt"])).total_seconds(), 1)
+            patch["ci_wall_s"] = round((iso_time(x["updatedAt"]) - iso_time(x["startedAt"])).total_seconds(), 1)
         else:
             say(f"⚠ landing-measure: PR #{r['pr']} merged but no successful merge-group run of {WORKFLOW} names it — "
                 "bounces and CI wall recorded as observed, the CI wall UNMEASURED")
@@ -705,7 +705,7 @@ def patch_from_args(a: argparse.Namespace) -> dict:
          "bounce_causes": [c.strip() for c in a.bounce_causes.split(",") if c.strip()] if a.bounce_causes else []}
     for k in STAMPS:
         v = getattr(a, k)
-        p[k] = _when(v).isoformat() if v else None
+        p[k] = iso_time(v).isoformat() if v else None
     return p
 
 
@@ -769,7 +769,7 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
                     ("no branch on a first record", {"pr": 18, "enqueued": t("10:00")}),
                     ("a time with no offset", {"pr": 17, "merged": "2026-10-12T11:00:00"})):
         try:
-            record(path, {k: (_when(v).isoformat() if k in STAMPS and v else v) for k, v in p.items()})
+            record(path, {k: (iso_time(v).isoformat() if k in STAMPS and v else v) for k, v in p.items()})
             fails.append(f"{refuse_arm}: accepted {name}")
         except ValueError:
             pass
@@ -836,9 +836,9 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     (srd / "w4b-PB7-report.md").write_text("SPLIT\n**Status:** SPLIT · **branch:** `bp` · **HEAD:** `0123abcd`\n",
                                            encoding="utf-8", newline="\n")
     coord.write_json(sc / plan_wave.DISPATCH_LEDGER, {"groups": [
-        {"wave": "5", "letter": "A", "notes": ["PB7"], "files": [], "at": _when(t("08:30")).timestamp()},
-        {"wave": "4", "letter": "B", "notes": ["PB7"], "files": [], "at": _when(t("08:00")).timestamp()},
-        {"wave": "9", "letter": "C", "notes": ["PB8"], "files": [], "at": _when(t("07:00")).timestamp()}]})
+        {"wave": "5", "letter": "A", "notes": ["PB7"], "files": [], "at": iso_time(t("08:30")).timestamp()},
+        {"wave": "4", "letter": "B", "notes": ["PB7"], "files": [], "at": iso_time(t("08:00")).timestamp()},
+        {"wave": "9", "letter": "C", "notes": ["PB8"], "files": [], "at": iso_time(t("07:00")).timestamp()}]})
     (sc / "scratch" / "w5").mkdir()
     (sc / "scratch" / "w5" / "review-w5-a.jsonl").write_text("".join(json.dumps(x) + chr(10) for x in (
         {"kind": "start", "round": 1, "branch": "bs", "head": "abcdef12", "reviewer": "w5a-review-r1", "at": t("09:10")},
@@ -848,7 +848,7 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     st = stage_times("bs", srd, sc, t("09:00"), t("09:40"))
     early = stage_times("bs", srd, sc, t("07:30"), t("09:40"))            # a DONE before the dispatch: null
     late = stage_times("bs", srd, sc, t("09:00"), t("09:15"))             # a review after the queue: null
-    if (_when(st["dispatched"]) != _when(t("08:00")) or st["review_clean"] != t("09:20")
+    if (iso_time(st["dispatched"]) != iso_time(t("08:00")) or st["review_clean"] != t("09:20")
             or early["dispatched"] is not None or late["review_clean"] is not None
             or stage_times("zz", srd, sc, None, t("09:40")) != {"dispatched": None, "review_clean": None}):
         fails.append(f"{stage_arm}: {st} / {early} / {late}")
@@ -1051,7 +1051,7 @@ def main(argv: list[str]) -> int:
         if a.action == "summary":
             d = coord.coord_path(a.coord)
             before = pathlib.Path(a.before) if a.before else before_path(d)
-            for line in summarize(read_all(d / FILE), read_all(before), _when(a.since) if a.since else None):
+            for line in summarize(read_all(d / FILE), read_all(before), iso_time(a.since) if a.since else None):
                 print(line)
             return 0
         if a.action == "freeze":

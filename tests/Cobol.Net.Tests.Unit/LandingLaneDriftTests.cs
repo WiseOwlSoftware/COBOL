@@ -117,10 +117,15 @@ public sealed class LandingLaneDriftTests
         Assert.True(start.Length > 0, "orchestrate.ps1 has no `function Start-LaneTick`: the landing lane is not started (kb/Work PB3103)");
         Assert.Contains("'land_lane.py'", start, StringComparison.Ordinal);
         Assert.Contains("'tick'", start, StringComparison.Ordinal);
-        Assert.True(start.Contains("[System.Diagnostics.Process]::Start(", StringComparison.Ordinal)
-                    && !start.Contains("WaitForExit", StringComparison.Ordinal),
-            "Start-LaneTick must start the tick as a background process and never wait for it: the event loop reads the "
-            + "unit's stream, ticks the startup watchdog and checks STOP (kb/Work PB2590)");
+        // The supervisor's ONE background starter (kb/Work PB3638 moved the lane tick, the checkpoint and the progress
+        // tick onto it): the tick goes through it, and it starts a process without ever waiting for it.
+        string background = FunctionBody(script, "Start-PyBackground");
+        Assert.True(start.Contains("Start-PyBackground", StringComparison.Ordinal)
+                    && !start.Contains("WaitForExit", StringComparison.Ordinal)
+                    && background.Contains("[System.Diagnostics.Process]::Start(", StringComparison.Ordinal)
+                    && !background.Contains("WaitForExit", StringComparison.Ordinal),
+            "Start-LaneTick must start the tick as a background process (Start-PyBackground) and never wait for it: the "
+            + "event loop reads the unit's stream, ticks the startup watchdog and checks STOP (kb/Work PB2590)");
 
         string unit = FunctionBody(script, "Invoke-Unit");
         Assert.True(unit.Length > 0, "orchestrate.ps1 has no `function Invoke-Unit`; re-point this test");

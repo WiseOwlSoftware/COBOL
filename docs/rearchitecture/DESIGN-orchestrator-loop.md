@@ -273,7 +273,7 @@ Each iteration, in this order:
 8. **Record** one line in `units.jsonl`: `{unit, reason, model, session_id, started_at, ended_at, duration_s,
    exit_code, handoff_outcome, next_unit, failed, log, calls, input, output, cache_read, cache_creation,
    peak_context, peak_subagent_context, cost_usd, stop_unit_sent, fleet_stop_sent, wind_down (null, context-soft,
-   context-hard or stop), fleet_at_wind_down, killed}`, plus, with `-Cluster`, `cluster` (the lead a `campaign` unit ran)
+   time-soft, context-hard or stop), fleet_at_wind_down, killed}`, plus, with `-Cluster`, `cluster` (the lead a `campaign` unit ran)
    and `campaigns` (each lead's lane state at this choice), which `next_unit.py` reads back for the campaign turns and
    the starvation measure (section 3.2). This is the per-unit cost record PB1981 item 9 refits the cost
    law from. An owner question in a valid handoff then stops the loop (exit 5).
@@ -352,6 +352,25 @@ So the soft cap is 200,000, about 1.45 times the largest normal peak (headroom f
 under the soft cap still has more than three times the largest measured supervision growth before the hard cap.
 Re-measure both from `units.jsonl` (`peak_context`, `wind_down`, `fleet_at_wind_down`) when the prompts or the model
 change.
+
+**The time cap and the progress line (kb/Work PB3638, the owner's fix-cycle bar of 2026-10-24).** The owner: "It's
+stupid to have work running with no updates or progress for multiple hours", and on 2026-10-23 "no wave may take hours;
+one chain link per wave, hand off at ~60 min". Three mechanisms carry it:
+- **One chain link per wave** (`model_rules.json` `wave.links_per_chain`, 1; section 9 item 4): a wave runs until its
+  last group returns, so a wave plans only each chain's first link and its length is one group's.
+- **The time soft cap** (`-UnitSoftMinutes`, default 60): past it the supervisor writes `STOP-UNIT` and records the
+  wind-down `time-soft`, exactly as at the context soft cap: the unit starts no new step and launches no fleet, a fleet
+  already running finishes and lands, and the unit then hands off. It never sends the fleet stop: a running
+  implementer's work is not thrown away for the clock.
+- **The progress line** (`-ProgressSeconds`, default 600): `progress.py`, started in the background like the lane tick
+  (never on the event loop, never fatal), prints `PROGRESS <unit> at <n> min:` with the dispatch-ledger groups by state
+  (running, DONE reviewed CLEAN, FINDINGS, unreviewed, other), the landings enqueued and merged since the unit started
+  and the oldest waiting item, plus a `STALL` line for each group running past 60 minutes or DONE and unreviewed past 15
+  (half the 30-minute dispatch-to-queue bar). The supervisor says every line in its log, and `progress.py --post` sends
+  each stalled item to the operator's mailbox once (`kind: info`, `--unless-pending`, again only an hour later while it
+  stays stalled: every message wakes the attended session, so a message per tick would cost it a turn every ten minutes
+  for news it has). The stages of the bar are measured per landing by `landing_measure.py summary` (dispatch, DONE,
+  review clean, enqueued, merged; DESIGN-test-build-ci.md section 3.17.5).
 
 ### 4.4 Replacing the daily-resume cron
 
