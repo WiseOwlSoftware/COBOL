@@ -382,7 +382,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             BeginsWithAll = false };   // the BARE Format-7 reference — fill semantics without the word ALL
 
     public BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
@@ -1386,7 +1386,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     internal BoundExpr ScreenIdentifierOperand(BoundExpr bound, Antlr4.Runtime.ParserRuleContext id, OperandContext context)
     {
         if (!context.Rules().NumericClassScreen) return bound;
-        var operand = IntrinsicBinder.OperandOf(bound);
+        var operand = IntrinsicBinder.OperandOf(bound, functionValue: true);
         if (IntrinsicArgumentRules.IsArithmeticOperandClass(operand)) return bound;
         string cls = IntrinsicArgumentRules.ClassOf(operand) is { } c ? IntrinsicArgumentRules.Name(c) : "non-numeric";
         string article = cls[0] is 'a' or 'e' or 'i' or 'o' or 'u' ? "an" : "a";

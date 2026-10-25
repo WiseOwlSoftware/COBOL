@@ -47,10 +47,12 @@ public sealed class MergeDriverDriftTests
             "pin: both branches raised the major 17 -> 18: the merge makes it 19",
             "pin: a settle that fails aborts the merge and names the pin",
             "coverage: is_drivers_merge accepts the merge with its pin settled",
+            "coverage: a merge whose pin is MEASURED (its header names UNMEASURED only in prose)",
             "check: the registry and this repository's .gitattributes agree",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.At(AbiPin), [
             "merge: a counter both sides raised by one is raised by two",
+            "unmeasured: a pin whose header names UNMEASURED only in its prose is measured",
             "settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement",
             "settle: a measurement that fails, or writes nothing, is the reason",
             "bump: the named counter rises by one",
