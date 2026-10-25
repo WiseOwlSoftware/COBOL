@@ -108,6 +108,7 @@ public static class Constructs
     public const string ZeroLengthLiteral2014 = "zero-length-literal-2014";
     public const string FloatingPointLiteral2002 = "floating-point-literal-2002";
     public const string StringDelimitedOmitted2002 = "string-delimited-omitted-2002";
+    public const string PerformVaryingByOmitted2002 = "perform-varying-by-omitted-2002";
     public const string RecordKeySource2002 = "record-key-source-2002";
     public const string LabelRecordsRemoved2002 = "label-records-removed-2002";
     public const string UserWordCommit2023 = "user-word-commit-2023";

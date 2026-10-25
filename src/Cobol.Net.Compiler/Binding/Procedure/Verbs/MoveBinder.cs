@@ -16,10 +16,12 @@ using Core = CobolParserCore;
 /// VCR rows 1 / 92 / 128): SR5 permits "an ALL "literal" figurative constant (containing only digits) or an ALL
 /// symbolic-character (representing a digit)" to move "to an integer numeric item"; "in all other cases, the move
 /// of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL
-/// symbolic-character) to either a numeric item or a numeric-edited item is prohibited". The prohibition is NEW in
-/// 2023 — these moves were permitted through ISO 2014 (Annex E.2 item 1 bullet 1, the removals list) — so the
-/// registry row "move-alphanumeric-figurative-removed-2023" routes it: silent below 2023, error at 2023 strict,
-/// warning at 2023 --permissive (the pre-removal semantics preserved). The surviving digit-only-ALL-to-integer
+/// symbolic-character) to either a numeric item or a numeric-edited item is prohibited". Except for SPACE the
+/// prohibition is NEW in 2023 — those moves were permitted through ISO 2014 (Annex E.2 item 1 bullet 1, the removals
+/// list) — so the registry row "move-alphanumeric-figurative-removed-2023" routes them: silent below 2023, error at
+/// 2023 strict, warning at 2023 --permissive (the pre-removal semantics preserved). SPACE was already prohibited
+/// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; VCR row 7.41), so the MOVE chain refuses it at every edition, COBOLNET0819
+/// (MoveValidity.FigurativeRefusal; kb/Work PB3605). The surviving digit-only-ALL-to-integer
 /// case is itself obsolete at 2023 (the SR5 NOTE; Annex F.2 item 2) — row "move-all-digit-integer-obsolete-2023",
 /// a 0903 warning at ≥2023 and silent below.
 /// </summary>

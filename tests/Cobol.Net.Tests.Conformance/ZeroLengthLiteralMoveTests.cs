@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 /// <para><b>Both directions are pinned here, because the fix is only correct if it moves the VALUE without
 /// moving the DIAGNOSTIC.</b> §14.9.25.3 SR5/SR6/SR7 are SYNTAX rules over a closed list of figurative constants
 /// WRITTEN in the source, and a zero-length literal is not one of them: <c>MOVE "" TO PIC 9(3)</c> must still
-/// compile at 2023 STRICT (where <c>MOVE SPACE TO PIC 9(3)</c> is COBOLNET0902), and <c>MOVE B"" TO PIC 9(3)</c>
+/// compile at every edition (where <c>MOVE SPACE TO PIC 9(3)</c> is COBOLNET0819, kb/Work PB3605), and <c>MOVE B"" TO PIC 9(3)</c>
 /// must still be refused on the BOOLEAN row of Table 16 rather than accepted as figurative ZERO.</para>
 /// </summary>
 public sealed class ZeroLengthLiteralMoveTests
@@ -107,8 +107,9 @@ public sealed class ZeroLengthLiteralMoveTests
 
     /// <summary>⭐ THE EQUIVALENCE GR2 STATES, measured as one: whatever <c>MOVE SPACE TO x</c> produces,
     /// <c>MOVE "" TO x</c> produces — the two are the SAME statement, so no implementation may distinguish
-    /// them. Measured where both spellings are legal (pre-2023; §14.9.25.3 SR5 removed the written figurative
-    /// into a numeric receiver at 2023, which is exactly why the equivalence is measured at 2014).</summary>
+    /// them. The written SPACE is refused into a numeric or numeric-edited item at every edition (§14.9.25.3 SR5;
+    /// kb/Work PB3605), so its side moves into the item's full-width reference-modified view, an alphanumeric item
+    /// over the same character positions (§8.4.3.3.4 GR6 c)), and the two images are compared.</summary>
     [Fact]
     public void Gr2_AndMoveSpace_AreTheSameStatement()
     {
@@ -120,10 +121,10 @@ public sealed class ZeroLengthLiteralMoveTests
             """, """
             MOVE 123 TO B-ZL, B-FG.
             MOVE "" TO A-ZL.
-            MOVE SPACE TO A-FG.
+            MOVE SPACE TO A-FG (1:3).
             MOVE "" TO B-ZL.
-            MOVE SPACE TO B-FG.
-            IF A-ZL = A-FG AND B-ZL = B-FG
+            MOVE SPACE TO B-FG (1:3).
+            IF A-ZL (1:3) = A-FG (1:3) AND B-ZL = B-FG
                 DISPLAY "SAME"
             ELSE
                 DISPLAY "DIFFERENT [" A-ZL "][" A-FG "][" B-ZL "][" B-FG "]"
@@ -283,19 +284,23 @@ public sealed class ZeroLengthLiteralMoveTests
     /// <summary>⛔ The value is the figurative's; the diagnostics are the literal's. §14.9.25.3 SR5 prohibits
     /// "the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or
     /// ALL symbolic-character) to either a numeric item or a numeric-edited item" — a CLOSED LIST of things
-    /// written in the source — and ISO 2023 removed it (Annex E.2 item 1). A zero-length literal is not on that
-    /// list, so at 2023 STRICT <c>MOVE "" TO PIC 9(3)</c> compiles and <c>MOVE SPACE TO PIC 9(3)</c> does
-    /// not. Gating the substituted sender would have turned a wrong answer into a false rejection.</summary>
-    [Fact]
-    public void ZeroLengthLiteral_IntoNumeric_IsNotTheSr5Removal_At2023Strict()
+    /// written in the source; for SPACE the prohibition holds at every edition (kb/Work PB3605). A zero-length
+    /// literal is not on that list, so <c>MOVE "" TO PIC 9(3)</c> compiles and <c>MOVE SPACE TO PIC 9(3)</c>
+    /// does not, at 2023 strict as at 2014 (the zero-length literal's introducing edition, VCR row 7.30). Gating
+    /// the substituted sender would have turned a wrong answer into a false rejection.</summary>
+    [Theory]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void ZeroLengthLiteral_IntoNumeric_IsNotRefusedBySr5(int edition)
     {
-        var zl = EditionHarness.Compile(Prog("ZLM08", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE \"\" TO R-NUM."), 2023);
-        Assert.True(zl.Ok, "MOVE \"\" TO a numeric item is permitted at 2023 — ISO §14.9.25.3 SR5 names only "
+        var zl = EditionHarness.Compile(Prog("ZLM08", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE \"\" TO R-NUM."), edition);
+        Assert.True(zl.Ok, "MOVE \"\" TO a numeric item is permitted — ISO §14.9.25.3 SR5 names only "
             + "figurative constants written in the source; §14.9.25.4 GR2 substitutes a value: "
             + string.Join("\n", zl.Diagnostics));
-        var fig = EditionHarness.Compile(Prog("ZLM09", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE SPACE TO R-NUM."), 2023);
-        Assert.False(fig.Ok, "the WRITTEN figurative is still the §14.9.25.3 SR5 removal at 2023 strict");
-        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "COBOLNET0902");
+        var fig = EditionHarness.Compile(Prog("ZLM09", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE SPACE TO R-NUM."), edition);
+        Assert.False(fig.Ok, "the WRITTEN figurative SPACE is refused by §14.9.25.3 SR5 at every edition");
+        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "§14.9.25.3 SR5");
     }
 
     /// <summary>The Table 16 row read is the WRITTEN literal's category, never the substituted figurative's:
