@@ -1003,4 +1003,38 @@ public sealed class SequentialCommitControlTests
         }
         finally { ScratchDirectory.Remove(dir); }
     }
+
+    /// <summary>⛔ A TRANSACTION'S HOLDER THAT CANNOT BE PUBLISHED REFUSES THE COVERED STATEMENT '30' FOR EITHER CAUSE, WITH THE FILE
+    /// UNAFFECTED (kb/Work PB3675; design 2.2.2.5 R1; §9.1.13.6 item 1 and, for an OPEN, §14.9.27.4 GR25's <i>"the file is not
+    /// affected"</i>): the publication answers <c>Unavailable</c> (the host takes no lock here) or <c>Held</c> (every try lost its
+    /// race), the journal's <c>Begin</c> refuses before the first byte of F changes or F is created, and nothing of the journal is
+    /// left behind. The statements are the three that begin a transaction on a sequential file: OPEN OUTPUT of an existing file (a
+    /// capture), OPEN OUTPUT of an absent file (a creation) and the first WRITE under EXTEND.</summary>
+    [Theory]
+    [InlineData(false, "output-present")]
+    [InlineData(true, "output-present")]
+    [InlineData(false, "output-absent")]
+    [InlineData(true, "output-absent")]
+    [InlineData(false, "extend-write")]
+    [InlineData(true, "extend-write")]
+    public void A_transactions_holder_that_cannot_be_published_refuses_the_statement_30_whatever_the_cause(bool lostRace, string statement)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            if (statement != "output-absent") File.WriteAllText(f, "C1C2", Encoding.Latin1);
+            var medium = new FaultHostMedium { PublicationAnswer = lostRace ? RegionLockResult.Held : RegionLockResult.Unavailable };
+            var u = new Unit(f, covered: true, medium);
+            string status = statement == "extend-write"
+                ? (u.Open(FileOpenMode.Extend) == "00" ? u.Write("X1") : "open refused")
+                : u.Open(FileOpenMode.Output);
+            Assert.Equal("30", status);
+            Assert.Contains(medium.Log, op => op.StartsWith("publish txn-", StringComparison.Ordinal));
+            u.Reg.CloseAll();
+            Assert.Equal(statement == "output-absent" ? "<absent>" : "C1C2", Show(State(f)));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
 }
