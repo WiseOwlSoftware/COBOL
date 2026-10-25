@@ -1433,7 +1433,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          review_covers: Callable[[Report], bool] | None = None,
          report_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
-         abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None) -> dict[str, Any]:
+         abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None,
+         answered: Callable[[Report], str | None] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -1614,6 +1615,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                                 f"{r.branch} has commits since {r.slug}'s HEAD that no report describes (lifecycle() "
                                 f"reads it IN FLIGHT or a DECISION, never WAITING FOR REVIEW): no reviewer and no "
                                 f"finisher is dispatched until its agent rewrites its report")
+        elif findings(r, cls) and answered and (by := answered(r)):
+            # ONE FINDINGS CASE, ONE OWNER (kb/Work PB3404): this branch is carried by `by`, whose own review is CLEAN
+            # over a head that contains the reviewed one, and whose review the wave told to cover these commits as its
+            # own (the findings file's last verdict is not the capped round): a finisher here would fix again what
+            # the carrier's review finisher fixed, and the carrier lands the branch's commits
+            waiting[nid] = (f"its review findings are answered by {by}'s own review (CLEAN over a head that contains "
+                            f"the reviewed one): {by} lands the branch's commits, so a finisher would fix them twice "
+                            f"(kb/Work PB3404); it is planned again if {by} does not land")
         elif r.gate_state == "RUNNING":
             # A GATE HANDED TO THE WAVE (kb/Work PB3536): its agent returned GATE-PENDING at its turn cap and the gate
             # still runs, detached; the wave awaits its verdict, and a GREEN one makes the report finished. A finisher
@@ -2284,12 +2293,18 @@ def main(argv: list[str] | None = None) -> int:
     reports_dir = pathlib.Path(a.reports) if a.reports else coord.reports_dir(a.coord)
     reports = load_reports(reports_dir, cdir)
     if a.no_branches:
-        classify, unlanded, carrier, replay, abandoned = (lambda _b: "ABSENT"), {}, None, None, set()
+        classify, unlanded, carrier, replay, abandoned, answered = (lambda _b: "ABSENT"), {}, None, None, set(), None
     else:
         import prune_worktrees  # noqa: PLC0415  (its git runner, reused)
         local, graph = local_branches()
         classify, unlanded = git_branch_classifier(local, graph), unlanded_branch_notes(local, graph)
         carrier = branch_carrier(reports, classify, graph.is_ancestor)
+        newest_review = {r.branch: r.review for r in reports if r.branch}   # oldest first: the newest report of a branch wins
+
+        def answered(rep: Report) -> str | None:
+            """The branch carrying `rep`'s branch whose own CLEAN review answers its findings (kb/Work PB3404)."""
+            by = carrier(rep.branch or "")
+            return by if by and prune_worktrees.answered_by_carrier(rep.review, newest_review.get(by), graph) else None
         abandoned = set(prune_worktrees.abandon_records(
             sorted({r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES} | set(unlanded)),
             REPO / "kb" / "Work"))
@@ -2331,7 +2346,7 @@ def main(argv: list[str] | None = None) -> int:
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
              owned=owned, locked=locked, review_covers=review_covers, report_covers=report_covers, replay=replay,
-             abandoned=abandoned, tiers=tiers)
+             abandoned=abandoned, tiers=tiers, answered=answered)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
