@@ -97,7 +97,7 @@ internal static class PrototypeSignatures
 
     /// <summary>A group whose description is its subordinate entries' — the "is this a group operation?" test
     /// (<see cref="DataItem.IsAsIfElementary"/>'s remarks): a group that is not a bit / national group.</summary>
-    private static bool DescribedBySubordinates(DataItem item) => item.IsGroup && !item.IsAsIfElementary;
+    private static bool DescribedBySubordinates(DataItem item) => item.IsPlainGroup;
 
     /// <summary>⛔ THE TYPE OF A RESTRICTED PROGRAM- OR FUNCTION-POINTER ITEM (kb/Work PB2464) — the one reader of
     /// <see cref="DataItem.PointerRestrictionIdentity"/>: <c>TO name</c> of the signature class
