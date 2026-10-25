@@ -282,7 +282,8 @@ public sealed class MoveLanding(Func<MoveSending, string> Record) : CarrierLandi
 /// MOVE of the same function value edits it.</param>
 /// <param name="StorageImage">⛔ THE SECOND ALPHABET (kb/Work PB3587): the sender's REPRESENTATION - the UTF-16BE pairs of a USAGE
 /// NATIONAL item or value, the packed bits of a USAGE BIT one - when that is not its <paramref name="Characters"/> (one
-/// character a position). An elementary formal reads the characters; a PLAIN-GROUP formal's record is filled by §14.9.25.4
+/// character a position) - or, for a NUMERIC function's value, which states none (§15.2 4)-5), its DIGITS (kb/Work PB3613,
+/// <see cref="CobolNum.GroupDigits"/>). An elementary formal reads the characters; a PLAIN-GROUP formal's record is filled by §14.9.25.4
 /// GR4's move, "no conversion of data from one form of internal representation to another", so it reads this image
 /// (<see cref="CobolArgAdapt.Text"/>). The activating element cannot choose between them - it does not see the formal - and
 /// the activated unit can. Null when the characters ARE the representation.</param>
@@ -825,12 +826,23 @@ public static class CobolArgAdapt
             // storageImage is stated when the value's usage is NATIONAL or BIT (a national or boolean function): its characters
             // are then not its representation, and the compiler names the codec from the value's usage (kb/Work PB3587).
             ManagedPointer<string> s => new MoveSending(s.Value ?? "", StorageImage: storageImage?.Invoke(s.Value ?? "")),
-            ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value, Approximate: approximate),
-            var c when ReadNumericCell(c) is { } v =>
-                new MoveSending(CobolNum.FormatFunctionText(v, arg.Scale, deSign: true), Numeric: true, Unscaled: v, Scale: arg.Scale),
+            // ⛔ A NUMERIC VALUE STATES ITS DIGITS AS ITS GROUP-MOVE IMAGE (kb/Work PB3613): a numeric or integer function's value has
+            // no representation for §14.9.25.4 GR4 to preserve (§15.2 4)-5), §15.4.1), so a plain-group formal reads the digits of
+            // the value, as a numeric literal and a MOVE of the function to a group send them (CobolNum.GroupDigits; D-B4).
+            ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value, Approximate: approximate,
+                StorageImage: CobolNum.GroupDigits(CobolFloat.Display(d.Value))),
+            var c when ReadNumericCell(c) is { } v => NumericSending(v, arg.Scale),
             _ => null,
         },
     };
+
+    /// <summary>The sending operand of an evaluated fixed-point value (<see cref="WithValueSending"/>): its characters and
+    /// algebraic value, and its digits as the group-move image (<see cref="CobolNum.GroupDigits"/>, kb/Work PB3613).</summary>
+    private static MoveSending NumericSending(Int128 unscaled, int scale)
+    {
+        string characters = CobolNum.FormatFunctionText(unscaled, scale, deSign: true);
+        return new MoveSending(characters, Numeric: true, Unscaled: unscaled, Scale: scale, StorageImage: CobolNum.GroupDigits(characters));
+    }
 
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
     private static bool WriteNumericCell(ManagedPointer p, Int128 v)

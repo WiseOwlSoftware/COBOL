@@ -787,14 +787,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             BoundFieldOperand f => f.Place.Item.OperandPic?.Usage,
             // §15.2 items 1–3: an alphanumeric function has "an implicit usage display", a boolean function "an
             // implicit usage bit", a national function "an implicit usage national"; items 4–5 give a numeric or
-            // integer function none, and SR3's function sentence covers it by type below.
-            BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory switch
-            {
-                PicCategory.Alphanumeric => Usage.Display,
-                PicCategory.Boolean => Usage.Bit,
-                PicCategory.National => Usage.National,
-                _ => null,
-            },
+            // integer function none, and SR3's function sentence covers it by type below. The §15.2 usage by type is
+            // the ONE IntrinsicSig.ImplicitUsageOf (kb/Work PB3665), asked here as STRING SR1 and INSPECT SR2 ask it.
+            BoundComputedOperand { Expr: BoundIntrinsicCall ic } => IntrinsicSig.ImplicitUsageOf(ic.ResultCategory),
             _ => null,
         };
         bool function = op is BoundComputedOperand { Expr: BoundIntrinsicCall };
@@ -1544,7 +1539,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // short-circuited: `(FUNCTION LOWER-CASE(X))` is "an arithmetic expression enclosed in
                 // parentheses" (§8.8.1.1) and the single-child descent gives that for free.
                 : SoleFunctionCall(expr) is { } sfc
-                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc))
+                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc), functionValue: true)
                 // Its §8.4.3.1.2 Format-4 twin (kb/Work PB1142): a SOLE inline method invocation "references a
                 // temporary data item with the same class, category, and content as the temp-identifier" (ISO
                 // §8.4.3.4.4 GR1), so an alphanumeric-returning one is a legal relation operand exactly as a sole
