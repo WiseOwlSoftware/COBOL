@@ -50,6 +50,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
 import work  # noqa: E402  (the register's one reader)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The fix lane's population: `.agent-fleet.json`'s `kind` and `skip_flag`, the file fix_clusters.py reads.
 FLEET = REPO / ".agent-fleet.json"
@@ -495,13 +497,6 @@ def self_test() -> int:
 
 
 def main() -> int:
-    # Both streams in UTF-8 BEFORE argparse can print (its --help carries the docstring's non-ASCII): a redirected
-    # stream is the host's code page on Windows otherwise (kb/Work PB1546's class).
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except AttributeError:   # a replaced stream (a test harness's) has no reconfigure
-            pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="fire every arm on planted registers, then the real one")
     a = ap.parse_args()
@@ -515,4 +510,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

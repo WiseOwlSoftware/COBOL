@@ -48,6 +48,8 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 DESIGN = Path("docs/rearchitecture/DESIGN-architecture-review.md")
@@ -356,7 +358,6 @@ def report_partition(holes, overlaps) -> bool:
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--check", action="store_true")
@@ -404,4 +405,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

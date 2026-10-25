@@ -32,6 +32,7 @@ import coord  # noqa: E402
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
+from standard_streams import ensure_utf8  # noqa: E402
 
 LOCK = "alloc.lock"
 KINDS = ("devlog", "pb", "code", "wave")
@@ -170,10 +171,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--coord", help=f"coordination directory (default ${coord.ENV} or {coord.DEFAULT})")
     ap.add_argument("--repo", default=str(coord.REPO), help="repository whose files are the truth (default: this one)")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     repo, cdir = pathlib.Path(a.repo), coord.coord_dir(a.coord)
     if a.kind == "seed":
         if a.arg not in KINDS or a.value is None or a.value < 1:
@@ -202,4 +199,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
