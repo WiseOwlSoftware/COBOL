@@ -2251,7 +2251,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
    nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
-   worktree's own gate is still running and has written no verdict, `run_gate_legs.live_run`, kb/Work PB3662, where the record would
+   worktree's own gate is still running and has written no verdict, `run_gate_legs.live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
    otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the

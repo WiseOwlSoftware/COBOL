@@ -70,8 +70,8 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    pull request into main owns an entry the branch
                                                                    carries (`wait_free`); never the enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
-                lock, or the branch's own gate had not written its   is free and no gate run owes a verdict
-                verdict yet (kb/Work PB3527, PB3662; nothing ran,    (`wait_free`); never the enqueue unit's
+                lock, or the branch's own gate had not written its   is free (`wait_free`; a gate holds it until
+                verdict yet (kb/Work PB3527, PB3662; nothing ran,    its verdict is written); never the enqueue unit's
                 nothing red)
        exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
                 cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
@@ -123,7 +123,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
 from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE,
-                     QUEUED_LINE, VERDICT, land_lock_path)  # noqa: E402  (the landing's contract)
+                     PR_LIST_FIELDS, QUEUED_LINE, VERDICT, land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
@@ -137,7 +137,7 @@ EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch share
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate (its lock, or a run without its verdict)",
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
          EXIT_LAND_BUSY: "the worktree's land lock",
          EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
@@ -396,15 +396,11 @@ def landing_check_free(worktree: str) -> tuple[bool, str]:
 def gate_lock_free(worktree: str) -> tuple[bool, str]:
     """Whether no gate runs in the worktree now (exit 12's wait): its gate lock (the gate driver's own:
     run_gate_legs.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a lock
-    that reads held is a live gate), AND no gate run is still owed a verdict (`run_gate_legs.live_run`, the one reader,
-    kb/Work PB3662: the landing answers exit 12 for such a run too, and a run's process can outlive its lock)."""
-    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path and its runs)
-    free, detail = lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
-    if not free:
-        return free, detail
-    if (live := run_gate_legs.live_run(pathlib.Path(worktree) / run_gate_legs.RUN_ROOT)) is not None:
-        return False, f"the gate run {live[0].name} (pid {live[1]}) has not written its verdict yet"
-    return True, ""
+    that reads held is a live gate). That lock is also `run_gate_legs.live_gate`'s reader, the one the landing answers
+    exit 12 by (kb/Work PB3662: a gate holds it until its verdict file is written), so the wait ends exactly when the
+    landing would stop answering 12; a gate process id is never read (Windows reuses them)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    return lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
 
 
 def land_lock_free(worktree: str) -> tuple[bool, str]:
@@ -447,7 +443,7 @@ def predecessor_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, st
 def wait_free(rc: int | None, worktree: str, *,
               gh: Callable[[list[str]], tuple[int, str, str]] | None = None) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free and no gate run owes a verdict; exit 13, the worktree's land lock
+    branch; exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock
     is free; exit 15, no open pull request owns a DEVLOG entry the branch carries (`gh`: GitHub's reader, the real one
     unless a self-test plants it)."""
     if rc == EXIT_PREDECESSOR_QUEUED:
@@ -908,7 +904,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 revi
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free and no gate run owes a verdict; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -1198,21 +1194,27 @@ def self_test() -> int:
         gate_wt = ScratchRepo.init(root / "wt-w2c").path
         owed_run = gate_wt / run_gate_legs.RUN_ROOT / "000005-20261024T225004Z"
         owed_run.mkdir(parents=True)
-        run_gate_legs.write_pid(owed_run, os.getpid())             # the implementer's gate: its process lives
-        f3c.tick(c3c)
-        finish(c3c, "w2c", EXIT_GATE_BUSY, "GATE BUSY — the gate run 000005-20261024T225004Z of this worktree is still "
-               "running", end_head="o1")
-        f3c.live.clear()
-        waiting = f3c.tick(c3c)
-        waiting_said = " | ".join(f3c.said)
-        owed_now = wait_free(EXIT_GATE_BUSY, str(gate_wt))
-        (owed_run / run_gate_legs.VERDICT_FILE).write_text(
-            json.dumps({"verdict": "LEG 1 ONLY (batched gating, PB2515): GREEN", "line": "=== planted ==="}),
-            encoding="utf-8", newline="\n")
+        # The implementer's gate holds the worktree's gate lock until it has written its verdict. Its gate.pid names THIS
+        # process, which stays alive afterwards: a process id says nothing about the gate (review R1-1: Windows reuses a
+        # dead gate's), so the lane relaunches the moment the lock is free, whatever that pid file still names.
+        run_gate_legs.write_pid(owed_run, os.getpid())
+        gate_held = ExclusiveLock.try_take(run_gate_legs.Host(gate_wt).lock_path(),
+                                           f"gate {gate_wt} (pid 356318, since T{run_gate_legs.RUN_LABEL}{owed_run})")
+        try:
+            f3c.tick(c3c)
+            finish(c3c, "w2c", EXIT_GATE_BUSY, "GATE BUSY — the gate run 000005-20261024T225004Z of this worktree is "
+                   "still running", end_head="o1")
+            f3c.live.clear()
+            waiting = f3c.tick(c3c)
+            waiting_said = " | ".join(f3c.said)
+            owed_now = wait_free(EXIT_GATE_BUSY, str(gate_wt))
+        finally:
+            gate_held.release()                                    # the gate ended (or died): no verdict file, pid alive
         relaunched = f3c.tick(c3c)
-        expect("exit 12 for a gate run that owes its verdict: the lane waits at that head while the gate's process lives "
-               "(wait_free names the run), and relaunches the SAME head once it has written its verdict, with no "
-               "rearm and no enqueue-unit work (kb/Work PB3662)",
+        expect("exit 12 for a gate that is still running: the lane waits at that head while the worktree's gate lock is "
+               "held (wait_free names the run it writes), and relaunches the SAME head once the lock is free, with no "
+               "rearm and no enqueue-unit work, however alive its gate.pid process still reads (kb/Work PB3662, "
+               "review R1-1)",
                waiting == [] and "000005-20261024T225004Z" in owed_now[1] and owed_now[0] is False
                and "still waits on" in waiting_said and relaunched == ["w2c"] and agent_work(c3c).reasons == []
                and not (lane_dir(c3c) / REARM).exists(), f"{waiting} {waiting_said} {owed_now} {relaunched}")
@@ -1248,10 +1250,12 @@ def self_test() -> int:
         (pw.path / "own.txt").write_text("the branch's own work", encoding="utf-8", newline="\n")
         pw.git("add", "own.txt")
         pw.git("commit", "--quiet", "-m", "the branch's own work")
-        github: dict[str, Any] = {"open": [{"number": 701, "headRefName": "pred", "headRefOid": predecessor_oid}], "fail": False}
+        pred_listing = {"number": 701, "headRefName": "pred", "headRefOid": predecessor_oid,
+                        "files": [{"path": "DEVLOG/0050-pb9-the-predecessor.md"}]}
+        github: dict[str, Any] = {"open": [pred_listing], "fail": False}
 
         def planted_gh(args: list[str]) -> tuple[int, str, str]:
-            assert args[:2] == ["pr", "list"] and "number,headRefName,headRefOid" in args, args
+            assert args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args, args
             return (1, "", "rate limited") if github["fail"] else (0, json.dumps(github["open"]), "")
         c3d = fresh("predecessor")
         f3d = Fake([row("w2d", "WAITING TO LAND", "p1")])

@@ -98,8 +98,9 @@ public sealed class LandingLaneDriftTests
             "exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work",
             "exit 12 once the gate lock is free: retried at the same head",
             "wait_free for exit 12 reads the gate driver's own lock of the worktree",
-            // kb/Work PB3662: a gate run that owes its verdict is exit 12's wait too
-            "exit 12 for a gate run that owes its verdict: the lane waits at that head while the gate's process lives",
+            // kb/Work PB3662: a gate that is still running (its gate lock held) is exit 12's wait too
+            "exit 12 for a gate that is still running: the lane waits at that head while the worktree's gate lock is "
+                + "held",
             // kb/Work PB3145: a merged predecessor's open pull request is a wait, not a stop
             "exit 15 (a merged predecessor's pull request is still open): a retry-when-free class, never the enqueue "
                 + "unit's",
