@@ -1659,7 +1659,7 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
-| 1 | PB3637 | The UTF-8 switch: one mechanism (`PYTHONUTF8=1` set once, in `python-resolve.{sh,ps1}`, `orchestrate.ps1`, the CI workflow's `env:` and the hooks' environment), every per-script `stdout.reconfigure` deleted, the `--help` drift test | the 71 scripts (the five are among them), the four entry points, one new Unit test | every script's `--help` exits 0 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
+| 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
 | 1 | PB3727 | §16.9, the PublicAPI driver | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
 | 2 | PB3728 | §16.3, `plan_wave.py` split by job, `plan()` in stages | `plan_wave.py`, `test_plan_wave.py`, the five new modules, every importer §16.3 names | `test_plan_wave.py` GREEN with 385 checks; `--dry-run` before/after identical; the golden `testdata/plan_wave_default.json` unchanged |
 | 2 | PB3738 | §16.8, CONFORMANCE.md one file per determination | `docs/CONFORMANCE.md`, `docs/conformance/**`, `rendered_views.py`, `.gitignore`, the five readers, `ConformanceRegister.cs`, `session-probe.ps1`, `DOC_INDEX.md`, the briefs and skills that name the file | the render is byte-identical to the file it cut; every citation resolves (`--check`); `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py --check` and `AnnexA1RegisterDriftTests` GREEN with the same counts |
@@ -1674,8 +1674,8 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 | 11 | PB3737 | §16.7, land_lane split | `land_lane.py`, the five new modules, every importer §16.7 names | the case files GREEN; `status` prints the same lines |
 
 Tier 1's two notes and tier 2's two notes share no file, so each pair runs in one wave; everything else is one note
-per wave. PB3637 goes first because it edits one line in each of the 71 scripts, which every later split would
-otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
+per wave. PB3637 goes first because it edits each live Python entry point (an import and the call, the copy deleted),
+which every later split would otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
 (tiers 4–11) because the split's oracle is then a set of files the split only re-imports, and the self-test stops
 being a 900-line block the split has to carry; plan_wave is the exception (its tests are already out), so its split
 comes first and its conversion carries the mechanism. PB3723's measurement is the before; its "after" is the same
