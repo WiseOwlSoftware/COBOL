@@ -344,6 +344,20 @@ def merge(repo: pathlib.Path, ref: str, message: str, measure: Callable[[pathlib
     return None
 
 
+def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
+    """What `merge` of `ref` into the checked-out HEAD would leave in conflict, computed without touching the worktree
+    or the index: `git merge-tree` through every driver (config_args, as is_drivers_merge reads the merge). [] when it
+    merges clean; else the conflicted files, where a file a driver merges by key is listed only when the driver
+    declined it (both sides changed one entry differently: a real conflict, kb/Work PB3640 review R1-1); None when git
+    cannot say (a missing ref: merge-tree exits 1 for that too, with no tree on stdout, so the tree line decides). The
+    runtime ABI pin's settle needs a build, so a pin `merge` could not settle is not foreseen here."""
+    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", "HEAD", ref, config=True)
+    lines = r.stdout.splitlines()
+    if r.returncode not in (0, 1) or not lines or not re.fullmatch(r"[0-9a-f]{40,64}", lines[0].strip()):
+        return None
+    return [] if r.returncode == 0 else [f for f in dict.fromkeys(ln.strip() for ln in lines[1:]) if f]
+
+
 def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) -> bool:
     """Whether a two-parent commit whose tree is `tree` is what `merge` makes of its parents: the drivers' own merge of
     them (`git merge-tree`, which honors the drivers when given config_args), or that tree with the runtime ABI pin
@@ -392,12 +406,28 @@ def check(repo: pathlib.Path) -> list[str]:
     return findings
 
 
-CONFLICT_LINE = re.compile(r"^=== ENQUEUE: CONFLICT in (.+?) — merge aborted")
+# THE CONFLICT OUTCOME: one writer (`conflict_outcome`: enqueue.py land's exit 4 and this script's `merge`) and one
+# reader (`outcome_files`: the landing lane's verdict, and the landing logs' `=== ENQUEUE: <outcome> (<branch>) ===`).
+CONFLICT_OUTCOME = re.compile(r"^CONFLICT in (?P<files>.+?) — merge aborted")
+ENQUEUE_VERDICT = "=== ENQUEUE: "
+
+
+def conflict_outcome(files: list[str]) -> str:
+    """The outcome of a merge of main that conflicted and was aborted: `CONFLICT in <a>, <b> — merge aborted, branch
+    unchanged`."""
+    return f"CONFLICT in {', '.join(files)} — merge aborted, branch unchanged"
+
+
+def outcome_files(outcome: str | None) -> list[str]:
+    """The files a CONFLICT outcome (conflict_outcome) names, or [] for any other outcome."""
+    m = CONFLICT_OUTCOME.match(outcome or "")
+    return [f.strip() for f in m["files"].split(",") if f.strip()] if m else []
 
 
 def conflict_files(log_text: str) -> list[str]:
     """The files the landing lane's logs name in their `=== ENQUEUE: CONFLICT in <files> — merge aborted …` lines."""
-    return [f.strip() for ln in log_text.split(NL) if (m := CONFLICT_LINE.match(ln)) for f in m.group(1).split(",")]
+    return [f for ln in log_text.split(NL) if ln.startswith(ENQUEUE_VERDICT)
+            for f in outcome_files(ln[len(ENQUEUE_VERDICT):])]
 
 
 def covered_by_driver(path: str) -> bool:
@@ -503,6 +533,12 @@ def self_test() -> int:
         plain = scratch.run("merge", "--no-commit", "--no-ff", "main")
         scratch.run("merge", "--abort")
         expect("git: WITHOUT the drivers the same merge conflicts (the premise)", plain.returncode != 0)
+        plain_tree = scratch.run("merge-tree", "--write-tree", "--name-only", "--no-messages", "HEAD", "main")
+        expect("conflicts: the dry run lists nothing where the drivers merge, though a plain merge-tree names d.json",
+               merge_conflicts(repo, "main") == [] and "d.json" in plain_tree.stdout.splitlines()[1:],
+               f"{merge_conflicts(repo, 'main')} {plain_tree.stdout!r}")
+        expect("conflicts: a ref git cannot read is None (git cannot say), never []",
+               merge_conflicts(repo, "refs/heads/no-such-branch") is None)
         files = merge(repo, "main", "Merge main (self-test)")
         merged = json.loads((repo / "d.json").read_text(encoding="utf-8")) if files is None else {}
         body = (repo / "kb" / "Work" / "PB1.md").read_text(encoding="utf-8")
@@ -521,6 +557,10 @@ def self_test() -> int:
         (repo / "d.json").write_text(obj(m("a", "2014"), m("c", "85"), m("ours", "85"), m("theirs", "85")), encoding="utf-8", newline=NL)
         scratch.git("commit", "-q", "-am", "right")
         tip = scratch.git("rev-parse", "HEAD")
+        expect("conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed by "
+               "the dry run, a real conflict (kb/Work PB3640 review R1-1), and the worktree is untouched",
+               merge_conflicts(repo, "left") == ["d.json"] and not scratch.git("status", "--porcelain"),
+               str(merge_conflicts(repo, "left")))
         files = merge(repo, "left", "Merge left (self-test)")
         expect("git: an entry both sides changed differently is a conflict naming the file; the merge is aborted, the branch unchanged",
                files == ["d.json"] and scratch.git("rev-parse", "HEAD") == tip and not scratch.git("status", "--porcelain"),
@@ -613,6 +653,10 @@ def self_test() -> int:
                conflict_files(log) == ["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]
                and covered_by_driver("conformance-suite/wiseowl/diagnostics.json") and covered_by_driver("kb/Work/PB3610.md")
                and not covered_by_driver("src/A.cs"))
+        expect("conflicts: the one CONFLICT outcome reads back its own files (enqueue's verdict, the lane's brief); any "
+               "other outcome names none",
+               outcome_files(conflict_outcome(["scripts/x.py", "kb/a.json"])) == ["scripts/x.py", "kb/a.json"]
+               and outcome_files("GATE RED (Windows) on x") == [] and outcome_files(None) == [])
         expect("check: the registry and this repository's .gitattributes agree",
                not check(HERE.parent), "; ".join(check(HERE.parent)))
         bad = root / "bad"
@@ -678,7 +722,7 @@ def main() -> int:
                   f"{abi_pin_path()} says UNMEASURED, `python scripts/abi_pin.py settle --stage`; then `git add` and `git commit`")
             return 1
         if files:
-            print(f"CONFLICT in {', '.join(files)} — merge aborted, branch unchanged")
+            print(conflict_outcome(files))
             return 1
         return 0
     ap.print_help()
