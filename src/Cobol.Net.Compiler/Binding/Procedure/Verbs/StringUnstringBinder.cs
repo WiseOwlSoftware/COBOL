@@ -216,7 +216,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // the same clause. The sweep that screened only the sender left a numeric or edited DELIMITED BY
                 // operand binding clean (kb/Work PB155), and the literal arms were never asked at all (kb/Work PB1181).
                 if (UnstringSenderCategory(v) is { } badDelim)
-                    return Reject(v is BoundFieldOperand or BoundComputedOperand
+                    return Reject(v is BoundFieldOperand or BoundComputedOperand or BoundNumericLiteral { FunctionValue: true }   // a folded function is an identifier (SR2), not a literal (kb/Work PB3665)
                         ? $"UNSTRING delimiter '{delimText}' is category {badDelim} (identifier-2 and identifier-3 shall "
                           + "reference data items of category alphanumeric or national, ISO §14.9.48.3 SR2)"
                         : $"UNSTRING delimiter '{delimText}' is a {badDelim} literal (literal-1 and literal-2 shall be "
@@ -446,14 +446,25 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// A STRONGLY-TYPED group is NOT: its class is its type-name and nothing gives it a usage, so SR1 reads the
     /// usage off its elementary items and refuses one holding a leaf that is neither display nor national
     /// (kb/Work PB244).</para>
-    /// <para>A FUNCTION-IDENTIFIER is not screened here and that is deliberate: SR1's antecedent is a
-    /// DESCRIPTION ("shall be described … as usage display or national"), and a function result has no data
-    /// description entry to read a usage from (§8.4.3.2.1 — "the unique data item that results from the
-    /// evaluation of a function"). The screen rejects what the standard names, never what it cannot
-    /// classify.</para>
+    /// <para>A FUNCTION-IDENTIFIER is described by its §15.2 type, not by a data description entry (§8.4.3.2.1 — "the
+    /// unique data item that results from the evaluation of a function"): an alphanumeric function has "an implicit
+    /// usage display" and a national function "an implicit usage national" and are admitted, a boolean function has
+    /// "an implicit usage bit" and is refused, and the numeric, integer and index functions state no usage, so SR1's
+    /// "described implicitly or explicitly as usage display or national" is not met (owner 2026-10-24, kb/Work
+    /// PB3665; the choice is recorded in docs/CONFORMANCE.md). The folded FUNCTION LENGTH is one of them, and is
+    /// refused as the function it is, not as a numeric literal.</para>
     /// <para>Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.</para></summary>
     private static string? Sr1Offence(BoundOperand op) => op switch
     {
+        // ⛔ A FUNCTION-IDENTIFIER IS AN IDENTIFIER, SO IT IS ASKED THE USAGE HALF (kb/Work PB3665). §15.2 gives only the
+        // alphanumeric (display) and national functions a usage SR1 admits: a numeric or integer function states none and a
+        // boolean one is usage bit, so `STRING FUNCTION INTEGER(N) …` was an under-rejection, and FUNCTION LENGTH(G), which
+        // the binder FOLDS to a numeric literal, was refused as "a numeric literal" — a function-identifier is "the unique
+        // data item that results from the evaluation of a function" (§8.4.3.2.1), never a literal. One arm for the
+        // call, the lowered tree and the fold; it precedes the literal arm so the fold never reaches it.
+        _ when IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(op, out var functionCategory) =>
+            $"is {IntrinsicArgumentRules.FunctionUsageReason(functionCategory)}, so it is not described as usage display or national; "
+            + "SR1 requires every identifier except the POINTER to be usage display or national",
         BoundNumericLiteral => "is a numeric literal; SR1 admits only alphanumeric, boolean and national literals",
         // ⛔ THE USAGE HALF IS THE ONE PREDICATE (kb/Work PB3228, with INSPECT SR1/SR2: ItemCategory.IsDisplayOrNationalUsage).
         // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §13.18.29.4 GR1 b) "treated
@@ -515,8 +526,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     {
         BoundFieldOperand f => Sr2OffendingCategory(f.Place),
         // ⛔ THE LITERAL ARMS OF §14.9.48.3 SR1 (kb/Work PB1181): "Literal-1 and literal-2 shall be literals of the
-        // category alphanumeric or national" — a numeric literal (written, or a constant-name's, or a function folded
-        // at bind) and a boolean one (plain or ALL) offend. They fell to `_ => null` because this arm was written for
+        // category alphanumeric or national" — a numeric literal (written, or a constant-name's) and a boolean one
+        // (plain or ALL) offend. A function folded at bind (FUNCTION LENGTH) offends as the identifier it is, SR2's
+        // category numeric, and its callers word it so (kb/Work PB3665). They fell to `_ => null` because this arm was written for
         // the IDENTIFIER positions of SR2 only, so `DELIMITED BY 5` split the sender on the digit.
         BoundNumericLiteral => "numeric",
         BoundStringLiteral { Category: PicCategory.Boolean } or BoundAllLiteral { Category: PicCategory.Boolean } => "boolean",

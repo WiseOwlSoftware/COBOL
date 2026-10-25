@@ -13,21 +13,22 @@
       *> WHICH value is stored is settled by 14.9.25.4 GR6 d), whose closing paragraph sends the store to
       *> 14.6.8 ("Alignment of the numeric value by decimal point, any necessary zero filling, any truncation
       *> of digits, and transfer of the algebraic data into the receiving data item, take place as defined in
-      *> 14.6.8"), and 14.6.8.2 r4 is "the data is aligned by decimal point and is transferred to the receiving
-      *> digits with zero fill or truncation ON EITHER END as required". So a sending value that truncates away
+      *> 14.6.8"), and for a numeric-edited receiver 14.6.8.2 r5 has "further alignment, zero fill or truncation, and transfer of digits
+      *> take place as described in the general rules and editing rules in 13.18.40" - aligned on the decimal
+      *> point, with zero fill or truncation at EITHER END as required. So a sending value that truncates away
       *> to zero at either end STORES zero, and the clause blanks. The arithmetic arms reach the same rule
       *> through 14.7.5 / 14.6.8 with the resultant already at the receiver's scale.
       *> Until 2026-09-20 the guard tested the raw SENDING pair, so the MOVE arm rendered digits where the
       *> arithmetic arms on identical items blanked - a silent wrong answer through the commonest verb.
       *>
       *> Each expected line below is derived from the rules above, not from the compiler:
-      *>   MOVE-LOW-E   0.4 -> PIC ZZZ9 (scale 0): 14.6.8.2 r4 truncates the fraction; 0 stored -> 4 spaces.
+      *>   MOVE-LOW-E   0.4 -> PIC ZZZ9 (scale 0): 14.6.8.2 r5 truncates the fraction; 0 stored -> 4 spaces.
       *>   MOVE-LOW-P   0.4 -> PIC 9(3): the same store; 13.18.8.4 GR2 makes it numeric-edited -> 3 spaces.
       *>   COMP-E/MULG-P  the arithmetic arms of the same two items - identical images (that is the point).
-      *>   MOVE-HIGH    100 -> PIC 99: r4's OTHER end truncates the leading 1; 00 stored -> 2 spaces.
+      *>   MOVE-HIGH    100 -> PIC 99: r5's alignment truncates the leading 1 at the OTHER end; 00 stored -> 2 spaces.
       *>   MOVE-HIGH-NZ 101 -> PIC 99: 01 stored, not zero -> "01" (the clause does nothing).
       *>   MOVE-NEG    -0.4 -> PIC ZZZ9: stores zero (algebraic zero has no sign) -> 4 spaces.
-      *>   MOVE-CS-0  0.001 -> PIC $$$9.99: r4 truncates to 0.00 -> ALL 7 positions spaces, currency included
+      *>   MOVE-CS-0  0.001 -> PIC $$$9.99: r5 truncates to 0.00 -> ALL 7 positions spaces, currency included
       *>                (GR1 says "the content of the data item", so no symbol renders).
       *>   MOVE-CS-NZ  1.25 -> PIC $$$9.99: nonzero, so 13.18.40.5 rule 6 a) floats the '$' to the rightmost
       *>                suppressed position of its zone -> "  $1.25".
