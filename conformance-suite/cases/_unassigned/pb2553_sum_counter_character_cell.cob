@@ -16,8 +16,10 @@
       *> is in the counter afterwards, a non-digit included, exactly as in a
       *> stored item: CF-T (1:4) reads "1X3D" (1234 is "123D" in the default
       *> trailing overpunch). 8.8.4.4.4 GR3 n): the content is not digits,
-      *> so CF-T IS NUMERIC is false. The pre-2023 figurative fill (14.9.25.3
-      *> SR5, removed in 2023) deposits four spaces, likewise not numeric. A
+      *> so CF-T IS NUMERIC is false. SPACE moved to CF-T (1:4), which
+      *> 8.4.3.3.4 GR6 c) makes an alphanumeric item (14.9.25.3 SR5 refuses
+      *> SPACE into the numeric counter itself at every edition, kb/Work
+      *> PB3605), deposits four spaces, likewise not numeric. A
       *> numeric MOVE makes the content valid again: 56 is "005F", NUMERIC,
       *> and moves to PIC 9999 as 0056. A plain "6" stored over the sign
       *> position is a valid image of the same value that is not the
@@ -59,7 +61,7 @@
            ELSE
                DISPLAY "A NOT NUMERIC"
            END-IF.
-           MOVE SPACE TO CF-T.
+           MOVE SPACE TO CF-T (1:4).
            MOVE CF-T (1:4) TO WS-A.
            DISPLAY "S=[" WS-A "]".
            IF CF-T IS NUMERIC
