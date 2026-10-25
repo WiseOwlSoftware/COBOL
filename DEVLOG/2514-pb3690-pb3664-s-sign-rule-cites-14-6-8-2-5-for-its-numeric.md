@@ -1,4 +1,4 @@
-## PB3690: PB3664's sign rule cites §14.6.8.2 5) for its numeric-edited receiver, not rule 4
+## Entry 2514 — 2026-10-24 20:36 PDT — PB3690: PB3664's sign rule cites §14.6.8.2 5) for its numeric-edited receiver, not rule 4
 
 PB3664's branch reviewer found that the new editing-sign rule cited §14.6.8.2 4), which covers a fixed-point NUMERIC
 receiver, for a numeric-EDITED one. The quoted text passed `cite.py --check`, but it answered a different question. The
@@ -12,3 +12,4 @@ every spelling and read hit by hit, it found seven more sites (the BLANK WHEN ZE
 `CobolEdit.cs` comments, both numeric design docs, PB566's note and that row's inventory notes), all now citing
 rule 5; every other hit names a fixed-point numeric receiver. PB3687, a duplicate of PB3690 the enqueue unit's
 clerk filed from the same lead, is retired as folded into it. No behavior changes.
+
