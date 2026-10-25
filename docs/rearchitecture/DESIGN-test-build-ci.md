@@ -2245,7 +2245,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
    (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
-   resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
+   resolution is not. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome inside
+   it have ONE home, `scripts/verdict_line.py` (kb/Work PB3714): `enqueue.py` writes through `render` and
+   `conflict_outcome`, the landing lane and the drivers' coverage report read through `parse`, `outcomes` and
+   `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
+   conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
    origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
@@ -2282,7 +2286,13 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
-   branch carries, kb/Work PB3145); a gate NOT RUN, which measured
+   branch carries, kb/Work PB3145); exit 16, never a red, in step 4 (4a) when an open pull request changes a file a
+   merge driver covers that the branch changes too (`enqueue.driver_file_holders`: GitHub's merge queue builds its
+   merge groups with plain git and none of `merge_drivers.DRIVERS`, so the two would conflict inside the queue; nothing
+   is stamped or queued, and the lane retries it once no open pull request shares such a file, main then coming in
+   through the drivers; the repository's queue-entry lock is held from that look to the queueing, so two landings of
+   one file cannot both look and both queue, kb/Work PB3642); a branch whose tip is already inside origin/main (its
+   pull request merged) ends exit 0 NOTHING TO LAND, never exit 6 (kb/Work PB3157); a gate NOT RUN, which measured
    nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an ENVIRONMENT cause or a BRANCH cause main fails
    the same way at the same step, else exit 5 like a red. Bring main in AGAIN when it moved while the pull request is
    queued, without a gate (review R1-2, corrected at implementation: the queue merges other pull requests meanwhile,

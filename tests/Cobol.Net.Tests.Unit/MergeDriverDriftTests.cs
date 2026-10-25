@@ -51,7 +51,7 @@ public sealed class MergeDriverDriftTests
             "conflicts: the dry run lists nothing where the drivers merge",
             "conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed",
             "conflicts: a ref git cannot read is None",
-            "conflicts: the one CONFLICT outcome reads back its own files",
+            "conflicts: the landing logs' CONFLICT lines name their files",
             "check: the registry and this repository's .gitattributes agree",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.At(AbiPin), [
@@ -60,6 +60,15 @@ public sealed class MergeDriverDriftTests
             "settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement",
             "settle: a measurement that fails, or writes nothing, is the reason",
             "bump: the named counter rises by one",
+        ]);
+        // The verdict line's one home (kb/Work PB3714): the CONFLICT outcome's writer and readers live there.
+        SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/verdict_line.py"), [
+            "the line is the prefix, the outcome, the branch in parentheses and the terminator",
+            "the reader reads back what the writer wrote, outcome and branch",
+            "a line that is not a verdict line parses to None",
+            "outcomes: every verdict line of a log in order",
+            "the CONFLICT outcome reads back its own files",
+            "conflict_files: the files the CONFLICT lines of a log name",
         ]);
     }
 
@@ -79,7 +88,7 @@ public sealed class MergeDriverDriftTests
     /// The landing lane's conflict brief foresees the merge through the same drivers (<c>merge_drivers.merge_conflicts</c>,
     /// kb/Work PB3640 review R1-1): a plain <c>git merge-tree</c> there, with every driver-covered file dropped, read a keyed
     /// file the driver DECLINES (a real conflict) as nothing to brief. Enqueue's CONFLICT outcome has one writer and one
-    /// reader (<c>merge_drivers.conflict_outcome</c> / <c>outcome_files</c>).
+    /// reader (<c>verdict_line.conflict_outcome</c> / <c>outcome_files</c>, the verdict line's one home, kb/Work PB3714).
     /// </summary>
     [Fact]
     public void EverySiteThatMergesMain_GoesThroughTheDrivers()
@@ -88,13 +97,13 @@ public sealed class MergeDriverDriftTests
         Assert.Contains("merge_drivers.merge(wt, base,", enqueue, StringComparison.Ordinal);
         Assert.DoesNotContain("\"merge\", \"--no-edit\"", enqueue, StringComparison.Ordinal);
         Assert.Contains("merge_drivers.is_drivers_merge(", File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py")), StringComparison.Ordinal);
-        Assert.Contains("merge_drivers.conflict_outcome(files)", enqueue, StringComparison.Ordinal);
+        Assert.Contains("verdict_line.conflict_outcome(files)", enqueue, StringComparison.Ordinal);
         string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
         Assert.Contains("merge_drivers.merge_conflicts(", lane, StringComparison.Ordinal);
-        Assert.Contains("merge_drivers.outcome_files(", lane, StringComparison.Ordinal);
+        Assert.Contains("verdict_line.outcome_files(", lane, StringComparison.Ordinal);
         Assert.True(!lane.Contains("\"merge-tree\"", StringComparison.Ordinal) && !lane.Contains("CONFLICT in ", StringComparison.Ordinal),
             "scripts/orchestrator/land_lane.py runs its own `git merge-tree` or parses `CONFLICT in` itself: foresee the merge with " +
-            "merge_drivers.merge_conflicts and read the outcome with merge_drivers.outcome_files (kb/Work PB3640 review R1-1, R1-3)");
+            "merge_drivers.merge_conflicts and read the outcome with verdict_line.outcome_files (kb/Work PB3640 review R1-1, R1-3, PB3714)");
         foreach (string rel in new[] { "scripts/orchestrator/plan_wave.py", ".claude/skills/workstream/templates/wf_rolling_wave.js",
                      ".claude/skills/workstream/templates/finisher-brief.md", ".claude/skills/workstream/templates/golden-lane-brief.md" })
         {
@@ -103,6 +112,41 @@ public sealed class MergeDriverDriftTests
                 $"{rel} tells an agent to run a bare `git merge`: use `python scripts/merge_drivers.py merge <ref>` (kb/Work PB3610)");
             Assert.Contains("merge_drivers.py merge", text, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>
+    /// ⛔ THE MERGE QUEUE MERGES WITHOUT THE DRIVERS, SO TWO LANDINGS OF ONE DRIVER FILE NEVER QUEUE TOGETHER (kb/Work
+    /// PB3642): GitHub builds its merge groups server-side with plain git, so two open pull requests that both change a
+    /// keyed catalogue or a work note conflict inside the queue although each merged main through the drivers. <c>enqueue.py
+    /// land</c> therefore reads the open pull requests (<c>driver_file_holders</c>, which asks <c>merge_drivers.covered_by_driver</c>,
+    /// so a new <c>DRIVERS</c> entry is guarded with no new line) before it stamps or queues, ends exit 16 while one shares
+    /// a driver-covered file with the branch, holds the repository's queue-entry lock from that look to the queueing, and the
+    /// landing lane retries exit 16 once none does. The self-tests drive every arm, including one branch that changes the
+    /// sample file of EVERY driver pattern; this holds the wiring and that those arms stay declared.
+    /// </summary>
+    [Fact]
+    public void TheLanding_WaitsForAnOpenPullRequestThatSharesADriverFile()
+    {
+        string enqueue = File.ReadAllText(TestRepo.At("scripts/orchestrator/enqueue.py"));
+        Assert.Contains("driver_file_holders(wt, base, branch, gh=gh)", enqueue, StringComparison.Ordinal);
+        Assert.Contains("merge_drivers.covered_by_driver(p)", enqueue, StringComparison.Ordinal);
+        Assert.Contains("take_queue_entry_lock(wt,", enqueue, StringComparison.Ordinal);
+        Assert.Contains("EXIT_DRIVER_FILE_QUEUED,", enqueue, StringComparison.Ordinal);
+        string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
+        Assert.Contains("EXIT_DRIVER_FILE_QUEUED:", lane, StringComparison.Ordinal);
+        Assert.Contains("enqueue.driver_file_holders(", lane, StringComparison.Ordinal);
+        SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/orchestrator/enqueue.py"), [
+            "driver files: for EVERY pattern of merge_drivers.DRIVERS, an open pull request that changes the pattern's file",
+            "driver files: a pull request changing other files, or the branch's own pull request",
+            "driver files: a branch that changes no driver-covered file never asks GitHub",
+            "land: a branch whose driver-merged file an open pull request changes too waits: exit 16",
+            "land: GitHub that cannot list the open pull requests is exit 9",
+            "land: another landing holding the queue-entry lock past the wait is exit 2",
+            "land: once the open pull request has merged (none lists the file) the same branch is stamped and queued",
+        ]);
+        SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/orchestrator/land_lane.py"), [
+            "exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class",
+        ]);
     }
 
     /// <summary>The pin is a measured file nobody hand-edits: it holds exactly the four lines the test reads and never

@@ -53,10 +53,13 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      the tree runs (`linux-gate.sh --probe`), nothing ran and nothing is red, kb/Work PB3527, PB3662, PB3649; or exit 13: another
      `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310; or exit 15,
      `PREDECESSOR QUEUED`: the branch merged a predecessor whose pull request is still open and carries its stamped DEVLOG
-     entry beside its own, nothing queued and nothing red, kb/Work PB3145) and
+     entry beside its own, nothing queued and nothing red, kb/Work PB3145; or exit 16, `DRIVER FILE QUEUED`: an open
+     pull request changes a merge-driver file the branch changes too, nothing stamped or queued and nothing red,
+     kb/Work PB3642) and
      `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
      `landing_check.py` passes on the branch, exit 12 once the gate lock is free and no Linux gate of the tree runs, exit 13 once the land lock is free, exit 15 once no
-     open pull request owns a DEVLOG entry the branch carries).
+     open pull request owns a DEVLOG entry the branch carries, exit 16 once no open pull request changes a merge-driver
+     file the branch changes too).
      Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`
      once `ruleset.py check` reports ACTIVE; it already named it in the operator's mailbox. Land nothing another way:
