@@ -3902,6 +3902,15 @@
   ],
   "expect": "COBOLNET2709"
  },
+ "pb3751-page-limit-mixed-alternatives": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0001"
+ },
  "pb1060-baseconvert-address-identifier": {
   "refuse-at": [
    "2023"
