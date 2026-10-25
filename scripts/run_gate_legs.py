@@ -283,8 +283,19 @@ LOG_FILE = "gate.log"
 AWAIT_PENDING = "=== GATE AWAIT: PENDING"
 AWAIT_PENDING_EXIT = 4
 AWAIT_WAIT_S = 540
-#: The verdict record's schema: 3 adds the measured head, tree (start and end), base, exit code and reuse (PB3536).
-RECORD_SCHEMA = 3
+#: The verdict record's schema: 3 adds the measured head, tree (start and end), base, exit code and reuse (PB3536); 4 adds
+#: `head_tree` and the Linux half (`linux`, `lane`) that the landing requires as evidence (PB3612; PB3660).
+RECORD_SCHEMA = 4
+#: THE OLDEST RECORD SCHEMA THE LANDING READS AS EVIDENCE, AND THE FIELDS IT REQUIRES (`enqueue.tested_locally`, kb/Work
+#: PB3660). The record is written by the BRANCH's driver and read by main's lander, so a field the lander starts to require
+#: strands every branch gated before it, and only the record itself can tell that from a dirty tree. Schema 3 was written
+#: both before and after PB3612 added `head_tree` and `linux` (the number was not bumped: PB3660), so for schema 3 the
+#: fields themselves are the discriminator; from schema 4 on the number is. Whenever the lander requires a field a record
+#: did not carry: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add the field to `LANDING_FIELDS` (the self-test pins
+#: RECORD_SCHEMA >= LANDABLE_SCHEMA, every landing field to a key `Gate._record` writes, and the lander's planted records to
+#: the current schema).
+LANDABLE_SCHEMA = 3
+LANDING_FIELDS = ("head_tree", "linux")
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -743,6 +754,25 @@ def read_record(run: Path) -> dict | None:
     except (OSError, ValueError):
         return None
     return rec if isinstance(rec, dict) and "verdict" in rec and "line" in rec else None
+
+
+def record_schema(rec: dict) -> int:
+    """A record's schema number; a record written before the field existed (or with a malformed one) is schema 0."""
+    value = rec.get("schema")
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def predates_landing(rec: dict) -> str | None:
+    """Why a record cannot be evidence to the landing although its verdict may be GREEN (kb/Work PB3660): it was written by
+    a gate older than the lander's reading (schema below `LANDABLE_SCHEMA`, or a field of `LANDING_FIELDS` absent), so a
+    "missing field" the lander finds is the gate's age, never the tree's state. None when the record is current."""
+    have = record_schema(rec)
+    missing = [f for f in LANDING_FIELDS if f not in rec]
+    if have >= LANDABLE_SCHEMA and not missing:
+        return None
+    return (f"it was written by a gate older than this lander reads (record schema {have}, "
+            f"{'no ' + '/'.join(missing) + ' field' if missing else 'below ' + str(LANDABLE_SCHEMA)}: the branch's "
+            "scripts/run_gate_legs.py predates kb/Work PB3612)")
 
 
 def _record_exit(rec: dict) -> int:
@@ -2377,6 +2407,18 @@ def self_test() -> int:
             and "Linux half (WSL clone of HEAD) GREEN" in lin.line and any("PLANTED-LINUX-LEG-OUTPUT" in l for l in sink)
             and lrec["linux"]["verdict"] == "GREEN" and lrec["linux"]["tree"] == lrec["head_tree"] == "tree-1"
             and lrec["linux"]["legs"] == [1], lin.line)
+        # kb/Work PB3660: the record this driver writes is current for the lander that reads it: its schema is the
+        # current one and at least the oldest the lander accepts, it carries every field the lander requires, and a
+        # record without them (or of an older schema) reads as a gate older than the lander, not as a dirty tree.
+        old_rec = {k: v for k, v in lrec.items() if k not in LANDING_FIELDS}
+        arm("the record the gate writes is current for the landing (schema, every landing field, not 'older than the "
+            "lander'); one lacking a landing field or of a schema below the landable one is, and names which",
+            record_schema(lrec) == RECORD_SCHEMA >= LANDABLE_SCHEMA and all(f in lrec for f in LANDING_FIELDS)
+            and predates_landing(lrec) is None
+            and "no head_tree/linux field" in (predates_landing(old_rec) or "")
+            and "below 3" in (predates_landing({**lrec, "schema": 2}) or "")
+            and predates_landing({**lrec, "schema": 3}) is None and record_schema({"schema": True}) == 0
+            and record_schema({}) == 0, f"{lrec.get('schema')} {predates_landing(old_rec)}")
         again_l, h_again = regate(d, plant={"linux"})
         windows_only, h_win = regate(d)
         no_half = root / "linux-half-old"
