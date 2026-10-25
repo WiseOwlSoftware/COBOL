@@ -10,6 +10,8 @@
     git_batch.diff_patches(repo, [(commit, parent), ...])    # `git diff -U0 --no-renames <parent> <commit>`
     git_batch.object_ids(repo, ["<rev>:<path>", ...])        # `git rev-parse -q --verify <rev>:<path>`, each
     git_batch.patch_ids(repo, [commit, ...])                 # `git show <commit> | git patch-id --stable`, each
+    git_batch.tree_entries(repo, ["<rev>:<dir>", ...])       # `git ls-tree <rev>:<dir>`, each: {file name: object id}
+    git_batch.blobs(repo, [object id, ...])                  # `git cat-file blob <object id>`, each: (object id, bytes), one at a time
 
     python scripts/git_batch.py --self-test                  # each reader against the one-process-per-object form
 
@@ -35,6 +37,10 @@ WHAT EACH READER GUARANTEES
                gets exactly one header line (its commit) in input order, even when its diff is empty; a pair's
                answer is its block. A root commit's pair names git's empty tree as its parent.
   object_ids   one `git cat-file --batch-check` over `<rev>:<path>` lines; an absent path maps to ''.
+  tree_entries / blobs
+               one `git cat-file --batch` each: the files of many `<rev>:<dir>` trees, then the content of the distinct
+               object ids they name (a note that did not change between two commits is read once, not once per commit).
+               A directory a revision lacks maps to None; an id that is no blob raises.
   patch_ids    one `git diff-tree --stdin --root -p` piped into one `git patch-id --stable`: each commit's patch id
                (the key `git cherry` matches on); a merge commit and an empty commit have none and are absent.
 Every reader raises GitError when git fails: an unmeasured answer is never read as an empty one.
@@ -44,7 +50,8 @@ from __future__ import annotations
 import pathlib
 import subprocess
 import sys
-from typing import Callable, Iterable, Sequence
+import tempfile
+from typing import Callable, Iterable, Iterator, Sequence
 
 BASE = "refs/remotes/origin/main"
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"   # git's empty tree: a root commit's diff is taken against it
@@ -100,6 +107,71 @@ def resolve(repo: pathlib.Path | str, names: Iterable[str], git: Runner | None =
 def object_ids(repo: pathlib.Path | str, specs: Sequence[str], git: Runner | None = None) -> list[str]:
     """[the object id of each `<rev>:<path>`, '' when absent], from ONE process."""
     return [a[0] if a else "" for a in _batch_check(repo, list(specs), git)]
+
+
+def _object_stream(repo: pathlib.Path | str, specs: Sequence[str]) -> Iterator[tuple[str, str, bytes] | None]:
+    """(object id, type, content) | None per spec, in the questions' order, from ONE `git cat-file --batch` (`<spec>
+    missing` and an ambiguous abbreviation -> None). The answers are written to a temporary file and read back one at a
+    time, so a caller that reduces each object as it arrives holds one object, not the whole output. A short or torn
+    output raises GitError."""
+    if not specs:
+        return
+    bad = [s for s in specs if not s or "\n" in s]
+    if bad:
+        raise GitError(f"git cat-file --batch cannot ask about {bad[0]!r}")
+    with tempfile.TemporaryFile() as out:
+        r = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], stdout=out, stderr=subprocess.PIPE,
+                           input="".join(f"{s}\n" for s in specs).encode("utf-8"))
+        if r.returncode != 0:
+            raise GitError(f"git cat-file --batch in {repo} failed ({r.returncode}): {r.stderr.decode('utf-8', 'replace').strip()[:300]}")
+        out.seek(0)
+        for answered in range(len(specs)):
+            try:
+                header = out.readline().split()
+                if header[-1] in (b"missing", b"ambiguous"):
+                    yield None
+                    continue
+                size = int(header[2])
+                data = out.read(size)
+                if len(data) != size or out.read(1) != b"\n":
+                    raise ValueError("the output ends inside an object")
+            except (ValueError, IndexError) as e:
+                raise GitError(f"git cat-file --batch answered {answered} objects for {len(specs)} questions: {e}") from e
+            yield header[0].decode("ascii"), header[1].decode("ascii"), data
+
+
+def tree_entries(repo: pathlib.Path | str, specs: Sequence[str]) -> list[dict[str, str] | None]:
+    """[{file name: its object id} of each `<rev>:<path>` directory, or None when the revision has no such directory],
+    from ONE process (`git ls-tree <rev>:<path>` for each, without the process). Files only: a subdirectory or a
+    submodule is not an entry. A spec that names a file, not a directory, raises GitError."""
+    out: list[dict[str, str] | None] = []
+    for spec, found in zip(specs, _object_stream(repo, specs)):
+        if found is None:
+            out.append(None)
+            continue
+        oid, kind, data = found
+        if kind != "tree":
+            raise GitError(f"{spec} is a {kind}, not a tree")
+        width, entries, at = len(oid) // 2, {}, 0   # the raw object id is half as long as its hex (20 bytes SHA-1, 32 SHA-256)
+        while at < len(data):
+            sp = data.index(b" ", at)
+            nul = data.index(b"\0", sp)
+            if data[at:sp] in (b"100644", b"100755", b"120000"):
+                entries[data[sp + 1:nul].decode("utf-8", "replace")] = data[nul + 1:nul + 1 + width].hex()
+            at = nul + 1 + width
+        out.append(entries)
+    return out
+
+
+def blobs(repo: pathlib.Path | str, oids: Iterable[str]) -> Iterator[tuple[str, bytes]]:
+    """(object id, its content) for every distinct id, from ONE process, one blob at a time: a caller that reduces each
+    blob as it arrives (counts, a parsed frontmatter) holds one blob, however many ids it asked. An id that names no
+    blob raises GitError: a caller that read it out of a tree must find it."""
+    uniq = list(dict.fromkeys(o for o in oids if o))
+    for oid, found in zip(uniq, _object_stream(repo, uniq)):
+        if found is None or found[1] != "blob":
+            raise GitError(f"{oid} is not a blob in {repo}")
+        yield oid, found[2]
 
 
 def patch_ids(repo: pathlib.Path | str, commits: Iterable[str], git: Runner | None = None) -> dict[str, str]:
@@ -369,6 +441,30 @@ def self_test() -> int:
         check("object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",
               ids == [repo.run("rev-parse", "-q", "--verify", s).stdout.strip()
                       for s in (f"{merge}:a.txt", f"{merge}:b.txt", f"{root}:b.txt")], ids)
+
+        specs = [f"{root}:kb/Work", f"{merge}:kb/Work", f"{merge}:kb", f"{merge}:no/such/dir"]
+        listed = tree_entries(r, specs)
+        each_tree = [{n: repo.git("rev-parse", f"{s}/{n}") for n in repo.git("ls-tree", "--name-only", s).split()}
+                     if repo.run("rev-parse", "-q", "--verify", s).returncode == 0 else None for s in specs]
+        each_tree[2] = {}   # kb holds only the directory Work: files only
+        check("tree_entries: each `<rev>:<dir>` as `ls-tree` lists its files (subdirectories left out; None for no such "
+              "directory)", listed == each_tree and listed[3] is None, (listed, each_tree))
+        try:
+            tree_entries(r, [f"{merge}:a.txt"])
+            check("tree_entries: a spec that names a file raises", False)
+        except GitError:
+            check("tree_entries: a spec that names a file raises", True)
+        wanted = [oid for entries in listed if entries for oid in entries.values()]
+        got_blobs = list(blobs(r, [*wanted, *wanted, ""]))
+        check("blobs: each distinct object id as `cat-file blob` reads it, once however often it is asked",
+              dict(got_blobs) == {o: repo.run("cat-file", "blob", o, binary=True).stdout for o in set(wanted)}
+              and len(got_blobs) == len(set(wanted)), got_blobs)
+        try:
+            list(blobs(r, ["0" * 40]))
+            check("blobs: an id that names no blob raises", False)
+        except GitError:
+            check("blobs: an id that names no blob raises", True)
+        check("tree_entries and blobs: no questions, no process", tree_entries(r, []) == [] and list(blobs(r, [])) == [])
 
         repo.git("switch", "-q", "-c", "orig", root)
         repo.commit("orig", {"c.txt": "three\n"})

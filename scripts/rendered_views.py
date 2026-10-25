@@ -26,7 +26,7 @@ query over the notes, not generated content).
 ONE REGISTRY, ONE RULE (rule 4: no hand list per consumer). `VIEWS` below is the only place a view is named. The
 gate's audits and CI's `audits` job call `--check`, which enforces, per view (no test calls it: rule (c) reads the head
 of every tracked `kb/` note, and a test that did would make the vault a test input, kb/Work PB2878):
-  (a) NOT TRACKED — `git ls-files` finds nothing at its output (the drift test the design names: tracked ∩ outputs = ∅);
+  (a) NOT TRACKED — `git ls-files` finds nothing at its output (the rule DESIGN-test-build-ci.md §3.17.4 names: tracked ∩ outputs = ∅);
   (b) GITIGNORED when its output is inside the tree — otherwise a render leaves the checkout dirty, and a dirty main
       checkout sends the orchestrator loop to `resume`;
   (c) NOTHING UNREGISTERED — no tracked `docs/**.md` or `kb/**.md` declares itself generated in its first lines (the sweep
