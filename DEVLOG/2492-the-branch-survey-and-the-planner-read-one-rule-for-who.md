@@ -1,4 +1,4 @@
-## The branch survey and the planner read one rule for who carries a branch, and one commit a report describes (PB3476, PB3474, PB3652, PB3653)
+## Entry 2492 — 2026-10-24 17:28 PDT — The branch survey and the planner read one rule for who carries a branch, and one commit a report describes (PB3476, PB3474, PB3652, PB3653)
 
 Four open notes of the PB1957 process campaign shared one root: `scripts/prune_worktrees.py`, `scripts/orchestrator/plan_wave.py`
 and `scripts/orchestrator/enqueue.py` each answered a question the other already answered, so the branch survey, the
@@ -50,3 +50,4 @@ Self-review against the silent-failure, test and comment lenses: a stale stamp c
 "commits since the report's HEAD" (a DECISION), never a false WAITING TO LAND; `survey_replays` returns nothing (no
 carrier) when no row has a report or the register is missing, which is the safe side; one comment I had written claimed the
 old `tools/` filter read LANDED, which the probe showed was CHECK, and I corrected it.
+
