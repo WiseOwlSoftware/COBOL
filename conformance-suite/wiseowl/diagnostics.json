@@ -21377,6 +21377,38 @@
   ],
   "expect": "COBOLNET0844"
  },
+ "pb929-set-sr10-active-class-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-class-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-factory-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-interface-sender-unrelated": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
  "pb93-redefines-later-sibling": {
   "refuse-at": [
    "85",
