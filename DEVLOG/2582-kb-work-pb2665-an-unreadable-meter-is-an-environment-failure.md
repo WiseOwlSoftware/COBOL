@@ -1,4 +1,4 @@
-## kb/Work PB2665: an unreadable meter is an environment failure, not a failure of the work
+## Entry 2582 — 2026-10-25 16:05 PDT — kb/Work PB2665: an unreadable meter is an environment failure, not a failure of the work
 
 Since 2026-10-12, 39 of 53 meter units failed (36 on "Browser extension is not connected"). Each failure
 cost more than its own $0.36: the supervisor synthesized a `resume` handoff for the dead meter (a $0.56 to $1.58 unit
@@ -49,3 +49,4 @@ before); `Clear-NamedUnit` says in the log when it cannot spend a name instead o
 once and its marker is the streak's first attempt. Test lens: the carried-count case turns red if a meter resets or raises the
 breaker's count, because it ends on the work chain's own crash tripping it (exit 4). Comment lens: every figure quoted (39 of 53,
 36, 352 minutes, 31 false lines, $0.56 to $1.58) comes from the note or the 2026-10-22 log.
+
