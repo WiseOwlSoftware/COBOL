@@ -152,6 +152,7 @@ static CobolNet.Runtime.ActivationCategory.OfFigurative(CobolNet.Runtime.Figurat
 static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
 static CobolNet.Runtime.ActivationRelations.MatchViolation(CobolNet.Runtime.ActivationDescription! argument, CobolNet.Runtime.ActivationDescription! formal) -> string?
 static CobolNet.Runtime.ActivationRelations.SignatureDifference(CobolNet.Runtime.ActivationDescription! first, CobolNet.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
+static CobolNet.Runtime.CobolArgAdapt.SdidiValue(CobolNet.Runtime.CobolPassMode mode, CobolNet.Runtime.CobolDec value, CobolNet.Runtime.SignEncoding signEncoding) -> CobolNet.Runtime.CobolArg
 static CobolNet.Runtime.CobolArgAdapt.WithValueSending(CobolNet.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> CobolNet.Runtime.CobolArg
 static CobolNet.Runtime.CobolBits.NatFromStorage(string! image) -> string!
 static CobolNet.Runtime.CobolBits.StridePads(string! carrier, int at, int width, int stride, int count) -> string!

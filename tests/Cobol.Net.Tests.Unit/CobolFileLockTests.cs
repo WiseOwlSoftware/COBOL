@@ -13,8 +13,21 @@ namespace CobolNet.Tests.Unit;
 /// <c>CobolFile.Locks</c> primitives the emitter wires to: the record-lock grant/deny, the 53/54 ceilings, the
 /// Table-19 open-conflict classifier, and the single-run-unit RETRY loop.
 /// </summary>
-public sealed class CobolFileLockTests
+public sealed class CobolFileLockTests : IDisposable
 {
+    // Every physical file lives in this test's own scratch directory, never in the test host's working directory (the
+    // test assembly's output directory, inside the repository): a file left there survived into the next run, and the
+    // lock directories its sharing opens publish and retire (.wolk-*, .wolk-gone-*) made a walk of the tests tree that
+    // raced the run meet a delete-pending directory and fail (SpecTraceabilityInventoryDriftTests).
+    private readonly string _dir = ScratchDirectory.Create("CobolNet_LK_");
+
+    public void Dispose()
+    {
+        ScratchDirectory.Remove(_dir);
+    }
+
+    private string Host(string name) => Path.Combine(_dir, name);
+
     private const int Random = 1;   // KeyedAccess.Random
 
     /// <summary>Register two RELATIVE connectors bound to ONE physical file (the two-SELECTs-one-file scenario
@@ -31,7 +44,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void RecordLock_Grants_ThenBlocksAnotherConnector_51()
     {
-        TwoConnectorsOneFile("CA", "CB", "lk-grant.dat");
+        TwoConnectorsOneFile("CA", "CB", Host("lk-grant.dat"));
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "1"));
         Assert.True(CobolFile.IsLockedByOther("CB", "1"));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.LockRecord("CB", "1"));   // 51 — another connector holds it
@@ -41,7 +54,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void SelfRelock_IsIdempotent()
     {
-        TwoConnectorsOneFile("CA", "CB", "lk-self.dat");
+        TwoConnectorsOneFile("CA", "CB", Host("lk-self.dat"));
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "7"));
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "7"));   // re-lock of a held record: idempotent
     }
@@ -49,7 +62,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void Unlock_ReleasesEveryLock_ThenAnotherConnectorMayLock()
     {
-        TwoConnectorsOneFile("CA", "CB", "lk-unlock.dat");
+        TwoConnectorsOneFile("CA", "CB", Host("lk-unlock.dat"));
         CobolFile.LockRecord("CA", "1");
         CobolFile.LockRecord("CA", "2");
         Assert.True(CobolFile.IsLockedByOther("CB", "1"));
@@ -61,7 +74,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void ReleaseSingle_ReleasesOnlyTheNamedRecord()
     {
-        TwoConnectorsOneFile("CA", "CB", "lk-single.dat");
+        TwoConnectorsOneFile("CA", "CB", Host("lk-single.dat"));
         CobolFile.LockRecord("CA", "1");
         CobolFile.LockRecord("CA", "2");
         CobolFile.ReleaseSingle("CA", "1");
@@ -73,7 +86,7 @@ public sealed class CobolFileLockTests
     public void ConnectorLockLimit_16thRecord_Is54()
     {
         CobolFile.Init();
-        CobolFile.RegisterRelative("CA", "lk-conn.dat", 8, false, Random, 4);
+        CobolFile.RegisterRelative("CA", Host("lk-conn.dat"), 8, false, Random, 4);
         CobolFile.RegisterSharing("CA", FileSharing.AllOther, FileLockMode.Manual, true);   // MULTIPLE — many locks
         for (int i = 1; i <= 15; i++)
             Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", i.ToString()));   // GR7 impl max ≥15
@@ -89,12 +102,12 @@ public sealed class CobolFileLockTests
         for (int c = 0; c < 17; c++)
         {
             string name = "C" + c;
-            CobolFile.RegisterRelative(name, $"lk-run-{c}.dat", 8, false, Random, 4);
+            CobolFile.RegisterRelative(name, Host($"lk-run-{c}.dat"), 8, false, Random, 4);
             CobolFile.RegisterSharing(name, FileSharing.AllOther, FileLockMode.Manual, true);
             for (int i = 1; i <= 15; i++)
                 Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord(name, i.ToString()));
         }
-        CobolFile.RegisterRelative("COVER", "lk-run-cover.dat", 8, false, Random, 4);
+        CobolFile.RegisterRelative("COVER", Host("lk-run-cover.dat"), 8, false, Random, 4);
         CobolFile.RegisterSharing("COVER", FileSharing.AllOther, FileLockMode.Manual, true);
         Assert.Equal(FileStatusCode.RunUnitLockLimit, CobolFile.LockRecord("COVER", "1"));   // 53
     }
@@ -295,7 +308,7 @@ public sealed class CobolFileLockTests
         // ── FORMAT 2 (random keyed access): the governed random-read entry, RELATIVE organization.
         // Its conflict leg is PRE-read like Format 1's since kb/Work PB338 (§14.9.30.4 GR10 a)/d)), so
         // the entry OWNS the retrieval and there is no separate read left to govern afterwards. ──────────
-        TwoOpenSharers("RGA", "RGB", $"lk-r2retry-{tag}.dat");
+        TwoOpenSharers("RGA", "RGB", Host($"lk-r2retry-{tag}.dat"));
         CobolFile.SetRelativeKey("RGA", 1);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("RGA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));
@@ -306,7 +319,7 @@ public sealed class CobolFileLockTests
 
         // ── FORMAT 1 (sequential access): the pre-read conflict leg, SEQUENTIAL organization. ───────────────
         CobolFile.Init();
-        string host = $"lk-r1retry-{tag}.dat";
+        string host = Host($"lk-r1retry-{tag}.dat");
         CobolFile.Register("RSA", host, 5, false, false);
         CobolFile.Register("RSB", host, 5, false, false);
         CobolFile.RegisterSharing("RSA", FileSharing.AllOther, FileLockMode.Manual, false);
@@ -332,7 +345,7 @@ public sealed class CobolFileLockTests
     public void Unlock_OfANotOpenFile_Is42()
     {
         CobolFile.Init();
-        CobolFile.RegisterRelative("CX", "lk-notopen.dat", 8, false, Random, 4);
+        CobolFile.RegisterRelative("CX", Host("lk-notopen.dat"), 8, false, Random, 4);
         CobolFile.RegisterSharing("CX", FileSharing.AllOther, FileLockMode.Manual, false);
         CobolFile.Unlock("CX", records: false);
         Assert.Equal(FileStatusCode.FileNotOpen, CobolFile.Status("CX"));   // 42 — §9.1.13 (:11579)
@@ -358,7 +371,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void RewriteAndDelete_HonorAnotherConnectorsLock_51_ThenUnlockFrees()
     {
-        TwoOpenSharers("MA", "MB", "lk-mut.dat");
+        TwoOpenSharers("MA", "MB", Host("lk-mut.dat"));
         CobolFile.SetRelativeKey("MA", 1);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("MA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));   // MA locks record 1
@@ -378,7 +391,7 @@ public sealed class CobolFileLockTests
     [Fact]
     public void WriteShared_WithLock_LocksTheWrittenRecord_AndSingleLockingReleasesItOnTheNextWrite()
     {
-        TwoOpenSharers("WA", "WB", "lk-wrlock.dat");
+        TwoOpenSharers("WA", "WB", Host("lk-wrlock.dat"));
         CobolFile.SetRelativeKey("WA", 2);
         // §14.9.51 GR11 — WITH LOCK locks the record written.
         Assert.Equal(FileStatusCode.Success,
@@ -408,7 +421,7 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Forever, 0)]
     public void LockCeiling_OnWriteRewriteAndRead_LandsTheCeilingsOwnStatus_UnderEveryRetryForm(FileRetryKind kind, int amount)
     {
-        const string host = "lk-ceiling-retry.dat";
+        string host = Host("lk-ceiling-retry.dat");
         CobolFile.Init();
         CobolFile.RegisterRelative("CA", host, 8, false, Random, 4);
         CobolFile.RegisterSharing("CA", FileSharing.AllOther, FileLockMode.Manual, true);   // MULTIPLE — many locks
@@ -448,7 +461,7 @@ public sealed class CobolFileLockTests
     public void ReadShared_SequentialOrdinals_Conflict51_AndAdvancingOnLockSkips()
     {
         CobolFile.Init();
-        const string host = "lk-seq.dat";
+        string host = Host("lk-seq.dat");
         CobolFile.Register("SA", host, 5, false, false);
         CobolFile.Register("SB", host, 5, false, false);
         CobolFile.RegisterSharing("SA", FileSharing.AllOther, FileLockMode.Manual, false);
@@ -492,7 +505,7 @@ public sealed class CobolFileLockTests
     {
         const int Dynamic = 2;   // KeyedAccess.Dynamic
         CobolFile.Init();
-        string host = indexed ? "lk-adv-ix.dat" : "lk-adv-rel.dat";
+        string host = indexed ? Host("lk-adv-ix.dat") : Host("lk-adv-rel.dat");
         string[] recs = indexed ? ["K001ALPHA", "K002BRAVO"] : ["ALPHA", "BRAVO"];
         int width = indexed ? 9 : 5;
         void Register(string n, int access)
@@ -553,7 +566,7 @@ public sealed class CobolFileLockTests
     public void ReadKeyedShared_IgnoringLockWithNoLock_ReleasesThisConnectorsLock_AndReadsAnothersLockedRecord()
     {
         CobolFile.Init();
-        const string host = "lk-ignore-nolock.dat";
+        string host = Host("lk-ignore-nolock.dat");
         CobolFile.RegisterRelative("IA", host, 8, false, Random, 4);
         CobolFile.RegisterRelative("IB", host, 8, false, Random, 4);
         // MULTIPLE record locking, so GR11 a)'s blanket per-statement release is NOT what frees the lock below.
@@ -597,7 +610,7 @@ public sealed class CobolFileLockTests
     public void DeleteFile_OpenByAnotherConnector_62_ThenCloseFrees()
     {
         CobolFile.Init();
-        const string host = "lk-dfs.dat";
+        string host = Host("lk-dfs.dat");
         CobolFile.Register("DA", host, 5, false, false);
         CobolFile.Register("DB", host, 5, false, false);
         CobolFile.OpenOutput("DA", host, assignDynamic: false, page: null);
@@ -628,14 +641,14 @@ public sealed class CobolFileLockTests
     [Fact]
     public void SortGivingImplicitOpen_TakesNoOther_AndLocksOutEveryOtherConnector_GR15a()
     {
-        const string host = "pb714-giving.dat";
+        string host = Host("pb714-giving.dat");
         // A GIVING file that declares SHARING WITH ALL OTHER, so both connectors are sharing participants and
         // Table 19 — not the operating environment's own handle sharing — is the only arbiter of what follows.
-        static void TwoSharers()
+        void TwoSharers()
         {
             CobolFile.Init();
-            CobolFile.Register("GA", "pb714-giving.dat", 5, false, false);
-            CobolFile.Register("GB", "pb714-giving.dat", 5, false, false);
+            CobolFile.Register("GA", host, 5, false, false);
+            CobolFile.Register("GB", host, 5, false, false);
             CobolFile.RegisterSharing("GA", FileSharing.AllOther, FileLockMode.Manual, false);
             CobolFile.RegisterSharing("GB", FileSharing.AllOther, FileLockMode.Manual, false);
         }
@@ -677,7 +690,7 @@ public sealed class CobolFileLockTests
     public void SortUsingImplicitOpen_ReadOnlyOverride_RefusedAgainstNonInputConnector_GR12a()
     {
         CobolFile.Init();
-        const string host = "pb714-using.dat";
+        string host = Host("pb714-using.dat");
         CobolFile.Register("UA", host, 5, false, false);
         CobolFile.Register("UB", host, 5, false, false);
         // Both declare SHARING WITH ALL OTHER — the one clause GR12 a) singles out.
@@ -727,7 +740,7 @@ public sealed class CobolFileLockTests
     public void PlainConnector_SeesAnothersRecordLock_ButSetsNone_9_1_16()
     {
         CobolFile.Init();
-        const string host = "pb669-visibility.dat";
+        string host = Host("pb669-visibility.dat");
         CobolFile.RegisterRelative("VA", host, 5, false, Random, 4);
         CobolFile.RegisterRelative("VB", host, 5, false, Random, 4);
         // VA declares the posture; VB declares NOTHING — no RegisterSharing call at all, which is exactly what
