@@ -2250,7 +2250,12 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    slot served first) runs once on the merged head. The lanes I10 does not review write no gated report, so with no
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
-   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527); a gate NOT RUN, which measured
+   nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit, for the same wait, when the
+   worktree's own gate is still running and has written no verdict, `run_gate_legs.live_run`, kb/Work PB3662, where the record would
+   otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
+   whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
+   (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
+   branch carries, kb/Work PB3145); a gate NOT RUN, which measured
    nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an ENVIRONMENT cause or a BRANCH cause main fails
    the same way at the same step, else exit 5 like a red. Bring main in AGAIN when it moved while the pull request is
    queued, without a gate (review R1-2, corrected at implementation: the queue merges other pull requests meanwhile,
