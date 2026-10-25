@@ -374,12 +374,14 @@ def load_notes(work_dir: pathlib.Path, harm_weights: dict[str, int]) -> dict[str
 
 def branch_lead_notes(reports: list[Report], notes: dict[str, Note], harm_weights: dict[str, int],
                       git: Callable[..., Any]) -> dict[str, Note]:
-    """The lead notes of FINDINGS reports that main does not have, read from each report's own branch: an owner task
-    files its note on its own branch (memory: owner-task-branch-needs-a-note), and the planner reads main's register,
-    so the review finisher of `license-product-name` (PB3146) was never planned (kb/Work PB3150)."""
+    """The lead notes of FINDINGS and unfinished (SPLIT, NOT STARTED) reports that main does not have, read from each
+    report's own branch: an owner task files its note on its own branch (memory: owner-task-branch-needs-a-note), and
+    the planner reads main's register, so the review finisher of `license-product-name` (PB3146) was never planned
+    (kb/Work PB3150), nor was the finisher of a SPLIT branch that filed its lead the same way (kb/Work PB3699)."""
     out: dict[str, Note] = {}
     for r in reports:
-        if r.lead in notes or r.lead in out or not r.branch or not (r.review and r.review.verdict == "FINDINGS"):
+        if (r.lead in notes or r.lead in out or not r.branch
+                or not ((r.review and r.review.verdict == "FINDINGS") or r.status in FINISH_STATUSES)):
             continue
         shown = git("show", f"{r.branch}:kb/Work/{r.lead}.md")
         if shown.returncode == 0 and (n := note_of(shown.stdout, r.lead, harm_weights)):
@@ -1539,9 +1541,25 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # (branch_carrier) does not, and is named in its finisher's pred instead (review R1-1, R1-2). Every arm below that
     # asks "is this note the planner's to decide" reads `leads`, never `open_ids`: the dispatch hold, the frontier-model
     # hold and an unlanded branch's notes (review R2-1). Only the clusters' own arms read the clusters.
-    leads = open_ids | {r.lead for r in live if r.review and r.review.verdict == "FINDINGS" and
-                        r.lead not in open_ids and r.lead in notes and
-                        stamped(r, classify(r.branch) if r.branch else "ABSENT")}
+    # STARTED WORK IS THE PLANNER'S WHICHEVER LANE PLANNED IT (kb/Work PB3699): a SPLIT, NOT STARTED or gate-ended report
+    # on an unlanded branch is checkpointed work, and its notes are as much a lead as a FINDINGS report's. The fix lane's
+    # clusters skip `process_only` and `blocked` notes, so wave 20261031's groups A, C and D (campaign notes cut short by
+    # a fleet stop, SPLIT reports, committed branches) read as "UNLANDED branches naming no open note (judgment)" in the
+    # fix lane's `--drain` plan, and the owner's drain would have left them. Every note such a report answers that is still
+    # open on main (not terminal) and that no cluster holds joins the leads; a report whose branch is on main or gone
+    # started no work a finisher could continue (its notes are the cluster arms' to restart).
+    def unfinished(r: Report) -> bool:
+        return r.status in FINISH_STATUSES or r.gate_state in ("RUNNING", "ENDED")
+
+    unseen: set[str] = set()
+    for r in live:
+        cls = classify(r.branch) if r.branch else "ABSENT"
+        if stamped(r, cls):
+            if r.lead not in open_ids and r.lead in notes:
+                unseen.add(r.lead)
+        elif cls not in LANDED_CLASSES and unfinished(r):
+            unseen |= {i for i in r.notes if i in notes and i not in open_ids and notes[i].status not in work.TERMINAL_STATUSES}
+    leads = open_ids | unseen
     # A branch another branch replays in full is planned from through THAT branch (kb/Work PB3170): its commit subjects
     # name the same notes, so the carrier's own entry plans them; two finishers on one note's commits land them twice.
     unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()
