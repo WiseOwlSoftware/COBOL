@@ -2484,7 +2484,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (COBOLNET1639): the rule broken is §8.4.2.1/§8.4.2.2, not a rule of the clause, and a user who mis-qualifies
     /// a name in a WRITE and in a LINAGE clause has broken one rule and should read one verdict.</para></summary>
     private DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
-                                           Editions.DiagnosticCursor at)
+                                           Editions.DiagnosticCursor at, bool inReportSection = false)
     {
         var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
         if (survivors.Single is { } one) return one;
@@ -2493,6 +2493,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string written = WrittenQualified(name, quals);
         if (survivors.Count > 1)
             return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
+        // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
+        // division section other than the report section from referring to a report item. (The report section's own
+        // clauses are that section's; their operand rules are theirs.)
+        if (!inReportSection && ReportEntryReferenceRefused($"{clauseFace} '{written}'", name, quals)) return null;
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clauseFace} '{written}': the clause's data-name references no data item — "
               + (Symbols.TryResolve(name, Model.Scope.Program, out _)
