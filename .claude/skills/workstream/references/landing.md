@@ -46,9 +46,10 @@
   A conflict's finisher (exit 4, or a DIRTY bounce) gets `land_lane.py conflict-brief <branch>` verbatim in its prompt
   (kb/Work PB3640): the conflicted files, main's commits on them since the merge base, both sides' notes and reports.
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
-  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, or the
-  branch's own gate is still running and has not written its verdict, nothing ran, nothing is red) is no stop either: the
-  lane retries it once the lock is free (kb/Work PB3527, PB3662); exit 15 (PREDECESSOR
+  `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, the
+  branch's own gate is still running and has not written its verdict, or the gate's Linux half found a Linux gate of the
+  tree running; nothing ran, nothing is red) is no stop either: the lane retries it once the lock is free and no Linux
+  gate of the tree runs (kb/Work PB3527, PB3662, PB3649); exit 15 (PREDECESSOR
   QUEUED: the branch merged a predecessor whose pull request is still open, so it carries that pull request's stamped
   DEVLOG entry beside its own, nothing queued, nothing red) is the same: the lane retries it once no open pull request
   owns an entry the branch carries (kb/Work PB3145); exit 13 (another

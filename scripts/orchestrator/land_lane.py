@@ -77,9 +77,10 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    pull request into main owns an entry the branch
                                                                    carries (`wait_free`); never the enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
-                lock, or the branch's own gate had not written its   is free (`wait_free`; a gate holds it until
-                verdict yet (kb/Work PB3527, PB3662; nothing ran,    its verdict is written); never the enqueue unit's
-                nothing red)
+                lock, the branch's own gate had not written its      is free (`wait_free`; a gate holds it until
+                verdict yet (kb/Work PB3527, PB3662), or the gate's  its verdict is written) AND no Linux gate of the
+                Linux half found a Linux gate of the tree running    tree runs (`linux-gate.sh --probe`, kb/Work
+                (kb/Work PB3649); nothing ran, nothing red)          PB3649); never the enqueue unit's
        exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
                 cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
                 queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
@@ -145,7 +146,7 @@ EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch share
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
 #: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
-WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written)",
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written) and any Linux gate of the tree (linux-gate.sh --probe)",
          EXIT_LAND_BUSY: "the worktree's land lock",
          EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
@@ -555,14 +556,27 @@ def landing_check_free(worktree: str) -> tuple[bool, str]:
     return p.returncode == 0, (stops[0] if stops else (p.stdout.strip().splitlines() or ["no output"])[-1])[:240]
 
 
-def gate_lock_free(worktree: str) -> tuple[bool, str]:
-    """Whether no gate runs in the worktree now (exit 12's wait): its gate lock (the gate driver's own:
-    run_gate_legs.Host.lock_path) is free, taken and released at once (an OS lock, freed when its holder dies, so a lock
-    that reads held is a live gate). That lock is also `run_gate_legs.live_gate`'s reader, the one the landing answers
-    exit 12 by (kb/Work PB3662: a gate holds it until its verdict file is written), so the wait ends exactly when the
-    landing would stop answering 12; a gate process id is never read (Windows reuses them)."""
+def linux_gate_holder(worktree: str) -> str | None:
+    """The Linux gate of the worktree's tree that runs now, as `linux-gate.sh --probe` words it, or None
+    (run_gate_legs.Host.linux_gate_holder: also None where none can run or the probe could not answer)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns the Linux gate's invocation)
+    return run_gate_legs.Host(pathlib.Path(worktree)).linux_gate_holder()
+
+
+def gate_lock_free(worktree: str, *, holder: Callable[[str], str | None] = linux_gate_holder) -> tuple[bool, str]:
+    """Whether no gate runs in the worktree now (exit 12's wait). Exit 12 has TWO sources (kb/Work PB3649), and the wait
+    ends only when neither holds: (1) the worktree's gate lock (the gate driver's own: run_gate_legs.Host.lock_path) is
+    free, taken and released at once (an OS lock, freed when its holder dies, so a lock that reads held is a live
+    gate). That lock is also `run_gate_legs.live_gate`'s reader, the one the landing answers exit 12 by (kb/Work
+    PB3662: a gate holds it until its verdict file is written); a gate process id is never read (Windows reuses them).
+    (2) No Linux gate of the tree runs (`holder`: linux-gate.sh keeps its own owner files, one gate per tree, and a
+    hand run of it does not take the Windows lock): the BUSY a landing's gate found in its Linux half."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
-    return lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+    free, why = lock_free(lambda: run_gate_legs.Host(pathlib.Path(worktree)).lock_path(), f"the gate lock of {worktree}")
+    if not free:
+        return free, why
+    linux = holder(worktree)
+    return (True, "") if linux is None else (False, f"a Linux gate of this tree runs: {linux}")
 
 
 def land_lock_free(worktree: str) -> tuple[bool, str]:
@@ -603,16 +617,18 @@ def predecessor_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, st
 
 
 def wait_free(rc: int | None, worktree: str, *,
-              gh: Callable[[list[str]], tuple[int, str, str]] | None = None) -> tuple[bool, str]:
+              gh: Callable[[list[str]], tuple[int, str, str]] | None = None,
+              holder: Callable[[str], str | None] = linux_gate_holder) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
-    branch; exit 12, the worktree's gate lock is free; exit 13, the worktree's land lock
+    branch; exit 12, the worktree's gate lock is free AND no Linux gate of the tree runs (`holder`: the real probe unless
+    a self-test plants it; kb/Work PB3649); exit 13, the worktree's land lock
     is free; exit 15, no open pull request owns a DEVLOG entry the branch carries (`gh`: GitHub's reader, the real one
     unless a self-test plants it)."""
     if rc == EXIT_PREDECESSOR_QUEUED:
         import ruleset  # noqa: PLC0415
         return predecessor_free(worktree, gh or ruleset.real_gh)
     if rc == EXIT_GATE_BUSY:
-        return gate_lock_free(worktree)
+        return gate_lock_free(worktree, holder=holder)
     if rc == EXIT_LAND_BUSY:
         return land_lock_free(worktree)
     return landing_check_free(worktree)
@@ -1078,7 +1094,7 @@ ACTION = {STOPPED: "the enqueue unit's: step 4 finisher, a CONFLICT one with its
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
-                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free and no Linux gate of the tree runs; exit 13: the worktree's land lock is free; exit 15: no open pull request owns a DEVLOG entry the branch carries)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -1366,20 +1382,34 @@ def self_test() -> int:
         expect("exit 12 once the gate lock is free: retried at the same head", f3b.tick(c3b) == ["w2b"], str(f3b.started))
         lock_wt = ScratchRepo.init(root / "wt-lock").path
         import run_gate_legs  # noqa: PLC0415
+
+        def no_linux_gate(_worktree: str) -> None:
+            """The planted Linux probe: no Linux gate runs (the real one starts WSL, which a self-test must not)."""
+            return None
         held = ExclusiveLock.try_take(run_gate_legs.Host(lock_wt).lock_path(), "gate (pid 356316)")
         try:
-            while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+            while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt), holder=no_linux_gate)
         finally:
             held.release()
-        after = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+        after = wait_free(EXIT_GATE_BUSY, str(lock_wt), holder=no_linux_gate)
         expect("wait_free for exit 12 reads the gate driver's own lock of the worktree: held names its holder, then free",
                while_held[0] is False and "pid 356316" in while_held[1] and after == (True, ""), f"{while_held} {after}")
+        # exit 12's SECOND source (kb/Work PB3649): the gate's Linux half found a Linux gate of the tree running
+        # (linux-gate.sh BUSY), which holds no Windows lock. The wait probes it too: with the gate lock free it is still
+        # not free while a Linux gate runs, and names that gate; once the Linux gate has ended the lane retries.
+        linux_busy = wait_free(EXIT_GATE_BUSY, str(lock_wt), holder=lambda wt: "BUSY — another Linux gate of this tree "
+                               "is running (pid 4242, started Fri Oct 24 11:00:00 2026); this run touched nothing")
+        linux_gone = wait_free(EXIT_GATE_BUSY, str(lock_wt), holder=no_linux_gate)
+        expect("wait_free for exit 12 waits on a running Linux gate of the tree as well as on the Windows gate lock: "
+               "free gate lock + Linux gate running = not free, naming its pid; the Linux gate gone = free",
+               linux_busy[0] is False and "Linux gate of this tree runs" in linux_busy[1] and "pid 4242" in linux_busy[1]
+               and linux_gone == (True, ""), f"{linux_busy} {linux_gone}")
         # exit 12 for the branch's OWN gate not having written its verdict yet (kb/Work PB3662): the lane launched the
         # landing beside the implementer's running gate (a resume merged main in, the gate started, the survey read the
         # new tip WAITING TO LAND). The same head must relaunch once the run writes its verdict, with no `rearm`.
         c3c = fresh("owed")
         f3c = Fake([row("w2c", "WAITING TO LAND", "o1")])
-        f3c.wait = wait_free
+        f3c.wait = lambda rc, wt_: wait_free(rc, wt_, holder=no_linux_gate)
         gate_wt = ScratchRepo.init(root / "wt-w2c").path
         owed_run = gate_wt / run_gate_legs.RUN_ROOT / "000005-20261024T225004Z"
         owed_run.mkdir(parents=True)
@@ -1396,7 +1426,7 @@ def self_test() -> int:
             f3c.live.clear()
             waiting = f3c.tick(c3c)
             waiting_said = " | ".join(f3c.said)
-            owed_now = wait_free(EXIT_GATE_BUSY, str(gate_wt))
+            owed_now = wait_free(EXIT_GATE_BUSY, str(gate_wt), holder=no_linux_gate)
         finally:
             gate_held.release()                                    # the gate ended (or died): no verdict file, pid alive
         relaunched = f3c.tick(c3c)

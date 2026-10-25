@@ -392,7 +392,16 @@ def main() -> int:
               at(ev, "end:gate-await-implementer-1") < at(ev, "start:gatefix-A-r1") < at(ev, "start:w9a-review-r1") < 10 ** 9
               and "merge_drivers.py merge bA" in gp and red_run in gp and "RED — planted" in gp
               and [x["branch"] for x in r["out"]["ready"]] == ["bA3"], (ev, gp))
-        stuck_run = gate_run("stuck", None)
+        # a gate that RUNS and never writes a verdict: a run of a real worktree whose gate lock is held, its label naming the
+        # run (what Gate.run writes); the reader asks that lock, never the pid file (review R1-1 of wave 20261104)
+        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
+        stuck_wt = ScratchRepo.init(tmp / "stuck-wt").path
+        stuck_dir = stuck_wt / run_gate_legs.RUN_ROOT / "stuck"
+        stuck_dir.mkdir(parents=True)
+        run_gate_legs.write_pid(stuck_dir, os.getpid())
+        stuck_run = str(stuck_dir)
+        stuck_lock = run_gate_legs.ExclusiveLock.try_take(
+            run_gate_legs.Host(stuck_wt).lock_path(), f"gate {stuck_wt} (pid 7, since T{run_gate_legs.RUN_LABEL}{stuck_dir})")
         r = run(tmp, "gate-stuck", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [pending("bA", "a1", stuck_run)]}})
         ev, res = r["events"], {x["letter"]: x for x in r["out"]["results"]}
@@ -401,6 +410,7 @@ def main() -> int:
               res["A"].get("status") == "STALLED" and sum(e.startswith("start:gate-await-") for e in ev) == 2
               and not any(e.startswith("start:w9a-review") or e.startswith("start:gatefix") for e in ev)
               and not r["out"]["ready"], (ev, res.get("A")))
+        stuck_lock.release()
         r = run(tmp, "gate-review-finisher", {"args": args(solo, **gate_args), "agents": {
             "impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 1)],
             "fix-A-r1": [pending("bA2", "a2", green_run)], "w9a-review-r2": [review("CLEAN", "a2")]}})
