@@ -319,4 +319,50 @@ public sealed class DocA1Item103WitnessTests
             OP-P.
                 DISPLAY "IN-OP".
             """, "AFTER-SORT EC-I-O-PERMANENT-ERROR");
+
+    // The implementor-defined '91' (§9.1.13.11 item 1; DOC-A.1-110: a record character with no byte image in the file's
+    // coded character set) is FATAL by its first digit (§9.1.13.1) and maps to EC-I-O-IMP. Both halves are pinned for a
+    // WRITE whose record holds U+2603 (kb/Work PB3681): the FILE STATUS item receives '91' and execution continues while
+    // checking is not enabled, and with checking ENABLED §14.6.13.1.3 rule 7 ends the run unit although the file has a
+    // FILE STATUS clause (DOC-A.1-103) -- the same rule that ends it for '48' and '35'.
+    private static string CharacterWithoutByteImageWrite(string turn) => """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L1D103K.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN TO "l1d103k.dat"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 F-REC PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-P.
+            @TURN@
+                OPEN OUTPUT F.
+                MOVE "A@SNOWMAN@C" TO F-REC.
+                WRITE F-REC.
+                DISPLAY "AFTER-WRITE FS=" FS.
+                CLOSE F.
+                STOP RUN.
+            """.Replace("@TURN@", turn).Replace("@SNOWMAN@", ((char)0x2603).ToString());
+
+    [Fact]   // CONTROL: checking not enabled -> §9.1.13.1 leaves continue-or-terminate to the implementor; a FILE STATUS clause continues.
+    public void CharacterWithoutByteImage_Status91_WithFileStatusClause_Continues()
+        => AssertContinues(CharacterWithoutByteImageWrite(""), "AFTER-WRITE FS=91");
+
+    [Fact]   // §14.6.13.1.3 rule 7: checking for EC-I-O-IMP enabled and nothing applicable -> abnormal termination, FILE STATUS or not.
+    public void CharacterWithoutByteImage_Status91_CheckingEnabled_TerminatesAbnormally()
+    {
+        // The checked path's message names the condition, status and file but not the statement (the unchecked
+        // no-FILE-STATUS path's message does), so the statement-naming AssertTerminates does not apply.
+        var (ok, stdout, detail) = CobolNet.CompileAndRun(CharacterWithoutByteImageWrite(">>TURN EC-I-O-IMP CHECKING ON"));
+        Assert.False(ok, $"expected abnormal termination on EC-I-O-IMP; ran clean with stdout:\n{stdout}");
+        Assert.Contains("EC-I-O-IMP (fatal): I-O status 91", detail);
+        Assert.Equal("", stdout);
+    }
 }
