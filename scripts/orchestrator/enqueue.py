@@ -130,6 +130,9 @@ refusing on the landing's own range before a CI run is spent:
                     kb/Work PB2605, PB3025, PB3123) → exit 6
   landing_check.py  (the R3 file-set partition and in-flight overlap; kb/Work PB2118) → exit 3 (STOP: re-plan, never
                     retry as is)
+  work.py check     (the work register of the MERGED head, read by that head's own work.py: a branch is gated at its
+                    own head, so a note main gained since — one carrying a key the branch's rule now refuses — meets
+                    the rule here, not for the first time in the merge group's CI; kb/Work PB3389) → exit 6
 A check that cannot read its range is exit 2 (NOT RUN, never a pass). No landing check reads a record of one tree
 (kb/Work PB3107): a merge group is built on every group queued ahead of it, so a committed record of the branch's own
 tree (the arch-oracle baseline the retired landing oracle held it to, exit 7 until PB3107) cannot describe the tree that
@@ -233,35 +236,55 @@ def host_gates() -> tuple[GateRow, ...]:
     return GATES_WINDOWS if os.name == "nt" else GATES_LINUX
 
 
-# (the check's name, its command under scripts/, its refusal's exit code here, whether it takes --base, whether its
-# every non-zero is a refusal). A refusal is the script's exit 1; any other non-zero is "could not run", except for
-# landing_check.py, whose every non-zero is a STOP (its own contract: re-plan, never retry as is).
-CHECKS = (("devlog.py check", ("devlog.py", "check"), 6, True, False),
-          ("landing_check.py", ("orchestrator/landing_check.py",), 3, True, True))
+class Check(NamedTuple):
+    """One landing check. `command`: a script under scripts/ and its arguments, run from the worktree's own tree when
+    `in_tree` (the merged head's copy of the script, the one CI runs), else from this lane's. `takes_range`: it is
+    passed `--rev <head>`; `takes_base`: and `--base <origin/main>`. A refusal is the script's exit 1; any other
+    non-zero is "could not run", except when `every_nonzero_refuses` (landing_check.py: its own contract is that every
+    non-zero is a STOP, re-plan, never retry as is)."""
+    name: str
+    command: tuple[str, ...]
+    refused: int
+    takes_base: bool = True
+    every_nonzero_refuses: bool = False
+    takes_range: bool = True
+    in_tree: bool = False
+
+
+# The register check reads the merged head's kb/Work with the merged head's own work.py: a note main gained since the
+# branch's gate (a branch is gated at its own head, never again after main comes in) is read by the rule the branch
+# carries, so a rule a branch adds (kb/Work PB3389: a stored `blocked:` key is refused) cannot meet a note it never saw
+# for the first time in the merge group's CI (PB3389 review R1-1). Its refusal is exit 6, a finisher's, like DEVLOG's.
+CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
+          Check("landing_check.py", ("orchestrator/landing_check.py",), 3, every_nonzero_refuses=True),
+          Check("work.py check", ("spec/work.py", "check"), 6, takes_base=False, takes_range=False, in_tree=True))
 
 Say = Callable[[str], None]
 Gh = Callable[[list[str]], tuple[int, str, str]]
 Measure = Callable[[str, int], None]   # (branch, pull-request number): write the landing's record (kb/Work PB3028)
 
 
-def run_checks(rev: str, base: str, run: Callable[[tuple[str, ...], list[str]], int], say: Say = print) -> int:
-    """The landing checks in order; the first refusal's code, else 0. `run(command, args)` returns the exit of the
-    script `command[0]` (a path under scripts/) run with `command[1:]` and then `args`."""
-    for name, command, refused, takes_base, every_nonzero_refuses in CHECKS:
-        rc = run(command, ["--rev", rev, *(["--base", base] if takes_base else [])])
+def run_checks(rev: str, base: str, run: Callable[[Check, list[str]], int], say: Say = print) -> int:
+    """The landing checks in order; the first refusal's code, else 0. `run(check, args)` returns the exit of the
+    script `check.command[0]` (a path under scripts/) run with `check.command[1:]` and then `args`."""
+    for check in CHECKS:
+        range_args = ["--rev", rev, *(["--base", base] if check.takes_base else [])] if check.takes_range else []
+        rc = run(check, range_args)
         if rc == 0:
             continue
-        if rc == 1 or every_nonzero_refuses:
-            say(f"⛔ enqueue: {name} refused this landing (above) — nothing pushed, nothing opened.")
-            return refused
-        say(f"⛔ enqueue: {name} could not read the range (exit {rc}, above) — NOT RUN, never a pass.")
+        if rc == 1 or check.every_nonzero_refuses:
+            say(f"⛔ enqueue: {check.name} refused this landing (above) — nothing pushed, nothing opened.")
+            return check.refused
+        say(f"⛔ enqueue: {check.name} could not read the range (exit {rc}, above) — NOT RUN, never a pass.")
         return 2
     return 0
 
 
-def _script_runner(cwd: pathlib.Path) -> Callable[[tuple[str, ...], list[str]], int]:
-    def run(command: tuple[str, ...], args: list[str]) -> int:
-        return subprocess.run([sys.executable, str(HERE.parent / command[0]), *command[1:], *args], cwd=cwd).returncode
+def _script_runner(cwd: pathlib.Path) -> Callable[[Check, list[str]], int]:
+    def run(check: Check, args: list[str]) -> int:
+        root = cwd / "scripts" if check.in_tree else HERE.parent
+        return subprocess.run([sys.executable, str(root / check.command[0]), *check.command[1:], *args],
+                              cwd=cwd).returncode
     return run
 
 
@@ -1277,25 +1300,38 @@ def self_test() -> int:
                rc_nothing == 0 and any("nothing to land" in ln for ln in lines) and rc_title == 2,
                f"{rc_nothing} {rc_title}")
 
-        devlog_check, partition = ("devlog.py", "check"), ("orchestrator/landing_check.py",)
+        devlog_check, partition, register = (c.command for c in CHECKS)
 
         def runner(results: dict[tuple[str, ...], int], seen: list[tuple[tuple[str, ...], list[str]]]):
-            def run(command: tuple[str, ...], args: list[str]) -> int:
-                seen.append((command, args))
-                return results.get(command, 0)
+            def run(check: Check, args: list[str]) -> int:
+                seen.append((check.command, args))
+                return results.get(check.command, 0)
             return run
         mapped = []
-        for results in ({devlog_check: 1}, {partition: 1}, {devlog_check: 2}, {partition: 2}, {}):
+        for results in ({devlog_check: 1}, {partition: 1}, {devlog_check: 2}, {partition: 2}, {register: 1},
+                        {register: 2}, {}):
             seen: list[tuple[tuple[str, ...], list[str]]] = []
             mapped.append(run_checks("S", "B", runner(results, seen), say=lines.append))
         seen = []
         run_checks("S", "B", runner({}, seen), say=lines.append)
-        missing = [c[0] for _, c, *_ in CHECKS if not (HERE.parent / c[0]).is_file()]
-        expect("checks runs the two landing scripts on the range in order and maps each refusal to its own code: "
-               "DEVLOG 6, landing check 3, unreadable 2",
-               mapped == [6, 3, 2, 3, 0] and not missing
-               and seen == [(devlog_check, ["--rev", "S", "--base", "B"]), (partition, ["--rev", "S", "--base", "B"])],
+        missing = [c.command[0] for c in CHECKS if not (HERE.parent / c.command[0]).is_file()]
+        expect("checks runs the three landing scripts in order, the range only to the two that read one, and maps each "
+               "refusal to its own code: DEVLOG 6, landing check 3, register 6, unreadable 2",
+               mapped == [6, 3, 2, 3, 6, 2, 0] and not missing
+               and seen == [(devlog_check, ["--rev", "S", "--base", "B"]), (partition, ["--rev", "S", "--base", "B"]),
+                            (register, [])],
                f"{mapped} {seen} missing={missing}")
+
+        # The register check runs the merged head's OWN work.py from the worktree's tree (kb/Work PB3389 review R1-1),
+        # the other two this lane's: a worktree whose copy refuses is exit 1, one whose copy passes is exit 0.
+        for code in (1, 0):
+            tree = root / f"register-{code}"
+            (tree / "scripts" / "spec").mkdir(parents=True)
+            fake = tree / "scripts" / "spec" / "work.py"
+            fake.write_text(f"import sys; sys.exit({code})", encoding="utf-8", newline=chr(10))
+            expect(f"the register check runs the worktree's own scripts/spec/work.py (exit {code})",
+                   _script_runner(tree)(CHECKS[2], []) == code
+                   and CHECKS[2].in_tree and not CHECKS[0].in_tree and not CHECKS[1].in_tree, f"code {code}")
 
         # The migrating landing (kb/Work PB3023 review R1-3): the base holds the monolithic DEVLOG.md, the branch adds
         # the whole history as files plus its own one entry; the pull request is titled from that one (devlog.check's).
