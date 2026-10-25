@@ -135,11 +135,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>The TYPE of a pointer restricted to program-prototype <paramref name="prototypeName"/> — its signature
     /// class (<see cref="PrototypeSignatureClasses"/>), the identity a program-address-identifier argument is described
-    /// with. A name the unit's table does not hold has its own name for identity.</summary>
+    /// with. A name the unit's table does not hold has no compile-time signature (ISO §12.3.8.4 GR10 c)), so it is
+    /// described by its external identity (<see cref="PrototypeSignatures.ExternalIdentity"/>, kb/Work PB3162).</summary>
     internal string ProgramRestrictionIdentityOf(string prototypeName) =>
         ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true && SignatureClasses is { } classes
             ? classes.Identity(RestrictedPrototype.Of(p))
-            : PrototypeSignatures.OwnIdentity(prototypeName);
+            : PrototypeSignatures.ExternalIdentity(prototypeName);
 
     /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table
     /// (<see cref="ProgramPrototypes"/>) its declaration was already screened against — THE ONE reader every
