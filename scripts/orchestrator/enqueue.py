@@ -94,6 +94,15 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      branch keeps the merge and the stamp, and the lane lands it again at this head once no such pull request is open
      (`land_lane.predecessor_free`, the same reader; kb/Work PB3145). A pull request that CLOSED without merging is
      no longer open, so the same branch then ends exit 6 NO ENTRY as before: a stop for a finisher, not a wait.
+     THE SAME WAIT COVERS A PREDECESSOR NOT YET STAMPED HERE (kb/Work PB3693): a branch that merged a predecessor carries
+     the predecessor's PENDING entry, and the predecessor, reviewed CLEAN, lands on its own. Folding that pending entry
+     into this branch's would put the predecessor's work on main through two pull requests (two merge bases, the
+     PublicAPI `merge=union` duplicates of PB3694). So when the branch carries more than one pending entry and an open
+     pull request into main already adds a stamped entry of the same title (`open_predecessors`, the pending arm), it
+     is exit 15 BEFORE anything is stamped; once that pull request merges, main comes in, the pending file leaves with
+     it (or `devlog.py stamp` drops it, its title being a stamped entry of the tree) and only this branch's own entry
+     is stamped. `devlog.py stamp` is all or nothing (kb/Work PB3367): a failed git write is rolled back and ends the
+     landing exit 2 (the lane retries it once), never exit 6 "needs a pending entry".
 Every outcome ends on ONE line `=== ENQUEUE: <OUTCOME> … ===` for a caller to block on (MANDATORY-PRACTICES P2).
 
 `queue`, run in the landing worktree on its committed, up-to-date HEAD:
@@ -162,6 +171,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
+import devlog  # noqa: E402  (scripts/: the one definition of a landing's new entry, its pending entries and its stamp)
 import gate_slot  # noqa: E402  (the landing gate's class: CLASS_ENV, LANDING)
 import landing_measure  # noqa: E402
 import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one merge of main into a branch, kb/Work PB3610)
@@ -644,7 +654,6 @@ def pull_request_text(wt: pathlib.Path, base: str, branch: str) -> tuple[str, st
     rule's own definition, `devlog.landing_entries` (kb/Work PB3023 review R1-3: a file-name test read the migrating
     landing, which adds the whole history as files, as ~1,940 entries) — and as the body that entry and the branch's
     commit list. ("", "") when the landing adds no single entry or the range cannot be read."""
-    import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
     try:
         files, new = devlog.landing_entries(wt, base, "HEAD")
     except devlog.RangeError:
@@ -668,11 +677,12 @@ def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tu
     """THE ONE READER of "which still-open pull requests own a DEVLOG entry this branch carries" (kb/Work PB3145): (the
     open pull requests into main that add a stamped DEVLOG entry the branch carries and `base` does not have yet, each
     mapped to those entries, "" | why GitHub or the range could not be read). A pull request owns an entry when its
-    CURRENT head adds it (its `files`) or, for a file list GitHub cut off, when the branch CONTAINS its head: the head
+    CURRENT head adds it (its `files`), or adds a stamped entry of the title of a PENDING entry the branch carries beside
+    its own (the predecessor's, not yet stamped here: kb/Work PB3693; the names it maps are `pending-<slug>.md`), or, for
+    a file list GitHub cut off, when the branch CONTAINS its head: the head
     moves after the branch merged it (a bounce re-landed with newer main, a catch-up merge) and the entry stays its own
     (review R1-2). The branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land`
     asks it to tell a wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
-    import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
     try:
         rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200", "--json", PR_LIST_FIELDS])
     except ruleset.Unobserved as exc:
@@ -688,9 +698,16 @@ def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tu
         carried = devlog.landing_entries(wt, base, "HEAD")[1]   # the entries main does not have yet
     except devlog.RangeError as exc:
         return {}, f"the landing's DEVLOG entries could not be read ({exc})"
+    # THE PENDING ARM (kb/Work PB3693): a branch that carries MORE THAN ONE pending entry carries a predecessor's, which
+    # the predecessor's own landing stamps on the predecessor's branch, so the pull request holds the STAMPED entry of the
+    # same title (the stamp's file name is `NNNN-<slug of the title>.md`). That pull request owns the pending entry.
+    titles = devlog.pending_titles(wt)
+    pending = {devlog.slugify(t): n for n, t in titles.items()} if len(titles) > 1 else {}
     found: dict[int, list[str]] = {}
     for number, oid, paths in listed:
-        if owned := [n for n in carried if f"{devlog.DIR}/{n}" in paths]:
+        stamped_slugs = {m.group("slug") for p in paths if (m := devlog.ENTRY_NAME.match(p.rsplit("/", 1)[-1]))
+                         and p.startswith(f"{devlog.DIR}/")}
+        if owned := [n for n in carried if f"{devlog.DIR}/{n}" in paths] + [n for s, n in pending.items() if s in stamped_slugs]:
             found[number] = owned
         elif len(paths) >= FILES_LISTED and _git(wt, "merge-base", "--is-ancestor", oid, "HEAD").returncode == 0 \
                 and _git(wt, "merge-base", "--is-ancestor", oid, base).returncode != 0:
@@ -707,7 +724,6 @@ def awaited_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) ->
     numbers, "") when the landing's new entries, less those the open predecessors own (`open_predecessors`), leave
     EXACTLY ONE — the branch's own, which main will then add alone —; ([], "") when waiting would not help (no such
     pull request, or a residue other than one: a real NO ENTRY); ([], why) when GitHub or the range was unreadable."""
-    import devlog  # noqa: PLC0415
     queued, problem = open_predecessors(wt, base, branch, gh=gh)
     if problem or not queued:
         return [], problem
@@ -887,7 +903,10 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     here = worktree_state(wt)
     if here is None or here.branch != branch:
         return end(2, f"REFUSED — no worktree has {branch} checked out (pass --worktree)")
-    if dirty := here.dirty:
+    # An interrupted stamp (the entry written, the pending file gone, nothing committed) is dirty on purpose: step 4's
+    # stamp completes it (devlog.half_stamp_paths; kb/Work PB3367), so its paths are no refusal.
+    interrupted = devlog.half_stamp_paths(wt) if here.dirty else set()
+    if dirty := [d for d in here.dirty if d[3:].strip() not in interrupted]:
         return end(2, f"REFUSED — the worktree {wt} has {len(dirty)} uncommitted path(s) ({dirty[0].strip()}): commit "
                       "or remove them; a landing carries only commits")
     if failed := fetch_main(wt):
@@ -1007,8 +1026,25 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
             return end(2, f"NOT QUEUED — {failed}")
         if files := merge_main(wt, branch, base):
             return conflicted(files, "while the pull request was being queued")
-        if (stamp or _stamp)(wt, branch) != 0:
-            return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md`")
+        # A predecessor landing on its own is never folded into this branch's entry (kb/Work PB3693): wait for its pull
+        # request before anything is stamped. One pending entry is the branch's own and asks GitHub nothing.
+        if len(list((wt / "DEVLOG").glob("pending-*.md"))) > 1:
+            queued, problem = open_predecessors(wt, base, branch, gh=gh)
+            if problem:
+                return end(EXIT_GITHUB, f"NOT QUEUED — whether an open pull request already lands a pending DEVLOG entry "
+                                        f"the branch carries could not be read: {problem}")
+            if queued:
+                return end(EXIT_PREDECESSOR_QUEUED,
+                           f"PREDECESSOR QUEUED — the branch carries the pending DEVLOG entry of the open pull "
+                           f"request(s) {', '.join('#' + str(n) for n in sorted(queued))}, which lands it on its own: "
+                           "nothing stamped or queued; landed again once they merge (kb/Work PB3693)")
+        stamp_rc = (stamp or _stamp)(wt, branch)
+        if stamp_rc == devlog.EXIT_GIT:
+            return end(2, "DEVLOG STAMP FAILED — a git call of the stamp failed (its stderr is above) and was rolled "
+                          "back, the pending entry as it was; nothing is stamped or queued, and the lane retries it once")
+        if stamp_rc != 0:
+            return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md` "
+                          "(first line `## <Title>`) that the stamp can number")
         title, body = pull_request_text(wt, base, branch)
         if not title:
             # A merged predecessor's stamped entry rides beside this branch's own until ITS pull request merges
@@ -1037,10 +1073,12 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
 
 
 def _stamp(wt: pathlib.Path, branch: str) -> int:
-    """`devlog.py stamp` when the branch still has a pending entry; 0 when it has none. A stamped entry keeps its
-    number on every later run, a re-run after a bounce included (kb/Work PB3123: number order is stamp order, and the
-    landing checks hold it to the tree it was stamped on), so there is nothing to re-stamp."""
-    if not any((wt / "DEVLOG").glob("pending-*.md")):
+    """`devlog.py stamp` when the branch has a stamp to do (`devlog.stamp_due`: a pending entry, or a stamp that was
+    interrupted before its commit); 0 when it has none. A stamped entry keeps its number on every later run, a re-run
+    after a bounce included (kb/Work PB3123: number order is stamp order, and the landing checks hold it to the tree it
+    was stamped on), so there is nothing to re-stamp. Returns the stamp's exit (`devlog.EXIT_GIT` is a git failure it
+    rolled back)."""
+    if not devlog.stamp_due(wt):
         return 0
     return subprocess.run([sys.executable, str(HERE.parent / "devlog.py"), "stamp", branch, "--repo", str(wt)],
                           cwd=wt).returncode
@@ -2041,6 +2079,93 @@ def self_test() -> int:
                rc_after == 0 and lines[-1].startswith(VERDICT + "ENQUEUED") and create_after
                and create_after[create_after.index("--title") + 1] == "DEVLOG 51: PB9: the successor",
                f"{rc_after} {lines[-2:]} {log_after}")
+        # ── a predecessor that lands on its own is never folded into the carrier's entry (kb/Work PB3693) ──────────────
+        # `carr` merged `pre`, whose PENDING entry it carries beside its own; `pre`, reviewed CLEAN, was landed alone and
+        # its pull request #801 (still open) adds the stamped entry of the same title. Stamping `carr` now would fold
+        # `pre`'s title into `carr`'s entry: main would get the work through two pull requests.
+        assert fetch_main(wt) is None
+        pre = scratch.worktree(root / "pre-wt", branch="pre", start="origin/main")
+        (pre.path / "DEVLOG").mkdir(exist_ok=True)
+        (pre.path / "DEVLOG" / "pending-pre.md").write_text("## PB8: the predecessor that lands alone\n\nWhy.\n",
+                                                            encoding="utf-8", newline="\n")
+        pre.git("add", "DEVLOG")
+        pre.git("commit", "--quiet", "-m", "the predecessor's checkpoint")
+        carr = scratch.worktree(root / "carr-wt", branch="carr", start="origin/main")
+        carr.git("merge", "--quiet", "--no-edit", "pre")
+        (carr.path / "DEVLOG" / "pending-carr.md").write_text("## PB8: the carrier's own\n\nWhy.\n",
+                                                              encoding="utf-8", newline="\n")
+        carr.git("add", "DEVLOG")
+        carr.git("commit", "--quiet", "-m", "the carrier's entry")
+        carr_tip = carr.git("rev-parse", "HEAD")
+        pre_files = ["DEVLOG/0070-pb8-the-predecessor-that-lands-alone.md", "scripts/x.py"]
+        stamped_calls: list[str] = []
+
+        def counting_stamp(rc: int) -> Callable[[pathlib.Path, str], int]:
+            def run(w: pathlib.Path, b: str) -> int:
+                stamped_calls.append(b)
+                return rc
+            return run
+        carr_land = lambda gh, st, **kw: land(   # noqa: E731
+            root, "carr", carr.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
+            gates=gates_of(green, []), stamp=st, blocked=record, say=lines.append, **kw)
+        carr_log: list[list[str]] = []
+        carr_asked, carr_problem = open_predecessors(carr.path, base_ref, "carr",
+                                                     gh=listing_gh([(801, "pre", pre.git("rev-parse", "HEAD"), pre_files)], []))
+        rc_carr = carr_land(listing_gh([(801, "pre", pre.git("rev-parse", "HEAD"), pre_files)], carr_log),
+                            counting_stamp(0))
+        carr_line = lines[-1]
+        expect("land: a branch carrying a merged predecessor's PENDING entry whose own pull request is open (it adds the "
+               "stamped entry of that title) waits BEFORE it stamps: exit 15 PREDECESSOR QUEUED naming the pull request, "
+               "nothing stamped, pushed or queued, the pending files untouched (kb/Work PB3693)",
+               rc_carr == EXIT_PREDECESSOR_QUEUED and carr_line.startswith(VERDICT + "PREDECESSOR QUEUED")
+               and "#801" in carr_line and not stamped_calls and carr.git("rev-parse", "HEAD") == carr_tip
+               and sorted(p.name for p in (carr.path / "DEVLOG").glob("pending-*.md")) == ["pending-carr.md", "pending-pre.md"]
+               and carr_asked == {801: ["pending-pre.md"]} and not carr_problem
+               and not [a for a in carr_log if a[:2] in (["pr", "create"], ["pr", "merge"])],
+               f"{rc_carr} {carr_line} {stamped_calls} {carr_asked} {carr_problem}")
+        rc_carr_other = carr_land(listing_gh([(802, "other", "0" * 40, ["DEVLOG/0071-pb1-something-else.md"])], []),
+                                  counting_stamp(0))
+        rc_carr_gone = carr_land(listing_gh([], []), counting_stamp(0))
+        rc_carr_unread = carr_land(listing_gh([], [], fail=True), counting_stamp(0))
+        unread_carr = lines[-1]
+        expect("land: an open pull request that adds no entry of a carried pending title is no predecessor, and once the "
+               "predecessor's pull request has merged (none is open) the stamp runs; GitHub unreadable is exit 9, not a "
+               "wait and not a stamp (kb/Work PB3693)",
+               len(stamped_calls) == 2 and rc_carr_unread == EXIT_GITHUB and "could not be read" in unread_carr
+               and rc_carr_other != EXIT_PREDECESSOR_QUEUED and rc_carr_gone != EXIT_PREDECESSOR_QUEUED,
+               f"{stamped_calls} {rc_carr_other} {rc_carr_gone} {rc_carr_unread} {unread_carr}")
+        # An INTERRUPTED stamp (entry written, pending file gone, nothing committed) is no "uncommitted path" refusal: the
+        # stamp completes it; a stray edit beside it still is one (kb/Work PB3367).
+        cut = scratch.worktree(root / "cut-wt", branch="cut", start="origin/main")
+        (cut.path / "DEVLOG" / "pending-cut.md").write_text("## PB8: cut\n\nWhy.\n", encoding="utf-8", newline="\n")
+        cut.git("add", "DEVLOG")
+        cut.git("commit", "--quiet", "-m", "the entry")
+        (cut.path / "DEVLOG" / "0099-pb8-cut.md").write_text(
+            "## Entry 99 — 2026-10-24 10:00 PDT — PB8: cut\n\nWhy.\n", encoding="utf-8", newline="\n")
+        (cut.path / "DEVLOG" / "pending-cut.md").unlink()
+        stamped_calls.clear()
+        cut_land = lambda gh, st, **kw: land(   # noqa: E731
+            root, "cut", cut.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
+            gates=gates_of(green, []), stamp=st, blocked=record, say=lines.append, **kw)
+        cut_land(listing_gh([], []), counting_stamp(0))
+        interrupted_line = lines[-1]
+        (cut.path / "stray.txt").write_text("an edit", encoding="utf-8", newline="\n")
+        rc_stray = cut_land(listing_gh([], []), counting_stamp(0))
+        expect("land: an interrupted stamp's uncommitted paths do not stop the landing before its stamp step, a stray edit "
+               "beside them still does (exit 2, REFUSED)",
+               stamped_calls == ["cut"] and "REFUSED" not in interrupted_line and rc_stray == 2
+               and "REFUSED" in lines[-1] and "stray.txt" in lines[-1], f"{stamped_calls} {interrupted_line} {lines[-1]}")
+        # ── the stamp's exits (kb/Work PB3367): a rolled-back git failure is exit 2, a refusal is exit 6 ────────────────
+        rc_git = carr_land(listing_gh([], []), counting_stamp(devlog.EXIT_GIT))
+        git_line = lines[-1]
+        rc_refused = carr_land(listing_gh([], []), counting_stamp(1))
+        refused_line = lines[-1]
+        expect("land: a stamp that failed on a git call (devlog.EXIT_GIT, rolled back) ends exit 2 so the lane retries "
+               "it once, naming the rollback; any other stamp failure is exit 6 and says the branch needs a stampable "
+               "pending entry, not that git failed (kb/Work PB3367)",
+               rc_git == 2 and git_line.startswith(VERDICT + "DEVLOG STAMP FAILED") and "rolled back" in git_line
+               and rc_refused == 6 and refused_line.startswith(VERDICT + "DEVLOG STAMP FAILED")
+               and "pending" in refused_line, f"{rc_git} {git_line} {rc_refused} {refused_line}")
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
         # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
         # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
