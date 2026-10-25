@@ -22895,6 +22895,20 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3613_arithmetic_expression_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3613_numeric_function_group_formal_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3587_content_group_formal_usage_values_below_2002": {
   "refuse-at": [
    "85"

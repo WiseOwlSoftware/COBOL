@@ -745,7 +745,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// with an argument of another shape), null for every other item, whose argument the relations admit only in its own
     /// shape and form.</summary>
     private static bool? OoUnivGroupCarried(DataItem item) =>
-        item.IsGroup && !item.IsAsIfElementary && !StrongTypeModel.IsStrongGroup(item)
+        item.IsPlainGroup && !StrongTypeModel.IsStrongGroup(item)
             ? OoVarGroupCarried(item) ? true : item.IsImageCapable ? false : null
             : null;
 
@@ -1755,12 +1755,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     : a.NumericLiteral is { } nl ? new BoundNumericLiteral(nl) : null;
                 string read = a.Source is { } gsp
                     ? a.ByContent
-                        ? CallEmitter.IsPlainGroupFormal(a.Formal) && OperandText.CarrierDiffersFromStorage(gsp)
+                        ? a.Formal.IsPlainGroup && OperandText.CarrierDiffersFromStorage(gsp)
                             ? OperandText.NonElementaryMoveSender(new BoundFieldOperand(gsp), Num, "INVOKE argument")
                             : CallEmitter.CallContentRead(gsp)
                         : CallEmitter.CallStringRead(gsp)
                     : literal is not null ? OperandText.NonElementaryMoveSender(literal, Num, "INVOKE argument")
-                    : throw new InvalidOperationException("an INVOKE argument into a group formal is neither an identifier nor a literal");
+                    // A numeric FUNCTION's value is the same unconverted move (kb/Work PB3613): its digits, through the one codec.
+                    : a is { ContentFunctionValue: true, ContentExpr: { } fn }
+                        ? OperandText.NonElementaryMoveSender(new BoundComputedOperand(fn) { FunctionValue = true }, Num, "INVOKE argument")
+                    : throw new InvalidOperationException("an INVOKE argument into a group formal is neither an identifier, a literal nor a numeric function");
                 // A GROUP argument BY CONTENT into an ELEMENTARY formal is §14.2.3 GR9's MOVE into the formal's record,
                 // and a group sender makes it §14.9.25.4 GR4's group move (kb/Work PB2587's sweep): the receiver's
                 // JUSTIFIED still applies and a national or bit formal decodes the group's bytes — the CALL lane's one
