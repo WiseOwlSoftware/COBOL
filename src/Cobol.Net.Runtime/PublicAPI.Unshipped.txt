@@ -277,3 +277,5 @@ static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clau
 static CobolNet.Runtime.CobolBool.FromCharacters(string? v) -> string!
 static CobolNet.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
 static CobolNet.Runtime.CobolArgAdapt.SdidiValue(CobolNet.Runtime.CobolPassMode mode, CobolNet.Runtime.CobolDec value, CobolNet.Runtime.SignEncoding signEncoding) -> CobolNet.Runtime.CobolArg
+static CobolNet.Runtime.ActivationRelations.ActiveClassReturningViolation(CobolNet.Runtime.ActivationDescription! receiving, CobolNet.Runtime.ActivationDescription! sending) -> string?
+static CobolNet.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, CobolNet.Runtime.ActivationDescription! receiving, CobolNet.Runtime.ActivationDescription! sending) -> void

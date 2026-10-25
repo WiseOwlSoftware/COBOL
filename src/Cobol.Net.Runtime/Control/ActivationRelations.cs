@@ -668,6 +668,41 @@ public static class ActivationRelations
         return ReturningConformance(receiving, sending);
     }
 
+    /// <summary>⛔ ISO §14.8.3.3 rule 2 — the conformance of an ACTIVE-CLASS returning item, which depends on HOW THE METHOD
+    /// WAS INVOKED, for a method invoked through a UNIVERSAL object reference (kb/Work PB2985). Rule 2 b) describes the
+    /// sending operand of the SET it compares by the invocation: 1. an object-class-name, 2. SELF or SUPER, 3. a reference
+    /// described with an interface-name, 4. "any other object reference" — "the sending operand has the same description as
+    /// that object reference". A universal INVOKE is rule 2 b) 4. with a universal invoking reference, so the sending
+    /// operand is a UNIVERSAL object reference, whatever class the object turns out to be (the class of the object is a
+    /// run-time fact the rule never asks; the compile-time lane's <c>OoConformance.ReturningSender</c> is the same rule over
+    /// the bound description). Its SET into the invocation's returning item is valid only when that item is itself
+    /// universal (§14.9.39.3 SR8): SR10, SR12 and SR14 each close their list of senders (an interface-name, an
+    /// object-class-name, ACTIVE-CLASS, SELF, NULL) without a universal reference, so a receiving item described with an
+    /// interface-name, an object-class-name or ACTIVE-CLASS does not conform — through the ONE table both phases ask
+    /// (<see cref="ObjectReferenceSet.Refusal"/>).
+    /// <para>This is the activator's check of §14.9.23.4 GR7 c) ("the rules for conformance specified in … 14.8.3 …
+    /// apply"), asked ONLY when the returning item is ACTIVE-CLASS; every other returning item is
+    /// <see cref="ReturningViolation"/>. It is a separate relation because its violation, unlike that one's, does not stop
+    /// the invocation from proceeding into typed code when no checking is enabled: the delivered object is still narrowed
+    /// to the receiving item's class (<see cref="CobolObject.NarrowUniversal{T}"/>), the floor that never lets a
+    /// non-conforming object into a typed field. Null when the item is not ACTIVE-CLASS, the receiving item is not an
+    /// object reference (<see cref="ReturningViolation"/> reports that pair), or the pair conforms.</para></summary>
+    public static string? ActiveClassReturningViolation(ActivationDescription receiving, ActivationDescription sending)
+    {
+        if (sending is not { Shape: ActivationShape.ObjectReference, ObjectKind: ObjectReferenceKind.ActiveClass }
+            || receiving.Shape is not ActivationShape.ObjectReference) return null;
+        return ObjectReferenceSet.Refusal(UniversalInvokedSender, ObjectOperand(receiving)) is { } why
+            ? $"the returning item ({sending}) is described ACTIVE-CLASS and the method is invoked through a UNIVERSAL "
+              + "object reference, so the sending operand is a universal object reference (ISO §14.8.3.3 rule 2 b) 4.), "
+              + $"which is not a valid sending operand of a SET into the receiving item ({receiving}): {why}"
+            : null;
+    }
+
+    /// <summary>§14.8.3.3 rule 2 b) 4. through a universal invoking reference: "the same description as that object
+    /// reference" — universal, which names no class, interface or phrase.</summary>
+    private static readonly ObjectReferenceOperand UniversalInvokedSender =
+        new(ObjectReferenceKind.Universal, null, false, false, null, null);
+
     /// <summary>⛔ ISO §14.8.3's conformance of a pair of returning items, the one copy a universal INVOKE's bound method
     /// (<see cref="ReturningViolation"/>) and a CALL (<see cref="CallReturningViolation"/>) both ask; each lane asks its
     /// own ANY LENGTH rule first. Null when the pair conforms, else the reason.</summary>
@@ -678,8 +713,8 @@ public static class ActivationRelations
         // statement were performed in the activated runtime element with the returning item in the activated element as
         // the sending operand and the corresponding returning item in the activating element as the receiving operand"
         // — the §14.9.39.3 table over the two descriptions (kb/Work PB2463). Rule 2's ACTIVE-CLASS sender is described
-        // by how the method was INVOKED (2 b) 1.–4.), which a run-time dispatch does not carry, so the object's own class
-        // is what the delivery checks (CobolObject.NarrowUniversal).
+        // by how the method was INVOKED (2 b) 1.–4.), which this pair does not carry: a universal INVOKE is rule 2 b) 4.
+        // and asks ActiveClassReturningViolation (kb/Work PB2985), so an ACTIVE-CLASS item conforms here.
         if (receiving.Shape is ActivationShape.ObjectReference || sending.Shape is ActivationShape.ObjectReference)
         {
             if (receiving.Shape is not ActivationShape.ObjectReference || sending.Shape is not ActivationShape.ObjectReference)
