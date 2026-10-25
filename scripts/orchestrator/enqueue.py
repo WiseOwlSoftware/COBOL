@@ -18,7 +18,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      <branch> runs (<holder>) ===` with exit 13 and nothing touched: it raced the first on the merge, the DEVLOG stamp,
      the push and the gates' files, and on 2026-10-16 the loser's Linux gate deleted the winner's clone mid-test. It is
      no red and no stop (no report line, no finisher): the lane retries it once the lock is free. A dry run takes none.
-  1. The worktree must be clean (STATUS.md and the harness's settings.local.json aside): a landing carries only commits.
+  1. The worktree must be clean (the paths coord.NEVER_WORK names aside: dirty_paths): a landing carries only commits.
      THE QUEUE GUARD, before anything is merged or gated: `ruleset.py check` must report the merge queue ACTIVE, or the
      exit is 8 with the branch unchanged. Main accepts only queued pull requests (the ruleset binds administrators too),
      so there is no other path to land by, and a gate spent while the queue is not ACTIVE could land nothing (kb/Work
