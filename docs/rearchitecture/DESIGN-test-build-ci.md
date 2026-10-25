@@ -1902,7 +1902,7 @@ also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report f
 is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
 gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
 
-**4. Reuse: a measured tree is gated once.** Every verdict record (schema 3) carries the HEAD, the TREE the gate
+**4. Reuse: a measured tree is gated once.** Every verdict record (schema 4, `run_gate_legs.RECORD_SCHEMA`) carries the HEAD, the TREE the gate
 measured at its start and again at its end (`Host.measured_tree`: the git tree id of the working tree — tracked files
 as on disk, untracked files git does not ignore — written through a private copy of the index that keeps the index
 file's own mtime, git's racy-git reference: an edit in the cached entry's own second keeps its size and mtime, and only
@@ -2254,7 +2254,14 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
    GREEN Linux half of that tree on a host that runs one (the inert lane's is the script self-tests alone, §3.18), and its head IS the tip or every later
    commit is main's, a clean merge of main or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
-   A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
+   The record is written by the BRANCH's gate driver and read by main's lander, so a record the driver wrote before a
+   field the lander requires existed (`run_gate_legs.LANDING_FIELDS`: `head_tree`, `linux`; schema below
+   `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`run_gate_legs.predates_landing`),
+   never "uncommitted changes", and its BLOCKED remedy is to merge origin/main into the branch FIRST and gate the merged
+   head: gating the tip again with the same older driver writes the same record (kb/Work PB3660). Whenever the lander
+   starts to require a new field: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add it to `LANDING_FIELDS`
+   (schema 3 was written both before and after PB3612 added the two fields without a bump, so for it the fields are the
+   discriminator). A later RED does not unrecord an earlier GREEN of the same head. The merge with main is the MERGE QUEUE'S to test
    (step 4): `ci-gate` runs the whole population on the exact merge, both operating systems, and main moving again
    costs no re-gate. ONE exception, the case a developer would also re-test: when bringing main in changed a file the
    branch also changes (`enqueue.merge_overlap`: a true textual merge in a shared file; the files a merge driver
