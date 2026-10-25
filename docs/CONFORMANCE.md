@@ -2402,6 +2402,14 @@ one place its binder accepts it.
 | `source-format-auto` | `--source-format auto`, detection of the reference format from the text's layout (Annex A.1 item 158, §7) | this implementation | not flagged (a property of how the compiler is invoked) | state the format: `--source-format fixed` / `free`, or `>>SOURCE FORMAT` (§7.3.24.3) |
 | `vendor-statement-words` | `ENTRY`, `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` — the words are RESERVED so each statement can be refused by name; **no support is claimed** | IBM Enterprise COBOL, Micro Focus, GnuCOBOL | not flagged (refused, an error already) | none: ENTRY is COBOLNET2269, JSON and XML are COBOL0313 |
 
+**An accepted extension stays inside the content rules of the items it loads** (kb/Work PB935). `SET program-pointer TO
+ENTRY` names a program by value, so its sender is an unrestricted program-address; §13.18.60.4 GR25 ("A restricted
+program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as
+that identified by the specified program-prototype-name") binds the receiving item whatever statement loads it, so the
+vendor spelling is refused (COBOLNET1959) for a restricted program-pointer exactly as the ISO `ADDRESS OF PROGRAM`
+literal-1 and identifier-1 arms are (§14.9.39.3 SR22); the conforming load is `ADDRESS OF PROGRAM program-prototype-name-1`
+(§8.4.3.13.4 GR3). An unrestricted program-pointer takes the ENTRY form as before.
+
 **What is not a row, and why.** (1) Behaviours that the standard leaves to the implementor and that have a standard
 default and a selector — `--sign-encoding ibm|ascii` (§13.18.52.4 GR4/GR5, Annex A.1 items 177/178) — are implementor
 latitude, not an extension; they are documented where the latitude is (§7). (2) Constructs `--permissive` accepts — a

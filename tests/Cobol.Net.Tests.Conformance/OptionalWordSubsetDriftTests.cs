@@ -798,7 +798,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                SET FP1 TO ADDRESS OF FUNCTION OPWVF
                SET FP2 TO FP1
                IF FP2 = FP1 DISPLAY "FP-SAME" END-IF
-               SET PP1 TO ENTRY "OPWVP"
+               SET PP1 TO ADDRESS OF PROGRAM OPWVP
                SET PP2 TO PP1
                IF PP2 = PP1 DISPLAY "PP-SAME" END-IF
                CALL PP2 USING WS-N
