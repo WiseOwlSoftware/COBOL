@@ -23042,6 +23042,36 @@
   ],
   "expect": "COBOLNET1688"
  },
+ "pb3678_parenthesized_function_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_length_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_item_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_function_numeric_formal_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3613_numeric_function_group_formal_below_2002": {
   "refuse-at": [
    "85"
