@@ -183,6 +183,7 @@ import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocke
 sys.path.insert(0, str(HERE.parent / "arch"))
 import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
+from standard_streams import ensure_utf8  # noqa: E402
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
 
@@ -2205,10 +2206,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--partition-summary", action="store_true", help="print the partition's measurement per day (the "
                     "waves' groups, same-file pairs run side by side, notes held by a collision; kb/Work PB3670) and exit")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.finished:
         return finished_main(pathlib.Path(a.finished))
     if a.partition_summary:
@@ -2432,4 +2429,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

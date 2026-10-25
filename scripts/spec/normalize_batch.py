@@ -32,6 +32,8 @@ import sys
 #: until 2026-09-03 — at which point adding the `derivation` field (kb/Work PB386) would have made this
 #: normalizer reject, whole, every batch the writer accepts. One rule, one place.
 from inventory_schema import ADJUDICATED, Schema, load_schema
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ALLOWED = set(ADJUDICATED)
 
@@ -168,11 +170,6 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    for s in (sys.stdout, sys.stderr):
-        try:
-            s.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("files", nargs="+")
     ap.add_argument("--in-place", action="store_true")
@@ -199,4 +196,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

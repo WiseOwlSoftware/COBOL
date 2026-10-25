@@ -51,6 +51,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import account  # noqa: E402
 import coord  # noqa: E402
 import work  # noqa: E402  (cluster_order: the one reader of cluster: and blocked_by:)
+from standard_streams import ensure_utf8  # noqa: E402
 
 WAVE_TYPES = ("wave", "campaign")
 
@@ -300,4 +301,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

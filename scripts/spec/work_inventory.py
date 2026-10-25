@@ -50,6 +50,9 @@ import argparse
 import sys
 from collections.abc import Collection, Iterable, Mapping
 from typing import Any
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The shortest thing accepted as a stated reason: a SENTENCE ("no inventory row tracks this mechanism; the defect is in
 #: the harness"), not a token. A floor on effort and not a judge of content: a determined writer can pad it, and what it
@@ -301,9 +304,9 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--self-test", action="store_true", required=True)
     ap.parse_args(argv)
-    sys.stdout.reconfigure(encoding="utf-8")
     return self_test()
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

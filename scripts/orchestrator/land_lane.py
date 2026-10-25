@@ -135,6 +135,7 @@ from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY,
                      land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
+from standard_streams import ensure_utf8  # noqa: E402
 
 LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
@@ -1978,7 +1979,8 @@ def self_test() -> int:
         # ... recorded by the runner on exit 4, pointed to by the status line, printed by `conflict-brief`
         c17 = fresh("conflict")
         fake4 = [sys.executable, "-c",
-                 "import sys; sys.stdout.reconfigure(encoding='utf-8'); "   # enqueue.py's own output encoding
+                 f"import sys; sys.path.append({str(HERE.parent)!r}); "  # as enqueue.py starts: its streams in UTF-8
+                 "from standard_streams import ensure_utf8; ensure_utf8(); "
                  f"print({'=== ENQUEUE: ' + merge_drivers.conflict_outcome(['scripts/x.py']) + ' (wbrief) ==='!r}); "
                  "raise SystemExit(4)"]
         r17 = {"name": "wbrief", "state": "WAITING TO LAND", "tip": cbr.git("rev-parse", "HEAD"),
@@ -2048,10 +2050,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--coord", help=f"the coordination directory (default ${coord.ENV} or {coord.DEFAULT})")
@@ -2109,4 +2107,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

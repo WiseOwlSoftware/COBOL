@@ -36,6 +36,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from test_population import UnreadableTrx, trx_root  # noqa: E402  (THE one trx reader, kb/Work PB3661)
+from standard_streams import ensure_utf8  # noqa: E402
 
 NS = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
 
@@ -71,11 +72,6 @@ def slowest_tests(paths: list[str], top: int) -> int:
 def main(argv: list[str]) -> int:
     # The Windows console defaults to cp1252, which cannot encode the ⚠/⛔ this report uses — and the failure is
     # an UnhandledException AFTER the first lines have printed, i.e. a tool that looks like it half-worked.
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding='utf-8', errors='replace')
-        except (AttributeError, ValueError):                  # already wrapped, or not a real stream
-            pass
     if not argv:
         sys.exit(__doc__)
     if argv[0] == '--slowest':
@@ -135,4 +131,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

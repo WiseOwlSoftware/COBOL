@@ -62,6 +62,9 @@ import tempfile
 import threading
 import time
 from typing import NamedTuple
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BENCH = os.path.join(ROOT, "tests", "Cobol.Net.Benchmarks")
@@ -865,9 +868,6 @@ def self_test() -> int:
 # ── main ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def main(argv: list[str]) -> int:
-    # The tables carry non-ASCII (§, —, ±); a Windows console's code page would otherwise raise on the first one.
-    for stream in (sys.stdout, sys.stderr):
-        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--against", metavar="RECORD", help="compare a fresh measurement (or --current) with this record")
@@ -939,4 +939,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))
