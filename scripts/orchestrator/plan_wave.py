@@ -487,10 +487,9 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     """The reports in `reports_dir`, oldest first: by WRITE TIME, then wave, then file name (`report_order`). The wave
     number is no order across lanes (kb/Work PB3625: the loop's waves are date-numbered, 20261024, the Mythos lane's
     serial, 1157, so every date-numbered report outranked every serial one and a superseded SPLIT report stayed a
-    note's newest beside a later DONE one), so it only breaks a tie. The name makes the
-    order TOTAL: two reports of ONE wave written within one file-system tick tie on the first two keys (reports of
-    different waves written in one tick are ordered by the second), and a tie left
-    to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
+    note's newest beside a later DONE one), so it only breaks a tie. The name makes the order TOTAL: two reports of
+    ONE wave written within one file-system tick tie on the first two keys (reports of different waves written in one
+    tick are ordered by the second), and a tie left to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
     newest report, the order finishers are planned in and which of two chained finishers is the successor differed
     between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
     report's `notes` are completed from the dispatch ledger there (`answered_notes`): the planner passes it; the readers
