@@ -1,4 +1,4 @@
-## PB3640: a CONFLICT finisher starts from a conflict brief, and site blocks stay complete; PB3509 retired as PB3508's duplicate
+## Entry 2520 — 2026-10-24 21:52 PDT — PB3640: a CONFLICT finisher starts from a conflict brief, and site blocks stay complete; PB3509 retired as PB3508's duplicate
 
 Wave 20261031 group C started this group (PB3509, PB3640) and stopped on the fleet's stop file after part 1. Wave
 20261106 group B merged that branch onto main 302648e01 and finished it. The merge conflicted in `scripts/spec/work.py`,
@@ -70,3 +70,4 @@ two waits on a detached runner (cases 10 and 17) now wait for the runner's exit,
 PB3022). `MergeDriverDriftTests` pins the new arms and holds the lane to the drivers' dry run and the one outcome reader.
 
 **Gate.** Recorded in the report.
+
