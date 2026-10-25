@@ -57,3 +57,12 @@ turns_by_group_size self-tests that import what moved.
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `000001-20261025T174341Z`, Conformance
 8,271/18,516 · Unit 36,897/38,235 · Characterization 36/36 cases ran, Linux half in a WSL clone of the head GREEN, 55
 self-tests ran and 56 reused their recorded PASS). The change adds no golden: it touches no compiler or runtime path.
+
+**Review finisher (round 1).** The branch review found three statements of the in-wave chaining rule still on the
+superseded primary-file-only wording: the O2 row of MANDATORY-PRACTICES.md, the workstream SKILL.md paragraph on
+`check_practices.py`, and item 4 of `plan_wave.py`'s module docstring. All three now say the claims meet on ANY file both
+groups claim (`plan_wave.collision`). PB3118's `**Sites:**` paragraph lost a stray fragment. Merging origin/main in
+brought a semantic conflict no textual merge shows: `turns_by_group_size.py` (PB3711) imported `plan_wave.REPORT_NAME`,
+which this branch moved to `coord.REPORT_NAME`; the gate's self-test leg caught it and the script now reads `coord`
+(recorded in PB3700's Sites). `coord.py` merged both sides (PB3701 `agent_turn_cap`, PB3700 `REPORT_NAME` and
+`ledger_groups`).
