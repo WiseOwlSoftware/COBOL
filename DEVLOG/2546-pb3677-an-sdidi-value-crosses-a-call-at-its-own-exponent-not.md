@@ -28,3 +28,13 @@ value-semantics scalars with no formal to defer to, so the floor stays theirs; t
 `(1 / 8)` at a prototype-name CALL) with its `_below_2014` negative; and `SdidiValueArgumentTests` (9 facts, including the
 cap, the positive exponent and the overflow). Docs: CONFORMANCE D-B4, COBOLNET_INTERPROGRAM_DESIGN. No inventory row closes.
 
+
+**The merge-group bounce (finisher).** PR #578's merge group failed `SpecTraceabilityInventoryDriftTests.EveryTestRef_ResolvesToARealTest`
+on Windows with `UnauthorizedAccessException` on `tests/Cobol.Net.Tests.Unit/bin/Release/net10.0/.wolk-gone-<guid>`, not on a
+test_ref. The test resolves a `unit:` ref by walking `tests/Cobol.Net.Tests.Unit` recursively, and so walks the test host's
+working directory. `CobolFileLockTests` opened its shared files there by bare name (`lk-*.dat`, `pb714-*.dat`,
+`pb669-visibility.dat`). The sidecar lock directories those opens publish and retire (`.wolk-*`, renamed `.wolk-gone-*` and
+then deleted) are delete-pending for a moment on Windows, and a walk that meets one gets access denied. Nothing in PB3677's
+diff takes part, and main had no such red. The same files were also left in the output directory from run to run. A census of
+the 87 test output directories on this host found no other writer. The fix: `CobolFileLockTests` gives every test its own
+`ScratchDirectory` and every physical file a path inside it, like `FileBoundaryTests`.
