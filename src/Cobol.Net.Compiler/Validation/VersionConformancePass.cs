@@ -349,6 +349,11 @@ internal sealed class VersionConformancePass
     // MoveBinder classification EXACTLY (same figText, same per-target exemptions, same
     // integer/QUOTE/digit-only split, same where-string); the binder keeps only the SR1 class-index error (0809,
     // version-invariant) and the pre-removal StoreAsImage marking.
+    // ⛔ SPACE IS NOT AN EDITION ROW (kb/Work PB3605). The move of SPACE to a numeric or numeric-edited item was
+    // prohibited before 2023 as well ("The figurative constant SPACE shall not be moved to a numeric or numeric-edited
+    // item", ISO/IEC 1989:2002 clause 14.8.24.2 SR5 and the 2009 committee draft; VCR row 7.41 derives the 1985
+    // edge), so it is a flat refusal at every edition, MoveValidity.FigurativeRefusal's SR5 arm, asked by the
+    // binder's MOVE chain (MoveTable16.Validity → COBOLNET0819). Sr5FigurativeText therefore does not list it.
     // ⛔ IT READS m.Source — THE WRITTEN SENDING OPERAND — NEVER m.Stores[i].Sender. SR5 is a SYNTAX rule over a
     // closed list of figurative constants SPELLED IN THE SOURCE ("SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
     // "literal", or ALL symbolic-character"); §14.9.25.4 GR2/GR3 substitute the figurative SPACE / ZERO for a
@@ -378,10 +383,11 @@ internal sealed class VersionConformancePass
     }
 
     /// <summary>The source spelling §14.9.25.3 SR5's closed list names — "SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
-    /// "literal", or ALL symbolic-character" — or null when the operand is not on it.</summary>
+    /// "literal", or ALL symbolic-character" — for the members whose prohibition is an EDITION row, or null. SPACE is on
+    /// SR5's list but not here: its prohibition holds at every edition and is the binder's flat refusal
+    /// (MoveValidity.FigurativeRefusal; kb/Work PB3605).</summary>
     private static string? Sr5FigurativeText(BoundOperand source) => source switch
     {
-        BoundFigurative { Kind: 'S' } => "SPACE",
         BoundFigurative { Kind: 'Q' } => "QUOTE",
         BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
         BoundFigurative { Kind: 'L' } => "LOW-VALUE",
@@ -408,7 +414,8 @@ internal sealed class VersionConformancePass
             // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
             Check(Constructs.MoveQuoteNumericObsolete2014, where);
         else
-            // Every other shape — REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
+            // Every other shape (HIGH-VALUE, LOW-VALUE, a non-digit ALL literal; SPACE never reaches here) — REMOVED by
+            // ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
             Check(Constructs.MoveAlphanumericFigurativeRemoved2023, where);
     }
 
@@ -416,9 +423,10 @@ internal sealed class VersionConformancePass
     /// ISO §14.9.20.3 SR4 — "For each of the other categories specified in the REPLACING phrase, a MOVE statement
     /// with identifier-2 or literal-1 as the sending item and an item of the specified category as the receiving
     /// operand shall be valid" — for the one MOVE rule SR4 reaches that is EDITION-dependent: §14.9.25.3 SR5
-    /// (kb/Work PB879). <c>INITIALIZE G REPLACING NUMERIC DATA BY SPACE</c> is valid exactly when
-    /// <c>MOVE SPACE TO &lt;a numeric item&gt;</c> is, so it takes the same three rows at the same edition — before
-    /// this arm it compiled clean at 2023 while the byte-identical explicit MOVE was COBOLNET0902.
+    /// (kb/Work PB879). <c>INITIALIZE G REPLACING NUMERIC DATA BY HIGH-VALUE</c> is valid exactly when
+    /// <c>MOVE HIGH-VALUE TO &lt;a numeric item&gt;</c> is, so it takes the same three rows at the same edition — before
+    /// this arm it compiled clean at 2023 while the byte-identical explicit MOVE was COBOLNET0902. (SPACE takes no row:
+    /// its prohibition holds at every edition, and the binder's MOVE chain refuses it, kb/Work PB3605.)
     /// <para>⛔ ASKED OF THE PHRASE, PER CATEGORY, NOT PER RECEIVER: SR4's receiving operand is "an item of the
     /// specified category", so the pair is valid or invalid before any receiver is walked (the INITIALIZE binder
     /// asks the edition-blind rules the same way). The implicit moves themselves are marked
@@ -858,6 +866,33 @@ internal sealed class VersionConformancePass
         {
             if (ctx.EXIT() is not null)
                 _p.Check(Constructs.PerformUntilExit2023, "the PERFORM UNTIL EXIT phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>A PERFORM varying-phrase whose BY phrase is OMITTED — ISO §14.9.28.4 GR12, "For any BY phrase that is
+        /// omitted, the augment value is 1" — is a post-1985 form (perform-varying-by-omitted-2002; VCR row 7.42, kb/Work
+        /// PB2282): the 2002 text states the same rule, and COBOL-85's VARYING and AFTER phrases each write BY (the edge
+        /// below 2002 is derived, as row 7.31 derived the STRING DELIMITED edge). The VARYING phrase and each AFTER phrase
+        /// is its own BY site, so each is reported where it is written.</summary>
+        public override object? VisitPerformVarying(CobolParserCore.PerformVaryingContext ctx)
+        {
+            if (ctx.BY() is null)
+            {
+                using var _ = Sink.At(ctx);
+                _p.Check(Constructs.PerformVaryingByOmitted2002, "a VARYING phrase with no BY phrase");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>An AFTER phrase of a PERFORM varying-phrase with its BY phrase omitted — the twin site of
+        /// <see cref="VisitPerformVarying"/> (§14.9.28.4 GR12; perform-varying-by-omitted-2002, kb/Work PB2282).</summary>
+        public override object? VisitPerformVaryingAfter(CobolParserCore.PerformVaryingAfterContext ctx)
+        {
+            if (ctx.BY() is null)
+            {
+                using var _ = Sink.At(ctx);
+                _p.Check(Constructs.PerformVaryingByOmitted2002, "an AFTER phrase with no BY phrase");
+            }
             return base.VisitChildren(ctx);
         }
 

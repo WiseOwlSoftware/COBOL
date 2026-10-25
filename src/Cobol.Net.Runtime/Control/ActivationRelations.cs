@@ -489,9 +489,12 @@ public static class ActivationRelations
     }
 
     /// <summary>A figurative constant or an ALL literal written as an argument.</summary>
-    private static bool IsFigurative(ActivationDescription d) =>
-        d.Shape is ActivationShape.Literal && d.Category is ActivationCategory.Figurative
-            or ActivationCategory.FigurativeZero or ActivationCategory.FigurativeBoolean;
+    private static bool IsFigurative(ActivationDescription d) => FigurativeSenderOf(d) is not null;
+
+    /// <summary>The §14.9.25.3 sender a figurative-constant or ALL-literal argument stands for, or null when
+    /// <paramref name="d"/> is no such argument.</summary>
+    private static FigurativeSender? FigurativeSenderOf(ActivationDescription d) =>
+        d.Shape is ActivationShape.Literal ? ActivationCategory.FigurativeSenderOf(d.Category) : null;
 
     /// <summary>The Table 16 rows a figurative constant or an ALL literal can stand in (§8.3.3.6.4 GR1).</summary>
     private static readonly Table16Category[] FigurativeCategories =
@@ -628,10 +631,11 @@ public static class ActivationRelations
     /// <summary>§9.3.6 rule 7 and §14.8.2.3.3 rule 2 d): is a MOVE of <paramref name="sending"/> to
     /// <paramref name="receiving"/> valid by ISO §14.9.25.3? Its syntax rules over two descriptions, in SR order: SR1
     /// (neither of class index, object or pointer — the receiving side is not, or rule 6 would apply), SR2 (a
-    /// strongly-typed group receiver takes only a group of the same type), SR6 / SR7 (a figurative constant into an
-    /// alphabetic or a boolean receiver), SR8 (a binary-char/-short/-long/-double sender needs a numeric or
-    /// numeric-edited receiver), SR9 (a variable-length group only to or from a compatible group, §8.5.1.12) and SR10
-    /// (Table 16). SR6 / SR7, SR8 and SR10 are the ONE copy the compiler's MOVE screens read (<see cref="MoveValidity"/>).
+    /// strongly-typed group receiver takes only a group of the same type), SR5's SPACE arm / SR6 / SR7 (SPACE into a
+    /// numeric or numeric-edited receiver, a figurative constant into an alphabetic or a boolean receiver), SR8 (a
+    /// binary-char/-short/-long/-double sender needs a numeric or numeric-edited receiver), SR9 (a variable-length group
+    /// only to or from a compatible group, §8.5.1.12) and SR10 (Table 16). SR5-SR7, SR8 and SR10 are the ONE copy the
+    /// compiler's MOVE screens read (<see cref="MoveValidity"/>).
     /// Null when the move is valid, else the rule it breaks.</summary>
     private static string? MoveViolation(ActivationDescription sending, ActivationDescription receiving)
     {
@@ -641,10 +645,8 @@ public static class ActivationRelations
             && (sending.Shape is not ActivationShape.StrongGroup
                 || !string.Equals(receiving.StrongType, sending.StrongType, StringComparison.Ordinal)))
             return "the sending operand shall be a group item of the same type (ISO §14.9.25.3 SR2 / §8.5.3.3)"; // SR2
-        if (IsFigurative(sending)                                                                             // SR6 / SR7
-            && MoveValidity.FigurativeRefusal(sending.Category is ActivationCategory.FigurativeZero,
-                sending.Category is ActivationCategory.FigurativeZero or ActivationCategory.FigurativeBoolean,
-                receiving.Table16) is { } figurativeWhy)
+        if (FigurativeSenderOf(sending) is { } figurative                                                     // SR5-SR7
+            && MoveValidity.FigurativeRefusal(figurative, receiving.Table16) is { } figurativeWhy)
             return figurativeWhy;
         if (MoveValidity.BinaryWidthRefusal(sending.BinaryWidth, receiving.Table16) is { } binaryWhy)       // SR8
             return binaryWhy;
