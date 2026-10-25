@@ -130,6 +130,15 @@ class PullRequest:
         until the branch changes (kb/Work PB3096's pre-queue red, PB3527)."""
         return None if self.in_queue else next((c for c in self.checks if c.failed), None)
 
+    @property
+    def entering(self) -> bool:
+        """The pull request is IN the merge queue or on its way into it (auto-merge on: GitHub queues it once its required
+        checks pass) and nothing keeps it out: not bounced, not conflicting with main, no required check failed. Only
+        such a pull request can share a merge group with another, whose merge GitHub builds with plain git (kb/Work
+        PB3642 review R1-1); a bounced one re-enters only through a fresh `enqueue.py land` of a new head, which merges
+        main in through the merge drivers first."""
+        return (self.in_queue or bool(self.auto_merge_at)) and not (self.bounced or self.conflicts or self.red)
+
 
 def _required_runs(commit: dict, required: tuple[str, ...]) -> list[CheckRun]:
     """The newest check-run of each required context on the commit (the highest databaseId: a re-run's is newer)."""
@@ -432,6 +441,14 @@ def self_test() -> int:
            "checks green or not; one the queue already holds does not (kb/Work PB3527 review R1-5)",
            dirty['dirty'].conflicts and dirty['dirty'].red is None and not dirty['dirtyq'].conflicts
            and not prs['auto'].conflicts, str(dirty))
+    expect("a pull request ENTERS the merge queue when it is in it or has auto-merge on, and is not bounced, conflicting or "
+           "red; a bounced, conflicting or red one, and one with neither the queue nor auto-merge, does not (kb/Work "
+           "PB3642 review R1-1)",
+           prs['queued'].entering and prs['flag'].entering and prs['auto'].entering and prs['stuck'].entering
+           and prs['rerun'].entering and not prs['removed'].entering and not prs['red'].entering
+           and not dirty['dirty'].entering and dirty['dirtyq'].entering and not fixed['fixed'].entering
+           and fixed['again'].entering and not fixed['old'].entering,
+           f'{prs} {dirty} {fixed}')
     lost = read(fake([node(8, 'lost', 'h1', auto='t', runs=[gate(81, 'IN_PROGRESS')])], jobs={}), required=req) or {}
     expect("a job the jobs API cannot read leaves the check-run unknown, never stuck",
            not lost['lost'].checks[0].stuck and lost['lost'].checks[0].job_status == '', str(lost))

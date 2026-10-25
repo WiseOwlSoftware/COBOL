@@ -550,10 +550,11 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 | running | waits |
 | re-armed by the enqueue unit at this head (`land_lane.py rearm`) | launches, once: the launch consumes the re-arm; a re-arm whose branch moved is dropped |
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
-| `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
+| `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head (`NOTHING TO LAND` is a branch that is origin/main or whose tip is already inside it: a second run after the queue merged the branch, kb/Work PB3157) | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
 | exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; or the gate's Linux half found a Linux gate of the tree running (`linux-gate.sh` BUSY, kb/Work PB3649); or the branch's own gate is still running, `run_gate_legs.live_gate`: the worktree's gate lock is held, which a gate does until its verdict file is written and the OS drops when it dies; nothing ran and nothing is red, kb/Work PB3527, PB3662) | retries at this head once the worktree's gate lock is free and no Linux gate of the tree runs (`wait_free`; kb/Work PB3649); never the enqueue unit's |
 | exit 15, PREDECESSOR QUEUED (the branch merged a predecessor whose pull request is still open into main, so it adds that pull request's stamped DEVLOG entry beside its own and `devlog.landing_entries` finds no single entry to title its pull request with; `enqueue.open_predecessors` names the pull requests; nothing queued, nothing red, no report line, kb/Work PB3145) | retries at this head once the same reader finds no open pull request owning an entry the branch carries (`wait_free`, `predecessor_free`; GitHub unreadable is not free); a predecessor pull request that closed unmerged is no longer open, and the same head then ends exit 6 NO ENTRY, the finisher's; never the enqueue unit's |
+| exit 16, DRIVER FILE QUEUED (an open pull request into main changes a file a merge driver covers, `merge_drivers.DRIVERS`, that the branch changes too: GitHub's merge queue builds its merge groups with plain git and none of the drivers, so the two would conflict inside the queue although each merged main through them; `enqueue.driver_file_holders` names the pull requests and the shared files, counting only a pull request that ENTERS the queue, `queue_facts.PullRequest.entering`: a bounced, conflicting or red one re-enters only through a fresh `land`, so it holds nothing; nothing stamped, pushed or queued, nothing red, no report line, kb/Work PB3642) | retries at this head once the same reader finds no open pull request sharing a driver-covered file with the branch (`wait_free`, `driver_files_free`; GitHub unreadable is not free); the merge of main that follows brings the merged pull request's change in through the drivers; never the enqueue unit's |
 | exit 13, another `land` of the branch runs (the worktree's land lock, `<git dir>/cobol-land.lock`, is held: a hand-run `land` beside the lane's, or two by hand; nothing ran, nothing is red, no report line, kb/Work PB3310) | retries at this head once the worktree's land lock is free (`wait_free`); never the enqueue unit's |
 | exit 2 (main moved under every catch-up merge; or GATE NOT RUN: the gate measured nothing, for an ENVIRONMENT cause in `run_gate_legs.NOT_RUN_CAUSES` — malformed shared gate settings, a host with no WSL, Python or SDK — or a BRANCH cause main fails the same way at the same step, and so writes no BLOCKED line, kb/Work PB3526; a BRANCH cause main does not share — the tree's gate driver, its population listing, no verdict line — is exit 5, below), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
@@ -568,8 +569,8 @@ after recording the outcome, writes `<coord>/land-lane/conflicts/<id>.md` (`land
 verdict names, the commits origin/main gained on them since the branch's merge base (one `git log` over every file), the
 notes those commits and the branch name with their status, and each note's newest report; the attempt names it
 (`brief`, or `brief_error` when it could not be written, and `brief_main`, the origin/main it was computed against). The
-verdict's files are read by `merge_drivers.outcome_files`, the one reader of the outcome `merge_drivers.conflict_outcome`
-writes for `enqueue.py land`. `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
+verdict's files are read by `verdict_line.outcome_files`, the one reader of the outcome `verdict_line.conflict_outcome`
+writes for `enqueue.py land` (`scripts/verdict_line.py`, the verdict line's one home, kb/Work PB3714). `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
 that attempt's end head and origin/main is still `brief_main`, and otherwise computes one now against origin/main
 through the merge drivers (`merge_drivers.merge_conflicts`: `git merge-tree` with the drivers' configuration, the merge's
 own definition, so a keyed catalogue is named exactly when its driver declines, a real conflict): the case of a pull
@@ -1210,7 +1211,10 @@ in survey order and only once; a planted exit 3 is retried at its head only once
 (GATE BUSY) only once the worktree's gate lock is free (held until a gate has written its verdict, so a gate still running
 owes none, kb/Work PB3662) and no Linux gate of the tree runs (`linux-gate.sh --probe`, exit 12's second source,
 kb/Work PB3649), and an exit 15 (PREDECESSOR QUEUED) only once no open pull request owns a DEVLOG
-entry the branch carries (kb/Work PB3145); the queue watch on stubbed GitHub facts: queued, merged,
+entry the branch carries (kb/Work PB3145), an exit 16 (DRIVER FILE QUEUED) only once no open pull request
+changes a merge-driver file the branch changes too (kb/Work PB3642), and a runner is alive only while the process
+with its recorded pid is a Python whose command line names its attempt record, so a pid the OS reused never reads
+RUNNING (kb/Work PB3113); the queue watch on stubbed GitHub facts: queued, merged,
 stuck then cleared by the re-run, stuck then cleared by the reopen, the alert, nothing acted on under a stop, a
 conflict ends it BOUNCED, a remedy GitHub does not answer is a failed read and the tick still launches; one writer per
 field of an attempt record (a concurrent `collect` is kept, a runner's late rc is never overwritten DIED); an exit 5 is
