@@ -305,21 +305,27 @@ class Sources:
     def constants(self, text):
         """{name: (segments, complete)} of the strings a source spells as a repo path: `static readonly string
         GrammarDir = Path.Combine("src", ..)` read by `Path.Combine(TestRepo.Root, GrammarDir)` (kb/Work PB3112). Passes
-        repeat until nothing changes, so a constant may name a later one however long the chain; a name declared twice
-        in one pass to different values names nothing (a later pass refining its own earlier, partial value is no clash)."""
-        helpers, consts, ambiguous = self.repo["helpers"], {}, set()
-        for _ in range(8):
-            before, seen = dict(consts), {}
-            for m in STRING_DECL.finditer(text):
-                value = path_expr(text[m.end():_statement_end(text, m.end())], consts, helpers)
+        repeat until nothing changes, so a constant may name a later one however long the chain (a chain of n constants
+        settles within n + 1 passes, which bounds the loop, and so a cycle of constants, which never settles). Each pass
+        reads every declaration against the previous pass's resolved names. A name declared twice to different values
+        IN THE SAME PASS is ambiguous in that pass and names nothing; the set is rebuilt every pass, so two declarations
+        whose partial values differ early and converge once a later constant resolves are no clash (kb/Work PB3645)."""
+        helpers, resolved = self.repo["helpers"], {}
+        decls = [(m.group(1), text[m.end():_statement_end(text, m.end())]) for m in STRING_DECL.finditer(text)]
+        for _ in range(len(decls) + 1):
+            seen, ambiguous = {}, set()
+            for name, expr in decls:
+                value = path_expr(expr, resolved, helpers)
                 if not value[0]:
                     continue
-                if seen.get(m.group(1), value) != value:
-                    ambiguous.add(m.group(1))
-                seen[m.group(1)] = consts[m.group(1)] = value
-            if consts == before:
+                if seen.get(name, value) != value:
+                    ambiguous.add(name)
+                seen[name] = value
+            after = {n: v for n, v in seen.items() if n not in ambiguous}
+            if after == resolved:
                 break
-        return {n: v for n, v in consts.items() if n not in ambiguous}
+            resolved = after
+        return resolved
 
     def reads(self, text):
         """[(the repo path, the call's source text)] of every repo read a source spells with a call: a TestRepo helper
@@ -947,6 +953,18 @@ def self_test():
         check("a constant naming a later one resolves however the declarations are ordered; a name declared twice to "
               "different values names nothing", forward == {"A": (["src", "Proj", "Grammar"], True),
                                                             "B": (["Proj", "Grammar"], True)}, forward)
+        chain = Sources(root).constants("".join(
+            f'static readonly string C{i} = Path.Combine("p{i}", C{i + 1});' + chr(10) for i in range(1, 12))
+            + 'static readonly string C12 = "leaf";' + chr(10))
+        check("a chain of constants longer than eight, declared in reverse order, resolves in full (kb/Work PB3645)",
+              chain.get("C1") == ([f"p{i}" for i in range(1, 12)] + ["leaf"], True), chain.get("C1"))
+        converge = Sources(root).constants('static readonly string D = Path.Combine("x", E, "z");\n'
+                                           'static readonly string D = Path.Combine("x", "q", F);\n'
+                                           'static readonly string E = "q";\nstatic readonly string F = "z";\n'
+                                           'static readonly string G = "one.cs";\nstatic readonly string G = "two.cs";')
+        check("a name declared twice whose partial values differ in an early pass and converge once a later constant "
+              "resolves names that value; one that never converges names nothing (kb/Work PB3645)",
+              converge.get("D") == (["x", "q", "z"], True) and "G" not in converge, converge)
         check("a wrapper also used as a method group keeps its own directory read (nobody spells that use)",
               sorted(by["MethodGroupDriftTests"]["paths"]) == ["src/Proj", "src/Proj/Dir/A.cs"],
               by["MethodGroupDriftTests"]["paths"])
