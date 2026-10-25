@@ -3695,6 +3695,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // pending SAME AS) recurse inside ExpandSameAs; cycles are the §13.18.49.3 SR3 rejection.
         foreach (var item in AllItems().Where(i => i.SameAsName is not null).ToList())
             ExpandSameAs(item, []);
+        // §13.18.55.4 GR1 over the composed storage forest — a TYPE subject or SAME AS subject that writes the clause
+        // reaches the leaves it copied (DataBinder.SynchronizedClause.cs; the templates took it in ExpandTemplate).
+        foreach (var root in Roots) InheritSynchronized(root);
         ResolveRestrictedTypes();
         IndexLapsedTypeMembers();
     }
@@ -3793,6 +3796,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "type definition shall not be specified with the STRONG phrase (ISO §13.18.58.3 SR1; §8.5.3.1) — "
                 + "§8.5.3.3 makes group items the only kind of item that may be strongly typed");
         }
+        // §13.18.55.4 GR1 is part of the declaration's description: its group-level SYNCHRONIZED clause is "instead"
+        // the clause of its subordinate elementary items, which a TYPE subject copies even though §13.18.57.4 GR1
+        // excludes the declaration's own alignment (DataBinder.SynchronizedClause.cs; kb/Work PB539, PB494).
+        InheritSynchronized(template);
         _templateComplete[template] = true;
         return true;
     }
@@ -4142,7 +4149,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // bit item (§13.18.1.4 GR1's "first bit of the first available byte boundary", §8.5.1.6.3).
         if (scope is not DescriptionCopyScope.TypeSubject)
         {
-            to.Synchronized |= from.Synchronized;                   // SYNCHRONIZED (§13.18.55)
+            to.Synchronized ??= from.Synchronized;                  // SYNCHRONIZED (§13.18.55), its phrase included
             to.IsAligned |= from.IsAligned;                         // ALIGNED (§13.18.1)
             to.AlignedAsLevelOne |= from.AlignedAsLevelOne;         // a TYPE clause's GR2 d) (§13.18.57.4)
         }
@@ -5273,7 +5280,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         Core.OccursClauseContext? occursClause = null;   // its bounds bind after the item (BindTableBounds)
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
-        bool justified = false, blankWhenZero = false, synchronized = false;
+        bool justified = false, blankWhenZero = false;
+        SynchronizedPhrase? synchronized = null;
         // The entry's USAGE clause node, kept for its optional phrases (SIGNED / UNSIGNED, WITH NO SIGN, the float
         // FORMAT phrases — ISO §13.18.60.2): which usage each may follow depends on the RESOLVED usage, so they are
         // read and screened in ONE place, ScreenUsagePhrases, after entryUsage exists. kb/Work PB174, PB3517.
@@ -5422,8 +5430,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.32 — right-justify alphanumeric receives)
                 else if (clause.Context.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
-                else if (clause.Context.syncClause() is not null)
-                    synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
+                else if (clause.Context.syncClause() is { } sync)
+                    // SYNCHRONIZED/SYNC [LEFT | RIGHT] (ISO §13.18.55.2) — the phrase is kept, never collapsed: §8.5.3.1
+                    // compares the clause (SynchronizedPhrase, kb/Work PB538).
+                    synchronized = sync.LEFT() is not null ? SynchronizedPhrase.Left
+                        : sync.RIGHT() is not null ? SynchronizedPhrase.Right
+                        : SynchronizedPhrase.Unqualified;
                 else if (clause.Context.constantRecordClause() is not null)
                     // CONSTANT RECORD (§13.18.15) — a structured constant; the §13.16.3 SR3/SR6/SR13 same-entry
                     // shape checks run below (the IsBased discipline). The COBOL-2002 introduction gate is
@@ -7055,18 +7067,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
             }
         }
-        // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §E.3.2 item 6 — "This clause may
-        // now be specified for a group level data item"; §13.18.55 is the clause itself). It routes
-        // through the CANONICAL funnel like every other introduction, so it is a hard error on BOTH
-        // axes: §4.2.2's warning mechanism reports violations of the standard, and --permissive is the
-        // migration mode for constructs an edition REMOVED — it has no meaning for one the targeted
-        // edition has not yet acquired, which no pre-existing program can legally contain (CA14,
-        // owner-approved option (a); this was the sole site routing an introduction through the
-        // removed-severity seam, contradicting the compiler's own single-policy contract).
-        if (item.Synchronized && Edition.DialectLevel < 2023)
-            ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SyncOnGroup2023,
-                $"data item '{item.CobolName ?? "FILLER"}'");
-
         // ── §13.18.60.4 GR1, the "and not to the group itself" half ──────────────────────────────────────────
         // Entry bind could not yet tell a PICTURE-less elementary item from a group header — the subordinate
         // entries were not parsed — so it synthesized the usage's representation onto this entry optimistically.
