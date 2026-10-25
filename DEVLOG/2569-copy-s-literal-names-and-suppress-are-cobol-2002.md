@@ -59,3 +59,10 @@ of HEAD) GREEN`. All 51 new or changed goldens and edition cells passed in `leg-
 `pb1615_literal_over_160_positions` (2014, 2023), `pb1355_library_text_literal` (2002, 2014, 2023) and
 `pb1354_copy_header_2002` (2002), and `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic` for the three negatives.
 
+
+Merge-queue bounce. PR #602's merge group (run 40237769279) was red on one conformance test in both `rest` shards,
+`DiagnosticPositionTests.SourceDebuggingLine_BetweenLiteralParts_InACopybook_IsDiagnosedAtItsOwnLine`: its COBOL-85 unit
+wrote a literal COPY name, which this change makes COBOL-2002, so the gate refused it (COBOLNET0900). The sibling sweep had
+looked for the COBOL spelling only and missed the C#-escaped one; a second COBOL-85 unit in the same class (the NIST
+placeholder test) wrote one too and passed only because it asserts by `Contains`. Both now name their copybook by a word,
+the 1985 form, and assert that no COBOLNET0900 is reported.
