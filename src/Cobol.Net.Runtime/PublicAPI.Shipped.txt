@@ -62,8 +62,6 @@ CobolNet.Runtime.AlphanumericCollation
 CobolNet.Runtime.AlphanumericCollation.AlphanumericCollation(ushort[]! codes, ushort[]! positions, ushort[]! repByPos, int nextFree, char highValue = '\uffff', char lowValue = '\0') -> void
 CobolNet.Runtime.BASE
 CobolNet.Runtime.BASE.BASE() -> void
-CobolNet.Runtime.__FACTORY_BASE
-CobolNet.Runtime.__FACTORY_BASE.__FACTORY_BASE() -> void
 CobolNet.Runtime.BoundaryItem
 CobolNet.Runtime.BoundaryItem.ArgumentViolation(CobolNet.Runtime.CobolPassMode mode, in CobolNet.Runtime.BoundaryItem formal, bool specifiedProgram) -> string?
 CobolNet.Runtime.BoundaryItem.BoundaryItem() -> void
@@ -2114,6 +2112,8 @@ CobolNet.Runtime.Unicode.UnicodeNormalizationForm.NFD = 1 -> CobolNet.Runtime.Un
 CobolNet.Runtime.Unicode.UnicodeNormalizer
 CobolNet.Runtime.UniversalGroupCarrier
 CobolNet.Runtime.ZonedSign
+CobolNet.Runtime.__FACTORY_BASE
+CobolNet.Runtime.__FACTORY_BASE.__FACTORY_BASE() -> void
 abstract CobolNet.Runtime.CarrierLanding.Land(in CobolNet.Runtime.CobolArg arg, CobolNet.Runtime.NumProfile? formal, bool checking) -> CobolNet.Runtime.CobolArg
 abstract CobolNet.Runtime.CobolCollation.CharAt(long position) -> int
 abstract CobolNet.Runtime.CobolCollation.Compare(string? left, string? right) -> int
@@ -2260,8 +2260,6 @@ override CobolNet.Runtime.ActivationDescription.GetHashCode() -> int
 override CobolNet.Runtime.ActivationDescription.ToString() -> string!
 override CobolNet.Runtime.BASE.__CobolInvoke(string! name, CobolNet.Runtime.CobolInvokeArg![]! args, CobolNet.Runtime.CobolInvokeArg? returning) -> void
 override CobolNet.Runtime.BASE.__FactoryClassType.get -> System.Type?
-override CobolNet.Runtime.__FACTORY_BASE.__CobolInvoke(string! name, CobolNet.Runtime.CobolInvokeArg![]! args, CobolNet.Runtime.CobolInvokeArg? returning) -> void
-override CobolNet.Runtime.__FACTORY_BASE.__InstanceClassType.get -> System.Type?
 override CobolNet.Runtime.BoundaryItem.GetHashCode() -> int
 override CobolNet.Runtime.CarrierLanding<T>.Land(in CobolNet.Runtime.CobolArg arg, CobolNet.Runtime.NumProfile? formal, bool checking) -> CobolNet.Runtime.CobolArg
 override CobolNet.Runtime.CellGroupShape.Equals(object? obj) -> bool
@@ -2406,6 +2404,8 @@ override CobolNet.Runtime.SignPunchTable.GetHashCode() -> int
 override CobolNet.Runtime.Unicode.Segmentation.GraphemeCluster.Equals(object? obj) -> bool
 override CobolNet.Runtime.Unicode.Segmentation.GraphemeCluster.GetHashCode() -> int
 override CobolNet.Runtime.Unicode.Segmentation.GraphemeCluster.ToString() -> string!
+override CobolNet.Runtime.__FACTORY_BASE.__CobolInvoke(string! name, CobolNet.Runtime.CobolInvokeArg![]! args, CobolNet.Runtime.CobolInvokeArg? returning) -> void
+override CobolNet.Runtime.__FACTORY_BASE.__InstanceClassType.get -> System.Type?
 override sealed CobolNet.Runtime.Collation.Cldr.CldrImportRule.Equals(CobolNet.Runtime.Collation.Cldr.CldrRule? other) -> bool
 override sealed CobolNet.Runtime.Collation.Cldr.CldrRelation.Equals(CobolNet.Runtime.Collation.Cldr.CldrRule? other) -> bool
 override sealed CobolNet.Runtime.Collation.Cldr.CldrReset.Equals(CobolNet.Runtime.Collation.Cldr.CldrRule? other) -> bool
@@ -2432,7 +2432,6 @@ static CobolNet.Runtime.ActivationRelations.ParameterViolation(CobolNet.Runtime.
 static CobolNet.Runtime.ActivationRelations.ReturningMatches(CobolNet.Runtime.ActivationDescription! receiving, CobolNet.Runtime.ActivationDescription! sending) -> bool
 static CobolNet.Runtime.ActivationRelations.ReturningViolation(CobolNet.Runtime.ActivationDescription! receiving, CobolNet.Runtime.ActivationDescription! sending) -> string?
 static CobolNet.Runtime.ActivationStack.RequireForMethod(string! method, string! className) -> void
-static CobolNet.Runtime.__FACTORY_BASE.__Instance.get -> CobolNet.Runtime.__FACTORY_BASE!
 static CobolNet.Runtime.BoundaryItem.operator !=(CobolNet.Runtime.BoundaryItem left, CobolNet.Runtime.BoundaryItem right) -> bool
 static CobolNet.Runtime.BoundaryItem.operator ==(CobolNet.Runtime.BoundaryItem left, CobolNet.Runtime.BoundaryItem right) -> bool
 static CobolNet.Runtime.CellGroupShape.operator !=(CobolNet.Runtime.CellGroupShape? left, CobolNet.Runtime.CellGroupShape? right) -> bool
@@ -3637,6 +3636,7 @@ static CobolNet.Runtime.ZonedSign.Punch(CobolNet.Runtime.SignEncoding encoding, 
 static CobolNet.Runtime.ZonedSign.Table(CobolNet.Runtime.SignEncoding encoding) -> CobolNet.Runtime.SignPunchTable
 static CobolNet.Runtime.ZonedSign.TryParseOption(string? text, out CobolNet.Runtime.SignEncoding encoding) -> bool
 static CobolNet.Runtime.ZonedSign.TryUnpunch(CobolNet.Runtime.SignEncoding encoding, char c, out int digit, out bool negative) -> bool
+static CobolNet.Runtime.__FACTORY_BASE.__Instance.get -> CobolNet.Runtime.__FACTORY_BASE!
 static readonly CobolNet.Runtime.CarrierLanding<T>.Instance -> CobolNet.Runtime.CarrierLanding<T>!
 static readonly CobolNet.Runtime.CobolCallException.CarriedNames -> string![]!
 static readonly CobolNet.Runtime.CobolDec.E -> CobolNet.Runtime.CobolDec
@@ -3659,8 +3659,6 @@ static readonly CobolNet.Runtime.PredefinedNullArgument.Instance -> CobolNet.Run
 static readonly CobolNet.Runtime.ProgramPointer.Null -> CobolNet.Runtime.ProgramPointer
 virtual CobolNet.Runtime.BASE.__FactoryObject() -> CobolNet.Runtime.CobolObject?
 virtual CobolNet.Runtime.BASE.__FactoryOfClass.get -> CobolNet.Runtime.__FACTORY_BASE!
-virtual CobolNet.Runtime.__FACTORY_BASE.__Create() -> CobolNet.Runtime.BASE!
-virtual CobolNet.Runtime.__FACTORY_BASE.__New() -> CobolNet.Runtime.CobolObject?
 virtual CobolNet.Runtime.CobolCollation.KeyOf(string? value) -> CobolNet.Runtime.Collation.CollationKey?
 virtual CobolNet.Runtime.CobolCollation.Snapshot() -> CobolNet.Runtime.CobolCollation!
 virtual CobolNet.Runtime.CobolCollation.SupportsKeys.get -> bool
@@ -3682,6 +3680,8 @@ virtual CobolNet.Runtime.IO.FileConnector.MutationTargetRecordIdCore(string! rec
 virtual CobolNet.Runtime.IO.FileConnector.PeekRandomReadRecordId(int keyIndex, string! recordImage, CobolNet.Runtime.RecordExtents? recordExtents) -> string!
 virtual CobolNet.Runtime.IO.FileConnector.PeekSequentialRecordId(bool previous) -> string!
 virtual CobolNet.Runtime.ManagedPointer.IsNull.get -> bool
+virtual CobolNet.Runtime.__FACTORY_BASE.__Create() -> CobolNet.Runtime.BASE!
+virtual CobolNet.Runtime.__FACTORY_BASE.__New() -> CobolNet.Runtime.CobolObject?
 ~override CobolNet.Runtime.BoundaryItem.Equals(object obj) -> bool
 ~override CobolNet.Runtime.BoundaryItem.ToString() -> string
 ~override CobolNet.Runtime.CobolArg.Equals(object obj) -> bool

@@ -35,6 +35,13 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
   RUNTIME ABI PIN   src/Cobol.Net.Runtime/RuntimeAbi.pin (abi_pin.py): two branches that each raised a counter raise it
                     by both, and the hashes of the merged surface, which no merge can know, are marked UNMEASURED for
                     `abi_pin.py settle` to measure on the merged tree before the merge commit is made.
+  SYMBOL SETS       src/**/PublicAPI.*.txt, the public-API baselines (Microsoft.CodeAnalysis.PublicApiAnalyzers): a SET of
+                    symbol lines under the `#nullable enable` header, a `*REMOVED*` line one more member (kb/Work PB3727;
+                    DESIGN-orchestrator-loop.md section 16.9). A line either side added is kept, a line either side
+                    removed is gone, the header lines stay first and the rest is sorted (ordinal), so the merge never
+                    declines: a line is atomic, and a stale symbol fails the build (RS0017) as any wrong baseline does.
+                    git's union merge, which governed these files before, kept a line one side removed when the other
+                    side added a line beside it, and kept a symbol both sides added at different places twice (PB3694).
 A file a driver declines (a real conflict at its level) falls back to git's own line merge of the three files: where that
 merges cleanly, as it would without a driver, the file merges; else the file the finisher opens carries the usual markers.
 
@@ -241,6 +248,19 @@ def merge_note(base: str, ours: str, theirs: str) -> str | None:
     return None if body is None else NL.join(["---", *(text for _, text in merged), body])
 
 
+# ── symbol sets: the public-API baselines ───────────────────────────────────────────────────────────────────────
+def merge_symbol_set(base: str, ours: str, theirs: str) -> str:
+    """Three-way merge of a public-API baseline as a SET of lines (kb/Work PB3727; DESIGN-orchestrator-loop.md section
+    16.9): (base ∪ (ours − base) ∪ (theirs − base)) − (base − ours) − (base − theirs), i.e. a line either side added is
+    kept and a line either side removed is gone. The header (the `#` lines: `#nullable enable`) comes first, the symbol
+    lines after it, each part in ordinal order, LF-terminated; a blank line is not a member and a CR is not part of a
+    line. Never None: two lines of a set cannot conflict."""
+    b, o, t = ({ln.rstrip(chr(13)) for ln in text.split(NL)} - {""} for text in (base, ours, theirs))
+    kept = (b | (o - b) | (t - b)) - (b - o) - (b - t)
+    header = sorted(ln for ln in kept if ln.startswith("#"))
+    return "".join(ln + NL for ln in header + sorted(kept.difference(header)))
+
+
 def _abi_pin_merger() -> Merger:
     import abi_pin  # noqa: PLC0415  (scripts/: the pin's own format and counters)
     return abi_pin.merge_text
@@ -269,6 +289,9 @@ DRIVERS: tuple[Driver, ...] = (
            "frontmatter per key, body by union: two branches that each append to one note keep both"),
     Driver("cobol-abi-pin", ("src/Cobol.Net.Runtime/RuntimeAbi.pin",), _abi_pin_merger,
            "the runtime major and call ABI counters add; the merged surface's hashes are measured, not merged"),
+    Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set,
+           "a public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed "
+           "is gone, the header stays first, the rest sorted"),
 )
 
 
@@ -377,6 +400,36 @@ def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) ->
 
 
 # ── the audit ────────────────────────────────────────────────────────────────────────────────────────────────────
+def pattern_matches(path: str, pattern: str) -> bool:
+    """Whether the `.gitattributes` pattern names the repository-relative, `/`-separated `path`, by git's own rules
+    (gitattributes(5), gitignore(5) "PATTERN FORMAT"): a pattern with no `/` matches the last component at any depth;
+    one with a `/` matches the whole path from the root; `*` and `?` stay within one component, a leading `**/` and an
+    inner `/**/` span zero or more directories, a trailing `/**` everything inside, `[...]` is one character of a class.
+    `pathlib.PurePath.match` is not this: its `**` spans exactly one component, so `src/**/PublicAPI.*.txt` would miss
+    a baseline two directories down that git hands to the driver (kb/Work PB3727)."""
+    pat, subject = pattern.lstrip("/"), path
+    if "/" not in pattern.rstrip("/"):
+        subject = path.rsplit("/", 1)[-1]
+    rx, i = "", 0
+    while i < len(pat):
+        at_start = i == 0 or pat[i - 1] == "/"
+        if at_start and pat.startswith("**/", i):
+            rx, i = rx + "(?:[^/]*/)*", i + 3
+        elif at_start and pat.startswith("**", i) and i + 2 == len(pat):
+            rx, i = rx + ".*", i + 2
+        elif pat[i] == "*":
+            rx, i = rx + "[^/]*", i + 1
+        elif pat[i] == "?":
+            rx, i = rx + "[^/]", i + 1
+        elif pat[i] == "[" and "]" in pat[i + 2:]:
+            end = pat.index("]", i + 2)
+            body = pat[i + 1:end]
+            rx, i = rx + "[" + ("^" + body[1:] if body.startswith("!") else body).replace(chr(92), chr(92) * 2) + "]", end + 1
+        else:
+            rx, i = rx + re.escape(pat[i]), i + 1
+    return re.fullmatch(rx, subject) is not None
+
+
 def attribute_drivers(text: str) -> dict[str, str]:
     """{pattern: driver name} of every `<pattern> merge=<name>` line in a .gitattributes text."""
     out = {}
@@ -401,7 +454,7 @@ def check(repo: pathlib.Path) -> list[str]:
             findings.append(f".gitattributes says `{p} merge={n}`, which no DRIVERS entry declares")
     tracked = git(repo, "ls-files", "-z").stdout.split(chr(0))
     for p in declared:
-        if not any(pathlib.PurePosixPath(t).match(p) for t in tracked if t):
+        if not any(pattern_matches(t, p) for t in tracked if t):
             findings.append(f"the pattern {p} of a driver names no tracked file")
     return findings
 
@@ -431,7 +484,8 @@ def conflict_files(log_text: str) -> list[str]:
 
 
 def covered_by_driver(path: str) -> bool:
-    return any(pathlib.PurePosixPath(path).match(p) for d in DRIVERS for p in d.patterns)
+    """Whether a driver merges `path` (its pattern names it as `.gitattributes` does, pattern_matches)."""
+    return any(pattern_matches(path, p) for d in DRIVERS for p in d.patterns)
 
 
 def conflict_report(logs: pathlib.Path) -> tuple[dict[str, int], int]:
@@ -509,14 +563,41 @@ def self_test() -> int:
     expect("note: a frontmatter key both changed differently is a conflict (None); a note without frontmatter too",
            merge_note(nb, note("landed", ""), note("retired", "")) is None and merge_note("x", "y", "z") is None)
 
+    api = lambda *lines: "".join(ln + NL for ln in lines)    # noqa: E731
+    hdr = "#nullable enable"
+    expect("publicapi: lines each side added are both kept, where git's union merge (the premise) kept a symbol both "
+           "sides added at different places twice (kb/Work PB3694)",
+           merge_symbol_set(api(hdr, "A.X", "A.Z"), api(hdr, "A.X", "A.Y", "A.Z"), api(hdr, "A.W", "A.X", "A.Z"))
+           == api(hdr, "A.W", "A.X", "A.Y", "A.Z")
+           and merge_symbol_set(api(hdr, "A.X", "A.Z"), api(hdr, "A.D", "A.X", "A.Z"), api(hdr, "A.X", "A.Z", "A.D"))
+           == api(hdr, "A.D", "A.X", "A.Z")
+           and (union_text(api(hdr, "A.X", "A.Z"), api(hdr, "A.D", "A.X", "A.Z"), api(hdr, "A.X", "A.Z", "A.D")) or "").count("A.D") == 2)
+    expect("publicapi: a line one side removed is gone, though the other side added a line beside it (where git's union "
+           "merge kept it)",
+           merge_symbol_set(api(hdr, "A.X", "A.Y", "A.Z"), api(hdr, "A.X", "A.Z", "A.G"), api(hdr, "A.X", "A.Y", "A.N", "A.Z", "A.G"))
+           == api(hdr, "A.G", "A.N", "A.X", "A.Z")
+           and "A.Y" in (union_text(api(hdr, "A.X", "A.Y", "A.Z"), api(hdr, "A.X", "A.Z", "A.G"),
+                                    api(hdr, "A.X", "A.Y", "A.N", "A.Z", "A.G")) or "")
+           and merge_symbol_set(api(hdr, "A.X", "A.Y"), api(hdr, "A.X", "A.Y"), api(hdr, "A.X")) == api(hdr, "A.X"))
+    expect("publicapi: the header stays first and the rest is sorted (ordinal: a *REMOVED* line first, upper case before "
+           "lower), LF-terminated, blank lines and CRs dropped, and a merge is never declined",
+           merge_symbol_set(api(hdr, "b.B", "A.A"), api(hdr, "b.B", "A.A", "*REMOVED*Z.Z", "B.a"), api("", "c.C", hdr, "A.A", "b.B" + chr(13)))
+           == api(hdr, "*REMOVED*Z.Z", "A.A", "B.a", "b.B", "c.C")
+           and merge_symbol_set("", "", "") == "")
+    expect("publicapi: the same line added by both is one line",
+           merge_symbol_set(api(hdr, "A.X"), api(hdr, "A.N", "A.X"), api(hdr, "A.X", "A.N")) == api(hdr, "A.N", "A.X"))
+
     # The whole path through git: a scratch repository whose two branches each add an entry to a keyed file.
     root = scratch_dir("merge-drivers-selftest-")
     try:
         scratch = ScratchRepo.init(root / "repo")
         repo = scratch.path
-        (repo / ".gitattributes").write_text("d.json merge=cobol-keyed-object" + NL + "kb/Work/PB*.md merge=cobol-work-note" + NL,
-                                             encoding="utf-8", newline=NL)
+        (repo / ".gitattributes").write_text("d.json merge=cobol-keyed-object" + NL + "kb/Work/PB*.md merge=cobol-work-note" + NL
+                                             + "src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi" + NL, encoding="utf-8", newline=NL)
         (repo / "d.json").write_text(obj(m("a", "85"), m("c", "85")), encoding="utf-8", newline=NL)
+        baseline = repo / "src" / "Lib" / "PublicAPI.Unshipped.txt"
+        baseline.parent.mkdir(parents=True)
+        baseline.write_text(api(hdr, "A.X", "A.Y", "A.Z"), encoding="utf-8", newline=NL)
         (repo / "kb" / "Work").mkdir(parents=True)
         (repo / "kb" / "Work" / "PB1.md").write_text(nb, encoding="utf-8", newline=NL)
         scratch.git("add", "-A")
@@ -524,10 +605,12 @@ def self_test() -> int:
         scratch.git("switch", "-q", "-c", "topic")
         (repo / "d.json").write_text(obj(m("a", "85"), m("c", "85"), m("ours", "85")), encoding="utf-8", newline=NL)
         (repo / "kb" / "Work" / "PB1.md").write_text(note("landed", f"text{NL}Landed A.{NL}"), encoding="utf-8", newline=NL)
+        baseline.write_text(api(hdr, "A.D", "A.X", "A.Z", "A.G"), encoding="utf-8", newline=NL)
         scratch.git("commit", "-q", "-am", "topic")
         scratch.git("switch", "-q", "main")
         (repo / "d.json").write_text(obj(m("a", "85"), m("c", "85"), m("theirs", "85")), encoding="utf-8", newline=NL)
         (repo / "kb" / "Work" / "PB1.md").write_text(nb + f"Main note.{NL}", encoding="utf-8", newline=NL)
+        baseline.write_text(api(hdr, "A.X", "A.Y", "A.N", "A.Z", "A.G", "A.D"), encoding="utf-8", newline=NL)
         scratch.git("commit", "-q", "-am", "main")
         scratch.git("switch", "-q", "topic")
         plain = scratch.run("merge", "--no-commit", "--no-ff", "main")
@@ -546,6 +629,10 @@ def self_test() -> int:
                files is None and set(merged) == {"a", "c", "ours", "theirs"} and "status: landed" in body
                and "Landed A." in body and "Main note." in body and len(scratch.git("log", "--merges", "--format=%h").split()) == 1,
                f"{files} {sorted(merged)} {body!r}")
+        expect("git: a public-API baseline both branches changed merges through its driver as a set: the symbol both "
+               "added once, the line one side removed gone, sorted",
+               files is None and baseline.read_text(encoding="utf-8") == api(hdr, "A.D", "A.G", "A.N", "A.X", "A.Z"),
+               repr(baseline.read_text(encoding="utf-8")))
         expect("git: merge-tree with config_args reproduces the merge's tree (the review's coverage rule reads it)",
                git(repo, "merge-tree", "--write-tree", "HEAD^1", "HEAD^2", config=True).stdout.split()[:1]
                == [scratch.git("rev-parse", "HEAD^{tree}")])
@@ -653,6 +740,17 @@ def self_test() -> int:
                conflict_files(log) == ["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]
                and covered_by_driver("conformance-suite/wiseowl/diagnostics.json") and covered_by_driver("kb/Work/PB3610.md")
                and not covered_by_driver("src/A.cs"))
+        expect("patterns: a driver's pattern names a path as git does: `**/` spans zero or more directories, `*` and `?` "
+               "stay within one, a pattern without `/` matches the last component at any depth",
+               pattern_matches("src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/**/PublicAPI.*.txt")
+               and pattern_matches("src/a/b/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
+               and pattern_matches("src/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
+               and not pattern_matches("tests/a/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
+               and not pattern_matches("src/a/PublicAPI.Shipped.txt.bak", "src/**/PublicAPI.*.txt")
+               and pattern_matches("kb/Work/PB3727.md", "kb/Work/PB*.md") and not pattern_matches("kb/Work/x/PB1.md", "kb/Work/PB*.md")
+               and pattern_matches("a/b/x.nupkg", "*.nupkg") and pattern_matches("kb/Work/PB1.md", "kb/Work/PB?.md")
+               and pattern_matches("d/x/y", "d/**") and pattern_matches("v1.md", "v[0-9].md") and not pattern_matches("v1.md", "v[!0-9].md")
+               and covered_by_driver("src/Cobol.Net.Runtime/PublicAPI.Shipped.txt"))
         expect("conflicts: the one CONFLICT outcome reads back its own files (enqueue's verdict, the lane's brief); any "
                "other outcome names none",
                outcome_files(conflict_outcome(["scripts/x.py", "kb/a.json"])) == ["scripts/x.py", "kb/a.json"]

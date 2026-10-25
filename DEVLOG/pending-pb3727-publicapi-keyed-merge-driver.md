@@ -1,0 +1,31 @@
+## PB3727: the public-API baselines are merged as sets of symbol lines (cobol-keyed-publicapi), not by line union
+
+**What changed.** kb/Work PB3727 is tier 1 of the PB3726 restructure, and DESIGN-orchestrator-loop.md section 16.9 is
+its design. `src/**/PublicAPI.*.txt` no longer merges by `merge=union`. It merges through a new driver,
+`cobol-keyed-publicapi`, in `scripts/merge_drivers.py`. `merge_symbol_set` treats a baseline as a SET: a line either
+side added is kept, and a line either side removed is gone. The `#nullable enable` header stays first and the symbol
+lines follow in ordinal order. The driver never declines, because a line is atomic and a stale symbol already fails the
+build (RS0017).
+
+**Re-probe.** `git merge-file --union` on three-line baselines showed both defects. When one side removed `A.Y` and the
+other added `A.N` beside it, the union kept `A.Y`. When both sides added `A.D` at different places, the union kept it
+twice. The second is the PB3694 duplicate behind the RS0025 bounce of #541.
+
+**What else moved.**
+- `.gitattributes` names the new driver, with its reason.
+- Both runtime baselines were sorted once, keeping the same sets.
+- `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's `runtime-hash`, so the pin was repinned with
+  `abi_pin.py repin` (a reorder, nothing incompatible).
+- The registry now matches driver patterns by git's rules. The new `merge_drivers.pattern_matches` is read by
+  `covered_by_driver` and `--check`. Before, `pathlib.PurePath.match` let `**` span exactly one directory, which would
+  have missed a baseline deeper in `src/`.
+- Because the baselines are now files merged by key, the planner's collision rule and the landing's merge-overlap rule
+  both set them aside, as they already do for the catalogues.
+- DESIGN-orchestrator-loop.md section 16.9 records the two corrections. DESIGN-test-build-ci.md section 3.17.2 step 2
+  lists the new driver, and DOC_INDEX gains a row for `merge_drivers.py` and `abi_pin.py`.
+
+**Arms.** The self-test gained the four arms section 16.9 names, a git-path arm and a pattern arm.
+`MergeDriverDriftTests` declares all six.
+
+**Oracle.** The three latest main merges in which both parents changed a baseline were 009f47b01, cdd86463e and
+677c620a0. Re-run through the driver, each reproduces main's baseline as a set.

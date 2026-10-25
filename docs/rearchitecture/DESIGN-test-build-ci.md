@@ -2265,8 +2265,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
    PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
    entry to (`wiseowl/diagnostics.json` and `options.json`, the traceability inventory, `constructs.json`), the work notes
-   two branches append to, and the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
-   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit).
+   two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
+   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit),
+   and the public-API baselines (`src/**/PublicAPI.*.txt`, `cobol-keyed-publicapi`, kb/Work PB3727: a SET of symbol
+   lines, so a line either side added is kept, a line either side removed is gone, the header stays first and the rest
+   is sorted; the line union before it kept a removed line and once a symbol twice, PB3694).
    `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule

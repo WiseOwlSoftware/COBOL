@@ -1627,7 +1627,13 @@ registry and the attributes together as it does for every driver, and `MergeDriv
 names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
 `publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`. The
 landing also sorts the two baselines once (the driver's output order), so the first driven merge changes nothing but
-the merged lines.
+the merged lines. Corrected at implementation: the runtime ABI pin's `runtime-hash` reads `PublicAPI.Shipped.txt` line
+by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), so the sort moves it, and the landing repins it (`abi_pin.py repin`: a
+reorder, nothing incompatible); and the driver's patterns are matched by git's rules in the registry too
+(`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
+span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
+the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
+catalogues.
 
 ### 16.10 The order, the waves and PB3637
 
