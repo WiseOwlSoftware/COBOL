@@ -1,0 +1,4 @@
+## Entry 2531 — 2026-10-25 10:10 PDT — File two leftover landing leads (PB3719, a PB3375 recurrence)
+
+Filed PB3719 (open): `enqueue.open_predecessors` still reads a predecessor pull request of 100 or more changed files by ancestry only, so a head that moved after the merge ends `land` at exit 6 NO ENTRY instead of exit 15. Source: the PB3145 wave report's New leads. Added a 2026-10-25 recurrence paragraph to open note PB3375: PR #541 landed with row `SR-14.9.22.3-1` of the traceability inventory carrying `"notes": ""`, so its PB856 adjudication note is lost until PB3375 is fixed. Source: the PB3665 wave report, R2-1. Notes only; no code, inventory or golden changed.
+
