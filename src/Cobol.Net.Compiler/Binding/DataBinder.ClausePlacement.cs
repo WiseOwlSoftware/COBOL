@@ -186,7 +186,7 @@ internal static class ClausePlacementRules
             [DataClauseKind.Redefines] = "§13.18.44.3 — ScreenLeadingClausePosition (position) / ScreenRedefinesEntry (DataBinder.RedefinesEntry.cs: level, file-section, size, alignment)",
             [DataClauseKind.Value] = "§13.18.63.3 — ScreenValueLiteral / CheckGroupValueDeclarations",
             [DataClauseKind.Sign] = "§13.18.52.3 — InheritSignClauses (group and elementary both legal)",
-            [DataClauseKind.Synchronized] = "§13.18.55 — group legal at 2023 (UsageInheritanceGroup's edition gate)",
+            [DataClauseKind.Synchronized] = "§13.18.55 — group legal at 2023 (GateSynchronizedGroup)",
             [DataClauseKind.Aligned] = "§13.18.1.3 SR1 — CheckAlignedClauses",
             [DataClauseKind.ConstantRecord] = "§13.16.3 SR6 / §13.18.15.3 SR1 — BindEntry's CONSTANT RECORD block and BindEntries",
             [DataClauseKind.Type] = "§13.16.3 SR14 — BindEntry's TYPE composition check",

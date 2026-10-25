@@ -263,3 +263,5 @@ static CobolNet.Runtime.OverlappingMove.AlphanumericToDisplay(string! sender, st
 static CobolNet.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
 static CobolNet.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
 static CobolNet.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! receiver, int receiverAt, in CobolNet.Runtime.NumProfile from, in CobolNet.Runtime.NumProfile to) -> string!
+const CobolNet.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
+static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool

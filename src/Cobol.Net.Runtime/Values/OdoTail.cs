@@ -82,18 +82,33 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
     /// <paramref name="count"/> occurrences, <paramref name="current"/> from there on, so the remaining occurrences
     /// keep their content. Both strings are the same run, whose trailing <see cref="Width"/> characters hold the table
     /// (§13.18.38.3 SR22). A table counted in bits is spliced at the bit (<see cref="CobolBits.WriteWindow"/>): its
-    /// first unused occurrence may start inside a character.</summary>
+    /// first unused occurrence may start inside a character.
+    /// <para>⛔ WHAT A BIT TABLE'S SPLICE KEEPS IS THE UNUSED OCCURRENCES AND NOTHING ELSE (kb/Work PB3598).
+    /// No table of these groups is a CORRESPONDING table (§8.5.1.12.2: two tables correspond only when one of them is a
+    /// dynamic-capacity table), so §14.9.25.4 GR9 a) moves every character position, "the content of each character position
+    /// that is not occupied by a corresponding table", exactly as GR4 does. What the move leaves to the implementor is the
+    /// content of the occurrences past the count: §13.18.38.4 7) calls it "undefined" and 8) a) leaves those occurrences out
+    /// of the operation. The implementor's choice (the splice's choice since kb/Work PB3030, exercised by
+    /// <c>pb3030_bit_odo_run_continuation</c>; the fixed-length lane makes the other one, GR4's whole characters) is that they stay the receiver's, from the first unused occurrence to the
+    /// end of the table at its maximum extent
+    /// (<see cref="CobolTable.TrimmedExtent"/>) or of the receiver's current characters, whichever ends first. The
+    /// implicit filler that completes the characters AFTER the maximum extent (§8.5.1.6.3 rule 4: "as needed to increase the
+    /// number of bits to fill an integral number of characters") occupies no table, so when it lies inside the characters the
+    /// receiver uses it is the SENDER's, exactly as a count at the maximum moves it: a splice that kept the receiver's bits
+    /// all the way to the end dropped it at every smaller count. The characters past the current extent are the
+    /// receiver's own, whole.</para></summary>
     public string KeepUnused(string received, string current, int count)
     {
         if (!Present || count >= Max) return received;
-        if (PerCharacter == 1)
-        {
-            int cut = CutAt(count);
-            return received[..^cut] + current[^cut..];
-        }
-        int from = (current.Length - Width) * PerCharacter + Lead + Math.Max(0, count) * Elem;
-        return CobolBits.WriteWindow(received, from,
-            CobolBits.ReadWindow(current, from, current.Length * PerCharacter - from));
+        int cut = CutAt(count);
+        if (PerCharacter == 1) return received[..^cut] + current[^cut..];
+        int tableAt = (current.Length - Width) * PerCharacter + Lead;
+        int firstUnused = tableAt + Math.Max(0, count) * Elem;
+        int keepTo = Math.Min(CobolTable.TrimmedExtent(Max, tableAt, Elem, Trailing), (current.Length - cut) * PerCharacter);
+        string spliced = keepTo > firstUnused
+            ? CobolBits.WriteWindow(received, firstUnused, CobolBits.ReadWindow(current, firstUnused, keepTo - firstUnused))
+            : received;
+        return spliced[..^cut] + current[^cut..];
     }
 
     /// <summary>How many of the group's trailing COMPONENTS belong to the occurrences beyond <paramref name="count"/>
