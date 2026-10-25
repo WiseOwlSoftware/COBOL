@@ -1,4 +1,4 @@
-## PB3670: the wave planner partitions on members, not on whole files and subsystems
+## Entry 2510 — 2026-10-24 20:11 PDT — PB3670: the wave planner partitions on members, not on whole files and subsystems
 
 The owner, 2026-10-24 ~18:20 PDT: "I do not understand why we cannot update separate regions of code in a single source
 file from different groups such that a merge conflict doesn't occur. Developers do this all the time but you insist on
@@ -78,3 +78,4 @@ reads only the header before `=`/`=>`, skips a `(` group after a modifier, at th
 type), and ignores a `,` inside a generic argument list; a sweep of the tree's 1,634 C# files finds no unit named after
 a keyword and no unbalanced file. R1-2 and R1-4 (leads in `plan_wave.py`, a file this finisher did not change) stay for
 the clerk.
+
