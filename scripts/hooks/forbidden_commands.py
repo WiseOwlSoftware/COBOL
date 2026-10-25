@@ -48,11 +48,11 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import shell_location  # noqa: E402  (the one parser of a command's location changes, kb/Work PB2599)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
+ensure_utf8()
 
-# the harness reads hook stderr as UTF-8; Windows would otherwise encode it in the console code page (an em dash arrived
-# mangled in the first live block, 2026-09-25)
-sys.stderr.reconfigure(encoding="utf-8")
 
 def block(reason: str) -> None:
     sys.stderr.write("BLOCKED by scripts/hooks/forbidden_commands.py: " + reason + "\n")

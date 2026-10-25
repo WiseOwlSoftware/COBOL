@@ -17290,6 +17290,14 @@
   ],
   "expect": "shall be implicitly or explicitly described as usage display or usage national"
  },
+ "pb508_blank_when_zero_national_resultant": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1675"
+ },
  "pb510-blank-when-zeros": {
   "refuse-at": [
    "85",
@@ -23242,5 +23250,24 @@
    "85"
   ],
   "expect": "COBOLNET0900: a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY requires COBOL-2002"
+ },
+ "pb1601-copy-literal-name-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb1601-copy-suppress-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb1615-literal-above-160-below-2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0814"
  }
 }
