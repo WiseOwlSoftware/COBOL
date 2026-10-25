@@ -55,7 +55,7 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      `PREDECESSOR QUEUED`: the branch merged a predecessor whose pull request is still open and carries its stamped DEVLOG
      entry beside its own, nothing queued and nothing red, kb/Work PB3145) and
      `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 3 once
-     `landing_check.py` passes on the branch, exit 12 once the gate lock is free and no gate run owes a verdict, exit 13 once the land lock is free, exit 15 once no
+     `landing_check.py` passes on the branch, exit 12 once the gate lock is free, exit 13 once the land lock is free, exit 15 once no
      open pull request owns a DEVLOG entry the branch carries).
      Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`

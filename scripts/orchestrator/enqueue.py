@@ -48,10 +48,10 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
      merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
-     that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_run`: the newest run with no record whose
-     `gate.pid` names a live process; the landing lane launches a landing beside its own implementer's gate) owes a
-     verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work PB3662), retried once no
-     gate runs; a run whose process died with none still counts as no record. The
+     that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_gate`: the worktree's gate lock is held, an OS
+     lock freed when its holder dies, so never a reused process id; the landing lane launches a landing beside its own
+     implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
+     PB3662), retried once no gate runs; a run whose gate died with none (its lock free) still counts as no record. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
      landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane,
      seconds). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
@@ -85,8 +85,8 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      own until the predecessor's pull request merges; `devlog.py stamp` folds only pending entries (a stamped entry is
      another pull request's title and keeps its number, kb/Work PB3123), so the branch adds two entries and has no
      single one to title its pull request with. When every extra stamped entry belongs to an OPEN pull request into
-     main whose head the branch contains (`open_predecessors`, GitHub's own list; the branch's own pull request is
-     none), and exactly one entry is left, that is exit 15, PREDECESSOR QUEUED: nothing is queued, no report line, the
+     main that add the entry (`open_predecessors`: GitHub's own list of the files each current head changes, else
+     the branch containing the head; the branch's own pull request is none), and exactly one entry is left, that is exit 15, PREDECESSOR QUEUED: nothing is queued, no report line, the
      branch keeps the merge and the stamp, and the lane lands it again at this head once no such pull request is open
      (`land_lane.predecessor_free`, the same reader; kb/Work PB3145). A pull request that CLOSED without merging is
      no longer open, so the same branch then ends exit 6 NO ENTRY as before: a stop for a finisher, not a wait.
@@ -654,37 +654,47 @@ def pull_request_text(wt: pathlib.Path, base: str, branch: str) -> tuple[str, st
     return title, f"{body.strip()}\n\nBranch: `{branch}`\n\nCommits:\n{commits}\n"
 
 
+#: What `open_predecessors` asks GitHub for: each open pull request's CURRENT head and the files it changes (GitHub lists
+#: the first FILES_LISTED of them, so a longer list may be cut off).
+PR_LIST_FIELDS = "number,headRefName,headRefOid,files"
+FILES_LISTED = 100
+
+
 def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[dict[int, list[str]], str]:
     """THE ONE READER of "which still-open pull requests own a DEVLOG entry this branch carries" (kb/Work PB3145): (the
-    open pull requests into main whose head the branch CONTAINS and main does not, each mapped to the new DEVLOG
-    entries it adds to `base` — those with none are left out —, "" | why GitHub or the range could not be read). The
-    branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land` asks it to tell a
-    wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
+    open pull requests into main that add a stamped DEVLOG entry the branch carries and `base` does not have yet, each
+    mapped to those entries, "" | why GitHub or the range could not be read). A pull request owns an entry when its
+    CURRENT head adds it (its `files`) or, for a file list GitHub cut off, when the branch CONTAINS its head: the head
+    moves after the branch merged it (a bounce re-landed with newer main, a catch-up merge) and the entry stays its own
+    (review R1-2). The branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land`
+    asks it to tell a wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
     import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
     try:
-        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200",
-                           "--json", "number,headRefName,headRefOid"])
+        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200", "--json", PR_LIST_FIELDS])
     except ruleset.Unobserved as exc:
         return {}, f"GitHub gave no answer ({exc})"
     if rc != 0:
         return {}, f"gh could not list the open pull requests (exit {rc}): {(out + err).strip()}"
     try:
-        listed = json.loads(out or "[]")
-        heads = [(int(pr["number"]), str(pr["headRefOid"])) for pr in listed if pr.get("headRefName") != branch]
+        listed = [(int(pr["number"]), str(pr["headRefOid"]), {str(f["path"]) for f in pr.get("files") or []})
+                  for pr in json.loads(out or "[]") if pr.get("headRefName") != branch]
     except (ValueError, KeyError, TypeError, AttributeError) as exc:
         return {}, f"the open pull request list is not the JSON asked for ({exc})"
+    try:
+        carried = devlog.landing_entries(wt, base, "HEAD")[1]   # the entries main does not have yet
+    except devlog.RangeError as exc:
+        return {}, f"the landing's DEVLOG entries could not be read ({exc})"
     found: dict[int, list[str]] = {}
-    for number, oid in heads:
-        # contained: the branch merged the predecessor's tip; not in main: its entry has not landed yet.
-        if _git(wt, "merge-base", "--is-ancestor", oid, "HEAD").returncode != 0 \
-                or _git(wt, "merge-base", "--is-ancestor", oid, base).returncode == 0:
-            continue
-        try:
-            entries = devlog.landing_entries(wt, base, oid)[1]
-        except devlog.RangeError as exc:
-            return {}, f"pull request #{number}'s DEVLOG entries could not be read ({exc})"
-        if entries:
-            found[number] = entries
+    for number, oid, paths in listed:
+        if owned := [n for n in carried if f"{devlog.DIR}/{n}" in paths]:
+            found[number] = owned
+        elif len(paths) >= FILES_LISTED and _git(wt, "merge-base", "--is-ancestor", oid, "HEAD").returncode == 0 \
+                and _git(wt, "merge-base", "--is-ancestor", oid, base).returncode != 0:
+            try:   # a file list cut off: the entries the contained head adds, read from the head itself
+                if owned := [n for n in devlog.landing_entries(wt, base, oid)[1] if n in carried]:
+                    found[number] = owned
+            except devlog.RangeError as exc:
+                return {}, f"pull request #{number}'s DEVLOG entries could not be read ({exc})"
     return found, ""
 
 
@@ -726,7 +736,7 @@ class Tested(NamedTuple):
     ok: bool
     text: str
     gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
-    running: str = ""  # "": no gate runs in this worktree; else the live run a verdict is still owed by (kb/Work PB3662)
+    running: str = ""  # "": no gate runs in this worktree; else the live gate a verdict is still owed by (`LiveGate.what`, kb/Work PB3662)
 
 
 def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
@@ -751,11 +761,11 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     if linux_half is None:
         linux_half = run_gate_legs.Host(wt).runs_linux_leg()
     why: list[str] = []
-    live = run_gate_legs.live_run(root)   # a run owes a verdict while its process lives (kb/Work PB3662)
+    live = run_gate_legs.live_gate(run_gate_legs.Host(wt).lock_path())   # a gate owes its verdict while it runs (PB3662)
     for run in runs:
         rec = run_gate_legs.read_record(run)
         if rec is None:
-            why.append(f"{run.name}: no verdict file ({'a gate still running' if live and live[0] == run else 'a gate that died'})")
+            why.append(f"{run.name}: no verdict file ({'a gate still running' if live and (live.run is None or live.run.name == run.name) else 'a gate that died'})")
             continue
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         linux = rec.get("linux") or {}
@@ -779,7 +789,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
                           str(gated))
         why.append(f"{run.name}: {problem}")
     return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]),
-                  running=f"{live[0].name} (pid {live[1]})" if live else "")
+                  running=live.what if live else "")
 
 
 def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
@@ -885,7 +895,7 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         # launched this landing beside its own implementer's gate would otherwise read the exit as a terminal STOP and
         # wait for a hand re-arm. It is the same stop as a held gate lock, exit 12: nothing ran, nothing is red, no
         # report line, and the lane retries this head once no gate runs here (land_lane.gate_lock_free).
-        return end(EXIT_GATE_BUSY, f"GATE BUSY — the gate run {proof.running} of this worktree is still running and its "
+        return end(EXIT_GATE_BUSY, f"GATE BUSY — {proof.running} of this worktree is still running and its "
                                    f"verdict is not in yet on {here.head[:12]}: nothing ran and nothing is red; landed "
                                    "again once the gate ends")
     elif lane:
@@ -1427,38 +1437,41 @@ def self_test() -> int:
                and inert_run.ok and "inert lane" in inert_run.text and not lying.ok and not elsewhere.ok,
                f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {lying} {elsewhere}")
 
-        # kb/Work PB3662: a run with no verdict file whose gate PROCESS LIVES owes a verdict; the landing lane launches
+        # kb/Work PB3662: a gate that is RUNNING (its worktree gate lock is held) owes a verdict; the landing lane launches
         # a landing beside the branch's own running gate, and that exit was a terminal STOP (14) waiting for a re-arm.
+        # The reader is the lock, never the run's gate.pid (review R1-1: Windows reuses a dead gate's process id).
         shutil.rmtree(results_dir)
         tip_before = fix.git("rev-parse", "HEAD")
         owed = results_dir / "000001-20261029T000000Z"
         owed.mkdir(parents=True)
         run_gate_legs.write_pid(owed, os.getpid())                 # this very process: alive, and no verdict file yet
-        awaiting = seen()
-        ran, stamped, notes[:] = [], [], []
-        rc_owed = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
-                           gates=gates_of(green, ran), stamped=stamped)
-        owed_line, owed_notes, owed_ran, owed_stamped = lines[-1], list(notes), list(ran), list(stamped)
-        gone = subprocess.Popen([sys.executable, "-c", "pass"])
-        gone.wait()                                                # its pid names no live process now
-        run_gate_legs.write_pid(owed, gone.pid)
-        died = seen()
+        died = seen()                                              # ... but no gate lock is held: a gate that died
+        notes[:] = []
         rc_died = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
-                           gates=gates_of(green, ran), stamped=stamped)
-        run_gate_legs.write_pid(owed, os.getpid())
-        gate_run(2)                                                # a GREEN run of the head beside a live older one
-        covered_beside = seen()
-        expect("land: a gate of the worktree still RUNNING (no verdict file, gate.pid names a live process) is exit 12, "
-               "GATE BUSY, never exit 14: no report line, no gate, no stamp, the branch unchanged, and the evidence "
-               "says which run owes the verdict; a run whose process died with none is still no record (UNTESTED, "
-               "exit 14); a GREEN run covering the head stands beside a live one (kb/Work PB3662)",
-               not awaiting.ok and awaiting.running.startswith(owed.name) and "still running" in awaiting.text
+                           gates=gates_of(green, []), stamped=[])
+        died_notes = list(notes)
+        notes[:] = []
+        gate_lock = run_gate_legs.Host(lw).lock_path()
+        with gate_slot.ExclusiveLock.try_take(gate_lock, f"gate {lw} (pid 4243, since T{run_gate_legs.RUN_LABEL}{owed})"):
+            awaiting = seen()
+            ran, stamped = [], []
+            rc_owed = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                               gates=gates_of(green, ran), stamped=stamped)
+            owed_line, owed_notes, owed_ran, owed_stamped = lines[-1], list(notes), list(ran), list(stamped)
+            gate_run(2)                                            # a GREEN run of the head beside a running gate
+            covered_beside = seen()
+        expect("land: a gate of the worktree still RUNNING (its gate lock is held, no verdict file) is exit 12, GATE "
+               "BUSY, never exit 14: no report line, no gate, no stamp, the branch unchanged, and the evidence says "
+               "which run owes the verdict; a run with no verdict whose gate.pid names a live process but whose gate "
+               "lock is free is a gate that died, whatever reuses its process id (UNTESTED, exit 14); a GREEN run "
+               "covering the head stands beside a running gate (kb/Work PB3662, review R1-1)",
+               not awaiting.ok and awaiting.running == f"the gate run {owed.name}" and "still running" in awaiting.text
                and rc_owed == EXIT_GATE_BUSY and not owed_ran and not owed_stamped and not owed_notes
                and owed_line.startswith(VERDICT + "GATE BUSY — the gate run 000001-20261029T000000Z")
                and not died.ok and died.running == "" and "gate that died" in died.text
-               and rc_died == EXIT_UNTESTED and len(notes) == 1 and covered_beside.ok
+               and rc_died == EXIT_UNTESTED and len(died_notes) == 1 and covered_beside.ok
                and fix.git("rev-parse", "HEAD") == tip_before,
-               f"{awaiting} {rc_owed} {owed_line} {died} {rc_died} {notes} {covered_beside}")
+               f"{awaiting} {rc_owed} {owed_line} {died} {rc_died} {died_notes} {covered_beside}")
         shutil.rmtree(results_dir)
         gate_run(1)
         gated_head = fix.git("rev-parse", "HEAD")
@@ -1859,25 +1872,27 @@ def self_test() -> int:
                 ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 51: stamp the entry")
             return 0
 
-        def listing_gh(listed: list[tuple[int, str, str]], log: list[list[str]], fail: bool = False) -> Gh:
-            """GitHub as `open_predecessors` reads it: `pr list --json number,headRefName,headRefOid` (any other call is
-            the queue's: answered like fake_gh)."""
+        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False) -> Gh:
+            """GitHub as `open_predecessors` reads it: `pr list --json PR_LIST_FIELDS`, each pull request's number, branch,
+            current head and the files it changes (any other call is the queue's: answered like fake_gh)."""
             def gh(args: list[str]) -> tuple[int, str, str]:
                 log.append(list(args))
-                if args[:2] == ["pr", "list"] and "number,headRefName,headRefOid" in args:
+                if args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args:
                     return (1, "", "GraphQL: rate limited") if fail else (0, json.dumps(
-                        [{"number": n, "headRefName": h, "headRefOid": o} for n, h, o in listed]), "")
+                        [{"number": n, "headRefName": h, "headRefOid": o, "files": [{"path": f} for f in files]}
+                         for n, h, o, files in listed]), "")
                 return fake_gh([], log)(args)
             return gh
-        own_pr = (702, "succ", own_before_stamp)    # a bounce's pull request: the branch's own, never a predecessor
+        pred_files = ["DEVLOG/0050-pb9-the-predecessor.md"]
+        own_pr = (702, "succ", own_before_stamp, pred_files)   # a bounce's pull request: the branch's own, never a predecessor
         succ_land = lambda gh, **kw: land(   # noqa: E731
             root, "succ", succ.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
             gates=gates_of(green, []), stamp=stamp_successor, blocked=record, say=lines.append, **kw)
         notes[:] = []
         log_wait: list[list[str]] = []
-        rc_wait = succ_land(listing_gh([(701, "pred", pred_tip), own_pr], log_wait))
+        rc_wait = succ_land(listing_gh([(701, "pred", pred_tip, pred_files), own_pr], log_wait))
         wait_line, tip_wait = lines[-1], succ.git("rev-parse", "HEAD")
-        asked, problem_wait = open_predecessors(succ.path, base_ref, "succ", gh=listing_gh([(701, "pred", pred_tip), own_pr], []))
+        asked, problem_wait = open_predecessors(succ.path, base_ref, "succ", gh=listing_gh([(701, "pred", pred_tip, pred_files), own_pr], []))
         expect("land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into "
                "main (and the branch's own pull request, which is none) waits: exit 15, PREDECESSOR QUEUED naming the "
                "pull request, with nothing pushed, opened or queued and no report line (kb/Work PB3145)",
@@ -1887,6 +1902,24 @@ def self_test() -> int:
                and "succ" not in scratch.git("ls-remote", "--heads", "origin")
                and asked == {701: ["0050-pb9-the-predecessor.md"]} and not problem_wait,
                f"{rc_wait} {wait_line} {notes} {log_wait} {asked} {problem_wait}")
+        # Review R1-2: #701's head MOVED after the successor merged it (a bounce re-landed with newer main): the new head
+        # is no ancestor of the successor, and the entry the successor carries is still #701's. The files GitHub lists
+        # for its current head say so; a pull request that lists no such file owns nothing.
+        pred.git("commit", "--quiet", "--allow-empty", "-m", "the predecessor's bounce re-landed with newer main")
+        pred_moved = pred.git("rev-parse", "HEAD")
+        moved, problem_moved = open_predecessors(succ.path, base_ref, "succ",
+                                                 gh=listing_gh([(701, "pred", pred_moved, pred_files)], []))
+        stranger, _ = open_predecessors(succ.path, base_ref, "succ",
+                                        gh=listing_gh([(703, "other", pred_moved, ["README.md"])], []))
+        rc_moved = succ_land(listing_gh([(701, "pred", pred_moved, pred_files), own_pr], []))
+        moved_line = lines[-1]
+        expect("land: a predecessor whose pull request head MOVED after the branch merged it (no ancestor of the branch "
+               "now) still owns the entry it carried, by the files GitHub lists for its current head: exit 15, not "
+               "exit 6; a pull request that lists no such file owns nothing (review R1-2)",
+               pred_moved != pred_tip and moved == {701: ["0050-pb9-the-predecessor.md"]} and not problem_moved
+               and stranger == {} and rc_moved == EXIT_PREDECESSOR_QUEUED
+               and moved_line.startswith(VERDICT + "PREDECESSOR QUEUED"),
+               f"{moved} {problem_moved} {stranger} {rc_moved} {moved_line}")
         rc_unread = succ_land(listing_gh([], [], fail=True))
         unread_line = lines[-1]
         rc_closed = succ_land(listing_gh([own_pr], []))

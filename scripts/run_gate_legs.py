@@ -272,6 +272,8 @@ class LinuxLeg:
 
 #: A run directory's other fixed names (kb/Work PB3536): the gate process's pid, and its output when it runs detached.
 PID_FILE = "gate.pid"
+#: What a detached gate's lock label says before the run directory it writes (`Gate.run`; `live_gate` reads it back).
+RUN_LABEL = ", run "
 LOG_FILE = "gate.log"
 #: `--await`'s answer while the gate still runs, and its default window (under a tool call's 10-minute limit).
 AWAIT_PENDING = "=== GATE AWAIT: PENDING"
@@ -871,15 +873,31 @@ def run_dirs(run_root: Path) -> list[Path]:
                   key=lambda p: run_order(p.name)) if run_root.is_dir() else []
 
 
-def live_run(run_root: Path, alive: Callable[[int], bool] = _pid_alive) -> tuple[Path, int] | None:
-    """THE ONE READER OF "A GATE IS RUNNING HERE" (kb/Work PB3662): the newest run directory with NO verdict record whose
-    `gate.pid` names a live process, and that pid. A run still going has no verdict file (it is written whole, once, at
-    the end), and a run whose process is gone with none is a gate that died: that one is not live. `alive` is the
-    follower's liveness check (`watch`). None when no gate runs."""
-    for run in reversed(run_dirs(run_root)):
-        if read_record(run) is None and (pid := read_pid(run)) is not None and alive(pid):
-            return run, pid
-    return None
+@dataclass(frozen=True)
+class LiveGate:
+    """A gate that runs in a worktree now: its lock's label (`holder`: the gate's own `gate <repo> (pid N, since T, run R)`)
+    and the run it writes (`run`, named in that label; None before the gate has a run directory)."""
+    holder: str
+    run: Path | None
+
+    @property
+    def what(self) -> str:
+        """How a message names it: its run, else its lock's label."""
+        return f"the gate run {self.run.name}" if self.run is not None else f"a gate ({self.holder or 'no label'})"
+
+
+def live_gate(lock_path: Path) -> LiveGate | None:
+    """THE ONE READER OF "A GATE IS RUNNING HERE" (kb/Work PB3662): the worktree's gate lock is held. `Gate.run` takes it
+    before anything else and holds it until its verdict file is written; it is an OS lock the OS drops when its holder
+    dies, so it is held exactly while a gate runs: a gate that died without a verdict frees it, and no process id
+    (which Windows reuses) is ever trusted. Taken and released at once to read it. None when no gate runs."""
+    lock = ExclusiveLock.try_take(lock_path, f"live_gate probe (pid {os.getpid()})")
+    if lock is not None:
+        lock.release()
+        return None
+    holder = ExclusiveLock.holder(lock_path)
+    run = Path(holder.partition(RUN_LABEL)[2].removesuffix(")")) if RUN_LABEL in holder else None
+    return LiveGate(holder, run)
 
 
 class Gate:
@@ -917,7 +935,7 @@ class Gate:
         if run is not None:  # a detached gate: its pid, before anything can fail, so `--await` can tell it from a death
             write_pid(run, os.getpid())
         label = (f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')}"
-                 + (f", run {run}" if run is not None else "") + ")")
+                 + (f"{RUN_LABEL}{run}" if run is not None else "") + ")")
         lock_path = self.host.lock_path()
         lock = ExclusiveLock.try_take(lock_path, label)
         if lock is None:
@@ -2089,20 +2107,22 @@ def self_test() -> int:
             numbers == list(range(1, 41)) and all(ns == sorted(ns) for ns in took.values())
             and len(run_dirs(racing.run_root)) == 40, str(took))
         # A GATE THAT IS STILL RUNNING OWES A VERDICT (kb/Work PB3662): the one reader the landing and the lane share.
-        livedir = root / "live"
-        live_gate = Gate(FakeHost(d, d / "gate.lock"), livedir, say=sink.append)
-        older, running, busy, dead = (live_gate.new_run() for _ in range(4))
-        for r, pid in ((older, 11), (running, 22), (busy, 33), (dead, 44)):
-            write_pid(r, pid)
-        (older / VERDICT_FILE).write_text(json.dumps({"verdict": "GREEN", "line": "x"}), encoding="utf-8", newline="\n")
-        (busy / VERDICT_FILE).write_text(json.dumps({"verdict": BUSY, "line": "x"}), encoding="utf-8", newline="\n")
-        beside = live_run(livedir, alive=lambda pid: pid in (22, 33))   # 33 has a record; 44's process is gone
-        (running / VERDICT_FILE).write_text(json.dumps({"verdict": "GREEN", "line": "x"}), encoding="utf-8", newline="\n")
-        done = live_run(livedir, alive=lambda pid: pid in (22, 33))
-        arm("live_run: the newest run with no verdict record whose gate.pid names a live process is a gate still "
-            "running, even beside a newer run that ended BUSY with a record; a run whose process is gone with no "
-            "record (a gate that died), a run with a record, and an empty root are none",
-            beside == (running, 22) and done is None and live_run(root / "no-such-root") is None, f"{beside} {done}")
+        # The reader is the gate lock itself (review R1-1: a pid file's process id is reused by Windows, an OS lock is not).
+        livelock = d / "live-gate.lock"
+        none_yet = live_gate(livelock)
+        dead_run = Gate(FakeHost(d, livelock), root / "live", say=sink.append).new_run()
+        write_pid(dead_run, os.getpid())   # a gate that DIED with no verdict, its pid since reused by a live process
+        reused = live_gate(livelock)
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 7, since T{RUN_LABEL}{dead_run})"):
+            seen = live_gate(livelock)
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 8, since T)"):
+            starting = live_gate(livelock)
+        arm("live_gate: a gate runs exactly while its gate lock is held (the holder's label names the run it writes, "
+            "else the label is all there is); a free lock is none, even beside a run with no verdict whose gate.pid "
+            "names a live process (a gate that died, its pid reused), and a lock the OS dropped reads free again",
+            none_yet is None and reused is None and seen is not None and seen.run == dead_run
+            and starting is not None and starting.run is None and "pid 8" in starting.what
+            and live_gate(livelock) is None, f"{none_yet} {reused} {seen} {starting}")
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
