@@ -66,7 +66,11 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    queue removed its pull request; GitHub's reason named), dispatch ONE `cobol-finisher` (Agent tool, model opus; all
    of them in one message) with `.claude/skills/workstream/templates/finisher-brief.md`, its prompt naming the branch,
    its worktree, its report, the stop line verbatim (or the PR number and the bounce reason, with the merge group's
-   failed run from `gh run list --event merge_group --limit 20`) and both stop files. The finisher fixes the branch at
+   failed run from `gh run list --event merge_group --limit 20`) and both stop files. For a `CONFLICT` (exit 4), or a
+   BOUNCED pull request that conflicts with main (merge state DIRTY), the prompt also carries the output of
+   `python scripts/orchestrator/land_lane.py conflict-brief <branch>` verbatim (kb/Work PB3640: the conflicted files,
+   the commits main gained on them since the branch's merge base, the notes on both sides and each one's newest
+   report), so the finisher resolves each file against both sides' intent without re-deriving them. The finisher fixes the branch at
    its root, gates it and returns DONE; it never lands: its commits are unreviewed, so the branch reads WAITING FOR
    REVIEW and the next enqueue unit's step 2 reviews the new tip before the landing lane lands it (`enqueue.py land`
    refuses an unreviewed tip with exit 11, UNREVIEWED: never a finisher's case to work around). Stay until every

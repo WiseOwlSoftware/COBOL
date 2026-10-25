@@ -538,6 +538,22 @@ from `Invoke-Unit`, `Wait-Until` (after its STOP check) and the loop. A tick:
 A run that commits (main merged in, the DEVLOG stamp) makes the survey read the branch IN FLIGHT, so a retry is driven
 by the lane's own attempt record, never by the survey.
 
+A run that ends CONFLICT (exit 4) leaves its finisher a CONFLICT BRIEF (kb/Work PB3640): no file-set partition removes
+every merge conflict (a declared set is a prediction), so the lane cuts what the conflict costs the finisher. The runner,
+after recording the outcome, writes `<coord>/land-lane/conflicts/<id>.md` (`land_lane.conflict_brief`): the files the
+verdict names, the commits origin/main gained on them since the branch's merge base (one `git log` over every file), the
+notes those commits and the branch name with their status, and each note's newest report; the attempt names it
+(`brief`, or `brief_error` when it could not be written, and `brief_main`, the origin/main it was computed against). The
+verdict's files are read by `merge_drivers.outcome_files`, the one reader of the outcome `merge_drivers.conflict_outcome`
+writes for `enqueue.py land`. `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
+that attempt's end head and origin/main is still `brief_main`, and otherwise computes one now against origin/main
+through the merge drivers (`merge_drivers.merge_conflicts`: `git merge-tree` with the drivers' configuration, the merge's
+own definition, so a keyed catalogue is named exactly when its driver declines, a real conflict): the case of a pull
+request the queue BOUNCED as DIRTY, which no attempt recorded, or of a branch or a main that moved. The
+status line of a STOPPED exit-4 attempt names the command, and the enqueue unit's step 4 puts its output in the
+finisher's prompt verbatim. The lane still dispatches no model: launching that finisher the moment the stop is recorded,
+instead of at the next enqueue unit, is the headless lane's second job (kb/Work PB3608's standing requirements).
+
 4. WATCHES THE QUEUE (kb/Work PB3527), right after the survey and before the stops are read. `ENQUEUED` means only
    that the pull request was opened and HANDED to the merge queue (auto-merge on): GitHub queues it once its required
    checks pass. On 2026-10-22 PR #385's `ci-gate` job completed success at 18:46:46Z while its check-run on the head
@@ -862,7 +878,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    fuzz fixes PB3664 and PB3665 on files neither touched), so it is deleted, and a fix-lane note's folder site reserves
    nothing (`member_index.note_file_set`). The plan table and the group's spec name an empty group `UNPARTITIONED`, and
    the spec asks its implementer to give each note a `**Sites:**` paragraph naming its files and members in its first
-   checkpoint; from its first edit its worktree's actual diff is in flight like any other. A finisher's set includes
+   checkpoint; from its first edit its worktree's actual diff is in flight like any other. Every spec, sited or not,
+   asks its implementer to add to a note's block each code file or member its diff changes that no block names, in the
+   same change (`plan_wave.body_of`, kb/Work PB3640), and `work.py check` requires a block of every open note of a
+   cluster some note's `tier:` ranks as a campaign, whatever its id (`work.campaign_leads`). A finisher's set includes
    the files and units of the branch it continues (its actual diff). PB3640's finding stands: no partition removes
    every conflict (a declared set is a prediction), so the landing's merge conflict, when one still happens, is
    repaired by a conflict finisher (MANDATORY-PRACTICES L12). Every dispatched wave appends its measurement to
