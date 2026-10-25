@@ -67,7 +67,11 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
             < str.IndexOf("BoundNumericLiteral =>", StringComparison.Ordinal),
             "STRING SR1's function arm must precede its numeric-literal arm, or the folded FUNCTION LENGTH is called a literal.");
         Assert.Contains("IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(", Code("Binding", "Validation", "StatementValidation.cs"));
-        Assert.Contains("CheckInspectFunctionUsage(", Code("Binding", "Procedure", "Verbs", "InspectBinder.cs"));
+        string inspect = Code("Binding", "Procedure", "Verbs", "InspectBinder.cs");
+        Assert.Contains("CheckInspectFunctionUsage(", inspect);
+        // SR1's identifier-1 (Format 1 TALLYING-only function) and SR2's keyword-omitted identifier-3..n reach the same reader.
+        Assert.Contains("CheckInspectIdentifier1FunctionUsage(", inspect);
+        Assert.Contains("KeywordOmittedFunction(dref)", inspect);
         Assert.Contains("IntrinsicSig.ImplicitUsageOf(", Code("Binding", "IntrinsicArgumentRules.cs"));
     }
 

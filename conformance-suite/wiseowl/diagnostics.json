@@ -14817,6 +14817,24 @@
   ],
   "expect": "COBOLNET0876"
  },
+ "pb3665-inspect-identifier1-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-inspect-identifier1-length-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
  "pb3665-inspect-integer-function-operand": {
   "refuse-at": [
    "85",
@@ -14829,6 +14847,14 @@
  "pb3665-inspect-length-function-operand": {
   "refuse-at": [
    "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0847"
+ },
+ "pb3665-inspect-omitted-keyword-integer-function-operand": {
+  "refuse-at": [
    "2002",
    "2014",
    "2023"

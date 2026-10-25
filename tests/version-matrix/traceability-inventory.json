@@ -37402,11 +37402,11 @@
   "subject": "INSPECT statement",
   "rule-digest": "dd7cefc23452",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#IsInspectIdentifier1; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#IsDisplayOrNationalUsage",
-  "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb856-inspect-identifier1-bit-group",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#IsInspectIdentifier1; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#IsDisplayOrNationalUsage; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectIdentifier1FunctionUsage; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#FunctionIsNotDisplayOrNational",
+  "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb856-inspect-identifier1-bit-group; conformance:cases/14.9.22-INSPECT/pb3665-inspect-identifier1-integer-function; conformance:cases/14.9.22-INSPECT/pb3665-inspect-identifier1-length-function; conformance:cases/14.9.22-INSPECT/pb3665_inspect_omitted_keyword_function_controls",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB856.md - identifier-1 'shall reference either an alphanumeric or national group item or an elementary item described implicitly or explicitly as usage display or national'. The elementary arm is the SAME predicate SR2 reads (StatementValidation.IsInspectElementaryCharacterItem: not a group item, and usage display or national by the ONE 8.5.2.1 reader ItemCategory.UsageOf); the group arm asks the ONE group classifier for exactly the two kinds the rule names (ItemCategory.GroupKindsOf & (Alphanumeric|National)), so a bit, strongly-typed or variable-length group is refused (COBOLNET1626) where any group used to pass. Positive: a national identifier-1 under TALLYING, REPLACING and CONVERTING. The elementary non-display arm (BINARY/PACKED identifier-1, DA7) was already pinned; the group arm's new refusal is the negative. National/bit groups are 2002+ constructs; the elementary display arm holds at 85.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -37418,7 +37418,7 @@
   "rule-digest": "3413f99d53fd",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectOperandUsage; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#IsInspectElementaryCharacterItem; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperand; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#IsDisplayOrNationalUsage; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectFunctionUsage; src/Cobol.Net.Compiler/Binding/IntrinsicArgumentRules.cs#FunctionIsNotDisplayOrNational",
-  "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb856-inspect-operand-binary-usage; conformance:cases/14.9.22-INSPECT/pb3665-inspect-integer-function-operand; conformance:cases/14.9.22-INSPECT/pb3665-inspect-length-function-operand; conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls",
+  "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb856-inspect-operand-binary-usage; conformance:cases/14.9.22-INSPECT/pb3665-inspect-integer-function-operand; conformance:cases/14.9.22-INSPECT/pb3665-inspect-length-function-operand; conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls; conformance:cases/14.9.22-INSPECT/pb3665-inspect-omitted-keyword-integer-function-operand; conformance:cases/14.9.22-INSPECT/pb3665_inspect_omitted_keyword_function_controls",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "",

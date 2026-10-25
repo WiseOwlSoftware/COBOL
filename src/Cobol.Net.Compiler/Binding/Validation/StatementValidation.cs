@@ -991,6 +991,18 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>SR1's function-identifier half (kb/Work PB3665): identifier-1 "shall reference either an alphanumeric or
+    /// national group item or an elementary item described implicitly or explicitly as usage display or national", and
+    /// a Format 1 (TALLYING only) function-identifier is described by its §15.2 type, so the numeric, integer, index
+    /// and boolean ones are refused through the SAME reader as <see cref="CheckInspectFunctionUsage"/> (SR2).</summary>
+    public bool CheckInspectIdentifier1FunctionUsage(BoundOperand function, string refText)
+    {
+        if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
+        data.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"INSPECT identifier-1 '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR1)");
+        return false;
+    }
+
     // ── The … INTO phrase's OWN syntax rules (READ §14.9.30.3 · RETURN §14.9.34.3) ───────────────────────────
 
     /// <summary>
