@@ -1,4 +1,4 @@
-## A lock-file host's exhausted publication no longer hides a conflicting holder (PB3632)
+## Entry 2503 — 2026-10-24 19:14 PDT — A lock-file host's exhausted publication no longer hides a conflicting holder (PB3632)
 
 PB3518 fixed the Windows handle host: a publication whose every try collides is a failure to publish, not a finding about
 the host, so the request is still refused ('61') beside a column Table 19 refuses (§14.9.27.4, §9.1.13.9 1)). It left the
@@ -37,3 +37,4 @@ has no publication loop: its shared hold is one try whose Held is already Refuse
 `Unpublishable` inherits the host's existing exception-to-Unavailable mapping. Row closure: none (the note claims no inventory row).
 
 **Review round 1 (R1-1, a flaky witness).** The region witness let the holder go from a second thread as soon as the first round began, so a release that landed before the look after the lost round made a WAITING hold answer Unavailable (measured 3 reds in 128 parallel runs): the same interleaving a real holder makes when its rmdir of the last file loses the races. Fix at the root in `SidecarRegionLocks.Hold`: a waiting hold that finds nothing in the way after a lost round publishes one more round before it answers Unavailable (bounded: a second lost round with nothing in the way is Unavailable). New deterministic witness `AWaitingHoldWhoseHolderLetGoDuringTheLostRound_IsGrantedOnTheNextRound` (the injector releases the holder at the round's first attempt, one thread); the thread-driven witness stays and now passes either way (64 parallel runs, 0 reds). R1-2 (the journal's "host cannot hold" text for both causes) sits in a file this change does not touch and is left as a lead.
+
