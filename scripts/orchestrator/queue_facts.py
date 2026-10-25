@@ -22,6 +22,9 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     A check-run still in progress whose job has completed is a PROPAGATION FAULT (PR #385, 2026-10-22: job `ci-gate`
     completed success at 18:46:46Z, its check-run on the head commit stayed in_progress for 50 minutes, the queue
     empty, the merge state BLOCKED): `CheckRun.stuck`.
+A third caller asks for the REDS of a bounce (kb/Work PB3644): `fetch_bounce_results` downloads the test results of the
+newest failed merge-group run of a branch's open pull request into the worktree (`gate_plan.CI_BOUNCE_RESULTS`), where the
+gate planner reads them as tier 0a, called by `run_gate_legs.Host.fetch_bounce_results` before every gate's plan.
 A pull request is IN THE QUEUE when the queue's entries name it or GitHub says `isInMergeQueue`. Auto-merge on is NOT
 in the queue: it is GitHub's promise to queue the pull request once its required checks pass, and that promise is what
 PR #385 broke. Offline, unauthenticated, with no gh, or on any malformed answer the read is None: a non-observation,
@@ -34,6 +37,8 @@ import argparse
 import dataclasses
 import json
 import pathlib
+import re
+import shutil
 import sys
 from typing import Callable
 
@@ -201,6 +206,81 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
         return None
 
 
+# ── THE REDS OF A MERGE-QUEUE BOUNCE (kb/Work PB3644) ──────────────────────────────────────────────────────────────
+#: A merge group's workflow run is on the branch `gh-readonly-queue/<base>/pr-<number>-<sha>`.
+MERGE_GROUP_BRANCH = re.compile(r'^gh-readonly-queue/[^/]+/pr-(\d+)-[0-9a-f]+$')
+#: A workflow run conclusion (REST) that is a test failure, so its artifacts hold the reds. `cancelled` is not one: the
+#: queue cancels a merge group when an earlier entry fails, and a case that never ran is no red.
+FAILED_RUNS = ('failure', 'timed_out')
+#: The artifacts of build-and-test.yml's test jobs (./.github/actions/upload-results): the TRX files of every shard.
+RESULTS_PATTERN = 'test-results-*'
+BOUNCE_SOURCE = 'SOURCE.txt'
+
+
+def bounce_run(runs: list, number: int) -> dict | None:
+    """The newest merge-group run of pull request `number` among `runs` (the REST list, any order), or None."""
+    mine = [r for r in runs if isinstance(r, dict) and r.get('event', 'merge_group') == 'merge_group'
+            and (m := MERGE_GROUP_BRANCH.match(str(r.get('head_branch') or ''))) and int(m.group(1)) == number]
+    return max(mine, key=lambda r: int(r.get('id') or 0), default=None)
+
+
+def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) -> str:
+    """THE REDS OF A BOUNCE, where the gate planner reads them (kb/Work PB3644; gate_plan.CI_BOUNCE_RESULTS): the test
+    results (TRX) of the newest FAILED merge-group run of `branch`'s open pull request, downloaded into `dest`. The
+    queue's bounce lives in GitHub's CI run, never in a worktree, so a finisher's re-gate planned from local files alone
+    ran the failed cases by impact like any other (tier 0a is for exactly them). Returns one line saying what `dest`
+    now holds. `dest` is REPLACED by the newest bounce's results, EMPTIED when the pull request has no failed
+    merge-group run (a stale bounce's reds would mis-order the next plan), and LEFT AS IT WAS when GitHub cannot be
+    asked (a non-observation changes nothing). It orders the gate and never selects it, so a miss costs only the order."""
+    run = gh or ruleset.real_gh
+    try:
+        rc, out, _ = run(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'])
+        repo = out.strip()
+        if rc != 0 or '/' not in repo:
+            return f'ci bounce: not observed (gh repo view exited {rc}); {dest} left as it was'
+        rc, out, _ = run(['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number', '--jq', '.[0].number'])
+        if rc != 0:
+            return f'ci bounce: not observed (gh pr list exited {rc}); {dest} left as it was'
+        if not out.strip().isdigit():
+            return _no_bounce(dest, f'{branch} has no open pull request')
+        number = int(out.strip())
+        rc, out, _ = run(['api', f'repos/{repo}/actions/runs?event=merge_group&per_page=100'])
+        listed = json.loads(out).get('workflow_runs') if rc == 0 else None
+        if not isinstance(listed, list):
+            return f'ci bounce: not observed (the merge-group run list of pull request #{number} was unreadable); {dest} left as it was'
+        newest = bounce_run(listed, number)
+        if newest is None or newest.get('conclusion') not in FAILED_RUNS:
+            return _no_bounce(dest, f'pull request #{number} has no failed merge-group run among the newest {len(listed)}'
+                                    if newest is None else
+                                    f'its newest merge-group run {newest.get("id")} concluded {newest.get("conclusion")}')
+        marker = f'GitHub Actions run {newest["id"]} ('
+        try:
+            fetched = (dest / BOUNCE_SOURCE).read_text(encoding='utf-8').startswith(marker)
+        except OSError:
+            fetched = False
+        if fetched:   # a bounce's results are some 200 MB: a re-gate of the same bounce downloads them once
+            return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are already in {dest}'
+        shutil.rmtree(dest, ignore_errors=True)
+        dest.mkdir(parents=True)
+        rc, _, err = run(['run', 'download', str(newest['id']), '--repo', repo, '--pattern', RESULTS_PATTERN,
+                          '--dir', str(dest)])
+        if rc != 0:
+            return (f'ci bounce: run {newest["id"]} of pull request #{number} failed, but its test results could not be '
+                    f'downloaded ({(err.strip().splitlines() or ["no reason given"])[0]}; expired or never uploaded): '
+                    f'{dest} is empty')
+        (dest / BOUNCE_SOURCE).write_text(
+            f'{marker}merge group of pull request #{number}, {newest.get("conclusion")}, {newest.get("created_at") or "?"}); '
+            'fetched by queue_facts.fetch_bounce_results (kb/Work PB3644)\n', encoding='utf-8', newline='\n')
+        return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are in {dest}'
+    except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError, OSError) as e:
+        return f'ci bounce: not observed ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ""}); {dest} left as it was'
+
+
+def _no_bounce(dest: pathlib.Path, why: str) -> str:
+    shutil.rmtree(dest, ignore_errors=True)
+    return f'ci bounce: none ({why})'
+
+
 def describe(pr: PullRequest) -> str:
     """One line of what GitHub says about the pull request's way into the queue (the survey and the watch say it)."""
     checks = '; '.join(f'{c.name} {c.status.lower() or "?"}' + (f' {c.conclusion.lower()}' if c.conclusion else '')
@@ -324,6 +404,80 @@ def self_test() -> int:
            and read(lambda a: (0, 'o/r' if a[0] == 'repo' else '{"data":{}}', ''), required=req) is None)
     expect("the required contexts come from the committed ruleset (ruleset.required_contexts)",
            ruleset.required_contexts(ruleset.load_committed()) == ('ci-gate',))
+    # THE REDS OF A BOUNCE (kb/Work PB3644): the failed merge-group run's artifacts, into the worktree.
+    import tempfile  # noqa: PLC0415
+    group = lambda n, rid, concl, sha='abc123': {'id': rid, 'head_branch': f'gh-readonly-queue/main/pr-{n}-{sha}',  # noqa: E731
+                                                  'conclusion': concl, 'created_at': f'2026-10-24T10:{rid % 60:02d}:00Z'}
+
+    def bounce_gh(runs: list[dict], *, pr: str = '547', download_rc: int = 0, runs_rc: int = 0,
+                  asked: list[list[str]] | None = None) -> Gh:
+        def gh(args: list[str]) -> tuple[int, str, str]:
+            if asked is not None:
+                asked.append(list(args))
+            if args[:2] == ['repo', 'view']:
+                return 0, 'o/r\n', ''
+            if args[:2] == ['pr', 'list']:
+                return 0, pr + '\n', ''
+            if args[0] == 'api':
+                return (0, json.dumps({'workflow_runs': runs}), '') if runs_rc == 0 else (1, '', 'HTTP 502')
+            if args[:2] == ['run', 'download']:
+                if download_rc:
+                    return download_rc, '', 'no valid artifacts found to download\nmore'
+                art = pathlib.Path(args[args.index('--dir') + 1]) / 'test-results-Linux-unit'
+                art.mkdir(parents=True)
+                (art / 'unit.trx').write_text('<TestRun/>', encoding='utf-8', newline='\n')
+                return 0, '', ''
+            return 1, '', 'unrouted'
+        return gh
+
+    with tempfile.TemporaryDirectory() as tmp:
+        dest = pathlib.Path(tmp) / 'ci-bounce'
+        asked: list[list[str]] = []
+        runs = [group(5, 900, 'failure'), group(54, 901, 'failure'), group(547, 700, 'failure', 'old'),
+                group(547, 800, 'failure'), group(547, 750, 'success')]
+        note = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        downloaded = [a for a in asked if a[:2] == ['run', 'download']]
+        expect("a bounce fetches the newest FAILED merge-group run of the branch's open pull request (pr-547, never pr-5 "
+               "or pr-54), its test-results artifacts only, into the directory the planner reads, with its provenance",
+               'the failed merge-group run 800 of pull request #547' in note
+               and len(downloaded) == 1 and downloaded[0][2] == '800' and '--pattern' in downloaded[0]
+               and downloaded[0][downloaded[0].index('--pattern') + 1] == RESULTS_PATTERN
+               and (dest / 'test-results-Linux-unit' / 'unit.trx').is_file()
+               and 'run 800' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'), f'{note} {asked}')
+        asked.clear()
+        again = fetch_bounce_results('fix', dest, bounce_gh(runs, asked=asked))
+        expect("the same bounce is downloaded once: a re-gate finds its provenance marker and asks GitHub no download",
+               'already in' in again and not [a for a in asked if a[:2] == ['run', 'download']], f'{again} {asked}')
+        expect("the newest merge-group run decides: a pull request whose newest run PASSED, or was CANCELLED by the queue "
+               "(a case that never ran is no red), is no bounce, and the previous bounce's results are EMPTIED",
+               'none' in fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 850, 'success')]))
+               and not dest.exists(), str(dest))
+        fetch_bounce_results('fix', dest, bounce_gh(runs))
+        cancelled = fetch_bounce_results('fix', dest, bounce_gh([group(547, 800, 'failure'), group(547, 900, 'cancelled')]))
+        expect("a cancelled merge group is no bounce", 'none' in cancelled and 'cancelled' in cancelled and not dest.exists(),
+               cancelled)
+        fetch_bounce_results('fix', dest, bounce_gh(runs))
+        nopr = fetch_bounce_results('fix', dest, bounce_gh(runs, pr='null'))
+        expect("a branch with no open pull request has no bounce: nothing is downloaded and old results are emptied",
+               'none' in nopr and 'no open pull request' in nopr and not dest.exists(), nopr)
+        fetch_bounce_results('fix', dest, bounce_gh(runs))
+        gone = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')], download_rc=1))
+        expect("a failed run whose artifacts cannot be downloaded (expired, never uploaded) says so, naming gh's reason, "
+               "and leaves the directory empty, never the previous bounce's reds",
+               'could not be downloaded (no valid artifacts found to download' in gone and dest.is_dir()
+               and not any(dest.iterdir()), gone)
+        fetch_bounce_results('fix', dest, bounce_gh(runs))
+        unread = [fetch_bounce_results('fix', dest, bounce_gh(runs, runs_rc=1)),
+                  fetch_bounce_results('fix', dest, lambda a: (1, '', 'x')),
+                  fetch_bounce_results('fix', dest, offline)]
+        expect("a GitHub that cannot be asked (a failed call, an offline gh) is a non-observation that leaves the results "
+               "as they were, and says so",
+               all('not observed' in u and 'left as it was' in u for u in unread)
+               and (dest / 'test-results-Linux-unit' / 'unit.trx').is_file(), str(unread))
+        expect("bounce_run takes the newest run by id among exactly this pull request's, and none from a list with other "
+               "branches or malformed items",
+               bounce_run(runs, 547)['id'] == 800 and bounce_run(runs, 5)['id'] == 900 and bounce_run(runs, 9) is None
+               and bounce_run([None, {}, 'x', {'head_branch': 'main'}], 547) is None, str(bounce_run(runs, 547)))
     print(f"=== queue_facts.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

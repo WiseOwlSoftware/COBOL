@@ -35,7 +35,9 @@ ONE GATE, in this order (§3.14.3):
      `runs.lock`, so start order never depends on the clock) holding the listings, the plan, every trx,
      log and identity record, and the verdict file — nothing at a fixed name, so no earlier gate's file is read as
      this one's; the newest earlier run holding a verdict gives the plan its timings and reds, and the worktree's
-     newest Linux gate run (TestResults/linux-gate/, gate_plan.previous_gates) its Linux reds; five are kept;
+     newest Linux gate run (TestResults/linux-gate/, gate_plan.previous_gates) its Linux reds, and the failed
+     merge-group run that bounced the branch's pull request (fetched into TestResults/ci-bounce/, kb/Work PB3644) its
+     queue reds; five are kept;
   3. the audits (the one list below, run CONCURRENTLY; one of them is every script self-test, found by
      scripts/self_tests.py — kb/Work PB2563), FAIL-FAST: a red audit ends the gate RED right there, with no leg run
      (kb/Work PB2523) — then the GnuCOBOL corpus, by the ONE rule scripts/external_corpus.py (kb/Work PB2611). Both
@@ -128,6 +130,7 @@ from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Se
 from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
+import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
 from test_population import (GATED_ASSEMBLIES, HANDSHAKE, Population, PopulationError, UnreadableTrx,  # noqa: E402
                              check as check_population, list_population, scrubbed_env, synthetic_listing,
                              synthetic_trx)
@@ -283,8 +286,19 @@ LOG_FILE = "gate.log"
 AWAIT_PENDING = "=== GATE AWAIT: PENDING"
 AWAIT_PENDING_EXIT = 4
 AWAIT_WAIT_S = 540
-#: The verdict record's schema: 3 adds the measured head, tree (start and end), base, exit code and reuse (PB3536).
-RECORD_SCHEMA = 3
+#: The verdict record's schema: 3 adds the measured head, tree (start and end), base, exit code and reuse (PB3536); 4 adds
+#: `head_tree` and the Linux half (`linux`, `lane`) that the landing requires as evidence (PB3612; PB3660).
+RECORD_SCHEMA = 4
+#: THE OLDEST RECORD SCHEMA THE LANDING READS AS EVIDENCE, AND THE FIELDS IT REQUIRES (`enqueue.tested_locally`, kb/Work
+#: PB3660). The record is written by the BRANCH's driver and read by main's lander, so a field the lander starts to require
+#: strands every branch gated before it, and only the record itself can tell that from a dirty tree. Schema 3 was written
+#: both before and after PB3612 added `head_tree` and `linux` (the number was not bumped: PB3660), so for schema 3 the
+#: fields themselves are the discriminator; from schema 4 on the number is. Whenever the lander requires a field a record
+#: did not carry: raise `RECORD_SCHEMA` and `LANDABLE_SCHEMA` and add the field to `LANDING_FIELDS` (the self-test pins
+#: RECORD_SCHEMA >= LANDABLE_SCHEMA, every landing field to a key `Gate._record` writes, and the lander's planted records to
+#: the current schema).
+LANDABLE_SCHEMA = 3
+LANDING_FIELDS = ("head_tree", "linux")
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -405,8 +419,9 @@ class _Live:
 class Host:
     """The real machine: git, the build, the listings, the test hosts."""
 
-    def __init__(self, repo: Path = REPO):
+    def __init__(self, repo: Path = REPO, gh: Callable[[list[str]], tuple[int, str, str]] | None = None):
         self.repo = repo
+        self.gh = gh   # the GitHub CLI runner `queue_facts` takes (None: the real one); the self-test plants one
 
     def git(self, *args: str) -> str:
         return subprocess.run(["git", *args], cwd=self.repo, check=True, capture_output=True, text=True,
@@ -665,6 +680,18 @@ class Host:
     def listing(self, asm: str, spawn: Spawn) -> tuple[Counter, str]:
         return list_population(self.repo / GATED_ASSEMBLIES[asm], cwd=self.repo, **spawn())
 
+    def fetch_bounce_results(self) -> str:
+        """The failed merge-group run's test results of this branch's open pull request, into
+        `gate_plan.CI_BOUNCE_RESULTS` (`queue_facts.fetch_bounce_results`, the one GitHub reader); the line it returns
+        says what the directory holds. A detached HEAD asks nothing. Never raises: it only orders the plan."""
+        try:
+            branch = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        except (OSError, subprocess.SubprocessError):
+            branch = ""
+        if not branch or branch == "HEAD":
+            return "build-local: ci bounce: none (no branch is checked out)"
+        return "build-local: " + queue_facts.fetch_bounce_results(branch, self.repo / gate_plan.CI_BOUNCE_RESULTS, self.gh)
+
     def plan(self, listings: dict[str, Counter], base: str, previous: Path | None, out: Path) -> tuple[dict, str]:
         """The order plan (DESIGN §3.14.2), written to `out`; returns (plan, the SHA-256 of the file's bytes)."""
         impacted_tests.HEAD = None  # the worktree, uncommitted edits included, against its cut point
@@ -672,6 +699,8 @@ class Host:
         # REDS from this worktree's own previous gates on BOTH hosts (kb/Work PB3155): its previous run here and the
         # Linux gate's newest run (the one a landing runs after this gate), so a finisher's re-gate after a landing's
         # Linux red runs that red in leg 1 (tier 0a).
+        # ... and the CI run that BOUNCED this branch's pull request out of the merge queue (kb/Work PB3644): its reds
+        # live in GitHub, fetched into the worktree by `fetch_bounce_results` (the gate's `_plan` runs it just before this).
         own, reds = gate_plan.previous_gates(self.repo, previous)
         # TIMINGS from the shared store every gate publishes to (kb/Work PB2527), so a FRESH worktree runs leg 2
         # longest first too; this worktree's own previous run only before any gate on this machine has published.
@@ -743,6 +772,25 @@ def read_record(run: Path) -> dict | None:
     except (OSError, ValueError):
         return None
     return rec if isinstance(rec, dict) and "verdict" in rec and "line" in rec else None
+
+
+def record_schema(rec: dict) -> int:
+    """A record's schema number; a record written before the field existed (or with a malformed one) is schema 0."""
+    value = rec.get("schema")
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def predates_landing(rec: dict) -> str | None:
+    """Why a record cannot be evidence to the landing although its verdict may be GREEN (kb/Work PB3660): it was written by
+    a gate older than the lander's reading (schema below `LANDABLE_SCHEMA`, or a field of `LANDING_FIELDS` absent), so a
+    "missing field" the lander finds is the gate's age, never the tree's state. None when the record is current."""
+    have = record_schema(rec)
+    missing = [f for f in LANDING_FIELDS if f not in rec]
+    if have >= LANDABLE_SCHEMA and not missing:
+        return None
+    return (f"it was written by a gate older than this lander reads (record schema {have}, "
+            f"{'no ' + '/'.join(missing) + ' field' if missing else 'below ' + str(LANDABLE_SCHEMA)}: the branch's "
+            "scripts/run_gate_legs.py predates kb/Work PB3612)")
 
 
 def _record_exit(rec: dict) -> int:
@@ -1334,6 +1382,7 @@ class Gate:
         try:
             base = self._base()
             previous = self.previous_run(run)
+            self.say(self.host.fetch_bounce_results())   # a merge-queue bounce's reds, before the plan reads them (PB3644)
             plan, digest = self.host.plan(listings, base, previous, run / "plan.json")
         except Exception as e:  # noqa: BLE001 — ANY planning failure falls back to the whole population in one leg
             if isinstance(e, UnreadableTrx):
@@ -1626,6 +1675,9 @@ class FakeHost(Host):
 
     def lock_path(self) -> Path:
         return self._lock
+
+    def fetch_bounce_results(self) -> str:
+        return "build-local: ci bounce: none (a planted host asks GitHub nothing)"
 
     def take_slot(self, label, say):
         self.events.append("slot")
@@ -2180,6 +2232,51 @@ def self_test() -> int:
             a != b and a.parent == (repo / ".git").resolve() and b.parent.parent == (repo / ".git" / "worktrees").resolve(),
             f"{a} vs {b}")
 
+        # A MERGE-QUEUE BOUNCE'S REDS (kb/Work PB3644): the real Host fetches the failed merge-group run's test results of
+        # the checked-out branch's pull request into the worktree, where the plan's `previous_gates` reads them (tier 0a).
+        # The collaborators are planted; `queue_facts` has its own arms for the fetch.
+        trx_head = ('<?xml version="1.0" encoding="utf-8"?><TestRun xmlns="http://microsoft.com/schemas/VisualStudio/'
+                    'TeamTest/2010"><Results>')
+        asked: list[list[str]] = []
+
+        def bounce_gh(args: list[str]) -> tuple[int, str, str]:
+            asked.append(list(args))
+            if args[:2] == ["repo", "view"]:
+                return 0, "o/r\n", ""
+            if args[:2] == ["pr", "list"]:
+                return 0, "547\n", ""
+            if args[0] == "api":
+                return 0, json.dumps({"workflow_runs": [{"id": 77, "head_branch": "gh-readonly-queue/main/pr-547-abc123",
+                                                         "conclusion": "failure", "created_at": "2026-10-24T10:00:00Z"}]}), ""
+            if args[:2] == ["run", "download"]:
+                art = Path(args[args.index("--dir") + 1]) / "test-results-Linux-unit"
+                art.mkdir(parents=True)
+                (art / "unit.trx").write_text(
+                    trx_head + '<UnitTestResult testName="N.Bounced.Case" duration="00:00:01" outcome="Failed" />'
+                    '</Results></TestRun>', encoding="utf-8", newline="\n")
+                return 0, "", ""
+            return 1, "", "unrouted"
+        with_pr = Host(repo, gh=bounce_gh)
+        note = with_pr.fetch_bounce_results()
+        _, bounce_reds = gate_plan.previous_gates(repo, None)
+        bounced_label = f"ci bounce {repo / gate_plan.CI_BOUNCE_RESULTS}"
+        arm("the real Host fetches the failed merge-group run of the checked-out branch's pull request into the worktree, "
+            "and the plan's previous_gates reads its reds as a source of their own (tier 0a, kb/Work PB3644)",
+            "failed merge-group run 77 of pull request #547" in note
+            and gate_plan.name_key("N.Bounced.Case") in bounce_reds[bounced_label]
+            and ["pr", "list", "--head", "main"] == asked[1][:4], f"{note} {bounce_reds} {asked}")
+        Host(repo, gh=lambda args: (1, "", "HTTP 502")).fetch_bounce_results()
+        _, kept = gate_plan.previous_gates(repo, None)
+        arm("a GitHub that cannot be asked leaves the fetched results as they were (a non-observation changes nothing)",
+            gate_plan.name_key("N.Bounced.Case") in kept[bounced_label], str(kept))
+        scratch.git("checkout", "--quiet", "--detach")
+        asked.clear()
+        detached = Host(repo, gh=bounce_gh).fetch_bounce_results()
+        scratch.git("checkout", "--quiet", "main")
+        arm("a detached HEAD has no pull request: nothing is asked of GitHub",
+            not asked and "none (no branch is checked out)" in detached, f"{detached} {asked}")
+        shutil.rmtree(repo / "TestResults")   # (a real worktree ignores it; this scratch repo does not, and measures it)
+
         # THE MEASURED TREE (kb/Work PB3536): the working tree's content, through a private index.
         (repo / ".gitignore").write_text("ignored.txt\n", encoding="utf-8", newline="\n")
         (repo / "tracked.txt").write_text("one\n", encoding="utf-8", newline="\n")
@@ -2377,6 +2474,18 @@ def self_test() -> int:
             and "Linux half (WSL clone of HEAD) GREEN" in lin.line and any("PLANTED-LINUX-LEG-OUTPUT" in l for l in sink)
             and lrec["linux"]["verdict"] == "GREEN" and lrec["linux"]["tree"] == lrec["head_tree"] == "tree-1"
             and lrec["linux"]["legs"] == [1], lin.line)
+        # kb/Work PB3660: the record this driver writes is current for the lander that reads it: its schema is the
+        # current one and at least the oldest the lander accepts, it carries every field the lander requires, and a
+        # record without them (or of an older schema) reads as a gate older than the lander, not as a dirty tree.
+        old_rec = {k: v for k, v in lrec.items() if k not in LANDING_FIELDS}
+        arm("the record the gate writes is current for the landing (schema, every landing field, not 'older than the "
+            "lander'); one lacking a landing field or of a schema below the landable one is, and names which",
+            record_schema(lrec) == RECORD_SCHEMA >= LANDABLE_SCHEMA and all(f in lrec for f in LANDING_FIELDS)
+            and predates_landing(lrec) is None
+            and "no head_tree/linux field" in (predates_landing(old_rec) or "")
+            and "below 3" in (predates_landing({**lrec, "schema": 2}) or "")
+            and predates_landing({**lrec, "schema": 3}) is None and record_schema({"schema": True}) == 0
+            and record_schema({}) == 0, f"{lrec.get('schema')} {predates_landing(old_rec)}")
         again_l, h_again = regate(d, plant={"linux"})
         windows_only, h_win = regate(d)
         no_half = root / "linux-half-old"

@@ -85,6 +85,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import statistics
 import subprocess
 import sys
@@ -224,10 +225,11 @@ def trx_secs(duration: str) -> float:
     return int(h) * 3600 + int(m) * 60 + float(s)
 
 
-def trx_results(run: Path):
-    """(display name, seconds or None, outcome) of every result in every trx file of a gate run directory. A file that
-    cannot be read raises `UnreadableTrx` naming it (test_population.trx_root, THE one trx reader: kb/Work PB3661)."""
-    files = sorted(run.glob("*.trx"))
+def trx_results(run: Path, deep: bool = False):
+    """(display name, seconds or None, outcome) of every result in every trx file of a gate run directory (`deep`: of its
+    subdirectories too, the layout of downloaded CI artifacts, one directory per artifact). A file that cannot be read
+    raises `UnreadableTrx` naming it (test_population.trx_root, THE one trx reader: kb/Work PB3661)."""
+    files = sorted(run.rglob("*.trx") if deep else run.glob("*.trx"))
     if not files:
         raise SystemExit(f"{run}: no trx file — not a gate run directory")
     for trx in files:
@@ -275,28 +277,34 @@ TRX_WRITERS: dict[str, tuple[str | None, str]] = {
                                  "of a branch"),
 }
 LINUX_GATE_RESULTS = Path(TRX_WRITERS["scripts/linux-gate.sh"][0])
+#: The reds of a merge-queue BOUNCE live in GitHub's CI run, not in any worktree (kb/Work PB3644), so the one GitHub
+#: reader (`queue_facts.fetch_bounce_results`, called by `run_gate_legs.Host.plan` before it plans) downloads the failed
+#: merge-group run's test artifacts here, one subdirectory per artifact, and `previous_gates` reads them with the others.
+#: No tool WRITES a trx file there (the files are CI's), so it is no TRX_WRITERS row; a PR with no failed run empties it.
+CI_BOUNCE_RESULTS = Path("TestResults/ci-bounce")
 #: What makes a live tool a trx writer: the vstest logger argument naming the trx file (split here, so this file is
 #: not one).
 TRX_LOGGER_MARK = "trx;" + "LogFileName="
 
 
-def read_reds(results: Path) -> set[str]:
-    """The REDS (by name key) of a results directory's trx files; none when it holds no trx file (that gate never ran
-    in this worktree, or its build failed before any leg wrote one)."""
-    if not any(results.glob("*.trx")):
+def read_reds(results: Path, deep: bool = False) -> set[str]:
+    """The REDS (by name key) of a results directory's trx files (`deep`: and its subdirectories'); none when it holds no
+    trx file (that gate never ran in this worktree, or its build failed before any leg wrote one)."""
+    if not any((results.rglob if deep else results.glob)("*.trx")):
         return set()
-    return {k for name, _, outcome in trx_results(results) if outcome == "Failed" for k in red_keys(name)}
+    return {k for name, _, outcome in trx_results(results, deep) if outcome == "Failed" for k in red_keys(name)}
 
 
 def previous_gates(worktree: Path, previous: Path | None) -> tuple[Timings, dict[str, set[str]]]:
     """THE ONE READER of a worktree's previous gates (TRX_WRITERS): the timings of build-local's previous run
-    `previous` (none: Timings "none"), and the reds of every source, by its label — that run's and the Linux gate's
-    newest run's, `<worktree>/LINUX_GATE_RESULTS`. The gate driver (`run_gate_legs.Host.plan`) and the CLI both plan
-    from it, so a case red at the last gate of EITHER host is tier 0a of the next."""
+    `previous` (none: Timings "none"), and the reds of every source, by its label — that run's, the Linux gate's
+    newest run's (`<worktree>/LINUX_GATE_RESULTS`) and the merge queue's bounce (`<worktree>/CI_BOUNCE_RESULTS`, kb/Work
+    PB3644). The gate driver (`run_gate_legs.Host.plan`) and the CLI both plan from it, so a case red at the last gate
+    of EITHER host, or in the CI run that bounced the pull request, is tier 0a of the next."""
     timings, reds = read_previous_run(previous) if previous is not None else (Timings("none"), set())
-    linux = worktree / LINUX_GATE_RESULTS
+    linux, bounce = worktree / LINUX_GATE_RESULTS, worktree / CI_BOUNCE_RESULTS
     label = timings.source if previous is not None else "previous run: none"
-    return timings, {label: reds, f"linux gate {linux}": read_reds(linux)}
+    return timings, {label: reds, f"linux gate {linux}": read_reds(linux), f"ci bounce {bounce}": read_reds(bounce, True)}
 
 
 def audit_trx_writers(repo: Path) -> tuple[list[str], list[str]]:
@@ -924,9 +932,33 @@ def self_test() -> int:
               name_key(f"{ns}Lin_P5.M") in u["leg1"] and name_key(win_red) in u["leg1"]
               and u["stats"]["tiers"]["0a"] == 2
               and full["reds"] == {timings.source: {"keys": 1, "listed": 1},
-                                   f"linux gate {wt / LINUX_GATE_RESULTS}": {"keys": 2, "listed": 1}}
+                                   f"linux gate {wt / LINUX_GATE_RESULTS}": {"keys": 2, "listed": 1},
+                                   f"ci bounce {wt / CI_BOUNCE_RESULTS}": {"keys": 0, "listed": 0}}
               and any("red keys (tier 0a)" in line for line in summary_lines(full, Path(tmp) / "plan.json")),
               (u["stats"]["tiers"], full["reds"]))
+        # A MERGE-QUEUE BOUNCE'S REDS (kb/Work PB3644): the CI run that bounced the pull request left its test artifacts in
+        # the worktree (queue_facts.fetch_bounce_results, one subdirectory per artifact); they are the third source, read
+        # DEEP, and a red there is tier 0a like the other two's.
+        bounce_dir = wt / CI_BOUNCE_RESULTS
+        ci_red = f"{ns}OnlyInTheQueue_P4.M"
+        trx_outcomes(bounce_dir / "test-results-Linux-conformance-3" / "conformance-3.trx",
+                     [(ci_red, "00:00:02.0", "Failed"), (cheap[0], "00:00:01.0", "Passed")])
+        trx_outcomes(bounce_dir / "test-results-Windows-unit" / "unit.trx", [(f"{ns}Win.Passes", "00:00:01.0", "Passed")])
+        _, with_bounce = previous_gates(wt, run)
+        bounce_label = f"ci bounce {bounce_dir}"
+        queued = build_plan({"Unit": cheap + [pole, win_red, f"{ns}OnlyInTheQueue_P9.M"]}, a, timed([(d, 1.0) for d in cheap]),
+                            with_bounce, None, {})
+        check("a failed merge-group run's artifacts (one directory per artifact) are the third source of reds: a case red "
+              "only in the merge queue is tier 0a of the next plan by its name key, the passing artifact adds none, and "
+              "the flat reader of the gate's own run directory does not see them",
+              with_bounce[bounce_label] == {name_key(ci_red), name_key(ci_red).partition("(")[0]}
+              and name_key(f"{ns}OnlyInTheQueue_P9.M") in queued["assemblies"]["Unit"]["leg1"]
+              and queued["reds"][bounce_label] == {"keys": 1, "listed": 1}
+              and read_reds(bounce_dir) == set() and read_reds(bounce_dir, True) == with_bounce[bounce_label],
+              (with_bounce[bounce_label], queued["reds"]))
+        shutil.rmtree(bounce_dir)
+        check("with no bounce fetched the third source is empty, never an error",
+              previous_gates(wt, run)[1][bounce_label] == set(), str(previous_gates(wt, run)[1]))
         # AN UNREADABLE TRX NAMES ITS FILE (kb/Work PB3661): wave 20261104's run 000005 printed `ParseError: not
         # well-formed (invalid token): line 104295, column 36` and no path, and the file was gone by the verdict. Both
         # sources go through the one reader (test_population.trx_root), and the error names the file and carries it.

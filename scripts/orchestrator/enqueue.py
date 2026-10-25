@@ -47,7 +47,9 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      equals the `tree` it measured) with its Linux half GREEN (the inert lane's is the script self-tests alone, kb/Work PB3646), whose head covers this one
      (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
-     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip. A run
+     merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip (or, when
+     the newest GREEN record was written by a gate OLDER than this lander, `run_gate_legs.predates_landing`, merges
+     main into the branch first, since gating with the branch's own older driver writes the same record: kb/Work PB3660). A run
      that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_gate`: the worktree's gate lock is held, an OS
      lock freed when its holder dies, so never a reused process id; the landing lane launches a landing beside its own
      implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
@@ -733,12 +735,21 @@ def merge_main(wt: pathlib.Path, branch: str, base: str) -> list[str] | None:
     return merge_drivers.merge(wt, base, f"Merge origin/main into {branch} (enqueue.py)")
 
 
+#: What a finisher does about an UNTESTED tip (the BLOCKED line's remedy, kb/Work PB3660): gate the tip, or, when its record
+#: was written by a gate older than this lander, merge main in first and gate the merged head.
+REMEDY_GATE_TIP = "A finisher runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the tip"
+REMEDY_OLD_GATE = ("The branch's own gate driver is older than this lander's reading, so gating the tip again writes the "
+                   "same record: a finisher merges origin/main into the branch first (`python scripts/merge_drivers.py "
+                   "merge origin/main`), then runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the merged head")
+
+
 class Tested(NamedTuple):
     """Whether a branch's tip has a recorded local gate (`tested_locally`), and what to say about it."""
     ok: bool
     text: str
     gated: str = ""   # the head the covering run measured; "" = the tip itself (a planted record in the self-test)
     running: str = ""  # "": no gate runs in this worktree; else the live gate a verdict is still owed by (`LiveGate.what`, kb/Work PB3662)
+    stale: bool = False  # the newest GREEN run was written by a gate older than this lander (`run_gate_legs.predates_landing`, kb/Work PB3660)
 
 
 def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool | None = None) -> Tested:
@@ -764,6 +775,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     if linux_half is None:
         linux_half = run_gate_legs.Host(wt).runs_linux_leg()
     why: list[str] = []
+    newest_green_is_old: bool | None = None   # decided by the newest run that READ GREEN: the only one a remedy is about
     live = run_gate_legs.live_gate(run_gate_legs.Host(wt).lock_path())   # a gate owes its verdict while it runs (PB3662)
     for run in runs:
         rec = run_gate_legs.read_record(run)
@@ -773,9 +785,16 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         linux = rec.get("linux") or {}
         gated = rec.get("head")
-        if run_gate_legs.read_verdict(str(rec.get("verdict", ""))) != run_gate_legs.GREEN_READING \
-                or rec.get("exit_code") != 0:
+        reads_green = run_gate_legs.read_verdict(str(rec.get("verdict", ""))) == run_gate_legs.GREEN_READING
+        old = run_gate_legs.predates_landing(rec) if reads_green else None
+        if reads_green and newest_green_is_old is None:
+            newest_green_is_old = old is not None
+        if not reads_green or (old is None and rec.get("exit_code") != 0):
             problem = f"it read {str(rec.get('verdict', '?'))[:40]}"
+        elif old:
+            # A record the branch's own (older) driver wrote lacks the fields below; that is its age, not a dirty tree, and
+            # gating the tip again with that driver writes the same record (kb/Work PB3660).
+            problem = old
         elif not head_tree or tree != head_tree:
             problem = "it measured a working tree that was not the committed head's (uncommitted changes)"
         elif linux_half and (linux.get("verdict") != "GREEN" or linux.get("tree") != head_tree):
@@ -792,7 +811,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
                           str(gated))
         why.append(f"{run.name}: {problem}")
     return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]),
-                  running=live.what if live else "")
+                  running=live.what if live else "", stale=bool(newest_green_is_old))
 
 
 def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
@@ -904,10 +923,13 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
     elif lane:
         gate_why = f"the {lane} lane gates nowhere else ({proof.text})"
     else:
+        # The remedy follows the cause (kb/Work PB3660): a tip whose newest GREEN record was written by a gate older than
+        # this lander is gated again by that same older driver to the same record, so it merges main in FIRST (bringing
+        # the driver that writes the record this lander reads) and gates the merged head.
+        remedy = (REMEDY_OLD_GATE if proof.stale else REMEDY_GATE_TIP)
         blocked(branch, wt, f"BLOCKED: enqueue — no local gate is recorded GREEN at this tip (kb/Work PB3612, owner "
-                            f"2026-10-23: a branch is gated locally once, at its head, by its implementer): {proof.text}. A "
-                            "finisher runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the tip (a reviewed, "
-                            "unchanged tip needs no second review) and the lane lands it")
+                            f"2026-10-23: a branch is gated locally once, at its head, by its implementer): {proof.text}. "
+                            f"{remedy} (a reviewed, unchanged tip needs no second review) and the lane lands it")
         return end(EXIT_UNTESTED, f"UNTESTED — {proof.text}")
     # 2. Main in, by merge.
     if dry_run:
@@ -1400,15 +1422,18 @@ def self_test() -> int:
         results_dir = lw / "TestResults" / "build-local"
         base_ref = "refs/remotes/origin/main"
 
-        def gate_run(n: int, **rec) -> None:
-            """A planted gate run `n` with a verdict file: GREEN, the working tree equal to the head's tree, head = HEAD."""
+        def gate_run(n: int, drop: tuple[str, ...] = (), **rec) -> None:
+            """A planted gate run `n` with a verdict file: GREEN, the working tree equal to the head's tree, head = HEAD.
+            `drop` names the fields an OLDER gate driver's record lacks."""
             d = results_dir / f"{n:06d}-20261029T000000Z"
             d.mkdir(parents=True, exist_ok=True)
             head_now = fix.git("rev-parse", "HEAD")
-            record_ = {"verdict": "LEG 1 ONLY (batched gating, PB2515): GREEN", "line": "=== planted ===", "exit_code": 0,
-                       "head": head_now,
+            record_ = {"schema": run_gate_legs.RECORD_SCHEMA, "verdict": "LEG 1 ONLY (batched gating, PB2515): GREEN",
+                       "line": "=== planted ===", "exit_code": 0, "head": head_now,
                        "tree": "T", "head_tree": "T", "lane": "full", "linux": {"verdict": "GREEN", "tree": "T"}}
             record_.update(rec)
+            for key in drop:
+                del record_[key]
             (d / "verdict.json").write_text(json.dumps(record_), encoding="utf-8", newline="\n")
 
         def seen(linux_half: bool = True) -> Tested:
@@ -1446,6 +1471,57 @@ def self_test() -> int:
                and inert_run.ok and "inert lane, Linux self-tests GREEN" in inert_run.text and not inert_no_linux.ok
                and "no GREEN Linux half" in inert_no_linux.text and not lying.ok and not elsewhere.ok,
                f"{none_yet} {covered} {red_after} {dirty_run} {no_linux} {inert_run} {inert_no_linux} {lying} {elsewhere}")
+
+        # kb/Work PB3660: a record the BRANCH's older driver wrote (schema 3 before PB3612: no head_tree, no linux) is that
+        # gate's AGE, never "uncommitted changes", and its remedy is merge-then-gate (gating the tip again with the same
+        # driver writes the same record). A schema-3 record that DOES carry the fields (a gate after PB3612 that kept the
+        # number) is current evidence; a dirty tree stays "uncommitted"; a RED is never "old".
+        old_gate = {"schema": 3, "drop": ("head_tree", "linux")}
+        shutil.rmtree(results_dir)
+        gate_run(1, **old_gate)
+        pre_pb3612 = seen()
+        pre_pb3612_linux_host = seen(linux_half=False)
+        shutil.rmtree(results_dir)
+        gate_run(1, schema=3)
+        schema3_current = seen()
+        shutil.rmtree(results_dir)
+        gate_run(1, schema=2)
+        schema2 = seen()
+        shutil.rmtree(results_dir)
+        gate_run(1, tree="T-dirty")
+        still_dirty = seen()
+        gate_run(2, verdict="LEG 1 ONLY (batched gating, PB2515): RED", **old_gate)
+        red_not_old = seen()      # the newest run read RED: the remedy is about the newest GREEN one, which is dirty here
+        shutil.rmtree(results_dir)
+        # The remedy rides the BLOCKED line: an old driver's record -> merge first; a dirty tree -> gate the tip.
+        proved_here = lambda w, head, base: tested_locally(w, head, base, linux_half=True)  # noqa: E731
+        ran, stamped, notes[:] = [], [], []
+        gate_run(1, **old_gate)
+        rc_old = run_land(tested=proved_here, gates=gates_of(green, ran), stamped=stamped)
+        old_notes = list(notes)
+        shutil.rmtree(results_dir)
+        notes[:] = []
+        gate_run(1, tree="T-dirty")
+        rc_dirty_land = run_land(tested=proved_here, gates=gates_of(green, ran), stamped=stamped)
+        dirty_notes = list(notes)      # (the next block clears the run directory first)
+        expect("tested_locally: a record written by a gate older than the lander (schema below the landable one, or no "
+               "head_tree) is its own reason (the gate's age, never 'uncommitted changes') and stale; a schema-3 record "
+               "that carries the fields is evidence; a dirty tree stays 'uncommitted' and not stale; a RED is never "
+               "'old'; the BLOCKED line prescribes merge-then-gate for an old record and gate-the-tip for the others "
+               "(kb/Work PB3660)",
+               not pre_pb3612.ok and pre_pb3612.stale and "older than this lander" in pre_pb3612.text
+               and "uncommitted" not in pre_pb3612.text and "head_tree" in pre_pb3612.text
+               and not pre_pb3612_linux_host.ok and pre_pb3612_linux_host.stale
+               and schema3_current.ok and not schema3_current.stale
+               and not schema2.ok and schema2.stale and "schema 2" in schema2.text
+               and not still_dirty.ok and not still_dirty.stale and "uncommitted" in still_dirty.text
+               and not red_not_old.ok and not red_not_old.stale and "uncommitted" in red_not_old.text
+               and rc_old == EXIT_UNTESTED and len(old_notes) == 1 and "merge_drivers.py merge origin/main" in old_notes[0]
+               and "older than this lander" in old_notes[0] and "uncommitted" not in old_notes[0]
+               and rc_dirty_land == EXIT_UNTESTED and len(dirty_notes) == 1 and REMEDY_GATE_TIP in dirty_notes[0]
+               and "merge_drivers.py" not in dirty_notes[0],
+               f"{pre_pb3612} {pre_pb3612_linux_host} {schema3_current} {schema2} {still_dirty} {red_not_old} "
+               f"{old_notes} {dirty_notes}")
 
         # kb/Work PB3662: a gate that is RUNNING (its worktree gate lock is held) owes a verdict; the landing lane launches
         # a landing beside the branch's own running gate, and that exit was a terminal STOP (14) waiting for a re-arm.
