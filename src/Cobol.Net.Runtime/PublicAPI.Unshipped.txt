@@ -266,3 +266,5 @@ static CobolNet.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! 
 static CobolNet.Runtime.CobolNum.GroupDigits(string! text) -> string!
 const CobolNet.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
 static CobolNet.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
+static CobolNet.Runtime.CobolBool.FromCharacters(string? v) -> string!
+static CobolNet.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
