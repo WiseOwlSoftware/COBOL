@@ -597,8 +597,9 @@ FOLLOW(usageKeyword) ∩ FIRST(cobolWord) from the ATN and, for every such word 
 `USAGE {POINTER|PROGRAM-POINTER|FUNCTION-POINTER} W.` and demands an empty operand. The binders read the OPERAND's presence, never the TO token's (`DataBinder`:
 the §13.18.60.3 SR18/SR19 screen and FUNCTION-POINTER's mandatory operand). The same
 REQUIRED-INSIDE-AN-OPTIONAL-GROUP shape was OBJECT REFERENCE's `(FACTORY OF)?`, whose OF is also unstressed on
-folio 503; it is `(FACTORY OF?)?` now. Both are pinned by `OptionalWordSubsetDriftTests` rows, because
-`audit_grammar_optional_words.py` cannot see a word required inside an optional group (kb/Work PB715).
+folio 503; it is `(FACTORY OF?)?` now. Both are pinned by `OptionalWordSubsetDriftTests` rows, the guard the gates
+run: `audit_grammar_optional_words.py` judges each group as a unit of its own and so reports a word required
+inside an optional group (kb/Work PB715), but it measures the private PDF and runs in no gate.
 
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
