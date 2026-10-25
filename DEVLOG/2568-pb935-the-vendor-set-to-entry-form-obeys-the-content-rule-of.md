@@ -1,4 +1,4 @@
-## PB935: the vendor SET ... TO ENTRY form obeys the content rule of a restricted program-pointer (ISO 13.18.60.4 GR25)
+## Entry 2568 — 2026-10-25 14:01 PDT — PB935: the vendor SET ... TO ENTRY form obeys the content rule of a restricted program-pointer (ISO 13.18.60.4 GR25)
 
 **Re-probe.** On a fresh Debug build, with `PPT IS TYPEDEF USAGE PROGRAM-POINTER TO PBT935` and `PP1`, `PP2 TYPE PPT`,
 `SET PP1 TO ENTRY "PBT935"`, `SET PP2 TO ENTRY NM` and `SET PP1 PP2 TO ENTRY "PBT935"` all compiled clean, while
@@ -39,3 +39,4 @@ unrestricted address into a restricted program-pointer: `INITIALIZE pp REPLACING
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on the head, Linux half (WSL clone of HEAD) GREEN;
 the new negatives ran in leg 1 (`pb935-set-entry-restricted-literal` and `pb935-set-entry-restricted-identifier-list`, each at
 2002, 2014 and 2023, all Passed). Self-review of the diff found nothing further.
+
