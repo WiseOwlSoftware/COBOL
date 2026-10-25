@@ -660,7 +660,8 @@ mechanisms, in order of how little they trust the model:
    is involved and a failed write never ends the unit. A worktree removed between the listing and its measurement
    (git runs through `git -C`, so the missing directory is an exit 128, not an exception) is left out of the survey and
    the rest is still written; one whose directory exists but whose status git cannot read stays with `uncommitted: null`
-   (unknown, never a clean 0), and a failed listing fails the write rather than writing an empty one (kb/Work PB3250). ⛔ The writes during the unit run in the BACKGROUND, one at a
+   (unknown, never a clean 0), and a failed listing records no worktrees and says so on stderr, since a dead unit's handoff is still synthesized
+   (kb/Work PB3250). ⛔ The writes during the unit run in the BACKGROUND, one at a
    time (a write due while one runs is skipped), and only the end-of-unit write waits: the worktree probe takes minutes
    on a loaded host, and a synchronous write stalled the event loop (no stdout read, no startup-watchdog tick, no STOP
    check) until a hung unit outlived the watchdog (kb/Work PB2590).

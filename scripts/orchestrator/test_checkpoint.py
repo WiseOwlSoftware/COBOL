@@ -111,12 +111,13 @@ unreadable = {t["branch"]: t for t in checkpoint.worktrees(REPO)}
 check("an unreadable worktree stays, uncommitted unknown", (sorted(unreadable), unreadable.get("broken", {}).get("uncommitted", "absent")),
       (["broken", "clean", "committed", "dirty"], None))
 
-# a listing that fails is an error, not an empty checkpoint
-try:
-    checkpoint.worktrees(TMP / "no-such-repo")
-    fails.append("a failed worktree listing was read as no worktrees")
-except RuntimeError:
-    pass
+# a listing that fails (the directory is no repository) records no worktrees and says so on stderr, and does not raise: a
+# dead unit's handoff is still synthesized (the supervisor's own self-tests run these commands against a plain directory)
+(TMP / "no-such-repo").mkdir()
+r = subprocess.run([sys.executable, str(CP), "synthesize", "--unit", "wave", "--out", str(TMP / "plain.json"),
+                    "--coord", str(COORD), "--repo", str(TMP / "no-such-repo")], capture_output=True, text=True)
+check("a failed listing still synthesizes", (r.returncode, (TMP / "plain.json").is_file()), (0, True))
+check("a failed listing is said on stderr", "worktree list" in r.stderr, True)
 
 remove_tree(TMP)   # the scratch repository, its worktrees and the coordination directory
 if fails:
