@@ -46,6 +46,8 @@ import io
 import pathlib
 import shutil
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
@@ -243,10 +245,6 @@ def main() -> int:
     ap.add_argument("--write", metavar="OUT", help="write a decoded copy of the PDF")
     ap.add_argument("--verify", action="store_true", help="prove the decode against facts about the standard")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
              "git submodule update --init specs-private")
@@ -314,4 +312,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

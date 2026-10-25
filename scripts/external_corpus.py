@@ -31,6 +31,7 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Callable
+from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -136,9 +137,6 @@ def _self_test(root: Path) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8")
     ap =argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--self-test", action="store_true")
     sub = ap.add_subparsers(dest="cmd")
@@ -161,4 +159,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

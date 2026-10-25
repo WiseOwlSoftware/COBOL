@@ -167,7 +167,8 @@ public static class DiagnosticCatalog
     // is reported by exactly one site now: LiteralScreen, which sees every literal token in the unit.
     public static readonly DiagnosticDescriptor LiteralTooLong = new(
         "COBOLNET0814", "literal-too-long", EditionSeverity.Error,
-        "A literal shall be at most 8,191 character positions of its class, excluding the separators that delimit "
+        "A literal shall be at most 8,191 character positions of its class (160 below COBOL-2014, kb/Work PB1615), "
+        + "excluding the separators that delimit "
         + "it: alphanumeric (§8.3.3.2.3 SR1, the X\"…\" format included), boolean (§8.3.3.4.3 SR1, a BX\"…\" "
         + "digit counting as four boolean positions) or national (§8.3.3.5.3 SR1).",
         "ISO §8.3.3.2.3 SR1 / §8.3.3.4.3 SR1 / §8.3.3.5.3 SR1");
@@ -184,7 +185,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ConcatResultTooLong = new(
         "COBOLNET1545", "concat-result-too-long", EditionSeverity.Error,
         "The value resulting from concatenation shall be at most 8,191 character positions (alphanumeric, "
-        + "boolean, or national).", "ISO §8.8.3.2 SR2–SR4");
+        + "boolean, or national); 160 below COBOL-2014, the bound a literal itself has there (kb/Work PB1615).",
+        "ISO §8.8.3.2 SR2–SR4");
     /// <summary>kb/Work PB1406: a word written as a concatenation operand that stands for no literal.</summary>
     public static readonly DiagnosticDescriptor ConcatOperandNotLiteral = new(
         "COBOLNET2473", "concat-operand-not-literal", EditionSeverity.Error,

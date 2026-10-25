@@ -73,6 +73,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+from standard_streams import ensure_utf8
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -968,10 +969,6 @@ def main(argv: list[str] | None = None) -> int:
     for p in (r, s, c, sub.choices["next"]):
         p.add_argument("--repo", default=None, help="a checkout of the repository (default: the current one)")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.self_test:
         return self_test()
     if not a.cmd:
@@ -1002,4 +999,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

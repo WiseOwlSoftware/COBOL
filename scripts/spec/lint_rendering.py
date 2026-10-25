@@ -64,6 +64,8 @@ import collections
 import pathlib
 import re
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
@@ -285,10 +287,6 @@ def main() -> int:
     ap.add_argument("file", nargs="?", default=SPEC_MD, type=pathlib.Path)
     args = ap.parse_args()
     spec = args.file
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     text = spec.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -368,4 +366,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

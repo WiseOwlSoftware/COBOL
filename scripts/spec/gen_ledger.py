@@ -110,6 +110,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
+from standard_streams import ensure_utf8  # noqa: E402
 
 INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
 INVENTORY = REPO / INVENTORY_REL
@@ -1461,13 +1462,6 @@ def self_test() -> int:
 
 
 def main() -> int:
-    # Both streams in UTF-8 BEFORE argparse can print (its --help and usage errors carry the docstring's non-ASCII):
-    # a redirected stream is the host's code page on Windows otherwise (kb/Work PB1546's class).
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except AttributeError:   # a replaced stream (a test harness's) has no reconfigure
-            pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT,
                     help=f"HTML to write (default {DEFAULT_OUT})")
@@ -1537,4 +1531,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

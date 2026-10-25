@@ -16,6 +16,8 @@ import re
 import sys
 import time
 from typing import Any, Iterable, Iterator
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 # scripts/, for the one Windows share-retry rule (sharedfile.py, kb/Work PB2564), which gate_slot.py uses too. Appended,
 # so a module of the importer's own directory is never shadowed.
@@ -509,6 +511,7 @@ def _self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     import sys
     if sys.argv[1:] == ["loop-state"]:   # what a lander dispatch brief names (MANDATORY-PRACTICES O11)
         state, why = loop_state()

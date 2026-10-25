@@ -76,6 +76,8 @@ from typing import Callable
 REPO = Path(__file__).resolve().parents[2]
 sys.path.append(str(Path(__file__).resolve().parents[1] / "spec"))
 import work  # noqa: E402  (note_sites: THE reader of a note's structured sites and names, kb/Work PB3242)
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 RECORD_DIR = Path("docs/rearchitecture/evidence/arch-census")
 SUFFIX = ".members.json.gz"   # gzip: the index names every symbol (about 4.5 MB as text)
@@ -537,10 +539,6 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--current", action="store_true", help="find or regenerate the index of this tree (--cache)")
     ap.add_argument("--cache", type=Path, help="with --current: where a regenerated index goes")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.self_test:
         return self_test()
     if a.record:
@@ -557,4 +555,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
