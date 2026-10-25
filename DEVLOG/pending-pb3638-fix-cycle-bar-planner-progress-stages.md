@@ -46,3 +46,8 @@ workstream SKILL.md, units/wave.md. No inventory row is claimed or closed (proce
 Self-review: one background starter instead of three copies; `_spread` replaces two hand-built median/p90 dicts;
 `landing_measure._when` became `iso_time` (progress.py reads it); a stage stamp that would break the record's order is
 left null so `validate` never refuses the whole record at enqueue.
+
+Gate (run 000002-20261025T042734Z, on 11f9c688e): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
+… Conformance 8,158/18,508 · Unit 36,898/38,220 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux
+half (WSL clone of HEAD) GREEN …`. The first gate (000001) was RED at the LINE ENDINGS audit (two self-test writes in
+turns_by_group_size.py stated no `newline=`), fixed before any leg ran.
