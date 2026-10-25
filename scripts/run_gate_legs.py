@@ -763,11 +763,45 @@ def resolve_run(run: str | os.PathLike, worktree: str | os.PathLike | None) -> P
     return p if p.is_absolute() else (Path(worktree) if worktree else Path.cwd()) / p
 
 
-def watch(run: Path, wait_s: float | None, echo: Callable[[str], None] | None = None,
-          alive: Callable[[int], bool] = _pid_alive, poll_s: float = 0.5) -> tuple[int, str]:
+def lock_of_run(run: Path) -> Path | None:
+    """The gate lock of the worktree a run directory belongs to (`<worktree>/TestResults/build-local/<run>`), or None when
+    the run is not under a worktree's run root or that worktree is gone: no gate can run there."""
+    wt = run.parent.parent.parent
+    if run.parent != wt / RUN_ROOT or not wt.is_dir():
+        return None
+    try:
+        return Host(wt).lock_path()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def gate_running(run: Path) -> Callable[[], bool]:
+    """THE READER'S TEST OF "THIS RUN'S GATE IS STILL RUNNING" (kb/Work PB3662, review R1-1 of wave 20261104): the gate
+    lock (`live_gate`) is held by a gate that writes this run, never a process id, which the OS reuses: a reader that
+    arrives after a reboot or a long death (the planner's survey of a handed-over gate, `--await` from the rolling wave)
+    must not read a stranger holding the dead gate's pid as the gate. A run with no `gate.pid` is a gate that has not
+    taken its lock yet (`Gate.run` writes the pid UNDER the lock) or one from before kb/Work PB3536: the reader cannot
+    tell it from a gate not started, so it reads as running, and `watch` words it as such."""
+    return lock_running(run, lock_of_run(run))
+
+
+def lock_running(run: Path, lock: Path | None) -> Callable[[], bool]:
+    """`gate_running` over a named gate lock (None: no gate can run there)."""
+    def running() -> bool:
+        if read_pid(run) is None:
+            return True
+        live = live_gate(lock) if lock is not None else None
+        return live is not None and (live.run is None or live.run.name == run.name)
+    return running
+
+
+def watch(run: Path, wait_s: float | None, running: Callable[[], bool], echo: Callable[[str], None] | None = None,
+          poll_s: float = 0.5) -> tuple[int, str]:
     """THE ONE WAY TO WAIT FOR A GATE (kb/Work PB3536): its run directory's VERDICT FILE, never a log's tail.
+    `running()` says whether the gate that writes the run still runs: `gate_running(run)` for every reader of a gate it
+    did not start (the lock, never a reused pid), the follower's own child's liveness for the gate it just launched.
     Returns (exit code, verdict line): the record's own once `verdict.json` is there; NOT RUN [verdict] (2) when the
-    process `gate.pid` names DIED without one; PENDING (AWAIT_PENDING_EXIT) once `wait_s` passes (None: no limit); NOT
+    gate DIED without one; PENDING (AWAIT_PENDING_EXIT) once `wait_s` passes (None: no limit); NOT
     RUN [run] (2) when there is no such run directory (`resolve_run` makes a worktree-relative name absolute first). `echo` (the follower) is handed the run's `gate.log` line by line as it grows, to its end."""
     log, offset, t = run / LOG_FILE, 0, time.monotonic()
 
@@ -792,18 +826,18 @@ def watch(run: Path, wait_s: float | None, echo: Callable[[str], None] | None = 
         pid = read_pid(run)
         if rec is not None:
             # the gate writes its record, then prints the line and exits: the follower echoes its output to the end
-            while echo is not None and pid is not None and alive(pid):
+            while echo is not None and running():
                 drain()
                 time.sleep(poll_s)
             drain(final=True)
             return _record_exit(rec), str(rec["line"])
-        if pid is not None and not alive(pid):
+        if not running():
             if (rec := read_record(run)) is not None:  # it wrote the record and ended between the two reads
                 continue
             drain(final=True)
-            return 2, (f"{VERDICT}{NOT_RUN_CAUSES['verdict'].verdict} — the gate process {pid} DIED with no verdict "
-                       f"(run {run}; its output: "
-                       f"{log}) ===")
+            return 2, (f"{VERDICT}{NOT_RUN_CAUSES['verdict'].verdict} — the gate "
+                       f"{f'process {pid} ' if pid is not None else ''}DIED with no verdict "
+                       f"(run {run}; its output: {log}) ===")
         if wait_s is not None and time.monotonic() - t >= wait_s:
             who = (f"the gate process {pid} is running" if pid is not None else
                    f"no {PID_FILE} names its process (one not started yet, or a run from before kb/Work PB3536, which "
@@ -827,11 +861,12 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
     except OSError as e:
         say(f"{VERDICT}{NOT_RUN_CAUSES['launch'].verdict} — the gate could not be started detached: {e} ===")
         return 2
-    if read_pid(run) is None:
-        write_pid(run, pid)
+    # the gate writes its own gate.pid UNDER its lock (`Gate.run`), so a reader that finds a pid file knows the gate took the
+    # lock: the launcher writes none (a pid written at the spawn would read a gate still starting as a dead one). The
+    # follower alone has watched its child since the spawn, so its liveness is the child's.
     say(f"build-local: the gate runs DETACHED (pid {pid}, run directory {run}): it outlives this process; "
         f"`python scripts/run_gate_legs.py --await {run}` reads its verdict (kb/Work PB3536)")
-    code, line = watch(run, None, echo=say)
+    code, line = watch(run, None, lambda: _pid_alive(pid), echo=say)
     if not (run / LOG_FILE).exists() or line not in (run / LOG_FILE).read_text(encoding="utf-8", errors="replace"):
         say(line)  # a verdict the gate's own output does not carry (DIED): the caller's last line is still the verdict
     return code
@@ -967,8 +1002,6 @@ class Gate:
         out = Outcome()
         started = time.monotonic()
         run = self.run_dir
-        if run is not None:  # a detached gate: its pid, before anything can fail, so `--await` can tell it from a death
-            write_pid(run, os.getpid())
         label = (f"gate {self.host.repo} (pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')}"
                  + (f"{RUN_LABEL}{run}" if run is not None else "") + ")")
         lock_path = self.host.lock_path()
@@ -979,6 +1012,8 @@ class Gate:
                                 "re-run once it ends, or `python scripts/run_gate_legs.py --await <its run>` reads "
                                 "its verdict", EXIT_BUSY)
         with lock:
+            if run is not None:  # a detached gate's pid goes UNDER its lock: a pid file then proves the lock was taken,
+                write_pid(run, os.getpid())   # and the lock (`gate_running`), never the reusable pid, proves it still runs
             try:
                 out.scope, setting = self.host.implementer_scope()
             except ValueError as e:  # malformed shared gate settings stop the gate, with the reason
@@ -2279,6 +2314,16 @@ def self_test() -> int:
             none_yet is None and reused is None and seen is not None and seen.run == dead_run
             and starting is not None and starting.run is None and "pid 8" in starting.what
             and live_gate(livelock) is None, f"{none_yet} {reused} {seen} {starting}")
+        # the pid goes UNDER the lock (`gate_running` reads a pid file as proof the gate took its lock): a detached gate
+        # that finds the lock held ends BUSY and writes none
+        busy_run = root / "busy-run"
+        busy_run.mkdir()
+        with ExclusiveLock.try_take(livelock, f"gate {d} (pid 9, since T)"):
+            busy = Gate(FakeHost(d, livelock), root / "busy", say=sink.append, run_dir=busy_run).run()
+        arm("a detached gate that finds the gate lock held ends BUSY without a pid file: a gate.pid proves its writer "
+            "took the lock",
+            busy.verdict == BUSY and busy.exit_code == EXIT_BUSY and read_pid(busy_run) is None
+            and read_record(busy_run) is not None, f"{busy.line} {read_pid(busy_run)}")
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
@@ -2443,29 +2488,40 @@ def self_test() -> int:
                                                      "exit_code": 1}), encoding="utf-8", newline="\n")
         live = d / "live"
         live.mkdir()
-        write_pid(live, os.getpid())  # this process: alive for the whole arm
-        dead_proc = subprocess.Popen([sys.executable, "-c", "pass"])
-        dead_proc.wait()
-        dead = d / "dead"
-        dead.mkdir()
-        write_pid(dead, dead_proc.pid)
-        got = {n: watch(d / n, 0) for n in ("done", "live", "dead", "missing")}
+        write_pid(live, os.getpid())  # a pid that is ALIVE for the whole arm (this process)
+        dead = d / "dead"             # a gate that died with no verdict: its pid since taken by a live process (this
+        dead.mkdir()                  # one), the very case Windows and Linux both produce when they reuse a pid
+        write_pid(dead, os.getpid())
+        fresh = d / "fresh"           # a gate that has not taken its lock yet, so wrote no pid
+        fresh.mkdir()
+        wlock = d / "worktree.lock"
+        with ExclusiveLock.try_take(wlock, f"gate {d} (pid 7, since T{RUN_LABEL}{live})"):   # the gate that runs `live`
+            got = {n: watch(d / n, 0, lock_running(d / n, wlock)) for n in ("done", "live", "dead", "fresh", "missing")}
+            other = watch(dead, 0, lock_running(dead, wlock))   # the lock is held, but by another run's gate
         arm("--await reads the verdict file (its line and exit code), PENDING (its own exit, never BUSY's) while the "
-            "gate's process runs, NOT RUN [verdict] (exit 2, BRANCH) when it DIED without a verdict, NOT RUN [run] "
-            "(exit 2, ENVIRONMENT) with no run directory",
+            "run's gate holds the gate lock (or has not taken it yet), NOT RUN [verdict] (exit 2, BRANCH) when it DIED "
+            "without a verdict EVEN WHEN gate.pid names a live process (a reused pid) or another run's gate holds the "
+            "lock, NOT RUN [run] (exit 2, ENVIRONMENT) with no run directory",
             got["done"] == (1, f"{VERDICT}RED — planted ===")
-            and got["live"][0] == AWAIT_PENDING_EXIT != EXIT_BUSY and got["live"][1].startswith(AWAIT_PENDING)
-            and got["dead"][0] == 2 and read_verdict(got["dead"][1][len(VERDICT):]) == not_run("verdict")
-            and "DIED" in got["dead"][1]
+            and got["live"][0] == got["fresh"][0] == AWAIT_PENDING_EXIT != EXIT_BUSY
+            and got["live"][1].startswith(AWAIT_PENDING)
+            and got["dead"][0] == other[0] == 2 and read_verdict(got["dead"][1][len(VERDICT):]) == not_run("verdict")
+            and "DIED" in got["dead"][1] and "DIED" in other[1]
             and got["missing"][0] == 2 and read_verdict(got["missing"][1][len(VERDICT):]) == not_run("run"), str(got))
+        arm("a run directory outside any worktree's run root, or of a worktree that is gone, has no gate lock to ask (no "
+            "gate can run there); a run of the repository's own checkout asks that checkout's gate lock",
+            lock_of_run(d / "dead") is None and lock_of_run(root / "gone" / RUN_ROOT / "r") is None
+            and lock_of_run(REPO / RUN_ROOT / "r") == Host(REPO).lock_path(),
+            f"{lock_of_run(d / 'dead')} {lock_of_run(root / 'gone' / RUN_ROOT / 'r')}")
         # A handed run's name (review R1-1 of wave 1152): an agent returns `TestResults/build-local/<run>`, relative to
         # ITS worktree, and the wave and the planner read it from the main checkout.
         cwd = Path.cwd()
         os.chdir(live)   # a reader elsewhere: the handed name means the worktree's run, never one of the reader's own
         try:
-            from_elsewhere = [watch(resolve_run(Path("await") / "done", w), 0)[0] for w in (root, None)]
+            from_elsewhere = [watch(r, 0, gate_running(r))[0]
+                              for r in (resolve_run(Path("await") / "done", w) for w in (root, None))]
             os.chdir(d)
-            relative_here = watch(resolve_run("done", None), 0)[0]
+            relative_here = watch(r := resolve_run("done", None), 0, gate_running(r))[0]
         finally:
             os.chdir(cwd)
         arm("a relative run name resolves against the worktree that gated it, wherever the reader runs; an absolute one "
@@ -2479,14 +2535,22 @@ def self_test() -> int:
             == [0, 0, EXIT_BUSY, 2, 1])
 
         # The follower and the detached gate, as real processes: a planted gate that prints, waits for a go file,
-        # writes its verdict file and exits 1.
+        # writes its verdict file and exits 1. Like `Gate.run` it takes the worktree's gate lock first, then writes its pid
+        # under it, and holds the lock until the verdict file is written.
+        plock = root / "planted-gate.lock"
+
         def planted_gate(run: Path, go: Path | None = None) -> list[str]:
-            wait = f"g = pathlib.Path({str(go)!r})\nwhile not g.exists(): time.sleep(0.05)\n" if go else ""
-            return [sys.executable, "-c", "import json, pathlib, time\n"
-                    f"r = pathlib.Path({str(run)!r})\nprint('PLANTED-GATE-OUTPUT', flush=True)\n{wait}"
+            wait = f"gof = pathlib.Path({str(go)!r})\nwhile not gof.exists(): time.sleep(0.05)\n" if go else ""
+            return [sys.executable, "-c", "import json, os, pathlib, sys, time\n"
+                    f"sys.path.insert(0, {str(REPO / 'scripts')!r})\nimport run_gate_legs as g\n"
+                    f"r = pathlib.Path({str(run)!r})\n"
+                    f"lock = g.ExclusiveLock.try_take(pathlib.Path({str(plock)!r}), "
+                    f"'gate x (pid %d, since T{RUN_LABEL}%s)' % (os.getpid(), r))\n"
+                    "g.write_pid(r, os.getpid())\nprint('PLANTED-GATE-OUTPUT', flush=True)\n"
+                    f"{wait}"
                     f"line = {VERDICT!r} + 'LEG 1 ONLY (batched gating, PB2515): RED — planted ==='\n"
                     "(r / 'verdict.json').write_text(json.dumps({'verdict': 'x', 'line': line, 'exit_code': 1}))\n"
-                    "print(line, flush=True)\n"]
+                    "lock.release()\nprint(line, flush=True)\n"]
         d = root / "follow"
         d.mkdir()
         heard: list[str] = []
@@ -2531,7 +2595,7 @@ def self_test() -> int:
         follower.wait()
         survived = gate_pid is not None and _pid_alive(gate_pid)
         go.touch()
-        handed = watch(run2, 120)
+        handed = watch(run2, 120, lock_running(run2, plock))
         arm("a detached gate OUTLIVES its follower's tree kill and its verdict is read from the run directory",
             survived and handed == (1, f"{VERDICT}LEG 1 ONLY (batched gating, PB2515): RED — planted ==="),
             f"survived {survived}; {handed}")
@@ -2579,7 +2643,8 @@ def main() -> int:
         return plan_leg(Host(), args.plan_leg, [int(n) for n in args.plan_legs.split(",")], Path(args.results),
                         print_flush)
     if args.await_run:
-        code, line = watch(resolve_run(args.await_run, args.worktree), args.wait_s)
+        run = resolve_run(args.await_run, args.worktree)
+        code, line = watch(run, args.wait_s, gate_running(run))
         print(line, flush=True)
         return code
     if args.run:

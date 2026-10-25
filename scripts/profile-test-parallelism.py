@@ -86,8 +86,8 @@ def main(argv: list[str]) -> int:
     try:
         root = trx_root(path)
     except UnreadableTrx as e:
-        print(f'  !! {e}')
-        return 0
+        print(f'!! {e}', file=sys.stderr)
+        return 2   # the one input could not be read: a failure, like "no test results" below (review R1-2 of wave 20261104)
 
     by_id = {}
     for ut in root.iter(f'{{{NS["t"]}}}UnitTest'):
