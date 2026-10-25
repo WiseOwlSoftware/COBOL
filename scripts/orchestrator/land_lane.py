@@ -78,6 +78,12 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 request is still open (kb/Work PB3145; nothing queued, nothing red)  retried at this head once no open
                                                                    pull request into main owns an entry the branch
                                                                    carries (`wait_free`); never the enqueue unit's
+       exit 16 — DRIVER FILE QUEUED: an open pull request changes a file a merge driver covers that the branch changes
+                too, and GitHub's merge queue merges without the drivers (kb/Work PB3642; nothing stamped or queued,
+                nothing red)                                        retried at this head once no open pull request
+                                                                   shares such a file with the branch (`wait_free`);
+                                                                   main then comes in through the drivers; never the
+                                                                   enqueue unit's
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock, the branch's own gate had not written its      is free (`wait_free`; a gate holds it until
                 verdict yet (kb/Work PB3527, PB3662), or the gate's  its verdict is written) AND no Linux gate of the
@@ -132,8 +138,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_PREDECESSOR_QUEUED,
-                     EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE,
+from enqueue import (EXIT_CONFLICT, EXIT_DRIVER_FILE_QUEUED, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY,
+                     EXIT_PREDECESSOR_QUEUED, EXIT_QUEUE_NOT_ACTIVE, PR_LIST_FIELDS, QUEUED_LINE,
                      land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
@@ -151,7 +157,8 @@ EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved un
 #: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
 WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock (a running gate holds it until its verdict is written) and any Linux gate of the tree (linux-gate.sh --probe)",
          EXIT_LAND_BUSY: "the worktree's land lock",
-         EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries"}
+         EXIT_PREDECESSOR_QUEUED: "the open pull request of the predecessor whose DEVLOG entry it carries",
+         EXIT_DRIVER_FILE_QUEUED: "the open pull request(s) that change a merge-driver file the branch changes too (kb/Work PB3642)"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, for as long as it lives, unit or no unit, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -620,17 +627,34 @@ def predecessor_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, st
     return True, ""
 
 
+def driver_files_free(worktree: str, gh: Callable[[list[str]], tuple[int, str, str]]) -> tuple[bool, str]:
+    """Whether exit 16's wait is over (kb/Work PB3642): no open pull request into main changes a file a merge driver
+    covers that the branch changes too. enqueue.py's own reader (`driver_file_holders`) answers, as it answered `land`,
+    against the worktree's last fetched origin/main; GitHub or the range unreadable is NOT free (with why)."""
+    import enqueue  # noqa: PLC0415  (the one reader of which open pull requests share a driver-merged file)
+    wt = pathlib.Path(worktree)
+    here = enqueue.worktree_state(wt)
+    if here is None or not here.branch:
+        return False, f"{worktree} has no branch checked out"
+    held, problem = enqueue.driver_file_holders(wt, "refs/remotes/origin/main", here.branch, gh=gh)
+    if problem:
+        return False, problem
+    if held:
+        return False, "open: " + ", ".join(f"#{n} ({', '.join(files[:2])})" for n, files in sorted(held.items()))
+    return True, ""
+
+
 def wait_free(rc: int | None, worktree: str, *,
               gh: Callable[[list[str]], tuple[int, str, str]] | None = None,
               holder: Callable[[str], str | None] = linux_gate_holder) -> tuple[bool, str]:
     """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
     branch; exit 12, the worktree's gate lock is free AND no Linux gate of the tree runs (`holder`: the real probe unless
     a self-test plants it; kb/Work PB3649); exit 13, the worktree's land lock
-    is free; exit 15, no open pull request owns a DEVLOG entry the branch carries (`gh`: GitHub's reader, the real one
-    unless a self-test plants it)."""
-    if rc == EXIT_PREDECESSOR_QUEUED:
+    is free; exit 15, no open pull request owns a DEVLOG entry the branch carries; exit 16, no open pull request changes
+    a merge-driver file the branch changes too (`gh`: GitHub's reader, the real one unless a self-test plants it)."""
+    if rc in (EXIT_PREDECESSOR_QUEUED, EXIT_DRIVER_FILE_QUEUED):
         import ruleset  # noqa: PLC0415
-        return predecessor_free(worktree, gh or ruleset.real_gh)
+        return (predecessor_free if rc == EXIT_PREDECESSOR_QUEUED else driver_files_free)(worktree, gh or ruleset.real_gh)
     if rc == EXIT_GATE_BUSY:
         return gate_lock_free(worktree, holder=holder)
     if rc == EXIT_LAND_BUSY:
@@ -1508,6 +1532,45 @@ def self_test() -> int:
                and pred_relaunched == ["w2d"] and agent_work(c3d).reasons == []
                and not (lane_dir(c3d) / REARM).exists(), f"{pred_waiting} {pred_said} {pred_open} {pred_unread} "
                                                            f"{pred_own_only} {pred_relaunched}")
+
+        # 3e. PB3642: exit 16, DRIVER FILE QUEUED. The same worktree, on a branch that changes a driver-covered note while
+        #     an open pull request changes it too: the lane waits at that head, and relaunches the SAME head once no open
+        #     pull request shares a driver file with it (an unrelated pull request, or the branch's own, holds nothing).
+        pw.git("switch", "--quiet", "-c", "w2e", "main")
+        (pw.path / "kb" / "Work").mkdir(parents=True)
+        (pw.path / "kb" / "Work" / "PB9999.md").write_text("the branch's note", encoding="utf-8", newline="\n")
+        pw.git("add", "kb")
+        pw.git("commit", "--quiet", "-m", "the branch changes a work note")
+        drv_listing = {"number": 801, "headRefName": "other", "headRefOid": predecessor_oid,
+                       "files": [{"path": "kb/Work/PB9999.md"}, {"path": "src/x.cs"}]}
+        github["open"] = [drv_listing]
+        c3e = fresh("driver-file")
+        f3e = Fake([row("w2e", "WAITING TO LAND", "d1")])
+        f3e.wait = lambda rc, wt_: wait_free(rc, wt_, gh=planted_gh)
+        f3e.rows[0]["worktree"] = str(pw.path)
+        f3e.tick(c3e)
+        finish(c3e, "w2e", EXIT_DRIVER_FILE_QUEUED, "DRIVER FILE QUEUED — #801 changes kb/Work/PB9999.md", end_head="d1")
+        f3e.live.clear()
+        drv_waiting = f3e.tick(c3e)
+        drv_said = " | ".join(f3e.said)
+        drv_open = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = True
+        drv_unread = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)
+        github["fail"] = False
+        github["open"] = [{"number": 802, "headRefName": "w2e", "headRefOid": predecessor_oid, "files": [{"path": "kb/Work/PB9999.md"}]},
+                          {"number": 803, "headRefName": "elsewhere", "headRefOid": predecessor_oid, "files": [{"path": "src/y.cs"}]}]
+        drv_unrelated = wait_free(EXIT_DRIVER_FILE_QUEUED, str(pw.path), gh=planted_gh)   # its own pull request and a stranger's file
+        drv_relaunched = f3e.tick(c3e)
+        expect("exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class, "
+               "never the enqueue unit's; the lane waits at that head while enqueue.py's reader finds the pull request "
+               "(naming it and the file), an unreadable GitHub is not free, the branch's own pull request and one that "
+               "changes other files hold nothing; it relaunches the SAME head once none shares a file, with no rearm "
+               "(kb/Work PB3642)",
+               classify({"rc": EXIT_DRIVER_FILE_QUEUED}) == FREE and drv_waiting == [] and "still waits on" in drv_said
+               and drv_open == (False, "open: #801 (kb/Work/PB9999.md)")
+               and drv_unread[0] is False and "rate limited" in drv_unread[1] and drv_unrelated == (True, "")
+               and drv_relaunched == ["w2e"] and agent_work(c3e).reasons == [] and not (lane_dir(c3e) / REARM).exists(),
+               f"{drv_waiting} {drv_said} {drv_open} {drv_unread} {drv_unrelated} {drv_relaunched}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")

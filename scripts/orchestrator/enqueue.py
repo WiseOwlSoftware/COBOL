@@ -136,7 +136,11 @@ the push, the pull request or the queue (main untouched; re-run after the cause 
 gate lock, or a Linux gate of the tree runs (`land` only; nothing ran, nothing is red; above) · 13 another `land` of the branch is running: its land lock
 is held (`land` only; nothing ran, nothing is red, no report line; step 0) · 14 the branch is not TESTED at its tip: no
 recorded GREEN local gate covers it (`land` only; nothing merged; step 3) · 15 the branch carries a stamped entry of a
-predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4).
+predecessor's still-open pull request (`land` only; nothing queued, no report line; step 4) · 16 an open pull request
+changes a file a merge driver covers that the branch changes too, and GitHub's merge queue merges without the drivers
+(`land` only; nothing stamped or queued, no report line; step 4a, kb/Work PB3642: the branch is landed again once that
+pull request has merged, main then comes in through the drivers). A landing holds the repository's queue-entry lock from
+that look to its queueing, so two landings of the same file cannot both find none.
 
 AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
 checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
@@ -177,6 +181,7 @@ EXIT_GATE_BUSY = 12   # a gate of the worktree is running (it holds its gate loc
 EXIT_LAND_BUSY = 13   # another `land` of this branch holds the worktree's land lock: nothing ran, nothing is red (PB3310)
 EXIT_UNTESTED = 14    # no recorded GREEN local gate covers the branch's tip: nobody tested it (kb/Work PB3612)
 EXIT_PREDECESSOR_QUEUED = 15   # the branch carries a stamped DEVLOG entry of a still-open pull request: nothing is wrong, main will have it (kb/Work PB3145)
+EXIT_DRIVER_FILE_QUEUED = 16   # an open pull request changes a driver-merged file the branch changes too, and the merge queue merges without the drivers: nothing is wrong, nothing was queued (kb/Work PB3642)
 #: THE LAND LOCK (kb/Work PB3310): `<worktree git dir>/cobol-land.lock`, an exclusive OS lock (gate_slot.ExclusiveLock,
 #: freed when its holder dies, so a dead run never blocks a branch) that one `land` of a branch holds from before its first
 #: read to its outcome line. A branch is checked out in exactly one worktree, so the worktree's lock IS the branch's. Two
@@ -186,6 +191,12 @@ LAND_LOCK_NAME = "cobol-land.lock"
 # How many times `land` brings a moved main in before it gives up (exit 2): main moves about once per landing the queue
 # merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
+#: THE QUEUE-ENTRY LOCK (kb/Work PB3642): `<git common dir>/cobol-queue-entry.lock`, an exclusive OS lock that a landing
+#: holds from its look at the open pull requests to the moment its own pull request is open, so two landings that
+#: change one driver-merged file cannot both look, find none, and both queue (the lane starts landings side by side).
+#: The wait is the other landing's stamp, landing checks and `pr create`: minutes at the most.
+QUEUE_ENTRY_LOCK_NAME = "cobol-queue-entry.lock"
+QUEUE_ENTRY_WAIT_S = 300.0
 # The line `queue` prints once the pull request is queued, and its one reader (land_lane.py records the number, so its
 # queue watch can follow the pull request into the merge queue: kb/Work PB3527).
 QUEUED = "ENQUEUED pr={number} sha={sha} branch={branch} url={url}"
@@ -664,6 +675,67 @@ PR_LIST_FIELDS = "number,headRefName,headRefOid,files"
 FILES_LISTED = 100
 
 
+def open_pull_requests(branch: str, *, gh: Gh) -> tuple[list[tuple[int, str, set[str]]], str]:
+    """THE ONE LISTING of the open pull requests into main (`open_predecessors`, `driver_file_holders`): ((number, current
+    head, the files GitHub lists for that head) of each one but `branch`'s own, "") or ([], why GitHub could not be
+    read). A list of FILES_LISTED files or more may have been cut off."""
+    try:
+        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200", "--json", PR_LIST_FIELDS])
+    except ruleset.Unobserved as exc:
+        return [], f"GitHub gave no answer ({exc})"
+    if rc != 0:
+        return [], f"gh could not list the open pull requests (exit {rc}): {(out + err).strip()}"
+    try:
+        return [(int(pr["number"]), str(pr["headRefOid"]), {str(f["path"]) for f in pr.get("files") or []})
+                for pr in json.loads(out or "[]") if pr.get("headRefName") != branch], ""
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        return [], f"the open pull request list is not the JSON asked for ({exc})"
+
+
+def driver_file_holders(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[dict[int, list[str]], str]:
+    """THE ONE READER of "which still-open pull requests change a file a merge driver covers that this branch changes
+    too" (kb/Work PB3642): ({pull request: the shared driver-covered files}, "" | why GitHub or the range could not be
+    read). GitHub's merge queue builds its merge groups server-side with plain git, with none of
+    `merge_drivers.DRIVERS`, so two queued pull requests that edit one keyed catalogue or work note conflict inside the
+    queue although each merged cleanly through the drivers here: a branch waits (exit 16) for the open pull request
+    that shares such a file, and merges main in through the drivers once it has merged. The branch's files are its
+    own changes since its merge base with `base`; a pull request whose file list GitHub cut off (FILES_LISTED or more)
+    may change any of them, so it holds the branch for all of its driver-covered files. `land` asks it to tell a wait
+    from a queueing; the landing lane's `driver_files_free` asks it to know when the wait is over."""
+    diff = _git(wt, "diff", "--name-only", "-z", f"{base}...HEAD")
+    if diff.returncode != 0:
+        return {}, f"the branch's changed files could not be read ({diff.stderr.strip()})"
+    mine = sorted(p for p in diff.stdout.split(chr(0)) if p and merge_drivers.covered_by_driver(p))
+    if not mine:
+        return {}, ""   # nothing the drivers cover: no pull request to wait for, and no GitHub call
+    listed, problem = open_pull_requests(branch, gh=gh)
+    if problem:
+        return {}, problem
+    held: dict[int, list[str]] = {}
+    for number, _oid, paths in listed:
+        if shared := [p for p in mine if p in paths] or (mine if len(paths) >= FILES_LISTED else []):
+            held[number] = shared
+    return held, ""
+
+
+def take_queue_entry_lock(wt: pathlib.Path, label: str, *, wait_s: float = QUEUE_ENTRY_WAIT_S,
+                          pause: Callable[[float], None] | None = None) -> tuple["gate_slot.ExclusiveLock | None", str]:
+    """The queue-entry lock (QUEUE_ENTRY_LOCK_NAME), waiting up to `wait_s` for its holder: (the lock, "") or (None, the
+    holder's label). The wait is bounded by the holder's own work, never by a clock of the test's: it polls once a second."""
+    import time  # noqa: PLC0415
+    path = gate_slot.git_common_dir(wt) / QUEUE_ENTRY_LOCK_NAME
+    pause = pause or time.sleep
+    waited = 0.0
+    while True:
+        lock = gate_slot.ExclusiveLock.try_take(path, label)
+        if lock is not None:
+            return lock, ""
+        if waited >= wait_s:
+            return None, gate_slot.ExclusiveLock.holder(path) or "its holder wrote no label"
+        pause(1.0)
+        waited += 1.0
+
+
 def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tuple[dict[int, list[str]], str]:
     """THE ONE READER of "which still-open pull requests own a DEVLOG entry this branch carries" (kb/Work PB3145): (the
     open pull requests into main that add a stamped DEVLOG entry the branch carries and `base` does not have yet, each
@@ -673,17 +745,9 @@ def open_predecessors(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> tu
     (review R1-2). The branch's own pull request (a bounce's, reused by `queue`) is none of its predecessors. `land`
     asks it to tell a wait from a stop; the landing lane's `predecessor_free` asks it to know when the wait is over."""
     import devlog  # noqa: PLC0415  (scripts/: the one definition of a landing's new entry)
-    try:
-        rc, out, err = gh(["pr", "list", "--base", "main", "--state", "open", "--limit", "200", "--json", PR_LIST_FIELDS])
-    except ruleset.Unobserved as exc:
-        return {}, f"GitHub gave no answer ({exc})"
-    if rc != 0:
-        return {}, f"gh could not list the open pull requests (exit {rc}): {(out + err).strip()}"
-    try:
-        listed = [(int(pr["number"]), str(pr["headRefOid"]), {str(f["path"]) for f in pr.get("files") or []})
-                  for pr in json.loads(out or "[]") if pr.get("headRefName") != branch]
-    except (ValueError, KeyError, TypeError, AttributeError) as exc:
-        return {}, f"the open pull request list is not the JSON asked for ({exc})"
+    listed, problem = open_pull_requests(branch, gh=gh)
+    if problem:
+        return {}, problem
     try:
         carried = devlog.landing_entries(wt, base, "HEAD")[1]   # the entries main does not have yet
     except devlog.RangeError as exc:
@@ -839,7 +903,8 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
          review: Callable[[str, pathlib.Path, str], str | None] = review_gate,
          tested: Callable[[pathlib.Path, str, str], Tested] = tested_locally,
          measure: Callable[[pathlib.Path, str, int, int], None] | None = None,
-         lane: str | None = None, dry_run: bool = False, say: Say = print) -> int:
+         lane: str | None = None, dry_run: bool = False, entry_wait_s: float = QUEUE_ENTRY_WAIT_S,
+         say: Say = print) -> int:
     """THE landing step (module doc); the collaborators are parameters so the self-test drives every exit arm.
     `measure(worktree, branch, pr, gates_run)` writes the queued pull request's landing record (kb/Work PB3028; `queue`
     step 5), `gates_run` being how many gates this landing ran itself (0 unless step 3's exception fired).
@@ -1007,12 +1072,32 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         gates_run = 1
         if (rc := gate_once(gate_why)) is not None:
             return rc
-    # 4. Main again (it moves while a branch waits: R1-2), the DEVLOG stamp, the queue.
+    # 4. Main again (it moves while a branch waits: R1-2), the DEVLOG stamp, the queue. THE QUEUE-ENTRY LOCK (kb/Work
+    # PB3642) is held from the look at the open pull requests (4a) to the end of this step: the lane starts landings
+    # side by side, and without it two that change one driver-merged file would both look, find none, and both queue.
+    entry, held_by = take_queue_entry_lock(wt, f"enqueue.py land {branch} (pid {os.getpid()})", wait_s=entry_wait_s)
+    if entry is None:
+        return end(2, f"NOT QUEUED — another landing held the queue-entry lock for {entry_wait_s:.0f} s ({held_by}); re-run")
+    land_lock.append(entry)   # released by `end`, with the land lock
     for attempt in range(1, CATCH_UP + 1):
         if failed := fetch_main(wt):
             return end(2, f"NOT QUEUED — {failed}")
         if files := merge_main(wt, branch, base):
             return conflicted(files, "while the pull request was being queued")
+        # 4a. THE DRIVER-FILE GUARD (kb/Work PB3642): GitHub's merge queue merges without the merge drivers, so an open pull
+        # request that changes a file a driver covers which this branch changes too would conflict with it inside the
+        # queue. Wait for it (nothing stamped, pushed or queued): once it has merged, the merge of main above brings its
+        # change in through the drivers, and this branch queues on top of it.
+        holders, problem = driver_file_holders(wt, base, branch, gh=gh)
+        if problem:
+            return end(EXIT_GITHUB, f"NOT QUEUED — whether an open pull request changes a driver-merged file the branch "
+                                    f"changes could not be read: {problem}")
+        if holders:
+            return end(EXIT_DRIVER_FILE_QUEUED,
+                       "DRIVER FILE QUEUED — " + "; ".join(f"#{n} changes {', '.join(files[:3])}" + (", …" if len(files) > 3 else "")
+                                                           for n, files in sorted(holders.items()))
+                       + ", which the branch changes too and the merge queue merges without the merge drivers: nothing "
+                         "stamped or queued; landed again once the open pull request(s) merge")
         if (stamp or _stamp)(wt, branch) != 0:
             return end(6, "DEVLOG STAMP FAILED (above): the branch needs one `DEVLOG/pending-<slug>.md`")
         title, body = pull_request_text(wt, base, branch)
@@ -2063,6 +2148,92 @@ def self_test() -> int:
                "LAND, exit 0: nothing gated, stamped or queued, never exit 6 NO ENTRY (kb/Work PB3157)",
                rc_merged == 0 and lines[-1].startswith(verdict_line.PREFIX + "NOTHING TO LAND") and not ran
                and not stamped_merged and not log_merged, f"{rc_merged} {lines[-1:]} {ran} {stamped_merged} {log_merged}")
+        # ── the merge queue merges without the merge drivers (kb/Work PB3642) ───────────────────────────────────────────
+        # A branch that changes a file a driver covers waits (exit 16) while ANOTHER open pull request changes the same
+        # file: GitHub builds the merge group with plain git, so the two would conflict inside the queue. One branch
+        # changes the sample path of EVERY pattern of merge_drivers.DRIVERS (a new driver is guarded with no new line here).
+        samples = {d.name: p.replace("*", "9999") for d in merge_drivers.DRIVERS for p in d.patterns}
+        drv = scratch.worktree(root / "drv-wt", branch="drv", start="main")
+        for rel in samples.values():
+            (drv.path / rel).parent.mkdir(parents=True, exist_ok=True)
+            (drv.path / rel).write_text(f"the branch's {rel}", encoding="utf-8", newline="\n")
+        drv.git("add", "-A")
+        drv.git("commit", "--quiet", "-m", "the branch changes every driver-covered file")
+        drv_tip = drv.git("rev-parse", "HEAD")
+
+        def stamp_drv(w: pathlib.Path, b: str) -> int:
+            (w / "DEVLOG").mkdir(exist_ok=True)
+            (w / "DEVLOG" / "0060-pb9-the-driver-files.md").write_text(
+                "## Entry 60 — 2026-10-25 10:00 PDT — PB9: the driver files\n\nWhy.\n", encoding="utf-8", newline="\n")
+            ScratchRepo(w).git("add", "DEVLOG")
+            ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 60: stamp the entry")
+            return 0
+        drv_land = lambda gh, **kw: land(   # noqa: E731
+            root, "drv", drv.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
+            gates=gates_of(green, []), stamp=kw.pop("stamp", stamp_drv), blocked=record, say=lines.append, **kw)
+        held_by_pattern = [(path, driver_file_holders(drv.path, base_ref, "drv",
+                                                      gh=listing_gh([(900 + i, f"other{i}", "o", [path])], [])))
+                           for i, path in enumerate(samples.values())]
+        expect("driver files: for EVERY pattern of merge_drivers.DRIVERS, an open pull request that changes the pattern's file "
+               "holds a branch that changes it too, and only that file is named (a new driver is guarded by construction)",
+               len(samples) == len(merge_drivers.DRIVERS)
+               and all(merge_drivers.covered_by_driver(path) for path in samples.values())
+               and all(held == ({900 + i: [path]}, "") for i, (path, held) in enumerate(held_by_pattern)),
+               str(held_by_pattern))
+        one = next(iter(samples.values()))
+        other_files = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh(
+            [(910, "elsewhere", "o", ["src/Cobol.Net.Runtime/Other.cs", "kb/Work/PB1.md"]), (911, "drv", "o", [one])], []))
+        cut_off = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh(
+            [(912, "refactor", "o", [f"src/f{i}.cs" for i in range(FILES_LISTED)])], []))
+        expect("driver files: a pull request changing other files, or the branch's own pull request (a bounce's), holds "
+               "nothing; one whose file list GitHub cut off (a hundred files) may change any of them and holds the branch "
+               "for all its driver-covered files",
+               other_files == ({}, "") and sorted(cut_off[0].get(912, [])) == sorted(samples.values()) and not cut_off[1],
+               f"{other_files} {cut_off}")
+        no_driver_file = driver_file_holders(lw, "refs/remotes/origin/main", "fix", gh=lambda args: (_ for _ in ()).throw(
+            AssertionError("a branch with no driver-covered file asked GitHub")))
+        expect("driver files: a branch that changes no driver-covered file never asks GitHub", no_driver_file == ({}, ""),
+               str(no_driver_file))
+        notes[:] = []
+        log_held: list[list[str]] = []
+        stamped_held: list[str] = []
+        rc_held = drv_land(listing_gh([(920, "other", "o", [one, "src/x.cs"])], log_held),
+                           stamp=lambda w, b: stamped_held.append(b) or 0)
+        held_line = lines[-1]
+        expect("land: a branch whose driver-merged file an open pull request changes too waits: exit 16, DRIVER FILE QUEUED naming "
+               "the pull request and the file, with nothing stamped, pushed, opened or queued and no report line",
+               rc_held == EXIT_DRIVER_FILE_QUEUED and held_line.startswith(verdict_line.PREFIX + "DRIVER FILE QUEUED")
+               and "#920" in held_line and one in held_line and not stamped_held and not notes
+               and not [a for a in log_held if a[:2] in (["pr", "create"], ["pr", "merge"])]
+               and "drv" not in scratch.git("ls-remote", "--heads", "origin") and drv.git("rev-parse", "HEAD") == drv_tip,
+               f"{rc_held} {held_line} {stamped_held} {notes} {log_held}")
+        rc_unread_drv = drv_land(listing_gh([], [], fail=True))
+        unread_drv_line = lines[-1]
+        expect("land: GitHub that cannot list the open pull requests is exit 9 (retried once by the lane), never a queueing "
+               "past a pull request nobody could see",
+               rc_unread_drv == EXIT_GITHUB and "could not be read" in unread_drv_line
+               and "drv" not in scratch.git("ls-remote", "--heads", "origin"), f"{rc_unread_drv} {unread_drv_line}")
+        entry_hold = gate_slot.ExclusiveLock.try_take(gate_slot.git_common_dir(drv.path) / QUEUE_ENTRY_LOCK_NAME,
+                                                      "enqueue.py land other (pid 4243)")
+        try:
+            rc_busy = drv_land(listing_gh([], []), entry_wait_s=0.0)
+            busy_line = lines[-1]
+        finally:
+            entry_hold.release()
+        expect("land: another landing holding the queue-entry lock past the wait is exit 2, NOT QUEUED naming its holder: "
+               "two landings of one driver file never both look and both queue",
+               rc_busy == 2 and busy_line.startswith(verdict_line.PREFIX + "NOT QUEUED") and "pid 4243" in busy_line,
+               f"{rc_busy} {busy_line}")
+        log_free: list[list[str]] = []
+        rc_free = drv_land(listing_gh([], log_free), measure=lambda w, b, n, g: None)
+        lock_again = gate_slot.ExclusiveLock.try_take(gate_slot.git_common_dir(drv.path) / QUEUE_ENTRY_LOCK_NAME, "probe")
+        expect("land: once the open pull request has merged (none lists the file) the same branch is stamped and queued, and "
+               "the queue-entry lock is free again for the next landing",
+               rc_free == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED")
+               and any(a[:2] == ["pr", "create"] for a in log_free) and lock_again is not None,
+               f"{rc_free} {lines[-2:]} {log_free}")
+        if lock_again is not None:
+            lock_again.release()
         # ── the gate rows and the shared gate slot (kb/Work PB3104) ─────────────────────────────────────────────────
         # A probe row is a script in main's checkout (scripts/probe-gate.py, above) that hands its gate to the driver, as
         # every row must: run_gates reads it in `wt` (the scratch repository's main worktree).
