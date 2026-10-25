@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb2919_hex_literal_ff_is_the_storage_byte
-      *> rules: [GR-8.3.3.2.4-4, DOC-A.1-95]
+      *> rules: [GR-8.3.3.2.4-4, GR-8.3.3.2.4-5, DOC-A.1-95]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

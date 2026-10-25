@@ -89,6 +89,25 @@ public sealed class IdentifierInjectivityTests
             ObjectRefDescriptor.ActiveClass(OoStandardClasses.BaseName, factory: true).ClrTypeName);
     }
 
+    /// <summary>kb/Work PB929 (Annex A.1 item 121, docs/CONFORMANCE.md DOC-A.1-121; ISO §11.7.4 GR1 a), "the name is
+    /// implementor-defined"): the documented accessor name is <c>__GET_&lt;P&gt;</c> / <c>__SET_&lt;P&gt;</c>, <c>&lt;P&gt;</c> the
+    /// upper-cased property-name written by <see cref="DataItem.IdentifierCharacters"/>, for EVERY legal property-name. A
+    /// name spelled like a C# keyword, or starting with a digit (a user-defined word needs one letter, ISO §8.3.2.2 3)), takes
+    /// neither <see cref="DataItem.Sanitize"/>'s <c>@</c> nor its leading underscore: the prefix makes both useless, and the
+    /// digit arm's <c>__GET__1LONG</c> was not the name the determination documents (<c>__GET_1LONG</c>).</summary>
+    [Theory]
+    [InlineData("my-bal", "MY_BAL")]
+    [InlineData("my_bal", "MY_u005F_BAL")]
+    [InlineData("long", "LONG")]
+    [InlineData("int", "INT")]
+    [InlineData("1long", "1LONG")]
+    [InlineData("2nd-val", "2ND_VAL")]
+    public void PropertyAccessorNames_AreTheDocumentedPrefixPlusTheWholeWord(string propertyName, string suffix)
+    {
+        Assert.Equal("__GET_" + suffix, NamingConvention.GetAccessorName(propertyName));
+        Assert.Equal("__SET_" + suffix, NamingConvention.SetAccessorName(propertyName));
+    }
+
     private static IEnumerable<string> Words(string alphabet, int maxLength)
     {
         IEnumerable<string> level = [""];
