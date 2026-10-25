@@ -132,10 +132,11 @@ def self_test() -> int:
 
     def spec(rel: str, notes: str) -> None:
         (root / "scratch" / rel).write_text(f"DISPATCH SPEC — wave 9001 (A), FIX: {notes}\nBrief: x PB9999\n",
-                                            encoding="utf-8")
+                                            encoding="utf-8", newline="\n")
 
     def report(name: str, header: str) -> None:
-        (root / "scratch" / "reports" / name).write_text(header + "\n## body naming PB9998\n", encoding="utf-8")
+        (root / "scratch" / "reports" / name).write_text(header + "\n## body naming PB9998\n", encoding="utf-8",
+                                                         newline="\n")
 
     spec("w9001/msg-w9001-a.txt", "PB1001")
     spec("w9001/msg-w9001-b.txt", "PB1002, PB1003, PB1004")
