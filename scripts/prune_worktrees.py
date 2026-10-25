@@ -31,14 +31,20 @@ who acts next:
                    IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings(): read from the findings file's
                    last verdict, review_findings.last_verdict, never from a report's stamp), and so is every WAITING TO
                    LAND branch a TORN findings file names or that contains a head it names. Only the first kind has a live
-                   owner of its own (owned(): what the planner's FINDINGS arm waits on).
+                   owner of its own (owned(): what the planner's FINDINGS arm waits on; locked(): its lock-only half, a
+                   live agent holding the worktree, which the planner's finisher units wait on, kb/Work PB3653).
+                   An UNFINISHED (SPLIT, NOT STARTED) branch another branch carries is IN FLIGHT too, not a decision
+                   (kb/Work PB3652): contained in a branch above, or REPLAYED by one (every commit of it is held, by
+                   cherry-pick or identity, by an outranking branch nobody carries; replay_view, the planner's own
+                   rule, so the survey and the planner never disagree on WHO carries whom).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
-       the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). A
-       report naming no HEAD, or followed by a commit no report describes (an agent resumed after writing it), covers
-       nothing: DECISION, with the count;
+       the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
+       report's HEAD is its header's HEAD field, else the head its review stamp names (plan_wave.parse_report: the
+       reviewer stamps the head it reviewed, kb/Work PB3476). A report naming neither, or followed by a commit no
+       report describes (an agent resumed after writing it), covers nothing: DECISION, with the count;
     2. its header's review stamp COVERS the tip (`stamp_covers`, the one rule the planner's FINDINGS arm reads too,
        kb/Work PB3394): the stamp names the tip, or an older head the same coverage reaches; CLEAN and FINDINGS alike;
     3. the landing lane's newest attempt AT THE TIP (land_lane.view: its head, or the end head its run left).
@@ -145,7 +151,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Iterable
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts' / 'orchestrator'))
@@ -350,6 +356,18 @@ def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int]
     return {b: settled[b] for b in branches}
 
 
+def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[str], graph: Ancestry) -> dict[str, Replay]:
+    """`replays` over the branches both of its readers mean (kb/Work PB3170, PB3652): the PLANNER (plan_wave.branch_replays:
+    which branch gets a finisher) and the SURVEY (contained(): which branch is a DECISION row). One function builds the
+    inputs, so the two cannot disagree on who carries whom. `ranked`: {branch: the position of its newest report,
+    oldest first} for each UNLANDED branch that has a report: the branches allowed to carry work, the later report
+    winning a tie. `unlanded`: the other unlanded branches (commits naming a note, no report). A branch a kb/Work note
+    records ABANDONED (`abandoned`, abandon_records) carries nothing and is no source."""
+    carriers = [b for b in ranked if b not in abandoned]
+    return replays(sorted(set(carriers) | {b for b in unlanded if b not in abandoned}), carriers,
+                   lambda b: ranked.get(b, -1), graph)
+
+
 def branch_graph(branches, repo=REPO) -> Ancestry:
     """THE ancestry every classify() of one pass reads (git_batch.Ancestry: one resolve and one `git log` for every
     branch, never a `merge-base` per branch, kb/Work PB3582)."""
@@ -362,10 +380,13 @@ def classify(branch, names, graph: Ancestry, repo=REPO, coord_dir: pathlib.Path 
     if graph.on_base(graph.sha(branch) or branch):
         return 'MERGED', [], [], ''
     # ANY added file absent from main counts (2026-10-04: a branch that added only scripts/ and docs/ was classified
-    # LANDED and would have been deleted)
+    # LANDED and would have been deleted), except the paths that are never work (coord.is_work: the one list, kb/Work
+    # PB3465, PB3474). The `tools/` exclusion this once carried named the claude-skills submodule, whose gitlink is
+    # never an ADDED path of a branch cut from main, and also hid every added file of tools/ArchCensus, tools/impact and
+    # tools/rr: a branch adding only those read CHECK with no added file named, not UNLANDED (kb/Work PB3474).
     absent = absent_from('origin/main', [
         f for f in git('diff', '--name-only', '--diff-filter=A', 'origin/main...' + branch, cwd=repo).stdout.splitlines()
-        if f and not f.startswith(('TestResults/', 'tools/')) and f != 'STATUS.md'], repo)
+        if f and coord.is_work(f)], repo)
     # The names the branch's NET change declares (merge base to tip), never each commit's: a name one WIP commit added
     # and a later commit deleted is not lost (kb/Work PB2708: 908-1's RunsOfEqual, added in fb4c17001, gone at its head).
     declared = set()
@@ -721,7 +742,8 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         if rep.age_min > stale_hours * 60:
             return 'DECISION', (f'{rep.name}: {rep.status} {rep.age_min / 60:.0f} h ago and never landed (over '
                                 f'{stale_hours:g} h): land it or record why not; ' + evidence(row))
-        uncovered = ('the report names no HEAD, so it describes no commit of the branch' if not rep.head else
+        uncovered = ('the report names no HEAD and carries no review stamp, so it describes no commit of the branch'
+                     if not rep.head else
                      f'the report\'s HEAD {rep.head[:12]} is not a commit of this branch' if row.report_since is None else
                      f'{len(row.report_since)} commit(s) since the report\'s HEAD {rep.head[:12]} that no report '
                      f'describes (newest {row.report_since[0][:12]}): a resumed agent rewrites its report'
@@ -903,7 +925,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Repor
             r.report_since = unreviewed_since(r.report.head, r.tip, repo=repo, graph=graph)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
                                    prs=prs, lane=lane)
-    contained(rows, graph)
+    contained(rows, graph, reports, pathlib.Path(repo) / 'kb' / 'Work')
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
     stamped = [r.review.file for r in reports if r.review and r.review.file]
@@ -928,7 +950,7 @@ CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED
 CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
 
 
-def contained(rows: list[Row], graph: Ancestry) -> None:
+def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir: pathlib.Path | None) -> None:
     """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
     tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
     (CARRIER_STATES) or whose review ended FINDINGS (finisher_due: the planner owns its finisher, and everything it
@@ -944,15 +966,32 @@ def contained(rows: list[Row], graph: Ancestry) -> None:
     "land the clean links as they come"): a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at once,
     its successor's pull request merging on top, where until then it read IN FLIGHT and waited for its successor (the
     train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
-    the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
+    the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing.
+
+    AN UNFINISHED (SPLIT, NOT STARTED) BRANCH IS CARRIED TOO (kb/Work PB3652): the planner reads one a finished branch
+    contains (plan_wave.branch_carrier) or that another branch REPLAYS (plan_wave.branch_replays: the planner's own
+    FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor, so the successor is no descendant of it)
+    as carried: under --drain it waits for the carrier, and otherwise its finisher's pred names the carrier (as for a
+    carried FINDINGS branch). Either way the work lands through the carrier, and the survey listed it as a DECISION row
+    regardless: the predecessor of a merge stayed a
+    DECISION beside its carrier, and a cherry-picked one until its successor landed. Its row now names its carrier by
+    the planner's own rule (`replay_view`, the same function): a branch every commit of which an outranking, uncarried
+    branch holds lands through that branch. The replay arm reads only a DECISION row the planner plans from (no report,
+    or an unfinished one; never a FINDINGS stamp: its finisher answers the findings), and the carrier may be in any
+    state: the planner owns its finisher, so the carried row is no decision either."""
+    import plan_wave  # noqa: PLC0415  (it imports this module back, lazily: no cycle at import time)
     carriers = [c for c in rows if c.report and c.tip and (c.state in CARRIER_STATES or finisher_due(c))]
     candidates = []
+    replayable = set()   # the candidates the replay arm reads too: the rows the planner plans a finisher from
     for r in rows:
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
+        unfinished = bool(r.report) and r.report.status in plan_wave.FINISH_STATUSES
         if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES \
-                or (r.state == 'DECISION' and r.report is not None and not findings):
+                or (r.state == 'DECISION' and r.report is not None and not findings and not unfinished):
             continue
         candidates.append(r)
+        if r.state == 'DECISION' and not findings:
+            replayable.add(r.name)
     if not candidates:
         return
     # NO git process per carrier or pair: the survey's graph (git_batch.Ancestry, kb/Work PB3582; the pairwise
@@ -961,11 +1000,34 @@ def contained(rows: list[Row], graph: Ancestry) -> None:
     # of origin/main, and it is an ancestor of a carrier's tip exactly when it is one of the commits that tip has beyond
     # origin/main (graph.beyond). With no origin/main (a repository that never fetched one) the graph excludes nothing:
     # every commit of the carrier's tip.
+    replay = survey_replays(rows, reports, graph, work_dir) if replayable else {}
+    by_name = {r.name: r for r in rows}
     for r in candidates:
         c = next((c for c in carriers if c.tip != r.tip and r.tip in graph.beyond(c.tip)), None)
         if c:
             r.state, r.carrier = 'IN FLIGHT', c.name
             r.why = f'contained in {c.name} ({c.state}): its work lands through that branch; ' + evidence(r)
+        elif r.name in replayable and (rp := replay.get(r.name)) and rp.carrier:
+            r.state, r.carrier = 'IN FLIGHT', rp.carrier
+            r.why = (f'replayed by {rp.carrier} ({by_name[rp.carrier].state}): every commit of it is on that branch, '
+                     f'patch-equivalent or identical, so its work lands through it and the planner plans no finisher '
+                     f'of its own (kb/Work PB3170, PB3652); ' + evidence(r))
+
+
+def survey_replays(rows: list[Row], reports: list[Report], graph: Ancestry,
+                   work_dir: pathlib.Path | None) -> dict[str, Replay]:
+    """{branch: Replay} for the survey's unlanded branches, by the planner's own function (replay_view; kb/Work PB3652).
+    A branch with a report is ranked by the position of its newest report in `reports` (oldest first), as the planner
+    ranks it; a branch with no report is carried but carries nothing. `work_dir` (kb/Work): where an ABANDONED branch
+    is recorded, which carries nothing and is no source (None: no register to read)."""
+    pos = {id(rep): i for i, rep in enumerate(reports)}
+    unlanded = [r for r in rows if r.tip and r.content not in LANDED_CONTENT]
+    ranked = {r.name: pos[id(r.report)] for r in unlanded if r.report and id(r.report) in pos}
+    if not ranked:
+        return {}   # nobody can carry
+    names = [r.name for r in unlanded if r.content in ('UNLANDED', 'CHECK')]
+    abandoned = set(abandon_records(sorted(set(ranked) | set(names)), work_dir)) if work_dir and work_dir.is_dir() else set()
+    return replay_view(ranked, names, abandoned, graph)
 
 
 def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
@@ -1050,6 +1112,18 @@ def owned(rows: list[Row]) -> set[str]:
     nothing about who works on THIS branch. The planner's FINDINGS arm reads this set (plan_wave.plan `owned`, kb/Work
     PB3311): the bare state made a carried FINDINGS branch wait for an answer nobody was writing (review R1-1)."""
     return {r.name for r in rows if r.state == 'IN FLIGHT' and not r.carrier and not r.waits_on}
+
+
+def locked(rows: list[Row], live: Callable[[str | None], bool] = live_lock) -> set[str]:
+    """The LOCK-ONLY half of owned() (kb/Work PB3653): the branches whose worktree a live agent holds (live_lock, the
+    one liveness rule lifecycle() reads first). owned() folds three signals into one set: this lock, a dispatch-ledger
+    group still out, and a touch inside --min-age. The planner's finisher arm needs them apart. A ledger dispatch
+    leaves its own record (plan_wave.held_by_dispatch), and a just-touched SPLIT branch is the normal state of one
+    whose agent has just returned (holding it would stall every finisher for --min-age), but a lock is someone working
+    IN that worktree right now with no record anywhere else, e.g. an agent the operator started by hand on a SPLIT
+    branch: a finisher planned over it would cherry-pick the same commits twice (plan_wave.plan's branch-unit hold,
+    kb/Work PB2974). `live`: the survey's liveness probe (a self-test's fake)."""
+    return {r.name for r in rows if live(r.lock)}
 
 
 def verdict(rows: list[Row]) -> str:
@@ -1286,13 +1360,42 @@ def self_test() -> int:
                      # DISCHARGED report with branch work, one whose HEAD is its base, and a DONE report naming no HEAD
                      ('lane-pred', 'src/LP.cs'), ('lane-free', 'src/LF.cs'), ('lane-done', 'src/LD.cs'),
                      ('lane-running', 'src/LR.cs'), ('discharged', 'src/DS.cs'), ('discharged-empty', 'src/DE.cs'),
-                     ('no-head', 'src/NH.cs')):
+                     ('no-head', 'src/NH.cs'), ('no-head-bare', 'src/NB.cs')):
             scratch.git('switch', '-q', '-c', b, 'main')
             commit(f, f'class {b.replace("-", "_").title()}X {{}}\n', b)
         scratch.git('switch', '-q', '-c', 'lane-stopped', 'lane-pred')
         commit('src/LS.cs', 'class LaneStoppedX {}\n', 'lane-stopped')
+        # kb/Work PB3652: an UNFINISHED (SPLIT) branch another branch carries is no decision. `rp-pred` is replayed by
+        # cherry-pick (the planner's FINISH-FIRST pred) in `rp-succ`; `rp-part` has one commit `rp-partc` lacks;
+        # `rp-gone` is replayed by `rp-dead`, which a kb/Work note records ABANDONED (a dead branch carries nothing);
+        # `an-pred` is an ANCESTOR of `an-succ` (a finished branch awaiting its review)
+        scratch.git('switch', '-q', '-c', 'rp-pred', 'main')
+        commit('src/RP.cs', 'class RpPredX {}\n', 'rp-pred')
+        rp_pred = scratch.git('rev-parse', 'rp-pred')
+        scratch.git('switch', '-q', '-c', 'rp-succ', 'main')
+        scratch.git('cherry-pick', rp_pred)
+        commit('src/RS.cs', 'class RpSuccX {}\n', 'rp-succ')
+        scratch.git('switch', '-q', '-c', 'rp-part', 'main')
+        commit('src/RQ.cs', 'class RpPartOneX {}\n', 'rp-part one')
+        rp_part_one = scratch.git('rev-parse', 'rp-part')
+        commit('src/RR.cs', 'class RpPartTwoX {}\n', 'rp-part two')
+        scratch.git('switch', '-q', '-c', 'rp-partc', 'main')
+        scratch.git('cherry-pick', rp_part_one)
+        commit('src/RT.cs', 'class RpPartcX {}\n', 'rp-partc')
+        scratch.git('switch', '-q', '-c', 'rp-gone', 'main')
+        commit('src/RG.cs', 'class RpGoneX {}\n', 'rp-gone')
+        rp_gone = scratch.git('rev-parse', 'rp-gone')
+        scratch.git('switch', '-q', '-c', 'rp-dead', 'main')
+        scratch.git('cherry-pick', rp_gone)
+        commit('src/RD.cs', 'class RpDeadX {}\n', 'rp-dead')
+        scratch.git('switch', '-q', '-c', 'an-pred', 'main')
+        commit('src/AP.cs', 'class AnPredX {}\n', 'an-pred')
+        scratch.git('switch', '-q', '-c', 'an-succ', 'an-pred')
+        commit('src/AS.cs', 'class AnSuccX {}\n', 'an-succ')
+        scratch.git('switch', '-q', 'main')
+        scratch.write({'kb/Work/PB9.md': '`rp-dead` is ABANDONED, superseded by nothing.\n'})
         lane_at = {b: scratch.git('rev-parse', b) for b in ('lane-stopped', 'lane-free', 'lane-done', 'lane-running',
-                                                                  'discharged', 'discharged-empty', 'no-head')}
+                                                                  'discharged', 'discharged-empty', 'no-head', 'no-head-bare')}
         resumed_at = scratch.git('rev-parse', 'resumed')
         scratch.git('switch', '-q', 'resumed')
         commit('src/J.cs', 'class ResumedX { int AfterTheReport; }\n', 'a commit no report describes')
@@ -1379,7 +1482,9 @@ def self_test() -> int:
             [{'cluster': 'K', 'branch': 'unlanded-train', 'base': scratch.git('rev-parse', 'main'),
               'head': scratch.git('rev-parse', 'unlanded-train')}]), encoding='utf-8', newline="\n")
         for b, f, name in (('carried', 'src/K.cs', 'KiloCarried'), ('carried-moved', 'src/M.cs', 'MikeMoved'),
-                           ('picked', 'src/P.cs', 'PapaPicked'), ('picked-lost', 'src/Q.cs', 'QuebecLost')):
+                           ('picked', 'src/P.cs', 'PapaPicked'), ('picked-lost', 'src/Q.cs', 'QuebecLost'),
+                           # kb/Work PB3474: a file added under tools/ is work, not the claude-skills submodule's gitlink
+                           ('tools-only', 'tools/Extra/New.cs', 'ToolsOnly')):
             scratch.git('switch', '-q', '-c', b, 'main')
             commit(f, f'class {name} {{}}\n', b)
         scratch.git('switch', '-q', '-c', 'add-del', 'main')
@@ -1524,8 +1629,21 @@ def self_test() -> int:
                                           f'**Review:** CLEAN w9998v-r1 {lane_at["discharged"]}\n', 10),
                 ('w9998w-PB23-report.md', f'Status: DISCHARGED\nBranch: discharged-empty · base {main_at} · head {main_at}\n'
                                           f'**Review:** CLEAN w9998w-r1 {lane_at["discharged-empty"]}\n', 10),
-                ('w9998x-PB24-report.md', 'Status: DONE\nBranch: no-head\n'
+                # kb/Work PB3476: a header whose HEAD gives no sha takes the head its review stamp names; with no stamp
+                # either it describes no commit of the branch
+                ('w9998x-PB24-report.md', 'Status: DONE\nBranch: no-head\n**HEAD:** see the trailing commit\n'
                                           f'**Review:** CLEAN w9998x-r1 {lane_at["no-head"]}\n', 10),
+                ('w9998y-PB25-report.md', 'Status: DONE\nBranch: no-head-bare\n**HEAD:** see the trailing commit\n', 10),
+                # kb/Work PB3652: SPLIT branches another branch carries (replayed by cherry-pick, or an ancestor of a
+                # finished one), and the ones that stay decisions (partly replayed, replayed by an ABANDONED branch)
+                ('w9990a-PB60-report.md', 'SPLIT\nBranch: rp-pred\n', 10),
+                ('w9990b-PB61-report.md', 'SPLIT\nBranch: rp-succ\n', 10),
+                ('w9990c-PB62-report.md', 'SPLIT\nBranch: rp-part\n', 10),
+                ('w9990d-PB63-report.md', 'SPLIT\nBranch: rp-partc\n', 10),
+                ('w9990e-PB64-report.md', 'SPLIT\nBranch: rp-gone\n', 10),
+                ('w9990f-PB65-report.md', 'SPLIT\nBranch: rp-dead\n', 10),
+                ('w9990g-PB66-report.md', 'SPLIT\nBranch: an-pred\n', 10),
+                ('w9990h-PB67-report.md', f'Status: DONE\nBranch: an-succ\nHEAD: {scratch.git("rev-parse", "an-succ")}\n', 10),
                 ('w9998b-PB2-report.md', 'SPLIT\nBranch: split-branch\n', 10),
                 ('w9998c-PB3-report-v2.md', 'Status: DONE\nBranch: orphan\n', 10),        # suffixed: invisible
                 ('w9998d-PB4-report.md', '**Status:** DONE · **branch:** `superseded`\n', 10),
@@ -1592,19 +1710,21 @@ def self_test() -> int:
                 'dirty-merged': 'DECISION', 'agent-live': 'IN FLIGHT', 'agent-dead': 'LANDED', '(detached) pin': 'DECISION',
                 'modified-only': 'DECISION', 'unreadable': 'DECISION',
                 'carried': 'LANDED', 'carried-moved': 'DECISION', 'add-del': 'DECISION', 'picked': 'LANDED',
-                'picked-lost': 'DECISION', 'unlanded-train': 'DECISION', 'ejected': 'DECISION',
+                'picked-lost': 'DECISION', 'tools-only': 'DECISION', 'unlanded-train': 'DECISION', 'ejected': 'DECISION',
                 'unreviewed': 'WAITING FOR REVIEW', 'review-findings': 'DECISION', 'reviewed-moved': 'WAITING FOR REVIEW',
                 'pred': 'IN FLIGHT', 'succ': 'WAITING TO LAND', 'fnd-pred': 'IN FLIGHT', 'fnd-fix': 'WAITING TO LAND',
                 'reviewed-stamped': 'WAITING TO LAND',
                 'lane-stopped': 'STOPPED', 'lane-pred': 'IN FLIGHT', 'lane-free': 'WAITING TO LAND',
                 'lane-done': 'ENQUEUED', 'lane-running': 'WAITING TO LAND', 'discharged': 'WAITING TO LAND',
-                'discharged-empty': 'DECISION', 'no-head': 'DECISION',
+                'discharged-empty': 'DECISION', 'no-head': 'WAITING TO LAND', 'no-head-bare': 'DECISION',
                 'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
                 'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
                 'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT',
                 'gpred': 'IN FLIGHT', 'gsucc': 'DECISION', 'hpred': 'IN FLIGHT', 'hsucc': 'WAITING FOR REVIEW',
-                'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION'}
+                'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION',
+                'rp-pred': 'IN FLIGHT', 'rp-succ': 'DECISION', 'rp-part': 'DECISION', 'rp-partc': 'DECISION',
+                'rp-gone': 'DECISION', 'rp-dead': 'DECISION', 'an-pred': 'IN FLIGHT', 'an-succ': 'WAITING FOR REVIEW'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1623,7 +1743,11 @@ def self_test() -> int:
               f'an attempt at another head does not decide this tip: {rows["done-branch"].why}')
         check('DISCHARGED' in rows['discharged-empty'].why and 'Review CLEAN' not in rows['discharged-empty'].why,
               f'a DISCHARGED report whose HEAD is its base is not finished: {rows["discharged-empty"].why}')
-        check('names no HEAD' in rows['no-head'].why, f'a report naming no HEAD covers nothing: {rows["no-head"].why}')
+        check('names no HEAD' in rows['no-head-bare'].why,
+              f'a report naming no HEAD and carrying no review stamp covers nothing: {rows["no-head-bare"].why}')
+        check('Review CLEAN at' in rows['no-head'].why and rows['no-head'].report.head == lane_at['no-head'],
+              f'a report whose HEAD gives no sha is covered by the head its CLEAN stamp names (PB3476): '
+              f'{rows["no-head"].why}')
         check('1 commit(s) since the report' in rows['resumed'].why,
               f'a commit after the report that no report describes is a DECISION, counted: {rows["resumed"].why}')
         check(rows['landed-content'].content == 'LANDED', 'a branch re-applied on main classifies LANDED by content')
@@ -1658,6 +1782,16 @@ def self_test() -> int:
               f'the planner plans no finisher for a FINDINGS stamp at an older head (WAITING FOR REVIEW, as the survey '
               f'reads it) and one for a stamp that covers the tip: groups {fins}, waiting {plan["waiting"]}')
         check('contained in succ' in rows['pred'].why, f'a predecessor lands through its successor: {rows["pred"].why}')
+        # kb/Work PB3652: the survey reads the planner's own carrier rule (replay_view) and ancestry for a SPLIT branch too
+        check((rows['rp-pred'].carrier, 'replayed by rp-succ (DECISION)' in rows['rp-pred'].why,
+               rows['rp-succ'].carrier, rows['rp-part'].carrier, rows['rp-partc'].carrier, rows['rp-gone'].carrier)
+              == ('rp-succ', True, '', '', '', ''),
+              f'a SPLIT branch another SPLIT branch replays by cherry-pick is carried, not a decision; a partly '
+              f'replayed one and one replayed by an ABANDONED branch are decisions: {rows["rp-pred"].why}')
+        check((rows['an-pred'].carrier, 'contained in an-succ (WAITING FOR REVIEW)' in rows['an-pred'].why)
+              == ('an-succ', True),
+              f'a SPLIT branch that a finished branch contains lands through it (the planner\'s branch_carrier): '
+              f'{rows["an-pred"].why}')
         check('contained in fnd-fix' in rows['fnd-pred'].why,
               f'a FINDINGS branch its finisher merged lands through the finisher: {rows["fnd-pred"].why}')
         # owned(): IN FLIGHT by the branch's OWN lifecycle only; a contained branch names its carrier and is not owned
@@ -1665,8 +1799,14 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc', 'gpred', 'hpred', 'rp-pred', 'an-pred'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
+        # kb/Work PB3653: locked() is the LOCK-ONLY half of owned(): a live agent's lock, never a ledger group or a
+        # recent touch (which owned() folds in), and never a lock whose pid is dead
+        lock_set = locked(list(rows.values()), live)
+        check(lock_set == {'agent-live'} and lock_set <= live_set
+              and {'fresh', 'w9999a-ledger'} <= live_set and not ({'fresh', 'w9999a-ledger'} & lock_set),
+              f'locked = the branches a live agent LOCKS; owned also holds the ledger and the touch: {sorted(lock_set)}')
         # kb/Work PB3381: no hold. A predecessor reviewed CLEAN keeps its own lifecycle inside an unreviewed successor;
         # a successor carrying another note's unanswered FINDINGS waits on that branch; a finisher of the SAME note
         # (fnd-fix, above) carries them to answer them and lands
@@ -1787,6 +1927,9 @@ def self_test() -> int:
         check(rows['carried-moved'].content == 'CHECK', 'a branch that moved past the head its train took is not carried')
         check('TransientName' not in rows['add-del'].lost,
               f'a name one commit added and the next deleted is not lost: {rows["add-del"].lost}')
+        check(rows['tools-only'].content == 'UNLANDED' and rows['tools-only'].absent == ['tools/Extra/New.cs'],
+              f'a branch that adds only a file under tools/ is UNLANDED work, its file named, not an unnamed CHECK (kb/Work PB3474): '
+              f'{rows["tools-only"].content} {rows["tools-only"].absent}')
         check('patch-equivalent' in rows['picked'].why, f'a cherry-picked branch says so: {rows["picked"].why}')
         check(rows['picked-lost'].content == 'CHECK' and rows['picked-lost'].lost == ['QuebecLost'],
               f'a cherry-picked branch with a name main lacks stays CHECK: {rows["picked-lost"].lost}')
@@ -1948,8 +2091,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 56 · 15 in flight · 5 waiting for review · '
-                                                      '9 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 66 · 17 in flight · 6 waiting for review · '
+                                                      '10 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
                                                       '0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
