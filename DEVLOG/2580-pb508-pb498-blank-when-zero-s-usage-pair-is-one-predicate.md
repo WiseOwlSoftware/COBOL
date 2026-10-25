@@ -1,4 +1,4 @@
-## PB508 + PB498: BLANK WHEN ZERO's usage pair is one predicate, and three GR6 citations name the rule they quote
+## Entry 2580 — 2026-10-25 15:54 PDT — PB508 + PB498: BLANK WHEN ZERO's usage pair is one predicate, and three GR6 citations name the rule they quote
 
 **PB508 (re-probe).** The note's finding (the GR2 promotion hard-codes usage display) had already been fixed by PB646, which
 made national-form numerics real: `PIC 9(5) USAGE NATIONAL BLANK WHEN ZERO` blanks on a stored zero like its display twin,
@@ -38,3 +38,4 @@ other three claimed rows were already CONFORMS).
 **Self-review.** Architecture: one predicate for one sentence, beside its siblings. Silent failure: the unit test fails
 loudly if the measurement reaches no usage in the pair. Comment accuracy: the two stale comments above fixed. Test coverage:
 positive, refusal and the structural pin each fail under the reverted predicate or a re-spelled one.
+
