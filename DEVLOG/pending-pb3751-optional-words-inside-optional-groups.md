@@ -37,7 +37,9 @@ from 8 to 9 to keep the bound of three rows per partition. The `DESIGN-test-buil
 that enforces that bound.
 
 **Rows.** FMT-13.18.39.2 already read CONFORMS while `PAGE IS` was refused. It is re-affirmed with the new
-witnesses (batch `w20261505c-PB3751`, GAP 31 → 31). No row closes.
+witnesses (batch `w20261505c-PB3751`, GAP 31 → 31). The corrected §14.9.9.2 figure changed FMT-14.9.9.2's
+digest, so the rule catalog was regenerated and that row re-affirmed in batch `w20261505c-PB3751-continue`. Its
+notes had recorded the page-604-versus-page-732 "contradiction", and that reading is now withdrawn. No row closes.
 
 **Left as a lead.** A declared data item named MESSAGE, which is not reserved at 2023, is retyped to IDENTIFIER, so
 `CONTINUE [AFTER] MESSAGE RECEIVED` fails. That happens with AFTER written too, so it predates this change.
