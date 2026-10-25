@@ -489,9 +489,12 @@ public static class ActivationRelations
     }
 
     /// <summary>A figurative constant or an ALL literal written as an argument.</summary>
-    private static bool IsFigurative(ActivationDescription d) =>
-        d.Shape is ActivationShape.Literal && d.Category is ActivationCategory.Figurative
-            or ActivationCategory.FigurativeZero or ActivationCategory.FigurativeBoolean;
+    private static bool IsFigurative(ActivationDescription d) => FigurativeSenderOf(d) is not null;
+
+    /// <summary>The §14.9.25.3 sender a figurative-constant or ALL-literal argument stands for, or null when
+    /// <paramref name="d"/> is no such argument.</summary>
+    private static FigurativeSender? FigurativeSenderOf(ActivationDescription d) =>
+        d.Shape is ActivationShape.Literal ? ActivationCategory.FigurativeSenderOf(d.Category) : null;
 
     /// <summary>The Table 16 rows a figurative constant or an ALL literal can stand in (§8.3.3.6.4 GR1).</summary>
     private static readonly Table16Category[] FigurativeCategories =
@@ -609,7 +612,8 @@ public static class ActivationRelations
     /// (<c>PrototypeSignatures.Same</c>, which lets an unresolved signature conform) admits exactly that pair. Before this
     /// the two lanes answered one pair two ways: <c>SET PB TO PA</c> compiled and ran, while passing PA BY REFERENCE or BY
     /// CONTENT to a formal of PB's type raised EC-PROGRAM-ARG-MISMATCH, because two unresolved prototypes' own names never
-    /// match (kb/Work PB3162). A data-pointer's restriction is a TYPE identity and is never external.</summary>
+    /// match (kb/Work PB3162); the CALL RETURNING pair (<see cref="ReturningConformance"/>) was the third lane that did
+    /// (kb/Work PB3686). A data-pointer's restriction is a TYPE identity and is never external.</summary>
     private static bool SamePointerRestriction(string a, string b) =>
         string.Equals(a, b, StringComparison.Ordinal)
         || (a != ActivationDescription.Unrestricted && b != ActivationDescription.Unrestricted
@@ -628,10 +632,11 @@ public static class ActivationRelations
     /// <summary>§9.3.6 rule 7 and §14.8.2.3.3 rule 2 d): is a MOVE of <paramref name="sending"/> to
     /// <paramref name="receiving"/> valid by ISO §14.9.25.3? Its syntax rules over two descriptions, in SR order: SR1
     /// (neither of class index, object or pointer — the receiving side is not, or rule 6 would apply), SR2 (a
-    /// strongly-typed group receiver takes only a group of the same type), SR6 / SR7 (a figurative constant into an
-    /// alphabetic or a boolean receiver), SR8 (a binary-char/-short/-long/-double sender needs a numeric or
-    /// numeric-edited receiver), SR9 (a variable-length group only to or from a compatible group, §8.5.1.12) and SR10
-    /// (Table 16). SR6 / SR7, SR8 and SR10 are the ONE copy the compiler's MOVE screens read (<see cref="MoveValidity"/>).
+    /// strongly-typed group receiver takes only a group of the same type), SR5's SPACE arm / SR6 / SR7 (SPACE into a
+    /// numeric or numeric-edited receiver, a figurative constant into an alphabetic or a boolean receiver), SR8 (a
+    /// binary-char/-short/-long/-double sender needs a numeric or numeric-edited receiver), SR9 (a variable-length group
+    /// only to or from a compatible group, §8.5.1.12) and SR10 (Table 16). SR5-SR7, SR8 and SR10 are the ONE copy the
+    /// compiler's MOVE screens read (<see cref="MoveValidity"/>).
     /// Null when the move is valid, else the rule it breaks.</summary>
     private static string? MoveViolation(ActivationDescription sending, ActivationDescription receiving)
     {
@@ -641,10 +646,8 @@ public static class ActivationRelations
             && (sending.Shape is not ActivationShape.StrongGroup
                 || !string.Equals(receiving.StrongType, sending.StrongType, StringComparison.Ordinal)))
             return "the sending operand shall be a group item of the same type (ISO §14.9.25.3 SR2 / §8.5.3.3)"; // SR2
-        if (IsFigurative(sending)                                                                             // SR6 / SR7
-            && MoveValidity.FigurativeRefusal(sending.Category is ActivationCategory.FigurativeZero,
-                sending.Category is ActivationCategory.FigurativeZero or ActivationCategory.FigurativeBoolean,
-                receiving.Table16) is { } figurativeWhy)
+        if (FigurativeSenderOf(sending) is { } figurative                                                     // SR5-SR7
+            && MoveValidity.FigurativeRefusal(figurative, receiving.Table16) is { } figurativeWhy)
             return figurativeWhy;
         if (MoveValidity.BinaryWidthRefusal(sending.BinaryWidth, receiving.Table16) is { } binaryWhy)       // SR8
             return binaryWhy;
@@ -711,8 +714,15 @@ public static class ActivationRelations
                 : $"the returning item ({sending}) and the receiving item ({receiving}) do not match (ISO §14.8.3.3 "
                   + "\"Additionally\" 2) / 3))";
         // §14.8.3.3: "the receiving operand shall have the same ALIGN, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
-        // PICTURE, SIGN, and USAGE clauses" (the class-pointer restriction is its USAGE clause's TO phrase).
-        return SameElementaryClauses(receiving, sending)
+        // PICTURE, SIGN, and USAGE clauses" (the class-pointer restriction is its USAGE clause's TO phrase). Two class
+        // pointers are the same USAGE when their restrictions are the same type by the ONE relation the BY REFERENCE and
+        // SET lanes ask, SamePointerRestriction: a pointer's TO phrase names a prototype, its type is that prototype's
+        // SIGNATURE (§13.18.60.4 GR25 / GR26), and a prototype with no compile-time signature is resolved by the run
+        // unit (§12.3.8.4 GR10 c)) — kb/Work PB3686, the RETURNING sibling of PB3162.
+        return (IsPointerClass(receiving) && IsPointerClass(sending)
+                ? string.Equals(receiving.Category, sending.Category, StringComparison.Ordinal)
+                  && SamePointerRestriction(receiving.Clauses, sending.Clauses)
+                : SameElementaryClauses(receiving, sending))
             ? null
             : $"the returning item ({sending}) and the receiving item ({receiving}) are not described with the same "
               + "clauses (ISO §14.8.3.3)";

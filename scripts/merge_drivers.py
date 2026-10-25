@@ -445,21 +445,31 @@ def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
     return [] if r.returncode == 0 else [f for f in dict.fromkeys(ln.strip() for ln in lines[1:]) if f]
 
 
-def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) -> bool:
-    """Whether a two-parent commit whose tree is `tree` is what `merge` makes of its parents: the drivers' own merge of
-    them (`git merge-tree`, which honors the drivers when given config_args), or that tree with the runtime ABI pin
-    settled into it (the three files abi_pin.OWNED names, and only when the drivers left the pin UNMEASURED). This is the
-    review's coverage rule for a merge of main (prune_worktrees.mechanical), so it must be exactly the merge's own
-    definition: there is no other."""
-    import abi_pin  # noqa: PLC0415
+def merged_tree(repo: pathlib.Path | str, parents: list[str]) -> str | None:
+    """The tree of the drivers' own merge of `parents` (`git merge-tree --write-tree` through every driver, config_args),
+    computed without touching the worktree or the index; None when it does not merge clean or git cannot say (a missing
+    ref, unrelated histories, a conflict a driver declined). THE ONE DEFINITION OF A CLEAN MERGE'S TREE (kb/Work PB3713):
+    the review's coverage rule (is_drivers_merge) and the branch survey's LANDED proof
+    (prune_worktrees.merges_to_main_unchanged) both read it, so the survey and the landing agree on what merges clean: a
+    plain `git merge-tree` conflicts in a keyed catalogue the drivers merge by key."""
     r = git(pathlib.Path(repo), "merge-tree", "--write-tree", *parents, config=True)
     clean = r.stdout.split()[:1]
-    if r.returncode != 0 or not clean:
+    return clean[0] if r.returncode == 0 and clean else None
+
+
+def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) -> bool:
+    """Whether a two-parent commit whose tree is `tree` is what `merge` makes of its parents: the drivers' own merge of
+    them (merged_tree), or that tree with the runtime ABI pin settled into it (the three files abi_pin.OWNED names, and
+    only when the drivers left the pin UNMEASURED). This is the review's coverage rule for a merge of main
+    (prune_worktrees.mechanical), so it must be exactly the merge's own definition: there is no other."""
+    import abi_pin  # noqa: PLC0415
+    clean = merged_tree(repo, parents)
+    if clean is None:
         return False
-    if clean[0] == tree:
+    if clean == tree:
         return True
-    changed = git(pathlib.Path(repo), "diff-tree", "-r", "--name-only", clean[0], tree).stdout.split()
-    pin = git(pathlib.Path(repo), "cat-file", "blob", f"{clean[0]}:{abi_pin.PIN_PATH}").stdout
+    changed = git(pathlib.Path(repo), "diff-tree", "-r", "--name-only", clean, tree).stdout.split()
+    pin = git(pathlib.Path(repo), "cat-file", "blob", f"{clean}:{abi_pin.PIN_PATH}").stdout
     return bool(changed) and set(changed) <= set(abi_pin.OWNED) and abi_pin.unmeasured(pin)
 
 
@@ -624,6 +634,10 @@ def self_test() -> int:
         expect("git: merge-tree with config_args reproduces the merge's tree (the review's coverage rule reads it)",
                git(repo, "merge-tree", "--write-tree", "HEAD^1", "HEAD^2", config=True).stdout.split()[:1]
                == [scratch.git("rev-parse", "HEAD^{tree}")])
+        expect("tree: merged_tree is that merge's tree, the one definition both readers share (kb/Work PB3713); a ref git "
+               "cannot read, and a merge a driver declines, are None",
+               merged_tree(repo, ["HEAD^1", "HEAD^2"]) == scratch.git("rev-parse", "HEAD^{tree}")
+               and merged_tree(repo, ["HEAD", "refs/heads/no-such-branch"]) is None)
         # A real conflict: both branches change the same entry differently.
         scratch.git("switch", "-q", "-c", "left", "HEAD")
         (repo / "d.json").write_text(obj(m("a", "2002"), m("c", "85"), m("ours", "85"), m("theirs", "85")), encoding="utf-8", newline=NL)
@@ -646,6 +660,19 @@ def self_test() -> int:
         scratch.run("merge", "--abort")
         expect("git: keep leaves a conflicting merge IN PROGRESS with its markers, for a finisher to resolve",
                kept == ["d.json"] and in_progress and marked and scratch.git("rev-parse", "HEAD") == tip, f"{kept}")
+        # kb/Work PB3713, the branch survey's LANDED proof: main already holds the topic's entry (another carrier put it
+        # there) beside one of its own, so a PLAIN merge-tree conflicts in the keyed file, while the drivers merge it to
+        # main's own tree, which is what makes the branch LANDED
+        lr = ScratchRepo.init(root / "landed")
+        lr.commit("base", {"d.json": obj(m("a", "85"), m("c", "85")), ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+        lr.git("switch", "-q", "-c", "topic")
+        lr.commit("topic", {"d.json": obj(m("a", "85"), m("c", "85"), m("x", "85"))})
+        lr.git("switch", "-q", "main")
+        lr.commit("main", {"d.json": obj(m("a", "85"), m("c", "85"), m("y", "85"), m("x", "85"))})
+        expect("tree: an entry main already holds beside its own merges to main's tree through the drivers, where a plain "
+               "merge-tree conflicts (the premise)",
+               lr.run("merge-tree", "--write-tree", "main", "topic").returncode != 0
+               and merged_tree(lr.path, ["main", "topic"]) == lr.git("rev-parse", "main^{tree}"))
         # A file the keyed merger declines (both sides changed one entry) but git's line merge merges cleanly (the changes are
         # on lines apart, as a plain `git merge` would merge them) merges: no conflict, no markers (review finding R1-1).
         fat = lambda p, s: (f'{{{NL} "x": {{{NL}  "p": "{p}",{NL}  "q": "q",{NL}  "r": "r",{NL}  "s": "{s}"{NL} }}{NL}}}{NL}')    # noqa: E731

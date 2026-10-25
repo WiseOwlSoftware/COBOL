@@ -3724,6 +3724,51 @@
   ],
   "expect": "COBOLNET1520"
  },
+ "pb1046-global-report-item-referenced-in-contained-program": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-group-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-as-occurs-depending-object": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-by-file-status": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
  "pb1047-two-globals-one-element-ambiguous": {
   "refuse-at": [
    "85",
@@ -4927,6 +4972,12 @@
    "2023"
   ],
   "expect": "COBOLNET1607: a VALIDATE naming more than one identifier shall not appear within an exception-checking PERFORM"
+ },
+ "pb2282-perform-varying-by-omitted-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "(21,16): error COBOLNET0900: a PERFORM VARYING or AFTER phrase with the BY phrase omitted"
  },
  "pb3568-validate-undefined-operand": {
   "refuse-at": [
@@ -13243,7 +13294,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0828: INVOKE \"MB\": figurative-constant argument SPACE for formal 'B': the argument (a figurative constant or an ALL literal) is not a valid sending operand of a MOVE to the formal parameter (an elementary boolean item described with PICTURE 1(4) USAGE DISPLAY): a figurative constant whose characters are not boolean characters shall not be moved to a boolean data item (ISO \u00a714.9.25.3 SR7)"
+  "expect": "COBOLNET0828: INVOKE \"MB\": figurative-constant argument SPACE for formal 'B': the argument (the figurative constant SPACE) is not a valid sending operand of a MOVE to the formal parameter (an elementary boolean item described with PICTURE 1(4) USAGE DISPLAY): a figurative constant whose characters are not boolean characters shall not be moved to a boolean data item (ISO \u00a714.9.25.3 SR7)"
  },
  "pb3101-content-zero-into-alphabetic": {
   "refuse-at": [
@@ -14757,6 +14808,32 @@
    "2023"
   ],
   "expect": "START on 'IXF': 'IX-LONG' is neither a record key of the file nor an item that begins at the leftmost character position of one within a record of that file"
+ },
+ "pb3605-content-space-into-numeric-edited": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the argument (the figurative constant SPACE) is not a valid sending operand of a MOVE to the formal parameter (an elementary numeric-edited item described with PICTURE ZZ9 USAGE DISPLAY): the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
+ },
+ "pb3605-initialize-replacing-numeric-by-space": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "error COBOLNET2031: INITIALIZE REPLACING NUMERIC \u2026 BY SPACE: ISO \u00a714.9.20.3 SR4 requires that `MOVE SPACE TO <an item of category NUMERIC>` be valid, and the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
+ },
+ "pb3605-move-space-numeric": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "(24,12): error COBOLNET0819: MOVE \u2026 TO N: the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
  },
  "pb361-use-outside-declaratives": {
   "refuse-at": [
@@ -20939,7 +21016,7 @@
   ],
   "expect": "COBOLNET0819"
  },
- "pb879-initialize-replacing-space-numeric-2023": {
+ "pb879-initialize-replacing-high-value-numeric-2023": {
   "refuse-at": [
    "2023"
   ],
@@ -21377,6 +21454,38 @@
   ],
   "expect": "COBOLNET0844"
  },
+ "pb929-set-sr10-active-class-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-class-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-factory-sender-not-implementing": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
+ "pb929-set-sr10-interface-sender-unrelated": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0867"
+ },
  "pb93-redefines-later-sibling": {
   "refuse-at": [
    "85",
@@ -21412,6 +21521,22 @@
    "2023"
   ],
   "expect": "COBOLNET1655"
+ },
+ "pb935-set-entry-restricted-identifier-list": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb935-set-entry-restricted-literal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
  },
  "pb94-value-alphanumeric-on-numeric": {
   "refuse-at": [
@@ -23010,9 +23135,52 @@
   ],
   "expect": "COBOLNET1688"
  },
+ "pb3678_parenthesized_function_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_length_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_item_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1688"
+ },
+ "pb3678_parenthesized_function_numeric_formal_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3613_numeric_function_group_formal_below_2002": {
   "refuse-at": [
    "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3677_format1_sdidi_function_value_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3677_format1_sdidi_expression_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
   ],
   "expect": "COBOLNET0900"
  },
