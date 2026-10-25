@@ -2438,6 +2438,11 @@ internal static class RuntimeApi
     public static string ArgWithValueSending(string arg, string? storageImage, bool approximate) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)}{(approximate ? ", approximate: true" : "")})";
 
+    /// <summary>An SDIDI value crossing at its own exponent — <see cref="CobolArgAdapt.SdidiValue"/> (kb/Work PB3677):
+    /// <paramref name="mode"/> is the C# text of the pass mode, <paramref name="dec"/> the <c>CobolDec</c> expression.</summary>
+    public static string ArgSdidiValue(string mode, string dec, SignEncoding signEncoding) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.SdidiValue)}({mode}, {dec}, {nameof(SignEncoding)}.{signEncoding})";
+
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>
     public static string PredefinedNullArgumentCarrier =>

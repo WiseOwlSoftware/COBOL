@@ -158,7 +158,9 @@ ISO/IEC 1989:2023 — which two comments in the tree nevertheless described AS �
 the vendor surface cannot drift away from the standard one. The three braced arms carry §8.4.3.13.3 SR1 / SR2 /
 SR3 on COBOLNET2157, the prototype arm resolves through the EXTERNALIZED program-name §8.4.3.13.4 GR2 names, and
 GR3's restricted-pointer characteristic meets a restricted receiver through the SAME `PrototypeSignatures.Same`
-test SR22 and SR20 already share. Edition row: `set-program-pointer-2002`, beside `set-function-pointer-2014`.
+test SR22 and SR20 already share. The vendor ENTRY spelling is an UNRESTRICTED sender (it names a program by value), so a
+restricted receiver is refused it by the same `RestrictedReceiverNeedsPrototype` helper the literal-1 / identifier-1 arms
+use — §13.18.60.4 GR25 binds the item whatever loads it (kb/Work PB935). Edition row: `set-program-pointer-2002`, beside `set-function-pointer-2014`.
 
 **Two determinations on §14.9.39.4 GR14's run-time screen.**
 1. GR14 says the address shall be *“the address of a function defined with the same signature as the function referenced in the definition of identifier-13”*, which cannot be read literally when identifier-13 is a function-address-identifier of the `identifier-1` form (§8.4.3.12.4 GR1 a) — that form names no prototype at all. The screen is therefore implemented against the RECEIVING item's declared function-prototype, which is §13.18.60.4 GR26's own standing invariant and is what GR14 enforces statement by statement; wherever the sender DOES carry a prototype, SR20 has already made the two identical at bind, so no conforming program can observe the difference.
@@ -379,7 +381,14 @@ PICTURE, …, Truncation, …)` — the one derivation the arithmetic statements
 `PIC S9(5)V9(20)` formal is 0.33333333333333333333, not the receiver-less 6-digit working scale's 0.333333), a nested
 product past the `Int128` carrier is rounded once at the formal's scale (kb/Work PB1900), and an expression into a
 floating-point formal evaluates in binary64 as any COMPUTE into one does (D16). Where `BoundCallArg.Formal` is null
-(GR9's first branch) there is no resultant description and the receiver-less render stands.
+(GR9's first branch) there is no resultant description and the receiver-less render stands - **but an SDIDI value (a
+STANDARD-DECIMAL expression, or a numeric function that returned an SDIDI) is not cut at a scale the activating element
+chose (kb/Work PB3677):** it crosses at its OWN exponent through `CobolArgAdapt.SdidiValue` (`NumericRenderer.SdidiOf` names
+the value; the `Int128` cell holds the value at `-Exp` fraction digits, capped at the carrier's 38, and its `Sending`
+states the value's own characters and digits), so only the formal cuts it: a Format-1 `CALL "W" USING BY CONTENT FUNCTION
+MIN(F 3)` sends the group formal the same digits as `CALL … AS NESTED` and `MOVE` (it sent `0000100` of 0.0001, and `2000000`
+of 2, from the 6-digit floor), and a formal the activation boundary lands by GR9's COMPUTE (a REPOSITORY program-specifier)
+takes `0.333333333333` of 0.3333333333333333 where the floor gave `0.333333000000`.
 
 **When the caller cannot: the activation boundary lands, through the formal's registered carrier (kb/Work
 PB2549).** GR9's FIRST branch — a program with no program-specifier in the activating element's REPOSITORY
