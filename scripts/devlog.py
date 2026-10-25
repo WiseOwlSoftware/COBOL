@@ -31,7 +31,11 @@ whose body follows. `stamp <branch>` runs when the branch is enqueued: it alloca
 `NNNN-<slug>.md`, completes the header with the number and the current stamp, and commits that in the branch's
 worktree. A branch that merged an unlanded predecessor (a same-file successor, a review finisher) carries that
 predecessor's pending entry too and lands it, so `stamp` folds every pending entry into the ONE new entry, oldest
-first (one landing on main, one entry). A stamped entry keeps its number for good: GitHub orders the merge queue
+first (one landing on main, one entry); a pending entry whose title is already a stamped entry of the tree (that
+predecessor landed on its own, reviewed CLEAN) is dropped, never folded a second time (kb/Work PB3693). THE STAMP IS ALL
+OR NOTHING (kb/Work PB3367): its git writes retry on `index.lock`, a failure puts the pending files back, resets the
+index and prints git's own stderr (exit 3), and a stamp interrupted before its commit is completed by the next run.
+A stamped entry keeps its number for good: GitHub orders the merge queue
 AFTER the stamp (each pull request enters it when its own checks finish, and each merge group is built on every group
 ahead of it), so a landing stamped earlier can reach main after one stamped later, and a bounced branch that lands
 again lands under the number it was first given (kb/Work PB3123). `check` is the landing rule (owner 2026-10-08, kb/Work PB2605: it covers "Only commits landing on main"),
@@ -57,7 +61,9 @@ from __future__ import annotations
 
 import argparse
 import collections
+import contextlib
 import datetime as dt
+import io
 import json
 import os
 import pathlib
@@ -65,6 +71,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import unicodedata
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -139,9 +146,36 @@ def entry_problems(name: str, text: str) -> list[str]:
 
 
 # ── reading a tree: the working tree (render, stamp, next) or a commit (check) ──────────────────────────────────
+class GitError(Exception):
+    """A git call failed: carries the command, its exit code and git's OWN stderr (kb/Work PB3367: the capture used to
+    hide it, so a transient `index.lock` clash and a real fault read alike)."""
+
+
 def _git(repo: pathlib.Path, *args: str, check: bool = False, inp: str | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, encoding="utf-8",
-                          errors="replace", input=inp, check=check)
+    r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, encoding="utf-8",
+                       errors="replace", input=inp)
+    if check and r.returncode != 0:
+        raise GitError(f"git {' '.join(args)} exited {r.returncode}: {r.stderr.strip() or '(no stderr)'}")
+    return r
+
+
+#: The waits (seconds) between the attempts of a git call that met another git process's `index.lock`; the stamp's
+#: writes retry on that one cause only (kb/Work PB3367: a landing lost a green branch to one transient lock clash).
+GIT_LOCK_WAITS = (0.2, 0.5, 1.0, 2.0, 4.0)
+_pause = time.sleep
+
+
+def _git_write(repo: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
+    """A git call that WRITES the index or the history, retried while it fails on `index.lock` (another git process of
+    the same worktree holds it); GitError with git's stderr when it still fails or fails for any other reason."""
+    for wait in (*GIT_LOCK_WAITS, None):
+        r = _git(repo, *args)
+        if r.returncode == 0:
+            return r
+        if wait is None or "index.lock" not in r.stderr:
+            break
+        _pause(wait)
+    raise GitError(f"git {' '.join(args)} exited {r.returncode}: {r.stderr.strip() or '(no stderr)'}")
 
 
 def worktree_files(repo: pathlib.Path) -> dict[str, str]:
@@ -388,16 +422,60 @@ def added_order(wt: pathlib.Path, name: str) -> tuple[int, str]:
     return (int(times[-1]) if times else sys.maxsize, name)
 
 
+def pending_titles(wt: pathlib.Path) -> dict[str, str]:
+    """{pending file name: its title} of the working tree (a file whose first line is no `## <Title>` is left out)."""
+    out = {}
+    for n, text in worktree_files(wt).items():
+        if PENDING_NAME.match(n) and (m := PENDING_HEADER.match(first_line(text))):
+            out[n] = m.group("title").strip()
+    return out
+
+
+def half_stamp(wt: pathlib.Path) -> tuple[list[str], list[str]]:
+    """What an INTERRUPTED stamp leaves (kb/Work PB3367): ([numbered entry files the working tree has and HEAD's tree
+    lacks], [pending files HEAD's tree has and the working tree lacks]). Both lists non-empty is the signature of a
+    stamp that wrote the entry and removed the pending file but never committed; `run_stamp` completes it."""
+    listed = listing(wt, "HEAD") or []
+    in_head = {n[len(DIR) + 1:] for n in listed if n.startswith(f"{DIR}/")}
+    on_disk = set(names_in(wt))
+    return (sorted(n for n in on_disk - in_head if key_of(n)),
+            sorted(n for n in in_head - on_disk if PENDING_NAME.match(n)))
+
+
+def half_stamp_paths(wt: pathlib.Path) -> set[str]:
+    """The repo-relative paths (`DEVLOG/<name>`) an interrupted stamp left uncommitted: the entry it wrote and the
+    pending files it removed; empty when the tree holds no such stamp. A landing's dirty check sets them aside."""
+    strays, gone = half_stamp(wt)
+    return {f"{DIR}/{n}" for n in (*strays, *gone)} if strays and gone else set()
+
+
+def stamp_due(wt: pathlib.Path) -> bool:
+    """Whether `devlog.py stamp` has work in this worktree: a pending entry, or a half-done stamp to complete."""
+    if any(PENDING_NAME.match(n) for n in names_in(wt)):
+        return True
+    strays, gone = half_stamp(wt)
+    return bool(strays and gone)
+
+
 def stamp(wt: pathlib.Path, number: int, now: dt.datetime) -> tuple[str, str]:
-    """Number the worktree's pending entry and complete its header; returns (name, header). The caller allocates
-    `number` and commits.
+    """Number the worktree's pending entry, complete its header and COMMIT it; returns (name, header). The caller
+    allocates `number`.
 
     A branch normally carries ONE pending entry. A branch that merged an unlanded predecessor (a same-file successor,
     a review finisher: MANDATORY-PRACTICES O2, I10) carries the predecessor's too, and lands it: the predecessor lands
     THROUGH it (prune_worktrees.contained), so its landing is one landing on main and gets ONE entry (kb/Work PB2605).
-    The entries are folded into that one, oldest first: the titles joined by `; `, each body under its own title."""
+    The entries are folded into that one, oldest first: the titles joined by `; `, each body under its own title.
+    A pending entry whose title already has a stamped entry in the tree is the predecessor's that LANDED on its own and
+    main has since come in: it is dropped, never folded a second time (kb/Work PB3693; an entry that would leave the
+    branch nothing to stamp is kept).
+
+    ALL OR NOTHING (kb/Work PB3367). Every git write retries on `index.lock`; the pending files are removed from disk
+    only after the entry and the removals are staged, and any failure puts the tree back exactly as it was (the pending
+    bytes restored, the index reset, the numbered file deleted) before it raises GitError with git's stderr, so a
+    rerun stamps again instead of finding "no pending entry"."""
+    raw = {n: (wt / DIR / n).read_bytes() for n in names_in(wt) if PENDING_NAME.match(n)}
     files = worktree_files(wt)
-    pending = sorted((n for n in files if PENDING_NAME.match(n)), key=lambda n: added_order(wt, n))
+    pending = sorted(raw, key=lambda n: added_order(wt, n))
     if not pending:
         raise SystemExit(f"⛔ devlog stamp: {wt / DIR} holds no pending entry; a branch carries one, "
                          "`pending-<slug>.md` whose first line is `## <Title>`")
@@ -406,37 +484,93 @@ def stamp(wt: pathlib.Path, number: int, now: dt.datetime) -> tuple[str, str]:
         m = PENDING_HEADER.match(first_line(files[n]))
         if not m:
             raise SystemExit(f"⛔ devlog stamp: {DIR}/{n} must start with `## <Title>` (no number, no stamp)")
-        parts.append((m.group("title").strip(), (files[n].split("\n", 1)[1] if "\n" in files[n] else "").strip("\n")))
-    title = "; ".join(t for t, _ in parts)
-    body = parts[0][1] if len(parts) == 1 else "\n\n".join(f"### {t}\n\n{b}" for t, b in parts)
+        parts.append((n, m.group("title").strip(), (files[n].split("\n", 1)[1] if "\n" in files[n] else "").strip("\n")))
+    stamped = {m.group("slug") for n in files if (m := ENTRY_NAME.match(n))}
+    fresh = [p for p in parts if slugify(p[1]) not in stamped]
+    if fresh and len(fresh) < len(parts):
+        for n, title, _ in (p for p in parts if p not in fresh):
+            print(f"devlog stamp: {DIR}/{n} ({title!r}) is already a stamped entry of this tree (its branch landed on "
+                  "its own): dropped, not folded into this branch's entry")
+        parts = fresh
+    title = "; ".join(t for _, t, _ in parts)
+    body = parts[0][2] if len(parts) == 1 else "\n\n".join(f"### {t}\n\n{b}" for _, t, b in parts)
     header = f"## Entry {number} {DASH} {now.strftime('%Y-%m-%d %H:%M')} {zone_abbrev(now)} {DASH} {title}"
     name = entry_name(number, "", title)
+    entry, removed = f"{DIR}/{name}", [f"{DIR}/{n}" for n in pending]
     (wt / DIR / name).write_bytes((header + "\n\n" + body + "\n\n").encode("utf-8"))
-    for n in pending:
-        (wt / DIR / n).unlink()
-    # exactly these paths: the entry, and each pending file's removal (tracked or not); nothing else in DEVLOG/
-    _git(wt, "add", "--", f"{DIR}/{name}", check=True)
-    _git(wt, "rm", "-q", "--cached", "--ignore-unmatch", "--", *(f"{DIR}/{n}" for n in pending), check=True)
+    try:
+        # exactly these paths: the entry, and each pending file's removal (tracked or not); nothing else in DEVLOG/
+        _git_write(wt, "add", "--", entry)
+        _git_write(wt, "rm", "-q", "--cached", "--ignore-unmatch", "--", *removed)
+        for n in pending:
+            (wt / DIR / n).unlink()
+        _git_write(wt, "commit", "-q", "-m", f"DEVLOG {number}: stamp the entry ({entry})")
+    except (GitError, OSError) as exc:
+        stuck = ""
+        try:
+            _git_write(wt, "reset", "-q", "HEAD", "--", entry, *removed)
+        except GitError as reset_exc:
+            stuck = f" (the index could not be reset either: {reset_exc}; run `git reset -q HEAD -- {entry} {' '.join(removed)}`)"
+        for n, data in raw.items():
+            (wt / DIR / n).write_bytes(data)
+        (wt / DIR / name).unlink(missing_ok=True)
+        raise GitError(f"the stamp failed and was rolled back, the pending entry is as it was: {exc}{stuck}") from exc
     return name, header
+
+
+def finish_half_stamp(wt: pathlib.Path, strays: list[str], gone: list[str]) -> str:
+    """Complete a stamp that was interrupted after it wrote the entry and removed the pending file (`half_stamp`): stage
+    the entry and the removals and commit, under the number the entry already holds. Returns the entry's file name."""
+    if len(strays) != 1:
+        raise SystemExit(f"⛔ devlog stamp: {len(strays)} numbered entry files ({', '.join(strays)}) are not in HEAD and "
+                         "the pending entry is gone: an interrupted stamp leaves one; keep the right one and re-run")
+    name = strays[0]
+    head = first_line(worktree_files(wt)[name])
+    if not STAMPED.match(head):
+        raise SystemExit(f"⛔ devlog stamp: {DIR}/{name} is not a stamped entry (`{head[:60]}`): not an interrupted "
+                         "stamp's; remove it or finish it by hand")
+    _git_write(wt, "add", "--", f"{DIR}/{name}")
+    _git_write(wt, "rm", "-q", "--cached", "--ignore-unmatch", "--", *(f"{DIR}/{n}" for n in gone))
+    _git_write(wt, "commit", "-q", "-m", f"DEVLOG {key_of(name)[0]}: stamp the entry ({DIR}/{name}), completed after an "
+                                         "interrupted stamp")
+    return name
+
+
+#: `devlog.py stamp`'s exit when a git call failed and the stamp was rolled back (or could not be completed): transient
+#: by nature, so `enqueue.py land` ends the landing exit 2, which the landing lane retries once (kb/Work PB3367).
+EXIT_GIT = 3
 
 
 def run_stamp(repo: pathlib.Path, branch: str, coord_override: str | None) -> int:
     sys.path.insert(0, str(HERE / "orchestrator"))
     import alloc  # noqa: PLC0415
     import coord  # noqa: PLC0415
-    wt = worktree_of(repo, branch)
-    if not any(PENDING_NAME.match(n) for n in names_in(wt)):
-        raise SystemExit(f"⛔ devlog stamp: {wt / DIR} has no pending entry to stamp (an entry keeps the number it was "
-                         "first stamped with: kb/Work PB3123)")
-    number, _ = alloc.allocate("devlog", 1, wt, coord.coord_dir(coord_override))
-    name, header = stamp(wt, number, dt.datetime.now().astimezone())
-    _git(wt, "commit", "-q", "-m", f"DEVLOG {number}: stamp the entry ({DIR}/{name})", check=True)
+    try:
+        wt = worktree_of(repo, branch)
+        strays, gone = half_stamp(wt)
+        if not any(PENDING_NAME.match(n) for n in names_in(wt)):
+            if strays and gone:
+                name = finish_half_stamp(wt, strays, gone)
+                print(f"stamped {DIR}/{name}: completed a stamp that was interrupted before its commit")
+                return 0
+            raise SystemExit(f"⛔ devlog stamp: {wt / DIR} has no pending entry to stamp (an entry keeps the number it "
+                             "was first stamped with: kb/Work PB3123)")
+        if strays:
+            raise SystemExit(f"⛔ devlog stamp: {', '.join(strays)} is in the working tree and not in HEAD, beside the "
+                             "pending entry: an interrupted stamp left it. Delete it (and `git rm --cached` it) and re-run")
+        number, _ = alloc.allocate("devlog", 1, wt, coord.coord_dir(coord_override))
+        name, header = stamp(wt, number, dt.datetime.now().astimezone())
+    except GitError as exc:
+        print(f"⛔ devlog stamp: {exc}")
+        print("=== DEVLOG STAMP: GIT FAILED (nothing stamped; a re-run stamps again) ===")
+        return EXIT_GIT
     print(f"stamped {DIR}/{name}: {header}")
     return 0
 
 
 # ── self-test: real repositories and real ranges ─────────────────────────────────────────────────────────────────
 def self_test() -> int:
+    global GIT_LOCK_WAITS, _pause
     from scratch_repo import ScratchRepo, isolate, remove_tree, scratch_dir  # noqa: PLC0415
     # HERMETIC, like landing_check's: drop git's repository-selection variables so nothing reaches the caller's repo.
     isolate()
@@ -682,6 +816,92 @@ def self_test() -> int:
        and not any(n.startswith("pending-") for n in names) and not scratch.git("status", "--porcelain", cwd=succ)
        and not check(commit_files(repo, "main")[0], set(), *commit_files(repo, "succ"))[0],
        fold.stdout + fold.stderr + repr(names))
+    # ATOMIC STAMP (kb/Work PB3367): a git write that fails leaves the tree as it was, says why, and a rerun stamps.
+    def branch_with(name: str, entries: dict[str, str]) -> pathlib.Path:
+        w = root / name
+        scratch.git("worktree", "add", "-q", "-b", name, str(w), "main")
+        scratch.write({f"{DIR}/{n}": t for n, t in entries.items()}, cwd=w)
+        scratch.git("add", "-A", cwd=w)
+        scratch.git("commit", "-qm", f"WIP checkpoint: {name}", cwd=w)
+        return w
+
+    def stamp_run(branch: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = run_stamp(repo, branch, str(cdir))
+        return rc, out.getvalue()
+
+    saved_waits, saved_pause = GIT_LOCK_WAITS, _pause
+    lock_wt = branch_with("locked", {"pending-lock.md": "## PB7: lock\n\nLock body.\n"})
+    lock_file = pathlib.Path(scratch.git("rev-parse", "--absolute-git-dir", cwd=lock_wt)) / "index.lock"
+    before_bytes = (lock_wt / DIR / "pending-lock.md").read_bytes()
+    before_head = scratch.git("rev-parse", "HEAD", cwd=lock_wt)
+    names_before = sorted(names_in(lock_wt))
+    lock_file.write_text("held by another git process", encoding="utf-8")
+    GIT_LOCK_WAITS = ()
+    refused_rc, refused_out = stamp_run("locked")
+    GIT_LOCK_WAITS = saved_waits
+    after = sorted(p.name for p in (lock_wt / DIR).iterdir())
+    lock_file.unlink()
+    ok("stamp: a git write that fails (index.lock held) rolls the stamp back: exit 3, git's own stderr printed, the "
+       "pending entry byte for byte, no numbered file, HEAD and the index unchanged",
+       refused_rc == EXIT_GIT and "index.lock" in refused_out and "rolled back" in refused_out
+       and after == names_before
+       and (lock_wt / DIR / "pending-lock.md").read_bytes() == before_bytes
+       and scratch.git("rev-parse", "HEAD", cwd=lock_wt) == before_head
+       and not scratch.git("status", "--porcelain", cwd=lock_wt), refused_out + repr(after))
+    again_rc, again_out = stamp_run("locked")
+    locked_entries = [n for n in names_in(lock_wt) if n.endswith("-pb7-lock.md")]
+    ok("stamp: the rerun after that failure stamps (the pre-fix tree said 'no pending entry' forever)",
+       again_rc == 0 and len(locked_entries) == 1 and not any(PENDING_NAME.match(n) for n in names_in(lock_wt))
+       and not scratch.git("status", "--porcelain", cwd=lock_wt), again_out)
+    transient = branch_with("transient", {"pending-tr.md": "## PB8: transient\n\nBody.\n"})
+    transient_lock = pathlib.Path(scratch.git("rev-parse", "--absolute-git-dir", cwd=transient)) / "index.lock"
+    transient_lock.write_text("held briefly", encoding="utf-8")
+    paused: list[float] = []
+
+    def release(wait: float) -> None:
+        paused.append(wait)
+        transient_lock.unlink(missing_ok=True)
+    GIT_LOCK_WAITS, _pause = (0.01, 0.02), release
+    transient_rc, transient_out = stamp_run("transient")
+    GIT_LOCK_WAITS, _pause = saved_waits, saved_pause
+    ok("stamp: a lock another git process holds briefly is waited out: one retry, then the stamp commits",
+       transient_rc == 0 and paused == [0.01] and any(n.endswith("-pb8-transient.md") for n in names_in(transient))
+       and not scratch.git("status", "--porcelain", cwd=transient), f"{transient_rc} {paused} {transient_out}")
+    # an INTERRUPTED stamp (the process died after it removed the pending file): a rerun completes it, keeping its number
+    cut = branch_with("cut", {"pending-cut.md": "## PB6: cut\n\nBody.\n"})
+    cut_number = highest(names_in(cut)) + 40
+    cut_name = entry_name(cut_number, "", "PB6: cut")
+    (cut / DIR / cut_name).write_bytes(f"## Entry {cut_number} {DASH} 2026-10-11 10:00 PDT {DASH} PB6: cut\n\nBody.\n\n".encode())
+    (cut / DIR / "pending-cut.md").unlink()
+    due = stamp_due(cut) and half_stamp_paths(cut) == {f"{DIR}/{cut_name}", f"{DIR}/pending-cut.md"}
+    cut_rc, cut_out = stamp_run("cut")
+    ok("stamp: a stamp interrupted before its commit (entry written, pending file gone) is completed by the rerun under "
+       "the number it holds, in one commit, with a clean tree",
+       due and cut_rc == 0 and scratch.git("log", "-1", "--format=%s", cwd=cut).startswith(f"DEVLOG {cut_number}:")
+       and not scratch.git("status", "--porcelain", cwd=cut) and not stamp_due(cut)
+       and json.loads((cdir / "alloc.json").read_text(encoding="utf-8")).get("devlog", 0) < cut_number, cut_out)
+    # a predecessor that LANDED on its own (its stamped entry is in the tree) is not folded again (kb/Work PB3693)
+    scratch.git("checkout", "-q", "main")
+    scratch.write({f"{DIR}/0090-pb4-the-landed-predecessor.md": e("90", "PB4: the landed predecessor")})
+    scratch.git("add", "-A")
+    scratch.git("commit", "-qm", "the predecessor landed alone")
+    carrier = branch_with("carrier", {"pending-pb4-landed.md": "## PB4: the landed predecessor\n\nIts body.\n",
+                                      "pending-pb5-own.md": "## PB5: the carrier's own\n\nOwn body.\n"})
+    carrier_rc, carrier_out = stamp_run("carrier")
+    carrier_entries = [n for n in names_in(carrier) if n.endswith("-pb5-the-carrier-s-own.md")]
+    carrier_text = (carrier / DIR / carrier_entries[0]).read_text(encoding="utf-8") if carrier_entries else ""
+    ok("stamp: a pending entry whose title is already a stamped entry of the tree (its branch landed alone) is dropped, "
+       "not folded: the carrier's entry holds only its own title and body",
+       carrier_rc == 0 and len(carrier_entries) == 1 and "PB4" not in first_line(carrier_text) and "Its body" not in carrier_text
+       and "Own body." in carrier_text and not any(PENDING_NAME.match(n) for n in names_in(carrier))
+       and not scratch.git("status", "--porcelain", cwd=carrier), carrier_out)
+    lone = branch_with("lone", {"pending-pb4-twice.md": "## PB4: the landed predecessor\n\nSecond body.\n"})
+    lone_rc, lone_out = stamp_run("lone")
+    ok("stamp: a branch whose ONLY pending entry repeats a stamped title is still stamped (nothing is dropped to nothing)",
+       lone_rc == 0 and any(n.endswith("-pb4-the-landed-predecessor.md") and n.startswith("0") and n != "0090-pb4-the-landed-predecessor.md"
+                            for n in names_in(lone)), lone_out)
     ok("zone: a spelled-out zone name is abbreviated as date +%Z prints it",
        zone_abbrev(dt.datetime(2026, 10, 11, tzinfo=dt.timezone(dt.timedelta(hours=-7), "Pacific Daylight Time")))
        == "PDT")
