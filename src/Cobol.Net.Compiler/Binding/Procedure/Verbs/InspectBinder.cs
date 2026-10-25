@@ -56,9 +56,12 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
-            // emitter's AsString read; nothing stores back, so no Place is needed. SR1's usage constraint is
-            // satisfied by construction — a function's returned value is a temporary elementary item of the
-            // function's own category (§15.4), never a binary/packed/float/index storage form.
+            // emitter's AsString read; nothing stores back, so no Place is needed. ⛔ SR1's usage constraint is NOT
+            // satisfied by construction (kb/Work PB3665): a function is described by its §15.2 type, and a numeric,
+            // integer, index or boolean one (FUNCTION LENGTH folded to a literal included) is not usage display or
+            // national, so identifier-1 asks the same ONE function reader identifier-3 ... identifier-n do (SR2).
+            if (!ctx.Validation.CheckInspectIdentifier1FunctionUsage(fnOperand, spelling))
+                return BoundRejected.Reported(ctx.Edition);
             return BindPhrases(fnOperand, ins);
         }
         if (ins.functionCall() is { } fnTarget)
@@ -423,6 +426,16 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     : alias.Constant is not null
                         ? (ScreenZeroLength(host.Expr.AliasOperand(alias), c), false)
                         : (host.Expr.AliasOperand(alias), true);
+            // ⛔ A KEYWORD-OMITTED FUNCTION-IDENTIFIER IS A FUNCTION HERE TOO (§8.4.3.2.3 SR2; kb/Work PB3665, review
+            // lead R1-2), as it is at identifier-1 above: SR2 makes `UPPER-CASE("b")` and `FUNCTION UPPER-CASE("b")` ONE
+            // reference, and the arm below resolved it as a data name and refused legal source as undefined (COBOLNET1639).
+            // KeywordOmittedFunction yields to a declared data item, so a genuine subscripted reference still binds as data.
+            if (host.Intrinsic.KeywordOmittedFunction(dref) is { } kof)
+            {
+                var omitted = IntrinsicBinder.OperandOf(kof, functionValue: true);
+                ctx.Validation.CheckInspectFunctionUsage(omitted, dref.GetText());   // SR2 — pure check
+                return (omitted, false);
+            }
             if (host.Expr.ResolveSending(dref) is var pr && pr.Place is not { } p)
                 return (pr.OperandError(ctx.Edition), false);   // the resolver's answer (kb/Work PB1030)
             ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check

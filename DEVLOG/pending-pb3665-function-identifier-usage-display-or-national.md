@@ -47,6 +47,18 @@ path (bind time, one switch). Duplication: two private copies of the usage table
 Found and fixed on the way: the UNSTRING delimiter wording, two goldens that sent a numeric function to STRING, a raw `COBOLNET0847`
 literal at three INSPECT sites.
 
+**Review round 1.** The reviewer found the sibling arm of the rule left open: INSPECT identifier-1 as a function-identifier (Format 1, TALLYING
+only) went straight to `BindPhrases` under a comment that called 14.9.22.3 SR1 "satisfied by construction", so `INSPECT FUNCTION INTEGER(N)
+TALLYING T FOR ALL "7"` compiled and tallied the value's digits while the same branch refused the operand form. `InspectBinder.BindFunctionTarget`
+now asks `StatementValidation.CheckInspectIdentifier1FunctionUsage`, the SR1 wording of the same `FunctionIsNotDisplayOrNational` reader
+(COBOLNET1626, the code of INSPECT identifier-1's other usage refusal), and the comment is corrected. The reviewer's lead (R1-2) sat in the same
+file and is fixed too: an identifier-3 .. identifier-n written as a keyword-omitted intrinsic (`REPOSITORY. FUNCTION ALL INTRINSIC.`) never
+asked `KeywordOmittedFunction`, so `INSPECT S TALLYING T FOR ALL UPPER-CASE("b")` was refused as an undefined data name (COBOLNET1639); the
+operand arm now asks it first (it yields to a declared data item) and reaches the SR2 screen. Goldens: `pb3665-inspect-identifier1-{integer,length}-function`
+(refused at every edition, COBOLNET1626), `pb3665-inspect-omitted-keyword-integer-function-operand` (refused 2002 and later, COBOLNET0847; below 2002
+the REPOSITORY FUNCTION entry is itself refused, COBOLNET0900), and the control `pb3665_inspect_omitted_keyword_function_controls` (M1 = 3, M2 = 1,
+M3 = abxcb, computed from 15.2 1)); `DisplayOrNationalUsagePredicateDriftTests` pins the two new calls. SR-14.9.22.3-1 gained its witnesses.
+
 **Gate.** Run `TestResults/build-local/000001-20261025T021404Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
 Conformance 7,927/18,457 · Unit 36,947/38,168 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of
 HEAD) GREEN`. All 44 `pb3665` Conformance results passed (leg-1-Conformance.trx), and the five `DisplayOrNationalUsagePredicateDriftTests`.
