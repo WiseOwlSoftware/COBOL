@@ -2899,7 +2899,11 @@ entry (SR7 forbids it on the OPEN).
 
 **2.2.2.5 The write-ahead rules — five, each held by the model at every operation and each with a drift test.** **R1 — the
 header before the first change.** Under the entry mutex: the holder published, the record created, the header (START) written
-and SYNCED, the lock directory synced — all before the first byte of F changes or the file is created. The model's mutation
+and SYNCED, the lock directory synced — all before the first byte of F changes or the file is created. A holder that cannot be
+published refuses the statement ('30', §9.1.13.6 item 1; an OPEN leaves the file unaffected, §14.9.27.4 GR25) for either of two
+causes the medium's `PublishHolder` answers with the publication's `RegionLockResult` (kb/Work PB3675): `Unavailable`, the host
+takes no lock here, and `Held`, every try lost its race to another run unit's removal of the lock directory (a failure to
+publish, not a finding about the host); `Begin`'s refusal names the cause that happened. The model's mutation
 `R1`, the header not synced, is RED on its witness row (2.2.2.12: "first WRITE under EXTEND"): a power loss after an append
 with no durable header leaves the append in F for ever.
 **R2 — the image before the overwrite.** A covered REWRITE in the base phase of a record that is not the transaction's own
