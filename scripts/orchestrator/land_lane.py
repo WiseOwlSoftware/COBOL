@@ -23,7 +23,9 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
   attempts/<id>.json  one per `enqueue.py land` run, <id> = `<n>-<UTC stamp>-<branch>` (n: the attempt NUMBER, one
                       past every attempt, taken under the tick lock; the order of attempts, never the clock, kb/Work
                       PB3536): branch, head (its tip at launch), worktree, argv, log
-                      (`<coord>/logs/land-lane-<id>.log`), runner pid, and once it ends rc, the log's
+                      (`<coord>/logs/land-lane-<id>.log`), runner pid (the runner is ALIVE only while that pid's
+                      process is a Python whose command line names this record: `runner_alive`, so a pid the OS
+                      reused for another program never reads RUNNING, kb/Work PB3113), and once it ends rc, the log's
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
                       pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
                       unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
@@ -506,12 +508,18 @@ def tip_of(worktree: str | None) -> str | None:
 
 
 # ── the collaborators (the self-test replaces each) ────────────────────────────────────────────────────────────────
-def pid_alive(pid: int | None) -> bool:
-    """The runner is alive: a live process with that id whose image is a Python (a reused id is another program)."""
-    if not isinstance(pid, int):
+def runner_alive(a: dict[str, Any]) -> bool:
+    """The attempt's runner is alive (kb/Work PB3113): the process with the recorded pid is a Python whose command line
+    names this attempt's own record (`launch` starts `land_lane.py run <record>`). A pid the OS has reused for another
+    program after the runner died, a Python one included, carries another command line, so it is not the runner: the
+    lane no longer reads RUNNING until that stranger exits."""
+    pid = a.get("pid")
+    if not isinstance(pid, int) or not a.get("_path"):
         return False
     name = coord.process_name(pid)
-    return bool(name) and "python" in name.lower()
+    cmd = coord.process_command(pid)
+    return bool(name) and "python" in name.lower() and bool(cmd) \
+        and os.path.normcase(str(a["_path"])) in os.path.normcase(cmd)
 
 
 def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str], dict | None]:
@@ -917,11 +925,11 @@ def stop_reason(cdir: pathlib.Path) -> str | None:
     return None
 
 
-def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | None], bool], say: Say) -> None:
+def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[str, Any]], bool], say: Say) -> None:
     for a in atts:
         if finished(a):
             continue
-        if alive(a.get("pid")):
+        if alive(a):
             continue
         # Its tip now is its end head: a runner that died after `enqueue.py land` committed (main merged in, the stamp)
         # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it. A runner that wrote
@@ -998,7 +1006,7 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
 def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
          survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str], dict | None]] = survey_rows,
          start: Callable[[list[str], pathlib.Path], int] = spawn_detached,
-         alive: Callable[[int | None], bool] = pid_alive,
+         alive: Callable[[dict[str, Any]], bool] = runner_alive,
          wait_free: Callable[[int | None, str], tuple[bool, str]] = wait_free,
          argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None,
          effects: WatchEffects | None = None, now: dt.datetime | None = None, say: Say = print) -> int:
@@ -1250,7 +1258,7 @@ def self_test() -> int:
     def wait_runners(cdir: pathlib.Path) -> None:
         """Wait until every runner an attempt names has EXITED: bounded by the runner's own exit (its outcome is
         written before it exits), never by a fixed wall-clock ceiling (kb/Work PB3022; PB3640 review R1-5)."""
-        while any(pid_alive(a.get("pid")) for a in attempts(cdir)):
+        while any(runner_alive(a) for a in attempts(cdir)):
             time.sleep(0.2)
 
     root = scratch_dir("land-lane-selftest-")
@@ -1290,8 +1298,8 @@ def self_test() -> int:
                 self.live.add(pid)
                 return pid
 
-            def alive(self, pid: int | None) -> bool:
-                return pid in self.live
+            def alive(self, a: dict[str, Any]) -> bool:
+                return a.get("pid") in self.live
 
             def overlap(self, rc: int | None, wt: str) -> tuple[bool, str]:
                 self.asked.append(wt)
@@ -1640,6 +1648,28 @@ def self_test() -> int:
                a.get("rc") == 5 and a.get("verdict") == "GATE RED (Windows) on x" and a.get("end_head") == head,
                f"{a} {out}")
 
+        # 10b. PB3113: a pid the OS reused. A live Python process holds the recorded pid but is not the runner (its command
+        # line does not name the attempt's record), so the attempt is not RUNNING; the process whose command line does
+        # name the record is the runner. Both are real processes, started here and ended in the `finally`.
+        c10b = fresh("reused-pid")
+        rec10b = {"id": "000001-x", "branch": "w10b", "_path": str(c10b / "attempts" / "000001-x.json")}
+        sleeper = "import time; time.sleep(600)"
+        stranger = subprocess.Popen([sys.executable, "-c", sleeper], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        runner = subprocess.Popen([sys.executable, "-c", sleeper, "run", rec10b["_path"]], stdin=subprocess.DEVNULL,
+                                  stdout=subprocess.DEVNULL)
+        try:
+            expect("a live Python process that is not the runner holds the recorded pid (a reused id): not alive; the "
+                   "process whose command line names the record is",
+                   not runner_alive({**rec10b, "pid": stranger.pid}) and runner_alive({**rec10b, "pid": runner.pid}),
+                   f"stranger {runner_alive({**rec10b, 'pid': stranger.pid})} runner {runner_alive({**rec10b, 'pid': runner.pid})}")
+        finally:
+            for proc in (stranger, runner):
+                proc.kill()
+                proc.wait()
+        expect("a dead pid, no pid and no record path are not alive",
+               not runner_alive({**rec10b, "pid": stranger.pid}) and not runner_alive({**rec10b, "pid": None})
+               and not runner_alive({"pid": runner.pid}))
+
         # 11. a runner that died AFTER enqueue.py committed: the survey reads the branch IN FLIGHT at its new tip, and
         #     the lane retries it from its own record (the DIED attempt's end head is the worktree's tip at the reap).
         c11 = fresh("died-after-commit")
@@ -1887,7 +1917,7 @@ def self_test() -> int:
         stale = next(a for a in attempts(c15) if a["branch"] == "w15b")
         late = next(a for a in attempts(c15) if a["branch"] == "w15b")
         update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": _now().isoformat(), "end_head": "x1"})
-        reap(c15, [stale], lambda pid: False, say=lambda s: None)
+        reap(c15, [stale], lambda a: False, say=lambda s: None)
         expect("one writer per field: a runner that wrote its rc after reap read the record is not marked DIED (the "
                "fresh record decides, under the record's lock)",
                "outcome" not in stale and stale.get("rc") == 0
