@@ -932,7 +932,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    branch's class (cherry-pick if unlanded, orient from the report if landed). **A carried branch** is the exception:
    when another `DONE` report's branch, not on main, contains it (`branch_carrier`, `git merge-base --is-ancestor`: a
    same-file successor merged its predecessor), its finisher merges that carrier instead of cherry-picking, because the
-   commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not: only a
+   commits would otherwise land twice. A carried `FINDINGS` branch still gets its finisher, seen lead or not, unless its carrier's own `CLEAN` review answers
+   the findings (the uncapped case, whose findings the successor's review took over: `prune_worktrees.answered_by_carrier`,
+   kb/Work PB3404, the survey's `review_answers` rule): then it waits, naming the carrier, and no second finisher fixes
+   them. Otherwise only a
    newer report naming its lead answers its findings, so its `pred` names the carrier (which may land the branch's
    commits first) and merges the `FINDINGS` branch alone (review R1-2). **A replayed branch** is the other way a
    branch's work is carried (kb/Work PB3170): the `pred` above tells a `SPLIT` successor to CHERRY-PICK its predecessor,

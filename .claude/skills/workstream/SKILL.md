@@ -129,7 +129,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   next-wave finisher, and its successor neither answers them nor records them again; a predecessor whose review
   finisher was sent to answer them and came back without doing so (SPLIT, BLOCKED, STALLED, killed, with or without a
   commit) is UNANSWERED: its report no longer shows them, so the successor's review covers the predecessor's content
-  and records again each finding that still holds. The survey finds findings files by NAME only (`review-*.jsonl` in
+  and records again each finding that still holds, and those findings are the SUCCESSOR's alone: the survey holds it
+  only until its own review is CLEAN over a head containing the predecessor's (`prune_worktrees.review_answers`),
+  one owner per case (kb/Work PB3404). The survey finds findings files by NAME only (`review-*.jsonl` in
   the coordination scratch and one level under it, and every file a stamp names) and never opens one to decide
   whether it is one. Every content problem is a TEAR, the reader's to classify: a file it cannot open or read (a
   directory in its place, a read denied), a byte-order mark, bytes that are not UTF-8, no final newline, no record, or
