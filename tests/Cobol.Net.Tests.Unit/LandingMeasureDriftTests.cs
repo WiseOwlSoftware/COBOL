@@ -8,7 +8,8 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ THE LANDING PIPELINE IS JUDGED BY THE SAME INSTRUMENT THAT FOUND ITS PROBLEM, AND THAT INSTRUMENT IS RECORDED RIGHT
 /// (kb/Work PB3028; DESIGN-test-build-ci.md §3.17.5): <c>scripts/orchestrator/landing_measure.py</c> keeps one record
-/// per pull request (DONE → review clean → enqueued → on main, its bounces and their causes, the merge-group CI wall
+/// per pull request (dispatch → DONE → review clean → enqueued → on main, each stage against the owner's fix-cycle
+/// bar, kb/Work PB3638; its bounces and their causes, the merge-group CI wall
 /// and the local gate's seconds), completes it from GitHub, and sets the after column beside the retired train records.
 /// It replaced <c>train_measure.py</c>, which is deleted: no tracked file outside the narrative paths may name it, and
 /// <c>enqueue.py queue</c> must keep writing the record.
@@ -47,6 +48,10 @@ public sealed class LandingMeasureDriftTests
             // kb/Work PB3527: the landing lane's queue watch records each stalled read, never as a bounce
             "a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete "
                 + "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls",
+            // kb/Work PB3638: the owner's fix-cycle bar is measured per stage, each span against its budget
+            "the dispatch and review-clean stamps are read at enqueue from the dispatch ledger and the CLEAN verdict's "
+                + "findings record, a stamp out of order stays null, and summary prints each stage and marks a span over "
+                + "the owner's bar",
         });
     }
 
