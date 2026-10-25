@@ -36,7 +36,7 @@ public sealed class CobolLiteralTests
         Assert.Equal(expected, CobolLiteral.IsStringLiteral(raw));
 
     /// <summary>kb/Work PB1615 — the literal LENGTH bound is the edition's: 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1,
-    /// §8.3.3.4.3 SR1, §8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.41). The boundary from both sides, per class and
+    /// §8.3.3.4.3 SR1, §8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.43). The boundary from both sides, per class and
     /// delimiter, with the measure the rule uses: the literal's VALUE in positions of its class (a doubled embedded
     /// delimiter is one position; a prefix letter and the delimiters are none; a <c>BX</c> digit is four).</summary>
     [Theory]

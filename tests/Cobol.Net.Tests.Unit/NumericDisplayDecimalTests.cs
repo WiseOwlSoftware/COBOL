@@ -212,6 +212,38 @@ public sealed class NumericDisplayDecimalTests
         Reads(1, "123", Zoned(3, -2));                  // PIC 9(3)PP given 123: its digits are the hundreds, so 100 holds 1
     }
 
+    /// <summary>kb/Work PB3573: the characters ahead of the last dropped high-order integer digit are skipped unexamined,
+    /// a non-digit among them included (GnuCOBOL 3.2.0's cob_move_alphanum_to_display advances over characters until the
+    /// surplus digits are consumed, measured 2026-10-25), so `Y123` into PIC 9(2)V99 holds 23.00. A non-digit AFTER the
+    /// last dropped digit is invalid as ever. A character item converts into itself, so its first stage holds its own
+    /// integer positions; a binary or packed item converts through a 38-digit intermediate, so its surplus is dropped
+    /// by the second stage and a non-digit ahead of it is skipped only past 38 integer digits.</summary>
+    [Fact]
+    public void Accept_skips_a_non_digit_that_stands_ahead_of_a_dropped_high_order_digit()
+    {
+        NumProfile pic22 = Zoned(4, 2);                  // PIC 9(2)V99: window 4
+        Reads(2300, "Y123", pic22);                      // count 3 > 2 integer positions: "Y1" is skipped, then 23
+        Reads(2300, "Y123.", pic22);
+        Reads(0, "1Y23", pic22);                         // the Y stands after the last dropped digit: invalid
+        Reads(0, "Y12", pic22);                          // nothing dropped (count 2): the Y is invalid
+        Reads(-2300, "-X123", Zoned(4, 2, true, NumericSign.LeadingSeparate));
+        Reads(0, "-1X23", Zoned(4, 2, true, NumericSign.LeadingSeparate));
+        Reads(200, "Y12", Zoned(3, 2));                  // PIC 9V99: count 2 > 1 position, so "Y1" is skipped and 2 remains
+    }
+
+    [Fact]
+    public void Accept_skips_a_non_digit_ahead_of_a_dropped_digit_in_a_binary_item_only_past_its_wide_first_stage()
+    {
+        const string digits38 = "12345678901234567890123456789012345678";
+        NumProfile comp = Binary(5, 2, true, NumericTruncation.DigitCount, 4);     // PIC S9(3)V99 COMP
+        Reads(0, "X" + digits38, comp);                  // 38 integer digits fit the first stage: the X is invalid
+        Reads(0, "12X345", comp);
+        Reads(67800, "X9" + digits38, comp);             // 39: "X9" is skipped, the low-order 678 remains
+        Reads(67850, "Y9" + digits38 + ".5", comp);
+        Reads(67850, "Y9" + digits38 + ".5", Packed(5, 2, true));                  // PIC S9(3)V99 COMP-3
+        Reads(4567850, "Y9" + digits38 + ".5", Packed(7, 2, true));                // PIC S9(5)V99 COMP-3 keeps five
+    }
+
     [Fact]
     public void Accept_reads_a_p_scaled_item_by_value()
     {

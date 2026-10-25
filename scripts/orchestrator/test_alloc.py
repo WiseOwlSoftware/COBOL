@@ -121,6 +121,36 @@ check("parallel: every allocation returned", len(ranges), 48)
 check("parallel: no value handed out twice", len(values) - len(set(values)), 0)
 check("parallel: dense from truth+1", sorted(values) == list(range(106, 106 + 144)), True)
 
+# 8. wave numbers (kb/Work PB3700): one allocator for the loop's planner and a hand dispatch. The truth is the highest
+# wave in a report's NAME (a hand report's too), in the dispatch ledger, or in the newest DEVLOG entries' wave/train
+# labels; the reservation keeps a number handed out before any of them is written.
+c4 = TMP / "c4"
+reports4 = c4 / "scratch" / "reports"
+reports4.mkdir(parents=True)
+for name in ("w20261104a-PB3690-report.md", "w20261103a-PB3671-report.md", "w1157z-PB1-report.md",
+             "w20261109a-PB5-report-v2.md"):   # the last is no report name (REPORT_NAME), so no wave
+    (reports4 / name).write_text("DONE\n", encoding="utf-8", newline="\n")
+check("peek wave: one past the highest report name, a hand report's included", run(c4, "peek", "wave"), (0, "20261105"))
+check("peek again unchanged", run(c4, "peek", "wave"), (0, "20261105"))
+check("alloc wave", run(c4, "wave"), (0, "20261105"))
+check("alloc wave again: the reservation holds it though no report names it yet", run(c4, "wave"), (0, "20261106"))
+coord.write_json(c4 / "inflight-groups.json", {"groups": [
+    {"wave": "20261110", "letter": "a", "notes": ["PB5"], "files": []},
+    {"wave": "hand", "letter": "", "hand": True, "notes": ["PB6"], "files": []},     # no dispatch (ledger_groups)
+    {"wave": "20261199", "letter": "z", "hand": True, "notes": ["PB7"], "files": []}]})
+check("a wave dispatched with no report yet is taken; a retired hand entry is no wave", run(c4, "wave"), (0, "20261111"))
+(reports4 / "w20261120a-PB9-report.md").write_text("DONE\n", encoding="utf-8", newline="\n")
+check("a report written past the reservation moves the next number past it", run(c4, "wave"), (0, "20261121"))
+check("seed wave raises, never lowers", (run(c4, "seed", "wave", "20261300"), run(c4, "seed", "wave", "20261200"),
+                                         run(c4, "wave")),
+      ((0, "wave reserved through 20261300"), (0, "wave reserved through 20261300"), (0, "20261301")))
+repo4 = TMP / "repo-wave-labels"
+(repo4 / "DEVLOG").mkdir(parents=True)
+(repo4 / "DEVLOG" / "0007-train.md").write_text("## Entry 7 — Train 1036 (wave 1032: D, E)\n", encoding="utf-8", newline="\n")
+(repo4 / "DEVLOG" / "0006-wave.md").write_text("## Entry 6 — wave 1034 dispatched\n", encoding="utf-8", newline="\n")
+check("a train label counts above every wave number (PB2562), found in the DEVLOG's newest entries",
+      alloc.wave_top(repo4, TMP / "c5"), 1036)
+
 for f in fails:
     print("FAIL:", f)
 print(f"alloc self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")

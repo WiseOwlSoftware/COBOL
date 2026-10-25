@@ -16,7 +16,7 @@
       *>   7.2.3.2 the general format: COPY { text-name-1 | literal-1 }
       *>     [ { OF | IN } { library-name-1 | literal-2 } ] ...
       *> The literal forms are a COBOL-2002 introduction (constructs row
-      *> copy-literal-name-2002, VCR row 7.42, derived): ANSI X3.23-1985's
+      *> copy-literal-name-2002, VCR row 7.44, derived): ANSI X3.23-1985's
       *> COPY names its text by a user-defined word only, so the 85 twin
       *> pb1601-copy-literal-name-below-2002 draws COBOLNET0900.
       *> The runner names this directory as a --copy search path.

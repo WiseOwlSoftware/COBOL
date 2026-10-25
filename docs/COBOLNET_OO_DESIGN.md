@@ -772,10 +772,10 @@ name each other or themselves are classified by what they describe and never by 
 type on both lanes; the class identity is group-local until the external repository (`DESIGN-external-repository.md`)
 supplies a record's identity. A prototype with NO compile-time signature (§12.3.8.4 GR10 c) / GR11 c)) is a class of its
 own marked as such — `PrototypeSignatures.ExternalIdentity`, `ActivationDescription.ExternalRestrictionPrefix` + its
-name — and the conformance relations (`ActivationRelations.SamePointerRestriction`, read by `MaySet` and the BY REFERENCE
-pointer arm) let a restricted pointer of that type conform to any restricted pointer of its kind, exactly as
-`PrototypeSignatures.Same` lets an unresolved signature conform on the SET lane, so the SET and the argument lanes give one
-answer for the pair (kb/Work PB3162). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
+name — and the conformance relations (`ActivationRelations.SamePointerRestriction`, read by `MaySet`, the BY REFERENCE
+pointer arm and the RETURNING pair's `ReturningConformance`) let a restricted pointer of that type conform to any restricted pointer of its kind, exactly as
+`PrototypeSignatures.Same` lets an unresolved signature conform on the SET lane, so the SET, the argument and the RETURNING lanes give one
+answer for the pair (kb/Work PB3162, PB3686; §14.8.3.3's "same … USAGE clauses" read the TO phrase as the pointer's type). The §8.5.3.1 equivalence and its key keep comparing the identity exactly, because an
 equivalence (and a key) must stay transitive. The same relation decides a pointer that is a MEMBER of a group (kb/Work PB3120): a
 strongly-typed group formal is compared through §8.5.3.1's type-declaration equivalence
 (`StrongTypeModel.EquivalentTypeDeclarations` / `SameElementaryLayout`), whose per-item profile compare

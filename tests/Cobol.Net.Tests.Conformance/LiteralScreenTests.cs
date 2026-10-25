@@ -71,7 +71,7 @@ public sealed class LiteralScreenTests
     }
 
     /// <summary>⭐ THE LENGTH BOUND IS THE EDITION'S (kb/Work PB1615, constructs row <c>literal-length-8191-2014</c>, VCR row
-    /// 7.41): 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1, §8.8.3.2 SR2–SR4), 160 below
+    /// 7.43): 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1, §8.8.3.2 SR2–SR4), 160 below
     /// it — the edge DERIVED from GnuCOBOL 3.2's per-standard dialect files (<c>literal-length</c>: 160 in
     /// <c>cobol85.conf</c> and <c>cobol2002.conf</c>, 8191 in <c>cobol2014.conf</c>). Each row writes ONE class and ONE
     /// position at one edition and names the diagnostic it must draw (null: none). The boundary is pinned from both sides

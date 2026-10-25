@@ -285,7 +285,7 @@ public static class CobolLiteral
     public const int MaxLiteralPositions = 8191;
 
     /// <summary>The bound below the edition that relaxed it — 160 character positions. ⚠ THE EDGE IS DERIVED, NOT QUOTED
-    /// (kb/Work PB1615; docs/VERSION_CHANGE_REFERENCE.md row 7.41): the repository holds no 1985, 2002 or 2014 text, so the
+    /// (kb/Work PB1615; docs/VERSION_CHANGE_REFERENCE.md row 7.43): the repository holds no 1985, 2002 or 2014 text, so the
     /// method of owner decision kb/Work R61 dates it — GnuCOBOL 3.2's per-standard dialect files carry
     /// <c>literal-length: 160</c> in <c>cobol85.conf</c> AND <c>cobol2002.conf</c> and 8191 in <c>cobol2014.conf</c>, and
     /// Annex E (2014 to 2023) lists no change, so 2014 already had 8,191.</summary>
