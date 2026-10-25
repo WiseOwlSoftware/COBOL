@@ -38,9 +38,17 @@ internal static class ReceivingStore
             // NATIONAL one's its UTF-16BE pairs (StorageBytes): neither is characters, and converting the bytes as
             // characters turned a national N"101" group image into three CJK characters (PB3666 review R1-1), so they
             // keep the byte fit.
-            : target.OperandPic is { Category: PicCategory.Boolean, Usage: Usage.Display }
+            : target.OperandPic is { Category: PicCategory.Boolean } && AreaHoldsCharacters(target)
                 ? RuntimeApi.StrStoreBoolean(sendingChars, width, target.Justified)
                 : RuntimeApi.StrStoreAligned(sendingChars, width, target.Justified);
+
+    /// <summary>Whether <paramref name="item"/>'s storage AREA (the bytes a GR4 group move fits, <see cref="StorageBytes"/>)
+    /// IS its characters — the pass-through arm of <see cref="StorageCharacters"/>, which decodes a NATIONAL item's
+    /// UTF-16BE pairs and a USAGE BIT item's packed bits and takes every other string-backed item's bytes as they are.
+    /// Only such an area can be converted as characters; asked by <see cref="Characters"/>' boolean arm and written as
+    /// the complement of <c>StorageCharacters</c>' decoding arms so the two cannot drift apart (kb/Work PB3666, review R1-1).</summary>
+    private static bool AreaHoldsCharacters(DataItem item) =>
+        item.OperandPic is not { Usage: Usage.National or Usage.Bit };
 
     /// <summary>⚖ DETERMINATION D-DL2 (docs/CONFORMANCE.md §3; kb/Work PB871) — the SIZE of a dynamic-length
     /// RECEIVING operand, wherever a statement's rules are written over "the number of character positions in"
