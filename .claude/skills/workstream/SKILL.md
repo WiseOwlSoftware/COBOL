@@ -179,8 +179,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   member claims on it meet (either has no `member_set` entry for it, so claims it whole, or a member of one matches a
   member of the other) unless one declares `after:` the other: two groups on different members of one file run side
   by side (kb/Work PB3670). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
-  give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``), or the planner
-  claims the whole file; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
+  give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
+  the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or the planner claims the whole file, as it does for
+  a name the file does not declare; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
 
 ⭐ **COMMAND CHAINING — MANDATORY-PRACTICES P14, enforced by the guard hook.** Never chain anything after a verdict
 command (build, test, gate, `enqueue.py land`, battery); capture its status with `; echo "EXIT=$?"` if needed. Independent

@@ -824,12 +824,14 @@ def campaign_domain():
     return coord.campaign()
 
 
-def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
+def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Path | None = None) -> NoteSites:
     """THE ONE READER of a note's structured sites (kb/Work PB3242; DESIGN-architecture-review §8.7): the planner and the
     landing check (plan_wave.declared_sets), the member index (member_index.note_file_set) and this register's checks
     all read a note through it, and no other module scans a note's text for paths. A path counts only inside a site
     block and only under a campaign root (`roots`, default campaign_domain()'s); a path in prose, a `Gate:` line or a
-    tool command, and a bare type name, declare nothing."""
+    tool command, and a bare type name, declare nothing. With `repo` (the tree the claim is planned on), a file's
+    members count only when every one of them names a unit that file declares there (_members_located): a stale,
+    misspelt or prose name claims the file WHOLE, never a part of it no code matches (kb/Work PB3670 review R1-3)."""
     text = text.replace(chr(13) + chr(10), chr(10))
     blocks = _site_blocks(text)
     token = _path_token(roots or campaign_domain().roots)
@@ -854,6 +856,8 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
         names += [d.split("~", 1)[0] for d in _DOC_ID.findall(part)]
     wave = m.group(1).lower() if (m := _WAVE_KIND.search(text)) else ""
     members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
+    if repo is not None:
+        members = {p: ms for p, ms in members.items() if _members_located(repo / p, ms)}
     return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members)
 
 
@@ -867,14 +871,14 @@ _SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
 def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
     """The members ONE mention of a site path names (kb/Work PB3670), or () for the whole file: its `#Member` suffix,
     else the code spans (and `§N.N` section numbers) of a parenthesis right after it (past its closing backtick) that
-    OPENS with a code span or a section sign (`plan_wave.py` (`collision`, `collision_set`)); a `:line` suffix, a bare
-    mention and a prose parenthesis ("(the shared-primary-file rule)", "(the planner side that honours `x`)") name the
-    whole file."""
+    OPENS with a code span or a section sign (`plan_wave.py` (`collision`, `collision_set`)), with or without a `:line`
+    suffix (`DataBinder.cs:123` (`DataBinder.Bind`): the line says where to look, the member what is claimed, and the
+    binding rule R3 writes sites this way, review R1-1); a bare mention, a `:line` alone and a prose parenthesis ("(the
+    shared-primary-file rule)", "(the planner side that honours `x`)") name the whole file (a line number drifts as the
+    file changes, so it locates no unit)."""
     if "#" in raw:
         frag = raw.split("#", 1)[1].rstrip(".,:")
         return (frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()
-    if ":" in raw:
-        return ()
     rest = block[end:]
     rest = rest[1:] if rest.startswith("`") else rest
     opened = re.match(r"[ \t]*\(", rest)
@@ -902,8 +906,47 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
 #: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
 #: into a cluster carries its block from its first commit.
 SITES_REQUIRED_FROM = 3443
-SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming the files it "
-              "changes, or `**Sites:** none (why)` when it changes no code file")
+#: The site-block form SITES_RULE asks for, quoted by MANDATORY-PRACTICES R3 and the registrar brief (a drift check in
+#: scripts/orchestrator/test_plan_wave.py holds them to it and to what note_sites reads from it).
+SITES_EXAMPLE = "**Sites:** `src/Cobol.Net.Compiler/Binding/DataBinder.cs:123` (`DataBinder.Bind`, `DataBinder.Sync`)"
+SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming each file it "
+              "changes AND the members it changes in it, the file's path (a `:line` suffix optional) followed by a "
+              "parenthesis of code spans, as in " + SITES_EXAMPLE + ", or `path#Member`; the wave planner partitions "
+              "on the members, so a file named without them, or with a name the file does not declare, is claimed "
+              "whole and holds every other group on it (kb/Work PB3670); or `**Sites:** none (why)` when it changes "
+              "no code file")
+
+
+def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
+    """Whether every one of `names` matches a unit `path` declares (source_units.match), so a claim on those members
+    holds the code its edits reach. A file not on the tree yet (one the change creates) has nothing to check them
+    against and keeps them (so does a folder, which is no file claim: member_index.note_file_set drops it); a file
+    with no units (no reader for its kind, one the reader cannot balance, one it cannot read) cannot locate any name,
+    and a name no unit matches (a deleted function, a local, a prose word in a code span) says nothing about where the
+    edit lands: both claim the file whole (kb/Work PB3670 review R1-3)."""
+    if not path.is_file():
+        return True
+    try:
+        stat = path.stat()
+        declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        return False
+    return declared is not None and all(any(_source_units().match(n, u) for u in declared) for n in names)
+
+
+@functools.lru_cache(maxsize=1)
+def _source_units():
+    """scripts/arch/source_units.py, the one reader of a file's units (kb/Work PB3670)."""
+    sys.path.append(str(REPO / "scripts" / "arch"))
+    import source_units  # noqa: PLC0415
+    return source_units
+
+
+@functools.lru_cache(maxsize=512)
+def _unit_names(path: str, mtime_ns: int, size: int) -> frozenset[str] | None:
+    """The unit names of the file at `path`, keyed on its stamp so a file rewritten in this process is read again."""
+    us = _source_units().units(path, pathlib.Path(path).read_text(encoding="utf-8", errors="replace"))
+    return None if us is None else frozenset(u.name for u in us)
 
 
 def sites_problems(items: list[dict]) -> list[str]:

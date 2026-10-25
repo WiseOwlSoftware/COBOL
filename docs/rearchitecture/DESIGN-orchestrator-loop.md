@@ -833,7 +833,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    whole or on a member of one that matches a member of the other (`collision` meets `plan_wave.collision`, a type its
    members, a section its subsections); a file a merge driver merges by key never meets
    (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
-   `` `path` (`member`, ...) ``, `work.NoteSites.members`); an in-flight worktree's or branch's from the units its
+   `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
+   `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
+   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`); an in-flight worktree's or branch's from the units its
    ACTUAL diff touches in each file another claim shares (`plan_wave.inflight_units`: both sides of every hunk, read
    from one `git diff-tree --stdin -p -U0` and two `git cat-file` batches, plus one `git diff -U0 HEAD` per worktree
    with an uncommitted shared edit); a ledger group's from its recorded `members`. An EMPTY set (no note declares a

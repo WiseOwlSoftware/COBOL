@@ -255,34 +255,51 @@ def _skip_group(toks: list[tuple[str, int]], i: int) -> int:
     raise _Unbalanced("unbalanced bracket")
 
 
+#: The modifiers a member header can carry before its type: a `(` group right after one of them (or at the header's
+#: start, or after `<`) is a TUPLE TYPE, never the parameter list (`private static (char[] A, bool B) Render(...)`).
+_MODIFIERS = frozenset(("public", "private", "protected", "internal", "static", "readonly", "virtual", "override",
+                        "abstract", "sealed", "async", "extern", "unsafe", "new", "partial", "volatile", "const",
+                        "required", "file", "ref", "scoped", "fixed", "implicit", "explicit"))
+
+
+def _parameter_list_name(head: list[str], i: int) -> str | None:
+    """The name a `(` marker at head[i] is the parameter list of (a generic list skipped back over; `operator +`), or
+    None when that group is no parameter list (a tuple type: at the header's start, after a modifier or a `<`)."""
+    k = i - 1
+    if k >= 0 and head[k] == ">":   # a generic method: skip back over its type parameters
+        depth = 0
+        while k >= 0:
+            depth += head[k] == ">"
+            depth -= head[k] == "<"
+            k -= 1
+            if depth == 0:
+                break
+    if k >= 1 and head[k - 1] == "operator":
+        return "operator" + head[k]
+    if k >= 0 and head[k] == "operator":
+        return "operator"
+    return head[k] if k >= 0 and _ID.fullmatch(head[k]) and head[k] not in _MODIFIERS else None
+
+
 def _member_name(head: list[str]) -> str:
     """The name a member declaration's header tokens (at its own depth, attributes and bracketed groups collapsed to
     `[`/`(` markers) declare: the identifier before its parameter list (a generic list skipped; `operator +`,
-    `this[]`), else the identifier before its first `,`, `=`, `=>`, `{` or `;`."""
-    if "(" in head:
-        k = head.index("(") - 1
-        if k >= 0 and head[k] == ">":   # a generic method: skip back over its type parameters
-            depth = 0
-            while k >= 0:
-                depth += head[k] == ">"
-                depth -= head[k] == "<"
-                k -= 1
-                if depth == 0:
-                    break
-        if k >= 1 and head[k - 1] == "operator":
-            return "operator" + head[k]
-        if k >= 0 and head[k] == "operator":
-            return "operator"
-        while k >= 0 and not _ID.fullmatch(head[k]):
-            k -= 1
-        return head[k] if k >= 0 else "?"
-    if "this" in head and head.index("this") + 1 < len(head) and head[head.index("this") + 1] == "[":
+    `this[]`), else the identifier before its first `,`, `=`, `=>`, `{` or `;`. Only the header before a `=` or `=>`
+    is read: what follows is an initializer or an expression body, whose calls name nothing
+    (`public int Width => Pic is { } p ? WidthOf(p) : 0;` declares `Width`, never `WidthOf`)."""
+    end = min([head.index(s) for s in ("=", "=>") if s in head] + [len(head)])
+    for i in (i for i in range(end) if head[i] == "("):
+        if (name := _parameter_list_name(head, i)) is not None:
+            return name
+    if "this" in head[:end] and head.index("this") + 1 < end and head[head.index("this") + 1] == "[":
         return "this[]"
-    stop = len(head)
-    for s in (",", "=", "=>", "{", ";"):
-        if s in head:
-            stop = min(stop, head.index(s))
-    names = [t for t in head[:stop] if _ID.fullmatch(t)]
+    stop, depth = end, 0
+    for i, t in enumerate(head[:end]):
+        depth += (t == "<") - (t == ">")
+        if t in ("{", ";") or (t == "," and depth <= 0):   # a `,` inside a generic type argument list separates nothing
+            stop = i
+            break
+    names = [t for t in head[:stop] if _ID.fullmatch(t) and t not in _MODIFIERS]
     return names[-1] if names else "?"
 
 
@@ -643,6 +660,22 @@ def self_test() -> int:
            {"DataBinder.Bind"})
     expect("C#: the class's closing brace is the type's own unit, the usings the header",
            (names_at(us, [lines.index("}") + 1]), names_at(us, [1, 2])), ({"DataBinder.<own>"}, {"<header>"}))
+    # PB3670 review finisher: four header shapes the reader once misnamed, each measured on the tree (DataItem.cs's
+    # `DisplayTextWidth` read as `DisplayTextWidthOf`, BinderDriver.cs's `CollectUnits` and CobolEdit.cs's `Render` as
+    # `static`, EcEmitter.cs's `FatalAmbientGates` as `readonly`), so a change to them was attributed to a unit no claim
+    # names and two groups editing one of them were planned side by side
+    shapes = chr(10).join((
+        "class A", "{",
+        "    public int Width => Pic is { } p ? WidthOf(p) : Image;",
+        "    private static (char[] Logical, bool[]? Placed) Render(int v) { return default; }",
+        "    internal static readonly (string Ec, string? Flag)[] Gates = [(\"a\", null)];",
+        "    System.Func<int, int> Twice = x => Dbl(x), Other;",
+        "    System.Threading.Tasks.Task<(int A, int B)> Pair() => null;",
+        "}", ""))
+    expect("C#: an expression-bodied property, a tuple return type, a tuple-array field, a generic-typed field and a "
+           "tuple type argument each name their member",
+           [u.name for u in units("x.cs", shapes) or []],
+           ["A.<own>", "A.Width", "A.Render", "A.Gates", "A.Twice", "A.Pair", "A.<own>", "<footer>"])
     expect("C#: an unbalanced file has no units (the whole file)", units("x.cs", "class A { void M() { }"), None)
     expect("C#: an unterminated string has no units", units("x.cs", 'class A { string s = "abc\n; }'), None)
 

@@ -364,8 +364,9 @@ def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict]
     declare): a body-only edit is a site member (`path#Member`), which reserves that member and no caller. The index
     (`index`, or a function returning it, called only when needs_index; default the newest committed record) is read
     only for a note that names what it moves or changes, or a restructuring note; `drifted` likewise (default
-    drifted_files)."""
-    sites = work.note_sites(text)
+    drifted_files). A site member `repo`'s file does not declare (a stale, misspelt or prose name) claims that file
+    whole (work.note_sites `repo`, kb/Work PB3670 review R1-3)."""
+    sites = work.note_sites(text, repo=repo)
     restructuring = bool(sites.wave) and not sites.fix_lane
     files = {p for p in sites.paths if not (repo / p).is_dir()} | (folder_files(sites.paths, repo) if restructuring
                                                                     else set())
@@ -390,6 +391,12 @@ def self_test() -> int:
     for f in ("src/A/Binder.cs", "src/A/Binder.Oo.cs", "src/A/Use.cs", "src/B/Emit.cs", "tests/T.cs", "src/A/Sym.cs"):
         (root / f).parent.mkdir(parents=True, exist_ok=True)
         (root / f).write_text("// " + f, encoding="utf-8", newline="\n")
+    # the members the site checks below name are declared in the file, as note_file_set requires (review R1-3)
+    (root / "src/A/Binder.cs").write_text(chr(10).join((
+        "namespace N;", "class Binder", "{", "    void Pending() { }", "    class Inner", "    {", "        void X() { }",
+        "    }", "}", "")), encoding="utf-8", newline="\n")
+    (root / "src/A/Sym.cs").write_text(chr(10).join(("namespace N;", "class Sym", "{", "    int Flag;", "}", "")),
+                                       encoding="utf-8", newline="\n")
     idx = {"commit": "c0", "blobs": {}, "files": ["src/A/Binder.cs", "src/A/Binder.Oo.cs", "src/A/Use.cs",
                                                     "src/B/Emit.cs", "tests/T.cs", "src/A/Sym.cs", "src/A/Gone.cs"],
            "uses": {"N.Binder": [0, 1, 2, 3, 4], "N.Binder.Pending": [1, 2], "N.Binder.Inner": [3],
@@ -438,6 +445,17 @@ def self_test() -> int:
     fs = note_file_set("**Sites:** `src/A/Binder.cs` (`Pending`, `Inner.X`) and `src/A/Sym.cs` (the flag arm)", root,
                        index=no_index, drifted=no_index)
     check("site-members-parenthesis", fs["members"], {"src/A/Binder.cs": ["Inner.X", "Pending"]})
+    # a `:line` suffix still names the members its parenthesis lists: R3's site form (review R1-1) ...
+    fs = note_file_set("**Sites:** `src/A/Binder.cs:4` (`Binder.Pending`)", root, index=no_index, drifted=no_index)
+    check("site-member-after-line", fs["members"], {"src/A/Binder.cs": ["Binder.Pending"]})
+    # ... and a name the file does not declare (stale, misspelt, a local, prose) claims it whole, alone or beside a
+    # real member: the claim never shrinks to code no name matches (review R1-3)
+    for stale in ("(`Gone`)", "(`Pending`, `unpart`)"):
+        fs = note_file_set(f"**Sites:** `src/A/Binder.cs` {stale}", root, index=no_index, drifted=no_index)
+        check(f"site-member-undeclared {stale}", (fs["files"], fs["members"]), (["src/A/Binder.cs"], {}))
+    # a file the change creates has nothing to check its members against and keeps them
+    fs = note_file_set("**Sites:** `src/A/New.cs` (`New.Go`)", root, index=no_index, drifted=no_index)
+    check("site-member-new-file", fs["members"], {"src/A/New.cs": ["New.Go"]})
     # an R2 defect routed to the fix lane is a fix-lane note whatever `r2_members:` it carries: its members say where
     # the defect lives, so neither they nor its site types are resolved (PB3242 branch review R1-2: the fix lane's plan
     # once read, and regenerated, the index for these notes)

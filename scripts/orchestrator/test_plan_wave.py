@@ -1866,6 +1866,20 @@ for shape, text in (("a bold paragraph label", f"**Code site.** src/Lib/Alpha.cs
                                                         f"scripts/gamma.py")):
     want = ("src/Lib/Alpha.cs", "src/Lib/Beta.cs") if shape == "a heading section" else ("src/Lib/Alpha.cs",)
     check(f"(2) the site block as {shape} ends where the block ends", work.note_sites(text).paths, want)
+# Branch review R1-1 (PB3670): the binding rule's site form (R3: the file, a `:line` optional, then a parenthesis of code
+# spans) names MEMBERS, so a note filed by it partitions on them; a `:line` alone claims the file whole; and every text
+# that states the rule quotes the one example note_sites reads members from, so the rule and the parser cannot drift
+# apart again (R3 once prescribed `(file:line)` files only, which the member parser reads as whole files).
+check("R1-1: R3's site form names its members, with or without the :line; a :line alone claims the file whole",
+      (work.note_sites(work.SITES_EXAMPLE).members, work.note_sites("**Sites:** `src/Lib/Beta.cs:12` (`Beta.Run`)").members,
+       work.note_sites("**Sites:** `src/Lib/Beta.cs:12`").members),
+      ({"src/Cobol.Net.Compiler/Binding/DataBinder.cs": ("DataBinder.Bind", "DataBinder.Sync")},
+       {"src/Lib/Beta.cs": ("Beta.Run",)}, {}))
+for doc in (".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+            ".claude/skills/workstream/templates/registrar-brief.md"):
+    check(f"R1-1: {doc} states the site form by quoting work.SITES_EXAMPLE",
+          work.SITES_EXAMPLE in (coord.REPO / doc).read_text(encoding="utf-8"), True)
+check("R1-1: work.SITES_RULE (what `work.py check` prints) quotes it too", work.SITES_EXAMPLE in work.SITES_RULE, True)
 check("(2) a placeholder, a glob and a bare root are no sites",
       work.note_sites(f"**Sites:**{NL}- `src/<Project>/X.cs`{NL}- `tests/**/char_*.txt`{NL}- `src/`{NL}").paths, ())
 check("(2) the roots are model_rules.json's campaign roots, never a literal",

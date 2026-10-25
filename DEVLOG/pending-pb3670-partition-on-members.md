@@ -54,3 +54,27 @@ a fix-lane folder that reserves nothing, and a re-signed member that holds its c
 plan is unchanged apart from the new `member_set` key. Docs: DESIGN-architecture-review §8.7, DESIGN-orchestrator-loop
 section 9 (items 1b and 4, the campaign paragraph), the workstream SKILL.md, MANDATORY-PRACTICES O2, and `work.py`'s
 SITES rule text. No inventory row (process tooling).
+
+**Branch review, round 1.** R1-1 (blocking): the standing rule that tells a note writer how to write a site block
+still asked for files only. MANDATORY-PRACTICES R3, the registrar brief's step 2 and `work.SITES_RULE` prescribed
+`(file:line)` files, and the new parser read a `:line` suffix as the whole file, so every note filed by the binding
+rule claimed whole files and the member partition never applied to it, while the workstream SKILL.md said the
+opposite. Fixed on both sides. `work._mention_members` now reads the members of a parenthesis that opens with a code
+span after a `:line` suffix too (`DataBinder.cs:123` (`DataBinder.Bind`)); a `:line` alone still claims the file whole,
+since a line number drifts as the file changes. `work.SITES_EXAMPLE` is the one example of the form: `SITES_RULE`, R3,
+P7, the registrar brief and the three implementer briefs' lead rule state it, and a test_plan_wave check holds R3, the
+registrar brief and `SITES_RULE` to the example and the example to the members note_sites reads from it. R1-3 (a lead
+in `work.py`, fixed under I9): a site member the file does not declare (a stale, misspelt or prose name: PB3640's
+`unpart`, PB3448's `subsystems`, both deleted by this branch) now claims the file whole instead of shrinking the claim
+to code no name matches (`work.note_sites(..., repo=)`, `_members_located`, passed by `member_index.note_file_set`).
+Measured over the open notes: 88 member claims kept, 28 claimed whole (stale names, prose code spans, and files no unit
+reader covers: `.g4`, `.csproj`, `.json`, `.ps1`, `.sh`). That measurement found a defect in the C# unit reader
+itself: `source_units._member_name` named an expression-bodied property after the first call in its body
+(DataItem.cs's `DisplayTextWidth` read as `DisplayTextWidthOf`), a method with a tuple return type after its modifier
+(`BinderDriver.CollectUnits` and `CobolEdit.Render` as `static`), a tuple-array field after `readonly`
+(`EcEmitter.FatalAmbientGates`), and a field of a generic type with two arguments after a type argument. An edit to one
+of those was attributed to a unit no claim names, so two groups editing it could be planned side by side. The reader now
+reads only the header before `=`/`=>`, skips a `(` group after a modifier, at the header's start or after `<` (a tuple
+type), and ignores a `,` inside a generic argument list; a sweep of the tree's 1,634 C# files finds no unit named after
+a keyword and no unbalanced file. R1-2 and R1-4 (leads in `plan_wave.py`, a file this finisher did not change) stay for
+the clerk.
