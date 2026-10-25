@@ -2240,7 +2240,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
    entry to (`wiseowl/diagnostics.json` and `options.json`, the traceability inventory, `constructs.json`), the work notes
    two branches append to, and the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
-   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit).
+   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit;
+   that measuring build, like every build in a worktree after its agent has returned, is not blocked by a session's
+   C# language server holding the source generator `Cobol.Net.Compiler.SourceGen.dll` from `bin\`: the generator
+   project's `MoveAsideHeldOutput` target renames a held output aside before the copy, and
+   `scripts/test_held_analyzer_output.py` rebuilds it with a real process holding it, kb/Work PB3674).
    `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
    (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
