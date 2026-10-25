@@ -285,8 +285,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     private static string Ordered(bool senderFirst, BoundOperand source, Place target, string value, Func<string, string> store) =>
         senderFirst ? PlaceIdentification.SenderFirst(source, target, value, store) : store(value);
 
-    /// <summary>MOVE of an alphanumeric figurative constant (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) or an ALL
-    /// "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
+    /// <summary>MOVE of an alphanumeric figurative constant (QUOTE / HIGH-VALUE / LOW-VALUE; SPACE only as the sender
+    /// §14.9.25.4 GR1-GR3 substitute for a zero-length one, since a WRITTEN SPACE is refused at every edition, kb/Work
+    /// PB3605) or an ALL "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
     /// construct ISO/IEC 1989:2023 REMOVED (§14.9.25.3 SR5; Annex E.2 item 1 bullet 1 — permitted through 2014).
     /// The binder's "move-alphanumeric-figurative-removed-2023" gate carries the 0902 diagnostics; this emit path
     /// exists regardless, reachable at --std 85/2002/2014 and at 2023 --permissive. Provisional (ratified decision

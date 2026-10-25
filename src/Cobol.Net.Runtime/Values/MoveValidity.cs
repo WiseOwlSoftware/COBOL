@@ -36,6 +36,25 @@ public enum Table16Category
     NumericEdited,
 }
 
+/// <summary>Which figurative-constant sender ISO §14.9.25.3's figurative rules tell apart
+/// (<see cref="MoveValidity.FigurativeRefusal"/>): SR5's SPACE arm, SR6's ZERO, and SR7's exemption for a sender whose
+/// associated characters are all boolean characters. Every other figurative constant and ALL literal is
+/// <see cref="Other"/>.</summary>
+public enum FigurativeSender
+{
+    /// <summary>A figurative constant or ALL literal that none of the other members names.</summary>
+    Other = 0,
+    /// <summary>The figurative constant ZERO (ZEROS, ZEROES, ALL ZERO): SR6's sender, and boolean zeros in a boolean
+    /// context (§8.3.3.6.4 GR4), so SR7 lets it into a boolean receiver.</summary>
+    Zero,
+    /// <summary>The figurative constant SPACE (SPACES, ALL SPACE): the one figurative constant §14.9.25.3 SR5 keeps out
+    /// of a numeric or numeric-edited receiver at EVERY edition (kb/Work PB3605).</summary>
+    Space,
+    /// <summary>An ALL literal every one of whose characters is a boolean character ('0' or '1'), which SR7 lets into a
+    /// boolean receiver (kb/Work PB3101).</summary>
+    BooleanCharacters,
+}
+
 /// <summary>
 /// ⭐ THE RULES OF ISO §14.9.25.3 THAT A DATA DESCRIPTION ALONE DECIDES, in ONE place for both phases (kb/Work PB2076):
 /// SR10's Table 16 (<see cref="Table16Refusal"/>) and SR8's fixed-width binary sender (<see cref="BinaryWidthRefusal"/>).
@@ -143,23 +162,34 @@ public static class MoveValidity
               + "numeric-edited receiver (ISO §14.9.25.3 SR8)"
             : null;
 
-    /// <summary>ISO §14.9.25.3 SR6 and SR7, the two rules a FIGURATIVE-CONSTANT sender meets beside Table 16 (whose
-    /// figurative row is the context's choice, §8.3.3.6.4 GR1, so the table cannot be the rule that refuses either) —
-    /// as the reason, or null. SR6: "The figurative constant ZERO shall not be moved to an alphabetic data item." SR7:
-    /// "Any figurative constant for which the associated character or characters are not boolean characters shall not be
-    /// moved to a boolean data item" — ZERO is boolean zeros in a boolean context (§8.3.3.6.4 GR4), and an ALL literal
-    /// is exempt only when every one of its characters is a boolean character. The ONE copy both the compiler's MOVE
-    /// chain (<c>MoveTable16</c>) and the activation relations (<see cref="ActivationRelations"/>, a figurative argument
-    /// BY CONTENT, §14.8.2.3.3 rule 2 d)) ask (kb/Work PB3101).</summary>
-    /// <param name="zero">The sender is the figurative constant ZERO.</param>
-    /// <param name="booleanCharacters">The sender's associated characters are all boolean characters (ZERO, or an ALL
-    /// literal of '0' and '1' only).</param>
+    /// <summary>The rules of ISO §14.9.25.3 that a FIGURATIVE-CONSTANT sender meets beside Table 16 (whose figurative row
+    /// is the context's choice, §8.3.3.6.4 GR1, so the table cannot be the rule that refuses any of them), as the
+    /// reason, or null:
+    /// <list type="bullet">
+    /// <item>SR5's SPACE arm ("the move of an alphanumeric figurative constant (SPACE, …) to either a numeric item or a
+    /// numeric-edited item is prohibited"), the one arm of SR5 that holds at EVERY edition (kb/Work PB3605). The 2002
+    /// text states it alone, "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item"
+    /// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; the same sentence in the 2009 committee draft that led to 2014), and
+    /// its Annex G.1 item 2 names "any figurative constant except SPACE" as the archaic move. The 1985 edge is derived
+    /// (VCR row 7.41). SR5's other arms (HIGH-VALUE, LOW-VALUE, QUOTE, an ALL literal) were permitted through 2014, so
+    /// they are edition rows rather than refusals, and <c>VersionConformancePass.GateSr5</c> owns them.</item>
+    /// <item>SR6: "The figurative constant ZERO shall not be moved to an alphabetic data item."</item>
+    /// <item>SR7: "Any figurative constant for which the associated character or characters are not boolean characters
+    /// shall not be moved to a boolean data item". ZERO is boolean zeros in a boolean context (§8.3.3.6.4 GR4), and an
+    /// ALL literal is exempt only when every one of its characters is a boolean character.</item>
+    /// </list>
+    /// The ONE copy both the compiler's MOVE chain (<c>MoveTable16</c>) and the activation relations
+    /// (<see cref="ActivationRelations"/>, a figurative argument BY CONTENT, §14.8.2.3.3 rule 2 d)) ask (kb/Work
+    /// PB3101).</summary>
+    /// <param name="sender">Which of the figurative senders the rules tell apart.</param>
     /// <param name="receiver">The receiving operand's heading.</param>
-    public static string? FigurativeRefusal(bool zero, bool booleanCharacters, Table16Category receiver) => receiver switch
+    public static string? FigurativeRefusal(FigurativeSender sender, Table16Category receiver) => receiver switch
     {
-        Table16Category.Alphabetic when zero =>
+        _ when sender is FigurativeSender.Space && IsNumericColumn(receiver) =>
+            "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO §14.9.25.3 SR5)",
+        Table16Category.Alphabetic when sender is FigurativeSender.Zero =>
             "the figurative constant ZERO shall not be moved to an alphabetic data item (ISO §14.9.25.3 SR6)",
-        Table16Category.Boolean when !booleanCharacters =>
+        Table16Category.Boolean when sender is not (FigurativeSender.Zero or FigurativeSender.BooleanCharacters) =>
             "a figurative constant whose characters are not boolean characters shall not be moved to a boolean data "
             + "item (ISO §14.9.25.3 SR7)",
         _ => null,
