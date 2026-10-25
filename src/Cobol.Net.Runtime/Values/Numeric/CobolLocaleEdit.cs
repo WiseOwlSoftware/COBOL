@@ -88,7 +88,6 @@ public static class CobolLocaleEdit
     {
         var p = Parse(picture);
 
-        bool negative = p.HasPlus && unscaled < 0;                          // GR18 '+' — absent ⇒ unsigned, |v|
         UInt128 mag = CobolDec.UAbs(unscaled);
 
         // r14 sentence 1 — align on the decimal point position, zero fill or SILENT truncation on either end.
@@ -110,6 +109,10 @@ public static class CobolLocaleEdit
             : fracPart + new string('0', p.DigitsRight - fracPart.Length);
         // The value the item is left holding — what §13.18.8.4 GR1 and r15 b) both test (kb/Work PB566).
         bool storesZero = I.AsSpan().IndexOfAnyExcept('0') < 0 && F.AsSpan().IndexOfAnyExcept('0') < 0;
+        // GR18 '+' — absent ⇒ unsigned, |v|. The sign is the STORED value's, never the sending one's: a sending
+        // -0.001 truncated to zero is zero, "considered a unique value regardless of the sign" (§8.8.4.2.4), and
+        // takes the nonnegative layout exactly as CobolEdit.Format's fixed editing signs do (kb/Work PB3664).
+        bool negative = p.HasPlus && unscaled < 0 && !storesZero;
 
         if (blankWhenZero && storesZero) return new string(' ', size);      // r10 — before any locale consult
 
