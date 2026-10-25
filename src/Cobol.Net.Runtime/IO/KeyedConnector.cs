@@ -1168,13 +1168,13 @@ public abstract class KeyedConnector : FileConnector
     /// store mutex through this connector's handle, or — a connector that is closed — through the one it kept at its CLOSE
     /// (<see cref="KeptFile.CommitTransaction"/>).</summary>
     internal CommitOutcome CommitTransaction() =>
-        _regions is null && _kept is { } kept ? kept.CommitTransaction() : InStoreMutex(() => AttachedStore.Commit(Restoring));
+        _regions is null && _kept is { } kept ? kept.CommitTransaction() : InStoreMutex(() => AttachedStore.Commit(Restoring, HoldingsOrder));
 
     /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§14.9.36.4 GR3; 2.2.1.10): the
     /// statement's entry (which unwinds an unlanded COMMIT's claim, R5's restart rule) and the ROLLBACK statement, under the
     /// store mutex, or — a connector that is closed — through the handle it kept (<see cref="KeptFile.RollbackTransaction"/>).</summary>
     internal StoreStatus RollbackTransaction() =>
-        _regions is null && _kept is { } kept ? kept.RollbackTransaction() : InStoreMutex(() => AttachedStore.Rollback(Restoring));
+        _regions is null && _kept is { } kept ? kept.RollbackTransaction() : InStoreMutex(() => AttachedStore.Rollback(Restoring, HoldingsOrder));
 
     // ── Coherence ACROSS RUN UNITS (ISO §9.1.15, §9.1.16; kb/Work PB2660) ────────────────────────────────────
 
