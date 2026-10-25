@@ -238,7 +238,9 @@ public static class ActivationDescriptions
         // rule 2's "the same as for a MOVE statement with the argument as the sending operand" admits it opposite a plain-group formal,
         // where its digits are what GR4's move stores (docs/CONFORMANCE.md D-B4). It used to share the arithmetic expression's
         // shape, which a group formal refuses (an expression is no MOVE sender), and refused legal source.
-        BoundComputedOperand { Expr: BoundIntrinsicCall } function =>
+        // The value of FUNCTION LENGTH of a variable-length group is the same function lowered to a BoundBinary sum
+        // (IntrinsicBinder.VariableLengthGroupSum): BoundComputedOperand.FunctionValue says it is no arithmetic expression.
+        BoundComputedOperand { IsNumericFunctionValue: true } function =>
             Value(ActivationShape.Literal, ActivationCategory.Numeric, MoveTable16.SenderPosition(function).Heading),
         BoundComputedOperand => Value(ActivationShape.Expression, ActivationCategory.Numeric, Table16Category.NumericNoninteger),
         _ => null,
