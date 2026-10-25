@@ -24,6 +24,12 @@ bounce replaces the older one whole; a swap whose rename fails restores the old 
 `shutil.rmtree` sites in `scripts/`: `capture_oracle` rebuilds its output directory by contract (nothing earlier is
 promised), `compare_oracle` already copies after success; no other cache is deleted before its fetch.
 
+**Merge repair.** The branch carries the unlanded PB3637 work (`standard_streams.ensure_utf8`), whose audit then found
+three live entry points that main added after PB3637 branched: `cancel_superseded.py` (its own `reconfigure` copy inside
+`main()`, after `parse_args`), `test_held_analyzer_output.py` and `verdict_line.py`. Each now calls `ensure_utf8()`
+first in its `__main__` block, and the first gate went RED on exactly that audit before any leg ran. The merge of the
+three `land_lane`/`enqueue`/`merge_drivers` import conflicts kept both sides (`verdict_line` and `ensure_utf8`).
+
 **Register.** PB3744 and PB3716 landed; neither claims an inventory row (tooling).
 
 **Self-review.** Architecture: one staging-and-swap pair beside the one GitHub reader, no second copy of the rule.

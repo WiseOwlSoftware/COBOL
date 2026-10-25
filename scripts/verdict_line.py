@@ -24,6 +24,8 @@ import re
 import sys
 from typing import NamedTuple
 
+from standard_streams import ensure_utf8
+
 #: The line's prefix and terminator; `render` and `LINE` are the only places that spell them.
 PREFIX = "=== ENQUEUE: "
 _TERMINATOR = " ==="
@@ -103,4 +105,5 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(self_test() if sys.argv[1:] == ["--self-test"] else 2)
