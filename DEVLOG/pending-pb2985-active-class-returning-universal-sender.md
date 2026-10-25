@@ -46,3 +46,8 @@ turns EC-OO-UNIVERSAL checking off so it still witnesses the match alone. R1-1 (
 answered no_change_needed: §16.2 requires BASE to implement the COBOL interface it prints, and DOC-A.1-101 states that no
 non-COBOL method is ever invoked; the reviewer's other point, that the choice was not written down, was right, so
 DOC-A.1-101 and the design doc now record BASE as a COBOL method with its checking half always enabled.
+
+**Gate after review round 1.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 42ed7a8a6, run
+000001-20261025T231508Z: Conformance 8,458/18,626, Unit 36,823/38,324, Characterization 8/36, Linux half (WSL clone of
+HEAD) GREEN. `pb2985_active_class_formal_universal_invocation`, the revised `pb1112_active_class_universal` and
+`ActiveClassFormalUniversalInvocationTests` Passed in leg 1; `scripts/semgrep/verify.py` PASS, no count increased.
