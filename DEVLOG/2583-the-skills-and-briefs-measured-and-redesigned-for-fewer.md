@@ -1,4 +1,4 @@
-## The skills and briefs, measured and redesigned for fewer tokens
+## Entry 2583 — 2026-10-25 16:22 PDT — The skills and briefs, measured and redesigned for fewer tokens
 
 The owner, 2026-10-25 ~15:40 PDT: "Let's devote some Mythos time to evaluating and optimizing our skills for less
 token use for more gain, where meaningful", with the Mythos work allowed past the day's quota. A Sonnet locator
@@ -32,3 +32,4 @@ it would cost each implementer about 25K tokens at turn 2, so PB3778 turns it in
 Together the notes are worth about $550-640 a week of a $5,900 week, 9-11 %; one more lever, about $65 a week, is the
 owner's setting (disable the never- or rarely-invoked skill listings for this repository) and was asked as a bare
 question, not filed.
+
