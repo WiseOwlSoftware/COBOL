@@ -403,6 +403,9 @@ public sealed partial class DataBinder
             if (tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
+                // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
+                // section other than the report section, from referring to a report item.
+                if (ReportEntryReferenceRefused($"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers)) continue;
                 Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (spec.DependingQualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
