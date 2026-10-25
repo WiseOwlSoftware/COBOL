@@ -283,9 +283,15 @@ internal static class OperandText
         // say what a literal sent to a group stores. Rule 1's precedence for implementor latitude (ISO, then GnuCOBOL) picks
         // GnuCOBOL's, whose literal data is the digits without the sign or the decimal point - the same characters an
         // elementary alphanumeric receiver takes by GR6 a) ("the operational sign is not moved"): MOVE -456 TO G stores 456,
-        // as MOVE -456 TO PIC X(3) does. A function value folded to a literal (FunctionValue) is a computed value and keeps the
-        // rendering its unfolded twin has, so the answer does not depend on whether the compiler could fold the call.
-        BoundNumericLiteral { FunctionValue: false } lit => EmitText.CsLiteral(LiteralDigits(lit.Text)),
+        // as MOVE -456 TO PIC X(3) does. ⛔ A NUMERIC FUNCTION VALUE IS THE SAME SENDER (kb/Work PB3613): a function value folded
+        // to a literal (FunctionValue) takes this arm, and its unfolded twin the next, so the answer never depends on whether the
+        // compiler could fold the call. §15.2 4)-5) give a numeric or integer function "an operational sign" and no usage, and
+        // §15.4.1 leaves a returned value's "characteristics and representation" to the implementor under native arithmetic:
+        // like a literal it states no representation for GR4 to preserve, so MOVE FUNCTION MIN(N 3) TO G (N = -15) stores 15,
+        // not the -15 the operand text carries. The digits rule is CobolNum.GroupDigits, the ONE reader both arms call.
+        BoundNumericLiteral lit => EmitText.CsLiteral(CobolNum.GroupDigits(lit.Text)),
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } or BoundBinary }
+            => RuntimeApi.NumGroupDigits(AsString(op, num, deSign: false)),
         // ⛔ A LITERAL OR FUNCTION VALUE OF USAGE NATIONAL OR BIT IS THE OTHER SENDER WITH A REPRESENTATION OF ITS OWN (kb/Work
         // PB3562): a national item sends its UTF-16BE pairs and a usage-bit item its packed bits (the field arm above), so
         // a value of the same usage sends the same bytes. `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G` deposited the
@@ -339,23 +345,6 @@ internal static class OperandText
     /// its characters for an elementary formal and this image for a plain-group formal, which the activated unit chooses.</summary>
     public static string? StorageImageIfDiffers(BoundOperand op, NumericRenderer num, string context) =>
         RepresentationDiffersFromText(op) ? NonElementaryMoveSender(op, num, context) : null;
-
-    /// <summary>The characters a numeric LITERAL sends to a group (<see cref="NonElementaryMoveSender"/>): the digits it was
-    /// written with, in the order written, with neither the sign nor the decimal point (kb/Work PB3570, D-B4).
-    /// <paramref name="canonicalText"/> is the literal's canonical dot-decimal text (<see cref="BoundNumericLiteral.Text"/>).
-    /// ⛔ A FLOATING-POINT literal sends the digits of its SIGNIFICAND as written - <c>1.5E+3</c> sends 15, <c>12.0E+2</c> sends
-    /// 120, <c>0.5E-1</c> sends 05 - and never the exponent nor the digits of its scaled value: GnuCOBOL's literal data is the
-    /// significand's digits, the standard states no representation for a literal (§14.9.25.4 GR4 preserves the sender's, and a
-    /// literal has none), so rule 1's precedence for implementor latitude takes GnuCOBOL's, measured against cobc 3.2.0
-    /// (kb/Work PB3570, review R1-1). It is also the only form that is no text expansion of the exponent
-    /// (<see cref="CobolNet.Common.NumericLiteral.TryUnscaledParts"/>: a literal with a large exponent must not become thousands of characters).</summary>
-    private static string LiteralDigits(string canonicalText)
-    {
-        string significand = canonicalText.TrimStart('+', '-');
-        int exponent = significand.IndexOfAny(['E', 'e']);
-        if (exponent >= 0) significand = significand[..exponent];
-        return significand.Replace(".", "", StringComparison.Ordinal);
-    }
 
     /// <summary>⛔ THE ONE-WAY STRING CHANNEL FOR A READ-ONLY CONSUMER OF A GROUP'S CHARACTERS (kb/Work PB244, PB1901):
     /// <see cref="AsString"/>, except that a strongly-typed group holding a class pointer/object leaf — a legal

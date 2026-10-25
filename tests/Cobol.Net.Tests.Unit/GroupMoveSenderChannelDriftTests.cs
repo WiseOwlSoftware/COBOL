@@ -70,21 +70,30 @@ public sealed class GroupMoveSenderChannelDriftTests
         return calls;
     }
 
-    /// <summary>A numeric LITERAL sent to a group stores its DIGITS only (D-B4): <c>NonElementaryMoveSender</c> has an arm
-    /// for it, ahead of the operand-text fallthrough that kept the sign and the decimal point (kb/Work PB3570).</summary>
+    /// <summary>A numeric LITERAL, and a numeric FUNCTION value, sent to a group store their DIGITS only (D-B4):
+    /// <c>NonElementaryMoveSender</c> has an arm for each, ahead of the operand-text fallthrough that kept the sign and the
+    /// decimal point (kb/Work PB3570, PB3613), and both arms read the ONE digits rule, <c>CobolNum.GroupDigits</c> - the
+    /// compiler calls it on a literal's text, the emitted code on a function value's run-time text, so a function the compiler
+    /// folded to a literal and the same call evaluated at run time send the same characters. The rule is written nowhere
+    /// else in the compiler.</summary>
     [Fact]
-    public void NonElementaryMoveSender_NumericLiteral_SendsItsDigitsOnly()
+    public void NonElementaryMoveSender_NumericValue_SendsItsDigitsOnly_ThroughTheOneRule()
     {
         string src = Src("Cobol.Net.Compiler", "CodeGen", "Emit", "OperandText.cs");
         var body = Regex.Match(src, @"public\s+static\s+string\s+NonElementaryMoveSender\s*\([^)]*\)(?<b>.*?)\n    \};",
             RegexOptions.Singleline);
         Assert.True(body.Success, "OperandText.NonElementaryMoveSender is no longer recognizable");
-        Assert.Matches(@"BoundNumericLiteral\s*\{\s*FunctionValue:\s*false\s*\}\s*\w+\s*=>\s*EmitText\.CsLiteral\(\s*LiteralDigits\(",
-            body.Groups["b"].Value);
-        // …ahead of the fallthrough that renders the literal as written.
-        Assert.True(body.Groups["b"].Value.IndexOf("LiteralDigits(", System.StringComparison.Ordinal)
-                    < body.Groups["b"].Value.IndexOf("RepresentationOfText(", System.StringComparison.Ordinal),
-            "the numeric-literal arm must precede the operand-text fallthrough");
+        string b = body.Groups["b"].Value;
+        // The literal arm covers a function value folded to a literal too (no FunctionValue exemption).
+        Assert.Matches(@"BoundNumericLiteral\s+\w+\s*=>\s*EmitText\.CsLiteral\(\s*CobolNum\.GroupDigits\(", b);
+        Assert.Matches(@"BoundComputedOperand\s*\{\s*Expr:\s*BoundIntrinsicCall\s*\{\s*ResultCategory:\s*PicCategory\.Numeric\s*\}\s*or\s+BoundBinary\s*\}\s*=>\s*RuntimeApi\.NumGroupDigits\(", b);
+        // …both ahead of the fallthrough that renders the operand text.
+        int fallthrough = b.IndexOf("RepresentationOfText(", System.StringComparison.Ordinal);
+        Assert.True(b.IndexOf("CobolNum.GroupDigits(", System.StringComparison.Ordinal) < fallthrough
+                    && b.IndexOf("RuntimeApi.NumGroupDigits(", System.StringComparison.Ordinal) < fallthrough,
+            "the numeric-value arms must precede the operand-text fallthrough");
+        // One rule in one place: the compiler holds no second copy of the digit filter (it lives in CobolNum.GroupDigits).
+        Assert.DoesNotContain("LiteralDigits(", src);
     }
 
     /// <summary>The usage-keyed codec (national through <c>NatBytes</c>, bit through <c>BitsPackAll</c>) is written ONCE, in

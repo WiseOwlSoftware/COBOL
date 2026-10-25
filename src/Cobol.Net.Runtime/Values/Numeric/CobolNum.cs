@@ -1004,6 +1004,29 @@ public static partial class CobolNum
         return neg ? "-" + body : body;
     }
 
+    /// <summary>⛔ THE CHARACTERS A NUMERIC VALUE WITH NO STATED REPRESENTATION SENDS TO A GROUP: its DIGITS, in the order the
+    /// text carries them, with neither the sign nor the decimal separator (kb/Work PB3570, PB3613; docs/CONFORMANCE.md D-B4).
+    /// §14.9.25.4 GR4 preserves a sender's internal representation, and a numeric literal states none; a numeric or integer
+    /// function's returned value states none either (§15.2 4)-5) give it "an operational sign" and no usage, and §15.4.1 leaves
+    /// its "characteristics and representation" to the implementor under native arithmetic), so the owner's determination for
+    /// the literal is the one for the value. THE ONE READER of that rule: the compiler calls it on a literal's canonical text
+    /// when it writes the emitted string, and the emitted code calls it on a function value's run-time text, so a function the
+    /// compiler folded to a literal and the same call evaluated at run time send the same characters.
+    /// <para>A floating-point text sends the digits of its SIGNIFICAND as written - <c>1.5E+3</c> sends 15, never the digits of
+    /// the scaled value, and never the exponent (a literal with a large exponent must not become thousands of characters);
+    /// cobc 3.2.0 does the same for a literal.</para></summary>
+    /// <param name="text">A numeric value's text: an optional sign, digits with at most one decimal separator ('.' or ',',
+    /// the program's DECIMAL-POINT mode, §12.3.7.4 GR14 a), and an optional exponent.</param>
+    public static string GroupDigits(string text)
+    {
+        int end = text.IndexOfAny(['E', 'e']);
+        ReadOnlySpan<char> significand = end >= 0 ? text.AsSpan(0, end) : text;
+        var digits = new System.Text.StringBuilder(significand.Length);
+        foreach (char c in significand)
+            if (c is >= '0' and <= '9') digits.Append(c);
+        return digits.ToString();
+    }
+
     // ── THE ALPHANUMERIC SENDING OPERAND (ISO §14.9.25.4 GR6 d) ─────────────────────────────────────────────
     //
     // GR6 d) governs "when a numeric or numeric-edited item is the receiving item". Its three clauses about an
