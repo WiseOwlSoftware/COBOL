@@ -3,6 +3,13 @@ filters:
     - file.inFolder("kb/Work")
     - id != null
 formulas:
+  # ⛔ BLOCKED IS DERIVED, NEVER STORED (kb/Work PB3389), THE SAME RULE AS work.py's `waiting_on`, WRITTEN IN A SECOND
+  # LANGUAGE BECAUSE IT MUST BE: a note waits while a `blocked_by` note is not landed or retired (a blocker the vault lacks
+  # counts as open) and is held while its status is owner or blocked. `work.py check` asserts this formula names every
+  # terminal status, so the next one added to TERMINAL_STATUSES is not forgotten here. The status of a blocker is read
+  # through `link(value).asFile().properties`, a Bases expression that `work.py` cannot run: `work.py next` is the
+  # authoritative list, and this view agrees with it or is wrong.
+  blocked: 'if(status == "owner" || status == "blocked", true, if(blocked_by, blocked_by.filter(link(value).asFile().properties.status != "landed" && link(value).asFile().properties.status != "retired").length > 0, false))'
   harm: 'if(wrong_answer, "wrong answer", if(crashes, "crash", if(rejects_legal_source, "rejects legal source", if(under_rejects, "under-rejects", "process"))))'
 properties:
   note.id:
@@ -21,7 +28,7 @@ properties:
     displayName: Crashes
   note.silent:
     displayName: Silent
-  note.blocked:
+  formula.blocked:
     displayName: Blocked
   note.inventory_rows:
     displayName: Claims rows
@@ -54,7 +61,7 @@ views:
         - status != "retired"
         - wrong_answer or crashes or rejects_legal_source or under_rejects
         - 'process_only == false'
-        - 'blocked == false'
+        - 'formula.blocked == false'
     order:
       - id
       - severity
@@ -72,7 +79,7 @@ views:
       and:
         - status != "landed"
         - status != "retired"
-        - 'blocked == true'
+        - 'formula.blocked == true'
     order: [id, kind, severity, area, blocked_by, harm]
   # Real work that harms nobody today — visible so it is DEFERRED on purpose rather than forgotten.
   # ⚠ ITS OLD NAME WAS A CLAIM IT COULD NOT SUPPORT. "Open but nobody gets a wrong answer" tested only

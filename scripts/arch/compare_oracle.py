@@ -47,6 +47,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import capture_oracle  # noqa: E402  (the sibling script: one capture mechanism, never a second)
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 DIFF_LINES_PER_CASE = 80
 MAIN = "refs/remotes/origin/main"
@@ -159,7 +161,6 @@ def compare(baseline_path: Path, new_path: Path, show: bool) -> int:
 
 
 def main() -> int:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # the verdict line carries an em dash
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("baseline", nargs="?", type=Path, help="an existing capture's manifest.json (instead of --base)")
     parser.add_argument("new", nargs="?", type=Path, help="default: capture the current tree now")
@@ -188,4 +189,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

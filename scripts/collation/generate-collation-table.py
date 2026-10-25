@@ -47,6 +47,9 @@ import struct
 import sys
 import zlib
 from collections import OrderedDict
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 FORMAT_VERSION = 2          # 2 (2026-08-19): + reordering groups; element flags bit 1 = uppercase (case bit)
 PRIMARY_SHIFT = 4          # stored primaries are the raw 16-bit CLDR values; the runtime shifts them left by this
@@ -544,4 +547,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

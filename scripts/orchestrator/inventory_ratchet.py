@@ -33,6 +33,8 @@ from typing import Any, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "spec"))
 from audit_witness_loss import default_base, rows_at  # noqa: E402  (one reader of the inventory at a ref)
 from inventory_schema import REPO, load_inventory  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 WORKTREE = "WORKTREE"
 CLOSED = "OK"
@@ -89,10 +91,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--base", help="the ref to compare against (default: merge-base of HEAD and origin/main)")
     ap.add_argument("--head", default=WORKTREE, help=f"a ref, or {WORKTREE} (default) for the working tree")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     base = a.base or default_base()
     before = rows_at(base)
     if before is None:
@@ -122,4 +120,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

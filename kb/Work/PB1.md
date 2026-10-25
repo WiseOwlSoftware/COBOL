@@ -11,7 +11,6 @@ silent: false
 rejects_legal_source: false
 under_rejects: false
 process_only: false
-blocked: false
 blocked_by: []
 spec_refs: [15, 15.14.3, 15.3, 15.7, 15.7.3, 15.70, 15.78.3, 7, 8.5.2.1, 8.8.1.1]
 closes_rows: ["AR-15.10.3-1", "AR-15.11.3-1", "AR-15.19.3-2", "AR-15.19.3-3", "AR-15.19.3-8", "AR-15.19.3-9",

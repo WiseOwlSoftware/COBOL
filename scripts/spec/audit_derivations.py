@@ -33,6 +33,8 @@ import pathlib
 import sys
 
 from inventory_schema import (DerivationRow, INVENTORY_PATH, load_inventory, load_schema)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 FIXTURE = REPO / "tests" / "version-matrix" / "derivation-parity-cases.json"
@@ -148,10 +150,6 @@ def main() -> int:
     ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line")
     ap.add_argument("--self-test", action="store_true", help="prove every check here can fail")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     if args.self_test:
         return self_test()
@@ -197,4 +195,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

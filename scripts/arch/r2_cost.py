@@ -50,6 +50,8 @@ import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -356,7 +358,6 @@ def self_test() -> int:
 
 
 def main() -> int:
-    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--measure", nargs="+", metavar="DIR", help="<batch dir> <workflow subagent dir>...")
     ap.add_argument("--self-test", action="store_true")
@@ -371,4 +372,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
