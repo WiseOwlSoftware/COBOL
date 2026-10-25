@@ -359,7 +359,7 @@ def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) ->
         return True
     changed = git(pathlib.Path(repo), "diff-tree", "-r", "--name-only", clean[0], tree).stdout.split()
     pin = git(pathlib.Path(repo), "cat-file", "blob", f"{clean[0]}:{abi_pin.PIN_PATH}").stdout
-    return bool(changed) and set(changed) <= set(abi_pin.OWNED) and abi_pin.UNMEASURED in pin
+    return bool(changed) and set(changed) <= set(abi_pin.OWNED) and abi_pin.unmeasured(pin)
 
 
 # ── the audit ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -591,6 +591,22 @@ def self_test() -> int:
                "changed (a hand resolution) — the review's coverage rule for a merge of main",
                is_drivers_merge(pr.path, parents, tree)
                and not is_drivers_merge(pr.path, parents, pr.git("rev-parse", "HEAD^{tree}")))
+        p2 = ScratchRepo.init(root / "pin-prose")
+        prose_pin = f"# the hashes read {abi_pin.UNMEASURED} and are measured on the merged tree{NL}" + pin(17, "A0")
+        p2.commit("base", {**files_at(17, "A0"), abi_pin.PIN_PATH: prose_pin})
+        p2.git("switch", "-q", "-c", "topic")
+        p2.commit("topic", {"t.txt": "t"})
+        p2.git("switch", "-q", "main")
+        p2.commit("main", {"m.txt": "m"})
+        p2.git("switch", "-q", "topic")
+        p2.git("merge", "-q", "--no-commit", "--no-ff", "main")
+        (p2.path / abi_pin.PROPS_PATH).write_bytes(f"<Version>99.0.0</Version>{NL}".encode("utf-8"))
+        p2.git("add", "-A")
+        p2.git("commit", "-q", "-m", "hand-resolved merge")
+        expect("coverage: a merge whose pin is MEASURED (its header names UNMEASURED only in prose) and whose ABI files "
+               "were edited by hand is not the drivers' merge (kb/Work PB3671 review R1-1)",
+               not is_drivers_merge(p2.path, [p2.git("rev-parse", "HEAD^1"), p2.git("rev-parse", "HEAD^2")],
+                                    p2.git("rev-parse", "HEAD^{tree}")))
         log = (f"land lane: attempt 1 ended exit 4{NL}=== ENQUEUE: CONFLICT in conformance-suite/wiseowl/diagnostics.json, "
                f"src/A.cs — merge aborted, branch unchanged (b) ==={NL}")
         expect("conflicts: the landing logs' CONFLICT lines name their files, and a driver's file is told from the rest",
