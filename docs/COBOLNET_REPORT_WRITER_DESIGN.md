@@ -381,6 +381,18 @@ off-by-one through every later counter check.
   identifier does, and the view is the counter's `NumericImagePlace` character image) and every size consumer
   (FUNCTION LENGTH) reads the digit count. A view over engine state answers `Place.OwnsStorageCell` false, so no
   image-backing fact (`MarkImageForced`) is ever recorded for its register item.
+- **EVERY OTHER REPORT SECTION NAME IS A REFUSED REFERENCE, NOT AN UNDEFINED ONE** (kb/Work PB1046). §13.8.6.2.3
+  admits two accesses to a report item outside the report section — a sum counter in the procedure division, a DETAIL
+  group by GENERATE — and §13.15.3 SR7 closes the list for an entry's data-name ("shall not be referenced in any other
+  way"). A printable item, a group entry or a report group is in no name table the ordinary lookup reads, so a reference
+  to one fell to the "not defined" verdict, false about a name the report section declares. `ReportModel.NamedEntries`
+  (every written entry with a data-name, its qualification innermost first, whether it holds a SUM clause) feeds
+  `DataBinder.ReportEntriesNamed` — the visible reports (own and GLOBAL containers', nearest source element, §8.4.6.2.1
+  rule 3) under the ONE §8.4.2.2.3 SR4 `QualifierWalk`, report-name last — and `DataBinder.ReportEntryReferenceRefused`
+  reports **COBOLNET5092**. Three arms ask it before they say "not defined": `ReferenceResolver.ReportUnidentified`
+  (every procedure division identifier), `DataBinder.ResolveClauseOperand` (FILE STATUS, RELATIVE KEY, LINAGE, APPLY
+  COMMIT) and the data-division OCCURS … DEPENDING ON lookup; `ReportItemReferenceTests` pins the three. The report
+  section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOLNET2144).
 - **A REPEATING ENTRY'S SUM COUNTER IS A TABLE, ONE COUNTER PER OCCURRENCE** (kb/Work PB1271). §13.18.54.4 GR8 a)
   adds each occurrence of a repeating addend "into the corresponding occurrence of the sum counter", GR10 speaks of
   "the corresponding sum counter" of an absent occurrence, and all three §13.15.4 GR3 repetition vehicles are OCCURS
