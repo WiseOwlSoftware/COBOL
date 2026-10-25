@@ -287,7 +287,7 @@ def main(argv: list[str] | None = None, gh: Gh | None = None) -> int:
           + (f', {len(refused)} refused' if refused else '') + (' (dry run)' if a.dry_run else ''))
     summary = os.environ.get('GITHUB_STEP_SUMMARY', '')
     if summary:
-        with open(summary, 'a', encoding='utf-8') as f:
+        with open(summary, 'a', encoding='utf-8', newline='\n') as f:
             f.write(f"### supersede{chr(10)}{chr(10)}cancelled: {', '.join(map(str, cancelled)) or 'none'}"
                     + (f"; refused: {', '.join(map(str, refused))}" if refused else '') + chr(10))
     return 0
