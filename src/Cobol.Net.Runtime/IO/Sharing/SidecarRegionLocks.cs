@@ -89,6 +89,7 @@ internal sealed class SidecarRegionLocks : RegionLocks
                 if (mine.Exclusive || !exclusive) return RegionLockResult.Ok;   // held at least as strongly already
                 Release(offset);                                                 // shared -> exclusive: give back, then take
             }
+            bool roundRetried = false;
             for (int pause = 0; ; pause++)
             {
                 // After a conflict, look before publishing again so a waiting request does not churn lock files.
@@ -114,6 +115,10 @@ internal sealed class SidecarRegionLocks : RegionLocks
                         case Conflict.Unobservable:
                             return wait ? RegionLockResult.Unavailable : RegionLockResult.Held;
                         default:
+                            // A WAITING hold publishes ONE more round before it gives up: the holder that made its tries lose
+                            // (its rmdir of the last file) may have let go during the round, so a lock that was free by the
+                            // time we looked is not a lock this host cannot carry (review R1-1).
+                            if (wait && !roundRetried) { roundRetried = true; continue; }
                             return RegionLockResult.Unavailable;
                     }
                 }

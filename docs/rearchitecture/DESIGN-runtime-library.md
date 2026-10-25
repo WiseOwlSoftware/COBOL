@@ -2018,7 +2018,9 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   tests the refused columns after an exhausted publication (`Unpublishable`, the lock directory a user may not write takes the
   same arm, PB2917) and answers `Refused` ('61') beside a holder Table 19 refuses, `Unavailable` otherwise; and
   `SidecarRegionLocks.Hold` looks at the holders after an exhausted publication, so a conflicting one is `Held` (a waiting hold
-  goes on waiting for it) and not a lock this host cannot carry. Witnesses (the lost races are driven through
+  goes on waiting for it) and not a lock this host cannot carry; a waiting hold that finds nothing in the way publishes one
+  more round before it answers `Unavailable`, because the holder whose removal of the last lock file lost the races may have
+  let go during the round (`RegionLocksDriftTests.AWaitingHoldWhoseHolderLetGoDuringTheLostRound_IsGrantedOnTheNextRound`). Witnesses (the lost races are driven through
   `SidecarLockFiles.RaceInjector`, the seam beside `PauseObserver`):
   `SidecarColumnLockHostDriftTests.AnExhaustedPublicationBesideAHolderTable19RefusesIsRefused_AndOneNothingRefusesIsUnavailable`
   and `RegionLocksDriftTests.AHoldWhoseEveryPublicationTryLostItsRace_IsHeldByAConflictingHolder_AndWaitsForIt`.
