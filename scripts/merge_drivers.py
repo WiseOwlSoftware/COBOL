@@ -5,6 +5,8 @@
     python scripts/merge_drivers.py merge <ref> [--message M] [--keep] [--repo DIR]   merge <ref> with the drivers, settle the ABI pin
     python scripts/merge_drivers.py driver <name> <base> <ours> <theirs> [<path>]   what git runs per conflicting file
     python scripts/merge_drivers.py --check        # .gitattributes and DRIVERS agree, every pattern names a tracked file
+    python scripts/merge_drivers.py --conflicts <logs dir>   # which files the landing logs stopped on, driver-covered or not
+    python scripts/merge_drivers.py --hunks <file>...        # replay history's merges: were a file's conflicts insertions or revisions
     python scripts/merge_drivers.py --self-test
 
 ⛔ WHY. Landings conflicted on files that are not code: `conformance-suite/wiseowl/diagnostics.json`, the traceability
@@ -35,6 +37,16 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
   RUNTIME ABI PIN   src/Cobol.Net.Runtime/RuntimeAbi.pin (abi_pin.py): two branches that each raised a counter raise it
                     by both, and the hashes of the merged surface, which no merge can know, are marked UNMEASURED for
                     `abi_pin.py settle` to measure on the merged tree before the merge commit is made.
+PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643). `docs/CONFORMANCE.md` and the `DESIGN-*.md` documents look append-only
+and conflict at landings, but `--hunks <path>…` (replay every merge in history that touched the file, classify each
+conflict hunk of git's line merge) measured otherwise over CONFORMANCE.md, DESIGN-runtime-library.md and
+DESIGN-test-build-ci.md: 45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 hunks where
+both sides REVISED text the base already held (the same paragraph of a mechanism, the same row of the Annex A.1
+register). A union driver would keep both versions of a revised paragraph, stale text beside its replacement in a
+document that must describe the CURRENT compiler (CLAUDE.md rule 6); a word-level merge of 32 of those merges (the first two documents', before `--hunks` walked full history)
+resolved 9, and 3 of those 9 came out different from the resolution a person made (text the person had removed
+was still there). Such a conflict is a decision about what the text now says: it stays the finisher's. Run `--hunks`
+again before proposing a prose driver; a file whose conflicts turn out to be insertions earns one.
 A file a driver declines (a real conflict at its level) falls back to git's own line merge of the three files: where that
 merges cleanly, as it would without a driver, the file merges; else the file the finisher opens carries the usual markers.
 
@@ -218,16 +230,90 @@ def split_note(text: str) -> tuple[dict[str, str], str] | None:
     return {k: NL.join(v) for k, v in blocks.items()}, NL.join(lines[end:])
 
 
-def union_text(base: str, ours: str, theirs: str) -> str | None:
-    """git's union merge of three texts: both sides' changes, a line both rewrote kept from both; None when git failed."""
-    with tempfile.TemporaryDirectory(prefix="merge-union-") as d:
+def merge_file(options: list[str], base: str, ours: str, theirs: str) -> subprocess.CompletedProcess:
+    """`git merge-file -p <options>` over three texts: the one place the three versions are written out for git. The exit
+    status is the number of conflicts (0 clean), or negative / above 127 when git failed."""
+    with tempfile.TemporaryDirectory(prefix="merge-file-") as d:
         paths = []
         for name, text in (("ours", ours), ("base", base), ("theirs", theirs)):
             p = pathlib.Path(d) / name
             p.write_bytes(text.encode("utf-8"))
             paths.append(str(p))
-        r = subprocess.run(["git", "merge-file", "-p", "--union", *paths], capture_output=True)
+        return subprocess.run(["git", "merge-file", "-p", *options, *paths], capture_output=True)
+
+
+def union_text(base: str, ours: str, theirs: str) -> str | None:
+    """git's union merge of three texts: both sides' changes, a line both rewrote kept from both; None when git failed."""
+    r = merge_file(["--union"], base, ours, theirs)
     return r.stdout.decode("utf-8") if r.returncode == 0 else None
+
+
+# ── what a conflict is made of (the measurement a prose driver would be judged against, kb/Work PB3643) ──────────────
+#: A conflict hunk of `git merge-file --diff3`: the lines of ours, of the base and of theirs between the markers.
+Hunk = tuple[list[str], list[str], list[str]]
+_DIFF3 = ["--diff3", "-L", "ours", "-L", "base", "-L", "theirs"]
+
+
+def conflict_hunks(base: str, ours: str, theirs: str) -> list[Hunk] | None:
+    """The conflict hunks of git's line merge of three texts: [] when it merges clean, None when git failed or its
+    output is not the diff3 layout (ours, base, theirs, in that order; a marker is read only in the state that expects
+    it, so a document line that merely looks like one is content)."""
+    r = merge_file(_DIFF3, base, ours, theirs)
+    if r.returncode < 0 or r.returncode > 127:
+        return None
+    hunks: list[Hunk] = []
+    state, cur = "text", ([], [], [])
+    for ln in r.stdout.decode("utf-8").split(NL):
+        if state == "text" and ln == "<<<<<<< ours":
+            state, cur = "ours", ([], [], [])
+        elif state == "ours" and ln == "||||||| base":
+            state = "base"
+        elif state == "base" and ln == "=======":
+            state = "theirs"
+        elif state == "theirs" and ln == ">>>>>>> theirs":
+            hunks.append(cur)
+            state = "text"
+        elif state != "text":
+            cur[("ours", "base", "theirs").index(state)].append(ln)
+    return hunks if state == "text" else None
+
+
+def hunk_kind(hunk: Hunk) -> str:
+    """`insertion` when the base section is EMPTY (both sides inserted text at one place: nothing of the base was
+    touched, so keeping both is exact), else `revision` (a side changed or removed base text the other also touched: the
+    conflict is a decision about what the text should now say, which no merge can make)."""
+    return "revision" if hunk[1] else "insertion"
+
+
+def history_hunks(repo: pathlib.Path, paths: list[str]) -> dict[str, dict[str, int]]:
+    """{path: {merges where both parents changed it, conflicted merges, insertion hunks, revision hunks}} over the merge
+    commits in `repo`'s history that touched the paths: each is replayed as git's line merge of the merge base and the
+    two parents, so the answer is what a driver would have been asked, not what a finisher happened to do (`unreadable`:
+    git could not merge the three texts, counted so that a failure never reads as a clean merge)."""
+    out = {p: {"both-changed": 0, "conflicted": 0, "insertion": 0, "revision": 0, "unreadable": 0} for p in paths}
+    for p in paths:
+        # One walk per path, `--full-history`: git's default simplification drops a merge TREESAME to one parent (a
+        # resolution that took one side whole) with the side history behind it, and drops different merges for each set
+        # of paths asked about. A merge both of whose parents changed the file differs from at least one parent, so the
+        # full-history walk lists every one of them, and the count for a file never depends on the other paths asked.
+        for ln in git(repo, "log", "--merges", "--full-history", "--format=%H %P", "--", p).stdout.splitlines():
+            parents = ln.split()[1:]
+            base = git(repo, "merge-base", *parents).stdout.strip() if len(parents) == 2 else ""
+            blobs = [git(repo, "show", f"{rev}:{p}") for rev in (base, *parents)] if base else []
+            if not blobs or any(b.returncode for b in blobs) or blobs[1].stdout == blobs[2].stdout:
+                continue
+            b, o, t = (x.stdout for x in blobs)
+            if o == b or t == b:
+                continue
+            out[p]["both-changed"] += 1
+            hunks = conflict_hunks(b, o, t)
+            if hunks is None:
+                out[p]["unreadable"] += 1
+                continue
+            out[p]["conflicted"] += bool(hunks)
+            for h in hunks:
+                out[p][hunk_kind(h)] += 1
+    return out
 
 
 def merge_note(base: str, ours: str, theirs: str) -> str | None:
@@ -509,6 +595,18 @@ def self_test() -> int:
     expect("note: a frontmatter key both changed differently is a conflict (None); a note without frontmatter too",
            merge_note(nb, note("landed", ""), note("retired", "")) is None and merge_note("x", "y", "z") is None)
 
+    lines = lambda *ls: NL.join(ls) + NL    # noqa: E731
+    twelve = [f"l{i}" for i in range(1, 13)]
+    hunks = conflict_hunks(lines(*twelve), lines("l1", "ours-ins", *twelve[1:8], "l9-ours", *twelve[9:]),
+                           lines("l1", "theirs-ins", *twelve[1:8], "l9-theirs", *twelve[9:]))
+    expect("hunks: two insertions at one place are an INSERTION hunk (empty base section), two rewrites of one line a "
+           "REVISION hunk; a clean merge has none, a marker-like document line is content",
+           hunks is not None and [hunk_kind(h) for h in hunks] == ["insertion", "revision"]
+           and hunks[0] == (["ours-ins"], [], ["theirs-ins"]) and hunks[1] == (["l9-ours"], ["l9"], ["l9-theirs"])
+           and conflict_hunks(lines(*twelve), lines(*twelve), lines(*twelve, "l13")) == []
+           and conflict_hunks(lines("a", "=======", "b"), lines("a", "=======", "b1"), lines("a", "=======", "b2"))
+           == [(["b1"], ["b"], ["b2"])])
+
     # The whole path through git: a scratch repository whose two branches each add an entry to a keyed file.
     root = scratch_dir("merge-drivers-selftest-")
     try:
@@ -595,6 +693,39 @@ def self_test() -> int:
         older = merge(fr.path, "main~1", "Merge main~1 (ancestor)")
         expect("git: a ref the branch already contains is no conflict and no new commit (a resumed agent's first merge step)",
                again is None and older is None and fr.git("rev-parse", "HEAD") == before, f"{again} {older}")
+        # The history replay (kb/Work PB3643): a recorded merge whose branches each inserted at one place and each rewrote
+        # one line, resolved by hand, counts as one conflicted merge with one hunk of each kind; a merge that took clean
+        # (one side only) is no conflict.
+        hr = ScratchRepo.init(root / "history")
+        hr.commit("base", {"d.md": lines(*twelve), "e.md": lines(*twelve)})
+        hr.git("switch", "-q", "-c", "topic")
+        hr.commit("topic", {"d.md": lines("l1", "ours-ins", *twelve[1:8], "l9-ours", *twelve[9:]), "e.md": lines(*twelve, "x")})
+        hr.git("switch", "-q", "main")
+        hr.commit("main", {"d.md": lines("l1", "theirs-ins", *twelve[1:8], "l9-theirs", *twelve[9:])})
+        hr.git("switch", "-q", "topic")
+        hr.run("merge", "--no-ff", "-m", "Merge main", "main")
+        hr.commit("Merge main (resolved by hand)", {"d.md": lines(*twelve)})
+        got = history_hunks(hr.path, ["d.md", "e.md"])
+        expect("hunks: the history replay counts a merge both parents changed, whether git's line merge conflicted, and "
+               "its hunks by kind; a file only one parent changed is not counted",
+               got["d.md"] == {"both-changed": 1, "conflicted": 1, "insertion": 1, "revision": 1, "unreadable": 0}
+               and got["e.md"]["both-changed"] == 0, f"{got}")
+        # A merge that took one side whole (`-s ours`) is TREESAME to that parent, which git's default history simplification
+        # drops from `git log -- <path>` (review finding R1-1): the replay must still count it, and the count for a file
+        # must not change with the other paths asked about.
+        ho = ScratchRepo.init(root / "history-ours")
+        ho.commit("base", {"f.md": lines(*twelve), "g.md": lines(*twelve)})
+        ho.git("switch", "-q", "-c", "topic")
+        ho.commit("topic", {"f.md": lines("l1", "l2-ours", *twelve[2:])})
+        ho.git("switch", "-q", "main")
+        ho.commit("main", {"f.md": lines("l1", "l2-theirs", *twelve[2:]), "g.md": lines(*twelve, "y")})
+        ho.git("switch", "-q", "topic")
+        ho.run("merge", "--no-ff", "-s", "ours", "-m", "Merge main (took ours whole)", "main")
+        alone, together = history_hunks(ho.path, ["f.md"])["f.md"], history_hunks(ho.path, ["f.md", "g.md"])["f.md"]
+        expect("hunks: a merge that took one parent's file whole is counted, and a file's counts do not depend on the other "
+               "paths asked about",
+               alone == together == {"both-changed": 1, "conflicted": 1, "insertion": 0, "revision": 1, "unreadable": 0},
+               f"{alone} {together}")
         # The ABI pin through git: both branches raise the major; the merge adds them and settles before its commit.
         import abi_pin  # noqa: PLC0415
         pr = ScratchRepo.init(root / "pin")
@@ -686,6 +817,9 @@ def main() -> int:
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--conflicts", metavar="LOGS_DIR", type=pathlib.Path,
                     help="count the files the landing logs in LOGS_DIR stopped on, and say which a driver covers")
+    ap.add_argument("--hunks", metavar="PATH", nargs="+",
+                    help="replay the merges in git history that touched PATH(s) and say whether their conflicts were "
+                         "insertions (a driver could keep both) or revisions (a decision no merge can make)")
     sub = ap.add_subparsers(dest="cmd")
     d = sub.add_parser("driver")
     d.add_argument("name")
@@ -706,6 +840,10 @@ def main() -> int:
         for f, n in counts.items():
             print(f"{n:4d}  {'covered by a driver' if covered_by_driver(f) else 'NOT covered     '}  {f}")
         print(f"{read} landing log(s) read, {sum(counts.values())} conflicted file(s)")
+        return 0
+    if a.hunks:
+        for path, counts in history_hunks(HERE.parent, a.hunks).items():
+            print(f"{path}: " + ", ".join(f"{n} {k}" for k, n in counts.items()))
         return 0
     if a.check:
         findings = check(HERE.parent)
