@@ -837,7 +837,7 @@ def self_test() -> int:
     before_bytes = (lock_wt / DIR / "pending-lock.md").read_bytes()
     before_head = scratch.git("rev-parse", "HEAD", cwd=lock_wt)
     names_before = sorted(names_in(lock_wt))
-    lock_file.write_text("held by another git process", encoding="utf-8")
+    lock_file.write_text("held by another git process", encoding="utf-8", newline=chr(10))
     GIT_LOCK_WAITS = ()
     refused_rc, refused_out = stamp_run("locked")
     GIT_LOCK_WAITS = saved_waits
@@ -857,7 +857,7 @@ def self_test() -> int:
        and not scratch.git("status", "--porcelain", cwd=lock_wt), again_out)
     transient = branch_with("transient", {"pending-tr.md": "## PB8: transient\n\nBody.\n"})
     transient_lock = pathlib.Path(scratch.git("rev-parse", "--absolute-git-dir", cwd=transient)) / "index.lock"
-    transient_lock.write_text("held briefly", encoding="utf-8")
+    transient_lock.write_text("held briefly", encoding="utf-8", newline=chr(10))
     paused: list[float] = []
 
     def release(wait: float) -> None:
