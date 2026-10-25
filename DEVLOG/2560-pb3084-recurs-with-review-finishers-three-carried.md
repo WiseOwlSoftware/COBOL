@@ -1,4 +1,4 @@
-## PB3084 recurs with review finishers: three carried predecessors would read DECISION once they age
+## Entry 2560 — 2026-10-25 12:53 PDT — PB3084 recurs with review finishers: three carried predecessors would read DECISION once they age
 
 The loop's resume unit on 2026-10-25 surveyed every branch with `prune_worktrees.py --min-age 0` and found three DECISION
 rows ("DONE, but the report's HEAD ... is not a commit of this branch"): `worktree-wf_6e0a917c-500-4`,
@@ -9,3 +9,4 @@ header ("(branch `...-500-4`)", "includes the reviewed branch", "Merged the revi
 shape adopts, returns only each report's own branch on all three headers. Because the predecessor holds a report,
 `contained()` never names its carrier. The rows read IN FLIGHT only while they are under three hours old, and their
 carriers wait behind the PB3308 CI outage. kb/Work PB3084 records the recurrence and this new harm. No code changed.
+
