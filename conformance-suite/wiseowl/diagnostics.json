@@ -9003,11 +9003,12 @@
   ],
   "expect": "COBOLNET2024"
  },
- "pb1459-not-equal-operator-below-2002": {
+ "pb1459-not-equal-operator-below-2014": {
   "refuse-at": [
-   "85"
+   "85",
+   "2002"
   ],
-  "expect": "COBOLNET0900"
+  "expect": "the relational operator <> requires COBOL-2014"
  },
  "pb1464-parenthesized-non-condition": {
   "refuse-at": [
@@ -14763,6 +14764,12 @@
    "2023"
   ],
   "expect": "START on 'IXF': 'IX-LONG' is neither a record key of the file nor an item that begins at the leftmost character position of one within a record of that file"
+ },
+ "pb3604-cce-not-equal-operator-below-2014": {
+  "refuse-at": [
+   "2002"
+  ],
+  "expect": "the relational operator <> requires COBOL-2014 (targeting COBOL-2002)"
  },
  "pb3605-content-space-into-numeric-edited": {
   "refuse-at": [
@@ -23187,5 +23194,31 @@
    "2002"
   ],
   "expect": "COBOLNET0814"
+ },
+ "pb3755-call-content-high-value-numeric-edited-2023": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "error COBOLNET0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — CALL … AS NESTED argument 1: HIGH-VALUE BY CONTENT to formal parameter 'E'"
+ },
+ "pb3755-invoke-content-low-value-numeric-edited-2023": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "error COBOLNET0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — INVOKE \"MN\" argument: LOW-VALUE BY CONTENT to formal parameter 'E'"
+ },
+ "pb3755-function-content-all-literal-numeric-edited-2023": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "error COBOLNET0902: MOVE of an alphanumeric figurative constant (HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item was removed in COBOL-2023 (targeting COBOL-2023) — FUNCTION F3755F argument 1: ALL \"X\" BY CONTENT to formal parameter 'E'"
+ },
+ "pb3755-content-all-multichar-numeric-edited-2002": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "CALL … AS NESTED argument 1: ALL \"57\" BY CONTENT to formal parameter 'E' (the MOVE ISO"
  }
 }
