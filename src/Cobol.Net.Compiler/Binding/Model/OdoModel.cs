@@ -26,7 +26,7 @@ public readonly record struct OccursKey(string Name, IReadOnlyList<string> Quali
 /// allocated at <see cref="Max"/> occurrences — §8.5.1.8: for an occurs-depending table "the physical capacity is
 /// fixed at compile time; the logical capacity may vary" — so only the GR7 current-count machinery (group-operand
 /// extents per GR8, the SEARCH bound per §14.9.37.4 GR4) consults this object; layout, width, and VALUE
-/// initialization (§13.18.63 GR6 — as if the count were the maximum) ride on <see cref="DataItem.Occurs"/>.
+/// initialization (§13.18.63.4 GR6 — as if the count were the maximum) ride on <see cref="DataItem.Occurs"/>.
 /// </summary>
 public sealed class OccursSpec
 {
