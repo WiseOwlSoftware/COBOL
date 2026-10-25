@@ -1,4 +1,4 @@
-## PB3367, PB3693: the DEVLOG stamp is all or nothing, and a branch is landed once
+## Entry 2535 — 2026-10-25 10:49 PDT — PB3367, PB3693: the DEVLOG stamp is all or nothing, and a branch is landed once
 
 Two faults of the landing path, one root file (`scripts/devlog.py`), fixed together (fix-lane wave 20261107 group F).
 
@@ -26,3 +26,4 @@ before it stamps; `devlog.stamp` drops a pending entry whose title is already a 
 Goldens are the three scripts' self-tests (devlog 51/51, enqueue, prune_worktrees), each failing on the old behaviour.
 Rows closed: none (process tooling). Self-review found and fixed: `worktree_of`'s git failure sat outside the new
 handler; `enqueue.py` imported `devlog` locally three times and now imports it once.
+
