@@ -21,6 +21,10 @@
       *> 2. MOVE 555 TO LONG OF A puts through the explicit SET PROPERTY LONG method (W-LONG := 555):          00555
       *> 3. DISPLAY INT OF A gets through the implicit accessor of the data item INT (VALUE 100):         00100
       *> 4. ADD 20 TO INT OF A reads then puts through the implicit accessors:                                00120
+      *> 5. DISPLAY 2ND-VAL OF A gets through the implicit accessor of a property-name that STARTS WITH A DIGIT (a legal user-defined
+      *>    word needs only one letter, 8.3.2.2 3); the accessor is __GET_2ND_VAL, the whole upper-cased word written as a .NET identifier,
+      *>    never __GET__2ND_VAL with a guard underscore the prefix makes useless; DOC-A.1-121):                                  00030
+      *> 6. ADD 5 TO 2ND-VAL OF A reads then puts through the implicit accessors:                                                  00035
       *> DISCRIMINATOR: a compiler that spells the accessor with the keyword escaped (__GET_@LONG) or that fails to
       *> translate the generated class prints nothing at all.
        IDENTIFICATION DIVISION.
@@ -30,7 +34,8 @@
        REPOSITORY.
            CLASS PB1520C
            PROPERTY LONG
-           PROPERTY INT.
+           PROPERTY INT
+           PROPERTY 2ND-VAL.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 A USAGE OBJECT REFERENCE PB1520C.
@@ -43,6 +48,9 @@
            DISPLAY INT OF A.
            ADD 20 TO INT OF A.
            DISPLAY INT OF A.
+           DISPLAY 2ND-VAL OF A.
+           ADD 5 TO 2ND-VAL OF A.
+           DISPLAY 2ND-VAL OF A.
            STOP RUN.
        END PROGRAM PB1520P.
 
@@ -58,6 +66,7 @@
        WORKING-STORAGE SECTION.
        01 W-LONG PIC 9(5) VALUE 7.
        01 INT PIC 9(5) VALUE 100 PROPERTY.
+       01 2ND-VAL PIC 9(5) VALUE 30 PROPERTY.
        PROCEDURE DIVISION.
        METHOD-ID. GET PROPERTY LONG.
        DATA DIVISION.
