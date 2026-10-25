@@ -8,6 +8,7 @@ the moment it is ready, while whatever unit runs keeps running (kb/Work PB3103; 
     python scripts/orchestrator/land_lane.py collect <branch> ...   the enqueue unit has handled these attempts
     python scripts/orchestrator/land_lane.py rearm <branch> --why T the enqueue unit: land it again at its CURRENT tip
     python scripts/orchestrator/land_lane.py clear-halt             the operator: the merge queue is ACTIVE again
+    python scripts/orchestrator/land_lane.py conflict-brief <branch> the brief its CONFLICT finisher starts from
     python scripts/orchestrator/land_lane.py run <attempt file>     (the detached runner `tick` starts; not by hand)
     python scripts/orchestrator/land_lane.py --self-test
 
@@ -38,6 +39,11 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
                       CLEAN) is landed again at the SAME head, once; the launch consumes it, and a tip that moved makes
                       it stale (dropped, said). Without it a STOPPED, DONE or BOUNCED branch at an unchanged head would
                       wait forever: the lane never relaunches it there and the enqueue unit lands nothing itself.
+  conflicts/<id>.md   the CONFLICT BRIEF of an attempt that stopped exit 4 (kb/Work PB3640; the section doc above
+                      `conflict_brief`), written by its runner after its outcome and named on the attempt (`brief`, or
+                      `brief_error` when it could not be written): the conflicted files, the commits main gained on
+                      them since the branch's merge base, the notes those commits and the branch name, each note's
+                      newest report. `conflict-brief <branch>` prints it, or computes one now (a DIRTY bounce).
   HALT                written when a run ends QUEUE NOT ACTIVE (exit 8): no attempt starts until the operator runs
                       `clear-halt`; the operator is named through the mailbox.
   tick.lock           an OS lock: one tick at a time (a second exits at once, saying so).
@@ -116,8 +122,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT,
-                     land_lock_path)  # noqa: E402  (the landing's contract)
+from enqueue import (EXIT_CONFLICT, EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_LAND_BUSY, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE,
+                     VERDICT, land_lock_path)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 
@@ -290,6 +296,167 @@ def queued_pr(log: pathlib.Path) -> int | None:
         if m := QUEUED_LINE.match(line.strip()):
             found = int(m.group("pr"))
     return found
+
+
+# ── the conflict brief (kb/Work PB3640) ────────────────────────────────────────────────────────────────────────────
+# No file-set partition removes every merge conflict (a declared set is a prediction: PB3628's site block named
+# land_lane.py and its change also rewrote prune_worktrees.lifecycle, beside PB3275), so the cost to cut is the
+# conflict FINISHER's: it re-derived both sides from scratch. When an attempt stops CONFLICT (exit 4) its runner writes
+# the brief the finisher starts from: the conflicted files, the commits main gained on each since the branch's merge
+# base, the notes those commits and the branch name, and each note's newest report. `land_lane.py conflict-brief
+# <branch>` prints it (or computes one for a pull request the queue BOUNCED as DIRTY, which no attempt recorded), the
+# status line points to it, and units/enqueue.md step 4 hands it to the finisher verbatim.
+CONFLICTS = "conflicts"
+#: enqueue.land's CONFLICT outcome (its `conflicted`): `CONFLICT in <a>, <b> — merge aborted, branch unchanged`.
+CONFLICT_OUTCOME = re.compile(r"^CONFLICT in (?P<files>.+?) — ")
+NOTE_ID = re.compile(r"\bPB\d+\b")
+MAIN = "refs/remotes/origin/main"
+#: At most this many notes are read for one brief (each one is a `git show`): a brief naming more is truncated, said.
+BRIEF_NOTES = 24
+Git = Callable[..., Any]   # prune_worktrees.git's shape: (*args, cwd=) -> CompletedProcess
+
+
+def conflicted_files(verdict: str | None) -> list[str]:
+    """The files of an attempt's CONFLICT verdict (CONFLICT_OUTCOME), or [] for any other verdict."""
+    m = CONFLICT_OUTCOME.match(verdict or "")
+    return [f.strip() for f in m["files"].split(",") if f.strip()] if m else []
+
+
+def merge_conflicts(worktree: str, git: Git) -> list[str] | None:
+    """The files that merging origin/main into the worktree's HEAD leaves in conflict, minus the ones a merge driver
+    merges by key (merge_drivers.covered_by_driver: `merge_drivers.merge` resolves those), from `git merge-tree
+    --write-tree`, which changes nothing: [] when it merges clean, None when git cannot say (no origin/main, no HEAD)."""
+    import merge_drivers  # noqa: PLC0415  (scripts/: the one list of files a driver merges)
+    r = git("merge-tree", "--write-tree", "--name-only", "--no-messages", MAIN, "HEAD", cwd=worktree)
+    if r.returncode not in (0, 1):
+        return None
+    if r.returncode == 0:
+        return []
+    return [f for f in dict.fromkeys(ln.strip() for ln in r.stdout.splitlines()[1:]) if f
+            and not merge_drivers.covered_by_driver(f)]
+
+
+def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
+    """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from origin/main (where the notes of
+    main's commits are), else from the worktree's own copy (a note the branch filed)."""
+    import plan_wave  # noqa: PLC0415  (the one frontmatter reader and the one report order)
+    shown = git("show", f"{MAIN}:kb/Work/{nid}.md", cwd=worktree)
+    text = shown.stdout if shown.returncode == 0 else None
+    if text is None and (local := pathlib.Path(worktree) / "kb" / "Work" / f"{nid}.md").is_file():
+        text = local.read_text(encoding="utf-8", errors="replace")
+    note = plan_wave.note_of(text, nid, {}) if text else None
+    head = f"- {nid} ({note.status}): {note.title[:200]}" if note else f"- {nid}: no kb/Work note on main or the branch"
+    newest = [r for r in reports if nid in r.notes or r.lead == nid]
+    return head + (f" — newest report: {newest[-1].path} ({newest[-1].status})" if newest else " — no report")
+
+
+def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, reports: list[Any],
+                   now: dt.datetime | None = None) -> str:
+    """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown. `reports` are the
+    fix-lane reports, oldest first (plan_wave.load_reports with the dispatch ledger, so each names the notes it
+    answers). Git answers three questions: the merge base, the commits main gained on `files` since it (ONE `git log`
+    over every file), and the branch's own commit subjects; a question git cannot answer is said in the brief, never
+    dropped."""
+    mb = git("merge-base", MAIN, "HEAD", cwd=worktree)
+    base = mb.stdout.strip() if mb.returncode == 0 else ""
+    main_sha = git("rev-parse", "--verify", "--quiet", MAIN, cwd=worktree).stdout.strip()
+    tip = git("rev-parse", "HEAD", cwd=worktree).stdout.strip()
+    out = [f"# Conflict brief: {branch}", "",
+           f"Written {(now or _now()).isoformat(timespec='seconds')} by `land_lane.py` (kb/Work PB3640) for the "
+           "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
+           f"Bringing origin/main ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
+           f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
+           "Merge with `python scripts/merge_drivers.py merge origin/main --keep` and resolve each file against BOTH "
+           "sides' intent: this branch's notes and report, and what main gained on the file, with its notes and "
+           "reports (finisher-brief.md, CONFLICT). Never take one side wholesale.", ""]
+    mine = [r for r in reports if r.branch == branch]
+    own_ids = list(dict.fromkeys(mine[-1].notes if mine else []))
+    out.append("## This branch")
+    out.append(f"report: {mine[-1].path} ({mine[-1].status}, HEAD {str(mine[-1].head or '-')[:12]})" if mine
+               else "report: none in the reports directory names this branch")
+    theirs: dict[str, None] = {}
+    if base:
+        subjects = git("log", "--format=%s", f"{base}..HEAD", cwd=worktree)
+        own_ids += [i for i in NOTE_ID.findall(subjects.stdout) if i not in own_ids] if subjects.returncode == 0 else []
+        out += ["", "## What main gained on each file since the merge base"]
+        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{MAIN}", "--", *files,
+                  cwd=worktree) if files else None
+        changes: dict[str, list[str]] = {f: [] for f in files}
+        if log is not None and log.returncode != 0:
+            out.append(f"git log failed ({log.stderr.strip()[:200]}): read `git log {base[:12]}..origin/main -- <file>`")
+        for chunk in (log.stdout.split(chr(30)) if log is not None and log.returncode == 0 else []):
+            head, _, names = chunk.strip().partition(chr(10))
+            sha, _, subject = head.partition(chr(31))
+            if not sha:
+                continue
+            for i in NOTE_ID.findall(subject):
+                theirs.setdefault(i)
+            for f in filter(None, (n.strip() for n in names.splitlines())):   # a blank line ends the header
+                changes.setdefault(f, []).append(f"- {sha[:12]} {subject}")
+        for f, lines in changes.items():
+            out += [f"### {f}", *(lines or ["- nothing since the merge base (the conflict is the branch's edit against "
+                                            "an older one)"])]
+    else:
+        out += ["", f"git could not read the merge base of HEAD and origin/main ({mb.stderr.strip()[:200]}): the "
+                    "commits main gained are not listed"]
+    out += ["", "## The branch's notes"]
+    ids = own_ids[:BRIEF_NOTES]
+    out += [_note_line(i, worktree, git, reports) for i in ids] or ["- none named by its report or its commits"]
+    other = [i for i in theirs if i not in own_ids]
+    out += ["", "## The notes main's commits name"]
+    out += [_note_line(i, worktree, git, reports) for i in other[:max(0, BRIEF_NOTES - len(ids))]] or \
+        ["- none (their subjects name no PB note)"]
+    if len(own_ids) + len(other) > BRIEF_NOTES:
+        out.append(f"- ... {len(own_ids) + len(other) - BRIEF_NOTES} more not read (BRIEF_NOTES = {BRIEF_NOTES})")
+    return chr(10).join(out) + chr(10)
+
+
+def brief_path(cdir: pathlib.Path, a: dict[str, Any]) -> pathlib.Path:
+    return lane_dir(cdir) / CONFLICTS / f"{a['id']}.md"
+
+
+def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None = None) -> pathlib.Path:
+    """Write the brief of a CONFLICT attempt `a` beside the attempt records and return its path: the files its verdict
+    names, or, when the verdict line is unreadable (a log not in UTF-8), the ones merge-tree finds against origin/main."""
+    import plan_wave  # noqa: PLC0415
+    import prune_worktrees  # noqa: PLC0415
+    git = git or prune_worktrees.git
+    reports = plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)
+    files = conflicted_files(a.get("verdict")) or merge_conflicts(a["worktree"], git) or []
+    text = conflict_brief(a["branch"], a["worktree"], files, git=git, reports=reports)
+    path = brief_path(cdir, a)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
+    return path
+
+
+def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None, say: Say = print) -> int:
+    """`conflict-brief <branch>`: the recorded brief of the branch's latest attempt when it stopped CONFLICT and the
+    branch is still at that attempt's end head; otherwise a brief computed now against origin/main (a pull request the
+    queue BOUNCED as DIRTY, or a branch that moved), its worktree from the latest attempt or the last survey. Exit 0
+    with the brief, 1 when there is nothing to brief (no worktree, or nothing conflicts)."""
+    import plan_wave  # noqa: PLC0415
+    import prune_worktrees  # noqa: PLC0415
+    git = git or prune_worktrees.git
+    lane = view(cdir)
+    last = next((at for at, _ in lane.latest if at["branch"] == branch), None)
+    row = next((r for r in lane.rows if r.get("name") == branch), None)
+    wt = (last or {}).get("worktree") or (row or {}).get("worktree")
+    if not wt:
+        say(f"land lane: {branch}: no attempt and no survey row names its worktree: nothing to brief")
+        return 1
+    recorded = pathlib.Path(last["brief"]) if last and last.get("brief") else None
+    if recorded and recorded.is_file() and tip_of(wt) == last.get("end_head"):
+        say(recorded.read_text(encoding="utf-8").rstrip())
+        return 0
+    files = merge_conflicts(wt, git)
+    if not files:
+        say(f"land lane: {branch}: " + ("git could not merge-tree it against origin/main" if files is None else
+                                        "merging origin/main leaves nothing in conflict now: nothing to brief"))
+        return 1
+    say(conflict_brief(branch, wt, files, git=git,
+                       reports=plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)).rstrip())
+    return 0
 
 
 # ── the decisions ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -863,11 +1030,22 @@ def run_attempt(path: pathlib.Path) -> int:
                      {"rc": rc, "ended": _now().isoformat(timespec="seconds"), "end_head": tip_of(rec.get("worktree")),
                       "verdict": last_verdict(pathlib.Path(rec["log"])), "pr": queued_pr(pathlib.Path(rec["log"]))})
     print(f"land lane: attempt {rec['id']} ended exit {rc}: {current['verdict'] or 'no verdict line'}", flush=True)
+    if rc == EXIT_CONFLICT:
+        # The finisher's brief (kb/Work PB3640), written after the outcome is recorded, so a brief that fails leaves the
+        # stop as it is: the failure is recorded on the attempt (`brief_error`), and `conflict-brief` computes one.
+        try:
+            brief = write_conflict_brief(path.resolve().parents[2], current)   # <coord>/land-lane/attempts/<id>.json
+            update(current, {"brief": str(brief)})
+            print(f"land lane: conflict brief {brief}", flush=True)
+        except (OSError, ValueError, KeyError, subprocess.SubprocessError) as e:
+            update(current, {"brief_error": f"{type(e).__name__}: {e}"[:300]})
+            print(f"land lane: the conflict brief could not be written ({type(e).__name__}: {e})", flush=True)
     return rc
 
 
 # ── what the enqueue unit and next_unit.py read ────────────────────────────────────────────────────────────────────
-ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 reviewer; a repeated exit 2 or 9: handoff)",
+ACTION = {STOPPED: "the enqueue unit's: step 4 finisher, a CONFLICT one with its brief (UNREVIEWED: step 2 reviewer; a "
+                   "repeated exit 2 or 9: handoff)",
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
@@ -965,6 +1143,14 @@ def rearm_effect(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
     return rearm_hold(rec, row) or "the next tick lands it again at this head"
 
 
+def brief_text(a: dict[str, Any]) -> str:
+    """The status line's pointer to a CONFLICT attempt's brief (kb/Work PB3640): the command that prints it, and why
+    the runner recorded none when it could not write one."""
+    cmd = f"conflict brief: `land_lane.py conflict-brief {a['branch']}`"
+    return cmd + (f" (the runner wrote none: {a['brief_error']}; the command computes one)" if a.get("brief_error")
+                  else "" if a.get("brief") else " (none recorded; the command computes one)")
+
+
 def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str]:
     lane = view(cdir)
     age = lane.survey_age_min(now)
@@ -988,8 +1174,9 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
     for a, cls in sorted(lane.latest, key=lambda t: (order.get(t[1], 9), t[0]["branch"])):
         mark = " [collected]" if a.get("collected") else ""
         watch = f" [{watch_text(a)}]" if cls == DONE else ""
+        brief = f" — {brief_text(a)}" if a.get("rc") == EXIT_CONFLICT else ""
         out.append(f"{cls.upper():16} {a['branch']} @{str(a.get('head'))[:12]} {outcome(a)}: {a.get('verdict') or '-'} — "
-                   f"{ACTION.get(cls, '')}{mark}{watch} (attempt {a['id']}; {a['log']})")
+                   f"{ACTION.get(cls, '')}{mark}{watch}{brief} (attempt {a['id']}; {a['log']})")
     return out
 
 
@@ -1595,6 +1782,83 @@ def self_test() -> int:
                and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
                and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
 
+        # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
+        #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
+        #     (and not the other file), the notes on both sides with their status and newest report.
+        import plan_wave  # noqa: PLC0415
+        cbr = ScratchRepo.init(root / "wt-brief")
+        fixture_git = lambda *args, cwd=None: cbr.run(*args, cwd=cwd)   # noqa: E731  (the self-test's git: the fixture)
+
+        def note(nid: str, status: str, title: str) -> str:
+            return f"---\nid: {nid}\nstatus: {status}\ntitle: \"{nid} — {title}\"\n---\n\n# {nid}\n"
+        cbr.commit("base", {"scripts/x.py": "a = 1\n", "kb/Work/PB9002.md": note("PB9002", "open", "the branch's fix")})
+        merge_base = cbr.git("rev-parse", "HEAD")
+        cbr.commit("WIP checkpoint: PB9001 main's side of x", {"scripts/x.py": "a = 2\n", "scripts/y.py": "y = 1\n",
+                                                               "kb/Work/PB9001.md": note("PB9001", "landed", "main's fix")})
+        cbr.git("update-ref", MAIN, "HEAD")
+        cbr.git("reset", "-q", "--hard", merge_base)
+        cbr.commit("WIP checkpoint: PB9002 the branch's side of x", {"scripts/x.py": "a = 3\n"})
+        brief_reports = [plan_wave.Report(pathlib.Path("w9a-PB9001-report.md"), 9, "w9a", "PB9001", "DONE", ["PB9001"],
+                                          False, "fix-main", None, "aaaa"),
+                         plan_wave.Report(pathlib.Path("w9b-PB9002-report.md"), 9, "w9b", "PB9002", "DONE", ["PB9002"],
+                                          False, "wbrief", str(cbr.path), "bbbb")]
+        expect("conflict brief: enqueue's CONFLICT outcome gives its files; any other verdict gives none",
+               conflicted_files("CONFLICT in scripts/x.py, kb/a.json — merge aborted, branch unchanged")
+               == ["scripts/x.py", "kb/a.json"] and conflicted_files("GATE RED (Windows) on x") == []
+               and conflicted_files(None) == [])
+        expect("conflict brief: merge-tree names the file both sides edited, not the one only main added",
+               merge_conflicts(str(cbr.path), fixture_git) == ["scripts/x.py"],
+               str(merge_conflicts(str(cbr.path), fixture_git)))
+        text = conflict_brief("wbrief", str(cbr.path), ["scripts/x.py"], git=fixture_git, reports=brief_reports)
+        sections = text.split(chr(10) + "## ")
+        gained = next((s for s in sections if s.startswith("What main gained")), "")
+        expect("conflict brief: main's commit on the conflicted file under its heading, and no other file's",
+               "### scripts/x.py" in gained and "PB9001 main's side of x" in gained and "scripts/y.py" not in gained,
+               text)
+        expect("conflict brief: the branch's report, and the notes on both sides with their status and newest report",
+               "report: w9b-PB9002-report.md (DONE" in text
+               and "- PB9002 (open): PB9002 — the branch's fix — newest report: w9b-PB9002-report.md (DONE)" in text
+               and "- PB9001 (landed): PB9001 — main's fix — newest report: w9a-PB9001-report.md (DONE)" in text,
+               text)
+        # ... recorded by the runner on exit 4, pointed to by the status line, printed by `conflict-brief`
+        c17 = fresh("conflict")
+        fake4 = [sys.executable, "-c",
+                 "import sys; sys.stdout.reconfigure(encoding='utf-8'); "   # enqueue.py's own output encoding
+                 "print('=== ENQUEUE: CONFLICT in scripts/x.py — merge aborted, branch unchanged (wbrief) ==='); "
+                 "raise SystemExit(4)"]
+        r17 = {"name": "wbrief", "state": "WAITING TO LAND", "tip": cbr.git("rev-parse", "HEAD"),
+               "worktree": str(cbr.path), "why": "", "lead": None}
+        tick(c17, root, survey=lambda repo, cdir: ([r17], ["wbrief"], None), argv_for=lambda row: fake4, say=out.append)
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline and not all(finished(a) and ("brief" in a or "brief_error" in a)
+                                                      for a in attempts(c17)):
+            time.sleep(0.2)
+        a17 = (attempts(c17) or [{}])[0]
+        brief_file = pathlib.Path(a17.get("brief") or root / "absent")
+        expect("conflict brief: the runner of an exit-4 attempt writes it beside the records and names it on the attempt",
+               a17.get("rc") == 4 and brief_file.is_file() and "### scripts/x.py" in brief_file.read_text(encoding="utf-8"),
+               str(a17))
+        expect("conflict brief: the STOPPED status line points to `land_lane.py conflict-brief <branch>`",
+               any(ln.startswith("STOPPED") and "conflict-brief wbrief" in ln for ln in status_lines(c17)),
+               str(status_lines(c17)))
+        shown: list[str] = []
+        expect("conflict brief: `conflict-brief` prints the recorded brief while the branch is at the attempt's end head",
+               show_conflict_brief(c17, "wbrief", fixture_git, shown.append) == 0
+               and shown == [brief_file.read_text(encoding="utf-8").rstrip()], str(shown))
+        # ... and for a pull request the queue BOUNCED as DIRTY (no attempt stopped): computed now from the survey's row
+        c17b = fresh("dirty")
+        f17b = Fake([{**r17, "name": "wdirty", "state": "BOUNCED"}])
+        f17b.tick(c17b)
+        dirty_out: list[str] = []
+        expect("conflict brief: a BOUNCED branch no attempt stopped gets one computed against origin/main",
+               f17b.started == [] and show_conflict_brief(c17b, "wdirty", fixture_git, dirty_out.append) == 0
+               and "leaves 1 file(s) in conflict: scripts/x.py" in "".join(dirty_out), str(dirty_out))
+        cbr.git("update-ref", MAIN, "HEAD")
+        clean_out: list[str] = []
+        expect("conflict brief: nothing to brief once origin/main merges clean (exit 1, said)",
+               show_conflict_brief(c17b, "wdirty", fixture_git, clean_out.append) == 1
+               and "nothing to brief" in "".join(clean_out), str(clean_out))
+
         # 13. the runner's launch (no window, outliving the tick) is scripts/detached.py's, with its own self-test
         #     arms (kb/Work PB3117, PB3536): the tick starts every runner through it.
         expect("the tick starts every runner through the one detached launch (scripts/detached.py)",
@@ -1625,6 +1889,9 @@ def main(argv: list[str] | None = None) -> int:
     rr.add_argument("branch")
     rr.add_argument("--why", required=True, help="what resolved the stop (the finisher's or reviewer's finding)")
     sub.add_parser("clear-halt", help="the operator: the merge queue is ACTIVE again; the lane may start landings")
+    cb = sub.add_parser("conflict-brief", help="the brief a CONFLICT finisher starts from (kb/Work PB3640): the "
+                                               "conflicted files, main's commits on them, their notes and reports")
+    cb.add_argument("branch")
     ru = sub.add_parser("run", help=argparse.SUPPRESS)
     ru.add_argument("attempt", type=pathlib.Path)
     a = ap.parse_args(argv)
@@ -1655,6 +1922,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"land lane: halt cleared ({halt.read_text(encoding='utf-8').strip()}); the next tick starts landings")
         halt.unlink()
         return 0
+    if a.verb == "conflict-brief":
+        return show_conflict_brief(cdir, a.branch)
     if a.verb == "run":
         return run_attempt(a.attempt)
     ap.print_help()
