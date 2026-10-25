@@ -46,3 +46,13 @@ verdict; a stored `blocked:` refuses loudly because ignoring it would let `block
 Performance: `expand_globs` runs git only for a note that names a glob; the view copies about 700 notes per plan.
 Duplication: audited the other stored fields of a note for a derivable copy: none depends on another note's status.
 `gen_ledger.py` keeps counting an unparseable file in a historical tree as no note, on purpose (a comment says why).
+
+**Review round 1 (R1-1, blocking).** The branch made `work.py check` refuse a stored `blocked:` key and deleted the line
+from the notes it had, but a branch is gated at its own head and the landing re-runs no register audit on the head main
+was merged into, so the nine notes main added since the base (PB3766 to PB3775) would have gone red for the first time in
+the merge group's CI. Merging the reviewed head into a branch on current main reproduced it (9 problems); the nine lines
+are deleted. The root is the landing, not those nine notes: any in-flight branch filing a note after this lands meets the
+same rule only in CI. `enqueue.py checks` gained a third landing check, `work.py check`, run by the merged head's own
+`scripts/spec/work.py` from the worktree (the copy CI runs), exit 6 with the DEVLOG refusal (a finisher's); the check
+table became a `Check` named tuple (name, command, exit, range arguments, `in_tree`) in place of a five-field tuple, and
+the self-test maps all three refusals and runs a worktree copy of work.py that refuses and one that passes.
