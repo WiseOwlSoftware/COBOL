@@ -165,17 +165,17 @@ public sealed partial class DataBinder
         // d) A group containing items described with a JUSTIFIED or SYNCHRONIZED clause.
         // ANY group, not only an alphanumeric one — the letter says "A group" where c) says "An alphanumeric
         // group", and the difference is the drafting.
-        // ⛔ THE SUBJECT'S OWN SYNCHRONIZED CLAUSE COUNTS. §13.18.55.3 SR1 permits SYNCHRONIZED on a group
-        // ("The SYNCHRONIZED clause may be specified for group and elementary items") and §13.18.55.4 GR1 makes
-        // that a description of its members: "When this clause is specified for a group item, it is treated as
-        // though it had instead been separately specified for each of the subordinate elementary items for which
-        // this clause is permitted." The binder records the clause on the entry that wrote it and does not
-        // propagate it, so reading only the subordinates' flags would miss `01 G SYNCHRONIZED.` entirely.
+        // ⛔ THE SUBJECT'S OWN SYNCHRONIZED CLAUSE COUNTS, AND IT IS READ ON ITS MEMBERS. §13.18.55.3 SR1 permits
+        // SYNCHRONIZED on a group ("The SYNCHRONIZED clause may be specified for group and elementary items") and
+        // §13.18.55.4 GR1 makes that a description of its members: "When this clause is specified for a group item,
+        // it is treated as though it had instead been separately specified for each of the subordinate elementary
+        // items for which this clause is permitted." DataBinder.InheritSynchronized writes exactly that onto each
+        // such member (kb/Work PB539), so `01 G SYNCHRONIZED.` is caught through its members, and a group whose
+        // clause reaches no member (every one is below a group-level VALUE, §13.18.63.3 SR14) contains none.
         // JUSTIFIED has no such arm — §13.18.31.3 SR1 confines it to the elementary item level.
         new('d', "A group containing items described with a JUSTIFIED or SYNCHRONIZED clause.",
             "a group containing an item described with a JUSTIFIED or SYNCHRONIZED clause",
-            static d => d.IsGroup
-                && (d.Synchronized || AnySubordinate(d, static x => x.Justified || x.Synchronized))),
+            static d => d.IsGroup && AnySubordinate(d, static x => x.Justified || x.Synchronized is not null)),
 
         // e) A data item of the class index, message-tag, object, or pointer.
         new('e', "A data item of the class index, message-tag, object, or pointer.",

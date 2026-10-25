@@ -1,0 +1,6 @@
+set ok
+in sub
+ref ok
+in sub
+content ok
+unrestricted exc EC-PROGRAM-ARG-MISMATCH        
