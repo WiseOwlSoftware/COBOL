@@ -242,11 +242,14 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.False(ok);
         Assert.Contains(lines, d => d.Contains("nd.cob(7,31): error COBOL0307"));   // deleted: the ')' STAYS in column 31
 
-        Write("nc.cpy", "           DISPLAY XXXXX058 W ) .\n");
-        Write("nk.cob", Head + "       PROCEDURE DIVISION.\n           COPY \"nc.cpy\".\n           STOP RUN.\n");
+        // the unit is COBOL-85, so COPY names its library text by a WORD (a literal name is COBOL-2002: VCR row 7.44,
+        // kb/Work PB1601)
+        Write("NC.CPY", "           DISPLAY XXXXX058 W ) .\n");
+        Write("nk.cob", Head + "       PROCEDURE DIVISION.\n           COPY NC.\n           STOP RUN.\n");
         (ok, lines) = Compile("nk.cob", edition: 85, nist: "NK");
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("nc.cpy(1,31): error COBOL0307"));
+        Assert.Contains(lines, d => d.Contains("NC.CPY(1,31): error COBOL0307"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET0900"));
     }
 
     /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §8.1.3.2 4)): four UTF-16 units, two
@@ -360,19 +363,21 @@ public sealed class DiagnosticPositionTests : IDisposable
 
     [Fact] // kb/Work PB2490 - a debugging line that is SOURCE (the unit says WITH DEBUGGING MODE) between the parts of a
     // continued literal is diagnosed where it is written, in a copybook too: the copybook is read by the same walker, and
-    // the line is named by its own file and physical line, not by a resultant ordinal.
+    // the line is named by its own file and physical line, not by a resultant ordinal. The unit is COBOL-85, so COPY
+    // names its library text by a WORD (a literal name is COBOL-2002: VCR row 7.44, kb/Work PB1601).
     public void SourceDebuggingLine_BetweenLiteralParts_InACopybook_IsDiagnosedAtItsOwnLine()
     {
-        Write("dbg.cpy", "           MOVE \"" + new string('A', 55) + "\n      D    DISPLAY \"X\".\n      -    \"TAIL\" TO W.\n");
+        Write("DBG.CPY", "           MOVE \"" + new string('A', 55) + "\n      D    DISPLAY \"X\".\n      -    \"TAIL\" TO W.\n");
         string unit(string clause) =>
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB2490C.\n       ENVIRONMENT DIVISION.\n"
             + "       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. IBM-PC" + clause + ".\n       DATA DIVISION.\n"
             + "       WORKING-STORAGE SECTION.\n       01 W PIC X(80).\n       PROCEDURE DIVISION.\n"
-            + "           COPY \"dbg.cpy\".\n           STOP RUN.\n";
+            + "           COPY DBG.\n           STOP RUN.\n";
         Write("dbgon.cob", unit(" WITH DEBUGGING MODE"));
         var (ok, lines) = Compile("dbgon.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("dbg.cpy(2,7): error COBOLNET3473"));
+        Assert.Contains(lines, d => d.Contains("DBG.CPY(2,7): error COBOLNET3473"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET0900"));
         // without the clause the same line is a comment (§6.3.5 2)), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);

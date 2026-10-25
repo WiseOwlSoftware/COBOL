@@ -3724,6 +3724,51 @@
   ],
   "expect": "COBOLNET1520"
  },
+ "pb1046-global-report-item-referenced-in-contained-program": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-group-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-as-occurs-depending-object": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-by-file-status": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
+ "pb1046-report-item-referenced-in-procedure-division": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET5092"
+ },
  "pb1047-two-globals-one-element-ambiguous": {
   "refuse-at": [
    "85",
@@ -17245,6 +17290,14 @@
   ],
   "expect": "shall be implicitly or explicitly described as usage display or usage national"
  },
+ "pb508_blank_when_zero_national_resultant": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1675"
+ },
  "pb510-blank-when-zeros": {
   "refuse-at": [
    "85",
@@ -21477,6 +21530,22 @@
   ],
   "expect": "COBOLNET1655"
  },
+ "pb935-set-entry-restricted-identifier-list": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb935-set-entry-restricted-literal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
  "pb94-value-alphanumeric-on-numeric": {
   "refuse-at": [
    "85",
@@ -23110,6 +23179,19 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3677_format1_sdidi_function_value_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3677_format1_sdidi_expression_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3587_content_group_formal_usage_values_below_2002": {
   "refuse-at": [
    "85"
@@ -23168,5 +23250,24 @@
    "85"
   ],
   "expect": "COBOLNET0900: a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY requires COBOL-2002"
+ },
+ "pb1601-copy-literal-name-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb1601-copy-suppress-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb1615-literal-above-160-below-2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0814"
  }
 }

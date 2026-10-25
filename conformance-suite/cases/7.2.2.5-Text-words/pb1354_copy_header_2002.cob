@@ -2,6 +2,7 @@
       *> id: pb1354_copy_header_2002
       *> rules: [GR-7.2.2.5-2, GR-7.2.3.4-8, GR-7.2.3.4-9, GR-7.2.4.4-8,
       *>    FMT-7.2.3.2]
+      *> constructs: [copy-literal-name-2002, copy-suppress-2002]
       *> accept: [2002]
       *> files: [pb1354cb.cpy]
       *> source-format: fixed

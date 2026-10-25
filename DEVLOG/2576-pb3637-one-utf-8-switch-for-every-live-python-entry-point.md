@@ -1,4 +1,4 @@
-## PB3637: one UTF-8 switch for every live Python entry point, and a drift test that runs every --help under cp1252
+## Entry 2576 — 2026-10-25 14:50 PDT — PB3637: one UTF-8 switch for every live Python entry point, and a drift test that runs every --help under cp1252
 
 **Re-probe.** `python scripts/spec/work.py --help` through a pipe on the Windows host died with `UnicodeEncodeError:
 'charmap' codec can't encode character '\u26d4'`: the module docstring is the argparse description, and `main()` switched
@@ -32,8 +32,20 @@ whose prog and help carry ⛔ and requires two findings without the call and non
 `--help`, where.py, drift_rules.py, record_impact_map.py `--help`) and land with it; each repro exits 0 after the fix.
 No inventory row (tooling).
 
+**The merge with main (PR #609 left the queue DIRTY).** One file conflicted:
+`scripts/spec/audit_grammar_optional_words.py`, where PB715 (PR #593) had added a `--self-test` branch beside a
+per-script `reconfigure` loop. The resolution keeps PB715's self-test and tree-parsing audit and drops the loop: the
+file's `__main__` already calls `ensure_utf8()` first. Main also gained `scripts/orchestrator/cancel_superseded.py`
+with its own `reconfigure` (the drift audit's COPY and ENTRY findings); it now calls `ensure_utf8()` like every other
+entry point. That script runs in CI's supersede job from a SPARSE checkout of `scripts/orchestrator` only, where
+`import standard_streams` (its own, and through `ruleset.py`) would raise `ModuleNotFoundError` behind the job's
+`continue-on-error`, so the job cancelled nothing and stayed green; the sparse list now names
+`scripts/standard_streams.py` (reproduced in a scratch copy of the sparse tree: the self-test fails without the
+file and passes with it).
+
 **Self-review.** Architecture: one function, one audit beside it, the readers of `live_tools.ROOTS` now five.
 Code: the ENTRY rule's "runs code at import" counts a try that does more than import (a hook's `json.load(sys.stdin)`),
 so the call precedes the stdin read. Performance: the probes are the sweep's cost, two interpreter starts per entry
 point in a pool. Duplication: three copies of the `git ls-files -- live_tools.ROOTS` listing remain (self_tests.py,
 scratch_repo.py, temp_names.py) and this audit adds a fourth; reported as a lead, not widened here.
+
