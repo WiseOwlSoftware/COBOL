@@ -46,7 +46,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
 3. CLUSTERS from fix_clusters.py --json (the public submodule's view of kb/Work), minus the notes above, ranked by
    inventory rows claimed (the sum of each note's `inventory_rows`), then harm. A finisher on a cluster's primary
    file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
-4. ONE GROUP PER PRIMARY FILE: a later group on the same file is a same-file successor (`after:`, MANDATORY-PRACTICES O2).
+4. ONE GROUP PER PRIMARY FILE AND MEMBER: a later group on the same file whose claim there meets an earlier one's (the
+   whole file, or a shared member) is a same-file successor (`after:`, MANDATORY-PRACTICES O2); one on other members of
+   the file runs beside it (kb/Work PB3670).
 5. MODEL per group from model_rules.json (Opus for design-heavy files and areas, an open design question, or a note
    that already failed twice; Sonnet otherwise; never Fable).
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
@@ -88,34 +90,46 @@ meet. A group is bound by every campaign its notes' `cluster:` lists name (group
 a `--cluster` wave alike, a campaign finisher included. Each is written into the group's spec body, its groups.json
 entry and its args entry (wf_rolling_wave.js hands them, with the group's dispatch spec, to the branch reviewer), and
 check_practices.py refuses a spec that lacks one.
-THE FILE-SET PARTITION (owner, kb/Work PB2118 question 5, 2026-10-07; R69 §2; DESIGN-architecture-review §8.7) gates
-EVERY plan, the fix lane's and a campaign's alike (kb/Work PB2807: it once gated a campaign only, so with two planners,
-the loop and an attended or Mythos session, a fix-lane group was planned on a file another session's running group
-held). A group's file set (collision_set: its notes' DECLARED sets plus its primary file, the fix lane's and a
-campaign's alike, kb/Work PB3242) is checked against the in-flight work below. A note's declared set (declared_sets, the one
-computation, on one explicit IndexPolicy, kb/Work PB3203) is its STRUCTURED sites only, read by ONE reader
-(work.note_sites): the paths of its Code site / Site / Sites blocks, plus every file scripts/arch/member_index.py
-computes as a caller of what it moves or changes (its `**Moves or changes:**` and `r2_members:` names and site-block
-documentation ids), and the code files under a site folder, on THE index of this tree, regenerated into
-<coord>/member-index when stale (PB2118 Draft 8, J2; Draft 9, K1); never a path its prose, a `Gate:` line or a tool
-command mentions, nor a bare type name. fix_clusters' scored prose sites rank and group the fix lane's notes and never
-enter a declared set. The in-flight work (inflight_file_sets: every worktree's and every unlanded branch's changed files, committed or not, and every
-dispatched group whose notes are still open, from the coordination directory's dispatch ledger, which only the
-planner's and the spec renderer's record_dispatch write: kb/Work PB3186) and, for a campaign's plan, the open
-external-repository slices' RESERVATION (slice_reservation: work.slice_file_set, DESIGN-external-repository §12),
-which holds only the restructuring program's groups (R69 §2, work.restructuring; a fix campaign is never held for a
-slice, kb/Work PB3456) and reads OPEN (RESERVED) while nobody runs a slice, classified by ONE rule (classify_inflight): a
-group meeting RUNNING work (a dispatch with no report yet, a worktree or branch no finished report covers) waits, with
-the collision named; a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
-landing) is planned as their CONTINUATION, its pred telling it to merge each first. AN EMPTY SET IS UNKNOWN, never
-"collides with nothing" (collision, kb/Work PB3263): a group none of whose notes declares a site block, or a dispatch
-the ledger recorded with no files, meets the other side on a shared SUBSYSTEM (its notes' `area:`, subsystems) and
-meets everything when that is unknown too; such a meeting waits even for finished work; within a wave an unknown
-group is planned alone on its subsystems (a successor of the last group on one, and a later group on one follows it);
-and the plan table and its spec name it UNPARTITIONED. A finisher's set includes the files of the branch it continues.
-A branch ANOTHER group of the same wave continues is planned work, never a hold (kb/Work PB3528): the group that meets
-it follows that group (a successor, `after:`), so two SPLIT branches sharing a file are finished in one chain instead of
-each waiting on the other forever.
+THE PARTITION (owner, kb/Work PB2118 question 5, 2026-10-07; R69 §2; DESIGN-architecture-review §8.7; ON MEMBERS since
+kb/Work PB3670, the owner's top priority of 2026-10-24) gates EVERY plan, the fix lane's and a campaign's alike (kb/Work
+PB2807: it once gated a campaign only, so with two planners, the loop and an attended or Mythos session, a fix-lane group
+was planned on a file another session's running group held). A group's DECLARED SET (a Claim: collision_set, its notes'
+declared sets plus its primary file, the fix lane's and a campaign's alike, kb/Work PB3242) is the files it changes and,
+per file, the MEMBERS it changes there (a C# member, a Python function, a Markdown section: scripts/arch/source_units.py);
+a file with no members named is claimed whole. It is checked against the in-flight work below by ONE rule (collision):
+two claims meet only on a file that either claims whole, or on a member of one that matches a member of the other, and
+never on a file a merge driver merges by key (merge_drivers.covered_by_driver); two groups on DIFFERENT MEMBERS of one
+file run side by side, and git's three-way merge combines their branches (the owner: "Developers do this all the
+time"). A note's declared set (declared_sets, the one computation, on one explicit IndexPolicy, kb/Work PB3203) is its
+STRUCTURED sites only, read by ONE reader (work.note_sites): the paths of its Code site / Site / Sites blocks with the
+members they name (`path#Member`, `path (`member`, ...)`), plus every file scripts/arch/member_index.py computes as a
+caller of what it MOVES, RENAMES or RE-SIGNS (its `**Moves or changes:**` and `r2_members:` names and site-block
+documentation ids: a body-only edit is a site member and reserves no caller), and, for a restructuring note, the code
+files under a site folder, on THE index of this tree, regenerated into <coord>/member-index when stale (PB2118 Draft 8,
+J2; Draft 9, K1); never a path its prose, a `Gate:` line or a tool command mentions, nor a bare type name, and never a
+fix-lane note's folder site (a whole subsystem, kb/Work PB3670). fix_clusters' scored prose sites rank and group the fix
+lane's notes and never enter a declared set except as the primary file, which is claimed whole unless every note of the
+group declares a site block and one names it. The in-flight work (inflight_file_sets: every worktree's and every
+unlanded branch's changed files, committed or not, with the units their ACTUAL diff touches in every file another claim
+shares (inflight_units, from batched git reads), and every dispatched group whose notes are still open, with its recorded
+members, from the coordination directory's dispatch ledger, which only the planner's and the spec renderer's
+record_dispatch write: kb/Work PB3186) and, for a campaign's plan, the open external-repository slices' RESERVATION
+(slice_reservation: work.slice_file_set, DESIGN-external-repository §12), which holds only the restructuring program's
+groups (R69 §2, work.restructuring; a fix campaign is never held for a slice, kb/Work PB3456) and reads OPEN (RESERVED)
+while nobody runs a slice, classified by ONE rule (classify_inflight): a group meeting RUNNING work (a dispatch with no
+report yet, a worktree or branch no finished report covers) waits, with the collision named (its file, or
+`file#member`); a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
+landing) is planned as their CONTINUATION, its pred telling it to merge each first. AN EMPTY SET HOLDS NOTHING (kb/Work
+PB3670, superseding PB3263's subsystem rule): a group none of whose notes declares a site block and with no primary
+file located, or a dispatch the ledger recorded with no files, meets nothing, in flight and within the wave; the plan
+table and its spec name it UNPARTITIONED, and its implementer adds the notes' `**Sites:**` paragraphs in its first
+checkpoint (from its first edit its worktree's actual diff is in flight like any other). Within a wave two groups on one
+primary file are a same-file successor chain only when their claims on that file meet. A finisher's set includes the
+files and units of the branch it continues. A branch ANOTHER group of the same wave continues is planned work, never a
+hold (kb/Work PB3528): the group that meets it follows that group (a successor, `after:`), so two SPLIT branches sharing
+a file are finished in one chain instead of each waiting on the other forever. Every dispatched wave appends its
+measurement to <coord>/partition-measure.jsonl (partition_record: same-file pairs run side by side, notes held and why;
+`--partition-summary` prints it per day).
 The in-flight set never reads a
 branch CLASSIFICATION: a dispatched branch with no commit classifies MERGED and one that edits only existing files
 classifies LANDED, so a classification-filtered set missed both (PB2118 Draft 7, the sixth refuter's partition lead).
@@ -159,7 +173,10 @@ import alloc  # noqa: E402
 import coord  # noqa: E402
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
+import merge_drivers  # noqa: E402  (scripts/: covered_by_driver, the files merged by key, which never meet)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
+sys.path.insert(0, str(HERE.parent / "arch"))
+import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
@@ -631,15 +648,16 @@ def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[s
     return _names(git("diff", "--name-only", "--no-renames", *revs, **({} if cwd is None else {"cwd": cwd})).stdout)
 
 
-def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> list[set[str]]:
-    """[the files each commit of `revs` changed since it left origin/main AND that still differ from origin/main]: a
-    branch landed by content (squash, cherry-pick) drops out; one whose edits are not on main stays, however it
-    classifies. One `merge-base` per commit and ONE `git diff-tree --stdin` for every (since-the-merge-base, against
-    main) pair (git_batch.diff_names, kb/Work PB3582), never two `git diff`s per worktree and branch. No origin/main,
-    or no merge base, reads empty, as the two diffs did when they failed."""
+def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> list[tuple[set[str], str]]:
+    """[(the files each commit of `revs` changed since it left origin/main AND that still differ from origin/main, that
+    merge base)]: a branch landed by content (squash, cherry-pick) drops out; one whose edits are not on main stays,
+    however it classifies. One `merge-base` per commit and ONE `git diff-tree --stdin` for every (since-the-merge-base,
+    against main) pair (git_batch.diff_names, kb/Work PB3582), never two `git diff`s per worktree and branch. No
+    origin/main, or no merge base, reads empty (base ''), as the two diffs did when they failed. The base is where
+    inflight_units reads the units each change touches from (kb/Work PB3670)."""
     main = git("rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}", cwd=repo).stdout.strip()
     if not main or not revs:
-        return [set() for _ in revs]
+        return [(set(), "") for _ in revs]
     with ThreadPoolExecutor(max_workers=8) as pool:   # subprocess-bound: the merge bases run side by side
         bases = list(pool.map(lambda rev: git("merge-base", main, rev, cwd=repo).stdout.strip(), revs))
     pairs = [(rev, x) for rev, b in zip(revs, bases) if b for x in (b, main)]
@@ -647,10 +665,10 @@ def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> l
     out = []
     for b in bases:
         if not b:
-            out.append(set())
+            out.append((set(), ""))
             continue
         since, against = work_names(next(names)), work_names(next(names))
-        out.append(since & against)
+        out.append((since & against, b))
     return out
 
 
@@ -670,13 +688,14 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
          before the agent has a worktree or a commit. The planner, the landing check and the survey's in-flight slugs
          all pass their reports, so the three read one rule. Its writers are structured (kb/Work PB3186): the planner's record of a planned wave and the spec
          renderer's record of every group it renders (record_dispatch, through make_dispatch_specs.py), each with the
-         group's exact file set; a group recorded with none is an owner with an EMPTY, that is UNKNOWN, set (collision,
-         kb/Work PB3263), never dropped. An attended dispatch made without a rendered group (a direct Agent call) is in flight
+         group's exact file set and member claims; a group recorded with none is an owner with an EMPTY set, which
+         meets nothing (collision, kb/Work PB3670), never dropped. An attended dispatch made without a rendered group (a direct Agent call) is in flight
          from its worktree's first edit (sources 1-2), and the landing check is the guarantee behind it.
     `git` has prune_worktrees.git's shape (*args, cwd=); `terminal(note_id)` says whether a note is landed or retired.
     `meta`, when given, receives per owner what the planner (classify_inflight) and the landing check
     (landing_check.py) need: a worktree's or branch's `rev`, `path` and `branch` (and a worktree's `uncommitted`
-    files), a dispatch entry's `notes`, `at` and `slug`. The per-worktree git work runs on a thread pool (it is
+    files), its tip `sha`, its merge `base` with origin/main and its `committed` files (inflight_units' inputs), a
+    dispatch entry's `notes`, `at`, `slug` and recorded `members`. The per-worktree git work runs on a thread pool (it is
     subprocess-bound: the ninth refuter measured 64 s, about 2 s a worktree, for 33 worktrees run one after another)."""
     out: dict[str, set[str]] = {}
     if with_git:
@@ -714,36 +733,41 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
             tree_loose = list(pool.map(uncommitted, trees))
         revs = list(dict.fromkeys([h for _, _, h in trees if h] + [sha for _, sha in loose_branches]))
         differs = dict(zip(revs, _still_differs(git, repo, revs)))
-        tree_rows = [(path, br, differs.get(head, set()) if head else set(), lo, head if meta is not None else "")
+        tree_rows = [(path, br, differs.get(head, (set(), ""))[0] if head else set(), lo, head if meta is not None else "")
                      for (path, br, head), lo in zip(trees, tree_loose)]
-        branch_rows = [(b, differs.get(sha, set())) for b, sha in loose_branches]
+        branch_rows = [(b, sha, differs.get(sha, (set(), ""))[0]) for b, sha in loose_branches]
         for path, br, files, loose, head in tree_rows:
             if files | loose:
                 owner = f"worktree {pathlib.PurePath(path).name} ({br or 'detached'})"
                 out[owner] = files | loose
-                if meta is not None:
-                    meta[owner] = {"rev": head, "uncommitted": loose, "path": path, "branch": br}
-        for b, files in branch_rows:
+                if meta is not None:   # `sha` and `base` are what inflight_units diffs (kb/Work PB3670)
+                    meta[owner] = {"rev": head, "uncommitted": loose, "path": path, "branch": br, "sha": head,
+                                   "base": differs.get(head, (set(), ""))[1], "committed": files}
+        for b, sha, files in branch_rows:
             if files:
                 out[f"branch {b}"] = files
                 if meta is not None:
-                    meta[f"branch {b}"] = {"rev": b, "uncommitted": set(), "path": None, "branch": b}
+                    meta[f"branch {b}"] = {"rev": b, "uncommitted": set(), "path": None, "branch": b, "sha": sha,
+                                           "base": differs.get(sha, (set(), ""))[1], "committed": files}
     for g in ledger_groups(coord_dir or coord.coord_dir()):
         if (terminal is not None and all(terminal(i) for i in g.get("notes", []))) or any(answers(r, g) for r in reports):
             continue
-        # A group recorded with NO files is in flight all the same: its set is UNKNOWN (collision, kb/Work PB3263),
-        # never "changes nothing", so it stays an owner with its empty set and its notes (whose subsystems it meets on)
+        # A group recorded with NO files is in flight all the same, with its notes (its own notes are never held twice:
+        # plan() reads them), and its EMPTY set meets nothing (collision, kb/Work PB3670); a recorded group's `members`
+        # are the members it claims in its files (a file with none is claimed whole)
         owner = f"dispatched {ledger_slug(g)} ({', '.join(g.get('notes', [])[:3])})"
         out[owner] = {f.replace(chr(92), "/") for f in g.get("files", [])}
         if meta is not None:
-            meta[owner] = {"notes": list(g.get("notes", [])), "at": g.get("at", 0.0), "slug": ledger_slug(g)}
+            meta[owner] = {"notes": list(g.get("notes", [])), "at": g.get("at", 0.0), "slug": ledger_slug(g),
+                           "members": dict(g.get("members") or {})}
     return out
 
 
 def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, Any]],
                     terminal: Callable[[str], bool]) -> list[dict[str, Any]]:
     """THE writer of the dispatch ledger (kb/Work PB3186): UPSERT one wave's groups, keyed on (wave, letter), each
-    `{"letter", "notes": [ids], "files": [repo-relative paths], "slug"?}`, and return the entries written. A group
+    `{"letter", "notes": [ids], "files": [repo-relative paths], "members"?: {path: [member names]}, "slug"?}` (a file
+    with no `members` entry is claimed whole, kb/Work PB3670), and return the entries written. A group
     recorded again (a re-rendered spec) replaces its notes, files and slug but KEEPS its `at`, the time of its FIRST
     recording (kb/Work PB3392): `at` is the dispatch order the landing check reads (the later of two overlapping
     branches re-plans) and the time `answers` bounds a report by, and a re-render is not a new dispatch (the Mythos
@@ -772,8 +796,8 @@ def record_dispatch(coord_dir: pathlib.Path, wave: str, groups: list[dict[str, A
         return at + k / 1000
 
     new = [{"wave": str(wave), "letter": str(g["letter"]), "slug": g.get("slug") or f"w{wave}{str(g['letter']).lower()}",
-            "notes": list(g["notes"]), "files": sorted({f.replace(chr(92), "/") for f in g["files"]}), "at": stamp(k, g)}
-           for k, g in enumerate(groups)]
+            "notes": list(g["notes"]), "files": sorted(claim.files), "members": claim.member_lists(), "at": stamp(k, g)}
+           for k, g in enumerate(groups) for claim in [Claim.of(g["files"], g.get("members"))]]
     coord.write_json(path, {"groups": keep + new})
     return new
 
@@ -828,14 +852,45 @@ class IndexPolicy:
         return cls(coord_dir / "member-index", regenerate)
 
 
-def declared_sets(repo: pathlib.Path, policy: IndexPolicy) -> Callable[[str], set[str]]:
-    """THE declared file set of a note, as a function of its text (DESIGN-architecture-review §8.7; kb/Work PB3242,
-    PB3203): its STRUCTURED sites (work.note_sites, the one reader) and every caller the member index finds of the
-    names it moves or changes (member_index.note_file_set), on the index `policy` names. The index and the drifted files
-    are read once, and only when a note needs them (a note that names what it moves or changes, or a restructuring
-    note): a fix-lane plan whose notes declare only sites never builds one. A missing or refused index is a refusal."""
-    sys.path.insert(0, str(HERE.parent / "arch"))   # this script's own member_index, whatever tree it measures
-    import member_index  # noqa: PLC0415
+@dataclasses.dataclass(frozen=True)
+class Claim:
+    """A DECLARED SET as the partition reads it (DESIGN-architecture-review §8.7; kb/Work PB3670): the `files` a group,
+    a note or an in-flight owner changes and, per file, the `members` it changes there (scripts/arch/source_units.py's
+    units: a C# member, a Python function, a Markdown section); a file with no `members` entry is claimed WHOLE. `sited`
+    is False when a note behind it declares no site block (work.NoteSites.declared): its set is only what the planner
+    located for it, so a group holding one claims its primary file whole (collision_set). Union (`|`) keeps a file
+    whole when either side claims it whole."""
+    files: frozenset[str] = frozenset()
+    members: Mapping[str, frozenset[str]] = dataclasses.field(default_factory=dict, hash=False)
+    sited: bool = True
+
+    def __or__(self, other: "Claim") -> "Claim":
+        files = self.files | other.files
+        members = {f: frozenset().union(*(c.members[f] for c in (self, other) if f in c.files))
+                   for f in files if all(f in c.members for c in (self, other) if f in c.files)}
+        return Claim(files, members, self.sited and other.sited)
+
+    @classmethod
+    def of(cls, files: Iterable[str], members: Mapping[str, Iterable[str]] | None = None, sited: bool = True) -> "Claim":
+        """A claim from repo-relative paths (either separator) and {path: member names} (a groups file's `member_set`,
+        a ledger entry's `members`); a member entry for a file outside `files` is ignored."""
+        fs = frozenset(f.replace(chr(92), "/") for f in files)
+        ms = {f.replace(chr(92), "/"): frozenset(v) for f, v in (members or {}).items()}
+        return cls(fs, {f: v for f, v in ms.items() if f in fs}, sited)
+
+    def member_lists(self) -> dict[str, list[str]]:
+        """{file: sorted member names}, the JSON form a groups file and the dispatch ledger record."""
+        return {f: sorted(v) for f, v in sorted(self.members.items())}
+
+
+def declared_sets(repo: pathlib.Path, policy: IndexPolicy) -> Callable[[str], Claim]:
+    """THE declared set of a note, as a function of its text (DESIGN-architecture-review §8.7; kb/Work PB3242,
+    PB3203, PB3670): its STRUCTURED sites (work.note_sites, the one reader), the members they name in a file, and every
+    caller the member index finds of the names it moves or changes (member_index.note_file_set), on the index `policy`
+    names. The index and the drifted files are read once, and only when a note needs them (a note that names what it
+    moves or changes, or a restructuring note): a fix-lane plan whose notes declare only sites never builds one. A
+    missing or refused index is a refusal."""
+    import member_index  # noqa: PLC0415  (scripts/arch/, on the path above: this script's own, whatever tree it measures)
 
     @functools.cache
     def index() -> dict:
@@ -845,74 +900,98 @@ def declared_sets(repo: pathlib.Path, policy: IndexPolicy) -> Callable[[str], se
     def drifted() -> dict[str, str]:
         return member_index.drifted_files(index(), repo)
 
-    return lambda text: set(member_index.note_file_set(text, repo, index, drifted)["files"])
+    def claim(text: str) -> Claim:
+        fs = member_index.note_file_set(text, repo, index, drifted)
+        return Claim.of(fs["files"], fs["members"], fs["sited"])
+
+    return claim
 
 
-def computed_file_set(repo: pathlib.Path, ids: list[str], policy: IndexPolicy) -> set[str]:
-    """The declared file set of these notes computed NOW (declared_sets over their kb/Work files): the set of work the
-    dispatch ledger never recorded (landing_check.py) and of a rendered group whose groups file carries no `file_set`
-    (make_dispatch_specs.py). A note that is not a kb/Work file adds nothing."""
+def computed_file_set(repo: pathlib.Path, ids: list[str], policy: IndexPolicy) -> Claim:
+    """The declared set of these notes computed NOW (declared_sets over their kb/Work files, united): the set of work
+    the dispatch ledger never recorded (landing_check.py reads its `files`) and of a rendered group whose groups file
+    carries no `file_set` (make_dispatch_specs.py records its files and members). A note that is not a kb/Work file adds
+    nothing."""
     declared = declared_sets(repo, policy)
-    out: set[str] = set()
+    out = Claim()
     for i in ids:
         if (f := repo / "kb" / "Work" / f"{i}.md").is_file():
-            out |= declared(f.read_text(encoding="utf-8", errors="replace"))
+            out = out | declared(f.read_text(encoding="utf-8", errors="replace"))
     return out
 
 
-def collision_set(primary: str, declared: list[set[str]]) -> list[str]:
-    """A group's file set, the one the partition checks (kb/Work PB3242): its notes' declared sets plus its primary
-    file, for the fix lane and a campaign alike. The fix lane's prose-scored sites (fix_clusters' `files`) rank and
-    group its notes and never enter it."""
-    return sorted(set().union(*declared) | ({primary} - {""}))
+def collision_set(primary: str, declared: list[Claim]) -> Claim:
+    """A group's declared set, the one the partition checks (kb/Work PB3242, PB3670): its notes' declared sets united,
+    plus its primary file, for the fix lane and a campaign alike. The primary file (fix_clusters' scored reading of the
+    notes' prose, or a campaign cluster's site) is claimed WHOLE unless every note of the group declares a site block
+    and one of them names it: then the notes' own reading (a member or the whole file) decides. The fix lane's
+    prose-scored sites (fix_clusters' `files`) rank and group its notes and never enter it otherwise."""
+    out = functools.reduce(lambda a, b: a | b, declared, Claim())
+    if primary and (not out.sited or primary not in out.files):
+        out = out | Claim(frozenset({primary}))
+    return out
 
 
-def subsystems(ids: Iterable[str], notes: Mapping[str, Note]) -> set[str]:
-    """The SUBSYSTEMS a group or an in-flight owner works in: its notes' `area:` values, case-folded (every note carries
-    one: work.py check). The partition's key where a file set is UNKNOWN (collision, kb/Work PB3263)."""
-    return {a for i in ids if i in notes and (a := notes[i].area.strip().lower())}
+def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
+    """Whether two claims meet on the file `f` both hold, and on what: `f` when either claims it whole, `f#<member>`
+    when a member of one matches a member of the other (source_units.match: `collision` meets `plan_wave.collision`,
+    a type meets its members, a section its subsections), None when their members are disjoint. A file a merge driver
+    merges by key (merge_drivers.covered_by_driver: the diagnostics catalogue, the traceability inventory, the work
+    notes) never meets: two landings both editing it merge by entry, the rule enqueue.py's re-gate already reads
+    (kb/Work PB3610, PB3612)."""
+    if merge_drivers.covered_by_driver(f):
+        return None
+    a, b = mine.members.get(f), theirs.members.get(f)
+    if a is None or b is None:
+        return f
+    hit = source_units.meet(a, b)
+    return f"{f}#{hit}" if hit else None
 
 
-def collision(mine: set[str], areas: set[str], theirs: set[str], their_areas: set[str]) -> str | None:
-    """THE meeting rule of the file-set partition (kb/Work PB2118 question 5, PB3263), or None when the two never meet:
-    the label of what they share. Two KNOWN file sets meet on a shared file (its first, by name). An EMPTY set is
-    UNKNOWN, never "changes nothing": a group whose notes declare no site block (work.note_sites), or a dispatch the
-    ledger recorded with no files (wave 1117 recorded six of eight PB3353 groups so, and wave 1126 C's then landed on
-    the in-flight engine's files, PB3263). An unknown side meets the other on a shared SUBSYSTEM (`areas`, subsystems),
-    and meets everything when either side's subsystem is unknown too: the partition cannot tell, so it never guesses
-    "nothing". Paths are repo-relative POSIX."""
-    if mine and theirs:
-        return sorted(mine & theirs)[0] if mine & theirs else None
-    if not areas or not their_areas:
-        return "UNKNOWN file set, subsystem unknown"
-    shared = sorted(areas & their_areas)
-    return f"UNKNOWN file set, subsystem {shared[0]}" if shared else None
+def collision(mine: Claim, theirs: Claim) -> str | None:
+    """THE meeting rule of the partition (kb/Work PB2118 question 5, PB3670), or None when the two never meet: the
+    label of what they share, the first shared file (by name) on which they meet (unit_meet: a member of it, or the
+    whole file). Two groups on DIFFERENT MEMBERS of one file never meet: git's three-way merge combines them, and the
+    landing's merge conflict, when one still happens, is repaired then (the owner, 2026-10-24: "Developers do this all
+    the time"). An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "unknown meets its subsystem"): a group
+    none of whose notes declares a site block, or a dispatch the ledger recorded with no files, holds nothing and is
+    held by nothing; the plan and its spec name it UNPARTITIONED (unpartitioned), its implementer adds the `**Sites:**`
+    paragraph in its first checkpoint, and from its first edit its worktree's actual diff is in flight like any other.
+    Paths are repo-relative POSIX."""
+    for f in sorted(mine.files & theirs.files):
+        if hit := unit_meet(f, mine, theirs):
+            return hit
+    return None
 
 
-def file_set_collisions(files: list[str] | set[str], busy: Mapping[str, set[str]], areas: set[str] = frozenset(),
-                        busy_areas: Mapping[str, set[str]] = {}) -> list[str]:
-    """The in-flight owners a group meets, each as '<owner> (<what they share>)', by THE one rule (collision): `files`
-    and `areas` are the group's, `busy` and `busy_areas` each owner's file set and subsystems. Paths are POSIX'd here."""
-    mine = {f.replace(chr(92), "/") for f in files}
-    return [f"{owner} ({hit})" for owner, theirs in sorted(busy.items())
-            if (hit := collision(mine, set(areas), theirs, set(busy_areas.get(owner, ()))))]
+def file_set_collisions(mine: Claim, busy: Mapping[str, Claim]) -> list[str]:
+    """The in-flight owners a group meets, each as '<owner> (<what they share>)', by THE one rule (collision): `mine`
+    is the group's claim, `busy` each owner's."""
+    return [f"{owner} ({hit})" for owner, theirs in sorted(busy.items()) if (hit := collision(mine, theirs))]
 
 
 @dataclasses.dataclass
 class InFlight:
     """One owner of in-flight work as the planner's partition reads it (classify_inflight, kb/Work PB2807): the files
-    it changes, its branch (a worktree's or an unlanded branch's), the notes it works on (a dispatch's notes; a
-    branch's newest report's ids and its commit subjects' ids), its lifecycle state (the branch survey's, or the
-    dispatch's), and the FINISHED report that names its branch when it is finished work. A group whose files meet a
-    finished owner CONTINUES it; one whose files meet any other owner waits. `reserves` marks a RESERVATION, not work:
-    the file set of open notes nobody need be running (the external-repository slices, slice_reservation), held only
-    from the groups holding one of these notes; None holds every group."""
+    it changes and the members it changes in them (`members`, kb/Work PB3670: a dispatch's recorded member claims, or
+    the units a worktree's or branch's actual diff touches, inflight_units; a file with no entry is changed WHOLE),
+    its branch (a worktree's or an unlanded branch's), the notes it works on (a dispatch's notes; a branch's newest
+    report's ids and its commit subjects' ids), its lifecycle state (the branch survey's, or the dispatch's), and the
+    FINISHED report that names its branch when it is finished work. A group whose claim meets a finished owner
+    CONTINUES it; one whose claim meets any other owner waits. `reserves` marks a RESERVATION, not work: the file set
+    of open notes nobody need be running (the external-repository slices, slice_reservation), held only from the
+    groups holding one of these notes; None holds every group."""
     files: set[str]
     branch: str | None = None
     notes: set[str] = dataclasses.field(default_factory=set)
     finished: Report | None = None
     state: str = "RUNNING"
     reserves: set[str] | None = None
+    members: dict[str, frozenset[str]] = dataclasses.field(default_factory=dict)
+
+    @property
+    def claim(self) -> Claim:
+        return Claim.of(self.files, self.members)
 
 
 #: The branch survey's lifecycle states (prune_worktrees.lifecycle, MANDATORY-PRACTICES O10) of FINISHED work: a
@@ -943,7 +1022,9 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         once one does, so a plan never calls a slice nobody runs RUNNING (kb/Work PB3456).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
     report's `notes` (answered_notes, plus what an unlanded branch closes, add_closed_notes) are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
-    plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
+    plan() never defers a group for work on its OWN notes. A dispatch's `members` are the member claims its ledger
+    entry recorded; a worktree's or branch's are read from its actual diff afterwards (inflight_units, kb/Work PB3670),
+    and until then every file is changed whole."""
     by_branch: dict[str, Report] = {}
     for r in reports:   # oldest first: the last write is the newest
         if r.branch:
@@ -952,7 +1033,8 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
     for owner, files in busy.items():
         m = meta.get(owner, {})
         if m.get("slug"):
-            out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), state="DISPATCHED, NO REPORT YET")
+            out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), state="DISPATCHED, NO REPORT YET",
+                                  members=dict(Claim.of(files, m.get("members")).members))
             continue
         if "reserves" in m:   # its state is read below, from the work on its notes
             out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), reserves=set(m["reserves"]))
@@ -972,6 +1054,80 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
     return out
 
 
+_DIFF_FILE = re.compile(r"^diff --git a/(?:.+) b/(.+)$", re.M)
+#: The longest pathspec inflight_units passes on one command line (Windows caps a command line at 32,767 characters);
+#: past it the batched diff reads every file of every pair and keeps the shared ones.
+PATHSPEC_CHARS = 20000
+
+
+def split_patch(patch: str) -> dict[str, list[tuple[int, int, int, int]]]:
+    """{file: its hunks} of a unified diff (renames off: the `b/` path names the file; a quoted path is skipped, and the
+    file then reads whole)."""
+    heads = list(_DIFF_FILE.finditer(patch))
+    return {h.group(1): source_units.hunks(patch[h.end():heads[k + 1].start() if k + 1 < len(heads) else len(patch)])
+            for k, h in enumerate(heads)}
+
+
+def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claims: Iterable[Claim],
+                   git: Callable[..., Any], repo: pathlib.Path = REPO) -> None:
+    """Give each worktree's and unlanded branch's InFlight the units its ACTUAL diff touches in every file it shares
+    with another claim (kb/Work PB3670), in place: `members[f]` for each such file whose versions the unit reader reads
+    (scripts/arch/source_units.py `touched`: both sides of every hunk), and no entry (the whole file) for one added,
+    deleted, untracked or unreadable. A file no other owner and no candidate group (`claims`) holds can meet nothing,
+    so it is never read. The reads are batched (GitBatchDriftTests, kb/Work PB3582): ONE `git diff-tree --stdin -p -U0`
+    over every (tip, merge base) pair, ONE `git cat-file --batch-check` and ONE `git cat-file --batch` for every version
+    read, and one `git diff -U0 HEAD` per worktree with an uncommitted shared file (the one `git status` per worktree
+    inflight_file_sets already runs is the same question kind). A git failure leaves every file whole: an unmeasured
+    unit is never read as "touches nothing"."""
+    seen: set[str] = set()
+    shared: set[str] = set()
+    for fs in [x.files for x in busy.values()] + [c.files for c in claims]:
+        shared |= seen & fs
+        seen |= fs
+    rows = [(o, x, meta[o]) for o, x in busy.items() if meta.get(o, {}).get("sha") and x.files & shared]
+    if not rows:
+        return
+    try:
+        committed = [(o, x, m) for o, x, m in rows if m.get("base") and set(m.get("committed", ())) & shared]
+        spec = sorted({f for _, _, m in committed for f in set(m["committed"]) & shared})
+        patches = git_batch.diff_patches(repo, [(m["sha"], m["base"]) for _, _, m in committed],
+                                         *(spec if sum(len(f) + 1 for f in spec) <= PATHSPEC_CHARS else []), git=git)
+        hunks_of = {o: split_patch(p) for (o, _, _), p in zip(committed, patches)}
+        loose_of: dict[str, dict[str, list[tuple[int, int, int, int]]]] = {}
+        for o, x, m in rows:
+            if (lf := sorted(set(m.get("uncommitted", ())) & shared)) and m.get("path"):
+                r = git("diff", "-U0", "--no-renames", "HEAD", "--", *lf, cwd=m["path"])
+                if r.returncode != 0:
+                    raise git_batch.GitError(f"git diff HEAD in {m['path']} failed: {r.stderr.strip()[:200]}")
+                loose_of[o] = split_patch(r.stdout)
+        specs = sorted({f"{m['base']}:{f}" for o, _, m in committed for f in hunks_of[o]}
+                       | {f"{m['sha']}:{f}" for o, _, m in committed for f in hunks_of[o]}
+                       | {f"{m['sha']}:{f}" for o, _, m in rows for f in loose_of.get(o, {})})
+        oids = dict(zip(specs, git_batch.object_ids(repo, specs, git=git)))
+        texts = {oid: data.decode("utf-8", "replace") for oid, data in git_batch.blobs(repo, oids.values())}
+    except git_batch.GitError:
+        return
+
+    def version(rev: str, f: str) -> str | None:
+        return texts.get(oids.get(f"{rev}:{f}") or "")
+
+    for o, x, m in rows:
+        members: dict[str, frozenset[str]] = {}
+        for f in sorted(x.files & shared):
+            parts: list[frozenset[str] | None] = []
+            if f in set(m.get("committed", ())):
+                hs = hunks_of.get(o, {}).get(f)
+                parts.append(None if hs is None else source_units.touched(f, version(m["base"], f), version(m["sha"], f), hs))
+            if f in set(m.get("uncommitted", ())):
+                hs = loose_of.get(o, {}).get(f)
+                work_file = pathlib.Path(m["path"]) / f if m.get("path") else None
+                new = work_file.read_text(encoding="utf-8", errors="replace") if work_file and work_file.is_file() else None
+                parts.append(None if hs is None else source_units.touched(f, version(m["sha"], f), new, hs))
+            if parts and all(p is not None for p in parts):
+                members[f] = frozenset().union(*parts)
+        x.members = members
+
+
 #: The in-flight owner the open external-repository slices' reservation is filed under.
 SLICE_OWNER = "the open external-repository slices"
 
@@ -983,9 +1139,9 @@ def slice_reservation(items: list[dict], campaign: str | None,
     work.slice_file_set) from the restructuring program's waves only, "R2 and every R3 wave" (work.restructuring),
     whichever campaign proposes them: a fix campaign's group is never held for slices nobody runs (kb/Work PB3456:
     PB3353's tier 1 and its tier-2 chain waited on docs/CONFORMANCE.md for them), and the fix lane, which plans no
-    restructuring wave, never reads the set (DESIGN-architecture-review §8.7, set (b)). The meta names the slices,
-    whose notes give the owner its subsystems (a group whose set is UNKNOWN meets it only on a shared one: collision,
-    kb/Work PB3263), and `reserves`, the open restructuring notes whose groups it holds."""
+    restructuring wave, never reads the set (DESIGN-architecture-review §8.7, set (b)). The meta names the slices (the
+    owner's notes, whose work in flight makes the reservation RUNNING) and `reserves`, the open restructuring notes
+    whose groups it holds; every file of the set is reserved whole."""
     slices = work.open_slices(items)
     reserved = sorted((i["id"] for i in items if work.restructuring(i) and i.get("status") not in work.TERMINAL_STATUSES),
                       key=work.id_order)
@@ -1018,15 +1174,26 @@ def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> d
     return json.loads(out.read_text(encoding="utf-8"))
 
 
-def declare_fix_lane(clusters: list[dict[str, Any]], declared: Callable[[str], set[str]], work_dir: pathlib.Path) -> None:
-    """Give each fix-lane cluster its collision set (kb/Work PB3242): fix_clusters.py's `files` are the sites its
-    scored reading of the notes' prose found (every path and Type.Member a note mentions), which rank and group the
+def declare_fix_lane(clusters: list[dict[str, Any]], declared: Callable[[str], Claim], work_dir: pathlib.Path) -> None:
+    """Give each fix-lane cluster its collision set (kb/Work PB3242, PB3670): fix_clusters.py's `files` are the sites
+    its scored reading of the notes' prose found (every path and Type.Member a note mentions), which rank and group the
     lane's notes; the partition checks the notes' DECLARED sets plus the cluster's primary file instead
     (collision_set), so a note that discusses a file it does not change never holds a group back."""
     for c in clusters:
         texts = [(work_dir / f"{n['id']}.md") for n in c["notes"]]
-        c["files"] = collision_set(c["file"], [declared(f.read_text(encoding="utf-8", errors="replace"))
-                                              for f in texts if f.is_file()])
+        set_claim(c, collision_set(c["file"], [declared(f.read_text(encoding="utf-8", errors="replace"))
+                                               for f in texts if f.is_file()]))
+
+
+def cluster_claim(c: Mapping[str, Any]) -> Claim:
+    """A cluster's (or a groups-file entry's) claim: its `files` list and its `members` {file: [names]}."""
+    return Claim.of(c.get("files", []), c.get("members"))
+
+
+def set_claim(c: dict[str, Any], claim: Claim) -> None:
+    """Write a claim into a cluster as its `files` list and `members` {file: [names]} (JSON: the campaign's clusters
+    file)."""
+    c["files"], c["members"] = sorted(claim.files), claim.member_lists()
 
 
 def load_fix_clusters() -> Any:
@@ -1080,7 +1247,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
             cl = fc.cluster([n for n in ns if n["sites"]], cap)
             cl += [{"file": "", "harm": n["harm"], "files": [], "notes": [n]} for n in ns if not n["sites"]]
             for c in cl:
-                c["files"] = collision_set(c["file"], [n["fileset"] for n in c["notes"]])
+                set_claim(c, collision_set(c["file"], [n["fileset"] for n in c["notes"]]))
                 c["depth"] = d
                 c["tier"] = min((n["tier"] for n in c["notes"]), key=work.tier_rank)
                 c["notes"] = [{k: n[k] for k in ("id", "area", "harm", "title")} for n in c["notes"]]
@@ -1097,7 +1264,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
         for c in holders[1:]:
             head["notes"] += c["notes"]
             head["harm"] += c["harm"]
-            head["files"] = sorted(set(head["files"]) | set(c["files"]))
+            set_claim(head, cluster_claim(head) | cluster_claim(c))
             head["file"] = head["file"] or c["file"]
             head["tier"] = min(head["tier"], c["tier"], key=work.tier_rank)
             out["open"].remove(c)
@@ -1138,6 +1305,23 @@ class Group:
     cost: float = 0.0
     blocked_by: list[str] = dataclasses.field(default_factory=list)   # campaign: open blockers planned before it
     continues: list[str] = dataclasses.field(default_factory=list)    # the branches its pred merges or cherry-picks
+    members: dict[str, list[str]] = dataclasses.field(default_factory=dict)   # {file: the members it changes there}
+
+    @property
+    def claim(self) -> Claim:
+        """The group's declared set (Claim): `files`, each claimed whole unless `members` names its members."""
+        return Claim.of(self.files, self.members)
+
+    def take(self, claim: Claim) -> None:
+        """Unite `claim` into the group's own (a file stays whole when either side claims it whole)."""
+        merged = self.claim | claim
+        self.files, self.members = sorted(merged.files), merged.member_lists()
+
+
+def group_of_cluster(kind: str, ids: list[str], c: Mapping[str, Any], **kw: Any) -> Group:
+    """A group on cluster `c`'s primary file and its claim (cluster_claim)."""
+    claim = cluster_claim(c)
+    return Group(kind, ids, c["file"], sorted(claim.files), members=claim.member_lists(), **kw)
 
 
 def letters():
@@ -1260,13 +1444,13 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     does, because a successor merges its predecessor's FINAL, reviewed branch once that predecessor is settled
     (wf_rolling_wave.js `settled`), and each link reviewed CLEAN lands as it comes (kb/Work PB3381). A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
     Both lanes pass `busy`, {in-flight owner: InFlight} from classify_inflight (kb/Work PB2807: the fix lane once
-    passed none, so a fix-lane group was planned on a file another session's running group held): a group whose files
-    meet RUNNING work waits, the collision named, and so does every group that would follow it; a group whose files
-    meet only FINISHED branches is planned as their continuation (continuation_pred: merge each first, no `after:`).
-    An EMPTY file set is UNKNOWN (collision, kb/Work PB3263): it meets on a shared subsystem, such a meeting waits even
-    for finished work, and within the wave an unknown group follows the last group on its subsystems (and a later group
-    on one follows it). The group's own work never collides: a branch its pred already continues (`Group.continues`), or a dispatch of its
-    own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
+    passed none, so a fix-lane group was planned on a file another session's running group held): a group whose claim
+    meets RUNNING work (collision: a whole file, or a member of it, kb/Work PB3670) waits, the collision named, and so
+    does every group that would follow it; a group whose claim meets only FINISHED branches is planned as their
+    continuation (continuation_pred: merge each first, no `after:`). An EMPTY set meets nothing (kb/Work PB3670): such a
+    group runs beside everything, named UNPARTITIONED. Within the wave a group follows the groups on its primary file
+    whose claims on that file meet its own (unit_meet), never one on other members of it. The group's own work never
+    collides: a branch its pred already continues (`Group.continues`), or a dispatch of its own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
     to a golden).
 
     `carrier` (branch_carrier) names the DONE branch that contains a branch; `drain` plans the finishers of started
@@ -1306,7 +1490,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     cap = wave_rules["max_notes_per_group"]
     open_ids = {n["id"] for c in clusters + half_clusters for n in c["notes"] if n["id"] in notes}
     note_file = {n["id"]: c["file"] for c in clusters + half_clusters for n in c["notes"]}
-    note_files = {n["id"]: c.get("files", []) for c in clusters + half_clusters for n in c["notes"]}
+    note_claim = {n["id"]: cluster_claim(c) for c in clusters + half_clusters for n in c["notes"]}
+
+    def notes_group(kind: str, ids: list[str], **kw: Any) -> Group:
+        """A group of these notes on the first one's primary file, its claim the union of their clusters' claims."""
+        g = Group(kind, ids, note_file.get(ids[0], ""), [], **kw)
+        for i in ids:
+            g.take(note_claim.get(i, Claim()))
+        return g
 
     def stamped(r: Report, cls: str) -> bool:
         """A finished report on an unlanded branch whose branch review stamped FINDINGS, at whatever head."""
@@ -1510,9 +1701,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                 clause = replay_clause(rp)
                 pred += " " + branch_work_pred(rep.branch, extra, None if clause and clause in pred else rp)
             ids += extra
-            groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
-                                sorted({f for i in ids for f in note_files.get(i, [])}),
-                                pred=pred, continues=[b for b in (rep.branch, by) if b]))
+            groups.append(notes_group("finisher", ids, pred=pred, continues=[b for b in (rep.branch, by) if b]))
             taken |= set(ids)
     # A half note may also sit on an unlanded branch (a killed wave's WIP): the branch's finisher (below) takes it with
     # the branch's other notes and carries its resume instruction, or the finisher starts over from main and the
@@ -1522,7 +1711,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     for c in (half_clusters if not drain else []):  # `status: half` notes, clustered by fix_clusters.py --open-status half
         chunk = [n["id"] for n in c["notes"] if n["id"] not in taken and n["id"] not in on_branch][:cap]
         if chunk:
-            groups.append(Group("finisher", chunk, c["file"], list(c.get("files", [])),
+            groups.append(group_of_cluster("finisher", chunk, c,
                                 pred=("FINISH-FIRST: " + ", ".join(chunk) + (" is" if len(chunk) == 1 else " are") +
                                       " `status: half`: read each note's record of the landed half and its kb/Work "
                                       "history before touching code; finish the open half at its root.")))
@@ -1537,10 +1726,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         if ids:
             # ONE finisher per branch, its notes never split at the cap (as for a report's, above): the notes past the
             # cap would be planned again as clusters, redoing the work this finisher cherry-picks.
-            groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
-                                sorted({f for i in ids for f in note_files.get(i, [])}),
-                                pred=("FINISH-FIRST: " + branch_work_pred(branch, ids, replay(branch))),
-                                continues=[branch]))
+            groups.append(notes_group("finisher", ids,
+                                      pred=("FINISH-FIRST: " + branch_work_pred(branch, ids, replay(branch))),
+                                      continues=[branch]))
             taken |= set(ids)
 
     def rows(ids: list[str]) -> int:
@@ -1571,25 +1759,23 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             if g.file and c["file"] == g.file and len(g.notes) < cap and not c.get("depth"):
                 room = cap - len(g.notes)
                 g.notes += ids[:room]
-                g.files = sorted(set(g.files) | set(c.get("files", [])))
+                g.take(cluster_claim(c))
                 del ids[:room]
-    groups += [Group("cluster", ids, c["file"], list(c.get("files", []))) for c, ids in ranked if ids]
+    groups += [group_of_cluster("cluster", ids, c) for c, ids in ranked if ids]
 
     # Letters, successors, models, costs. A successor chain is linear (A, A2, A3: each merges the one before it), so
     # a group that must follow another joins the TAIL of that one's chain. In the fix lane the only link is a shared
-    # primary file, whose chain tail is always the file's last group, so this is the same-file rule unchanged.
+    # primary file on which the two groups' claims MEET (unit_meet: a member of it, or the whole file; kb/Work PB3670):
+    # two groups on DIFFERENT MEMBERS of one primary file run side by side, and git's merge combines their branches.
     gen = letters()
-    last_on_file: dict[str, Group] = {}
+    on_file: dict[str, list[Group]] = {}     # primary file -> the placed groups on it
     chain_of: dict[int, int] = {}            # id(group) -> id(its chain's head)
     tail: dict[int, Group] = {}              # id(chain head) -> the chain's last group
     group_of: dict[str, Group] = {}          # note -> the group planned for it
     placed: list[Group] = []
-    # A group whose file set is UNKNOWN (no note declares a site block, kb/Work PB3263) is planned ALONE ON ITS
-    # SUBSYSTEMS: by THE meeting rule (collision), it follows EVERY group of this wave it meets, and every later group
-    # that meets it follows it. A successor chain is linear, so when the groups it meets lie in two chains it waits for
-    # a later wave: it never runs beside a group it cannot be checked against. Two KNOWN groups link on their primary
-    # file only (the same-file rule above); the partition by file set is the in-flight one.
-    areas_of: dict[int, set[str]] = {}       # id(group) -> its subsystems, for each placed group
+    # A group whose set is EMPTY (no note declares a site block, and no primary file was located) holds nothing and is
+    # held by nothing (collision, kb/Work PB3670): it is planned like any other, named UNPARTITIONED, and its
+    # implementer gives its notes their `**Sites:**` paragraphs in its first checkpoint.
     # ⛔ A BRANCH THIS WAVE FINISHES IS PLANNED WORK, NOT UNDECIDED WORK (kb/Work PB3528). Two SPLIT branches whose file
     # sets meet were each a DECISION owner (read RUNNING) in the other's finisher's partition check, so neither finisher
     # was ever planned. A group meeting a branch that ANOTHER group of this wave continues is not held by it: it joins
@@ -1605,21 +1791,20 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     must_follow: dict[int, list[Group]] = {}  # id(a finisher not yet placed) -> the groups it must follow
     for g in groups:
         # a finisher's set includes what the branches it continues already change (their actual diff, read once by
-        # inflight_file_sets): that much of its work is known whatever its notes declare
-        if carried := {f for x in (busy or {}).values() if x.branch and x.branch in g.continues for f in x.files}:
-            g.files = sorted(set(g.files) | carried)
-        links = [last_on_file[g.file]] if g.file and g.file in last_on_file else []
+        # inflight_file_sets, and the units it touches, inflight_units): that much of its work is known whatever its
+        # notes declare
+        for x in (busy or {}).values():
+            if x.branch and x.branch in g.continues:
+                g.take(x.claim)
+        mine = g.claim
+        links = [x for x in on_file.get(g.file, []) if unit_meet(g.file, mine, x.claim)] if g.file else []
         links += [x for x in must_follow.pop(id(g), []) if id(x) in chain_of and x not in links]   # R1-1, above
-        areas = subsystems(g.notes, notes)
-        mine = {f.replace(chr(92), "/") for f in g.files}
-        unpart = [x for x in placed if not (mine and x.files) and collision(mine, areas, set(x.files), areas_of[id(x)])]
-        links += unpart
-        if busy:   # THE FILE-SET PARTITION, one rule for both lanes (kb/Work PB2807; classify_inflight)
+        if busy:   # THE PARTITION, one rule for both lanes (kb/Work PB2807, PB3670; classify_inflight)
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
                    if not (x.branch and x.branch in g.continues)              # its pred continues, or a dispatch of
                    and not x.notes & set(g.notes)                             # its own notes (the hold decided those);
                    and (x.reserves is None or x.reserves & set(g.notes))      # a reservation holds only its notes'
-                   and collision(mine, areas, x.files, subsystems(x.notes, notes))}   # groups (PB3456)
+                   and collision(mine, x.claim)}                              # groups (PB3456)
             # a branch another group of this wave finishes: follow that group when it is placed (PB3528, above)
             planned = {o: finisher_of[x.branch] for o, x in met.items() if x.branch and x.branch in finisher_of}
             links += [f for f in planned.values() if id(f) in chain_of and f not in links]
@@ -1627,18 +1812,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                 if id(f) not in chain_of:      # not placed yet: it follows this group (a one-sided meeting, R1-1)
                     must_follow.setdefault(id(f), []).append(g)
             met = {o: x for o, x in met.items() if o not in planned}
-            # a meeting the partition could not check by file (an UNKNOWN set) waits even for FINISHED work: a
-            # continuation would merge a branch the group may share nothing with (collision, kb/Work PB3263)
-            if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None or not (mine and x.files)}:
+            if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None}:
                 for i in g.notes:
                     waiting[i] = ("file-set collision with in-flight work " + "; ".join(file_set_collisions(
-                        mine, {o: x.files for o, x in held_by.items()}, areas,
-                        {o: subsystems(x.notes, notes) for o, x in held_by.items()}))
+                        mine, {o: x.claim for o, x in held_by.items()}))
                         + ": it waits until that work finishes (then continues it) or is decided")
                 continue
             done = {x.finished.branch: x.finished for x in met.values() if x.finished and x.finished.branch}
             if done:
-                shared = {b: sorted(mine & x.files) for x in met.values() if (b := x.branch) in done}
+                shared = {b: sorted(mine.files & x.files) for x in met.values() if (b := x.branch) in done}
                 g.pred = (g.pred + " " if g.pred else "") + continuation_pred(list(done.values()), shared)
                 g.continues += [b for b in done if b not in g.continues]
         if deps:
@@ -1651,10 +1833,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             links += [group_of[b] for b in g.blocked_by]
         chains = {chain_of[id(x)] for x in links}
         if len(chains) > 1:
-            what = "its blockers, its file and the groups it meets by subsystem" if unpart else "its blockers and its file"
             for i in g.notes:
-                waiting[i] = (f"{what} are in different successor chains ("
-                              + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
+                waiting[i] = ("its blockers and the groups whose members it meets on its file are in different "
+                              "successor chains (" + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
             continue
         prev = tail[chains.pop()] if chains else None
         if prev:
@@ -1667,8 +1848,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             chain_of[id(g)] = id(g)
         tail[chain_of[id(g)]] = g
         if g.file:
-            last_on_file[g.file] = g
-        areas_of[id(g)] = areas
+            on_file.setdefault(g.file, []).append(g)
         for i in g.notes:
             group_of[i] = g
         g.model, g.why_model = choose_model(g, notes, reports, rules)
@@ -1766,12 +1946,20 @@ def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], n
     return out
 
 
-def unpartitioned(g: Group, notes: Mapping[str, Note]) -> str:
-    """The plan table's and the spec's naming of a group whose file set is UNKNOWN (kb/Work PB3263): the silence ended."""
-    return (f"⚠ UNPARTITIONED (kb/Work PB3263): no note of this group declares a file the partition covers (a site "
-            f"block's path under a campaign root), so its file set is UNKNOWN and the partition planned it alone on "
-            f"its subsystem(s) "
-            f"{', '.join(sorted(subsystems(g.notes, notes))) or '(none known)'}.")
+def unpartitioned(g: Group) -> str:
+    """The plan table's and the spec's naming of a group whose set is EMPTY (kb/Work PB3263, PB3670): no silence, and
+    no hold either way."""
+    return ("⚠ UNPARTITIONED (kb/Work PB3263, PB3670): no note of this group declares a file the partition covers (a "
+            "site block's path under a campaign root) and no primary file was located, so it holds nothing and nothing "
+            "holds it: it runs beside every other group, and from its first edit its worktree's actual diff is in "
+            "flight like any other.")
+
+
+def sites_text(g: Group, limit: int = 8) -> str:
+    """The group's sites as its spec names them: each file, with the members its notes claim there in parentheses (keep
+    your edits inside them: another group may hold the file's other members, kb/Work PB3670)."""
+    return ", ".join(f + (f" ({', '.join(g.members[f][:8])})" if f in g.members else "")
+                     for f in g.files[:limit]) if g.files else "see the notes"
 
 
 def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequence[str]] = {}) -> str:
@@ -1780,13 +1968,20 @@ def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequenc
         n = notes[nid]
         title = re.sub(rf"^{nid}\s*[—-]\s*", "", n.title)[:220]
         parts.append(f"{nid} ({len(n.rows)} inventory rows claimed): {title}")
-    sites = ", ".join(g.files[:8]) if g.files else "see the notes"
+    sites = sites_text(g)
     tail = ("Re-probe each note on your build, fix each at its root, sweep the sibling arms, and write closes_rows for "
             "every row the landing really closes.")
     if g.model == "opus" and g.why_model != "default":
         tail += f" Routed to Opus: {g.why_model}; settle any open design question against its design doc first."
     if not g.files:
-        tail += f" {unpartitioned(g, notes)} In your first checkpoint, give each note a `**Sites:**` paragraph naming the files it changes."
+        tail += (f" {unpartitioned(g)} In your first checkpoint, give each note a `**Sites:**` paragraph naming the "
+                 "files it changes and the members it changes in them (`path` (`Member`, ...)), so later plans "
+                 "partition on them.")
+    # A declared set is a PREDICTION (kb/Work PB3640: PB3628's block named land_lane.py and its change also rewrote
+    # prune_worktrees.lifecycle, beside PB3275): the note's block must end the change naming what the change changed.
+    tail += (" SITES FOLLOW THE DIFF (kb/Work PB3640): when your diff changes a code file, or a member in one, that "
+             "no note's `**Sites:**` paragraph names, add it to the paragraph of the note it serves in the same "
+             "change, so a successor, a finisher and the next plan partition on what you really changed.")
     if g.blocked_by:
         tail += (f" ⛔ DEPENDENCY SUCCESSOR (blocked_by, kb/Work PB2120): these notes are blocked by "
                  f"{', '.join(g.blocked_by)}, which group {g.after}'s chain does in this wave. Build on that work, never "
@@ -1806,8 +2001,9 @@ def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str,
            "files": ", ".join(f"`kb/Work/{i}.md`" for i in g.notes), "body": body_of(g, notes, requirements),
            # the standing requirements of the campaigns this group's notes belong to: {campaign lead: [requirement]}
            "requirements": {k: list(v) for k, v in requirements.items()},
-           # the group's file set as a LIST, which make_dispatch_specs.py records in the dispatch ledger (kb/Work PB3186)
-           "file_set": sorted(g.files)}
+           # the group's file set as a LIST, which make_dispatch_specs.py records in the dispatch ledger (kb/Work PB3186),
+           # and the members it claims in them, {file: [names]} (a file absent is claimed whole; kb/Work PB3670)
+           "file_set": sorted(g.files), "member_set": g.claim.member_lists()}
     if g.pred:
         out["pred"] = g.pred
     if g.after:
@@ -1833,6 +2029,61 @@ def next_wave(repo: pathlib.Path, reports: list[Report], coord_dir: pathlib.Path
     for line in "".join(devlog.newest(repo, RECENT_ENTRIES)).split("\n")[:RECENT_LINES]:
         seen += [int(w) for w in re.findall(r"\b(?:[Ww]aves?|[Tt]rains?) (\d{3,})", line)]
     return max(seen, default=0) + 1
+
+
+#: The partition's measurement (kb/Work PB3670 item 5): one JSON line per wave a plan dispatches, in the coordination
+#: directory, read by `--partition-summary`.
+PARTITION_MEASURE = "partition-measure.jsonl"
+COLLISION_WAIT = "file-set collision with in-flight work "
+
+
+def partition_record(wave: str, groups: Sequence[Group], waiting: Mapping[str, str], at: float) -> dict[str, Any]:
+    """One wave's partition measurement (kb/Work PB3670 item 5): how many groups it planned, the pairs of them that
+    share a primary file and run side by side (different members: the case the member partition made possible), the
+    notes a collision with in-flight work held and each one's reason, and the notes the in-wave rule held (blockers or
+    member meetings in two chains)."""
+    by_file: dict[str, list[Group]] = {}
+    for g in groups:
+        if g.file:
+            by_file.setdefault(g.file, []).append(g)
+    parallel = [f"{a.letter}+{b.letter} on {f}" for f, on in sorted(by_file.items()) for k, a in enumerate(on)
+                for b in on[k + 1:] if not (a.after or b.after)]
+    return {"at": at, "wave": wave, "groups": len(groups), "same_file_parallel": parallel,
+            "held_by_collision": {i: why[len(COLLISION_WAIT):] for i, why in waiting.items() if why.startswith(COLLISION_WAIT)},
+            "held_in_wave": sorted(i for i, why in waiting.items() if "different successor chains" in why)}
+
+
+def record_partition(coord_dir: pathlib.Path, record: Mapping[str, Any]) -> None:
+    """Append one wave's partition record to <coord>/PARTITION_MEASURE."""
+    with (coord_dir / PARTITION_MEASURE).open("a", encoding="utf-8", newline=chr(10)) as f:
+        f.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + chr(10))
+
+
+def partition_summary(coord_dir: pathlib.Path) -> list[str]:
+    """Per day (UTC) of recorded waves: waves, groups planned, same-file pairs run side by side, notes held by a
+    collision with in-flight work, and the files those collisions named most (kb/Work PB3670 item 5: compare the day
+    after the member partition with the day before; the landings' conflicts and their causes are landing_measure.py's
+    bounce causes)."""
+    path = coord_dir / PARTITION_MEASURE
+    days: dict[str, dict[str, Any]] = {}
+    for line in (path.read_text(encoding="utf-8").splitlines() if path.is_file() else []):
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        d = days.setdefault(time.strftime("%Y-%m-%d", time.gmtime(r.get("at", 0))),
+                            {"waves": 0, "groups": 0, "parallel": 0, "held": 0, "files": {}})
+        d["waves"] += 1
+        d["groups"] += r.get("groups", 0)
+        d["parallel"] += len(r.get("same_file_parallel", []))
+        d["held"] += len(r.get("held_by_collision", {}))
+        for why in r.get("held_by_collision", {}).values():
+            for f in re.findall(r"\(([^()\s]+)\)", why):
+                d["files"][f] = d["files"].get(f, 0) + 1
+    return [f"{day}: {d['waves']} waves, {d['groups']} groups, {d['parallel']} same-file pairs side by side, "
+            f"{d['held']} notes held by a collision"
+            + (" (most named: " + ", ".join(f"{f} x{n}" for f, n in sorted(d["files"].items(), key=lambda kv: -kv[1])[:5])
+               + ")" if d["files"] else "") for day, d in sorted(days.items())]
 
 
 def finished_main(path: pathlib.Path) -> int:
@@ -1889,6 +2140,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--coord", help=f"coordination directory (default ${coord.ENV} or {coord.DEFAULT})")
     ap.add_argument("--no-index-regenerate", action="store_true", help="with --cluster: refuse (never regenerate) "
                     "when no member index describes this tree (scripts/arch/member_index.py current)")
+    ap.add_argument("--partition-summary", action="store_true", help="print the partition's measurement per day (the "
+                    "waves' groups, same-file pairs run side by side, notes held by a collision; kb/Work PB3670) and exit")
     a = ap.parse_args(argv)
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -1896,6 +2149,9 @@ def main(argv: list[str] | None = None) -> int:
         pass
     if a.finished:
         return finished_main(pathlib.Path(a.finished))
+    if a.partition_summary:
+        print("\n".join(partition_summary(coord.coord_dir(a.coord))) or "no partition record yet")
+        return 0
     if a.release:
         gone = release_dispatch(coord.coord_dir(a.coord), a.release)
         for g in gone:
@@ -2003,6 +2259,8 @@ def main(argv: list[str] | None = None) -> int:
         def review_covers(rep: Report) -> bool:
             return coverage(rep.review, rep.branch)
     busy = classify_inflight(raw, meta, reports, states, unlanded)
+    if not a.no_branches:   # the units each worktree's and branch's actual diff touches in a shared file (PB3670)
+        inflight_units(busy, meta, [cluster_claim(c) for c in clusters + half_clusters], prune_worktrees.git, REPO)
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
@@ -2034,7 +2292,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"      notes {j['notes']} (lead {j['lead']}); model: {g.why_model}"
               + (f"; blocked by {', '.join(g.blocked_by)} (planned before it)" if g.blocked_by else ""))
         if not g.files:
-            print(f"      {unpartitioned(g, notes)}")
+            print(f"      {unpartitioned(g)}")
     if p["awaiting_landing"]:
         print("  awaiting landing (excluded; an `enqueue` unit first): " + "; ".join(
             f"{b}: {', '.join(ids)}" for b, ids in sorted(p["awaiting_landing"].items())))
@@ -2091,6 +2349,7 @@ def main(argv: list[str] | None = None) -> int:
                        for j in gjson]}
     afile = scratch / f"wf-args-w{wave}.json"
     afile.write_text(json.dumps(args, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    record_partition(cdir, partition_record(wave, p["groups"], waiting, time.time()))
     print(f"wrote {gfile} and {afile}")
     return 0
 

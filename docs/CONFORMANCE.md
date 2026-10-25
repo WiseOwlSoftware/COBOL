@@ -279,6 +279,41 @@ of an unsupported facility.
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move`,
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3613_numeric_function_group_move_comma` and
   `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3613_numeric_function_group_formal`.
+- **D-B5 — a boolean item RECEIVING characters converts each one: '1' is boolean one, every other character boolean
+  zero** (kb/Work PB3666; owner decision 2026-10-24, on a point of implementor latitude). Table 16 (§14.9.25.3) admits
+  an alphanumeric or national sending operand against a boolean receiving operand, and §14.6.8.6 transfers the data
+  "after any necessary conversion, into the corresponding boolean positions of the receiving data item, with zero fill
+  or truncation to the right" (JUSTIFIED per §13.18.32). But a boolean character is "the value zero or one" (§3.21), no rule
+  converts a character that is neither, and §14.6.13.2 1) calls a later reference to non-boolean content undefined with
+  EC-DATA-INCOMPATIBLE, so the standard leaves the conversion to the implementor. Before the determination a MOVE of
+  `"AB"` to `PIC 1(5)` stored the characters themselves, so DISPLAY showed `AB000` while `B-NOT` of the same item
+  gave `11111` (the operators read a position outside `{'0','1'}` as zero). WiseOwl COBOL converts EACH transferred
+  character at the store: `'1'` to boolean one and every other character (a `'0'`, a letter, a space, a national
+  letter) to boolean zero, then aligns with zero fill or truncation to the right (left, under JUSTIFIED). It is the
+  rule the operators already apply and the rule an ACCEPT into a boolean item applies (§14.9.1.4 GR1,
+  `AcceptSource.DeviceBoolean`), so DISPLAY of the item and the operators over it agree for both usages (USAGE DISPLAY
+  `PIC 1` and USAGE BIT) and every other character store inherits it. GnuCOBOL 3.2 gives no precedent (probed 2026-10-24: it
+  warns that USAGE BIT is not implemented and stores a `PIC 1(5)` item in one byte, and its USAGE DISPLAY `PIC 1` moves
+  text as a number, right-aligning `"101"` as `00101` against §14.6.8.6's zero fill to the right); IBM Enterprise COBOL
+  has no boolean category. The paths that deposit characters into a boolean item and now convert: the elementary
+  MOVE and every statement that MOVEs (READ INTO, MOVE CORRESPONDING, INITIALIZE ... REPLACING BOOLEAN DATA, a CALL
+  argument landed by §14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
+  tables, §14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§14.9.43.4 GR3 a)),
+  a group sender into a USAGE DISPLAY boolean item (§14.9.25.4 GR4's alphanumeric move, which now zero-fills where it
+  space-filled), and COMPUTE's boolean result. **The exemptions:** a GROUP sender into a USAGE BIT item is
+  §14.9.25.4 GR4's move with "no conversion of data from one form of internal representation to another", so the
+  sender's BYTES fill the receiving area and the item's bits are the first bits of those bytes (`MOVE GA TO BB` with GA
+  holding `1A` stores the bits of x"31", `00110`); every bit pattern is a valid boolean value, so DISPLAY and the operators
+  agree there without a character conversion. The same GR4 move into a USAGE NATIONAL boolean item fits the sender's bytes to
+  the item's UTF-16BE pairs and decodes them as national characters (`MOVE GN TO BN` with GN holding `N"101"` stores `101`);
+  the conversion applies to characters, never to that byte image. Content the character store never sees stays undefined
+  (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver (GR4 moves bytes, so `MOVE "A1Z" TO G` leaves `A1Z` in a
+  boolean member) and a REDEFINES view of other storage. VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
+  literals), UNSTRING refuses a boolean receiver (§14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is
+  REFUSED when it holds a character other than `0` or `1` (`HostLanding.RequireClass`). Written once, in
+  `CobolBool.FromCharacters` and its fitting store `CobolBool.Store` (`RuntimeApi.StrStoreBoolean` is the only emitter of
+  that store); witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3666_boolean_receiver_converts_characters` and
+  `conformance:wiseowl/cases/14.9.25-MOVE/pb3666_dynamic_table_group_move`, and `unit:CobolBoolTests.Store_ConvertsEachCharacterThenFits`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
   GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is
@@ -407,6 +442,34 @@ of an unsupported facility.
   `StringUnstringBinder.BindUnstring` over the shared `AllOrNothingClass` predicate (COBOLNET2306); witnessed by
   `conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national` (national sender into two usage-national numeric receivers)
   and `conformance:cases/14.9.48-UNSTRING/pb980-unstring-national-mix`.
+- **D-FNUSE — a numeric, integer, index or boolean function-identifier is not "described … as usage display or
+  national", so it is no STRING character operand and no INSPECT identifier-n** (owner 2026-10-24; kb/Work PB3665,
+  rules `SR-14.9.43.3-1`, `SR-14.9.22.3-2`). §14.9.43.3 SR1 requires every identifier of STRING but the POINTER to be
+  *"described implicitly or explicitly as usage display or national"*, and §14.9.22.3 SR2 requires *"an elementary item
+  described implicitly or explicitly as usage display or national"* of INSPECT's identifier-3 … identifier-n. A
+  function-identifier references *"the unique data item that results from the evaluation of a function"* (§8.4.3.2.1),
+  and §15.2 describes that item by the function's type: an alphanumeric function has *"an implicit usage display"*
+  (1)), a national function *"an implicit usage national"* (3)), a boolean function *"an implicit usage bit"* (2)); the
+  numeric (4)), integer (5)) and index (6)) functions are given a class, a category and (for the first two) an
+  operational sign, and **no usage**. §15.2's opening sentence (a function *"may be used anywhere a sending data item
+  of that class and category may be specified"*) and §15.4.1 (the returned value's characteristics are the
+  implementor's) leave the usage of a numeric value open, and the choice is the owner's: **WiseOwl COBOL reads the
+  silence as "not described as usage display or national", so only the alphanumeric and national functions are
+  admitted** — `STRING FUNCTION UPPER-CASE(S) …`, `INSPECT … FOR ALL FUNCTION LOWER-CASE(P)` — and `STRING FUNCTION
+  INTEGER(N) …`, `STRING … DELIMITED BY FUNCTION ORD(C)`, `STRING FUNCTION BOOLEAN-OF-INTEGER(N 4) …` and the INSPECT
+  forms are refused (COBOLNET1626, COBOLNET0847). The same refusal reaches `FUNCTION LENGTH(item)`, which the binder
+  FOLDS to a number: it is the function it folds, never "a numeric literal", and the diagnostic says so (a real numeric
+  literal keeps the literal wording, §14.9.43.3 SR1). UNSTRING needed no new rule: SR2 (category alphanumeric or
+  national) already refused the numeric and boolean functions, and its delimiter now names the folded LENGTH as
+  category numeric. **GnuCOBOL 3.2 is no precedent**: `cb_emit_string` checks usage only for a data item (a literal
+  carries a `TODO`, a function call falls to `default: break;`), and stores the raw four bytes of
+  `cob_intr_integer`'s binary field (`FUNCTION INTEGER(N)` with N = 7 gives `\a\0\0\0`), so the precedence stops at the
+  standard. Implemented once: `IntrinsicSig.ImplicitUsageOf` (the §15.2 usage by type) behind
+  `IntrinsicArgumentRules.FunctionIsNotDisplayOrNational`, asked by `StringUnstringBinder.Sr1Offence` and
+  `StatementValidation.CheckInspectFunctionUsage`; pinned by `DisplayOrNationalUsagePredicateDriftTests`; witnessed by
+  `conformance:cases/14.9.43-STRING/pb3665_string_function_usage_controls` and
+  `conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls` (the admitted functions) and the
+  `pb3665-*` refusals.
 - **D-FRA — the record area of a file whose record is a dynamic-length item, a variable-length group or a pointer,
   and the record image such a record sends and receives** (2026-09-22; kb/Work PB981, row `GR-13.18.33.4-3`).
   §13.18.33.4 GR3 makes every level-1 entry of an FD or SD *"implicit redefinitions of the same area"*, and no rule
@@ -1367,13 +1430,15 @@ of an unsupported facility.
   Witnesses: `conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb1606_fixed_sender_float_edited_formal`, `conformance:cases/14.9.25-MOVE/pb370_move_function_value_digits`, `conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb1606_float_item_conversion`
   (every position, the rounding modes, the negative and the huge), `15.60.4-Returned-value-rule/arith_standard`,
   `_unassigned/pb3017_sdidi_divide_remainder_beyond_the_int128_carrier`, `CobolDecBinary64ConversionTests`.
-- **The editing sign of a value the store truncates to zero (§13.18.40.5 5), §14.9.25.4 6), §8.8.4.2.4; kb/Work
+- **The editing sign of a value the store truncates to zero (§13.18.40.5 5), §14.9.25.4 6), §14.6.8.2 5); kb/Work
   PB3664, owner 2026-10-24).** An editing sign control symbol (the fixed `+`, `-`, `CR`, `DB`, the floating `+` and
   `-`, and a PICTURE EDITING character-1 under a FOR phrase) shows the Table 8/Table 9 column for "the value of the data
   item", whose first column is "Positive or zero value", and the data item holds the value AFTER alignment and
-  truncation (§14.6.8.2 4), "zero fill or truncation on either end as required"). So `MOVE -0.001 TO PIC -9.99`
+  truncation (§14.6.8.2 5), for a numeric-edited receiver: "further alignment, zero fill or truncation, and transfer of
+  digits take place as described in the general rules and editing rules in 13.18.40"). So `MOVE -0.001 TO PIC -9.99`
   stores zero and prints ` 0.00` (`+0.00` for `PIC +9.99`, `0.00  ` for `PIC 9.99CR`), and `MOVE -100 TO PIC -99`, whose
-  high-order digit truncates, prints ` 00`: "Zero is considered a unique value regardless of the sign". The sign is decided
+  high-order digit truncates, prints ` 00` (§8.8.4.2.4 says the same of comparisons: "Zero is considered a unique value
+  regardless of the sign"). The sign is decided
   ONCE per edit, from the digit string the receiver holds (`CobolEdit.Render`), and the format-2 locale editor
   (`CobolLocaleEdit.Format`, GR18 `+`) reads the same stored value. GnuCOBOL 3.2 agrees for the edited receiver
   (`cob_move_display_to_edited` guards every `-`, CR and DB with `neg && !is_zero`, `is_zero` taken from the digits that

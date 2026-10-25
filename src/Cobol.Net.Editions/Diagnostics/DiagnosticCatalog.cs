@@ -2539,6 +2539,18 @@ public static class DiagnosticCatalog
         + "DELIMITED BY phrase (SR7), COUNT IN / TALLYING IN / POINTER items are integers without P (SR5/SR6), and no "
         + "operand may be a variable-length group (SR10). Rejected at bind — the statement is not run.",
         "ISO §14.9.43.3 / §14.9.48.3");
+    // 0847 — an INSPECT operand that violates one of the statement's operand syntax rules, bind-time (kb/Work PB3665 registered
+    // the code that §14.9.22.3 SR2 and SR5 had been reporting as a raw literal): a TALLYING counter that is not an elementary
+    // numeric data item (SR5), and an identifier-3 … identifier-n that is not an elementary item described implicitly or
+    // explicitly as usage display or national — a data item of another usage, or a numeric, integer, index or boolean
+    // function-identifier, to which §15.2 gives no usage display or national (SR2). Edition-invariant.
+    public static readonly DiagnosticDescriptor InspectOperandRule = new(
+        "COBOLNET0847", "inspect-operand-rule", EditionSeverity.Error,
+        "An INSPECT operand violates one of the statement's operand syntax rules: a TALLYING counter shall be an elementary "
+        + "numeric data item (§14.9.22.3 SR5), and identifier-3 … identifier-n shall reference an elementary item described "
+        + "implicitly or explicitly as usage display or national (SR2) — which a binary, packed, float, index or pointer "
+        + "item, and a numeric, integer, index or boolean function-identifier (§15.2), are not. Rejected at bind.",
+        "ISO §14.9.22.3 SR2 / SR5");
     // ⛔ `object-computer-duplicate-clause` (COBOLNET1652) is DELETED, not disabled (kb/Work PB3133): kb/Work PB78 counted the
     // OBJECT-COMPUTER paragraph's PROGRAM COLLATING SEQUENCE and CHARACTER CLASSIFICATION clauses in the binder (§12.3.6.2's
     // choice indicators — §5.2.6.4: each at most once, any order), beside a ClauseCardinalities table that exempted the

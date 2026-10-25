@@ -14817,6 +14817,113 @@
   ],
   "expect": "COBOLNET0876"
  },
+ "pb3665-inspect-identifier1-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-inspect-identifier1-length-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-inspect-integer-function-operand": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0847"
+ },
+ "pb3665-inspect-length-function-operand": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0847"
+ },
+ "pb3665-inspect-omitted-keyword-integer-function-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0847"
+ },
+ "pb3665-string-boolean-function-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-string-integer-function-delimiter": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-string-integer-function-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-string-length-function-delimiter": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-string-length-function-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-string-numeric-function-sender": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3665-unstring-length-function-delimiter": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "UNSTRING delimiter 'FUNCTION LENGTH(G)' is category numeric"
+ },
  "pb368-flow-use-name-below-2002": {
   "refuse-at": [
    "85"
@@ -22912,6 +23019,19 @@
  "pb3587_content_group_formal_usage_values_below_2002": {
   "refuse-at": [
    "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3666_boolean_receiver_converts_characters_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
+ "pb3666_dynamic_table_group_move_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
   ],
   "expect": "COBOLNET0900"
  },

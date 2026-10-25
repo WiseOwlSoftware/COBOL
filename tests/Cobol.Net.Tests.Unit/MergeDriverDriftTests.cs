@@ -48,6 +48,10 @@ public sealed class MergeDriverDriftTests
             "pin: a settle that fails aborts the merge and names the pin",
             "coverage: is_drivers_merge accepts the merge with its pin settled",
             "coverage: a merge whose pin is MEASURED (its header names UNMEASURED only in prose)",
+            "conflicts: the dry run lists nothing where the drivers merge",
+            "conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed",
+            "conflicts: a ref git cannot read is None",
+            "conflicts: the one CONFLICT outcome reads back its own files",
             "check: the registry and this repository's .gitattributes agree",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.At(AbiPin), [
@@ -72,6 +76,10 @@ public sealed class MergeDriverDriftTests
     /// Main is merged in through the drivers at every site that merges it: the landing (<c>enqueue.merge_main</c>), the
     /// review's coverage rule (<c>prune_worktrees.mechanical</c>) and the predecessor-merge instructions the planner and the
     /// rolling wave give an agent — none spells a bare <c>git merge</c>, which would make a keyed catalogue conflict again.
+    /// The landing lane's conflict brief foresees the merge through the same drivers (<c>merge_drivers.merge_conflicts</c>,
+    /// kb/Work PB3640 review R1-1): a plain <c>git merge-tree</c> there, with every driver-covered file dropped, read a keyed
+    /// file the driver DECLINES (a real conflict) as nothing to brief. Enqueue's CONFLICT outcome has one writer and one
+    /// reader (<c>merge_drivers.conflict_outcome</c> / <c>outcome_files</c>).
     /// </summary>
     [Fact]
     public void EverySiteThatMergesMain_GoesThroughTheDrivers()
@@ -80,6 +88,13 @@ public sealed class MergeDriverDriftTests
         Assert.Contains("merge_drivers.merge(wt, base,", enqueue, StringComparison.Ordinal);
         Assert.DoesNotContain("\"merge\", \"--no-edit\"", enqueue, StringComparison.Ordinal);
         Assert.Contains("merge_drivers.is_drivers_merge(", File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py")), StringComparison.Ordinal);
+        Assert.Contains("merge_drivers.conflict_outcome(files)", enqueue, StringComparison.Ordinal);
+        string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
+        Assert.Contains("merge_drivers.merge_conflicts(", lane, StringComparison.Ordinal);
+        Assert.Contains("merge_drivers.outcome_files(", lane, StringComparison.Ordinal);
+        Assert.True(!lane.Contains("\"merge-tree\"", StringComparison.Ordinal) && !lane.Contains("CONFLICT in ", StringComparison.Ordinal),
+            "scripts/orchestrator/land_lane.py runs its own `git merge-tree` or parses `CONFLICT in` itself: foresee the merge with " +
+            "merge_drivers.merge_conflicts and read the outcome with merge_drivers.outcome_files (kb/Work PB3640 review R1-1, R1-3)");
         foreach (string rel in new[] { "scripts/orchestrator/plan_wave.py", ".claude/skills/workstream/templates/wf_rolling_wave.js",
                      ".claude/skills/workstream/templates/finisher-brief.md", ".claude/skills/workstream/templates/golden-lane-brief.md" })
         {
