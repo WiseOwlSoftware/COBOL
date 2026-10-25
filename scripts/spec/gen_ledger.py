@@ -71,7 +71,8 @@ that cannot be recomputed from the current tree alone: yesterday's GAP is gone. 
 per battery or measurement-moving landing (`sha`, `date`, `gap`, `closed`, `dns`, `label`, `battery`, and the register's
 series `ledger_plan.REGISTER_KEYS`: open compiler notes, defects, wrong answers, crashes, GAP-holder notes; kb/Work
 PB2912), and a WRITE run appends the current point when any of them moved. Every field of a point is measured from that
-commit's own tree, so a point missed between runs is measured the same way (`missed_points`), and `--backfill-register`
+commit's own tree, so a point missed between runs is measured the same way (`missed_points`; all the missed commits
+through TWO git processes, `measure_commits`, kb/Work PB3315), and `--backfill-register`
 added the register fields to the points recorded before they existed, each from its own sha's `kb/Work` (a point whose
 tree has no frontmatter register carries none).
 ⛔ THE SERIES LIVES IN THE COORDINATION DIRECTORY, beside the page it feeds, never in a checkout (kb/Work PB2426): it
@@ -100,11 +101,14 @@ import pathlib
 import re
 import subprocess
 import sys
+import typing
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import coord  # noqa: E402  (names the coordination directory)
+import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 
 INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
@@ -409,61 +413,59 @@ def measure_suite() -> dict:
 # the trend series — the ONLY thing on this page the current tree cannot recompute
 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-def inventory_at(sha: str) -> list[dict] | None:
-    """The inventory's rows AS COMMITTED at `sha`, or None when that tree has none."""
-    r = subprocess.run(["git", "show", f"{sha}:{INVENTORY_REL}"], cwd=REPO,
-                       capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if r.returncode != 0:
-        return None
-    try:
-        return json.loads(r.stdout)
-    except ValueError:
-        return None
+class Committed(typing.NamedTuple):
+    """What a commit's own tree says: the inventory's counts (None when that tree has no readable inventory) and the
+    register's series (`ledger_plan.register_counts`; None when it has no register)."""
+    inventory: dict | None
+    register: dict | None
 
 
-def inventory_counts_at(sha: str) -> dict | None:
-    """GAP, closed and documented-non-support counts of the inventory AS COMMITTED at `sha`."""
-    rows = inventory_at(sha)
-    if rows is None:
-        return None
-    return {"gap": sum(1 for x in rows if x["state"] == "GAP"), "closed": sum(1 for x in rows if x["state"] == "OK"),
-            "dns": sum(1 for x in rows if x["verdict"] == "DOCUMENTED-NON-SUPPORT")}
+def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[str, Committed]:
+    """{sha: what that commit's tree holds} for every commit, read through TWO git processes whatever their number
+    (`register` False skips the notes: a caller that wants only the inventory's counts reads no `kb/Work` blob).
 
-
-def notes_at(sha: str) -> list[dict]:
-    """The register AS COMMITTED at `sha`: every `kb/Work/*.md` blob read in ONE `git cat-file --batch`, parsed by
-    work.py's own frontmatter reader (a file without frontmatter is not a note, exactly as `work.load` skips it)."""
+    ⛔ THE TREND'S COST IS PAID IN PROCESSES, NOT IN BYTES (kb/Work PB3315). `--check` measures every commit since the
+    series' last recorded point (`missed_points`), and until now each cost a `git show` of the inventory twice, a
+    `git ls-tree` and a `git cat-file --batch` over all ~2,900 notes: 334 processes for 81 commits, 117 s of them in
+    `cat-file` alone with the machine idle, and 20-28 minutes in the gate's pre-slot audit with ten gates running. A
+    process start costs tens of milliseconds on Windows and much more under load, so the cost grew with the commit
+    count and with the contention. Now the trees of every commit are read in one process (`git_batch.tree_entries`)
+    and the distinct blobs they name in a second (`git_batch.blobs`): a note or an inventory that two commits share is
+    read and parsed ONCE, so a commit that moved one note costs one blob. `--self-test` holds the process count
+    constant in the number of commits (a structural bound, never a wall-clock one)."""
+    uniq = list(dict.fromkeys(shas))
+    if not uniq:
+        return {}
+    inventory_dir, inventory_name = INVENTORY_REL.rsplit("/", 1)
+    asked = ("kb/Work", inventory_dir) if register else (inventory_dir,)
+    trees = git_batch.tree_entries(REPO, [f"{sha}:{directory}" for sha in uniq for directory in asked])
+    work_trees, inventory_trees = (trees[0::2], trees[1::2]) if register else ([None] * len(uniq), trees)
+    inventory_ids = [(t or {}).get(inventory_name) for t in inventory_trees]
+    note_ids = [[oid for name, oid in (t or {}).items() if name.endswith(".md")] for t in work_trees]
+    content = git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)])
     import work  # noqa: PLC0415
-    names = [n for n in git("ls-tree", "--name-only", f"{sha}:kb/Work").splitlines() if n.endswith(".md")]
-    if not names:
-        return []
-    out = subprocess.run(["git", "cat-file", "--batch"], cwd=REPO, capture_output=True,
-                         input="".join(f"{sha}:kb/Work/{n}\n" for n in names).encode("utf-8")).stdout
-    items, at = [], 0
-    while at < len(out):
-        eol = out.index(b"\n", at)
-        header = out[at:eol].split()
-        if len(header) < 3 or header[1] != b"blob":
-            at = eol + 1
+
+    summaries: dict[str, tuple[dict, frozenset[str]] | None] = {}
+    for oid in dict.fromkeys(o for o in inventory_ids if o):
+        try:
+            rows = json.loads(content[oid].decode("utf-8", errors="replace"))
+        except ValueError:
+            summaries[oid] = None
             continue
-        size = int(header[2])
-        d = work.parse_frontmatter(out[eol + 1:eol + 1 + size].decode("utf-8", errors="replace"))
-        if d is not None:
-            items.append(d)
-        at = eol + 1 + size + 1
-    return items
-
-
-def register_counts_at(sha: str) -> dict | None:
-    """`ledger_plan.register_counts` of the register and inventory AS COMMITTED at `sha` (one rule for every tree)."""
-    rows = inventory_at(sha) or []
-    return ledger_plan.register_counts(notes_at(sha), {r["rule-id"] for r in rows if r.get("state") == "GAP"})
-
-
-def recorded_commits(pts: list[dict]) -> list[str]:
-    """The full shas of the recorded points that exist in this clone (a point's sha may never have reached it)."""
-    checked = git("cat-file", "--batch-check=%(objectname) %(objecttype)", stdin="\n".join(p["sha"] for p in pts) + "\n")
-    return [line.split()[0] for line in checked.splitlines() if line.endswith(" commit")]
+        summaries[oid] = ({"gap": sum(1 for x in rows if x["state"] == "GAP"),
+                           "closed": sum(1 for x in rows if x["state"] == "OK"),
+                           "dns": sum(1 for x in rows if x["verdict"] == "DOCUMENTED-NON-SUPPORT")},
+                          frozenset(r["rule-id"] for r in rows if r.get("state") == "GAP"))
+    # a file without frontmatter is not a note, exactly as `work.load` skips it
+    notes = {oid: work.parse_frontmatter(content[oid].decode("utf-8", errors="replace"))
+             for oid in dict.fromkeys(o for ids in note_ids for o in ids)}
+    out: dict[str, Committed] = {}
+    for sha, inventory_id, ids in zip(uniq, inventory_ids, note_ids):
+        summary = summaries.get(inventory_id) if inventory_id else None
+        items = [d for d in (notes[oid] for oid in ids) if d is not None]
+        out[sha] = Committed(summary[0] if summary else None,
+                             ledger_plan.register_counts(items, summary[1] if summary else frozenset()))
+    return out
 
 
 def missed_points(pts: list[dict]) -> list[dict]:
@@ -477,27 +479,30 @@ def missed_points(pts: list[dict]) -> list[dict]:
     register (a `kb/Work` landing that leaves the inventory alone) is a point as well: the movement test is
     MOVING_KEYS, the same one `trend_series` applies to the current point (train 1052 review)."""
     last = pts[-1] if pts else None
-    if last is None or not git("rev-parse", "--verify", "--quiet", last["sha"]):
+    # the recorded points' full commit ids: a point's sha may never have reached this clone (None)
+    known = git_batch.resolve(REPO, [p["sha"] for p in pts])
+    if last is None or not known[last["sha"]]:
         return []
+    recorded = [full for full in known.values() if full]
     # ⛔ "Since the last point" is "reachable from HEAD and from NO recorded point", not `last..HEAD`: in a merge DAG
     # `last..HEAD` also lists commits older than `last` that are not its ancestors (a branch merged after the point
     # was taken), and those were walked when an earlier point was recorded (kb/Work PB3161, review finding R1-2: nine
     # shas appeared twice in the frozen series).
-    revs = ["HEAD", *(f"^{sha}" for sha in recorded_commits(pts))]
-    log = git("log", "--reverse", "--format=%h|%cI", "--abbrev=8", "--stdin", "--", INVENTORY_REL, "kb/Work",
+    revs = ["HEAD", *(f"^{sha}" for sha in recorded)]
+    log = git("log", "--reverse", "--format=%h|%cI|%s", "--abbrev=8", "--stdin", "--", INVENTORY_REL, "kb/Work",
               stdin="\n".join(revs) + "\n")
+    walked = [line.split("|", 2) for line in log.splitlines() if line]
+    measured = measure_commits([sha for sha, _, _ in walked])   # two processes however many commits (PB3315)
     out: list[dict] = []
-    for line in filter(None, log.splitlines()):
-        sha, _, iso = line.partition("|")
-        counts = inventory_counts_at(sha)
-        if counts is None:
+    for sha, iso, subject in walked:
+        inventory, register = measured[sha]
+        if inventory is None:
             continue
-        point = {**counts, **(register_counts_at(sha) or {})}
+        point = {**inventory, **(register or {})}
         prev = out[-1] if out else last
         if all(point.get(k) == prev.get(k) for k in MOVING_KEYS):
             continue
-        out.append({"sha": sha, "date": iso[:10], **point,
-                    "label": git("log", "-1", "--format=%s", sha)[:28].rstrip(), "battery": None})
+        out.append({"sha": sha, "date": iso[:10], **point, "label": subject[:28].rstrip(), "battery": None})
     return out
 
 
@@ -535,13 +540,14 @@ def trend_series(inv: dict, head: dict, battery: dict, register: dict | None) ->
 
 def backfill_register(pts: list[dict]) -> int:
     """Add the register's series to every point recorded before it existed, each measured from its own sha's tree
-    (`register_counts_at`); a point whose sha is not in this clone, or whose tree has no frontmatter register, is left
-    as it is. Returns how many points gained the fields."""
+    (`measure_commits`, two git processes for the lot); a point whose sha is not in this clone, or whose tree has no
+    frontmatter register, is left as it is. Returns how many points gained the fields."""
+    todo = [p for p in pts if "compiler_open" not in p]
+    known = git_batch.resolve(REPO, [p["sha"] for p in todo])
+    measured = measure_commits([full for full in known.values() if full])
     filled = 0
-    for p in pts:
-        if "compiler_open" in p or not git("rev-parse", "--verify", "--quiet", f"{p['sha']}^{{commit}}"):
-            continue
-        counts = register_counts_at(p["sha"])
+    for p in todo:
+        counts = measured[known[p["sha"]]].register if known[p["sha"]] else None
         if counts:
             p.update(counts)
             filled += 1
@@ -594,7 +600,7 @@ def battery_point(pts: list[dict], bat: dict) -> int | None:
 def gap_at(sha: str) -> int | None:
     """GAP of the inventory AS COMMITTED at `sha` — measured from that tree, never from the trend series, which
     records a point only when the generator happened to run and so can miss whole trains."""
-    counts = inventory_counts_at(sha) if sha else None
+    counts = measure_commits([sha], register=False)[sha].inventory if sha else None
     return counts["gap"] if counts else None
 
 
@@ -1386,9 +1392,13 @@ def self_test() -> int:
         from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
         scratch = ScratchRepo.init(REPO)
         scratch.commit("fixture")
-        got = register_counts_at("HEAD")
+        got = measure_commits(["HEAD"])["HEAD"]
         want = {"compiler_open": 1, "defects": 1, "wrong_answer": 1, "crashes": 0, "gap_holders": 1}
-        check("the register is read from a commit's own tree (git cat-file --batch)", got == want, f"{got}")
+        check("the register is read from a commit's own tree (git cat-file --batch)", got.register == want, f"{got}")
+        check("the inventory's counts are read from the same commit's tree, and gap_at reads them alone",
+              got.inventory == {"gap": 2, "closed": 0, "dns": 0} and gap_at("HEAD") == 2
+              and measure_commits(["HEAD"], register=False)["HEAD"] == Committed(got.inventory, None),
+              f"{got} gap_at {gap_at('HEAD')}")
 
         # missed_points in a merge DAG (review finding R1-2): a branch merged AFTER the last point was recorded is
         # not an ancestor of it, but its commits were recorded earlier; `last..HEAD` listed them again.
@@ -1410,6 +1420,33 @@ def self_test() -> int:
         shas = [p["sha"] for p in missed_points(recorded)]
         check("a commit older than the last point that an earlier point recorded is not measured again",
               shas == [merged] and base_sha not in shas, f"{shas} want {[merged]} (side {side}, tip {tip})")
+
+        # kb/Work PB3315: the process count is constant in the number of commits measured (a structural bound, never a
+        # wall-clock one). The gate's pre-slot audit measured every commit since the series' last point with five git
+        # processes EACH (334 for 81 commits; 20-28 minutes with ten gates running), so its cost was the count.
+        def spawned(measure) -> tuple[int, list[dict]]:
+            started, real = [0], subprocess.run
+
+            def counting(*args, **kwargs):
+                started[0] += 1
+                return real(*args, **kwargs)
+
+            subprocess.run = counting
+            try:
+                return started[0], measure()
+            finally:
+                subprocess.run = real
+
+        anchor = [{"sha": merged, "date": "2026-10-03", "gap": 3, "closed": 0, "dns": 0, "label": "", "battery": None}]
+        for gap_rows in (4, 5, 6):
+            commit(gap_rows, f"moves to {gap_rows}")
+        few_n, few = spawned(lambda: missed_points(anchor))
+        for gap_rows in range(7, 19):
+            commit(gap_rows, f"moves to {gap_rows}")
+        many_n, many = spawned(lambda: missed_points(anchor))
+        check("measuring 15 commits starts no more git processes than measuring 3, and a handful at most (PB3315)",
+              [p["gap"] for p in few] == [4, 5, 6] and [p["gap"] for p in many] == list(range(4, 19))
+              and few_n == many_n <= 6, f"3 commits: {few_n} processes, 15 commits: {many_n}")
     finally:
         REPO, TREND = saved
         remove_tree(tmp)

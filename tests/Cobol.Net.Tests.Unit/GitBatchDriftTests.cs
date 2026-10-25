@@ -98,6 +98,10 @@ public sealed class GitBatchDriftTests
             "diff_names: one block per pair, empty diffs included, as `git diff --name-only` per pair",
             "diff_patches: each pair's -U0 patch of the pathspec, as `git diff -U0` per pair",
             "object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",
+            "tree_entries: each `<rev>:<dir>` as `ls-tree` lists its files (subdirectories left out; None for no such " +
+            "directory)",
+            "blobs: each distinct object id as `cat-file blob` reads it, once however often it is asked",
+            "blobs: an id that names no blob raises",
             "patch_ids: each commit as `git show | git patch-id --stable` gives it, a root commit included, merges absent",
             "patch_ids: a cherry-pick of a commit shares its id (the key `git cherry` matches on)",
         ]);
