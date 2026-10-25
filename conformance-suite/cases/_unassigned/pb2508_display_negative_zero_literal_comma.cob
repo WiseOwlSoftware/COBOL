@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb2508_display_negative_zero_literal_comma
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -13,6 +13,7 @@
       *> whose value is zero shows '+' for a written '-' (GnuCOBOL 3.2.0,
       *> -std=default and -std=cobol2014, measured). The two spellings
       *> compose: the sign follows the value, the separator the program.
+      *> (accept from 2002: the CONSTANT entry, 13.10, is a 2002 feature.)
       *> EXPECTED, one line each, bracketed:
       *>   A[+0,0] B[+0] C[+,0] D[-1,50] E[+0,0] F[+0,00]
        IDENTIFICATION DIVISION.
