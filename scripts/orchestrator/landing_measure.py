@@ -531,7 +531,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
     mine = [r for r in reps if r.branch == branch and r.finished]
     leads = {r.lead for r in mine}
     slugs = {r.slug.lower() for r in reps if r.lead in leads}
-    ats = [g["at"] for g in plan_wave.ledger_groups(coord_dir)
+    ats = [g["at"] for g in coord.ledger_groups(coord_dir)
            if plan_wave.ledger_slug(g) in slugs and isinstance(g.get("at"), (int, float))]
     dispatched = dt.datetime.fromtimestamp(min(ats)).astimezone().isoformat(timespec="seconds") if ats else None
     clean = None
@@ -830,7 +830,6 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     if got != want or (rec["done"], rec["done_each"], rec["changes"]) != (t("08:00"), want["train"], 2):
         fails.append(f"{done_arm}: {got} (want {want}); enqueued record {rec}")
     # the stages (kb/Work PB3638): dispatched from the dispatch ledger, review_clean from the CLEAN verdict's record
-    import plan_wave  # noqa: PLC0415
     sc = tmp / "stagecoord"
     srd = sc / "scratch" / "reports"
     srd.mkdir(parents=True)
@@ -838,7 +837,7 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
                                            "**Review:** CLEAN w5a-review-r1 abcdef12\n", encoding="utf-8", newline="\n")
     (srd / "w4b-PB7-report.md").write_text("SPLIT\n**Status:** SPLIT · **branch:** `bp` · **HEAD:** `0123abcd`\n",
                                            encoding="utf-8", newline="\n")
-    coord.write_json(sc / plan_wave.DISPATCH_LEDGER, {"groups": [
+    coord.write_json(sc / coord.DISPATCH_LEDGER, {"groups": [
         {"wave": "5", "letter": "A", "notes": ["PB7"], "files": [], "at": iso_time(t("08:30")).timestamp()},
         {"wave": "4", "letter": "B", "notes": ["PB7"], "files": [], "at": iso_time(t("08:00")).timestamp()},
         {"wave": "9", "letter": "C", "notes": ["PB8"], "files": [], "at": iso_time(t("07:00")).timestamp()}]})

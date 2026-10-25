@@ -138,11 +138,14 @@ public readonly record struct MoveRefusal(MoveRule Rule, string Reason);
 /// namesake paired with an elementary one and reached the run time.
 /// </para>
 /// <para>
-/// ⚠ WHAT STAYS OUTSIDE: §14.9.25.3 SR5's figurative→numeric prohibition, whose three edition rows (permitted
-/// through 2014, removed at 2023, and the surviving digit-only-ALL-to-integer exception) live in ONE place,
-/// <c>VersionConformancePass.GateSr5</c> — an edition-gated policy, not a flat refusal, so it is not expressible as
-/// a <see langword="string"/>? here. It has two askers there: <c>GateMove</c> (every bound MOVE, per receiver) and
-/// <c>GateInitialize</c> (INITIALIZE REPLACING's hypothetical MOVE, per category — kb/Work PB879).
+/// ⚠ WHAT STAYS OUTSIDE: §14.9.25.3 SR5's figurative→numeric prohibition for HIGH-VALUE, LOW-VALUE, QUOTE and the
+/// ALL literal, whose three edition rows (permitted through 2014, removed at 2023, and the surviving
+/// digit-only-ALL-to-integer exception) live in ONE place, <c>VersionConformancePass.GateSr5</c> — an edition-gated
+/// policy, not a flat refusal, so it is not expressible as a <see langword="string"/>? here. It has two askers there:
+/// <c>GateMove</c> (every bound MOVE, per receiver) and <c>GateInitialize</c> (INITIALIZE REPLACING's hypothetical
+/// MOVE, per category — kb/Work PB879). SR5's SPACE arm is NOT outside: SPACE into a numeric or numeric-edited item is
+/// prohibited at every edition (kb/Work PB3605), so it is a flat refusal and <see cref="MoveValidity.FigurativeRefusal"/>
+/// answers it beside SR6 and SR7.
 /// </para>
 /// </remarks>
 public static class MoveTable16
@@ -236,21 +239,25 @@ public static class MoveTable16
         // adjudication of §8.4.3.3.4 GR6), and the caller's --permissive lever is defined against TABLE 16's
         // reading of such a view, not against SR6 — which the standard states unconditionally, with no reference
         // to the table. Asked and answered rather than left to be rediscovered.
+        // §14.9.25.3 SR5's SPACE arm rides the same reader (kb/Work PB3605): it is prohibited at every edition, so it
+        // is a flat refusal here and not one of VersionConformancePass.GateSr5's edition rows.
         return sender is BoundFigurative or BoundAllLiteral
-            ? MoveValidity.FigurativeRefusal(sender is BoundFigurative { Kind: 'Z' }, HasBooleanCharacters(sender),
-                receiver.Heading)
+            ? MoveValidity.FigurativeRefusal(FigurativeSenderOf(sender), receiver.Heading)
             : null;
     }
 
-    /// <summary>ISO §14.9.25.3 SR7's exemption: a figurative constant whose "associated character or characters" are
-    /// boolean characters — ZERO, boolean zeros in a boolean context (§8.3.3.6.4 GR4), and an ALL literal every one of
-    /// whose characters is '0' or '1'. The ONE reading of it, which an activation argument's description carries too
-    /// (<c>ActivationDescriptions.OfValue</c>, <see cref="ActivationCategory.FigurativeBoolean"/>; kb/Work PB3101).</summary>
-    public static bool HasBooleanCharacters(BoundOperand figurative) => figurative switch
+    /// <summary>Which figurative sender ISO §14.9.25.3's figurative rules tell apart: SPACE (SR5's arm that holds at
+    /// every edition, kb/Work PB3605), ZERO (SR6; boolean zeros in a boolean context, §8.3.3.6.4 GR4), and SR7's
+    /// exemption for an ALL literal every one of whose characters is '0' or '1'. The ONE reading of it, which an
+    /// activation argument's description carries too (<c>ActivationDescriptions.OfValue</c>; kb/Work PB3101). An
+    /// operand that is no figurative constant reads as <see cref="FigurativeSender.Other"/>.</summary>
+    public static FigurativeSender FigurativeSenderOf(BoundOperand figurative) => figurative switch
     {
-        BoundFigurative { Kind: 'Z' } => true,
-        BoundAllLiteral { Literal: { Length: > 0 } chars } => chars.All(c => c is '0' or '1'),
-        _ => false,
+        BoundFigurative { Kind: 'Z' } => FigurativeSender.Zero,
+        BoundFigurative { Kind: 'S' } => FigurativeSender.Space,
+        BoundAllLiteral { Literal: { Length: > 0 } chars } when chars.All(c => c is '0' or '1') =>
+            FigurativeSender.BooleanCharacters,
+        _ => FigurativeSender.Other,
     };
 
     /// <summary>The ITEM-KEYED source-shape refusals of ISO §14.9.25.3 — the rules whose antecedent is

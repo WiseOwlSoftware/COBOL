@@ -14,7 +14,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
-import source_units  # noqa: E402  (the name match two member claims meet on, kb/Work PB3670)
+import plan_wave  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 T = HERE / 'templates'
@@ -190,22 +190,23 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: two groups of one wave whose `root` names the same primary src/ file and whose MEMBER claims on it meet (either
-# claims the file whole, or a member of one matches a member of the other: the groups file's `member_set`,
-# scripts/arch/source_units.py `match`) are a same-file SUCCESSOR chain (`after:`), so the second merges the first's
-# branch instead of conflicting with it. Two groups on DIFFERENT MEMBERS of one file run side by side (kb/Work PB3670,
-# the owner 2026-10-24: "Developers do this all the time"); git's three-way merge combines their branches.
+# O2: two groups of one wave whose CLAIMS meet (plan_wave.collision: on ANY file both claim, either claims it whole or a
+# member of one matches a member of the other: the groups file's `file_set` and `member_set`) are a SUCCESSOR chain
+# (`after:`), so the second merges the first's branch instead of conflicting with it: the rule the planner chains by and
+# holds in-flight work by (kb/Work PB3696; it once compared the primary file alone, a second copy of the rule). Two
+# groups on DIFFERENT MEMBERS of a file, and nothing else shared, run side by side (kb/Work PB3670, the owner
+# 2026-10-24: "Developers do this all the time"); git's three-way merge combines their branches.
 PRIMARY = re.compile(r'src/[\w./-]+\.(?:cs|g4)')
 
 
-def members_meet(a, b, f):
-    """Whether two groups' claims on their shared primary file `f` meet: either claims it whole (no `member_set`
-    entry), or a member of one matches a member of the other (source_units.meet)."""
-    ma, mb = (a.get('member_set') or {}).get(f), (b.get('member_set') or {}).get(f)
-    return ma is None or mb is None or source_units.meet(ma, mb) is not None
+def group_claim(g):
+    """A group's claim as the groups file states it: its `file_set` with its `member_set` (plan_wave.py writes both), or,
+    for a hand-built group without one, the primary src/ file its `root` names, whole."""
+    files = g.get('file_set') or ([m.group(0)] if (m := PRIMARY.search(g.get('root', ''))) else [])
+    return plan_wave.Claim.of(files, g.get('member_set'))
 
 
-def same_file_without_successor(groups_path):
+def claims_meet_without_successor(groups_path):
     groups = json.loads(groups_path.read_text(encoding='utf-8'))['groups']
     after = {g['letter']: g.get('after') for g in groups}
 
@@ -216,17 +217,12 @@ def same_file_without_successor(groups_path):
             letter = after.get(letter)
         return seen
 
-    by_file = {}
-    for g in groups:
-        m = PRIMARY.search(g.get('root', ''))
-        if m:
-            by_file.setdefault(m.group(0), []).append(g)
     found = []
-    for f, on in by_file.items():
-        for i, a in enumerate(on):
-            for b in on[i + 1:]:
-                if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']) and members_meet(a, b, f):
-                    found.append(f"{a['letter']}+{b['letter']} on {f}")
+    for i, a in enumerate(groups):
+        for b in groups[i + 1:]:
+            if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']):
+                if hit := plan_wave.collision(group_claim(a), group_claim(b)):
+                    found.append(f"{a['letter']}+{b['letter']} on {hit}")
     return found
 
 
@@ -351,10 +347,10 @@ def main():
             if why:
                 bad += 1
                 print(f'FAIL     {gp.name}: {why} (P3)')
-        clash = same_file_without_successor(gp)
+        clash = claims_meet_without_successor(gp)
         if clash:
             bad += 1
-            print(f'FAIL     {gp.name}: groups share members of a primary file without a same-file successor (`after:`, '
+            print(f'FAIL     {gp.name}: groups whose claims meet (a shared file or member) without a successor (`after:`, '
                   f'O2): {clash}')
         else:
             print(f'ok       {gp.name}')
