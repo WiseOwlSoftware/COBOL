@@ -113,7 +113,8 @@ commits are ancestors of main and MERGED decides; the rest stays for the branche
 
   MERGED   the branch tip is an ancestor of origin/main.
   LANDED   not an ancestor, but MERGING it into origin/main would change nothing: `git merge-tree --write-tree
-           origin/main <branch>` merges cleanly to origin/main's own tree. That is the one proof (train 1039b review):
+           origin/main <branch>`, through the merge drivers the landing merges with (merge_drivers.merged_tree, kb/Work
+           PB3713), merges cleanly to origin/main's own tree. That is the one proof (train 1039b review):
            the earlier test (every added file and every declared C# name on main) called a branch that only MODIFIED
            existing files LANDED, so an unlanded method-body fix would have been deleted.
            Also LANDED when its own merge would change main but its work reached main as OTHER commits (carried(), kb/Work
@@ -205,11 +206,13 @@ def main_names(repo=REPO):
 
 
 def merges_to_main_unchanged(branch, graph: Ancestry, repo=REPO) -> bool:
-    """Would merging `branch` into origin/main leave main's tree exactly as it is? Any git failure (unrelated histories, a
-    conflict, a missing ref) is a NO: an unproven landing is never LANDED. Main's tree is the graph's, read once a pass."""
-    merged = git('merge-tree', '--write-tree', 'origin/main', branch, cwd=repo)
+    """Would merging `branch` into origin/main leave main's tree exactly as it is? THE MERGE IS THE LANDING'S OWN,
+    through the merge drivers (merge_drivers.merged_tree; kb/Work PB3713): a keyed catalogue another carrier already put
+    the branch's entry into merges by key, where a plain `git merge-tree` conflicts and the branch never read LANDED. Any
+    git failure (unrelated histories, a conflict a driver declines, a missing ref) is a NO: an unproven landing is
+    never LANDED. Main's tree is the graph's, read once a pass."""
     tree = graph.base_tree()
-    return merged.returncode == 0 and bool(tree) and merged.stdout.split('\n', 1)[0].strip() == tree
+    return bool(tree) and merge_drivers.merged_tree(repo, ['origin/main', branch]) == tree
 
 
 def uncommitted(path) -> int:
@@ -1412,6 +1415,10 @@ def self_test() -> int:
             scratch.git('commit', '-q', '-m', msg, cwd=cwd)
 
         commit('src/A.cs', 'class Alpha {}\n', 'base')
+        # kb/Work PB3713: a keyed catalogue (merge_drivers merges it by key) the LANDED proof merges through the drivers
+        keyed = lambda *ks: '{\n' + ',\n'.join(f' "{k}": {{\n  "refuse-at": [\n   "85"\n  ]\n }}' for k in ks) + '\n}\n'  # noqa: E731
+        commit('.gitattributes', 'd.json merge=cobol-keyed-object\n', 'the driver attribute')
+        commit('d.json', keyed('a', 'c'), 'the catalogue')
         scratch.origin(tmp / 'origin.git')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
@@ -1421,6 +1428,14 @@ def self_test() -> int:
         commit('src/B.cs', 'class Bravo {}\n', 'bravo')
         scratch.git('switch', '-q', 'main')
         commit('src/B.cs', 'class Bravo {}\n', 'bravo, as the train re-applied it')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('fetch', '-q', 'origin')
+        # `key-landed` appended `x` to the catalogue; another carrier put `x` on main beside its own `y`: a PLAIN
+        # merge-tree conflicts there, the drivers merge it to main's own tree (kb/Work PB3713)
+        scratch.git('switch', '-q', '-c', 'key-landed', 'main')
+        commit('d.json', keyed('a', 'c', 'x'), 'key-landed')
+        scratch.git('switch', '-q', 'main')
+        commit('d.json', keyed('a', 'c', 'y', 'x'), 'main holds x, beside its own y')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
         # unlanded with no report (DECISION), unlanded with a DONE report (WAITING TO LAND), a SPLIT report (DECISION),
@@ -1817,7 +1832,7 @@ def self_test() -> int:
         terminal = lambda n: n == 'PB4'  # noqa: E731
         rows = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
                                           stale_hours=24, live=live, coord_dir=landed_coord, prs=None)}
-        want = {'merged': 'LANDED', 'landed-content': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
+        want = {'merged': 'LANDED', 'landed-content': 'LANDED', 'key-landed': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
                 'split-branch': 'DECISION', 'w9999a-ledger': 'IN FLIGHT', 'fresh': 'IN FLIGHT', 'superseded': 'DECISION',
                 'stale-done': 'DECISION', 'resumed': 'DECISION',
                 'dirty-merged': 'DECISION', 'agent-live': 'IN FLIGHT', 'agent-dead': 'LANDED', '(detached) pin': 'DECISION',
@@ -2252,9 +2267,9 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 72 · 21 in flight · 6 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 73 · 21 in flight · 6 waiting for review · '
                                                       '12 waiting to land · 1 stopped · 1 enqueued · 0 not queued · '
-                                                      '0 bounced · 5 landed'),
+                                                      '0 bounced · 6 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')
@@ -2294,8 +2309,8 @@ def self_test() -> int:
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
         left = set(scratch.git('branch', '--format=%(refname:short)').split())
-        check(n == 6, f'--apply removed {n}, want 6 (5 LANDED + orphan): {out}')
-        check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
+        check(n == 7, f'--apply removed {n}, want 7 (6 LANDED + orphan): {out}')
+        check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
         check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')} <= left,
               f'a branch neither landed nor recorded abandoned was removed: {sorted(left)}')
         check(any('no kb/Work note records' in l and 'split-branch' in l for l in out),

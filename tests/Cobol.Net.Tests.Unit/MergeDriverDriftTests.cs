@@ -43,6 +43,8 @@ public sealed class MergeDriverDriftTests
             "git: WITHOUT the drivers the same merge conflicts (the premise)",
             "git: merge() brings main in through the drivers",
             "git: merge-tree with config_args reproduces the merge's tree",
+            "tree: merged_tree is that merge's tree",
+            "tree: an entry main already holds beside its own merges to main's tree",
             "git: keep leaves a conflicting merge IN PROGRESS",
             "pin: both branches raised the major 17 -> 18: the merge makes it 19",
             "pin: a settle that fails aborts the merge and names the pin",
@@ -87,7 +89,12 @@ public sealed class MergeDriverDriftTests
         string enqueue = File.ReadAllText(TestRepo.At("scripts/orchestrator/enqueue.py"));
         Assert.Contains("merge_drivers.merge(wt, base,", enqueue, StringComparison.Ordinal);
         Assert.DoesNotContain("\"merge\", \"--no-edit\"", enqueue, StringComparison.Ordinal);
-        Assert.Contains("merge_drivers.is_drivers_merge(", File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py")), StringComparison.Ordinal);
+        string prune = File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py"));
+        Assert.Contains("merge_drivers.is_drivers_merge(", prune, StringComparison.Ordinal);
+        // The survey's LANDED proof merges main and the branch the way the landing does (kb/Work PB3713): a plain
+        // `git merge-tree` conflicts in a keyed catalogue the drivers merge by key, so a branch already on main never read LANDED.
+        Assert.True(prune.Contains("merge_drivers.merged_tree(", StringComparison.Ordinal) && !prune.Contains("'merge-tree'", StringComparison.Ordinal),
+            "scripts/prune_worktrees.py runs its own `git merge-tree`: prove a landing with merge_drivers.merged_tree, the one definition of a clean merge's tree (kb/Work PB3713)");
         Assert.Contains("merge_drivers.conflict_outcome(files)", enqueue, StringComparison.Ordinal);
         string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
         Assert.Contains("merge_drivers.merge_conflicts(", lane, StringComparison.Ordinal);
