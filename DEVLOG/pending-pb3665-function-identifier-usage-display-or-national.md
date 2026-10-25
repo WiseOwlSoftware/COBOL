@@ -59,6 +59,7 @@ operand arm now asks it first (it yields to a declared data item) and reaches th
 the REPOSITORY FUNCTION entry is itself refused, COBOLNET0900), and the control `pb3665_inspect_omitted_keyword_function_controls` (M1 = 3, M2 = 1,
 M3 = abxcb, computed from 15.2 1)); `DisplayOrNationalUsagePredicateDriftTests` pins the two new calls. SR-14.9.22.3-1 gained its witnesses.
 
-**Gate.** Run `TestResults/build-local/000001-20261025T021404Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN —
-Conformance 7,927/18,457 · Unit 36,947/38,168 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of
-HEAD) GREEN`. All 44 `pb3665` Conformance results passed (leg-1-Conformance.trx), and the five `DisplayOrNationalUsagePredicateDriftTests`.
+**Gate.** After review round 1, run `TestResults/build-local/000001-20261025T023757Z` on head 5c3427ed1: `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — ... Conformance 8,342/18,504 · Unit 36,970/38,194 · Characterization 36/36 cases ran (skipped 0) in 1 of 2
+leg(s) · Linux half (WSL clone of HEAD) GREEN`. All 58 `pb3665` Conformance results passed (leg-1-Conformance.trx) and the five
+`DisplayOrNationalUsagePredicateDriftTests`. The first implementer gate (run 000001-20261025T021404Z) was GREEN on 44 `pb3665` results.
