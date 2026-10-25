@@ -72,6 +72,8 @@ sys.path.insert(0, str(REPO / "scripts"))
 from test_population import GATED_ASSEMBLIES  # noqa: E402
 import drift_rules  # noqa: E402  (scripts/spec, beside this file)
 import cs_members  # noqa: E402  (scripts/spec, beside this file)
+sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/ (as run_gate_legs.py)
+from coord import is_work  # noqa: E402  (THE paths that are never work: coord.NEVER_WORK, kb/Work PB3465, PB3474)
 SCHEMA = 2
 CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
@@ -216,14 +218,15 @@ class MapIndex:
 
 
 def changed_files(base: str) -> list[tuple[str, str]]:
-    """(status, path) for every file the worktree changed against `base`, untracked files as added."""
+    """(status, path) for every file the worktree changed against `base`, untracked files as added, coord.NEVER_WORK's
+    paths aside (coord.is_work: the harness's settings file, the checkpoint file, the gate's results)."""
     out = []
     for line in git("diff", "--name-status", "--no-renames", base, *([HEAD] if HEAD else [])).splitlines():
         status, _, path = line.partition("\t")
         out.append((status[:1], path))
     if HEAD is None:  # the worktree: untracked files are added files
         out += [("A", p) for p in git("ls-files", "--others", "--exclude-standard").splitlines() if p]
-    return sorted({(s, p) for s, p in out if p and p != "STATUS.md"}, key=lambda x: x[1])
+    return sorted({(s, p) for s, p in out if p and is_work(p)}, key=lambda x: x[1])
 
 
 class Hunk(NamedTuple):
@@ -798,6 +801,25 @@ def synthetic_map() -> dict:
             "ambient_bits": pack(0b0100)}
 
 
+def worktree_changes_in_scratch_repo() -> list[tuple[str, str]]:
+    """changed_files of a scratch repository whose worktree holds every kind of change: the self-test's subject, run
+    with the module's REPO pointed at the scratch repository (the git() helper reads it)."""
+    from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
+    global REPO
+    saved = REPO
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            scratch = ScratchRepo.init(Path(d) / "repo")
+            scratch.commit("base", {".claude/settings.local.json": "{}\n", "src/A.cs": "class A {}\n"})
+            base = scratch.git("rev-parse", "HEAD")
+            scratch.write({".claude/settings.local.json": '{"edited": 1}\n', "src/A.cs": "class A { int X; }\n",
+                           "STATUS.md": "STATUS-AT: x\n", "TestResults/a/b.trx": "x\n", "src/New.cs": "class N {}\n"})
+            REPO = scratch.path
+            return changed_files(base)
+        finally:
+            REPO = saved
+
+
 def self_test() -> int:
     """Prove each arm FIRES against a synthetic map (feedback_prove_the_watchdog_fails)."""
     from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
@@ -1115,6 +1137,12 @@ def self_test() -> int:
                 check(label, ok, f"{state}; {r.every_tier1[:1]}")
         finally:
             ancestor_distance, non_doc_drift = real
+
+    # The files a worktree changed leave out coord.NEVER_WORK (kb/Work PB3474): the harness's edit of its tracked settings
+    # file, the checkpoint file and the gate's results are no change of the code, whatever the diff against the base says.
+    got = worktree_changes_in_scratch_repo()
+    check("a worktree's changed files leave out coord.NEVER_WORK (the settings file, STATUS.md, TestResults/)",
+          got == [("M", "src/A.cs"), ("A", "src/New.cs")], got)
     print("ALL GREEN" if not failures else f"⛔ {failures} SELF-TEST FAILURE(S)")
     return 1 if failures else 0
 

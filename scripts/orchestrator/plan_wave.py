@@ -34,7 +34,10 @@ cost the orchestrator a hand-written groups.json; this computes it.
    by a dispatch, so one finisher continues each branch, taking the notes its report names AND the notes no report
    names that the branch carries (a half note's WIP, its commit subjects), and when an unanswered dispatch (item 1)
    holds ANY note of a branch's unit that dispatch is finishing the branch and every other note of it waits with the
-   holder named. The unit is keyed by the BRANCH, never by arm (branch review R1-1). The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
+   holder named, and so does a unit whose branch's worktree is LOCKED by a live agent that no dispatch names (one
+   started by hand: prune_worktrees.locked, the lock-only half of owned; a touch inside --min-age alone is no owner,
+   kb/Work PB3653). Two reports about one branch are one finisher group, the newest report's (kb/Work PB3653).
+   The unit is keyed by the BRANCH, never by arm (branch review R1-1). The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
    note that exists only on its own branch, read from there) is decided by the same rule as an open note: its newest
    report naming it, on any branch (its review finisher's later report supersedes the FINDINGS one); a FINDINGS
    branch that another DONE branch merely contains still gets its finisher, whose pred names that carrier (kb/Work
@@ -72,7 +75,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
    chain), or wait while that branch has none. A branch only partly
    replayed is still planned, its pred naming only the commits no other branch holds. A branch a kb/Work note
    records ABANDONED (prune_worktrees.abandon_records, the survey's own matcher) is never planned from: its reports and
-   its notes are not read.
+   its notes are not read. The branch survey reads the same rule through the same function (prune_worktrees.replay_view,
+   kb/Work PB3652): a branch carried here is IN FLIGHT there (its row names the carrier), never a DECISION row.
 
 --cluster LEAD plans a CAMPAIGN wave instead (design section 9.1, kb/Work PB2120): the notes are work.py's
 cluster_order() of LEAD (every open note whose `cluster` names it, whatever its harm flags), clustered on the sites
@@ -267,7 +271,7 @@ class Report:
     not_started: bool
     branch: str | None
     worktree: str | None
-    head: str | None
+    head: str | None   # the commit the report describes: the header's HEAD, else the head its review stamp names (parse_report)
     review: Review | None = None
     base: str | None = None
     gate_run: str | None = None   # GATE-PENDING: the run directory of the gate its agent handed over (kb/Work PB3536)
@@ -437,10 +441,18 @@ def parse_report(p: pathlib.Path) -> Report | None:
     # so every reviewed branch read as landed and wave 1064's finishers were told to merge `worktree-…-r1`.
     unstamped = "\n".join(l for l in header if not REVIEW_LINE.match(l.strip()))
     b, w = BRANCH_FIELD.search(unstamped) or BRANCH.search(unstamped), WORKTREE.search(unstamped)
+    review = parse_review(text)
+    # THE COMMIT THE REPORT DESCRIBES (kb/Work PB3476): its header's HEAD field, else the head its review stamp names.
+    # The reviewer stamps the report AT a head of its branch (review_findings.py stamp writes the head it reviewed), so
+    # the stamp is the stronger statement of what the report covers. A header whose HEAD field gives no sha ("HEAD: see
+    # the trailing commit") described no commit, and a branch reviewed CLEAN at its tip sat IN FLIGHT, then a DECISION,
+    # outside the landing lane (w1136c, twice). One owner: the branch survey, the landing lane and the landing measure
+    # all read this field.
+    head = header_sha(HEAD, unstamped) or (review.sha if review else None)
     return Report(p, int(m.group("wave")), f"w{m.group('wave')}{m.group('letter')}", m.group("lead"), status,
                   [m.group("lead")],
                   bool(re.search(r"(?i)not\s+started", text)), b.group(1) if b else None, w.group(1) if w else None,
-                  header_sha(HEAD, unstamped), parse_review(text), header_sha(BASE, unstamped),
+                  head, review, header_sha(BASE, unstamped),
                   (g.group(1) if (g := GATE_RUN.search(unstamped)) else None))
 
 
@@ -535,10 +547,8 @@ def branch_replays(reports: list[Report], classify: Callable[[str], str], unland
     carries it."""
     import prune_worktrees  # noqa: PLC0415
     rank = {r.branch: i for i, r in enumerate(reports) if r.branch}
-    carriers = [b for b in rank if b not in abandoned and classify(b) not in LANDED_CLASSES]
-    found = prune_worktrees.replays(sorted(set(carriers) | {b for b in unlanded if b not in abandoned}), carriers,
-                                    lambda b: rank.get(b, -1), graph)
-    return found.get
+    ranked = {b: i for b, i in rank.items() if classify(b) not in LANDED_CLASSES}
+    return prune_worktrees.replay_view(ranked, unlanded, abandoned, graph).get   # the survey reads the same view
 
 
 def unlanded_branch_notes(local: set[str], graph: "git_batch.Ancestry") -> dict[str, list[str]]:
@@ -1235,7 +1245,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          deps: dict[str, list[str]] | None = None, busy: dict[str, InFlight] | None = None,
          held: dict[str, str] | None = None, drain: bool = False,
          carrier: Callable[[str], str | None] | None = None,
-         owned: set[str] | None = None,
+         owned: set[str] | None = None, locked: set[str] | None = None,
          review_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
          abandoned: set[str] | None = None) -> dict[str, Any]:
@@ -1264,7 +1274,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     survey: the branches IN FLIGHT by their OWN lifecycle, never one IN FLIGHT only because a carrier contains it)
     lets a FINDINGS report's branch with a live owner wait: someone is already answering the findings (kb/Work
     PB3311). A FINDINGS branch that a carrier merely contains is not owned, and gets its finisher with the carrier
-    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1).
+    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1). `locked` (prune_worktrees.locked:
+    the lock-only half of `owned`) is the branches whose worktree a live agent holds; a finisher unit over one waits
+    like a unit a dispatch holds (kb/Work PB3653).
 
     `replay` (branch_replays) says how far OTHER unlanded branches replay a branch's commits, and `abandoned` is the set
     of branches a kb/Work note records ABANDONED (prune_worktrees.abandon_records); both are kb/Work PB3170. An
@@ -1281,6 +1293,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
+    locked = locked or set()
     held = held or {}
     review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
     replay = replay or (lambda _b: None)
@@ -1397,6 +1410,18 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # it, because a finisher of their own would cherry-pick the same commits onto main beside it. A rider joins the
     # replaying branch's UNIT below (kb/Work PB2974): a dispatch holding any note of that branch holds the riders too.
     rep_of_branch = {r.branch: r for r in live if r.branch}   # oldest first: the newest report of each branch
+    # ONE FINISHER PER BRANCH (kb/Work PB3653, the second residual of PB2974): a note is decided by ITS newest report, so
+    # two notes whose newest reports are two DIFFERENT unfinished reports about the same branch would each get a
+    # finisher over it (one hold, two groups). The branch's work is one unit, so its unfinished reports' notes join the
+    # group of the newest UNFINISHED report of the branch (one that already holds a finisher group). A newer DONE or
+    # FINDINGS-free report about another lead is no target: its pred would name the wrong report (branch review R1-1).
+    live_order = {r.path: i for i, r in enumerate(live)}
+    newest_unfinished: dict[str, pathlib.Path] = {}
+    for path in sorted(finisher_by_rep, key=lambda x: live_order.get(x, -1)):
+        if b := rep_by_path[path].branch:
+            newest_unfinished[b] = path
+    for path in [x for x in finisher_by_rep if (b := rep_by_path[x].branch) and newest_unfinished[b] != x]:
+        finisher_by_rep[newest_unfinished[rep_by_path[path].branch]].extend(finisher_by_rep.pop(path))
     riders: dict[pathlib.Path, dict[str, list[str]]] = {}
     for nid, (r, to) in replayed_to.items():
         if (rc := rep_of_branch.get(to)) and rc.path in finisher_by_rep:
@@ -1420,18 +1445,30 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # (wave 1056's first plan re-dispatched three wave-1053 branches that wave 1055's finishers were finishing). The whole
     # unit waits, naming the holder. ONE rule keyed by the BRANCH, never by arm (branch review R1-1: a rule per arm left
     # the half-cluster arm, and a report beside unreported notes of its own branch, splitting the branch).
+    def unit_of(branch: str) -> str:
+        return f"branch {branch}"
+
     units: dict[str, list[str]] = {}         # "branch X" (a report with no branch: "report <file>") -> its notes
+    locked_units = {unit_of(b) for b in locked}
     for path, ids in finisher_by_rep.items():
         rep_branch = rep_by_path[path].branch
-        units.setdefault(f"branch {rep_branch}" if rep_branch else f"report {path.name}", []).extend(ids)
+        units.setdefault(unit_of(rep_branch) if rep_branch else f"report {path.name}", []).extend(ids)
     for b, ids in unlanded.items():
-        units.setdefault(f"branch {b}", []).extend(i for i in ids if i not in newest)
+        units.setdefault(unit_of(b), []).extend(i for i in ids if i not in newest)
     for unit, ids in sorted(units.items()):
-        if holder := next(((i, held[i]) for i in sorted(set(ids), key=work.id_order) if i in held), None):
+        # THE TWO SIGNALS OF A LIVE OWNER, ONE LOOP (kb/Work PB3653): an unanswered dispatch that holds a note of the unit
+        # (the record a planned wave leaves), else a live agent's LOCK on the branch's worktree (prune_worktrees.locked:
+        # an agent started by hand, which leaves no ledger entry). A touch inside --min-age alone is no owner: it is how
+        # a branch reads for three hours after its agent has just returned, and holding on it would stall every finisher.
+        holder = next(((i, held[i]) for i in sorted(set(ids), key=work.id_order) if i in held), None)
+        if holder or unit in locked_units:
             for nid in sorted(set(ids) - taken, key=work.id_order):
                 waiting[nid] = (f"{holder[0]} of {unit} is held by {holder[1]}, which has no report yet: that dispatch "
                                 f"is finishing the branch, and a finisher for {nid} would cherry-pick the same commits "
-                                f"again (plan_wave.py --release that dispatch if it was aborted)")
+                                f"again (plan_wave.py --release that dispatch if it was aborted)" if holder else
+                                f"the worktree of {unit} is locked by a live agent that no dispatch record names (one "
+                                f"started by hand): it is finishing the branch, and a finisher for {nid} would "
+                                f"cherry-pick the same commits again; it is planned again once the lock is gone")
                 taken.add(nid)
     # A note that needs a frontier model under the owner's per-dispatch approval is never planned (MANDATORY-PRACTICES
     # P1): an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's choice.
@@ -1954,12 +1991,13 @@ def main(argv: list[str] | None = None) -> int:
         raw[SLICE_OWNER], meta[SLICE_OWNER] = reservation
     states: dict[str, str] = {}
     owned: set[str] = set()
+    locked: set[str] = set()
     review_covers = None
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
-        states, owned = {r.name: r.state for r in rows}, prune_worktrees.owned(rows)
+        states, owned, locked = {r.name: r.state for r in rows}, prune_worktrees.owned(rows), prune_worktrees.locked(rows)
         coverage = prune_worktrees.review_coverage(rows)   # the survey's own coverage rule, kb/Work PB3394
 
         def review_covers(rep: Report) -> bool:
@@ -1968,7 +2006,7 @@ def main(argv: list[str] | None = None) -> int:
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned, review_covers=review_covers, replay=replay, abandoned=abandoned)
+             owned=owned, locked=locked, review_covers=review_covers, replay=replay, abandoned=abandoned)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
