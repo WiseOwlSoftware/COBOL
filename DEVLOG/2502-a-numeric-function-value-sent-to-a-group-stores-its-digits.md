@@ -1,4 +1,4 @@
-## A numeric function value sent to a group stores its digits, in a MOVE, a CALL and an INVOKE (PB3613)
+## Entry 2502 — 2026-10-24 19:03 PDT — A numeric function value sent to a group stores its digits, in a MOVE, a CALL and an INVOKE (PB3613)
 
 PB3570 decided that a numeric literal sent to a group stores its digits only, and left the numeric FUNCTION value as a lead:
 `MOVE FUNCTION MIN(N 3) TO G` (N = -15) stored `-15` and `FUNCTION MIN(M 3)` (M = -1.5) stored `-1.5`.
@@ -52,3 +52,4 @@ pins that a real arithmetic expression stays refused. `GroupMoveSenderChannelDri
 (`Gr4GroupDecisionDriftTests`, now guarding `a.Formal.IsPlainGroup`); the re-gate, run `000002-20261025T013211Z`:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run — Conformance 8,367/18,407 · Unit 36,832/38,153 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN ===`;
 `scripts/semgrep/verify.py` PASS (no rule up).
+
