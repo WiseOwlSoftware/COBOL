@@ -2637,6 +2637,87 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ THE COMMIT AND THE ROLLBACK REACH A FILE WHOSE RETAKE THE MEDIUM REFUSED, ONCE THE MEDIUM ANSWERS (kb/Work PB3630;
+    /// §14.9.36.4 GR3, <i>"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state they were in
+    /// at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been
+    /// executed"</i>; §14.9.7.4 GR3, <i>"The execution of the COMMIT statement permanently applies any changes made to the files
+    /// specified in all the active APPLY COMMIT clauses and releases all record locks associated with those files"</i>): the setup is
+    /// <see cref="A_reopen_whose_kept_handle_cannot_adopt_the_store_again_leaves_what_the_close_kept_standing"/>'s - the kept state
+    /// has its handle (the file lock, the liveness byte, the record locks) and its store has no file - and the statement that follows
+    /// is the COMMIT or the ROLLBACK, not the re-OPEN. Neither rule makes the statement fail because an earlier retake was refused:
+    /// the store adopts the file again through the kept writable handle, so the ROLLBACK restores the file and the COMMIT promotes
+    /// the change, each answering no status on a healthy medium (before the fix both answered '30'). While the medium still refuses,
+    /// the statement is refused as any statement is (§9.1.13.6 item 1: '30', its file named): a refused COMMIT leaves the kept state
+    /// for the ROLLBACK that follows it (§14.6.13.1.3 item 8), and a refused ROLLBACK ends the kept state all the same
+    /// (<c>FileRegistry.ReleaseKeptOf</c>), the transaction it leaves standing being the dead-owner step's, which the next writable
+    /// OPEN of another run unit runs.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, true, false)]
+    [InlineData(FileOrg.Relative, false, false)]
+    [InlineData(FileOrg.Indexed, true, false)]
+    [InlineData(FileOrg.Indexed, false, false)]
+    [InlineData(FileOrg.Relative, true, true)]
+    [InlineData(FileOrg.Relative, false, true)]
+    [InlineData(FileOrg.Indexed, true, true)]
+    [InlineData(FileOrg.Indexed, false, true)]
+    public void A_commit_or_rollback_after_a_refused_retake_reaches_the_file_the_close_kept(FileOrg org, bool commit, bool mediumStillRefuses)
+    {
+        string host = Tmp($"pb3630-after-refused-retake-{org}-{commit}-{mediumStillRefuses}");
+        try
+        {
+            Seed(host, org);
+            bool armed = false;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, read: _ => armed ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Read(a, org, 1, out _));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.PagedStoreOf("F")!.DropCache();
+            armed = true;
+            a.OpenShared("F", FileOpenMode.IO, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            Assert.Equal("30", a.Status("F"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            armed = mediumStillRefuses;
+            string? told = commit ? a.Commit() : a.Rollback();
+            armed = false;
+            if (mediumStillRefuses)
+            {
+                Assert.Equal("F", told);
+                Assert.Equal("30", a.Status("F"));
+                // A refused COMMIT leaves the kept state standing for the ROLLBACK §14.6.13.1.3 item 8 executes next; a refused
+                // ROLLBACK has ended it (ReleaseCommitLocks) and left the transaction to the dead-owner step.
+                if (commit) Assert.Null(a.Rollback());
+            }
+            else
+            {
+                Assert.Null(told);
+                Assert.Equal(0ul, a.TransactionOf("F"));
+            }
+            // What the statement left is read by another run unit: the kept state ended with it, so its record locks and its
+            // file lock are given back (the transaction a refused statement left standing is settled by this OPEN's dead-owner step).
+            var b = Open(host, org, commit: false, name: "B");
+            Assert.Equal("00", Read(b, org, 1, out _, name: "B"));
+            Assert.Equal(commit && !mediumStillRefuses ? "00" : "23", Read(b, org, 7, out var seven, name: "B"));
+            if (commit && !mediumStillRefuses) Assert.Equal(Rec(7, "A007"), seven);
+            b.CloseAll();
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));
+            d.CloseAll();
+            a.CloseAll();
+            var expected = Seeded();
+            if (commit && !mediumStillRefuses) expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>A second connector's registration with a CLOSEd connector's name (the activation of its element again after
     /// a CANCEL, kb/Work PB168) DISPLACES the first, and what its CLOSE under commit control kept goes on being the COMMIT's
     /// and the ROLLBACK's (§12.4.6.3.4 GR5: a canceled runtime element's APPLY COMMIT clause stays active until a COMMIT or

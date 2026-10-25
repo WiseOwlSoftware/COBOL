@@ -2033,7 +2033,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   attach reads the store again when the give-back left it without a file, and a medium that refuses that read does not cost the
   kept state its handle: the liveness byte and the record locks are carried to the retaken handle without a page read
   (`KeyedConnector.CarryKeptHoldings`, the half of the attach the retake keeps whatever the adoption answers; PB3497), and
-  the store stays unadopted until the connector's next OPEN reads it. The OPEN's
+  the store stays unadopted until the connector's next OPEN reads it — or until the COMMIT or the ROLLBACK, which do not wait
+  for that OPEN: a store with a standing transaction, no file and a writable handle adopts its file again through that handle
+  at the statement (`KeyedStore.AdoptAgainForTransaction`, under the store mutex; §14.9.7.4 GR3, §14.9.36.4 GR3; PB3630) and
+  answers '30' only if the medium still refuses the read. The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
   writable handle the re-OPEN takes asks the same question. So is the OPEN OUTPUT probe (`FileConnector.HeldByAnotherHandle`):
   the kept handle is the connector's own, not *"another file connector"* (§9.1.13.9 1) e)); the keyed connector gives it back for
