@@ -1055,7 +1055,15 @@ because the raw name is not stable (`b7`):
   budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
   gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
   a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
-  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184). Every live tool that writes a trx file into a
+  by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184), and a case red in the CI run that BOUNCED this
+  branch's pull request out of the merge queue (kb/Work PB3644): that red lives in GitHub, not in the worktree, so
+  before each plan `run_gate_legs.Host.fetch_bounce_results` asks the one GitHub reader
+  (`queue_facts.fetch_bounce_results`) for the test artifacts of the newest FAILED `merge_group` run of the checked-out
+  branch's open pull request (`gh run download`, `test-results-*`, one subdirectory per artifact) and puts them in
+  `TestResults/ci-bounce/` (`gate_plan.CI_BOUNCE_RESULTS`), which `previous_gates` reads as its third source. The
+  directory is replaced by the newest bounce's results (downloaded once per run: it holds a provenance marker), emptied
+  when the pull request has no failed merge-group run (a cancelled group is no bounce), and left as it was when GitHub
+  cannot be asked; it orders the gate and never selects it. Every live tool that writes a trx file into a
   worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
   own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
   --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
