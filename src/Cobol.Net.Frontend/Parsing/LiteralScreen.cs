@@ -15,8 +15,8 @@ namespace CobolNet.Frontend.Parsing;
 /// the literal as WRITTEN, whatever position it is written in:
 /// <list type="bullet">
 /// <item>the LENGTH rule — §8.3.3.2.3 SR1 (alphanumeric, both formats), §8.3.3.4.3 SR1 (boolean, both formats),
-/// §8.3.3.5.3 SR1 (national, both formats): at most 8,191 character positions of the literal's class
-/// (<see cref="CobolLiteral.LengthViolation"/> → <c>COBOLNET0814</c>);</item>
+/// §8.3.3.5.3 SR1 (national, both formats): at most 8,191 character positions of the literal's class, 160 below COBOL-2014
+/// (<see cref="CobolLiteral.LengthViolation"/> → <c>COBOLNET0814</c>; the bound is the edition's, <see cref="CobolLiteral.MaxPositions"/>, kb/Work PB1615);</item>
 /// <item>the hexadecimal GROUPING rule — §8.3.3.2.3 SR6 (<c>X"…"</c>, pairs) and §8.3.3.5.3 SR5 (<c>NX"…"</c>, groups
 /// of four); a <c>BX"…"</c> literal has none (<see cref="CobolLiteral.HexGroupViolation"/> →
 /// <c>COBOLNET1635</c>);</item>
@@ -133,7 +133,7 @@ public static class LiteralScreen
         string raw = t.GetText();
         using var _ = sink.At(t.Symbol.Line, t.Symbol.Column);
         if (gateFormats) GateFormat(raw, edition, sink);
-        if (CobolLiteral.SyntaxViolation(raw) is not { } v) return true;
+        if (CobolLiteral.SyntaxViolation(raw, edition.Year) is not { } v) return true;
         Error(sink, v.Rule switch
         {
             LiteralRule.Repertoire => DiagnosticCatalog.LiteralContentRepertoire,
