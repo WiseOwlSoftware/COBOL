@@ -480,21 +480,28 @@ class Host:
         reading = read_verdict(lines[-1][len(LINUX_VERDICT):])
         return LinuxLeg(RED_READING if reading == GREEN_READING and rc != 0 else reading, lines[-1], log.name)
 
-    def linux_gate_holder(self, run=subprocess.run, which=shutil.which) -> str | None:
+    def linux_gate_holder(self, run=subprocess.run, which=shutil.which,
+                          say: Callable[[str], None] = lambda m: print(m, file=sys.stderr)) -> str | None:
         """The Linux gate of this worktree that runs NOW (kb/Work PB3649), as `scripts/linux-gate.sh --probe` words it (its
         BUSY line: pid and start time), or None. A caller that waits for a landing's exit 12 asks it beside the gate lock:
         exit 12 has two sources, and a Linux gate does not hold the Windows lock (a hand run of linux-gate.sh does not
         take it; the driver's own Linux half runs under it). None is also the answer where no Linux gate can run (a
         Windows host with no WSL) and where the probe itself could not answer (a hand-off that failed): a retry costs
         one landing attempt that touches nothing when it meets BUSY again, while a wait that never ends costs the
-        branch, so an unanswerable probe is never read as a busy one."""
+        branch, so an unanswerable probe is never read as a busy one; it is SAID (`say`, stderr by default) instead."""
         if os.name == "nt" and which("wsl.exe") is None:
             return None
         try:
             probe = run(["bash", "scripts/linux-gate.sh", "--probe"], cwd=self.repo, capture_output=True, text=True,
                         encoding="utf-8", errors="replace", timeout=LINUX_PROBE_TIMEOUT_S)
-        except (OSError, subprocess.SubprocessError):
+        except (OSError, subprocess.SubprocessError) as e:
+            say(f"run_gate_legs: the Linux gate probe of {self.repo} was not answered ({type(e).__name__}: {e}); read as "
+                "no Linux gate running")
             return None
+        if probe.returncode not in (0, EXIT_BUSY):
+            say(f"run_gate_legs: the Linux gate probe of {self.repo} was not answered (exit {probe.returncode}: "
+                f"{probe.stdout.strip().splitlines()[-1][:160] if probe.stdout.strip() else 'no output'}); read as no "
+                "Linux gate running")
         if probe.returncode != EXIT_BUSY:
             return None
         lines = [ln.strip() for ln in probe.stdout.splitlines() if ln.strip().startswith(LINUX_VERDICT)]
@@ -1851,15 +1858,20 @@ def self_test() -> int:
         arm("the Linux gate's holder is the --probe's BUSY line (pid and start time), asked as `linux-gate.sh --probe`",
             held is not None and held.startswith("BUSY — another Linux gate of this tree is running (pid 4242, started")
             and not held.endswith("===") and calls == [["bash", "scripts/linux-gate.sh", "--probe"]], f"{held} {calls}")
-        arm("no holder when the probe says FREE, when it could not answer (exit 2), or when it hangs or cannot start: a "
-            "retry that meets BUSY again touches nothing, a wait that never ends costs the branch",
-            real.linux_gate_holder(run=probing(0, "linux-gate probe: FREE — no Linux gate of this tree runs\n"),
-                                   which=lambda _: "wsl.exe") is None
-            and real.linux_gate_holder(run=probing(2, LINUX_VERDICT + "NOT RUN [tree] (x) ===\n"),
-                                       which=lambda _: "wsl.exe") is None
-            and real.linux_gate_holder(run=probing(0, raises=subprocess.TimeoutExpired("bash", 1)),
-                                       which=lambda _: "wsl.exe") is None
-            and real.linux_gate_holder(run=probing(0, raises=FileNotFoundError("bash")), which=lambda _: "wsl.exe") is None)
+        said_probe: list[str] = []
+        free_ok = real.linux_gate_holder(run=probing(0, "linux-gate probe: FREE — no Linux gate of this tree runs\n"),
+                                         which=lambda _: "wsl.exe", say=said_probe.append) is None and not said_probe
+        unanswered = [real.linux_gate_holder(run=probing(2, LINUX_VERDICT + "NOT RUN [tree] (x) ===\n"),
+                                             which=lambda _: "wsl.exe", say=said_probe.append),
+                      real.linux_gate_holder(run=probing(0, raises=subprocess.TimeoutExpired("bash", 1)),
+                                             which=lambda _: "wsl.exe", say=said_probe.append),
+                      real.linux_gate_holder(run=probing(0, raises=FileNotFoundError("bash")),
+                                             which=lambda _: "wsl.exe", say=said_probe.append)]
+        arm("no holder when the probe says FREE (said nothing), and when it could not answer (exit 2), hangs or cannot "
+            "start (each SAID, never silent): a retry that meets BUSY again touches nothing, a wait that never ends costs "
+            "the branch",
+            free_ok and unanswered == [None, None, None] and len(said_probe) == 3
+            and all("was not answered" in m and "read as no Linux gate running" in m for m in said_probe), str(said_probe))
         if os.name == "nt":
             calls.clear()
             arm("a Windows host with no WSL has no Linux gate to hold anything, and is not asked",
