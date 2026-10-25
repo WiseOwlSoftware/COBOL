@@ -1977,6 +1977,11 @@ def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequenc
         tail += (f" {unpartitioned(g)} In your first checkpoint, give each note a `**Sites:**` paragraph naming the "
                  "files it changes and the members it changes in them (`path` (`Member`, ...)), so later plans "
                  "partition on them.")
+    # A declared set is a PREDICTION (kb/Work PB3640: PB3628's block named land_lane.py and its change also rewrote
+    # prune_worktrees.lifecycle, beside PB3275): the note's block must end the change naming what the change changed.
+    tail += (" SITES FOLLOW THE DIFF (kb/Work PB3640): when your diff changes a code file, or a member in one, that "
+             "no note's `**Sites:**` paragraph names, add it to the paragraph of the note it serves in the same "
+             "change, so a successor, a finisher and the next plan partition on what you really changed.")
     if g.blocked_by:
         tail += (f" ⛔ DEPENDENCY SUCCESSOR (blocked_by, kb/Work PB2120): these notes are blocked by "
                  f"{', '.join(g.blocked_by)}, which group {g.after}'s chain does in this wave. Build on that work, never "
