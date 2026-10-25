@@ -770,7 +770,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
                     ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
             }
-            case PicCategory.Boolean:   // converts, then fits (D-B5): the ONE boolean store, CobolBool.Store
+            case PicCategory.Boolean:   // converts, then fits (D-B5): the ONE boolean store, StrStoreBoolean
                 return RuntimeApi.StrStoreBoolean(chars, width, target.Justified);
             case PicCategory.Alphanumeric or PicCategory.National:
                 return ReceivingStore.Characters(target, chars, width);
