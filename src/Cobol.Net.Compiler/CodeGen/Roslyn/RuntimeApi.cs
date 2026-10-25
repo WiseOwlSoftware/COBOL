@@ -1014,11 +1014,18 @@ internal static class RuntimeApi
     public static string FloatStoreDecChecked(string dec, bool single) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.StoreChecked)}({dec}, {(single ? "true" : "false")})";
 
-    /// <summary>The BOOLEAN-receiver store (§14.6.8.6 — boolean-ZERO pad, explicit justification) —
-    /// <c>CobolString.Store</c> with <c>pad: '0'</c>.</summary>
+    /// <summary>⛔ THE BOOLEAN-receiver store (§14.6.8.6 — "after any necessary conversion", boolean-ZERO pad, explicit
+    /// justification) — <c>CobolBool.Store</c>: each sending character converts to a boolean position ('1' to one, every
+    /// other character to zero, determination D-B5, kb/Work PB3666) and the result is fitted with boolean zeros. Every
+    /// emitter that stores into a boolean item asks THIS, so no store can leave a non-boolean character in one.</summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width}, " +
-        $"justifiedRight: {(justifiedRight ? "true" : "false")}, pad: '0')";
+        $"{nameof(CobolBool)}.{nameof(CobolBool.Store)}({value}, {width}, justifiedRight: {(justifiedRight ? "true" : "false")})";
+
+    /// <summary>The boolean-position conversion alone (<c>CobolBool.FromCharacters</c>, D-B5): for a store whose
+    /// fitting is another rule's (a reference-modified slice's splice, a STRING image that already carries every
+    /// untouched position), so only the characters need converting.</summary>
+    public static string BoolFromCharacters(string chars) =>
+        $"{nameof(CobolBool)}.{nameof(CobolBool.FromCharacters)}({chars})";
 
     // ── INSPECT (CobolInspect; ISO §14.9.22) ──
 
