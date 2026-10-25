@@ -251,6 +251,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 + "and reference the data item");
             return;
         }
+        // ⛔ A DECLARED REPORT SECTION ENTRY IS NOT UNDEFINED EITHER (kb/Work PB1046). A printable item, a group entry or a
+        // report group of this source element's reports — or of a container's GLOBAL report — is in no name table the
+        // lookup above reads, so `MOVE PV TO W` and `DISPLAY DL` were told "no declaration gives the name" about names
+        // the REPORT SECTION declares. The reference is refused for its position (§13.8.6.2.3, §13.15.3 SR7); the
+        // admitted ones — a sum counter, resolved before name lookup, and a DETAIL group named by GENERATE — never get here.
+        if (data.ReportEntryReferenceRefused($"'{text}'", name, qualifiers)) return;
         string msg;
         // ⛔ A DECLARED CONDITION-NAME IS NOT UNDEFINED (kb/Work PB567). The data symbol table holds no level-88,
         // so a condition-name qualified by a data-name it is NOT subordinate to (`IS-A OF H1`, H1 an unrelated

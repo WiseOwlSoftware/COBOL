@@ -20,10 +20,13 @@
       *> §14.9.39.3 SR22 — "If identifier-7 references a restricted program-pointer, identifier-8 shall be the
       *>   predefined address NULL or shall reference a program-pointer and the program-prototypes associated
       *>   with identifier-7 and identifier-8 shall have the same signature."
-      *> §8.4.3.13 GR1/GR2 — SET … TO ENTRY takes the address of the outermost program the literal names.
+      *> §8.4.3.13.4 GR2/GR3 — ADDRESS OF PROGRAM program-prototype-name-1 is the address of the outermost program the
+      *>   prototype names, and has the characteristics of a program-pointer restricted to that prototype, so SR22
+      *>   admits it into PP1. (The vendor SET … TO ENTRY spelling names a program by value, is unrestricted and is
+      *>   refused for a restricted receiver, GR25 - kb/Work PB935; negative pb935-set-entry-restricted-program-pointer.)
       *>
       *> EXPECTED OUTPUT, derived line by line:
-      *>   PP-SET     PP1 holds PBT817's address after SET … TO ENTRY, so it is not the predefined NULL.
+      *>   PP-SET     PP1 holds PBT817's address after SET … TO ADDRESS OF PROGRAM PBT817, so it is not the predefined NULL.
       *>   PP-SAME    PP2 and PP1 are both restricted to PBT817 — the SAME prototype, hence trivially the same
       *>              signature — so SR22 admits the copy and §8.8.4.2.16 then makes them equal.
       *>   PP-NULL    SR22's first alternative: the predefined address NULL is admissible in a RESTRICTED
@@ -55,7 +58,7 @@
        01 WS-N PIC 9(4) VALUE 0042.
        PROCEDURE DIVISION.
        MAIN.
-           SET PP1 TO ENTRY "PBT817"
+           SET PP1 TO ADDRESS OF PROGRAM PBT817
            IF PP1 NOT = NULL
                DISPLAY "PP-SET"
            ELSE
