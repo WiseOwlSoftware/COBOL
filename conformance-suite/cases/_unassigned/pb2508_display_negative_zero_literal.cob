@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb2508_display_negative_zero_literal
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -16,6 +16,7 @@
       *> is neither negative nor positive. Every other literal is as
       *> written. A constant-name that substitutes the literal (13.10.4
       *> GR1) shows the same image.
+      *> (accept from 2002: the CONSTANT entry, 13.10, is a 2002 feature.)
       *> EXPECTED, one line each, bracketed:
       *>   A[+0] B[+0.0] C[+0] D[0] E[+00] F[+0.00] G[+5] H[-5]
       *>   I[1.50] J[+.0] K[+0] L[007] M[-0.5]
