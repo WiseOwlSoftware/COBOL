@@ -8,9 +8,11 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ THE RECEIVING SPLICE OF A VARIABLE-LENGTH GROUP'S OCCURS DEPENDING BIT TABLE KEEPS THE UNUSED OCCURRENCES AND NOTHING ELSE
 /// (kb/Work PB3598; <see cref="OdoTail.KeepUnused"/>). ISO §14.9.25.4 GR9 a) moves "each character position that is not occupied by a
-/// corresponding table" and §13.18.38.4 8) a) leaves the occurrences past the count out of the operation, so the receiver keeps the
-/// bits from the first unused occurrence to the end of the table at its MAXIMUM extent; the implicit filler past that extent
-/// (§8.5.1.6.3 rule 4) occupies no table and is the sender's wherever it lies in the characters the receiver uses.
+/// corresponding table", and an OCCURS DEPENDING table is no corresponding table (§8.5.1.12.2), so every character position moves;
+/// §13.18.38.4 7) calls the content of an occurrence past the count "undefined" and 8) a) leaves it out of the operation, so
+/// keeping the receiver's bits from the first unused occurrence to the end of the table at its MAXIMUM extent is the implementor's
+/// choice, not a rule; the implicit filler past that extent (§8.5.1.6.3 rule 4) occupies no table and is the sender's wherever it
+/// lies in the characters the receiver uses (GR9 a)).
 ///
 /// <para>The table is <c>B PIC 1(2)</c> then <c>T PIC 1(3) OCCURS 1 TO 4</c>: it starts at bit 2 of the member's first character,
 /// ends at bit 14 of its two characters, and the last two bits are the filler. Bytes are the ASCII characters whose bit patterns

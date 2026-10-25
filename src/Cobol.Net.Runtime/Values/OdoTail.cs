@@ -84,9 +84,13 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
     /// (§13.18.38.3 SR22). A table counted in bits is spliced at the bit (<see cref="CobolBits.WriteWindow"/>): its
     /// first unused occurrence may start inside a character.
     /// <para>⛔ WHAT A BIT TABLE'S SPLICE KEEPS IS THE UNUSED OCCURRENCES AND NOTHING ELSE (kb/Work PB3598).
-    /// §14.9.25.4 GR9 a) moves "the content of each character position that is not occupied by a corresponding table" and
-    /// moves the table by §14.6.9.2, so the bits of the occurrences past the count stay the receiver's (GR8 a) "will be
-    /// used"), from the first unused occurrence to the end of the table at its maximum extent
+    /// No table of these groups is a CORRESPONDING table (§8.5.1.12.2: two tables correspond only when one of them is a
+    /// dynamic-capacity table), so §14.9.25.4 GR9 a) moves every character position, "the content of each character position
+    /// that is not occupied by a corresponding table", exactly as GR4 does. What the move leaves to the implementor is the
+    /// content of the occurrences past the count: §13.18.38.4 7) calls it "undefined" and 8) a) leaves those occurrences out
+    /// of the operation. The implementor's choice (the splice's choice since kb/Work PB3030, exercised by
+    /// <c>pb3030_bit_odo_run_continuation</c>; the fixed-length lane makes the other one, GR4's whole characters) is that they stay the receiver's, from the first unused occurrence to the
+    /// end of the table at its maximum extent
     /// (<see cref="CobolTable.TrimmedExtent"/>) or of the receiver's current characters, whichever ends first. The
     /// implicit filler that completes the characters AFTER the maximum extent (§8.5.1.6.3 rule 4: "as needed to increase the
     /// number of bits to fill an integral number of characters") occupies no table, so when it lies inside the characters the

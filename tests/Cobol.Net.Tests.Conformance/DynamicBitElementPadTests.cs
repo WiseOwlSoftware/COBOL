@@ -14,8 +14,8 @@ namespace CobolNet.Tests.Conformance;
 /// group", has no next item to advance to: the five bits that round a 3-bit element up to its one character are the rounding of
 /// its length (§15.14.4 4: "When argument-1 does not occupy an integral number of bytes, the returned value is rounded to the
 /// next larger integer value"), the same rounding a level 77 or level 01 elementary 3-bit item has, which §8.5.1.6.3's NOTE says generates no filler. A group
-/// MOVE carries the table's elements, not those bits (§14.6.9.2: "Correspondingly numbered elements are moved according to the
-/// rules of the MOVE statement"), so no operation of the language can write them.
+/// MOVE carries the table's elements, not those bits (§14.6.9.2, which applies to a dynamic-capacity table: "Correspondingly
+/// numbered elements are moved according to the rules of the MOVE statement"), so no operation of the language can write them.
 ///
 /// <para>The witness is INITIALIZE ... WITH FILLER, the one statement that writes every implicit filler item: it sets the
 /// one-bit item's filler (stored: the group's first character is the bit 1 and its seven filler positions 1000000, 0xC0) and the
