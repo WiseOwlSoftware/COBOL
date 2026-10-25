@@ -1032,8 +1032,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // digits of its value through the one group-move sender (OperandText.NonElementaryMoveSender; docs/CONFORMANCE.md D-B4),
             // as the numeric literal arm above and `MOVE FUNCTION f TO G` store them - not as a numeric cell, which the group formal's
             // text adapter would read as the cell's own 38-digit image. A formal this activating element cannot see (a Format-1 CALL)
-            // reads the same digits from the argument's Sending (CobolArgAdapt.WithValueSending).
-            case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } } nf when GroupFormal(a) is not null:
+            // reads the digits of the argument's Sending (CobolArgAdapt.WithValueSending) - of the value the receiver-less evaluation
+            // below delivers, which a STANDARD-DECIMAL function (COMP-2 0.0001) has already cut to the 6 working fraction digits.
+            case BoundComputedOperand { IsNumericFunctionValue: true } nf when GroupFormal(a) is not null:
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(nf, num, "CALL argument")}), null)";
             case BoundComputedOperand expr:
             {
@@ -1126,12 +1127,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// character copy of the cell - so the cell must hold the sender's storage image, not its operand text. A bit or
     /// national group is the as-if-elementary formal <see cref="IsMovedFormal"/> takes.</summary>
     private static DataItem? GroupFormal(BoundCallArg a) =>
-        !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { } f && IsPlainGroupFormal(f) ? f : null;
-
-    /// <summary>The formal a BY CONTENT argument is moved into as GR4's unconverted group move: a group that is not a bit or
-    /// national group (those are "treated as elementary items in the MOVE statement", so <see cref="IsMovedFormal"/> takes
-    /// them). ONE answer for the CALL and function lanes (<see cref="GroupFormal"/>) and the INVOKE lane (kb/Work PB3562).</summary>
-    internal static bool IsPlainGroupFormal(DataItem f) => f is { IsGroup: true, IsAsIfElementary: false };
+        !a.Omitted && a.Mode is CobolPassMode.Content && a.Formal is { } f && f.IsPlainGroup ? f : null;
 
     /// <summary>⛔ THE ONE TEST OF WHICH FORMALS §14.2.3 GR9's MOVE LEG FILLS (see <see cref="MovedFormal"/>) — asked by the
     /// activating element's compile-time MOVE and by the activated unit's registration (<see cref="RegisteredFormal"/>), so
@@ -1167,7 +1163,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     {
         var sender = new BoundBoolOperand(value, AtItemWidth: true);
         if (formal.IsAnyLength) return OperandText.AsString(sender, num);
-        if (IsPlainGroupFormal(formal))
+        if (formal.IsPlainGroup)
             return RuntimeApi.StrStore(OperandText.AsString(sender, num), $"{BoundaryImageWidth(formal)}");
         return IsMovedFormal(formal)
             ? move.RecordValue(sender, formal)

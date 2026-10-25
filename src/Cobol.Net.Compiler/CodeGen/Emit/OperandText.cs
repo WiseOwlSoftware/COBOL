@@ -263,10 +263,11 @@ internal static class OperandText
     /// <para>The compiler already owned the right answer, in the OTHER direction: the group-sender arm deposits
     /// the pinned representation bytes of exactly these items, through <see cref="AsStorageImage"/>'s per-shape
     /// recipes. This is that one codec, so the two arms of the group move cannot answer the same question
-    /// differently (feedback_two_arm_dispatch). A literal or function value whose usage is DISPLAY (an alphanumeric,
-    /// numeric or boolean literal, a numeric or alphanumeric function value) and a figurative sender keep the operand
-    /// text: the text IS their representation - GR4's own first sentence names "a literal OR an elementary item" as the
-    /// sending side, and §8.3.3.6.4 GR2 sizes a figurative from the receiver. A value of usage NATIONAL (a national
+    /// differently (feedback_two_arm_dispatch). An alphanumeric or boolean literal, an alphanumeric function value and a
+    /// figurative sender keep the operand text: the text IS their representation - GR4's own first sentence names "a literal
+    /// OR an elementary item" as the sending side, and §8.3.3.6.4 GR2 sizes a figurative from the receiver. A NUMERIC literal
+    /// or function value has no representation to preserve and sends its DIGITS only, through <see cref="CobolNum.GroupDigits"/>
+    /// (kb/Work PB3570, PB3613; docs/CONFORMANCE.md D-B4). A value of usage NATIONAL (a national
     /// literal or function) or usage BIT (a boolean function) has a representation of its own, UTF-16BE pairs or packed
     /// bits, that the text is not: see the last arm.</para>
     /// <para>A <c>BoundCurrentRecord</c> also keeps <see cref="AsString"/>, which routes it to
@@ -290,7 +291,7 @@ internal static class OperandText
         // like a literal it states no representation for GR4 to preserve, so MOVE FUNCTION MIN(N 3) TO G (N = -15) stores 15,
         // not the -15 the operand text carries. The digits rule is CobolNum.GroupDigits, the ONE reader both arms call.
         BoundNumericLiteral lit => EmitText.CsLiteral(CobolNum.GroupDigits(lit.Text)),
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } or BoundBinary }
+        BoundComputedOperand { IsNumericFunctionValue: true }
             => RuntimeApi.NumGroupDigits(AsString(op, num, deSign: false)),
         // ⛔ A LITERAL OR FUNCTION VALUE OF USAGE NATIONAL OR BIT IS THE OTHER SENDER WITH A REPRESENTATION OF ITS OWN (kb/Work
         // PB3562): a national item sends its UTF-16BE pairs and a usage-bit item its packed bits (the field arm above), so

@@ -421,7 +421,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                          && host.Intrinsic.KeywordOmittedFunction(vomitRef) is { } vomitFn)
                 {
                     // the same identifier with the word FUNCTION omitted (§8.4.3.2.3 SR2) -- it parses as a data reference
-                    var omittedOperand = IntrinsicBinder.OperandOf(vomitFn);
+                    var omittedOperand = IntrinsicBinder.OperandOf(vomitFn, functionValue: true);
                     ValueClassScreen(omittedOperand, DataBinder.WrittenText(vomit));
                     args.Add(OperandArg(omittedOperand, CobolPassMode.Value));
                 }
@@ -459,7 +459,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // temporary's arm, never the data item's (kb/Work PB1930).
                 if (host.Intrinsic.KeywordOmittedFunction(bare) is { } omittedFn)
                 {
-                    if (AddBareTemporaryArg(IntrinsicBinder.OperandOf(omittedFn), DataBinder.WrittenText(bare)) is { } omittedRefusal)
+                    if (AddBareTemporaryArg(IntrinsicBinder.OperandOf(omittedFn, functionValue: true), DataBinder.WrittenText(bare)) is { } omittedRefusal)
                         return omittedRefusal;
                     continue;
                 }
@@ -628,8 +628,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             ConditionBinder.SoleFunctionCall(ax) is { } sfc ? host.Intrinsic.IntrinsicOperand(sfc)
                 : ConditionBinder.SoleOoIdentifier(ax) is { } soi ? host.Oo.OoIdentifierOperand(soi)
                 : ConditionBinder.SoleDataReference(ax) is { } kd && host.Intrinsic.KeywordOmittedFunction(kd) is { } kof
-                    ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2.3 SR2: the word FUNCTION omitted
-                : IntrinsicBinder.OperandOf(host.Expr.BindExpr(ax));
+                    ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2.3 SR2: the word FUNCTION omitted
+                : IntrinsicBinder.OperandOf(host.Expr.BindExpr(ax), functionValue: false);
 
         // A KEYWORD-LESS function-/method-identifier (Format 1's identifier-2, Format 2's GR9). It is never "a data item
         // defined in the file, working-storage, local-storage, or linkage section" (SR3), so GR9 a)2 assumes BY CONTENT

@@ -30,3 +30,20 @@ plain-group formal and the group arm of `OoEmitter` sends it.
 **Goldens.** `pb3613_numeric_function_group_move` and `..._comma` (MOVE; folded and evaluated calls, truncation, leading zeros,
 DECIMAL-POINT IS COMMA), `pb3613_numeric_function_group_formal` (CALL AS NESTED, Format-1 CALL, INVOKE) and its negative
 `..._below_2002`. `GroupMoveSenderChannelDriftTests` pins both arms and the absence of a second digit filter.
+
+**Rows.** No inventory row claimed or closed: the landing adds witnesses to rules already CONFORMS (`closes_rows: []` with its reason in
+`kb/Work/PB3613.md`).
+
+**Branch review, round 1.** One blocking finding, a sibling the sweep missed: FUNCTION LENGTH of a variable-length group is lowered to a
+`BoundBinary` sum, indistinguishable from an arithmetic expression, so `CALL ... AS NESTED USING BY CONTENT FUNCTION LENGTH(VG)` into a plain-group
+formal was still refused (COBOLNET1688) while MOVE and a Format-1 CALL stored `5`. The binder now says which it is once
+(`BoundComputedOperand.FunctionValue`, set by `IntrinsicBinder.OperandOf(expr, functionValue)`, whose parameter is required so a new position
+must decide); `IsNumericFunctionValue` is the one reader for the activation description, the CALL arm, the INVOKE guard and emitter
+(`BoundInvokeArg.ContentFunctionValue`) and the sending codec, and `DataItem.IsPlainGroup` is the one "plain group" test (the INVOKE binder guard
+wrote the predicate inline beside `CallEmitter.IsPlainGroupFormal`; that method is deleted and five other inline copies now read the property).
+`pb3613_numeric_function_group_formal` gained the LENGTH(VG) case on the three lanes; `pb3613_arithmetic_expression_group_formal_refused`
+pins that a real arithmetic expression stays refused. `GroupMoveSenderChannelDriftTests` pins both single sources. The summary of
+`NonElementaryMoveSender` now says a numeric literal or function value sends digits only.
+
+**Self-review.** The sibling sweep found the arithmetic-expression/function ambiguity above. Left open, as a lead: a STANDARD-DECIMAL function
+(COMP-2 argument) is cut to the receiver-less 6 fraction digits in a Format-1 CALL, so its digits there differ from AS NESTED and MOVE.

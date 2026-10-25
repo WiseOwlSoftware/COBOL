@@ -556,7 +556,20 @@ public sealed record BoundCurrentRecord(Place Area, FileModel File, Place? Depen
     : BoundOperand;
 
 /// <summary>A computed numeric expression used as an operand (e.g. a comparison operand <c>A + B</c>).</summary>
-public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand;
+public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand
+{
+    /// <summary>True when the operand is a FUNCTION-IDENTIFIER's value (§15.4: "a temporary elementary data item"), whatever
+    /// tree the binder lowered the call to - a <see cref="BoundIntrinsicCall"/>, or the <see cref="BoundBinary"/> sum
+    /// <c>IntrinsicBinder.VariableLengthGroupSum</c> writes for FUNCTION LENGTH of a variable-length group. It is the ONE
+    /// reader that tells a function value (a MOVE sender, §14.9.25.4 GR1) from an arithmetic expression (no MOVE sender)
+    /// when both are a <see cref="BoundBinary"/> (kb/Work PB3613). Set only through <c>IntrinsicBinder.OperandOf</c>.</summary>
+    public bool FunctionValue { get; init; }
+
+    /// <summary>True when the operand is the value of a NUMERIC function-identifier: a numeric <see cref="BoundIntrinsicCall"/>,
+    /// or a <see cref="FunctionValue"/> lowered to an arithmetic tree. The one question every channel that sends a value into
+    /// a plain group asks (<c>OperandText.NonElementaryMoveSender</c>, the CALL and INVOKE arms, the activation description).</summary>
+    public bool IsNumericFunctionValue => Expr is BoundIntrinsicCall ic ? ic.ResultCategory is PicCategory.Numeric : FunctionValue;
+}
 
 /// <summary>A figurative constant operand (ISO §8.3.3.6). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
 /// L=LOW-VALUE, Q=QUOTE}; its value is materialized against the receiving / other operand's category and width (a

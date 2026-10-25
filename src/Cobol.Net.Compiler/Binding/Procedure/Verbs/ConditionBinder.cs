@@ -1544,7 +1544,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // short-circuited: `(FUNCTION LOWER-CASE(X))` is "an arithmetic expression enclosed in
                 // parentheses" (§8.8.1.1) and the single-child descent gives that for free.
                 : SoleFunctionCall(expr) is { } sfc
-                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc))
+                    ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc), functionValue: true)
                 // Its §8.4.3.1.2 Format-4 twin (kb/Work PB1142): a SOLE inline method invocation "references a
                 // temporary data item with the same class, category, and content as the temp-identifier" (ISO
                 // §8.4.3.4.4 GR1), so an alphanumeric-returning one is a legal relation operand exactly as a sole

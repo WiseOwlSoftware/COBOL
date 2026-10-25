@@ -86,7 +86,7 @@ public sealed class GroupMoveSenderChannelDriftTests
         string b = body.Groups["b"].Value;
         // The literal arm covers a function value folded to a literal too (no FunctionValue exemption).
         Assert.Matches(@"BoundNumericLiteral\s+\w+\s*=>\s*EmitText\.CsLiteral\(\s*CobolNum\.GroupDigits\(", b);
-        Assert.Matches(@"BoundComputedOperand\s*\{\s*Expr:\s*BoundIntrinsicCall\s*\{\s*ResultCategory:\s*PicCategory\.Numeric\s*\}\s*or\s+BoundBinary\s*\}\s*=>\s*RuntimeApi\.NumGroupDigits\(", b);
+        Assert.Matches(@"BoundComputedOperand\s*\{\s*IsNumericFunctionValue:\s*true\s*\}\s*=>\s*RuntimeApi\.NumGroupDigits\(", b);
         // …both ahead of the fallthrough that renders the operand text.
         int fallthrough = b.IndexOf("RepresentationOfText(", System.StringComparison.Ordinal);
         Assert.True(b.IndexOf("CobolNum.GroupDigits(", System.StringComparison.Ordinal) < fallthrough
@@ -94,6 +94,45 @@ public sealed class GroupMoveSenderChannelDriftTests
             "the numeric-value arms must precede the operand-text fallthrough");
         // One rule in one place: the compiler holds no second copy of the digit filter (it lives in CobolNum.GroupDigits).
         Assert.DoesNotContain("LiteralDigits(", src);
+    }
+
+    /// <summary>⛔ A FUNCTION-IDENTIFIER'S VALUE IS A MOVE SENDER, WHATEVER TREE THE BINDER LOWERED IT TO, AND THE ONE READER IS
+    /// <c>BoundComputedOperand.IsNumericFunctionValue</c> (kb/Work PB3613). FUNCTION LENGTH of a variable-length group is lowered to
+    /// a <c>BoundBinary</c> sum, which an arithmetic expression (no MOVE sender, §14.8.2.2 rule 2) is too; the binder states the
+    /// difference once, in <c>IntrinsicBinder.OperandOf(expr, functionValue)</c> - a required parameter, so a new position that makes
+    /// an operand from a bound expression must say which it is - and the activation description, the CALL arm, the INVOKE binder
+    /// guard and the sending codec all ask the one property, never a node shape.</summary>
+    [Fact]
+    public void FunctionValue_IsStatedOnceByTheBinder_AndReadThroughOneProperty()
+    {
+        string intrinsic = Src("Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs");
+        Assert.Matches(@"static\s+BoundOperand\s+OperandOf\(\s*BoundExpr\s+e,\s*bool\s+functionValue\s*\)", intrinsic);
+        Assert.Matches(@"new\s+BoundComputedOperand\(e\)\s*\{\s*FunctionValue\s*=\s*functionValue\s*\}", intrinsic);
+        foreach (string[] path in new[]
+        {
+            new[] { "Cobol.Net.Compiler", "Oo", "ActivationDescriptions.cs" },
+            new[] { "Cobol.Net.Compiler", "CodeGen", "Verbs", "CallEmitter.cs" },
+            new[] { "Cobol.Net.Compiler", "CodeGen", "Emit", "OperandText.cs" },
+            new[] { "Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "OoBinder.cs" },
+        })
+            Assert.Contains("IsNumericFunctionValue: true", Src(path));
+        // The INVOKE lane carries the fact from the binder to the emitter beside the expression it qualifies.
+        Assert.Contains("ContentFunctionValue", Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "OoEmitter.cs"));
+    }
+
+    /// <summary>"Is this a group operation?" - a group that is not a bit or national group acting as an elementary item - is
+    /// <c>DataItem.IsPlainGroup</c> and written nowhere else (kb/Work PB3613): the INVOKE binder's guard, the CALL and INVOKE
+    /// emitters and the MOVE classifier ask the one property, so the binder's routing and the emitter's arm cannot disagree.</summary>
+    [Fact]
+    public void PlainGroup_IsOneProperty_OnDataItem()
+    {
+        var offenders = CompilerSources()
+            .Where(f => !f.EndsWith("DataItem.cs", System.StringComparison.Ordinal))
+            .Where(f => Regex.IsMatch(StripComments(File.ReadAllText(f)),
+                @"IsGroup\s*&&\s*!\s*[\w.]*IsAsIfElementary|IsGroup:\s*true,\s*IsAsIfElementary:\s*false"))
+            .Select(Path.GetFileName)
+            .ToList();
+        Assert.True(offenders.Count == 0, "the plain-group test is written inline in " + string.Join(", ", offenders) + ": use DataItem.IsPlainGroup");
     }
 
     /// <summary>The usage-keyed codec (national through <c>NatBytes</c>, bit through <c>BitsPackAll</c>) is written ONCE, in
