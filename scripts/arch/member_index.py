@@ -26,8 +26,9 @@ with every walked file's git blob id), and answers queries against the CURRENT t
     sites name (a Move/rename note's folder, an Extract note's class files) — the conservative set; a fix-lane note
     naming none declares its sites only (its fix goes there; it renames nothing);
   * their CALLERS: the index's files for each name (a type with its nested types and declaring files; a member with
-    its type's declaring files; the emitters writing either as text), plus every tracked code file under a FOLDER a
-    site names, on the current tree, plus DRIFT: every tracked `.cs` under src/ or tests/ whose blob differs from the
+    its type's declaring files; the emitters writing either as text), plus, for a restructuring note, every tracked
+    code file under a FOLDER a site names, on the current tree (a fix-lane note's folder site reserves nothing: never
+    a whole subsystem, kb/Work PB3670), plus DRIFT: every tracked `.cs` under src/ or tests/ whose blob differs from the
     index's (or that is new since) is scanned for each KNOWN name's last segment as a whole word and included on a
     hit; files deleted since drop out. Drift widens the callers of a name the index KNOWS (an unknown name has none);
     it cannot see a type a landing ADDED (the index never named it), which is why the planner never plans on a stale
@@ -43,8 +44,13 @@ cache directory (the coordination directory's `member-index/`), or, with regener
 GUARANTEE is the landing check (`scripts/orchestrator/landing_check.py`, run by `enqueue.py land`), which compares each
 landing's ACTUAL diff with its declared set and with every in-flight branch (DESIGN-architecture-review §8.7).
 
+  * its MEMBERS: the members its site blocks name in a file (`path#Member`, `path (`member`, …)`, work.NoteSites.members)
+    for a site file that is no caller; the planner's partition meets on those, and on every other file whole
+    (plan_wave.collision, scripts/arch/source_units.py; kb/Work PB3670).
+
 Callers: `plan_wave.declared_sets` (the planner's collision check, `file_set_collisions`, the spec renderer's and the
-landing check's computed set, all on THE index of the tree: kb/Work PB3203) returns `note_file_set`'s `files`, and
+landing check's computed set, all on THE index of the tree: kb/Work PB3203) returns `note_file_set`'s `files` and
+`members`, and
 `work.py check` fails an open PB2119 note whose names are unknown (on `load()`: the newest committed record, a check
 bounded by time).
 
@@ -343,23 +349,37 @@ def callers(index: dict, names: list[str], repo: Path = REPO, drifted: dict[str,
 
 def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict] | None = None,
                   drifted: dict[str, str] | Callable[[], dict[str, str]] | None = None) -> dict:
-    """{sites, names, how, unknown, files, index} of one note: its DECLARED file set (DESIGN-architecture-review §8.7;
-    kb/Work PB3242), what plan_wave.declared_sets returns and file_census_notes renders. `files` is its structured
-    sites (work.note_sites: the files they name, and every tracked code file under a folder they name) plus every
-    caller the index finds of the names it moves or changes. The index (`index`, or a function returning it, called only
-    when needs_index; default the newest committed record) is read only for a note that names what it moves or
-    changes, or a restructuring note; `drifted` likewise (default drifted_files)."""
+    """{sites, names, how, unknown, files, members, index} of one note: its DECLARED set (DESIGN-architecture-review
+    §8.7; kb/Work PB3242, PB3670), what plan_wave.declared_sets returns and file_census_notes renders. `files` is its
+    structured sites (work.note_sites: the files they name, and, for a RESTRUCTURING note only, every tracked code file
+    under a folder they name) plus every caller the index finds of the names it moves or changes. `members` is {file:
+    the members its sites name in it} for the site files every mention of which names members (work.NoteSites.members)
+    and that are no caller: the partition reads those by member and every other file whole (plan_wave.collision).
+    A FIX-LANE note's folder site reserves NOTHING (kb/Work PB3670): a fix changes files, and a folder named as where
+    to look (`Binding/`, `src/Cobol.Net.Runtime`) once reserved its whole subsystem (234 and 222 files for wave
+    20261032's groups A and B), holding every unrelated fix on any file under it. A restructuring note that moves or
+    renames a folder still claims every file in it, the ones a landing added since included (PB2251's
+    OfdRegionLocks.cs). Callers are reserved only for what a note MOVES, RENAMES or RE-SIGNS (its `**Moves or
+    changes:**`, `r2_members:` and documentation-id names; a restructuring note naming none, every type its sites
+    declare): a body-only edit is a site member (`path#Member`), which reserves that member and no caller. The index
+    (`index`, or a function returning it, called only when needs_index; default the newest committed record) is read
+    only for a note that names what it moves or changes, or a restructuring note; `drifted` likewise (default
+    drifted_files)."""
     sites = work.note_sites(text)
-    files = {p for p in sites.paths if not (repo / p).is_dir()} | folder_files(sites.paths, repo)
+    restructuring = bool(sites.wave) and not sites.fix_lane
+    files = {p for p in sites.paths if not (repo / p).is_dir()} | (folder_files(sites.paths, repo) if restructuring
+                                                                    else set())
     names, how, unknown, commit = [], SITES_ONLY, [], None
+    found: set[str] = set()
     if needs_index(sites):
         idx = index() if callable(index) else (load(repo) if index is None else index)
         names, how = note_names(text, idx, sites)
         found, unknown = callers(idx, names, repo, drifted() if callable(drifted) else drifted)
         files |= found
         commit = idx["commit"]
+    members = {p: list(ms) for p, ms in sorted(sites.members.items()) if p in files and p not in found}
     return {"sites": list(sites.paths), "names": names, "how": how, "unknown": unknown, "files": sorted(files),
-            "index": commit}
+            "members": members, "index": commit}
 
 
 # ── self-test ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -413,6 +433,11 @@ def self_test() -> int:
         raise AssertionError("a fix-lane note read the member index")
     fs = note_file_set("**Code site.** `src/A/Binder.cs#Pending` (the arm)", root, index=no_index, drifted=no_index)
     check("fix-lane-sites-only", (fs["files"], fs["names"], fs["index"]), (["src/A/Binder.cs"], [], None))
+    # ... and the member its site names is its claim in that file (kb/Work PB3670: the partition meets on members)
+    check("site-member", fs["members"], {"src/A/Binder.cs": ["Pending"]})
+    fs = note_file_set("**Sites:** `src/A/Binder.cs` (`Pending`, `Inner.X`) and `src/A/Sym.cs` (the flag arm)", root,
+                       index=no_index, drifted=no_index)
+    check("site-members-parenthesis", fs["members"], {"src/A/Binder.cs": ["Inner.X", "Pending"]})
     # an R2 defect routed to the fix lane is a fix-lane note whatever `r2_members:` it carries: its members say where
     # the defect lives, so neither they nor its site types are resolved (PB3242 branch review R1-2: the fix lane's plan
     # once read, and regenerated, the index for these notes)
@@ -442,8 +467,15 @@ def self_test() -> int:
     scratch = ScratchRepo.init(root)
     scratch.git("add", "-A")
     check("folder", "src/A/Added.cs" in folder_files(("src/A",), root), True)
-    fs = note_file_set("**Sites:**\n- folder `src/A/`", root, index=no_index, drifted=no_index)
+    fs = note_file_set(move + "- folder `src/A/`", root, index=idx, drifted={})
     check("folder-declared", "src/A/Added.cs" in fs["files"] and "src/A" not in fs["files"], True)
+    # a FIX-LANE note's folder site reserves nothing (kb/Work PB3670): never a whole subsystem
+    fs = note_file_set("**Sites:**\n- folder `src/A/`, `src/A/Sym.cs#Sym.Flag`", root, index=no_index, drifted=no_index)
+    check("fix-lane-folder-reserves-nothing", (fs["files"], fs["members"]), (["src/A/Sym.cs"], {"src/A/Sym.cs": ["Sym.Flag"]}))
+    # a restructuring note's CALLER files are whole: what it moves is re-signed at every call site (kb/Work PB3670)
+    fs = note_file_set(move + "- `src/A/Sym.cs#Sym.Flag`\n\n**Moves or changes:** `N.Sym.Flag`", root, index=idx,
+                       drifted={})
+    check("re-signed-member-holds-callers", ("src/B/Emit.cs" in fs["files"], fs["members"]), (True, {}))
     # currency (K1 (3)): the planner's index is the one whose treeKey is this tree's, else regenerated, else refused
     scratch.git("commit", "-qm", "c0")
     key = tree_key(root)
