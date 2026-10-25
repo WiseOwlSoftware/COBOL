@@ -1327,6 +1327,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // to the expression arm and an object-reference formal drew COBOLNET0828).
             else if (fnOperand is BoundFieldOperand { Place: { } resultTemp }) inlinePlace = resultTemp;
             else if (fnOperand is not BoundComputedOperand { Expr: BoundIntrinsicCall }) { }
+            // ⛔ …EXCEPT A NUMERIC FUNCTION INTO A PLAIN-GROUP FORMAL (kb/Work PB3613): GR4's group move stores the digits of the
+            // value (docs/CONFORMANCE.md D-B4), which the §15.4 temporary's own text image ("-15", "-1.500") is not. The call stays on
+            // the expression arm, whose value the emitter sends through the one group-move sender (OperandText.NonElementaryMoveSender).
+            else if (fnOperand is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } }
+                     && formal is { IsGroup: true, IsAsIfElementary: false }) { }
             else if (host.SendingValue.Materialize(fnOperand, "invokearg", use: SendingValueTemp.ValueUse.Text) is { } fnTemp) inlinePlace = fnTemp;
             else
             {

@@ -213,10 +213,10 @@ public static class ActivationDescriptions
     /// numeric literal (and a BY VALUE literal bound as an expression, §14.9.4.4 GR8) the numeric row of its own digits;
     /// a figurative constant or an ALL literal an alphanumeric value of any category, ZERO also a numeric COMPUTE sender
     /// (§8.8.1.1), and the two §14.9.25.3 SR6 / SR7 read apart (ZERO; an ALL literal of boolean characters); a
-    /// character-valued intrinsic function its §15.2 type's row; a numeric function or an arithmetic
-    /// expression a numeric value with no character image, of its function's row or — for an expression, which carries
-    /// no compile-time integer guarantee — the noninteger row (kb/Work PB1946); NULL a SET sender only. Null for a shape
-    /// none of these names.</summary>
+    /// intrinsic function its §15.2 type's row, a numeric one a value a MOVE sends whose digits a plain-group formal takes
+    /// (kb/Work PB3613); an arithmetic expression a numeric value with no character image, which is no MOVE sender, of the
+    /// noninteger row (it carries no compile-time integer guarantee, kb/Work PB1946); NULL a SET sender only. Null for a
+    /// shape none of these names.</summary>
     public static ActivationDescription? OfValue(BoundOperand value) => value switch
     {
         BoundPredefinedNull => new ActivationDescription { Shape = ActivationShape.PredefinedNull },
@@ -233,8 +233,13 @@ public static class ActivationDescriptions
                 MoveTable16.SenderPosition(new BoundNumericLiteral(text)).Heading),
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } ic } character =>
             Value(ActivationShape.Literal, CategoryName(ic.ResultCategory), MoveTable16.SenderPosition(character).Heading),
+        // ⛔ A NUMERIC FUNCTION'S VALUE IS A VALUE A MOVE SENDS, NOT AN ARITHMETIC EXPRESSION (kb/Work PB3613): §15.4 puts the returned
+        // value in "a temporary elementary data item", and a function-identifier is a MOVE sending operand (§14.9.25.4 GR1: "identifier-1 ... is a function-identifier"), so §14.8.2.2
+        // rule 2's "the same as for a MOVE statement with the argument as the sending operand" admits it opposite a plain-group formal,
+        // where its digits are what GR4's move stores (docs/CONFORMANCE.md D-B4). It used to share the arithmetic expression's
+        // shape, which a group formal refuses (an expression is no MOVE sender), and refused legal source.
         BoundComputedOperand { Expr: BoundIntrinsicCall } function =>
-            Value(ActivationShape.Expression, ActivationCategory.Numeric, MoveTable16.SenderPosition(function).Heading),
+            Value(ActivationShape.Literal, ActivationCategory.Numeric, MoveTable16.SenderPosition(function).Heading),
         BoundComputedOperand => Value(ActivationShape.Expression, ActivationCategory.Numeric, Table16Category.NumericNoninteger),
         _ => null,
     };

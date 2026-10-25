@@ -1760,7 +1760,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                             : CallEmitter.CallContentRead(gsp)
                         : CallEmitter.CallStringRead(gsp)
                     : literal is not null ? OperandText.NonElementaryMoveSender(literal, Num, "INVOKE argument")
-                    : throw new InvalidOperationException("an INVOKE argument into a group formal is neither an identifier nor a literal");
+                    // A numeric FUNCTION's value is the same unconverted move (kb/Work PB3613): its digits, through the one codec.
+                    : a.ContentExpr is BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } fn
+                        ? OperandText.NonElementaryMoveSender(new BoundComputedOperand(fn), Num, "INVOKE argument")
+                    : throw new InvalidOperationException("an INVOKE argument into a group formal is neither an identifier, a literal nor a numeric function");
                 // A GROUP argument BY CONTENT into an ELEMENTARY formal is §14.2.3 GR9's MOVE into the formal's record,
                 // and a group sender makes it §14.9.25.4 GR4's group move (kb/Work PB2587's sweep): the receiver's
                 // JUSTIFIED still applies and a national or bit formal decodes the group's bytes — the CALL lane's one
