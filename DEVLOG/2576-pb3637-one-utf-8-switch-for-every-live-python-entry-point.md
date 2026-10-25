@@ -1,4 +1,4 @@
-## PB3637: one UTF-8 switch for every live Python entry point, and a drift test that runs every --help under cp1252
+## Entry 2576 — 2026-10-25 14:50 PDT — PB3637: one UTF-8 switch for every live Python entry point, and a drift test that runs every --help under cp1252
 
 **Re-probe.** `python scripts/spec/work.py --help` through a pipe on the Windows host died with `UnicodeEncodeError:
 'charmap' codec can't encode character '\u26d4'`: the module docstring is the argparse description, and `main()` switched
@@ -37,3 +37,4 @@ Code: the ENTRY rule's "runs code at import" counts a try that does more than im
 so the call precedes the stdin read. Performance: the probes are the sweep's cost, two interpreter starts per entry
 point in a pool. Duplication: three copies of the `git ls-files -- live_tools.ROOTS` listing remain (self_tests.py,
 scratch_repo.py, temp_names.py) and this audit adds a fourth; reported as a lead, not widened here.
+
