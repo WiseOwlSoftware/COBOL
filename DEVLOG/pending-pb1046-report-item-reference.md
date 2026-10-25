@@ -41,4 +41,6 @@ reports are inherited after the contained data division binds; the report carrie
 standard word for word. Performance: `NamedEntries` is built once per report and only on the failure path. Duplication:
 two entry walks removed.
 
-**Gate.** (filled at the gate)
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at head 360313016, Linux half (WSL clone of
+HEAD) GREEN. All 24 conformance results of the six new cases and all 22 `ReportItemReferenceTests` passed in leg 1
+(`TestResults/build-local/000001-20261025T195328Z/leg-1-Conformance.trx`, `leg-1-Unit.trx`).
