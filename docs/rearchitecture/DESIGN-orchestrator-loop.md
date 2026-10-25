@@ -293,6 +293,10 @@ Each iteration, in this order:
 - A `wave` unit loads the `workstream` skill before the Workflow call (`dispatch_guard.py` refuses it otherwise),
   runs `plan_wave.py`, which renders the specs with `make_dispatch_specs.py` and runs `check_practices.py`, then
   starts `wf_rolling_wave.js` with the args file `plan_wave.py` wrote.
+- A role's turn cap has ONE home, the `maxTurns` of its `.claude/agents/<role>.md` (the number the harness enforces;
+  kb/Work PB3701). `make_dispatch_specs.py` renders the implementer's into every spec's `Turn cap` line
+  (`coord.agent_turn_cap`), the implementer briefs type no number, and `check_practices.py` (`turn_cap_copies`, in the
+  gate's FLEET PRACTICES audit and CI) refuses any other statement of a cap that differs from its role's `maxTurns`.
 
 ### 4.2 Permission mode under a headless session
 

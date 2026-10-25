@@ -1648,7 +1648,7 @@ carried the order (§3.13). `M3`, `M4`, `M5`, `M8` and `M10` (the registry restr
 measure (owner, 2026-09-28) and revisited on engineering merit only. `M2` (the cap), `M6` and `M7` are redesigned
 above. The rejected design and both reviews are in the DEVLOG entry that pivoted it and in kb/Work PB1708.
 
-#### 3.14.9 Implementation plan — gateable mechanisms, each ≤ ~220 implementer turns
+#### 3.14.9 Implementation plan — gateable mechanisms, each within one implementer's turn cap
 
 | id | mechanism | files | acceptance (measured, never asserted) | depends on | size |
 |---|---|---|---|---|---|

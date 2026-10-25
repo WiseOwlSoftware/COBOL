@@ -62,7 +62,8 @@ BRIEFS = {
     'dispatch-spec-implementer.md': [r'claude-skills', r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
-                                     r'Turn cap 220', r'code site', r'leg-1-Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
+                                     r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
+                                     r'code site', r'leg-1-Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
                                      r'status_delta\.py',
                                      # PB1721: the ordered gate, blocked on its own verdict line
                                      r'BUILD-LOCAL GATE: ',
@@ -109,9 +110,31 @@ RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-' + coord.STOP_SCOPE
 # A RENDERED spec's report path is in THE reports directory (coord.reports_dir(), kb/Work PB2980), the only one the land
 # unit and prune_worktrees.py read: wave 1055's scratch was its own folder, and its six reports were never seen.
 RENDERED_REPORT = re.escape(str(coord.reports_dir())) + r'\\w\d+[a-z]\d*-PB\d+-report\.md'
+# A RENDERED spec's `Turn cap` is the implementer's maxTurns (kb/Work PB3701), the number the harness enforces.
+RENDERED_TURN_CAP = rf'Turn cap {coord.agent_turn_cap("cobol-implementer")} —'
 SPEC = [p for p in BRIEFS['dispatch-spec-implementer.md']
-        if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}', r'\{linux_gate\}')] + \
-    RENDERED_STOPS + [RENDERED_REPORT, r'LINUX GATE \(I8, PB1732', r'linux-gate\.sh']
+        if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}', r'\{linux_gate\}', r'Turn cap \{turn_cap\}')] + \
+    RENDERED_STOPS + [RENDERED_REPORT, RENDERED_TURN_CAP, r'LINUX GATE \(I8, PB1732', r'linux-gate\.sh']
+
+# kb/Work PB3701: a role's turn cap has ONE home, the `maxTurns` of `.claude/agents/<role>.md` (coord.agent_turn_cap), and
+# every other statement of a cap is read from it or checked here. Each entry: (file, a regex whose one group is the
+# number the file states, the roles whose cap that number is). A statement that vanished from its file is a failure too
+# (the regex stopped matching, so the copy is no longer checked), and so is one that differs from the agent file.
+CAP_COPIES = [
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'implementer (\d+) \(raised from', ('cobol-implementer',)),
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'read-only (\d+), implementer', ('cobol-adjudicator', 'cobol-refuter')),
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'finisher transcript \(cap (\d+)\)', ('cobol-finisher',)),
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'`cobol-implementer` \(Opus, high, (\d+) turns\)', ('cobol-implementer',)),
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'`cobol-finisher` \(Opus, high, (\d+) turns', ('cobol-finisher',)),
+    ('.claude/skills/workstream/references/cost-law-and-budget.md', r'\| implementer \| \*\*(\d+) turns\*\*', ('cobol-implementer',)),
+    ('.claude/skills/workstream/references/cost-law-and-budget.md', r'read-only agent[^|]*\| \*\*(\d+) turns\*\*', ('cobol-adjudicator', 'cobol-refuter')),
+    ('.claude/skills/workstream/SKILL.md', r'Turn caps: (\d+) for any read-only agent', ('cobol-adjudicator', 'cobol-refuter')),
+    ('.claude/skills/workstream/SKILL.md', r'any read-only agent, (\d+) for an implementer', ('cobol-implementer',)),
+    ('.claude/skills/workstream/templates/finisher-brief.md', r'Turn cap (\d+)\.', ('cobol-finisher',)),
+]
+# The implementer briefs state NO number (they point at the spec's `Turn cap` line), so none can differ from the cap.
+NUMBERLESS_CAP_BRIEFS = ('fix-lane-implementer-brief.md', 'implementer-brief.md')
+LITERAL_CAP = re.compile(r'\b\d{2,3}[- ]turns?\b|turn cap \d|cap of \d|hard cap:? \d|~\d{3}\b', re.IGNORECASE)
 
 
 # P2: the blocking wait must RETURN when the verdict appears. `tail -f <log> | grep -m1 <verdict>` does not: grep exits
@@ -127,6 +150,26 @@ def check(path, pats):
     if HANGING_WAIT.search(text):
         missing.append('P2: a `tail -f … | grep -m1` wait (it idles to its timeout); use `until grep -q …; do sleep 5; done`')
     return missing
+
+
+def turn_cap_copies(repo=None, agents_dir=None):
+    """The statements of a role's turn cap that differ from the role's `maxTurns` (kb/Work PB3701), as messages: a copy
+    in CAP_COPIES whose number differs or whose text is gone, an implementer brief that types a number, and a role
+    whose agent file has no `maxTurns`."""
+    repo = repo or REPO
+    found = []
+    for rel, rx, roles in CAP_COPIES:
+        text = (repo / rel).read_text(encoding='utf-8')
+        stated = re.findall(rx, text)
+        if not stated:
+            found.append(f'{rel}: no statement matching /{rx}/ (the cap it states is no longer checked)')
+        for role in roles:
+            cap = coord.agent_turn_cap(role, agents_dir)
+            found += [f'{rel}: states {n} turns for {role}, whose maxTurns is {cap}' for n in stated if int(n) != cap]
+    for name in NUMBERLESS_CAP_BRIEFS:
+        text = (repo / '.claude' / 'skills' / 'workstream' / 'templates' / name).read_text(encoding='utf-8')
+        found += [f'{name}: types a turn cap ({m.group(0)!r}); point at the spec\'s `Turn cap` line' for m in LITERAL_CAP.finditer(text)]
+    return found
 
 
 # P1: a mechanical role takes its model from its own frontmatter (Sonnet). A per-call `model` on its agent() call
@@ -291,6 +334,12 @@ def main():
     if over:
         bad += 1
         print(f'FAIL     mechanical role given a per-call model (P1 — it overrides its Sonnet frontmatter): {over}')
+    caps = turn_cap_copies()
+    if caps:
+        bad += 1
+        print('FAIL     a turn cap differs from its role\'s maxTurns (kb/Work PB3701, P5):\n' + '\n'.join(f'           {c}' for c in caps))
+    else:
+        print('ok       turn caps: every statement matches its role\'s maxTurns; the implementer briefs type no number')
     groups_files = [pathlib.Path(a) for a in sys.argv[1:] if a.endswith('.json')]
     for gp in groups_files:
         cfg = json.loads(gp.read_text(encoding='utf-8'))

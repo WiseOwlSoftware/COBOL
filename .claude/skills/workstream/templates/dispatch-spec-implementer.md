@@ -50,7 +50,7 @@ A re-gate of a tree an earlier gate in this worktree measured GREEN answers at o
 saying `REUSED` (kb/Work PB3536): quote it as the gate's verdict.
 
 ⚠ SIZING: if the group proves to be two mechanisms, finish the first at its root, checkpoint at the note boundary, and
-return SPLIT rather than pass the 220-turn cap.
+return SPLIT rather than pass the {turn_cap}-turn cap.
 
 ⛔ RE-PROBE FIRST, EVERY NOTE, on YOUR build (`dotnet build Cobol.Net.sln -c Debug`, expect 0/0). A note that no longer
 reproduces is re-verdicted and reported DISCHARGED with the evidence — a real outcome, not a failure.
@@ -96,7 +96,7 @@ paths / codes used) with FIRST LINE `STATUS-AT: <output of git rev-parse HEAD>` 
 STATUS.md is gitignored, so writing it never moves HEAD). A hook refuses your next commit and your finish while the
 stamp is not HEAD (kb/Work/PB1701). RESUMING or MERGING a predecessor:
 run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <that worktree>` FIRST and read the summary plus ONLY the commits it lists.
-Turn cap 220 — at the cap, checkpoint, write NEXT, return SPLIT.
+Turn cap {turn_cap} — at the cap, checkpoint, write NEXT, return SPLIT.
 
 Report ≤ 60 lines, following `templates/implementer-report-template.md`, one section per note.
 SORT AND FILE I/O TESTS (MANDATORY-PRACTICES I11, the owner's standing rule): when your change reaches a SORT, MERGE or
