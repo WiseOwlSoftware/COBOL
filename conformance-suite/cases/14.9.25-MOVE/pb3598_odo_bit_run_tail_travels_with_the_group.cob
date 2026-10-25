@@ -15,9 +15,11 @@
       *> used" - the occurrences past the count keep their content.  The group's current extent is a whole number of
       *> characters, and the filler positions that end its last character are inside it.  At a count whose last character
       *> reaches past the maximum extent they lie beyond the last occurrence, in storage no occurrence owns, and the compiler
-      *> kept them nowhere.  (Where they lie in the first unused occurrence's storage the bits are two things at once - the
-      *> filler of the current extent and an occurrence 13.18.38.4 GR8 a) leaves unused - and the compiler's two receiving stores answer
-      *> differently; that is the open part of kb/Work PB3598, and no leg here depends on it.)
+      *> kept them nowhere.  (Where the last character of a smaller count's extent reaches the first unused occurrence's storage,
+      *> those bits are NOT filler: 8.5.1.6.3 puts the filler after "the last data item in a record", the table at its maximum, so
+      *> they are an occurrence 13.18.38.4 GR8 a) leaves unused and 13.18.38.4 7) calls undefined.  These groups hold no dynamic-length
+      *> item, so they are fixed-length groups (8.5.1.12.1) and the move is 14.9.25.4 GR4's alphanumeric move of whole characters; the
+      *> variable-length group of pb3598_odo_bit_run_tail_variable_group moves by GR9 and keeps those bits.  Both conform.)
       *>
       *> HOW EACH LEG CAN FAIL.  Every value is read as a byte through FUNCTION ORD (byte + 1).  "~" is 0x7E = 01111110 and
       *> "z" is 0x7A = 01111010, so the senders and the receivers hold different filler.  A receiver with no storage for the
