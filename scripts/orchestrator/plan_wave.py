@@ -48,7 +48,10 @@ cost the orchestrator a hand-written groups.json; this computes it.
    file absorbs that cluster's notes up to the cap (model_rules.json `wave.max_notes_per_group`).
 4. ONE GROUP PER PRIMARY FILE AND MEMBER: a later group on the same file whose claim there meets an earlier one's (the
    whole file, or a shared member) is a same-file successor (`after:`, MANDATORY-PRACTICES O2); one on other members of
-   the file runs beside it (kb/Work PB3670).
+   the file runs beside it (kb/Work PB3670). Groups are placed in TIER order (a campaign's effective tiers; a finisher
+   takes its notes'), finishers first inside one tier, so the highest tier heads its chain, and a wave dispatches only
+   the first `wave.links_per_chain` links of each chain (the owner's one): the later links wait for the next wave,
+   which plans them from the branch the earlier link leaves (kb/Work PB3638).
 5. MODEL per group from model_rules.json (Opus for design-heavy files and areas, an open design question, or a note
    that already failed twice; Sonnet otherwise; never Fable).
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
@@ -487,9 +490,9 @@ def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | Non
     """The reports in `reports_dir`, oldest first: by WRITE TIME, then wave, then file name (`report_order`). The wave
     number is no order across lanes (kb/Work PB3625: the loop's waves are date-numbered, 20261024, the Mythos lane's
     serial, 1157, so every date-numbered report outranked every serial one and a superseded SPLIT report stayed a
-    note's newest beside a later DONE one), so it only breaks a tie. The name makes the
-    order TOTAL: two reports written within one file-system tick tie on the first two keys, and a tie left
-    to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
+    note's newest beside a later DONE one), so it only breaks a tie. The name makes the order TOTAL: two reports of
+    ONE wave written within one file-system tick tie on the first two keys (reports of different waves written in one
+    tick are ordered by the second), and a tie left to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
     newest report, the order finishers are planned in and which of two chained finishers is the successor differed
     between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
     report's `notes` are completed from the dispatch ledger there (`answered_notes`): the planner passes it; the readers
@@ -1306,6 +1309,8 @@ class Group:
     blocked_by: list[str] = dataclasses.field(default_factory=list)   # campaign: open blockers planned before it
     continues: list[str] = dataclasses.field(default_factory=list)    # the branches its pred merges or cherry-picks
     members: dict[str, list[str]] = dataclasses.field(default_factory=dict)   # {file: the members it changes there}
+    tier: int | None = None        # campaign: the lowest tier of the clusters it holds (the placement order, PB3638)
+    link: int = 0                  # its place in its successor chain: 0 heads it (wave.links_per_chain, PB3638)
 
     @property
     def claim(self) -> Claim:
@@ -1319,9 +1324,9 @@ class Group:
 
 
 def group_of_cluster(kind: str, ids: list[str], c: Mapping[str, Any], **kw: Any) -> Group:
-    """A group on cluster `c`'s primary file and its claim (cluster_claim)."""
+    """A group on cluster `c`'s primary file and its claim (cluster_claim), at the cluster's tier."""
     claim = cluster_claim(c)
-    return Group(kind, ids, c["file"], sorted(claim.files), members=claim.member_lists(), **kw)
+    return Group(kind, ids, c["file"], sorted(claim.files), members=claim.member_lists(), tier=c.get("tier"), **kw)
 
 
 def letters():
@@ -1431,8 +1436,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          carrier: Callable[[str], str | None] | None = None,
          owned: set[str] | None = None, locked: set[str] | None = None,
          review_covers: Callable[[Report], bool] | None = None,
+         report_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
-         abandoned: set[str] | None = None) -> dict[str, Any]:
+         abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -1443,6 +1449,10 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     group that holds them: it joins the tail of that group's successor chain (`after:`), as a same-file successor
     does, because a successor merges its predecessor's FINAL, reviewed branch once that predecessor is settled
     (wf_rolling_wave.js `settled`), and each link reviewed CLEAN lands as it comes (kb/Work PB3381). A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
+    A campaign also passes `tiers`, {note: its effective tier} (work.cluster_order's): EVERY group, finisher or
+    cluster, is placed in tier order, so the highest tier heads its successor chain, and a wave runs only the first
+    `wave.links_per_chain` links of each chain (the owner's ONE); the later links wait for the next wave, planned from
+    the branch the earlier link leaves (kb/Work PB3638).
     Both lanes pass `busy`, {in-flight owner: InFlight} from classify_inflight (kb/Work PB2807: the fix lane once
     passed none, so a fix-lane group was planned on a file another session's running group held): a group whose claim
     meets RUNNING work (collision: a whole file, or a member of it, kb/Work PB3670) waits, the collision named, and so
@@ -1474,12 +1484,19 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     tips, the one coverage rule the branch survey's lifecycle reads; kb/Work PB3394). Only a FINDINGS stamp that covers
     the tip makes a review finisher; a stamp at an older head followed by real commits is WAITING FOR REVIEW (those
     commits are unreviewed, and the enqueue unit's diff-only re-review reads them, kb/Work PB3381): it is named in
-    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
+    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip.
+
+    `report_covers(report)`: the REPORT covers its branch's tip (prune_worktrees.report_since over the survey's tips,
+    the one coverage rule lifecycle() reads; kb/Work PB3446). The stale-stamp arm names the action lifecycle() takes:
+    WAITING FOR REVIEW (a reviewer reads the commits) only where the report covers the tip; where commits follow the
+    report that no report describes, lifecycle() reads the branch IN FLIGHT or a DECISION and no reviewer is
+    dispatched for it, so the arm says that instead. Without a survey the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
     locked = locked or set()
     held = held or {}
     review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
+    report_covers = report_covers or (lambda _r: True)
     replay = replay or (lambda _b: None)
     abandoned = abandoned or set()
     # AN ABANDONED BRANCH IS NEVER PLANNED FROM (kb/Work PB3170): the decision is recorded in kb/Work before the branch
@@ -1571,9 +1588,19 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             # branch survey reads it WAITING FOR REVIEW by the same coverage rule), very likely the answers to these
             # findings; one cobol-reviewer reads them (the enqueue unit's diff-only re-review, kb/Work PB3381). A
             # finisher would redo answered work on a branch whose author may still be committing (wave 1127's C).
-            waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and "
-                            f"branch {r.branch} has commits since that no review covers: one cobol-reviewer reviews "
-                            f"them (the enqueue unit's diff-only re-review), never a finisher")
+            if report_covers(r):
+                waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, "
+                                f"and branch {r.branch} has commits since that no review covers: one cobol-reviewer "
+                                f"reviews them (the enqueue unit's diff-only re-review), never a finisher")
+            else:
+                # ... but only where the REPORT covers the tip (kb/Work PB3446): lifecycle() reads a finished report
+                # followed by commits no report describes IN FLIGHT or a DECISION (a resumed agent rewrites its
+                # report), and no reviewer is dispatched for either, so naming one here promised an action that
+                # never happens. Neither is a finisher: the resumed agent may still be answering the findings.
+                waiting[nid] = (f"RESUMED: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and branch "
+                                f"{r.branch} has commits since {r.slug}'s HEAD that no report describes (lifecycle() "
+                                f"reads it IN FLIGHT or a DECISION, never WAITING FOR REVIEW): no reviewer and no "
+                                f"finisher is dispatched until its agent rewrites its report")
         elif r.gate_state == "RUNNING":
             # A GATE HANDED TO THE WAVE (kb/Work PB3536): its agent returned GATE-PENDING at its turn cap and the gate
             # still runs, detached; the wave awaits its verdict, and a GREEN one makes the report finished. A finisher
@@ -1760,8 +1787,24 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                 room = cap - len(g.notes)
                 g.notes += ids[:room]
                 g.take(cluster_claim(c))
+                g.tier = min(g.tier, c.get("tier"), key=work.tier_rank)
                 del ids[:room]
     groups += [group_of_cluster("cluster", ids, c) for c, ids in ranked if ids]
+    # THE PLACEMENT ORDER FOLLOWS THE TIER (kb/Work PB3638 defect 1). Groups are placed, lettered and chained in this
+    # order, so a same-file chain's head is the group placed first, and finishers came first whatever their tier: wave
+    # 20261029 chained two untiered finishers (PB3112, PB2878) ahead of the owner's tier-1 PB3612, which started two
+    # hours into the wave. A group's tier is the lowest of its notes' effective tiers (`tiers`, work.cluster_order's,
+    # which already ranks a blocker no later than what it blocks) and of the clusters it holds, lowered by lift_tiers to
+    # that of every group waiting on it (a group takes its LOWEST note's tier, as a cluster does). The sort is stable:
+    # inside one tier the finishers still go first and the clusters keep their rank. The fix lane passes no tiers and
+    # its clusters carry none, so its order is unchanged.
+    tiers = tiers or {}
+    views = [{"notes": [{"id": i} for i in g.notes],
+              "tier": min((g.tier, *(tiers.get(i) for i in g.notes)), key=work.tier_rank)} for g in groups]
+    lift_tiers(views, deps or {})
+    for g, v in zip(groups, views):
+        g.tier = v["tier"]
+    groups.sort(key=lambda g: work.tier_rank(g.tier))
 
     # Letters, successors, models, costs. A successor chain is linear (A, A2, A3: each merges the one before it), so
     # a group that must follow another joins the TAIL of that one's chain. In the fix lane the only link is a shared
@@ -1842,6 +1885,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             base = re.sub(r"\d+$", "", prev.letter)
             g.letter = f"{base}{int(prev.letter[len(base):] or 1) + 1}"
             g.after = prev.letter
+            g.link = prev.link + 1
             chain_of[id(g)] = chain_of[id(prev)]
         else:
             g.letter = next(gen)
@@ -1856,11 +1900,23 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         placed.append(g)
     groups = placed
 
-    # Fill the budget in rank order (finishers first); every group pays for its own landing (kb/Work PB3023).
+    # Fill the budget in rank order (tier, then finishers first); every group pays for its own landing (kb/Work PB3023).
+    # ONE CHAIN LINK PER WAVE (the owner, 2026-10-23: "no wave may take hours; one chain link per wave"; kb/Work PB3638
+    # defect 2): a wave runs until its last link returns, so a chain of three held the loop for hours (wave 20261029:
+    # PB3612, the third link, started two hours in) while the enqueue unit and every other campaign waited behind it.
+    # A link past `wave.links_per_chain` is not dispatched: its notes wait, and the next wave plans them as the
+    # continuation of the branch the earlier link leaves (the partition: continuation_pred), or holds them while it runs.
+    links = rules["wave"]["links_per_chain"]
     chosen: list[Group] = []
     skipped: list[Group] = []
     spent = 0.0
     for g in groups:
+        if g.link >= links:
+            for i in g.notes:
+                waiting[i] = (f"one chain link per wave (wave.links_per_chain {links}, kb/Work PB3638): it follows "
+                              f"group {g.after} on {g.file or 'the notes it waits on'}, which this wave runs; the next "
+                              f"wave plans it from that group's branch")
+            continue
         if max_groups is not None and len(chosen) >= max_groups:
             skipped.append(g)
             continue
@@ -2194,7 +2250,7 @@ def main(argv: list[str] | None = None) -> int:
             return json.loads(pathlib.Path(given).read_text(encoding="utf-8"))["clusters"]
         return run_fix_clusters(status, cdir / f"clusters-{status}.json", rules)["clusters"]
 
-    deps, waiting, campaign = None, {}, ""
+    deps, waiting, campaign, tiers = None, {}, "", {}
     # THE declared set of a note, one index policy for every plan (kb/Work PB3203): THE index of this tree
     declared = declared_sets(REPO, IndexPolicy.of(cdir, regenerate=not a.no_index_regenerate))
     if a.cluster:
@@ -2207,6 +2263,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         texts = {r["id"]: f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
                  for r in view["notes"] if (f := REPO / "kb" / "Work" / f"{r['id']}.md").is_file()}
+        tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
         clusters, half_clusters, deps, waiting = campaign_clusters(view, notes, texts, rules, load_fix_clusters(), REPO,
                                                                    declared)
         coord.write_json(cdir / f"clusters-campaign-{a.cluster}.json",
@@ -2248,23 +2305,27 @@ def main(argv: list[str] | None = None) -> int:
     states: dict[str, str] = {}
     owned: set[str] = set()
     locked: set[str] = set()
-    review_covers = None
+    review_covers = report_covers = None
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
         states, owned, locked = {r.name: r.state for r in rows}, prune_worktrees.owned(rows), prune_worktrees.locked(rows)
-        coverage = prune_worktrees.review_coverage(rows)   # the survey's own coverage rule, kb/Work PB3394
+        coverage = prune_worktrees.Coverage(rows)   # the survey's own coverage rules, kb/Work PB3394, PB3446
 
         def review_covers(rep: Report) -> bool:
-            return coverage(rep.review, rep.branch)
+            return coverage.review(rep.review, rep.branch)
+
+        def report_covers(rep: Report) -> bool:
+            return coverage.report(rep.head, rep.branch)
     busy = classify_inflight(raw, meta, reports, states, unlanded)
     if not a.no_branches:   # the units each worktree's and branch's actual diff touches in a shared file (PB3670)
         inflight_units(busy, meta, [cluster_claim(c) for c in clusters + half_clusters], prune_worktrees.git, REPO)
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned, locked=locked, review_covers=review_covers, replay=replay, abandoned=abandoned)
+             owned=owned, locked=locked, review_covers=review_covers, report_covers=report_covers, replay=replay,
+             abandoned=abandoned, tiers=tiers)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
