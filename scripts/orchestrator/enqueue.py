@@ -179,6 +179,7 @@ import devlog  # noqa: E402  (scripts/: the one definition of a landing's new en
 import gate_slot  # noqa: E402  (the landing gate's class: CLASS_ENV, LANDING)
 import landing_measure  # noqa: E402
 import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one merge of main into a branch, kb/Work PB3610)
+import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 import ruleset  # noqa: E402
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
 
@@ -709,7 +710,10 @@ def driver_file_holders(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> 
     queue although each merged cleanly through the drivers here: a branch waits (exit 16) for the open pull request
     that shares such a file, and merges main in through the drivers once it has merged. The branch's files are its
     own changes since its merge base with `base`; a pull request whose file list GitHub cut off (FILES_LISTED or more)
-    may change any of them, so it holds the branch for all of its driver-covered files. `land` asks it to tell a wait
+    may change any of them, so it holds the branch for all of its driver-covered files. Only a pull request that ENTERS
+    the queue (`queue_facts.PullRequest.entering`: in it, or with auto-merge on, and not bounced, conflicting or red)
+    holds: the conflict arises inside a merge group, and a bounced pull request re-enters only through a fresh `land`
+    (review R1-1); one the facts do not name is held. `land` asks it to tell a wait
     from a queueing; the landing lane's `driver_files_free` asks it to know when the wait is over."""
     diff = _git(wt, "diff", "--name-only", "-z", f"{base}...HEAD")
     if diff.returncode != 0:
@@ -724,7 +728,16 @@ def driver_file_holders(wt: pathlib.Path, base: str, branch: str, *, gh: Gh) -> 
     for number, _oid, paths in listed:
         if shared := [p for p in mine if p in paths] or (mine if len(paths) >= FILES_LISTED else []):
             held[number] = shared
-    return held, ""
+    if not held:
+        return held, ""
+    # Only a pull request IN the queue or on its way into it can share a merge group with this branch: one the queue
+    # bounced, that conflicts with main or whose required check failed re-enters only through a fresh `land` of a new
+    # head, which merges main in through the drivers first (review R1-1). A pull request the facts do not name is held.
+    facts = queue_facts.read(gh)
+    if facts is None:
+        return {}, "GitHub gave no answer for the merge queue's facts (queue_facts.read)"
+    known = {pr.number: pr for pr in facts.values()}
+    return {n: files for n, files in held.items() if n not in known or known[n].entering}, ""
 
 
 def take_queue_entry_lock(wt: pathlib.Path, label: str, *, wait_s: float = QUEUE_ENTRY_WAIT_S,
@@ -2101,15 +2114,24 @@ def self_test() -> int:
                 ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 51: stamp the entry")
             return 0
 
-        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False) -> Gh:
-            """GitHub as `open_predecessors` reads it: `pr list --json PR_LIST_FIELDS`, each pull request's number, branch,
-            current head and the files it changes (any other call is the queue's: answered like fake_gh)."""
+        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False,
+                       states: dict[int, dict] | None = None, queue_down: bool = False) -> Gh:
+            """GitHub as `open_predecessors` and `driver_file_holders` read it: `pr list --json PR_LIST_FIELDS`, each pull
+            request's number, branch, current head and the files it changes, and queue_facts.read's two calls (the
+            repository and the one GraphQL query: every listed pull request has auto-merge on, as the queueing leaves it,
+            unless `states` plants other `queue_facts.node` arguments by number; `queue_down`: GitHub cannot answer them).
+            Any other call is the queue's: answered like fake_gh."""
             def gh(args: list[str]) -> tuple[int, str, str]:
                 log.append(list(args))
                 if args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args:
                     return (1, "", "GraphQL: rate limited") if fail else (0, json.dumps(
                         [{"number": n, "headRefName": h, "headRefOid": o, "files": [{"path": f} for f in files]}
                          for n, h, o, files in listed]), "")
+                if args[:2] in (["repo", "view"], ["api", "graphql"]):
+                    if queue_down:
+                        return 1, "", "GraphQL: rate limited"
+                    return queue_facts.fake([queue_facts.node(n, h, o, **(states or {}).get(n, {"auto": "2026-10-25T10:00:00Z"}))
+                                             for n, h, o, _files in listed])(args)
                 return fake_gh([], log)(args)
             return gh
         pred_files = ["DEVLOG/0050-pb9-the-predecessor.md"]
@@ -2315,6 +2337,25 @@ def self_test() -> int:
                "for all its driver-covered files",
                other_files == ({}, "") and sorted(cut_off[0].get(912, [])) == sorted(samples.values()) and not cut_off[1],
                f"{other_files} {cut_off}")
+        # Review R1-1: only a pull request that ENTERS the queue shares a merge group with the branch. A bounced one (the
+        # queue removed it), one that conflicts with main (DIRTY) and one with a failed required check hold nothing; one in
+        # the queue, one with auto-merge on and one the facts do not name still do; GitHub's queue facts unreadable is a
+        # non-observation (exit 9 at `land`), never a queueing past a pull request nobody could see.
+        red_gate = {"databaseId": 7, "name": "ci-gate", "status": "COMPLETED", "conclusion": "FAILURE", "completedAt": "t"}
+        asked_states = {930: {"removed": "FAILED_CHECKS"}, 931: {"auto": "t", "state": "DIRTY"}, 932: {"auto": "t", "runs": [red_gate]},
+                        933: {"in_queue": True}, 934: {"auto": "t"}, 935: {"removed": "FAILED_CHECKS", "auto": "t", "pushed": 1}}
+        by_state = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh(
+            [(n, f"s{n}", "o", [one]) for n in asked_states], [], states=asked_states))
+        unnamed = driver_file_holders(drv.path, base_ref, "drv", gh=lambda args: (
+            (0, json.dumps([{"number": 940, "headRefName": "x", "headRefOid": "o", "files": [{"path": one}]}]), "")
+            if args[:2] == ["pr", "list"] else queue_facts.fake([])(args)))
+        queue_unread = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh([(950, "q", "o", [one])], [], queue_down=True))
+        expect("driver files: a pull request the queue BOUNCED, that CONFLICTS with main or whose required check FAILED holds "
+               "nothing (it re-enters only through a fresh land); one in the queue, with auto-merge on (also after a push "
+               "following a removal) or that the queue facts do not name holds the branch; queue facts GitHub cannot "
+               "answer are a problem, not an empty hold",
+               sorted(by_state[0]) == [933, 934, 935] and not by_state[1] and unnamed == ({940: [one]}, "")
+               and queue_unread[0] == {} and "queue" in queue_unread[1], f"{by_state} {unnamed} {queue_unread}")
         no_driver_file = driver_file_holders(lw, "refs/remotes/origin/main", "fix", gh=lambda args: (_ for _ in ()).throw(
             AssertionError("a branch with no driver-covered file asked GitHub")))
         expect("driver files: a branch that changes no driver-covered file never asks GitHub", no_driver_file == ({}, ""),
@@ -2350,10 +2391,12 @@ def self_test() -> int:
                rc_busy == 2 and busy_line.startswith(verdict_line.PREFIX + "NOT QUEUED") and "pid 4243" in busy_line,
                f"{rc_busy} {busy_line}")
         log_free: list[list[str]] = []
-        rc_free = drv_land(listing_gh([], log_free), measure=lambda w, b, n, g: None)
+        # The only open pull request that lists the file was BOUNCED by the queue (review R1-1): it holds nothing.
+        rc_free = drv_land(listing_gh([(921, "bounced", "o", [one])], log_free, states={921: {"removed": "FAILED_CHECKS"}}),
+                           measure=lambda w, b, n, g: None)
         lock_again = gate_slot.ExclusiveLock.try_take(gate_slot.git_common_dir(drv.path) / QUEUE_ENTRY_LOCK_NAME, "probe")
-        expect("land: once the open pull request has merged (none lists the file) the same branch is stamped and queued, and "
-               "the queue-entry lock is free again for the next landing",
+        expect("land: once the open pull request has merged, or when it was bounced out of the queue (it cannot share a merge "
+               "group), the same branch is stamped and queued, and the queue-entry lock is free again for the next landing",
                rc_free == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED")
                and any(a[:2] == ["pr", "create"] for a in log_free) and lock_again is not None,
                f"{rc_free} {lines[-2:]} {log_free}")

@@ -121,7 +121,8 @@ public sealed class MergeDriverDriftTests
     /// land</c> therefore reads the open pull requests (<c>driver_file_holders</c>, which asks <c>merge_drivers.covered_by_driver</c>,
     /// so a new <c>DRIVERS</c> entry is guarded with no new line) before it stamps or queues, ends exit 16 while one shares
     /// a driver-covered file with the branch, holds the repository's queue-entry lock from that look to the queueing, and the
-    /// landing lane retries exit 16 once none does. The self-tests drive every arm, including one branch that changes the
+    /// landing lane retries exit 16 once none does. Only a pull request that ENTERS the queue holds (<c>queue_facts.PullRequest.entering</c>:
+    /// a bounced, conflicting or red one re-enters only through a fresh land; review R1-1). The self-tests drive every arm, including one branch that changes the
     /// sample file of EVERY driver pattern; this holds the wiring and that those arms stay declared.
     /// </summary>
     [Fact]
@@ -130,6 +131,8 @@ public sealed class MergeDriverDriftTests
         string enqueue = File.ReadAllText(TestRepo.At("scripts/orchestrator/enqueue.py"));
         Assert.Contains("driver_file_holders(wt, base, branch, gh=gh)", enqueue, StringComparison.Ordinal);
         Assert.Contains("merge_drivers.covered_by_driver(p)", enqueue, StringComparison.Ordinal);
+        Assert.Contains("queue_facts.read(gh)", enqueue, StringComparison.Ordinal);
+        Assert.Contains("known[n].entering", enqueue, StringComparison.Ordinal);
         Assert.Contains("take_queue_entry_lock(wt,", enqueue, StringComparison.Ordinal);
         Assert.Contains("EXIT_DRIVER_FILE_QUEUED,", enqueue, StringComparison.Ordinal);
         string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
@@ -142,7 +145,11 @@ public sealed class MergeDriverDriftTests
             "land: a branch whose driver-merged file an open pull request changes too waits: exit 16",
             "land: GitHub that cannot list the open pull requests is exit 9",
             "land: another landing holding the queue-entry lock past the wait is exit 2",
-            "land: once the open pull request has merged (none lists the file) the same branch is stamped and queued",
+            "driver files: a pull request the queue BOUNCED, that CONFLICTS with main or whose required check FAILED holds nothing",
+            "land: once the open pull request has merged, or when it was bounced out of the queue",
+        ]);
+        SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/orchestrator/queue_facts.py"), [
+            "a pull request ENTERS the merge queue when it is in it or has auto-merge on",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.At("scripts/orchestrator/land_lane.py"), [
             "exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class",
