@@ -6,6 +6,9 @@ code comment in `CobolEdit.cs`, the summary of `CobolEditStoredSignTests`, the h
 `pb3664_edited_sign_stored_value` and the `docs/CONFORMANCE.md` determination now cite §14.6.8.2 5): "further
 alignment, zero fill or truncation, and transfer of digits take place as described in the general rules and editing
 rules in 13.18.40". The same four sites now present §8.8.4.2.4's "Zero is considered a unique value regardless of the
-sign" as what that clause says of comparisons, corroboration rather than the governing rule. A sweep of every
-`§14.6.8.2 4)` citation in `src`, `tests`, `docs`, `scripts` and `conformance-suite` found no other numeric-edited
-receiver: each of the rest names a fixed-point numeric item. No behavior changes.
+sign" as what that clause says of comparisons, corroboration rather than the governing rule. The first sweep claimed no other
+numeric-edited receiver cited rule 4, and the branch reviewer refuted it: its pattern missed the `r4` spelling. Re-run over
+every spelling and read hit by hit, it found seven more sites (the BLANK WHEN ZERO golden pb566, two more
+`CobolEdit.cs` comments, both numeric design docs, PB566's note and that row's inventory notes), all now citing
+rule 5; every other hit names a fixed-point numeric receiver. PB3687, a duplicate of PB3690 the enqueue unit's
+clerk filed from the same lead, is retired as folded into it. No behavior changes.

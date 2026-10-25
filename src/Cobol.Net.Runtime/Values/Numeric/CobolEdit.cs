@@ -234,7 +234,7 @@ public static partial class CobolEdit
         // render the absolute digit string at the mask's capacity (excess INTEGER digits truncate high-order).
         // ⛔ The widening is the STORE-CAP form (kb/Work PB639): the digits this mask could never show are
         // dropped decimally BEFORE the multiply, so the high-order truncation two lines below is the LOW-ORDER
-        // digits of the true value (§14.6.8.2 r4 "zero fill or truncation on either end"), not the low-order
+        // digits of the true value (§14.6.8.2 5): a numeric-edited receiver takes "further alignment, zero fill or truncation"), not the low-order
         // digits of an Int128 wrap. MOVE 10^30 TO PIC Z(8)9.9(9) showed 123822295.304634368 for 0.000000000.
         Int128 scaled = CobolNum.RescaleStoreCap(value, valueScale, fracDigits, CobolRounding.Truncation);
         string digits = CobolDec.UAbs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -257,8 +257,8 @@ public static partial class CobolEdit
         // item is a receiving operand and THE VALUE BEING STORED is zero", which is the value the item ENDS UP
         // HOLDING: exactly the digit string above. §14.9.25.4 GR6 d) closes "Alignment of the numeric value by
         // decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data
-        // into the receiving data item, take place as defined in 14.6.8", and §14.6.8.2 r4 is "zero fill or
-        // truncation on either end as required" — so a store that truncates to zero at EITHER end (0.4 into
+        // into the receiving data item, take place as defined in 14.6.8", and §14.6.8.2 5) gives a numeric-edited
+        // receiver "further alignment, zero fill or truncation" — so a store that truncates to zero at EITHER end (0.4 into
         // PIC 9(3), 100 into PIC 99) stores zero and blanks. §13.18.8.1 says the same in one line: the clause
         // "causes the blanking of an item when a value of zero is being stored in it".
         // ⛔ THE GUARD BELONGS HERE, AFTER THE STORE RESCALE, and nowhere else: every arm reaches this one
