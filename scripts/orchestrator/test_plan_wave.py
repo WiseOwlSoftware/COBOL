@@ -667,6 +667,41 @@ pj = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "AB
              {**DR_UNLANDED, "worktree-wf_dr-8": ["PB4242"]}, RULES, budget_points=100, carrier=DR_CARRIER.get)
 check("a branch naming no lead is a judgment row, its non-lead ids never planned",
       ("worktree-wf_dr-8" in pj["unlanded_without_note"], any("PB4242" in g.notes for g in pj["groups"])), (True, False))
+# 6b''''. STARTED WORK IS FINISHED WHICHEVER LANE PLANNED IT (kb/Work PB3699). Wave 20261031's groups A, C and D (SPLIT
+#         reports on committed branches, CHECK and UNLANDED) answered campaign notes, which are `process_only`, so no
+#         cluster of the fix lane holds them: `plan_wave.py --drain` listed their branches as judgment rows and planned
+#         nothing. A SPLIT / NOT STARTED report on a branch that is not on main is started work in every mode.
+SP = TMP / "reports-unseen-split"
+SP.mkdir()
+for name, first, hdr in (
+        ("w2031a-PB80-report.md", "SPLIT", "# PB80 group\n**branch:** `worktree-wf_sp-1` · **HEAD:** `1010101aa`"),
+        ("w2031c-PB81-report.md", "SPLIT", "# PB81 group\n**branch:** `worktree-wf_sp-2` · **HEAD:** `2020202bb`"),
+        ("w2031d-PB82-report.md", "NOT STARTED", "# PB82 group\n**branch:** `worktree-wf_sp-3` · **HEAD:** `3030303cc`"),
+        ("w2031e-PB83-report.md", "SPLIT", "# PB83 group (its note landed)\n**branch:** `worktree-wf_sp-4` · **HEAD:** `4040404dd`"),
+        ("w2031f-PB84-report.md", "SPLIT", "# PB84 group (its branch is on main)\n**branch:** `worktree-wf_sp-5` · **HEAD:** `5050505ee`"),
+        ("w2031g-PB85-report.md", "SPLIT", "# PB85 group (its note exists only on the branch)\n**branch:** `worktree-wf_sp-6` · **HEAD:** `6060606ff`")):
+    (SP / name).write_text(f"{first}\n{hdr}\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
+sp_reports = pw.load_reports(SP)
+sp_notes = {n: pw.Note(n, st, "process", n, [], "", 0) for n, st in
+            (("PB80", "open"), ("PB81", "open"), ("PB82", "open"), ("PB83", "landed"), ("PB84", "open"))}
+sp_notes.update(pw.branch_lead_notes(sp_reports, sp_notes, {"wrong_answer": 8},
+                                     lambda *a, cwd=None: _Shown(0, "---\nid: PB85\nstatus: open\narea: process\n---\n# PB85\n")
+                                     if a[:2] == ("show", "worktree-wf_sp-6:kb/Work/PB85.md") else _Shown(128)))
+check("the lead of a SPLIT report is read from its own branch when main does not have it (PB3699)",
+      sorted(set(sp_notes) - {"PB80", "PB81", "PB82", "PB83", "PB84"}), ["PB85"])
+SP_CLASS = {"worktree-wf_sp-1": "CHECK", "worktree-wf_sp-2": "UNLANDED", "worktree-wf_sp-3": "UNLANDED",
+            "worktree-wf_sp-4": "UNLANDED", "worktree-wf_sp-5": "LANDED", "worktree-wf_sp-6": "UNLANDED"}
+SP_UNLANDED = {"worktree-wf_sp-1": ["PB80"], "worktree-wf_sp-2": ["PB81"], "worktree-wf_sp-3": ["PB82"],
+               "worktree-wf_sp-4": ["PB83"], "worktree-wf_sp-6": ["PB85"]}
+for drain in (False, True):
+    sp = pw.plan(sp_notes, [], [], sp_reports, lambda b: SP_CLASS.get(b, "ABSENT"), SP_UNLANDED, RULES, budget_points=100,
+                 drain=drain)
+    check(f"{'drain' if drain else 'normal'}: a SPLIT or NOT STARTED report on a CHECK or UNLANDED branch gets a "
+          f"FINISH-FIRST group though no cluster holds its note; a landed note or a landed branch gets none (PB3699)",
+          (sorted((g.kind, tuple(g.notes), "FINISH-FIRST" in g.pred) for g in sp["groups"]),
+           sp["unlanded_without_note"]),
+          ([("finisher", ("PB80",), True), ("finisher", ("PB81",), True), ("finisher", ("PB82",), True),
+            ("finisher", ("PB85",), True)], ["worktree-wf_sp-4"]))
 # ...and unlanded_branch_notes itself keeps every id the subjects name: it once kept only the open notes, so a
 # superseded FINDINGS branch naming only its unseen lead (owner-task: PB77) reached plan() empty, a judgment row.
 _saved = (prune_worktrees.main_names, prune_worktrees.classify)
