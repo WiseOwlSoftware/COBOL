@@ -89,9 +89,14 @@ internal sealed class SidecarRegionLocks : RegionLocks
                 if (mine.Exclusive || !exclusive) return RegionLockResult.Ok;   // held at least as strongly already
                 Release(offset);                                                 // shared -> exclusive: give back, then take
             }
-            bool roundRetried = false;
+            bool lastRoundWasTheExtraOne = false;
             for (int pause = 0; ; pause++)
             {
+                // ⛔ THE EXTRA ROUND IS OWED TO EVERY LOST ROUND, NOT ONCE PER CALL (kb/Work PB3676): only a lost round that
+                // follows ANOTHER lost round with nothing in between is refused it. A round that saw a live holder (and
+                // waited for it) is progress, so the next lost round beside a holder that has since left earns its own.
+                bool extraRoundSpent = lastRoundWasTheExtraOne;
+                lastRoundWasTheExtraOne = false;
                 // After a conflict, look before publishing again so a waiting request does not churn lock files.
                 if (pause > 0)
                 {
@@ -117,8 +122,9 @@ internal sealed class SidecarRegionLocks : RegionLocks
                         default:
                             // A WAITING hold publishes ONE more round before it gives up: the holder that made its tries lose
                             // (its rmdir of the last file) may have let go during the round, so a lock that was free by the
-                            // time we looked is not a lock this host cannot carry (review R1-1).
-                            if (wait && !roundRetried) { roundRetried = true; continue; }
+                            // time we looked is not a lock this host cannot carry (review R1-1). Two lost rounds in a row
+                            // with nothing in the way are a host that cannot carry it, so the wait stays bounded.
+                            if (wait && !extraRoundSpent) { lastRoundWasTheExtraOne = true; continue; }
                             return RegionLockResult.Unavailable;
                     }
                 }
@@ -196,5 +202,15 @@ internal sealed class SidecarRegionLocks : RegionLocks
 
     /// <summary>The pause between two attempts of a waiting hold: jittered, so two requests that refused each other
     /// at the same instant do not retry in step.</summary>
-    private static void Backoff(int attempt) => Thread.Sleep(Random.Shared.Next(1, 3 + Math.Min(attempt, 18)));
+    private static void Backoff(int attempt)
+    {
+        if (BackoffObserver.Value is { } observer) { observer(attempt); return; }
+        Thread.Sleep(Random.Shared.Next(1, 3 + Math.Min(attempt, 18)));
+    }
+
+    /// <summary>Test seam: when set, the pause of a waiting hold is REPORTED (the attempt number) instead of performed, so a
+    /// test lets a holder go BETWEEN two attempts of one waiting hold without a thread or a timed sleep (the precedent of
+    /// <see cref="SidecarLockFiles.PauseObserver"/>, kb/Work PB3676). An <see cref="AsyncLocal{T}"/>: only the calling test's
+    /// own flow observes.</summary>
+    internal static readonly AsyncLocal<Action<int>?> BackoffObserver = new();
 }
