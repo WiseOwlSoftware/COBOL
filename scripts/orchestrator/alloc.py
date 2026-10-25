@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""The ONE locked allocator for DEVLOG entry numbers (`devlog.py stamp` takes them), kb/Work `PB` ids and `COBOLNET` diagnostic codes.
+"""The ONE locked allocator for DEVLOG entry numbers (`devlog.py stamp` takes them), kb/Work `PB` ids, `COBOLNET` diagnostic codes and wave numbers.
 
     python scripts/orchestrator/alloc.py devlog          # reserve the next DEVLOG entry number   -> 1866
+    python scripts/orchestrator/alloc.py wave            # reserve the next wave number (plan_wave's and a hand dispatch's) -> 20261108
     python scripts/orchestrator/alloc.py pb 5            # reserve five kb/Work ids                -> PB1982-PB1986
     python scripts/orchestrator/alloc.py code 3          # reserve three diagnostic codes          -> COBOLNET2799-COBOLNET2801
     python scripts/orchestrator/alloc.py peek code       # the next free value, reserving nothing
@@ -33,7 +34,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import devlog  # noqa: E402  (the one reader of DEVLOG/)
 
 LOCK = "alloc.lock"
-KINDS = ("devlog", "pb", "code")
+KINDS = ("devlog", "pb", "code", "wave")
 PB_FILE = re.compile(r"^PB(\d+)\.md$")
 CODE = re.compile(r"COBOLNET(\d{4})")
 CATALOG_CODE = re.compile(r'"COBOLNET(\d{4})"')
@@ -73,17 +74,43 @@ def code_scans(repo: pathlib.Path) -> tuple[int, int]:
     return src_max, cat_max
 
 
-def truth(kind: str, repo: pathlib.Path) -> int:
+#: How much of the newest DEVLOG the wave and train numbering reads (one file per entry, kb/Work PB3025): the newest
+#: RECENT_ENTRIES entries, and of those the first RECENT_LINES lines for wave and train labels.
+RECENT_ENTRIES = 20
+RECENT_LINES = 200
+WAVE_LABEL = re.compile(r"\b(?:[Ww]aves?|[Tt]rains?) (\d{3,})")
+
+
+def wave_top(repo: pathlib.Path, cdir: pathlib.Path) -> int:
+    """The highest wave OR train number in use: in a report's name in the reports directory (a hand dispatch's too), in
+    the dispatch ledger, or in the newest RECENT_LINES lines of the DEVLOG's newest entries (0 when none). A wave's first
+    train is labelled with the wave number, so a train label counts as taken too (kb/Work PB2562: trains 1035 and 1036
+    came from waves 1031 and 1032, the planner proposed wave 1035, and "Train 1034" had already landed twice). A wave
+    planned but with no report yet (another session's, awaiting the operator's GO) is taken as well, or the next wave
+    reuses its number and overwrites its specs (kb/Work PB2806). A number HANDED OUT but not yet written anywhere is the
+    reservation's (`alloc.json`, `peek`/`allocate`), which is how a hand dispatch's wave stays taken until its report
+    exists (kb/Work PB3700)."""
+    seen = [int(m.group("wave")) for p in coord.reports_dir(str(cdir)).glob("w*-PB*-report.md")
+            if (m := coord.REPORT_NAME.match(p.name))]
+    seen += [int(g["wave"]) for g in coord.ledger_groups(cdir)]
+    for line in "".join(devlog.newest(repo, RECENT_ENTRIES)).split("\n")[:RECENT_LINES]:
+        seen += [int(w) for w in WAVE_LABEL.findall(line)]
+    return max(seen, default=0)
+
+
+def truth(kind: str, repo: pathlib.Path, cdir: pathlib.Path) -> int:
     if kind == "devlog":
         return devlog_top(repo)
     if kind == "pb":
         return pb_max(repo)
+    if kind == "wave":
+        return wave_top(repo, cdir)
     return max(code_scans(repo))
 
 
 def render(kind: str, first: int, count: int) -> str:
     last = first + count - 1
-    if kind == "devlog":
+    if kind in ("devlog", "wave"):
         return str(first) if count == 1 else f"{first}-{last}"
     if kind == "pb":
         return f"PB{first}" if count == 1 else f"PB{first}-PB{last}"
@@ -95,7 +122,7 @@ def allocate(kind: str, count: int, repo: pathlib.Path, cdir: pathlib.Path) -> t
     """Reserve `count` consecutive values of `kind`; returns (first, last)."""
     if kind not in KINDS or count < 1:
         raise ValueError(f"bad allocation {kind!r} x{count}")
-    t = truth(kind, repo)  # read outside the lock: it is the slow part, and truth only grows
+    t = truth(kind, repo, cdir)  # read outside the lock: it is the slow part, and truth only grows
     with coord.locked(cdir, LOCK):
         path = cdir / "alloc.json"
         state = coord.read_json(path, {})
@@ -118,7 +145,7 @@ def seed(kind: str, value: int, cdir: pathlib.Path) -> int:
 
 def peek(kind: str, repo: pathlib.Path, cdir: pathlib.Path) -> int:
     state = coord.read_json(cdir / "alloc.json", {})
-    return max(truth(kind, repo), int(state.get(kind, 0))) + 1
+    return max(truth(kind, repo, cdir), int(state.get(kind, 0))) + 1
 
 
 def probe_line(repo: pathlib.Path, cdir: pathlib.Path) -> str:
@@ -163,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(render(a.arg, peek(a.arg, repo, cdir), 1))
         return 0
-    if a.kind == "devlog":
+    if a.kind in ("devlog", "wave"):
         count = int(a.arg or 1)
     else:
         if not a.arg or not a.arg.isdigit() or int(a.arg) < 1:

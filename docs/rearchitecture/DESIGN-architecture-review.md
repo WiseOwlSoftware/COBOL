@@ -1699,7 +1699,7 @@ as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`collision`, the O
 `file_set_collisions`; for EVERY plan, the fix lane's too since kb/Work PB2807), checks it against (a) the in-flight work,
 read from sources a branch classification cannot drop (`inflight_file_sets`): every worktree's changed files, committed
 or not, and every unlanded branch's, each counted only while it still differs from `origin/main`, plus every group of
-the dispatch ledger (`<coord>/inflight-groups.json`, read through `plan_wave.ledger_groups`) whose notes are still
+the dispatch ledger (`<coord>/inflight-groups.json`, read through `coord.ledger_groups`) whose notes are still
 open. The ledger has STRUCTURED writers only (kb/Work PB3186): `plan_wave.record_dispatch`, an upsert keyed on (wave,
 letter), called by `make_dispatch_specs.py` for every group it renders, the planner's waves and a hand-planned wave
 alike, with the group's exact file set, so a dispatched group is in flight before its first edit (J3); and `--release`.
