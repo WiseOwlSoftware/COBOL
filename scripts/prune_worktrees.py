@@ -38,7 +38,7 @@ who acts next:
                    cherry-pick or identity, by an outranking branch nobody carries; replay_view, the planner's own
                    rule, so the survey and the planner never disagree on WHO carries whom).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
-    1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
+    1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, coord.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
        the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
@@ -819,7 +819,7 @@ def note_terminal(work_dir: pathlib.Path | None = None) -> Callable[[str], bool]
 
 
 def report_index(reports_dir: pathlib.Path | None, terminal: Callable[[str], bool]) -> list[Report]:
-    """Every fix-lane report, oldest first, through plan_wave's reader (REPORT_NAME, the status line), reused and never
+    """Every fix-lane report, oldest first, through plan_wave's reader (coord.REPORT_NAME, the status line), reused and never
     forked: a suffixed name is invisible here exactly as it is to the planner (kb/Work PB2602). The header (up to the
     first `## ` heading, as plan_wave.parse_report reads it) is where a report names its branch and worktree."""
     if not reports_dir or not reports_dir.is_dir():
@@ -1788,7 +1788,7 @@ def self_test() -> int:
               f'a commit after the report that no report describes is a DECISION, counted: {rows["resumed"].why}')
         check(rows['landed-content'].content == 'LANDED', 'a branch re-applied on main classifies LANDED by content')
         check('no fix-lane report' in rows['orphan'].why,
-              'a suffixed report name is invisible (plan_wave REPORT_NAME), and a name below the header binds nothing')
+              'a suffixed report name is invisible (coord.REPORT_NAME), and a name below the header binds nothing')
         check('SPLIT' in rows['split-branch'].why, 'a DECISION row names its report status')
         check('already landed' in rows['superseded'].why, 'a DONE report whose lead note landed is superseded')
         check('never landed' in rows['stale-done'].why, 'a DONE report over --stale-hours is a DECISION, said so')
