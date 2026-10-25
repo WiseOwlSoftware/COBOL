@@ -447,7 +447,7 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
 
     inventory_oids = set(o for o in inventory_ids if o)
     summaries: dict[str, tuple[dict, frozenset[str]] | None] = {}
-    notes: dict[str, dict | None] = {}   # a file without frontmatter is not a note, exactly as `work.load` skips it
+    notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
     for oid, data in git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)]):
         text = data.decode("utf-8", errors="replace")
         if oid not in inventory_oids:

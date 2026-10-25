@@ -369,8 +369,12 @@ def note_of(text: str, stem: str, harm_weights: dict[str, int]) -> Note | None:
 def load_notes(work_dir: pathlib.Path, harm_weights: dict[str, int]) -> dict[str, Note]:
     notes = {}
     for p in sorted(work_dir.glob("PB*.md")):
-        if n := note_of(p.read_text(encoding="utf-8", errors="replace"), p.stem, harm_weights):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        if n := note_of(text, p.stem, harm_weights):
             notes[n.id] = n
+        elif work.NOTE_FILE.match(p.name):   # a damaged note leaves the plan as silently as it left the register (PB3654)
+            raise SystemExit(f"⛔ {p.name}: unreadable as a work note — {work.unreadable_why(text)}: no plan is made on a "
+                             f"register missing a note (python scripts/spec/work.py check)")
     return notes
 
 
