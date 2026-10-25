@@ -27,6 +27,14 @@ so `(N)` was sent to a group formal as N's storage image. It now wraps the expre
 accepted by a numeric formal, COMPUTE's rule 2 a), output `[03] [05] [03]`) with its negative `_below_2002` (COBOLNET0900). Drift pin:
 `GroupMoveSenderChannelDriftTests.ParenthesizedFunction_IsAnExpression_TheTreeShapeIsNeverAsked`.
 
+**Review round 1 (R1-1).** The first fix wrapped EVERY residue of `CallBinder.ExpressionOperand` as a computed operand, but a sole NUMERIC
+constant-name has no sole-shape arm above the last one, so `CALL ... AS NESTED USING BY CONTENT K` (`01 K CONSTANT AS 42`) into a PIC X(4) formal became
+a computed expression with no character image and aborted the run unit (NotImplementedCobolFeatureException, "computed expression in a string
+context"); before the branch it stored `42  ` like the written literal. A constant-name is literal-1 (ISO 13.10.4 GR1), so the method now has two more
+sole-shape arms ahead of the wrapper: a sole constant-name (the ONE alias resolution, `ExpressionBinder.LiteralAliasOf` / `AliasOperand`) and a sole
+numeric literal (`NumericLiteralOperand`). Golden `pb3678_numeric_constant_by_content_moved_formal` (accept 2002/2014/2023; K and 42 both display
+`[42  ]`) was red before; no earlier golden covered a numeric constant-name BY CONTENT.
+
 **Left open.** A parenthesized numeric LITERAL, `(3)` or `(-3)`, is still taken for the literal: `Gr8ArgumentLiteral.NumericText` recovers a
 literal from a computed operand for the BY VALUE `-1.234E-5` spelling and cannot tell a parenthesized one. A different mechanism, reported as a
 lead. Rows re-verdicted: none (the note claimed 0). The ordered gate's verdict is in the branch report.

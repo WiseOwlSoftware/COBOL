@@ -629,7 +629,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 : ConditionBinder.SoleOoIdentifier(ax) is { } soi ? host.Oo.OoIdentifierOperand(soi)
                 : ConditionBinder.SoleDataReference(ax) is { } kd && host.Intrinsic.KeywordOmittedFunction(kd) is { } kof
                     ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §8.4.3.2.3 SR2: the word FUNCTION omitted
-                // Every sole shape has its arm above, so what is left carries an operator, a sign or enclosing parentheses: an
+                // A sole NUMERIC constant-name is literal-1 (§13.10.4 GR1), the literal a written 42 is: the ONE alias resolution
+                // answers it and the operand it substitutes crosses (kb/Work PB3678 review R1-1: wrapped as an expression it
+                // reached the MOVE leg of an elementary non-numeric formal as a computed value with no character image).
+                : ConditionBinder.SoleDataReference(ax) is { } kd2 && host.Expr.LiteralAliasOf(kd2) is { } kalias
+                    ? host.Expr.AliasOperand(kalias)
+                // A sole numeric LITERAL stays the literal operand, as the relation operand's does (ConditionBinder, §8.8.4.2.1).
+                : ConditionBinder.SoleNumLiteral(ax) is { } knum ? host.Expr.NumericLiteralOperand(knum)
+                // Every sole shape (function, OO identifier, keyword-less function, constant-name, literal) has its arm above, so what is left carries an operator, a sign or enclosing parentheses: an
                 // ARITHMETIC EXPRESSION (§14.9.4.4 GR8 regards as an identifier or literal only an argument that "consists
                 // merely of a single identifier or literal"), whatever tree the binder reduced it to - `(C)` binds to C's
                 // BoundNumRef and `(FUNCTION MIN(N 3))` to the sole call's BoundIntrinsicCall (kb/Work PB3678, PB1935).
