@@ -45,5 +45,15 @@ surface are unchanged, and a mixed pair differs only for a boolean formal given 
 No inventory row is claimed or closed; the register note PB3666 is flipped to landed with `closes_rows: []` and its reason.
 The change reaches no file I/O status, sort or declarative path (READ INTO is an implicit MOVE through the same store).
 
-Review round 1 (wave 20261105, finisher): the new boolean arm of `ReceivingStore.Characters` caught a USAGE NATIONAL boolean receiver too, so a GR4 group move converted and zero-filled the UTF-16BE BYTE image before `StorageCharacters` decoded it (`MOVE GN TO BN` with GN holding N"101" displayed three CJK characters and B-NOT gave 111; main gave 101 and 010). The arm is now `Usage: Usage.Display` only (a BIT area is packed bytes, a national one UTF-16BE pairs; neither is characters), pinned by line L12 of the golden and by `ReceivingStoreDriftTests`. The two LEAD comment findings were fixed in the files already changed: the design invariant and D-B5 now name the two bypasses that leave undefined content (a group receiver under GR4, a REDEFINES view; section 14.6.13.2 1)), and the STRING comment and golden header no longer present GR3 a) as the authority for the conversion (it prescribes the alphanumeric move; D-B5 is the authority).
+Review round 1 (wave 20261105, finisher): the new boolean arm of `ReceivingStore.Characters` caught a USAGE NATIONAL boolean receiver too, so a GR4 group move converted and zero-filled the UTF-16BE BYTE image before `StorageCharacters` decoded it (`MOVE GN TO BN` with GN holding N"101" displayed three CJK characters and B-NOT gave 111; main gave 101 and 010). The arm now asks `ReceivingStore.AreaHoldsCharacters`, the complement of `StorageCharacters`' decoding arms (a BIT area is packed bytes, a national one UTF-16BE pairs; neither is characters), pinned by line L12 of the golden and by `ReceivingStoreDriftTests`. The two LEAD comment findings were fixed in the files already changed: the design invariant and D-B5 now name the two bypasses that leave undefined content (a group receiver under GR4, a REDEFINES view; section 14.6.13.2 1)), and the STRING comment and golden header no longer present GR3 a) as the authority for the conversion (it prescribes the alphanumeric move; D-B5 is the authority).
 
+
+Merge-queue bounce (pull request #548, merge-group run 40161872886; finisher): CI's corpus-nist conformance shard failed on
+both hosts at edition 2023 on two older goldens that had pinned the undefined behavior D-B5 replaces, nothing else.
+`cases/_unassigned/pb53_by_content_move_rules` moves "WXYZ", N"WXYZ" and "ABCDEF" into a `PIC 1(4) USAGE BIT` item, both
+across INVOKE BY CONTENT and as a plain MOVE (§14.8.2.3.3 2) d) makes them one rule): pairs 2, 3 and 5 are now `0000`
+on both halves, and pairs 1, 4 and 6, which move boolean values, are unchanged.
+`cases/8.4.3.3-Reference-modification/pb72_table16_admitted_cells` moves `FUNCTION CONCAT("AB" "01")` into `PIC 1(4)`:
+`MX=0001`. Both headers now cite D-B5 for those lines. The local gate had not run them because they sat in leg 2: no impact
+map was recorded, so leg 1 could not aim at the change's reach (filed as a lead for PB3663). A sweep of every MOVE into a
+`PIC 1` item in `conformance-suite/` and `tests/` found no other expected output that keeps a non-boolean character.
