@@ -561,9 +561,13 @@ internal sealed class SequentialJournal
             case ImageKind:
                 Span<byte> head = stackalloc byte[20];
                 if (!Fill(reader, head)) return null;
+                // The length word is untrusted (a torn or damaged tail): it is judged in long arithmetic against what the record still
+                // holds, and against the largest array, BEFORE anything is allocated, so a wrapped or oversized word is a torn tail
+                // (the records end here) and never an overflow, an out-of-memory or an allocation the record cannot fill.
                 int length = BinaryPrimitives.ReadInt32LittleEndian(head[16..]);
-                if (length < 0) return null;
-                byte[] image = new byte[1 + 20 + length + ChecksumBytes];
+                long unitLength = 1L + 20 + length + ChecksumBytes;
+                if (length < 0 || unitLength > Array.MaxLength || length + (long)ChecksumBytes > reader.Length - reader.Position) return null;
+                byte[] image = new byte[unitLength];
                 image[0] = ImageKind;
                 head.CopyTo(image.AsSpan(1));
                 return Fill(reader, image.AsSpan(21)) && Whole(image) ? image : null;
