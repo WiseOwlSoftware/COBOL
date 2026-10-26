@@ -31,6 +31,8 @@ import json
 import pathlib
 import re
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
@@ -81,10 +83,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--write", action="store_true", help="update scripts/spec/data/index-levels.json")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives "
                  "in a PRIVATE submodule: git submodule update --init specs-private")
@@ -112,4 +110,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

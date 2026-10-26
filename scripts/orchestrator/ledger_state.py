@@ -40,6 +40,8 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import account  # noqa: E402
 import coord  # noqa: E402
 import gen_ledger  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 MARKER = "ledger-published.json"
 
@@ -134,10 +136,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--url", help="mark-published: the artifact this account published to")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     repo, cdir = pathlib.Path(a.repo), coord.coord_dir(a.coord)
     try:
         name = account.resolve(a.account).name
@@ -174,4 +172,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

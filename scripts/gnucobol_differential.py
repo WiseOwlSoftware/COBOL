@@ -30,6 +30,7 @@ from concurrent.futures import ProcessPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gnucobol_extract as gx                                                              # noqa: E402
 from scratch_repo import scratch_dir  # noqa: E402  (this directory's: a run's scratch, removed at exit)
+from standard_streams import ensure_utf8  # noqa: E402
 
 STD_MAP = {'cobol85': '85', 'cobol2002': '2002', 'cobol2014': '2014', 'cobol2023': '2023'}
 VENDOR_STDS = ('mf', 'ibm', 'acu', 'rm', 'xopen', 'mvs', 'bs2000', 'realia')
@@ -411,4 +412,5 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

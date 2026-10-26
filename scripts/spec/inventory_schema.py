@@ -38,6 +38,8 @@ import re
 import sys
 from collections.abc import Iterable, Mapping
 from typing import Any, NamedTuple
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO / "tests" / "version-matrix" / "inventory-schema.json"
@@ -1135,11 +1137,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
-    for _stream in (sys.stdout, sys.stderr):
-        try:
-            _stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
+    ensure_utf8()
     if sys.argv[1:] != ["--self-test"]:
         raise SystemExit("usage: python scripts/spec/inventory_schema.py --self-test  (a module, imported by every "
                          "inventory consumer; run directly it only self-tests)")

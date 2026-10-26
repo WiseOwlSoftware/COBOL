@@ -9,7 +9,7 @@
   from it only by main's commits, clean merges and DEVLOG-only commits, is not gated again), merges main in again when
   it moved during the gate (no second gate: the merge group runs the whole population on the current main), stamps the
   branch's `DEVLOG/pending-<slug>.md` (`devlog.py stamp`, the number from `alloc.py devlog`), runs the landing checks
-  (`devlog.py check` 6, `landing_check.py` 3; none depends on what else is queued, kb/Work PB3107, PB3123) and hands
+  (`devlog.py check` 6, `landing_check.py` 3, the merged head's own `work.py check` 6; none depends on what else is queued, kb/Work PB3107, PB3123) and hands
   the branch to GitHub's merge queue
   (`enqueue.py queue`: the PR titled from the DEVLOG entry, its body the entry and the commits; the queue's merge commit
   keeps the branch's commits ancestors of main). Main takes only queued pull requests, so while `ruleset.py check` does

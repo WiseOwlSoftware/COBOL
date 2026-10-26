@@ -64,7 +64,9 @@ internal static class PythonInstrument
         psi.ArgumentList.Add(script);
         foreach (string a in args) psi.ArgumentList.Add(a);
         // ProcessObserver decodes both streams as UTF-8; tell CPython to encode them that way rather than
-        // falling back to the host ANSI code page, or a report's § and ⛔ read back mangled.
+        // falling back to the host ANSI code page, or a report's § and ⛔ read back mangled. The script's own
+        // standard_streams.ensure_utf8() does the same at its startup (kb/Work PB3637); the launcher sets it too, so a
+        // `python -c` program run here is covered (the owner, 2026-10-10: the program "plus likely test cases").
         psi.Environment["PYTHONIOENCODING"] = "utf-8";
         return ProcessObserver.ObserveOrThrow(psi, budget: budget);
     }

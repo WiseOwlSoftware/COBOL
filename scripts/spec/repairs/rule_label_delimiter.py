@@ -37,6 +37,8 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent))
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
 
 HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
@@ -119,10 +121,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     import clause_page
     import fitz
     doc = fitz.open(clause_page.find_pdf())
@@ -150,4 +148,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
