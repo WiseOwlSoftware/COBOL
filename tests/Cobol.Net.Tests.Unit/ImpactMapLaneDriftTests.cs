@@ -24,6 +24,7 @@ namespace CobolNet.Tests.Unit;
 /// the store's <c>impact_store.py --self-test</c>'s and the lookup's <c>impacted_tests.py --self-test</c>'s; this pins
 /// that every arm is still declared and that the one trigger and the documents still say the rule.</para>
 /// </remarks>
+[Trait("Sweep", "tree")]
 public sealed class ImpactMapLaneDriftTests
 {
     /// <summary>Sentences the retired rule left in a document: maps recorded on demand and never per commit, or a map
