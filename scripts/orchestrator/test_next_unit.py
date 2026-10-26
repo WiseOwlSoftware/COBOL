@@ -22,7 +22,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE))
 from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from standard_streams import ensure_utf8  # noqa: E402
 import next_unit  # noqa: E402
+
+ensure_utf8()
 
 TMP = scratch_dir("next-unit-test-")
 REPO = TMP / "repo"          # not a git tree: clean, nothing unpushed, no worktrees
