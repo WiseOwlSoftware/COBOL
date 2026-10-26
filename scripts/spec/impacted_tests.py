@@ -92,6 +92,12 @@ TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
 # Structural inputs: every assembly may change.
 STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
                            r"|^src/Cobol\.Net\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
+#: The public-API baselines of the Roslyn public-API analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017):
+#: read by the analyzer at build time and by the tests that name them, embedded in no assembly. A change to one is no
+#: input to any test's execution, so it is data a test may READ (`readers`) and not "a non-C# input under src/" that
+#: puts every test in tier 1. Measured (kb/Work PB3663): two of 22 code-changing landings of a replayed day fell back to
+#: tier 1 for this file alone.
+ANALYZER_DATA_RE = re.compile(r"(^|/)PublicAPI\.(Shipped|Unshipped)\.txt$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
 #: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
@@ -460,6 +466,17 @@ class MapChoice(NamedTuple):
     drift: frozenset[str]
 
 
+def explicit_map(path: Path, base: str) -> MapChoice:
+    """A map named on the command line (`--map`): served as `find_map` serves one of the store, by the files that
+    differ between its commit's tree and `base`'s. A commit git does not know (a hand-made map) tells nothing, so the
+    map is taken as describing the base exactly, as it always was."""
+    m = load_map(path)
+    drift = impact_store.drift_between(REPO, str(m.get("commit", "")), base)
+    if drift is None or m.get("commit") == base:
+        return MapChoice(m, "exact", frozenset())
+    return MapChoice(m, "nearest" if drift else "documentation-only drift", frozenset(drift))
+
+
 def find_map(store: Path, base: str, reach: Reach) -> MapChoice:
     """The map that serves `base` (`impact_store.nearest`: the fewest source files differing between its commit and the
     base, whatever its age or ancestry; kb/Work PB3663). Its line ranges describe every file the two trees share
@@ -538,9 +555,23 @@ def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reac
         mask |= ids
     reach.direct |= mask
     reach.widened |= ix.expand(mask)
+    if bad := ambient_only(ix, mask):
+        reach.every_tier1.append(f"{len(bad)} changed method(s) executed only OUTSIDE every test's context "
+                                 f"(e.g. {bad[0]}) — cannot attribute them")
     names = sorted({ix.entries[i][0].split("::")[-1].split("(")[0] for i in bit_ids(mask)})
     reach.notes.append(f"{path}: {len(names)} changed method(s) {', '.join(names[:6])}"
                        + (" …" if len(names) > 6 else "") if names else f"{path}: comments and blank lines only")
+
+
+def ambient_only(ix: MapIndex, mask: int) -> list[str]:
+    """⛔ The entries of `mask` reached ONLY outside every test's context (the ambient array, never a test's). In a test
+    file that is xunit DISCOVERY running a theory's data source — the theories naming a changed source are already tier
+    0a (`tests_changed`) — so those are no finding; in product code it is a finalizer or a thread that does not flow the
+    context, and nothing attributes it. Asked of the methods a hunk lands in and of a file no test reached anything of,
+    never of a file-level widening that merely CONTAINS such a method (a finalizer beside test-reached code does not make
+    a change to the file unattributable; measured: two of 22 replayed landings, both editing CobolNet.Runtime.CobolObject)."""
+    return [ix.entries[i][0] for i in bit_ids(mask & ix.ambient & ~ix.reached)
+            if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
 
 
 def drifted_change(ix: MapIndex, path: str, base: str | None, reach: Reach) -> None:
@@ -562,6 +593,10 @@ def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, 
     own = ix.file_ids.get(path, 0)
     if not own and not users:
         reach.every_tier1.append(f"{path}: {why}, and no executed file names a type it declares — cannot bound it")
+        return
+    if not (own & ix.reached) and not any(ix.file_ids[u] & ix.reached for u in users or []) and (bad := ambient_only(ix, own)):
+        reach.every_tier1.append(f"{path}: {why}, and every entry of it ran only OUTSIDE every test's context "
+                                 f"(e.g. {bad[0]}) — cannot attribute it")
         return
     reach.widened |= ix.expand(own)
     for u in users or []:
@@ -667,7 +702,7 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
                 reach_test_file(path, base, reach)
             continue
-        if path.startswith("src/"):
+        if path.startswith("src/") and not ANALYZER_DATA_RE.search(path):
             reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
             continue
         if path in SUITE_KEYED:
@@ -711,18 +746,6 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             reach.every_tier1.append(f"{path}: test data no test source names and no rule attributes")
         else:
             reach.notes.append(f"{path}: no test source names it and it is not built — not a test input")
-    if ix is None:
-        return
-    # ⛔ A changed entry reached ONLY outside every test's context. In a test file that is xunit DISCOVERY running
-    # a theory's data source — the theories naming a changed source are already tier 0a (`tests_changed`); in product
-    # code it is a finalizer or a thread that does not flow the context, and nothing attributes it.
-    orphan = (reach.direct | reach.widened) & ix.ambient & ~ix.reached
-    unattributed = [ix.entries[i][0] for i in bit_ids(orphan)
-                    if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
-    if unattributed:
-        reach.every_tier1.append(f"{len(unattributed)} changed method(s) executed only OUTSIDE every test's context "
-                                 f"(e.g. {unattributed[0]}) — cannot attribute them")
-
 
 def tiers(ix: MapIndex, reach: Reach) -> dict[str, dict[str, int]]:
     """Per assembly, per recorded display name, its tier (1 · 2 · 3). Rows sharing a display name (xunit truncates
@@ -751,7 +774,7 @@ def analyse(base: str | None, files: list[str] | None = None, map_path: Path | N
     reach = Reach()
     base = git("rev-parse", base) if base else None
     if map_path:
-        found = MapChoice(load_map(map_path), "exact", frozenset())
+        found = explicit_map(map_path, base or git("rev-parse", "HEAD"))
         if found.map.get("partial"):
             reach.notes.append(f"⚠ {map_path} is a PARTIAL (trial) map over {found.map.get('filter')!r}")
     else:
@@ -775,14 +798,15 @@ def plan_json(a: Analysis) -> dict:
 
 
 def synthetic_map() -> dict:
-    """Two methods in A.cs (lines 10-20 and 30-40), a static constructor of A implied by One(), a type-level entry in
-    B.cs reached only ambiently, and three Conformance tests: M1 reaches One(), M2 only the constructor, M3 nothing
-    of A."""
+    """Two methods in A.cs (lines 10-20 and 30-40), a finalizer there (42-44) that only the ambient array ever reached, a
+    static constructor of A implied by One(), a type-level entry in B.cs reached only ambiently, and three Conformance
+    tests: M1 reaches One(), M2 only the constructor, M3 nothing of A."""
     return {"schema": SCHEMA, "commit": "0" * 40,
             "entries": [["N.A::One()", [["src/Cobol.Net.Compiler/A.cs", 10, 20]]],
                         ["N.A::Two()", [["src/Cobol.Net.Compiler/A.cs", 30, 40]]],
                         ["N.B <type-level>", [["src/Cobol.Net.Compiler/B.cs", 0, 0]]],
-                        ["N.A::.cctor()", [["src/Cobol.Net.Compiler/A.cs", 5, 8]]]],
+                        ["N.A::.cctor()", [["src/Cobol.Net.Compiler/A.cs", 5, 8]]],
+                        ["N.A::Finalize()", [["src/Cobol.Net.Compiler/A.cs", 42, 44]]]],
             "implies": {"0": [3]},
             "known_files": ["src/Cobol.Net.Compiler/A.cs", "src/Cobol.Net.Compiler/B.cs",
                             "src/Cobol.Net.Compiler/Enum.cs"],
@@ -790,7 +814,7 @@ def synthetic_map() -> dict:
                       ["Conformance", "N.T.M2", "N.T.M2", "N.T", "Conformance:c1", 1.0, True],
                       ["Conformance", "N.T.M3", "N.T.M3", "N.T", "Conformance:c1", 1.0, True]],
             "test_bits": [pack(0b0001), pack(0b1000), pack(0)], "class_bits": {}, "collection_bits": {},
-            "ambient_bits": pack(0b0100)}
+            "ambient_bits": pack(0b10100)}
 
 
 def worktree_changes_in_scratch_repo() -> list[tuple[str, str]]:
@@ -870,6 +894,9 @@ def map_service_arms(check) -> None:
         served("a file that differs between the map's commit and the base is taken at the file level: every test that "
                "executed any method of it is tier 1", a_moved, a_path, text([*a_edited[:30], "    int y = 1;", *a_edited[31:]]),
                "nearest", {a_path, b_path}, {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 3})
+        served("a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed: every test is tier 1",
+               docs, a_path, text([*a_lines[:42], "    int x43 = 99;", *a_lines[43:]]), "documentation-only drift", set(),
+               {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
         served("a file the map has never seen, new since its commit, puts every test in tier 1",
                new_file, "src/Cobol.Net.Compiler/New.cs", "n2\n", "nearest", {a_path, b_path, "src/Cobol.Net.Compiler/New.cs"},
                {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
@@ -890,6 +917,20 @@ def map_service_arms(check) -> None:
                   a.map_state == "nearest" and set(found.drift) == {b_path}
                   and a.tiers.get("Conformance") == {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3},
                   f"{a.map_state}; {sorted(found.drift)}; {a.tiers.get('Conformance')}")
+            # A map named on the command line is served by the same comparison (its commit is the one it was recorded at).
+            named = tmp / "named.json.gz"
+            with gzip.open(named, "wt", encoding="utf-8", newline="\n") as fh:
+                json.dump({**synthetic_map(), "commit": recorded}, fh)
+            a = analyse(docs, map_path=named)
+            check("a map named with --map is served by the same comparison: its commit differs from the base in "
+                  "documentation only", a.map_state == "documentation-only drift"
+                  and a.tiers.get("Conformance") == {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3},
+                  f"{a.map_state}; {a.tiers.get('Conformance')}")
+            unknown = tmp / "unknown.json.gz"
+            with gzip.open(unknown, "wt", encoding="utf-8", newline="\n") as fh:
+                json.dump(synthetic_map(), fh)   # its commit is 40 zeros: git holds no such commit
+            check("... and one whose commit git does not know describes the base as given",
+                  explicit_map(unknown, docs).state == "exact", explicit_map(unknown, docs).state)
         finally:
             REPO, HEAD = repo.path, None
     finally:
@@ -914,7 +955,8 @@ def self_test() -> int:
         return tiers(ix, reach)["Conformance"], reach
 
     t, _ = tiers_for(["src/Cobol.Net.Compiler/A.cs"])
-    check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3",
+    check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3 (A.cs also holds a finalizer only "
+          "the ambient array reached: it does not make the file unattributable)",
           t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3}, t)
     for label, f in [("an UNMAPPED (new) src file puts every test in tier 1", "src/Cobol.Net.Compiler/New.cs"),
                      ("a known file no test executed puts every test in tier 1", "src/Cobol.Net.Compiler/Enum.cs"),
@@ -924,7 +966,10 @@ def self_test() -> int:
                      ("a runtime data file puts every test in tier 1", "src/Cobol.Net.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
         check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
-    planted = ["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
+    t, reach = tiers_for(["src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/Cobol.Net.Runtime/PublicAPI.Shipped.txt"])
+    check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it",
+          not reach.every_tier1 and set(t.values()) == {3}, (reach.every_tier1[:1], t))
+    planted =["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
                "    [InlineData(\"x]\")]", "    public async Task B(string s) { }", "    [Fact(Skip = \"y\")]",
                "    [Trait(\"k\", \"v\")]", "    public void C<TSlot>() { }",
                "    private static int Helper() => 1;", "}"]

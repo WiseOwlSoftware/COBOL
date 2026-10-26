@@ -45,7 +45,8 @@ public sealed class ImpactedTestsDriftTests
         AssertSelfTest(TestRepo.Scripts("spec", "impacted_tests.py"),
             "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file puts every test in tier 1",
             "a known file no test executed", "an ambient-only file", "a grammar file", "a props file",
-            "a runtime data file", "a new file's test methods are all tier 0a",
+            "a runtime data file", "a public-API analyzer baseline is data a test may read",
+            "a new file's test methods are all tier 0a",
             // kb/Work PB3190: an EDITED test method is tier 0a too, read from a real diff
             "tier 0a holds an edited test method: a changed line inside an existing test body",
             "tier 0a holds an edited test method: a line deleted from an existing test body",
@@ -68,8 +69,9 @@ public sealed class ImpactedTestsDriftTests
             "a map older than the base by documentation only describes it exactly",
             "a map older than the base by OTHER source files still attributes a file the trees share by line range",
             "a file that differs between the map's commit and the base is taken at the file level",
+            "a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed",
             "a file the map has never seen, new since its commit, puts every test in tier 1",
-            "a map recorded AFTER the base serves it",
+            "a map recorded AFTER the base serves it", "a map named with --map is served by the same comparison",
             // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
             // the change removes (kb/Work PB3131)
             "a changed file names every drift test the index says governs it",
