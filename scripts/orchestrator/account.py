@@ -470,36 +470,31 @@ def _skill_review_cases(check) -> None:
 
 
 def _memory_index_cases(check) -> None:
-    """kb/Work PB3779, over a temporary config dir and repository: the key is the MAIN checkout's, the cap is exact."""
-    import subprocess  # noqa: PLC0415
-    import tempfile
-    with tempfile.TemporaryDirectory() as t:
-        root = pathlib.Path(t)
-        cfg, repo = root / "cfg", root / "repo"
-        repo.mkdir()
-        subprocess.run(["git", "init", "-q", str(repo)], check=True)
-        subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
-                        "--allow-empty", "-m", "x"], check=True)
-        wt = root / "wt"
-        subprocess.run(["git", "-C", str(repo), "worktree", "add", "-q", str(wt)], check=True)
-        reset = {"weekday": 0, "hour": 0, "minute": 0, "tz": "UTC"}
-        rules = {"quota": {}, "accounts": {"list": [{"name": "m", "config_dir": str(cfg), "weekly_reset": reset}]}}
-        acct = current(rules, {ENV: str(cfg)})
-        key = re.sub(r"[:\\/]", "-", str(main_checkout(repo)))
-        index = cfg / "projects" / key / "memory" / "MEMORY.md"
-        check("PB3779: no index file -> nothing to cap", memory_index(acct, repo).render().startswith("memory index: none readable"), True)
-        index.parent.mkdir(parents=True)
-        index.write_text("a" * MEMORY_INDEX_CAP_CHARS, encoding="utf-8", newline="\n")
-        m = memory_index(acct, repo)
-        check("PB3779: an index exactly at the cap is not over", (m.chars, m.over), (MEMORY_INDEX_CAP_CHARS, False))
-        index.write_text("a" * MEMORY_INDEX_CAP_CHARS + "\nb\n", encoding="utf-8", newline="\n")
-        m = memory_index(acct, repo)
-        check("PB3779: one char past the cap is over", (m.chars, m.lines, m.over), (MEMORY_INDEX_CAP_CHARS + 3, 2, True))
-        check("PB3779: the over line says what to move and where", "project_history_index.md" in m.render(), True)
-        check("PB3779: a linked worktree reads the main checkout's index", memory_index(acct, wt).path, index)
-        index.write_bytes(b"\xff\xfe" + b"a" * 10)
-        check("PB3779: a non-UTF-8 index is still sized, never reported absent", memory_index(acct, repo).chars is not None, True)
-        subprocess.run(["git", "-C", str(repo), "worktree", "remove", "--force", str(wt)], check=True)
+    """kb/Work PB3779, over a scratch config dir and repository: the key is the MAIN checkout's, the cap is exact."""
+    from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    root = scratch_dir("account-selftest-")
+    cfg = root / "cfg"
+    repo = ScratchRepo.init(root / "repo")
+    repo.commit("base", allow_empty=True)
+    wt = repo.worktree(root / "wt", branch="topic")
+    reset = {"weekday": 0, "hour": 0, "minute": 0, "tz": "UTC"}
+    rules = {"quota": {}, "accounts": {"list": [{"name": "m", "config_dir": str(cfg), "weekly_reset": reset}]}}
+    acct = current(rules, {ENV: str(cfg)})
+    key = re.sub(r"[:\\/]", "-", str(main_checkout(repo.path)))
+    index = cfg / "projects" / key / "memory" / "MEMORY.md"
+    check("PB3779: no index file -> reported unreadable",
+          memory_index(acct, repo.path).render().startswith("memory index: none readable"), True)
+    index.parent.mkdir(parents=True)
+    index.write_text("a" * MEMORY_INDEX_CAP_CHARS, encoding="utf-8", newline="\n")
+    m = memory_index(acct, repo.path)
+    check("PB3779: an index exactly at the cap is not over", (m.chars, m.over), (MEMORY_INDEX_CAP_CHARS, False))
+    index.write_text("a" * MEMORY_INDEX_CAP_CHARS + "\nb\n", encoding="utf-8", newline="\n")
+    m = memory_index(acct, repo.path)
+    check("PB3779: one char past the cap is over", (m.chars, m.lines, m.over), (MEMORY_INDEX_CAP_CHARS + 3, 2, True))
+    check("PB3779: the over line says what to move and where", "project_history_index.md" in m.render(), True)
+    check("PB3779: a linked worktree reads the main checkout's index", memory_index(acct, wt.path).path, index)
+    index.write_bytes(b"\xff\xfe" + b"a" * 10)
+    check("PB3779: a non-UTF-8 index is still sized, never reported absent", memory_index(acct, repo.path).chars is not None, True)
 
 
 def main(argv: list[str] | None = None) -> int:
