@@ -1,4 +1,4 @@
-## PB3751: PAGE IS and RECEIVE CONTINUE 5 compile; the audit judges a flat group on its whole language
+## Entry 2590 — 2026-10-25 17:23 PDT — PB3751: PAGE IS and RECEIVE CONTINUE 5 compile; the audit judges a flat group on its whole language
 
 kb/Work PB3751 named three places where the grammar demanded a plain word inside an optional group. Each was
 re-probed on this branch's own build first, and each printed format was rendered (pages 468, 546, 634 and 732).
@@ -49,3 +49,4 @@ stopped RED on line endings: an inline Python `write_text` had written the note 
 fixes, run `000003-20261025T235809Z` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===`
 with the Linux half (WSL clone of HEAD 506077d0c) GREEN. The new golden, the negative at all four editions,
 `optional_words_mcs` and the three new subset rows all passed in leg 1.
+
