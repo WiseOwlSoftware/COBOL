@@ -25,8 +25,8 @@ The hook writes NOTHING (kb/Work PB3186). Its rule 3 once recorded every admitte
 dispatch ledger from a scrape of every note id the prompt and the files it named mentioned, with the union of their
 computed file sets: six entries of 303-910 files on 2026-10-15, naming reference notes as dispatched work, which bound
 fix-lane worktrees to R3 notes and stopped their landings. The ledger is the planner's and the spec renderer's
-(plan_wave.record_dispatch, through make_dispatch_specs.py), each group recorded with its exact file set; an attended
-dispatch made without a rendered group is in flight from its worktree's first edit, and the landing check
+(dispatch_ledger.record_dispatch, through make_dispatch_specs.py), each group recorded with its exact file set; an
+attended dispatch made without a rendered group is in flight from its worktree's first edit, and the landing check
 (landing_check.py) is the guarantee behind the planner's partition.
 
 There is no lander to guard (kb/Work PB3023): a branch lands through `scripts/orchestrator/enqueue.py land`, a script, and

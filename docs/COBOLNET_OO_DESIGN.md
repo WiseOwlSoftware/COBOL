@@ -682,16 +682,24 @@ prescribes (kb/Work PB1500):
   carry — the ONE walk the compiler's bind-time screens ask too, kb/Work PB480; a fixed partner is that walk's other side,
   its record image a carrier in its own shape, kb/Work PB2690), §14.8.2.3.2 "Additionally" b)/c) for bit / national groups, and §14.8.3
   for the RETURNING pair (§14.8.3.2's same length, §14.8.3.3's clause identity, rule 1's SET table for an object
-  reference). An ACTIVE-CLASS returning item is §14.8.3.3 rule 2 b) 4. through a universal invoking reference: its sending
-  operand is a UNIVERSAL object reference, so only a universal receiving item conforms
+  reference). The two ACTIVE-CLASS arms depend on HOW the method was invoked and are the exception to the stop below
+  (kb/Work PB2985). An ACTIVE-CLASS returning item is §14.8.3.3 rule 2 b) 4. through a universal invoking reference: its
+  sending operand is a UNIVERSAL object reference, so only a universal receiving item conforms
   (`ActivationRelations.ActiveClassReturningViolation`, asked by `CobolObject.CheckActiveClassReturning` before the
-  method runs — an emitted case with an ACTIVE-CLASS item, and BASE's New / FactoryObject; kb/Work PB2985), and it
-  proceeds when checking is off (the delivery's class narrowing `CobolObject.NarrowUniversal` is the floor under it). The EC-OO-UNIVERSAL
+  method runs — an emitted case with an ACTIVE-CLASS item, and BASE's New / FactoryObject). An ACTIVE-CLASS formal is
+  §14.8.2.3.2 rule 4: a) and b) admit only an invocation with SELF, SUPER, an ACTIVE-CLASS reference or that
+  object-class-name (with ONLY), which a universal invoking reference never is, so an argument supplied for it cannot
+  conform (`ActivationRelations.ActiveClassFormalViolation`, asked by `CobolObject.CheckActiveClassFormal` for each such
+  formal after the match bound the method and before it runs; an OMITTED argument has nothing to conform). Both proceed
+  when checking is off: the delivery's class narrowing `CobolObject.NarrowUniversal` is the floor under the returning
+  arm, and the formal arm's match (§9.3.6 3 d) 4./5.) already required an object of the class the method runs on. The EC-OO-UNIVERSAL
   exception condition is set to exist WHEN checking for it is enabled in BOTH the activated method and the
   activating runtime element; the method invocation is then unsuccessful and control continues per GR7g through
   the §14.6.13 EC machinery (declaratives / >>TURN), like every other EC. When checking is not enabled in both,
-  EC-OO-UNIVERSAL is NOT set to exist; a nonconforming crossing cannot proceed in a typed-native model, so the
-  implementor's abnormal-termination surface applies (`CobolImplementorFatalException`, no EC name).
+  EC-OO-UNIVERSAL is NOT set to exist, and what a nonconforming crossing does depends on the arm. Every arm but the
+  two ACTIVE-CLASS ones (ANY LENGTH, §14.8.2.2, strong type, §8.5.1.12, the bit / national groups, §14.8.3's returning
+  pair) cannot proceed in a typed-native model, so the implementor's abnormal-termination surface applies
+  (`CobolImplementorFatalException`, no EC name); the ACTIVE-CLASS formal and returning arms proceed unchecked.
 - **GR7 d) — the external items (every INVOKE form, typed and universal, and PROPERTY accessors).** A method has
   no external items of its own (§13.4.3 SR1 keeps FILE SECTION out of a method; a method WORKING-STORAGE EXTERNAL
   item is refused), so its activation checks its factory's or object's: each class half with external items emits

@@ -327,9 +327,10 @@ def main() -> int:
             records.append({
                 "rule-id": rid,
                 "verdict": sel.verdict,
-                # ⛔ EVERY OTHER FIELD IS CARRIED FORWARD, NEVER SYNTHESISED. A batch record REPLACES every
-                # STATEMENT field (`editions`, `notes`, `derivation`), so a generator that filled only `verdict`
-                # would silently blank them. The two WITNESS fields MERGE since kb/Work PB959 (record_verdicts.
+                # ⛔ EVERY OTHER FIELD IS CARRIED FORWARD, NEVER SYNTHESISED. A record that names a STATEMENT field
+                # (`editions`, `notes`, `derivation`) restates it, and one that CHANGES the verdict must restate
+                # `notes` (record_verdicts.validate, kb/Work PB3795), so a generator that filled only `verdict`
+                # would be refused. The two WITNESS fields MERGE since kb/Work PB959 (record_verdicts.
                 # `merged`), so carrying them forward is a no-op union — kept so the record reads whole, and
                 # because a selector that CHANGED a verdict would re-site `code-location` to exactly what it
                 # names here. Two of these are worth stating outright:
