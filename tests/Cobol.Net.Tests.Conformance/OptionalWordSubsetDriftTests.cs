@@ -34,10 +34,11 @@ namespace CobolNet.Tests.Conformance;
 public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: 8 collections of about 3 rows each, so no partition holds more than the 59 s row
+    /// <summary>Partition count: collections of at most 3 rows each, so no partition holds more than the 59 s row
     /// and a neighbour (w1033 gate diagnosis; modeled with the 24 corpus partitions and longest-first order: the
-    /// Conformance leg 162 s to 118 s, against a floor of 117 s). <c>CorpusPartitioningDriftTests</c> pins it.</summary>
-    public const int Partitions = 8;
+    /// Conformance leg 162 s to 118 s, against a floor of 117 s). 8 held the first 23 rows; kb/Work PB3751's three
+    /// made 26, so 9. <c>ConformancePartitioningDriftTests</c> pins the bound.</summary>
+    public const int Partitions = 9;
 
     /// <param name="Name">Test identity, and the PROGRAM-ID stem.</param>
     /// <param name="Clause">The general format whose underlining was measured.</param>
@@ -829,6 +830,69 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             .Replace("PROGRAM-ID. PB389M.", "PROGRAM-ID. OPWX.", StringComparison.Ordinal)
             .Replace("END PROGRAM PB389M.", "END PROGRAM OPWX.", StringComparison.Ordinal);
 
+    // ── kb/Work PB3751 ─────────────────────────────────────────────────────────────────────────────────────────
+    // PAGE (§13.18.39.2). PDF p468 / folio 438 underlines PAGE alone, so all four words of `[ LIMIT IS | LIMITS ARE ]`
+    // are optional — within the alternative chosen (the two rows below; a word of each, `PAGE LIMIT ARE`, is the
+    // negative corpus's pb3751-page-limit-mixed-alternatives). The page limit is observable: GR3 d) makes LAST
+    // DETAIL the page limit 3, so the fourth one-line detail advances the page (2/01) in every spelling.
+    private const string PageLimitWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWY.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT P ASSIGN TO "opwy.rpt".
+           DATA DIVISION.
+           FILE SECTION.
+           FD P REPORT IS R.
+           WORKING-STORAGE SECTION.
+           01 PC PIC 9.
+           01 LC PIC 99.
+           REPORT SECTION.
+           RD R PAGE {0} {1} 3 LINES.
+           01 D TYPE DE LINE PLUS 1.
+              02 COLUMN 1 PIC X VALUE "D".
+           PROCEDURE DIVISION.
+           MAIN.
+               OPEN OUTPUT P
+               INITIATE R
+               PERFORM G 4 TIMES
+               TERMINATE R
+               CLOSE P
+               DISPLAY "DONE"
+               STOP RUN.
+           G.
+               GENERATE D
+               MOVE PAGE-COUNTER OF R TO PC
+               MOVE LINE-COUNTER OF R TO LC
+               DISPLAY "R " PC "/" LC.
+    """;
+
+    // RECEIVE (§14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
+    // none in THIS format (§8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
+    // both and keeps them). The facility is declined and inert (COBOLNET1578), so the row pins the SPELLINGS: every
+    // subset must compile, and the run around the statements must not change.
+    private const string ReceiveContinueWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPW1.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 T PIC X(16) VALUE "TAG".
+           01 B PIC X(32) VALUE "BODY".
+           01 L PIC 9(4) VALUE 0.
+           PROCEDURE DIVISION.
+           MAIN.
+               RECEIVE T GIVING B L
+                   CONTINUE {0} 5 {1}
+               END-RECEIVE
+               RECEIVE T GIVING B L
+                   CONTINUE {2} MESSAGE RECEIVED
+               END-RECEIVE
+               DISPLAY "L=" L
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
+
     private static readonly FormatCase[] Formats =
     [
         new("use-format-1", "14.9.49.2 Format 1", 85, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
@@ -873,6 +937,12 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         new("pointer-usage-to", "13.18.60.2 (pointer usages)", 2014, ["TO", "TO", "TO"], "OPWV", PointerUsageTo),
         new("object-reference-factory-of", "13.18.60.2 (OBJECT REFERENCE FACTORY OF)", 2002, ["OF", "OF"], "OPWX",
             ObjectReferenceFactoryOf),
+        // kb/Work PB3751 — the optional words of an optional GROUP, which the audit judges as a unit since PB715.
+        new("page-limit-is", "13.18.39.2 (LIMIT IS)", 85, ["LIMIT", "IS"], "OPWY", PageLimitWords),
+        new("page-limits-are", "13.18.39.2 (LIMITS ARE)", 85, ["LIMITS", "ARE"], "OPWZ",
+            PageLimitWords.Replace("OPWY", "OPWZ", StringComparison.Ordinal)),
+        new("receive-continue-after-seconds", "14.9.31.2 (CONTINUE phrase)", 2023, ["AFTER", "SECONDS", "AFTER"],
+            "OPW1", ReceiveContinueWords),
     ];
 
     [PartitionedRowSource(nameof(Cases))]
@@ -959,7 +1029,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     }
 }
 
-// ⛔ THE 8 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the formats exactly once.
+// ⛔ THE 9 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the formats exactly once.
 
 /// <summary>Optional-word subset partition 0 of <see cref="OptionalWordSubsetDriftTestsBase{TSlot}.Partitions"/>.</summary>
 public sealed class OptionalWordSubsetDriftTests_P0 : OptionalWordSubsetDriftTestsBase<Slot0>;
@@ -984,3 +1054,6 @@ public sealed class OptionalWordSubsetDriftTests_P6 : OptionalWordSubsetDriftTes
 
 /// <summary>Optional-word subset partition 7.</summary>
 public sealed class OptionalWordSubsetDriftTests_P7 : OptionalWordSubsetDriftTestsBase<Slot7>;
+
+/// <summary>Optional-word subset partition 8.</summary>
+public sealed class OptionalWordSubsetDriftTests_P8 : OptionalWordSubsetDriftTestsBase<Slot8>;

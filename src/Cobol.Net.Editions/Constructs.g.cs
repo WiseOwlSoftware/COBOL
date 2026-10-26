@@ -106,7 +106,7 @@ public static class Constructs
     public const string UserWordAs2002 = "user-word-as-2002";
     public const string UserWordConstant2002 = "user-word-constant-2002";
     public const string ConcatOperator2002 = "concat-operator-2002";
-    public const string NotEqualOperator2002 = "not-equal-operator-2002";
+    public const string NotEqualOperator2014 = "not-equal-operator-2014";
     public const string HexAlphanumericLiteral2002 = "hex-alphanumeric-literal-2002";
     public const string ZeroLengthLiteral2014 = "zero-length-literal-2014";
     public const string FloatingPointLiteral2002 = "floating-point-literal-2002";

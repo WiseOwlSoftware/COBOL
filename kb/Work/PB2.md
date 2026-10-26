@@ -11,7 +11,6 @@ silent: false
 rejects_legal_source: false
 under_rejects: false
 process_only: false
-blocked: false
 blocked_by: []
 spec_refs: [15.17.4, 15.3, 15.6, 15.71.3, 15.75.4]
 closes_rows: ["RV-15.22.4-1", "RV-15.22.4-2", "RV-15.46.4-1", "RV-15.47.4-1", "RV-15.7.4-1", "RV-15.71.4-1",

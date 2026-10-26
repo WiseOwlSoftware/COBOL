@@ -39,7 +39,7 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
    - `STOPPED`: `CONFLICT` (exit 4, bringing main in), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
      a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
-     or a DEVLOG refusal (exit 6): the
+     or a DEVLOG or register refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
