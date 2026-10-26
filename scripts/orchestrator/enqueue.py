@@ -61,7 +61,9 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      that has no verdict file BECAUSE ITS GATE STILL RUNS (`run_gate_legs.live_gate`: the worktree's gate lock is held, an OS
      lock freed when its holder dies, so never a reused process id; the landing lane launches a landing beside its own
      implementer's gate) owes a verdict instead of lacking one: that is exit 12, GATE BUSY, with no report line (kb/Work
-     PB3662), retried once no gate runs; a run whose gate died with none (its lock free) still counts as no record. The
+     PB3662), retried once no gate runs; so does a run whose gate is STARTING (`run_gate_legs.gate_phase`: spawned moments
+     ago by the launcher, its child alive, the lock not yet taken, for START_WINDOW_S at most; kb/Work PB3707); a run whose
+     gate died with none (its lock free, past that window or with its child gone) still counts as no record. The
      lanes MANDATORY-PRACTICES I10 does not review (UNREVIEWED_LANES) write no gated report: with no record, the
      landing gates their tip once itself (they change notes and goldens; their gate is the audits and the inert lane:
      the audits, then the Linux self-tests in a WSL clone, kb/Work PB3646). ONE EXCEPTION, the case a developer would also re-test: when bringing main in touched a file the branch
@@ -912,10 +914,17 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     why: list[str] = []
     newest_green_is_old: bool | None = None   # decided by the newest run that READ GREEN: the only one a remedy is about
     live = run_gate_legs.live_gate(run_gate_legs.Host(wt).lock_path())   # a gate owes its verdict while it runs (PB3662)
+    starting: pathlib.Path | None = None      # a gate spawned moments ago that has not taken its lock yet (PB3707)
+    # how a run with no verdict file is worded by `run_gate_legs.gate_phase`: the first two OWE a verdict (PB3662, PB3707)
+    phase_words = {run_gate_legs.RUNNING: "a gate still running", run_gate_legs.STARTING: "a gate still starting",
+                   run_gate_legs.DIED: "a gate that died"}
     for run in runs:
         rec = run_gate_legs.read_record(run)
         if rec is None:
-            why.append(f"{run.name}: no verdict file ({'a gate still running' if live and (live.run is None or live.run.name == run.name) else 'a gate that died'})")
+            phase = run_gate_legs.gate_phase(run, live)
+            if phase == run_gate_legs.STARTING and starting is None:
+                starting = run
+            why.append(f"{run.name}: no verdict file ({phase_words[phase]})")
             continue
         tree, head_tree = rec.get("tree"), rec.get("head_tree")
         linux = rec.get("linux") or {}
@@ -945,8 +954,9 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             return Tested(True, f"{head[:12]} is covered by the GREEN local gate run {run.name} at {gated[:12]} ({half})",
                           str(gated))
         why.append(f"{run.name}: {problem}")
+    owed = live.what if live else (f"the gate run {starting.name}" if starting else "")   # a verdict is still OWED
     return Tested(False, f"no gate run in {root} covers {head[:12]} GREEN — " + "; ".join(why[:3]),
-                  running=live.what if live else "", stale=bool(newest_green_is_old))
+                  running=owed, stale=bool(newest_green_is_old))
 
 
 def merge_overlap(wt: pathlib.Path, before: str, base: str) -> list[str]:
@@ -1826,6 +1836,30 @@ def self_test() -> int:
                and rc_died == EXIT_UNTESTED and len(died_notes) == 1 and covered_beside.ok
                and fix.git("rev-parse", "HEAD") == tip_before,
                f"{awaiting} {rc_owed} {owed_line} {died} {rc_died} {died_notes} {covered_beside}")
+        # kb/Work PB3707: the window between `build-local` making the run directory and its child taking the gate lock. The
+        # lock is free there, yet a gate is coming: the launcher's spawn record names the live child, so the landing owes
+        # the verdict (exit 12, GATE BUSY) instead of dispatching a finisher to gate a tip whose gate is about to run.
+        shutil.rmtree(results_dir)
+        young = results_dir / f"000001-{dt.datetime.now(dt.timezone.utc):%Y%m%dT%H%M%SZ}"
+        young.mkdir(parents=True)
+        run_gate_legs.write_spawn(young, os.getpid())              # the child the launcher spawned: alive
+        starting_now = seen()
+        notes[:] = []
+        rc_starting = run_land(tested=lambda w, head, base: tested_locally(w, head, base, linux_half=True),
+                               gates=gates_of(green, []), stamped=[])
+        starting_notes = list(notes)
+        child = subprocess.Popen([sys.executable, "-c", "pass"])
+        child.wait()
+        run_gate_legs.write_spawn(young, child.pid)                # ... and the child that died before its lock
+        gone_early = seen()
+        expect("land: a gate run that is STARTING (spawned moments ago, its child alive, the gate lock not yet taken) is "
+               "exit 12, GATE BUSY, never exit 14 (no finisher gates a tip whose gate is about to run); the same run "
+               "whose spawned child is gone is a gate that died (UNTESTED), and so is a run past the start-up window "
+               "(kb/Work PB3707)",
+               not starting_now.ok and starting_now.running == f"the gate run {young.name}"
+               and "still starting" in starting_now.text and rc_starting == EXIT_GATE_BUSY and not starting_notes
+               and not gone_early.ok and gone_early.running == "" and "gate that died" in gone_early.text,
+               f"{starting_now} {rc_starting} {starting_notes} {gone_early}")
         shutil.rmtree(results_dir)
         gate_run(1)
         gated_head = fix.git("rev-parse", "HEAD")
