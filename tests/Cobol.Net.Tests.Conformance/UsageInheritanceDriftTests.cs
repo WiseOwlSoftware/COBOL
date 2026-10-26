@@ -432,6 +432,36 @@ public sealed class UsageInheritanceDriftTests
         Assert.Equal([7, 8], inner[1..3].Select(int.Parse).ToArray());
     }
 
+    /// <summary>⛔ A MUTED SCREEN IS A DIAGNOSTIC NOBODY REPORTS UNLESS ANOTHER WALK ASKS THE SAME QUESTION, so the facility is
+    /// not for general use: <c>EditionContext.Muted</c> is asked only inside the usage walk (<c>UsageInheritanceWalk</c> and
+    /// <c>UsageInheritanceGroup</c>), where <c>AnsweredByTypeDeclaration</c> and the copy's own provenance prove the
+    /// declaration's walk screens the same fact (kb/Work PB3682). A caller anywhere else is a new decision, made here, with its
+    /// own proof.</summary>
+    [Fact]
+    public void EditionMuted_IsAskedOnlyByTheUsageWalk()
+    {
+        var callers = new List<string>();
+        foreach (string file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs", SearchOption.AllDirectories)
+                     .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
+                              && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)
+                              && !f.EndsWith("EditionContext.cs", StringComparison.Ordinal)))
+            foreach (string line in File.ReadAllLines(file).Where(l => l.Contains(".Muted(") && !l.TrimStart().StartsWith("//")
+                         && !l.TrimStart().StartsWith("///")))
+                callers.Add(Path.GetFileName(file));
+        Assert.All(callers, c => Assert.Equal("DataBinder.cs", c));
+
+        string text = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "DataBinder.cs"));
+        int inWalk = 0;
+        foreach (string method in new[] { "UsageInheritanceWalk", "UsageInheritanceGroup" })
+        {
+            var start = Regex.Match(text, $@"^    private void {method}\(", RegexOptions.Multiline);
+            Assert.True(start.Success, $"{method} not found — the pin measured nothing");
+            var end = Regex.Match(text[start.Index..], @"^    \}\s*$", RegexOptions.Multiline);
+            inWalk += Regex.Matches(text.Substring(start.Index, end.Index + end.Length), @"\.Muted\(").Count;
+        }
+        Assert.Equal(callers.Count, inWalk);
+    }
+
     /// <summary>The structural pin under <see cref="APicturelessGroupUsage_IsCopiedWithItsSubordinates"/>: the three
     /// description copies run BEFORE the usage walk, so they ask the ENTRY a question that holds then
     /// (<c>DataItem.HasSubordinates</c>), never the COMPLETED form (<c>IsGroup</c>, "no PICTURE") — and an
