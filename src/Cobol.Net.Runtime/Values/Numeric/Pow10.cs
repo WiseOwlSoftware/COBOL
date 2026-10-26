@@ -10,8 +10,8 @@ namespace CobolNet.Runtime;
 /// The tables are built by the same cumulative ×10 recurrence the deleted loops used, so every value in range is
 /// bit-identical to what the loops produced. ⛔ AN OUT-OF-TABLE EXPONENT IS A LOUD FAILURE, NEVER A VALUE
 /// (kb/Work PB2633, PB648): the fallback loop the tables replaced silently WRAPPED the Int128 past 10^38 and
-/// answered 1 for a negative exponent, so a caller that forgot a bound — <c>FromDoubleBounded</c> at a
-/// trailing-P receiver's scale of -2 asked for 10^39 — computed with a plausible wrong power. A caller that can
+/// answered 1 for a negative exponent, so a caller that forgot a bound — the codomain clamp kb/Work PB3829 later
+/// retired, at a trailing-P receiver's scale of -2, asked for 10^39 — computed with a plausible wrong power. A caller that can
 /// legitimately reach an out-of-table exponent handles that case itself, where the scale is known.
 /// </summary>
 internal static class Pow10

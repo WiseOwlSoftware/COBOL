@@ -114,19 +114,19 @@ public sealed class FloatLandingModeDriftTests
     }
 
     /// <summary>
-    /// INVARIANT 4 — A FLOATING-POINT NUMERIC-EDITED RESULTANT IS NEVER A FINAL TRANSFER for this purpose. It has
-    /// no fixed fraction scale to round at — the result normalizes into the mask and the significand is truncated
-    /// to the mask's digits (data-model design D21 / kb/Work PB66) — so <c>ReceiverContext.Scale</c> carries the
-    /// mask's significand scale as a WORKING-scale hint only. Landing a final transfer at it would truncate the
-    /// value before the mask's own normalization ever saw the small magnitudes it exists to express.
+    /// INVARIANT 4 — A FLOATING-POINT NUMERIC-EDITED RESULTANT KEEPS THE BINARY64. It has no fixed fraction scale to
+    /// round at: the result normalizes into the mask and the store rounds the significand to the mask's digits by the
+    /// receiver's mode (data-model design D21 / kb/Work PB66, PB2638), so <c>ReceiverContext.Scale</c> carries the
+    /// mask's significand scale as a hint only. Quantizing the value at ANY fixed scale first, the mask's or a ≥ 9
+    /// working scale, truncates the small magnitudes the mask exists to express (kb/Work PB3829's sweep: SQRT of
+    /// 1.5241383936E-24 into <c>+9.999E+99</c> displayed +0.000E+00 at the working scale of 9).
     /// </summary>
     [Theory]
     [MemberData(nameof(LegalShapesAndModes))]
-    public void AFloatEditedResultant_KeepsTheWorkingScaleAndTruncates(int intDigits, int scale, CobolRounding mode)
+    public void AFloatEditedResultant_KeepsTheBinary64(int intDigits, int scale, CobolRounding mode)
     {
         var rcv = Rcv(intDigits, scale, mode) with { FloatEdited = true };
-        Assert.Equal(FloatLandingDecision.At(rcv.FloatWorkingScale, CobolRounding.Truncation),
-            rcv.FloatLanding(finalTransfer: true));
+        Assert.Equal(FloatLandingDecision.Binary64, rcv.FloatLanding(finalTransfer: true));
     }
 
     /// <summary>

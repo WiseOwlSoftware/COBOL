@@ -574,10 +574,12 @@ four the sibling sweep found, `**` included — it reaches the same quantizer an
 - A **float receiver** and a **receiver-less** render keep the binary64 for the same reason (D18 b), and
   `FloatLanding` now answers that too — see "The receiver-shape half is folded in" below.
 - A **floating-point numeric-edited** resultant (`FloatEdited`, data-model design D21 / kb/Work PB66) is never a final transfer for this
-  purpose: it has no fixed fraction scale to round at, so it keeps the working scale and truncates.
+  purpose: it has no fixed fraction scale to round at, so it keeps the binary64 and the store normalizes it into the
+  mask and rounds the significand by the receiver's mode (kb/Work PB3829's sweep: it used to land at the ≥ 9 working
+  scale with truncation first, so `SQRT(1.5241383936E-24)` into `+9.999E+99` displayed +0.000E+00).
 
 Two consumers, one rule: `IntrinsicRenderer.RenderFloatNative` (the §15.4.1 float family) and
-`NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble`/`FromDoubleBounded` take the mode as a
+`NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble` takes the mode as a
 REQUIRED parameter — no default — so a new call site must decide rather than inherit.
 
 **A nested operand keeps its binary64 (kb/Work PB653).** PB647's first cut landed a nested intermediate at the
@@ -653,14 +655,22 @@ A FLOATING-POINT numeric-edited receiver is deliberately out: it has no fixed fr
 
 **Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
 `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
-0.999999999), both re-derived from the exact binary64 expansions. That golden gained six ROUNDED legs, because
-truncation can never leave a codomain the double is already inside — so PB65's clamp is now reachable only under
-an explicit rounding mode, and would have gone unexercised by a green test.
+0.999999999), both re-derived from the exact binary64 expansions.
+
+**No landing clamps to a function's codomain (kb/Work PB3829).** PB65 had put a clamp on this landing for the
+functions whose §15.x.4 rule bounds the returned value (ACOS, ASIN, ATAN, RANDOM, FRACTION-PART), cutting a ROUNDED
+landing back inside the bound. It read a rule on the RETURNED value (§15.4's temporary, which the binary64 always
+satisfies) as a rule on the RESULTANT IDENTIFIER, whose value §14.9.8.4 r2 gives to §14.6.8, §14.7.4 and §14.7.5:
+`COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `9V9999` stored 3.1415 where §14.7.4.3 r4 gives 3.1416, while
+`FUNCTION ACOS(-1) + 0` (the nested arm) and the standard-decimal arm already stored 3.1416, and RANDOM ROUNDED into a
+`V9(4)` receiver stored a silent .9999 where the rounded 1.0000 is a §14.7.5 size error. The clamp is deleted: every
+function of the family lands through the one `FromDouble`, and the golden
+`15.10.4-Returned-value-rule/pb3829_rounded_bounded_returned_value` measures the rule over every rounding mode.
 
 **Guard.** `FloatLandingModeDriftTests` proves every invariant over every legal (integer-digits, scale) pair
 crossed with every one of the eight modes — the final transfer's scale and mode, the store's rescale being the
 identity, a nested intermediate being `Binary64`, a float / receiver-less receiver being `Binary64` even on a
-final transfer, the float-edited resultant keeping the working scale — asserts the runtime quantizer names no
+final transfer, the float-edited resultant keeping the binary64 — asserts the runtime quantizer names no
 rounding mode of its own, and asserts that NEITHER consumer re-derives the receiver-shape half in its own
 landing body; `CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one
 both channels used to hard-code. `ArithmeticOneInitialEvaluationDriftTests` reads the EMITTED C# and asserts each
@@ -787,9 +797,14 @@ toward zero at the GIVING receiver's scale, then reduced to its low-order digit 
 quotient's own exponent so no 38-digit significand enters a 34-digit carrier) and the remainder entirely on `CobolDec`;
 the stored quotient is the same SDIDI value, landed by the receiver's own rounding. An unsigned 16-byte dividend in
 [2^127, 2^128) or a float dividend past 1.7E+38 therefore reaches the lane exactly as in `COMPUTE`/`DIVIDE GIVING`. The NATIVE lane keeps the exact
-Int128 kernel (`CobolNum.Divide` at the receiver's scale, then `CapDigits`): its intermediate range is the checked
-Int128 (DOC-A.1-179), so an unsigned-wide dividend past 2^127 - 1 is the funnel's size error and a float dividend past the
-carrier raises EC-SIZE-OVERFLOW from `NumericRenderer.Align`. ⛔ The subsidiary quotient's DIGIT CAP is the digits the
+Int128 kernel (`CobolNum.Divide` at the receiver's scale, then `CapDigits`) for two scaled senders: its intermediate range
+is the checked Int128 (DOC-A.1-179), so an unsigned-wide dividend past 2^127 - 1 is the funnel's size error. A native
+sender on the binary64 or SDIDI carrier (a FLOAT-LONG item, a float function's value, a float literal, a NUMVAL value)
+takes `CarriedSubsidiaryQuotient`: the quotient is the very division `DIVIDE ... GIVING` without REMAINDER performs
+(`Combine(dividend, "/", divisor)` as the final transfer into identifier-3), taken at the receiver's rounding mode for
+the stored quotient and at TRUNCATION for the subsidiary quotient, with no sender quantized first (kb/Work PB3829's sweep:
+the lane used to land such a sender truncated at the float working scale, so `ROUNDED MODE AWAY-FROM-ZERO` of 0.12340000000001
+stored 0.1234 with REMAINDER and 0.1235 without, and 0.09 / 0.30000000000001 truncated to 0.3000 instead of 0.2999). ⛔ The subsidiary quotient's DIGIT CAP is the digits the
 receiver's store KEEPS (kb/Work PB129): the PICTURE's digit positions for a PICTURE-truncating item, none for a
 BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its whole container (§13.18.60.4 GR12 / DOC-A.1-208, DOC-A.1-123) -
 the quotient such an item holds is the full quotient, and capping it at the PICTURE's digits made the remainder of
@@ -935,10 +950,9 @@ arithmetic store and the MOVE store each had the `Dec` arm, these did not. The r
 `NumericRenderer.Landed(x, rcv)` is THE landing of an intermediate into the Int128 lane at the receiver's working
 scale (`WorkingScale(SdidiLandingScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates; the
 constant was called `NumvalScaleFloor` until kb/Work PB251 showed the name was a fiction — §15.67 prescribes no
-working scale, so the floor is an implementor choice for THIS landing and nothing else); `FixedLane`
-is the same for a consumer with no float arm of its own (the NATIVE DIVIDE … REMAINDER kernel — a FLOAT-LONG sender was
-snapshotted `Int128 t = double`, PB85 — a native float lands truncated at `FloatWorkingScale`; the standard-decimal lane
-does not come through here, PB3017); the sign condition
+working scale, so the floor is an implementor choice for THIS landing and nothing else); the NATIVE DIVIDE … REMAINDER
+lane, which once landed a float sender truncated at `FloatWorkingScale` through a `FixedLane` of its own (PB85), now
+divides such a sender as it is (`ArithmeticEmitter.CarriedSubsidiaryQuotient`, kb/Work PB3829); the sign condition
 tests `Int128.Sign(dec.Sig)` (`RuntimeApi.DecSign` — exact at every exponent, never a landing);
 `NumericRenderer.StoreArgs`/`StoreExpr` are THE carrier switch at a fixed-point store, spelled once for the
 arithmetic store, the numeric MOVE and INVOKE BY CONTENT; `NumericRenderer.EditedLanding` is its sibling at a
