@@ -2427,7 +2427,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
    superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
    never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
-   which the queue no longer reads.
+   which the queue no longer reads. ⛔ The job checks out only `scripts/orchestrator` and `scripts/standard_streams.py`
+   (a sparse checkout) and its step is `continue-on-error`, so a module its scripts import that the list leaves out
+   would make it cancel nothing while the run stays green (kb/Work PB3637 added `standard_streams.py` by hand):
+   `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every sparse-checkout job of the workflow and
+   refuses a file it runs or imports that the list does not cover (§3.17.8).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2687,7 +2691,13 @@ landing is held to a record of its own tree. Landed with kb/Work PB3769:
 `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
 is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
-are declared), the supersession rule of §3.17.2 step 4.
+are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
+`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `dotnet-sdk-cache`)
+lists each repository file its steps name, each file its local action names, and each repository module a Python script
+it runs imports as it starts, transitively (a function body's import is lazy and not followed; `importlib` and path
+strings are the static read's limits), and sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the
+arms hold the real workflow (without `scripts/standard_streams.py` it is flagged), a transitive import, a lazy import,
+a docstring, relative imports, packages, a local action, comments, the pattern forms, a cone-mode job and a negation.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 
