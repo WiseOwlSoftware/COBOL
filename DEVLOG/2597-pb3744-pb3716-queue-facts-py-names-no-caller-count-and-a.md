@@ -1,4 +1,4 @@
-## PB3744, PB3716: queue_facts.py names no caller count, and a failed bounce download no longer deletes the previous results
+## Entry 2597 — 2026-10-25 18:55 PDT — PB3744, PB3716: queue_facts.py names no caller count, and a failed bounce download no longer deletes the previous results
 
 **PB3744 re-probe.** The module docstring of `scripts/orchestrator/queue_facts.py` opened with "Two readers use it and
 nothing else asks GitHub", then counted "a third caller" (`fetch_bounce_results`, PB3644) and "a fourth" (`live_heads`,
@@ -37,3 +37,4 @@ Code: the outer `except OSError` still reports "left as it was", true now becaus
 extra rename per successful fetch, none on the hot path of the re-gate (the marker short-circuits first).
 Duplication: the marker prefix is written in one f-string and read by `_holds` and the already-fetched check; a drift
 between them fails the "already in" and "run 800" arms.
+
