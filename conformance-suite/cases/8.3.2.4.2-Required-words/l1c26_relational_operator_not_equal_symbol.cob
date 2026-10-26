@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c26_relational_operator_not_equal_symbol
       *> rules: [SR-8.3.2.4.2-2, SR-8.7.5.2-11]
-      *> accept: [2002]
+      *> accept: [2014]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -17,10 +17,11 @@
       *>       relation: "the last stated relational operator were
       *>       inserted in place of the omitted relational operator"
       *> §8.7.5.1 Format 2 lists "IS <>" with IS optional.
-      *> Placed in 2002: the 1985 text is not in the repository, so the
-      *> edition at which <> entered cannot be derived here; 2002 is the
-      *> lowest directory where it is certain to exist (see the row
-      *> notes).
+      *> Accepted from 2014, the edition that introduced <>: the 2002
+      *> text's clause 8.7.5.2 ends its abbreviation rules at <= and
+      *> the 2009 committee draft's Annex D.3 (2002->2014 changes) item
+      *> 16 adds the symbol <> (kb/Work PB3604; VCR row 7.26). The
+      *> negative twin is pb1459-not-equal-operator-below-2014.
       *> A = 5 is compared with X = 3, 5, 7; each line shows the truth
       *> value at X = 3, 5, 7. <> means exactly NOT EQUAL:
       *>   A NOT EQUAL X : 5 vs 3 T, 5 vs 5 F, 5 vs 7 T          -> TFT
