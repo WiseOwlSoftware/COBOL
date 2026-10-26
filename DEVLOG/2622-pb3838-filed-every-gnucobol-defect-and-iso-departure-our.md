@@ -1,4 +1,4 @@
-## PB3838 filed: every GnuCOBOL defect and ISO departure our differentials find gets a reproducible record for upstream
+## Entry 2622 — 2026-10-26 12:07 PDT — PB3838 filed: every GnuCOBOL defect and ISO departure our differentials find gets a reproducible record for upstream
 
 The owner asked for a plan to report GnuCOBOL's inconsistencies with the ISO standard and its bugs upstream, and set the
 bar: at the least, track everything needed to file an issue or, ideally, a patch later, "detailed enough to repro the
@@ -15,3 +15,4 @@ to this bar from then on, and the owner-gated filing itself (re-run on GnuCOBOL'
 the owner's approval of each text; the FSF copyright-assignment question before any patch).
 
 Rows re-verdicted: none (`closes_rows: []` with a reason). No code changed.
+
