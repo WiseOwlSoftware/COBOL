@@ -47,7 +47,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF12", "PERFORM VARYING W-N FROM 1 BY 1 DISPLAY W-N END-PERFORM", "COBOL0001")]
     // STRING (M416) — INTO is unbracketed; ON OVERFLOW sits in choice indicators, so at most once.
     [InlineData("PBGF13", "STRING W-A DELIMITED BY SIZE END-STRING", "COBOL0001")]
-    [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOL0307")]
+    [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOLNET2269")]   // named since kb/Work PB3830 (§14.5.3.3)
     // UNSTRING (M417) — INTO is unbracketed; TALLYING is one bracketed phrase.
     [InlineData("PBGF16", "UNSTRING W-A DELIMITED BY \",\" END-UNSTRING", "COBOL0001")]
     [InlineData("PBGF18", "UNSTRING W-A DELIMITED BY \",\" INTO W-B W-C TALLYING IN W-N TALLYING IN W-K END-UNSTRING", "COBOL0307")]
@@ -74,7 +74,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL0307")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
     [InlineData("PBGF37", "READ F1 INTO", "COBOL0001")]
-    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL0307")]
+    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOLNET2269")]   // named since kb/Work PB3830 (§14.5.3.3)
     [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOLNET0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
     [InlineData("PBGF40", "OPEN F1", "COBOL0001")]
