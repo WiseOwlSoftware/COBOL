@@ -24,9 +24,10 @@ How (the design is docs/rearchitecture/DESIGN-test-build-ci.md §3.13):
 The store defaults to `<git common dir>/cobol-impact/`, which every worktree of the repository shares, so an
 implementer's worktree finds a map recorded in any worktree without copying anything.
 
-⛔ It is RECORDED, never hand-maintained, and a map is valid for exactly the tree it was recorded at —
-for a map older than the change's base by more than documentation, `impacted_tests.py` puts every test in tier 1 and
-uses the map only for its recorded durations and test names.
+⛔ It is RECORDED, never hand-maintained. The loop records one per main commit it adopts (kb/Work PB3663:
+`scripts/orchestrator/impact_lane.py`, started by `adopt_main.py`), and a person can record one by hand. A map is a
+statement about the tree it was recorded at, so `impacted_tests.py` uses it for the files that are the same in the
+change's base and attributes the others at the file level (`scripts/spec/impact_store.py`, which owns the store).
 
 Usage:
     python scripts/spec/record_impact_map.py                      # HEAD, all three assemblies
@@ -41,7 +42,6 @@ The last line printed is the verdict: `=== IMPACT MAP: RECORDED <path> … ===` 
 from __future__ import annotations
 
 import argparse
-import base64
 import datetime as dt
 import gzip
 import json
@@ -50,7 +50,6 @@ import shutil
 import subprocess
 import sys
 import time
-import zlib
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -63,9 +62,11 @@ from test_population import GATED_ASSEMBLIES as ASSEMBLIES, PopulationError, lis
 # spawned with `**slot.spawn_kwargs()`, or a Linux child runs outside the cap and a build server outlives the slot.
 from gate_slot import GateSlots, Slot  # noqa: E402
 import external_corpus  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # scripts/spec, beside this file
+import impact_store  # noqa: E402  (THE store: its location, the map's schema and bitset encoding; kb/Work PB3663)
+from impact_store import SCHEMA, bit_ids, pack, unpack  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
 
-SCHEMA = 2
 # The assemblies whose execution the map records — keep in step with tools/impact/ImpactRecording.targets.
 PROBED = [
     "cobol", "Cobol.Net.Compiler", "Cobol.Net.Editions", "Cobol.Net.Frontend", "Cobol.Net.Runtime",
@@ -76,13 +77,6 @@ PROBED = [
 def git(*args: str, cwd: Path = REPO) -> str:
     return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True,
                           encoding="utf-8").stdout.strip()
-
-
-def default_store() -> Path:
-    common = Path(git("rev-parse", "--git-common-dir"))
-    if not common.is_absolute():
-        common = (REPO / common).resolve()
-    return common / "cobol-impact"
 
 
 def priority_flags(priority: str) -> dict:
@@ -113,23 +107,31 @@ def read_hits(path: Path) -> set[int]:
     return {int(x) for x in path.read_text(encoding="utf-8").split() if x.strip().isdigit()}
 
 
-def pack(n: int) -> str:
-    """A bitset (bit i = probe entry i) in the recorder's own encoding: little-endian bytes, zlib, base64."""
-    return base64.b64encode(zlib.compress(n.to_bytes((n.bit_length() + 7) // 8, "little"))).decode("ascii")
+#: The marker the vstest adapter ends a TRUNCATED display name with in `--list-tests` output and in the trx (it cuts a
+#: name at a fixed width, the arguments of a long theory row); xunit's own `ITest.DisplayName`, which the recorder
+#: reads while the test runs, is the full name. `scripts/test_population.py` carries the same marker in its docs.
+ELLIPSIS = chr(0xB7) * 3
 
 
-def unpack(b64: str) -> int:
-    """A recorded bitset as a Python int: bit i set = probe entry i was reached."""
-    return int.from_bytes(zlib.decompress(base64.b64decode(b64)), "little") if b64 else 0
-
-
-def bit_ids(n: int):
-    """The set bits of `n`, ascending — byte-wise, since shifting a 45,000-bit int bit by bit is quadratic."""
-    for bi, byte in enumerate(n.to_bytes((n.bit_length() + 7) // 8, "little")):
-        if byte:
-            for k in range(8):
-                if byte >> k & 1:
-                    yield bi * 8 + k
+def adopt_listed_names(tests: list[list], listed: dict[str, list[str]]) -> int:
+    """Give every recorded test the name the GATE knows it by (kb/Work PB3663). A listed name ending in the truncation
+    marker is the front of the recorded name it truncates; the gate keys its plan on the listed name, so a map that
+    recorded the full one would list those rows as never recorded (the recorder's watchdog, so the first real recording
+    on 7d769bcc1 FAILED on eight UniversalCrossingShapeDriftTests rows) and the plan would treat them as unknown cases.
+    Returns how many names it replaced."""
+    replaced = 0
+    for asm, names in listed.items():
+        known = set(names)
+        cut = [(n[:-len(ELLIPSIS)], n) for n in names if n.endswith(ELLIPSIS)]
+        for t in tests:
+            if t[0] != asm or t[2] in known:
+                continue
+            for stem, n in cut:
+                if t[2].startswith(stem):
+                    t[2], t[6] = n, True
+                    replaced += 1
+                    break
+    return replaced
 
 
 def merge(raw: Path, table: dict, sha: str, known: list[str], listed: dict[str, list[str]],
@@ -159,6 +161,8 @@ def merge(raw: Path, table: dict, sha: str, known: list[str], listed: dict[str, 
             else:
                 key = f"{asm}:{c['collection']}"
                 collection_bits[key] = collection_bits.get(key, 0) | unpack(c["bits"])
+
+    adopt_listed_names(tests, listed)
 
     ambient = 0
     for d in ("ambient", "orphans"):
@@ -224,6 +228,41 @@ def check(m: dict) -> list[str]:
     return problems
 
 
+def self_test() -> int:
+    """The recorder's own watchdog and name handling, on planted maps (the recording itself is a 14-minute run)."""
+    fails: list[str] = []
+
+    def check_(label: str, ok: bool, detail: object = "") -> None:
+        print(f"  {'PASS' if ok else 'FAIL'}  {label}" + ("" if ok else f"  ({detail})"))
+        if not ok:
+            fails.append(label)
+
+    stem = 'N.T.Row(pid: "UCS01", callerData: "01 G. 05 G1 PIC X(2) VALUE'
+    full, cut = stem + ' \\"AB\\".", expected: "x")', stem + ELLIPSIS
+    tests = [["Conformance", "n", full, "N.T", "Conformance:c", 1.0, False],
+             ["Conformance", "n", "N.T.Plain", "N.T", "Conformance:c", 1.0, True],
+             ["Unit", "n", full, "N.T", "Unit:c", 1.0, False]]
+    n = adopt_listed_names(tests, {"Conformance": [cut, "N.T.Plain"], "Unit": ["N.U.Other"]})
+    check_("a recorded name takes the listed name that truncates it (the gate keys its plan on the listed name)",
+           (n, tests[0][2], tests[0][6]) == (1, cut, True), (n, tests[0][2:7:4]))
+    check_("... a name already listed, and another assembly's, stay as recorded", (tests[1][2], tests[2][2]) == ("N.T.Plain", full))
+    check_("... and a listed name with no truncation marker adopts nothing",
+           adopt_listed_names([["Conformance", "n", full, "N.T", "c", 1.0, False]], {"Conformance": [stem]}) == 0)
+    sample = {"partial": False, "test_bits": [pack(1 << 0)], "entries": [["N.A::M()", [["src/Cobol.Net.Compiler/A.cs", 1, 2]]]]}
+    check_("the watchdog fails a map no test reached the front end or runtime with",
+           len(check({**sample, "population": {}})) == 2, check({**sample, "population": {}}))
+    reached = {**sample, "entries": [["N.A::M()", [["src/Cobol.Net.Compiler/A.cs", 1, 2]]],
+                                    ["N.B::M()", [["src/Cobol.Net.Frontend/B.cs", 1, 2]]],
+                                    ["N.C::M()", [["src/Cobol.Net.Runtime/C.cs", 1, 2]]]], "test_bits": [pack(0b111)]}
+    check_("... and passes one whose population is whole",
+           check({**reached, "population": {"Unit": {"recorded": 3, "listed_but_unrecorded_count": 0}}}) == [])
+    check_("... and fails a listed test that was never recorded",
+           len(check({**reached, "population": {"Unit": {"recorded": 3, "listed_but_unrecorded_count": 2,
+                                                         "listed_but_unrecorded": ["a", "b"]}}})) == 1)
+    print("record_impact_map self-test: all checks OK" if not fails else f"FAILED: {fails}")
+    return 1 if fails else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--commit", default="HEAD")
@@ -235,12 +274,15 @@ def main() -> int:
                     help="copy tools/impact from THIS tree into the recorded one (a commit older than the tooling)")
     ap.add_argument("--keep", action="store_true", help="keep the detached worktree afterwards")
     ap.add_argument("--priority", default="BelowNormal", choices=["Normal", "BelowNormal", "Idle"])
+    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
+    if args.self_test:
+        return self_test()
 
     sha = git("rev-parse", args.commit)
-    store = (args.store or default_store()).resolve()
+    store = (args.store or impact_store.default_store(REPO)).resolve()
     store.mkdir(parents=True, exist_ok=True)
-    work = (args.work or store).resolve() / f"rec-{sha[:12]}-{int(time.time())}"
+    work = (args.work or store).resolve() / impact_store.work_name(sha, int(time.time()))
     wt, raw, logs = work / "wt", work / "raw", work / "logs"
     for d in (raw, logs):
         d.mkdir(parents=True, exist_ok=True)
@@ -349,9 +391,13 @@ def record(args: argparse.Namespace, sha: str, store: Path, wt: Path, raw: Path,
         m["timings_s"] = timings
         problems = check(m)
         m["problems"] = problems
-        out = store / (f"{sha}.partial.json.gz" if args.filter else f"{sha}.json.gz")
-        with gzip.open(out, "wt", encoding="utf-8", newline="\n") as fh:
+        out = store / (f"{sha}.partial.json.gz" if args.filter else impact_store.map_file(store, sha).name)
+        # Written beside its name and renamed into it: a reader (a gate planning, the recorder lane's skip rule) opens a
+        # store file whenever it likes, and a half-written gzip would fail it (kb/Work PB3663).
+        tmp = out.with_name(f"{out.name}.{os.getpid()}{impact_store.TMP_MARK}")
+        with gzip.open(tmp, "wt", encoding="utf-8", newline="\n") as fh:
             json.dump(m, fh, separators=(",", ":"))
+        os.replace(tmp, out)
         print(f"  tests recorded: {len(m['tests'])} · probe entries: {len(m['entries'])} · "
               f"children: {m['children']}")
         print(f"  timings (s): {timings}")
