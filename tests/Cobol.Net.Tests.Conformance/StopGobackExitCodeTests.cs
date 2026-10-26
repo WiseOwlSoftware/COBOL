@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Conformance;
 /// §4.2.16) collapses both into ONE integer: the STATUS value when present, else ERROR ⇒ 1 / NORMAL ⇒ 0.
 /// These facts assert the NUMERIC exit code (the manifest golden harness only checks <c>ExitCode == 0</c> as a bool,
 /// so the value is unobservable there). The below-edition rejection of the phrase is covered by the version matrix
-/// (stop-run-status-2002 / goback-status-2023 → COBOLNET0900).
+/// (stop-run-status-2002 / goback-status-2023 → COBOL0900).
 /// </summary>
 public sealed class StopGobackExitCodeTests
 {
@@ -90,10 +90,10 @@ public sealed class StopGobackExitCodeTests
     /// <para>§14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
     /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed the position — yet both arms were bound
     /// through <c>ExpressionBinder.BindExpr</c>. Measured on 9a89fbd1: <c>STATUS "ABEND"</c> AND
-    /// <c>STATUS WS-DISPLAY</c> (PIC X(3)) each drew COBOLNET0844 citing §8.8.1.1, while §14.9.42.3 SR2
+    /// <c>STATUS WS-DISPLAY</c> (PIC X(3)) each drew COBOL0844 citing §8.8.1.1, while §14.9.42.3 SR2
     /// explicitly admits "a data item with usage display or usage national" and SR3's conditional ("If literal-1
     /// IS numeric …") presupposes the non-numeric literal. The rejection quoted a rule the programmer had not
-    /// broken — the COBOLNET1628 shape.</para>
+    /// broken — the COBOL1628 shape.</para>
     /// <para>The VALUES are docs/CONFORMANCE.md item 192's published GR5 determination, implemented rather than
     /// invented: "the integer value of literal-1 / identifier-1 (truncated toward zero) becomes the exit code; a
     /// non-integer display/national operand is interpreted numerically" — i.e. <c>CobolNum.FromAlphanumeric</c>,
@@ -162,7 +162,7 @@ public sealed class StopGobackExitCodeTests
     /// STOP statement BY NAME and gives the figurative a length of ONE character there (GR3 b); GR3 c gives
     /// <c>ALL literal-1</c> the length of literal-1. Those characters then take docs/CONFORMANCE.md item 192's
     /// published GR5 mapping — <c>CobolNum.FromAlphanumeric</c>, a non-digit position contributing no digit — the
-    /// SAME decode <c>STATUS "ABEND"</c> already used. Adding a sixth COBOLNET1704 arm instead would have minted
+    /// SAME decode <c>STATUS "ABEND"</c> already used. Adding a sixth COBOL1704 arm instead would have minted
     /// the rejects-legal-source defect PB169 exists to close, one literal form later.</para>
     /// <para>Every expected value below is DERIVED from that published determination before the run: a bare
     /// figurative is one character and none of SPACE / HIGH-VALUE / LOW-VALUE / QUOTE is a digit, so all four
@@ -211,7 +211,7 @@ public sealed class StopGobackExitCodeTests
     ///   theory below and pinned it (<c>feedback_green_test_can_hold_a_gap_open</c>). The usage answer now comes
     ///   from <c>ItemCategory.UsageOf</c>, the ONE §8.5.2.1 reader.</item>
     /// </list>
-    /// Measured on this tree before each fix: every row drew COBOLNET1704. The reader settles all group kinds
+    /// Measured on this tree before each fix: every row drew COBOL1704. The reader settles all group kinds
     /// with no hand-list — the BIT group stays rejected, and so do the two group kinds §3.11 excludes from
     /// "alphanumeric group item", which is what the negative half below asserts.</summary>
     [Theory]
@@ -265,35 +265,35 @@ public sealed class StopGobackExitCodeTests
     /// directions at once. (The corpus fixtures pin the same rules at every edition; these assert the MESSAGE
     /// names the rule broken, which a reject-only fixture cannot.)</summary>
     [Theory]
-    [InlineData("STOP RUN WITH ERROR STATUS \"\".", "COBOLNET1704", "§14.9.42.3 SR4")]
-    [InlineData("STOP RUN WITH ERROR STATUS 1.5.", "COBOLNET1704", "§14.9.42.3 SR3")]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-IX.", "COBOLNET1637", "§13.18.38.3 r7")]
-    [InlineData("GOBACK WITH ERROR STATUS \"\".", "COBOLNET1704", "§14.9.18.3 SR8")]
+    [InlineData("STOP RUN WITH ERROR STATUS \"\".", "COBOL1704", "§14.9.42.3 SR4")]
+    [InlineData("STOP RUN WITH ERROR STATUS 1.5.", "COBOL1704", "§14.9.42.3 SR3")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-IX.", "COBOL1637", "§13.18.38.3 r7")]
+    [InlineData("GOBACK WITH ERROR STATUS \"\".", "COBOL1704", "§14.9.18.3 SR8")]
     // ⛔ THE SCREEN IS KEYED ON THE BOUND SHAPE, NOT ON THE PARSE ARM (kb/Work PB216). §13.10.4 GR1 makes a
     // constant-name's effect "as if literal-1 … were written where constant-name-1 is written", so SR3 governs a
     // constant-name status operand — which arrives on the dataReference arm and, while SR3 lived inside the
     // literal arm, skipped the rule entirely: measured, `STATUS WS-K` with `01 WS-K CONSTANT AS 1.5` compiled
     // clean and exited 1.
-    [InlineData("STOP RUN WITH ERROR STATUS WS-K.", "COBOLNET1704", "§14.9.42.3 SR3 via §13.10.4 GR1")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-K.", "COBOL1704", "§14.9.42.3 SR3 via §13.10.4 GR1")]
     // NULL is not literal-1 (§8.3.3.6.2 lists no NULL figurative format); it is an IDENTIFIER (§8.4.3.1.2 Format 8),
     // so it fills the identifier-1 slot, and the rule it breaks FIRST is the one deciding whether it may be written
     // there at all: §8.4.3.10.3 SR1 confines it to INITIALIZE/SET, a prototype argument or a pointer-or-object-
     // reference relation condition. §14.9.42.3 SR2's category test cannot even be asked — NULL references a
     // data-pointer item only through an associated data item (§8.4.3.10.4 GR1), and a STATUS phrase associates
     // none. So it draws the ONE §8.4.3.10.3 SR1 code (kb/Work PB1427), not the position's own 1704.
-    [InlineData("STOP RUN WITH ERROR STATUS NULL.", "COBOLNET2576", "§8.4.3.10.3 SR1")]
+    [InlineData("STOP RUN WITH ERROR STATUS NULL.", "COBOL2576", "§8.4.3.10.3 SR1")]
     // A BIT group is neither an integer data item nor a display/national one — the arm the ONE §8.5.2.1 usage
     // reader keeps rejecting (usage bit) while it admits the NATIONAL and the ALPHANUMERIC group (PB217/PB411).
-    [InlineData("STOP RUN WITH ERROR STATUS WS-BITGRP.", "COBOLNET1704", "§14.9.42.3 SR2")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-BITGRP.", "COBOL1704", "§14.9.42.3 SR2")]
     // ⛔ THE TWO GROUP KINDS §3.11 EXCLUDES BY NAME from "alphanumeric group item" — "group item except for a
     // bit group item, a national group item, a strongly-typed group item, or a variable-length group item" — so
     // §8.5.2.1's "treated as though it had a usage of display" does NOT reach them and neither alternative of
     // SR2/SR6 admits them. Without these rows the §8.5.2.1 fix would read as "any group is display", which is
     // the over-correction the rule's own definition forbids (kb/Work PB411; the shape ItemCategory.UsageOf
     // answers null for).
-    [InlineData("STOP RUN WITH ERROR STATUS WS-STRONG.", "COBOLNET1704", "§14.9.42.3 SR2 + §3.11")]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-VARLEN.", "COBOLNET1704", "§14.9.42.3 SR2 + §3.11")]
-    [InlineData("GOBACK WITH ERROR STATUS WS-STRONG.", "COBOLNET1704", "§14.9.18.3 SR6 + §3.11")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§14.9.42.3 SR2 + §3.11")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-VARLEN.", "COBOL1704", "§14.9.42.3 SR2 + §3.11")]
+    [InlineData("GOBACK WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§14.9.18.3 SR6 + §3.11")]
     public void TheStatusPositionsOwnRules_AreEnforcedAndCited(string proc, string code, string clause)
     {
         const string src = """

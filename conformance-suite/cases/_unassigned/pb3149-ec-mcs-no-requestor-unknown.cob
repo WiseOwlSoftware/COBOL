@@ -9,7 +9,7 @@
       *>   condition EC-MCS-NO-REQUESTER (docs/CONFORMANCE.md
       *>   D-MCS-NR). 7.3.25.3 SR2: "Exception-name-1 shall be one of
       *>   the exception names listed in 14.6.13.1", so the -OR
-      *>   spelling is an unknown exception-name (COBOLNET0711) at
+      *>   spelling is an unknown exception-name (COBOL0711) at
       *>   every edition. The TURN directive is a 2002 introduction,
       *>   so COBOL-85 is not a cell of this negative.
        >>TURN EC-MCS-NO-REQUESTOR CHECKING ON

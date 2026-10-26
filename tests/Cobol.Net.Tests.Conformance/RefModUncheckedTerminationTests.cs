@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Conformance;
 /// identifier-1" (both cite.py OK). A violation is the fatal EC-BOUND-REF-MOD. With checking not enabled the
 /// standard names no outcome for the violated <c>shall</c>, so the owner's 2026-07-28 loud-abort rule decides: the
 /// run unit terminates and nothing is clamped or padded. The positions are DATA ITEMS here on purpose — a literal
-/// violation is refused at compile time (COBOLNET2670, negative:pb1707-refmod-literal-out-of-range) and never runs.
+/// violation is refused at compile time (COBOL2670, negative:pb1707-refmod-literal-out-of-range) and never runs.
 /// Stdout is exactly what was displayed before the terminating statement.</para>
 /// </summary>
 public sealed class RefModUncheckedTerminationTests

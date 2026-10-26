@@ -223,7 +223,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO
         // §13.18.63.3 SR2 asked for (the 85 corpus writes `PIC 999 VALUE "000"` — NC107A's DATA-P; DataBinder's
-        // ValidateValueCategory diagnoses it, COBOLNET1657, and rewrites it to the number under --permissive).
+        // ValidateValueCategory diagnoses it, COBOL1657, and rewrites it to the number under --permissive).
         // ⛔ ONE RECIPE FOR BOTH STORAGE AXES (kb/Work PB188). The image arm used to hand-spell
         // `StrStore(chars, pic.Length)` — the PICTURE's DIGIT COUNT — which was right only while every
         // StoreAsImage numeric leaf was zoned DISPLAY, where digits and bytes are the same number. Since the

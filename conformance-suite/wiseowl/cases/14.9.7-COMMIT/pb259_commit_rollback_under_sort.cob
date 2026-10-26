@@ -10,7 +10,7 @@
 *> then it has the same effect as a CONTINUE statement with no additional phrases."
 *> GR1 is asked before GR2 (EC-FLOW-COMMIT / EC-FLOW-ROLLBACK under a SORT or MERGE): with no clause there is no
 *> transaction for the statement to act on, so it continues. HELPER lies outside both procedure ranges (the
-*> static reach, a COMMIT written inside the procedures, is 14.9.7.3 SR2's refusal, COBOLNET1690) and is
+*> static reach, a COMMIT written inside the procedures, is 14.9.7.3 SR2's refusal, COBOL1690) and is
 *> PERFORMed from them while the SORT is active. Under EC-ALL checking no condition is raised, so
 *> EXCEPTION-STATUS stays blank and the SORT completes in key order. The same statements under an ACTIVE clause
 *> raise the conditions: unit:TransactionControlTests.Commit_and_rollback_under_an_active_sort_raise_ec_flow_or_change_nothing.

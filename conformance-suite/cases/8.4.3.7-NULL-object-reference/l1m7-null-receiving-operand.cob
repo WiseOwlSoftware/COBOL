@@ -21,8 +21,8 @@
       *> class object, so SR8 would accept it on class grounds, and only
       *> SR1 forbids it as a receiving operand.  Every receiving position
       *> parses NULL (kb/Work PB1551), so the receiving chokepoint
-      *> refuses it by SR1 (COBOLNET3977); it used to be a parse error
-      *> re-coded to 8.9 (COBOLNET0901).  Below 2002 USAGE OBJECT
+      *> refuses it by SR1 (COBOL3977); it used to be a parse error
+      *> re-coded to 8.9 (COBOL0901).  Below 2002 USAGE OBJECT
       *> REFERENCE does not exist at all.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1M7NUL.

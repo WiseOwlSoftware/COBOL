@@ -8,7 +8,7 @@
       *> PB1577 - ISO 8.3.3.6 SR1 / 12.3.7.4 GR11: a symbolic-character is a
       *>   figurative constant, usable wherever a figurative constant is.
       *>   FUNCTION ORD(SPACE) always compiled; FUNCTION ORD(S67) drew
-      *>   COBOLNET1639 "not defined" about a name SPECIAL-NAMES declared.
+      *>   COBOL1639 "not defined" about a name SPECIAL-NAMES declared.
       *> cite.py --check 12.3.7.4 "the symbolic-character-1 is a figurative
       *>   constant" - see 12.3.7.4 GR11 (checked below)
       *> Derivation: S67 is the character at ordinal position 67 of the

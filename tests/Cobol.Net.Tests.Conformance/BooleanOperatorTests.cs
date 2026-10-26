@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Conformance;
 /// §8.8.2 boolean expressions, §14.9.8 Format-2 COMPUTE, §8.8.4.2.2 the boolean relation, §8.8.4.3 the simple
 /// boolean condition). End-to-end facts over the ISO Annex A Table A.2 oracle
 /// (<c>1100 B-AND 0101 = 0100</c> / <c>B-OR = 1101</c> / <c>B-XOR = 1001</c> / <c>B-NOT 1100 = 0011</c>) plus the
-/// constraint band (COBOLNET1511) and the edition gates. Covers COMPUTE Format 2, the boolean relation
+/// constraint band (COBOL1511) and the edition gates. Covers COMPUTE Format 2, the boolean relation
 /// (§8.8.4.2.2, equality-only), and the simple boolean condition (§8.8.4.3) — including the UNPARENTHESIZED
 /// forms, admitted by the <c>boolExprAhead()</c> predicate that leaves <c>comparisonExpression</c> untouched.
 /// (Runtime bit logic is unit-tested in <c>CobolBoolTests</c>.)
@@ -122,7 +122,7 @@ public sealed class BooleanOperatorTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("BOP04", proc), 2002);
         Assert.False(ok, "ROUNDED / ON SIZE ERROR is invalid on a boolean COMPUTE (ISO §14.9.8 Format 2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public sealed class BooleanOperatorTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §14.9.8 SR2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public sealed class BooleanOperatorTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("BOP06", "IF (A B-AND B) < B\"1111\" DISPLAY \"X\"."), 2002);
         Assert.False(ok, "boolean relations admit only [NOT] EQUAL (ISO §8.8.4.2.2 Format 2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public sealed class BooleanOperatorTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a boolean expression admits boolean operands only (ISO §8.8.2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
     }
 
     [Fact]
@@ -203,6 +203,6 @@ public sealed class BooleanOperatorTests
         Assert.True(ok85, $"B-AND is a user word at COBOL-85: {detail85}");
         var (ok2002, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok2002, "B-AND is reserved at 2002 — a user-word use is rejected");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0901");
     }
 }

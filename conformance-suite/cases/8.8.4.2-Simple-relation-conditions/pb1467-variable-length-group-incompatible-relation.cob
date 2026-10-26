@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.5.1.12.1 - "a variable-length group is not equivalent to an alphanumeric data item and may not
       *> undergo a comparison or a move operation, in either direction, explicitly or otherwise, unless the other
-      *> operand is a compatible group." X1 is an elementary item, so the relation is refused (COBOLNET2492); before
+      *> operand is a compatible group." X1 is an elementary item, so the relation is refused (COBOL2492); before
       *> kb/Work PB1467 it compiled clean and aborted the run unit on a whole-group image G1 does not have. (A
       *> variable-length group is declarable only from COBOL-2014 - DYNAMIC LENGTH, 13.18.19.)
        IDENTIFICATION DIVISION.

@@ -154,7 +154,7 @@ public sealed class EvaluateOperandClassifierDriftTests
         Assert.False(ok, "ISO §14.9.13.3 SR6 reclassifies a boolean operand to a condition only when it results "
             + "in ONE boolean character; otherwise it is boolean-expression-1/-2, and Table 15 leaves that cell "
             + "blank against a TRUE-or-FALSE counterpart");
-        Assert.Contains("COBOLNET1634", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL1634", detail, StringComparison.Ordinal);
     }
 
     /// <summary>§14.9.13.4 GR1 — "If an operand of the EVALUATE statement consists of a single literal, that
@@ -193,7 +193,7 @@ public sealed class EvaluateOperandClassifierDriftTests
         else
         {
             Assert.False(ok, "ISO §14.9.13.3 SR10 Table 15 leaves the literal × literal cell blank");
-            Assert.Contains("COBOLNET1634", detail, StringComparison.Ordinal);
+            Assert.Contains("COBOL1634", detail, StringComparison.Ordinal);
         }
     }
 }

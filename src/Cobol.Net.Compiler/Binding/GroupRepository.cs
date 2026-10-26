@@ -18,14 +18,14 @@ namespace CobolNet.Binding;
 /// from the prototype definition;</item>
 /// <item>c) otherwise the details come from the external repository, which this implementation does not hold yet
 /// (DESIGN-external-repository slice 7; kb/Work PB1086). A program then carries no compile-time signature and is
-/// located in the run unit at activation; a function cannot be bound at all (COBOLNET1505), because its RETURNING
+/// located in the run unit at activation; a function cannot be bound at all (COBOL1505), because its RETURNING
 /// description is what a reference's result takes.</item>
 /// </list>
 /// <para><b>"Previously" is a POSITION, not a membership.</b> Every definition in the group used to be visible to every
 /// source element, so a REPOSITORY entry naming a definition that FOLLOWS the element took a)'s details from it
 /// (the order-blind tables this class replaced). The search now takes the position of the referencing element
 /// (<see cref="BoundUnit.SourcePosition"/>, or a class's own start) and reads only the definitions that start strictly
-/// before it. A prototype and its definition must have the same signature (§10.6.2 SR2/SR3, COBOLNET1513), so a) and
+/// before it. A prototype and its definition must have the same signature (§10.6.2 SR2/SR3, COBOL1513), so a) and
 /// b) never disagree on the details; the observable difference is a definition WITHOUT a prototype that follows its
 /// caller, which is c).</para>
 /// <para><b>Matched by EXTERNALIZED name, never by word</b> (GR10 a) / GR11 a) say "the externalized name" three

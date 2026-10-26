@@ -163,7 +163,7 @@ the design (do not re-invent — `feedback_one_mechanism_per_job`):
 - **A `ConstructDialectStatus` registry** (survey recommendation): one table mapping each construct → per-edition
   severity {ERROR | WARNING | SILENT}. The registry is the code-side twin of the construct catalogue (§4) and is
   generated/checked against `VERSION_CHANGE_REFERENCE.md` so the doc and the compiler cannot drift.
-- **Version diagnostics:** the edition-gating band `COBOLNET0900–0999` (`CobolNet.Editions.EditionCodes`):
+- **Version diagnostics:** the edition-gating band `COBOL0900–0999` (`CobolNet.Editions.EditionCodes`):
   0900 "feature requires COBOL-YYYY", 0901 reserved word, 0902 "removed in COBOL-YYYY", 0903 obsolete/archaic flag,
   reported through `ConstructRegistry.Check` — the greenfield successors of legacy `CBL3601/3602/3607/3611…3618`.
 
@@ -263,14 +263,14 @@ untouched); `Program.cs` prints warnings to stderr always.
   (e.g. the MOVE rows) lives in the bound-tree arm or binder-side — but EVERY severity decision routes through
   `Removed()`/the registry (one policy, several emit sites; `feedback_one_mechanism_per_job`).
 
-### P2.3 Diagnostics band (COBOLNET0900–0999, verified unused)
+### P2.3 Diagnostics band (COBOL0900–0999, verified unused)
 
 | Code | Meaning | Severity |
 |---|---|---|
-| COBOLNET0900 | construct requires COBOL-YYYY (introduction gating, validator-visible) | error |
-| COBOLNET0901 | word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9) | error strict / warning permissive |
-| COBOLNET0902 | construct removed in COBOL-YYYY | error strict / warning permissive (via `Removed`) |
-| COBOLNET0903 | obsolete/archaic-element flag | warning (always) |
+| COBOL0900 | construct requires COBOL-YYYY (introduction gating, validator-visible) | error |
+| COBOL0901 | word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9) | error strict / warning permissive |
+| COBOL0902 | construct removed in COBOL-YYYY | error strict / warning permissive (via `Removed`) |
+| COBOL0903 | obsolete/archaic-element flag | warning (always) |
 
 Existing codes are KEPT where tests/history pin them: 0873 (DATA RECORDS, FD+SD), 0810/0811 (ALTER / bare
 GO TO), 0882 (CALL ON OVERFLOW).
@@ -385,8 +385,8 @@ decision.
 > **(b) The loud-guard sweep** — `PictureAnalyzer.ParseUsage`/`Analyze` take `(EditionContext, where)`: the silent
 > Display catch-all is dead; the 2002+ recognized-but-unimplemented inventory (NATIONAL, BIT, POINTER, OBJECT
 > REFERENCE, BINARY-CHAR family, FLOAT-SHORT/LONG/EXTENDED, PIC N/1/E) routes its registry row (0900 below
-> 2002) + a COBOLNET0899 not-implemented error at ≥2002 naming the owning phase; an unknown usage keyword or
-> PICTURE symbol is loud (new COBOLNET0808 invalid-PICTURE-symbol; §13.18.40.3 SR2 whitelist honoring the
+> 2002) + a COBOL0899 not-implemented error at ≥2002 naming the owning phase; an unknown usage keyword or
+> PICTURE symbol is loud (new COBOL0808 invalid-PICTURE-symbol; §13.18.40.3 SR2 whitelist honoring the
 > program currency symbol). `UsageKeyword` reads tokens, not stripped text (bare `BINARY-CHAR SIGNED` gates
 > identically to the full form). Skeleton enum members (PicCategory.National/.Boolean + 11 Usage members) throw
 > loud from every storage-mapping member if reached. `CallCollectUnits` no longer silently drops a
@@ -416,17 +416,17 @@ decision.
 > intro-gate upgrade is a PARSE-LAYER mapping (no grammar change): every gated site surfaces below its
 > edition as a generic NoViableAlternative, so `EditionGateHints` (frontend) recognizes the per-site
 > (token, rule-stack, adjacency) signature and — only when the targeted edition is below the construct's
-> introduction — emits the `ConstructRegistry.Check` wording on COBOLNET0900 through `CobolErrorStrategy`
+> introduction — emits the `ConstructRegistry.Check` wording on COBOL0900 through `CobolErrorStrategy`
 > (priority-0 hint; the code rides the `[code]`-prefix extraction). All 17 reachable sites verified; JSON/XML
 > map to the vendor hint COBOL0313 (not ISO — the 0900 band would be a lie); unmapped residue documented
 > in-code (inline method invocation / UDF parameterDescription / SET-TO-objectReference). The 0860/0861
 > double allocation (READ PREVIOUS / START FIRST-LAST vs the WRITE END-OF-PAGE diagnostics) resolved by
 > registry migration; currency-picture-symbol re-pinned 0893; 5 new rows (repository-class, start-with-length,
 > special-names-for-national, call-by-value active; class-definition pending) and `expectDiagnostic:
-> COBOLNET0900` on 21 rows — the matrix reject cells assert the CODE.
+> COBOL0900` on 21 rows — the matrix reject cells assert the CODE.
 > QUOTE→numeric rides its own dual row `move-quote-numeric-obsolete-2014` (Annex E.2 item 21: 0903@2014,
 > 0902@2023 — the ObsoleteMatrix theory is bounded below `removedIn` and asserts the FIXED 0903 band code);
-> the version-invariant §14.9.25.3 SR1 class-index MOVE check is COBOLNET0809 (every edition, both operands);
+> the version-invariant §14.9.25.3 SR1 class-index MOVE check is COBOL0809 (every edition, both operands);
 > ref-mod slice stores on numeric-DISPLAY items image-back the item at bind time for EVERY sender
 > (`MarkRefModStoreImage` — the round-trip-loss fix). ⚠ KNOWN MISBIND queued to W3: the trailing `,`
 > clause-separator twin of the fixed `;` over-capture (VCR Table 7 row 7.14 — needs the lexer-mode cure).

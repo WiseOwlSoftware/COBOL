@@ -7,7 +7,7 @@
       *> kb/Work PB889 - ISO 13.18.57.3 SR5: "No group item to which the subject of the entry is subordinate
       *> shall contain a GROUP-USAGE, SIGN, or USAGE clause." The TYPE twin of 13.18.49.3 SR9, and the same
       *> missing arm: the walk tested SIGN and USAGE only. Written with the standard's own Format 1 spelling
-      *> TYPE TO type-name-1 (13.18.57.2; TO is the optional word). Expected: COBOLNET1538 naming
+      *> TYPE TO type-name-1 (13.18.57.2; TO is the optional word). Expected: COBOL1538 naming
       *> 13.18.57.3 SR5, at every edition that has TYPE (2002+).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB889TYGU.

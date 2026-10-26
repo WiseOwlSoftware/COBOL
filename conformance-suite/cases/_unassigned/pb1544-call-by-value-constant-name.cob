@@ -7,7 +7,7 @@
 *> ISO 14.9.4.3 SR23 - "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase,
 *> literal-2 shall be a numeric literal." A constant-name is literal-2: "the effect of specifying constant-name-1 in
 *> other than this entry is as if literal-1 ... were written where constant-name-1 is written" (13.10.4 GR1), so
-*> BY VALUE KT, KT standing for "Q", is refused BY NAME, COBOLNET1762 (kb/Work PB1544: it was COBOLNET0844, the
+*> BY VALUE KT, KT standing for "Q", is refused BY NAME, COBOL1762 (kb/Work PB1544: it was COBOL0844, the
 *> arithmetic-expression refusal of a different rule).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEG1544B.

@@ -28,7 +28,7 @@
       *> consist of zero paragraphs); its GR4 inline twin is a body that DOES NOTHING, which 14.9.9 spells
       *> CONTINUE — "a no operation" — so the loop's induction-variable behaviour, and this program's
       *> expected output, are unchanged. Written empty, the statement parsed only because the grammar
-      *> said `statementBlock*`; it is now COBOLNET2072.
+      *> said `statementBlock*`; it is now COBOL2072.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB440EMPTY85.
        DATA DIVISION.

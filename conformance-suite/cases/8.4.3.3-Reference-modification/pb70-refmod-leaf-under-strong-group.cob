@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.4.3.3.3 SR1: "a numeric data item of usage display or national that is not subordinate to a
       *> strongly-typed group item" - the numeric leaf of a STRONG typed group is excluded (an alphanumeric leaf
-      *> under the same group is admitted: bullet 3 carries no such restriction). kb/Work PB70: COBOLNET1647.
+      *> under the same group is admitted: bullet 3 carries no such restriction). kb/Work PB70: COBOL1647.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70NSTRONGLEAF.
        DATA DIVISION.

@@ -8,8 +8,8 @@
       *> the only procedure division access a report group has, and 13.15.3 SR7 lists the others (a USE BEFORE
       *> REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand
       *> in a SUM clause): "The data-name shall not be referenced in any other way". DISPLAY DET-1 names the group in a
-      *> way none of them admits, qualified by its report-name or not, so it is refused as COBOLNET5092 - not as
-      *> COBOLNET1639 "'DET-1' is not defined", which was false: the report section declares it.
+      *> way none of them admits, qualified by its report-name or not, so it is refused as COBOL5092 - not as
+      *> COBOL1639 "'DET-1' is not defined", which was false: the report section declares it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1046R2.
        ENVIRONMENT DIVISION.

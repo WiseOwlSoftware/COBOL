@@ -38,7 +38,7 @@ public sealed class CheckOnlyCompileTests
             STOP RUN.
         """;
 
-    // DELETE FILE (Format 2) is a 2023 construct — rejected below 2023 (COBOLNET0900).
+    // DELETE FILE (Format 2) is a 2023 construct — rejected below 2023 (COBOL0900).
     private const string EditionGated2023 = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. CHK23.
@@ -105,8 +105,8 @@ public sealed class CheckOnlyCompileTests
             string src = WriteTemp(dir, "CHK23", EditionGated2023);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             Assert.Equal(CompilerDriver.Outcome.BindError, r.Status);
-            // The DELETE FILE introduction gate reports through the edition band (COBOLNET09xx).
-            Assert.Contains(r.Errors, e => e.Contains("COBOLNET09"));
+            // The DELETE FILE introduction gate reports through the edition band (COBOL09xx).
+            Assert.Contains(r.Errors, e => e.Contains("COBOL09"));
             // And nothing was emitted on the error path either.
             Assert.Null(r.GeneratedCsPath);
             Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));

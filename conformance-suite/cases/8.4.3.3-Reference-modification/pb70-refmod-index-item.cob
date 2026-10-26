@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 8.4.3.3.3 SR1 lists the items identifier-1 may reference; an index data item (class index,
-      *> 13.18.60) is not among them. kb/Work PB70: COBOLNET1647 at bind (a run-time NotImplemented before).
+      *> 13.18.60) is not among them. kb/Work PB70: COBOL1647 at bind (a run-time NotImplemented before).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70NINDEX.
        DATA DIVISION.

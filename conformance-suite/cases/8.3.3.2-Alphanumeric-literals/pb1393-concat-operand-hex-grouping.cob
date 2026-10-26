@@ -11,7 +11,7 @@
       *> LITERAL's, wherever it is written; as a concatenation-expression
       *> operand (8.8.3, a concatOperand rather than a nonNumericLiteral)
       *> X"4" used to escape the check and decode to the empty string, so
-      *> W was "Z" and LENGTH("Z" & X"4") answered 1. COBOLNET1635 at every
+      *> W was "Z" and LENGTH("Z" & X"4") answered 1. COBOL1635 at every
       *> edition that has the & operator (2002+).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB1393HX.

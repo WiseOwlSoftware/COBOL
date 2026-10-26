@@ -9,7 +9,7 @@
       *> 14.9.51.2 prints FROM { identifier-1 | literal-1 }; X3.23-1985
       *> prints FROM identifier-1 only, so at COBOL-85 the literal sender
       *> is refused by the FROM-phrase edition gate (construct
-      *> from-literal-2002, COBOLNET0871) - the gate RELEASE already had
+      *> from-literal-2002, COBOL0871) - the gate RELEASE already had
       *> and WRITE lacked. The positive is 2002/pb2650_from_literal. The
       *> same program with FROM W-REC (an identifier) compiles at 85.
        IDENTIFICATION DIVISION.

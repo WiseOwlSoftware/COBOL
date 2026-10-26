@@ -6,9 +6,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 13.18.18 DESTINATION clause - Annex A.4.14 item 3. MEASURED before COBOLNET1708, at every edition:
+*> ISO 13.18.18 DESTINATION clause - Annex A.4.14 item 3. MEASURED before COBOL1708, at every edition:
 *> "COBOL0001: no viable alternative at input 'DESTINATION'" - a wholly generic error.
-*> (The analysis that proposed this row predicted COBOLNET0901 "'DESTINATION' is a reserved word" here; the
+*> (The analysis that proposed this row predicted COBOL0901 "'DESTINATION' is a reserved word" here; the
 *> measurement refutes it. The 0901 belongs to the NEIGHBOURING name slot - "01 DESTINATION PIC X." - where
 *> it is CORRECT, and conformance:cases/_unassigned/declined-validate-entry-name-still-0901 pins that it still fires.)
        IDENTIFICATION DIVISION.

@@ -10,7 +10,7 @@
       *> about LENGTH only, so the category pair is still 2) d)'s MOVE
       *> question, and 14.9.25.3 Table 16 says numeric-noninteger ->
       *> national is "No". The BY CONTENT PIC 9V9 argument into the
-      *> PIC N ANY LENGTH method formal is COBOLNET0828. (Before the fix an
+      *> PIC N ANY LENGTH method formal is COBOL0828. (Before the fix an
       *> ANY LENGTH formal skipped the question and the method printed the
       *> digits.)
        IDENTIFICATION DIVISION.

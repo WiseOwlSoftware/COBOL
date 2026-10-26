@@ -9,7 +9,7 @@
       *> define new storage areas."
       *>   cite.py --check 13.18.44.3 "without intervening entries that define new storage areas" -> OK  10)
       *> The ROOT arm of the same rule: level-77 entries resolve data-name-2 among the roots of their section, not
-      *> among a group's children, so the screen has to be asked there as well. COBOLNET2739.
+      *> among a group's children, so the screen has to be asked there as well. COBOL2739.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2518N2.
        DATA DIVISION.

@@ -36,7 +36,7 @@ public sealed class KeyedOffsetSpecTests
     }
 
     /// <summary>§13.18.44.3 SR8: a non-level-1 redefinition whose subject is LARGER than the redefined item is
-    /// rejected (COBOLNET1539) — previously a silent acceptance with undefined overlay semantics.</summary>
+    /// rejected (COBOL1539) — previously a silent acceptance with undefined overlay semantics.</summary>
     [Fact]
     public void Redefines_WiderThanTarget_NonLevel01_Rejected()
     {
@@ -60,7 +60,7 @@ public sealed class KeyedOffsetSpecTests
             var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
             Assert.False(r.Success, "an SR8-illegal wider redefinition must be rejected");
-            Assert.Contains(r.Errors, e => e.Contains("COBOLNET1539"));
+            Assert.Contains(r.Errors, e => e.Contains("COBOL1539"));
         }
         finally { ScratchDirectory.Remove(dir); }
     }

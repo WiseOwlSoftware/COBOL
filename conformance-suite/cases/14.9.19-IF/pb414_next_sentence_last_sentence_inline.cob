@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB414 - NEXT SENTENCE inside an inline PERFORM in the LAST sentence of a paragraph, both arms,
       *> at --std 85 (the earliest supported edition; NEXT SENTENCE is legal in all four and is flagged ARCHAIC
-      *> with COBOLNET0903 at 2023 only, so there is no edition BELOW its introduction to reject it).
+      *> with COBOL0903 at 2023 only, so there is no edition BELOW its introduction to reject it).
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN:
       *> 14.9.19.4 GR4 - "If condition-1 is true and NEXT SENTENCE is specified in the THEN phrase, the ELSE

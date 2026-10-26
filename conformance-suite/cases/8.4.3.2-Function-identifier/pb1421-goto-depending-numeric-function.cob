@@ -10,7 +10,7 @@
       *> data item that is an integer." SQRT is a NUMERIC function (§15.2 type: Num), and §8.4.3.2.3 SR11 says
       *> "A numeric function shall not be specified where an integer operand is required, even though a
       *> particular reference of the numeric function might yield an integer value" — SQRT(4) is 2, and is
-      *> still refused (COBOLNET2324, the GO TO DEPENDING operand-class row).
+      *> still refused (COBOL2324, the GO TO DEPENDING operand-class row).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1421NG.
        PROCEDURE DIVISION.

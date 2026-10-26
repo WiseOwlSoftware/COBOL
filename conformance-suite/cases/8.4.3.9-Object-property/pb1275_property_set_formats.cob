@@ -14,7 +14,7 @@
       *> GET runs), GR2 (receiving only: the SET runs, the GET does NOT)
       *> and GR3 (both: GET before, SET after).  13.18.42.4 GR1/GR2 give
       *> the implicit GET / SET methods the PROPERTY clause defines.
-      *> Every line was refused COBOLNET0843 "outside the classified store
+      *> Every line was refused COBOL0843 "outside the classified store
       *> taxonomy"; each expected value is DERIVED from the rules cited:
       *>  1 SAME   SET R OF A TO A (Format 5, R a receiving property, GR2)
       *>           then the relation R OF A = A (sending, GR1): the same

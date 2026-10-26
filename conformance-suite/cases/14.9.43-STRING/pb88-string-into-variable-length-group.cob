@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.43.3 SR11: identifier-1, -2 or -3 "shall not specify a variable-length group" - a group with a
-      *> DYNAMIC LENGTH elementary item subordinate to it (8.5.1.12). kb/Work PB88: unchecked before; COBOLNET1651.
+      *> DYNAMIC LENGTH elementary item subordinate to it (8.5.1.12). kb/Work PB88: unchecked before; COBOL1651.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NSTRVLG.
        DATA DIVISION.

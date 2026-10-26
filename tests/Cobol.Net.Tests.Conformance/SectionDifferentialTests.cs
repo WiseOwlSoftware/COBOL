@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// count (§14.9.28 GR7 — body modifications of the count item must not change the iteration count; zero/negative
 /// counts run zero times). Pinned to the committed golden (NIST-85 green across the whole PERFORM/GO TO series).
 /// Every program that has a section opens with one too (MAIN-SECT): ISO §14.4.1 — "If one paragraph is in a
-/// section, all paragraphs shall be in sections" (kb/Work PB1146, COBOLNET2797).
+/// section, all paragraphs shall be in sections" (kb/Work PB1146, COBOL2797).
 /// </summary>
 public sealed class SectionDifferentialTests
 {
@@ -204,7 +204,7 @@ public sealed class SectionDifferentialTests
     }
 
     /// <summary>§14.9.14.3 SR9 — EXIT SECTION outside a section (a paragraph before any SECTION header) is rejected
-    /// at compile time (COBOLNET0827, the EXIT-placement SR family).</summary>
+    /// at compile time (COBOL0827, the EXIT-placement SR family).</summary>
     [Fact]
     public void ExitSection_OutsideSection_IsRejected()
     {
@@ -219,6 +219,6 @@ public sealed class SectionDifferentialTests
             """;
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
         Assert.False(ok, "EXIT SECTION outside a section must be rejected (SR9)");
-        Assert.Contains("COBOLNET0827", detail);
+        Assert.Contains("COBOL0827", detail);
     }
 }

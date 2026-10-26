@@ -181,5 +181,5 @@ re-run). Here, additionally:
 
 ## Read the failure before diagnosing it
 
-Stack trace = emitter or runtime bug. `error CS####` = generated-code problem. A COBOLNET diagnostic = front-end
+Stack trace = emitter or runtime bug. `error CS####` = generated-code problem. A COBOL#### diagnostic = front-end
 reject. Timeout = infinite loop. These are different problems; check which one you have first.

@@ -27,7 +27,7 @@ public sealed class CopyProcessor(
     /// there. A caller that passes none (a unit test) gets a private one.</summary>
     private readonly CompilationInputs _inputs = inputs ?? new CompilationInputs();
 
-    // One COBOLNET0902 per compilation for the VCR-row-4 gate (COPY REPLACING non-pseudo-text, W3 — DEVLOG 598).
+    // One COBOL0902 per compilation for the VCR-row-4 gate (COPY REPLACING non-pseudo-text, W3 — DEVLOG 598).
     private bool _nonPseudoTextFlagged;
 
     /// <summary>The VCR-row-4 gate: non-pseudo-text COPY REPLACING operands (identifier/literal/word forms)
@@ -46,9 +46,9 @@ public sealed class CopyProcessor(
             + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
         var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
         if (severity == EditionSeverity.Error)
-            _diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
+            _diagnostics.ReportError("COBOL0902", msg + line, loc, default);
         else
-            _diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
+            _diagnostics.ReportWarning("COBOL0902", msg + line, loc, default);
     }
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;
@@ -97,7 +97,7 @@ public sealed class CopyProcessor(
     /// is replaced by the operands of the statement ACTIVE there (GR8 "begins with the text immediately following the
     /// REPLACE statement"). MAPPED (kb/Work PB82): a REPLACE statement's own text vanishes from the resultant text, the
     /// kept text keeps its origins, and a replacement's lines take the origin of the line its match started on.
-    /// <para>A non-pseudo-text operand (kb/Work R39) draws COBOLNET1641: REPLACE's operands were never literals in any
+    /// <para>A non-pseudo-text operand (kb/Work R39) draws COBOL1641: REPLACE's operands were never literals in any
     /// ISO edition (§7.2.4.2; §7.2.4.3 SR7). <paramref name="edition"/> (null: no edition gate — the line-map replay)
     /// gates the ALSO and LAST phrases at their introducing edition (constructs row replace-also-last-2002).</para>
     /// </summary>
@@ -324,7 +324,7 @@ public sealed class CopyProcessor(
     /// text keeps its origins (kb/Work PB82) and a replacement takes the origin of the line its match started on.
     /// </summary>
     /// <para><paramref name="rule"/> screens what each replacing action produces (§7.2.3.4 GR13 / §7.2.4.4 GR9, kb/Work
-    /// PB1356): a forbidden result is reported (COBOLNET2574, once per operand pair per call) and still produced, so the
+    /// PB1356): a forbidden result is reported (COBOL2574, once per operand pair per call) and still produced, so the
     /// downstream parse stays coherent — the diagnostic is the verdict.</para>
     private static MappedText ApplyReplacements(MappedText mapped, IReadOnlyList<Replacement> replacements,
         ResultRule rule, DiagnosticBag? diagnostics)
@@ -532,7 +532,7 @@ public sealed class CopyProcessor(
     /// §7.2.2.5 text-words: <c>COPY {text-name-1 | literal-1} [{OF | IN} {library-name-1 | literal-2}]
     /// [SUPPRESS [PRINTING]] [REPLACING operands…] .</c> — the statement ends at its separator period (§7.2.3.4 GR6
     /// "beginning with the reserved word COPY and ending with the separator period, inclusive"), so a period inside
-    /// pseudo-text or a literal no longer ends it. A word out of that order is COBOLNET2449; SUPPRESS has no effect on
+    /// pseudo-text or a literal no longer ends it. A word out of that order is COBOL2449; SUPPRESS has no effect on
     /// the resultant text (GR4 governs only a listing, which this compiler does not produce). kb/Work PB1354. The literal forms
     /// of the two names and the SUPPRESS phrase are COBOL-2002 introductions COBOL-85's COPY did not have, gated by
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
@@ -580,7 +580,7 @@ public sealed class CopyProcessor(
         return new CopyStatement(textName, libraryName, replacing, replacements, c.Pos);
     }
 
-    /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOLNET0900 below the
+    /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOL0900 below the
     /// row's edition, an error under <c>--permissive</c> too) of a phrase of the §7.2.3.2 general format that COBOL-85's
     /// <c>COPY text-name-1 [{OF | IN} library-name-1] [REPLACING …]</c> did not have: the literal forms of
     /// text-name-1 / library-name-1 (<see cref="Constructs.CopyLiteralName2002"/>) and the SUPPRESS phrase
@@ -611,7 +611,7 @@ public sealed class CopyProcessor(
     /// <summary>Read text-name-1 / literal-1 (or library-name-1 / literal-2) and return the name it gives — a word as
     /// written, or the VALUE of an alphanumeric literal (a doubled quotation symbol collapsed; a hexadecimal literal
     /// decoded). §7.2.3.3 SR4 (no concatenation expression, no figurative constant) and SR5 ("Literal-1 and
-    /// literal-2 shall be alphanumeric literals") are checked here, each as COBOLNET2450; null when no usable name
+    /// literal-2 shall be alphanumeric literals") are checked here, each as COBOL2450; null when no usable name
     /// was written.</summary>
     private string? ReadCopyName(MappedText mapped, StatementCursor c, string operand)
     {
@@ -679,7 +679,7 @@ public sealed class CopyProcessor(
         return name;
     }
 
-    /// <summary>Report a §7.2.3.3 SR1 / SR2 placement violation (COBOLNET2451) at a SOURCE position.</summary>
+    /// <summary>Report a §7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
     private void ReportPlacement(SourceLocation at, string message)
         => _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyStatementPlacement.Code,
             message, at, default);
@@ -923,7 +923,7 @@ public sealed class CopyProcessor(
 
         /// <summary>The introduction gate of the partial-word phrases — <c>LEADING</c> / <c>TRAILING</c> partial-word-1
         /// BY partial-word-2 of §7.2.3.2 and §7.2.4.2 — at the edition constructs row
-        /// <see cref="Constructs.ReplacingPartialWord2002"/> names (COBOLNET0900 below it; kb/Work PB1670). COPY and
+        /// <see cref="Constructs.ReplacingPartialWord2002"/> names (COBOL0900 below it; kb/Work PB1670). COPY and
         /// REPLACE share the one parser of their operands, so this is the ONE place the gate is asked.</summary>
         public void PartialWord(in TextWord phrase)
         {
@@ -933,13 +933,13 @@ public sealed class CopyProcessor(
                 Constructs.ReplacingPartialWord2002, $"{Rules.Statement} REPLACING {phrase.Value.ToUpperInvariant()}");
         }
 
-        /// <summary>COBOLNET2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
+        /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
         public void Content(int at, int rule, string quoted, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingOperandContent.Code,
                 $"{Rules.Statement} statement: {what} — {Rules.Clause} SR{rule}: \"{quoted}\"",
                 mapped.LocateAt(at), default);
 
-        /// <summary>COBOLNET2573 — a pseudo-text delimiter not separated as §8.3.5 6) requires.</summary>
+        /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §8.3.5 6) requires.</summary>
         public void Delimiter(int at, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.PseudoTextDelimiterPlacement.Code,
                 $"{Rules.Statement} statement: {what} — §8.3.5 6): \"An opening pseudo-text delimiter shall be "
@@ -991,7 +991,7 @@ public sealed class CopyProcessor(
     /// (§7.2.4.2) into <paramref name="into"/>: one or more <c>[LEADING | TRAILING] operand BY operand</c> pairs, up
     /// to (not including) the separator period, each pair screened by <see cref="ScreenOperandPair"/>.
     /// <paramref name="nonPseudoText"/> is told of each operand that is not <c>==pseudo-text==</c> (COPY: the Annex
-    /// E.2 removal gate; REPLACE: COBOLNET1641); <paramref name="nestedCopy"/> (COPY only) of each COPY word inside
+    /// E.2 removal gate; REPLACE: COBOL1641); <paramref name="nestedCopy"/> (COPY only) of each COPY word inside
     /// pseudo-text (§7.2.3.3 SR1).</summary>
     private static void ParseReplacingOperands(StatementCursor c, List<Replacement> into, OperandScreen screen,
         Action<int>? nonPseudoText, Action<int>? nestedCopy)

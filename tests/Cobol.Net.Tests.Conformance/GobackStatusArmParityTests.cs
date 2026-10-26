@@ -86,14 +86,14 @@ public sealed class GobackStatusArmParityTests
 
     [Theory]
     // §14.9.18.3 SR8 — "Literal-1 shall not be a zero-length literal."
-    [InlineData("GOBACK WITH ERROR STATUS \"\".", 2023, "COBOLNET1704")]
+    [InlineData("GOBACK WITH ERROR STATUS \"\".", 2023, "COBOL1704")]
     // §14.9.18.3 SR7 — "If literal-1 is numeric, it shall be an integer."
-    [InlineData("GOBACK WITH ERROR STATUS 1.5.", 2023, "COBOLNET1704")]
+    [InlineData("GOBACK WITH ERROR STATUS 1.5.", 2023, "COBOL1704")]
     // §14.9.18.3 SR6 — a BIT group is neither an integer item nor a display/national one (§13.18.29.4 GR1 b).
-    [InlineData("GOBACK WITH ERROR STATUS WS-BITG.", 2023, "COBOLNET1704")]
+    [InlineData("GOBACK WITH ERROR STATUS WS-BITG.", 2023, "COBOL1704")]
     // The COBOL-2023 introduction of the phrase itself (§14.9.18.2; Annex E.3.3 item 32).
-    [InlineData("GOBACK WITH ERROR STATUS 5.", 2014, "COBOLNET0900")]
-    [InlineData("GOBACK WITH ERROR STATUS 5.", 2002, "COBOLNET0900")]
+    [InlineData("GOBACK WITH ERROR STATUS 5.", 2014, "COBOL0900")]
+    [InlineData("GOBACK WITH ERROR STATUS 5.", 2002, "COBOL0900")]
     public void AStatusRuleBrokenInAMethod_IsRejectedExactlyAsInAProgram(string goback, int edition, string code)
     {
         const string bitGroup = """
@@ -126,13 +126,13 @@ public sealed class GobackStatusArmParityTests
     // SR5's two admitted positions and then rejected source sitting in one of them.
 
     /// <summary>A WHEN phrase of an exception-checking PERFORM is one of SR5's two admitted positions, so the
-    /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOLNET0899).
+    /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOL0899).
     /// <para>⛔ THE HEAD IS A BARE `PERFORM`, AND HAS TO BE (kb/Work PB431). This fixture used to spell it
     /// `PERFORM UNTIL 1 = 1 … WHEN EC-SIZE …`, which ISO §14.9.28.2 Format 3 does not print: Format 3's head is
     /// `PERFORM [ WITH LOCATION ]` and nothing else, so an exception-checking PERFORM carries NO loop-control
     /// phrase. The until-phrase was incidental scaffolding — this fact measures WHERE a GOBACK RAISING LAST may
     /// be written (§14.9.18.3 SR5), not how the PERFORM repeats — and it compiled only because the Format-3
-    /// binder silently DROPPED the phrase. PB431's COBOLNET2118 now refuses it, which is why the same correction
+    /// binder silently DROPPED the phrase. PB431's COBOL2118 now refuses it, which is why the same correction
     /// was made to twelve <c>ExitPlacementContextDriftTests</c> rows in the same change set.</para></summary>
     [Fact]
     public void RaisingLastInAPerformWhenPhrase_IsAcceptedOnBothArms()
@@ -163,8 +163,8 @@ public sealed class GobackStatusArmParityTests
         var (methOk, methErrors, _) = EditionHarness.CompileFull(InMethod(body), 2023);
         Assert.False(progOk, "the program arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
         Assert.False(methOk, "the method arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
-        EditionHarness.AssertHasDiagnostic(progErrors, "COBOLNET2103");
-        EditionHarness.AssertHasDiagnostic(methErrors, "COBOLNET2103");
+        EditionHarness.AssertHasDiagnostic(progErrors, "COBOL2103");
+        EditionHarness.AssertHasDiagnostic(methErrors, "COBOL2103");
     }
 
     /// <summary>THE OTHER HALF OF THE RULE, and the reason the fix is a SCREEN and not a new behaviour: a legal

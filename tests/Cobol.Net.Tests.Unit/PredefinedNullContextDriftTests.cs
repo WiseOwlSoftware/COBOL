@@ -100,12 +100,12 @@ public sealed class PredefinedNullContextDriftTests
         var stale = Sr1Callers.Keys.Except(callers).Order().ToList();
         Assert.True(unlisted.Count == 0, "NullAdmittingOperand is called from a file that names no §8.4.3.10.3 SR1 "
             + "context: " + string.Join(", ", unlisted) + ". NULL may be written only in the contexts SR1 a)/b) "
-            + "enumerate; bind every other slot through NonNumericLiteralOperand, which refuses it (COBOLNET2576).");
+            + "enumerate; bind every other slot through NonNumericLiteralOperand, which refuses it (COBOL2576).");
         Assert.True(stale.Count == 0, "an SR1 allowance has no caller any more — remove it: " + string.Join(", ", stale));
         Assert.Equal(["UdfBinder.cs"], nullAdmittingSetters);
     }
 
-    /// <summary>The §8.4.3.10.3 SR1 refusal has ONE text: every COBOLNET2576 report goes through
+    /// <summary>The §8.4.3.10.3 SR1 refusal has ONE text: every COBOL2576 report goes through
     /// <c>PredefinedNullRule.Report</c> (kb/Work PB1427's wave-69 finisher — the operand binder and the concatenation
     /// folder each carried their own wording, and the literal decoders outside the operand model carried none).</summary>
     [Fact]
@@ -127,7 +127,7 @@ public sealed class PredefinedNullContextDriftTests
     {
         ["OptionsBinder.cs"] = "the INITIALIZE fill literal must be a one-byte X\"nn\" (§11.9.10.3 SR1); NULL is not one",
         ["SearchAllFormat2Rules.cs"] = "a PROCEDURE DIVISION operand: the WHEN relation binds NULL through the relation "
-            + "checkpoint (COBOLNET0869), and this file only asks whether a literal is zero-length",
+            + "checkpoint (COBOL0869), and this file only asks whether a literal is zero-length",
     };
 
     /// <summary>⛔ A literal decoder that reads the <c>figurativeConstant</c> arm of a <c>nonNumericLiteral</c> also
@@ -151,7 +151,7 @@ public sealed class PredefinedNullContextDriftTests
             .Select(s => s.Name).Order().ToList();
         Assert.True(silent.Count == 0, "these files decode a nonNumericLiteral's figurative arm but never decide its "
             + "predefinedNull arm, so NULL falls through to whatever arm they read last: " + string.Join(", ", silent)
-            + ". Refuse it through PredefinedNullRule.Report (COBOLNET2576), or list the file with the rule that "
+            + ". Refuse it through PredefinedNullRule.Report (COBOL2576), or list the file with the rule that "
             + "already refuses it.");
         var staleExempt = LiteralDecodersExempt.Keys.Except(decoders.Select(s => s.Name)).Order().ToList();
         Assert.True(staleExempt.Count == 0, "an exemption names a file that no longer decodes a nonNumericLiteral "

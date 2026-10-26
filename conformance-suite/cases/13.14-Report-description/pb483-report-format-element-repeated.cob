@@ -9,7 +9,7 @@
       *> specified or that portion of the general format may be omitted"; 5.2.7 - repetition exists only where
       *> an ellipsis stands.  13.14.3 SR2 ("The clauses that follow report-name-1 may appear in any order")
       *> and 13.18.39.3 SR4 (the phrases "may be written in any order") license ORDER, never a repeat.  The
-      *> HEADING phrase below is written twice (the second value used to win silently) - COBOLNET2423
+      *> HEADING phrase below is written twice (the second value used to win silently) - COBOL2423
       *> (kb/Work PB483's sibling sweep).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB483NRP.

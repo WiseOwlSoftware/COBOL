@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.8.4.2.13: "Relation tests may be made only between 1) two index-names ... 2) an index-name and a
       *> numeric data item or numeric literal ... 3) an index data item and an index-name or another index data
-      *> item." An index-name against an alphanumeric item is none of the three (COBOLNET2533); before kb/Work
+      *> item." An index-name against an alphanumeric item is none of the three (COBOL2533); before kb/Work
       *> PB1468 it compiled clean and aborted the run unit ("computed expression in a string context").
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1468-INDEX-PAIR.

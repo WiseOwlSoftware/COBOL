@@ -9,7 +9,7 @@
       *>   cite.py --check 14.9.40.3 "None of the data items identified by key data-names may be described by an
       *>     entry that either contains an OCCURS clause or is subordinate to an entry that contains an OCCURS
       *>     clause." -> OK §14.9.40.3 6) f)
-      *> KOCC is a table; writing it unsubscripted used to draw COBOLNET2270 ("a table element needs a subscript"),
+      *> KOCC is a table; writing it unsubscripted used to draw COBOL2270 ("a table element needs a subscript"),
       *> true and beside the point: no subscript would make it a legal key. The key-admissibility predicate names the
       *> rule the statement breaks, for the key whether or not it is subscripted.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its

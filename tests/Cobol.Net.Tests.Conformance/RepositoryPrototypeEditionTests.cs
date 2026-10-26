@@ -18,7 +18,7 @@ public sealed class RepositoryPrototypeEditionTests
     private static int Count0900(string source, int edition, string whereFragment)
     {
         var (_, errors, _) = EditionHarness.CompileFull(source, edition);
-        return errors.Count(e => e.Contains("COBOLNET0900", StringComparison.OrdinalIgnoreCase)
+        return errors.Count(e => e.Contains("COBOL0900", StringComparison.OrdinalIgnoreCase)
             && e.Contains(whereFragment, StringComparison.OrdinalIgnoreCase));
     }
 

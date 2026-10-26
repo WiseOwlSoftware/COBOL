@@ -12,13 +12,13 @@
       *> REL-*: 8.8.4.2.2 Format 2 / 8.8.4.2.8 - a boolean comparison, equality only, the shorter operand
       *>   right-extended with boolean zeros: BOOLEAN-OF-INTEGER(544, 6) = B"100000" (544 = 1000100000, its
       *>   low six positions), = a bit item holding 00000101, = another function reference, and (5, 4) = "0101"
-      *>   against B"01010000" (zero-extended). Before PB68: COBOLNET0844 "may be compared only with another
+      *>   against B"01010000" (zero-extended). Before PB68: COBOL0844 "may be compared only with another
       *>   boolean operand" (StatementValidation.CheckRelationalOperands' local switch).
       *> BAND/BXOR: 8.8.2 - "an identifier referencing a boolean data item" as a boolean-expression operand:
-      *>   00000101 B-AND 00000100 = 00000100; 00000101 B-XOR 00000011 = 00000110. Before PB68: COBOLNET1511
+      *>   00000101 B-AND 00000100 = 00000100; 00000101 B-XOR 00000011 = 00000110. Before PB68: COBOL1511
       *>   (ConditionBinder.BindBoolOperandValue).
       *> LEN: 15.50.3 r1 admits a data item of any class; 15.50.4 r1 counts a boolean item's positions: 8.
-      *>   Before PB68: COBOLNET1627 "is a numeric literal" (the LENGTH fold's default arm).
+      *>   Before PB68: COBOL1627 "is a numeric literal" (the LENGTH fold's default arm).
       *> BEXPR-REL / SIMPLE: a boolean expression whose operand is the function, as a relation operand and as a
       *>   simple boolean condition (8.8.4.3 - a length-1 result).
       *> MV-*: 14.9.25.3 Table 16 - a boolean sender moves to boolean and alphanumeric receivers (Yes) - the

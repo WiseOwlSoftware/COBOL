@@ -23,7 +23,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
     private int _errorCount;
 
-    /// <summary>Start offsets of the offending tokens already re-coded to COBOLNET0901 (kb/Work PB693).
+    /// <summary>Start offsets of the offending tokens already re-coded to COBOL0901 (kb/Work PB693).
     /// ANTLR raises TWO syntax errors on one offending token — the prediction failure and
     /// <c>CobolErrorStrategy</c>'s recovery message — which used to render as two DIFFERENT sentences. The
     /// §8.9 re-code below rewrites BOTH to the same one, so without this the user is told twice that the
@@ -45,7 +45,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
 
         // ⛔ THE §8.9 ARM (kb/Work PB693). A syntax error ON a reservation-gated word IS the §8.9 violation: the
         // gate is precisely why no user-defined-word alternative could match, and a REFERENCE to the word never
-        // reaches the bound-tree funnel because the source did not parse. Report the targeted COBOLNET0901 so the
+        // reaches the bound-tree funnel because the source did not parse. Report the targeted COBOL0901 so the
         // cause is NAMED, rather than "no viable alternative at input 'X'". The parser owns the test (it holds the
         // edition, the >>COBOL-WORDS overlay and the generated gate set); this stage only re-codes the
         // diagnostic, and the message has ONE definition in ReservedWordSet. Computed BEFORE the error is

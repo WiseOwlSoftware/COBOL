@@ -146,7 +146,7 @@ STRUCTURAL = re.compile(r"^(General|" + GENERAL_FORMAT_NOUN + r"|Syntax rules?|G
 #: "Returned value rules" 49, "Returned value rule" 43, "Argument rule" 37, "Arguments rules" 2, "Returned values rules" 1,
 #: "Returned Value rule" 1, "Syntax rule" 2. The first version folded "Arguments" and "Returned value(s)" only, so
 #: "15.66.3 Argument rules" became a seed of its own with no function name in it, and every model guessed the function.
-DIAG_CODE = re.compile(r"\b((?:COBOLNET|COBOL|CBL)\d{4})\b")
+DIAG_CODE = re.compile(r"\b((?:COBOL|CBL)\d{4})\b")
 
 FUNCTION_HEADING = re.compile(r"^#{2,6} 15\.\d+ ([A-Z][A-Z0-9-]*) function\s*$")
 #: Annex E.3.3's function items: "22) **FUNCTION BASECONVERT.** This function has been added …", "23) **FUNCTION CONCAT.** The
@@ -167,7 +167,7 @@ def added_in_2023(text: str) -> tuple[set[str], set[str]]:
     added", existed in 2014 and stay), and every sentence "The X statement has been added" in any item (DELETE FILE's own
     item describes it; item 35 on the I-O statuses says it was added). The seeds are the 2023 text while both compilers run
     `EDITION` 2014, so these names leave the prompt's function list and the seed list (review R1-6: the prompt told the model
-    CONCAT was a function and WiseOwl refused it under --std 2014, COBOLNET1502). Read from the spec, never typed:
+    CONCAT was a function and WiseOwl refused it under --std 2014, COBOL1502). Read from the spec, never typed:
     VERSION_CHANGE_REFERENCE.md rows 19 and 58 to 73 are the same seven functions and DELETE FILE."""
     functions: set[str] = set()
     statements: set[str] = set()
@@ -276,7 +276,7 @@ def declined_modules(conformance_text: str) -> dict[str, str]:
 def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
     """The seed titles that are a WHOLE clause or statement of a declined optional module (kb/Work PB3523): the Annex A.4
     items of each module `declined_modules` names. WiseOwl refuses such a construct by name (the screen section's
-    COBOLNET1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
+    COBOL1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
     claim already explains, never a lead. In the second night's run (fuzz-20261021-211424) these seeds wrote 450 of the
     4,931 programs, 330 of its 2,326 BOTH_REJECT rows and 35 such WE_REJECT rows, at 1,613 of its 14,479 generations; the
     first fourteen seeds of the 2026-10-22 bake-off held four of them (BLINK, BLANK, UNDERLINE, REQUIRED). Matched by TITLE,
@@ -316,7 +316,7 @@ ADDED_WORD = re.compile(r"^(?:- )?— ([A-Z][A-Z0-9-]*)\s*$")
 def added_reserved_words(text: str) -> list[str]:
     """The words 2023 reserved (Annex E.2 item 25: XOR, EXCLUSIVE-OR, SEND, RECEIVE, COMMIT, ROLLBACK, the B-SHIFT
     operators …), read from the spec: under `EDITION` 2014 each is a user-defined word to both compilers, and the second
-    night's model wrote XOR and SEND as 2023 syntax (WiseOwl COBOLNET0900, "requires COBOL-2023"), so the prompt names them
+    night's model wrote XOR and SEND as 2023 syntax (WiseOwl COBOL0900, "requires COBOL-2023"), so the prompt names them
     beside the functions and the statement 2023 added."""
     words: list[str] = []
     inside = False
@@ -535,7 +535,7 @@ STOP RUN.
 }
 
 #: The reserved words the 2026-10-21 run misused, commonest first: the ones it wrote as data names, functions or
-#: mnemonic-names (WiseOwl's COBOLNET0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74,
+#: mnemonic-names (WiseOwl's COBOL0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74,
 #: NULL 41, ADDRESS 34, DESTINATION 22, OBJECT 21, CONDITION 18, BOOLEAN 13, VALIDATE-STATUS 13, DEFAULT 10, then LENGTH,
 #: RETURNING and COLUMN), then the ones its first refusal most often stopped at as an unexpected word (COBOL0001 at CLASS 23,
 #: STATUS 22, TYPE 15, FUNCTION 13: a clause or phrase the model invented around them). §8.3.2.4.1: "Reserved words shall
@@ -547,12 +547,12 @@ MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", 
 #: The standing rules (kb/Work PB3523 item 1), each written against what the second night's refusals show the model lacked:
 #: the division skeleton (GnuCOBOL "PROCEDURE DIVISION header missing" 83, WiseOwl "unexpected 'SPECIAL-NAMES'" 35 and
 #: "unexpected 'WORKING-STORAGE'" 34), the general format as the whole of a statement's or clause's syntax (COBOL0307, an
-#: invented phrase, 315; COBOLNET1941, an invented data-description clause, 133), the naming rule and the misused reserved
-#: words (COBOLNET0901, 294), TRUE and FALSE as values (COBOL0001 at 'TRUE' 57, 'FALSE' 11), a table at level 01 (GnuCOBOL
-#: "01/77 OCCURS does not conform" 52, WiseOwl COBOLNET2404 33: §13.18.38.3 rule 1, "The OCCURS clause shall not be
+#: invented phrase, 315; COBOL1941, an invented data-description clause, 133), the naming rule and the misused reserved
+#: words (COBOL0901, 294), TRUE and FALSE as values (COBOL0001 at 'TRUE' 57, 'FALSE' 11), a table at level 01 (GnuCOBOL
+#: "01/77 OCCURS does not conform" 52, WiseOwl COBOL2404 33: §13.18.38.3 rule 1, "The OCCURS clause shall not be
 #: specified in a data description entry that" has a level-number of 01, 66, 77 or 88), the SEARCH of a group rather than
 #: of its OCCURS entry (GnuCOBOL "not indexed": §14.9.37.3 rule 2, "The data description of identifier-1 shall contain an
-#: OCCURS clause with an INDEXED phrase"), and B in a PICTURE taken for a bit (COBOLNET1934 on PIC B(8), GnuCOBOL's
+#: OCCURS clause with an INDEXED phrase"), and B in a PICTURE taken for a bit (COBOL1934 on PIC B(8), GnuCOBOL's
 #: "PICTURE string must contain at least one of" 71).
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:
 - Standard COBOL only, as in ISO/IEC 1989:2014. No vendor extensions, no COPY, no CALL to other programs, no EXEC.
@@ -1597,18 +1597,18 @@ def self_test() -> int:
     check("signature: a THEY_REJECT groups by clause", signature("THEY_REJECT", "15.42", ok_run) == "THEY_REJECT:15.42")
     cascade = "\n".join([f"x.cob:{k}: error: syntax error, unexpected Identifier" for k in range(3, 20)] + ["x.cob:1: note: hint"])
     refused = "\n".join(f"LINE-{k}" for k in range(1, 30))
-    ask = repair_request(cascade, "y.cob(4,1): error COBOLNET2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOLNET1625: VALUE", refused)
+    ask = repair_request(cascade, "y.cob(4,1): error COBOL2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOL1625: VALUE", refused)
     check("repair: the correction quotes GnuCOBOL's first errors only (the cascade is cut) and WiseOwl's cited errors, and keeps the clause under test",
-          ask.count("unexpected Identifier") == REPAIR_GNU_LINES and "note: hint" not in ask and "COBOLNET2993" in ask
+          ask.count("unexpected Identifier") == REPAIR_GNU_LINES and "note: hint" not in ask and "COBOL2993" in ask
           and "ISO/IEC 1989" in ask and "do not drop the clause under test" in ask, ask)
     check("repair: without a WiseOwl diagnostic the correction names GnuCOBOL alone",
           "second standard-conforming compiler" not in repair_request("x.cob:3: error: bad", "", refused))
     check("repair: each diagnostic is followed by the source line it names, GnuCOBOL's file:line and WiseOwl's file(line,column) alike; a line past the program or no line quotes nothing (kb/Work PB3523 item 2)",
           "x.cob:3: error: syntax error, unexpected Identifier\n    > line 3: LINE-3" in ask and "    > line 8: LINE-8" in ask
-          and "    > line 9: LINE-9" not in ask and "COBOLNET2993: the unary operator — ISO §8.7.1\n    > line 4: LINE-4" in ask
-          and "COBOLNET1625: VALUE\n    > line 5: LINE-5" in ask and "smallest change" in ask
+          and "    > line 9: LINE-9" not in ask and "COBOL2993: the unary operator — ISO §8.7.1\n    > line 4: LINE-4" in ask
+          and "COBOL1625: VALUE\n    > line 5: LINE-5" in ask and "smallest change" in ask
           and with_source(["x.cob:99: error: past the end", "error: no line"], refused) == "x.cob:99: error: past the end\nerror: no line"
-          and diagnostic_line("fz00609.cob(24,4): error COBOLNET2072: x") == 24 and diagnostic_line("fz00609.cob:18: error: x") == 18
+          and diagnostic_line("fz00609.cob(24,4): error COBOL2072: x") == 24 and diagnostic_line("fz00609.cob:18: error: x") == 18
           and diagnostic_line("cobc: error: x") is None, ask)
     gnu_context = ("fz00345.cob: in paragraph 'TEST-SIZE-ERROR':\n   13 > VALIDATE WS-ALPHA ON SIZE ERROR ADD 1 TO WS-LEN\n"
                    "   12 | 01 WS-ERROR-CODE PIC 99.\nfz00345.cob:13: error: syntax error, unexpected SIZE\n"
@@ -1618,7 +1618,7 @@ def self_test() -> int:
           first_error(gnu_context) == "fz00345.cob:13: error: syntax error, unexpected SIZE"
           and error_lines(gnu_context, 9) == ["fz00345.cob:13: error: syntax error, unexpected SIZE", "/tmp/cob1_0.c:105:28: error: lvalue required",
                                               "cobc: tree.c:1606: internal compiler error", "cobc: error: no input"]
-          and first_error("x.cob(4,1): error COBOLNET2993: the unary operator") == "x.cob(4,1): error COBOLNET2993: the unary operator"
+          and first_error("x.cob(4,1): error COBOL2993: the unary operator") == "x.cob(4,1): error COBOL2993: the unary operator"
           and first_error("Stack overflow.\n   at ErrorReporter.Report()") == "Stack overflow." and first_error("") == ""
           and refusal_round(1, gnu_context, "")["gnucobol"] == "fz00345.cob:13: error: syntax error, unexpected SIZE",
           error_lines(gnu_context, 9))
@@ -1762,7 +1762,7 @@ def self_test() -> int:
           and classify(ok_run, Observation(None, None, "", [], runner_error="x")) == "RUNNER_ERROR"
           and classify(Observation(True, 0, "", [], ran=None, runner_error="x"), ok_run) == "RUNNER_ERROR")
     check("signature: a refusal groups by our codes, a difference by clause",
-          signature("WE_REJECT", "14.9.25", Observation(False, 1, "", ["COBOL1234", "COBOLNET4001"])) == "WE_REJECT:COBOL1234,COBOLNET4001"
+          signature("WE_REJECT", "14.9.25", Observation(False, 1, "", ["COBOL1234", "COBOL4001"])) == "WE_REJECT:COBOL1234,COBOL4001"
           and signature("OUTPUT_DIFFERS", "14.9.25", ok_run) == "OUTPUT_DIFFERS:14.9.25")
 
     rows = [{"id": "fz00000", "clause": "14.9.25", "title": "MOVE", "verdict": "AGREE", "model_seconds": 10},
@@ -1911,13 +1911,13 @@ def self_test() -> int:
     check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost), and no refusal round is recorded",
           rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0
           and rec_crash["repair_rounds"] == [], (rec_crash.get("verdict"), calls))
-    same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOLNET1639: 'WS-X' is not defined", ["COBOLNET1639"])  # noqa: E731
+    same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOL1639: 'WS-X' is not defined", ["COBOL1639"])  # noqa: E731
     rec_same, calls, asked = stubbed_one({"they": gnu_refuses, "we": same})
     check("run: a correction that draws the same first diagnostics from both compilers ends the rounds there, BOTH_REJECT and stopped_early, after one correction rather than three (kb/Work PB3523 item 4)",
           rec_same["verdict"] == "BOTH_REJECT" and rec_same.get("stopped_early") is True and rec_same["repairs"] == 1
           and calls == ["model", "they", "we"] * 2, (rec_same.get("verdict"), rec_same.get("stopped_early"), calls))
     check("run: each refusal round is recorded on the row with WiseOwl's first code and message and GnuCOBOL's first error, and the row names its seed family (kb/Work PB3523 item 3)",
-          rec_same["repair_rounds"] == [{"round": k, "code": "COBOLNET1639", "message": "fz00000.cob(4,1): error COBOLNET1639: 'WS-X' is not defined",
+          rec_same["repair_rounds"] == [{"round": k, "code": "COBOL1639", "message": "fz00000.cob(4,1): error COBOL1639: 'WS-X' is not defined",
                                          "gnucobol": f"fz00000.cob:4: error: 'WS-X{k + 1}' is not defined"} for k in (0, 1)]
           and rec_same["family"] == "statement", rec_same["repair_rounds"])
     check("run: the correction sent to the model quotes the refused source line beside each compiler's diagnostic (kb/Work PB3523 item 2)",

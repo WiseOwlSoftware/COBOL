@@ -256,7 +256,7 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             var d = Diagnostics(Relative("SEQUENTIAL", "        .", "01 F-REC PIC X(8).", "", EntryOnlyBody), edition);
-            Assert.DoesNotContain(d, e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("COBOL0863", StringComparison.Ordinal));
         }
     }
 
@@ -291,7 +291,7 @@ public sealed class FileControlKeyRuleSpecTests
             "01 F-REC.\n   05 F-KEY.\n      10 F-K1 PIC X.\n      10 F-K2 PIC X.\n   05 F-ALT PIC X(2).",
             "", WithKeyedVerbBody);
         foreach (int edition in AllEditions)
-            Assert.DoesNotContain(Diagnostics(source, edition), e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(Diagnostics(source, edition), e => e.Contains("COBOL0863", StringComparison.Ordinal));
     }
 
     /// <summary>A sort-merge entry, whose SELECT is the caller's — §12.4.5.1 Format 4 admits ASSIGN and an
@@ -319,7 +319,7 @@ public sealed class FileControlKeyRuleSpecTests
         """;
 
     /// <summary>⛔ §12.4.5.2 SR8 / SR9, SENTENCE 2 — <i>"The associated file description entry shall not be a
-    /// sort-merge file description entry"</i>, printed verbatim in both rules (COBOLNET1900, kb/Work PB742).
+    /// sort-merge file description entry"</i>, printed verbatim in both rules (COBOL1900, kb/Work PB742).
     /// <para>The entry may specify its format by a key clause OR by the ORGANIZATION clause ALONE, and the
     /// ORGANIZATION-only rows are the ones no per-key-clause screen could ever reach — they are why the table has
     /// a rule stated about the ENTRY. The last row is the BOUNDARY and is the load-bearing half of this test:
@@ -337,8 +337,8 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             int hits = Diagnostics(SortMerge(clauses), edition)
-                .Count(e => e.Contains("COBOLNET1900", StringComparison.Ordinal));
-            Assert.True(hits == expected, $"[SD + {clauses.Trim()}] @ {edition}: COBOLNET1900 {hits}×, expected {expected}");
+                .Count(e => e.Contains("COBOL1900", StringComparison.Ordinal));
+            Assert.True(hits == expected, $"[SD + {clauses.Trim()}] @ {edition}: COBOL1900 {hits}×, expected {expected}");
         }
     }
 
@@ -352,14 +352,14 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             var d = Diagnostics(SortMerge("        ORGANIZATION IS SEQUENTIAL."), edition);
-            Assert.DoesNotContain(d, e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
-            Assert.DoesNotContain(d, e => e.Contains("COBOLNET1900", StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("COBOL0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("COBOL1900", StringComparison.Ordinal));
         }
     }
 
     /// <summary>⛔ §12.4.5.2 SR11 SENTENCE 2 AND SR13 — every clause a sort-merge file's entry writes beyond
     /// §12.4.5.1 Format 4 (SELECT, ASSIGN, <c>[ [ ORGANIZATION IS ] SEQUENTIAL ]</c>) is refused by exactly ONE
-    /// row, under the rule that fits it (COBOLNET1900, kb/Work PB773): a clause only Format 3 prints names that
+    /// row, under the rule that fits it (COBOL1900, kb/Work PB773): a clause only Format 3 prints names that
     /// format (SR11), one that several formats print names none (SR13). The minimum edition is where the clause
     /// itself exists, because an edition error for the clause would otherwise be what the case measures.</summary>
     [Theory]
@@ -377,7 +377,7 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions.Where(e => e >= minEdition))
         {
             int hits = Diagnostics(SortMerge(clauses), edition)
-                .Count(e => e.Contains("COBOLNET1900", StringComparison.Ordinal)
+                .Count(e => e.Contains("COBOL1900", StringComparison.Ordinal)
                     && e.Contains($"(ISO §12.4.5.2 {rule})", StringComparison.Ordinal));
             Assert.True(hits == 1, $"[SD + {clauses.Trim()}] @ {edition}: {rule} reported {hits}×, expected 1");
         }
@@ -397,7 +397,7 @@ public sealed class FileControlKeyRuleSpecTests
     }
 
     /// <summary>§12.4.5.2 SR11 SENTENCE 1 — <i>"Format 3 shall be specified only for a sequential file or a report
-    /// file"</i> — over every organization (COBOLNET2912): the RECORD DELIMITER clause is Format 3's alone, so it
+    /// file"</i> — over every organization (COBOL2912): the RECORD DELIMITER clause is Format 3's alone, so it
     /// is refused on an indexed or relative file, and the BOUNDARY rows are the same clause on the sequential
     /// files it is for, and the clauses that Formats 1 to 3 share on an indexed file, which are not Format 3's.</summary>
     [Theory]
@@ -412,8 +412,8 @@ public sealed class FileControlKeyRuleSpecTests
             "WORKING-STORAGE SECTION.\n01 F-FS PIC XX.", EntryOnlyBody);
         foreach (int edition in AllEditions)
         {
-            int hits = Diagnostics(source, edition).Count(e => e.Contains("COBOLNET2912", StringComparison.Ordinal));
-            Assert.True(hits == expected, $"[{clauses.Replace('\n', ' ').Trim()}] @ {edition}: COBOLNET2912 {hits}×, expected {expected}");
+            int hits = Diagnostics(source, edition).Count(e => e.Contains("COBOL2912", StringComparison.Ordinal));
+            Assert.True(hits == expected, $"[{clauses.Replace('\n', ' ').Trim()}] @ {edition}: COBOL2912 {hits}×, expected {expected}");
         }
     }
 
@@ -461,8 +461,8 @@ public sealed class FileControlKeyRuleSpecTests
             "WORKING-STORAGE SECTION.\n01 W-RK PIC 9(4).", EntryOnlyBody);
         foreach (int edition in AllEditions)
         {
-            Assert.DoesNotContain(Diagnostics(indexed, edition), e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
-            Assert.DoesNotContain(Diagnostics(relative, edition), e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(Diagnostics(indexed, edition), e => e.Contains("COBOL0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(Diagnostics(relative, edition), e => e.Contains("COBOL0863", StringComparison.Ordinal));
         }
     }
 
@@ -470,7 +470,7 @@ public sealed class FileControlKeyRuleSpecTests
     //    ISO §12.4.5.12.2 / §12.4.5.6.2 print a required choice of TWO key forms; Annex A.3 item 40 makes the
     //    SOURCE phrase processor-dependent and this implementation PROVIDES it (owner rule R65): the key is "the
     //    concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2 / §12.4.5.6.4
-    //    GR2). It is a post-1985 form (VCR row 7.36, provisional 2002 edge, COBOLNET0900 at 85). The run-time
+    //    GR2). It is a post-1985 form (VCR row 7.36, provisional 2002 edge, COBOL0900 at 85). The run-time
     //    behaviour is pinned by conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; what lives HERE is the compile-time
     //    rule set the phrase brings with it — each stated of data-name-2 as well as data-name-1 — and the
     //    complement each of them must not reach.
@@ -484,7 +484,7 @@ public sealed class FileControlKeyRuleSpecTests
     /// (§8.3.2.4.3: KEY and both IS are not underlined), a SOURCE alternate beside a data-name-1 prime and with
     /// WITH DUPLICATES, a SOURCE prime beside a data-name-1 alternate at the SAME leftmost byte (§12.4.5.6.3 SR4's
     /// last sentence exempts the pair), and a COLLATING SEQUENCE naming the key by its record-key-name
-    /// (§12.4.5.7.3 SR5) — and draw COBOLNET0900 at 85, the edition that prints only data-name-1. ⛔ The absence of
+    /// (§12.4.5.7.3 SR5) — and draw COBOL0900 at 85, the edition that prints only data-name-1. ⛔ The absence of
     /// "has no RECORD KEY clause" is asserted at EVERY edition: a clause that names a record-key-name was once
     /// reported missing (kb/Work PB358), and a count of "at least one error" at 85 would hide it.</summary>
     [Theory]
@@ -503,7 +503,7 @@ public sealed class FileControlKeyRuleSpecTests
             var d = Diagnostics(source, edition);
             Assert.DoesNotContain(d, e => e.Contains("has no RECORD KEY clause", StringComparison.Ordinal));
             if (edition == 85)
-                Assert.Contains(d, e => e.Contains("COBOLNET0900", StringComparison.Ordinal)
+                Assert.Contains(d, e => e.Contains("COBOL0900", StringComparison.Ordinal)
                     && e.Contains("SOURCE phrase", StringComparison.Ordinal));
             else
                 Assert.True(d.Count == 0, $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: {string.Join(" | ", d)}");
@@ -765,7 +765,7 @@ public sealed class FileControlKeyRuleSpecTests
         {
             var d = Diagnostics(source, edition);
             Assert.DoesNotContain(d, e => e.Contains("SOURCE phrase", StringComparison.Ordinal));
-            Assert.DoesNotContain(d, e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("COBOL0863", StringComparison.Ordinal));
         }
     }
 }

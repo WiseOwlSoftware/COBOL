@@ -9,7 +9,7 @@
       *> following conditions" -> OK 13.7.3 4)). L-Z is a linkage record that is not an operand
       *> of the USING phrase, not subordinate to one, not a redefinition or renaming of one and
       *> not BASED, so MOVE 5 TO L-Z references an item the procedure division may not reference.
-      *> The compiler used to give L-Z callee-local storage and run the program: COBOLNET2746.
+      *> The compiler used to give L-Z callee-local storage and run the program: COBOL2746.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1249N1.
        DATA DIVISION.

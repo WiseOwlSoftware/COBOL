@@ -10,7 +10,7 @@
       *> restricted to PT -- never to T-REC, the type of the item RP's value addresses. 14.9.39.3 SR19: "If data-name-1
       *> is a strongly-typed group item ..., identifier-6 shall reference a data-pointer restricted to the type of
       *> data-name-1." BS is a strongly-typed group of type T-REC, so a pointer cell (ADDRESS OF RP, restricted to PT)
-      *> shall not become the address of BS: refused COBOLNET0869. The conforming spellings are the positive golden
+      *> shall not become the address of BS: refused COBOL0869. The conforming spellings are the positive golden
       *> 2002/pb1408_address_of_restricted_pointer.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1408N1.

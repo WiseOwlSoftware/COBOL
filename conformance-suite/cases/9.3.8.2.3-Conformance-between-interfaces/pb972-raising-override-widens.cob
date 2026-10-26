@@ -14,7 +14,7 @@
       *> overridden M lists PB972NDE WITHOUT the FACTORY phrase - rule 9
       *> b) requires "the FACTORY phrase if and only if the RAISING phrase
       *> in interface-1 specifies the FACTORY phrase".
-      *> Expected: COBOLNET0829 naming rule 9 b)
+      *> Expected: COBOL0829 naming rule 9 b)
        IDENTIFICATION DIVISION.
        CLASS-ID. PB972NDE.
        END CLASS PB972NDE.

@@ -39,7 +39,7 @@ public sealed class OperatorSpacingDiagnosticTests
         var (ok, errors, _) = EditionHarness.CompileFull(Program("COMPUTE R = 2*3."), edition);
         Assert.False(ok);
         string error = Assert.Single(errors);
-        Assert.Contains("COBOLNET2993", error);
+        Assert.Contains("COBOL2993", error);
         Assert.Contains("§8.7.1", error);
         Assert.Contains("(11,", error);  // sited at the operator's own line
     }
@@ -51,8 +51,8 @@ public sealed class OperatorSpacingDiagnosticTests
         var (ok, errors, _) = EditionHarness.CompileFull(Program("COMPUTE R = 1 *,1.", decimalComma: true), 2023);
         Assert.False(ok);
         string error = Assert.Single(errors);
-        Assert.Contains("COBOLNET2993", error);
-        Assert.DoesNotContain("COBOLNET2631", error);
+        Assert.Contains("COBOL2993", error);
+        Assert.DoesNotContain("COBOL2631", error);
         Assert.Contains("write a space after it", error);
     }
 
@@ -66,7 +66,7 @@ public sealed class OperatorSpacingDiagnosticTests
         var (ok, errors, _) = EditionHarness.CompileFull(Program(statement), 2023);
         Assert.False(ok);
         string error = Assert.Single(errors);
-        Assert.Contains("COBOLNET2993", error);
+        Assert.Contains("COBOL2993", error);
         Assert.Contains($"unary arithmetic operator '-' is not immediately {side} by", error);
         Assert.Contains(fix, error);
     }
@@ -103,7 +103,7 @@ public sealed class OperatorSpacingDiagnosticTests
             + "           STOP RUN.\n";
         var (okBad, errorsBad, _) = EditionHarness.CompileFull("       >>DEFINE X AS 2*3\n" + unit, 2023);
         Assert.False(okBad);
-        Assert.Single(errorsBad, e => e.Contains("COBOLNET2993") && e.Contains("§8.7.1"));
+        Assert.Single(errorsBad, e => e.Contains("COBOL2993") && e.Contains("§8.7.1"));
         var (okGood, errorsGood, _) = EditionHarness.CompileFull("       >>DEFINE X AS 2 * 3\n" + unit, 2023);
         Assert.True(okGood, string.Join("; ", errorsGood));
     }

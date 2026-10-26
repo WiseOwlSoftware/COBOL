@@ -22,7 +22,7 @@
       *> directly in both directions, so only the "indirectly" arm of SR4
       *> can reject this source. SR2 (each base is in its REPOSITORY) and
       *> SR3 (no class names itself) are satisfied.
-      *> The .err holds the rule the cycle arm names (COBOLNET2791 is
+      *> The .err holds the rule the cycle arm names (COBOL2791 is
       *> shared by the SR3, SR4 and SR7 arms; see the -direct twin).
       *> Reject-at names 2002 onward: class definitions are COBOL-2002.
        IDENTIFICATION DIVISION.

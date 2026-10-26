@@ -49,7 +49,7 @@
       *> WS-N = 7 does not, so "as though the OCCURS clause had been written without the TO and DEPENDING
       *> phrases" - both occurrences, DT2 = 33.
       *>   cite.py: OK  15.3 14)  (Arguments)  /  OK  13.18.38.4 13)  (General rules)
-      *> Before the fix every subscripted counter reference was refused COBOLNET1639 "not defined", a multiple
+      *> Before the fix every subscripted counter reference was refused COBOL1639 "not defined", a multiple
       *> COLUMN entry shared ONE counter among its printable items, and an absent occurrence's counter was reset.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1271SC.

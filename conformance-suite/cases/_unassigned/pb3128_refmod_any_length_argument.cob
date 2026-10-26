@@ -15,7 +15,7 @@
       *> 1)), measured for a run-time slice by its MAXIMUM extent (docs/CONFORMANCE.md D-RM1 a)): an ANY
       *> LENGTH item's description fixes no maximum, so every group formal is admitted at compile time and
       *> the evaluated slice decides at the boundary. Before the fix the slice measured ZERO positions and
-      *> the typed INVOKE was refused (COBOLNET0828 "larger than the argument (0)"), and the 14.9.25.4 GR1
+      *> the typed INVOKE was refused (COBOL0828 "larger than the argument (0)"), and the 14.9.25.4 GR1
       *> intermediate of MOVE LA(2:5) TO X1 X2 held ONE character ("x     " twice).
       *> DERIVATION (G = "ABCDEFGHIJ" is LA, a 10-character argument; LG is a 4-character group; TG
       *> displays LG then moves "wxyz" to it):

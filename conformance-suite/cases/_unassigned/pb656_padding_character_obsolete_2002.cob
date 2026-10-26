@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB656 and PB300 - the PADDING CHARACTER clause of the
       *> file control entry is accepted at COBOL-85, OBSOLETE at
-      *> COBOL-2002 (the obsolete-element warning COBOLNET0903, never
+      *> COBOL-2002 (the obsolete-element warning COBOL0903, never
       *> an error) and removed at 2014 (negative/pb300-padding-clause-
       *> dataname). The repository holds no 2002/2014 text, so the
       *> edges are GnuCOBOL 3.2's (cobol2002.conf: obsolete,

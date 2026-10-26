@@ -46,7 +46,7 @@ public sealed class RelationPairShapeTests
     {
         var (ok, diag) = CompileVariable(id, relation);
         Assert.False(ok, $"'{relation}' compares a variable-length group with a non-group (ISO §8.5.1.12.1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET2492");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL2492");
     }
 
     /// <summary>§8.5.1.12.1 rule 3 with §8.5.1.12.2 — the two dynamic-length items must START at the same relative
@@ -56,7 +56,7 @@ public sealed class RelationPairShapeTests
     {
         var (ok, diag) = CompileVariable("RPS04", "G1 < G3");
         Assert.False(ok, "G1 and G3 are not compatible groups (ISO §8.5.1.12.2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET2492");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL2492");
     }
 
     /// <summary>The compatible pair is legal (§8.8.4.2.17) and compiles clean.</summary>
@@ -161,7 +161,7 @@ public sealed class RelationPairShapeTests
     }
 
     /// <summary>The staged residue of the element walk: a DYNAMIC-CAPACITY table member has a per-operand run-time
-    /// capacity, so its occurrences cannot be enumerated at bind — refused as recognized-not-implemented (COBOLNET0899
+    /// capacity, so its occurrences cannot be enumerated at bind — refused as recognized-not-implemented (COBOL0899
     /// <c>strong-group-comparison-member</c>) rather than compared by an image the group does not have.</summary>
     [Fact]
     public void StrongGroupWithDynamicCapacityTable_IsTheStagedMemberShape()

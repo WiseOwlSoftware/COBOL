@@ -9,8 +9,8 @@
       *> Working Draft International Standard: - FLAG-85 - FLAG-NATIVE-ARITHMETIC -
       *> Standard Arithmetic - Move of the figurative constant, QUOTE, to numeric or
       *> numeric-edited items". So >>FLAG-85 and >>FLAG-NATIVE-ARITHMETIC are REMOVED at
-      *> 2023 (COBOLNET0902) and, by the same sentence's "classified as obsolete in the
-      *> previous COBOL standard", OBSOLETE at 2014 (the COBOLNET0903 warning). Both were
+      *> 2023 (COBOL0902) and, by the same sentence's "classified as obsolete in the
+      *> previous COBOL standard", OBSOLETE at 2014 (the COBOL0903 warning). Both were
       *> silently consumed at EVERY edition until kb/Work PB725.
       *>
       *> The introduction edge rides the same derivation as VCR row 28's other landed leg,

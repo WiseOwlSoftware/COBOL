@@ -8,7 +8,7 @@
       *> LENGTH "conform[s] as for a MOVE statement with the argument as the sending operand and the corresponding formal
       *> parameter as the receiving operand". MOVE HIGH-VALUE TO <a numeric-edited item> is removed at 2023 (14.9.25.3
       *> SR5; Annex E.2 item 1 bullet 1: it was valid through 2014), so HIGH-VALUE BY CONTENT into the PIC ZZ9 formal of a
-      *> contained program activated with the NESTED phrase is COBOLNET0902 at 2023. Before this the SR5 edition rows were
+      *> contained program activated with the NESTED phrase is COBOL0902 at 2023. Before this the SR5 edition rows were
       *> asked only by MOVE and INITIALIZE, and this compiled clean. The positive twin is
       *> pb3755_content_figurative_numeric_edited_formal (2002, 2014).
       *>   cite.py --check 14.8.2.3.3 "the conformance rules are the same as for a MOVE statement" -> OK

@@ -25,7 +25,7 @@
       *>
       *> Before PB391 the filter asked only table 16, where a BINARY-LONG item is an ordinary Numeric/Integer
       *> row member: KX paired and read 00000 over ZZZZZ, and KN paired and read the digits over its national
-      *> receiver - while the SAME compiler refused the written MOVE of those very two items with COBOLNET0819
+      *> receiver - while the SAME compiler refused the written MOVE of those very two items with COBOL0819
       *> (negative/pb391-move-binary-long-to-alphanumeric-written). One rule, two answers.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB391CORRSR8.

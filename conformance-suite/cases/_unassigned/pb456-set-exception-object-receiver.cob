@@ -8,7 +8,7 @@
       *> object reference is spelled as an ordinary word, not a reserved token, so it arrives as a written data
       *> reference; 8.4.3.6.3 SR2 describes it as "class object and category object reference", which is what
       *> puts the statement in Format 5 and makes SR1 the rule it breaks.
-      *> ⛔ The compiler used to answer "'EXCEPTION-OBJECT' is not defined" (COBOLNET1639) - FALSE about a name
+      *> ⛔ The compiler used to answer "'EXCEPTION-OBJECT' is not defined" (COBOL1639) - FALSE about a name
       *> the standard itself declares - because no data description entry declares it and the SET format was
       *> chosen with the receiver left unclassified. Its three siblings cannot be written here at all: NULL,
       *> SELF and SUPER are grammar tokens, so 8.4.3.7.3 SR1 and 8.4.3.8.3 SR2 are enforced by the syntax.

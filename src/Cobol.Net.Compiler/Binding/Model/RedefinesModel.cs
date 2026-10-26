@@ -15,7 +15,7 @@ namespace CobolNet.Binding.Model;
 /// range of the national item's positions, but it IS a range of its storage, which is what the alias renames: the
 /// resolver addresses every part as a byte slice of its cell's storage image (<c>ReferenceResolver.PlaceForRenames</c>,
 /// <see cref="NationalBytesPlace"/>), so every part the tiling can choose is addressable. Keeping the part in
-/// positions made a half-character part unrepresentable, and legal source drew COBOLNET1655 "do not tile".</para>
+/// positions made a half-character part unrepresentable, and legal source drew COBOL1655 "do not tile".</para>
 /// <para><paramref name="Outer"/> is the 1-based occurrence of each OCCURS GROUP the leaf sits under, outermost first
 /// (kb/Work PB986): §13.18.45.3 SR3 bars an OCCURS only on the three NAMED operands, so a table may lie INSIDE the
 /// range, and a leaf of such a table lives once per occurrence of its group — S4 of <c>ST OCCURS 2</c> is
@@ -184,22 +184,22 @@ public enum RedefinesTier
     /// <summary>D — spec-forbidden / unmodelable: a loud diagnostic, which is conformant since these are already
     /// illegal. The rejection set, one entry per screen, each with the rule it enforces:
     /// <list type="bullet">
-    ///   <item>§13.18.44.3 SR12/SR14 — object / pointer / strongly-typed, per WRITTEN ENTRY (COBOLNET1697,
+    ///   <item>§13.18.44.3 SR12/SR14 — object / pointer / strongly-typed, per WRITTEN ENTRY (COBOL1697,
     ///     kb/Work PB179).</item>
     ///   <item>§13.18.44.3 SR17 — neither side a variable-length group per §8.5.1.12.1, nor a dynamic-length
-    ///     elementary item (COBOLNET1698, kb/Work PB177 arm C).</item>
+    ///     elementary item (COBOL1698, kb/Work PB177 arm C).</item>
     ///   <item>§13.18.44.3 SR5 SENTENCE 1 — "The data description entry for data-name-2 shall not contain an
-    ///     OCCURS clause", every format of it (COBOLNET1701).</item>
+    ///     OCCURS clause", every format of it (COBOL1701).</item>
     ///   <item>§13.18.44.3 SR5 SENTENCE 4 — "Neither the original definition nor the redefinition shall include
-    ///     an occurs-depending table" (COBOLNET0855).</item>
+    ///     an occurs-depending table" (COBOL0855).</item>
     ///   <item>The SUBJECT that IS a dynamic-capacity table — the one shape in this family that no syntax rule
-    ///     literally names, decided by §13.18.44.4 GR1's storage association against §8.5.1.9.1 (COBOLNET1525).</item>
+    ///     literally names, decided by §13.18.44.4 GR1's storage association against §8.5.1.9.1 (COBOL1525).</item>
     /// </list>
     /// <para>⛔ THIS LIST HAS BEEN WRONG TWICE, IN OPPOSITE DIRECTIONS, AND BOTH ARE WHY IT IS NOW SPELLED PER
     /// SENTENCE. First it read "OCCURS DEPENDING ON / variable-length SR5/17" while the dynamic-LENGTH half of
     /// SR17 had NO screen anywhere in the tree — worse than unscreened, it was silently mis-modelled
     /// (<c>StorageFormPass</c> gave such a view its own disjoint storage). Then the repair narrowed "SR5" to
-    /// "SR5's occurs-depending table (COBOLNET0855)" — accurate about sentence 4 and silently dropping sentence
+    /// "SR5's occurs-depending table (COBOL0855)" — accurate about sentence 4 and silently dropping sentence
     /// 1, whose population (a data-name-2 carrying a fixed OCCURS) was screened NOWHERE and compiled clean. A
     /// four-sentence rule cited by NUMBER hides which sentence is meant; a tier doc asserting coverage the code
     /// lacks is how a gap survives a reading, and the negative fixtures beside each code are what make these

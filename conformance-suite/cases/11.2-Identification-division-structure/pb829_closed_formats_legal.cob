@@ -8,7 +8,7 @@
 *>---
       *> kb/Work PB829 - the POSITIVE half of closing the grammar's last total sink.  Six alternative lists
       *> spanning EIGHT closed general formats used to end in `genericClause : IDENTIFIER (IDENTIFIER|literal)*`
-      *> and now end in the ONE `unrecognizedClause` error production, refused by name (COBOLNET1941/1970/1971).
+      *> and now end in the ONE `unrecognizedClause` error production, refused by name (COBOL1941/1970/1971).
       *> Closing a general-format clause list against a lossy OCR diagram REJECTS LEGAL SOURCE, which is
       *> strictly worse than the silence it replaces (kb/Work PB487's ALIGNED trap), so every list was RENDERED
       *> from the printed page first.  THIS program is the witness that the rendering was right: it writes a

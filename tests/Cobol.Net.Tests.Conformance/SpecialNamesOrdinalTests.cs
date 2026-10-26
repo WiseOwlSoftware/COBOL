@@ -80,7 +80,7 @@ public sealed class SpecialNamesOrdinalTests
     [InlineData("PB1091F1A", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 1112065 IN U4.", "(UCS-4, 1112064 characters) — ISO §12.3.7.3 SR16 f1")]
     [InlineData("PB1091F1B", "SYMBOLIC CHARACTERS FOR NATIONAL SX IS 4294967297 IN U4.", "(UCS-4, 1112064 characters) — ISO §12.3.7.3 SR16 f1")]
     public void SymbolicOrdinalUnderIn_MustExistInTheInSet(string pid, string clause, string expected) =>
-        Rejects(pid, clause, "COBOLNET1670", expected);
+        Rejects(pid, clause, "COBOL1670", expected);
 
     /// <summary>One bad ordinal draws ONE diagnostic — the SR16 range rule's — not a second, false one at the name's first
     /// use ("'BIG' is not defined": the name was written, and declared, by the clause that failed). Beyond Int32 the

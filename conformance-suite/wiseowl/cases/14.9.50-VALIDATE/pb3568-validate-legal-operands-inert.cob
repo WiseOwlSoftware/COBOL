@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> The control for the pb3568-validate-* refusals (kb/Work PB3568): every legal shape of identifier-1 still
-      *> compiles with the COBOLNET1580 facility warning and nothing else - a group, a qualified elementary item, a
+      *> compiles with the COBOL1580 facility warning and nothing else - a group, a qualified elementary item, a
       *> subscripted table element - and the statement is inert (docs/CONFORMANCE.md section 4 item 3): control
       *> passes through it and no item changes. The .out pins INERTNESS ONLY; the warning is the decline half
       *> (DocumentedNonSupportWitnessTests). ISO §14.9.50.3 SR1 admits a data item described in the working-storage

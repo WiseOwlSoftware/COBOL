@@ -10,7 +10,7 @@
       *> (constructs row replacing-partial-word-2002, VCR row 7.33;
       *> kb/Work PB1670): ANSI X3.23-1985 admits pseudo-text, identifier,
       *> literal and word operands only. Each of the two statements
-      *> below draws COBOLNET0900 at --std 85.
+      *> below draws COBOL0900 at --std 85.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1670N.
 000300 DATA DIVISION.

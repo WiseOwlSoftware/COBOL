@@ -9,8 +9,8 @@
       *> order as a subscripted reference to the subject of the entry would be specified."
       *> C is two-dimensional - R's OCCURS and its own - so a one-subscript FROM phrase has no
       *> correspondence to check anything else against.  The rule had NO SITE (kb/Work PB505): a wrong
-      *> count reached the landable-scope stage, COBOLNET0899, and was reported as a compiler limitation.
-      *> SR20 carries no version proviso; at 85 COBOLNET0900 is reported alongside.
+      *> count reached the landable-scope stage, COBOL0899, and was reported as a compiler limitation.
+      *> SR20 carries no version proviso; at 85 COBOL0900 is reported alongside.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB505N2.
        DATA DIVISION.

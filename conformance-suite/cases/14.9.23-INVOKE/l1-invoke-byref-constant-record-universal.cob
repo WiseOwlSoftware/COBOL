@@ -21,7 +21,7 @@
       *> compile time. BY REFERENCE is the only mode SR6 permits here
       *> ("neither the BY CONTENT nor the BY VALUE phrase shall be
       *> specified"), and SR9 is met (a working-storage item).
-      *> Expected: COBOLNET1548 (docs/DIAGNOSTICS.md,
+      *> Expected: COBOL1548 (docs/DIAGNOSTICS.md,
       *> constant-as-receiver).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IV20UA.

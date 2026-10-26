@@ -22,7 +22,7 @@
       *>                   directive "previously stored by a PUSH directive and ... not
       *>                   removed by a POP directive".
       *>   7.3.20.4 GR2 - a named POP with nothing stored is UNSUCCESSFUL: it restores
-      *>                   nothing (the required warning is COBOLNET2297, pinned by
+      *>                   nothing (the required warning is COBOL2297, pinned by
       *>                   unit:DirectiveStateStackTests).
       *> THE OBSERVATION: EC-OVERFLOW-STRING is nonfatal. 14.6.13.1.4: "If checking is
       *> not enabled, execution continues as if the exception did not occur"; if it is

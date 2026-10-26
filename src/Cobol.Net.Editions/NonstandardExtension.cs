@@ -8,7 +8,7 @@ namespace CobolNet.Editions;
 public enum ExtensionSupport
 {
     /// <summary>ACCEPTED at every edition: the construct compiles and runs, and the §4.2.10 warning mechanism
-    /// (<c>--flag-extensions</c>, COBOLNET2894) names each use. This is a CLAIMED extension — the one
+    /// (<c>--flag-extensions</c>, COBOL2894) names each use. This is a CLAIMED extension — the one
     /// <c>docs/CONFORMANCE.md</c> §3.2 must identify.</summary>
     Accepted,
 

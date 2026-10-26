@@ -9,12 +9,12 @@
       *> exist, and §14.6.13.1.6 Table 13 carries it as Fatal; both
       *> belong to the exception-condition facility ISO/IEC 1989:2002
       *> introduced, so naming it in a declarative below COBOL-2002 is
-      *> refused with the introduction-band diagnostic COBOLNET0878.
+      *> refused with the introduction-band diagnostic COBOL0878.
       *> This fixture carries NO >>TURN directive on purpose: that would
-      *> be refused first (COBOLNET0900 — the §7.3 directive facility is
+      *> be refused first (COBOL0900 — the §7.3 directive facility is
       *> itself 2002+) and the case would pin the directive's gate
       *> instead of the NAME's, which is the thing kb/Work PB368 made
-      *> raisable.  The USE format-3 header takes COBOLNET0877 on the
+      *> raisable.  The USE format-3 header takes COBOL0877 on the
       *> same compile; the .err names 0878 because the exception-name is
       *> this case's subject.
        IDENTIFICATION DIVISION.

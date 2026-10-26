@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB856 — ISO 14.9.22.3 SR2: "Identifier-3, ... , identifier-n shall reference an elementary item
       *> described implicitly or explicitly as usage display or national." The NATIONAL half of the rule was never
-      *> written: a national identifier operand drew COBOLNET0847 quoting the rule that admits it. Every operand
+      *> written: a national identifier operand drew COBOL0847 quoting the rule that admits it. Every operand
       *> position reads the one predicate now, and each is exercised with a national identifier (SR4 keeps the
       *> whole operand set national, so identifier-1 is national too). Expected values by 14.9.22.4:
       *>   TALLYING FOR ALL NA over "ABABA"                  -> 3   (GR12 a: one per match)

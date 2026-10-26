@@ -11,12 +11,12 @@
       *> ("Syntax rules 10, 11,12,13,14,and 15 above apply"), so a table VALUE literal is governed exactly as
       *> a format 1 one.  It was not: DataBinder.BuildTableValueSpecs' per-occurrence literals never reached
       *> ValidateValueCategory, so THIS program compiled CLEAN at strict 2023 (and seeded zeros) while its
-      *> format 1 twin - conformance-suite/cases/13.18.63-VALUE/pb94-value-alphanumeric-on-numeric.cob - was COBOLNET1657.
+      *> format 1 twin - conformance-suite/cases/13.18.63-VALUE/pb94-value-alphanumeric-on-numeric.cob - was COBOL1657.
       *> One funnel now serves both formats (DataBinder.ScreenValueLiteral).
       *>
-      *> ALL FOUR EDITIONS reject, and COBOLNET1657 is present at every one of them: SR2 is edition-
+      *> ALL FOUR EDITIONS reject, and COBOL1657 is present at every one of them: SR2 is edition-
       *> independent, so it is the .err substring here.  At COBOL-85 a SECOND diagnostic also fires - the
-      *> Format 2 (table) VALUE clause is a COBOL-2002 addition, so the introduction gate reports COBOLNET0900
+      *> Format 2 (table) VALUE clause is a COBOL-2002 addition, so the introduction gate reports COBOL0900
       *> as well (that arm is pinned on its own by ValueFormat2Tests.BelowIntroduction_Rejected0900).
       *>
       *> A digits-only alphanumeric literal on a numeric item is the CCVS vendor leniency: an error at strict

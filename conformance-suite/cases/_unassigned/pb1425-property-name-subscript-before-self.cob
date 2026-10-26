@@ -7,7 +7,7 @@
       *> kb/Work PB1425 - BAL (2) OF SELF writes a subscript on the property-name, before its object. ISO 8.4.3.1.2
       *>   Format 7 is "property-name-1 OF identifier-3" - property-name-1 takes no subscript - and 8.4.2.3.2 puts
       *>   subscripts after the WHOLE qualified-data-name-1. The word-object spelling BAL (2) OF D already drew
-      *>   COBOLNET2776; with SELF (a non-word object) the (2) used to be dropped silently.
+      *>   COBOL2776; with SELF (a non-word object) the (2) used to be dropped silently.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425SBP.
        ENVIRONMENT DIVISION.

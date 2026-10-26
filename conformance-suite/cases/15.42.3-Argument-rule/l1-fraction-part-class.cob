@@ -14,7 +14,7 @@
       *> compiler that reinterpreted the characters would compute 0.5 from source the standard forbids and
       *> report nothing. §15.42's only conversion-from-text sibling is FUNCTION NUMVAL (§15.66), and the
       *> program that wants this behaviour has to write it.
-      *> Expected: COBOLNET1627, the intrinsic-argument-class diagnostic.
+      *> Expected: COBOL1627, the intrinsic-argument-class diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FPCLASS.
        DATA DIVISION.

@@ -13,7 +13,7 @@
       *> required the LENGTH and answered COBOL0001. DYNAMIC stays the required anchor and heads no other
       *> data-description clause, so the relaxation adds no ambiguity, and the COBOL-2014 introduction
       *> gate keys on the CLAUSE context (VersionConformancePass.VisitDynamicLengthClause), not on the
-      *> word - `--std 2002` still answers COBOLNET0900.
+      *> word - `--std 2002` still answers COBOL0900.
       *> 13.18.19.4 GR1 sets the minimum length to zero, so D-BARE is length 0 before the MOVE; GR2 makes
       *> integer-1 the maximum, and 3 <= 30 so the MOVE is exact. FUNCTION LENGTH of a dynamic-length item
       *> is its CURRENT length (15.50), hence LEN0=0 then LEN1=3.

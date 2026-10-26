@@ -858,7 +858,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </summary>
     /// <remarks>
     /// <para>§15.3 type 6: "An arithmetic expression that will always result in an integer value or an integer data item
-    /// shall be specified." Strict conformance refuses a data item or literal that is not one (COBOLNET1627, kb/Work
+    /// shall be specified." Strict conformance refuses a data item or literal that is not one (COBOL1627, kb/Work
     /// PB248) and fails open on an arithmetic expression it cannot prove non-integral, so an expression (<c>A9 * 7</c>,
     /// <c>A ** 3</c>) brings a fractional or SDIDI-carried value to such a position in every mode, and
     /// <c>--permissive</c> also a floating-point item or a fixed-point item with fraction digits — and
@@ -1074,7 +1074,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     ///         documented 33 cap (kb/Work PB125); same <c>when</c> guard, same reason.</item>
     ///   <item><c>Annuity</c> / <c>PresentValue</c> / <c>Variance</c> / <c>StandardDeviation</c> — the four
     ///         INEXACT-EAE functions: their equivalent arithmetic expressions DIVIDE, so even an all-fixed-point
-    ///         argument list must evaluate in SDIDI form. This is what removed their COBOLNET0899 stage.</item>
+    ///         argument list must evaluate in SDIDI form. This is what removed their COBOL0899 stage.</item>
     ///   <item><c>Numval</c> / <c>NumvalC</c> / <c>NumvalF</c> — §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 name the
     ///         returned value outright ("the numeric value represented by argument-1"; NUMVAL-F's r2/r3 pair
     ///         grants NATIVE arithmetic the approximation and STANDARD-DECIMAL none) and §15.4.1 places it in an
@@ -1437,7 +1437,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <para>⛔ THIS IS THE ONLY EMIT SITE THAT HAS TO HONOUR IT, and that is provable rather than surveyed: SR2
     /// admits a ref-mod only on an alphanumeric, boolean or national function, and every such result renders
     /// through this one method (reached from <c>OperandText.AsString</c> and from the nested-argument visitor).
-    /// A numeric-result call cannot carry one — the binder rejects it with COBOLNET1629 — so the numeric and
+    /// A numeric-result call cannot carry one — the binder rejects it with COBOL1629 — so the numeric and
     /// folded channels need no arm. Wrapping HERE rather than at each caller is what keeps that true.</para>
     /// </summary>
     public string RenderString(BoundIntrinsicCall ic)

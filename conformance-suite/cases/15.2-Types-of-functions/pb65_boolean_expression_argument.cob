@@ -12,7 +12,7 @@
       *> GR4: "If boolean-character-1 is not specified, the literal is a
       *> zero-length literal" — B"" is a boolean literal, and §15.45.4 makes
       *> INTEGER-OF-BOOLEAN of it 0. Before this the grammar's functionArgument
-      *> had no boolean-expression alternative (COBOLNET1639 "B-AND is not
+      *> had no boolean-expression alternative (COBOL1639 "B-AND is not
       *> defined" + a false arity error) and B"" did not lex. Expected values
       *> are the bit arithmetic: 1100 B-AND 1010 = 1000 = 8; B-OR = 1110 = 14;
       *> B-NOT 1100 = 0011 = 3; BOOLEAN-OF-INTEGER(5, 8) = 00000101, B-AND

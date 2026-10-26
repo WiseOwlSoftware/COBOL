@@ -10,7 +10,7 @@
       *> so this program compiled CLEAN and RAN at every edition with WIBBLE WOBBLE discarded.  ISO
       *> 4.2.2 ("An implementation shall provide a warning mechanism ... to indicate violations of the
       *> general formats and the explicit syntax rules of standard COBOL") makes the word a violation
-      *> to be NAMED: COBOLNET1970.  Rejected at 85 as well: X3.23-1985's SOURCE-COMPUTER admits only
+      *> to be NAMED: COBOL1970.  Rejected at 85 as well: X3.23-1985's SOURCE-COMPUTER admits only
       *> WITH DEBUGGING MODE after the name, and neither word is reserved at any edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB830SC.

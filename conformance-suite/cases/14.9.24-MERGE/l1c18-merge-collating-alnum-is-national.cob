@@ -13,7 +13,7 @@
       *> collating sequence), so the name resolves; it is the wrong
       *> class for the alphabet-name-1 position.  A FOR NATIONAL
       *> alphabet exists only from COBOL 2002, hence 2002 and later.
-      *> Diagnostic COBOLNET0898 with the alphabet-name-1 message head
+      *> Diagnostic COBOL0898 with the alphabet-name-1 message head
       *> (the message's trailing clause reference is not asserted).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C18D.

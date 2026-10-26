@@ -301,7 +301,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// SEARCH's GR8b varied index): index-name / index data item → THE GUARDED occurrence-number augment; a
     /// numeric data item → an in-place add through its PICTURE store (legal as a VARYING induction variable,
     /// §14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
-    /// BIND (§14.9.39.2 Format 2's receiving operand is index-name-3; COBOLNET2112, kb/Work PB449) — this comment
+    /// BIND (§14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment
     /// used to say "the edition validator will diagnose it", and no validator did: the statement compiled and
     /// ran. The numeric arm survives because PERFORM VARYING and SEARCH reach this same augment.
     /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §14.9.39.4 GR4 a) and §13.18.38.4 GR2 — which names
@@ -356,7 +356,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // "the literal in the FALSE phrase of the VALUE clause" — §13.18.63.4 GR20's literal-4. Everything
             // after this line is the ONE store both rules describe in the same words, so the FALSE arm inherits
             // the figurative fill, the group-image splice and the category funnel without a second copy. The
-            // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOLNET2049).
+            // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOL2049).
             // ⛔ THE ARM IS THE GROUP'S, NOT THE STATEMENT'S (kb/Work PB450): §14.9.39.2 Format 4's outer `…`
             // repeats the whole `{ condition-name-1 } … TO { TRUE | FALSE }` unit, so one statement may store
             // TRUE into one group and FALSE into the next.

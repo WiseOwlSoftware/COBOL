@@ -9,12 +9,12 @@ namespace CobolNet.Tests.Conformance;
 /// family, four rules, each asked by the ONE screen its question belongs to, over every format the rule names:
 /// <list type="bullet">
 ///   <item>§13.16.3 SR10 — "The VALUE clause shall not be specified for data items of class index, message-tag,
-///     object, or pointer." USAGE INDEX was the class the set missed, written or inherited (COBOLNET2168).</item>
+///     object, or pointer." USAGE INDEX was the class the set missed, written or inherited (COBOL2168).</item>
 ///   <item>§13.18.63.3 SR12 (format 1) and SR16 (format 2) — no VALUE in an entry that contains a REDEFINES
-///     clause or is subordinate to one. The value was silently DISCARDED (COBOLNET2406).</item>
-///   <item>§13.18.63.3 SR25 — no format 3 VALUE subordinate to a CONSTANT RECORD entry (COBOLNET2406).</item>
+///     clause or is subordinate to one. The value was silently DISCARDED (COBOL2406).</item>
+///   <item>§13.18.63.3 SR25 — no format 3 VALUE subordinate to a CONSTANT RECORD entry (COBOL2406).</item>
 ///   <item>§13.18.63.3 SR2/SR3 — ALL FORMATS: the range and sign of a numeric literal, which never reached a
-///     level-88 (format 3) literal nor a report-section (format 4) one (COBOLNET1625).</item>
+///     level-88 (format 3) literal nor a report-section (format 4) one (COBOL1625).</item>
 /// </list>
 /// Every rejection has its OVER-REJECTION control beside it: each of these rules has a legal neighbour a careless
 /// screen refuses (a level-88 under a REDEFINES entry, the redefined anchor's own VALUE, a CONSTANT RECORD's
@@ -60,10 +60,10 @@ public sealed class ValueClauseScreenTests
     [Fact]
     public void IndexItem_WithValue_IsRejected_WrittenAndInherited()
     {
-        Rejects(Prog("VCS515A", "77 I USAGE INDEX VALUE 7."), "COBOLNET2168");
-        Rejects(Prog("VCS515B", "01 G.\n   05 I USAGE INDEX VALUE 1."), "COBOLNET2168");
+        Rejects(Prog("VCS515A", "77 I USAGE INDEX VALUE 7."), "COBOL2168");
+        Rejects(Prog("VCS515B", "01 G.\n   05 I USAGE INDEX VALUE 1."), "COBOL2168");
         // §13.18.60.4 GR1: the group's USAGE clause IS the elementary item's — the same class, the same rule.
-        Rejects(Prog("VCS515C", "01 G USAGE INDEX.\n   05 A VALUE 1.\n   05 B."), "COBOLNET2168");
+        Rejects(Prog("VCS515C", "01 G USAGE INDEX.\n   05 A VALUE 1.\n   05 B."), "COBOL2168");
     }
 
     [Fact]
@@ -76,14 +76,14 @@ public sealed class ValueClauseScreenTests
     public void Value_InOrUnderARedefiningEntry_IsRejected_AtEveryEdition()
     {
         Rejects(Prog("VCS550A", "01 R.\n   05 A PIC X(4) VALUE \"AAAA\".\n   05 B REDEFINES A PIC X(4) VALUE \"ZZZZ\"."),
-            "COBOLNET2406");
+            "COBOL2406");
         Rejects(Prog("VCS550B", "01 A PIC X(4) VALUE \"AAAA\".\n01 B REDEFINES A PIC X(4) VALUE \"ZZZZ\"."),
-            "COBOLNET2406");
+            "COBOL2406");
         Rejects(Prog("VCS550C", "01 R.\n   05 A PIC X(4).\n   05 B REDEFINES A.\n      10 C.\n         15 E PIC X(2) VALUE \"ZZ\".\n      10 D PIC X(2)."),
-            "COBOLNET2406");
+            "COBOL2406");
         // A GROUP-level VALUE on the redefining entry is the same clause in the same entry.
         Rejects(Prog("VCS550D", "01 R.\n   05 A PIC X(4).\n   05 B REDEFINES A VALUE \"ZZZZ\".\n      10 C PIC X(2).\n      10 D PIC X(2)."),
-            "COBOLNET2406");
+            "COBOL2406");
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class ValueClauseScreenTests
         Rejects(Prog("VCS550E", "01 R.\n   05 A PIC X(6).\n   05 B REDEFINES A PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3)."),
             "SR16", Post85);
         Rejects(Prog("VCS550F", "01 R.\n   05 A PIC X(6).\n   05 B REDEFINES A.\n      10 T PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3)."),
-            "COBOLNET2406", Post85);
+            "COBOL2406", Post85);
     }
 
     /// <summary>SR12 bars the redefinING entry and its subordinates — never the redefined anchor, never a level-88
@@ -108,9 +108,9 @@ public sealed class ValueClauseScreenTests
     [Fact]
     public void ConditionName_UnderAConstantRecord_IsRejected()
     {
-        Rejects(Prog("VCS551A", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 1.\n   88 F VALUE 1."), "COBOLNET2406", Post85);
+        Rejects(Prog("VCS551A", "01 CR CONSTANT RECORD.\n   05 X PIC 9 VALUE 1.\n   88 F VALUE 1."), "COBOL2406", Post85);
         Rejects(Prog("VCS551B", "01 CR CONSTANT RECORD.\n   05 H.\n      10 X PIC 9 VALUE 1.\n         88 F VALUE 1."),
-            "COBOLNET2406", Post85);
+            "COBOL2406", Post85);
     }
 
     /// <summary>SR25 names formats 3, 4 and 5 only: the format-1 VALUEs that give a CONSTANT RECORD its content are
@@ -124,11 +124,11 @@ public sealed class ValueClauseScreenTests
     [Fact]
     public void Level88Literal_OutsideTheConditionalVariablesRange_IsRejected()
     {
-        Rejects(Prog("VCS586A", "01 W PIC 9(2).\n   88 C-BIG VALUE 12345."), "COBOLNET1625");
-        Rejects(Prog("VCS586B", "01 W PIC 9(2).\n   88 C-R VALUE 1 THRU 12345."), "COBOLNET1625");
+        Rejects(Prog("VCS586A", "01 W PIC 9(2).\n   88 C-BIG VALUE 12345."), "COBOL1625");
+        Rejects(Prog("VCS586B", "01 W PIC 9(2).\n   88 C-R VALUE 1 THRU 12345."), "COBOL1625");
         Rejects(Prog("VCS586C", "01 W PIC 9(2).\n   88 C-N VALUE -1."), "SR3");
-        Rejects(Prog("VCS586D", "01 W PIC 9(2)V9.\n   88 C-F VALUE 1.25."), "COBOLNET1625");
-        Rejects(Prog("VCS586E", "01 W PIC 9(2).\n   88 C-T VALUE 1 WHEN SET TO FALSE 500."), "COBOLNET1625", Post85);
+        Rejects(Prog("VCS586D", "01 W PIC 9(2)V9.\n   88 C-F VALUE 1.25."), "COBOL1625");
+        Rejects(Prog("VCS586E", "01 W PIC 9(2).\n   88 C-T VALUE 1 WHEN SET TO FALSE 500."), "COBOL1625", Post85);
     }
 
     [Fact]
@@ -165,10 +165,10 @@ public sealed class ValueClauseScreenTests
     [Fact]
     public void ReportLiteral_OutsideThePrintableItemsRange_IsRejected()
     {
-        Rejects(Report("VCSR1", "        03  COLUMN 1 PIC 9(2) VALUE 12345."), "COBOLNET1625");
+        Rejects(Report("VCSR1", "        03  COLUMN 1 PIC 9(2) VALUE 12345."), "COBOL1625");
         Rejects(Report("VCSR2", "        03  COLUMN 1 PIC 9(2) VALUE -3."), "SR3");
         // SR2's class half: before the funnel this leaked Roslyn CS0103 against the generated C#.
-        Rejects(Report("VCSR3", "        03  COLUMN 1 PIC 9(2) VALUE \"AB\"."), "COBOLNET1657");
+        Rejects(Report("VCSR3", "        03  COLUMN 1 PIC 9(2) VALUE \"AB\"."), "COBOL1657");
     }
 
     [Fact]

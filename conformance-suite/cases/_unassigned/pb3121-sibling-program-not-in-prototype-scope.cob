@@ -13,7 +13,7 @@
       *> definition and each one enclosing it, never a SIBLING: NSIBA
       *> and NSIBB are both contained in NSIBOUT, so inside NSIBB the
       *> word NSIBA is neither spelling, and TO NSIBA names no
-      *> checkable signature (13.18.60.4 GR25). COBOLNET1958.
+      *> checkable signature (13.18.60.4 GR25). COBOL1958.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NSIBOUT.
        PROCEDURE DIVISION.

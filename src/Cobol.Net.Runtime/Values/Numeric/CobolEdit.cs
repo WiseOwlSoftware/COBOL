@@ -47,7 +47,7 @@ public static partial class CobolEdit
     /// floating inserting, one occurrence of literal-2 or literal-3 is counted in the size of the item plus one
     /// character for each repetition of character-1." A literal of up to 50 characters is legal (SR9), so the
     /// render is VARIABLE-WIDTH and the 1:1 mask model cannot carry it — which is why both shapes used to be
-    /// staged loud at bind (COBOLNET0899, kb/Work PB491) although Annex D.24 demonstrates both. They are now
+    /// staged loud at bind (COBOL0899, kb/Work PB491) although Annex D.24 demonstrates both. They are now
     /// rendered by the SAME logical-image-then-materialize mechanism the multi-character currency string uses
     /// (<see cref="Materialize"/>): the editing rules still edit one position per symbol, and the one pass that
     /// knows a symbol's physical width expands it.</para>

@@ -8,7 +8,7 @@
       *> shall not be an occurs-depending-on group item, a variable-length group, or a dynamic-length elementary
       *> item." (cite.py --check 13.18.12.3 "Identifier-1 shall reference an alphanumeric data item" -> OK). 8.5.2.1:
       *> "Both the class and the category of a strongly-typed group item are the type-name specified in the TYPE
-      *> clause" (cite.py -> OK), so the strongly-typed group V is not an alphanumeric data item (COBOLNET2713).
+      *> clause" (cite.py -> OK), so the strongly-typed group V is not an alphanumeric data item (COBOL2713).
       *> Why this can fail: the CODE screen asked the class lattice, which answers alphanumeric for a strong group.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3355CD1.

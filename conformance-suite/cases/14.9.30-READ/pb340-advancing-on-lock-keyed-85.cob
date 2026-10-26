@@ -6,7 +6,7 @@
 *>---
       *> The record-lock phrases of the READ statement are a COBOL-2002
       *> introduction, so READ ... ADVANCING ON LOCK is rejected at --std 85
-      *> (COBOLNET0900, construct record-lock-phrase-2002).
+      *> (COBOL0900, construct record-lock-phrase-2002).
       *> This is the KEYED arm of that gate: VersionConformancePass fires on
       *> BoundKeyedRead.AdvancingOnLock. The gate has always existed but nothing
       *> exercised it - the version-matrix row for the family writes

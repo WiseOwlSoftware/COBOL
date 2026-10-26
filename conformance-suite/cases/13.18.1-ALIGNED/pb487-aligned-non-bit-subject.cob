@@ -9,9 +9,9 @@
       *> none inherited), so the clause has no defined subject here: 13.18.1.4 GR1 states its whole effect in
       *> BITS ("aligned on the first bit of the first available byte boundary", with implicit filler bits per
       *> 8.5.1.6.3), which is meaningless for a byte-aligned alphanumeric group.  Accepting it inert is the
-      *> silent-wrong-layout outcome that rule exists to prevent, so it is refused: COBOLNET1942.
+      *> silent-wrong-layout outcome that rule exists to prevent, so it is refused: COBOL1942.
       *> NOT rejected at 85: ISO 8.9 reserves ALIGNED only from 2002, so at COBOL-85 the word is a
-      *> user-defined word and this source is a different program - the 2002 introduction gate (COBOLNET0900,
+      *> user-defined word and this source is a different program - the 2002 introduction gate (COBOL0900,
       *> constructs.json row aligned-clause-2002) is what answers there, and the edition-matrix row owns it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB487SR.

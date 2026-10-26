@@ -8,7 +8,7 @@
 *> "all literals in the VALUE clause shall be numeric and shall be permissible values within the range
 *> indicated by the PICTURE clause". MEASURED BEFORE: compiled clean and PRINTED 45 - the literal silently
 *> truncated to the printable item's two digit positions (kb/Work PB586's sibling sweep: the report arm
-*> reached no part of the VALUE literal funnel but SR6's edition gate). (COBOLNET1625)
+*> reached no part of the VALUE literal funnel but SR6's edition gate). (COBOL1625)
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB586RPTRNG.
 ENVIRONMENT DIVISION.

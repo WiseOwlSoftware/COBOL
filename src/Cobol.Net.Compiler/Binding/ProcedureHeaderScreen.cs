@@ -89,7 +89,7 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     {
         var cls = IntrinsicArgumentRules.ClassOfItem(item);
         if (cls is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
-        edition.Error("COBOLNET1553",
+        edition.Error("COBOL1553",
             $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
             + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");
     }

@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// BASED/TYPE/PROPERTY are cleared or nulled during bind, and (the DEVLOG-734 review correction) even the init-only
 /// <c>DataItem.IsTypedef</c> is unreliable because the typedef ITEM is discarded from <c>ConformanceForest</c> when
 /// <c>RegisterTypeDecl</c> rejects it (unnamed/FILLER, duplicate type-name) or it binds into method scope. The version
-/// matrix + the contains-based conformance suite verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOLNET0900
+/// matrix + the contains-based conformance suite verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOL0900
 /// per written clause — which a contains-based assertion cannot catch. The load-bearing case is a TYPEDEF referenced
 /// twice: TYPEDEF gates ONCE (one <c>typedefClause</c> node) and TYPE TWICE (one <c>typeClause</c> node per written
 /// reference; the ExpandTypes clones are DataItem objects, not parse nodes). The three DEVLOG-734 regressions
@@ -24,7 +24,7 @@ public sealed class DataClauseEditionTests
     private static int Count0900(string source, int edition, string whereFragment)
     {
         var (_, errors, _) = EditionHarness.CompileFull(source, edition);
-        return errors.Count(e => e.Contains("COBOLNET0900", StringComparison.OrdinalIgnoreCase)
+        return errors.Count(e => e.Contains("COBOL0900", StringComparison.OrdinalIgnoreCase)
             && e.Contains(whereFragment, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -39,7 +39,7 @@ public sealed class DataClauseEditionTests
             STOP RUN.
         """;
 
-    /// <summary>BASED (parse-arm): a below-2002 BASED clause produces EXACTLY ONE COBOLNET0900 naming the clause.</summary>
+    /// <summary>BASED (parse-arm): a below-2002 BASED clause produces EXACTLY ONE COBOL0900 naming the clause.</summary>
     [Fact]
     public void BasedClause_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WB PIC X(5) BASED."), 85, "the BASED clause"));
@@ -50,13 +50,13 @@ public sealed class DataClauseEditionTests
     public void BasedClause_At2002_NoGate()
         => Assert.Equal(0, Count0900(Prog("01 WB PIC X(5) BASED."), 2002, "the BASED clause"));
 
-    /// <summary>PROPERTY (parse-arm): a below-2002 PROPERTY clause produces EXACTLY ONE COBOLNET0900. (PROPERTY as a
+    /// <summary>PROPERTY (parse-arm): a below-2002 PROPERTY clause produces EXACTLY ONE COBOL0900. (PROPERTY as a
     /// data-NAME stays a legal user word at 85 — only the CLAUSE is gated; see property_below_2002.cob.)</summary>
     [Fact]
     public void PropertyClause_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WP PIC X PROPERTY."), 85, "the PROPERTY clause"));
 
-    /// <summary>TYPEDEF (bound-arm): a level-01 TYPEDEF declaration produces EXACTLY ONE COBOLNET0900 — the subordinate
+    /// <summary>TYPEDEF (bound-arm): a level-01 TYPEDEF declaration produces EXACTLY ONE COBOL0900 — the subordinate
     /// member is not itself a typedef, so <c>IsTypedef</c> is set only on the template root.</summary>
     [Fact]
     public void TypedefDeclaration_At85_ExactlyOne0900()
@@ -65,7 +65,7 @@ public sealed class DataClauseEditionTests
                05 WF PIC X.
             """), 85, "the TYPEDEF clause"));
 
-    /// <summary>A MISPLACED subordinate TYPEDEF (illegal per §13.18.58 → COBOLNET1529) still keeps its init-only
+    /// <summary>A MISPLACED subordinate TYPEDEF (illegal per §13.18.58 → COBOL1529) still keeps its init-only
     /// <c>IsTypedef</c> in the Roots subtree, so the edition gate fires ONCE there too (recognition-equivalent, matching
     /// the former BindEntry Check which fired for every entry regardless of placement).</summary>
     [Fact]
@@ -98,7 +98,7 @@ public sealed class DataClauseEditionTests
     // parse-arm (recognition) fires on the always-present parse node instead.
 
     /// <summary>A FILLER (nameless) level-01 TYPEDEF still names its edition at 85 — the parse node is present even
-    /// though <c>RegisterTypeDecl</c> discards the item (unnamed → COBOLNET1529, never added to <c>TypeDecls</c>). A
+    /// though <c>RegisterTypeDecl</c> discards the item (unnamed → COBOL1529, never added to <c>TypeDecls</c>). A
     /// bound-arm gate saw nothing to fire (Defect 1).
     /// <para>Spelled with FILLER: at COBOL-85 §8.9 does not reserve TYPEDEF, so the nameless spelling
     /// <c>01 TYPEDEF PIC X.</c> is a legal data item NAMED TYPEDEF there (kb/Work PB655) — no TYPEDEF clause at all.</para></summary>
@@ -107,7 +107,7 @@ public sealed class DataClauseEditionTests
         => Assert.Equal(1, Count0900(Prog("01 FILLER TYPEDEF PIC X."), 85, "the TYPEDEF clause"));
 
     /// <summary>A DUPLICATE type-name gates TWICE at 85 — one 0900 per written TYPEDEF — even though the second
-    /// <c>TypeDecls.TryAdd</c> fails (COBOLNET1529, item discarded). A bound-arm gate collapsed the pair to one
+    /// <c>TypeDecls.TryAdd</c> fails (COBOL1529, item discarded). A bound-arm gate collapsed the pair to one
     /// (Defect 2).</summary>
     [Fact]
     public void DuplicateTypedefName_At85_GatesEach()

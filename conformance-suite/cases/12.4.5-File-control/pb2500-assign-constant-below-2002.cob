@@ -8,7 +8,7 @@
       *> below its introducing edition: the constant entry (01 ...
       *> CONSTANT AS, ISO 13.10) is a COBOL-2002 introduction, so at 85
       *> the word PB2500KN cannot be a constant-name and the program is
-      *> refused at the entry, COBOLNET0900 (constructs row
+      *> refused at the entry, COBOL0900 (constructs row
       *> constant-entry-2002). The ASSIGN clause is not reached by a
       *> constant that does not exist.
        IDENTIFICATION DIVISION.

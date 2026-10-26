@@ -7,7 +7,7 @@
 *> ISO 12.4.5 - the file control entry's clauses are 12.4.5.4 through 12.4.5.15 and
 *> NONE of them is PADDING; the word occurs nowhere in the 2023 text. The clause is the
 *> ANSI X3.23-1985 Sequential I-O block-fill character, deleted from the standard, so at
-*> 2014 and 2023 it is a removed construct: COBOLNET0902 under strict, a warning with the
+*> 2014 and 2023 it is a removed construct: COBOL0902 under strict, a warning with the
 *> pre-removal no-op reading under --permissive (registry row padding-character-removed-2014).
 *>
 *> THIS FIXTURE EXISTS FOR THE OPERAND ARM THE MATRIX ROW DOES NOT WRITE. The matrix row

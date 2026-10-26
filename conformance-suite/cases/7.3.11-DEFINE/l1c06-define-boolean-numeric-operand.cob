@@ -20,7 +20,7 @@
       *>   the NUMERIC literal
       *> 1, not a boolean literal, so the DEFINE violates SR4 via
       *>   §7.3.7.2 SR1 and shall be
-      *> rejected (COBOLNET1619, directive-expression-violation).
+      *> rejected (COBOL1619, directive-expression-violation).
       *>   Everything else is legal:
       *> removing "B-AND 1" leaves a valid DEFINE of a boolean literal.
        IDENTIFICATION DIVISION.

@@ -20,7 +20,7 @@ namespace CobolNet.Tests.Unit;
 /// <para><b>Measured cost, not a theory.</b> ISO §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c>
 /// exactly <c>MOVE x TO record-name-1</c> followed by the same RELEASE without FROM. It was not:
 /// <c>RELEASE SRT-REC FROM WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the
-/// identical explicit MOVE drew COBOLNET0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an
+/// identical explicit MOVE drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an
 /// unhandled NotImplementedCobolFeatureException before the record was ever released, because
 /// <c>MarkImageForced</c> — a fact <c>StorageFormPass</c> consumes — is collected by the binder and the
 /// emitter-built move never passed through it. Same source, same SD, opposite result.</para>

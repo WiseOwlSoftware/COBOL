@@ -81,7 +81,7 @@ public enum DataClauseKind : uint
     Validation = 1u << 22,
     /// <summary>⛔ NOT A CLAUSE — the shared error production, in its data division form <c>unrecognizedDataClause</c> (kb/Work PB487, generalized to eight closed general formats by kb/Work PB829; the form, kb/Work PB3390). It carries a
     /// bit so the permitted-set rules SEE it: an entry whose only defect is an unrecognized word draws
-    /// COBOLNET1941 alone, and one that ALSO violates SR17 draws both, rather than the unknown word masking the
+    /// COBOL1941 alone, and one that ALSO violates SR17 draws both, rather than the unknown word masking the
     /// composition rule or the reverse.</summary>
     Unrecognized = 1u << 23,
 }
@@ -172,7 +172,7 @@ public static class DataClauseKinds
     // ── The §13.16.3 permitted / excluded sets, one constant per rule ──────────────────────────────────────
     // Each is transcribed from the rule's own sentence; level-number and entry-name are always permitted and
     // carry no bit. `Unrecognized` is in NO permitted set — an unrecognized word is never a permitted co-clause,
-    // so an entry carrying one draws its own COBOLNET1941 and does not silently satisfy a permitted-set rule.
+    // so an entry carrying one draws its own COBOL1941 and does not silently satisfy a permitted-set rule.
 
     /// <summary>§13.16.3 SR12: "The SAME AS clause shall not be specified in the same data description entry
     /// with any clauses except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS."

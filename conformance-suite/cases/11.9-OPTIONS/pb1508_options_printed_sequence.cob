@@ -12,7 +12,7 @@
       *> Expected values from the spec:
       *>   - DEFAULT ROUNDED MODE IS TRUNCATION (11.9.6): COMPUTE B ROUNDED = 1.5 into PIC 9 gives 1.
       *>   - INITIALIZE ... TO X"5A" (11.9.10.4): W, with no VALUE clause, starts as "ZZZZ".
-      *> FLOAT-DECIMAL is the declined A.3 item 13 clause (COBOLNET2424, a warning) and is accepted inert.
+      *> FLOAT-DECIMAL is the declined A.3 item 13 clause (COBOL2424, a warning) and is accepted inert.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1508S.
        OPTIONS.

@@ -6,7 +6,7 @@
 *>---
       *> ISO 13.18.40.3 SR32 - "A format 2 PICTURE clause shall not be specified in a data item described with
       *> the CONSTANT RECORD clause, or in any data item subordinate to a data item described with the CONSTANT
-      *> RECORD clause" - COBOLNET1673 names the rule for the SUBORDINATE half (the parent chain check;
+      *> RECORD clause" - COBOL1673 names the rule for the SUBORDINATE half (the parent chain check;
       *> kb/Work PB64 T6).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T6CR.

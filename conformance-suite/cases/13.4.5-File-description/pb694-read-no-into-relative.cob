@@ -10,7 +10,7 @@
 *> file too (SR7 withdraws the record-less permission for an INDEXED file only). RLF
 *> has no record description entry, and the random READ below omits INTO. This is the
 *> RELATIVE arm of the READ binder (KeyedIoBinder), which the sequential arm reroutes
-*> to; pb694-read-no-into-sequential is the sequential arm. kb/Work PB694 -> COBOLNET3983.
+*> to; pb694-read-no-into-sequential is the sequential arm. kb/Work PB694 -> COBOL3983.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB694N2.
        ENVIRONMENT DIVISION.

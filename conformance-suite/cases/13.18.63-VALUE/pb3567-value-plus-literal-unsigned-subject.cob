@@ -10,7 +10,7 @@
 *> is used, it shall appear as the leftmost character of the literal. If the literal is unsigned, the literal is
 *> nonnegative": a literal written with '+' carries a sign, so it is a signed literal (the rule has no carve-out for
 *> a value the unsigned item could hold). U1 and U2 are unsigned numeric items; both literals shall be refused at every
-*> edition (COBOLNET1625). The signed and sign-bearing subjects that accept them are pb3567_value_signed_literal_signed_subject
+*> edition (COBOL1625). The signed and sign-bearing subjects that accept them are pb3567_value_signed_literal_signed_subject
 *> and pb3567_value_signed_literal_numeric_edited_2023.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3567PLUS.

@@ -13,7 +13,7 @@
       *> the formal parameter and the argument shall be compatible, as described in 8.5.1.12, Variable-length
       *> groups." 14.8.3.2 says the same of a RETURNING pair. SR12's flat prohibition - "Identifier-2 shall
       *> not reference a variable-length group" - is FORMAT 1's rule and reaches neither AS NESTED nor INVOKE.
-      *> So this program is conforming source, and it used to draw COBOLNET1688 at compile time.
+      *> So this program is conforming source, and it used to draw COBOL1688 at compile time.
       *>
       *> LEG 1 IS THE POSITIONAL-CORRESPONDENCE PROOF. LVG's fixed prefix is split 1+2 where VG's is one
       *> X(3) entry: 8.5.1.12.2 defines correspondence over RELATIVE BYTE POSITIONS, not over the declaration

@@ -207,6 +207,10 @@ public sealed class ConditionNameSubjectClassDriftTests
         Assert.Equal(CompileVerdict(klass + "-g", groupDecl), CompileVerdict(klass + "-e", elemDecl));
     }
 
+    /// <summary>A word of a diagnostic line that is its code: the one <c>COBOL####</c> prefix (kb/Work PB3575), which a
+    /// message word such as "COBOL" alone or "COBOL-85" is not.</summary>
+    private static readonly System.Text.RegularExpressions.Regex DiagnosticCode = new(@"^COBOL\d{4}$");
+
     /// <summary>Whether a one-item program carrying <paramref name="decls"/> compiles, and the diagnostic CODES it
     /// draws (never their text or their line numbers, which legitimately differ between the two shapes).</summary>
     private static string CompileVerdict(string tag, string decls)
@@ -219,8 +223,8 @@ public sealed class ConditionNameSubjectClassDriftTests
             var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             var codes = r.Errors
                 .SelectMany(e => e.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-                .Where(w => w.StartsWith("COBOLNET", StringComparison.Ordinal))
                 .Select(w => w.TrimEnd(':'))
+                .Where(w => DiagnosticCode.IsMatch(w))
                 .Distinct().Order(StringComparer.Ordinal);
             return $"{tag[..^2]} success={r.Success} codes=[{string.Join(",", codes)}]";
         }

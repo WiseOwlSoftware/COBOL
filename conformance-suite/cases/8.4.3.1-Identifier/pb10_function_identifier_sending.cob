@@ -27,7 +27,7 @@
       *> SCOPED concession that would be unnecessary if it were generally sending; GR7 has each match "tallied
       *> (format 1) or replaced by literal-3 (format 2)"; and GR20 makes Format 4 execute AS a Format 2 over the
       *> same identifier-1. So Formats 2/3/4 MODIFY it and 8.4.3.2.3 SR1 bars a function-identifier there.
-      *> The grammar admits and the BINDER screens per format (COBOLNET1632); the three rejections are pinned by
+      *> The grammar admits and the BINDER screens per format (COBOL1632); the three rejections are pinned by
       *> pb10-inspect-fn-replacing / -converting / -tallying-replacing.
       *> ⚠ THE THIRD OF THOSE IS THE ONE THAT MATTERS: a screen keyed on "TALLYING present => Format 1" would
       *> wrongly ACCEPT Format 3. The screen keys on REPLACING-or-CONVERTING present, which is also exactly the

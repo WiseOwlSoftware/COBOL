@@ -13,13 +13,13 @@
       *> designate one ... A REPOSITORY class specifier whose
       *> externalized name is a .NET type (CLASS SB AS
       *> "System.Text.StringBuilder") does not bind to that type:
-      *> INVOKE SB "NEW" ... is the compile-time error COBOLNET0823".
+      *> INVOKE SB "NEW" ... is the compile-time error COBOL0823".
       *> This fixture is that sentence as a program: the documented
       *> behavior is a compile-time rejection, so the witness is a
       *> negative. Its twin l1-invoke-dotnet-member-typed pins the
       *> second documented arm (a .NET member name on a typed
-      *> receiver, COBOLNET0825).
-      *> Expected: COBOLNET0823.
+      *> receiver, COBOL0825).
+      *> Expected: COBOL0823.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IV101A.
        ENVIRONMENT DIVISION.

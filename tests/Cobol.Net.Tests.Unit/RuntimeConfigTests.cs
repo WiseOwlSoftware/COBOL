@@ -38,7 +38,7 @@ public sealed class RuntimeConfigTests
 
     /// <summary>An identifier-shaped environment name: COBOL_… or COBOLNET_… in a string literal. Also matches the
     /// switch family's bare prefix <c>"COBOL_"</c>.</summary>
-    private static readonly Regex NameLiteral = new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"", RegexOptions.Compiled);
+    private static readonly Regex NameLiteral = new("\"(COBOL_[A-Z0-9_]*)\"", RegexOptions.Compiled);
 
     private static readonly Regex EnvRead = new(@"Environment\.GetEnvironmentVariable\(", RegexOptions.Compiled);
 

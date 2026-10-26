@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// The edition gate on the §12.3.7 SPECIAL-NAMES <c>LOCALE</c> clause (fix-queue PB25).
 ///
 /// <para>The clause is an <b>§A.4.9 item 10</b> optional-locale element, so at 2002+ it must PARSE and be
-/// DIAGNOSED as documented non-support (COBOLNET1518) rather than fail as a parse error — non-support is
+/// DIAGNOSED as documented non-support (COBOL1518) rather than fail as a parse error — non-support is
 /// conformant per §4.2.7 / §A.4.1 only when it is diagnosed.</para>
 ///
 /// <para>⛔ WHY THE GATE IS LOAD-BEARING, AND WHY IT IS TESTED. <b>LOCALE is reserved only from 2002</b>
@@ -41,7 +41,7 @@ public sealed class SpecialNamesLocaleEditionTests
     }
 
     /// <summary>At 2002+ the clause PARSES (and since kb/Work PB64 T1 the binder DECLARES the locale-name; before, it
-    /// drew the cited COBOLNET1518). A parse error here would mean no diagnostic ever got the chance to speak.</summary>
+    /// drew the cited COBOL1518). A parse error here would mean no diagnostic ever got the chance to speak.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -104,7 +104,7 @@ public sealed class SpecialNamesLocaleEditionTests
     /// ⛔ THE CLAUSE'S OWN KEYWORD IS NOT A USER-DEFINED WORD (fix-queue PB27). <c>LOCALE</c> is not a lexer
     /// token, so §12.3.7's <c>localeClause</c> matches the clause KEYWORD through <c>cobolWord</c> — and the §8.9
     /// funnel was reading it as a user-defined word, printing <i>"'LOCALE' is a reserved word … and cannot be
-    /// used as a user-defined word"</i> beside the correct COBOLNET1518 about a program that uses it as no such
+    /// used as a user-defined word"</i> beside the correct COBOL1518 about a program that uses it as no such
     /// thing. A true diagnostic and a false one, together.
     /// <para>⚠ WHY A NEGATIVE FIXTURE COULD NOT CATCH THIS, and why the assertion below is a NOT: a negative
     /// fixture's <c>.err</c> names ONE expected code, so <c>pb25-special-names-locale-a49</c> stayed green
@@ -114,7 +114,7 @@ public sealed class SpecialNamesLocaleEditionTests
     [Fact]
     public void TheLocaleKeyword_IsNotFunneledAsAUserDefinedWord()
     {
-        // Since kb/Work PB64 T1 the clause DECLARES the locale-name (no COBOLNET1518 any more): the program compiles
+        // Since kb/Work PB64 T1 the clause DECLARES the locale-name (no COBOL1518 any more): the program compiles
         // clean — and still nothing is said about the clause's own keyword.
         var errors = CompileErrors("           LOCALE FR IS \"fr_FR\".\n");
         Assert.Empty(errors);
@@ -129,7 +129,7 @@ public sealed class SpecialNamesLocaleEditionTests
     public void ButLocaleNameItself_IsStillFunneled()
     {
         var errors = CompileErrors("           LOCALE LOCALE IS \"fr_FR\".\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET0901") && e.Contains("LOCALE"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));   // the clause itself is implemented (PB64 T1)
+        Assert.Contains(errors, e => e.Contains("COBOL0901") && e.Contains("LOCALE"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));   // the clause itself is implemented (PB64 T1)
     }
 }

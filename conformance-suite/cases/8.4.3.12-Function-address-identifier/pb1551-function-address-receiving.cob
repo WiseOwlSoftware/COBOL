@@ -11,7 +11,7 @@
       *> which ISO 14.9.4.3 SR5 makes a receiving operand because it is
       *> no address-identifier (cite.py: OK 14.9.4.3 5)); 8.4.3.1.2
       *> Format 9 has only the data and program arms. Refused by SR3
-      *> (COBOLNET3979) - it was a parse error (COBOL0001).
+      *> (COBOL3979) - it was a parse error (COBOL0001).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551FA.
        DATA DIVISION.

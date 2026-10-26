@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3338 (and PB1096) - ISO 12.4.6.3.3 SR4: "At least one file or data-item shall be specified." The
 *> general format repeats an all-optional pair, so `APPLY COMMIT ON.` is a spelling of the format and parses; SR4
-*> is the syntax rule that refuses it, by name (COBOLNET4709), where the grammar used to fail with an anonymous
+*> is the syntax rule that refuses it, by name (COBOL4709), where the grammar used to fail with an anonymous
 *> parse error. Fails if the clause is accepted or refused by a generic syntax error.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338NO.

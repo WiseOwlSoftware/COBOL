@@ -12,12 +12,12 @@
       *> but a space (13.18.53.2's ellipsis repeats the brace pair), so
       *> `SOURCES ARE WS-A + WS-B WS-B` has two readings - one operand or two -
       *> and the standard removes the choice by requiring `(WS-A + WS-B) (WS-B)`.
-      *> The rule is ENFORCED (COBOLNET2142) rather than inferred from the
+      *> The rule is ENFORCED (COBOL2142) rather than inferred from the
       *> grammar's greedy shape, which would silently pick one reading.
       *> 2002 and above only: SR7 bites on a MULTI-operand clause, which SR6
       *> confines to a repeating entry, and 13.15.4 GR3's repetition vehicles
       *> (multiple COLUMN / LINE, report-group OCCURS) are 2002 introductions -
-      *> at 85 the clause is refused for that reason instead (COBOLNET0900).
+      *> at 85 the clause is refused for that reason instead (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB852N1.
        ENVIRONMENT DIVISION.

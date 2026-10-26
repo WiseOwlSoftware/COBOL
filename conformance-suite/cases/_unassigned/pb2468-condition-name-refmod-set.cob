@@ -9,7 +9,7 @@
       *> names condition-name-1, whose reference (8.4.4.2; 8.4.2.3.2
       *> Format 2) has no reference modifier, and 8.4.3.3.3 SR5 allows
       *> one only on an identifier referencing a data item (cite.py:
-      *> OK for each). COBOLNET3317 at every edition.
+      *> OK for each). COBOL3317 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG2468T.
        DATA DIVISION.

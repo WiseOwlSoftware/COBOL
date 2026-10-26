@@ -12,7 +12,7 @@
       *> members every .NET object carries (ToString, GetHashCode,
       *> Equals, ...) "are not methods of a COBOL object: on a typed
       *> receiver INVOKE T "ToString" is the compile-time error
-      *> COBOLNET0825 (§14.9.23.3 SR4 b))".
+      *> COBOL0825 (§14.9.23.3 SR4 b))".
       *> SR4 b) (cite.py --check 14.9.23.3 OK, SR 4): "If identifier-1
       *> references an object reference described with an
       *> object-class-name without the FACTORY phrase, literal-1 shall
@@ -21,7 +21,7 @@
       *> inherits) declares no method ToString, so the name is outside
       *> the instance interface and the INVOKE is REJECTED — the .NET
       *> System.Object.ToString every runtime object has is NOT reached.
-      *> Expected: COBOLNET0825.
+      *> Expected: COBOL0825.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IV101B.
        ENVIRONMENT DIVISION.

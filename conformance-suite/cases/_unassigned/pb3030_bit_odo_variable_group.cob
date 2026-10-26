@@ -23,7 +23,7 @@
       *>   its dynamic-length items and its dynamic-capacity tables at
       *>   their current capacity; rule 9 rounds a part of a character
       *>   up. 15.14.4 rule 6 is BYTE-LENGTH's twin.
-      *> This group was the named stage COBOLNET1756 and aborted the
+      *> This group was the named stage COBOL1756 and aborted the
       *>   run unit before (a table of runtime-length elements beside
       *>   a bit OCCURS DEPENDING table); the cell-backed and record
       *>   forms were never composed.

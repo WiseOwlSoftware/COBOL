@@ -8,7 +8,7 @@
       *> national, may be compared" - cannot be written below COBOL-2002, because class national itself is
       *> a 2002 introduction. So the positive golden 2002/pb649_national_figurative_collation has its
       *> edition witness here: at COBOL-85 the national literal N"AB" inside `ALL N"AB"` draws the
-      *> boolean/national-data introduction gate (COBOLNET0900, construct national-data-2002).
+      *> boolean/national-data introduction gate (COBOL0900, construct national-data-2002).
       *>
       *> ⚠ STATED PLAINLY: this case is the EDITION gate's witness and not the collation rule's. The
       *> collation rule's own witness is the positive golden's AN-LT line, which must still take the

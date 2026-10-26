@@ -9,7 +9,7 @@
       *> expression is a numeric sender whose value carries no compile-time
       *> integer guarantee: 14.9.25.3 Table 16, Numeric Noninteger ->
       *> "National, National-edited" is "No". The BY CONTENT expression
-      *> N3 * 2 into the PIC N(4) method formal is COBOLNET0828.
+      *> N3 * 2 into the PIC N(4) method formal is COBOL0828.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1946NK INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

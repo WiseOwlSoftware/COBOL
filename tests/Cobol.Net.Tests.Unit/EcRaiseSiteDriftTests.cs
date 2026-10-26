@@ -106,7 +106,7 @@ public sealed class EcRaiseSiteDriftTests
         Assert.Equal(TheRuleSaying(rules, "The LAST phrase may be specified", site.Clause), site.LastRule);
     }
 
-    /// <summary>The EC-USER requirement COBOLNET0717 prints is the SECOND sentence of the level-3 rule, not a
+    /// <summary>The EC-USER requirement COBOL0717 prints is the SECOND sentence of the level-3 rule, not a
     /// rule of its own — which is why one ordinal serves both messages at the phrase-bearing statements.</summary>
     [Theory]
     [MemberData(nameof(Sites))]

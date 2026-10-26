@@ -49,7 +49,7 @@ See [[kb/Compiler/Pipeline]].
 
 ## FlagConformancePass — sibling migration-flagging
 Runs right after — an orthogonal axis: directive-state-driven (`>>FLAG-02` §7.3.14 / `>>FLAG-14` §7.3.15), always a
-**Warning** (`COBOLNET1620`/`1621`), fires regardless of `--std`. A parse-tree visitor (flags are line-sensitive); a
+**Warning** (`COBOL1620`/`1621`), fires regardless of `--std`. A parse-tree visitor (flags are line-sensitive); a
 no-op when no FLAG directive is present.
 
 ## The edition framework

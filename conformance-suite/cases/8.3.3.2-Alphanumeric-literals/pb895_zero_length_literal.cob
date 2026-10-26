@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB895 - the zero-length literal at its introducing edition, COBOL-2014 (VCR row 7.30;
-      *> constructs.json zero-length-literal-2014; below 2014 it is COBOLNET0900, negative
+      *> constructs.json zero-length-literal-2014; below 2014 it is COBOL0900, negative
       *> pb895-zero-length-literal-below-2014).
       *>   cite.py --check 8.3.3.1 "If the opening and closing delimiters are contiguous, the length of the
       *>     literal is zero, and it is known as a zero-length literal" -> OK §8.3.3.1

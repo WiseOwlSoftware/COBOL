@@ -168,7 +168,7 @@ internal sealed class BinderDriver
         // The group's REPOSITORY resolution tables (§12.3.8.4 GR10 / GR11), built once every DATA division is
         // bound and BEFORE the first body: a CLASS definition's REPOSITORY reaches its methods (§12.3.4 GR1 — "apply
         // to each directly or indirectly contained source unit"), and until kb/Work PB1100 the class bodies bound
-        // first, against no table, so every user-function reference in a method drew COBOLNET1505.
+        // first, against no table, so every user-function reference in a method drew COBOL1505.
         session.Repository = BuildGroupRepository(units, classes, session);
         // The unexpanded parameterized definitions' forests are resolved with the rest (kb/Work PB2937): their method
         // bodies bind below, and a restricted pointer in them is typed by its prototype's signature exactly as anywhere.
@@ -231,10 +231,10 @@ internal sealed class BinderDriver
         // The declined-optional-element pass (ISO Annex A.4.1) — a THIRD sibling on the same footing: it answers
         // "does this implementation claim support for this optional module", which is orthogonal to both the
         // edition axis (VersionConformancePass) and the directive axis (FlagConformancePass). It refuses the
-        // DATA DIVISION surfaces of the declined A.4.14 VALIDATE facility by name (COBOLNET1708); the declined
+        // DATA DIVISION surfaces of the declined A.4.14 VALIDATE facility by name (COBOL1708); the declined
         // STATEMENTS keep their own bind-time
         // recognize-and-warn arm, and the declined modules' EXCEPTION-NAMES are refused in the one written-name
-        // funnel (EcNameResolution → COBOLNET1710). A no-op below COBOL-2002.
+        // funnel (EcNameResolution → COBOL1710). A no-op below COBOL-2002.
         global::CobolNet.Validation.DeclinedFacilityPass.Run(ctx, edition);
 
         // The closed-general-format pass (ISO §4.2.2) — a FOURTH sibling on the same footing, and the one that
@@ -242,7 +242,7 @@ internal sealed class BinderDriver
         // six sites spanning eight closed general formats and swallowed any word run the format did not define,
         // at every edition and every strictness; it now spells the error production at every site (`unrecognizedClause`,
         // or `unrecognizedDataClause` in the data division, kb/Work PB3390) and this pass
-        // refuses each instance by name, naming the format and its § from ClosedFormats.ByContext (COBOLNET1941
+        // refuses each instance by name, naming the format and its § from ClosedFormats.ByContext (COBOL1941
         // for §13.16.2, 1970 for the clause-list formats, 1971 for the paragraph-list ones). Runs at EVERY
         // edition — unlike the declined pass there is no edition below which the sink cannot fire. kb/Work PB829.
         global::CobolNet.Validation.ClosedFormatPass.Run(ctx, edition);
@@ -301,9 +301,9 @@ internal sealed class BinderDriver
     }
 
     /// <summary>The ≥2023 external-file conformance check (ISO §14.8.4.2; §12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
-    /// Two conjuncts of §14.8.4.2. <b>Conjunct 1 — externality (COBOLNET1624, per connector, ANY describer count):</b>
+    /// Two conjuncts of §14.8.4.2. <b>Conjunct 1 — externality (COBOL1624, per connector, ANY describer count):</b>
     /// a specified FILE STATUS / RELATIVE KEY / LINAGE data item shall itself be an external data item. <b>Conjunct 2 —
-    /// consistency (VCR 18/31, COBOLNET1573/1575, needs ≥2 in-group describers):</b> "if any specifies it, all shall",
+    /// consistency (VCR 18/31, COBOL1573/1575, needs ≥2 in-group describers):</b> "if any specifies it, all shall",
     /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
     /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
     /// §13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
@@ -334,7 +334,7 @@ internal sealed class BinderDriver
         // (the §14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
         // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
         EditionDiagnostic Externality(string ext, string clause, string name) =>
-            new("COBOLNET1624", severity, "external-file-item-not-external",
+            new("COBOL1624", severity, "external-file-item-not-external",
                 $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
                 + "(ISO §14.8.4.2; Annex E.2 item 9)",
                 $"external file '{ext}'", "ISO §14.8.4.2 / Annex E.2 item 9");
@@ -367,7 +367,7 @@ internal sealed class BinderDriver
             {
                 var ids = conns.Select(f => ExternalItemIdentity(f.FileStatusItem)).ToList();
                 if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                    edition.Report(new EditionDiagnostic("COBOLNET1573", severity, "external-file-status-consistency",
+                    edition.Report(new EditionDiagnostic("COBOL1573", severity, "external-file-status-consistency",
                         $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
                         + "specify FILE STATUS naming the same corresponding external data item "
                         + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
@@ -381,7 +381,7 @@ internal sealed class BinderDriver
             {
                 var ids = conns.Select(f => ExternalItemIdentity(f.RelativeKeyItem)).ToList();
                 if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                    edition.Report(new EditionDiagnostic("COBOLNET1575", severity, "external-relative-key-consistency",
+                    edition.Report(new EditionDiagnostic("COBOL1575", severity, "external-relative-key-consistency",
                         $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                         + "shall specify RELATIVE KEY naming the same corresponding external data item "
                         + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",
@@ -555,12 +555,12 @@ internal sealed class BinderDriver
 
         // program-id-recursive-2002: the pass owns the edition gate (Exec Step E).
         if (initial && recursive)
-            edition.Error("COBOLNET0886",
+            edition.Error("COBOL0886",
                 $"program '{name}': INITIAL and RECURSIVE are mutually exclusive — §11.10.2 Format 1 prints them as "
                 + "the alternatives of ONE brace (ISO §11.10.2); the containment conflicts of the two attributes are "
                 + "§11.10.3 SR5–6, checked above against the container chain");
         if (common && parent is null)
-            edition.Error("COBOLNET0887",
+            edition.Error("COBOL0887",
                 $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
 
         // §8.6.6 (:8821) "Functions and methods are always recursive" / §9.4 (:12529) "a user defined
@@ -650,7 +650,7 @@ internal sealed class BinderDriver
         // containee's GLOBAL bridges alias the container's members (§13.18.27 GR2): an INSTANCE member is reached
         // through the `__outer` chain, a STATIC one through the container's class name, which C# requires
         // (CS0176: `instance.staticField` is not a C# expression). BoundUnit.AnchorOf chooses per member, so the
-        // composition is one rule in one place (kb/Work PB1133; the staged COBOLNET0899 refusal is gone).
+        // composition is one rule in one place (kb/Work PB1133; the staged COBOL0899 refusal is gone).
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,
@@ -911,7 +911,7 @@ internal sealed class BinderDriver
     /// statements bind on its CLASS unit's binder under an entered method scope (<c>BinderContext.SourceElement</c>).
     /// <para>A FUNCTION prototype's procedure division is BOUND by this compiler — the §10.1 general format
     /// admits one and the parser accepts its paragraphs, measured: a prototype carrying <c>EXIT PROGRAM</c>
-    /// reaches <c>BindExit</c> (and is refused there by §10.6.2 SR4 f) — COBOLNET2272 — before any placement
+    /// reaches <c>BindExit</c> (and is refused there by §10.6.2 SR4 f) — COBOL2272 — before any placement
     /// rule matters). A PROGRAM prototype classifies the same way since kb/Work PB894 made §11.10.2 Format 2
     /// writable and <c>MakeUnit</c> read <c>IsPrototype</c> off the shared <c>prototypePhrase</c>.</para></summary>
     private static SourceElementKind SourceElementKindOf(BoundUnit unit) => unit.IsFunction
@@ -924,7 +924,7 @@ internal sealed class BinderDriver
     /// within that common program's own subtree unless it is RECURSIVE (§8.4.6.3 2); kb/Work PB1460), the exception
     /// the run-time resolver applies through the same <see cref="CobolNet.Runtime.ProgramNameScope"/>.
     /// <para>The key is the child's program-name, and that IS its externalized name: §11.10.3 SR2 ("Literal-1 shall not
-    /// be specified in a program that is contained within another program", COBOLNET1795) means no contained program
+    /// be specified in a program that is contained within another program", COBOL1795) means no contained program
     /// has an AS literal, so the run-time <c>ProgramTable</c>'s match on the externalized name finds the unit this
     /// table was keyed on (kb/Work PB1756 — no spelling pair exists that could disagree).</para>
     /// <para>The signature carries the RETURNING item as well as the formals (kb/Work PB204): §14.9.4.3 SR25
@@ -953,7 +953,7 @@ internal sealed class BinderDriver
     /// <summary>⛔ THE ONE UNIQUENESS CHECK OVER A COMPILATION GROUP'S DEFINITION NAMES (kb/Work PB660), in
     /// the two scopes the standard gives them.
     /// <list type="number">
-    /// <item><b>The EXTERNALIZED scope — the whole group</b> (§8.3.2.2, COBOLNET2213). Its list item 1
+    /// <item><b>The EXTERNALIZED scope — the whole group</b> (§8.3.2.2, COBOL2213). Its list item 1
     /// externalizes "program-names of OUTERMOST programs … and user-function-names", and the clause then states
     /// the rule twice over that one population: a CROSS-KIND pair is refused by <i>"all instances of a given
     /// name that is externalized to the operating environment shall identify the same kind of entity or
@@ -961,7 +961,7 @@ internal sealed class BinderDriver
     /// externalized name, they refer to the same instance"</i> — two distinct definitions cannot be ONE
     /// instance. Programs and functions are therefore ONE namespace here, not two, which is why this replaced
     /// the function-only duplicate report that used to live in <see cref="CheckFunctionUnits"/>.</item>
-    /// <item><b>The CONTAINED scope — one outermost program</b> (§8.4.6.3, COBOLNET2214): <i>"The names
+    /// <item><b>The CONTAINED scope — one outermost program</b> (§8.4.6.3, COBOL2214): <i>"The names
     /// assigned to programs that are contained directly or indirectly within the same outermost program shall
     /// be unique within that outermost program."</i> A containee's name is not externalized at all, so its
     /// scope is its outermost program and two different outermost programs may each contain an <c>X</c>.</item>
@@ -994,7 +994,7 @@ internal sealed class BinderDriver
             if (externalized.TryGetValue(name, out var first))
             {
                 // §8.4.6.4 states its OWN compilation-group uniqueness for object-class-names and
-                // interface-names, and the OO class table enforces it on the declared WORD (COBOLNET0820,
+                // interface-names, and the OO class table enforces it on the declared WORD (COBOL0820,
                 // OoDefinitionNameNotUnique). A pair already reported THERE is skipped here rather than doubled — but only
                 // that pair: two class definitions whose words DIFFER and whose AS literals coincide are
                 // §8.3.2.2's business alone, and nothing else in the compiler looks at them.
@@ -1133,7 +1133,7 @@ internal sealed class BinderDriver
             var body = proto.Ctx.identificationDivision()?.identificationBody();
             using var _ = edition.At((ParserRuleContext?)(body?.programIdParagraph()?.programName()
                 ?? body?.functionIdParagraph()?.programName()) ?? proto.Ctx);
-            edition.Error("COBOLNET1513",
+            edition.Error("COBOL1513",
                 $"{kind} prototype '{proto.Name}' and the {kind} definition '{definition.Name}' share the "
                 + $"externalized name \"{proto.ExternalizedName}\" but not a signature — the USING formals (count, "
                 + "BY REFERENCE / BY VALUE, OPTIONAL, description — a group's subordinate entries included) or the "
@@ -1220,9 +1220,9 @@ internal sealed class BinderDriver
     /// specifier writes <c>AS literal-5</c>, else the name itself (NOTE 2) — over the definitions specified BEFORE this
     /// element and then the prototypes; when both miss, the function the WORD names (§8.4.6.7). No hit leaves the name
     /// unmapped — GR11 c)'s external repository, which this implementation holds no compile-time signature for — and
-    /// the reference draws COBOLNET1505 at its use; a definition that FOLLOWS the element and has no prototype is
+    /// the reference draws COBOL1505 at its use; a definition that FOLLOWS the element and has no prototype is
     /// such a name. A hit that is NOT the function the word names, while a different function does carry the word,
-    /// warns (COBOLNET2969): the externalized name wins, as GnuCOBOL's does.
+    /// warns (COBOL2969): the externalized name wins, as GnuCOBOL's does.
     /// A specifier naming the function definition it is written in is IGNORED (§12.3.8.3 SR11; the definition is
     /// <see cref="ContainingDefinitions"/>' function member) and the name resolves to its own signature — registered LAST,
     /// as <see cref="ProgramPrototypesOf"/> registers its self entry. <paramref name="data"/> is a program unit's
@@ -1279,7 +1279,7 @@ internal sealed class BinderDriver
     /// group (<see cref="GroupRepository"/> is the search; the table this method used to build is its
     /// <see cref="GroupRepository.FunctionsAt"/>). The §14.2 procedure-division-header rule "The RETURNING phrase
     /// shall be specified in a function definition" (:23666) is checked HERE, once per unit — even an uncalled
-    /// function without RETURNING is ill-formed — and so is the same-word duplicate (COBOLNET1508).</summary>
+    /// function without RETURNING is ill-formed — and so is the same-word duplicate (COBOL1508).</summary>
     private static void CheckFunctionUnits(IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         // Partition the group's FUNCTION-ID units by name into DEFINITIONS (a real body) and PROTOTYPES
@@ -1292,7 +1292,7 @@ internal sealed class BinderDriver
         {
             if (!u.IsFunction) continue;
             if (u.Data.LinkageReturning is null)
-                edition.Error("COBOLNET1507",
+                edition.Error("COBOL1507",
                     $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
                     + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
             // The duplicate report moved (kb/Work PB660). It used to key on the WORD and cite §8.4.6.6,
@@ -1300,7 +1300,7 @@ internal sealed class BinderDriver
             // clause answering a different question. Two function DEFINITIONS collide because they
             // externalize one name (§8.3.2.2), the same sentence two outermost PROGRAM definitions
             // collide under, so ONE check reports both: CheckDefinitionNameUniqueness, run before this.
-            // COBOLNET1508 survives for the clash §8.4.6.7 does own — a REPOSITORY `FUNCTION word` entry
+            // COBOL1508 survives for the clash §8.4.6.7 does own — a REPOSITORY `FUNCTION word` entry
             // names the user-function-NAME, so two definitions sharing a word are ambiguous even when
             // their AS literals differ — and for PROTOTYPE units, which the externalized check excludes
             // (§10.6.2 SR3 pairs a function prototype with a same-name definition on purpose).
@@ -1308,7 +1308,7 @@ internal sealed class BinderDriver
             if (bucket.TryGetValue(u.Name, out var firstSameWord))
             {
                 if (u.IsPrototype || !CobolNet.Runtime.ExternalizedNames.Same(u.ExternalizedName, firstSameWord.ExternalizedName))
-                    edition.Error("COBOLNET1508",
+                    edition.Error("COBOL1508",
                         $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function "
                         + $"{(u.IsPrototype ? "prototypes" : "definitions")} share one user-function-name, which "
                         + "a REPOSITORY paragraph entry can no longer name unambiguously (ISO §8.4.6.7: \"A "

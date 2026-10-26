@@ -862,7 +862,7 @@ check("PB2974 (R1-1): the drain plans the report's finisher over the branch's no
       [g.notes for g in bu_rd["groups"]], [["PB601", "PB602", "PB605"]])
 
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
-gjson = [as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
+gjson = [as_group_json(g, "77", notes, "COBOL0001-COBOL0003") for g in p["groups"]]
 CFG77 = {"wave": "77", "base": "abc", "scratch": str(TMP), "stop_file": str(coord.fleet_stop(TMP, "w77"))}
 FILES = lambda g: sorted(mds.group_claim(g, lambda ids: Claim()).files)  # noqa: E731  (a fixture note declares no files)
 try:
@@ -1121,7 +1121,7 @@ if fc:
     check("the dependency is in the rendered body",
           ("PB903",) in CG and "DEPENDENCY SUCCESSOR" in body_of(CG[("PB903",)], cnotes), True)
     check("a fix-lane body never says it", any("DEPENDENCY SUCCESSOR" in body_of(g, notes) for g in p["groups"]), False)
-    cg = [as_group_json(g, "78", cnotes, "COBOLNET0001-COBOLNET0003") for g in cp["groups"]]
+    cg = [as_group_json(g, "78", cnotes, "COBOL0001-COBOL0003") for g in cp["groups"]]
     cfile = TMP / "campaign-groups.json"
     cfile.write_text(JSON.dumps({"wave": "78", "scratch": "X", "base": "abc", "groups": cg}), encoding="utf-8", newline="\n")
     check("campaign groups pass check_practices' successor rule", check_practices.claims_meet_without_successor(cfile), [])
@@ -1302,14 +1302,14 @@ check("a campaign lead naming no note file binds nothing", group_requirements([r
 check("`always` (the campaign a --cluster wave runs) binds every group, before the notes' own, once",
       group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
       [{"PB950": REQS, "PB951": ["Second campaign's own rule."]}, {"PB950": REQS}])
-rj = as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003", bound[0])
+rj = as_group_json(rg, "77", notes, "COBOL0001-COBOL0003", bound[0])
 check("a requirement reaches the group's spec body, one OWNER REQUIREMENT sentence each, per campaign",
       (all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS),
        "OWNER REQUIREMENT (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, 3))
 check("the group entry carries its requirements for the practices check and the reviewer", rj["requirements"], bound[0])
 check("a plan with no campaign requirements says none",
-      ("OWNER REQUIREMENT" in as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"],
-       as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["requirements"]), (False, {}))
+      ("OWNER REQUIREMENT" in as_group_json(rg, "77", notes, "COBOL0001-COBOL0003")["body"],
+       as_group_json(rg, "77", notes, "COBOL0001-COBOL0003")["requirements"]), (False, {}))
 rspec = TMP / "msg-w77-req.txt"
 rspec.write_text(mds.render(CFG77, rj, FILES(rj)), encoding="utf-8", newline="\n")
 rfile = TMP / "req-groups.json"
@@ -1323,7 +1323,7 @@ check("a spec rendered without them is refused, naming each requirement",
       [(nospec.name, r) for r in REQS + ["Second campaign's own rule."]])
 check("a groups file that declares none refuses nothing", check_practices.specs_missing_requirements(gfile, [nospec]), [])
 # a spec named for another group is checked against THAT group's requirements only (make_dispatch_specs.py's name)
-other_j = dict(as_group_json(rg_other, "77", notes, "COBOLNET0004-COBOLNET0006"), letter="Z")
+other_j = dict(as_group_json(rg_other, "77", notes, "COBOL0004-COBOL0006"), letter="Z")
 rj_named = dict(rj, letter="Y")
 mfile = TMP / "req-groups-two.json"
 mfile.write_text(JSON.dumps(dict(CFG77, groups=[rj_named, other_j])), encoding="utf-8", newline="\n")

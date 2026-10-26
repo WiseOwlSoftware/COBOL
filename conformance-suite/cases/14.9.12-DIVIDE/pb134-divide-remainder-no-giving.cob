@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB134 second pass - the remaining non-format shapes (COBOLNET1689): no ADD/SUBTRACT
+      *> kb/Work PB134 second pass - the remaining non-format shapes (COBOL1689): no ADD/SUBTRACT
       *> format prints operands with both phrases absent; DIVIDE's REMAINDER formats print GIVING with
       *> exactly ONE quotient (14.9.12.2 Formats 4-5 / SR6). Each was a RUNTIME loud before.
        IDENTIFICATION DIVISION.

@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.18.37.3 SR6 a): "If the current report group is a report heading,
       *> integer-1 shall be greater than the minimum last line number of the report group and less than
       *> the FIRST DETAIL integer." FIRST DETAIL 5, integer-1 5.
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NRA.
        ENVIRONMENT DIVISION.

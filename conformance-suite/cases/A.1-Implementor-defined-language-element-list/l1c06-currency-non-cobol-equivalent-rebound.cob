@@ -19,7 +19,7 @@
       *> Under the documented equivalence (docs/CONFORMANCE.md
       *>   DOC-A.1-43) 'é' ≡ 'É', so
       *> binding them to the different strings "EUR" and "USD" violates
-      *>   SR21 -> COBOLNET0891.
+      *>   SR21 -> COBOL0891.
       *> Each clause alone is legal (companion:
       *>   2002/l1c06_currency_non_cobol_symbols).
       *> Edition floor 2002: COBOL-85 has a single CURRENCY SIGN clause

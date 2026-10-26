@@ -10,7 +10,7 @@
       *> capability, a COBOL-2002 introduction
       *> (start-reverse-operators-2002, kb/Work PB370). COBOL-85's START
       *> searches forward only, so at --std 85 each reverse spelling
-      *> draws COBOLNET0900. The constructs.json row's own source writes
+      *> draws COBOL0900. The constructs.json row's own source writes
       *> LESS THAN; this case writes the two spellings whose fold is not
       *> visible in their first word: NOT GREATER (a NOT that turns a
       *> forward word into a reverse operator) and the symbol <=. The

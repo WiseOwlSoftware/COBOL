@@ -9,7 +9,7 @@
       *> GR12 a)/b)) are reachable only through a '61' sharing refusal, and the
       *> SHARING clause that produces it (12.4.5.15; Table 19) is an ISO/IEC
       *> 1989:2002 introduction. At COBOL-85 this source does not describe a
-      *> program, so the compiler refuses the clause with COBOLNET0900 rather
+      *> program, so the compiler refuses the clause with COBOL0900 rather
       *> than merging over a sharing mode the edition does not have.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB993N85.

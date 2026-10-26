@@ -8,7 +8,7 @@
       *> 14.2.3 GR2 sends a function's formal parameters to 14.8.2, and 14.8.2.3.3 rule 2 lists "a function" among the
       *> activations whose BY CONTENT formal takes the MOVE rules, so a non-digit ALL literal into the PIC ZZ9 formal of a
       *> function conforms as MOVE ALL "X" TO <a numeric-edited item> does - valid through 2014, removed at 2023
-      *> (14.9.25.3 SR5; Annex E.2 item 1 bullet 1) - and is COBOLNET0902 at 2023.
+      *> (14.9.25.3 SR5; Annex E.2 item 1 bullet 1) - and is COBOL0902 at 2023.
       *>   cite.py --check 14.2.3 "The conformance requirements for formal parameters and returning items are specified
       *>     in 14.8.2, Parameters and 14.8.3, Returning items." -> OK 14.2.3 2)
        IDENTIFICATION DIVISION.

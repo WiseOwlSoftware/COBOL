@@ -15,7 +15,7 @@
       *> same shape as conformance:cases/13.18.16-CONTROL/rw_suppress with the SUPPRESS
       *> moved out of its declarative into MAIN-PARA and no
       *> DECLARATIVES at all), so the only reason to reject it is SR1:
-      *> expect COBOLNET1581 (report-suppress-context).
+      *> expect COBOL1581 (report-suppress-context).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C31C.
        ENVIRONMENT DIVISION.

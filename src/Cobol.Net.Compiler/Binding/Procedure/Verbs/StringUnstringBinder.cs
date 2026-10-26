@@ -177,7 +177,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // data item referenced by identifier-1 is the sending operand") — whereas STRING's identifier-1/literal-1 and
         // both verbs' delimiter operands DO specify a literal, so StrUnstrSender, which serves all four positions,
         // substitutes the constant's literal there and is right to. This is the one position it must refuse: the
-        // receiving side already does (COBOLNET1548), and without this the two arms disagree. A symbolic-character is a
+        // receiving side already does (COBOL1548), and without this the two arms disagree. A symbolic-character is a
         // literal by the same ONE alias resolution (a figurative constant, §12.3.7.4 GR11 a); kb/Work PB1544).
         if (un.strUnstrSender().dataReference() is { } aliasRef && host.Expr.LiteralAliasOf(aliasRef) is { } alias)
             return Reject(alias.Constant is not null
@@ -507,7 +507,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <summary>The ONE report site for SR1's FIRST sentence (ISO §14.9.43.3 — the usage / literal-kind rule) — so
     /// the three identifier positions and the two literal positions cannot drift onto different diagnostics for
     /// one sentence. The SECOND sentence (the all-national rule) is the rule shape UNSTRING SR3 and INSPECT SR4
-    /// share, and reports through <see cref="AllOrNothingClass"/> as COBOLNET2306 (kb/Work PB980).</summary>
+    /// share, and reports through <see cref="AllOrNothingClass"/> as COBOL2306 (kb/Work PB980).</summary>
     private BoundStatement Sr1Reject(string where, string offence)
     {
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §14.9.43.3 SR1)");
@@ -592,7 +592,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         _ => ItemCategory.IsAlphanumericOrNational(place) ? null : ItemCategory.CategoryName(place),
     };
 
-    /// <summary>A STRING / UNSTRING syntax-rule violation: reported at BIND (COBOLNET1651 — the compile fails) and
+    /// <summary>A STRING / UNSTRING syntax-rule violation: reported at BIND (COBOL1651 — the compile fails) and
     /// staged loud as the backstop the caller returns (kb/Work PB88: the stage alone let illegal source compile
     /// clean and die at run time). ONE helper, so no rule site can forget the diagnostic half again.</summary>
     private BoundStatement Reject(string message)

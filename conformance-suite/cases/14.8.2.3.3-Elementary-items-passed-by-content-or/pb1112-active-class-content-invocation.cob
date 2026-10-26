@@ -15,7 +15,7 @@
       *> program invokes M through X (C1 ONLY) with the argument O
       *> (described C1, no ONLY): alternative 1)'s invocation fails, and
       *> 14.9.39.3 SR12 a)1. refuses O into a C1 ONLY receiver --
-      *> COBOLNET0828. (Before the fix only SR14 into the formal was asked.)
+      *> COBOL0828. (Before the fix only SR14 into the formal was asked.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB12C.
        ENVIRONMENT DIVISION.

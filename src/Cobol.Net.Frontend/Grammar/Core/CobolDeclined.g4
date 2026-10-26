@@ -14,7 +14,7 @@
 // DESTINATION; `05 A PIC 9(4) INVALID WHEN A = 0.` → `COBOL0307: unexpected 'INVALID'`. A user learned their
 // syntax was bad, not that this implementation does not provide the facility.
 // ⚠ THE NEIGHBOURING HAZARD IS A DIFFERENT POSITION, and these rules must not disturb it: `01 DESTINATION PIC
-// X.` — the word in a NAME slot — draws COBOLNET0901 "'DESTINATION' is a reserved word", which is CORRECT
+// X.` — the word in a NAME slot — draws COBOL0901 "'DESTINATION' is a reserved word", which is CORRECT
 // there and has to keep firing. That is why every new token is admitted to `cobolWord` and why
 // `conformance:cases/_unassigned/declined-validate-entry-name-still-0901` exists. (A pre-landing analysis attributed
 // that 0901 to the CLAUSE position; the measurement says otherwise, and the truth was worse — a wholly
@@ -48,7 +48,7 @@
 //       tests/version-matrix/reserved-words.json; CLASS because §12.3.7's SPECIAL-NAMES CLASS clause has always
 //       existed), and the data-description CLASS clause (§13.18.11) arrived with VALIDATE at COBOL-2002. Below its
 //       introduction such a construct does not exist, and the gate refuses it with a bare COBOL0001 where D7 wants
-//       the conformance pass to name the edition (COBOLNET0900). (kb/Work PB375 stated (a) for CLASS; the
+//       the conformance pass to name the edition (COBOL0900). (kb/Work PB375 stated (a) for CLASS; the
 //       measurement says (b).)
 // The edition numbers that carry (b) (dataDescriptionClause's and valueClause's is2002) are recorded as D7 defects
 // in EditionReadDriftTests, to be replaced by a word-status read of the arm's
@@ -90,8 +90,8 @@ options {
 // `DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand` pins the consequence.
 // ⛔ WHERE THIS IS HOOKED IN, AND WHY THE PREDICATE IS WHERE IT IS. `CobolData.g4`'s
 // `dataDescriptionClause` gains `| {is2002()}? validationClause` as its LAST alternative — recognized only
-// so `DeclinedFacilityPass` can refuse the clause BY NAME with COBOLNET1708 instead of the generic parse
-// error, or the misleading COBOLNET0901 "is a reserved word", that it drew before. `{is2002()}?` sits at
+// so `DeclinedFacilityPass` can refuse the clause BY NAME with COBOL1708 instead of the generic parse
+// error, or the misleading COBOL0901 "is a reserved word", that it drew before. `{is2002()}?` sits at
 // the LEFT EDGE of that alternative, where a semantic predicate steers PREDICTION: mid-alternative it lets
 // the alternative be chosen and then throws a raw parse error (the `left_edge_predicates` lesson). WHY the
 // gate is needed is the file header's two-reason split — (a) word status, for the clause words that are ordinary
@@ -192,7 +192,7 @@ validateVaryingSpec
 // claimed it had none, and that false premise is exactly what left it riding cobolWord and made
 // `ON FORMAT …` a parse error at 2002+ (with a FALSE
 // "'FORMAT' is a reserved word … cannot be used as a user-defined word" from the error listener) instead of
-// the declined-facility COBOLNET1708. It gets its own arm, the CONTENT precedent in this rule and the
+// the declined-facility COBOL1708. It gets its own arm, the CONTENT precedent in this rule and the
 // validateClassOperand precedent above. RELATION keeps the cobolWord sink: §8.10 makes it CONTEXT-SENSITIVE
 // ("VALIDATE-STATUS clause"), so it is reserved at no edition, has no lexer token, arrives as IDENTIFIER and
 // no gate can reach it. Leaving that arm a word SINK rather than a text predicate is this file's declared
@@ -200,7 +200,7 @@ validateVaryingSpec
 // a whole whichever arm matched, so no operand distinction is observable.
 //
 // ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3; kb/Work PB695 family 3), so `VALIDATE-STATUS IS "E" ERROR FOR X` is
-// conforming source this rule used to refuse with COBOL0001 instead of the documented COBOLNET1708 refusal —
+// conforming source this rule used to refuse with COBOL0001 instead of the documented COBOL1708 refusal —
 // which is the whole point of a DECLINED construct's grammar being exact (§4.2.7): a declined feature must be
 // REFUSED BY NAME, never mis-diagnosed as a syntax error. MEASURED on printed page 543 / folio 513: WHEN's box
 // 312.75–343.36 has NO horizontal rule in its band, and neither does IS (already optional here), while ERROR

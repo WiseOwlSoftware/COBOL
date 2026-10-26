@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 13.18.15.3 SR2 - neither a CONSTANT RECORD's subject nor any subordinate shall be
 *> specified as a receiving data item; the structured constant's content cannot be modified
-*> (COBOLNET1548).
+*> (COBOL1548).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC04.
 DATA DIVISION.

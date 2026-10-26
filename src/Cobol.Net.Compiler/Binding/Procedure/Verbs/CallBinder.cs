@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 /// The CALL / inter-program slice of the binder (ISO §14.9.4 / §14.9.5 / §14.9.18; deep-dive design
 /// COBOLNET_INTERPROGRAM_DESIGN). All semantic resolution happens here ONCE — target form, the GR5 transitive
 /// pass-mode threading, the receiving-operand checks, and the per-edition gates (the G1 four-compilers rule:
-/// the complete behavior where the edition HAS the construct, a targeted COBOLNET-08xx diagnostic where it
+/// the complete behavior where the edition HAS the construct, a targeted COBOL08xx diagnostic where it
 /// lacks it — see the deep-dive "Edition gating" section). P7 Step 10j: a real collaborator over
 /// <see cref="BinderContext"/>; the two hooks that outlive the batch stay HOST edges — <c>InMethod</c>/
 /// <c>OoBindMethodGoback</c> (the OO half converts LAST, 10s) and <c>EcBindRaising</c> (EcBinder lands 10r).
@@ -316,7 +316,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // R30), then RESOLVE to commit: a probe is unscreened, so its Place must never enter the bound
                 // tree (kb/Work PB221 — this arm used to commit the probe's Place, so `BY CONTENT E(XE)` with
                 // `XE PIC X(4)` compiled clean while the BY REFERENCE operand of the same statement drew
-                // COBOLNET0844, and a function-bearing subscript bound occurrence 1).
+                // COBOL0844, and a function-bearing subscript bound occurrence 1).
                 // A NON-numeric alias is literal-2 by its own arm; a numeric constant-name keeps the expression arm a
                 // written numeric literal takes (RefExpr substitutes it), so the two spellings bind alike.
                 if (cAlias is { IsNumeric: false } contentAlias)
@@ -474,10 +474,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // specifies a literal", which the Format-2 figure's literal-2 slot does —
                 // so `CALL … AS NESTED USING K` is a bare LITERAL-2 argument, never identifier-2 — and
                 // literal-2 never meets Syntax rule 3, so GR9 a)2 assumes BY CONTENT (or GR9 b) BY VALUE).
-                // The old arm resolve-RECEIVED it and drew COBOLNET1548 "constant-name shall not be specified
+                // The old arm resolve-RECEIVED it and drew COBOL1548 "constant-name shall not be specified
                 // as a receiving operand", rejecting conforming Format-2 source (kb/Work PB238). A symbolic-character
                 // is literal-2 the same way — a figurative constant (§12.3.7.4 GR11 a)), asked of the ONE alias
-                // resolution (kb/Work PB1544; it drew COBOLNET1639 "not defined").
+                // resolution (kb/Work PB1544; it drew COBOL1639 "not defined").
                 if (formatTwo && host.Expr.LiteralAliasOf(bare) is { } bareAlias)
                 {
                     var kMode = Gr9BareLiteralMode(calleeFormals, args.Count);
@@ -617,7 +617,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // make each reference "the unique data item" (a temporary) its function or method returns. `arithmeticExpression`
         // subsumes all four, so a sole one reached the expression spine and was screened by §8.8.1.1, which refused
         // `BY CONTENT FUNCTION UPPER-CASE(X)` and a function returning an object reference or a pointer as "not a numeric
-        // operand" (COBOLNET0844). The recovery is the ConditionBinder / EvaluateBinder / SET / INVOKE one: the sole
+        // operand" (COBOL0844). The recovery is the ConditionBinder / EvaluateBinder / SET / INVOKE one: the sole
         // identifier binds through its own door; an expression binds as before. A user function's or invocation's result
         // is a temporary data item, so it crosses as a PLACE (the object-reference or pointer SET copy, §14.2.3 GR9, is
         // the place crossing); an intrinsic function's computed value crosses as an operand (CallEmitter.ArgText).
@@ -926,7 +926,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// paragraph") state the SAME obligation about the same subject, and §8.4.6.8 adds the one further spelling
     /// they both inherit — "the program-name of a containing program definition". The table
     /// (<c>BinderDriver.ProgramPrototypesOf</c>) carries all of it, so both verbs ask this one question. Reports
-    /// COBOLNET1760 and returns null when the name is not a program prototype here.</summary>
+    /// COBOL1760 and returns null when the name is not a program prototype here.</summary>
     private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
     {
         if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
@@ -1258,7 +1258,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (§13.18.2.3 SR2/SR3 make such a formal exist only in a contained program, function or method).
         bool anyLengthBanned = !formatTwo || (!isReturning && mode is CobolPassMode.Content or CobolPassMode.Value);
         if (item.IsAnyLength && anyLengthBanned)
-            ctx.Edition.Error("COBOLNET1542", $"CALL {role} '{name}' is described with the ANY LENGTH clause "
+            ctx.Edition.Error("COBOL1542", $"CALL {role} '{name}' is described with the ANY LENGTH clause "
                 + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.

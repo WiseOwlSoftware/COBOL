@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1262 - SR19 reaches an item a TYPE clause brings into the CONSTANT RECORD (the composed entry, not only the written one).
       *>   cite.py --check 13.18.38.3 "A format 2 OCCURS clause shall not be specified in any data item subordinate to a data item described with the CONSTANT RECORD clause" -> OK
-      *> COBOLNET1549 (constant-record-rule). The positive twin is conformance/2002/pb1262_constant_record_fixed_table.cob.
+      *> COBOL1549 (constant-record-rule). The positive twin is conformance/2002/pb1262_constant_record_fixed_table.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1262N3.
        DATA DIVISION.

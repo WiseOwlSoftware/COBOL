@@ -45,7 +45,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             RetrySpec? retry = clause.retryPhrase() is { } rp ? host.BindRetry(rp) : null;
             foreach (var spec in clause.openFileSpec())
             {
-                // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+                // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639).
                 if (!ctx.Validation.ResolveFile(spec.dataReference(), "OPEN", out var file, admitsReportFile: true)) return BoundRejected.Reported(ctx.Edition);
                 // §14.9.27.3 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause,
                 // unless file-name-1 is subject to an APPLY COMMIT clause. The effective mode is THIS group's
@@ -68,7 +68,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 // `spec.NO()` — keeps the NO REWIND arm keyed on the phrase's own required word rather than on
                 // a word the grammar shares with other phrases.
                 // The 2002 EDITION gate for REVERSED stays where every removal gate lives, the post-bind
-                // VersionConformancePass (`open-reversed-removed-2002`, COBOLNET0902); NO REWIND survives into
+                // VersionConformancePass (`open-reversed-removed-2002`, COBOL0902); NO REWIND survives into
                 // 2023 ungated. This binder is edition-agnostic and binds the phrase the source wrote.
                 BoundOpenTapePhrase tape =
                     spec.REWIND() is not null ? BoundOpenTapePhrase.NoRewind
@@ -101,7 +101,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         foreach (var phrase in c.closeFilePhrase())
         {
             string name = phrase.fileName().GetText();
-            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639).
             if (!ctx.Validation.ResolveFile(phrase.fileName(), "CLOSE", out var file, admitsReportFile: true)) return BoundRejected.Reported(ctx.Edition);
             // §13.4.6.3 SR3: an SD file-name in a CLOSE — the statement previously compiled and ran against an
             // unregistered connector whose fail-open status read '00' (kb/Work PB140).
@@ -138,7 +138,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>⛔ THE ONE SITE for Annex A.4.13 — the declined <c>FILE file-name-1</c> alternative of
     /// <c>{ record-name-1 | FILE file-name-1 }</c>, shared by WRITE (§14.9.51.2, both formats) and REWRITE
-    /// (§14.9.35.2). Returns true when the phrase was written, having named it (COBOLNET1706); the caller
+    /// (§14.9.35.2). Returns true when the phrase was written, having named it (COBOL1706); the caller
     /// then yields <see cref="BoundUnsupported"/> without binding.
     /// <para>Placed BEFORE the sequential/keyed reroute so Format 1 and Format 2 are covered by the same
     /// check — the alternative is declined for every organization, and a check after the reroute would have
@@ -160,14 +160,14 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     public BoundStatement BindWrite(Core.WriteStatementContext w)
     {
-        if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOLNET1706
+        if (DeclinedFilePhrase(w.fileName(), "WRITE"))                      // Annex A.4.13 item 2) — COBOL1706
             return BoundRejected.Reported(ctx.Edition);   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
         // ⛔ THE record-name-1 IDENTITY RULE IS THE SHARED ONE (kb/Work PB347) — §14.9.51.3 SR5 is RELEASE's
         // §14.9.32.3 SR1 and REWRITE's §14.9.35.3 SR1 written a third time, so all three ask
         // StatementValidation.ResolveRecordName. Its two arms are DIFFERENT diagnoses and are kept apart: a
-        // name that resolves to nothing already had COBOLNET1639 (§8.4.2.1) from the resolver and stays a
+        // name that resolves to nothing already had COBOL1639 (§8.4.2.1) from the resolver and stays a
         // deferral here, while a reference that resolves but is not a logical record is the SOURCE's error and
-        // is refused at bind (§4.2.2 ¶2). Conflated, `WRITE WS-REC` drew only the COBOLNET1756 deferral
+        // is refused at bind (§4.2.2 ¶2). Conflated, `WRITE WS-REC` drew only the COBOL1756 deferral
         // warning — the compiler announcing ITS gap for what is the program's mistake.
         // The call sits BEFORE the `file.IsSequential` reroute below, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
@@ -188,7 +188,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             return BoundRejected.Reported(ctx.Edition);
         // The WRITE lock/RETRY phrases (§14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
-        BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
+        BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOL1512
         RetrySpec? wretry = fileLock.BindVerbRetry(w.retryPhrase());                                    // §14.7.9 / §14.9.51 GR16
         if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
@@ -198,7 +198,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // compiled clean at every edition and neither imperative ran (kb/Work PB691). That is the third arm of
         // one silent drop — PB144 screened it for REWRITE just below, PB334 for READ — and the reason it hid is
         // that WRITE's `writeInvalidKey` sub-rule was consumed by the KEYED binder only (feedback_two_arm_dispatch).
-        // Gated through the ONE severity seam (StatementValidation.ScreenForbiddenPhrase → COBOLNET1720): an
+        // Gated through the ONE severity seam (StatementValidation.ScreenForbiddenPhrase → COBOL1720): an
         // error under strict, a warning under --permissive with the phrase BOUND, not dropped — because
         // §9.1.14's final rule item 2 gives the NOT INVALID KEY imperative a live meaning even here ("If the I-O
         // status indicates a successful completion, control is transferred to … the imperative-statement
@@ -252,7 +252,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
     {
-        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639).
         if (!ctx.Validation.ResolveFile(r.fileName(), "READ", out var file)) return BoundRejected.Reported(ctx.Edition);
         // §13.4.5.3 SR3 c) is a rule of the FILE DESCRIPTION ENTRY, so it is asked BEFORE the organization reroute
         // and the relative arm is under it too (kb/Work PB694, feedback_two_arm_dispatch).
@@ -275,7 +275,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The two INDEPENDENT lock brackets of §14.9.30.2, bound in the order the rules read them: bracket 2
         // (retention) first, because SR3 tests bracket 1's IGNORING LOCK against it (kb/Work PB331).
         var contention = r.readLockContentionPhrase();
-        BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR4 → COBOLNET1512
+        BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR4 → COBOL1512
 
         // ── The three phrases this arm PARSED AND DROPPED until kb/Work PB334 ──────────────────────────────
         // §14.9.30.4 GR19 is the rule that decides a READ's format: "An implicit or explicit NEXT phrase or a
@@ -324,13 +324,13 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             Lock = retention,
             Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),                    // §14.7.9 / §14.9.30 GR9
             AdvancingOnLock = contention?.readAdvancingOnLock() is not null,              // §14.9.30 GR22
-            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),       // §14.9.30 GR12; SR3 → COBOLNET1818
+            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),       // §14.9.30 GR12; SR3 → COBOL1818
         };
     }
 
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
     {
-        if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOLNET1706
+        if (DeclinedFilePhrase(rw.fileName(), "REWRITE"))                    // Annex A.4.13 item 1) — COBOL1706
             return BoundRejected.Reported(ctx.Edition);   // Declined REPORTED it; a declined element is not an unbuilt one (PB236)
         // §14.9.35.3 SR1 is WRITE's §14.9.51.3 SR5 word for word — but they are two rules that happen to share a
         // sentence, not one rule, so each site quotes its OWN clause and the shared MECHANISM is the helper, not
@@ -351,7 +351,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         if (!ctx.Validation.ScreenReportFileReference(file, "REWRITE", "ISO §14.9.35.3 SR11 — \"File-name-1 shall "
                 + "not reference a report file or a sort-merge file description entry\""))
             return BoundRejected.Reported(ctx.Edition);
-        BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
+        BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOL1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §14.7.9 / §14.9.35 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         // §14.9.35.3 SR2, arm (a) — "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be
@@ -503,7 +503,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>The ADVANCING operand is a SPECIAL-NAMES mnemonic-name. §14.9.51.3 SR16: "<i>When mnemonic-name-1
     /// is specified, the name is associated with a feature-name specified by the implementor.</i>" — so a switch's
-    /// or a device's mnemonic is COBOLNET2243 (kb/Work PB862; it used to bind as a zero-line advance, whatever it
+    /// or a device's mnemonic is COBOL2243 (kb/Work PB862; it used to bind as a zero-line advance, whatever it
     /// named). A feature-name advances per its row in the ONE table (§14.9.51.4 GR25 d — "according to the rules
     /// specified by the implementor", Annex A.1 item 222): <see cref="FeatureAdvance.TopOfPage"/> (C01) is the
     /// <c>ADVANCING PAGE</c> advance, <see cref="FeatureAdvance.SuppressSpacing"/> (CSP) a zero-line advance.</summary>

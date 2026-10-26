@@ -56,7 +56,7 @@
     "NOT-IMPLEMENTED": {
       "resolves": false,
       "requires": ["notes"],
-      "meaning": "No implementation was located. The notes field states what is absent — a staged COBOLNET0899, a loud reject, or nothing at all."
+      "meaning": "No implementation was located. The notes field states what is absent — a staged COBOL0899, a loud reject, or nothing at all."
     },
     "NEEDS-OWNER-DECISION": {
       "resolves": false,
@@ -532,7 +532,7 @@
     },
     "oo-optional-items-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
+      "decision": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOL0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
       "$selector": [
         "A rule is SOLELY conditioned on A.4.10 item 1 when its content turns on a PLURALITY of CLASS-side INHERITS",
         "bases — the repetition of object-class-name-2 — so that under the single-inheritance surface WiseOwl COBOL",
@@ -542,7 +542,7 @@
         "⛔ ITEM 2 IS NOT IN THIS SELECTOR BECAUSE THE COMPILER IMPLEMENTS IT, AND THAT IS NOW THE OWNER'S ROW AND",
         "NOT AN AGENT'S READING (kb/Work PB285). CobolOO.g4:77 parses `INHERITS FROM interfaceName+`;",
         "OoClassTable.cs carries the full base list, resolves every base and enforces §11.6.3 SR2 (unknown), SR3",
-        "(cycle) and SR6 (duplicate) with COBOLNET0840; OoInterfaceSymbol.AllPrototypes() walks the whole multi-base",
+        "(cycle) and SR6 (duplicate) with COBOL0840; OoInterfaceSymbol.AllPrototypes() walks the whole multi-base",
         "closure. So SR-11.6.3-6 is an IMPLEMENTED rule — its honest verdict is CONFORMS-but-untested — and the",
         "`interface-name` exclusion is what stops the pattern, which matches its text verbatim, from stamping it",
         "non-support. SR-11.6.3-5 is likewise ordinary work to adjudicate; the pattern never reached it anyway,",
@@ -562,13 +562,13 @@
         "§11.7.3 SR3/SR4 (OVERRIDE must match 'the same method resolution signature'). §9.3.5.3 scopes the",
         "optionality to the FEATURE and grants latitude over the RESOLUTION ALGORITHM, never over whether the",
         "signature exists. WiseOwl COBOL implements a DEGENERATE signature — the method NAME alone, enforced by",
-        "COBOLNET0822 — so those seven rows want per-row adjudication (arguably DIVERGES against §11.7.3 SR3),",
+        "COBOL0822 — so those seven rows want per-row adjudication (arguably DIVERGES against §11.7.3 SR3),",
         "never this stamp.",
         "",
         "⚖ ITEM 3 DOES CONTRIBUTE ROWS — §9.3.6's EXACT-MATCH criteria (kb/Work R43, 2026-09-24; PB1519). Exact",
         "versus inexact only RANKS candidates: resolution steps 1-2 bind an exact match and steps 3-4 a non-exact",
         "one, and the tie-break prefers 'the method that has the greatest number of parameters that match exactly'.",
-        "With parametric polymorphism refused (COBOLNET0822) and every override held to the overridden method's",
+        "With parametric polymorphism refused (COBOL0822) and every override held to the overridden method's",
         "signature (§11.7.3), each name reaches exactly one candidate description, which steps 1-2 and 3-4 bind",
         "identically — so no conforming program can observe the criteria. They carry no vocabulary of their own",
         "('the same class and category'), so the arm keys on the sentence that INTRODUCES them (`lead-in`). The",
@@ -801,7 +801,7 @@
     },
     "mcs-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOL1578 at every SEND/RECEIVE and the refusals COBOL1943 (USAGE MESSAGE-TAG) and COBOL2205 (SET format 17).",
       "$selector": [
         "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements — §14.9.31",
         "RECEIVE and §14.9.38 SEND, general formats included, because §4.2.6 ¶3 releases their syntax ('it is not",
@@ -845,7 +845,7 @@
     },
     "float-formats-not-provided": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.DeclineFloatDecimal).",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOL1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOL2424 (OptionsBinder.DeclineFloatDecimal).",
       "$selector": [
         "A rule is SOLELY conditioned on the unprovided floating-point formats when its content is FLOAT-BINARY-128",
         "or the standard DECIMAL floating-point usages (FLOAT-DECIMAL-16/-34), their encoding phrase, or the OPTIONS",

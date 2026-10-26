@@ -97,7 +97,7 @@ public sealed class ConstructRegistryDriftTests
             var ed = new EditionContext(85, permissive);
             ConstructRegistry.Check(ed.Edition, ed, "delete-file-2023", "statement in paragraph M");
             Assert.True(ed.HasErrors, $"introduction gate must fail (permissive={permissive})");
-            Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2023"));
+            Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL0900") && d.Contains("COBOL-2023"));
         }
 
         // Available → silent.

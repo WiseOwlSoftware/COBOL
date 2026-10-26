@@ -24,7 +24,7 @@ namespace CobolNet.Binding;
 /// </summary>
 internal static class UnrepeatedElements
 {
-    /// <summary>Diagnose an element written <paramref name="count"/> &gt; 1 times (COBOLNET2423).</summary>
+    /// <summary>Diagnose an element written <paramref name="count"/> &gt; 1 times (COBOL2423).</summary>
     /// <param name="edition">The one diagnostic sink.</param>
     /// <param name="count">How many times the element was written.</param>
     /// <param name="where">The construct as the user wrote it ("RD 'R-1'").</param>

@@ -182,12 +182,12 @@ foreach ($t in $nameSlotTokens) {
     if (-not ($e.r85 -or $e.r2002 -or $e.r2014 -or $e.r2023)) { continue }
     # The grammar gate keys on userWordHere() = !IsReservedAt (confidence-blind), while the §8.9 funnel only
     # REPORTS high-confidence rows (ReservedWordSet.RejectsAt). Gating a lower-confidence word would reject the
-    # declaration with a bare parse error and NO COBOLNET0901 to explain it — fail hard instead of shipping that.
+    # declaration with a bare parse error and NO COBOL0901 to explain it — fail hard instead of shipping that.
     if ($e.confidence -ne 'high') { $lowConfidence += "$t($($e.confidence))" ; continue }
     [void]$gatedTokenSet.Add($t)
 }
 if ($lowConfidence.Count -gt 0) {
-    throw "RW-3: nameSlot word(s) reserved at some edition but NOT high-confidence [$($lowConfidence -join ', ')] — the derived gate would reject them with no COBOLNET0901 (the funnel only reports high-confidence rows); raise the confidence or drop the nameSlot admission"
+    throw "RW-3: nameSlot word(s) reserved at some edition but NOT high-confidence [$($lowConfidence -join ', ')] — the derived gate would reject them with no COBOL0901 (the funnel only reports high-confidence rows); raise the confidence or drop the nameSlot admission"
 }
 
 # ---- 5. Emit CobolWords.g4 (the generated cobolWord parser fragment) ----
@@ -229,7 +229,7 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
 # ---- 5b. Emit reservedGatedWord — the SAME derived gate set, with NO predicate (kb/Work PB300/PB693/PB655) ----
 # A gated word is never a cobolWord (step 5). That is right for every REFERENCE slot, but a DECLARATION naming
 # the word must still PARSE, for two readers: where §8.9 RESERVES it the funnel answers with the targeted
-# COBOLNET0901 ("'X' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 parse error that never names
+# COBOL0901 ("'X' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 parse error that never names
 # the cause; where §8.9 leaves it FREE this match IS the declaration ReservationGateRewriter looks for, and the
 # re-parse then sees the word as an IDENTIFIER everywhere. Every definition slot therefore offers this rule.
 # No predicate: a predicate is what could not steer prediction (step 5), and the token type alone is the fact.
@@ -246,7 +246,7 @@ if ($gatedTokens.Count -lt 1) {
 [void]$sb.AppendLine('// The DECLARATION home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655). A gated word')
 [void]$sb.AppendLine('// is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where')
 [void]$sb.AppendLine('// §8.9 leaves it free AND a definition slot below matched it. Where §8.9 reserves it, the match stands')
-[void]$sb.AppendLine('// and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOLNET0901: every')
+[void]$sb.AppendLine('// and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every')
 [void]$sb.AppendLine('// use of this rule is a definition slot, so a new slot needs no new C#.')
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
@@ -277,7 +277,7 @@ foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    /// <summary>The RESERVATION-GATED token types (kb/Work PB693/PB655) — the same derived set step 4b')
 [void]$cs.AppendLine('    /// keeps out of cobolWord and ReservationGateRewriter retypes where §8.9 frees a declared word. A parse')
 [void]$cs.AppendLine('    /// error ON one of these is the §8.9 violation itself (no name-slot alternative takes the token), so CobolErrorListener')
-[void]$cs.AppendLine('    /// answers with the targeted COBOLNET0901 instead of a raw COBOL0001 that never names the cause.')
+[void]$cs.AppendLine('    /// answers with the targeted COBOL0901 instead of a raw COBOL0001 that never names the cause.')
 [void]$cs.AppendLine('    /// Generated, so a newly gated word needs no edit anywhere.</summary>')
 [void]$cs.AppendLine('    internal static bool IsReservationGated(int tokenType) => _reservationGatedTokens.Contains(tokenType);')
 [void]$cs.AppendLine('')

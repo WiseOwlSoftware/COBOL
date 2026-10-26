@@ -123,7 +123,7 @@ internal sealed class OoDriver(BindSession session)
         // of it: §8.4.6.1 lets a contained source element "use identical user-defined words to name items independent
         // of the use of these user-defined words by other source elements". Both halves used to bind the class's
         // environment division as their own, so a factory or object data item spelled like a class the REPOSITORY
-        // names, an alphabet SPECIAL-NAMES declares or the CLASS-ID itself was refused COBOLNET2692 on legal source.
+        // names, an alphabet SPECIAL-NAMES declares or the CLASS-ID itself was refused COBOL2692 on legal source.
         // Nothing here draws a uid (the division declares names, never data items), so it takes no uid band.
         var classData = ElementBinder(classCtx, classCtx, cls.Name);
         // §10.6.1 / §11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained

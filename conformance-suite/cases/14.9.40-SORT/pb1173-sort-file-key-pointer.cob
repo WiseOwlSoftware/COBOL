@@ -9,7 +9,7 @@
       *>     pointer." -> OK §14.9.40.3 6) c)
       *> SPR is a level-1 USAGE POINTER record (the only place a pointer may be declared in an SD, §13.18.60.3 SR14).
       *> A record with a pointer leaf has no image the sort store can hold, which the binder used to answer first
-      *> (a COBOLNET1756 deferral that aborted the run unit) — hiding that the KEY is illegal at every edition.
+      *> (a COBOL1756 deferral that aborted the run unit) — hiding that the KEY is illegal at every edition.
       *> The key rules are asked of the key phrase before the record's image is.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
       *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE

@@ -8,7 +8,7 @@
        *> shall not be specified in a program that is contained within another program."
        *> ISO 8.3.2.2 2) externalizes "program-names of outermost programs" only, and
        *> 8.4.6.3 scopes a contained program-name to its container, so a contained program
-       *> has no externalized name for the phrase to give.  COBOLNET1795.
+       *> has no externalized name for the phrase to give.  COBOL1795.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB303OUT.
        PROCEDURE DIVISION.

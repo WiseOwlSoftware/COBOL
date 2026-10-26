@@ -9,9 +9,9 @@
       *> GR27 a) sets to exist for a GR26 b) end-of-page condition; it
       *> belongs to the exception-condition facility ISO/IEC 1989:2002
       *> introduced, so naming it in a declarative below COBOL-2002 is
-      *> refused with the introduction-band diagnostic COBOLNET0878. No
+      *> refused with the introduction-band diagnostic COBOL0878. No
       *> >>TURN directive, for the reason pb368-flow-use-name-below-2002
-      *> gives: the directive's own gate (COBOLNET0900) would answer
+      *> gives: the directive's own gate (COBOL0900) would answer
       *> first and the case would pin the directive instead of the NAME.
       *> At COBOL-85 the end-of-page condition still reaches the program
       *> through the AT END-OF-PAGE phrase, which is COBOL-85 syntax.

@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.8.4.2.3 SR1: if either relation operand is a strongly-typed group, both operands shall be of
       *> the SAME type (8.5.3.3). Two records of DIFFERENT strong types in an equality relation are rejected
-      *> at every edition that has the TYPEDEF family: COBOLNET1533 (strong-compare-mismatch), fired at the
+      *> at every edition that has the TYPEDEF family: COBOL1533 (strong-compare-mismatch), fired at the
       *> ONE CheckedRelational chokepoint (so EVALUATE / PERFORM UNTIL / SEARCH WHEN inherit the same gate).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. STRONG-HET-CMP-P10TS.

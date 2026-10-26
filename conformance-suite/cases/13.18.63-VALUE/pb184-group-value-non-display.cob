@@ -13,7 +13,7 @@
       *> alphanumeric group item"; 8.5.2.1 - "an alphanumeric group item has class and category alphanumeric".
       *> GB is COMPUTATIONAL.  (All THREE of GR3's conjuncts matter: the two the first landing dropped are
       *> exactly 13.18.63.3 SR1's population, and without them a strongly-typed or variable-length subject
-      *> answered the SR14 usage arm - now COBOLNET1703, pb184-group-value-strong-subject and its twin.)
+      *> answered the SR14 usage arm - now COBOL1703, pb184-group-value-strong-subject and its twin.)
       *> MEASURED BEFORE THIS SCREEN (kb/Work PB184, on 8ca74a3d): this program compiled CLEAN and left every
       *> occurrence of GB at ZERO - the group VALUE dropped on the floor with no diagnostic at all.
       *> PB184 was registered as a 13.18.63.4 GR5 DISTRIBUTION gap, on the reading that the byte-form leaves

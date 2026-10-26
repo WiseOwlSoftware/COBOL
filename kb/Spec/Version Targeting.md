@@ -27,7 +27,7 @@ accept with the V behavior, or reject with an edition-appropriate diagnostic.
 A single `VersionConformancePass` (the sole edition gate) enforces this with two arms — a **parse-tree arm**
 (syntactic introduction/removal/phrase gates + the §8.9 per-edition reserved-word funnel) and a **bound-tree arm**
 (semantic statement-level gates). `DialectLevel` threads bind-side only, so the future CIL backend inherits gating
-for free. See [[kb/Semantics/Passes]]. Diagnostics band **COBOLNET0900–0903**:
+for free. See [[kb/Semantics/Passes]]. Diagnostics band **COBOL0900–0903**:
 
 - `0900` construct requires COBOL-YYYY (introduction gating)
 - `0901` word reserved in COBOL-YYYY used as a user word (§8.9)
@@ -72,7 +72,7 @@ cite the doc as authority that something is non-ISO until its row says CONFIRMED
 
 ## Key concepts
 - "Four compilers in one"; `--std`, default 2023; strict vs `--permissive`.
-- Single two-arm `VersionConformancePass`; COBOLNET0900–0903.
+- Single two-arm `VersionConformancePass`; COBOL0900–0903.
 - VCR ledger (~130 rows) with drift-guarded gate anchors.
 - Computed `f(case,V)`; INV-1 continuity / INV-2 introduction / INV-3 behavior.
 - GnuCOBOL register: four buckets; NEEDS-VERIFICATION ≠ authority.

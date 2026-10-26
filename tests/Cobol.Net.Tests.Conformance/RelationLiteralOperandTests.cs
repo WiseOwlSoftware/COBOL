@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// ISO §8.8.4.2.1 — "A relation condition shall contain at least one reference to an operand that is not a literal"
 /// (kb/Work PB1470). The sentence is neither a general format nor a syntax rule, so §4.2.2's warning mechanism
-/// indicates it: COBOLNET3146, a WARNING at every edition (docs/CONFORMANCE.md D-RELLITERAL), the relation compiling and
+/// indicates it: COBOL3146, a WARNING at every edition (docs/CONFORMANCE.md D-RELLITERAL), the relation compiling and
 /// evaluating as written (<c>conformance:cases/8.8.4.2-Simple-relation-conditions/pb1470_relation_of_two_literals_runs</c> pins the values).
 /// <para>The EXPECTED verdict is computed here from the rule over each operand kind's one property — is it a literal as
 /// the source wrote it? A figurative constant is one (§8.3.3.6 is a clause of §8.3.3 Literals), a symbolic-character is
@@ -68,7 +68,7 @@ public sealed class RelationLiteralOperandTests
 
     public static TheoryData<string> Subjects() => [.. Kinds.Select(k => k.Name)];
 
-    /// <summary>One program per SUBJECT kind, one relation per line against every object kind; the COBOLNET3146 warnings
+    /// <summary>One program per SUBJECT kind, one relation per line against every object kind; the COBOL3146 warnings
     /// by line are the pairs' verdicts — exactly one where both operands are literals, none otherwise.</summary>
     [Theory]
     [MemberData(nameof(Subjects))]
@@ -91,7 +91,7 @@ public sealed class RelationLiteralOperandTests
         {
             int want = l.Literal && r.Literal ? 1 : 0;
             int got = warned.GetValueOrDefault(ln);
-            if (got != want) wrong.Add($"{l.Operand} = {r.Operand}: expected {want} COBOLNET3146, got {got}");
+            if (got != want) wrong.Add($"{l.Operand} = {r.Operand}: expected {want} COBOL3146, got {got}");
         }
         Assert.True(wrong.Count == 0 && warned.Keys.All(lineOf.ContainsKey),
             "ISO §8.8.4.2.1 verdicts differ:\n  " + string.Join("\n  ", wrong));
@@ -138,12 +138,12 @@ public sealed class RelationLiteralOperandTests
                        STOP RUN.
             """, edition);
         Assert.True(ok, string.Join(" | ", errors));
-        Assert.Single(warnings, w => w.Contains("warning COBOLNET3146", StringComparison.Ordinal)
+        Assert.Single(warnings, w => w.Contains("warning COBOL3146", StringComparison.Ordinal)
             && w.Contains("§8.8.4.2.1", StringComparison.Ordinal));
     }
 
     private static Dictionary<int, int> WarningLines(IEnumerable<string> warnings) =>
-        warnings.Select(w => Regex.Match(w, @"\((\d+),\d+\): warning COBOLNET3146"))
+        warnings.Select(w => Regex.Match(w, @"\((\d+),\d+\): warning COBOL3146"))
             .Where(m => m.Success)
             .GroupBy(m => int.Parse(m.Groups[1].Value))
             .ToDictionary(g => g.Key, g => g.Count());

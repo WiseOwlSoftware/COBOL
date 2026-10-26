@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// MOVE Table 16 legality + alignment for the boolean/national rows and columns (ISO §14.9.25.3 Table 16
 /// :28839–28852; Phase 4a M2-DATA-3/4). Every constructible Yes cell involving a boolean or national operand
 /// runs end-to-end (alignment per §14.6.8.5 — national-space right fill — and §14.6.8.6 — boolean-zero right
-/// fill); every constructible No cell asserts the COBOLNET0819 category-legality diagnostic. The SR7 figurative
+/// fill); every constructible No cell asserts the COBOL0819 category-legality diagnostic. The SR7 figurative
 /// rows (:28817 — only ZERO and a boolean-charactered ALL may send to a boolean receiver) and the zero-length
 /// literal rule (GR2 :28895 — a zero-length literal behaves as SPACE) are pinned here too. National-edited
 /// senders/receivers are NOT constructible this increment (the national-edited-2002 pending row) — their cells
@@ -146,7 +146,7 @@ public sealed class NationalBooleanMoveTests
         Assert.Equal("NUM=042\nNED= 42", stdout);
     }
 
-    // ── The No cells: each is COBOLNET0819 at bind (ISO §14.9.25.3 SR10 + Table 16 :28839–28852; the SR7
+    // ── The No cells: each is COBOL0819 at bind (ISO §14.9.25.3 SR10 + Table 16 :28839–28852; the SR7
     //    figurative rows :28817). Version-invariant at ≥2002 — the operands themselves are 0900-gated below. ──
 
     public static TheoryData<string, string, string, string> IllegalCells() => new()
@@ -181,6 +181,6 @@ public sealed class NationalBooleanMoveTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, ws, move), 2002);
         Assert.False(ok, $"{cell} must be rejected (ISO §14.9.25.3 Table 16 / SR7)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
     }
 }

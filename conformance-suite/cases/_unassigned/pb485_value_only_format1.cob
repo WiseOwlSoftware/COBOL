@@ -15,10 +15,10 @@
       *> program compiles no field for W and then emits C# referencing it
       *> (CS0103, "The name 'W' does not exist in the current context") --
       *> an uncompilable-backend failure on LEGAL source, found while
-      *> building the COBOLNET1747 goldens. It is NOT the PB485 mechanism
+      *> building the COBOL1747 goldens. It is NOT the PB485 mechanism
       *> and has its own defect note.
       *> It is registered here rather than dropped because it is also the
-      *> only witness available for a design property of the COBOLNET1747
+      *> only witness available for a design property of the COBOL1747
       *> screen: W is a FORMAT-1 entry whose only clause is a VALUE
       *> clause, exactly the shape 13.16.2 formats 3 and 4 have. A screen
       *> that identified "format 3 or 4" from the BODY before selecting on

@@ -154,7 +154,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// physical file holds, shared with the §14.9.51.4 GR19 EXTEND ordinal base, never a second walk. A medium
     /// that cannot be positioned (LINE SEQUENTIAL, a non-seekable stream) leaves the indicator at 0 and the
     /// first backward READ reports the permanent error <see cref="SeekToOrdinal"/> already answers with — the
-    /// same posture <c>READ … PREVIOUS</c> takes, and unreachable from conforming source because COBOLNET2210
+    /// same posture <c>READ … PREVIOUS</c> takes, and unreachable from conforming source because COBOL2210
     /// screens the organization at bind time.</para></summary>
     internal void PositionReversed()
     {
@@ -1788,7 +1788,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// ordinary read body delivers it — the ONE reposition, used by the §14.9.30.4 GR21 backward read.
     /// <para>Returns false when the physical file cannot support it, which §14.9.30.4 GR20 makes the program's
     /// error rather than a behaviour: a stream that cannot seek, or a LINE SEQUENTIAL file — for which
-    /// §14.9.30.3 SR7 forbids the PREVIOUS phrase outright, so the binder has already reported COBOLNET1720 and
+    /// §14.9.30.3 SR7 forbids the PREVIOUS phrase outright, so the binder has already reported COBOL1720 and
     /// this arm is the defensive floor under <c>--permissive</c>.</para>
     /// <para>The offset is ARITHMETIC on a fixed-width record-sequential file and comes from the frame index on
     /// a RECORD VARYING one. ⛔ This member answers only WHERE the record starts; the reposition itself is

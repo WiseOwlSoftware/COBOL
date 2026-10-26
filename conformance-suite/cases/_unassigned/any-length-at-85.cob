@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.18.2 - the ANY LENGTH clause is a COBOL-2002 introduction: at --std 85 the
-*> version-conformance pass rejects it (COBOLNET0900, registry row any-length-clause-2002). The fixture
+*> version-conformance pass rejects it (COBOL0900, registry row any-length-clause-2002). The fixture
 *> is the SR2-legal contained-program shape whose ONLY 2002+ construct is ANY LENGTH (it compiles at
 *> 2002+ - the version-matrix row pins that half).
 IDENTIFICATION DIVISION.

@@ -13,7 +13,7 @@
       *> by identifier-1 consists entirely of the boolean values '0' and '1'."
       *>
       *> It was UNIMPLEMENTED (kb/Work PB590): the class-condition grammar offered no BOOLEAN alternative,
-      *> so the word fell into the relation condition's identifier slot and drew COBOLNET0901 ("'BOOLEAN' is
+      *> so the word fell into the relation condition's identifier slot and drew COBOL0901 ("'BOOLEAN' is
       *> a reserved word ... cannot be used as a user-defined word") on conforming source.
       *>
       *> EXPECTED VALUES, FROM THE RULE AND NOT FROM A RUN:

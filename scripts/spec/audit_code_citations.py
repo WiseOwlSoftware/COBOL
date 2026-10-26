@@ -49,7 +49,7 @@ THE CHECKS, each narrow on purpose:
   SUBITEM   — `§14.9.37.4 GR8b` where rule 8 has no sub-items (the serial-SEARCH VARYING rules are GR3 a)–c)).
   FORMAT-NAME — the context NAMES a format of the cited clause verbatim ("data-pointer assignment") and cites a
               different ordinal. §14.9.39 was the measured case: eleven sites called the data-pointer slice
-              "Format 4", which is condition-setting, and two of them were the text of COBOLNET0869.
+              "Format 4", which is condition-setting, and two of them were the text of COBOL0869.
 
   THE DIAGNOSTIC-STRING FAMILY (kb/Work PB838) — the checks above ask whether a citation is WRONG. These two ask
   whether it can be RESOLVED AT ALL, and they run only inside a C# string literal in `src/`, because that is
@@ -978,8 +978,8 @@ DIAG_SELF_TEST = [
      'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));',
      'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));'),
     ("DIAG-UNQUALIFIED",
-     '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39 SR17)");',
-     '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39.3 SR17)");'),
+     '    edition.Error("COBOL0867", $"{where}: SET receiver (ISO §14.9.39 SR17)");',
+     '    edition.Error("COBOL0867", $"{where}: SET receiver (ISO §14.9.39.3 SR17)");'),
     # ⛔ AND THE TWO-SEGMENT CLAUSE (kb/Work PB388, wave 47): `§11.7` is below the prose floor of three
     # segments, and fourteen OO messages hid there while this arm read zero.
     ("DIAG-UNQUALIFIED",

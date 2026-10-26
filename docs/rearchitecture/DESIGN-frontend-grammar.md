@@ -73,7 +73,7 @@ consumes).
    from a lossy diagram fails the other way just as silently.
    **The decision (kb/Work PB350, 2026-09-05): such a phrase is enforced at BIND time, not by requiring it in
    the grammar.** `StatementValidation.ScreenOmittedRequiredPhrase` → `DiagnosticCatalog.FormatRequiredPhraseOmitted`
-   (COBOLNET1850), the mirror of the forbidden-phrase screen `ScreenForbiddenPhrase`/COBOLNET1720 — one
+   (COBOL1850), the mirror of the forbidden-phrase screen `ScreenForbiddenPhrase`/COBOL1720 — one
    descriptor carrying the SHAPE, each call site quoting its own §. Two reasons, and they generalize:
    a bind-time diagnostic NAMES the omitted phrase, the statement and the clause where an ANTLR parse error can
    only report an unexpected token; and the screen can be placed AFTER the binder has normalized the parse
@@ -108,7 +108,7 @@ consumes).
    precedence — and `EVALUATE X WHEN NOT > 5 AND < 2` likewise: clean compiles, wrong arm selected. The words the
    format prints WITHOUT the prefix (ANY, TRUE, FALSE) took it silently too. `evaluateWhenItem` now writes `NOT?` on
    each alternative that prints it, and on the two words only as invariant 8's parse-wide half of a named screen
-   (COBOLNET3710); `EvaluateSelectionObjectArityDriftTests` pins which alternatives carry it.
+   (COBOL3710); `EvaluateSelectionObjectArityDriftTests` pins which alternatives carry it.
    **The check, when writing or reviewing a `?`-prefix in front of a sub-rule: can any alternative of that sub-rule
    begin with the same token?** If so, the prefix belongs on the alternatives, not in front of the rule.
 
@@ -139,7 +139,7 @@ real §8.4.3.4 construct — the §8.4.3.1.2 Format 4 IDENTIFIER, led by the §8
 — had no surface at all. It is now `inlineMethodInvocation` in `Core/CobolOO.g4`, an OPERAND alternative
 wherever `functionCall` is one (kb/Work PB428). Its parenthesis pair, when written, holds at least one argument
 (the §8.4.3.4.2 brace repeats inside the one pair, unlike §8.4.3.2.2's bracketed function arguments), so
-`O :: "M" ( )` is refused by the grammar and named COBOLNET2994 by `CobolErrorStrategy` (kb/Work PB1430).
+`O :: "M" ( )` is refused by the grammar and named COBOL2994 by `CobolErrorStrategy` (kb/Work PB1430).
 
 ### 1.3 The context-sensitive word set is triplicated and hand-synced
 The set of tokens that are keywords in context but legal user-defined words elsewhere is maintained in
@@ -338,7 +338,7 @@ Edition legality is decided in exactly ONE place: the `VersionConformancePass` o
 (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`). Bound nodes carry a `.Syntax`
 back-reference; the pass reads the construct id (from the side table, or from a self-identifying bound
 node), asks `ConstructRegistry.Check` (single-sourced from `constructs.json`), and emits the
-COBOLNET0900-band diagnostic through `EditionSeverityPolicy`. Because the identity is never thrown away,
+COBOL0900-band diagnostic through `EditionSeverityPolicy`. Because the identity is never thrown away,
 there is no reverse-signature recogniser: `ReservedWordEditionHints` does not exist in the end state, and a
 new gated construct is self-registering (add the `constructs.json` row + the annotation; no empirical
 signature step).
@@ -407,8 +407,8 @@ is reached), has found a user-defined word: every occurrence of that word is ret
 source is parsed again. Each round frees at least one more word and a retyped token can never be declared again,
 so the loop ends; a program that declares no such word parses exactly once, and only the last pass's diagnostics
 are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration matches `reservedGatedWord` and
-`VersionConformancePass`'s funnel answers with the targeted COBOLNET0901 (`VisitReservedGatedWord`, which hangs on
-the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOLNET0901 by
+`VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`, which hangs on
+the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
 `CobolErrorListener` (below).
 
 ⛔ **WHY NOT A PREDICATE — it was one, and it could not work (kb/Work PB655, `feedback_left_edge_predicates`).**
@@ -416,7 +416,7 @@ Until PB655 every gated word was a `cobolWord` alternative behind `{userWordHere
 semantic predicate only at the LEFT EDGE of the decision it is predicting, and `cobolWord` sits deep inside every
 reference, so for every ENCLOSING decision the gate was invisible: at COBOL-2002, where NULL is reserved,
 `SET P TO NULL` chose the SET-to-identifier format on the strength of a NULL "name" the gate then refused, and the
-parse failed with COBOLNET0901. Admitting PB655's 73 words that way turned 115 Conformance cases red. A token
+parse failed with COBOL0901. Admitting PB655's 73 words that way turned 115 Conformance cases red. A token
 type is visible to every prediction; that is the whole reason the gate lives there.
 
 ⛔ **WHY DECLARED, NOT MERELY FREE — a DETERMINATION.** The union grammar still spells a construct at the editions
@@ -426,7 +426,7 @@ keyword. Retyping every free word unconditionally (GnuCOBOL's per-standard reser
 its own line at COBOL-85 into a PARAGRAPH named GOBACK — silently. So a free word is a user word exactly when the
 program uses it as one. A keyword alternative whose word is free at the compile edition and that the program did
 not declare is an undeclared user-word reference where §8.9 gives it no keyword reading: `classConditionName`'s BOOLEAN
-and the seven 2014 numeric-content words are read as class-name-1 by `ConditionBinder` there (→ COBOLNET1639),
+and the seven 2014 numeric-content words are read as class-name-1 by `ConditionBinder` there (→ COBOL1639),
 which the ORDER of the `classConditionName` alternatives used to do while the gate was a predicate.
 
 **The same decision reaches every re-parse of the text (`Parsing/TokenRetypes`).** The binder RE-LEXES source
@@ -457,7 +457,7 @@ a §8.9-straddling word through the token-level gate), be §8.9-reserved at all 
 `docs/CONFORMANCE.md` D-RW1).
 
 **`userWordHere` is the §8.9 admission rule, and it lives in `ReservedWordSet.AdmitsAsUserWord`** — the assembly
-that owns §8.9 — so the grammar gate and the funnel that reports COBOLNET0901 cannot disagree about which
+that owns §8.9 — so the grammar gate and the funnel that reports COBOL0901 cannot disagree about which
 occurrences are names. It is `reservedHere` plus the migration mode: `--permissive` accepts what the edition
 REMOVED, and a word §8.9 took away is exactly that (`ConstructAvailability.Removed`), so there the gate stands
 down, the pre-reservation reading is restored, and the 0901 comes back as a WARNING on a program that runs. A gate
@@ -498,7 +498,7 @@ reserves the word (migration-blind: `--permissive` never changes the meaning of 
 the entry parses as its clauses — asked of the grammar by a speculative `ParserInterpreter` parse of
 `dataDescriptionBody`, so every gated clause-leading word (each USAGE keyword, ALIGNED, BASED, GROUP-USAGE) is
 covered by construction. Where the clause reading fails (`05 DEFAULT PIC X.`) the name stands and the funnel's
-COBOLNET0901 names the word.
+COBOL0901 names the word.
 
 ⛔ **A KEYWORD SLOT MAY NOT BORROW `cobolWord` (kb/Work PB693).** The gate gives `cobolWord` one meaning —
 *user-defined word* — so a rule that used it to match a reserved KEYWORD that happens to carry a lexer token is
@@ -507,7 +507,7 @@ broken at exactly the editions §8.9 reserves that word, and the parse-error pat
 did: `validateStatusStage` (`Grammar/Core/CobolDeclined.g4`), the VALIDATE-STATUS clause's ON phrase, whose three
 choice indicators FORMAT / CONTENT / RELATION are all UNDERLINED in §13.18.62.2 — keywords (§5.2.2), not names.
 FORMAT is §8.9-reserved from 2002 and does have a token (the FD FORMAT clause, §13.18.24), so `ON FORMAT …`
-became a parse error at 2002+ instead of the declined-facility COBOLNET1708. **The fix is a token arm in the
+became a parse error at 2002+ instead of the declined-facility COBOL1708. **The fix is a token arm in the
 BORROWING rule, never an exclusion from the gate** — the word is reserved, and every other slot must keep
 rejecting it. **⛔ THE SWEEP THAT FOLLOWED THAT SENTENCE WAS SCOPED WRONG, AND THE CORRECTION IS kb/Work PB704.**
 It read: "FORMAT is the ONLY §8.9-reserved word carrying a lexer token that any rule expects `cobolWord` to match
@@ -542,7 +542,7 @@ parameter: a predicate that reads `$w` is context-dependent and ANTLR cannot eva
 enclosing rule. The NAME arm of each brace stays `cobolWord`, and that split exposed two slots the ladder had
 exempted WRONGLY: `entry-convention-name-1` and `external-locale-name-1` are SYSTEM-NAMES (§8.3.2.3.1), and §8.3.2.1
 rule 1 forbids a reserved word there exactly as in a user-defined word, so `LOCALE L1 IS USER-DEFAULT` is now
-COBOLNET0901 (`conformance:cases/8.3.2-COBOL-words/pb764-reserved-word-as-system-name`). What the funnel still lets pass is
+COBOL0901 (`conformance:cases/8.3.2-COBOL-words/pb764-reserved-word-as-system-name`). What the funnel still lets pass is
 NON-positional only: a bare §15 function-argument phrase word, a construct declined whole
 (`DeclinedFacilityPass.EnclosingDeclinedConstruct`, its set drift-tested against `CobolDeclined.g4`'s entry points),
 and the EXCEPTION-OBJECT / DEBUG- registers. `FormatWordDriftTests` derives the tokenless §8.9-reserved words from
@@ -572,7 +572,7 @@ predicate-led keyword, the tokenless-keyword alternatives it names with their re
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
 `CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated
 `CobolLexer.IsReservationGated` set) and still rejects at this edition, and re-codes the diagnostic to
-COBOLNET0901 with the ONE message `ReservedWordSet.UserWordViolationMessage` owns. The cause is named in every
+COBOL0901 with the ONE message `ReservedWordSet.UserWordViolationMessage` owns. The cause is named in every
 position — reference slots included, which the funnel deliberately never screened. It is named ONCE per
 occurrence of the word: ANTLR raises TWO syntax errors on one offending token (the prediction failure and
 `CobolErrorStrategy`'s recovery message), which read as two different sentences before the re-code and as the
@@ -653,7 +653,7 @@ reserved-word funnel can no longer silently disagree.
 
 ⛔ **A DECLINED MODULE TOKENIZES ITS WORDS, AND OWES EVERY ONE OF THEM A `nameSlot` ROW (kb/Work PB301).** This
 compiler declines Annex A.4.2 (screen handling) by TOKENIZING the module's words, so the refusal can name itself
-(COBOLNET1560 / COBOLNET1707) instead of drawing a generic parse error — but §8.3.2.1 rule 3 ("Context-sensitive
+(COBOL1560 / COBOL1707) instead of drawing a generic parse error — but §8.3.2.1 rule 3 ("Context-sensitive
 words may be used as user-defined words and system-names in contexts other than the language construct in which
 they are defined") means a lexer token is not a reservation, and the fifteen §8.10 screen words are legal
 user-defined words at EVERY edition while the seven §8.9 ones (COL, COLS, COLUMN, COLUMNS, CRT, CURSOR, SCREEN)
@@ -729,7 +729,7 @@ rule below, operands and all. Two load-bearing decisions: (1) `nonNumericLiteral
 `concatenationExpression`, because `ALL "A" & "B"` is genuinely ambiguous between "ALL over the concatenated
 literal-1 AB" (legal, SR2) and "a concatenation whose first operand is the figurative ALL "A"" (illegal, §8.8.3.2
 SR1) — ANTLR resolves a true ambiguity toward the lower alternative, so the legal reading wins, while `"X" & ALL
-"A"` still parses as a concatenation and is rejected COBOLNET1541 by `ConcatFolder`. (2) Every binder consumer
+"A"` still parses as a concatenation and is rejected COBOL1541 by `ConcatFolder`. (2) Every binder consumer
 reads literal-1 through ONE reader, `ConcatFolder.FoldAllLiteral` — the procedure-division figurative binder
 (`BoundAllLiteral.Of(Folded)`), the boolean channel and its routing predicate, the VALUE reader
 (`RawValueOperandText`) and the SPECIAL-NAMES ALPHABET/CLASS literal phrase — so literal-1 is folded, classed and
@@ -737,8 +737,8 @@ screened identically everywhere. It resolves all three written shapes: a quoted 
 through the same pairwise `Walk` as every other concatenation (so `ALL "A" & SPACE`, `ALL "A" & K` and `ALL "A" &
 STAR` are legal — §8.8.3.2 SR1 admits figurative operands, §13.10.3 SR2 a constant-name); and a constant-name
 written alone, which parses as the `ALL cobolWord` arm (the parse cannot tell it from a symbolic-character) and
-is resolved as Format 6 before the Format 7 readers see it. With a reporting context it asks SR2 — COBOLNET1648 for
-a zero-length literal-1 (structurally: contiguous delimiters, never "decodes to nothing"), COBOLNET2491 for a
+is resolved as Format 6 before the Format 7 readers see it. With a reporting context it asks SR2 — COBOL1648 for
+a zero-length literal-1 (structurally: contiguous delimiters, never "decodes to nothing"), COBOL2491 for a
 constant-name standing for a numeric literal — and every §8.8.3.2 rule of a concatenated literal-1; the
 per-position diagnostic dedup keeps a figurative read at two sites to one report. The version pass's
 `VisitFigurativeConstant` keeps only the statement-scoped 2002 gate for a national/boolean literal-1 (the `&` gate is
@@ -750,12 +750,12 @@ pass used to ask them over a quoted-only operand list — kb/Work PB1393's arm, 
 HEXLIT | figurativeConstant | cobolWord`. The `cobolWord` arm is how §8.8.3.1's literal-1 / literal-2 admit the two
 WORDS that stand for a literal — a constant-name (§13.10.3 SR2) and a symbolic-character, a figurative constant by
 §12.3.7.4 GR11 a) — which the parse cannot tell from a data-name, so the arm admits any word and
-`ConcatFolder` resolves it through its `LiteralEnvironment` (COBOLNET2473 for a word that stands for no literal;
-COBOLNET2474 for a symbolic-character operand in a §12.3.7.3 SR11 SPECIAL-NAMES literal). `&` appears in no
+`ConcatFolder` resolves it through its `LiteralEnvironment` (COBOL2473 for a word that stands for no literal;
+COBOL2474 for a symbolic-character operand in a §12.3.7.3 SR11 SPECIAL-NAMES literal). `&` appears in no
 other rule, so a word followed by `&` in a position that also admits an identifier is predicted as a
 concatenation by one token of lookahead. The grammar still FLATTENS the left-recursive format to `operand (&
 operand)+`; `ConcatFolder` folds the class back pairwise, left to right (§8.8.3.3 GR1 a/b/c per pair), so `SPACE &
-SPACE & N"AB"` is the alphanumeric expression `SPACE & SPACE` concatenated with a national literal — COBOLNET1540 —
+SPACE & N"AB"` is the alphanumeric expression `SPACE & SPACE` concatenated with a national literal — COBOL1540 —
 never a chain classed by its first non-figurative operand. Every fold site names its `LiteralEnvironment`
 (`Program`, `SpecialNames(nationalPhrase, sr11)` or `Unscoped`): the environment carries the HIGH-/LOW-VALUE
 characters of the position (the program collating sequences outside SPECIAL-NAMES, §12.3.7.4 GR10's native
@@ -766,7 +766,7 @@ operand model: its concatenation IS this rule (kb/Work PB1627).
 **3.3e The computer paragraphs (kb/Work PB78, 2026-08-18).** `objectComputerParagraph : OBJECT_COMPUTER DOT
 (({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT)?` — ISO §12.3.6.2's `[computer-name-1]`
 is optional and the two clauses (`programCollatingSequenceClause | characterClassificationClause`) may follow the
-period in any order (each at most once, §5.2.6.4 — a duplicate is COBOLNET2104, the one choice-indicator reader, counted by the `ClauseCardinalities` row described under PB3133 below, not by the binder). Two load-bearing
+period in any order (each at most once, §5.2.6.4 — a duplicate is COBOL2104, the one choice-indicator reader, counted by the `ClauseCardinalities` row described under PB3133 below, not by the binder). Two load-bearing
 decisions: (1) the X3.23-1985 clauses ISO 2002 deleted are MODELLED — `memorySizeClause` and `segmentLimitClause`
 are `objectComputerClause` alternatives, `debuggingModeClause` hangs off SOURCE-COMPUTER's name — and each is
 gated at its own node (`VisitMemorySizeClause` / `VisitSegmentLimitClause` / `VisitDebuggingModeClause`, the last one
@@ -775,7 +775,7 @@ paragraphs end in the `unrecognizedClause` error production (§3.10; kb/Work PB8
 was there). (2) `characterClassificationClause :
 {classificationAhead()}? CHARACTER? formatWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the
 arm is predicated on the word itself, from the left edge; the clause BINDS since kb/Work PB64 T5 (A.4.9 item 7
-claimed; it was parse-to-diagnose COBOLNET1518 until then — the LOCALE clause's shape), and its keywords
+claimed; it was parse-to-diagnose COBOL1518 until then — the LOCALE clause's shape), and its keywords
 (CLASSIFICATION, and LOCALE / SYSTEM-DEFAULT / USER-DEFAULT in `localePhrase`) are `formatWord`s the §8.9 funnel
 never meets, while a locale-name-1 reference stays a `cobolWord` (kb/Work PB764). The name-less clause form is the 2002 relaxation of the '85 required-name
 format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` is
@@ -888,7 +888,7 @@ reference formats, and the only place source comments are recognized. Its model:
   needs no offset). Every consumer — `IsFixedForm` (the Auto detector), `FirstSourceDirectiveCandidate` / `DirectiveText`
   / `FormatSegments`, `FixedFormConverter.Convert` and `ConvertFreeLines` — takes `ReadOnlySpan<PhysicalLine>` and never
   a string, so no caller can bypass the reader; `StripNistArchiveMarkers`, `ConvertFixedToFree`, the string
-  `IsFixedForm` and the per-segment re-join are deleted. The free-form 255-position limit (§6.1 3) a); COBOLNET2653) is
+  `IsFixedForm` and the per-segment re-join are deleted. The free-form 255-position limit (§6.1 3) a); COBOL2653) is
   asked in the free-form arm (`ConvertFreeLines`) on the expanded line — never on a fixed-form line, which may run past
   margin R (§6.1 2) b)). Nothing after the stage has a tab or CR rule: the lexer's `WS` set is `[ \n]`, `TextWordScanner`
   and `SeparatorRule` agree, and `PhysicalLinesDriftTests` fails if a pipeline stage spells `\t` or `\r`, if a
@@ -933,7 +933,7 @@ reference formats, and the only place source comments are recognized. Its model:
   after its opening quotation symbol). Writing the join against "the last line written" is what made an interspersed
   comment line receive the continuation and a blank line crash the origin tracking.
   The continuation RULES are checks of this state, written once for both formats: the first nonblank character of a
-  continuation line is the literal's opening quotation symbol (§6.2.3.2 SR6; COBOLNET2684), a national literal is
+  continuation line is the literal's opening quotation symbol (§6.2.3.2 SR6; COBOL2684), a national literal is
   continued only by the floating form (§6.3.5 2); 2685), a floating indicator never stands on a fixed-continuation
   line (SR5; 2686), a literal is continued by one form only (SR4; 2687), a join never spells `==` or `::` (§6.3.5 2); 2688,
   and `*>` / `>>` keep 2496), no inline comment follows the indicator (§6.3.7.3 / §6.4.4.3; 2689), and a free-form
@@ -949,10 +949,10 @@ reference formats, and the only place source comments are recognized. Its model:
   latest logical line is a directive line (`_latestIsDirective`, set where the line is emitted by the SAME
   `CompilerDirectiveLine.TryParse` + `CompilerDirectiveCatalog.IsDirective` recognition every directive stage uses), and
   a fixed-form hyphen line or the line after a floating literal continuation indicator that follows one is
-  COBOLNET2696 and takes a discarded slot instead of extending the directive's operand — in both formats, IF and
+  COBOL2696 and takes a discarded slot instead of extending the directive's operand — in both formats, IF and
   EVALUATE lines included (§7.3.16.3 1), §7.3.13.3 2) each put the operand entirely on its line).
 - **The indicator area holds a §6.2.2 fixed indicator or it is diagnosed** (kb/Work PB1494): `*` `/` `-` space, and
-  COBOL-85's debugging `D`; anything else is COBOLNET2616 and the line is read as source. The NIST CCVS column-7
+  COBOL-85's debugging `D`; anything else is COBOL2616 and the line is read as source. The NIST CCVS column-7
   conventions (S/Y debugging, P/J/H/E/U excluded alternates, any other letter a primary-configuration line) are a
   DIALECT — `ccvsIndicators`, on only under `--nist` (`FixedFormConverter.KindOf`). The obsolete comment-entry reading
   of AUTHOR … REMARKS applies only inside an IDENTIFICATION DIVISION (`_inIdentificationDivision`).
@@ -961,7 +961,7 @@ reference formats, and the only place source comments are recognized. Its model:
   header line is written `AUTHOR. .`, the paragraph's terminating period standing for the discarded comment-entry,
   because COBOL-85 ended the entry at the next Area-A word — and only the entry (the rest of the header line and its
   Area-B body) is discarded, at every edition, so the `identification-comments-removed-2002` / `remarks-removed-2002`
-  gate (COBOLNET0902 from 2002) sees a fixed-form paragraph exactly as it sees a free-form one. The comment-entry exists
+  gate (COBOL0902 from 2002) sees a fixed-form paragraph exactly as it sees a free-form one. The comment-entry exists
   only in an IDENTIFICATION DIVISION, so library text is converted starting in the division its COPY statement stands in
   (`DivisionCursor` reads it off the text-words before the COPY; `CopyProcessor` hands it to the shared walker, and the
   state is carried across a text's SOURCE FORMAT segments) — a `REMARKS.` paragraph copied into a PROCEDURE DIVISION is
@@ -972,8 +972,8 @@ reference formats, and the only place source comments are recognized. Its model:
   line), a word merely ending in `-ID` being a user's name; within the conversion only the comment-entry paragraph's
   start and end are Area-A facts (the COBOL-85 placement rules are asked after the parse, below). The cursor belongs to a TEXT, not to a block the merged driver flushes between directive lines; a spliced library
   text hands its end division back to the text it was spliced into. And the `D` indicator is
-  gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOLNET0903 — removed at
-  2014 — COBOLNET0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
+  gated by the registry row `debugging-line-removed-2014` (accepted at 85, obsolete at 2002 — COBOL0903 — removed at
+  2014 — COBOL0902; the NIST S / Y letters are the CCVS dialect, never gated, and excluded as comment lines). A `D`
   line is NOT decided here (kb/Work PB1705, owner decision R56): the clause that makes it source is further down the text
   than the line, so the converter CARRIES it — `ReferenceFormatProcessor.DebugLineCarrier` + its program text — and the
   lexer reads the carrier as the hidden `DEBUG_LINE` marker and the text as ordinary tokens. The builder reads the line
@@ -983,7 +983,7 @@ reference formats, and the only place source comments are recognized. Its model:
   after it continues the literal (§6.3.5 2)) — and keeps a logical line of its own after the joined one, NOTED to the
   per-compilation `ReferenceFormatDiagnostics` (docs/CONFORMANCE.md D-DEBUG; kb/Work PB2490: `Rewrite` also names the
   lines it keeps as source, `Frontend.Parse` hands their origins back to the diagnostics, and a noted line that is
-  source stands between the parts of a literal where only comment and blank lines may — COBOLNET3473);
+  source stands between the parts of a literal where only comment and blank lines may — COBOL3473);
   `Parsing/DebuggingLineRewriter` (first in `Frontend.LexAndParse`) keeps those tokens when the line's source unit, or a
   unit containing it (§12.3.5.4 GR1), declares SOURCE-COMPUTER … WITH DEBUGGING MODE and moves them to the
   `ABSENT_DEBUG_LINE` channel otherwise, so the parser, `SeparatorRule` and `PictureSeparatorPeriodRule` never read an
@@ -1006,8 +1006,8 @@ reference formats, and the only place source comments are recognized. Its model:
   margin R) and placed every item by where it begins its line; ISO/IEC 1989:2002 removed the split (§6.3.1, §6.3.5), so
   the two rules — an area-A item (a division, section or paragraph header, a level indicator, level-number 01 or 77,
   DECLARATIVES, END DECLARATIVES, an end marker) begins its line in area A (`fixed-form-area-a-item-outside-area-a-2002`,
-  COBOLNET3734), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
-  (`fixed-form-text-in-area-a-2002`, COBOLNET3735) — are asked at `--std 85` only. Neither half can be asked alone: which
+  COBOL3734), and any other text that begins a line, a level-number other than 01 or 77 excepted, begins in area B
+  (`fixed-form-text-in-area-a-2002`, COBOL3735) — are asked at `--std 85` only. Neither half can be asked alone: which
   token heads an item is the grammar's, where a token begins is the reference format's. So `FixedFormLine` is the ONE
   definition of the area (`AreaAWidth`, `ProgramTextStart`, `BeginsInAreaA`; the comment-entry reader uses it too),
   `ReferenceFormatMap` keeps, per fixed-form physical line, the physical column where its program text begins and its
@@ -1063,12 +1063,12 @@ reference formats, and the only place source comments are recognized. Its model:
   library text is read by the same §6.5 walker (§6.5 applies to "lines of source text and library text"), so a rule
   broken in a copybook is reported at the copybook's file and line, and a once-per-compilation gate fires once, not
   once per file (the file is an argument of each report, never state of the instance). It holds the edition gates —
-  `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOLNET0900, once per compilation, asked
+  `floating-comment-indicator-2002` and `floating-literal-continuation-2002` (COBOL0900, once per compilation, asked
   in FIXED form only: free form is itself a 2002 introduction reached below 2002 only through the `--source-format
   free|auto` selection, and its comment and its literal continuation are the floating ones), `debugging-line-removed-2014`,
   `col7-continuation-obsolete-2023` and `fixed-form-word-continuation-removed-2023` — and the syntax-rule diagnostics
-  above, plus SR2 (a `*>` not preceded by a separator space — COBOLNET2495; the text after it is still the comment) and
-  SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOLNET2496).
+  above, plus SR2 (a `*>` not preceded by a separator space — COBOL2495; the text after it is still the comment) and
+  SR3 (a continuation line completing a `*>` or `>>` begun at the end of the line it continues — COBOL2496).
 
 #### 3.6.1 Directive state — `>>PUSH` / `>>POP` (kb/Work PB941)
 
@@ -1087,7 +1087,7 @@ code:
   for every row, so the pairing is identical in every stage.
 * **Where the ops come from.** The normalizer and the conditional-compilation driver meet PUSH/POP lines in
   encounter order and `Apply` them directly (the driver only in an emitting branch). `DirectiveSiteProcessor`
-  records the ops of the FINAL text, blanks the lines, and issues the one COBOLNET2297 warning; every later stage
+  records the ops of the FINAL text, blanks the lines, and issues the one COBOL2297 warning; every later stage
   REPLAYS those ops with `AdvanceTo(line)` as it scans.
 * **Line-scoped folds** keep their event lists: a stage COLLECTS its events into a `DirectiveEventLog` (row, line,
   event) and `ToTimeline(ops)` REPLAYS the op program over them through the stack — a per-row carrier saves "how
@@ -1170,7 +1170,7 @@ code:
   `Validation/DirectivePlacementPass (renamed from PushPopAllPlacementPass, kb/Work PB1065; it also judges FLAG-02/14 and the LEAP-SECOND/PROPAGATE placement rows)` from the directive sites (`DirectiveSite.AllForm`) and the parse tree: the
   directive's position is the gap between the tokens around its line; outside every unit, or inside the innermost
   `…Clause` / statement context spanning the gap (unless the gap is a boundary of a nested one), draws the §4.2.2
-  warning COBOLNET2344 (kb/Work PB1005). A reference-format note that belongs here: §7.2.1 Step 1 REQUIRES a SOURCE
+  warning COBOL2344 (kb/Work PB1005). A reference-format note that belongs here: §7.2.1 Step 1 REQUIRES a SOURCE
   FORMAT directive in the false path of an IF/EVALUATE to be processed, which is why the normalizer runs over the
   whole text before conditional compilation (kb/Work PB1006, retired).
 
@@ -1211,7 +1211,7 @@ generated visitor. The façade is for the *binder*.
 
 The frontend already has the good pieces: `Diagnostics/DiagnosticDescriptor` (a typed
 `{Code, Severity, MessageTemplate}` record) and `DiagnosticDescriptors` (a registry:
-`COBOL0303`, `COBOLNET2072`, `CBL3620`, …) — `Diagnostics/DiagnosticDescriptors.cs`. This is exactly the
+`COBOL0303`, `COBOL2072`, `CBL3620`, …) — `Diagnostics/DiagnosticDescriptors.cs`. This is exactly the
 model the *compiler* side lacks (its 163 codes are bare strings — the understandability-critique HIGH). The
 target:
 
@@ -1221,7 +1221,7 @@ target:
 2. The compiler-side `EditionContext.Diagnostics`/`Warnings` `List<string>` accumulators are replaced by this
    `DiagnosticBag` (owned by DESIGN-edition-framework.md / DESIGN-driver.md; the frontend provides the type). The
    frontend's descriptor-registry pattern is the template the compiler's 163-code registry adopts.
-3. `DiagnosticDescriptors` is the frontend's registry; construct/edition codes (the COBOLNET0900 band) are
+3. `DiagnosticDescriptors` is the frontend's registry; construct/edition codes (the COBOL0900 band) are
    sourced from `Cobol.Net.Editions` so frontend and compiler emit identical wording (one message, two emit
    layers — the EditionGateHints remark's own goal, achieved structurally).
 
@@ -1283,7 +1283,7 @@ of words at the tail of a §13.16.2 Format-1 entry. Three harms, all the same ha
 
 **The replacement.** `unrecognizedDataClause` (`Core/CobolExpressions.g4`; the data division's form of the error
 production `unrecognizedClause`, below), an ERROR PRODUCTION placed LAST in the alternative list. It still RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather
-than a cascade), and every instance is REFUSED by name — **COBOLNET1941** for this format, naming the word and
+than a cascade), and every instance is REFUSED by name — **COBOL1941** for this format, naming the word and
 citing §13.16.2. Refused at every edition and every strictness: **a vendor extension is admitted only under the
 dialect that owns it, never by a catch-all**, and this compiler declares no vendor dialect. The strictness axis
 is for documented leniency about REMOVED constructs, which this is not.
@@ -1308,7 +1308,7 @@ EXTERNAL / GLOBAL clause never reaches `DataItem.HasExternalClause` / `HasGlobal
 ONLY inputs of `CallBindExternalAndGlobal`'s run-unit re-basing and global-name registration — the post-bind scan no
 longer re-derives either rule from the parse tree (it used `continue` filters, which annulled a misplaced clause
 without a word, and never read the FILE SECTION). The subject rules of the same two clauses — what the elementary
-item may BE (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3; SR4 is §13.16.3 SR18's COBOLNET1563) — are the `CheckClauseSubjects` pass, after usage
+item may BE (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3; SR4 is §13.16.3 SR18's COBOL1563) — are the `CheckClauseSubjects` pass, after usage
 inheritance. `ClausePlacementRules.PlacementAnsweredElsewhere` names, for every clause kind with no row, the site
 that owns its placement, and `DataClausePlacementDriftTests` requires every `DataClauseKind` to be answered exactly
 once and every `ElementaryOnly` subject to be refused on a group — so a clause added to the grammar is asked where
@@ -1324,16 +1324,16 @@ joined the table the same way, which is the table doing its job: a tenth format 
 
 | § | format | grammar site (alternative list) | code |
 |---|---|---|---|
-| §13.16.2 | data description entry | `dataDescriptionClause` | COBOLNET1941 |
-| §13.4.5.2 | file description entry (FD) | `fileDescriptionClause` | COBOLNET1970 |
-| §13.4.6.2 | sort-merge file description entry (SD) | `sortMergeDescriptionClause` | COBOLNET1970 |
-| §12.4.5.1 | file control entry (SELECT) | `fileControlClauses` | COBOLNET1970 |
-| §12.4.6.2 | I-O-CONTROL paragraph | `ioControlClause` | COBOLNET1970 |
-| §12.3.7.2 | SPECIAL-NAMES paragraph | `specialNameEntry` | COBOLNET1970 |
-| §12.3.5.2 | SOURCE-COMPUTER paragraph | `sourceComputerParagraph` (after the name) | COBOLNET1970 |
-| §12.3.6.2 | OBJECT-COMPUTER paragraph | `objectComputerClause` | COBOLNET1970 |
-| §12.3.2 | configuration section | `configurationParagraph` | COBOLNET1971 |
-| §11.2.1 | identification division | `identificationParagraph` | COBOLNET1971 |
+| §13.16.2 | data description entry | `dataDescriptionClause` | COBOL1941 |
+| §13.4.5.2 | file description entry (FD) | `fileDescriptionClause` | COBOL1970 |
+| §13.4.6.2 | sort-merge file description entry (SD) | `sortMergeDescriptionClause` | COBOL1970 |
+| §12.4.5.1 | file control entry (SELECT) | `fileControlClauses` | COBOL1970 |
+| §12.4.6.2 | I-O-CONTROL paragraph | `ioControlClause` | COBOL1970 |
+| §12.3.7.2 | SPECIAL-NAMES paragraph | `specialNameEntry` | COBOL1970 |
+| §12.3.5.2 | SOURCE-COMPUTER paragraph | `sourceComputerParagraph` (after the name) | COBOL1970 |
+| §12.3.6.2 | OBJECT-COMPUTER paragraph | `objectComputerClause` | COBOL1970 |
+| §12.3.2 | configuration section | `configurationParagraph` | COBOL1971 |
+| §11.2.1 | identification division | `identificationParagraph` | COBOL1971 |
 
 - **ONE production, in two forms (kb/Work PB3390).** Every site spells the error production LAST: the data
   division's three lists (`dataDescriptionClause`, `fileDescriptionClause`, `sortMergeDescriptionClause`) spell
@@ -1350,7 +1350,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   `BinderDriver`. A parse-tree walk rather than a binder hook, and here that is load-bearing: the §13.16.2
   refusal used to live in `DataBinder.BindEntry`, which the level-66 and level-88 paths return before, so
   `88 CN WIBBLE VALUE 1.` dropped the word in silence — measured on the pre-change build, where only
-  COBOLNET1747 fired. Four of the other formats bind nothing at all by construction.
+  COBOL1747 fired. Four of the other formats bind nothing at all by construction.
 - **ONE drift guard.** `ClosedFormatDriftTests` reads the generated parser's ATN (the word run's pieces are called
   only by the two forms; each list writes the form its follow set calls for — the data form exactly where INTEGERLIT
   may begin what follows the list's period, derived from the ATN, not listed; `numericLiteralCore`'s shapes are
@@ -1416,7 +1416,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   continue is the next bullet's, kb/Work PB3391). The data form
   holds none of the INTEGERLIT-led shapes: an unsigned integer there may be the next entry's level-number after a
   forgotten period (`01 X PIC X FOO` then `05 Y PIC X.` is the missing period at 05, where it used to be the one run
-  `FOO 05 Y` and a false COBOLNET2423 for Y's PICTURE), and even the comma decimal `1,5`, which is no level-number,
+  `FOO 05 Y` and a false COBOL2423 for Y's PICTURE), and even the comma decimal `1,5`, which is no level-number,
   cannot be admitted, because a predicated alternative that is the only one viable at its first token throws
   NoViableAlt at that token when its predicate fails (`05 Y` would draw one). The parse layer refuses `1,5` instead:
   the 0g arm's after-period exclusion spares a token that heads a longer literal
@@ -1427,7 +1427,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   literal, a DECIMAL-POINT IS COMMA literal and a concatenation (whose `&` continues the run) never end the run at a
   bare parse error with a false missing-period hint (`01 A PIC X FOO -1.`, `FOO "A" & "B"`). No FIRST set of the
   run holds a reserved word, so the 0g arm still names each. `LiteralScreen` screens the opening's sign as it
-  screens `signedNumericLiteral`'s (COBOLNET2155 for `- 1`). The leading-comma decimal (`,5`) is written in the
+  screens `signedNumericLiteral`'s (COBOL2155 for `- 1`). The leading-comma decimal (`,5`) is written in the
   opening itself (`numericLiteralCore`'s predicated alternative, copied because that rule also holds the unsigned
   integer; the drift guard holds the split), so it opens either form's run.
 - **A word refused by a text-predicated clause — the prediction fails AT the production's own opening (kb/Work
@@ -1458,7 +1458,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   the §13.4.5.2 file description entry, the §13.4.6.2 SD entry and the §12.4.5.1 file control entry — and names the
   alternatives that DO repeat (the file control entry's ALTERNATE RECORD KEY and collating-sequence clauses, an
   error production, the declined validation clauses); `ClosedFormatPass.VisitChildren` counts every clause list's
-  elements against it and reports COBOLNET2423 through the one `UnrepeatedElements` reader the RD entry already uses (a row whose figure sits in choice indicators, `ClauseList.ChoiceIndicators`, reports COBOLNET2104 through `ChoiceIndicators.AtMostOnce` instead: one rule, one code).
+  elements against it and reports COBOL2423 through the one `UnrepeatedElements` reader the RD entry already uses (a row whose figure sits in choice indicators, `ClauseList.ChoiceIndicators`, reports COBOL2104 through `ChoiceIndicators.AtMostOnce` instead: one rule, one code).
   `ClauseCardinalityDriftTests` makes the table total: every closed format is a row or a reviewed exemption
   (SPECIAL-NAMES and I-O-CONTROL repeat their elements, SOURCE-COMPUTER holds one), so a new
   closed format cannot arrive without its figure being read for ellipses.
@@ -1469,7 +1469,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   paragraph's seven clauses (its rule was an order-free `optionsClause+` folded last-wins, so a reordered or repeated
   clause compiled clean), the §12.3.2 CONFIGURATION SECTION's four paragraphs and the §11.2.1 identification
   division's OPTIONS paragraph (a second one was never read). `ClosedFormatPass` reports an element written after one
-  the figure prints later as COBOLNET2987, at the misplaced element; a repeat stays COBOLNET2423, whose message no
+  the figure prints later as COBOL2987, at the misplaced element; a repeat stays COBOL2423, whose message no
   longer grants an order licence to a fixed-sequence list. The grammar keeps the order-free superset (a named
   diagnostic, never a raw COBOL0307 at the second clause), and `ClauseCardinalityDriftTests` requires a sequence to rank
   exactly its list's once-only alternatives, so a clause added to such a list cannot arrive unranked. A list an
@@ -1482,10 +1482,10 @@ joined the table the same way, which is the table doing its job: a tenth format 
   figure's authority (`ClauseList.Format`: "ISO §11.2.1" or "ANSI X3.23-1985"), and the drift test holds every
   figure of the chain to the row's obligations. **The OBJECT-COMPUTER paragraph is a row of this table (kb/Work
   PB3133), and the table is the ONE reader of its counts** — the binder used to count PROGRAM COLLATING SEQUENCE and
-  CHARACTER CLASSIFICATION itself (COBOLNET1652, deleted) while `ClauseCardinalityDriftTests` exempted the list, so the
+  CHARACTER CLASSIFICATION itself (COBOL1652, deleted) while `ClauseCardinalityDriftTests` exempted the list, so the
   1985 figure's cardinality and order had no reader at all. From 2002 the §12.3.6.2 figure encloses the two clauses in
   choice indicators within brackets (rendered from the printed page): §5.2.6.4 admits each alternative at most once, in
-  any order (`Sequence` null), and a repeat is COBOLNET2104 (`ClauseList.ChoiceIndicators`: ClosedFormatPass reports it through `ChoiceIndicators.AtMostOnce`, the one reader of §5.2.6.4, never as a bracket without an ellipsis). Below 2002 the COBOL-85 figure ranks MEMORY SIZE,
+  any order (`Sequence` null), and a repeat is COBOL2104 (`ClauseList.ChoiceIndicators`: ClosedFormatPass reports it through `ChoiceIndicators.AtMostOnce`, the one reader of §5.2.6.4, never as a bracket without an ellipsis). Below 2002 the COBOL-85 figure ranks MEMORY SIZE,
   PROGRAM COLLATING SEQUENCE and SEGMENT-LIMIT once each in that sequence (derived, not quoted — no 1985 text is
   in the repository; IBM Enterprise COBOL's language reference prints the same figure and GnuCOBOL's parser takes the
   clauses in any order and number, so it is no arm of the precedence); CHARACTER CLASSIFICATION (a 2002 introduction) and
@@ -1495,7 +1495,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
 - **Its second error production — a KNOWN phrase in the WRONG position.** `misplacedSpecialNamesForPhrase`
   (kb/Work PB977) parses a SPECIAL-NAMES `FOR {ALPHANUMERIC | NATIONAL}` phrase written AFTER the definition of an
   ALPHABET, CLASS or SYMBOLIC CHARACTERS clause — a position §12.3.7.2 never prints and no dialect owns — so
-  `ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase` refuses it by name (COBOLNET2315) at every edition, one
+  `ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase` refuses it by name (COBOL2315) at every edition, one
   visitor for the three clauses. It replaced two opposite answers to one spelling: the ALPHABET postfix was an
   accepted "historical superset", the CLASS postfix a bare `COBOL0001: unexpected 'FOR'`. The binders read it only
   to recover the intended class (`DataBinder.ForPhraseIsNational`).
@@ -1505,33 +1505,33 @@ joined the table the same way, which is the table doing its job: a tenth format 
   punctuation, and operands in each general format". The three rules keep a PUNCTUATION SUPERSET, `(entry DOT?)*`
   written on the paragraph rule itself (SPECIAL-NAMES' periods moved up out of `specialNameEntry`), so the periods are
   the paragraph's own children; `Frontend/Cst/ParagraphPeriods.cs` is the one table of such paragraphs and splits a
-  paragraph into its sentences, and `ClosedFormatPass` refuses a period that splits a sentence (COBOLNET3407, at the
-  period) and a paragraph ending without its period (COBOLNET3408, at the last entry), at every edition. It replaced a
+  paragraph into its sentences, and `ClosedFormatPass` refuses a period that splits a sentence (COBOL3407, at the
+  period) and a paragraph ending without its period (COBOL3408, at the last entry), at every edition. It replaced a
   silent "compilers commonly tolerate a period after each" acceptance no dialect register listed.
   `ParagraphPeriodDriftTests` holds every grammar rule that writes `DOT?` to a row, in both directions. The
   SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs (§12.3.5.2, §12.3.6.2) carry the superset for the parse-time reason
   above (kb/Work PB3370): their second period goes only when nothing follows the header (§12.3.5.3 SR1, §12.3.6.3
   SR4), which `ParagraphPeriods.Sentences` reads as a paragraph with no sentence; otherwise its absence is
-  COBOLNET3408 at the name or clause, where it was a bare COBOL0307 at the next header. A superset-parsed period
+  COBOL3408 at the name or clause, where it was a bare COBOL0307 at the next header. A superset-parsed period
   recovers like a required one: `CobolErrorStrategy.Sync` deletes a token no path can take (outside the full-context
   LL(1) set) when a period follows it and the rule could take a period next, the single-token deletion ANTLR applies
   only at a required token's match. Without it `OBJECT-COMPUTER. XYZ ) .` ended the paragraph at ')', and the
   recovery several rules up swallowed the next paragraphs' diagnostics. A header word (the same ATN-read set the
   closed-format arm excludes) is never deleted: followed by its own period it opens the next paragraph, written out
   of order or after this one's missing period (`SPECIAL-NAMES. DECIMAL-POINT IS COMMA` then `FILE-CONTROL.`), and
-  deleting it poured that paragraph's entries into this format as false COBOLNET1970/1971 refusals.
+  deleting it poured that paragraph's entries into this format as false COBOL1970/1971 refusals.
   `ClosedFormatReservedWordTests` pins it once per `ParagraphPeriods` row and fails when a row has no case.
 - **A closed UNION of formats — the file description entry (kb/Work PB1238).** `fileDescriptionClause` is the
   union of §13.4.5.2's three formats, and §13.4.5.3 SR5/SR7/SR8 bind each entry to exactly ONE of them. Which one
   is decided once, in `Compiler/Binding/FileDescriptionFormats.cs` (`Of`: a relative or indexed file is Format 2;
   otherwise a REPORT clause anywhere in the entry makes it Format 3; else Format 1), and the same file's table
   keys each alternative's context type to the formats that print it. `DataBinder.FileDescriptionClauseAdmitted`
-  refuses a clause its entry's format does not contain (COBOLNET2604) and does not bind it; the same table
+  refuses a clause its entry's format does not contain (COBOL2604) and does not bind it; the same table
   carries the five FILE CONTROL ENTRY clauses the grammar superset-parses in the FD position (ORGANIZATION,
   ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS) with no admitting format and a home entry, so they
   are refused BY NAME with "write it in the SELECT entry" instead of a token error — they used to parse and be
   silently dropped. §13.4.5.3 SR4 (LINE SEQUENTIAL: no BLOCK CONTAINS, no RECORD CONTAINS; the VARYING arm stays
-  legal) is asked in the same method (COBOLNET2605). `FileDescriptionFormatDriftTests` reflects over the generated
+  legal) is asked in the same method (COBOL2605). `FileDescriptionFormatDriftTests` reflects over the generated
   parser so a new alternative cannot land without a row.
 
 **The ordering a fixer owes, and why.** Audit the format from the RENDERED printed page first, model what the
@@ -1555,11 +1555,11 @@ newly-closed format as the standing witness that the rendering was right.
   modelled rules gated at their nodes, and the residue is the error production.
 - **`SPECIAL-NAMES. WIBBLE WOBBLE.`** is NOT a §12.3.7.2 general-format violation and is not closed here.
   `implementorSwitchEntry` is `cobolWord ( IS? cobolWord switchStatusPhrases? | switchStatusPhrases )` — a
-  continuation is REQUIRED (kb/Work PB716: a lone word reaches `unrecognizedClause`, COBOLNET1970) — and IS is
+  continuation is REQUIRED (kb/Work PB716: a lone word reaches `unrecognizedClause`, COBOL1970) — and IS is
   un-underlined in the printed format, so a two-word entry is shape-legal as `device-name-1 [IS]
   mnemonic-name-3`. What refuses it is §12.3.7.3 SR8 ("The implementor shall specify the names that are available
   for switch-name-1, feature-name-1, and device-name-1") — a semantic rule over the implementor's name table,
-  `Cobol.Net.Editions/ImplementorNames.cs`, refused at bind as COBOLNET2241 (kb/Work PB862).
+  `Cobol.Net.Editions/ImplementorNames.cs`, refused at bind as COBOL2241 (kb/Work PB862).
 - **The §11.2.1 header is BRACKETED, and the grammar now says so for every unit kind.** The OO units always had
   `(IDENTIFICATION DIVISION DOT)?`; the program and function units required the header, so `PROGRAM-ID. X.` as a
   unit's first line was COBOL0001 at every edition. `identificationDivision` now takes the header optionally,
@@ -1571,8 +1571,8 @@ newly-closed format as the standing witness that the rendering was right.
   `assignTarget`, so `ASSIGN TO "a" "b"` was COBOL0308. It is `assignTarget+` (superset parse), and WHICH lists are
   allowed is §12.4.5.2 SR5's implementor determination (`docs/CONFORMANCE.md` §7 DOC-A.1-71: one operand, or DISK /
   PRINTER then one operand), read at bind in ONE place, `Binding/AssignTargetRule`, and refused BY NAME
-  (COBOLNET2256). A consequence for this mechanism: a word run after an ASSIGN operand is now further TO operands,
-  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970. A word that names a constant entry at
+  (COBOL2256). A consequence for this mechanism: a word run after an ASSIGN operand is now further TO operands,
+  not a residue clause, so it draws COBOL2256 rather than COBOL1970. A word that names a constant entry at
   an operand is literal-1 (§13.10.3 SR2), held to §12.4.5.2 SR4 (`AssignTargetRule.WordText`, kb/Work PB2500): the
   grammar cannot tell a constant-name from a device-name-1, so the one `cobolWord` alternative is decided at bind,
   the program's own declaration winning as it does for the LOCALE clause and the ALPHABET code-name.
@@ -1589,7 +1589,7 @@ newly-closed format as the standing witness that the rendering was right.
   and CHARACTER CLASSIFICATION clauses (§12.3.6.2), the file-level COLLATING SEQUENCE clause (§12.4.5.7.2 Format 1),
   the SORT/MERGE COLLATING SEQUENCE phrase (§14.9.40.2 / §14.9.24.2) and the CODE-SET clause (§13.18.13.2). The
   grammar writes the FOR phrases as a `+` superset; `ChoiceIndicators.ForPhrasePair` reads the pair and refuses a
-  repeated alternative (§5.2.6.4, COBOLNET2104) for all five, and `ChoiceIndicators.AlphabetPair` adds the IS form
+  repeated alternative (§5.2.6.4, COBOL2104) for all five, and `ChoiceIndicators.AlphabetPair` adds the IS form
   for the four whose operands are alphabet-names. `ForPhrasePairDriftTests` derives the repeated FOR-phrase rules
   from the grammar and fails on a binder that walks one itself. The file clause's Format 2 operand is a
   `dataReference` (a qualified data-name, SR6's subscript refused by name through `DataBinder.ClauseDataName`)
@@ -1626,15 +1626,15 @@ between the determined pair of delimiters" immediately to its left. It is theref
 had made it admissible any number of times at any position, with `EvaluateBinder`'s `other = body` silently
 discarding all but the last.
 
-**The diagnostics (COBOLNET2072 / COBOLNET2073).** Because the grammar rules cannot match empty, the violation
+**The diagnostics (COBOL2072 / COBOL2073).** Because the grammar rules cannot match empty, the violation
 arrives as a syntax error, and `CobolErrorStrategy` re-codes it in TWO arms — both structural, neither a table of
-verbs. COBOLNET2072 fires when the expected set admits every token that can start a `statementBlock` (computed
+verbs. COBOL2072 fires when the expected set admits every token that can start a `statementBlock` (computed
 once from the ATN) and the offending token starts none of them, naming the enclosing statement from the rule
-invocation stack (`searchAllStatement` → "SEARCH ALL"). COBOLNET2073 fires on a WHEN OTHER phrase whose position
+invocation stack (`searchAllStatement` → "SEARCH ALL"). COBOL2073 fires on a WHEN OTHER phrase whose position
 is wrong, separated from an EMPTY WHEN OTHER body by one token of lookahead past OTHER (and past PERFORM Format
 3's un-underlined optional EXCEPTION). **Known message gap:** a wholly empty inline `PERFORM … END-PERFORM` with
 no loop-control phrase fails on `performStatement`'s own alternatives decision, where `GetExpectedTokens()`
-answers with a single token, so it is rejected with the generic parse error rather than COBOLNET2072; pinned by
+answers with a single token, so it is rejected with the generic parse error rather than COBOL2072; pinned by
 `AWhollyEmptyInlinePerform_IsRejected` so the rejection cannot regress.
 
 **⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
@@ -1647,7 +1647,7 @@ has always compiled; recorded here and in the `.g4` rather than inherited silent
 `NOT AT END` arm it used to carry leaked into BOTH SEARCH formats through the shared rule — and
 `searchAllStatement` carries exactly ONE `searchAllWhenClause` (Format 2's ellipsis is on the `[ AND … ]`
 bracket) and no KEY phrase (the home-grown `searchAllKeyPhrase` was read by no binder). The complement is a syntax
-error that `CobolErrorStrategy.SearchFormatShapeMessage` re-codes as COBOLNET2269 from the parser state
+error that `CobolErrorStrategy.SearchFormatShapeMessage` re-codes as COBOL2269 from the parser state
 (COBOLNET_CONTROL_FLOW_DESIGN D18). **NEXT SENTENCE stays a `statement` alternative** so that `statementBlock`
 spells the printed `{ statement | NEXT SENTENCE }` braces; its POSITION is decided in the binder funnel
 (`StatementBinder.IsNextSentenceArm`), because narrowing it in the grammar would re-parse the illegal
@@ -1659,10 +1659,10 @@ spells the printed `{ statement | NEXT SENTENCE }` braces; its POSITION is decid
 description to subscript or reference-modify, and no §8.4.2.2.2 format qualifies one. So wherever the grammar CAN
 tell the slot from an identifier it spells it `cobolWord` — `acceptSource`'s mnemonic arm, `displayUpon`,
 `setSwitchPhrase` — and the suffix is a syntax error that `CobolErrorStrategy.MnemonicSuffixMessage` re-codes as
-COBOLNET2269 from the parser state (the just-completed slot context for ACCEPT/DISPLAY; the SET statement whose
+COBOL2269 from the parser state (the just-completed slot context for ACCEPT/DISPLAY; the SET statement whose
 suffixed list ends at `TO ON|OFF` for Format 3). WRITE's slot shares identifier-2's `dataReference`, so only the
 SPECIAL-NAMES registry tells them apart: `SequentialIoBinder.MnemonicOperand` asks the registry about the
-reference's WORD and `BindAdvancing` refuses the suffix with the same COBOLNET2269 text. Both layers word it through
+reference's WORD and `BindAdvancing` refuses the suffix with the same COBOL2269 text. Both layers word it through
 the one `Parsing/MnemonicNameSlot.SuffixMessage`. The ACCEPT and SET slots used to be `dataReference` with binders
 that read only the word, so the suffix compiled clean and vanished.
 
@@ -1679,7 +1679,7 @@ into one token, which made the distinction unrecoverable and let every such form
 multi-spelling keyword rule left is `PIC : 'PIC' | 'PICTURE'` — §13.18.40.3 SR5 makes PIC an abbreviation of
 PICTURE everywhere — and `KeywordSpellingDriftTests.NoTwoReservedWords_ShareATokenType_ExceptPicAndPicture` derives
 that from the spec tables and the lexer itself, so a re-fold fails the build naming the words. A misspelled keyword
-is refused at the parse layer as COBOLNET2418 by `CobolErrorStrategy` arm 0d, which reads the families from the ATN
+is refused at the parse layer as COBOL2418 by `CobolErrorStrategy` arm 0d, which reads the families from the ATN
 (the FIRST sets of the five rules): the expected set holds a sibling spelling but not the written one. The sign
 condition is the one position where ANTLR's fallback (the alternative that finished the decision rule — the bare
 operand) reports the failure at the preceding IS / NOT, or at the word with no ZERO in the decision-state
@@ -1690,7 +1690,7 @@ separator at its right edge (a '.' + space is the separator period, a ','/';' + 
 and 3). After the trims the token ends in ',' or '.' in exactly two situations: the separator period follows it
 (legal — NIST NC125A's `PIC 9,9,…,9,.`), or a separator comma/semicolon does (`PIC 999,, USAGE …`,
 `PIC 999., VALUE …`) — the violation, for BOTH symbols. `PictureSeparatorPeriodRule` checks every `PIC_STRING`
-token once, after the post-lex rewrites in `Frontend.LexAndParse`, and reports COBOLNET2419 through the
+token once, after the post-lex rewrites in `Frontend.LexAndParse`, and reports COBOL2419 through the
 syntax-error listener; a separator period necessarily ends the entry, so "last clause" needs no second test. It
 covers every PICTURE parent (data, report group and screen description entries) because it never looks at the
 parent.
@@ -1700,19 +1700,19 @@ the separator space, so no grammar rule can see whether a separator was written 
 `"AB" N` are the same token run. `SeparatorRule` runs beside `PictureSeparatorPeriodRule` in `Frontend.LexAndParse`,
 over EVERY token of the unit (all channels), and judges each from the source characters beside it: rule 2 — a
 COMMA / SUB_COMMA / SUB_SEMICOLON, or a lone ';' (the `SEMICOLON` token rides the HIDDEN channel so this rule sees it
-and the parser does not), not immediately followed by a space → COBOLNET2631, except a numeric literal's
+and the parser does not), not immediately followed by a space → COBOL2631, except a numeric literal's
 DECIMAL-POINT IS COMMA decimal point (a digit after, a digit / sign / operator character / '(' / space before — a comma
 that begins a literal right after `*`, `/`, `=`, `<` or `>` is the decimal point, and the operator's spacing is the rule
-broken, kb/Work PB2017), which the numeric-literal rules own; rule 3 — a DOT not followed by a space → COBOLNET2632 (a period inside a numeric literal or PICTURE
+broken, kb/Work PB2017), which the numeric-literal rules own; rule 3 — a DOT not followed by a space → COBOL2632 (a period inside a numeric literal or PICTURE
 string is part of that token); rule 5 — every literal token of either mode (`LiteralTokens.Types`, the one set
 `LiteralScreen` also reads) whose opening delimiter is not preceded by a space, '(' or '==' or whose closing
-delimiter is not followed by a space, ',', ';', '.', ')' or '==' → COBOLNET2633, touching literals reported once.
+delimiter is not followed by a space, ',', ';', '.', ')' or '==' → COBOL2633, touching literals reported once.
 The operator clauses that state their own separator context are decided at the same site (kb/Work PB1430): §8.7.3's
 concatenation operator '&' and §8.7.4's invocation operator '::' "shall be immediately preceded and followed by a
-separator space" → COBOLNET2993, naming the side that touches; when that neighbour is a literal the operator owns the
-boundary and the literal's COBOLNET2633 stands down, so one missing space is one report. §8.7.1's arithmetic operators
+separator space" → COBOL2993, naming the side that touches; when that neighbour is a literal the operator owns the
+boundary and the literal's COBOL2633 stands down, so one missing space is one report. §8.7.1's arithmetic operators
 ("preceded by a space and followed by a space", except that a UNARY operator needs no space against a left parenthesis)
-are the same COBOLNET2993 but cannot be decided from the token run (kb/Work PB2017): whether a `+` or `-` is binary,
+are the same COBOL2993 but cannot be decided from the token run (kb/Work PB2017): whether a `+` or `-` is binary,
 unary or no operator (a numeric literal's own sign, `LINE PLUS`'s `+`) is a question of grammar, so
 `SeparatorRule.ArithmeticOperatorViolations` reads the PARSE TREE — `addOp` under `additiveExpression`, `mulOp` under
 `multiplicativeExpression` and `POWER` under `powerExpression` are binary, `addOp` under `unaryExpression` is unary unless
@@ -1728,13 +1728,13 @@ already a SUBSCRIPT-mode token of the main lex.
 
 **A prefixed literal is delimited whatever its content (kb/Work PB1441).** `X"`, `N"`, `B"`, `NX"` and `BX"` are
 opening delimiters (§8.3.5 5)), so every prefixed body fragment is `<prefix> STR_BODY`; the §8.3.3 content
-repertoires (hexadecimal digits for X / NX / BX, '0'/'1' for B) are `LiteralScreen`'s COBOLNET2630, never the
+repertoires (hexadecimal digits for X / NX / BX, '0'/'1' for B) are `LiteralScreen`'s COBOL2630, never the
 lexer's — a body that spelled its repertoire fell back to IDENTIFIER + Format 1 literal on the first bad character,
 which beside a data item of the prefix's name compiled as two operands. The literal rules have one ordered entry,
 `CobolLiteral.SyntaxViolation` (repertoire, then grouping, then length), asked of the unit's tree by
 `LiteralScreen` alone — over the unit's tree (`BinderDriver`) and over each compiler-directive operand's fragment, which
 is lexed apart from the unit and so never on that tree (the conditional-compilation stage's three fragment funnels,
-kb/Work PB1616: the literal rules, and in a compiled branch the edition gates of a literal's format, are COBOLNET0814 /
+kb/Work PB1616: the literal rules, and in a compiled branch the edition gates of a literal's format, are COBOL0814 /
 1635 / 2630 / 0900 there exactly as in the program text). A lexer action that ends a token early does
 so through `CutTokenTo(length)`, which restores the column with the input position (kb/Work PB1728).
 
@@ -1753,9 +1753,9 @@ lowercase with Annex C. Three pieces, each in one place:
   predicate, so all stages agree where a word ends.
 - **The legality** — `CobolCharacterRepertoire.Violation(word, edition)` over the edition's Annex B.3 position classes
   (anywhere / not first / medial), asked by `CobolWordRule` from the tree funnel (`VisitCobolWord`) and the directive
-  stages: COBOLNET2773 for a character outside the edition's Annex B or a B.3 item 2 character first; the construct
-  `user-word-character-removed-2023` (COBOLNET0902) for a character only COBOL 2023 refuses (E.2 item 4); the construct
-  `user-word-extended-letter-2002` (COBOLNET0900) below 2002. The tables are COBOL 2023's, transcribed list for list
+  stages: COBOL2773 for a character outside the edition's Annex B or a B.3 item 2 character first; the construct
+  `user-word-character-removed-2023` (COBOL0902) for a character only COBOL 2023 refuses (E.2 item 4); the construct
+  `user-word-extended-letter-2002` (COBOL0900) below 2002. The tables are COBOL 2023's, transcribed list for list
   from the standard by `scripts/spec/gen_annex_bc.py`; COBOL 2002/2014 are derived by reversing Annex E (E.2 item 4,
   E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
   every list from `specs/ISO_COBOL.md`. A word's length is counted in characters (code points), so a combining
@@ -1803,7 +1803,7 @@ the rule (the §3.11 posture, and `ExpressionFormationPass`'s for the suffix ord
 parse-tree pass, `Compiler/Validation/ProcedureFormatPass.cs`, run right after `IntegerOperandPass` from
 `BinderDriver.Bind`, at every edition (each rule is the same in 1985, 2002, 2014 and 2023).
 
-**An imperative-statement operand holds no conditional statement (COBOLNET2796; §14.5.1, Table 12).** Every
+**An imperative-statement operand holds no conditional statement (COBOL2796; §14.5.1, Table 12).** Every
 conditional phrase spells its operand `statementBlock`, which is `statement+`, so `READ F AT END IF X = 1 … NOT AT
 END …` compiled. §14.5.1: a conditional statement is "any statement with a conditional phrase that is not terminated
 by its explicit scope terminator", and an imperative statement may be one only "delimited by its explicit scope
@@ -1816,7 +1816,7 @@ a NEW phrase rule is screened automatically. `Table12StatementNameDriftTests` re
 the scraped Table 12 and proves the proxy sound (only a row with a conditional phrase, or PERFORM with its REQUIRED
 END-PERFORM, reaches a `statementBlock`).
 
-**Format 1 (with sections) versus Format 2 (without sections) (COBOLNET2797; §14.2.1, §14.4.1).** The rule
+**Format 1 (with sections) versus Format 2 (without sections) (COBOL2797; §14.2.1, §14.4.1).** The rule
 `declarativePart* sentence* procedureUnit*` is the union of the two formats. Rendered from PDF page 557: Format 1
 prints ONE bracketed DECLARATIVES portion and nothing between the header (or END DECLARATIVES) and the first section
 header; §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in sections". So once a division has
@@ -1838,7 +1838,7 @@ its own generated accessors.
 
 MULTIPLY's BY operand prints the same two shapes as `receiversOrSendingOperand` but keeps its own rule,
 `multiplyByOperand+`, which admits a repeated sending operand and a ROUNDED literal; the binder names those
-(COBOLNET1689) where the shared rule's three users take a parse error, so folding MULTIPLY in would change what
+(COBOL1689) where the shared rule's three users take a parse error, so folding MULTIPLY in would change what
 parses. A position whose printed shape differs is not a copy: an identifier only (INSPECT's identifier-1, GO TO
 DEPENDING, STRING / UNSTRING's sender), an identifier or an integer (PERFORM TIMES, WRITE ADVANCING), and the
 argument forms of CALL and INVOKE. DISPLAY's `{identifier-1 | literal-1} …` IS this shape but still writes the set
@@ -1946,7 +1946,7 @@ pass skeleton are owned by `DESIGN-version-conformance-pipeline.md` §5 Stages 1
 forward-detects (`retryPhraseAhead()`, the `boolExprAhead()` ENTRY) are the only predicates that remain.
 When the last batch lands, delete the reverse-signature recogniser (`ReservedWordEditionHints`); the vendor
 JSON/XML COBOL0313 disposition relocates to `CobolErrorStrategy` as a token-keyed hint. Verify per batch:
-the version-matrix rows for those constructs still emit COBOLNET0900 with the same wording; the
+the version-matrix rows for those constructs still emit COBOL0900 with the same wording; the
 duplicate-diagnostic case the dossier reproduced is now single. This is the biggest correctness win and the
 most steps — do it incrementally, never as one batch.
 
@@ -2174,13 +2174,13 @@ all-or-nothing):**
   nested FUNCTION and keyword-omitted calls inside a subscript, a keyword-omitted result's ref-mod, `table(ALL)`) and
   `negative/pb2113-keyword-omitted-arguments-85`. Every line produced the same output on the pre-change compiler.
 - **D10.2** — `refModPart` takes `REF_LPAREN` (a ref-mod straight after a name) beside `LPAREN` / `FNARG_LPAREN`, and
-  `refModSpec`'s leftmost position is optional so `X (:2)` still reaches its named refusal (COBOLNET2876). Each position is the
+  `refModSpec`'s leftmost position is optional so `X (:2)` still reaches its named refusal (COBOL2876). Each position is the
   superset `functionArgument`, the operand a subscript item takes, so a position that is not an arithmetic expression
-  (`X ("A" : 1)`) reaches its named refusal too (COBOLNET2363, kb/Work PB1030) instead of a raw parse error. One
+  (`X ("A" : 1)`) reaches its named refusal too (COBOL2363, kb/Work PB1030) instead of a raw parse error. One
   carrier, one `ReferenceResolver.ReadRefMod`.
 - **D10.3** — `subscriptPart : REF_LPAREN subscriptList? REF_RPAREN`, `subscriptList : subscriptItem ((FNARG_SEPARATOR |
   COMMA)? subscriptItem)*`, `subscriptItem : ALL | functionArgument` (the superset: the same paren carries a keyword-omitted
-  argument list; a bare COMMA parses so SeparatorRule names it, COBOLNET2631). `ReferenceResolver.SegmentsOf` takes one
+  argument list; a bare COMMA parses so SeparatorRule names it, COBOL2631). `ReferenceResolver.SegmentsOf` takes one
   token segment per item and applies PB136's declaration-informed cut on the TREE (a dataReference at the item's own
   level whose name cannot be subscripted gives its paren to a new subscript). Each segment carries its parse node, which
   the second half's position walk reads (kb/Work PB2151).

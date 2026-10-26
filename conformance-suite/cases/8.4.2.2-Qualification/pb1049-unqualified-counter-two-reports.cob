@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB1049 - ISO 8.4.2.2.3 SR10: "PAGE-COUNTER shall be qualified each time it is referenced in the procedure
       *> division if more than one report description entry is specified in the source element." Two RDs, and the
-      *> procedure division MOVEs an unqualified PAGE-COUNTER: a qualification violation, COBOLNET2729 - not the
-      *> recognized-but-not-implemented code COBOLNET0899, which tells the reader a legal program is unsupported.
+      *> procedure division MOVEs an unqualified PAGE-COUNTER: a qualification violation, COBOL2729 - not the
+      *> recognized-but-not-implemented code COBOL0899, which tells the reader a legal program is unsupported.
       *> (In the report section the same unqualified counter is legal: the enclosing RD qualifies it implicitly.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1049N1.

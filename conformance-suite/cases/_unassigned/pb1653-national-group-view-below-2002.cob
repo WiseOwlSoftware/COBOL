@@ -7,7 +7,7 @@
       *> kb/Work PB1653 - the NEGATIVE twin of conformance-suite/cases/_unassigned/pb1653_national_group_view.
       *> A national group (GROUP-USAGE NATIONAL, ISO 13.18.29) and USAGE NATIONAL items are COBOL-2002
       *> introductions that do not exist in COBOL-85, so the view of one over alphanumeric storage is rejected at
-      *> --std 85, gated by COBOLNET0900.
+      *> --std 85, gated by COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1653NG.
        DATA DIVISION.

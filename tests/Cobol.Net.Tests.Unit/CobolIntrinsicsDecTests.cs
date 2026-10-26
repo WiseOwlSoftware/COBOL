@@ -75,7 +75,7 @@ public sealed class CobolIntrinsicsDecTests
     public void ModDec_SubMicroscale_IsExact() =>
         AssertDec(D(1, 9), CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, D(7, 9), D(3, 9)));
 
-    // ── The formerly staged inexact-EAE four (COBOLNET0899 retired with these bodies) ───────────────────
+    // ── The formerly staged inexact-EAE four (COBOL0899 retired with these bodies) ───────────────────
 
     [Fact]
     public void AnnuityDec_RateZero_IsReciprocalOfPeriods() =>

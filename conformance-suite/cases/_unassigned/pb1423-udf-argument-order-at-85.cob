@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 8.4.3.2.4 GR2 orders the arguments of a user-defined function reference left to right, and the
 *> user-defined function is a COBOL-2002 introduction (8.4.3.2 / 12.3.8): at --std 85 the reference is rejected
-*> (COBOLNET0900, registry row user-function-invocation-2002) before any argument order is asked. The positive
+*> (COBOL0900, registry row user-function-invocation-2002) before any argument order is asked. The positive
 *> half is conformance-suite/cases/8.4.3.2-Function-identifier/udf_arg_order.cob.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB1423N85.

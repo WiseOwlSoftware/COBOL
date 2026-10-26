@@ -11,7 +11,7 @@
       *> difference. QA takes a PIC 9(4), QC a PIC X(4): two signatures,
       *> so PX's prototype (group member restricted TO QA) and its
       *> definition (TO QC) do not have "the same" signature, and
-      *> 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair (COBOLNET1513).
+      *> 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair (COBOL1513).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. QA IS PROTOTYPE.
        DATA DIVISION.

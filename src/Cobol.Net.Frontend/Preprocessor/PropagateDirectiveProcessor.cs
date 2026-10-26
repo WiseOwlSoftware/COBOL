@@ -27,7 +27,7 @@ public sealed record PropagateEvent(int Line, bool On);
 /// §14.6.13.1.5's EXIT/GOBACK item 3 where the element's fatal default is decided (kb/Work PB1119).
 /// <para><b>§7.3.21.3 SR1 (the directive shall not be specified WITHIN a compilation unit) is judged by the ONE
 /// placement pass</b> — the <c>propagate-directive-2002</c> row's <c>directivePlacement</c> data,
-/// <c>DirectivePlacementPass</c> (COBOLNET2652, kb/Work PB1378) — not here: this pre-parse, line-based stage has no
+/// <c>DirectivePlacementPass</c> (COBOL2652, kb/Work PB1378) — not here: this pre-parse, line-based stage has no
 /// compilation-unit-boundary model. For legal source the fold at an element's first line is also the state at its
 /// containing compilation unit's first line, because no directive may intervene.</para>
 /// <para>Its INTRODUCTION edition is PROVISIONAL COBOL-2002 (the roadmap decision-1 policy, as for TYPEDEF / the FLOAT
@@ -56,7 +56,7 @@ public static class PropagateDirectiveProcessor
 
             // Neither the EDITION nor the OPERAND is decided here: the introduction gate fired at the ONE
             // directive-recognition point (CompilerDirectiveCatalog, from the propagate-directive-2002 row — kb/Work
-            // PB725) and §7.3.21.2's { ON | OFF } is that row's directiveOperand column (COBOLNET1911, kb/Work PB794).
+            // PB725) and §7.3.21.2's { ON | OFF } is that row's directiveOperand column (COBOL1911, kb/Work PB794).
             // A malformed operand was reported there and changes no state here.
             if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
                 && word is "" or "ON" or "OFF")

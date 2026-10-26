@@ -11,7 +11,7 @@
       *>   cite.py --check 8.4.2.3.3 "As the subject of a SORT statement that references a table where the rightmost
       *>     subscript is not the word ALL" -> OK §8.4.2.3.3 5) e)
       *> E lies in ROW OCCURS 2, so `SORT E(2)` and `SORT E(2, ALL)` are the legal spellings. Each statement below is
-      *> refused (COBOLNET2097): an OMITTED outer subscript names no table to sort, a surplus one names an element, and a
+      *> refused (COBOL2097): an OMITTED outer subscript names no table to sort, a surplus one names an element, and a
       *> table that lies in no other table takes none (ROW(1) would be one element of ROW, not the table).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1055NG.

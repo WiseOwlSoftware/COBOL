@@ -126,7 +126,7 @@ public static class EditionSeverityPolicy
 
 ```csharp
 public readonly record struct EditionDiagnostic(
-    string Code,              // COBOLNET0900 … or a pinned 08xx
+    string Code,              // COBOL0900 … or a pinned 08xx
     EditionSeverity Severity,
     string ConstructId,       // the constructs.json row id (empty for non-registry diagnostics)
     string Message,
@@ -143,7 +143,7 @@ public interface IDiagnosticSink
 `SourceSpan` is the frontend's existing location type (or a shared minimal `(path,line,col)` moved
 into `Editions`/`Common`). Both the frontend `DiagnosticBag` and the compiler's diagnostic collector
 implement/adapt `IDiagnosticSink`, so `ConstructRegistry.Check` writes the **same structured
-diagnostic** from both layers. Rendering to text (`error COBOLNET0900: …`) happens once, at the CLI
+diagnostic** from both layers. Rendering to text (`error COBOL0900: …`) happens once, at the CLI
 boundary — the `List<string>` accumulators are deleted.
 
 ### 2.5 `ConstructRegistry.Check` — the one funnel, now sink-based and layer-neutral
@@ -275,7 +275,7 @@ tests reads it; `docs/CONFORMANCE.md` §3.2 is the documentation half, held equa
 `NonstandardExtensionRegisterDriftTests`, which also joins it to `cobol-words.json` `extensionReserved`, to the
 grammar's `usageKeyword` (a silent new vendor usage word fails) and to the binder sites. The warning is
 `cobol --flag-extensions` → `CompilerDriver.Options.FlagExtensions` → `EditionContext.FlagExtensions` (the
-`--sign-encoding` thread), emitted ONLY through `EditionContext.Extension` as COBOLNET2894. A usage spelling is found by
+`--sign-encoding` thread), emitted ONLY through `EditionContext.Extension` as COBOL2894. A usage spelling is found by
 row in the one usage funnel; a statement or phrase is one `Extension(ExtensionIds.X, …)` call at the one place its
 binder accepts it. Not rows: constructs `--permissive` accepts (a violation of a standard rule, flagged
 unconditionally through `EditionContext.Removed`) and implementor latitude (`--sign-encoding`).
@@ -424,7 +424,7 @@ behavior.
    sites compile untouched. Renaming the collector to its final name (`DiagnosticSink` /
    `CompileDiagnostics`) + retiring the adapter is the optional P7 churn.
 6. **Q6 — General diagnostic-descriptor registry here or a separate dimension? ✅ RESOLVED: seeded HERE, broader
-   registry deferred to P7.** The edition band + the `COBOLNET0899` split + the reused `COBOLNET1533` live in
+   registry deferred to P7.** The edition band + the `COBOL0899` split + the reused `COBOL1533` live in
    `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog` (`docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
    The full every-code→descriptor migration + folding the frontend's parse-layer descriptors / its 3-value
    `DiagnosticSeverity` into this home is the P7 follow-on.

@@ -19,8 +19,8 @@
       *>   associated with the write file shall not contain the REPORT
       *>   clause" -> OK 12)
       *> Before the fix this compiled and the WRITE injected INJECTED
-      *> between the report's HELLO lines. The entry is COBOLNET2578;
-      *> the WRITE is COBOLNET2577 as well.
+      *> between the report's HELLO lines. The entry is COBOL2578;
+      *> the WRITE is COBOL2577 as well.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1171N3.
        ENVIRONMENT DIVISION.

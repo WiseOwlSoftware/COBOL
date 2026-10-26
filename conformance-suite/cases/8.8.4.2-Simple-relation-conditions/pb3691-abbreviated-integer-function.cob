@@ -9,7 +9,7 @@
       *> literal (8.4.3.2.1: it "references the unique data item that results from the evaluation of a function"),
       *> and 15.2 4), 5) and 6) state no usage for the item such a function returns, so it is not "of usage display
       *> or national" (docs/CONFORMANCE.md D-FNUSE; kb/Work PB3691, owner 2026-10-25: "Refuse it per the spec").
-      *> The pair has no defined comparison (COBOLNET2532, as for a USAGE COMP item). Before kb/Work PB3691 it
+      *> The pair has no defined comparison (COBOL2532, as for a USAGE COMP item). Before kb/Work PB3691 it
       *> compiled clean and compared the function's literal-form text: N = 7 against "0007" answered not equal,
       *> where the same relation on the USAGE DISPLAY item N answers equal.
       *> Shape: an abbreviated combined relation (8.8.4.12.1): X = "0007" OR <function> stands for

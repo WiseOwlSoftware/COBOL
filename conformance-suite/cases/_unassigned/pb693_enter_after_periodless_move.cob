@@ -17,7 +17,7 @@
       *> Before the fix cobolWord admitted ENTER at every edition, so
       *> this ONE sentence - `MOVE 2 TO N ENTER COBOL.`, no period
       *> after the MOVE - parsed as a MOVE with the receivers N and
-      *> ENTER and answered COBOLNET1639: a conforming COBOL-85
+      *> ENTER and answered COBOL1639: a conforming COBOL-85
       *> program rejected.  With the gate the enterStatement arm wins
       *> at 85 and the statement is the comment-equivalent no-op VCR
       *> 7.16 documents, so N keeps the 2 the MOVE put there.

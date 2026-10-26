@@ -10,8 +10,8 @@ namespace CobolNet.Tests.Conformance;
 /// / LOCALE-TIME §15.53 / LOCALE-TIME-FROM-SECONDS §15.54 — T4; the facts below assert they COMPILE and bind
 /// their locale-name), the LOCALE phrase of LOWER-CASE §15.57 / UPPER-CASE §15.97 (T5), STANDARD-COMPARE (PB101
 /// T7), and the LOCALE keyword of NUMVAL-C §15.68 / TEST-NUMVAL-C §15.94 (T6 — the LAST increment; the by-name
-/// COBOLNET1518 refusal and its diagnostic are GONE with the claim). Every phrase resolves its locale-name
-/// through the ONE SPECIAL-NAMES path: a declared name binds, an undeclared one is COBOLNET1664, a bare LOCALE
+/// COBOL1518 refusal and its diagnostic are GONE with the claim). Every phrase resolves its locale-name
+/// through the ONE SPECIAL-NAMES path: a declared name binds, an undeclared one is COBOL1664, a bare LOCALE
 /// is the current-locale form (§15.68.3 r5a). The same functions WITHOUT a LOCALE phrase stay fully supported
 /// (the zero-regression proof).
 /// <para>⚠ STANDARD-COMPARE §15.85 is A.4.9 item 11 but travels on §A.3 item 25 (an ISO/IEC 14651:2020
@@ -69,7 +69,7 @@ public sealed class LocaleDispositionTests
     }
 
     /// <summary>The integer-literal shape the pre-T4 probes used is a §15.52.3 r1 / §15.53.3 r1 CLASS violation now that
-    /// the functions bind — the §15.3 screen names it (COBOLNET1627), never a by-name refusal.</summary>
+    /// the functions bind — the §15.3 screen names it (COBOL1627), never a by-name refusal.</summary>
     [Theory]
     [InlineData("FUNCTION LOCALE-DATE(20240229)")]
     [InlineData("FUNCTION LOCALE-TIME(120000)")]
@@ -77,8 +77,8 @@ public sealed class LocaleDispositionTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Move(funcCall, "01 WS-R PIC X(10).", "WS-R"), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public sealed class LocaleDispositionTests
     /// decision Q4). It is A.4.9 item 11 but ordering-table-dependent, not locale-dependent, and its route is
     /// §A.3 item 25 — "The implementor need not accept the syntax … when support for ISO/IEC 14651:2020 is not
     /// provided" — which WiseOwl COBOL now DOES provide, over the derived CLDR/UCA collation engine. This test used
-    /// to assert the COBOLNET1518 rejection and its §A.3 citation; it asserts the claim instead, in both the
+    /// to assert the COBOL1518 rejection and its §A.3 citation; it asserts the claim instead, in both the
     /// default-table form and the ORDER TABLE form, because a suite that only ever pinned the refusal would go
     /// green on a compiler that silently stopped binding the function at all.
     /// </summary>
@@ -117,7 +117,7 @@ public sealed class LocaleDispositionTests
             var (ok, errors, _) = EditionHarness.CompileFull(program, 2023);
             Assert.True(ok, $"FUNCTION STANDARD-COMPARE must compile (A.3 item 25 support IS claimed): "
                 + string.Join("; ", errors));
-            Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+            Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
         }
     }
 
@@ -125,7 +125,7 @@ public sealed class LocaleDispositionTests
 
     // The LOCALE phrase of LOWER-CASE / UPPER-CASE is LIVE since kb/Work PB64 T5 (items 6 / 13): with a declared
     // locale-name it compiles clean; with an undeclared one it is the ONE undeclared-locale-name diagnostic
-    // (COBOLNET1664), never the by-name refusal any more.
+    // (COBOL1664), never the by-name refusal any more.
     [Theory]
     [InlineData("LOWER-CASE")]
     [InlineData("UPPER-CASE")]
@@ -151,12 +151,12 @@ public sealed class LocaleDispositionTests
         Assert.True(ok, string.Join("\n", errors));
         var (ok2, errors2, _) = EditionHarness.CompileFull(Move($"FUNCTION {fn}(WS-X LOCALE LOC1)", "01 WS-X PIC X(3) VALUE \"AbC\".\n01 WS-R PIC X(3).", "WS-R"), 2023);
         Assert.False(ok2);
-        EditionHarness.AssertHasDiagnostic(errors2, "COBOLNET1664");
-        Assert.DoesNotContain(errors2, e => e.Contains("COBOLNET1518"));
+        EditionHarness.AssertHasDiagnostic(errors2, "COBOL1664");
+        Assert.DoesNotContain(errors2, e => e.Contains("COBOL1518"));
     }
     // The LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE since kb/Work PB64 T6 (item 12; §15.94.3 r1 imports
     // §15.68.3 whole): a DECLARED locale-name binds and compiles clean; an UNDECLARED one is the ONE
-    // undeclared-locale-name diagnostic (COBOLNET1664, §15.68.3 r5a), never the by-name refusal any more.
+    // undeclared-locale-name diagnostic (COBOL1664, §15.68.3 r5a), never the by-name refusal any more.
     [Theory]
     [InlineData("NUMVAL-C", "\"12.34\"", "01 WS-R PIC 9(4)V99.")]
     [InlineData("TEST-NUMVAL-C", "\"12\"", "01 WS-R PIC 9(2).")]
@@ -179,12 +179,12 @@ public sealed class LocaleDispositionTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
         var (ok2, errors2, _) = EditionHarness.CompileFull(
             Move($"FUNCTION {fn}({arg} LOCALE LOC1)", receiver, "WS-R"), 2023);
         Assert.False(ok2);
-        EditionHarness.AssertHasDiagnostic(errors2, "COBOLNET1664");
-        Assert.DoesNotContain(errors2, e => e.Contains("COBOLNET1518"));
+        EditionHarness.AssertHasDiagnostic(errors2, "COBOL1664");
+        Assert.DoesNotContain(errors2, e => e.Contains("COBOL1518"));
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public sealed class LocaleDispositionTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Move("FUNCTION NUMVAL-C(\"12.34\" LOCALE)", "01 WS-R PIC 9(4)V99.", "WS-R"), 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public sealed class LocaleDispositionTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Move("FUNCTION NUMVAL-C(\"12.34\" \"USD\" LOCALE)", "01 WS-R PIC 9(4)V99.", "WS-R"), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1504");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1504");
     }
 
     // ── Zero-regression: the SAME functions without a LOCALE phrase remain fully supported ──────────────────

@@ -187,7 +187,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "pb2077.dll"),
                 DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
-            Assert.True(r.Errors.All(e => e.Contains("COBOLNET0828", StringComparison.Ordinal)),
+            Assert.True(r.Errors.All(e => e.Contains("COBOL0828", StringComparison.Ordinal)),
                 "the probe program drew an error other than the verdict under test:\n" + string.Join("\n", r.Errors));
             return r.Errors;
         }
@@ -237,7 +237,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
     /// (<see cref="ActivationDescription.ToString"/>) and the clause the pair differs in from
     /// <see cref="ActivationDescription.ClausePhrases"/>; the <see cref="ActivationDescription.Clauses"/> key — a
     /// restricted pointer's type layout with its leaves' analyzed profiles, a PICTURE identity's packed fields — is an
-    /// identity, and printing it put <c>PicInfo { … }</c> dumps into COBOLNET0828. Each row is a negative program whose
+    /// identity, and printing it put <c>PicInfo { … }</c> dumps into COBOL0828. Each row is a negative program whose
     /// refusal names the difference §9.3.6 match rule 3 e) / §14.8.2.3.2 rule 4 found, and contains no key separator.</summary>
     [Theory]
     [InlineData("pb480-typed-restricted-pointer-type.cob",
@@ -254,7 +254,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
         var r = CompilerDriver.Compile(new CompilerDriver.Options(TestRepo.SuiteCase(Path.GetFileNameWithoutExtension(negative)),
             Path.Combine(Path.GetTempPath(), "CobolNet_PB2077_" + Guid.NewGuid().ToString("N")[..8] + ".dll"),
             DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
-        var refusals = r.Errors.Where(e => e.Contains("COBOLNET0828", StringComparison.Ordinal)
+        var refusals = r.Errors.Where(e => e.Contains("COBOL0828", StringComparison.Ordinal)
             && e.Contains("BY REFERENCE", StringComparison.Ordinal)).ToArray();
         Assert.Contains(refusals, e => e.Contains(argument, StringComparison.Ordinal)
             && e.Contains(difference, StringComparison.Ordinal));

@@ -13,7 +13,7 @@
 *> entries", and an ABSOLUTE line number supplies none — so all three occurrences would print on line 5.
 *>
 *> The leg under test is SR25a, the entry's OWN absolute LINE clause. Its sibling SR25b (an absolute LINE
-*> clause SUBORDINATE to the repeating entry) reports the same way. Diagnostic COBOLNET2021, the report-writer
+*> clause SUBORDINATE to the repeating entry) reports the same way. Diagnostic COBOL2021, the report-writer
 *> OCCURS syntax-rule family. Adding STEP 2 makes the same source conforming: lines 5, 7, 9.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB565LSR.

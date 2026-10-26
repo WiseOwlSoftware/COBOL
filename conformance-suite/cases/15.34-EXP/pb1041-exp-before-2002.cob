@@ -7,7 +7,7 @@
       *> ISO 15.34 - the EXP function is introduced by ISO/IEC 1989:2002; the COBOL-85
       *> Intrinsic Function Module has no EXP, so an exact 18-digit argument whose 2002
       *> value the positive golden 2002/pb1041_exp_and_wide_exact_argument pins is refused
-      *> here by the edition gate (COBOLNET1502), not silently evaluated. Witness for kb/Work PB1041.
+      *> here by the edition gate (COBOL1502), not silently evaluated. Witness for kb/Work PB1041.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1041EXP85.
        DATA DIVISION.

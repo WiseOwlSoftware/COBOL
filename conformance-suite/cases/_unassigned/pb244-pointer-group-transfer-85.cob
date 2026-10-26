@@ -7,7 +7,7 @@
       *> kb/Work PB244 - the edition floor under conformance:cases/14.9.11-DISPLAY/pb244_pointer_group_transfer. The strongly-
       *> typed group (TYPEDEF STRONG, 13.18.58) and USAGE POINTER (13.18.60) are COBOL-2002 introductions, and
       *> 13.18.60.3 SR14 admits a pointer leaf only under a STRONG type declaration, so at COBOL-85 the group
-      *> the positive case displays cannot be declared at all; COBOLNET0900 is the version gate.
+      *> the positive case displays cannot be declared at all; COBOL0900 is the version gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244PTRGRP85.
        DATA DIVISION.

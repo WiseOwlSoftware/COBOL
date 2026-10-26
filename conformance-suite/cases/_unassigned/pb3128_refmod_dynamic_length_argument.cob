@@ -15,7 +15,7 @@
       *> D-RM1 a)): D has no LIMIT, so every group formal is admitted at compile time and the evaluated
       *> slice decides at the boundary (the LIMIT 3 twin is refused:
       *> negative/pb3128-refmod-dynamic-limit-below-group-formal). Before the fix the slice measured
-      *> ZERO positions and the typed INVOKE was refused (COBOLNET0828 "larger than the argument (0)").
+      *> ZERO positions and the typed INVOKE was refused (COBOL0828 "larger than the argument (0)").
       *> DERIVATION (D = "ABCDEFGHIJ", current length 10, before each leg; LG is a 4-character group; TG
       *> displays LG then moves "wxyz" to it; D keeps its length 10 - the stores are into slices):
       *>   typed     D(1:N) N=6   6 >= 4   -> TG:ABCD|  d=wxyzEFGHIJ|10

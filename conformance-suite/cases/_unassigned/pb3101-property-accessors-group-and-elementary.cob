@@ -11,7 +11,7 @@
       *> cite.py --check 8.4.3.9.3 "The data description of the item specified in the RETURNING phrase of the
       *>   get property method shall be the same as the data description of the item specified as the USING
       *>   parameter of the set property method" -> OK 8.4.3.9.3 7)
-      *> COBOLNET2727 on the set property method.
+      *> COBOL2727 on the set property method.
        IDENTIFICATION DIVISION.
        CLASS-ID. K3101T.
        IDENTIFICATION DIVISION.

@@ -16,7 +16,7 @@
       *>     condition-1." -> OK 4) a) 4.
       *> Each EVALUATE below has exactly one matching WHEN, so each leg fails if its pair's truth values are
       *> compared wrongly. Before this change the word object was bound as a condition, which refused conforming
-      *> source through the COBOLNET2319 internal-error net.
+      *> source through the COBOL2319 internal-error net.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1668EVT.
        PROCEDURE DIVISION.

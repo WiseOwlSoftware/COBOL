@@ -13,7 +13,7 @@
       *> inside that bound, and legal from COBOL-2014 (constructs row
       *> literal-length-8191-2014, VCR row 7.43, derived: the bound is
       *> 160 below 2014). The twin below 2014 is
-      *> pb1615-literal-above-160-below-2014 (COBOLNET0814).
+      *> pb1615-literal-above-160-below-2014 (COBOL0814).
       *> EXPECTED OUTPUT, DERIVED (why each leg can fail):
       *>   The literal is 100 "A" then 100 "B", moved to the 200-
       *>   position item W. Position 100 is the last "A" and 101 the

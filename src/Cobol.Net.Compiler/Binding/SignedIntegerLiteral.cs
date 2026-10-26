@@ -17,7 +17,7 @@ using Core = CobolParserCore;
 /// more than one sign character. If a sign is used, it shall appear as the leftmost character of the
 /// literal."</i> — and a literal is ONE character-string, so a space between the sign and its digits makes the
 /// two things two things. The violation is REPORTED once, for this rule and <c>signedNumericLiteral</c> alike, by
-/// <c>LiteralScreen</c> (COBOLNET2155; kb/Work PB1445); this reader only declines to read the separated sign
+/// <c>LiteralScreen</c> (COBOL2155; kb/Work PB1445); this reader only declines to read the separated sign
 /// as part of the value.</para>
 ///
 /// <para>⛔ THE VALUE IS NOT WHAT <c>GetText()</c> RETURNS, and the difference is not cosmetic: ANTLR's

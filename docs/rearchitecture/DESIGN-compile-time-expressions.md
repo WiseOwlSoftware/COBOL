@@ -11,14 +11,14 @@
 **§7.3.3 SR10 (a general syntax rule over EVERY compiler directive):** *"A literal in a compiler directive shall
 not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal."*
 This governs every `>>DEFINE` / `>>EVALUATE` / `>>IF` operand and every literal inside a cce. Consequences the
-evaluator enforces (COBOLNET1619) — and the reason the shared arithmetic core is CONSUMER-agnostic:
+evaluator enforces (COBOL1619) — and the reason the shared arithmetic core is CONSUMER-agnostic:
 
 * **No floating-point literal** as a directive operand — even a *sole* one. (The CONSTANT data entry `01 c CONSTANT
   AS …`, §13.10.3, is NOT a compiler directive, so it DOES admit a sole floating-point literal — `EvaluateArithmeticOperand`
   keeps that behavior; the §7.3.3 SR10 bar lives in the frontend-only `EvaluateOperand`/`EvaluateDirectiveArithmetic`,
   never in the shared arithmetic core.) The figurative `ZERO` is barred in BOTH consumers, by two rules: the directive
-  entry states §7.3.3 SR10 (COBOLNET1619) before the core runs, and the core's `EvalArith` itself refuses a
-  `ZERO_ARITH` operand under §7.3.6.2 SR1b / §13.10.3 SR6 (the CONSTANT entry's COBOLNET1547) — an operand that is
+  entry states §7.3.3 SR10 (COBOL1619) before the core runs, and the core's `EvalArith` itself refuses a
+  `ZERO_ARITH` operand under §7.3.6.2 SR1b / §13.10.3 SR6 (the CONSTANT entry's COBOL1547) — an operand that is
   not a fixed-point numeric literal is no operand of ANY compile-time arithmetic expression (kb/Work PB1229).
 * **No figurative constant** (`ZERO`/`SPACE`/`HIGH-VALUE`/`LOW-VALUE`/`QUOTE`/`ALL "literal"`) — in an arithmetic
   operand (`ZERO_ARITH`), a non-numeric operand (`figurativeConstant`), or a boolean operand. So a compile-time
@@ -83,21 +83,21 @@ The conditional-compilation stage (§7.2 text-manipulation) has two different jo
 **Syntax is a property of the directive line; only EVALUATION and EMISSION depend on the branch** (§7.2.1: "compiler
 directives" shall be "syntactically correct in the initial source text and library text", and the false path of an IF or
 EVALUATE is part of that text; kb/Work PB1363, PB1364, PB1367, PB806). So the driver keeps three questions apart:
-*structure* (the `Frame` stack: kind, phase, the library text it opened in — COBOLNET2649, judged in every branch),
+*structure* (the `Frame` stack: kind, phase, the library text it opened in — COBOL2649, judged in every branch),
 *operand syntax* (every directive line is asked of `CompilerDirectiveCatalog.CheckOperand` in every branch, and the
 conditional-compilation arms fragment-parse their operands in an omitted branch with `CheckOperandSyntax` /
-`CheckCceSyntax`, which report a malformed operand as COBOLNET1619 and never need a value) and *evaluation* (names,
+`CheckCceSyntax`, which report a malformed operand as COBOL1619 and never need a value) and *evaluation* (names,
 categories, division, which WHEN matches — a compiled branch only, because an omitted branch's `Q` need not be a
 compilation variable). A `>>DEFINE` in an omitted branch is checked against its general format and its operand is
 parsed, but it applies nothing.
 
 **Every fragment comes through one of three funnels** (`ParseOperandFragment` / `ParseCceFragment` /
 `ParseDisplayFragment` in `ConditionalCompilationProcessor`; `LiteralScreenDriftTests` pins that nothing else calls
-`DirectiveExpressionFragment`), and each funnel asks two things of it: is it a fragment (COBOLNET1619) and is every literal
+`DirectiveExpressionFragment`), and each funnel asks two things of it: is it a fragment (COBOL1619) and is every literal
 in it sound (kb/Work PB1616). A directive operand is lexed apart from the unit, so the unit-tree walk never reaches its
 literals; the funnel hands the fragment to `LiteralScreen`, the body the unit walk uses, so a directive literal draws the
-codes the same literal draws in the program text — COBOLNET0814 (length), COBOLNET1635 (hexadecimal grouping),
-COBOLNET2630 (repertoire) — in a compiled branch and an omitted one alike (§7.2.1). The edition gates of a literal's
+codes the same literal draws in the program text — COBOL0814 (length), COBOL1635 (hexadecimal grouping),
+COBOL2630 (repertoire) — in a compiled branch and an omitted one alike (§7.2.1). The edition gates of a literal's
 FORMAT (the hexadecimal alphanumeric literal, 2002; the zero-length literal, 2014) are asked in a compiled branch only,
 as the directive's own gate and `BooleanOperatorGate` are. A fragment holding an unsound literal is never evaluated, so
 the evaluator's decoders (which answer "" for such a literal) can never supply an operand's value. Words whose operand a downstream stage parses (`TURN`, `FLAG-02`, `FLAG-14`,
@@ -113,7 +113,7 @@ utilities, now reachable by both layers:
 * **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `CobolNet.Common`
   unchanged; all Compiler `using`s still resolve). **Done, build-verified.**
 * **`NumericLiteral.Normalize`** — the §12.3.7 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
-  `DataBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOLNET0895 byte-identically. **Done,
+  `DataBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
   build-verified.**
 
 `PicCategory` stays in Compiler — the evaluator uses its own `CtCategory`; the binder adapts at the call boundary.
@@ -162,7 +162,7 @@ cceRelationOrBoolean
   binding fact).
 * **Edition gate.** A compile-time boolean expression is formed per §8.8.2 OF THE TARGETED EDITION, so each
   evaluated fragment asks the ONE boolean-operator introduction gate (`BooleanOperatorGate`, shared with
-  `VersionConformancePass`): a `B-SHIFT-*` below 2023 is COBOLNET0900, exactly as its runtime twin (kb/Work
+  `VersionConformancePass`): a `B-SHIFT-*` below 2023 is COBOL0900, exactly as its runtime twin (kb/Work
   PB1370; `BooleanExpressionGateSiteDriftTests` pins both fragment sites). The evaluator
   dispatches on **which operand sub-node parsed**, not a token guess — necessary because `booleanExpression →
   valueOperand` would otherwise match every arithmetic/non-numeric operand.
@@ -192,7 +192,7 @@ cceRelationOrBoolean
   (the whole-`>>`-facility introduction gate below 2002 is ledger C15). Recorded coupling: `Latest` also relaxes
   fixed-point digit capacity (§8.3.3.3.2), closed with C15 when the real edition is threaded.
 * An error-flag listener (the `FunctionArgFragment.SyntaxErrorFlag` pattern) turns any syntax error into a loud
-  `COBOLNET1619`; a partial parse is never evaluated.
+  `COBOL1619`; a partial parse is never evaluated.
 
 ## 5. The shared evaluator API — GR5/GR3 owned at the public boundary
 
@@ -256,8 +256,8 @@ through the same `decimal` parse a literal always used.
 ### 5.2 Diagnostics — code-preserving, per-consumer citations
 
 `ICtDiagnostics.Report(CtDiagCode code, string message)` preserves the diagnostic CODE (a bare `Action<string>`
-sink would drop it): the binder maps each `CtDiagCode` to its `DiagnosticCatalog` descriptor (COBOLNET0895 GR14a,
-the `ConstantEntryRule` messages) → byte-identical binder codes; the frontend maps to **COBOLNET1619**
+sink would drop it): the binder maps each `CtDiagCode` to its `DiagnosticCatalog` descriptor (COBOL0895 GR14a,
+the `ConstantEntryRule` messages) → byte-identical binder codes; the frontend maps to **COBOL1619**
 (directive-expression violation). `CtOperandVocabulary` supplies the per-consumer noun + governing citation so no
 message mis-cites: the evaluator's shared text cites only the shared §7.3.6.2 SR1a/b/c and §8.8.2; the operand-
 source clause ("previously defined numeric **constant-name**, §13.10.3 SR2/GR1" for the binder; "previously
@@ -267,7 +267,7 @@ text may differ by that one clause from today (CONSTANT goldens updated same com
 ### 5.3 Numeric-literal normalization
 
 The one chokepoint is `CobolNet.Common.NumericLiteral.Normalize` (Frontend, §3) — §12.3.7 GR14a. The binder
-passes its real `DecimalPointIsComma` and routes the issue to COBOLNET0895; the **frontend passes `false`** —
+passes its real `DecimalPointIsComma` and routes the issue to COBOL0895; the **frontend passes `false`** —
 directives are processed before SPECIAL-NAMES is bound (§7.2), so a directive numeric literal is always
 dot-decimal (a stated, spec-grounded limitation).
 
@@ -278,7 +278,7 @@ A compile-time boolean value is a **bit string** — an immutable `BitString` wi
 boolean literals `B"1010"` (decoded via `CobolLiteral`), grouped sub-expressions, and previously-defined boolean
 compilation-variable substitutions. **No figurative operands** — §7.3.7.2 SR1 admits only boolean literals, and
 §7.3.3 SR10 bars the figurative `ZERO`/`ALL "literal"` the runtime §8.8.2 admits — so `BitString` carries NO
-positionless (figurative) case (a figurative boolean operand is a COBOLNET1619 formation error at the leaf, §0).
+positionless (figurative) case (a figurative boolean operand is a COBOL1619 formation error at the leaf, §0).
 
 **Precedence is implemented correctly, including the context-inherited shift precedence (rule 7b), in ONE shared
 mechanism.** A CFG cannot express context-dependent precedence, so `BooleanExpressionResolver.Resolve<T>`
@@ -297,10 +297,10 @@ mechanism.** A CFG cannot express context-dependent precedence, so `BooleanExpre
   grouping serves the compile-time evaluator (`T = BitString`, folds) and the runtime `COMPUTE` Format-2 boolean
   binder (`T = BoundBoolExpr`, builds). This is the singular fix.
 
-**This removes the prior `COBOLNET1569` reject** in `ConditionBinder` (`ShiftMixedWithBinary`), which refused the
+**This removes the prior `COBOL1569` reject** in `ConditionBinder` (`ShiftMixedWithBinary`), which refused the
 legal mixed shift-with-binary form and told the user to parenthesize — a conformance gap that rejected valid
 source. `ConditionBinder`'s tier-walk (`BindBoolExpr/Xor/And/Shift`) is refactored onto `Resolve<T>`; the mixed
-form is now accepted and evaluated per rule 7b. Existing COBOLNET1569 tests flip from reject to accept-and-verify.
+form is now accepted and evaluated per rule 7b. Existing COBOL1569 tests flip from reject to accept-and-verify.
 
 `BitString`'s fold mirrors the runtime `CobolBool` kernel EXACTLY (the proven §8.8.2 implementation; the algorithm
 — not the code — is shared: it was written before the Frontend → Runtime reference of §3 existed). Operator/operand semantics
@@ -314,17 +314,17 @@ form is now accepted and evaluated per rule 7b. Existing COBOLNET1569 tests flip
   Table 4's: after a shift operator only a single identifier or literal may appear, so a compound (`1 + 1`),
   parenthesized (`(1)`) or separately-signed (`- 1`) count is refused by the SHARED formation screen
   (`ArithmeticFormationRules.ShiftCountNotSoleOperand`, which the runtime `ExpressionFormationPass` runs too —
-  COBOLNET1719 there, COBOLNET1619 here). The single operand is then held to §5.5 2) a)'s INTEGER LITERAL by FORM
+  COBOL1719 there, COBOL1619 here). The single operand is then held to §5.5 2) a)'s INTEGER LITERAL by FORM
   (`NumericLiteral.IsIntegerLiteralForm` — "contains no decimal point", §8.3.3.3.2): a literal as written, or a
   numeric compilation variable's literal (§7.3.11.4 GR1), so `1.0` and a variable holding `1.5` are refused
   rather than truncated (kb/Work PB1413). Rule 8 specifies a single shift, repeated `count` times when `count` is greater than 1; a
   `count==0` is identity (the shift repeated zero times leaves the operand unchanged). §8.8.2 assigns no meaning to
   a **negative** repetition count, so — a directive value must be determinate, never a silently wrong value — a
-  negative count is rejected loudly (COBOLNET1619). Logical (zero-fill) vs circular (wrap); result length = first
+  negative count is rejected loudly (COBOL1619). Logical (zero-fill) vs circular (wrap); result length = first
   operand; `count ≥ length` degenerates correctly.
 * **Rules 4/5 ALL-adjacency are moot for the compile-time fold** — §7.3.3 SR10 rejects any figurative operand at
   the leaf UPSTREAM, so no `ALL literal` operand ever reaches a binary/shift combine. (The runtime `ConditionBinder`
-  keeps its COBOLNET1511 rule-4/5 checks — it DOES admit the §8.8.2 figuratives; only the frontend fold does not.)
+  keeps its COBOL1511 rule-4/5 checks — it DOES admit the §8.8.2 figuratives; only the frontend fold does not.)
 
 The **`boolExprAhead()` predicate** (`CobolParserCoreBase`) was completed to also detect the four shift operators
 `B-SHIFT-L/R/LC/RC` (never legal user words), so a shift-only boolean expression (`A B-SHIFT-L 2`) is recognized —
@@ -340,9 +340,9 @@ both in the directive fragment (`compileTimeOperand`) and, as a latent-gap fix, 
   specified in 8.8.4.9", so these tiers are the runtime condition tiers' connectives over a compile-time leaf:
   ANTLR has no parameterized rules, so they are a second spelling, and `ConditionTierConnectiveDriftTests` requires
   each cce tier's connective shape (operand rule names masked) to equal its runtime tier's. The copy had drifted —
-  no XOR tier and a self-recursive NOT, so `>>IF 1 = 2 XOR 1 = 1` was COBOLNET1619 and `>>IF NOT NOT 1 = 1`
+  no XOR tier and a self-recursive NOT, so `>>IF 1 = 2 XOR 1 = 1` was COBOL1619 and `>>IF NOT NOT 1 = 1`
   compiled (kb/Work PB1371). The XOR connective's 2023 introduction gate is `LogicalOperatorGate`, asked per
-  fragment by `EvaluateCceText` (the `BooleanOperatorGate` precedent), so below 2023 it is COBOLNET0900. No
+  fragment by `EvaluateCceText` (the `BooleanOperatorGate` precedent), so below 2023 it is COBOL0900. No
   abbreviated relation: SR1 d) — "Abbreviated combined relation conditions shall not be specified".
 * **`definedCondition`** — `IS [NOT] DEFINED` per §7.3.8.4.4.
 * **Relation** (§8.8.4.2 / §7.3.8.2 SR1a) — evaluate both operands to `CtValue`s: **SR1a.1** reject a
@@ -375,9 +375,9 @@ stream it names, before the diagnostics. UPON (GR5, GR6; DOC-A.1-54): no phrase 
 output device-names CONSOLE and SYSOUT are the compiler's standard output, SYSERR its standard error; a device-name is a row of
 the ONE `ImplementorNames` table (which therefore lives in `Cobol.Net.Editions`, beside the directive catalog, where the
 front end and the binder both read it); §5.2.6.4's choice indicators — the device group and LISTING each at most once, in any
-order — are checked once per phrase (COBOLNET2698). A PARAMETER value that the environment does not supply makes the whole
+order — are checked once per phrase (COBOL2698). A PARAMETER value that the environment does not supply makes the whole
 directive transfer nothing (GR3). A violation reports and transfers nothing; a directive in an omitted branch does not run.
-Presence of an operand is the catalog's (`directiveOperand.operandRequired`, COBOLNET1911), content is the stage's.
+Presence of an operand is the catalog's (`directiveOperand.operandRequired`, COBOL1911), content is the stage's.
 
 ## 9. Compilation-variable value model
 
@@ -396,7 +396,7 @@ fill, §11.9.10.3 SR1; CURRENCY SIGN's no-hexadecimal operand, §12.3.7.3 SR26) 
 Member-wise record equality is **replaced by a hand-written `Equals`** dispatching on `Category` (Numeric →
 `Number` by VALUE — `CobolDec.Compare`, with `CtNumeric.ValueHash` for the hash, never the carrier's member-wise
 `(Sig, Exp)` — so `AS 1` / `AS 01` / `AS 1.0` are the same value and SR2 does not fire on spelling;
-Alnum/National → `Text`; Boolean → `Bits` value-equality). `AS PARAMETER` (GR4, landed) and the SR2/COBOLNET1618
+Alnum/National → `Text`; Boolean → `Bits` value-equality). `AS PARAMETER` (GR4, landed) and the SR2/COBOL1618
 redefinition check (landed) use this model.
 
 **`AS PARAMETER` classifies the environment value syntactically (kb/Work PB1626; DOC-A.1-49).** The form of the value is
@@ -416,7 +416,7 @@ one). The design's earlier "greenfield-only path" posture is superseded by reali
 with directives (`legacy-integration-tests/SpecFixTests.cs` CC1–CE3 run `>>DEFINE`/`>>IF`/`>>EVALUATE`
 end-to-end through `Compilation.cs`). The shared evaluator REPRODUCES the old single-token-operand behavior
 (single literal, defined-condition, relation, THROUGH range, compound cce) exactly, so those tests stay green;
-the rewrite only ADDS correct multi-token evaluation (the closed defect) and loud COBOLNET1619 rejects. The
+the rewrite only ADDS correct multi-token evaluation (the closed defect) and loud COBOL1619 rejects. The
 `directive_expressions` 2002 conformance golden passes BOTH the greenfield `CorpusRunnerTests` and the legacy
 `ConformanceTests` (its cce directives fold to a DISPLAY-only surviving program both pipelines compile
 identically), so no `GreenfieldOnly` exclusion is needed. **Gate:** the full legacy guard (`scripts/guard.sh`)
@@ -443,10 +443,10 @@ admits no underscore in any alternative. Tracked as a REJECTS-LEGAL-SOURCE defec
   SR1, formation-error-in-short-circuited-branch).
 * **Unit — frontend directive** (extend `ConditionalCompilationDefineTests`): `>>DEFINE X AS 1 + 2` ⇒ 3;
   `>>EVALUATE 1 + 1` selects `WHEN 2`; `>>IF A + 1 = B`; boolean DEFINE + `>>IF`; `>>IF NAME = "ABC"`;
-  `A IS NOT = 1`; `((A = 1))`; category-mismatch reject; THRU-non-numeric reject; loud COBOLNET1619; existing
+  `A IS NOT = 1`; `((A = 1))`; category-mismatch reject; THRU-non-numeric reject; loud COBOL1619; existing
   PARAMETER/OFF/OVERRIDE/SR2-1618 still green.
 * **Runtime COMPUTE-F2** — the mixed shift-with-binary forms now accepted and evaluated per rule 7b (was
-  COBOLNET1569); goldens for the grouping.
+  COBOL1569); goldens for the grouping.
 * **Conformance** — a 2002 `>>DEFINE`/`>>IF`/`>>EVALUATE` program (arithmetic + boolean operands), `.out` golden.
 * **Regression** — CONSTANT-entry goldens (`constant_entry.cob`) for the operand-source-clause wording;
   characterization; full legacy guard green.

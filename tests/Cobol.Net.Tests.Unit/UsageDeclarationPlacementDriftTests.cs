@@ -83,7 +83,7 @@ public sealed class UsageDeclarationPlacementDriftTests
         // The member landed with kb/Work PB487 and this row is the verdict the missing one was holding open.
         // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it — the
         // FUNCTION-POINTER situation exactly: the usage is DECLINED non-support (Annex A.3 item 4), refused by
-        // name at ParseUsage with COBOLNET1943, so its bound PicInfo is a recovery shape and the CLASS arm
+        // name at ParseUsage with COBOL1943, so its bound PicInfo is a recovery shape and the CLASS arm
         // never sees it, but the WRITTEN clause is visible to the screen and the rule governs it.
         // SR21 ("If the MESSAGE-TAG phrase is specified, no other usage phrase shall be specified in the same
         // data description entry") stays unreachable rather than unimplementable: no message-tag item can ever
@@ -202,7 +202,7 @@ public sealed class UsageDeclarationPlacementDriftTests
     /// report inline rather than through a <c>Screen…</c> helper.</summary>
     private static readonly Dictionary<string, string> WrittenOnlyArms = new()
     {
-        // §13.18.60.3 SR15's TYPE twin is a rule of its own, §13.18.57.3 SR8 (COBOLNET2960, DataBinder.cs).
+        // §13.18.60.3 SR15's TYPE twin is a rule of its own, §13.18.57.3 SR8 (COBOL2960, DataBinder.cs).
         ["UsageObjectReferenceFileSection"] = "§13.18.57.3 SR8 is the TYPE twin",
         // SR14 arm A judges a GROUP that WROTE one of the phrases; a TYPE entry writes no USAGE clause.
         ["UsageDeclarationPlacement"] = "SR14 arm A: a group's own written USAGE",

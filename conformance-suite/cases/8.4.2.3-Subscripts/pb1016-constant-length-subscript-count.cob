@@ -8,7 +8,7 @@
       *> SR3: "the number of subscripts shall equal the number of OCCURS clauses in the description of the table
       *> element being referenced". CELL is subordinate to TWO OCCURS clauses and ONE subscript is written - hung
       *> off the qualification, the spelling the constant binder's private suffix walk never looked at.
-      *> Rejected by the ONE procedure-division screen, COBOLNET2097. (85 has no constant entry at all.)
+      *> Rejected by the ONE procedure-division screen, COBOL2097. (85 has no constant entry at all.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1016NEG2.
        DATA DIVISION.

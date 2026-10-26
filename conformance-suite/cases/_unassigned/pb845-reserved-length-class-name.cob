@@ -7,7 +7,7 @@
       *> kb/Work PB845. ISO 8.3.2.1 5): intrinsic-function-names may be
       *> user-defined words "except for ... intrinsic function names
       *> LENGTH, RANDOM, SIGN, and SUM", and 8.9 reserves LENGTH at every
-      *> edition, so a class-name LENGTH is COBOLNET0901 everywhere.
+      *> edition, so a class-name LENGTH is COBOL0901 everywhere.
       *> Before the fix LENGTH was exempt from the reservation gate and
       *> `IF X LENGTH` compiled as a class condition.
        IDENTIFICATION DIVISION.

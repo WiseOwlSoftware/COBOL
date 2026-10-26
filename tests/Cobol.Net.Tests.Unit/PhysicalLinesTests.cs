@@ -128,7 +128,7 @@ public sealed class PhysicalLinesTests
     }
 
     [Fact] // kb/Work PB1586 (DOC-A.1-157): a TAB is expanded BEFORE the indicator area is read — `<TAB><TAB>DISPLAY` is
-    // a SOURCE line whose program text starts at position 17; before, 'L' was read as the indicator (COBOLNET2616).
+    // a SOURCE line whose program text starts at position 17; before, 'L' was read as the indicator (COBOL2616).
     public void FixedForm_TabsAreExpandedBeforeTheIndicatorAreaIsRead()
     {
         var (text, bag) = Normalize("\t\tDISPLAY \"T\".\n", InitialReferenceFormat.Fixed, std: 85);
@@ -173,7 +173,7 @@ public sealed class PhysicalLinesTests
     }
 
     [Theory] // §6.1 3) a): "ranging from a minimum of 0 to a maximum of 255" — a free-form line of more than 255
-    // positions is COBOLNET2653, at every edition the free-form reading exists in (kb/Work PB1496).
+    // positions is COBOL2653, at every edition the free-form reading exists in (kb/Work PB1496).
     [InlineData(255, 0)]
     [InlineData(256, 1)]
     [InlineData(300, 1)]
@@ -182,7 +182,7 @@ public sealed class PhysicalLinesTests
         foreach (int std in new[] { 85, 2002, 2014, 2023 })
         {
             var (_, bag) = Normalize(new string('A', positions) + "\n", InitialReferenceFormat.Free, std);
-            Assert.Equal(expectedDiagnostics, bag.Diagnostics.Count(d => d.Code == "COBOLNET2653"));
+            Assert.Equal(expectedDiagnostics, bag.Diagnostics.Count(d => d.Code == "COBOL2653"));
         }
     }
 
@@ -191,22 +191,22 @@ public sealed class PhysicalLinesTests
     {
         string ok = new string('A', 247) + "\t";   // 247 + the one-position gap to the tab stop at 248 → 248
         string tooLong = new string('A', 248) + "\t";   // 248 + 8 → 256
-        Assert.DoesNotContain(Normalize(ok + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOLNET2653");
-        Assert.Contains(Normalize(tooLong + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOLNET2653");
+        Assert.DoesNotContain(Normalize(ok + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOL2653");
+        Assert.Contains(Normalize(tooLong + "\n", InitialReferenceFormat.Free).Bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 
     [Fact] // §6.1 2) b): a fixed-form line may be longer than a free-form one — only its program-text area counts.
     public void FixedForm_IsNotSubjectToThe255PositionLimit()
     {
         var (_, bag) = Normalize("       DISPLAY \"A\"." + new string(' ', 240) + "TAG\n", InitialReferenceFormat.Fixed);
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET2653");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL2653");
     }
 
     [Fact] // a >>SOURCE FORMAT FREE segment of a fixed-form file is a free-form reading too: the limit applies there.
     public void FreeSegmentOfAFixedFile_IsSubjectToTheLimit()
     {
         var (_, bag) = Normalize(">>SOURCE FORMAT FREE\n" + new string('A', 256) + "\n", InitialReferenceFormat.Fixed);
-        Assert.Equal(1, bag.Diagnostics.Single(d => d.Code == "COBOLNET2653").Location.Line);   // line 2 (0-based 1)
+        Assert.Equal(1, bag.Diagnostics.Single(d => d.Code == "COBOL2653").Location.Line);   // line 2 (0-based 1)
     }
 
     [Fact] // DOC-A.1-156: a lone CR does not end a line — `>>` after it is not at a line start.
@@ -218,7 +218,7 @@ public sealed class PhysicalLinesTests
         // takes a lone CR as a character of the line).
         Assert.Equal("DISPLAY \"A\"\r", text.Split('\n')[0]);
         Assert.Equal("X", text.Split('\n')[1]);
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2691");
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2691");
     }
 
     [Fact] // the lines of a SOURCE FORMAT segment keep the FILE's numbers (the stage numbers the lines once).
@@ -228,7 +228,7 @@ public sealed class PhysicalLinesTests
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(
             ">>SOURCE FORMAT FIXED\n      *\n" + "000100" + "X" + "DISPLAY \"A\".\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob",
             InitialReferenceFormat.Free);
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2616" && d.Location.Line == 2);   // line 3 (0-based 2)
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2616" && d.Location.Line == 2);   // line 3 (0-based 2)
         Assert.Equal(3, m.Lines[2].Origin.Line);
     }
 }

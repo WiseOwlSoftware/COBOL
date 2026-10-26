@@ -8,7 +8,7 @@
       *> OCCURS DEPENDING table holds variable-length ELEMENTS are COBOL-2014 programs: the
       *> DYNAMIC LENGTH clause that makes each occurrence a variable-length group (ISO
       *> 8.5.1.12.1, 13.18.19) is a 2014 addition, so editions 85 and 2002 reject the
-      *> description with the edition-band diagnostic COBOLNET0900 BEFORE the statements'
+      *> description with the edition-band diagnostic COBOL0900 BEFORE the statements'
       *> compatibility rule (14.9.25.3 SR9, 8.5.1.12) is ever in question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NCA.
