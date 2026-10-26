@@ -75,3 +75,5 @@ is bounded at eight frames; `cite.py --check` passed on every clause cited; `sem
 are unchanged.
 
 Gate (run 000001-20261026T191128Z, head 70be735c0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,858/18,844, Unit 37,429/38,430, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
+
+Review-finisher gate (run 000001-20261026T201211Z, head 245a26d5f, the merge of main's PB3575 prefix rename): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,255/18,844, Unit 37,289/38,449, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN). Before it, the whole Conformance population (18,844) and the whole Unit population ran green on the merged tree but for the two absent-corpus environment tests.
