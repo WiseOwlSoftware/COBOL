@@ -1,4 +1,4 @@
-## PB3849 and PB3850 filed: a notes-only commit pays a full gate and review, and the work-note merge keeps both sides of a replaced line
+## Entry 2629 — 2026-10-26 15:16 PDT — PB3849 and PB3850 filed: a notes-only commit pays a full gate and review, and the work-note merge keeps both sides of a replaced line
 
 The owner, on PB3837's merge (15:12, relayed by the Mythos lane): "20 minutes for a stupid one line change". Two
 defects, filed as their own cluster (PB3849, also PB1957 tier 1) to be planned first once PB3837 lands.
@@ -13,3 +13,4 @@ branch review caught it; the Mythos lane's mechanical check (each merged file eq
 103) belongs in the conflict finisher's exit check.
 
 Rows re-verdicted: none. No code changed.
+
