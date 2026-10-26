@@ -203,6 +203,18 @@ r = am.adopt(REPO, COORD, GREEN, dry_run=True, impact=lane)
 check("a dry run asks the lane nothing", (r.action, asked), (am.KEPT, [lane_new, lane_new]))
 check("the default lane is the real one", am.adopt.__kwdefaults__["impact"], am.impact_lane.request)
 
+
+def lane_raises(repo, cdir, sha):
+    raise KeyError("state")
+
+
+loaded_head = head()
+new_fix = land("a process fix beside a lane that raises", {"scripts/orchestrator/orchestrate.ps1": "v4\n"})
+r = am.adopt(REPO, COORD, GREEN, loaded=loaded_head, impact=lane_raises)
+check("a lane that raises neither hides the adoption nor the supervisor's restart trigger",
+      (r.action, r.after, r.supervisor_changed, "the lane raised KeyError" in r.impact, "the lane raised KeyError" in r.line),
+      (am.ADOPTED, new_fix, True, True, True))
+
 # 9. the command line: `require` is an exit code, a missing GitHub CLI keeps the checkout and says so, and the planner refuses
 py = [sys.executable, str(HERE / "adopt_main.py")]
 am.record(COORD, "f" * 40, head())   # the floor section 8 set and 8b moved: a commit the checkout never fetched

@@ -153,7 +153,12 @@ def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_r
     if changed:
         r = dataclasses.replace(r, supervisor_changed=True, changed=changed)
     if not dry_run and r.action in (ADOPTED, CURRENT) and r.after:
-        r = dataclasses.replace(r, impact=impact(repo, cdir, r.after))
+        try:
+            words = impact(repo, cdir, r.after)
+        except Exception as e:  # noqa: BLE001  (the checkout has already moved: a lane that raises must not hide the
+            # restart trigger above or the adoption itself from the supervisor, which reads this routine's JSON)
+            words = f"impact map: the lane raised {type(e).__name__}: {e}; no recording was started for {r.after[:9]}"
+        r = dataclasses.replace(r, impact=words)
     return r
 
 

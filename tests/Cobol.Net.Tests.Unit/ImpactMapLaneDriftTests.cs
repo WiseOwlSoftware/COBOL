@@ -63,6 +63,9 @@ public sealed class ImpactMapLaneDriftTests
             "a lane that cannot decide reports it, never raises",
             "the loop's own request names no store",
             "measure counts the gate plans a map served",
+            "counts a plan file it cannot read, never drops it silently",
+            "a live Python naming impact_lane.py is the worker",
+            "a worker that raises reports the commit it held FAILED",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("spec", "impact_store.py"),
         [
@@ -73,6 +76,7 @@ public sealed class ImpactMapLaneDriftTests
             "prune keeps the newest map and the map serving each live base",
             "tidy removes a RECORDED recording's work directory",
             "tidy keeps the failed recording's work directory for its diagnosis",
+            "a map that cannot be removed is reported busy and the prune goes on",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("spec", "record_impact_map.py"),
         [
@@ -86,6 +90,7 @@ public sealed class ImpactMapLaneDriftTests
             "a CURRENT checkout asks again",
             "a KEPT outcome asks the lane nothing",
             "a dry run asks the lane nothing",
+            "a lane that raises neither hides the adoption nor the supervisor's restart trigger",
         ]);
     }
 
@@ -95,8 +100,9 @@ public sealed class ImpactMapLaneDriftTests
     public void OnlyAnAdoption_AsksTheLane_ForAnAdoptedOrCurrentCommit()
     {
         string adopt = File.ReadAllText(TestRepo.Scripts("orchestrator", "adopt_main.py"));
-        Assert.Matches(new Regex(@"not dry_run and r\.action in \(ADOPTED, CURRENT\) and r\.after:\s+r = dataclasses\.replace\(r, impact=impact\(repo, cdir, r\.after\)\)",
+        Assert.Matches(new Regex(@"not dry_run and r\.action in \(ADOPTED, CURRENT\) and r\.after:\s+try:\s+words = impact\(repo, cdir, r\.after\)",
             RegexOptions.NonBacktracking), adopt);
+        Assert.Contains("r = dataclasses.replace(r, impact=words)", adopt, StringComparison.Ordinal);
         Assert.Contains("impact: Callable[[pathlib.Path, pathlib.Path, str], str] = impact_lane.request", adopt, StringComparison.Ordinal);
 
         var starters = new List<string>();

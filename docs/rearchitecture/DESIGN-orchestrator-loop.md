@@ -743,7 +743,11 @@ recording's work directory for its diagnosis until the next tidy.
 **Measured use, the real bar.** `python scripts/orchestrator/impact_lane.py measure [--since ISO]` counts the gates'
 plans (`TestResults/build-local/<run>/plan.json`, `map_state`) a map served: `exact`, `documentation-only drift` or
 `nearest`, against `none` (and the retired `stale`). Before the lane: 72 plans on the owner's machine, all `none`. The
-staleness rule that would have defeated the lane is replaced (DESIGN-test-build-ci.md §3.13, "which map serves a base").
+staleness rule that would have defeated the lane is replaced (DESIGN-test-build-ci.md §3.13, "which map serves a base"):
+main moved 44 landings in the 5.9 hours after the replay's map was recorded, and a map recorded at adoption is therefore
+almost never at the base of a gate. With the replacement, all 44 of those landings read a map and 18 of the 22 that changed
+code were attributed (§3.13, "Measured"). The bar's remaining half, the share of implementer gates that read a map over the
+first day of waves, is `measure --since` after this lands.
 
 **Tests.** `impact_lane.py --self-test` (scratch repository and coordination directory, a fake worker launcher and a fake
 recorder: one worker started, the coalesce, the replacement of a queued commit, the skips, the failure's line, mailbox

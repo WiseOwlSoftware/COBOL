@@ -894,6 +894,20 @@ file outside `drift` is attributed by line range exactly as before. A change to 
 level: every test that executed any method of it is tier 1 (`impacted_tests.drifted_change`), and a file new since the
 map's commit, which the map has never seen, puts every test in tier 1 with that reason printed. A test added since the
 map's commit is not in it and is tier 0u (§3.14.2); a reach the map under-states costs a later red, never a missed one.
+
+**Measured (2026-10-25, kb/Work PB3663).** One map, recorded at `315f9eb98`, replayed against the 44 landings that
+followed it over 5.9 hours (the base of each: its first parent; 22 changed a file under `src/` or `tests/`, 22 only
+documentation, kb, scripts or `.claude`): all 44 were served (1 `exact`, 43 `nearest`) where the earlier rule would have
+read 43 of them stale; of the 22 code-changing landings 18 were attributed (tier 1 from 0 to 17,515 of 18,580 Conformance
+tests, by what the change reaches) and 4 put every test in tier 1 (three grammar, project or generator inputs, one file new
+since the map). The replay also found two rules that fell back for no reason a test could see, now fixed: a public-API
+analyzer baseline (`PublicAPI.*.txt`) and the runtime ABI pin (`RuntimeAbi.pin`) are data a test may read and not "a non-C#
+input under `src/`" (2 landings, and PB3666's own change, whose replay then reads 6,642 of 18,832 Conformance tests in tier 1
+and both bounced goldens in leg 1 where it had read all of them), and a
+file-level change is unattributable for running only outside every test's context only when NO entry of the file was
+reached by a test (2 landings, both editing a file that holds a finalizer beside code every test runs). A hunk inside a
+method that only the ambient array reached stays unattributable. `impact_lane.py measure` repeats the count over the
+gates' own plans.
 `ImpactedTestsDriftTests` (Unit) drives every arm of both `impacted_tests.py --self-test` and
 `gate_plan.py --self-test`, proves through the real command line that a mapped change is tiered and that nothing
 it prints is a filter (M13 deleted the filter line and `--plus`, kb/Work PB1721), pins the partition-suffix contract `NameKey` relies on (§3.14.2), and requires every
