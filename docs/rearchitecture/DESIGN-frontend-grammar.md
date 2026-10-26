@@ -1372,7 +1372,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   compiler's own with one call stack per path multiplied with each nested argument list and hung on a syntax error
   three FUNCTION calls deep) and, if a configuration there holds the production's call on its stack, names the list
   rule's format through `ClosedFormats.ByRuleIndex`. The failed prediction's `DeadEndConfigs` cannot serve: SLL
-  prediction follows a rule's end to every caller (a wildcard outer context). `ResidueWalkNestingTests` holds it by the
+  prediction follows a rule's end to every caller (a wildcard outer context). `ResimulationWalkNestingTests` holds it by the
   compiling thread's allocation per nesting level, measured warm (the parse fills the parser's process-wide shared DFA
   cache, so a cold compile's bytes depend on what ran before; never a clock; a configuration count cannot see the
   stacks, because ANTLR merges configurations per state).
@@ -1642,18 +1642,31 @@ imperative-statement and named IF for an empty SEARCH or PERFORM body. The same 
 statement and after a condition the token wrongly continued (`IF A NOT <> B`, `IF A NOT <= B`). The hints that read an
 expected set (the empty block, the figurative spelling) now read it at the offending token, and a report at the token
 the previous report named is suppressed: the recovery that resumes at the decision's first token re-meets the same
-fault, which drew the same COBOL0001 twice. **Known gap (depth 0, the paired conditional phrases):** a wholly empty
-`ON SIZE ERROR`, `AT END` or `INVALID KEY` block written at statement level is refused with `COBOL0307` at the
-phrase's first word: the phrase decision fails and ANTLR's SLL fallback leaves the statement before it, so no
-configuration at the offending token still holds the statement; nested inside an open IF the same block draws
-COBOLNET2072 naming its statement. The paired-phrase grammar is kb/Work PB3830's. COBOLNET2073 fires on a WHEN OTHER phrase whose position
+fault, which drew the same COBOL0001 twice. The walk is not bounded: the dangling decision looks ahead to the end of
+the sentence, and a walk that gave up at sixteen tokens left an empty block written after a long statement unnamed
+(review R1-1); the sixteen-token bound now limits only where the closed-format residue may stand.
+**A construct the prediction closed early (review R1-2).** An optional phrase is a decision whose exit alternative ends
+the statement, and SLL prediction does not know what may follow a rule it leaves, so when the phrase's own
+alternative dies further on (`ADD 1 TO A ON SIZE ERROR END-ADD`) the exit is the one viable alternative: the ADD
+closes before ON, and the report stood at ON after a complete statement, where a period is expected (`COBOL0307` "A
+period may be missing"), while inside an open IF the same block drew COBOLNET2072 naming ADD. So where the parser
+stands at the reported token, and the construct it completed just before it can, re-simulated in full context from
+its own start, take that token, the report moves to the token where that re-simulation dies and is read with the walk
+there (`CobolErrorStrategy.OffendingPosition.CarryForward`): every Table 12 phrase family now draws the same one diagnostic at
+depth 0 and nested, the empty block COBOLNET2072 naming its statement and a failing statement the lone statement's
+COBOL0001. A re-simulation that reaches the separator period without dying, or a token the closed construct cannot
+take (`STOP RUN` then a paragraph name), leaves the report where it stands; so does a prediction refused by a semantic
+predicate at the token (the walk evaluates none), and so does a structural hint (priority 0 or less) at the token where
+the parser stands, which diagnoses the token as written; only a guess or no hint gives way. The WHEN OTHER arm (0b) asks
+the same question before it reads a present body as a misplaced phrase (COBOLNET2073). The report covers every token from the parser's position through
+the one it names, and a later report among them is the recovery re-meeting it. COBOLNET2073 fires on a WHEN OTHER phrase whose position
 is wrong, separated from an EMPTY WHEN OTHER body by one token of lookahead past OTHER (and past PERFORM Format
 3's un-underlined optional EXCEPTION). The wholly empty inline `PERFORM … END-PERFORM`, which fails on
 `performStatement`'s own alternatives decision with the parser still before PERFORM, draws COBOLNET2072 since the
 test reads the offending token's position (`AWhollyEmptyInlinePerform_IsRejected_WithTheNamedDiagnostic`).
 `RequiredImperativeStatementDriftTests` pins both directions at depth 0 and inside the open nest: a truly empty block
-of IF, ELSE, EVALUATE WHEN, PERFORM, SEARCH WHEN and (nested) ON SIZE ERROR draws COBOLNET2072 naming its own
-statement, and a block whose first statement fails inside it never does.
+of IF, ELSE, EVALUATE WHEN, PERFORM, SEARCH WHEN and every paired conditional phrase draws COBOLNET2072 naming its own
+statement, and a block whose first statement fails inside it draws the lone statement's one diagnostic instead.
 
 **⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
 `IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format
