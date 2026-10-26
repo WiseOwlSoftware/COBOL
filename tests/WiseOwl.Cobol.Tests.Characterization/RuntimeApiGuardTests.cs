@@ -27,11 +27,11 @@ namespace WiseOwl.Cobol.Tests.Characterization;
 public sealed class RuntimeApiGuardTests
 {
     /// <summary>Matches a bare runtime member-access fragment. Excluded by construction: the <c>WiseOwl.Cobol.</c>
-    /// namespace, the compiler-internal <c>CobolLiteral.</c> codec (not a runtime type), the two typed-enum
+    /// namespace (a dot follows its <c>Cobol</c>, where the pattern needs a letter), the compiler-internal <c>CobolLiteral.</c> codec (not a runtime type), the two typed-enum
     /// runtime types (<c>CobolRounding.</c>/<c>CobolPassMode.</c> — see the counting rule above), and
     /// <c>CobolNames.</c>, the ONE Annex C word fold the emitters CALL at compile time to compare COBOL words (kb/Work
     /// PB1402) — never a fragment of emitted text.</summary>
-    private static readonly Regex Bare = new(@"\bCobol(?!Net\.|Literal\.|Rounding\.|PassMode\.|Names\.)[A-Za-z0-9]+\.", RegexOptions.Compiled);
+    private static readonly Regex Bare = new(@"\bCobol(?!Literal\.|Rounding\.|PassMode\.|Names\.)[A-Za-z0-9]+\.", RegexOptions.Compiled);
 
     /// <summary>The baseline: bare-count per CodeGen file. Post-Step-12 (IntrinsicRenderer routed → entry
     /// deleted), ONLY the three expression/condition renderers remain (they route at the P9 Roslyn/
