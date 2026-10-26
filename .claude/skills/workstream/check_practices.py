@@ -27,15 +27,6 @@ LANDS = [r'enqueue\.py land', r'READY-TO-LAND <this worktree> <branch>|READY-TO-
 # role → (file, required patterns). Every brief must point at the practices file; the patterns are the practices
 # that are cheapest to lose silently.
 BRIEFS = {
-    # P4: the stamped handoff (kb/Work/PB1698) — STATUS.md names the commit it describes; a resumer reads the delta.
-    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB2515: leg 1 only; PB3022: one shape.
-    'fix-lane-implementer-brief.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'STATUS-AT:',
-                                      r'status_delta\.py', r'BUILD-LOCAL GATE: GREEN',
-                                      # PB1732 (I8): CI's Linux legs run under WSL before the report
-                                      r'linux-gate\.sh', r'FIX WHAT YOU FIND',  # I9
-                                      r'LEG 1 ONLY \(batched gating, PB2515\)'],  # PB2515: the implementer's done-state
-    'implementer-brief.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'BUILD-LOCAL GATE: GREEN',
-                             r'FIX WHAT YOU FIND', r'LEG 1 ONLY \(batched gating, PB2515\)'],  # I9; PB2515
     # PB3023: a finisher takes ONE branch enqueue.py stopped on (or the queue bounced), fixes and gates it, and returns
     # DONE: its commits are reviewed on the branch before the new tip lands (I10, L9: enqueue.py's exit 11)
     'finisher-brief.md': [r'claude-skills', POINTER, r'STOP', r'until grep -q', r'STATUS-AT:', r'build-local\.ps1 -Priority BelowNormal',
@@ -61,14 +52,23 @@ BRIEFS = {
                         r'planOf', r'--launch', r'--status', r'--append',
                         # PB2707: the launch is launch.js, the template with its plan from disk; nothing is transcribed
                         r'launch\.js', r'const A = args'],
-    'dispatch-spec-implementer.md': [r'claude-skills', r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
+    # kb/Work PB3777: the implementer's ONE instruction file. The fix-lane brief and the generic implementer brief are folded into
+    # this spec and deleted, so the patterns they carried are carried here: a practice the fold dropped is RED, never silent (O1).
+    # P4: the stamped handoff (kb/Work/PB1698) — STATUS.md names the commit it describes; a resumer reads the delta.
+    # PB1721: the gate is the ORDERED gate — `build-local.ps1 -Priority BelowNormal`; PB2515: leg 1 only; PB3022: one shape.
+    'dispatch-spec-implementer.md': [r'claude-skills', POINTER, r'BelowNormal', r'build-local\.ps1 -Priority BelowNormal', r'\{global_stop\}', r'\{stop_file\}',
                                      r'\{reports\}',  # PB2980: the report goes in coord.reports_dir(), never the wave's scratch
                                      r'until grep -q', r'where\.py', r'orient\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap \{turn_cap\}',  # PB3701: read from the agent's maxTurns, never typed
                                      r'code site', r'leg-1-Conformance\.trx', r'drift_rules\.py', r'STATUS-AT:',
                                      r'status_delta\.py',
                                      # PB1721: the ordered gate, blocked on its own verdict line
-                                     r'BUILD-LOCAL GATE: ',
+                                     r'BUILD-LOCAL GATE: ', r'BUILD-LOCAL GATE: GREEN',
+                                     # carried from the folded briefs: the checkpoint's staged-conflict assertion and
+                                     # tracked-STATUS.md drop, the stash ban, the re-probe, the sibling sweep, the
+                                     # register's verdict batch and back-link, the diagnostic catalog
+                                     r'git grep --cached', r'git reset -q -- STATUS\.md', r'git stash', r'RE-PROBE FIRST',
+                                     r'SIBLING SWEEP', r'record_verdicts\.py', r'closes_rows', r'DiagnosticCatalog',
                                      # PB1732 (I8): the LINUX GATE paragraph, rendered by host_io (PB3381:
                                      # make_dispatch_specs.LINUX_GATE; a rendered spec carries linux-gate.sh)
                                      r'\{linux_gate\}', r'FIX WHAT YOU FIND',  # I9
@@ -134,8 +134,9 @@ CAP_COPIES = [
     ('.claude/skills/workstream/SKILL.md', r'any read-only agent, (\d+) for an implementer', ('cobol-implementer',)),
     ('.claude/skills/workstream/templates/finisher-brief.md', r'Turn cap (\d+)\.', ('cobol-finisher',)),
 ]
-# The implementer briefs state NO number (they point at the spec's `Turn cap` line), so none can differ from the cap.
-NUMBERLESS_CAP_BRIEFS = ('fix-lane-implementer-brief.md', 'implementer-brief.md')
+# The implementer's spec TEMPLATE states NO number (it renders its `Turn cap {turn_cap}` line from the agent's maxTurns,
+# kb/Work PB3701), so none can differ from the cap. The briefs that once held a second statement are folded into it (PB3777).
+NUMBERLESS_CAP_BRIEFS = ('dispatch-spec-implementer.md',)
 LITERAL_CAP = re.compile(r'\b\d{2,3}[- ]turns?\b|turn cap \d|cap of \d|hard cap:? \d|~\d{3}\b', re.IGNORECASE)
 # kb/Work PB3741: the orchestrator's rules file also states no cap. Its prose quotes MEASURED turns ("about 147 turns"),
 # which are data, so only a number written as the cap itself is refused ("the 220-turn cap", "a turn cap of 220", "cap of 220 turns").
@@ -150,9 +151,32 @@ TYPED_CAP = re.compile(r'\b\d{2,3}[- ]turn cap|turn cap (?:of )?\d|cap of \d{2,3
 HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 
 
+# kb/Work PB3777: the implementer's instruction file says each rule ONCE. Its two predecessors, a spec and a brief, carried the
+# checkpoint protocol, the gate paragraph, the DEVLOG entry, I9, the citation rule and the STOP rule twice, and an implementer
+# re-read all of it on every later turn. The template and every RENDERED spec (`msg-w<wave>-<letter>.txt`) are held to it:
+# a sentence of SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file.
+ONCE_FILES = ('dispatch-spec-implementer.md',)
+RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
+SENTENCE_MIN = 60
+
+
+def repeated_sentences(text):
+    """The sentences of `text` (split after . ! ? : ;, whitespace collapsed) of SENTENCE_MIN characters or more that it
+    states more than once, in first-seen order."""
+    seen, again = set(), []
+    for s in re.split(r'(?<=[.!?:;])\s+', ' '.join(text.split())):
+        if len(s) >= SENTENCE_MIN:
+            if s in seen and s not in again:
+                again.append(s)
+            seen.add(s)
+    return again
+
+
 def check(path, pats):
     text = path.read_text(encoding='utf-8')
     missing = [p for p in pats if not re.search(p if p != POINTER else re.escape(POINTER), text)]
+    if path.name in ONCE_FILES or RENDERED_SPEC_NAME.fullmatch(path.name):
+        missing += [f'PB3777: states twice: {s[:90]}…' for s in repeated_sentences(text)]
     if HANGING_WAIT.search(text):
         missing.append('P2: a `tail -f … | grep -m1` wait (it idles to its timeout); use `until grep -q …; do sleep 5; done`')
     return missing
@@ -174,7 +198,7 @@ def turn_cap_copies(repo=None, agents_dir=None):
             found += [f'{rel}: states {n} turns for {role}, whose maxTurns is {cap}' for n in stated if int(n) != cap]
     for name in NUMBERLESS_CAP_BRIEFS:
         text = (repo / '.claude' / 'skills' / 'workstream' / 'templates' / name).read_text(encoding='utf-8')
-        found += [f'{name}: types a turn cap ({m.group(0)!r}); point at the spec\'s `Turn cap` line' for m in LITERAL_CAP.finditer(text)]
+        found += [f'{name}: types a turn cap ({m.group(0)!r}); leave it to the `Turn cap {{turn_cap}}` placeholder' for m in LITERAL_CAP.finditer(text)]
     for rel in NUMBERLESS_CAP_FILES:
         text = (repo / rel).read_text(encoding='utf-8')
         found += [f'{rel}: types a turn cap ({m.group(0)!r}); point at coord.agent_turn_cap' for m in TYPED_CAP.finditer(text)]
@@ -344,7 +368,7 @@ def main():
         bad += 1
         print('FAIL     a turn cap differs from its role\'s maxTurns (kb/Work PB3701, P5):\n' + '\n'.join(f'           {c}' for c in caps))
     else:
-        print('ok       turn caps: every statement matches its role\'s maxTurns; the implementer briefs type no number')
+        print('ok       turn caps: every statement matches its role\'s maxTurns; the implementer spec template types no number')
     groups_files = [pathlib.Path(a) for a in sys.argv[1:] if a.endswith('.json')]
     for gp in groups_files:
         cfg = json.loads(gp.read_text(encoding='utf-8'))
