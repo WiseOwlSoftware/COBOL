@@ -199,16 +199,22 @@ walk carrying what its own stdin holds: the read side of a `|` reads the stage b
 when the group writes the pipe), a group reading a pipe, a Bash substitution and a `-c` payload hand the stdin they
 inherit to their commands, and only a `|` of a walk's OWN makes a command a pipeline side (a `cd` inside a group
 that reads a pipe moves the group's later steps);
-the main checkout is that root, or the `gitdir:` target parsed out of the worktree's `.git` file (parsed, not
-shelled out — this runs before every `dotnet` call); and a foreign agent's tree is
-`<main>/.claude/worktrees/agent-<agentId>` **when that directory exists**, else the main checkout, because
-`Agent(isolation="worktree")` creates exactly that path. So N implementer agents in N worktrees build in
-parallel, a main-tree build is still denied by a live main-tree agent, and a main-tree build is *allowed* while
-only worktree agents are live. Fail-open on any error; an **unknown** tree (unreadable/unparseable `.git`, a
-directory the command line does not determine, or one outside every working tree — a scratch project can
-`ProjectReference` a worktree's project) reverts to the old session-wide deny rather than to an allow. `--self-test` fires every branch over real
-temporary worktrees and is the only thing that proves the ALLOW arm — three of this hook's four defects were it
-failing closed.
+a foreign agent's tree is the tree of the directory **the agent was launched in**, which its own transcript records
+on its first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770). The host writes that field however it
+starts an agent, so one mechanism covers `Agent(isolation="worktree")`'s `agent-<id>`, a rolling wave's
+`wf_<run>-<n>`, a named `git worktree add` and the main checkout (the guard used to infer the tree from the existence of
+`<main>/.claude/worktrees/agent-<agentId>` and read every other agent as a main-checkout agent). So N implementer
+agents in N worktrees build in parallel, a main-tree build is still denied by a live main-tree agent, and a main-tree
+build is *allowed* while only worktree agents are live. A build outside every working tree (a read-only adjudicator's
+scratch probe) writes next to the projects of its graph — the project or solution it names, or the only one in the
+directory, and the closure of their `ProjectReference`s, solution members and a file-based app's `#:project`
+directives (`build_places`) — so it is denied only by an agent working in a tree such a project references.
+Fail-open on any error; an **unknown** answer reverts to the old session-wide deny rather than to an allow: a
+directory the command line does not determine, an agent whose transcript names no launch directory or whose launch
+directory no longer exists, and a scratch graph the guard cannot read to the end (a missing project, a `$(…)` in a
+reference, an `<Import>`, a moved output path, a `Directory.Build.props`/`.targets` in an ancestor directory).
+`--self-test` fires every branch over real temporary worktrees, scratch projects and agent transcripts, and is the only
+thing that proves the ALLOW arm — three of this hook's four defects were it failing closed.
 
 ---
 

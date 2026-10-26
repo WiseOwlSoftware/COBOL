@@ -31,22 +31,29 @@ shape rule 5 forbids, and it would go stale the first time the host renamed a di
     (`build_sites`, through the shared parser `shell_location.py`, kb/Work PB2599), else the payload's `cwd` —
     the nearest ancestor holding a `.git` entry, which is a DIRECTORY in the main checkout and a FILE in a
     worktree. Stopping at the FIRST one is what makes a worktree resolve to itself rather than to the repository
-    it was cut from (`repo_root_of`). A directory outside every working tree (a scratch probe) stays UNKNOWN: a
-    scratch project can `ProjectReference` a worktree's project, so the trees it writes are not its directory's.
-  • the MAIN checkout = that root itself when its `.git` is a directory, else the `gitdir: <main>/.git/
-    worktrees/<name>` target named by the worktree's `.git` FILE, parsed here rather than by shelling out to
-    git — a PreToolUse hook runs on every `dotnet` call and must not pay a subprocess (`main_repo_root`).
-  • a FOREIGN agent's tree = `<main>/.claude/worktrees/agent-<agentId>` WHEN THAT DIRECTORY EXISTS, else the
-    main checkout. This is true BY CONSTRUCTION: `Agent(isolation="worktree")` creates exactly that path and
-    starts the agent in it, so the directory's existence IS the launch mode (`agent_working_tree`).
+    it was cut from (`repo_root_of`). A project outside every working tree (a scratch probe) writes where its
+    PROJECT FILES say: its own directory plus the directory of every project it `ProjectReference`s (a scratch
+    project can reference a worktree's project, so the trees such a build writes are read off the project graph,
+    `build_places`, kb/Work PB3770); a graph the guard cannot read to the end stays UNKNOWN.
+  • a FOREIGN agent's tree = the tree of the directory the agent was LAUNCHED in, which its own transcript records
+    on its first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770). The host writes that field however
+    it starts an agent, so ONE mechanism covers `Agent(isolation="worktree")`'s `agent-<id>`, a rolling wave's
+    `wf_<run>-<n>`, any named `git worktree add` and the main checkout. The guard used to infer the tree from the
+    EXISTENCE of `<main>/.claude/worktrees/agent-<agentId>` and read every other agent, each wave implementer
+    included, as working in the main checkout: that refused a read-only adjudicator's scratch probe build for
+    about 90 minutes while two lanes' implementers ran, and would have refused a main-checkout build while only
+    worktree implementers were live.
 Consequences, all three intended: a worktree agent may build its OWN worktree while main-tree fleets are live; a
 MAIN-tree build is still denied while any main-tree agent is live (the original purpose, unchanged); and a
 main-tree build is ALLOWED while only worktree agents are live, because their binaries are not the main tree's.
 
-⚠ AND THE FALLBACK IS TOWARD THE OLD RULE, NEVER TOWARD ALLOWING. If the caller's tree cannot be located, or the
-worktree's `.git` file cannot be read or parsed, the agent→tree map cannot be built at all — so the decision
-reverts to the SESSION-WIDE rule and every foreign live agent denies. Fail-open (below) covers a BROKEN guard;
-this covers an UNKNOWN tree, where allowing would be the one outcome that reproduces 2026-08-04.
+⚠ AND THE FALLBACK IS TOWARD THE OLD RULE, NEVER TOWARD ALLOWING. If the places a build writes cannot be located
+(a directory the command line does not determine; a scratch project whose graph the guard cannot read to the end:
+an unreadable or missing project file, a `$(…)` reference, an `Import`, a moved output path, a
+`Directory.Build.props` above it), or an agent's launch directory cannot be read from its transcript or no longer
+exists, the decision reverts to the SESSION-WIDE rule for it and the foreign live agent denies. Fail-open (below)
+covers a BROKEN guard; this covers an UNKNOWN tree, where allowing would be the one outcome that reproduces
+2026-08-04.
 
 Detection is by TRANSCRIPT MTIME, which is the one signal that cannot be faked by a stale process: a live agent
 writes to its own `agent-*.jsonl` continuously, so a file touched within the window means an agent is thinking
@@ -65,17 +72,19 @@ FAIL-OPEN BY CONSTRUCTION. Any error, any missing path, any unreadable directory
 guard that blocks the build because IT broke would be worse than the defect it prevents.
 
 Both branches are provable without a fleet: `python scripts/hooks/fleet_active_build.py --self-test` drives the
-pure decision functions through DENY and ALLOW alike, over REAL temporary worktrees so the `.git`-file parse and
-the `.claude/worktrees/agent-<id>` existence check are exercised rather than mocked
+pure decision functions through DENY and ALLOW alike, over REAL temporary worktrees, scratch projects and agent
+transcripts so the launch-directory read, the `.git` entry and the project-graph read are exercised rather than mocked
 (feedback_prove_the_watchdog_fails — a monitor is a gate; fire its failure branch once before trusting its
 silence).
 """
 import json
 import os
 import pathlib
+import re
 import sys
 import tempfile
 import time
+from typing import NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -100,13 +109,32 @@ TAIL_BYTES = 262144
 # too. `dotnet --version`, `dotnet tool`, `dotnet nuget` etc. are not.
 BUILD_VERBS = ("build", "test", "clean", "publish", "run", "msbuild")
 
-# The `.git` FILE of a `git worktree` checkout; the value is `<main>/.git/worktrees/<name>`, absolute by default
-# and relative when the worktree was created with `--relative-paths`.
-GITDIR_PREFIX = "gitdir:"
-
 # A build writes the bin/obj of the PROJECT it builds: `dotnet build <x>.sln`, `dotnet run --project <x>.csproj`,
 # `dotnet run walk.cs`. A positional argument with one of these suffixes, or a `--project` value, names it.
-PROJECT_SUFFIXES = (".sln", ".slnx", ".csproj", ".fsproj", ".vbproj", ".proj", ".cs")
+SOLUTION_SUFFIXES = (".sln", ".slnx")
+MSBUILD_PROJECT_SUFFIXES = (".csproj", ".fsproj", ".vbproj", ".proj")
+FILE_APP_SUFFIX = ".cs"  # a file-based app (`dotnet run walk.cs`); its `#:project` directives are its references
+PROJECT_SUFFIXES = (*SOLUTION_SUFFIXES, *MSBUILD_PROJECT_SUFFIXES, FILE_APP_SUFFIX)
+
+# What a build outside every working tree writes is read off its project graph (`build_places`, kb/Work PB3770). Any
+# of these makes the graph unreadable, so the build stays UNKNOWN and the session-wide rule applies: an MSBuild
+# import (it can set anything), a property that moves where the build writes, and a `Directory.Build.*` file in any
+# ancestor directory (MSBuild imports it implicitly).
+IMPLICIT_IMPORTS = ("Directory.Build.props", "Directory.Build.targets")
+OUTPUT_PROPERTIES = (
+    "BaseOutputPath", "OutputPath", "OutDir", "PublishDir", "BaseIntermediateOutputPath", "IntermediateOutputPath",
+    "ArtifactsPath", "UseArtifactsOutput",
+)
+XML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+IMPORT_RE = re.compile(r"<Import\b", re.I)
+OUTPUT_PROPERTY_RE = re.compile(r"<(?:" + "|".join(OUTPUT_PROPERTIES) + r")\b", re.I)
+PROJECT_REFERENCE_RE = re.compile(r"<ProjectReference\b[^>]*?\bInclude\s*=\s*[\"']([^\"']*)[\"']", re.I | re.S)
+# A solution names its projects in quotes (`.sln`: `Project("{…}") = "n", "p.csproj", "{…}"`) or as `Path="p.csproj"`.
+SOLUTION_PROJECT_RE = re.compile(r"[\"']([^\"']+\.(?:cs|fs|vb)?proj)[\"']", re.I)
+MAX_GRAPH_FILES = 256 # a project graph this large is not a scratch probe: UNKNOWN
+LAUNCH_RECORDS = 8     # the record that names an agent's launch `cwd` is among its first few
+LAUNCH_RECORD_BYTES = 8 * 1024 * 1024  # a first record carries the launch prompt, so it can be large
+
 
 
 def bail() -> None:
@@ -204,94 +232,195 @@ def repo_root_of(start: str) -> "pathlib.Path | None":
     return None
 
 
-def main_repo_root(tree_root: pathlib.Path) -> "pathlib.Path | None":
-    """The MAIN checkout owning `tree_root` — the tree under which `.claude/worktrees/` lives.
+class Place(NamedTuple):
+    """Where something works or is written: a WORKING TREE (a `.git` entry's directory) or a plain directory."""
 
-    ⛔ Parsed, not shelled out. This hook runs on EVERY `dotnet` invocation with a 30 s budget; spawning
-    `git rev-parse` per call would put a process launch in front of every build, and on a broken/locked repo it
-    is also the one call that can hang. The `.git` file's format (`gitdir: <path>`, optionally relative) is
-    part of git's on-disk layout, so reading it is as stable as calling git and cannot block.
+    path: pathlib.Path
+    is_tree: bool
 
-    Returns `None` when the file is missing, unreadable or does not carry a `gitdir:` line — the UNKNOWN answer,
-    which `agents_sharing_tree` turns into the old session-wide rule rather than into an allow.
+
+def place_of(directory) -> "Place | None":
+    """The tree containing `directory`, else `directory` itself when it exists; None when it does not exist.
+
+    A directory that is gone is UNKNOWN, never "the main checkout": `repo_root_of` would walk up from a removed
+    worktree to the repository it was cut from, and a live agent's launch directory that no longer exists is a
+    fact the guard cannot rely on.
     """
-    dot_git = tree_root / ".git"
     try:
-        if dot_git.is_dir():
-            return tree_root  # this IS the main checkout
-        text = dot_git.read_text(encoding="utf-8", errors="replace")
+        here = pathlib.Path(directory).resolve()
+        if not here.is_dir():
+            return None
     except (OSError, ValueError):
         return None
+    tree = repo_root_of(str(here))
+    return Place(tree, True) if tree is not None else Place(here, False)
 
-    gitdir = ""
-    for line in text.splitlines():
-        line = line.strip()
-        if line.lower().startswith(GITDIR_PREFIX):
-            gitdir = line[len(GITDIR_PREFIX):].strip()
-            break
-    if not gitdir:
-        return None
 
+def launch_cwd(transcript: pathlib.Path) -> str:
+    """The directory the agent was LAUNCHED in: the `cwd` its own transcript records on its first records (kb/Work
+    PB3770). "" when the transcript cannot be read or carries none, which `agent_place` turns into UNKNOWN.
+
+    Measured 2026-10-25 across every agent of this session: the first record of `agent-<id>.jsonl` is the launch
+    prompt and carries `cwd` — `E:\\COBOL` for a read-only agent, `E:\\COBOL\\.claude\\worktrees\\wf_<run>-<n>` for a
+    rolling-wave implementer, the named worktree of an operator-dispatched agent. Only the head is read: this runs
+    before every `dotnet` call, and a live transcript can be many megabytes.
+    """
     try:
-        p = pathlib.Path(gitdir)
-        if not p.is_absolute():
-            p = tree_root / p  # `git worktree add --relative-paths` writes `../../.git/worktrees/<name>`
-        p = p.resolve()
+        with transcript.open("rb") as f:
+            for _ in range(LAUNCH_RECORDS):
+                line = f.readline(LAUNCH_RECORD_BYTES)
+                if not line:
+                    break
+                try:
+                    rec = json.loads(line)
+                except ValueError:
+                    continue
+                cwd = rec.get("cwd") if isinstance(rec, dict) else None
+                if isinstance(cwd, str) and cwd.strip():
+                    return cwd.strip()
+    except OSError:
+        pass
+    return ""
+
+
+def agent_place(transcript: pathlib.Path) -> "Place | None":
+    """Where a live agent works — decided by CONSTRUCTION from the agent's own transcript, never by a maintained
+    list and never from a directory naming convention: the tree of its launch directory (`launch_cwd`)."""
+    cwd = launch_cwd(transcript)
+    return place_of(cwd) if cwd else None
+
+
+def is_within(child, parent) -> bool:
+    return any(same_path(d, parent) for d in (pathlib.Path(child), *pathlib.Path(child).parents))
+
+
+def collides(agent: Place, written: Place) -> bool:
+    """Can a build writing in `written` change the binaries an agent working in `agent` executes?
+
+    Two trees collide when they are the same tree. An agent in a plain directory (a scratch probe's agent) collides
+    with a write inside that directory, or one that encloses it. An agent in a tree never collides with a plain
+    directory: the plain directory has no `.git` ancestor, so it cannot lie inside the tree.
+    """
+    if agent.is_tree:
+        return written.is_tree and same_path(agent.path, written.path)
+    return is_within(written.path, agent.path) or is_within(agent.path, written.path)
+
+
+def project_refs(project: pathlib.Path) -> "list[pathlib.Path] | None":
+    """The projects `project` builds beyond itself, as paths; None when its text cannot be read to the end.
+
+    A solution (`.sln`, `.slnx`) lists the projects it builds, an MSBuild project its `<ProjectReference>`s, a
+    file-based app (`dotnet run walk.cs`) its `#:project` directives. Anything that could write elsewhere than
+    next to the project, or that this reader cannot resolve, is None: an `<Import>`, an output-path property, a
+    `$(…)` in a reference, a `Directory.Build.*` file in any ancestor directory.
+    """
+    for d in (project.parent, *project.parent.parents):
+        try:
+            if any((d / name).exists() for name in IMPLICIT_IMPORTS):
+                return None
+        except OSError:
+            return None
+    try:
+        text = project.read_text(encoding="utf-8-sig", errors="replace")
     except OSError:
         return None
 
-    # `<main>/.git/worktrees/<name>` ⇒ the main root is the parent of the `.git` component. Walking up to the
-    # component rather than slicing three levels keeps this correct if git ever nests the admin dir deeper.
-    for d in (p, *p.parents):
-        if d.name == ".git":
-            return d.parent
-    return None
+    suffix = project.suffix.lower()
+    if suffix == FILE_APP_SUFFIX:
+        found = []
+        for line in text.splitlines():
+            directive = line.strip()
+            if not directive.startswith("#:"):
+                continue
+            kind, _, value = directive[2:].strip().partition(" ")
+            value = value.strip()
+            if kind.lower() == "project":
+                found.append(value)
+            elif kind.lower() == "property" and value.split("=", 1)[0].strip() in OUTPUT_PROPERTIES:
+                return None
+    elif suffix in SOLUTION_SUFFIXES:
+        found = [m.group(1) for m in SOLUTION_PROJECT_RE.finditer(text)]
+    else:
+        xml = XML_COMMENT_RE.sub("", text)
+        if IMPORT_RE.search(xml) or OUTPUT_PROPERTY_RE.search(xml):
+            return None
+        found = [m.group(1) for m in PROJECT_REFERENCE_RE.finditer(xml)]
+
+    refs = []
+    for ref in found:
+        if not ref or "$(" in ref or "%" in ref:
+            return None
+        target = project.parent / ref.replace("\\", "/")
+        if target.is_dir():
+            inside = project_files_in(target)
+            if not inside:
+                return None
+            refs += inside
+        else:
+            refs.append(target)
+    return refs
 
 
-def agent_id_of(transcript: pathlib.Path) -> str:
-    """`…/agent-<agentId>.jsonl` ⇒ `<agentId>`; anything else ⇒ `""` (an agent with no derivable tree)."""
-    name = transcript.name
-    stem = name[:-len(".jsonl")] if name.lower().endswith(".jsonl") else name
-    return stem[len("agent-"):] if stem.lower().startswith("agent-") else ""
+def project_files_in(directory: pathlib.Path) -> list:
+    """The solutions and projects `dotnet build` looks for in `directory` (it takes the only one; all are listed, a
+    superset, when there are several)."""
+    try:
+        return sorted(
+            p for p in directory.iterdir()
+            if p.is_file() and p.suffix.lower() in (*SOLUTION_SUFFIXES, *MSBUILD_PROJECT_SUFFIXES)
+        )
+    except OSError:
+        return []
 
 
-def agent_working_tree(agent_id: str, main_root: pathlib.Path) -> pathlib.Path:
-    """Where a live agent is working — decided by CONSTRUCTION, never by a maintained list.
+def build_places(site: str) -> "list[Place] | None":
+    """Every place a build at `site` writes (kb/Work PB3770); None when the line does not determine them.
 
-    `Agent(isolation="worktree")` creates `<main>/.claude/worktrees/agent-<agentId>` and starts the agent with
-    its cwd there, so the DIRECTORY'S EXISTENCE IS THE LAUNCH MODE. No directory ⇒ the agent was launched
-    without isolation (a read-only fleet, a main-tree implementer) and is working in the main checkout. This is
-    the whole reason nothing here needs hand-maintaining: the next isolation mode the host adds shows up as a
-    directory or does not, and the answer stays right either way.
+    Inside a working tree the build writes that tree. Outside every tree (a scratch probe) it writes next to each
+    project of its graph — the project or solution named, or the only one in the directory, and the closure of what
+    they reference — and a reference into a worktree makes that worktree one of the places. A graph the guard
+    cannot read to the end is None (`project_refs`), which reverts to the session-wide rule.
     """
-    if agent_id:
-        wt = main_root / ".claude" / "worktrees" / f"agent-{agent_id}"
-        try:
-            if wt.is_dir():
-                return wt.resolve()
-        except OSError:
-            pass
-    return main_root
-
-
-def agents_sharing_tree(caller_cwd: str, foreign: list) -> tuple[list, "pathlib.Path | None"]:
-    """The live foreign agents working in the CALLER'S tree — the only builds that can collide with this one.
-
-    Returns `(sharing, caller_tree)`. When the caller's tree or its main checkout cannot be determined, EVERY
-    foreign agent is returned: the guard reverts to the session-wide rule it had before 2026-09-01 rather than
-    guess, because the failure it exists to prevent is a build that went ahead.
-    """
-    caller_tree = repo_root_of(caller_cwd)
-    if caller_tree is None:
-        return list(foreign), None
-    main_root = main_repo_root(caller_tree)
-    if main_root is None:
-        return list(foreign), caller_tree
-    sharing = [
-        p for p in foreign
-        if same_path(agent_working_tree(agent_id_of(p), main_root), caller_tree)
-    ]
-    return sharing, caller_tree
+    if not site:
+        return None
+    tree = repo_root_of(site)
+    if tree is not None:
+        return [Place(tree, True)]
+    try:
+        start = pathlib.Path(site).resolve()
+    except (OSError, ValueError):
+        return None
+    if start.is_dir():
+        queue = project_files_in(start)
+    else:
+        queue = [start] if start.is_file() else []
+    if not queue:
+        return None
+    seen: dict = {}
+    while queue:
+        project = queue.pop()
+        key = os.path.normcase(str(project))
+        if key in seen:
+            continue
+        if len(seen) >= MAX_GRAPH_FILES:
+            return None
+        seen[key] = project
+        if repo_root_of(str(project.parent)) is not None or not project.exists():
+            # A project inside a tree makes that tree a place, and what that tree's own projects reference is that
+            # tree's business (the in-tree arm above reads no graph either); a missing one fails the build.
+            continue
+        refs = project_refs(project)
+        if refs is None:
+            return None
+        queue += refs
+    places = []
+    for project in seen.values():
+        place = place_of(project.parent)
+        if place is None:
+            return None
+        if not any(same_path(place.path, q.path) for q in places):
+            places.append(place)
+    return places
 
 
 def build_sites(data: dict) -> list:
@@ -324,14 +453,31 @@ def build_sites(data: dict) -> list:
 
 
 def agents_sharing_any(sites: list, foreign: list) -> tuple[list, "pathlib.Path | None"]:
-    """`agents_sharing_tree` over every build site of the call: the live agents sharing ANY of them (an UNKNOWN site
-    reverts to the session-wide rule), and the tree the first sharing site resolved to (None when unknown)."""
+    """The live foreign agents that work where the build at ANY of `sites` writes — the only builds that can collide
+    with this one — and the first tree that made one of them share (None when none did, or when the line left the
+    answer UNKNOWN).
+
+    An UNKNOWN answer reverts to the session-wide rule rather than guessing: a site whose written places are not
+    determined (`build_places`) is shared with every foreign agent, and an agent whose launch directory is not
+    determined (`agent_place`) is shared with every site. The failure the guard exists to prevent is a build that
+    went ahead.
+    """
+    places = {p: agent_place(p) for p in foreign}
     sharing, tree = [], None
     for site in sites:
-        live, caller_tree = agents_sharing_tree(site or "", foreign)
-        if live and not sharing:
-            tree = caller_tree
-        sharing += [p for p in live if p not in sharing]
+        written = build_places(site or "")
+        for transcript in foreign:
+            if transcript in sharing:
+                continue
+            agent = places[transcript]
+            if written is None or agent is None:
+                sharing.append(transcript)
+                continue
+            hit = next((w for w in written if collides(agent, w)), None)
+            if hit is not None:
+                sharing.append(transcript)
+                if tree is None and hit.is_tree:
+                    tree = hit.path
     return sharing, tree
 
 
@@ -419,33 +565,77 @@ def deny_reason(live: list, tree: "pathlib.Path | None" = None) -> str:
 
 
 def _build_fixture(root: pathlib.Path) -> dict:
-    """A REAL main checkout with REAL worktrees on disk, for the self-test.
+    """REAL trees and scratch projects on disk, for the self-test.
 
-    Mocking the filesystem here would defeat the point: the two facts this guard now turns on are a `.git`
-    FILE's parse and a `.claude/worktrees/agent-<id>` directory's EXISTENCE, and a fake for either is a probe
-    that cannot fail for the reason production would.
+    Mocking the filesystem here would defeat the point: the facts this guard now turns on are a transcript's
+    recorded launch directory, a `.git` entry's existence and a project file's text, and a fake for any of them is
+    a probe that cannot fail for the reason production would. The worktrees are named the way the host and the
+    rolling wave name them (`agent-<id>`, `wf_<run>-<n>`) and the way an operator does (`notes-x`): the guard must
+    not care.
     """
     main = root / "main"
-    (main / ".git" / "worktrees").mkdir(parents=True)
+    (main / ".git").mkdir(parents=True)
     (main / "scripts" / "hooks").mkdir(parents=True)
 
-    def worktree(name: str, gitdir_text: str) -> pathlib.Path:
+    def worktree(name: str) -> pathlib.Path:
         wt = main / ".claude" / "worktrees" / name
         wt.mkdir(parents=True)
-        (wt / ".git").write_text(gitdir_text, encoding="utf-8", newline="\n")
+        (wt / ".git").write_text(f"gitdir: {(main / '.git' / 'worktrees' / name).as_posix()}\n", encoding="utf-8", newline="\n")
         return wt.resolve()
 
+    def write(path: pathlib.Path, text: str) -> pathlib.Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8", newline="\n")
+        return path.resolve()
+
+    sdk = '<Project Sdk="Microsoft.NET.Sdk">\n{0}</Project>\n'
+    wt_a, wt_b, wt_c = worktree("agent-aaa"), worktree("wf_run-1"), worktree("notes-x")
+    for tree in (main, wt_a, wt_b):
+        write(tree / "src" / "App" / "App.csproj", sdk.format(""))
+        write(tree / "Directory.Build.props", "<Project/>\n")  # the real repository has one: a tree's own business
+    scratch = root / "scratch"
+
+    def scratch_project(name: str, body: str = "") -> pathlib.Path:
+        return write(scratch / name / "probe.csproj", sdk.format(body)).parent
+
+    def ref(project: pathlib.Path) -> str:
+        return f'  <ItemGroup><ProjectReference Include="{str(project).replace("/", chr(92))}" /></ItemGroup>\n'
+
+    plain = scratch_project("plain", "  <!-- no <ProjectReference>s: a comment is not one -->\n")
+    other_plain = scratch_project("other-plain")
+    write(scratch / "sln" / "probe.sln", 'Project("{FAE04EC0}") = "probe", "p\\probe.csproj", "{1}"\n')
+    write(scratch / "sln" / "p" / "probe.csproj", sdk.format(""))
+    write(scratch / "slnref" / "probe.slnx", f'<Solution><Project Path="{wt_a.as_posix()}/src/App/App.csproj" /></Solution>\n')
+    cs = scratch / "cs"
+    write(cs / "plain" / "walk.cs", "// a file-based app\nConsole.WriteLine(1);\n")
+    write(cs / "ref" / "walk.cs", f"#:project {main.as_posix()}/src/App\nConsole.WriteLine(1);\n")
+    write(cs / "out" / "walk.cs", "#:property OutputPath=../../x\nConsole.WriteLine(1);\n")
+    (scratch / "empty").mkdir(parents=True)
+    write(scratch / "dbp" / "Directory.Build.props", "<Project/>\n")
+    write(scratch / "dbp" / "probe.csproj", sdk.format(""))
     return {
         "main": main.resolve(),
         "nested": (main / "scripts" / "hooks").resolve(),
-        # Absolute gitdir — what `git worktree add` writes by default.
-        "wtA": worktree("agent-aaa", f"gitdir: {(main / '.git' / 'worktrees' / 'agent-aaa').as_posix()}\n"),
-        "wtB": worktree("agent-bbb", f"gitdir: {(main / '.git' / 'worktrees' / 'agent-bbb').as_posix()}\n"),
-        # Relative gitdir — what `git worktree add --relative-paths` writes.
-        "wtRel": worktree("agent-rel", "gitdir: ../../../.git/worktrees/agent-rel\n"),
-        # A `.git` file that exists but yields no gitdir — the UNKNOWN-tree branch.
-        "wtBroken": worktree("agent-broken", "this file is not a gitdir pointer\n"),
+        "wtA": wt_a,
+        "wtB": wt_b,
+        "wtC": wt_c,
         "outside": root.resolve(),
+        "scratch": scratch.resolve(),
+        "plain": plain,
+        "otherPlain": other_plain,
+        "refWave": scratch_project("ref-wave", ref(wt_b / "src" / "App" / "App.csproj")),
+        "refMain": scratch_project("ref-main", ref(main / "src" / "App" / "App.csproj")),
+        "transitive": scratch_project("transitive", ref(other_plain / "probe.csproj")),
+        "variable": scratch_project("variable", '  <ItemGroup><ProjectReference Include="$(Root)/App.csproj" /></ItemGroup>\n'),
+        "imports": scratch_project("imports", '  <Import Project="x.targets" />\n'),
+        "moved": scratch_project("moved", "  <PropertyGroup><OutputPath>..\\..\\main\\bin\\</OutputPath></PropertyGroup>\n"),
+        "sln": (scratch / "sln").resolve(),
+        "slnRef": (scratch / "slnref").resolve(),
+        "csPlain": (cs / "plain" / "walk.cs").resolve(),
+        "csRef": (cs / "ref" / "walk.cs").resolve(),
+        "csOut": (cs / "out" / "walk.cs").resolve(),
+        "empty": (scratch / "empty").resolve(),
+        "dbp": (scratch / "dbp").resolve(),
     }
 
 
@@ -490,46 +680,113 @@ def self_test() -> int:
     ]:
         check(f"identity: {name}", len(foreign_transcripts(payload, candidates)), expected)
 
-    # ── 2. Tree resolution, over REAL temp worktrees ──────────────────────────────────────────────────────
+    # ── 2. Where agents work and where builds write, over REAL temp trees, projects and transcripts ─────────
     with tempfile.TemporaryDirectory() as tmp:
-        fx = _build_fixture(pathlib.Path(tmp))
+        base = pathlib.Path(tmp)
+        fx = _build_fixture(base)
+        main, wt = fx["main"], fx["wtA"]
 
-        check("tree: main checkout resolves to itself", repo_root_of(str(fx["main"])), fx["main"])
-        check("tree: a nested dir walks UP to the main checkout", repo_root_of(str(fx["nested"])), fx["main"])
-        check("tree: a worktree resolves to ITSELF, not to main", repo_root_of(str(fx["wtA"])), fx["wtA"])
-        check("tree: main's own main-root is itself", main_repo_root(fx["main"]), fx["main"])
-        check("tree: worktree .git FILE parses to main", main_repo_root(fx["wtA"]), fx["main"])
-        check("tree: RELATIVE gitdir parses to main", main_repo_root(fx["wtRel"]), fx["main"])
-        check("tree: unparseable .git file -> UNKNOWN", main_repo_root(fx["wtBroken"]), None)
-        check("tree: agent WITH a worktree dir", agent_working_tree("aaa", fx["main"]), fx["wtA"])
-        check("tree: agent WITHOUT one falls to main", agent_working_tree("zzz", fx["main"]), fx["main"])
+        check("tree: main checkout resolves to itself", repo_root_of(str(main)), main)
+        check("tree: a nested dir walks UP to the main checkout", repo_root_of(str(fx["nested"])), main)
+        check("tree: a worktree resolves to ITSELF, not to main", repo_root_of(str(wt)), wt)
+        check("tree: a scratch dir outside every tree has none", repo_root_of(str(fx["plain"])), None)
+        check("place: a missing directory is UNKNOWN, not its ancestor tree", place_of(wt / "gone"), None)
+
+        # Every agent is a REAL transcript whose first record names the directory it was launched in (`launch_cwd`).
+        # The names are the roles: main1/main2 work in the main checkout (a read-only fleet), aaa in a host-named
+        # worktree, bbb in a rolling wave's `wf_<run>-<n>`, ccc in an operator's named worktree, nest in a
+        # subdirectory of main, scr in a scratch directory outside every tree.
+        launched = {
+            "main1": main, "main2": main, "aaa": wt, "bbb": fx["wtB"], "ccc": fx["wtC"], "nest": fx["nested"],
+            "scr": fx["plain"], "gone": wt / "removed",
+        }
 
         def t(agent: str) -> pathlib.Path:
-            """A live transcript for `agent`, wherever the host files it."""
-            return pathlib.Path(f"/p/x/{sess}/subagents/agent-{agent}.jsonl")
+            """A live transcript for `agent`, filed the way the host files it."""
+            p = base / "transcripts" / "subagents" / f"agent-{agent}.jsonl"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            first = {"type": "user", "message": {"content": "go"}}
+            second = {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}]}}
+            if agent in launched:
+                first["cwd"] = str(launched[agent])
+                second["cwd"] = str(fx["outside"])  # a later record that differs: only the LAUNCH record decides
+            p.write_text(json.dumps(first) + "\n" + json.dumps(second) + "\n", encoding="utf-8", newline="\n")
+            return p
 
-        # name, caller cwd, foreign transcripts, expected sharing count
-        tree_cases = [
-            # THE CASE THIS CHANGE EXISTS FOR: N implementer agents, N worktrees, all building at once.
-            ("worktree caller + main-tree fleet -> ALLOW", fx["wtA"], [t("main1"), t("main2")], 0),
-            ("worktree caller + ANOTHER worktree's agent -> ALLOW", fx["wtA"], [t("bbb")], 0),
-            ("worktree caller + BOTH -> ALLOW", fx["wtA"], [t("bbb"), t("main1")], 0),
-            # A helper spawned inside agent-aaa's worktree: its cwd IS that worktree, and aaa is still live.
-            ("worktree caller + live agent in the SAME worktree -> DENY", fx["wtA"], [t("aaa")], 1),
-            ("worktree caller, same tree + a foreign tree -> DENY on the one", fx["wtA"], [t("aaa"), t("bbb")], 1),
-            # The original purpose, unchanged.
-            ("main caller + main-tree agent -> DENY", fx["main"], [t("main1")], 1),
-            ("main caller (nested cwd) + main-tree agent -> DENY", fx["nested"], [t("main1")], 1),
-            ("main caller + worktree-only agents -> ALLOW", fx["main"], [t("aaa"), t("bbb")], 0),
-            ("main caller, no fleet -> ALLOW", fx["main"], [], 0),
-            # Fallbacks: UNKNOWN tree reverts to the pre-2026-09-01 session-wide rule, never to an allow.
-            ("unparseable .git -> DENY session-wide (old rule)", fx["wtBroken"], [t("aaa"), t("main1")], 2),
-            ("cwd outside any repo -> DENY session-wide (old rule)", fx["outside"], [t("main1")], 1),
-            ("empty cwd -> DENY session-wide (old rule)", "", [t("main1")], 1),
-        ]
-        for name, cwd, foreign, expected in tree_cases:
-            sharing, _ = agents_sharing_tree(str(cwd), foreign)
-            check(f"scope: {name}", len(sharing), expected)
+        check("launch: an agent's recorded launch directory", launch_cwd(t("bbb")), str(fx["wtB"]))
+        check("launch: a transcript with no cwd is UNKNOWN", launch_cwd(t("nocwd")), "")
+        check("launch: a missing transcript is UNKNOWN", launch_cwd(base / "no-such-agent.jsonl"), "")
+        check("launch: a wf_<run>-<n> implementer works in ITS worktree", agent_place(t("bbb")), Place(fx["wtB"], True))
+        check("launch: a subdirectory launch resolves to its tree", agent_place(t("nest")), Place(main, True))
+        check("launch: a scratch launch is a plain directory", agent_place(t("scr")), Place(fx["plain"], False))
+        check("launch: a removed launch directory is UNKNOWN", agent_place(t("gone")), None)
+
+        def shared(site, *agents: str) -> list:
+            """The agents among `agents` that share the places a build at `site` writes."""
+            sharing, _ = agents_sharing_any([str(site)], [t(a) for a in agents])
+            return sorted(p.stem[len("agent-"):] for p in sharing)
+
+        fleet = ("main1", "aaa", "bbb", "ccc")
+        for name, site, agents, expected in [
+            # N implementer agents in N worktrees, all building at once (the case of the 2026-09-01 tree scoping).
+            ("worktree caller + main-tree fleet -> ALLOW", wt, ("main1", "main2"), []),
+            ("worktree caller + ANOTHER worktree's agent -> ALLOW", wt, ("bbb",), []),
+            ("worktree caller + every other tree's agents -> ALLOW", wt, ("bbb", "ccc", "main1", "nest"), []),
+            ("worktree caller + live agent in the SAME worktree -> DENY", wt, ("aaa",), ["aaa"]),
+            ("worktree caller, same tree + a foreign tree -> DENY on the one", wt, ("aaa", "bbb"), ["aaa"]),
+            ("wf_<run>-<n> caller + its own implementer -> DENY, the others ALLOW", fx["wtB"], fleet, ["bbb"]),
+            ("operator-named worktree caller + its agent -> DENY, the others ALLOW", fx["wtC"], fleet, ["ccc"]),
+            # The original purpose, unchanged — and the wave implementers no longer read as main-tree agents.
+            ("main caller + main-tree agent -> DENY", main, ("main1",), ["main1"]),
+            ("main caller (nested cwd) + main-tree agent -> DENY", fx["nested"], ("main1",), ["main1"]),
+            ("main caller + an agent launched in a subdirectory of main -> DENY", main, ("nest",), ["nest"]),
+            ("main caller + worktree-only agents (host, wave, operator names) -> ALLOW", main, ("aaa", "bbb", "ccc"), []),
+            ("main caller + the whole fleet -> DENY on the main-tree agent only", main, fleet, ["main1"]),
+            ("main caller, no fleet -> ALLOW", main, (), []),
+            # UNKNOWN reverts to the session-wide rule, never to an allow.
+            ("an agent whose launch directory was removed -> DENY any build", wt, ("gone",), ["gone"]),
+            ("an agent whose transcript names no launch directory -> DENY any build", main, ("nocwd",), ["nocwd"]),
+            ("cwd outside any repo and no project -> DENY session-wide (old rule)", fx["outside"], ("main1",), ["main1"]),
+            ("empty cwd -> DENY session-wide (old rule)", "", ("main1",), ["main1"]),
+        ]:
+            check(f"scope: {name}", shared(site, *agents), expected)
+
+        # kb/Work PB3770: a build OUTSIDE every working tree writes where its project graph says.
+        for name, site, agents, expected in [
+            ("scratch probe with no reference + the whole fleet -> ALLOW (the adjudicator's 90 minutes)", fx["plain"], fleet, []),
+            ("scratch probe naming its project file -> ALLOW", fx["plain"] / "probe.csproj", fleet, []),
+            ("scratch probe referencing a worktree project -> DENY on that worktree's agent only", fx["refWave"], fleet, ["bbb"]),
+            ("scratch probe referencing the main project -> DENY on the main-tree agent only", fx["refMain"], fleet, ["main1"]),
+            ("scratch probe referencing a scratch probe with no reference -> ALLOW", fx["transitive"], fleet, []),
+            ("scratch solution listing its own project -> ALLOW", fx["sln"], fleet, []),
+            ("scratch solution (slnx) listing a worktree project -> DENY on that worktree's agent", fx["slnRef"], fleet, ["aaa"]),
+            ("file-based app with no reference -> ALLOW", fx["csPlain"], fleet, []),
+            ("file-based app with `#:project <main>/src/App` -> DENY on the main-tree agent", fx["csRef"], fleet, ["main1"]),
+            ("a scratch agent in the probe's directory -> DENY it, nobody else", fx["plain"], fleet + ("scr",), ["scr"]),
+            ("a scratch agent in ANOTHER scratch directory -> ALLOW", fx["otherPlain"], fleet + ("scr",), []),
+            # The graph the guard cannot read to the end stays UNKNOWN: every foreign agent denies.
+            ("a `$(…)` in a ProjectReference -> UNKNOWN -> DENY all", fx["variable"], fleet, sorted(fleet)),
+            ("an <Import> -> UNKNOWN -> DENY all", fx["imports"], fleet, sorted(fleet)),
+            ("a moved <OutputPath> -> UNKNOWN -> DENY all", fx["moved"], fleet, sorted(fleet)),
+            ("a Directory.Build.props above the project -> UNKNOWN -> DENY all", fx["dbp"], fleet, sorted(fleet)),
+            ("a file-based app moving its output -> UNKNOWN -> DENY all", fx["csOut"], fleet, sorted(fleet)),
+            ("a scratch dir with no project -> UNKNOWN -> DENY all", fx["empty"], fleet, sorted(fleet)),
+            ("a project file that does not exist -> UNKNOWN -> DENY all", fx["plain"] / "gone.csproj", fleet, sorted(fleet)),
+        ]:
+            check(f"graph: {name}", shared(site, *agents), expected)
+
+        # The transitive arm: a scratch project whose reference is a scratch project that references a worktree, so
+        # the closure, not the first hop, reaches the worktree.
+        far = fx["scratch"] / "far" / "probe.csproj"
+        far.parent.mkdir()
+        far.write_text(
+            '<Project Sdk="Microsoft.NET.Sdk">\n  <ItemGroup><ProjectReference Include="'
+            + str(fx["refWave"] / "probe.csproj").replace("/", chr(92))
+            + '" /></ItemGroup>\n</Project>\n',
+            encoding="utf-8", newline="\n",
+        )
+        check("graph: a scratch project referencing a scratch project that references a worktree -> DENY (transitive)",
+              shared(far.parent, *fleet), ["bbb"])
 
         # A build is judged where it runs (kb/Work PB2599): every location change either shell accepts, and the project
         # a build names. The shapes are the operator's six false denials of 2026-10-07/08, plus the harmful direction.
@@ -539,7 +796,6 @@ def self_test() -> int:
         def denies(command: str, cwd, tool: str = "Bash", fleet=("main1",)) -> int:
             return len(agents_sharing_any(sites(command, cwd, tool), [t(a) for a in fleet])[0])
 
-        main, wt = fx["main"], fx["wtA"]
         for name, command, tool, expected in [
             ("`cd <main> && dotnet build` from a worktree -> DENY on the main fleet", f'cd "{main}" && dotnet build', "Bash", 1),
             ("no location change -> the payload cwd (main) -> DENY", "dotnet build Cobol.Net.sln", "Bash", 1),
@@ -560,14 +816,24 @@ def self_test() -> int:
             ("a target the line does not determine -> UNKNOWN -> DENY session-wide", "cd $NOWHERE && dotnet build", "Bash", 1),
             ("from main, `dotnet build <wt>/x.sln` builds the worktree -> ALLOW",
              f"dotnet build {wt.as_posix()}/Cobol.Net.sln", "Bash", 0),
+            ("`cd <scratch probe> && dotnet build` (PB3770: the adjudicator's command) -> ALLOW",
+             f"cd {fx['plain'].as_posix()} && dotnet build -c Release", "Bash", 0),
+            ("PowerShell `Set-Location <scratch probe>; dotnet run -c Release` -> ALLOW",
+             f"Set-Location {fx['plain']}; dotnet run -c Release", "PowerShell", 0),
+            ("`cd <scratch> && dotnet run walk.cs` with no reference -> ALLOW",
+             f"cd {fx['csPlain'].parent.as_posix()}; timeout 600 dotnet run walk.cs", "Bash", 0),
+            ("`dotnet build <scratch>/probe.csproj --no-restore` from main -> ALLOW",
+             f"dotnet build {(fx['plain'] / 'probe.csproj').as_posix()} --no-restore", "Bash", 0),
         ]:
-            check(f"scope: {name}", denies(command, main if "from a worktree" not in name else wt, tool), expected)
+            check(f"scope: {name}", denies(command, main, tool), expected)
         # The harmful direction: from a worktree, a build of the MAIN checkout's solution must see the main fleet.
         check("scope: from a worktree, `dotnet build <main>/x.sln` -> DENY on the main fleet",
               denies(f"dotnet build {main.as_posix()}/Cobol.Net.sln", wt), 1)
         check("scope: from a worktree, `dotnet run --project <main>/x.csproj` -> DENY on the main fleet",
               denies(f"dotnet run --project {main.as_posix()}/x.csproj", wt), 1)
-        check("scope: a scratch dir outside every tree stays UNKNOWN -> DENY session-wide (2026-10-07 21:41 refuter)",
+        check("scope: a scratch probe referencing a worktree, built from main -> DENY on that worktree's agent",
+              denies(f"cd {fx['refWave'].as_posix()} && dotnet build", main, fleet=("bbb",)), 1)
+        check("scope: a scratch dir outside every tree with no project stays UNKNOWN -> DENY (2026-10-07 21:41 refuter)",
               denies(f"cd {fx['outside'].as_posix()}; timeout 600 dotnet run walk.cs", main), 1)
 
         # PB474: a Git-Bash `cd /e/…` target must land on the worktree, not on `E:\e\…` and thence UNKNOWN.
@@ -577,14 +843,14 @@ def self_test() -> int:
             for spelled in (msys, "/cygdrive" + msys):
                 got = sites(f"cd {spelled} && dotnet build", main)
                 check(f"scope: MSYS `cd {spelled[:14]}…` resolves to the worktree (PB474)", same_path(got[0], wt), True)
-                sharing, tree = agents_sharing_tree(got[0], [t("main1")])
-                check("scope: …and a main-tree fleet then does NOT deny that worktree build", (len(sharing), tree), (0, wt))
+                sharing, tree = agents_sharing_any(got, [t("main1")])
+                check("scope: …and a main-tree fleet then does NOT deny that worktree build", (len(sharing), tree), (0, None))
 
         # The DENY message must name the agents AND the shared tree (it named `subagents` for every one).
-        sharing, tree = agents_sharing_tree(str(fx["main"]), [t("main1"), t("main2")])
+        sharing, tree = agents_sharing_any([str(main)], [t("main1"), t("main2")])
         msg = deny_reason(sharing, tree)
         check("message: names the live agents", "agent-main1" in msg and "agent-main2" in msg, True)
-        check("message: names the shared tree", str(fx["main"]) in msg, True)
+        check("message: names the shared tree", str(main) in msg, True)
 
     # ── 2b. Liveness (PB1702): an agent INSIDE a long tool call writes nothing until the call returns ──────────
     with tempfile.TemporaryDirectory() as tmp:
