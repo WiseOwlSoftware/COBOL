@@ -1780,16 +1780,14 @@ internal sealed class VersionConformancePass
         /// <summary>CALL phrases: BY VALUE (§14.9.4, a 2002 introduction) then ON OVERFLOW (the COBOL-74 synonym for
         /// ON EXCEPTION, REMOVED at 2023) — both from the one CALL statement, in the binder's order (arguments bind
         /// before the exception phrases). BY VALUE fires ONCE per statement (Any over callArgument — the binder
-        /// collapsed the per-argument checks); OVERFLOW fires on either exception phrase using the spelling
-        /// (matching BoundCallProgram.UsedOverflowSpelling).</summary>
+        /// collapsed the per-argument checks); OVERFLOW fires on the ON OVERFLOW phrase (matching
+        /// BoundCallProgram.UsedOverflowSpelling).</summary>
         public override object? VisitCallStatement(CobolParserCore.CallStatementContext ctx)
         {
             if (ctx.callUsingPhrase()?.callArgument().Any(a => a.callByValue() is not null) == true)
                 _p.Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
-            // Both phrases hang off the ONE callExceptionPhrases container (either order — ISO 5.2.6.4).
-            var callExc = ctx.callExceptionPhrases();
-            if (callExc?.callOnExceptionPhrase()?.OVERFLOW() is not null
-                || callExc?.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
+            // The phrases are the ONE conditionalPhrases rule (kb/Work PB3830).
+            if (ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.Overflow))
                 _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
             // CALL … RETURNING (§14.9.4) — a 2002 introduction (Exec Step E — folded from the CallBinder gate).
             if (ctx.callReturningPhrase() is not null)

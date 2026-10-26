@@ -404,8 +404,8 @@ public sealed class SortMergeDifferentialTests
 
     /// <summary>§14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order. SPEC-PINNED —
     /// the former legacy engine's grammar predates this allowance, so the expected output derives from the spec: keys
-    /// 2,1,3 ascending return ONE, TWO, THREE. (Depends on the returnAtEndPhrase reversed-order grammar
-    /// alternative shipped with this slice.)</summary>
+    /// 2,1,3 ascending return ONE, TWO, THREE. (Depends on the shared conditionalPhrases rule admitting the
+    /// reversed order, kb/Work PB3830.)</summary>
     [Fact]
     public void Return_ReversedAtEndPhrases_SpecPinned()
     {

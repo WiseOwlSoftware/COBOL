@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using Microsoft.CodeAnalysis.CSharp;
 
 using WiseOwl.Cobol.Binding.Model;
@@ -684,18 +685,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
 
-    internal SizeErrorPhrase? BindSizeError(Core.ArithmeticOnSizeErrorContext? ctx) =>
-        ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
-
-    internal SizeErrorPhrase? BindSizeError(Core.ComputeOnSizeErrorContext? ctx) =>
-        ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
-
-    /// <summary>Build the phrase from the (1 or 2) statement blocks — the shared two-branch shape via the ONE
-    /// <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b).</summary>
-    private SizeErrorPhrase BuildSizeError(Core.StatementBlockContext[] blocks, bool notFirst)
+    /// <summary>The statement's [NOT] ON SIZE ERROR pair through the ONE <see cref="PhraseBlocks.Bind"/>, or null when
+    /// neither phrase is written.</summary>
+    internal SizeErrorPhrase? BindSizeError(Core.ConditionalPhrasesContext phrases)
     {
-        var (onErr, notErr) = PhraseBlocks.Split(blocks, notFirst, b => BindBlocks([b]));
-        return new SizeErrorPhrase(onErr, notErr);
+        var (onErr, notErr) = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.SizeError, b => BindBlocks([b]));
+        return onErr is null && notErr is null ? null : new SizeErrorPhrase(onErr, notErr);
     }
 
     // ── Parse-tree helpers ─────────────────────────────────────────────────────────────────────────────────

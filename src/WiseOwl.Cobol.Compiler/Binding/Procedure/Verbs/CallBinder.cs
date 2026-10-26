@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -813,21 +814,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         //    row 3): [NOT] ON EXCEPTION is ANSI X3.23-1985 surface (CALL Format 2; CCVS-85 IC222A tests both
         //    phrases — "'ON OVERFLOW' CAN BE USED IN PLACE OF 'ON EXCEPTION'"); ON OVERFLOW is the 74-carried
         //    synonym, accepted 85–2014 and REMOVED at 2023 (Annex E.2 item 1c). ──
-        List<BoundStatement>? onExc = null, notOnExc = null;
-        bool usedOverflow = false;
-        // The two phrases live under ONE container (callExceptionPhrases) so either order parses — ISO 5.2.6.4
-        // choice indicators. Order of WRITING does not change binding: each phrase keeps its own role.
-        var excPhrases = call.callExceptionPhrases();
-        if (excPhrases?.callOnExceptionPhrase() is { } onp)
-        {
-            usedOverflow |= onp.OVERFLOW() is not null;
-            onExc = host.BindBlocks([onp.statementBlock()]);
-        }
-        if (excPhrases?.callNotOnExceptionPhrase() is { } notp)
-        {
-            usedOverflow |= notp.OVERFLOW() is not null;
-            notOnExc = host.BindBlocks([notp.statementBlock()]);
-        }
+        // The phrases are the ONE conditionalPhrases rule (kb/Work PB3830), so either order parses — ISO 5.2.6.4 choice
+        // indicators — and each phrase keeps its own role whatever the order of writing. §14.5.3.3's association
+        // (ConditionalPhraseAssociation) admits the 85–2014 format's ON OVERFLOW only ALONE, as that format prints it:
+        // never beside an EXCEPTION phrase and never as a NOT ON OVERFLOW, which no CALL format prints at any edition.
+        var (onExc, notOnExc) = PhraseBlocks.Bind(call.conditionalPhrases(), ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
+        var (onOverflow, _) = PhraseBlocks.Bind(call.conditionalPhrases(), ConditionalPhraseFamily.Overflow, b => host.BindBlocks([b]));
+        bool usedOverflow = onOverflow is not null;
+        onExc ??= onOverflow;
 
         // ON OVERFLOW is the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023; the edition gate
         // (CallOnOverflowRemoved2023) moved to the post-bind VersionConformancePass (Step 14d), reading the flag.

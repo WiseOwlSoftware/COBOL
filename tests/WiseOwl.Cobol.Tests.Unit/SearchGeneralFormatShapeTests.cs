@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Tests.Shared;                             // TestRepo — the ONE repo-root locator
 using Xunit;
+using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -84,7 +86,8 @@ MAIN.
 
     /// <summary>⛔ THE GRAMMAR IS THE FORMAT (kb/Work PB446). Pins the three rule shapes the PDF page decides, so
     /// the over-acceptances cannot come back as a quiet grammar edit: no KEY phrase rule, exactly one Format-2
-    /// WHEN, and an AT END phrase with no NOT arm.</summary>
+    /// WHEN, and an AT END phrase with no NOT arm — the last held by the ONE association table the shared
+    /// conditionalPhrases rule asks (kb/Work PB3830).</summary>
     [Fact]
     public void SearchGrammar_SpellsThePrintedFormats()
     {
@@ -95,10 +98,13 @@ MAIN.
         Assert.DoesNotContain("searchAllKeyPhrase", g4, StringComparison.Ordinal);
         Assert.DoesNotContain("searchAllWhenClause+", g4, StringComparison.Ordinal);
         Assert.DoesNotContain("searchAllWhenClause*", g4, StringComparison.Ordinal);
-        int at = g4.IndexOf("\nsearchAtEndClause", StringComparison.Ordinal);
-        Assert.True(at >= 0, "searchAtEndClause rule not found");
-        string rule = g4[at..g4.IndexOf(';', at)];
-        Assert.DoesNotContain("NOT", rule, StringComparison.Ordinal);
+        var atEndAlone = new[] { new ConditionalPhraseKind(ConditionalPhraseFamily.AtEnd, Negated: false) };
+        foreach (int rule in new[] { CobolParserCore.RULE_searchStatement, CobolParserCore.RULE_searchAllStatement })
+        {
+            var formats = ConditionalPhraseAssociation.Owners[rule];
+            Assert.Single(formats);
+            Assert.Equal(atEndAlone, formats[0].Phrases);
+        }
     }
 
     private static (bool Ok, IReadOnlyList<string> Errors) Compile(string source, int edition)

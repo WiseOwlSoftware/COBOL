@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -146,9 +147,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             pointer = pp;
         }
 
-        List<BoundStatement>? onOvf = null, notOvf = null;
-        if (st.stringOnOverflow() is { } ov)
-            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => host.BindBlocks([b]));
+        var (onOvf, notOvf) = PhraseBlocks.Bind(st.conditionalPhrases(), ConditionalPhraseFamily.Overflow, b => host.BindBlocks([b]));
         // StringEmitter identifies identifier-3 and identifier-4 at the start and stores each before ON OVERFLOW, so an
         // object-property receiver's accessors go there (kb/Work PB2078).
         ctx.Data.OoClaimInterleavedReceiver(into, pointer);
@@ -342,9 +341,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             tallying = tp;
         }
 
-        List<BoundStatement>? onOvf = null, notOvf = null;
-        if (un.unstringOnOverflow() is { } ov)
-            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => host.BindBlocks([b]));
+        var (onOvf, notOvf) = PhraseBlocks.Bind(un.conditionalPhrases(), ConditionalPhraseFamily.Overflow, b => host.BindBlocks([b]));
 
         // ⛔ GR11 c) / d) ARE MOVES (kb/Work PB979). "The characters examined … shall be treated as an elementary
         // national data item if identifier-1 is of category national, and otherwise as an elementary alphanumeric

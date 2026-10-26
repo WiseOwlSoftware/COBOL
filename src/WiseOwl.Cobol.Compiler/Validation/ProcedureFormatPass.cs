@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding;                // ConditionalStatements, Table12Sta
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;       // ConditionalPhrases, ConditionalPhraseAssociation
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -64,6 +65,14 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         string name = Table12StatementNames.NameOf(s);
         string owner = OwningStatementName(block);
         string phrase = PhraseWords(block);
+        // §14.5.3.3 decides whose phrase a [NOT] phrase is, and the reader who wrote `… ON SIZE ERROR ADD … NOT ON SIZE
+        // ERROR …` meant it for the outer statement: when the inner statement's phrase is one the outer statement's
+        // format also prints, the message says which statement the rule gave it to (kb/Work PB3830).
+        string association = InnerPhraseTheOwnerPrints(block, s) is { } inner
+            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO §14.5.3.3: \"Any "
+              + "phrase encountered is the next phrase of the most-recently preceding unterminated statement with which "
+              + "that phrase may be syntactically associated\"."
+            : "";
         using var _ = Sink.At(s);
         Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConditionalStatementAsImperative.Code,
             EditionSeverity.Error, DiagnosticCatalog.ConditionalStatementAsImperative.Id,
@@ -71,8 +80,34 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
             + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — ISO "
             + "§14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
             + "is a conditional statement\"; an imperative statement \"is a conditional statement that is delimited by its "
-            + $"explicit scope terminator\". Write END-{name} to close it.",
+            + $"explicit scope terminator\".{association} Write END-{name} to close it.",
             name, DiagnosticCatalog.ConditionalStatementAsImperative.IsoSection));
+    }
+
+    /// <summary>The words of the inner statement's first conditional phrase that the OWNING statement's general formats
+    /// also print (so §14.5.3.3, not the writer's layout, decided it is the inner statement's), or null.</summary>
+    private static string? InnerPhraseTheOwnerPrints(Core.StatementBlockContext block, Core.StatementContext inner)
+    {
+        if (block.Parent is not Core.ConditionalPhraseContext { Parent: Core.ConditionalPhrasesContext { Parent: ParserRuleContext ownerRule } }
+            || OwnPhrases(inner) is not { } innerPhrases)
+            return null;
+        return ConditionalPhrases.KindsOf(innerPhrases)
+            .Where(k => ConditionalPhraseAssociation.Prints(ownerRule.RuleIndex, k))
+            .Select(k => k.Words).FirstOrDefault();
+    }
+
+    /// <summary>The statement's own <c>conditionalPhrases</c> (a screen ACCEPT / DISPLAY holds it under its positioning
+    /// phrase), never one of a statement nested in its operands.</summary>
+    private static Core.ConditionalPhrasesContext? OwnPhrases(IParseTree node)
+    {
+        for (int i = 0; i < node.ChildCount; i++)
+            switch (node.GetChild(i))
+            {
+                case Core.ConditionalPhrasesContext phrases: return phrases;
+                case Core.StatementBlockContext or ITerminalNode: break;
+                case var child when OwnPhrases(child) is { } found: return found;
+            }
+        return null;
     }
 
     /// <summary>The Table 12 name of the statement whose phrase holds <paramref name="block"/>.</summary>
@@ -89,8 +124,16 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
     private static string PhraseWords(Core.StatementBlockContext block)
     {
         var parent = (ParserRuleContext)block.Parent;
-        int at = parent.children.IndexOf(block);
         var words = new List<string>();
+        if (parent is Core.ConditionalPhraseContext phrase)
+        {
+            // A Table 12 [NOT] phrase: its NOT and its head's keywords, as written (the head is a rule of its own).
+            if (phrase.NOT() is { } not) words.Add(not.GetText());
+            var head = phrase.conditionalPhraseHead();
+            for (int i = 0; i < head.ChildCount; i++) words.Add(head.GetChild(i).GetText());
+            return string.Join(' ', words).ToUpperInvariant();
+        }
+        int at = parent.children.IndexOf(block);
         for (int i = at - 1; i >= 0 && parent.GetChild(i) is ITerminalNode t; i--) words.Insert(0, t.GetText());
         return (words.Count == 0 ? parent.Start.Text : string.Join(' ', words)).ToUpperInvariant();
     }

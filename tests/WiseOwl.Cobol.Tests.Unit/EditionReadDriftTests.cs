@@ -22,7 +22,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// whether a word is RESERVED at this edition, so a legal earlier-edition program that uses LOCATION, RETRY or LOCALE as
 /// a name keeps its reading; and the Annex C spelling a word has there) or it is a <b>construct gate</b> (a construct
 /// whose words have no other reading below its introducing edition, refused at parse time instead of being named by
-/// the conformance pass). Word-status reads are sanctioned; a construct gate is a D7 defect.</para>
+/// the conformance pass). Word-status reads are sanctioned, and so is the one §14.5.3.3 phrase-association read
+/// (which statement a [NOT] phrase belongs to depends on the formats the edition prints, kb/Work PB3830); a construct
+/// gate is a D7 defect.</para>
 ///
 /// <para><b>What this test computes, rather than lists</b> (§8.4's rule, applied):
 /// <list type="number">
@@ -80,6 +82,14 @@ public sealed class EditionReadDriftTests
         /// <summary>Decides nothing itself: hands the edition to a lexer or parser (or primes one), whose own reads are
         /// adjudicated at their own sites.</summary>
         Carrier,
+
+        /// <summary>ISO §14.5.3.3 phrase association (kb/Work PB3830): a [NOT] phrase belongs to the most recent open
+        /// statement "with which that phrase may be syntactically associated", and WHICH formats a statement has is
+        /// an edition fact (CALL's ON OVERFLOW format is printed 85–2014 only). Like word status, a superset parse
+        /// cannot avoid it: reading the superset would move a legal later-edition program's phrase to the wrong
+        /// statement. It refuses nothing itself — a phrase only an earlier edition's format prints still associates,
+        /// last of all, so the conformance pass names it.</summary>
+        PhraseAssociation,
     }
 
     // ── The verdict (kb/Work PB2291), recorded ────────────────────────────────────────────────────────────────────
@@ -91,7 +101,8 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
             "IsKeywordReadingHere", "NoteGatedOffender", "ReservedGatedWord",
-            "ReservedUserWordViolation", "entryNameHere", "facilityWord", "gatedDeclaration", "is2002", "is2014",
+            "ReservedUserWordViolation", "conditionalPhraseAssociates", "entryNameHere", "facilityWord",
+            "gatedDeclaration", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
@@ -127,6 +138,9 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | setLocaleStatement | setLocaleAhead"] = (1, Verdict.WordStatus),
         // The declined facility statements VALIDATE, COMMIT and ROLLBACK: is the verb reserved here.
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | statement | facilityWord"] = (3, Verdict.WordStatus),
+        // §14.5.3.3: a Table 12 [NOT] phrase joins the innermost open statement whose general format, as the edition
+        // prints it, admits it (kb/Work PB3830).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | conditionalPhrases | conditionalPhraseAssociates"] = (1, Verdict.PhraseAssociation),
         // DISPLAY's operand loop stops at COL / COLS / COLUMNS only where §8.9 reserves them (kb/Work PB260).
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | displayStatement | screenPositionAhead"] = (1, Verdict.WordStatus),
         // The SPECIAL-NAMES CRT STATUS and CURSOR clauses: CRT and CURSOR are reserved from 2002.
