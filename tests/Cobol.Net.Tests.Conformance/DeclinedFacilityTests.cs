@@ -175,6 +175,48 @@ public sealed class DeclinedFacilityTests
         Assert.DoesNotContain("CLASS NUMERIC clause", message, StringComparison.Ordinal);
     }
 
+    /// <summary>⛔ EVERY OPERAND §13.18.11.2 PRINTS DRAWS THE SAME REFUSAL (kb/Work PB3831). The brace group offers
+    /// NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name-1 and class-name-1, and
+    /// the clause is declined whichever is written, so each draws COBOLNET1708 and nothing else. BOOLEAN drew
+    /// COBOLNET0901 ("'BOOLEAN' is a reserved word … cannot be used as a user-defined word") because the operand
+    /// rule had no arm for it and the word fell to cobolWord, which refuses a reserved word: a false statement
+    /// about a word the format prints as the clause's own keyword. The no-0901 and no-0001 legs are what fail
+    /// for an omitted keyword; <c>DeclinedFacilityDriftTests.EveryPrintedKeyword_IsAnArmOfItsRule</c> derives
+    /// the keyword list from the spec, and this runs it through the compiler at every edition the clause has.</summary>
+    [Theory]
+    [InlineData("NUMERIC", 2002)]
+    [InlineData("ALPHABETIC", 2002)]
+    [InlineData("ALPHABETIC-LOWER", 2002)]
+    [InlineData("ALPHABETIC-UPPER", 2002)]
+    [InlineData("BOOLEAN", 2002)]
+    [InlineData("BOOLEAN", 2014)]
+    [InlineData("BOOLEAN", 2023)]
+    [InlineData("HEXDIG", 2023)]
+    [InlineData("EBC", 2023)]
+    public void ClassClause_EveryPrintedOperand_DrawsTheDeclinedRefusalAlone(string operand, int edition)
+    {
+        string src = $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. DCLCLSOP.
+                   ENVIRONMENT DIVISION.
+                   CONFIGURATION SECTION.
+                   SPECIAL-NAMES.
+                       ALPHABET EBC IS EBCDIC
+                       CLASS HEXDIG IS "0" THRU "9".
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 WS-A PIC X(4) CLASS IS {operand}.
+                   PROCEDURE DIVISION.
+                       DISPLAY WS-A.
+                       STOP RUN.
+               """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
+        Assert.False(ok, "strict: the declined A.4.14 CLASS clause is an ERROR (Annex A.4.1)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1708");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0001");
+    }
+
     /// <summary>THE EDITION ARM, and it is NOT the arm kb/Work PB375 asked for. PB375 proposed the same control
     /// every other declined validation clause has — "the word is a legal user-defined word at COBOL-85, so
     /// <c>01 CLASS PIC X.</c> must still compile". MEASURED against
