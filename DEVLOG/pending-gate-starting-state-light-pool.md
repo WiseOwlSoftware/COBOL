@@ -32,4 +32,4 @@ takes. Not measured: the inert gate's wall time beside three live implementer ga
 the sentence is derived from it; a self-test arm fails when a bump of `RECORD_SCHEMA` has no row.
 
 Rows re-verdicted: none (all three note `closes_rows: []` with a reason). Registered: nothing new outside the group.
-Docs current: DESIGN-test-build-ci.md (§3.14.6, §3.14.12, §3.17.2 step 3, §3.18), the gate skill, DOC_INDEX.md, plan section 0.
+Docs current: DESIGN-test-build-ci.md (sections 3.14.6, 3.14.12, 3.17.2 step 3 and 3.18), the gate skill, DOC_INDEX.md, plan section 0.
