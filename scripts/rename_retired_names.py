@@ -11,7 +11,7 @@ executable `cobol`), and the code takes its name. The names of the two earlier p
 written as and the legacy byte engine it replaced — are RETIRED outside history: the projects, assemblies, solution and
 root namespace are WiseOwl.Cobol (`src/WiseOwl.Cobol.*`, `tests/WiseOwl.Cobol.Tests.*`, `WiseOwl.Cobol.sln`, namespace
 `WiseOwl.Cobol.*`), an identifier that carried the old name carries `WiseOwlCobol`, the implementor's environment
-variables are WISEOWL_COBOL_* (never COBOL_*: `SwitchStore.Prefix` is COBOL_, the §12.3.7 external-switch family, so
+variables are WISEOWL_COBOL_* (never COBOL_*: `SwitchStore.Prefix` is COBOL_, the external-switch family of §12.3.7.4 GR2, so
 an implementor variable there would be a switch a program can name), the design documents drop the old prefix
 (`docs/DESIGN.md`, `docs/REARCHITECTURE_PLAN.md`, …), and prose names the product WiseOwl COBOL.
 
@@ -115,11 +115,13 @@ _STEMS = b"|".join(sorted(DOC_STEMS, key=len, reverse=True))
 #: (pattern, replacement), applied in this order to the raw bytes of every file in scope, and to every path segment.
 RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     # the repository's location: a path segment named for the legacy product is the repository, renamed COBOL
-    (re.compile(rb"(?<=[/\\])" + _LEGACY + rb"(?![A-Za-z0-9_]|\.[A-Za-z])"), b"COBOL"),
+    # (`E:/<name>/`, `E:\<name>-pins`, `WiseOwlSoftware/<name>.git`), never a project inside it (`src/<name>.Runtime`)
+    (re.compile(rb"(?<=[/\\])" + _LEGACY + rb"(?![A-Za-z0-9_]|\.(?!git\b)[A-Za-z*{`])"), b"COBOL"),
     (re.compile(rb"(?<=--)" + _LEGACY + rb"(?![A-Za-z0-9_])"), b"COBOL"),
-    # the legacy engine's projects, solution and driver (deleted from main; LEGACY-ARCHIVE.md keeps them at the tag)
-    (re.compile(_ci(_LEGACY) + rb"(?=\.(?:CLI|Compiler|Runtime|Tests|IR|CodeGen|sln|git)\b)"), b"Legacy"),
+    # the legacy engine's projects, solution, driver and folders (deleted from main; LEGACY-ARCHIVE.md keeps them at the
+    # tag): `<name>.Runtime`, `<name>.*`, `<name>.{Compiler,CLI}`, `<name>/Collation/`, `<name>.dll`
     (re.compile(_LEGACY.lower() + rb"(?=\.(?:dll|exe)\b)"), b"legacy"),
+    (re.compile(_ci(_LEGACY) + rb"(?=\.[A-Za-z*{`]|/)"), b"Legacy"),
     (re.compile(_UPL + rb"_"), b"WISEOWL_COBOL_"),
     # the work register's project tag, inline or as a YAML list item
     (re.compile(rb"(?<=\[)" + _LEGACY.lower() + rb"(?=[,\]])"), b"wiseowl-cobol"),
@@ -368,6 +370,10 @@ def self_test() -> int:
         (f"src/{leg}.CLI/bin/{leg.lower()}.dll, {leg}.Tests.Unit, {leg.upper()}_LEGACY_DIFFERENTIAL=1",
          "src/Legacy.CLI/bin/legacy.dll, Legacy.Tests.Unit, WISEOWL_COBOL_LEGACY_DIFFERENTIAL=1",
          "the legacy engine's projects, driver and switch"),
+        (f"`src/{leg}.*`, `{leg}.{{Compiler,CLI}}`, `{leg}/Collation/`, matches `{leg}.`; "
+         f"https://github.com/WiseOwlSoftware/{leg}.git",
+         "`src/Legacy.*`, `Legacy.{Compiler,CLI}`, `Legacy/Collation/`, matches `Legacy.`; "
+         "https://github.com/WiseOwlSoftware/COBOL.git", "the legacy engine's globs and folders, the repository's URL"),
         (f"tags: [{leg.lower()}, work, defect]\r\ntags:\r\n  - {leg.lower()}\r\n  - spec\r\n",
          "tags: [wiseowl-cobol, work, defect]\r\ntags:\r\n  - wiseowl-cobol\r\n  - spec\r\n", "the project tag (CRLF)"),
         (f"the legacy {leg} engine; {leg.lower()}-skill-doctor.stamp; \"{leg.upper()}\"",
