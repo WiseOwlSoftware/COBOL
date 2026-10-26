@@ -7,7 +7,7 @@
       *> kb/Work PB845. ISO 8.3.2.1 1): "Reserved words shall not be used
       *> as user-defined words or system-names", and 8.9 reserves BIT
       *> from COBOL-2002. A mnemonic-name is a user-defined word, so
-      *> SYSOUT IS BIT is COBOLNET0901. Before the fix BIT was exempt
+      *> SYSOUT IS BIT is COBOL0901. Before the fix BIT was exempt
       *> from the reservation gate and this compiled at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB845NB.

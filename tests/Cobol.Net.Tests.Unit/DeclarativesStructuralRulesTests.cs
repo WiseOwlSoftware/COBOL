@@ -36,8 +36,8 @@ public sealed class DeclarativesStructuralRulesTests
                    M2.
                        USE AFTER STANDARD ERROR PROCEDURE ON F1.
             """), level);
-        Assert.Contains(d, x => x.Contains("COBOLNET2377") && x.Contains("nondeclarative portion"));
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET1756"));   // never again "not implemented"
+        Assert.Contains(d, x => x.Contains("COBOL2377") && x.Contains("nondeclarative portion"));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL1756"));   // never again "not implemented"
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public sealed class DeclarativesStructuralRulesTests
                    M1.
                        STOP RUN.
             """), level);
-        Assert.Single(d, x => x.Contains("COBOLNET2377") && x.Contains("inside a declarative section"));
+        Assert.Single(d, x => x.Contains("COBOL2377") && x.Contains("inside a declarative section"));
     }
 
     // ── SR4 — INTO a declarative section, PERFORM only (PB362) ──────────────────────────────────────────────
@@ -70,7 +70,7 @@ public sealed class DeclarativesStructuralRulesTests
                    M1.
                        GO TO DP1.
             """), level);
-        Assert.Contains(d, x => x.Contains("COBOLNET2376") && x.Contains("nondeclarative portion"));
+        Assert.Contains(d, x => x.Contains("COBOL2376") && x.Contains("nondeclarative portion"));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class DeclarativesStructuralRulesTests
                    M1.
                        STOP RUN.
             """), 2023);
-        Assert.Contains(d, x => x.Contains("COBOLNET2376") && x.Contains("different declarative section, 'D2'"));
+        Assert.Contains(d, x => x.Contains("COBOL2376") && x.Contains("different declarative section, 'D2'"));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class DeclarativesStructuralRulesTests
                        ALTER DP1 TO PROCEED TO DP2.
                        STOP RUN.
             """), 85);
-        Assert.Contains(d, x => x.Contains("COBOLNET2376") && x.Contains("ALTER 'DP1'"));
+        Assert.Contains(d, x => x.Contains("COBOL2376") && x.Contains("ALTER 'DP1'"));
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class DeclarativesStructuralRulesTests
                    M2.
                        GO TO M1.
             """), 85);
-        Assert.Contains(d, x => x.Contains("COBOLNET2376") && x.Contains("ALTER TO PROCEED TO 'DP1'"));
+        Assert.Contains(d, x => x.Contains("COBOL2376") && x.Contains("ALTER TO PROCEED TO 'DP1'"));
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public sealed class DeclarativesStructuralRulesTests
                            GIVING F1.
                        STOP RUN.
             """, 2023);
-        Assert.Contains(d, x => x.Contains("COBOLNET2376") && x.Contains("SORT"));
+        Assert.Contains(d, x => x.Contains("COBOL2376") && x.Contains("SORT"));
     }
 
     /// <summary>The SR4 control: PERFORM is the exemption, from the nondeclarative portion AND from a different
@@ -196,8 +196,8 @@ public sealed class DeclarativesStructuralRulesTests
                    NONDECL-P.
                        ADD 1 TO N.
             """), level);
-        Assert.Equal(2, d.Count(x => x.Contains("COBOLNET2375") && x.Contains("§14.9.49.3 SR3")));
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET2376"));
+        Assert.Equal(2, d.Count(x => x.Contains("COBOL2375") && x.Contains("§14.9.49.3 SR3")));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2376"));
     }
 
     /// <summary>The SR3 control: RESUME AT is the exemption (a COBOL-2002 statement).</summary>
@@ -210,7 +210,7 @@ public sealed class DeclarativesStructuralRulesTests
                    NONDECL-P.
                        ADD 1 TO N.
             """), 2002);
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET2375") || x.Contains("COBOLNET2376"));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2375") || x.Contains("COBOL2376"));
     }
 
     // ── SR10 / SR11 — USE BEFORE REPORTING (PB363) ─────────────────────────────────────────────────────────
@@ -222,7 +222,7 @@ public sealed class DeclarativesStructuralRulesTests
     public void AReportWriterVerbInABeforeReportingProcedure_IsRefused(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
-        Assert.Single(d, x => x.Contains("COBOLNET2378") && x.Contains("§14.9.49.3 SR10"));
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§14.9.49.3 SR10"));
     }
 
     [Theory]
@@ -235,7 +235,7 @@ public sealed class DeclarativesStructuralRulesTests
     public void AStoreIntoAControlDataItem_IsRefused(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
-        Assert.Single(d, x => x.Contains("COBOLNET2378") && x.Contains("§14.9.49.3 SR11"));
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§14.9.49.3 SR11"));
     }
 
     /// <summary>The SR11 control: stores into other items conform, and a BY REFERENCE CALL argument is not an
@@ -248,7 +248,7 @@ public sealed class DeclarativesStructuralRulesTests
     public void OtherStatementsInABeforeReportingProcedure_AreAccepted(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET2378"));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2378"));
     }
 
     // ── The structure that keeps the next case automatic ──────────────────────────────────────────────────

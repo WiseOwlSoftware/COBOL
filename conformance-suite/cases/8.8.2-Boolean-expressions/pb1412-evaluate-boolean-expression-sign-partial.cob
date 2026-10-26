@@ -8,7 +8,7 @@
       *> from preceding it by the selection subject, and SR7 d) requires that expression to be well formed. `A B-AND C
       *> POSITIVE` is a sign condition whose operand is a BOOLEAN value, and 8.8.4.7.3 SR1 admits only "any single numeric
       *> data item ... or any form of arithmetic expression" there, so the boolean-expression-1 subject cannot take a
-      *> sign partial-expression (COBOLNET2318, naming the rule).
+      *> sign partial-expression (COBOL2318, naming the rule).
       *>   cite.py --check 8.8.4.7.3 "Arithmetic-expression-1 shall be any single numeric data item described with a
       *>     usage other than a standard floating-point usage, or any form of arithmetic expression." -> OK 1)
       *>   cite.py --check 14.9.13.3 "If a selection object is specified by partial-expression-1, that selection object

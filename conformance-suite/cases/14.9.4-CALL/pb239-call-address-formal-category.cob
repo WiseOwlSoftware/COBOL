@@ -12,7 +12,7 @@
       *> category." ADDRESS OF R is a data item of category data-pointer
       *> (8.4.3.11.4 GR1); the AS NESTED callee's formal is PIC X(5) - a
       *> non-conforming pairing the activating element can see at compile
-      *> time (COBOLNET1688).
+      *> time (COBOL1688).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB239NC.
        DATA DIVISION.

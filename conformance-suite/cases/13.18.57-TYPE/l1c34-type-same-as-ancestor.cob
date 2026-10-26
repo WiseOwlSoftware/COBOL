@@ -27,7 +27,7 @@
       *>   SR7) and T-B
       *> is not written inside REC, so only the TYPE-side rule applies.
       *> Expected: rejected with the SAME AS cycle diagnostic
-      *>   (COBOLNET1557).
+      *>   (COBOL1557).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C34B.
        DATA DIVISION.

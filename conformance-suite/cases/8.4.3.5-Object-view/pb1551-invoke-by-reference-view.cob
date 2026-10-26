@@ -9,8 +9,8 @@
       *> identifier-3 is a receiving operand" (cite.py: OK 14.9.23.3
       *> 20)), and ISO 8.4.3.5.3 SR2: "An object-view shall not be
       *> specified as a receiving operand." (cite.py: OK 8.4.3.5.3 2)) -
-      *> COBOLNET2871. It was a parse error re-coded to 8.9 on the word
-      *> AS (COBOLNET0901).
+      *> COBOL2871. It was a parse error re-coded to 8.9 on the word
+      *> AS (COBOL0901).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551IVM.
        PROCEDURE DIVISION.

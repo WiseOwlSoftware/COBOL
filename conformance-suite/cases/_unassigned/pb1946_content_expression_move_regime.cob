@@ -17,8 +17,8 @@
       *> the typed INVOKE lane, through ParameterConformance's
       *> ContentConformanceReason, which asks the run-time relation
       *> ActivationRelations.CallArgumentViolation (kb/Work PB3101).
-      *> Before the fix every one of these was refused as COBOLNET1688 or
-      *> COBOLNET0828 on the reading that MOVE takes only an identifier or a
+      *> Before the fix every one of these was refused as COBOL1688 or
+      *> COBOL0828 on the reading that MOVE takes only an identifier or a
       *> literal.
       *> EXPECTED VALUES, DERIVED (N3 = 123, N4 = 3):
       *>  E1  N3 * 2 = 246 into PIC ZZ9.99                  => [246.00]

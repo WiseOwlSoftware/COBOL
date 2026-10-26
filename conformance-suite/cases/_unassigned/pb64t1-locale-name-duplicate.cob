@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 8.3.1.1.1 - a user-defined word of one type is unique within its scope; the LOCALE clause is repeatable
-      *> (12.3.7.2) so several locales may be declared, each under its own name. FR twice is COBOLNET4250 (kb/Work PB64
+      *> (12.3.7.2) so several locales may be declared, each under its own name. FR twice is COBOL4250 (kb/Work PB64
       *> T1 declared it, kb/Work PB3216 moved it to the declaration funnel; DESIGN-locale-facility 7 rule b).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T1DUP.

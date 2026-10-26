@@ -9,8 +9,8 @@
       *> SELF as the RECEIVING operand of SET. The first SET is the legal
       *> direction (SELF the sender); the second writes SELF as the receiver,
       *> which only SR2 forbids. Every receiving position parses SELF so the
-      *> receiving chokepoint names SR2 (COBOLNET3978) - it used to be a parse
-      *> error re-coded to 8.9 (COBOLNET0901, a reserved word misused).
+      *> receiving chokepoint names SR2 (COBOL3978) - it used to be a parse
+      *> error re-coded to 8.9 (COBOL0901, a reserved word misused).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551SM.
        PROCEDURE DIVISION.

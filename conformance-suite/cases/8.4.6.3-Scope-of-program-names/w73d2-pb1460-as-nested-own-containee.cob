@@ -11,7 +11,7 @@
       *> the recursive attribute" (cite.py --check 8.4.6.3 -> OK 2)).
       *> W73N1Q is COMMON and NOT recursive, so from W73N1Q1 - contained in
       *> it - its name is out of scope, and 14.9.4.3 SR15 refuses the
-      *> AS NESTED literal (COBOLNET1676). It used to compile and die at run
+      *> AS NESTED literal (COBOL1676). It used to compile and die at run
       *> time on EC-PROGRAM-NOT-FOUND.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W73N1.

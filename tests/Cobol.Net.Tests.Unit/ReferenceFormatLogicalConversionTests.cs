@@ -44,7 +44,7 @@ public sealed class ReferenceFormatLogicalConversionTests
     // Each row: the text, then the resultant first two lines — a consumed directive leaves an empty slot and the next
     // line is read FREE (from column 1); otherwise the next line is read FIXED (from column 8).
     [InlineData("SEQ001 >>SOURCE FORMAT FREE\nDISPLAY \"F\".\n", "", "DISPLAY \"F\".")]               // letters in cols 1-6
-    // program text before `>>`: not a directive (the next line is read FIXED), and §7.3.3 SR2 names it — COBOLNET2691 —
+    // program text before `>>`: not a directive (the next line is read FIXED), and §7.3.3 SR2 names it — COBOL2691 —
     // cutting the directive text (kb/Work PB1690)
     [InlineData("       12 >>SOURCE FORMAT FREE\n       DISPLAY \"F\".\n", "12", "DISPLAY \"F\".")]
     [InlineData("      *>>SOURCE FORMAT FREE\n     X DISPLAY \"F\".\n", "", "DISPLAY \"F\".")]           // a comment line
@@ -65,7 +65,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(expected, Convert(src, std: 2002).Text.Text.Split('\n')[2].Trim());
     }
 
-    [Theory] // kb/Work PB1494 — §6.3.3 / §6.2.2: a character that is not a fixed indicator is COBOLNET2616 and the line
+    [Theory] // kb/Work PB1494 — §6.3.3 / §6.2.2: a character that is not a fixed indicator is COBOL2616 and the line
     // is read as source; the NIST CCVS letters keep their CCVS meaning only under --nist (ccvsIndicators).
     [InlineData('E', false, true, "DISPLAY \"L\".")]
     [InlineData('X', false, true, "DISPLAY \"L\".")]
@@ -77,7 +77,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         var bag = new DiagnosticBag();
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100" + indicator + "DISPLAY \"L\".\n",
             new ReferenceFormatDiagnostics(2023, false, bag), "t.cob", initialFixed: true, out _, ccvsIndicators: ccvs);
-        Assert.Equal(diagnosed, Codes(bag).Contains("COBOLNET2616"));
+        Assert.Equal(diagnosed, Codes(bag).Contains("COBOL2616"));
         Assert.Equal(line.Replace("<debug>", ReferenceFormatProcessor.DebugLineCarrier), m.Text.Split('\n')[0]);
     }
 
@@ -102,14 +102,14 @@ public sealed class ReferenceFormatLogicalConversionTests
     }
 
     [Fact] // kb/Work PB1361 + PB1690 — §7.3.3 SR2: in free form "000100 >>SOURCE ..." is NOT a directive (the sequence
-           // number is program text, so the format is not switched) and is diagnosed by name, COBOLNET2691; the directive
+           // number is program text, so the format is not switched) and is diagnosed by name, COBOL2691; the directive
            // text is cut so the parser does not add a nameless second error.
     public void FreeFormLine_WithTextBeforeTheIndicator_IsNotADirective_AndIsDiagnosed()
     {
         var (m, bag) = Convert(">>SOURCE FORMAT FREE\n000100 >>SOURCE FORMAT FIXED\n01 A PIC X.\n", std: 2002);
         Assert.Equal("000100", m.Text.Split('\n')[1].Trim());
         Assert.Equal("01 A PIC X.", m.Text.Split('\n')[2]);         // still read in FREE form: nothing was switched
-        Assert.Equal(["COBOLNET2691"], Codes(bag));
+        Assert.Equal(["COBOL2691"], Codes(bag));
     }
 
     [Theory] // §7.3.3 SR2 — a directive after program text is diagnosed in either reference format; a `>>` that is a
@@ -122,7 +122,7 @@ public sealed class ReferenceFormatLogicalConversionTests
     [InlineData("000100     DISPLAY A >>NOTADIRECTIVE\n", false)]    // no compiler-directive word follows
     [InlineData("000100     >>PAGE any text STOP RUN. >>TURN x\n", false)]   // comment-text of a directive LINE (§7.3.19.3 SR1)
     public void DirectiveAfterProgramText_IsDiagnosedByName(string src, bool diagnosed)
-        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOLNET2691"));
+        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2691"));
 
     [Theory] // §6.3.5 "Comment lines and blank lines may be interspersed among lines containing the parts of a literal".
     [InlineData("000600* a comment with a \"quote")]
@@ -185,20 +185,20 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("DISPLAY \"A\"\"*>B\"", m.Text.Split('\n')[1]);
     }
 
-    [Theory] // §6.2.3.2 SR2 — COBOLNET2495, in either reference format; *> after a space is not diagnosed.
+    [Theory] // §6.2.3.2 SR2 — COBOL2495, in either reference format; *> after a space is not diagnosed.
     [InlineData(">>SOURCE FORMAT FREE\nMOVE A TO X*> c\n", true)]
     [InlineData("000100     MOVE A TO X*> c\n", true)]
     [InlineData(">>SOURCE FORMAT FREE\nMOVE A TO X *>c\n", false)]
     [InlineData(">>SOURCE FORMAT FREE\n*>comment line\n", false)]
     public void FloatingComment_NotPrecededBySeparatorSpace_IsDiagnosed(string src, bool diagnosed)
-        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOLNET2495"));
+        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2495"));
 
-    [Theory] // §6.2.3.2 SR3 — COBOLNET2496 when a continuation completes *> or >> begun on the line it continues.
+    [Theory] // §6.2.3.2 SR3 — COBOL2496 when a continuation completes *> or >> begun on the line it continues.
     [InlineData("000100     MOVE A TO X *\n000200-    > comment\n", true)]
     [InlineData("000100     MOVE A TO X >\n000200-    >IF\n", true)]
     [InlineData("000100     MOVE A TO X\n000200-    > comment\n", false)]
     public void FloatingIndicator_SplitAcrossTheJoin_IsDiagnosed(string src, bool diagnosed)
-        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOLNET2496"));
+        => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2496"));
 
     [Theory] // The 2002 introduction gate (floating-comment-indicator-2002) — fixed form only, once per compilation.
     [InlineData("000100     MOVE A TO X. *> c\n000200     MOVE A TO X. *> d\n", 85, 1, InitialReferenceFormat.Fixed)]
@@ -207,5 +207,5 @@ public sealed class ReferenceFormatLogicalConversionTests
     // free form selected by --source-format (a >>SOURCE line would be gated itself); kb/Work PB1362
     [InlineData("MOVE A TO X. *> c\n", 85, 0, InitialReferenceFormat.Free)]
     public void FloatingComment_IntroductionGate_FixedFormOnly(string src, int std, int expected, InitialReferenceFormat initial)
-        => Assert.Equal(expected, Codes(Convert(src, std, initial).Bag).Count(c => c == "COBOLNET0900"));
+        => Assert.Equal(expected, Codes(Convert(src, std, initial).Bag).Count(c => c == "COBOL0900"));
 }

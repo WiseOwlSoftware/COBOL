@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.43.3 SR6: "Identifier-3 shall not reference a strongly-typed group item." kb/Work PB88: this rule
-      *> was not checked at all; COBOLNET1651 at bind now (the same Reject site as SR4/SR5).
+      *> was not checked at all; COBOL1651 at bind now (the same Reject site as SR4/SR5).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NSTRSTG.
        DATA DIVISION.

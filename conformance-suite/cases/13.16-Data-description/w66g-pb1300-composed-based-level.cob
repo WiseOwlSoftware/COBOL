@@ -16,7 +16,7 @@
       *>   description entries shall be 1 or 77" -> OK §13.16.3 16)
       *> The level-01 twin (01 X TYPE T) is legal and based: see
       *> 2002/w66g_pb1300_type_same_as_composition. Expected:
-      *> COBOLNET2510 (composed-based-placement) on X.
+      *> COBOL2510 (composed-based-placement) on X.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W66GNB1.
        DATA DIVISION.

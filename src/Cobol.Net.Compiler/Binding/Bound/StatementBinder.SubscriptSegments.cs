@@ -71,7 +71,7 @@ public sealed partial class StatementBinder
     /// <c>ReferenceResolver.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
     /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §15.4 temporary the value
     /// lands in, or <see langword="null"/> to leave the caller's loud posture untouched. A position that is not an
-    /// arithmetic expression never arrives: the resolver refuses it by name (COBOLNET2363, kb/Work PB1030).
+    /// arithmetic expression never arrives: the resolver refuses it by name (COBOL2363, kb/Work PB1030).
     ///
     /// <para><b>Ordering is why this binds HERE and not at the drain.</b> A nested segment
     /// (<c>W-E(FUNCTION INTEGER(W-F(FUNCTION INTEGER(2))))</c>) resolves its inner reference while THIS bind

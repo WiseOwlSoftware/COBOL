@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB546 / design D-N8 - the DYNAMIC LENGTH clause is a COBOL-2014
       *> addition (ISO 8.5.1.10 / 13.18.19), so below 2014 the national dynamic-length
-      *> receiver of a group MOVE is refused by the edition gate (COBOLNET0900)
+      *> receiver of a group MOVE is refused by the edition gate (COBOL0900)
       *> (positive golden 2014/pb546_group_into_national_dynamic).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB546N2.

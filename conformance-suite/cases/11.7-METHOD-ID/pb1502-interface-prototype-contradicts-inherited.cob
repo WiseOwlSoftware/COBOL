@@ -8,7 +8,7 @@
       *> interfaces"): N5OC declares its OWN SPEAK with no formal and inherits SPEAK USING X from N5OA.  The own
       *> prototype shares the inherited one's method resolution signature in this implementation (the method-name,
       *> kb/Work PB1519), so SR4 b) refuses it -- and a contradicting SPEAK could not conform to N5OA in any case
-      *> (9.3.8.2.3 rule 1).  The interface twin of the class-side redefinition without OVERRIDE.  COBOLNET2761.
+      *> (9.3.8.2.3 rule 1).  The interface twin of the class-side redefinition without OVERRIDE.  COBOL2761.
       *> kb/Work PB1502.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1502N3.

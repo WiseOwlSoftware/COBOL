@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB301 - THE SCREEN SURFACE MUST NOT COST THE USER A WORD. Annex A.4.2 (screen handling) is a
       *> DECLINED optional module (docs/CONFORMANCE.md 5), and this compiler declines it by tokenizing the
-      *> module's words so the refusal can name itself (COBOLNET1560 / COBOLNET1707) instead of drawing a raw
+      *> module's words so the refusal can name itself (COBOL1560 / COBOL1707) instead of drawing a raw
       *> parse error. A lexer token is not a reservation: ISO 8.3.2.1 rule 3 - "Context-sensitive words may be
       *> used as user-defined words and system-names in contexts other than the language construct in which
       *> they are defined" - so the fifteen 8.10 screen words below are legal user-defined words at EVERY

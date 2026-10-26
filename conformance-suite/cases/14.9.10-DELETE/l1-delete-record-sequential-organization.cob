@@ -7,7 +7,7 @@
       *> ISO 14.9.10.3 SR1 - "The DELETE RECORD statement shall not be
       *> specified for a file with sequential organization." F is
       *> written ORGANIZATION IS SEQUENTIAL (12.4.5.10.3 GR3), so the
-      *> DELETE RECORD statement is rejected (COBOLNET0865). The rule
+      *> DELETE RECORD statement is rejected (COBOL0865). The rule
       *> carries no edition delta, so every edition rejects.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1DELN1.

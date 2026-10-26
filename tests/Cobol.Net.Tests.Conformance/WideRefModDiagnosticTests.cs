@@ -92,7 +92,7 @@ public sealed class WideRefModDiagnosticTests
     /// <summary>The expression arm: <c>X(A + 5:1)</c> materializes its position into the segment temporary before the
     /// statement, and that store used to hold the <c>long</c>-saturated position. The third case's product is a native
     /// <c>Int128</c> intermediate of 38 digits, which the 38-digit temporary holds exactly. The unary rows are spelled as
-    /// ISO §8.7.1 requires: a space after the operator unless a left parenthesis follows it (<c>X(-A:1)</c> is COBOLNET2993,
+    /// ISO §8.7.1 requires: a space after the operator unless a left parenthesis follows it (<c>X(-A:1)</c> is COBOL2993,
     /// kb/Work PB2017).</summary>
     [Theory]
     [InlineData("E1", "01 A PIC 9(21) VALUE 100000000000000000001.", "MOVE X(A + 5:1) TO Y", "(100000000000000000006:1)")]
@@ -109,7 +109,7 @@ public sealed class WideRefModDiagnosticTests
     /// <summary>An integer LITERAL, or a named integer constant, past <c>long</c> (<c>PositionWideConstant</c>): the value
     /// the program wrote is the value named, with the sign it carried. The literal arm needs no declaration. K5's unary
     /// operator follows the colon with a space: the colon is a separator (§8.3.5 7)) but not the space §8.7.1 requires
-    /// before the operator (<c>X(1:-(N))</c> is COBOLNET2993, kb/Work PB2017).</summary>
+    /// before the operator (<c>X(1:-(N))</c> is COBOL2993, kb/Work PB2017).</summary>
     [Theory]
     [InlineData("K1", "", "MOVE X(100000000000000000001:1) TO Y", "(100000000000000000001:1)")]
     [InlineData("K2", "", "MOVE X(1:100000000000000000001) TO Y", "(1:100000000000000000001)")]
@@ -177,7 +177,7 @@ public sealed class WideRefModDiagnosticTests
         Assert.DoesNotContain(Saturated32, stderr);
     }
 
-    /// <summary>The compile-time screen of a LITERAL position names the literal too (COBOLNET2670, checking not enabled:
+    /// <summary>The compile-time screen of a LITERAL position names the literal too (COBOL2670, checking not enabled:
     /// ISO §14.6.13.1.3 8): "the implementor is not required to produce executable code" for a fatal condition the compiler detects). It printed the <c>long</c> clamp.</summary>
     [Theory]
     [InlineData("N1", "MOVE X(100000000000000000001:1) TO Y", "leftmost-position 100000000000000000001 is not a position of the 10-position item")]
@@ -186,7 +186,7 @@ public sealed class WideRefModDiagnosticTests
     {
         var (exit, _, detail) = Run(id, "", "", statement);
         Assert.Equal(-1, exit);                                      // refused at compile time: no run
-        Assert.Contains("COBOLNET2670", detail);
+        Assert.Contains("COBOL2670", detail);
         Assert.Contains(expected, detail);
         Assert.DoesNotContain(Saturated64, detail);
     }

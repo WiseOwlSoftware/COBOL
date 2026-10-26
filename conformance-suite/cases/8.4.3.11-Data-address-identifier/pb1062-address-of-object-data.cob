@@ -7,7 +7,7 @@
       *> kb/Work PB1062. ISO 8.4.3.11.3 SR1, second sentence: "Identifier-1 shall not be defined in the working-storage or
       *> file section of an object or a factory object." Each ADDRESS OF below names an item of the OBJECT's (OW) or the
       *> FACTORY's (FW) working storage, in the three surfaces the one operand screen serves: the SET sender, the
-      *> relation operand and the CALL argument. All are refused COBOLNET2784. A method's own LOCAL-STORAGE (LP, LM) is
+      *> relation operand and the CALL argument. All are refused COBOL2784. A method's own LOCAL-STORAGE (LP, LM) is
       *> legal and is addressed in the same statements.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1062N INHERITS FROM BASE.

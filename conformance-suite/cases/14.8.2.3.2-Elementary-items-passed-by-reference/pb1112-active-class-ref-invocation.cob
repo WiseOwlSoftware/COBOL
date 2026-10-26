@@ -12,7 +12,7 @@
       *> "described with an object-class-name and the ONLY phrase" when it
       *> is invoked with that class-name or an ONLY reference to it. Here N
       *> invokes M through O2, described C1 WITHOUT ONLY, with the
-      *> ACTIVE-CLASS argument Y: neither alternative holds -- COBOLNET0828.
+      *> ACTIVE-CLASS argument Y: neither alternative holds -- COBOL0828.
       *> (Before the fix the invocation was never consulted and this ran.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB12R.

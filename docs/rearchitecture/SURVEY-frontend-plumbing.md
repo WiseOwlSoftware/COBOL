@@ -37,7 +37,7 @@ The `Common/` and `Diagnostics/` folders provide the shared value types (`Source
 | `Preprocessor/ReferenceFormatProcessor.cs` | Fixed↔free reference-format normalization, `>>SOURCE FORMAT`, continuation/literal state machine, comment-entry handling, NIST marker strip | 578 | **Dense but cohesive.** A cross-line literal state machine (correct, subtle). Hosts nested `EditionGates` class (`:120-149`) that re-implements the strict/permissive severity policy. Static class with static entry points — no per-file state, edition passed positionally. |
 | `Preprocessor/ConditionalCompilationProcessor.cs` | `>>DEFINE/IF/ELSE/EVALUATE/WHEN` conditional compilation + a constant-conditional-expression parser | 403 | **Good, self-contained.** Its own tokenizer (`Tokenize :341`) + recursive-descent `CondParser`. No edition awareness (CC is 2002+ but ungated here — see §5). Byte-neutral on directive-free source. |
 | `Preprocessor/NistPreprocessor.cs` | NIST CCVS X-card (`XXXXX###`) placeholder substitution | 213 | **Test-corpus glue, not a compiler concern.** A wall of `source.Replace(...)`/regex. Mixes naive `.Replace` (`:53,64,173-209`) with anchored regex (`:74,87,132`). Latent embedded-literal corruption risk for the naive ones (§6). |
-| `Preprocessor/TurnDirectiveProcessor.cs` | `>>TURN` directive parsing → `TurnEvent` list; blanks lines (line-count preserving) | 151 | **Good, spec-cited.** Emits COBOLNET0875/0718/0719 as **raw string codes** (no descriptor). Uses a 0-based `SourceLocation` while `TurnEvent.Line` is 1-based (deliberate, but see the SourceLocation inconsistency in §6). |
+| `Preprocessor/TurnDirectiveProcessor.cs` | `>>TURN` directive parsing → `TurnEvent` list; blanks lines (line-count preserving) | 151 | **Good, spec-cited.** Emits COBOL0875/0718/0719 as **raw string codes** (no descriptor). Uses a 0-based `SourceLocation` while `TurnEvent.Line` is 1-based (deliberate, but see the SourceLocation inconsistency in §6). |
 | `Parsing/EditionGateHints.cs` | Reverse-engineers which edition-gated construct a generic `NoViableAlternative` was | 207 | **Worst smell in the frontend (see §3).** A 29-signature `(token, rule-stack, lookahead)` table, empirically derived, that re-derives an identity the gate discarded and re-copies edition metadata the frontend can't see. |
 | `Parsing/CobolErrorStrategy.cs` | COBOL-aware error messages; 19 intent heuristics; edition-gate mapping | 238 | **Mostly good.** The 19 `GuessCobolIntent` heuristics (`:100-211`) are useful and non-duplicative. Only coupling smell: heuristic 0 calls `EditionGateHints.Recognize` (`:113`) and message is a pre-formatted `[code] text` string (`:95`) that `CobolErrorListener` must re-parse. |
 | `Parsing/CobolParserCoreBase.cs` | ANTLR parser base: `DialectLevel`, `is85/2002/2014/2023` predicates, `IsBareInspectOperand`, `boolExprAhead` | 114 | **Good.** Clean disambiguation predicates. Holds a **second** `DialectLevel` store (`:17`) beside `Frontend.DialectLevel`. Namespace `legacy-root.Generated`. |
@@ -88,8 +88,8 @@ Within the frontend itself `DiagnosticBag` exposes two report paths (`Diagnostic
 vs `:38` descriptor) that are used inconsistently (§7).
 
 ### S4 — Preprocessor emits raw string codes, bypassing the descriptor registry · **MEDIUM** · `TurnDirectiveProcessor.cs:50,87,123,134,143`; `ReferenceFormatProcessor.cs:129,145,147`; `CopyProcessor.cs:38,40`
-The COBOLNET07xx/08xx/09xx band (0718, 0719, 0875, 0902, 0903) is emitted via
-`ReportError("COBOLNET0902", literalMessage, …)` with **no `DiagnosticDescriptor` entry** — the
+The COBOL07xx/08xx/09xx band (0718, 0719, 0875, 0902, 0903) is emitted via
+`ReportError("COBOL0902", literalMessage, …)` with **no `DiagnosticDescriptor` entry** — the
 message text is inlined at the call site. Meanwhile the same files use the descriptor path for the
 CBL36xx COPY codes (`CopyProcessor.cs:60,318,372`). So the frontend inconsistently mixes
 descriptor-based and stringly-typed emission. The registry exists but is only ~half adopted.
@@ -233,14 +233,14 @@ Cross-referencing this survey against `DESIGN-frontend-grammar.md`, `DESIGN-edit
 ### Gaps / corrections the plans should absorb
 
 - **GAP-1 — The preprocessor's raw-string-code emission (S4) is under-scoped.** The plans focus the
-  diagnostic-registry work on the **compiler** side (the COBOLNET0899 catch-all, reused `1533`,
+  diagnostic-registry work on the **compiler** side (the COBOL0899 catch-all, reused `1533`,
   `EditionContext` `List<string>` — `PHASE-02 step 10`, P8). But the **frontend preprocessor** itself
-  emits COBOLNET0718/0719/0875/0902/0903 as bare string literals with inlined message text and **no
+  emits COBOL0718/0719/0875/0902/0903 as bare string literals with inlined message text and **no
   `DiagnosticDescriptor`** (`TurnDirectiveProcessor.cs:50,87,123,134,143`;
   `ReferenceFormatProcessor.cs:129,145,147`; `CopyProcessor.cs:38,40`). `PHASE-02 step 9` moves the
   *severity decision* for the 0902/0903 gates into `EditionSeverityPolicy`, but does **not** say these
   codes get descriptors, and it does **not** mention the 07xx/0875 TURN band at all. Correction: add to
-  `PHASE-02 step 9/10` (or the frontend consolidation phase) an explicit task to give the COBOLNET07xx/
+  `PHASE-02 step 9/10` (or the frontend consolidation phase) an explicit task to give the COBOL07xx/
   08xx/09xx band descriptors and route them through the ONE emission path — otherwise the "one
   diagnostic model" exit criterion is met on the compiler side while the frontend keeps a second,
   stringly-typed style.

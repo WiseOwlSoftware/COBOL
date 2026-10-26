@@ -45,7 +45,7 @@ public sealed record BoundProgram(
 /// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
 /// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
 /// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name / file-name / cd-name
-/// subject kinds and the SORT/MERGE-procedure cause taxonomy are staged (rejected COBOLNET1571 at bind).</summary>
+/// subject kinds and the SORT/MERGE-procedure cause taxonomy are staged (rejected COBOL1571 at bind).</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
     string SubjectName,
@@ -282,8 +282,8 @@ public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccur
 /// <summary>An operand the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
 /// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
 /// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
-/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
-/// (WiseOwl COBOL's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// fails the compile with COBOL2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (WiseOwl COBOL's gap, announced by that funnel as COBOL1756). Either way it can never compile SILENTLY into a
 /// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
 public sealed record BoundExprError : BoundExpr
 {
@@ -311,7 +311,7 @@ public sealed record BoundExprError : BoundExpr
         return Refused(edition, feature);
     }
 
-    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOL1756).</summary>
     public static BoundExprError Unbuilt(EditionContext edition, string feature)
     {
         edition.NoteUnbuilt(feature);
@@ -669,8 +669,8 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
 /// <summary>An operand the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
 /// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
 /// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
-/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
-/// (WiseOwl COBOL's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// fails the compile with COBOL2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (WiseOwl COBOL's gap, announced by that funnel as COBOL1756). Either way it can never compile SILENTLY into a
 /// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
 public sealed record BoundOperandError : BoundOperand
 {
@@ -698,7 +698,7 @@ public sealed record BoundOperandError : BoundOperand
         return Refused(edition, feature);
     }
 
-    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOL1756).</summary>
     public static BoundOperandError Unbuilt(EditionContext edition, string feature)
     {
         edition.NoteUnbuilt(feature);
@@ -762,8 +762,8 @@ public sealed record BoundBoolShift(BoundBoolExpr Operand, BoolShiftKind Kind, B
 /// <summary>A boolean expression the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
 /// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
 /// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
-/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
-/// (WiseOwl COBOL's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// fails the compile with COBOL2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (WiseOwl COBOL's gap, announced by that funnel as COBOL1756). Either way it can never compile SILENTLY into a
 /// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
 public sealed record BoundBoolError : BoundBoolExpr
 {
@@ -791,7 +791,7 @@ public sealed record BoundBoolError : BoundBoolExpr
         return Refused(edition, feature);
     }
 
-    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOL1756).</summary>
     public static BoundBoolError Unbuilt(EditionContext edition, string feature)
     {
         edition.NoteUnbuilt(feature);
@@ -948,7 +948,7 @@ public abstract record BoundStatement
 }
 
 /// <summary>⛔ A DEFERRAL, AND NOTHING ELSE: a statement whose construct WiseOwl COBOL HAS NOT BUILT. The backend
-/// emits a loud runtime guard (§1.4) and <see cref="StatementBinder.BindStatement"/> reports COBOLNET1756 at
+/// emits a loud runtime guard (§1.4) and <see cref="StatementBinder.BindStatement"/> reports COBOL1756 at
 /// compile time, so the gap is visible before the program is run.
 /// <para>⛔ IT IS NOT THE CARRIER FOR AN ILL-FORMED OPERAND OR AN ILLEGAL PLACEMENT (kb/Work PB236). It used to
 /// be all three, and the emitter could not tell them apart, so a violated syntax rule reached the programmer as
@@ -984,7 +984,7 @@ public sealed record BoundDeferredToExpansion(string Construct, BoundStatement? 
 /// <summary>⛔ A REFUSAL, AND NOTHING ELSE (kb/Work PB909): a statement the SOURCE got wrong — written in a shape no
 /// general format prints, or with an operand its syntax rules exclude. It is the other half of the split that
 /// <see cref="BoundUnsupported"/> used to carry alone, when an ungrammatical statement and an unbuilt feature both
-/// compiled to the same COBOLNET1756 warning and the same run-time abort (INSPECT … REPLACING TRAILING and
+/// compiled to the same COBOL1756 warning and the same run-time abort (INSPECT … REPLACING TRAILING and
 /// SEARCH … NOT AT END shipped that way — a warning at compile time, a crash in production, and nothing in the
 /// build output that stopped a release).
 /// <para>The WRONG USE IS UNREPRESENTABLE: the constructor is private and <see cref="Report"/> is the only way to
@@ -993,7 +993,7 @@ public sealed record BoundDeferredToExpansion(string Construct, BoundStatement? 
 /// compiled into a program either (<c>StatementEmitter</c> throws if one ever arrives).</para></summary>
 public sealed record BoundRejected : BoundStatement
 {
-    /// <summary>The COBOLNET code the refusal was reported under — always an error; null when a CALLEE reported it
+    /// <summary>The COBOL#### code the refusal was reported under — always an error; null when a CALLEE reported it
     /// (<see cref="Reported"/>).</summary>
     public string? Code { get; }
 
@@ -1002,7 +1002,7 @@ public sealed record BoundRejected : BoundStatement
     /// <summary>A refusal whose diagnostic a CALLEE already reported — a file-name or procedure-name resolution, an
     /// operand screen, a placement rule (kb/Work PB1029: ~100 sites wrote <c>return new BoundNop();</c> after such a
     /// call, where nothing checked that the callee had in fact reported). The refusal is put on the ledger, and the
-    /// one statement funnel fails the compile with COBOLNET2362 if the statement drew no error.
+    /// one statement funnel fails the compile with COBOL2362 if the statement drew no error.
     /// <para>⛔ NOT for a null from the reference resolver: that null is either reported or a shape WiseOwl COBOL has not
     /// built, and only the funnel can tell which — bind a <see cref="BoundUnsupported"/> there.</para></summary>
     public static BoundRejected Reported(EditionContext edition)
@@ -1024,7 +1024,7 @@ public sealed record BoundRejected : BoundStatement
         return new BoundRejected(rule.Code);
     }
 
-    /// <summary>The same refusal for a code the site still writes as a bare <c>COBOLNETnnnn</c> literal (kb/Work
+    /// <summary>The same refusal for a code the site still writes as a bare <c>COBOLnnnn</c> literal (kb/Work
     /// PB1029 — the report-then-<see cref="BoundNop"/> sites migrated here keep their codes verbatim). A code the
     /// catalogue DOES carry is held to its descriptor's severity, exactly as the descriptor overload is.</summary>
     public static BoundRejected Report(EditionContext edition, string code, string message)
@@ -1049,7 +1049,7 @@ public sealed record BoundRejected : BoundStatement
 /// display or usage national", while SR3's conditional ("If literal-1 IS numeric, it shall be an integer")
 /// presupposes the non-numeric form. A <c>BoundExpr</c> carrier could hold none of that: the numeric funnel
 /// rejected <c>STOP RUN WITH ERROR STATUS "ABEND"</c> and <c>STATUS &lt;PIC X item&gt;</c> alike with
-/// COBOLNET0844, quoting §8.8.1.1 — a rule that does not govern this position — at a programmer who had broken
+/// COBOL0844, quoting §8.8.1.1 — a rule that does not govern this position — at a programmer who had broken
 /// nothing. The operand carrier is the shape the general format actually has.
 /// <para>⚠ The widening is EMIT-NEUTRAL for every program that compiled before: for an integer literal
 /// <c>Visit(BoundNumericLiteral)</c> and <c>Visit(BoundNumLiteral)</c> both reduce to
@@ -1121,7 +1121,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// <summary>ACCEPT format 2's transfer — ISO §14.9.1.4 GR6, "The ACCEPT statement causes the information
     /// requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE
     /// statement", the sender being the GR7–GR12 conceptual unsigned integer item of usage display. The statement
-    /// asks the validity question ITSELF (<c>AcceptDisplayBinder</c>, framed under §14.9.1.3 SR3 as COBOLNET0818),
+    /// asks the validity question ITSELF (<c>AcceptDisplayBinder</c>, framed under §14.9.1.3 SR3 as COBOL0818),
     /// because SR3 is ACCEPT's own rule over the same receiver classes Table 16 refuses (kb/Work PB887).</summary>
     public static readonly ImplicitMovePhrase AcceptTemporal =
         new("ACCEPT … FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §14.9.1.4 GR6") { ValidityAskedByStatement = true };
@@ -1190,7 +1190,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// <para><b>What is NOT on this row.</b> The second sentence of SR2 / SR3 — <i>"shall be a strongly-typed group
 /// item of the same type as identifier-1"</i> — is the same predicate over the same pair that §14.9.25.3 SR2
 /// applies to this phrase's implicit-move SENDER, which IS the record area. It is checked once, by
-/// <c>StatementValidation.CheckStrongMove</c> (COBOLNET1533), and writing it here too would be one rule in two
+/// <c>StatementValidation.CheckStrongMove</c> (COBOL1533), and writing it here too would be one rule in two
 /// places (kb/Work PB337).</para>
 /// </summary>
 /// <param name="Statement">The phrase as the programmer wrote it, for every diagnostic.</param>
@@ -1420,7 +1420,7 @@ public enum VaryingOperandKind
     /// reference-modified) data reference, a function-identifier, and a user-function result.</summary>
     Identifier,
     /// <summary>A shape the brace group does not print (a compound arithmetic expression, a signed identifier) —
-    /// COBOLNET2119, or already diagnosed upstream.</summary>
+    /// COBOL2119, or already diagnosed upstream.</summary>
     Invalid,
 }
 
@@ -1958,7 +1958,7 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundMove? FromMov
     /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §14.9.51.3 SR2 FORBIDS on a
     /// sequential-organization WRITE ("If the organization of the write file is sequential, format 1 shall be
     /// specified", and Format 1 of §14.9.51.2 carries no INVALID KEY bracket) — so it is non-null ONLY under
-    /// <c>--permissive</c>, where the COBOLNET1720 screen warns and the bind stands (kb/Work PB691). It is
+    /// <c>--permissive</c>, where the COBOL1720 screen warns and the bind stands (kb/Work PB691). It is
     /// carried rather than dropped because §9.1.14's final rule item 2 gives the NOT INVALID KEY imperative a
     /// LIVE meaning here — it runs on a successful completion — while the INVALID arm is provably dead: every
     /// invalid-key status (§9.1.13.5, '21'–'24') names a relative or indexed file. Null = the legal Format-1
@@ -1986,7 +1986,7 @@ public sealed record BoundRead(
     public ReadKind Kind { get; init; } = ReadKind.Next;
     /// <summary>The INVALID KEY / NOT INVALID KEY phrase, or null. ⛔ Format 1 HAS NO SUCH PHRASE
     /// (§14.9.30.2), so on this arm it is never conforming source and <c>SequentialIoBinder.BindRead</c>
-    /// reports COBOLNET1720 for it; the carrier exists because that report routes through
+    /// reports COBOL1720 for it; the carrier exists because that report routes through
     /// <c>EditionContext.Removed</c>, which under <c>--permissive</c> WARNS and leaves the bind in place. The
     /// phrase then has to MEAN something, and §14.9.30.4 GR13c is what it means — a successful READ transfers
     /// control to the NOT INVALID KEY imperative. The INVALID arm stays unrendered: a sequential-organization
@@ -2017,7 +2017,7 @@ public sealed record BoundRewrite(FileModel File, Place Record, BoundMove? FromM
     public RetrySpec? Retry { get; init; }
     /// <summary>The <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> pair, which ISO §14.9.35.3 SR2's FIRST arm
     /// forbids on a sequential-organization REWRITE — so it is non-null ONLY under <c>--permissive</c>, where
-    /// the COBOLNET1720 screen warns and the bind stands. PB144 landed the screen but still DROPPED the phrase,
+    /// the COBOL1720 screen warns and the bind stands. PB144 landed the screen but still DROPPED the phrase,
     /// on the reasoning that a sequential REWRITE has no '2x' condition for it to carry; that is true of the
     /// INVALID arm and false of the NOT INVALID arm, which §9.1.14's final rule item 2 runs on a SUCCESSFUL
     /// completion. Carrying the pair is the same correction PB691 made to <see cref="BoundWrite"/>, one method

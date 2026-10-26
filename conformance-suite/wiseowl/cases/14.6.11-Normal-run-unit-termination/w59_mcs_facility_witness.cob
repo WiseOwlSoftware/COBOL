@@ -20,7 +20,7 @@
       *> WARNING mandatory: "An implementation shall provide a warning
       *> mechanism at compile time to indicate use of syntactically-
       *> detectable processor-dependent language elements not supported
-      *> by that implementation." That warning, COBOLNET1578, once at
+      *> by that implementation." That warning, COBOL1578, once at
       *> the RECEIVE and once at the SEND, is the DECLINE half, pinned by
       *> conformance-test DocumentedNonSupportWitnessTests.
       *> THE OUTPUT IS THE INERT HALF. Declined, neither statement

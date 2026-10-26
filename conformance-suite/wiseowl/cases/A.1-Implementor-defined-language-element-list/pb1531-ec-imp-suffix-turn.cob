@@ -11,7 +11,7 @@
       *> §14.6.13.1.1 makes an EC-IMP-suffix name the IMPLEMENTOR's to
       *> define, and this implementation defines none (DOC-A.1-99), so
       *> no exception-name EC-IMP-WIBBLE is listed and the directive is
-      *> refused with COBOLNET0711, positioned at the directive's line.
+      *> refused with COBOL0711, positioned at the directive's line.
        >>TURN EC-IMP-WIBBLE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1531N2.

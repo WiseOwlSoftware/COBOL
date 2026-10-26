@@ -12,7 +12,7 @@
       *> phrase") - so it inherits the gate with no second rule written down:
       *> the grammar references the ONE roundedPhrase production and
       *> VersionConformancePass ParseArm.VisitRoundedPhrase fires on RECOGNITION
-      *> wherever it appears (COBOLNET0803).  That is the whole point of sharing
+      *> wherever it appears (COBOL0803).  That is the whole point of sharing
       *> the production rather than writing a report-local copy: a report clause
       *> could not otherwise have acquired the 2014 gate at all.  The same file
       *> compiles at 2014 and 2023.

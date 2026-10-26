@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3216 - ISO 8.4.2.1 as in pb3216-alphabet-name-declared-twice: a mnemonic-name cannot be qualified,
 *> so SYSOUT IS DEV and CONSOLE IS DEV leave `DISPLAY ... UPON DEV` without a reference that uniquely identifies
-*> one device.  Expected: COBOLNET4250 naming the second mnemonic-name DEV.
+*> one device.  Expected: COBOL4250 naming the second mnemonic-name DEV.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3216-MNEMO.
 ENVIRONMENT DIVISION.

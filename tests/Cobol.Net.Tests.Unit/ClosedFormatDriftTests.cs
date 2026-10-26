@@ -257,13 +257,13 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
             Assert.Matches(@"^\d+(\.\d+)+$", f.Clause);
             Assert.False(string.IsNullOrWhiteSpace(f.Subject), $"{type.Name}: empty Subject");
             Assert.Contains(f.Noun, new[] { "clause", "paragraph" });
-            Assert.Contains(f.Diagnostic.Code, new[] { "COBOLNET1941", "COBOLNET1970", "COBOLNET1971" });
+            Assert.Contains(f.Diagnostic.Code, new[] { "COBOL1941", "COBOL1970", "COBOL1971" });
             Assert.True(f.FormatLabel.Length == 0 || f.FormatLabel.EndsWith(' '),
                 $"{type.Name}: FormatLabel must carry its own trailing space so the message needs no second template");
             // The noun and the code agree: a PARAGRAPH list is 1971, a CLAUSE list is 1970 (or 1941, the code
             // §13.16.2 kept from kb/Work PB487). A mismatch sends the reader to the wrong subclause.
-            if (f.Noun == "paragraph") Assert.Equal("COBOLNET1971", f.Diagnostic.Code);
-            else Assert.Contains(f.Diagnostic.Code, new[] { "COBOLNET1941", "COBOLNET1970" });
+            if (f.Noun == "paragraph") Assert.Equal("COBOL1971", f.Diagnostic.Code);
+            else Assert.Contains(f.Diagnostic.Code, new[] { "COBOL1941", "COBOL1970" });
         }
     }
 
@@ -402,7 +402,7 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
                  })
             Assert.Equal(Editions.EditionSeverity.Error, d.Severity);
 
-        foreach (string code in new[] { "COBOLNET1941", "COBOLNET1970", "COBOLNET1971" })
+        foreach (string code in new[] { "COBOL1941", "COBOL1970", "COBOL1971" })
             Assert.Single(DiagnosticCatalog.All, d => d.Code == code);
     }
 }

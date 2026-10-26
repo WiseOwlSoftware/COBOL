@@ -39,7 +39,7 @@ using CobolNet.Runtime;
 /// </summary>
 internal static class ReportGroupResolution
 {
-    /// <summary>The outcome of a report-group lookup. <c>Ambiguous</c> is ALREADY DIAGNOSED (COBOLNET1920) and
+    /// <summary>The outcome of a report-group lookup. <c>Ambiguous</c> is ALREADY DIAGNOSED (COBOL1920) and
     /// carries the first candidate for error recovery; <c>None</c> carries nothing and leaves the "this is not a
     /// report group" diagnostic to the caller, whose syntax rule differs per statement.</summary>
     public enum Match { Found, Ambiguous, None }
@@ -53,7 +53,7 @@ internal static class ReportGroupResolution
 
     /// <summary>Resolve a possibly-qualified report-group reference against the unit's report models. Collects
     /// EVERY candidate (a qualified reference restricts the candidate reports to the named one) and reports
-    /// COBOLNET1920 when more than one survives — §8.4.2.2.1 / §8.4.2.2.3 SR1.</summary>
+    /// COBOL1920 when more than one survives — §8.4.2.2.1 / §8.4.2.2.3 SR1.</summary>
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
     /// <param name="scope">The procedure division's binder when <paramref name="reports"/> includes GLOBAL reports
     /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one

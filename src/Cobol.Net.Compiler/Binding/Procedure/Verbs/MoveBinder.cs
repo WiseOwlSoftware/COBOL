@@ -20,7 +20,7 @@ using Core = CobolParserCore;
 /// prohibition is NEW in 2023 — those moves were permitted through ISO 2014 (Annex E.2 item 1 bullet 1, the removals
 /// list) — so the registry row "move-alphanumeric-figurative-removed-2023" routes them: silent below 2023, error at
 /// 2023 strict, warning at 2023 --permissive (the pre-removal semantics preserved). SPACE was already prohibited
-/// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; VCR row 7.41), so the MOVE chain refuses it at every edition, COBOLNET0819
+/// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; VCR row 7.41), so the MOVE chain refuses it at every edition, COBOL0819
 /// (MoveValidity.FigurativeRefusal; kb/Work PB3605). The surviving digit-only-ALL-to-integer
 /// case is itself obsolete at 2023 (the SR5 NOTE; Annex F.2 item 2) — row "move-all-digit-integer-obsolete-2023",
 /// a 0903 warning at ≥2023 and silent below.
@@ -112,7 +112,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 + "TO identifier-2 … (ISO §14.9.25.2)");
         BoundOperand source = SendingOperand(send, "MOVE source");
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
-        // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOLNET0809).
+        // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOL0809).
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
         if (send.dataReference() is { } sdref
             && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
@@ -134,7 +134,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <c>move.Emit(new BoundMove(from, [rl.Record]))</c> — downstream of every screen below AND of the storage
     /// facts the emitter's own output depends on. Two consequences, both measured: <c>RELEASE SRT-REC FROM
     /// WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the identical explicit
-    /// <c>MOVE</c> drew COBOLNET0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an unhandled
+    /// <c>MOVE</c> drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an unhandled
     /// <c>NotImplementedCobolFeatureException</c>, because <see cref="MarkImageForced"/> — a fact
     /// <c>StorageFormPass</c> consumes — is collected HERE and the emitter-built move never passed through.
     /// §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c> exactly <c>MOVE x TO record-name-1</c> followed
@@ -373,7 +373,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // RELEASE §14.9.32.3 SR2 and WRITE §14.9.51.3 SR4 admit "an alphanumeric or national function";
         // REWRITE §14.9.35.3 SR9 admits "an alphanumeric, boolean, or national function" when the FILE phrase is
         // not specified (and the FILE arm, §14.9.35.3 SR8 / §14.9.51.3 SR10, is Annex A.4.13 item 2 — DECLINED
-        // COBOLNET1706 before this point, so only the no-FILE readings are reachable). A scalar "must be
+        // COBOL1706 before this point, so only the no-FILE readings are reachable). A scalar "must be
         // alphanumeric" column here would reject legal source on the REWRITE arm.
         // The class is read off the BOUND operand through the same Table-16 sender position the category screen
         // uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how
@@ -463,13 +463,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // Y=[CobolNet] (the CLR carrier's type name) into an alphanumeric item, and `MOVE NULL TO P` reached
         // Roslyn and surfaced CS0029 about generated C#. One rule, one core, asked of both positions.
         if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
-            ctx.Edition.Error("COBOLNET0809", classRefusal
+            ctx.Edition.Error("COBOL0809", classRefusal
                 + (source is BoundFieldOperand sIdx
                     ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
             if (MoveTable16.ReceiverClassRefusal(t) is { } recvRefusal)
-                ctx.Edition.Error("COBOLNET0809",
+                ctx.Edition.Error("COBOL0809",
                     $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 
         // (The §14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
@@ -514,7 +514,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     }
 
     /// <summary>ISO §14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place)"/>
-    /// and framed here under each rule's own diagnostic (COBOLNET1533 · COBOLNET1931 · COBOLNET0819). Version-
+    /// and framed here under each rule's own diagnostic (COBOL1533 · COBOL1931 · COBOL0819). Version-
     /// invariant: SR5's edition rows are <c>VersionConformancePass</c>'s.</summary>
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
                                       ImplicitMovePhrase? implicitOf)
@@ -550,7 +550,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                         + ImplicitMovePhrase.Via(implicitOf));
                     break;
                 case MoveRule.SourceShape:
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: {refusal.Reason}");
+                    ctx.Edition.Error("COBOL0819", $"{where}: {refusal.Reason}");
                     break;
                 default:
                     Table16Framing(source, t, where, refusal.Reason);
@@ -573,11 +573,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (ctx.Edition.Permissive
             && MoveValidity.Table16Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView).Heading,
                 Table16Operand.Lenient(Table16Operand.Of(t), false, t is RefModPlace).Heading) is null)
-            ctx.Edition.Warning("COBOLNET0819", $"{where}: {refusal}; accepted under --permissive "
+            ctx.Edition.Warning("COBOL0819", $"{where}: {refusal}; accepted under --permissive "
                 + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
                                     : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
         else
-            ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}"
+            ctx.Edition.Error("COBOL0819", $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
                     ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
                     : ""));

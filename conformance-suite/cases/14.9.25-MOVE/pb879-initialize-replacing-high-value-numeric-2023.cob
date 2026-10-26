@@ -11,7 +11,7 @@
 *> item or a numeric-edited item" (for HIGH-VALUE a removal - Annex E.2 item 1 - so it was permitted through
 *> 2014; the positive twin is conformance-suite/cases/_unassigned/pb880_initialize_replacing_figurative_numeric).
 *> kb/Work PB879: SR5's edition rows lived in VersionConformancePass.GateMove, reachable only from a bound
-*> MOVE node INITIALIZE never builds, so this compiled clean at 2023 while the explicit MOVE was COBOLNET0902.
+*> MOVE node INITIALIZE never builds, so this compiled clean at 2023 while the explicit MOVE was COBOL0902.
 *> (This test wrote BY SPACE until kb/Work PB3605: SPACE into a numeric item is refused at EVERY edition, not
 *> removed at 2023, so it is no witness of the edition row; pb3605-initialize-replacing-numeric-by-space is.)
        IDENTIFICATION DIVISION.

@@ -8,7 +8,7 @@
       *> of national elements (the pb3441_vlg_display_national_members program) is a COBOL-2014 program: the DYNAMIC
       *> LENGTH clause and the OCCURS DYNAMIC clause that make the group variable-length (ISO 8.5.1.12.1, 13.18.19,
       *> 13.18.38 Format 4) are 2014 additions, so editions 85 and 2002 reject them with the edition-band diagnostic
-      *> COBOLNET0900 BEFORE the group's display format (14.9.11.4 GR7) is ever in question.
+      *> COBOL0900 BEFORE the group's display format (14.9.11.4 GR7) is ever in question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3441NEG.
        DATA DIVISION.

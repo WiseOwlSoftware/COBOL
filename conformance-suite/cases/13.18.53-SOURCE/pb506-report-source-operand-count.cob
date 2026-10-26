@@ -15,7 +15,7 @@
       *> `SOURCE IS? dataReference` — ONE operand, no SOURCES spelling — so a conforming multi-operand SOURCE
       *> clause was a raw parse error and SR6 had nothing at all to screen.  The two rules are now screened by
       *> ONE reader, with a diagnostic per clause so the reader is sent to the subclause actually written.
-      *> SR6 carries no version proviso, so it is reported at all four editions; at 85 the two COBOLNET0900
+      *> SR6 carries no version proviso, so it is reported at all four editions; at 85 the two COBOL0900
       *> introduction gates this program trips - the multiple COLUMN clause and the multi-operand SOURCE /
       *> SOURCES spelling - are reported ALONGSIDE it, not instead of it.
        IDENTIFICATION DIVISION.

@@ -8,7 +8,7 @@
 *>   the associated rules", and 13.10.4 GR1 makes COLUMN KZ "as if" COLUMN 0 were written.
 *>   cite.py: OK  5.5 1)  (Integer operands)
 *>   cite.py: OK  13.10.4 1)  (General rules)
-*> No rule of the COLUMN clause permits zero (13.18.14.3), so a zero constant is COBOLNET2386 exactly as the
+*> No rule of the COLUMN clause permits zero (13.18.14.3), so a zero constant is COBOL2386 exactly as the
 *> literal is. (A LINE PLUS operand, by contrast, "may be zero": 13.18.35.3 SR3.)
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB1947N2.

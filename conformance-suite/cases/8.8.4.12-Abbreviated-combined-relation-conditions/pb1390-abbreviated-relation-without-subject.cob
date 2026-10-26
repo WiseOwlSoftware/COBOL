@@ -8,7 +8,7 @@
       *> relational operator terminates once a complete simple condition is encountered within a complex
       *> condition." After the class condition B IS NUMERIC nothing is carried, so `OR < 2` has no subject to
       *> insert (§8.8.4.12.1 lets a relation omit its subject only when a preceding relation condition supplies
-      *> one). It was refused with no diagnostic (the COBOLNET2319 internal-error net); it is now COBOLNET2552.
+      *> one). It was refused with no diagnostic (the COBOL2319 internal-error net); it is now COBOL2552.
       *> (A group that OPENS with an abbreviated relation, `OR (< 2)`, never parses: every leading tier begins
       *> with an unabbreviated condition.)
        IDENTIFICATION DIVISION.

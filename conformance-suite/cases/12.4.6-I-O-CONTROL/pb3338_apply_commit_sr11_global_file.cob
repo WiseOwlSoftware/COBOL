@@ -10,7 +10,7 @@
 *> GLOBAL clause (FD RELF IS GLOBAL). The name is visible in the contained program, and SR11 still keeps it out of that
 *> program's clause (as SR1 does: RELF is not in the contained program's FILE-CONTROL paragraph). An APPLY COMMIT operand
 *> is looked up only in the element that writes the clause, so the only refusal this program can draw is that the
-*> operand resolves to nothing there (COBOLNET1639, "no declaration in this source element"). Fails if the clause is
+*> operand resolves to nothing there (COBOL1639, "no declaration in this source element"). Fails if the clause is
 *> accepted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338SB.

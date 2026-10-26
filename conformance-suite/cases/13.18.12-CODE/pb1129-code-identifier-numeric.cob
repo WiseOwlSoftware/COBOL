@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1129. ISO/IEC 1989:2023 13.18.12.3 SR2: "Identifier-1 shall reference an alphanumeric data
       *> item that shall not be an occurs-depending-on group item, a variable-length group, or a
-      *> dynamic-length elementary item." (cite.py OK). WS-CD is PIC 99, a numeric item (COBOLNET2713).
+      *> dynamic-length elementary item." (cite.py OK). WS-CD is PIC 99, a numeric item (COBOL2713).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1129N2.
        ENVIRONMENT DIVISION.

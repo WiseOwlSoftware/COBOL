@@ -7,7 +7,7 @@
       *> kb/Work PB2629 - the negative twin of the 2014 golden
       *> pb2629_leap_second_utc_offset: FORMATTED-TIME (ISO 15.41) and its
       *> UTC offset argument are a COBOL-2014 introduction, so below 2014
-      *> the function is the edition-introduction diagnostic (COBOLNET1502),
+      *> the function is the edition-introduction diagnostic (COBOL1502),
       *> never compiled.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2629NFT.

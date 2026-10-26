@@ -11,10 +11,10 @@
       *> ⛔ WHY SR1 IS PART OF THE SAME SCREEN AND NOT A LATER ONE: it is what keeps SR14's second conjunct
       *> honest.  13.18.29.4 GR3 makes a group an ALPHANUMERIC group item only when no GROUP-USAGE clause is
       *> specified or implied AND it "is not strongly typed and is not a variable-length group".  With SR1
-      *> unenforced this program drew COBOLNET1702 naming SR14 - a rule 13.18.29.4 GR3 says does not reach a
+      *> unenforced this program drew COBOL1702 naming SR14 - a rule 13.18.29.4 GR3 says does not reach a
       *> strongly-typed group at all.  The right answer is one verdict against the rule the source violates.
       *> Twin: pb184-group-value-variable-length-subject covers SR1's other shape.
-      *> Edition band: STRONG TYPEDEF is COBOL-2002, so 85 rejects the declaration itself (COBOLNET0900).
+      *> Edition band: STRONG TYPEDEF is COBOL-2002, so 85 rejects the declaration itself (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB184N5.
        DATA DIVISION.

@@ -12,17 +12,17 @@
       *> the asynchronous messaging facility, a processor-dependent element (4.2.6; Annex A.3 item 4) this
       *> implementation does not support (docs/CONFORMANCE.md section 4 item 1), and 4.2.6 paragraph 3 makes a
       *> compile-time warning mechanism naming it MANDATORY.
-      *> MEASURED BEFORE THE FIX, on this worktree's own build: the entry drew its named COBOLNET1943, and then
-      *> the STATEMENT drew `COBOLNET0867: SET 'MT1': the receiving operand of an object-reference SET shall be
+      *> MEASURED BEFORE THE FIX, on this worktree's own build: the entry drew its named COBOL1943, and then
+      *> the STATEMENT drew `COBOL0867: SET 'MT1': the receiving operand of an object-reference SET shall be
       *> a USAGE OBJECT REFERENCE data item (ISO 14.9.39.3 SR8)` - Format 5's rule, about a statement nobody
-      *> wrote, naming a repair that is not one.  The sibling `SET MT1 TO MT2` drew COBOLNET0844, the 8.8.1.1
+      *> wrote, naming a repair that is not one.  The sibling `SET MT1 TO MT2` drew COBOL0844, the 8.8.1.1
       *> arithmetic screen, calling a message-tag item "of category alphanumeric".
       *> Both arms are here on purpose: `TO NULL` reaches the format selection through
       *> setObjectReferenceStatement and `TO MT2` through setToValueStatement, and it was the FIRST arm that
       *> produced the SR8 diagnostic - one dispatch, two arms (feedback_two_arm_dispatch).
       *> 2023 ONLY, DELIBERATELY: MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition, so below 2023 the
       *> word is an ordinary user-defined word and the edition-correct answer is the introduction gate.  That
-      *> routing is broken for the whole MESSAGE-TAG surface (COBOLNET1943 fires at 2002 and 2014 too, against
+      *> routing is broken for the whole MESSAGE-TAG surface (COBOL1943 fires at 2002 and 2014 too, against
       *> its own message text) and is registered as its own mechanism; pinning 2002 here would freeze the
       *> defect (feedback_green_test_can_hold_a_gap_open).  The entry's own witness is
       *> negative/pb487-message-tag-usage; this one is the STATEMENT's.

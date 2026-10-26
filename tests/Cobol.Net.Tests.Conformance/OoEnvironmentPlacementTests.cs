@@ -81,8 +81,8 @@ public sealed class OoEnvironmentPlacementTests
     {
         var (_, errors, _) = EditionHarness.CompileFull(Source(kind, env).Replace("\r\n", "\n"), 2023);
         if (refused)
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2644");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL2644");
         else
-            EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2644");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL2644");
     }
 }

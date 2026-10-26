@@ -78,7 +78,7 @@ internal sealed record ClausePlacementRule(
 /// <para><b>Why a table.</b> Every rule here has the same shape — "clause C may be specified only
 /// {for an elementary item | at level 1 in sections S | with a data-name | without clause D}" — and before this
 /// file the shape had been written down as a scatter of ad-hoc checks that each covered one clause: PICTURE's
-/// elementary-only rule had a screen (COBOLNET2191) while JUSTIFIED and BLANK WHEN ZERO, named in the SAME
+/// elementary-only rule had a screen (COBOL2191) while JUSTIFIED and BLANK WHEN ZERO, named in the SAME
 /// sentence (§13.16.3 SR11), had none; BASED×EXTERNAL was refused while REDEFINES×EXTERNAL, named in the SAME
 /// sentence (SR5), was not; and the EXTERNAL/GLOBAL level and entry-name rules lived only as <c>continue</c>
 /// filters inside the post-bind registration scan, so a misplaced clause was silently ANNULLED rather than
@@ -195,9 +195,9 @@ internal static class ClausePlacementRules
             [DataClauseKind.AnyLength] = "§13.18.2.3 — AnyLengthValidateUnit (linkage, elementary)",
             [DataClauseKind.DynamicLength] = "§13.18.19.3 — BindEntry's DYNAMIC LENGTH block",
             [DataClauseKind.GroupUsage] = "§13.18.29.3 SR1 — UsageInheritanceGroup / UsageInheritanceElementary",
-            [DataClauseKind.SelectWhen] = "Annex A.4.8 — declined by name in BindEntry (COBOLNET1560 family)",
+            [DataClauseKind.SelectWhen] = "Annex A.4.8 — declined by name in BindEntry (COBOL1560 family)",
             [DataClauseKind.Validation] = "§13.18.64 family — validation clauses have no §13.16.3 placement rule",
-            [DataClauseKind.Unrecognized] = "not a clause — refused by name (COBOLNET1941)",
+            [DataClauseKind.Unrecognized] = "not a clause — refused by name (COBOL1941)",
         };
 }
 
@@ -357,13 +357,13 @@ public sealed partial class DataBinder
     /// <item>§13.18.8.3 SR1 — category numeric-edited, or numeric without 'S'. The category is the one the
     /// PICTURE character-string gives, which §13.18.8.4 GR2 then re-defines as numeric-edited for a display /
     /// national numeric subject; so both categories are admitted here. The 'S' half is §13.18.40.3's own
-    /// SR22 (COBOLNET1934, PictureComposition) — the same fact, reported once, at the picture.</item>
+    /// SR22 (COBOL1934, PictureComposition) — the same fact, reported once, at the picture.</item>
     /// <item>§13.18.8.3 SR2 — usage display or national, written or inherited.</item>
     /// <item>§13.18.32.3 SR3 — category alphabetic, alphanumeric, boolean or national (never an EDITED
     /// category: <see cref="PicInfo.EditMask"/> is what makes one, see its doc).</item>
     /// <item>§13.18.32.3 SR4 — "shall not be specified for a dynamic-length elementary item" — has NO arm here,
     /// deliberately: §13.16.3 SR18 already refuses JUSTIFIED beside DYNAMIC LENGTH (the only other clauses it
-    /// permits are level-number, entry-name, PICTURE, USAGE and VALUE — COBOLNET1563, BindEntry), which is the
+    /// permits are level-number, entry-name, PICTURE, USAGE and VALUE — COBOL1563, BindEntry), which is the
     /// same fact reported once. No TYPE / SAME AS path can compose the pair either: both copy from an entry that
     /// SR18 has already screened.</item>
     /// </list>

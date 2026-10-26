@@ -48,7 +48,7 @@
       *>      "CCC" THRU "AAA", which ASCENDS under REV-AN (C < B < A)
       *>      -> Y.  Under the national REV-NAT ("ABC") it would be
       *>      inverted, which 13.18.63.3 SR26 b) refuses at compile
-      *>      time for a known sequence (COBOLNET2961, kb/Work PB552) -
+      *>      time for a known sequence (COBOL2961, kb/Work PB552) -
       *>      so a fix that moved this group to the national sequence
       *>      would not compile.  (The range was "AAA" THRU "CCC",
       *>      inverted under REV-AN, before SR26 was enforced.)

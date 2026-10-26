@@ -14,7 +14,7 @@
       *>   conformance/negative/pb1404-*.
       *>   Derived output: the first program stores AB12 and the second, describing the same item, sees it; the
       *>   aliased item is its own item (Q9). Each leg can fail: the pair is refused as a duplicate externalized
-      *>   name (COBOLNET2213), or the second program's item is a private copy (SEEN would be spaces).
+      *>   name (COBOL2213), or the second program's item is a private copy (SEEN would be spaces).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1404OK.
        DATA DIVISION.

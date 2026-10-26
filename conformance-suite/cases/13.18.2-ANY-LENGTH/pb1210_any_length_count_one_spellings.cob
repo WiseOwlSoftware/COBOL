@@ -8,7 +8,7 @@
       *> ISO 13.18.2.3 SR1: "The character-string specified in that PICTURE clause shall be one instance
       *> of the picture symbol 'N', 'X', or '1'." 13.18.40.3 SR6: the parenthesized integer "indicates the
       *> number of consecutive occurrences of the symbol", so X(01) and X(001) are ONE instance of X and
-      *> satisfy SR1 exactly as X does (kb/Work PB1210: they were refused COBOLNET1542 by a closed list of
+      *> satisfy SR1 exactly as X does (kb/Work PB1210: they were refused COBOL1542 by a closed list of
       *> six spellings while the DYNAMIC LENGTH twin accepted them). Expected (derived, 13.18.2.4 GR1 /
       *> 14.8.2.3.2 2) d): each formal takes the length of its argument - LEN=03 VAL=XYZ, LEN=08 VAL=WXYZABCD,
       *> then the X(001) formal LEN=03 VAL=XYZ. A refusal, or a one-character window, fails the case.

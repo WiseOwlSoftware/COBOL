@@ -16,7 +16,7 @@
       *>   identifier referencing a numeric data item" -> OK §8.8.1.1
       *> B is category numeric-edited, not numeric, so "B + 1" is not
       *> an arithmetic expression 8.8.1.1 admits.
-      *> COBOLNET0844 = arithmetic-expression operand not numeric.
+      *> COBOL0844 = arithmetic-expression operand not numeric.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C04I.
        DATA DIVISION.

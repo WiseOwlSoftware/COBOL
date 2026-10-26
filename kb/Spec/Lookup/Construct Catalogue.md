@@ -17,7 +17,7 @@ tags:
 
 The complete per-construct edition inventory, distilled from the canonical `tests/version-matrix/constructs.json`
 (the SSOT that `VERSION_CHANGE_REFERENCE.md` and the in-code `ConstructRegistry` are renderings of). Each row: the
-construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edition years, the `COBOLNET` diagnostic
+construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edition years, the `COBOL####` diagnostic
 (suffix), and `Status` (`pending` = catalogued but not yet implemented; else `active`). See
 [[kb/Spec/Version Targeting]] and [[kb/Semantics/Passes]] for how these are gated.
 

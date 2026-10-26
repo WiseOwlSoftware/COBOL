@@ -8,7 +8,7 @@
       *> pb3565_compute_boolean_sole_identifier. ISO 15.2 2) boolean
       *> functions, and the function BOOLEAN-OF-INTEGER, belong to the 2002
       *> standard; at COBOL-85 the program is refused (the intrinsic's
-      *> introduction, COBOLNET1502, and the boolean item's, COBOLNET0900).
+      *> introduction, COBOL1502, and the boolean item's, COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3565B85.
        DATA DIVISION.

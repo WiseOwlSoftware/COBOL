@@ -10,9 +10,9 @@
       *> are used and two are specified, the first occurrence of the EDITING phrase shall be for the leftmost
       *> symbol in character-string-1 and the second occurrence shall be for the rightmost symbol in
       *> character-string-1." The negative siblings negative/pb530-picture-editing-phrase-order (the reversed
-      *> spellings, COBOLNET1984) and negative/pb855-picture-editing-es-placement (a symbol where no
-      *> currency symbol could stand, COBOLNET1935; two symbols that are not the string's two ends,
-      *> COBOLNET1984) hold what it refuses; this golden holds the images the legal spellings render.
+      *> spellings, COBOL1984) and negative/pb855-picture-editing-es-placement (a symbol where no
+      *> currency symbol could stand, COBOL1935; two symbols that are not the string's two ends,
+      *> COBOL1984) hold what it refuses; this golden holds the images the legal spellings render.
       *>
       *> E01 F999.99L, the 'F' phrase first, with -1.5. Both extended symbols render their NEGATIVE literal
       *>     (Table 9: "character-1 NEGATIVE phrase ... literal-2" over a negative value), each at its own

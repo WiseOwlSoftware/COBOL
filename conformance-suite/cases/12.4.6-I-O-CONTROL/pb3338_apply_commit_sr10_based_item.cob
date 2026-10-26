@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3338 - ISO 12.4.6.3.3 SR10: "No data items referenced by the FILE STATUS clause, the LINAGE clause, the RECORD clause, or separately specified in the APPLY COMMIT clause shall be subject to a BASED clause."
 *> The shape: identifier-1 is a BASED item. The clause is accepted for a RELATIVE file, so the only refusal this program can
-*> draw is SR10's own, by name (COBOLNET4709). Fails if the clause is accepted or refused for another reason.
+*> draw is SR10's own, by name (COBOL4709). Fails if the clause is accepted or refused for another reason.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338SA.
        ENVIRONMENT DIVISION.

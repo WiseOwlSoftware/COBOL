@@ -13,7 +13,7 @@
       *> >>TURN EC-RANGE-INVALID CHECKING ON.
       *> A level-88 range reaches the run-time arm only when its collating sequence is UNKNOWN at compile time:
       *> §13.18.63.3 SR26 requires literal-2 less than literal-3 for a numeric range, and for a character range
-      *> "when ... the runtime collating sequence is known" (cite.py OK; COBOLNET2961, kb/Work PB552), and "The
+      *> "when ... the runtime collating sequence is known" (cite.py OK; COBOL2961, kb/Work PB552), and "The
       *> runtime collating sequence is unknown when the collating sequence is defined by a locale". So the
       *> inverted 88 is ordered IN a LOCALE alphabet, and the numeric descending range is an EVALUATE WHEN range,
       *> which no syntax rule orders.

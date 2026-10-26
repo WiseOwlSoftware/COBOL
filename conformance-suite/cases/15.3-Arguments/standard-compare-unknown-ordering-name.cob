@@ -14,7 +14,7 @@
       *> - two bracketed optionals in a fixed order, no choice indicators, so 5.2.6 makes them POSITIONAL. With
       *> four arguments written both are present, so the third position IS ordering-name-1 and there is no other
       *> reading available: NOSUCH is not associated with any ORDER TABLE clause (this unit declares OT1 and
-      *> nothing else), so the reference is a syntax-rule violation, COBOLNET1663.
+      *> nothing else), so the reference is a syntax-rule violation, COBOL1663.
       *>
       *> The four-argument form is used deliberately. In the THREE-argument form the third position is either
       *> ordering-name-1 or argument-4, and 15.3 argument type 6 admits "an integer data item" - so a bare word

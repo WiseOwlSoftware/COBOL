@@ -14,7 +14,7 @@
       *>   method's K AS "A" (golden 2002/pb3164_method_constant_scope);
       *>   but two entries of K inside ONE method are a duplicated
       *>   constant-name of one source element with unequal
-      *>   specifications, refused COBOLNET1547 at the second entry.
+      *>   specifications, refused COBOL1547 at the second entry.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3164N.
        ENVIRONMENT DIVISION.

@@ -41,7 +41,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
         var edition = Bind(Inside(">>TURN EC-OVERFLOW-STRING CHECKING ON", "PB595TURNIN"));
         Assert.Empty(edition.Diagnostics);
         Assert.Contains(edition.Warnings, w =>
-            w.Contains("COBOLNET2187") && w.Contains("§7.3.25.3 SR5")
+            w.Contains("COBOL2187") && w.Contains("§7.3.25.3 SR5")
             && w.Contains("A TURN directive shall not be specified within an exception processing PERFORM statement"));
     }
 
@@ -56,7 +56,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
         var edition = Bind(Inside(directive, "PB595PUSHPOP"));
         Assert.Empty(edition.Diagnostics);
         Assert.Contains(edition.Warnings,
-            w => w.Contains("COBOLNET2187") && w.Contains(clause) && w.Contains(quoted));
+            w => w.Contains("COBOL2187") && w.Contains(clause) && w.Contains(quoted));
     }
 
     /// <summary>THE CONTROL, and it is what makes the three above evidence: the SAME directives written OUTSIDE
@@ -85,7 +85,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
                        STOP RUN.
             """);
         Assert.Empty(edition.Diagnostics);
-        Assert.DoesNotContain(edition.Warnings, w => w.Contains("COBOLNET2187"));
+        Assert.DoesNotContain(edition.Warnings, w => w.Contains("COBOL2187"));
     }
 
     /// <summary>NESTED Format-3 PERFORMs contain the same directive line, and each one's bind asks the same
@@ -115,7 +115,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
                        STOP RUN.
             """);
         Assert.Empty(edition.Diagnostics);
-        Assert.Single(edition.Warnings, w => w.Contains("COBOLNET2187"));
+        Assert.Single(edition.Warnings, w => w.Contains("COBOL2187"));
     }
 
     /// <summary>A banned directive inside an OMITTED conditional-compilation branch draws nothing: it is not
@@ -145,7 +145,7 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
                        STOP RUN.
             """);
         Assert.Empty(edition.Diagnostics);
-        Assert.DoesNotContain(edition.Warnings, w => w.Contains("COBOLNET2187"));
+        Assert.DoesNotContain(edition.Warnings, w => w.Contains("COBOL2187"));
     }
 
     /// <summary>The scanner and the ban table name the SAME three words. A fourth position-ruled directive is one

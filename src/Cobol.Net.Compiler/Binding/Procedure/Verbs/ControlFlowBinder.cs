@@ -49,10 +49,10 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// (kb/Work PB169). The general format §14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
     /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed it — and both arms went through
     /// <c>host.Expr.BindExpr</c>. Measured on 9a89fbd1: <c>STOP RUN WITH ERROR STATUS "ABEND"</c> AND
-    /// <c>STOP RUN WITH ERROR STATUS WS-CODE</c> with <c>WS-CODE PIC X(3)</c> each drew COBOLNET0844 citing
+    /// <c>STOP RUN WITH ERROR STATUS WS-CODE</c> with <c>WS-CODE PIC X(3)</c> each drew COBOL0844 citing
     /// §8.8.1.1, while THIS METHOD'S OWN DOC COMMENT already said the position takes "an integer literal or a
     /// display/national/integer data item" — the code rejected two of the three shapes its documentation
-    /// promised. This is the <c>BindByValueExpr</c> / COBOLNET1628 shape exactly: a rule enforced at a site that
+    /// promised. This is the <c>BindByValueExpr</c> / COBOL1628 shape exactly: a rule enforced at a site that
     /// could not know its own context, quoting the wrong clause at the programmer.</para>
     ///
     /// <para><b>The position's OWN rules, now enforced</b> (§14.9.42.3 for STOP, the identical §14.9.18.3 SR6–SR8
@@ -145,7 +145,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                 StatusError("the status literal shall not be a zero-length literal", "SR4", "SR8");
                 break;
             // NULL never reaches here: the phrase is no §8.4.3.10.3 SR1 context, so the ONE literal mapping refused
-            // it (COBOLNET2576, kb/Work PB1427) and handed back a BoundOperandError.
+            // it (COBOL2576, kb/Work PB1427) and handed back a BoundOperandError.
             // SR2/SR6 — an integer data item, OR a data item with usage display or usage national.
             case BoundFieldOperand { Place: var place } when !AdmittedStatusItem(place):
                 StatusError($"the status operand '{text}' shall reference an integer data item or a data "
@@ -338,7 +338,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // PERFORM there is no such END-PERFORM, so the statement has no meaning to carry.
             if (!where.InPerform)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOL0827",
                     "EXIT PERFORM may be specified only in an inline or exception-checking PERFORM statement "
                     + "(ISO §14.9.14.3 SR8)");
             }
@@ -363,7 +363,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             var element = ctx.Enclosing.SourceElement;
             if (!ctx.Enclosing.InProgramProcedureDivision)   // §14.9.14.3 SR7
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOL0827",
                     $"EXIT PROGRAM may be specified only in a program procedure division, not in "
                     + $"{ElementNoun(element)} (ISO §14.9.14.3 SR7; the five source elements that may "
                     + "carry this procedure division are §14.2.2 SR10's — a function, function prototype or "
@@ -384,7 +384,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         {
             if (ctx.CurrentSection is not { } sec)   // §14.9.14.3 SR9 — EXIT SECTION may be specified only in a section
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOL0827",
                     "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
             }
             return new BoundExitSection(sec.EndPc, ctx.SourceLine(e));
@@ -499,7 +499,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// <summary>⛔ ISO §14.9.28.3 SR8, THE ONE SCREEN — "The UNTIL EXIT phrase shall not be specified in a PERFORM
     /// statement with or under a PERFORM statement with the VARYING phrase or either the TEST BEFORE or TEST AFTER
     /// phrase" (kb/Work PB434). Asked of every Format-1 and Format-2 PERFORM before its control phrase binds; a
-    /// Format-3 PERFORM carries no loop-control phrase (COBOLNET2118). Three arms, one code (COBOLNET2954):
+    /// Format-3 PERFORM carries no loop-control phrase (COBOL2118). Three arms, one code (COBOL2954):
     /// <list type="bullet">
     ///   <item><b>with</b> — this statement also writes VARYING or a TEST phrase. The grammar spells EXIT in every
     ///     UNTIL of a PERFORM (<c>performUntilTarget</c>) so <c>WITH TEST BEFORE UNTIL EXIT</c> and
@@ -550,7 +550,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // `performInlineHead performOptions…` (the Formats-2/3 merge moved the inline options under the head).
         // ⛔ THE `FirstOrDefault()` IS RECOVERY AFTER A REPORTED VIOLATION, NOT A CHOICE (kb/Work PB431). The
         // §14.9.28.2 Format-2 bracket admits ONE phrase, so a well-formed head has exactly one here; a head with
-        // more has already been refused by CheckInlineHeadCardinality (COBOLNET2117) before this runs, and
+        // more has already been refused by CheckInlineHeadCardinality (COBOL2117) before this runs, and
         // binding the first phrase merely keeps the rest of the bind from cascading. It used to be the ONLY
         // treatment — every phrase after the first was silently DELETED from the bound tree, so no later pass
         // could even see it, and `PERFORM 3 TIMES UNTIL X > 100` ran three times with no diagnostic at any --std.

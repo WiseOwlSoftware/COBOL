@@ -107,14 +107,14 @@ public static class CobolTable
 
     /// <summary>A NON-NUMERIC position operand's occurrence-number value — the two carriers only a
     /// <c>--permissive</c> position operand has: an index DATA item (an <c>IndexCell</c> is a <c>long</c>) and an
-    /// alphanumeric / national / boolean item whose digit characters the documented COBOLNET0844 leniency decodes
+    /// alphanumeric / national / boolean item whose digit characters the documented COBOL0844 leniency decodes
     /// as an unsigned integer. A NUMERIC position operand never comes here: it reads through the profile arity
     /// below, which is where §14.6.13.2 rule 2 lives.</summary>
     public static long Occ(long value) => value;
 
     /// <inheritdoc cref="Occ(long)"/>
     /// <remarks>The digit decode of a non-numeric item's characters — <see cref="CobolNum.DigitMagnitude"/>, the
-    /// extension COBOLNET0844's <c>--permissive</c> message promises (kb/Work PB170). Not a rule 2 read: the
+    /// extension COBOL0844's <c>--permissive</c> message promises (kb/Work PB170). Not a rule 2 read: the
     /// operand is not a numeric sending item, so there is no numeric class condition for its content to fail.</remarks>
     public static Occurrence Occ(string image) => Occurrence.Of(CobolNum.DigitMagnitude(image), 0);
 

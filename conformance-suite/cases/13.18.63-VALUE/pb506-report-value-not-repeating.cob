@@ -14,7 +14,7 @@
       *> raw text `"AAA""BBB""CCC"`, whose doubled quotes the literal decoder read as escaped ones, and the PIC
       *> then truncated the result.  SR35 carries no version proviso, so it is reported at all four editions;
       *> this program writes nothing edition-gated (ONE absolute COLUMN operand is the COBOL-85 form), so
-      *> COBOLNET2012 is the only diagnostic at every edition.
+      *> COBOL2012 is the only diagnostic at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB506N1.
        ENVIRONMENT DIVISION.

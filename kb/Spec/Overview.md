@@ -41,15 +41,15 @@ regression nets "with known holes," never authority. See [[kb/Context/Goals]].
 [[docs/CONFORMANCE]] is the implementor's user documentation required by §4.2.16 (and §4.2.6 / §4.2.7 / §4.2.13).
 For every processor-dependent element in Annex A.3 and every optional A.4 module it states support as
 **Claimed / Partial / Not claimed**, and pins implementor determinations (I-O status codes, rounding, STOP RUN exit
-status). Syntactically-detectable unsupported elements emit a compile-time warning in the **COBOLNET1560 band** per
+status). Syntactically-detectable unsupported elements emit a compile-time warning in the **COBOL1560 band** per
 §4.2.6 ¶3. See [[kb/Semantics/Validation Rules]].
 
 ## Documented non-support facilities
 
 Five whole facilities are not implemented: **MCS asynchronous messaging** (SEND/RECEIVE), **COMMIT/ROLLBACK**,
 **VALIDATE**, **SCREEN handling**, and the **Locale facility**. Four are recognized-and-warned
-(SCREEN→COBOLNET1560, MCS→1578, COMMIT/ROLLBACK→1579, VALIDATE→1580); the locale module is rejected at bind with the
-**COBOLNET1518 error** (the A.4.1 unclaimed-optional posture) — RETIRED at kb/Work PB64 T6: the locale module is claimed whole and the diagnostic is deleted (its code is never reallocated).
+(SCREEN→COBOL1560, MCS→1578, COMMIT/ROLLBACK→1579, VALIDATE→1580); the locale module is rejected at bind with the
+**COBOL1518 error** (the A.4.1 unclaimed-optional posture) — RETIRED at kb/Work PB64 T6: the locale module is claimed whole and the diagnostic is deleted (its code is never reallocated).
 
 ## Four-editions mission
 
@@ -64,7 +64,7 @@ zero GAP. See [[kb/Spec/Version Targeting]] and [[kb/Modernization/Tasks]].
 - 16 clauses; Annexes A / E / F drive conformance and edition gating.
 - §4.2.16 user-documentation obligation → [[docs/CONFORMANCE]].
 - Annex A.1 lists ~222 implementor-defined elements (199 requiring documentation) — the definition of "done."
-- Four non-support facilities (the locale facility left §4 at PB64 T6 — claimed whole); the COBOLNET1560-band warnings.
+- Four non-support facilities (the locale facility left §4 at PB64 T6 — claimed whole); the COBOL1560-band warnings.
 - Default edition 2023; four editions via `--std`.
 
 ## See also

@@ -2173,9 +2173,9 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   independent file connectors that are not specified in APPLY COMMIT clauses"* describes.
 - **The compiler half** (PB3338), as built. The binder accepts the clause for a RELATIVE or INDEXED file
   (`DataBinder.BindApplyCommitClause`, then `ResolveApplyCommit` once the data division is bound: §12.4.6.3.3 SR1-SR10,
-  one diagnostic, COBOLNET4709; SR6 for a factory or instance definition is `OoEnvironmentRules`'), and the claimed
+  one diagnostic, COBOL4709; SR6 for a factory or instance definition is `OoEnvironmentRules`'), and the claimed
   clauses' antecedent family (LOCK MODE, SAME, OPEN sharing, READ/REWRITE lock phrases, UNLOCK) refuses its forbidden
-  shapes in its own right (COBOLNET2974). The run unit's half of the statements is `TransactionControl`: each element
+  shapes in its own right (COBOL2974). The run unit's half of the statements is `TransactionControl`: each element
   instance's activated clause is a PARTICIPANT whose emitted `__CommitSave` / `__CommitRestore` copy its data items (the
   listed identifiers and SR9's file status, LINAGE and RECORD DEPENDING items) to and from an image the instance keeps,
   saved at activation (a ROLLBACK before the first COMMIT restores the state at activation, §14.9.36.4 GR3) and at every
@@ -3168,7 +3168,7 @@ with the second run unit at every boundary; the expected state in every row is I
 | a lock directory this process may not list | a writable OPEN · a covered DELETE FILE | '37', F unchanged (`unit:SequentialCommitControlTests.A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks`) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
-**2.2.2.13 What the design deletes, keeps and measures.** Deleted: the refusal of the sequential operand of an APPLY COMMIT clause, COBOLNET1709 (retired, never reallocated), with `FileModel.IsCommitControlled` and `ApplyCommitModel.CommitControlledFiles`, which only narrowed the clause to its keyed files: every file the clause names is under commit control.
+**2.2.2.13 What the design deletes, keeps and measures.** Deleted: the refusal of the sequential operand of an APPLY COMMIT clause, COBOL1709 (retired, never reallocated), with `FileModel.IsCommitControlled` and `ApplyCommitModel.CommitControlledFiles`, which only narrowed the clause to its keyed files: every file the clause names is under commit control.
 Kept, unchanged in contract: every verb arm of `SequentialConnector`, `OverwriteInPlace` as the one in-place overwrite,
 `ReleaseRecord` as the one release, `SharedAppendStream`, the region map (one new byte kind, `EntryMutexByte`, in 2.2.1.8's
 map, expressed by `SidecarRegionLocks` on every host), `SidecarLockFiles`' holder, probe and retirement rules (the holder file
@@ -3463,7 +3463,7 @@ two intakes, and which one is not a property of the renderer arm — it is a pro
 reflection over the shipped signatures and fails when an arm and its body disagree — in either direction. A new
 total function therefore needs one act, widening its body; forgetting its renderer arm is red, not silent.
 ⛔ **A type-6 position has NO `…Real` twin: the renderer takes the operand's INTEGER first (kb/Work PB651).**
-Since kb/Work PB248 a floating-point operand at a §15.3 type-6 position is REFUSED under strict (COBOLNET1627 —
+Since kb/Work PB248 a floating-point operand at a §15.3 type-6 position is REFUSED under strict (COBOL1627 —
 type 6 admits "an integer data item or an always-integral arithmetic expression", and a floating-point item is
 neither), so it arrives only under `--permissive`, and docs/CONFORMANCE.md DOC-A.1-124 fixes what it then means:
 the integer it holds, or the truncated integer with EC-ARGUMENT-FUNCTION checking off. That is a property of the

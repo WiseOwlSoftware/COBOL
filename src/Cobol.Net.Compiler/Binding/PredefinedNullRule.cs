@@ -5,7 +5,7 @@ using CobolNet.Editions.Diagnostics;
 namespace CobolNet.Binding;
 
 /// <summary>
-/// ⛔ THE ONE STATEMENT OF THE §8.4.3.10.3 SR1 REFUSAL (kb/Work PB1427) — COBOLNET2576, for the predefined NULL written
+/// ⛔ THE ONE STATEMENT OF THE §8.4.3.10.3 SR1 REFUSAL (kb/Work PB1427) — COBOL2576, for the predefined NULL written
 /// in a position the rule does not list. NULL is an IDENTIFIER (§8.4.3.1.2 Format 8, predefined-address; the NULL arm
 /// of Format 6, predefined-object — §8.4.3.7.3 SR2), never a literal or a figurative constant, and SR1 enumerates the
 /// only places it may be written: "it may be used only as a sending operand in an INITIALIZE or a SET statement; as an

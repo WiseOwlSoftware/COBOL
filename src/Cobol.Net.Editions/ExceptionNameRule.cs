@@ -20,7 +20,7 @@ public readonly record struct ExceptionNameViolation(DiagnosticDescriptor Descri
 /// binder's written-name funnel (<c>EcNameResolution.TryResolve</c>: USE, RAISE, RAISING, the PERFORM WHEN list). The
 /// rule used to live only in the binder, which reads compiled events alone, so
 /// <c>&gt;&gt;IF 1 = 0 / &gt;&gt;TURN EC-NOSUCH CHECKING ON / &gt;&gt;END-IF</c> compiled clean while the same directive
-/// outside the <c>&gt;&gt;IF</c> was COBOLNET0711.
+/// outside the <c>&gt;&gt;IF</c> was COBOL0711.
 /// <para>The rule lives BELOW both channels (the front end cannot reference the binder), in the assembly that owns the
 /// diagnostic catalog, so the next written-name site calls it and cannot write a third copy. What stays in the binder
 /// is the part that is not syntax: the level test of the RAISE contexts, the declined-module postures and the
@@ -30,7 +30,7 @@ public readonly record struct ExceptionNameViolation(DiagnosticDescriptor Descri
 public static class ExceptionNameRule
 {
     /// <summary>Resolve <paramref name="raw"/> against the §14.6.13.1 catalog (and the open EC-USER- family,
-    /// §14.6.13.1.1). False with <see cref="DiagnosticCatalog.EcNameUnknown"/> (COBOLNET0711) when it is neither;
+    /// §14.6.13.1.1). False with <see cref="DiagnosticCatalog.EcNameUnknown"/> (COBOL0711) when it is neither;
     /// <paramref name="where"/> names the construct that wrote it (<c>&gt;&gt;TURN</c>, <c>RAISE</c>, …).</summary>
     public static bool TryGet(string raw, string where, out EcInfo info, out ExceptionNameViolation violation)
     {
@@ -47,7 +47,7 @@ public static class ExceptionNameRule
 
     /// <summary>The per-name edition window: the 2023-only families (VERSION_CHANGE_REFERENCE rows 40/61) are not
     /// exception-names at <paramref name="dialectLevel"/> 2002/2014. Null when the name exists there, else
-    /// <see cref="DiagnosticCatalog.EcNameIntroducedLater"/> (COBOLNET0878).</summary>
+    /// <see cref="DiagnosticCatalog.EcNameIntroducedLater"/> (COBOL0878).</summary>
     public static ExceptionNameViolation? Window(EcInfo info, int dialectLevel, string where) =>
         info.IntroducedIn > dialectLevel
             ? new ExceptionNameViolation(DiagnosticCatalog.EcNameIntroducedLater,

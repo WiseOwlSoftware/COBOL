@@ -8,7 +8,7 @@
       *> the program-name MOD of a CONTAINED program is a user-defined word
       *> declared within the scope of its container's REPOSITORY paragraph,
       *> which identifies the intrinsic-function-name MOD (FUNCTION MOD
-      *> INTRINSIC). It used to compile and run. COBOLNET1649.
+      *> INTRINSIC). It used to compile and run. COBOL1649.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083CP.
        ENVIRONMENT DIVISION.

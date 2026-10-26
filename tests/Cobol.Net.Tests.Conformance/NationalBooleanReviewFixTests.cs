@@ -64,7 +64,7 @@ public sealed class NationalBooleanReviewFixTests
             01 N5 PIC N(5).
             """, "MOVE BL TO N5."), 2002);
         Assert.False(ok, "MOVE BINARY-LONG TO national must be rejected (ISO §14.9.25.3 SR8)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
         EditionHarness.AssertHasDiagnostic(errors, "SR8");
     }
 
@@ -99,7 +99,7 @@ public sealed class NationalBooleanReviewFixTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("NBRF05", ws, "CONTINUE."), 2002);
         Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §13.18.63 SR4/SR5/SR24→SR10)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0898");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
     }
 
     [Theory]
@@ -110,7 +110,7 @@ public sealed class NationalBooleanReviewFixTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("NBRF06", "01 B-BIT PIC 1(4) USAGE BIT VALUE B\"0101\".", proc), 2002);
         Assert.False(ok, "a class condition on a boolean operand must be rejected (ISO §8.8.4.4.3 SR8/SR4)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
     [Fact]

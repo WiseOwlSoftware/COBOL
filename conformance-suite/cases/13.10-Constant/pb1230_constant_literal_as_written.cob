@@ -12,7 +12,7 @@
       *> separator included. Under DECIMAL-POINT IS COMMA (12.3.7.4 GR14a)
       *> 1,5 is the legal spelling; before PB1230 the constant carried the
       *> evaluator's normalized text '1.5', every reference re-checked
-      *> that as a literal, and COBOLNET0895 refused this program. AS +5
+      *> that as a literal, and COBOL0895 refused this program. AS +5
       *> displayed '5' where the literal +5 displays '+5'.
       *> 13.10.3 SR9: a duplicated constant-name is legal when its
       *> specification is the same - K2 is written twice, differing only

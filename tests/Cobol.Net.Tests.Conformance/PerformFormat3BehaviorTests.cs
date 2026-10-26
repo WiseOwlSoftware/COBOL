@@ -9,8 +9,8 @@ namespace CobolNet.Tests.Conformance;
 /// per-GR behavior net for the pc-RANGE interceptor (design SSOT <c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9).
 /// Every expected value is SPEC-PINNED (the former legacy engine has no EC model). Covers: GR17 tier-ordered WHEN match +
 /// USE preemption; GR18 WHEN OTHER; GR19 WHEN COMMON; GR20 nonfatal resume-in-place vs fatal abnormal-termination +
-/// RESUME NEXT; GR16 FINALLY; §14.9.14.4 GR4 EXIT PERFORM; the version gate (COBOLNET0900) + the staged sub-GAPs
-/// (COBOLNET0899). The frame-stack unit mechanics are <c>PerformFrameStackTests</c>.
+/// RESUME NEXT; GR16 FINALLY; §14.9.14.4 GR4 EXIT PERFORM; the version gate (COBOL0900) + the staged sub-GAPs
+/// (COBOL0899). The frame-stack unit mechanics are <c>PerformFrameStackTests</c>.
 /// </summary>
 public sealed class PerformFormat3BehaviorTests
 {
@@ -293,7 +293,7 @@ public sealed class PerformFormat3BehaviorTests
              // asserted pre-GR14 behaviour and passed only because handler bodies wrongly inherited the enclosing
              // state. An explicit RAISE cannot substitute — §14.9.29.3 SR4: "Within an exception-checking PERFORM
              // statement, the RAISE statement shall not be specified in any imperative statement other than
-             // imperative-statement-1" (COBOLNET1611). Re-enabling INSIDE the handler is the legal way to raise
+             // imperative-statement-1" (COBOL1611). Re-enabling INSIDE the handler is the legal way to raise
              // there, and it doubles as the proof that a handler-local directive still wins over the GR14 floor.
     public void Gr21_ReRaiseInHandler_NotReCaught_FallsToFatal()
         => AssertFatal("""
@@ -314,7 +314,7 @@ public sealed class PerformFormat3BehaviorTests
 
     // ── The version gate + the staged sub-GAPs (loud, never silent) ────────────────────────────────────────────
 
-    [Fact]   // §14.9.28 Format 3 is COBOL-2023; below 2023 it is rejected by the construct gate (COBOLNET0900). Tested
+    [Fact]   // §14.9.28 Format 3 is COBOL-2023; below 2023 it is rejected by the construct gate (COBOL0900). Tested
              // at 2014 (where >>TURN itself is already legal, isolating the PERFORM gate).
     public void VersionGate_Below2023_Rejected0900()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
@@ -329,7 +329,7 @@ public sealed class PerformFormat3BehaviorTests
                     CONTINUE
                 END-PERFORM
                 STOP RUN.
-            """, 2014), "COBOLNET0900");
+            """, 2014), "COBOL0900");
 
     [Fact]   // The open-mode WHEN operand form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) now compiles clean (GR3b
              // open-mode scope landed — the runtime matches by the raising file's current open mode); no 0899.
@@ -357,6 +357,6 @@ public sealed class PerformFormat3BehaviorTests
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", diag));
-        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(diag, "COBOL0899");
     }
 }

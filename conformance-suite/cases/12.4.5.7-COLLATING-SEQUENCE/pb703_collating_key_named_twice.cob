@@ -12,7 +12,7 @@
       *> may list one or more names, the same name among them. §12.4.5.7.3 SR8 forbids a
       *> name only "in more than one COLLATING SEQUENCE clause", and one clause is never
       *> more than one, so `OF IX-KEY IX-KEY IS REV` is legal (kb/Work PB703 — it was
-      *> rejected COBOLNET1582 by a duplicate screen hoisted out of the clause loop).
+      *> rejected COBOL1582 by a duplicate screen hoisted out of the clause loop).
       *>
       *> Expected values, derived: §12.4.5.7.4 GR6 — "Alphabet-name-3 applies to record
       *> keys identified by data-name-1 or record-key-name-1" — gives IX-KEY the REV

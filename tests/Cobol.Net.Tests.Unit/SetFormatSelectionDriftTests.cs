@@ -62,7 +62,7 @@ public sealed class SetFormatSelectionDriftTests : CobolNetTestBase
             if (NotAFormatOfItsOwn.Contains(kind)) continue;
             Assert.True(admitted.Contains(kind),
                 $"{kind} is a receiving kind the classifier can produce and no general format admits it — a "
-                + "statement written with it can only reach the COBOLNET2112 residual arm");
+                + "statement written with it can only reach the COBOL2112 residual arm");
         }
     }
 
@@ -162,7 +162,7 @@ public sealed class SetFormatSelectionDriftTests : CobolNetTestBase
     public void AnEntirelyUnclassifiableList_StillReachesABinderThatReportsTheName()
     {
         // R30: a probe never diagnoses, so a statement of undefined names must still reach a format whose own
-        // receiver resolution reports COBOLNET1639 — never the COBOLNET2112 residual, which would blame the
+        // receiver resolution reports COBOL1639 — never the COBOL2112 residual, which would blame the
         // FORMAT for what is a typo.
         Assert.Equal(SetFormat.F1,
             SetFormatSelection.Select([SetOperandKind.Unclassified], SetDirections.To, out _));

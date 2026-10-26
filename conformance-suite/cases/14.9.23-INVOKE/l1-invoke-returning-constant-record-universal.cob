@@ -16,7 +16,7 @@
       *> receiving data item" — bars KA, subordinate to the CONSTANT
       *> RECORD K. Statically decidable, so REJECTED at compile time.
       *> SR11 is met (a working-storage item).
-      *> Expected: COBOLNET1548 (docs/DIAGNOSTICS.md,
+      *> Expected: COBOL1548 (docs/DIAGNOSTICS.md,
       *> constant-as-receiver).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IV22UA.

@@ -15,7 +15,7 @@
       *> the only ground for rejection. The §12.4.5.7.2 Format-2 operand
       *> is parsed as a data reference (a QUALIFIED data-name is legal,
       *> kb/Work PB1075), and the one data-name-n capture refuses the
-      *> subscript by name: COBOLNET2024, which is what the .err holds
+      *> subscript by name: COBOL2024, which is what the .err holds
       *> (it was the parse error COBOL0312 while the grammar took a bare
       *> word).
       *> Reject-at names 2002 onward: the file-control COLLATING SEQUENCE

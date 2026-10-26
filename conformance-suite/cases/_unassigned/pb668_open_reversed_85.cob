@@ -9,7 +9,7 @@
        PROGRAM-ID. PB668R8.
       *> kb/Work PB668. OPEN INPUT ... REVERSED is the COBOL-85 tape
       *> phrase ISO 2002 deleted (VERSION_CHANGE_REFERENCE row 7.12,
-      *> gate open-reversed-removed-2002 / COBOLNET0902), so this is a
+      *> gate open-reversed-removed-2002 / COBOL0902), so this is a
       *> --std 85 golden and its negative at 2002+ is that gate's.
       *> Before PB668 the phrase parsed, the edition gate admitted it at
       *> 85, and NO binder read it: the READs below answered AAAAAAAA,

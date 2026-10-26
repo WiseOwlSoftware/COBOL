@@ -17,7 +17,7 @@
       *>   so the entry below
       *> violates SR1 and nothing else (level 01, no REDEFINES/BASED/ANY
       *>   LENGTH/BWZ/SYNC,
-      *> never stored into). COBOLNET1549 = constant-record-rule, "WS/LS
+      *> never stored into). COBOL1549 = constant-record-rule, "WS/LS
       *>   sections only (SR1)".
       *> Not rejected at 85 by THIS rule: CONSTANT RECORD is itself a
       *>   2002 construct there.

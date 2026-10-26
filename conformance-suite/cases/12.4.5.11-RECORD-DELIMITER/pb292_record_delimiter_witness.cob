@@ -9,7 +9,7 @@
 *> portable: unverified
 *>---
       *> ISO 12.4.5.11 RECORD DELIMITER clause - THE INERTNESS HALF of the
-      *> kb/Work PB292 witness. The DECLINE half (COBOLNET1778 on both
+      *> kb/Work PB292 witness. The DECLINE half (COBOL1778 on both
       *> arms, every edition) cannot be asserted by a positive golden,
       *> because the corpus never reads the warning channel; it is pinned
       *> by conformance-test DocumentedNonSupportWitnessTests over THIS

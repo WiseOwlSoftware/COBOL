@@ -7,7 +7,7 @@
 *> ISO §7.2.4.3 SR2 "A REPLACE statement shall be preceded by a space
 *> except when it is the first statement in a compilation group"
 *> (cite.py --check: OK §7.2.4.3 2)). REPLACE written directly after a
-*> left parenthesis is COBOLNET2449 (kb/Work PB1358). Fixed form.
+*> left parenthesis is COBOL2449 (kb/Work PB1358). Fixed form.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1358SP.
        DATA DIVISION.

@@ -17,8 +17,8 @@ namespace CobolNet.Tests.Unit;
 /// because the 1,323 GnuCOBOL programs live as <c>AT_DATA</c> heredocs inside 36 <c>.at</c> autotest wrappers.
 /// Two landing waves therefore shipped new bind-time REJECTIONS on a blast radius stated as empty, and the very
 /// next differential found both shapes in the corpus the sweep was named after — one of them in a case titled
-/// <i>"REDEFINES: with OCCURS"</i> (§13.18.44.3 SR5 sentence 1 → COBOLNET1701; §13.18.63.3 SR13 sentence 2 →
-/// COBOLNET1702).
+/// <i>"REDEFINES: with OCCURS"</i> (§13.18.44.3 SR5 sentence 1 → COBOL1701; §13.18.63.3 SR13 sentence 2 →
+/// COBOL1702).
 /// </para>
 /// <para>
 /// The structural fix is ONE extractor (<c>scripts/gnucobol_extract.py</c>: <c>differential_cases</c> and

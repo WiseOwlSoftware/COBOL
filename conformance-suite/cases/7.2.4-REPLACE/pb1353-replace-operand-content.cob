@@ -8,7 +8,7 @@
 *> at least one of which shall be neither a separator comma nor a
 *> separator semicolon", SR5 "Partial-word-1 shall consist of one
 *> text-word" (cite.py --check: OK §7.2.4.3 3) and 5)). ==,== names no
-*> text-word: COBOLNET2572 (kb/Work PB1353) - before, the operand was
+*> text-word: COBOL2572 (kb/Work PB1353) - before, the operand was
 *> silently discarded. Fixed form.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1353RC.

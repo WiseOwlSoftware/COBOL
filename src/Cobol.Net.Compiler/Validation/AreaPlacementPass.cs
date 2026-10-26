@@ -18,9 +18,9 @@ using Core = CobolParserCore;
 /// <list type="bullet">
 /// <item>an AREA-A ITEM — a division header, a section header, a paragraph header, a level indicator (FD, SD, RD),
 /// level-number 01 or 77, DECLARATIVES, END DECLARATIVES, an end marker — begins its line in area A (row
-/// <c>fixed-form-area-a-item-outside-area-a-2002</c>, COBOLNET3734);</item>
+/// <c>fixed-form-area-a-item-outside-area-a-2002</c>, COBOL3734);</item>
 /// <item>every other text that begins a line — a sentence, a statement, an entry or clause continued on a later line,
-/// a separator period — begins in area B (row <c>fixed-form-text-in-area-a-2002</c>, COBOLNET3735). A level-number
+/// a separator period — begins in area B (row <c>fixed-form-text-in-area-a-2002</c>, COBOL3735). A level-number
 /// other than 01 and 77 may begin in either area: COBOL-85 lets entries be indented by level.</item>
 /// </list>
 /// ISO/IEC 1989:2002 removed the areas: the program-text area "begins in character position 8 and terminates with the

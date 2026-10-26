@@ -47,7 +47,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB367BNFD.
       *> INV-RANGE is ordered IN a LOCALE alphabet: §13.18.63.3 SR26 refuses an inverted range whose runtime
-      *> collating sequence is known (COBOLNET2961, kb/Work PB552), and a locale's is not.
+      *> collating sequence is known (COBOL2961, kb/Work PB552), and a locale's is not.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.

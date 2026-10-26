@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB757 -- ISO 8.4.3.2.3 SR9: "If the word OMITTED is specified, the OPTIONAL phrase shall be
       *> specified for the corresponding formal parameter."  PB757G's formal A carries no OPTIONAL phrase,
-      *> so the OMITTED argument is a syntax-rule violation (COBOLNET2238, the user-defined-function twin of
-      *> CALL's COBOLNET1685 and INVOKE's COBOLNET2237).
+      *> so the OMITTED argument is a syntax-rule violation (COBOL2238, the user-defined-function twin of
+      *> CALL's COBOL1685 and INVOKE's COBOL2237).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB757G.
        DATA DIVISION.

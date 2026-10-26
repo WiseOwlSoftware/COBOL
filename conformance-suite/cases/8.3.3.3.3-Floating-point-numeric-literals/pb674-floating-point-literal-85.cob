@@ -8,7 +8,7 @@
       *> literals separated by the letter 'E' without intervening spaces") is a COBOL-2002 introduction (VCR row 7.37,
       *> derived): COBOL-85's numeric literal is the fixed-point form alone. This program declares no floating-point
       *> data item, so nothing but the literal can draw the diagnostic: at --std 85 each of the two literals
-      *> below (one in a VALUE clause, one as a MOVE source) draws COBOLNET0900. The
+      *> below (one in a VALUE clause, one as a MOVE source) draws COBOL0900. The
       *> accepted twin is pb674_floating_point_literal_2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB674FN.

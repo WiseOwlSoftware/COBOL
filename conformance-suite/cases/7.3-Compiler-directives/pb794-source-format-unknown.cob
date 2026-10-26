@@ -17,11 +17,11 @@
       *> SPECIFIED IN THE SYNTAX OF EACH DIRECTIVE"), and it selects no reference format, so
       *> 7.3.24.3 GR1 has no answer for the text that follows.
       *>
-      *> The diagnostic is COBOLNET1911 - ONE producer for every directive whose operand is
+      *> The diagnostic is COBOL1911 - ONE producer for every directive whose operand is
       *> a closed word set, read off the source-format-directive-2002 row's directiveOperand
       *> column, never a per-directive code.
       *>
-      *> reject-at omits 85: there the line draws COBOLNET0900 instead (the whole 7.3
+      *> reject-at omits 85: there the line draws COBOL0900 instead (the whole 7.3
       *> compiler-directive facility is a COBOL-2002 introduction), and an edition that has
       *> no compiler directives at all has nothing to say about this one's operand.
       *> The positive twin is 2023/pb794_directive_operands.

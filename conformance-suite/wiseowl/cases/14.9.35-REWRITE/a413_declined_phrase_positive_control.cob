@@ -8,7 +8,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> THE POSITIVE CONTROL for the Annex A.4.8 / A.4.13 declines (COBOLNET1705 / COBOLNET1706).
+*> THE POSITIVE CONTROL for the Annex A.4.8 / A.4.13 declines (COBOL1705 / COBOL1706).
 *>
 *> A refusal gate is only evidence if it also proves what it did NOT take down. A.4.1 NOTE 1 is the reason
 *> there is anything left to prove: "The higher-level constructs or cross-referenced topics are not

@@ -8,7 +8,7 @@
       *> FINAL [ data-name-1 ] ... - FINAL once, as the FIRST operand; the ellipsis applies only to the
       *> bracket enclosing data-name-1 (5.2.7).  13.18.16.4 GR2: "FINAL, if specified, is associated with the
       *> highest level in the hierarchy."  CONTROLS ARE FINAL FINAL WS-K writes FINAL twice - a second FINAL
-      *> level that could never break - and is COBOLNET2421 (kb/Work PB483).  The positive twin is
+      *> level that could never break - and is COBOL2421 (kb/Work PB483).  The positive twin is
       *> conformance/85/pb483_control_final_first.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB483NFF.

@@ -13,7 +13,7 @@
       *> an integer numeric data item of usage display or national"
       *> (cite.py: OK for each). The same reading made A = (C) and
       *> A = B OR (3) compile clean; the build already refused
-      *> A = (C + 0). COBOLNET2532 at every edition.
+      *> A = (C + 0). COBOL2532 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1935A.
        DATA DIVISION.

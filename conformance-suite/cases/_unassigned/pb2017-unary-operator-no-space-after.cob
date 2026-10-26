@@ -8,7 +8,7 @@
       * against a left parenthesis ("no space is required between a
       * left parenthesis and a unary operator or between a unary
       * operator and a left parenthesis").  -A abuts an identifier,
-      * so it is not exempt.  COBOLNET2993.
+      * so it is not exempt.  COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2017N3.
        DATA DIVISION.

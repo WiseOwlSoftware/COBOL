@@ -50,8 +50,8 @@ public sealed class PictureCompositionTests
     // SR12 a — a character-string with no digit position and no character position
     [InlineData("BBB")]
     [InlineData("+")]
-    public void ACompositionViolation_IsCOBOLNET1934(string picture)
-        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOLNET1934"));
+    public void ACompositionViolation_IsCOBOL1934(string picture)
+        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOL1934"));
 
     [Theory]
     // Table 10 blanks: no '9' before a zero-suppression symbol; no 'A'/'X' before 'V'; nothing after CR/DB;
@@ -64,16 +64,16 @@ public sealed class PictureCompositionTests
     [InlineData("9$9")]
     [InlineData("++$$$")]
     [InlineData("99VPP")]
-    public void APrecedenceViolation_IsCOBOLNET1935(string picture)
-        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOLNET1935"));
+    public void APrecedenceViolation_IsCOBOL1935(string picture)
+        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOL1935"));
 
     [Theory]
     // SR22 — neither 'S' nor '*' beside a BLANK WHEN ZERO clause. The 'S' leg was worse than unenforced: the
     // numeric-edited promotion required !signed, so the clause was silently DISCARDED.
     [InlineData("***9")]
     [InlineData("S9(5)")]
-    public void BlankWhenZeroWithSOrAsterisk_IsCOBOLNET1934(string picture)
-        => Assert.Contains(Diagnose(picture, blankWhenZero: true), d => d.Contains("COBOLNET1934"));
+    public void BlankWhenZeroWithSOrAsterisk_IsCOBOL1934(string picture)
+        => Assert.Contains(Diagnose(picture, blankWhenZero: true), d => d.Contains("COBOL1934"));
 
     [Theory]
     // ⛔ THE HALF THAT MATTERS MORE. A prohibition written one symbol too wide rejects LEGAL source, which is
@@ -86,7 +86,7 @@ public sealed class PictureCompositionTests
     [InlineData("S9(5)V99")] [InlineData("X(120)")] [InlineData("$**.99")] [InlineData("$99.99CR")]
     [InlineData("+$$$,$$9.99")] [InlineData("Z(5)")] [InlineData("9(18)")] [InlineData("AAAA")]
     public void ALegalCharacterString_IsAccepted(string picture)
-        => Assert.DoesNotContain(Diagnose(picture), d => d.Contains("COBOLNET1934") || d.Contains("COBOLNET1935"));
+        => Assert.DoesNotContain(Diagnose(picture), d => d.Contains("COBOL1934") || d.Contains("COBOL1935"));
 
     /// <summary>
     /// ISO §13.18.40.3 SR13 and §13.18.40.6's closing paragraph interchange the comma and period ROLES, so the
@@ -104,7 +104,7 @@ public sealed class PictureCompositionTests
     public void TheCommaPeriodRolesFollowDecimalPointIsComma(string picture, bool commaMode, bool rejected)
     {
         var diags = Diagnose(picture, decimalComma: commaMode);
-        bool got = diags.Any(d => d.Contains("COBOLNET1934") || d.Contains("COBOLNET1935"));
+        bool got = diags.Any(d => d.Contains("COBOL1934") || d.Contains("COBOL1935"));
         Assert.True(got == rejected,
             $"PIC {picture} with DECIMAL-POINT IS COMMA={commaMode} should be "
             + $"{(rejected ? "REJECTED" : "accepted")}: {string.Join("; ", diags)}");
@@ -129,8 +129,8 @@ public sealed class PictureCompositionTests
                                //    floating insertion … insertion symbol" is the FLOATING one (rule 6)
     [InlineData("9.$$")]       // also a Table-10 blank; the more specific rule is the one reported
     [InlineData("999.++")]
-    public void AFloatingStringRightOfThePoint_IsCOBOLNET1934(string picture)
-        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOLNET1934") && d.Contains("SR29"));
+    public void AFloatingStringRightOfThePoint_IsCOBOL1934(string picture)
+        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOL1934") && d.Contains("SR29"));
 
     /// <summary>⛔ THE COMPLEMENT OF SR29 — the shapes it must NOT refuse. A floating string that STARTS left of
     /// the point satisfies it however far right it runs (rule 6 b spans the point); a string with no decimal
@@ -143,7 +143,7 @@ public sealed class PictureCompositionTests
     [InlineData("++.++")] [InlineData("$$$$PP")] [InlineData(".ZZ")] [InlineData(".99")]
     public void AFloatingStringAnchoredLeftOfThePoint_IsAccepted(string picture)
         => Assert.DoesNotContain(Diagnose(picture),
-            d => d.Contains("COBOLNET1934") || d.Contains("COBOLNET1935") || d.Contains("COBOLNET0808"));
+            d => d.Contains("COBOL1934") || d.Contains("COBOL1935") || d.Contains("COBOL0808"));
 
     /// <summary>
     /// SR24 and SR25, each SECOND sentence — the EXTENDED (FOR-phrase) editing sign control symbols as a SET
@@ -153,17 +153,17 @@ public sealed class PictureCompositionTests
     /// </summary>
     [Theory]
     // two phrases in the reverse order of their symbols — SR25
-    [InlineData("F999.99L", new[] { 'L', 'F' }, "COBOLNET1984")]
-    [InlineData("L99F", new[] { 'F', 'L' }, "COBOLNET1984")]
+    [InlineData("F999.99L", new[] { 'L', 'F' }, "COBOL1984")]
+    [InlineData("L99F", new[] { 'F', 'L' }, "COBOL1984")]
     // two symbols that are not the string's two ends — SR25 as written (kb/Work PB855)
-    [InlineData("9L9F", new[] { 'L', 'F' }, "COBOLNET1984")]
-    [InlineData("LF$999", new[] { 'L', 'F' }, "COBOLNET1984")]
+    [InlineData("9L9F", new[] { 'L', 'F' }, "COBOL1984")]
+    [InlineData("LF$999", new[] { 'L', 'F' }, "COBOL1984")]
     // three extended symbols — SR24, counted over SYMBOLS (a fixed occurrence each), not over phrases
-    [InlineData("9L9F9G", new[] { 'L', 'F', 'G' }, "COBOLNET1985")]
-    [InlineData("L9L9L", new[] { 'L' }, "COBOLNET1985")]
+    [InlineData("9L9F9G", new[] { 'L', 'F', 'G' }, "COBOL1985")]
+    [InlineData("L9L9L", new[] { 'L' }, "COBOL1985")]
     // a single extended symbol takes the 'cs' precedence (§13.18.40.6): never between digit positions
-    [InlineData("99L99", new[] { 'L' }, "COBOLNET1935")]
-    [InlineData("9L9", new[] { 'L' }, "COBOLNET1935")]
+    [InlineData("99L99", new[] { 'L' }, "COBOL1935")]
+    [InlineData("9L9", new[] { 'L' }, "COBOL1935")]
     public void TheExtendedEditingSymbolSet_IsScreened(string picture, char[] phraseOrder, string code)
         => Assert.Contains(DiagnoseEditing(picture, phraseOrder), d => d.Contains(code));
 
@@ -187,8 +187,8 @@ public sealed class PictureCompositionTests
     [InlineData("LLLL9.99", new[] { 'L' })]
     public void AConformingExtendedEditingPlacement_IsAccepted(string picture, char[] phraseOrder)
         => Assert.DoesNotContain(DiagnoseEditing(picture, phraseOrder),
-            d => d.Contains("COBOLNET1984") || d.Contains("COBOLNET1985") || d.Contains("COBOLNET1934")
-                 || d.Contains("COBOLNET1935"));
+            d => d.Contains("COBOL1984") || d.Contains("COBOL1985") || d.Contains("COBOL1934")
+                 || d.Contains("COBOL1935"));
 
     /// <summary>⛔ A FLOATING string is rule 6's ADJACENCY property for an extended character-1 as for the
     /// currency symbol (kb/Work PB855): <c>EditRule.Floating</c> was a bare count of the letter's occurrences, so

@@ -297,7 +297,7 @@ public sealed class StandardCompareTests
     }
 
     /// <summary>§12.3.7.4 GR17 leaves literal-9's allowable content to the implementor, so a spelling this
-    /// implementation cannot resolve is LEGAL SOURCE — the compile succeeds — with the COBOLNET1662 advisory
+    /// implementation cannot resolve is LEGAL SOURCE — the compile succeeds — with the COBOL1662 advisory
     /// saying every reference will set EC-ORDER-NOT-SUPPORTED (§15.85.4 r2). Rejecting it would refuse a
     /// conforming program; saying nothing would ship a silently inoperative one.</summary>
     [Fact]
@@ -307,11 +307,11 @@ public sealed class StandardCompareTests
             "           ORDER TABLE OT1 IS \"NO SUCH TABLE\".\n",
             "           MOVE FUNCTION STANDARD-COMPARE(\"a\" \"b\" OT1) TO R.\n");
         Assert.True(ok, string.Join("; ", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1662") && w.Contains("EC-ORDER-NOT-SUPPORTED"));
+        Assert.Contains(warnings, w => w.Contains("COBOL1662") && w.Contains("EC-ORDER-NOT-SUPPORTED"));
         // …and a resolvable one is silent.
         var (ok2, _, warnings2) = Compile(Ot1, Move);
         Assert.True(ok2);
-        Assert.DoesNotContain(warnings2, w => w.Contains("COBOLNET1662"));
+        Assert.DoesNotContain(warnings2, w => w.Contains("COBOL1662"));
     }
 
     /// <summary>§12.3.7.3 SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals" — and
@@ -326,7 +326,7 @@ public sealed class StandardCompareTests
         var (ok, errors, _) = Compile($"           ORDER TABLE OT1 IS {literal}.\n", Move);
         Assert.Equal(expectOk, ok);
         if (!expectOk)
-            Assert.Contains(errors, e => e.Contains("COBOLNET0898") && e.Contains(rule));
+            Assert.Contains(errors, e => e.Contains("COBOL0898") && e.Contains(rule));
     }
 
     /// <summary>The §12.3.7.2 general format brackets the ORDER TABLE clause WITHOUT the ellipsis its repeatable
@@ -338,12 +338,12 @@ public sealed class StandardCompareTests
         var (ok, errors, _) = Compile(
             Ot1 + "           ORDER TABLE OT2 IS \"es-ES\".\n", Move);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET0898") && e.Contains("only once"));
+        Assert.Contains(errors, e => e.Contains("COBOL0898") && e.Contains("only once"));
     }
 
     /// <summary>§15.85.3 r5 / §15.3 argument type 12: with four arguments written the third position IS
     /// ordering-name-1 (§15.85.2's two optionals are positional), so a word naming no ORDER TABLE clause is
-    /// COBOLNET1663 — and r6's "positive nonzero integer" is decidable for a literal level.</summary>
+    /// COBOL1663 — and r6's "positive nonzero integer" is decidable for a literal level.</summary>
     [Theory]
     [InlineData("FUNCTION STANDARD-COMPARE(\"a\" \"b\" NOSUCH 2)", "ordering-name")]
     [InlineData("FUNCTION STANDARD-COMPARE(\"a\" \"b\" OT1 0)", "positive nonzero")]
@@ -352,16 +352,16 @@ public sealed class StandardCompareTests
     {
         var (ok, errors, _) = Compile(Ot1, $"           MOVE {call} TO R.\n");
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1663") && e.Contains(fragment));
+        Assert.Contains(errors, e => e.Contains("COBOL1663") && e.Contains(fragment));
     }
 
     /// <summary>§15.85.3 r4 — "Neither argument-1 nor argument-2 shall be a zero-length literal" — reached
     /// through the ONE ordinal schema every other zero-length clause rides (kb/Work PB35), not a hand-written
     /// arm; and r1/r2's class screen rejects a numeric operand.</summary>
     [Theory]
-    [InlineData("FUNCTION STANDARD-COMPARE(\"\" \"b\")", "COBOLNET1627")]
-    [InlineData("FUNCTION STANDARD-COMPARE(\"a\" \"\")", "COBOLNET1627")]
-    [InlineData("FUNCTION STANDARD-COMPARE(5 \"b\")", "COBOLNET1627")]
+    [InlineData("FUNCTION STANDARD-COMPARE(\"\" \"b\")", "COBOL1627")]
+    [InlineData("FUNCTION STANDARD-COMPARE(\"a\" \"\")", "COBOL1627")]
+    [InlineData("FUNCTION STANDARD-COMPARE(5 \"b\")", "COBOL1627")]
     public void Argument1And2_ObeyTheClassAndZeroLengthRules(string call, string code)
     {
         var (ok, errors, _) = Compile(Ot1, $"           MOVE {call} TO R.\n");
@@ -378,7 +378,7 @@ public sealed class StandardCompareTests
     {
         var (ok, errors, _) = Compile("", Move, edition: 85);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1502") && e.Contains("STANDARD-COMPARE"));
+        Assert.Contains(errors, e => e.Contains("COBOL1502") && e.Contains("STANDARD-COMPARE"));
         // At 85 ORDER is not reserved, so `ORDER TABLE OT1 IS "…"` is an implementor-switch entry there and the
         // clause's own gate cannot fire — which is exactly why the grammar predicate is edition-gated. The
         // construct row's four-edition matrix case (order-table-2002) owns that half.

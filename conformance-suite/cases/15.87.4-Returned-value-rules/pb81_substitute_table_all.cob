@@ -11,7 +11,7 @@
       *> the effect is as if each table element ... were specified" - SUBSTITUTE's 15.87.2 format repeats the
       *> PAIR `[ANYCASE] [FIRST|LAST] argument-2 argument-3`, so the enumerated elements form the pairs by position
       *> at RUN time, and a keyword before a table(ALL) attaches to the pair its FIRST element opens (the keywords
-      *> precede argument-2). Before this landing the argument was the staged COBOLNET0899. Every expected value is
+      *> precede argument-2). Before this landing the argument was the staged COBOL0899. Every expected value is
       *> the 15.87.4 result of the written-out call the enumeration stands for:
       *>   P2:  SUBSTITUTE("aXbXc" SB2(ALL))          SB2 = "X","Y"          -> ("X" "Y")            = aYbYc
       *>   P3:  SUBSTITUTE("aXbXc" T3(ALL) "!")        T3 = "X","Y","Z"       -> ("X" "Y")("Z" "!")   = aYbYc

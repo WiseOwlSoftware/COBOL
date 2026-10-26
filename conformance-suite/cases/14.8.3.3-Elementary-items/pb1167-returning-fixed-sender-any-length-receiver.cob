@@ -9,7 +9,7 @@
       *> 4)): rule 5 relaxes the length of an ANY LENGTH SENDER only; a RETURNING item delivered to an ANY
       *> LENGTH RECEIVER (here the caller's formal AL) from a FIXED-length sending item is a non-conforming
       *> pair.  PB1167 makes the conforming pairings reachable and keeps this prohibition: GETFIX returns
-      *> PIC X(5) and AL is ANY LENGTH.  COBOLNET0828.  kb/Work PB1167.
+      *> PIC X(5) and AL is ANY LENGTH.  COBOL0828.  kb/Work PB1167.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1167N3.
        ENVIRONMENT DIVISION.

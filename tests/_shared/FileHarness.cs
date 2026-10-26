@@ -75,7 +75,7 @@ public static partial class FileHarness
 
     /// <summary>⛔ THE ACCESS MODE A CONNECTOR THAT OPENS IN <paramref name="mode"/> CAN DECLARE (kb/Work PB3479). §14.9.27.3 SR2:
     /// <i>"The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is
-    /// sequential"</i>, and the compiler refuses the other declarations (COBOLNET2372), so a RELATIVE or INDEXED connector
+    /// sequential"</i>, and the compiler refuses the other declarations (COBOL2372), so a RELATIVE or INDEXED connector
     /// opened EXTEND in a test is a state no program reaches. Every other open mode is legal under every access mode, and
     /// DYNAMIC is the one that admits both statement forms, so it is what the harness declares when the OPEN does not force
     /// SEQUENTIAL. A theory that crosses open modes registers each connector with <c>access: AccessFor(mode)</c> and opens it

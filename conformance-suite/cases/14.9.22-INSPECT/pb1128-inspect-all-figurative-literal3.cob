@@ -8,7 +8,7 @@
       *> not be a figurative constant that begins with the word ALL." ALL SPACES begins with the
       *> word; the screen used to test only ALL literal-1 and ALL symbolic-character-1 and bound
       *> this literal-3 as the bare SPACE. (Literal-5 is not named: CONVERTING ... TO ALL "Q" is
-      *> legal, 2002/pb1128_inspect_identifier1_class_store.cob.) Expected: COBOLNET1757
+      *> legal, 2002/pb1128_inspect_identifier1_class_store.cob.) Expected: COBOL1757
       *> (statement-operand-rule) at every edition - SR3 is unchanged text.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB1128ALLFIG.

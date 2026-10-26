@@ -623,9 +623,9 @@ internal static class IntrinsicArgumentRules
         // ISO §8.5.2.1 Table 2 collapses all THREE pointer categories — data-pointer, function-pointer and
         // program-pointer — into class Pointer, and all three are now declarable, so all three are named
         // here. The FunctionPointer member arrived with kb/Work PB452 + PB817, which made USAGE
-        // FUNCTION-POINTER a real declaration instead of a COBOLNET0899 staged-loud refusal; the comment
+        // FUNCTION-POINTER a real declaration instead of a COBOL0899 staged-loud refusal; the comment
         // that stood here recorded the absence as an OPEN GAP rather than a disposition, because the
-        // justification BEFORE that ("documented non-support, COBOLNET1564, Annex A.3") was false in every
+        // justification BEFORE that ("documented non-support, COBOL1564, Annex A.3") was false in every
         // clause — A.3 does not contain function-pointer, A.4's entire SET inventory is three items and
         // contains neither format 8 nor format 15, and docs/CONFORMANCE.md §4 carries no such item.
         PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer => CobolClass.Pointer,
@@ -657,7 +657,7 @@ internal static class IntrinsicArgumentRules
     /// <see cref="CrossViolation"/> carried a hand-written ONE-CASE fold (Alphabetic → Alphanumeric) in the place
     /// this projection belongs, so <c>FUNCTION FIND-STRING(&lt;PIC ZZ9 item&gt; "5")</c> — legal under §15.37.3
     /// r2, which admits "a data item or literal of either class alphabetic or alphanumeric" — was rejected
-    /// COBOLNET1627 by a message that NAMED the operand's class "alphanumeric (numeric-edited)" in the same
+    /// COBOL1627 by a message that NAMED the operand's class "alphanumeric (numeric-edited)" in the same
     /// sentence in which it refused it for not being alphanumeric. TEN catalogued functions inherited it, because
     /// every cross rule intersects these same candidate sets. A class the lattice refines is un-refined ONCE,
     /// here, never remembered at each screen.
@@ -707,7 +707,7 @@ internal static class IntrinsicArgumentRules
         // sibling sweep). §13.18.29.4 GR1b/GR2b make a bit / national GROUP "an elementary data item of usage
         // bit" / "of usage national", so it HAS a static representation and the keyword-keyed screens must see
         // it. Measured before the change: `FUNCTION CONVERT(<PIC 1(8) USAGE BIT leaf> ANUM NAT)` was correctly
-        // rejected COBOLNET1514 by §15.19.3 r5, while the byte-identical GROUP-USAGE BIT group was ADMITTED —
+        // rejected COBOL1514 by §15.19.3 r5, while the byte-identical GROUP-USAGE BIT group was ADMITTED —
         // one rule, one usage, two verdicts, because the group's raw `Pic` is null. An ordinary ALPHANUMERIC
         // group still answers null (OperandPic is null for it), which is the "leave it to the runtime value
         // screen" answer this contract documents.
@@ -850,7 +850,7 @@ internal static class IntrinsicArgumentRules
             // length" (the width half, PB58).
             ["REVERSE"] = Uniform('s', "§15.78.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.78.3 r1")),
             // §15.79.3 r1/r3 — argument-1 is a national or alphanumeric LITERAL (its literal-ness is enforced by
-            // the existing COBOLNET1517 arm); argument-2 "shall have the same type as argument-1" — the class
+            // the existing COBOL1517 arm); argument-2 "shall have the same type as argument-1" — the class
             // reading of "type", the cross-argument agreement (PB58; MatchArgument1 was already the shape).
             ["SECONDS-FROM-FORMATTED-TIME"] = Schema("§15.79.3 r1/r3", ['a', 'a'],
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.79.3 r3"),
@@ -921,7 +921,7 @@ internal static class IntrinsicArgumentRules
             // screen cannot see, so FACTORIAL(-1) still passes here and is EC-ARGUMENT-FUNCTION's business.
             ["FACTORIAL"] = Uniform('i', "§15.36.3 r1"),                     // shall be an integer (>= 0 is a value rule)
             // Zero-argument functions: the general format admits no argument at all, so any argument is an arity
-            // error (COBOLNET1504) before class screening is reached. Recorded so the review can close the row.
+            // error (COBOL1504) before class screening is reached. Recorded so the review can close the row.
             ["EXCEPTION-STATEMENT"] = Uniform(' ', "§15.32.2 — no arguments"),
             ["EXCEPTION-STATUS"] = Uniform(' ', "§15.33.2 — no arguments"),
 
@@ -943,7 +943,7 @@ internal static class IntrinsicArgumentRules
             ["LOWER-CASE"] = Uniform('s', "§15.57.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.57.3 r1")),
             ["UPPER-CASE"] = Uniform('s', "§15.97.3 r1").WithTailPredicate(ArgPredicate.MinWidth(1, "§15.97.3 r1")),
             // §15.48.3 r1 makes argument-1 a national or alphanumeric LITERAL (its literal-ness is the existing
-            // COBOLNET1517 arm, its CONTENT the COBOLNET1631 format screen); r3 makes argument-2 "a data item of
+            // COBOL1517 arm, its CONTENT the COBOL1631 format screen); r3 makes argument-2 "a data item of
             // the same type as argument-1". Both positions are therefore in the string family, so one kind serves
             // both — the same shape SECONDS-FROM-FORMATTED-TIME already uses.
             // ⚠ RESIDUE: r3 is a CROSS-ARGUMENT rule ("the SAME type as argument-1"), which a per-position screen
@@ -1028,7 +1028,7 @@ internal static class IntrinsicArgumentRules
             ["LOCALE-TIME"] = Schema("§15.53.3 r1", ['a']).WithPredicate(0, ArgPredicate.ExactWidth(6, "§15.53.3 r1")),
             ["LOCALE-TIME-FROM-SECONDS"] = Schema("§15.54.3 r1", ['n']),
             // The FORMATTED-* family (§15.38–15.41): argument-1 is "a national or alphanumeric literal" (its
-            // LITERAL-ness is the existing COBOLNET1517 arm, its CONTENT the format screen); the remaining
+            // LITERAL-ness is the existing COBOL1517 arm, its CONTENT the format screen); the remaining
             // positions are date/time VALUES — integer date form (§15.39.3 r3, §15.40.3 r3), standard numeric
             // time form (§15.40.3 r4, §15.41.3 r3), and the integer UTC offset (§15.40.3 r5, §15.41.3 r4).
             // ⚠ Standard numeric time form is 'n', not 'i': §15.3.3 admits a fractional-seconds representation,
@@ -1091,7 +1091,7 @@ internal static class IntrinsicArgumentRules
             ["SUBSTITUTE"] = Schema("§15.87.3 r1/r2", ['s', 's', 's'], tail: 's',
                 cross: CrossArgRule.MatchArgument1, crossClause: "§15.87.3 r2")
                 .WithPredicate(0, ArgPredicate.MinWidth(1, "§15.87.3 r3")),
-            // §15.92.3 r1/r2 — a format LITERAL (the COBOLNET1517 arm) and argument-2 "of the same type as
+            // §15.92.3 r1/r2 — a format LITERAL (the COBOL1517 arm) and argument-2 "of the same type as
             // argument-1" (the class reading, MatchArgument1).
             ["TEST-FORMATTED-DATETIME"] = Schema("§15.92.3 r1/r2", ['a', 'a'], cross: CrossArgRule.MatchArgument1,
                 crossClause: "§15.92.3 r2"),
@@ -1188,7 +1188,7 @@ internal static class IntrinsicArgumentRules
                 + "legal reference site). It never reaches the operand list, so no class screen applies to it",
             ['l'] = "§15.3 argument type 8 (Locale-name) — \"A locale-name defined in the SPECIAL-NAMES paragraph shall "
                 + "be specified\": a NAME, resolved by IntrinsicBinder.BindLocaleFunction against DataBinder.Locales "
-                + "(through DataBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOLNET1664) "
+                + "(through DataBinder.ResolveLocaleName — the ONE undeclared-locale-name diagnostic, COBOL1664) "
                 + "for LOCALE-COMPARE (§15.51.3 r4), LOCALE-DATE (§15.52.3 r3), LOCALE-TIME (§15.53.3 r4) and "
                 + "LOCALE-TIME-FROM-SECONDS (§15.54.3 r2) — and by IntrinsicBinder.BindCaseFunctionWithLocale (the T5 case-function phrase) and IntrinsicBinder.BindNumvalCFamily (the T6 NUMVAL-C/TEST-NUMVAL-C LOCALE keyword). It never reaches the "
                 + "operand list, so no class screen applies to it",

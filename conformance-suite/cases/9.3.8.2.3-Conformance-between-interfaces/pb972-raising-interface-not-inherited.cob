@@ -12,7 +12,7 @@
       *> interface-name or the name of an interface inherited by that
       *> interface". The class raises PB972NCA; its interface lists
       *> PB972NCB, which INHERITS PB972NCA - the WRONG direction.
-      *> Expected: COBOLNET0841 naming rule 9 c)
+      *> Expected: COBOL0841 naming rule 9 c)
        IDENTIFICATION DIVISION.
        INTERFACE-ID. PB972NCA.
        END INTERFACE PB972NCA.

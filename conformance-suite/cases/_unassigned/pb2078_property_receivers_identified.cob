@@ -8,7 +8,7 @@
       *> kb/Work PB2078, the last statements. A RECEIVING object property is identified ONCE -- identifier-3 is evaluated
       *> into one temporary and the GET and the SET both reach that object (ISO 14.6.4; 8.4.3.9.4 GR3) -- at the
       *> moment its statement's rules identify the receiver, and it is SET with its own store, before the statement's
-      *> phrase bodies. The shapes below were refused (COBOLNET0899) when identifier-3 was subscripted by a data-name,
+      *> phrase bodies. The shapes below were refused (COBOL0899) when identifier-3 was subscripted by a data-name,
       *> and the ON / NOT ON phrases read the property before it was SET.
       *> EXPECTED, derived line by line (each AR(n) starts BAL 0001, NM "ABCDEF"; X is "AAXAAXYZ"):
       *>   1  INSPECT X TALLYING BAL OF AR(I): 4 "A"s added to AR(1)'s 1 (14.9.22.4 GR11) = 0005. INSPECT NM OF AR(I)

@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB1567 - a STRING statement with its DELIMITED phrase omitted, at the provisional introducing
       *> edition COBOL-2002 (VCR row 7.31; constructs.json string-delimited-omitted-2002; below 2002 it is
-      *> COBOLNET0900, negative pb1567-string-delimited-omitted-below-2002).
+      *> COBOL0900, negative pb1567-string-delimited-omitted-below-2002).
       *>   cite.py --check 14.9.43.3 "The DELIMITED phrase may be omitted only immediately preceding the INTO
       *>     phrase. If it is omitted, DELIMITED BY SIZE is implied" -> OK §14.9.43.3 9)
       *>   cite.py --check 14.9.43.4 "the entire content of literal-1, or the content of the data item

@@ -31,7 +31,7 @@ public readonly record struct ImplementorNameEntry(string Written, ImplementorNa
     public bool HasStatus => OnCondition is not null || OffCondition is not null;
 
     /// <summary>Null when the entry names an available system-name in an arm that name may be written in; otherwise
-    /// the COBOLNET2241 message (ISO §12.3.7.3 SR8). An available device-name or feature-name written with ON/OFF
+    /// the COBOL2241 message (ISO §12.3.7.3 SR8). An available device-name or feature-name written with ON/OFF
     /// STATUS is refused too: only the switch-name-1 arm prints the status phrases (§12.3.7.2), and a name belongs
     /// to exactly one system-name type (§8.3.2.3.1), so the name — not the spelling — decides the arm.</summary>
     public string? Unavailable => Row is null

@@ -8,7 +8,7 @@
       *> symbolic-character IS a figurative constant (12.3.7.4 GR11),
       *> so as literal-1 it is "an implicit one character data item"
       *> and "QR" (two characters) is not its size. It compiled clean.
-      *> Expected: COBOLNET0846 at every edition.
+      *> Expected: COBOL0846 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG3233S1.
        ENVIRONMENT DIVISION.

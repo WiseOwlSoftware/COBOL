@@ -29,7 +29,7 @@
       *>   and returns the count into L1C24R's LOCAL-STORAGE MY-DEPTH.
       *>   (L1C24R itself declares no WORKING-STORAGE: a RECURSIVE
       *>   program with contained programs AND working-storage is a
-      *>   documented recognized-not-implemented shape, COBOLNET0899
+      *>   documented recognized-not-implemented shape, COBOL0899
       *>   recursive-contained-working-storage, unrelated to SR15.)
       *> EXPECTED OUTPUT, DERIVED:
       *>   SELF-R DEPTH=1  the run unit starts in L1C24R.

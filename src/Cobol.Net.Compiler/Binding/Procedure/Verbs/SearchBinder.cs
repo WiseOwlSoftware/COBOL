@@ -230,7 +230,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// occurs". A serial scan over unsequenced data therefore lands inside GR6 a)'s first alternative, which is
     /// an outcome the standard explicitly allows. The technique needs no syntax rule at all.</para>
     /// <para>SR7–SR13 are screened by <c>ctx.Validation.CheckSearchAllFormat2</c> (the ONE Format-2 operand model,
-    /// COBOLNET1964–1966); bound onto the same <see cref="BoundSearch"/> node with <c>IsAll</c>, which selects the
+    /// COBOL1964–1966); bound onto the same <see cref="BoundSearch"/> node with <c>IsAll</c>, which selects the
     /// Format-2 lowering.</para></summary>
     public BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {

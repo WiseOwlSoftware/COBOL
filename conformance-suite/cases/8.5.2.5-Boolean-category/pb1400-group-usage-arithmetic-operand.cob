@@ -10,7 +10,7 @@
       *> A GROUP-USAGE BIT group is class boolean and a GROUP-USAGE
       *> NATIONAL group class national (8.5.2.1; 8.5.2.5 3);
       *> 8.5.2.10 3)), so neither is an arithmetic operand: each COMPUTE
-      *> below draws COBOLNET0844, whose text names the 8.5.2.1 class of
+      *> below draws COBOL0844, whose text names the 8.5.2.1 class of
       *> the group (it once called every group "class alphanumeric";
       *> ArithmeticOperandClassTests pins the text). The positive half
       *> is 2002/pb1400_group_usage_operand_class. GROUP-USAGE is

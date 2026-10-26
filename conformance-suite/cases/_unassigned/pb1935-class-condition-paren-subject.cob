@@ -9,7 +9,7 @@
       *> expression (8.8.1.2 GR1), a value, not the data item whose
       *> characters the condition tests. It used to answer from the
       *> decoded number: N over "AB " read TRUE for IS NUMERIC.
-      *> COBOLNET3318 at every edition.
+      *> COBOL3318 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1935C.
        DATA DIVISION.

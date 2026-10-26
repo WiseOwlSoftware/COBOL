@@ -11,7 +11,7 @@
 *> groups as specified in 8.5.1.12, Variable-length groups." The receiving operand here is "an item of category
 *> ALPHANUMERIC" - an elementary item, never a compatible group - so VG as the REPLACING operand is invalid.
 *> kb/Work PB878: INITIALIZE asked SR8 and SR10 and never SR9, so this compiled clean and aborted the run unit
-*> with a NotImplementedCobolFeatureException. Refused at compile time with COBOLNET2031 (the SR4 framing).
+*> with a NotImplementedCobolFeatureException. Refused at compile time with COBOL2031 (the SR4 framing).
 *> Variable-length groups are declarable from COBOL-2014, so the rule is unreachable below it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB878NVL.

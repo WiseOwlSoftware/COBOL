@@ -9,7 +9,7 @@
       *> ISO §15.17 COMBINED-DATETIME is one of the date/time functions ISO/IEC 1989:2014 added to clause 15;
       *> it is absent from ISO/IEC 1989:2002 and from ISO 1989:1985, whose intrinsic-function set contains no
       *> such function-name. A reference to it below 2014 names an undefined function and shall be rejected
-      *> (COBOLNET1502, the §15 edition band), which is also what keeps the PB620 standard-mode fix from
+      *> (COBOL1502, the §15 edition band), which is also what keeps the PB620 standard-mode fix from
       *> silently widening the earlier editions' surface.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB620NCD.

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1283 - SR6 - both operands within a CONSTANT RECORD.
       *>   cite.py --check 13.18.45.3 "Neither data-name-2 nor data-name-3 shall refer to an entry within a record whose data description entry includes the CONSTANT RECORD clause" -> OK
-      *> COBOLNET2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
+      *> COBOL2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1283N5.
        DATA DIVISION.

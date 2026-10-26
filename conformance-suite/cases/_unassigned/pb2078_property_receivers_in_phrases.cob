@@ -12,7 +12,7 @@
       *> INSPECT REPLACING / CONVERTING, INITIALIZE), and an object property is its data item's stand-in (8.4.3.9.4):
       *> its GET and SET belong around THAT access. The accessors used to be placed around the whole statement, so
       *> BAL / NM OF AR(I) was re-identified after the statement's own ON OVERFLOW / NOT AT END phrase had changed I
-      *> -- the SET reached AR(2) -- and the shape was refused (COBOLNET0899).
+      *> -- the SET reached AR(2) -- and the shape was refused (COBOL0899).
       *> EXPECTED, derived line by line (AR(1) and AR(2) start as "ABCDEF"; NM is PIC X(6)):
       *>   1  READ F INTO NM OF AR(I), I = 1, record "77777": the record moves to AR(1)'s NM, left-justified and
       *>      space-filled (14.9.25.4 GR6); NOT AT END then adds 1 to I                "READ I=2 [77777 ]/[ABCDEF]"

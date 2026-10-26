@@ -355,10 +355,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public List<FileModel> ContainerLocalFiles { get; } = [];
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
-    /// (COBOLNET1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
+    /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
     /// <list type="number">
     /// <item>kb/Work R32 — a reference to such a name is exempt from the §8.4.2.1 UNDEFINED diagnostic
-    /// (COBOLNET1639). The compile already fails on the section; adding "SG is not defined" on top would send
+    /// (COBOL1639). The compile already fails on the section; adding "SG is not defined" on top would send
     /// the user hunting a declaration that is right there. "Not defined" and "declared in a refused section"
     /// are different verdicts, and only the second is true.</item>
     /// <item>It is how <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> are told apart from their
@@ -414,7 +414,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (the C# read text lives in the renderer); the whole-group DEBUG-ITEM reads the concatenated image. DEBUG-SUB-n
     /// carries the S9(4) SIGN LEADING SEPARATE image WIDTH (5) but as an alphanumeric character-image view: the
     /// procedure-trigger leg only ever renders it SPACES, and the subscripted numeric-value population + the
-    /// §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg (COBOLNET1571).</summary>
+    /// §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg (COBOL1571).</summary>
     internal void ActivateDebugRegisters()
     {
         if (_debugRegisters.Count > 0) return;
@@ -650,7 +650,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // SCREEN SECTION (ISO §13.9) is an OPTIONAL element of Annex A.4.2, the module docs/CONFORMANCE.md §5
         // records as Not claimed. A.4.1 admits an optional element's syntax ONLY when support is claimed, so the
-        // section, every entry in it and every clause inside those entries are refused BY NAME (COBOLNET1560) —
+        // section, every entry in it and every clause inside those entries are refused BY NAME (COBOL1560) —
         // ScreenFacility is the one funnel and names the construct the user actually wrote. The declared
         // screen-names are recorded there as well, so a later reference reports "declared in a refused section"
         // rather than the §8.4.2.1 UNDEFINED verdict (kb/Work R32; the differential's syn_screen:221 flip).
@@ -840,7 +840,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // its `__addr_X` bridge as a STATIC field, reset to NULL by __ResetStatics (the old code
             // REJECTED this legal source). The DATA lives in the allocated cell, so no static root field
             // joins the value-reset set. A based root whose class the substrate screen rejected
-            // (COBOLNET1695) was already diagnosed — skip quietly.
+            // (COBOL1695) was already diagnosed — skip quietly.
             if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
                 _staticBasedBridgeAddrs.Add(bp);
             // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
@@ -856,7 +856,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // data STATIC — one copy shared by every activation — and its storage IS the forced StorageCell (the
             // backing is a ref-bridge over it), so the CELL is what goes static; §14.6.2.3.2 action 2 then
             // re-seeds it in place from __ResetStatics. Nothing in §8.4.3.11, §11.10.4 or §14.9.5.4 forbids the
-            // source this used to refuse (COBOLNET0899): a static item's address is simply the one copy's.
+            // source this used to refuse (COBOL0899): a static item's address is simply the one copy's.
             // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
             _staticAddressableCells.Add(addrCell);
             foreach (var idx in IndexDeclarationsUnder(root))
@@ -869,7 +869,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // one, and §13.18.5.3 names only class object and dynamic length). Its storage is the based item's
             // ALLOCATED cell reached through the ONE bridge the BASED root above already routed static, so it
             // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
-            // refuse the source with the same COBOLNET0899 as the ADDRESS OF arm).
+            // refuse the source with the same COBOL0899 as the ADDRESS OF arm).
             foreach (var idx in IndexDeclarationsUnder(root))
                 _staticIndexCells.Add(idx.Cell);
             return;
@@ -1004,7 +1004,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed
                     // immediately by a level-88 entry.
                     if (condVar.TypeRefName is not null)
-                        Edition.Error("COBOLNET1537", $"condition-name '{condName}': a data "
+                        Edition.Error("COBOL1537", $"condition-name '{condName}': a data "
                             + "description entry that specifies a TYPE clause shall not be followed immediately by a "
                             + "level-88 entry (ISO §13.18.57.3 SR2)");
                     // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind
@@ -1163,7 +1163,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // subordinate merges ahead of the cloned members (a silent-wrong record image for a group type; a
                 // member-on-a-string CS1061 leak for an elementary type).
                 if (parent.TypeRefName is not null)
-                    Edition.Error("COBOLNET1537", $"'{item.CobolName ?? "FILLER"}': a data description entry that "
+                    Edition.Error("COBOL1537", $"'{item.CobolName ?? "FILLER"}': a data description entry that "
                         + "specifies a TYPE clause shall not be followed immediately by a subordinate entry "
                         + "(ISO §13.18.57.3 SR2)");
                 // A member name need only be unique within its containing struct — AddMember allocates it there,
@@ -1191,7 +1191,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>Register a TYPEDEF type declaration (ISO §13.18.58; data-model D17): a named level-01 template.
-    /// SR checks (→ COBOLNET1529): the entry shall be level-01 and named (not FILLER), and the type-name unique.</summary>
+    /// SR checks (→ COBOL1529): the entry shall be level-01 and named (not FILLER), and the type-name unique.</summary>
     private void RegisterTypeDecl(DataItem item)
     {
         if (item.Level != 1)
@@ -1348,7 +1348,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // It is also part of an external file connector's entry identity — §12.4.5.3 GR1 d), "The same value
                 // for integer-1 in the RESERVE clause" (kb/Work PB1079, the EC-EXTERNAL-FILE-MISMATCH fingerprint).
                 // The areas are one host buffer, so integer-1 above HostFile.MaxInputOutputAreas is refused
-                // (COBOLNET2897, §4.2.15: "A conforming implementation may place such limits").
+                // (COBOL2897, §4.2.15: "A conforming implementation may place such limits").
                 else if (clauses.fileReserveClause() is { } res)
                 {
                     using var rsv = Edition.At(res);
@@ -1436,7 +1436,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // copy of the enum pair that a future organization would have to be added to twice.
             if (file.LockMode is { Multiple: true }
                 && (file.AccessMode is FileAccessMode.Sequential || file.IsSequential))
-                Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
+                Edition.Error("COBOL1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
                     + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9.3 SR2)");
             // ⛔ §14.9.27.3 SR8 IS **NOT** CHECKED HERE, AND MUST NEVER BE RE-ADDED. It is a syntax rule of the
             // OPEN STATEMENT about file-name-1, which §14.9.27.2's general format defines as the OPEN
@@ -1467,7 +1467,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// position does not admit) with the cursor its post-build rules report at. The key is resolved in
     /// <see cref="ResolveFiles"/>, as data-name-1's is: "Record-key-name-1 defines a record key consisting of the
     /// concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2 / §12.4.5.6.4
-    /// GR2; Annex A.3 item 40, provided — kb/Work PB1099 Q1, which retired the COBOLNET1954 refusal).
+    /// GR2; Annex A.3 item 40, provided — kb/Work PB1099 Q1, which retired the COBOL1954 refusal).
     /// <para>ONE capture for BOTH clauses: the two general formats print the SAME brace group, so a second copy
     /// would be the two-arm shape (feedback_two_arm_dispatch). record-key-name-1 is DECLARED here, through the one
     /// declaration funnel, because the phrase is what defines it (§8.3.2.2.24; kb/Work PB1083).</para></summary>
@@ -1712,7 +1712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// owner decision Q3 (determination L8), a LOCALE sequence. A NATIONAL alphabet that is the native national
     /// sequence (NATIVE, UCS-4 — <see cref="NationalAlphabetDef.IsIdentity"/>) resolves to native, which is exactly
     /// GR3. One defined by literals or LOCALE is Annex A.3 item 41's processor-dependent capability, which this
-    /// implementation does not provide: it is DECLINED by name (COBOLNET1584), and refused rather than accepted
+    /// implementation does not provide: it is DECLINED by name (COBOL1584), and refused rather than accepted
     /// inert because an inert compile would order the key — and judge its uniqueness — by a different sequence
     /// than the one written (docs/CONFORMANCE.md §2 rows 41–42).</para></summary>
     private AlphabetDef? ResolveKeyCollating(FileModel file, RecordKey? key)
@@ -1807,7 +1807,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>⛔ ONE DEFINITION for every binder that quotes source back at the programmer — the EVALUATE
     /// selection-object screens quote a WHEN phrase and a range-expression, and <c>WHEN1ALSO2</c> /
     /// <c>"A"THRU5</c> are not what anybody wrote (kb/Work PB399), and neither is the qualified reference
-    /// <c>WS-CINNOGRP</c> that COBOLNET1639 used to echo for <c>WS-C IN NOGRP</c> (kb/Work PB983).</para>
+    /// <c>WS-CINNOGRP</c> that COBOL1639 used to echo for <c>WS-C IN NOGRP</c> (kb/Work PB983).</para>
     /// <para>The body is the frontend's <see cref="CobolNet.Frontend.Parsing.WrittenSource.Of"/>, which a frontend
     /// formation rule quotes source through as well (kb/Work PB1413) — one definition, two layers.</para></summary>
     internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) => CobolNet.Frontend.Parsing.WrittenSource.Of(ctx);
@@ -1929,7 +1929,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>⛔ ISO §8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements", for
     /// every DATA DIVISION operand that is not a data-name-n clause position (those are
-    /// <see cref="ScreenDataNameShape"/>'s, COBOLNET2024): a report-section SOURCE operand or expression, PRESENT WHEN
+    /// <see cref="ScreenDataNameShape"/>'s, COBOL2024): a report-section SOURCE operand or expression, PRESENT WHEN
     /// condition, SUM addend, or VARYING FROM/BY expression (kb/Work PB1431). The report clauses bind through the
     /// procedure-phase expression binder, so they reach <c>ExpressionBinder.LinageFileOf</c> — the ONE producer of the
     /// LINAGE-COUNTER operand — which asks <c>ReferenceResolver.ReportScope</c> and reports here; a SUM addend written
@@ -1952,7 +1952,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// over the character area (§8.5.1.10.3 lets its storage be "located elsewhere"; a pointer has no character
     /// image, CONFORMANCE.md A.1 item 216), and it shares the area at the transfer boundary instead
     /// (<see cref="FileModel.OutOfLineRecords"/> — determination D-FRA, kb/Work PB981). Linking it is what used to
-    /// stage such an FD loud as COBOLNET0899: the class model has no shape for a member without a window.</summary>
+    /// stage such an FD loud as COBOL0899: the class model has no shape for a member without a window.</summary>
     private static void LinkImplicitRecordArea(FileModel file)
     {
         if (file.CharacterAnchor is not { } anchor) return;
@@ -2053,7 +2053,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // file-name otherwise (kb/Work PB511). The literal is a character-string, not a COBOL
                         // word, so its case is kept, while the file-name is written in its one upper-case spelling
                         // (CobolNames.UpperFold: §8.1.3.2's Annex C fold, kb/Work PB1965). §13.18.22.3 SR3 screens it through the ONE shared
-                        // externalized-name screen (COBOLNET2156), which also FORMS it — leading and trailing
+                        // externalized-name screen (COBOL2156), which also FORMS it — leading and trailing
                         // spaces removed (DOC-A.1-68, kb/Work PB1539).
                         file.ExternalName =
                             (ge.externalizedNamePhrase() is { } asPhrase
@@ -2108,7 +2108,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§13.4.6 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §13.4.5.3 SR3's permission to omit the record descriptions — that is a
             // FORMATS 1 AND 2 rule, and §13.4.6.3 SR2 requires them here. Until kb/Work PB345 a record-less SD
-            // compiled and its SORT announced itself a COMPILER GAP (COBOLNET1756, "SORT 'S1' without an SD
+            // compiled and its SORT announced itself a COMPILER GAP (COBOL1756, "SORT 'S1' without an SD
             // record — not implemented") before aborting the run unit: the compiler apologising for the source's
             // error. It reads THIS entry's own records, so it needs nothing the clause loop below sets — unlike
             // the FD arm's MaterializeImpliedRecord, which reads the RECORD and REPORT(S) clauses and runs last.
@@ -2131,10 +2131,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Whether one written FD clause belongs in this entry, reporting it when it does not (kb/Work PB1238).
     /// Two rules, both keyed on facts decided before the clause loop: the §13.4.5.2 format's clause list
-    /// (<see cref="FileDescriptionFormats"/>, COBOLNET2604 — including the file control entry's clauses, which no
+    /// (<see cref="FileDescriptionFormats"/>, COBOL2604 — including the file control entry's clauses, which no
     /// FD format contains) and §13.4.5.3 SR4's LINE SEQUENTIAL ban on BLOCK CONTAINS and RECORD CONTAINS
-    /// (COBOLNET2605). The <c>unrecognizedDataClause</c> error production has no row and is admitted here: its own pass
-    /// refuses it by name (COBOLNET1970).</summary>
+    /// (COBOL2605). The <c>unrecognizedDataClause</c> error production has no row and is admitted here: its own pass
+    /// refuses it by name (COBOL1970).</summary>
     private bool FileDescriptionClauseAdmitted(
         Core.FileDescriptionClauseContext clause, FileDescriptionFormat format, FileModel file, string fdName)
     {
@@ -2403,7 +2403,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 // ⛔ ALREADY REFUSED AT CAPTURE — one fault, one verdict (kb/Work PB481). ClauseDataName records a
                 // refused operand AS WRITTEN (`IX-KEY(1:3)`), which no data item is named, so the key screen's SR2
-                // row then added "references nothing described in this program" under COBOLNET0863 — a false
+                // row then added "references nothing described in this program" under COBOL0863 — a false
                 // second verdict about an operand whose only fault is its shape. The RELATIVE KEY arm below never
                 // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
                 // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
@@ -2481,7 +2481,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// clause that was a measured silent wrong answer (<c>LINAGE IS SZ LINES</c> with two SZs built the whole
     /// page model on the first), and on the other three it was never probed at all.</para>
     /// <para>It reports under the SAME descriptor as the procedure division's own unidentified reference
-    /// (COBOLNET1639): the rule broken is §8.4.2.1/§8.4.2.2, not a rule of the clause, and a user who mis-qualifies
+    /// (COBOL1639): the rule broken is §8.4.2.1/§8.4.2.2, not a rule of the clause, and a user who mis-qualifies
     /// a name in a WRITE and in a LINAGE clause has broken one rule and should read one verdict.</para></summary>
     private DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
                                            Editions.DiagnosticCursor at, bool inReportSection = false)
@@ -2785,7 +2785,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>VALUE-clause literal/category conformance for national and boolean receivers (ISO §13.18.63,
-    /// the COBOLNET0898 band). SR5: a category-national item takes a national literal or a figurative constant
+    /// the COBOL0898 band). SR5: a category-national item takes a national literal or a figurative constant
     /// (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE / ZERO, §8.3.3.6.4 GR1/GR6/GR7). §13.18.63.3 SR10: a category-boolean item
     /// takes a boolean literal or figurative ZERO (no boolean SPACE/QUOTE/HIGH/LOW exists — the §14.9.25.3 SR7
     /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
@@ -2866,13 +2866,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// as the format-1 one is. They were not: the four checks below sat INLINE at the format-1 call site, and
     /// <see cref="BuildTableValueSpecs"/>' per-occurrence literals reached the emitter unscreened, so
     /// <c>05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2)</c> compiled clean at strict 2023 where its
-    /// format-1 twin is COBOLNET1657. The <c>feedback_two_arm_dispatch</c> shape on the VALUE clause's own formats;
+    /// format-1 twin is COBOL1657. The <c>feedback_two_arm_dispatch</c> shape on the VALUE clause's own formats;
     /// extracting the screen is the fix, so a rule added here reaches every format BY CONSTRUCTION (kb/Work PB208).</para>
     /// <para>⛔ <b>And format 3 (kb/Work PB586).</b> The level-88 literals — every literal-2, both ends of a
     /// literal-2 THROUGH literal-3 range, and the WHEN SET TO FALSE literal-4 — called
     /// <see cref="ValidateValueCategory"/> directly, SR2's CLASS half only, so `01 W PIC 9(2). 88 C-BIG VALUE
     /// 12345.` compiled clean at every edition (a condition-name that can never be true) while its format-1 twin
-    /// `01 W2 PIC 9(2) VALUE 12345.` was COBOLNET1625. SR2 and SR3 open "ALL FORMATS" and speak of "all literals
+    /// `01 W2 PIC 9(2) VALUE 12345.` was COBOL1625. SR2 and SR3 open "ALL FORMATS" and speak of "all literals
     /// in the VALUE clause", so the third arm of the dispatch PB208 unified now takes the same funnel, with the
     /// CONDITIONAL VARIABLE's picture as the subject whose range the literal must fit (§13.18.63.4 GR19 gives the
     /// condition-name its conditional variable's characteristics). The funnel's one SIZE rule below stays dark
@@ -2889,7 +2889,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // leading/trailing nonzero digit (SR2), and a signed literal (either sign) requires a signed subject (SR3). The
         // initializer path (ValueInitializer → EmitText.UnscaledAtScale) does NO high-order modulo and NO
         // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
-        // out-of-range native field (COBOLNET1625). A NUMERIC-EDITED subject's numeric literal rides the same check
+        // out-of-range native field (COBOL1625). A NUMERIC-EDITED subject's numeric literal rides the same check
         // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
         if (pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
             ValidateNumericValue(pic, raw, where);
@@ -2902,7 +2902,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
         // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
         // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
-        // COBOLNET0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
+        // COBOL0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
         // ⛔ THE SIZE IS THE SUBJECT'S, not pic.Length — the SAME discipline the SR4/SR5/SR10 size arms follow
         // (kb/Work PB598). This IS a size rule, so a subject that indicates no size has none to be measured
         // against; today the two quantities coincide for every subject that reaches here (a numeric-edited
@@ -2912,7 +2912,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
             && raw.StartsWith('"') && subject.SizePositions is { } editedWidth
             && CobolLiteral.Decode(raw).Length > editedWidth)
-            Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
+            Edition.Sink.Report(new EditionDiagnostic("COBOL1570",
                 EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
                 $"{where}: the VALUE literal ({CobolLiteral.Decode(raw).Length} characters) exceeds the "
                 + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63.3 SR4/SR5; COBOL-2023, "
@@ -3085,7 +3085,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // illegal.
             case PicCategory.National when isPlainString || isBoolLit || isNumeric || isAllQuoted
                     || !(isNatLit || isNationalFigurative):
-                Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
+                Edition.Error("COBOL0898", $"{where}: the VALUE of a national data item shall be a national "
                     + "literal (N\"…\") or a figurative constant (ISO §13.18.63.3 SR5)");
                 break;
             // SR5 sentences 2 and 3 — ONE sentence pair, ONE arm: "National literals in the VALUE clause of an
@@ -3096,13 +3096,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // on ValueSubject.ForElementary and .ForConditionName — both were live rejections of legal source).
             case PicCategory.National when lit is LiteralClass.National
                     && subject.SizePositions is { } natLimit && CobolLiteral.Decode(raw).Length > natLimit:
-                Edition.Error("COBOLNET0898", $"{where}: the VALUE national literal exceeds the item's "
+                Edition.Error("COBOL0898", $"{where}: the VALUE national literal exceeds the item's "
                     + $"{natLimit} national positions (ISO §13.18.63.3 SR5)");
                 break;
             // Boolean: a B"…" literal or figurative ZERO (incl. ALL ZEROS) — no boolean SPACE/QUOTE/HIGH/LOW
             // exists (§14.9.25.3 SR7 posture).
             case PicCategory.Boolean when !isBoolLit && !isZeroWord:
-                Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
+                Edition.Error("COBOL0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
                     + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63.3 SR10)");
                 break;
             // SR10 sentences 2 and 3 — the same sentence pair as SR5's, over boolean positions: an elementary
@@ -3110,7 +3110,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // §8.5.1.6.3's bit extent, DataItem.AsIfPic).
             case PicCategory.Boolean when lit is LiteralClass.Boolean
                     && subject.SizePositions is { } boolLimit && CobolLiteral.Decode(raw).Length > boolLimit:
-                Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
+                Edition.Error("COBOL0898", $"{where}: the VALUE boolean literal exceeds the item's "
                     + $"{boolLimit} boolean positions (ISO §13.18.63.3 SR10)");
                 break;
             // ⛔ A NUMERIC-EDITED SUBJECT'S CHARACTER LITERAL IS §13.18.63.3 SR7's, AND SR7 IS NOT ASKED HERE
@@ -3124,7 +3124,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             //    VALUE N"  1"` from being refused here as "a national literal may seed only its own category".
             case not (PicCategory.National or PicCategory.Boolean)
                     when isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited:
-                Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
+                Edition.Error("COBOL0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
                     + "literal may seed only a data item of its own category (ISO §13.18.63.3 SR5/SR10)");
                 break;
             // ── kb/Work PB94 — §13.18.63.3 SR2: a NUMERIC subject takes numeric literals (and figurative ZERO) only.
@@ -3209,7 +3209,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>§8.5.2.1 Table 2 is what makes it a USAGE test and what makes it bite in BOTH directions: category
     /// numeric-edited is class ALPHANUMERIC when its usage is display and class NATIONAL when its usage is
     /// national. The national-usage half was unreachable while §13.18.60.3 SR12's national-form numeric-edited
-    /// item was staged loud (COBOLNET0899).</para>
+    /// item was staged loud (COBOL0899).</para>
     /// <para>A NUMERIC literal is SR2/SR6's business, not this rule's, and a figurative constant takes the
     /// receiver's class (§8.3.3.6), so neither reaches the test. ⚠ §13.18.63.3 SR7's third clause — "if the class is
     /// otherwise undefined, then the class of the data item shall be that of the literal" — has NO SITE in this
@@ -3225,7 +3225,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isAlnumLit = lit is LiteralClass.Alphanumeric || allLit is LiteralClass.Alphanumeric;
         if (!isNatLit && !isAlnumLit) return;   // a numeric literal, a boolean literal or a figurative — not SR7's
         if (isNatLit == (pic.Usage is Usage.National)) return;
-        Edition.Error("COBOLNET0898", $"{where}: the VALUE literal {raw} is of class "
+        Edition.Error("COBOL0898", $"{where}: the VALUE literal {raw} is of class "
             + $"{(isNatLit ? "national" : "alphanumeric")}, but the numeric-edited item is of usage "
             + $"{(pic.Usage is Usage.National ? "NATIONAL and therefore of class national" : "DISPLAY and therefore of class alphanumeric")}"
             + " — the class of the literal shall conform to that of the data item (ISO §13.18.63.3 SR7; "
@@ -3276,7 +3276,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// permissible value within the range the PICTURE indicates, representable EXACTLY in the subject "without
     /// truncation of leading or trailing nonzero digits" (SR2), and a signed numeric literal requires a signed
     /// subject (SR3). Both are syntax rules ('shall'), so the only conforming response to a violation is a
-    /// compile-time diagnostic (COBOLNET1625) — never the legacy lenient truncating/sign-dropping store, which the
+    /// compile-time diagnostic (COBOL1625) — never the legacy lenient truncating/sign-dropping store, which the
     /// typed-native initializer would otherwise perform (ValueInitializer emits the literal verbatim through
     /// <c>EmitText.UnscaledAtScale</c>, which does NO high-order modulo and NO unsigned magnitude).
     /// <para>The NUMERIC-EDITED subject rides the same check (kb/Work PB97): SR6 converts its numeric literal "according
@@ -3344,7 +3344,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : pic.Signed;
         if (signedLiteral && !signBearing)
         {
-            Edition.Error("COBOLNET1625", $"{where}: a signed numeric literal in the VALUE clause "
+            Edition.Error("COBOL1625", $"{where}: a signed numeric literal in the VALUE clause "
                 + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO §13.18.63.3 SR3)");
             return;
         }
@@ -3368,7 +3368,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             int run = lastNonZero - firstNonZero + 1;
             int normExp = highLitExp + 1 - (fm.SigDigits - fm.SigScale);
             if (run > fm.SigDigits || normExp > fm.MaxExp || normExp < -fm.MaxExp)
-                Edition.Error("COBOLNET1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
+                Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not "
                     + $"representable in the floating-point numeric-edited PICTURE {mask} without truncation — the "
                     + $"significand holds {fm.SigDigits} digit(s) (the literal has {run} significant digits) and the "
                     + $"exponent ranges over -{fm.MaxExp}..+{fm.MaxExp} (the normalized exponent is {normExp:+0;-0}) (ISO §13.18.63.3 SR6)");
@@ -3384,7 +3384,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int lowStoredExp = -storedScale;
         int highStoredExp = storedDigits - storedScale - 1;
         if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
-            Edition.Error("COBOLNET1625", edited
+            Edition.Error("COBOL1625", edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
                     + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO §13.18.63.3 SR6)"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
@@ -3539,7 +3539,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="DeclareUserWord"/> for every kind in <see cref="UserWordKinds.DeclaredUnqualifiable"/> and, for a
     /// switch's condition-names (whose type is shared with the qualifiable level-88 entries), by
     /// <c>BindImplementorNameEntry</c>. Before this each registry decided for itself: the ALPHABET, CLASS and switch
-    /// condition-name registries dropped the second silently (<c>TryAdd</c>, first wins) while LOCALE (COBOLNET1665) and
+    /// condition-name registries dropped the second silently (<c>TryAdd</c>, first wins) while LOCALE (COBOL1665) and
     /// DYNAMIC LENGTH STRUCTURE each kept a private refusal. A contained program or a method may re-declare a word its
     /// container declares (§8.4.6.1) — each is a source element with a census of its own.</summary>
     private void CheckUnqualifiableDeclaration(string word, UserWordKind kind)
@@ -3556,7 +3556,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// used as only one type of user-defined word</i>"), and a contained program or a method resolves names its
     /// container declares (§8.4.6.1), so the use is recorded in the census of the element <paramref name="site"/> lies
     /// in (<see cref="Compiler.Oo.OoClassTable.RecordReferenceUse"/>, the census PB3132's object-class-name references
-    /// record into); a paragraph or data item spelled like it in that element is then refused COBOLNET2692 at
+    /// record into); a paragraph or data item spelled like it in that element is then refused COBOL2692 at
     /// whichever of the two comes second. A binder no driver made (a TYPE expansion's, a unit test's) has no element
     /// table, and records into its own census.</summary>
     internal void RecordConfigurationNameUse(Antlr4.Runtime.RuleContext? site, string word, UserWordKind kind)
@@ -3829,7 +3829,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// ELEMENTARY type copies its PICTURE onto the item (a leaf); a GROUP type clones each subordinate under the item
     /// (a group). The subject's OWN OCCURS (an array-of-type, §13.16 SR14) and VALUE (GR3) are already on the item and
     /// preserved. The template is COMPLETED first (<see cref="ExpandTemplate"/>), and one still in progress is the
-    /// recursive type declaration §13.18.58.3 SR2 forbids (COBOLNET1530).</summary>
+    /// recursive type declaration §13.18.58.3 SR2 forbids (COBOL1530).</summary>
     private void ExpandType(DataItem item)
     {
         using var _ = Edition.At(item);
@@ -3840,7 +3840,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (!TryFindTypeDecl(typeName, scope, out var template)
             && !(BindLaterTypeDeclaration(typeName, scope) && TryFindTypeDecl(typeName, scope, out template)))
         {
-            Edition.Error("COBOLNET1530", $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
+            Edition.Error("COBOL1530", $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
                 + "TYPEDEF entry (ISO §13.18.57 / §13.18.58)");
             AbandonComposition(item);
             return;
@@ -3851,7 +3851,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // PROGRESS is the one whose own description holds this clause: §13.18.58.3 SR2.
         if (!ExpandTemplate(template))
         {
-            Edition.Error("COBOLNET1530", $"TYPE '{typeName}' on '{subject}': a type declaration shall not directly "
+            Edition.Error("COBOL1530", $"TYPE '{typeName}' on '{subject}': a type declaration shall not directly "
                 + "or indirectly reference itself — 'The description of the subject of the entry, including its "
                 + "subordinate items, shall not contain a TYPE clause that directly or indirectly references this "
                 + "type definition' (ISO §13.18.58.3 SR2)");
@@ -3877,7 +3877,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         item.AlignedAsLevelOne = template.HasSubordinates;
 
         // An EXTERNAL type declaration's effect lands on its REFERENCES (ISO §13.18.22; P10 Step 16 — the
-        // former COBOLNET1534 stage is lifted): GR2 — a data description containing an external type shall be
+        // former COBOL1534 stage is lifted): GR2 — a data description containing an external type shall be
         // at level-number 1; GR3 — such a record is itself EXTERNAL (marked here; CallBindExternalAndGlobal
         // re-bases it onto the run-unit ExternalStore cell exactly like an explicitly-EXTERNAL record).
         if (template.IsExternalTypedef)
@@ -3916,21 +3916,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
         // the old SR6 branch caught only the STRONG case).
         if (item.Level == 77 && template.HasSubordinates)
-            Edition.Error("COBOLNET1536", $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
+            Edition.Error("COBOL1536", $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
                 + "elementary type — a level-77 item is an independent elementary item (ISO §13.18.57.3 SR7)");
 
         // §13.18.57.3 SR5: "No group item to which the subject of the entry is subordinate shall contain a
         // GROUP-USAGE, SIGN, or USAGE clause" — any of the three would override the type declaration's fixed
         // representation. The set is the ONE predicate SAME AS's SR9 twin reads (kb/Work PB889).
         if (SuperordinateWithRepresentationClause(item) is { } tp)
-            Edition.Error("COBOLNET1538", $"'{subject}': a group item to which a TYPE entry is subordinate shall "
+            Edition.Error("COBOL1538", $"'{subject}': a group item to which a TYPE entry is subordinate shall "
                 + $"not contain a GROUP-USAGE, SIGN, or USAGE clause — '{tp.CobolName ?? "FILLER"}' does "
                 + "(ISO §13.18.57.3 SR5)");
 
         // §13.18.57.3 SR6: a STRONG type may be referenced only at level 1 or by an item subordinate to a type
         // declaration that includes the STRONG phrase (a strongly-typed group copies one) — strong typing always covers a WHOLE record, never a lone field in an ordinary group.
         if (strong && !StrongPlacementAdmitted(item))
-            Edition.Error("COBOLNET1532", $"'{subject}' references STRONG type '{typeName}': a strongly-typed "
+            Edition.Error("COBOL1532", $"'{subject}' references STRONG type '{typeName}': a strongly-typed "
                 + "item shall be specified only with level-number 1 or be subordinate to a type declaration that includes the "
                 + "STRONG phrase (ISO §13.18.57.3 SR6)");
 
@@ -3938,7 +3938,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // including its subordinate data items, shall not contain a data item described with a USAGE OBJECT
         // REFERENCE clause." The TYPE arm of the one prohibition (kb/Work PB545): the copy this clause makes lands
         // in the file section but is pruned from ConformanceForest, and the declaration it copies is a legal
-        // working-storage entry, so §13.18.60.3 SR15's direct-USAGE screen (COBOLNET1725) never meets it — the
+        // working-storage entry, so §13.18.60.3 SR15's direct-USAGE screen (COBOL1725) never meets it — the
         // route is screened HERE, where it is expanded, exactly as ExpandSameAs screens its SR6 twin. The template
         // is complete (ExpandTemplate above), so an object reference one TYPE level deeper is seen too.
         if (IsFileSectionItem(item) && HasObjectReferenceLeaf(template))
@@ -4237,7 +4237,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         clone.Parent = newParent;
         // The member's INDEXED BY names are part of the type (§13.18.58.4 GR1). RegisterName re-declares them on
         // THIS clone with its own cells, so a type referenced twice yields two tables whose indexes are both named
-        // IX — referenced as IX OF A / IX OF B (§8.4.2.2.3 SR6). The former COBOLNET1531 stage refused the second
+        // IX — referenced as IX OF A / IX OF B (§8.4.2.2.3 SR6). The former COBOL1531 stage refused the second
         // reference only because the two shared one spelling-keyed cell; it is retired (kb/Work PB919).
         clone.IndexNames.AddRange(src.IndexNames);
         if (!InTypeDeclaration(newParent)) RegisterName(clone);
@@ -4374,7 +4374,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // so a target that IS one of them, or contains one, holds a SAME AS reaching this subject — whichever
         // entry the forest walk happened to expand first. The former pair of tests (the target on the chain; the
         // target an ancestor of the subject) missed the target that merely CONTAINS a subject in progress:
-        // `01 G. 05 X PIC X. 05 Y SAME AS H. 01 H SAME AS G.` drew only a cascade COBOLNET0881 on the truncated
+        // `01 G. 05 X PIC X. 05 Y SAME AS H. 01 H SAME AS G.` drew only a cascade COBOL0881 on the truncated
         // copy of Y when Y happened to be expanded first.
         if (expanding.Any(e => IsSelfOrAncestor(target, e)))
         {
@@ -4542,7 +4542,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A copied STRONG type identity re-checks placement (§13.18.57.3 SR6 — level 1 or subordinate to a type
         // declaration that includes the STRONG phrase; the ExpandType twin, through the ONE placement predicate).
         if (item.StrongType && !StrongPlacementAdmitted(item))
-            Edition.Error("COBOLNET1532", $"'{subject}' copies strongly-typed '{targetName}' (type "
+            Edition.Error("COBOL1532", $"'{subject}' copies strongly-typed '{targetName}' (type "
                 + $"'{item.TypeName}'): a strongly-typed item shall be specified only at level 1 or "
                 + "subordinate to a type declaration that includes the STRONG phrase (ISO §13.18.57.3 SR6)");
         return true;
@@ -4582,10 +4582,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>The STRONG type-declaration use restrictions that need the RESOLVED REDEFINES/RENAMES graph
     /// (ISO §13.18.57.3): <b>SR4</b> — a strongly-typed item shall not be redefined in whole or in part; <b>SR3</b> —
-    /// nor renamed in whole or in part. Both → COBOLNET1532. (SR6, the level-1/strong-parent placement rule, is
+    /// nor renamed in whole or in part. Both → COBOL1532. (SR6, the level-1/strong-parent placement rule, is
     /// checked at clone time in <see cref="ExpandType"/>.) An INTERNAL redefine — a REDEFINES that is part of the same
     /// strong subtree, cloned in from the type template — is NOT flagged HERE (its subject and target share a strong
-    /// root), because it is §13.18.44.3 SR14's and <c>Sr12Sr14Violation</c> reports it once, as COBOLNET1697
+    /// root), because it is §13.18.44.3 SR14's and <c>Sr12Sr14Violation</c> reports it once, as COBOL1697
     /// (kb/Work PB1282); only an EXTERNAL redefinition of a strong item is §13.18.57.3 SR4's.
     /// <para><b>Why SR4 does not reach the internal case — kb/Work PB183's companion derivation, ANSWERED.</b>
     /// SR4 reads "If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be implicitly
@@ -4615,7 +4615,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         string by = item.RedefinesKind is RedefinitionKind.SameRecordArea
                             ? "a record-area SAME clause (ISO §12.4.6.4.4 GR2)"
                             : "the FD/SD's multiple level 1 entries (ISO §13.18.33.4 GR3)";
-                        Edition.Error("COBOLNET1532", $"'{strong.CobolName ?? strong.CsName}' is a strongly-typed item "
+                        Edition.Error("COBOL1532", $"'{strong.CobolName ?? strong.CsName}' is a strongly-typed item "
                             + $"and shares its storage area with '{other.CobolName ?? other.CsName}' — an implicit redefinition by {by}: "
                             + "a strongly-typed item shall not be implicitly or explicitly redefined in whole or in "
                             + "part (ISO §13.18.57.3 SR4)");
@@ -4630,7 +4630,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
             {
                 using var _ = Edition.At(item);
-                Edition.Error("COBOLNET1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
+                Edition.Error("COBOL1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
                     + $"'{tgt.CobolName ?? tgt.CsName}': a strongly-typed item shall not be redefined in whole or in "
                     + "part (ISO §13.18.57.3 SR4)");
             }
@@ -4643,7 +4643,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
                 {
                     using var _ = Edition.At(ren66);
-                    Edition.Error("COBOLNET1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
+                    Edition.Error("COBOL1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
                         + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
                 }
     }
@@ -4744,7 +4744,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     // Format 3 prints `{ VALUE IS | VALUES ARE }`; Format 5 detaches the connective entirely
                     // (its [IS/ARE] bracket sits before INVALID/VALID), and it is refused BY NAME at bind
-                    // (COBOLNET1708), so screening its head here would be a second diagnostic on one entry.
+                    // (COBOL1708), so screening its head here would be a second diagnostic on one entry.
                     if (value.validateValidPhrase() is null)
                         CheckValueConnective(value, pairedConnective: true, $"condition-name '{name}'");
                     // `[ IN alphabet-name-1 ]`, IN optional (kb/Work PB983) — decided BEFORE the operand loop,
@@ -4760,7 +4760,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             // phrase shall not be specified" (0898). That is the ONLY category THROUGH is
                             // banned for.
                             // ⛔ THERE IS NO LONGER A NATIONAL STAGE HERE (kb/Work PB761, discharged in landing
-                            // train 18). A COBOLNET0899 "recognized but not yet implemented (Phase 4a residue)"
+                            // train 18). A COBOL0899 "recognized but not yet implemented (Phase 4a residue)"
                             // stood over a national THROUGH range on the citation §13.18.63 SR31 — but SR31 says
                             // "Alphabet-name-1 may be specified only when the literals specified in the THROUGH
                             // phrase are of class alphanumeric or national", which governs WHEN the
@@ -4789,7 +4789,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             // and codegen halves of ONE rule, landed together). An ORDINARY (alphanumeric) group
                             // has no as-if PICTURE either, so it keeps exactly the behaviour it had.
                             if (parent.OperandPic is { Category: PicCategory.Boolean })
-                                Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
+                                Edition.Error("COBOL0898", $"condition-name '{name}': THROUGH may not be "
                                     + "specified when the conditional variable is boolean (ISO §13.18.63.3 SR29)");
                             // Fold ONCE per operand (a §8.8.3 concat folds here; RawValueOperandText) so the
                             // category check and the stored value see the same text without double diagnostics.
@@ -4903,7 +4903,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// more literal-2, and the operand loop takes it. The SYMBOL decides it — ISO §8.3.2.2 ("a given
     /// user-defined word may be used as only one type of user-defined word"; its exceptions pair constant-names
     /// with data-names, never with alphabet-names), so a LAST operand that is a bare word naming a declared
-    /// alphabet IS the phrase, and any other word keeps its literal-position reading (and its COBOLNET1639 when
+    /// alphabet IS the phrase, and any other word keeps its literal-position reading (and its COBOL1639 when
     /// it names nothing). The EVALUATE range-expression prints the same phrase, and there the grammar CAN decide
     /// it by position (<c>valueRange</c>); <c>TrailingInPhraseDriftTests</c> pins the two together.</para>
     /// <para>A lone operand is never peeled: the clause needs a literal-2 before the phrase.</para>
@@ -5064,7 +5064,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // INVERTED range is EMPTY (§14.7.8 rule 2's last paragraph — it raises EC-RANGE-INVALID and
             // "execution proceeds as if the range of values were empty"), so nothing can be inside it and the
             // test is skipped rather than inverted. SR26 refuses the inversion ITSELF (CheckRangesAscending,
-            // COBOLNET2961, under the same Known), so an inverted pair reaches here only behind its error.
+            // COBOL2961, under the same Known), so an inverted pair reaches here only behind its error.
             if (vlo.Str is not null && !ord.Known) continue;
             var vhi = ConditionValueOf(parent, hi);
             if (CompareConditionValues(ord, vlo, vhi) <= 0
@@ -5309,7 +5309,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
         Int128? dynLengthLimit = null; // integer-1 of the LIMIT phrase (§13.18.19.4 GR2); null = the phrase is absent
-        string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOLNET2027 report
+        string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOL2027 report
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name-1 (§13.18.19.2)
         Antlr4.Runtime.RuleContext? dynLengthStructureAt = null;   // where it is written: its §8.3.2.2 use (PB3153)
         DynamicLengthStructure? dynStructure = null;   // … and the SPECIAL-NAMES declaration it resolves to (SR2)
@@ -5341,9 +5341,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; LIVE
                     // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
-                    // COBOLNET1664; absent ⇒ the current locale at each edit, §13.18.40.5 r11) and SIZE integer-1
+                    // COBOL1664; absent ⇒ the current locale at each edit, §13.18.40.5 r11) and SIZE integer-1
                     // (§13.18.40.4 GR17 — the item's length); the analysis is AnalyzeLocaleEdited's (SR33–SR36 +
-                    // Table 11 → COBOLNET1673).
+                    // Table 11 → COBOL1673).
                     if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
                     {
                         var localeName = lp.cobolWord();   // locale-name-1 when written; LOCALE itself is the formatWord (kb/Work PB764)
@@ -5357,7 +5357,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         }
                         // integer-1 is an integer-n, so a constant-name may stand for it (§13.10.3 SR2) and the ONE reader
                         // asks the value the §5.5 1) questions: a ZERO or over-limit literal was reported pre-bind by
-                        // the one integer-n screen (Validation/IntegerOperandPass, COBOLNET2386 — kb/Work PB859), a
+                        // the one integer-n screen (Validation/IntegerOperandPass, COBOL2386 — kb/Work PB859), a
                         // constant is judged here (kb/Work PB1948).
                         int size = IntegerOperandValue(lp.integerOperand(),
                             $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE SIZE") ?? RecoveredIntegerOperand;
@@ -5477,14 +5477,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     isAligned = true;
                 // ⛔ THE CLOSED §13.16.2 FORMAT-1 CLAUSE LIST has NO arm here (kb/Work PB487, generalized by
                 // kb/Work PB829). `unrecognizedDataClause` is an ERROR PRODUCTION, not a clause, and it is refused —
-                // by name, COBOLNET1941 — from `Validation/ClosedFormatPass.cs`, the ONE place every closed
+                // by name, COBOL1941 — from `Validation/ClosedFormatPass.cs`, the ONE place every closed
                 // general format's residue is reported. It moved out of this loop because BindEntry is NOT
                 // reached for every written entry: the level-66 and level-88 paths return before it, so an
                 // unrecognized word on `88 CN WIBBLE VALUE 1.` was dropped in silence here (MEASURED on the pre-change
-                // build: only COBOLNET1747 fired, and WIBBLE vanished). A parse-tree walk
+                // build: only COBOL1747 fired, and WIBBLE vanished). A parse-tree walk
                 // sees the written syntax whether or not anything binds it (the DeclinedFacilityPass argument).
                 // The `DataClauseKind.Unrecognized` BIT is still read below: an entry whose only defect is an
-                // unrecognized word draws COBOLNET1941 alone, and one that ALSO violates a §13.16.3 permitted-set
+                // unrecognized word draws COBOL1941 alone, and one that ALSO violates a §13.16.3 permitted-set
                 // rule draws both.
                 else if (clause.Context.groupUsageClause() is { } gu)
                     // GROUP-USAGE (ISO §13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
@@ -5509,7 +5509,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     usageCtx = usage;
                     // USAGE OBJECT REFERENCE — the WHOLE §13.18.60.2 phrase (kind × FACTORY × ONLY × name),
                     // carried raw to OoBindObjectRefDescriptor below. FACTORY OF used to be loud-staged here
-                    // (COBOLNET0899) and the item left UNTYPED, which produced a SECOND misleading diagnostic at
+                    // (COBOL0899) and the item left UNTYPED, which produced a SECOND misleading diagnostic at
                     // every later statement mentioning it; it is implemented now (kb/Work PB389).
                     objectRefUsage = usage.usageKeyword()?.objectReferenceUsage();
                 }
@@ -5604,7 +5604,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // one corrupt value for the life of the tree — reject it loud, binding nothing.
         if (gluedMultiLiteral)
         {
-            Edition.Error("COBOLNET1585", $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
+            Edition.Error("COBOL1585", $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
                 + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
                 + "(ISO §13.18.63.2)");
             rawValue = null;
@@ -5686,7 +5686,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isFunctionPointer = entryUsage is Usage.FunctionPointer;
         // §13.16.3 SR10 is a rule about the SUBJECT — "shall not be specified" — so it keys on the clause having been
         // WRITTEN, not on a value having been read: an operand the literal-position screen refused (`VALUE NULL`,
-        // COBOLNET2576 — kb/Work PB1427) leaves no value, and the subject's own violation is reported as well.
+        // COBOL2576 — kb/Work PB1427) leaves no value, and the subject's own violation is reported as well.
         if (UsageFamilies.AdmitsNoValueLiteral(entryUsage) && valueClauseWritten)
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"{entryWhere}: the VALUE clause shall not be "
@@ -5782,7 +5782,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // one, which is §11.9.8.3 SR2/SR3's own wording: the clause is implied "for … any data item described with a
         // standard binary floating-point usage IN WHICH AN ENDIANNESS-PHRASE IS NOT SPECIFIED". An admitted
         // encoding-phrase has no consumer: the only usages it is applicable to, FLOAT-DECIMAL-16/-34, are
-        // documented non-support (COBOLNET1564, Annex A.3 item 19), so it is screened and not carried.
+        // documented non-support (COBOL1564, Annex A.3 item 19), so it is screened and not carried.
         var usagePhrases = ScreenUsagePhrases(usageCtx, entryUsage, usageText, entryWhere);
 
         var pic = pictureText is not null
@@ -5797,7 +5797,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // shape error; the recovery profile keeps the item in its own category rather than letting the
             // errored compile misclassify it as alphanumeric (which is what the PICTURE-less fall-through did).
             : entryUsage is Usage.FunctionPointer ? PicInfo.FunctionPointerItem(restrictedPrototypeName ?? "")
-            // USAGE MESSAGE-TAG — declined non-support, already refused BY NAME in ParseUsage (COBOLNET1943;
+            // USAGE MESSAGE-TAG — declined non-support, already refused BY NAME in ParseUsage (COBOL1943;
             // Annex A.3 item 4, docs/CONFORMANCE.md §4 item 1). The recovery shape exists for the same reason
             // the FLOAT-BINARY-128 / FLOAT-DECIMAL forms below have one: §13.16.3 SR8 exempts message-tag from
             // needing a PICTURE, so without it the errored compile would carry a null Pic into the emitter —
@@ -5814,7 +5814,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED + the 2014
             // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
             // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
-            // (binary128/decimal, rejected COBOLNET1564) still synthesize a Pic so the errored compile does not NRE.
+            // (binary128/decimal, rejected COBOL1564) still synthesize a Pic so the errored compile does not NRE.
             // The item's effective endianness rides in, resolved by ONE null-coalesce over the two-level
             // derivation §11.9.8.3 SR2/SR3 legislates: the ITEM's own endianness-phrase (§13.18.60.2, captured
             // above) where it stated one, else the unit's OPTIONS FLOAT-BINARY model (§11.9.8 — Options is bound
@@ -5895,7 +5895,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data
         // description containing the type shall be level-1) and GR3 (those records are themselves EXTERNAL) are
         // enforced in ExpandType, and the record rides the ordinary run-unit ExternalStore re-basing
-        // (CallBindExternalAndGlobal). The former COBOLNET1534 stage is LIFTED (P10 Step 16).
+        // (CallBindExternalAndGlobal). The former COBOL1534 stage is LIFTED (P10 Step 16).
         // (Its old §13.18.57.4 GR5 citation was wrong — GR5 is a Format-2 REPORT-GROUP rule.)
 
         // SAME AS same-entry composition (ISO §13.16.3 SR12): the SAME AS clause shall not share a data
@@ -6078,7 +6078,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // has run. Exactly the placement argument CheckUsageDeclarations records for §13.18.60.3 SR14.
         item.IsAligned = isAligned;
 
-        // ANY LENGTH declaration-shape validation (ISO §13.18.2; the COBOLNET1542 SR band — the 08xx declaration
+        // ANY LENGTH declaration-shape validation (ISO §13.18.2; the COBOL1542 SR band — the 08xx declaration
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
         // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
@@ -6092,7 +6092,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // (PictureAnalyzer.IsSingleInstance, kb/Work PB1210).
             if (!PictureAnalyzer.IsSingleInstance(pictureText, "NX1"))
             {
-                Edition.Error("COBOLNET1542", $"{entryWhere}: the ANY LENGTH clause requires a PICTURE whose "
+                Edition.Error("COBOL1542", $"{entryWhere}: the ANY LENGTH clause requires a PICTURE whose "
                     + "character-string is exactly one instance of the picture symbol 'N', 'X', or '1' "
                     + $"(ISO §13.18.2.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
                 isAnyLength = false;
@@ -6105,7 +6105,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             else if ((written & ~(DataClauseKind.AnyLength | DataClauseKinds.LengthClauseCoPermitted))
                      is var alBad && alBad != DataClauseKind.None)
             {
-                Edition.Error("COBOLNET1542", $"{entryWhere}: with the ANY LENGTH clause the only other clauses "
+                Edition.Error("COBOL1542", $"{entryWhere}: with the ANY LENGTH clause the only other clauses "
                     + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR17); "
                     + $"this entry also specifies {DataClauseKinds.Name(alBad)}");
                 isAnyLength = false;
@@ -6114,7 +6114,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // (a 77 item is not a level-1 entry; the elementary/section/unit halves are the sweeps' job).
             else if (level is not 1)
             {
-                Edition.Error("COBOLNET1542", $"{entryWhere}: the ANY LENGTH clause may be specified only in an "
+                Edition.Error("COBOL1542", $"{entryWhere}: the ANY LENGTH clause may be specified only in an "
                     + "elementary level 1 entry in the linkage section (ISO §13.18.2.3 SR2)");
                 isAnyLength = false;
             }
@@ -6134,7 +6134,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // picture symbol determines the class", §13.18.19.4 GR1).
             if (!PictureAnalyzer.IsSingleInstance(pictureText, "NX"))
             {
-                Edition.Error("COBOLNET1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
+                Edition.Error("COBOL1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
                     + "character-string is exactly one instance of the picture symbol 'N' or 'X' "
                     + $"(ISO §13.18.19.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
                 isDynamicLength = false;
@@ -6142,7 +6142,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // §13.18.19.3 SR2: "If dynamic-length-structure-name-1 is specified, it shall correspond to a
             // dynamic-length-structure-name specified in the DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES
             // paragraph" — this source element's, or a containing one's (§8.4.6.1; InheritConfiguration). The name
-            // used to be refused outright as "not yet supported" (COBOLNET1562, retired): the clause it names had no
+            // used to be refused outright as "not yet supported" (COBOL1562, retired): the clause it names had no
             // grammar at all (kb/Work PB829).
             else if (dynLengthStructureName is not null
                      && !DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
@@ -6174,7 +6174,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             else if ((written & ~(DataClauseKind.DynamicLength | DataClauseKinds.LengthClauseCoPermitted))
                      is var dlBad && dlBad != DataClauseKind.None)
             {
-                Edition.Error("COBOLNET1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
+                Edition.Error("COBOL1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
                     + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18); "
                     + $"this entry also specifies {DataClauseKinds.Name(dlBad)}");
                 isDynamicLength = false;
@@ -6213,7 +6213,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// be specified in the data description entry."</i>
     /// <para>⛔ RAISED BEFORE AND INDEPENDENTLY OF THE NON-SUPPORT DECLINE, which is the whole point (kb/Work
     /// PB544). USAGE MESSAGE-TAG is an Annex A.3 item-4 processor-dependent element this compiler declines by
-    /// name (<see cref="DiagnosticCatalog.MessageTagUsageUnsupported"/>, COBOLNET1943, raised inside
+    /// name (<see cref="DiagnosticCatalog.MessageTagUsageUnsupported"/>, COBOL1943, raised inside
     /// <c>PictureAnalyzer.ParseUsage</c>), and a declined usage still has SYNTAX RULES over it. Before this
     /// screen the rule had no subject at all: <c>usageText</c> was overwritten by each successive USAGE
     /// clause, so <c>01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).</c> bound as a plain DISPLAY item and
@@ -6229,7 +6229,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>⚠ NO EDITION GATE HERE, DELIBERATELY. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition and
     /// below 2023 the word is an ordinary user-defined word, so the edition-correct diagnostic below 2023 is
     /// the introduction gate rather than this rule. That routing is BROKEN for the whole MESSAGE-TAG surface —
-    /// COBOLNET1943 itself fires at 2002 and 2014, contradicting its own message text — and it is one
+    /// COBOL1943 itself fires at 2002 and 2014, contradicting its own message text — and it is one
     /// mechanism with one fix, registered separately. Gating only THIS screen would re-open the silent
     /// acceptance below 2023 while leaving the sibling wrong, so the screen stays edition-blind until the
     /// gate lands, and its negative golden pins only the 2023 cell (feedback green_test_can_hold_a_gap_open:
@@ -6290,7 +6290,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// format 3's alone (§13.18.63.4 GR20 is its only general rule); <c>{IS INVALID | ARE VALID}</c> is format
     /// 5's alone.</para>
     /// <para>⚠ The VALID / INVALID arm cannot be observed today — <c>DeclinedFacilityPass</c> refuses every
-    /// A.4.14 content-validation surface by name (COBOLNET1708) in a pass that runs BEFORE the binder, at any
+    /// A.4.14 content-validation surface by name (COBOL1708) in a pass that runs BEFORE the binder, at any
     /// level. It is listed anyway: SR33 governs formats 3 AND 5, and writing only the reachable half is how a
     /// rule's other arm goes missing. It will be the one that answers on the day A.4.14 is claimed.</para></summary>
     private static string? ConditionOnlyPhraseOf(Core.ValueClauseContext value) =>
@@ -6318,7 +6318,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // "does the operand need folding" test — a second copy of the reader's own chain — with the call.
         var ops = item.valueClauseOperand();
         if (ops.Length == 1) return RawValueOperandText(ops[0], where);
-        // NOT a Format-1 single literal: a bare multi-literal list (the caller's COBOLNET1585 glued-list
+        // NOT a Format-1 single literal: a bare multi-literal list (the caller's COBOL1585 glued-list
         // reject; the Format-4 report list) or a THRU range. Every operand is still a literal position, so
         // each is screened — a non-literal there was silent until kb/Work PB732 — and the item's raw text is
         // withheld when any operand failed, so no glued spelling reaches the emitter.
@@ -6338,7 +6338,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// literal identically.
     /// <para>⛔ IT DOES NOT GLUE (kb/Work PB506). <see cref="ExtractValue"/>'s multi-operand tail returns
     /// <c>item.GetText()</c> — the operand TOKENS run together — which is exactly what the Format-1 caller wants
-    /// (it rejects that shape, COBOLNET1585) and exactly wrong for Format 4: `VALUE "XX" "YY"` reached the
+    /// (it rejects that shape, COBOL1585) and exactly wrong for Format 4: `VALUE "XX" "YY"` reached the
     /// emitter as the raw text <c>"XX""YY"</c>, whose doubled quote the literal decoder then read as an escaped
     /// one, so a legal report entry printed <c>XX"YY</c>.</para>
     /// <para>NULL when the clause is not a bare literal list at all (a THRU range — §13.18.63.3 SR30 keeps the
@@ -6367,8 +6367,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind an FD CODE-SET clause (ISO §13.18.13; kb/Work PB110 — it was parsed as the '85 one-name form
     /// and read by nothing): both formats — <c>IS alphabet-name-1 [alphabet-name-2]</c> and the FOR ALPHANUMERIC /
     /// FOR NATIONAL phrases (one or both, any order, each at most once — §5.2.6.4). SR1/SR2: each name shall
-    /// reference an alphabet defining a coded character set of its class (a LOCALE alphabet is COBOLNET1669 through
-    /// the ONE resolver; a class mismatch or an undeclared name is COBOLNET1672). SR3: with record description
+    /// reference an alphabet defining a coded character set of its class (a LOCALE alphabet is COBOL1669 through
+    /// the ONE resolver; a class mismatch or an undeclared name is COBOL1672). SR3: with record description
     /// entries and no SELECT WHEN, one class only, every elementary item of that usage, signed items SIGN SEPARATE.
     /// GR2/GR6: the on-medium coded character set, decided by <see cref="CodedCharacterSet.Medium"/> — the ONE
     /// classifier, so this binder names no set. <c>Identity</c> (NATIVE; UTF-16 on the D-N1 substrate — the
@@ -6379,7 +6379,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// carried to the connector, which applies GR6 a/b at the medium boundary and refuses, at the WRITE or
     /// REWRITE, a record character outside the set. <c>NotProvided</c> (a literal-phrase
     /// alphabet's remapped ordinals; UTF-8 / UCS-4 as variable-width medium encodings) is the DOCUMENTED A.3
-    /// item 27 non-support (COBOLNET1672 — "dependent upon a device capable of supporting the specified code";
+    /// item 27 non-support (COBOL1672 — "dependent upon a device capable of supporting the specified code";
     /// CONFORMANCE.md §2 row 27), never a silent identity.</summary>
     private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file, IReadOnlyList<DataItem> records)
     {
@@ -6492,7 +6492,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // the symbolic-character, as every other literal-position reader asks it (ConcatFolder.FoldTerm,
             // ExpressionBinder.LiteralAliasOf): a symbolic-character a CONTAINING element declares yields to the
             // element's own constant-name of the spelling (§8.4.6.1; kb/Work PB3153), and its resolution records
-            // a §8.3.2.2 use. In one element the two cannot coexist (COBOLNET2692), so the order decides nothing there.
+            // a §8.3.2.2 use. In one element the two cannot coexist (COBOL2692), so the order decides nothing there.
             : ConstantValueRawText(op) is { } constantRaw ? NormalizeIfNumericLiteral(constantRaw)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
             : NormalizeIfNumericLiteral(op.GetText());
@@ -6580,7 +6580,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>The entries that WROTE a VALUE clause (data-item formats 1 and 2) — the subject of §13.16.3 SR10, "The
     /// VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer". Kept apart
-    /// from <see cref="DataItem.RawValue"/> because a refused operand (`VALUE NULL`, COBOLNET2576) stores no value
+    /// from <see cref="DataItem.RawValue"/> because a refused operand (`VALUE NULL`, COBOL2576) stores no value
     /// while the clause is still specified, and the acquired-usage arm is asked after the forest is built.</summary>
     private readonly HashSet<DataItem> _valueClauseWritten = [];
 
@@ -6590,11 +6590,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// entered because it resolves its own operands.
     /// <list type="bullet">
     /// <item>A BARE word (including the <c>ALL symbolic-character-1</c> figurative) draws
-    /// <c>COBOLNET1639</c>: the position admits a constant-name or a symbolic-character, and the word is
+    /// <c>COBOL1639</c>: the position admits a constant-name or a symbolic-character, and the word is
     /// neither, so "a statement shall contain a reference that uniquely identifies that resource" (ISO
     /// §8.4.2.1) is violated.</item>
     /// <item>Any other non-literal shape — a qualified / subscripted / reference-modified reference, a
-    /// function-identifier, a parenthesized arithmetic expression — draws <c>COBOLNET1902</c>: nothing is
+    /// function-identifier, a parenthesized arithmetic expression — draws <c>COBOL1902</c>: nothing is
     /// undefined, the general format simply writes literal-n (ISO §13.18.63.2).</item>
     /// </list>
     /// §4.2.2 is the obligation to indicate both ("An implementation shall provide a warning mechanism …
@@ -6673,7 +6673,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (ISO §13.18.40.2 Format 1) — character-1 + DECODED literal text, handed to <see cref="PictureAnalyzer"/>
     /// for SR8–SR12 validation and render-rule construction. Null when the clause carries no EDITING phrase.
     /// <para>⛔ character-1 is the BARE word the printed general format writes (kb/Work PB568). The quoted
-    /// spelling the grammar used to REQUIRE still parses, so that it can be REFUSED BY NAME (COBOLNET2149)
+    /// spelling the grammar used to REQUIRE still parses, so that it can be REFUSED BY NAME (COBOL2149)
     /// instead of as an ANTLR syntax error; which spelling was written also decides where literal-1 sits in the
     /// phrase's literal list, so the two are read in one place.</para></summary>
     private List<EditingPhraseSpec>? BuildEditingSpecs(Core.PictureClauseContext? pic, string where)
@@ -6839,7 +6839,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// clause" — is an ALL FORMATS rule, and SR16 carries SRs 10–15 in as well, so a format-2 literal is governed
     /// exactly as the format-1 one. It was not: <see cref="BuildTableValueSpecs"/>' literals went straight to the
     /// emitter, so <c>05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2).</c> compiled clean at strict 2023
-    /// where its format-1 twin is COBOLNET1657. The text the funnel RETURNS is what gets stored — including the
+    /// where its format-1 twin is COBOL1657. The text the funnel RETURNS is what gets stored — including the
     /// <c>--permissive</c> numeric rewrite of a class-mismatched literal, so the emitter's per-occurrence literal
     /// carries a screened value exactly as <c>item.RawValue</c> does.
     /// <para>⛔ THE LITERAL screen belongs HERE, at entry bind, beside the Format-1 call site: it is a property of
@@ -6885,10 +6885,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// fall-through arm is the FLOAT family, so a usage outside the set would be misreported as one.</para></summary>
     private static (string Code, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
     {
-        Usage.ObjectReference => ("COBOLNET0812",
+        Usage.ObjectReference => ("COBOL0812",
             "PICTURE may not be specified with USAGE OBJECT REFERENCE (ISO §13.16.3 SR8 — an "
             + "object-reference item is picture-less)"),
-        _ when UsageFamilies.IsFixedWidthBinary(usage) => ("COBOLNET0870",
+        _ when UsageFamilies.IsFixedWidthBinary(usage) => ("COBOL0870",
             "PICTURE may not be specified with a fixed-width binary usage "
             + "(BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)"),
         Usage.ProgramPointer or Usage.FunctionPointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,
@@ -6901,7 +6901,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
             + "its content is an occurrence number rather than a pictured value (ISO §13.16.3 SR8; "
             + "§13.18.60.4 GR10)"),
-        _ => ("COBOLNET1521",
+        _ => ("COBOL1521",
             "PICTURE may not be specified with a floating-point usage "
             + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a "
             + "floating-point item is picture-less (ISO §13.16.3 SR8; §13.18.60.2)"),
@@ -7291,7 +7291,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// the GR11 width, silently, at every nesting depth (kb/Work PB570).</para>
     /// <para>The effective usage has already been screened against the picture by
     /// <see cref="ApplyEffectiveUsage"/>, so <c>Pic.Usage</c> is the representation the item really takes: a
-    /// phrase that survived COBOLNET1565 on the written clause but whose PACKED-DECIMAL was downgraded by
+    /// phrase that survived COBOL1565 on the written clause but whose PACKED-DECIMAL was downgraded by
     /// §13.18.60.3's USAGE × PICTURE screen changes nothing, exactly as the diagnosed usage requires. A RECOVERY
     /// profile is left alone — its PICTURE was already rejected, so SR31 would report an invented second defect
     /// on one entry.</para></summary>
@@ -7304,7 +7304,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : $" — the phrase is the one written for the group item '{fromGroupName}', whose USAGE clause applies "
               + "to each elementary item in the group (ISO §13.18.60.4 GR1)";
         if (pic.Signed)
-            Edition.Error("COBOLNET1566", $"data item '{item.CobolName ?? "FILLER"}': a PICTURE containing 'S' shall "
+            Edition.Error("COBOL1566", $"data item '{item.CobolName ?? "FILLER"}': a PICTURE containing 'S' shall "
                 + "not be specified with PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned "
                 + $"representation){gr1}");
         else
@@ -7406,12 +7406,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>⛔ THE REDEFINES OPERAND'S SHAPE, AND THE NAME THAT RESOLVES (kb/Work PB1281). §13.18.44.2 prints
     /// <c>REDEFINES data-name-2</c>, and its syntax rules narrow even the qualified-data-name that data-name-n
-    /// normally is: SR6 — <i>"Data-name-2 shall not be qualified."</i> (COBOLNET2915) — and SR5's last sentence —
+    /// normally is: SR6 — <i>"Data-name-2 shall not be qualified."</i> (COBOL2915) — and SR5's last sentence —
     /// <i>"the reference to data-name-2 in the REDEFINES clause shall not be subscripted"</i> — with §8.4.3.3.3's
     /// NOTE forbidding a reference-modifier and §8.4.3.1 making a special register no data-name at all (the ONE
-    /// data-name-n screen, <see cref="ScreenDataNameShape"/>, COBOLNET2024).
+    /// data-name-n screen, <see cref="ScreenDataNameShape"/>, COBOL2024).
     /// <para>The operand used to reach <see cref="ResolveRedefines"/> as the reference's GLUED text, so
-    /// <c>REDEFINES A OF G</c> looked up the one word <c>AOFG</c>: COBOLNET1654 citing the wrong rules when no such
+    /// <c>REDEFINES A OF G</c> looked up the one word <c>AOFG</c>: COBOL1654 citing the wrong rules when no such
     /// item existed, and a SILENT bind to an unrelated item <c>AOFG</c> when one did. The BASE data-name is what
     /// resolves now, whatever else was written, so a refused shape reports its own rule and nothing cascades; a
     /// special register has no data-name, and the entry then redefines nothing.</para></summary>
@@ -7490,7 +7490,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (written && item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(item.Root))
-                    // 1577, renumbered from a bare "COBOLNET1518" that collided with the locale-module
+                    // 1577, renumbered from a bare "COBOL1518" that collided with the locale-module
                     // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
                     Edition.Error(DiagnosticCatalog.MethodRedefinesScope,
                         $"REDEFINES target '{tname}' of method data item "
@@ -7517,7 +7517,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
                 // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
                 if (written && item.RedefinesTarget is { IsAnyLength: true })
-                    Edition.Error("COBOLNET1542", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
+                    Edition.Error("COBOL1542", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
                         + $"'{tname}': the redefined item is described with the ANY LENGTH clause "
                         + "(ISO §13.18.44.3 SR16 — data-name-2 shall not be ANY LENGTH)");
                 // §13.18.44.3 SR1-SR3, SR8, SR10, SR13, SR15 — the entry-level rules over the resolved pair
@@ -7689,7 +7689,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // an interior byte only half a national character covers (an alphanumeric REDEFINES view shorter than
                     // the national item it redefines), are bytes of the record's storage like any other, and the alias
                     // is "an alphanumeric group item" over that storage (§13.18.45.4 GR2). Parts used to be kept in their
-                    // leaf's positions, so such a slice was chosen and then refused — COBOLNET1655 on legal source.
+                    // leaf's positions, so such a slice was chosen and then refused — COBOL1655 on legal source.
                     RenamesSpanPart? best = null;
                     foreach (var (leaf, off, w, occ, outer) in leaves)
                     {
@@ -7743,7 +7743,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// offsets, because the offending shapes are exactly the ones storage offsets cannot see: a dynamic-length item
     /// has zero fixed width, and a dynamic-capacity or occurs-depending table's extent is not its declared one.</para>
     /// <para>The strongly-typed arms are enforced with the rest of the strong-type rules they share a sentence
-    /// with, <c>CheckStrongTypeDeclarations</c> (§13.18.57.3 SR3, COBOLNET1532); this screen owns the other three.
+    /// with, <c>CheckStrongTypeDeclarations</c> (§13.18.57.3 SR3, COBOL1532); this screen owns the other three.
     /// The class arm reads §13.18.60.3 SR14's phrase reader, whose five phrases are exactly the usages of classes
     /// object (OBJECT REFERENCE), message-tag (MESSAGE-TAG) and pointer (POINTER, PROGRAM-POINTER,
     /// FUNCTION-POINTER).</para></summary>
@@ -7796,7 +7796,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // target as written) likewise, plus "subordinate to a strongly-typed group item". These are the
         // rules' LETTER — the drafting contrast with SR9's "nor any entry subordinate to it" shows they
         // name the entry-level items only; a NESTED pointer leaf is §13.18.60.3 SR14's territory — now
-        // screened at its own declaration by CheckUsageDeclarations (kb/Work PB183, COBOLNET1724), with
+        // screened at its own declaration by CheckUsageDeclarations (kb/Work PB183, COBOL1724), with
         // ComputeTier's backstop arm kept as the recovery-path guard behind it.
         if (Sr12Sr14Violation(item, target) is { } srv)
             Edition.Error(DiagnosticCatalog.RedefinesPointerObject, srv);
@@ -7831,7 +7831,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // an ancestor walk here would reject legal source.
         // ⛔ AND THE DEPENDING SHAPE IS DELIBERATELY EXCLUDED, so one entry never draws two diagnostics from
         // one rule: SENTENCE 4 ("Neither the original definition nor the redefinition shall include an
-        // occurs-depending table") is COBOLNET0855's, whose population is WIDER (an ODO table anywhere in
+        // occurs-depending table") is COBOL0855's, whose population is WIDER (an ODO table anywhere in
         // either definition, not merely on data-name-2's own entry) and which already rejects every entry
         // this arm would also match. One rule, four sentences, two disjoint screens.
         if (target.IsTable && target.OccursSpec?.DependingName is null)
@@ -7906,16 +7906,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // arm C, then its follow-up). Three moves, and the middle one was itself wrong on one side:
             //  1. The arm used to cite "§13.18.44 SR5" for BOTH sides.
             //  2. The repair read SR5's FOURTH sentence ("Neither the original definition nor the redefinition
-            //     shall include an occurs-depending table" — COBOLNET0855's rule) and concluded the whole rule
+            //     shall include an occurs-depending table" — COBOL0855's rule) and concluded the whole rule
             //     was about something else, so it wrote "which NO syntax rule literally names". ⛔ THAT IS TRUE
             //     ONLY OF THE SUBJECT SIDE. SR5's FIRST sentence is "The data description entry for data-name-2
             //     shall not contain an OCCURS clause", and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
-            //     (§13.18.38) — so the OBJECT side is named outright, and is now COBOLNET1701 per written entry.
+            //     (§13.18.38) — so the OBJECT side is named outright, and is now COBOL1701 per written entry.
             //     Reading one sentence of a four-sentence rule and generalising is the same inheritance failure
             //     CLAUDE.md rule 1 names, one level down: the clause NUMBER was right and the SENTENCE was not.
             //  3. The dynamic-capacity SUBORDINATE case is §13.18.44.3 SR17's (a group with such a table
             //     subordinate IS a "variable-length group", §8.5.1.12.1) and is screened per WRITTEN ENTRY above
-            //     as COBOLNET1698.
+            //     as COBOL1698.
             // WHAT REMAINS HERE IS THE SUBJECT THAT IS ITSELF A DYNAMIC-CAPACITY TABLE, and for THAT side the
             // "no syntax rule names it" reading holds: §13.18.38.3 carries no REDEFINES restriction, and SR17
             // does not reach an ELEMENTARY dynamic table (§8.5.1.12.1's "variable-length group" is defined over
@@ -7931,7 +7931,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!implicitArea
                 && cls.Members.FirstOrDefault(m => !ReferenceEquals(m, cls.Canonical) && m.IsDynamicTable) is { } dynSubject)
             {
-                Edition.Error("COBOLNET1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.CsName}' is "
+                Edition.Error("COBOL1525", $"REDEFINES entry '{dynSubject.CobolName ?? dynSubject.CsName}' is "
                     + "itself a dynamic-capacity table: its capacity \"may vary during execution\" (ISO "
                     + "§8.5.1.9.1), so it has no fixed area for the storage association §13.18.44.4 GR1 requires; "
                     + "it shall not be the subject of a REDEFINES");
@@ -7943,7 +7943,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // matters on its own: without it the class model is built as though the OCCURS-bearing object were
             // a legal single area, and the offsets/width walk below lays a view over one occurrence's worth of
             // storage. The predicate is the RULE's (`OccursSpec is not null`, every format) even though the
-            // depending shape's DIAGNOSTIC belongs to COBOLNET0855 — a tier is not a message.
+            // depending shape's DIAGNOSTIC belongs to COBOL0855 — a tier is not a message.
             foreach (var m in cls.Members)
                 if (m.RedefinesKind is RedefinitionKind.Clause && m.RedefinesTarget is { IsTable: true } occTarget)
                 {
@@ -7972,7 +7972,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // before the tier is ever read, and a Rejected class's dynamic-length view still classifies as
             // DynamicString. A class DISSOLVED by the nested-anchor loop below bypasses the tier loop entirely,
             // which is the same hole from the other side. WHAT ACTUALLY PREVENTS THE DISJOINT STORAGE REACHING
-            // A USER'S PROGRAM IS THE COBOLNET1698 DIAGNOSTIC, which is fatal. The tier verdict is a second,
+            // A USER'S PROGRAM IS THE COBOL1698 DIAGNOSTIC, which is fatal. The tier verdict is a second,
             // independent verdict at the modelling layer and is worth keeping as one — every consumer that asks
             // the CLASS gets the right answer — but "structurally unreachable" was a claim about a path this
             // code does not close.
@@ -8078,7 +8078,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var c = item.Children[i];
             c.IsCanonical = false;
             // -1 is "a REDEFINES name with no sibling target"; an unresolved redefiner is demoted to an ordinary
-            // entry (RedefinesTargetName = null, kb/Work PB93, COBOLNET1654), so no live child can carry it here.
+            // entry (RedefinesTargetName = null, kb/Work PB93, COBOL1654), so no live child can carry it here.
             if (starts[i] < 0)
                 throw new InvalidOperationException(
                     $"'{c.CobolName ?? c.CsName}' REDEFINES '{c.RedefinesTargetName}', which is not a sibling in its group");
@@ -8093,11 +8093,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     // (ContainsDynamicTable was deleted with kb/Work PB177 arm C: its SUBORDINATE half is §13.18.44.3 SR17's,
     // now screened per written entry through ReferenceResolver.HasVariableLengthSubordinate — §8.5.1.12.1's own
     // definition of "variable-length group" — and its SELF half is the narrowed `m.IsDynamicTable` test at the
-    // COBOLNET1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
+    // COBOL1525 arm. Two spellings of one walk collapsed into the predicate the standard actually defines.)
 
     /// <summary>The §13.18.44.3 SR12/SR14 class test (kb/Work PB179): object/pointer classes occupy no
     /// character positions and can neither overlay nor be overlaid. Message-tag has no bound model (declined
-    /// non-support, COBOLNET1943), so it is never of a class here.
+    /// non-support, COBOL1943), so it is never of a class here.
     /// <para>⛔ CLASS INDEX IS NOT HERE and must never be added: §13.18.60.3 SR4 is the rule whose list includes
     /// INDEX, and it has its own predicate. §13.18.60.3 SR14's declaration-placement screen
     /// (<c>DataBinder.UsageDeclaration.cs</c>) does NOT ask this CLASS question: SR14 is written over the five USAGE
@@ -8124,7 +8124,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>⛔ IT IS ONE PREDICATE BECAUSE IT WAS TWO, AND THEY DRIFTED (kb/Work PB231). ComputeTier was a
     /// DENY-list and the cell forcer's local <c>CellCapable</c> an ALLOW-list, and PB203 opened only the
     /// REDEFINES one to USAGE BIT leaves — the ninth instance of this repo's two-arm dispatch shape. The
-    /// consequence was rejects-legal-source: `01 R BASED. 05 B PIC 1(8) USAGE BIT.` drew COBOLNET1695 at bind
+    /// consequence was rejects-legal-source: `01 R BASED. 05 B PIC 1(8) USAGE BIT.` drew COBOL1695 at bind
     /// while the byte-identical REDEFINES spelling compiled and ran, even though §13.18.5.3 SR1/SR2 restrict a
     /// BASED subject to exactly "shall not be of class object" and "shall not be a dynamic-length elementary
     /// item or a variable-length group" and §14.9.3.3 SR1 asks only for the BASED clause — no rule anywhere
@@ -8172,7 +8172,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // raw-storage channel and FUNCTION BYTE-LENGTH already answer with.
         // ⛔ ONE PREDICATE, because the gate and the geometry must not be able to disagree about WHICH leaves
         // are national. The two spellings are the CATEGORY (PIC N / USAGE NATIONAL) and the national-form
-        // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12 — staged loud earlier at COBOLNET0899, so this arm is
+        // NUMERIC (PIC 9 USAGE NATIONAL, §13.18.60.3 SR12 — staged loud earlier at COBOL0899, so this arm is
         // the derived storage answer for the day that stage lifts rather than an observable one today).
         if (NationalWindow.PositionsOf(leaf) is not null) return null;
         // ⛔ THE POINTER FAMILY RIDES THE SLOTS — asked through THE ONE population test, never re-listed here,
@@ -8274,7 +8274,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // ClassifyRedefinesClasses). The skeptic round derived that §13.18.60.3 SR14 makes the nested
         // declaration itself NONCONFORMING (a pointer/object USAGE is legal only at level 1 or under a
         // STRONG type — and the strong case trips the entry-level screen via its enclosing group).
-        // ⛔ THAT SCREEN NOW EXISTS — CheckUsageDeclarations (DataBinder.UsageDeclaration.cs, COBOLNET1724,
+        // ⛔ THAT SCREEN NOW EXISTS — CheckUsageDeclarations (DataBinder.UsageDeclaration.cs, COBOL1724,
         // kb/Work PB183), which runs EARLIER in the pipeline and rejects the declaration itself, so on
         // conforming source this arm is unreachable-by-construction exactly as predicted. It is KEPT, not
         // deleted: it remains the loud guard for the recovery paths and for any future mode that admits a
@@ -8714,7 +8714,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Several is ISO §8.4.2.2.3 SR1's failure — "For each non unique user-defined name that is explicitly
     /// referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
     /// of reference" — reported HERE, at the caller's cursor, under the procedure division's own descriptor
-    /// (COBOLNET1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
+    /// (COBOL1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
     /// first-declared survivor (ReferenceResolver.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
     /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
     /// (<paramref name="ambiguityReported"/> says which of the two a null is).

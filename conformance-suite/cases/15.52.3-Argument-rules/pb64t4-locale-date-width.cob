@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
       *> ISO 15.52.3 r1: "Argument-1 shall be of class alphanumeric or national and shall be 8 character positions in
-      *> length." A 7-position item draws the §15.3 argument-rule diagnostic (COBOLNET1627, the width half of the screen);
-      *> kb/Work PB64 T4 - LOCALE-DATE is live (it was refused by name with COBOLNET1518 before T4).
+      *> length." A 7-position item draws the §15.3 argument-rule diagnostic (COBOL1627, the width half of the screen);
+      *> kb/Work PB64 T4 - LOCALE-DATE is live (it was refused by name with COBOL1518 before T4).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T4W.
        DATA DIVISION.

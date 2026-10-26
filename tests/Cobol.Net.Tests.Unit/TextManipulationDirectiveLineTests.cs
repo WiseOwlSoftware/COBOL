@@ -52,7 +52,7 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
     {
         Copybook("cbif.cpy", " >>IF V = 1\n DISPLAY \"V-TRUE\"\n >>ELSE\n DISPLAY \"V-FALSE\"\n >>END-IF\n");
         var (text, bag) = Run(" >>DEFINE V AS 1\n PROCEDURE DIVISION.\n COPY cbif REPLACING ==V== BY ==Q==.\n");
-        Clean(bag);   // a rewritten condition names the undefined Q (COBOLNET1619)
+        Clean(bag);   // a rewritten condition names the undefined Q (COBOL1619)
         Assert.Contains("V-TRUE", text);
     }
 

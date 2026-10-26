@@ -37,7 +37,7 @@
       *> the LOW-VALUE fill stopped the run unit and the slice store was lost (REFMOD-[123]).
       *>
       *> EDITIONS: 2002 - USAGE NATIONAL's introducing edition; 2014 behaves the same. At 2023 the MOVE of
-      *> LOW-VALUE to a numeric-edited item is removed (14.9.25.3 SR5, COBOLNET0902).
+      *> LOW-VALUE to a numeric-edited item is removed (14.9.25.3 SR5, COBOL0902).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB442NEN.
        ENVIRONMENT DIVISION.

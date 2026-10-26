@@ -166,7 +166,7 @@ public sealed class ImpliedPictureTests : CobolNetTestBase
             Program("SR9BCTXR", "       01 A USAGE BIT VALUE SPACE.\n", "           DISPLAY A\n"),
             dialectLevel: 2002);
         Assert.False(refused.ok);
-        Assert.Contains("COBOLNET0881", refused.detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL0881", refused.detail, StringComparison.Ordinal);
         Assert.Contains("SR5", refused.detail, StringComparison.Ordinal);
     }
 
@@ -220,7 +220,7 @@ public sealed class ImpliedPictureTests : CobolNetTestBase
     {
         var (ok, _, detail) = CompileAndRun(Program(id, entry, "           DISPLAY A\n"), dialectLevel: 2002);
         Assert.False(ok, "expected §13.16.3 SR8's rejection");
-        Assert.Contains("COBOLNET0881", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL0881", detail, StringComparison.Ordinal);
     }
 
     /// <summary>SR9 grants the omission only "in the DATA-ITEM FORMAT of the VALUE clause", which is
@@ -233,7 +233,7 @@ public sealed class ImpliedPictureTests : CobolNetTestBase
             Program("SR9TBL", "       01 R.\n          05 A OCCURS 3 VALUES ARE \"AB\" FROM (1).\n",
                 "           DISPLAY A(1)\n"), dialectLevel: 2002);
         Assert.False(ok, "expected §13.16.3 SR8's rejection — SR9 grants only the data-item format");
-        Assert.Contains("COBOLNET0881", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL0881", detail, StringComparison.Ordinal);
     }
 
     // ── The SIBLING format: §13.15.3 SR14, the report group description entry ────────────────────────────────
@@ -283,7 +283,7 @@ public sealed class ImpliedPictureTests : CobolNetTestBase
     // ── The edition boundary ─────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>COBOL-85 made no such grant, so below the introducing edition the compiler names the construct
-    /// and the edition that introduces it (the <c>value-implied-picture-2002</c> registry row, COBOLNET0900
+    /// and the edition that introduces it (the <c>value-implied-picture-2002</c> registry row, COBOL0900
     /// band) rather than the generic SR8 rejection — the co-equal diagnostic obligation of every introduction
     /// gate. The identical source compiles at 2002.</summary>
     [Fact]
@@ -292,7 +292,7 @@ public sealed class ImpliedPictureTests : CobolNetTestBase
         string src = Program("SR9E85", "       01 A VALUE \"HELLO\".\n", "           DISPLAY A\n");
         var below = CompileAndRun(src, dialectLevel: 85);
         Assert.False(below.ok, "§13.16.3 SR9 is a post-85 addition");
-        Assert.Contains("COBOLNET0900", below.detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL0900", below.detail, StringComparison.Ordinal);
         Assert.Contains("COBOL-2002", below.detail, StringComparison.Ordinal);
 
         var at2002 = CompileAndRun(Program("SR9E02", "       01 A VALUE \"HELLO\".\n", "           DISPLAY A\n"),

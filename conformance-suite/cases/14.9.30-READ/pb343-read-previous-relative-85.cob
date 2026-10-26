@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB343 — READ ... PREVIOUS is a COBOL-2002 introduction (constructs.json
-      *> `read-previous-2002`, COBOLNET0900).  The gate is ONE arm over IBoundRead, so it
+      *> `read-previous-2002`, COBOL0900).  The gate is ONE arm over IBoundRead, so it
       *> shall fire on the RELATIVE organization exactly as it does on the sequential one
       *> (negative/pb334-read-previous-85) and the indexed one
       *> (unit:EditionGateDiagnosticTests.ReadPrevious_At85_Registry0900_Not0860).  The

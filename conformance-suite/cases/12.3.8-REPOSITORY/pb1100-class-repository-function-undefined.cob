@@ -9,7 +9,7 @@
       *> group neither defines nor prototypes (kb/Work PB1100). The
       *> class REPOSITORY now reaches the method (§12.3.4 GR1), so the
       *> method's reference is resolved - and there is nothing to
-      *> resolve it to: COBOLNET1505, the program unit's own verdict.
+      *> resolve it to: COBOL1505, the program unit's own verdict.
       *> RULE §12.3.8.3 SR10: literal-5 or function-prototype-name-1
       *>   "shall be one of the following" - a function prototype of
       *>   this group, a function definition specified previously in

@@ -11,7 +11,7 @@
       *> following these rules" - a) an exception-name needs "the same
       *> exception-name". The class (interface-1, 9.3.11) raises
       *> EC-USER-PB972B where its interface lists only EC-USER-PB972A.
-      *> Expected: COBOLNET0841 naming rule 9 a)
+      *> Expected: COBOL0841 naming rule 9 a)
        IDENTIFICATION DIVISION.
        INTERFACE-ID. PB972NAI.
        PROCEDURE DIVISION.

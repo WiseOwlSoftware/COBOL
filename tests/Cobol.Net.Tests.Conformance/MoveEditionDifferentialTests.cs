@@ -11,12 +11,12 @@ namespace CobolNet.Tests.Conformance;
 /// The MOVE figurative-constant edition matrix (roadmap Phase 2 W2 track A — VCR rows 1 / 92 / 128).
 /// ISO/IEC 1989:2023 §14.9.25.3 SR5: a digit-only <c>ALL "literal"</c> (or ALL symbolic-character representing a
 /// digit) may move to an INTEGER numeric item — the sole surviving figurative→numeric MOVE, itself obsolete at
-/// 2023 (the SR5 NOTE; Annex F.2 item 2 → COBOLNET0903); "in all other cases" the move of an alphanumeric
+/// 2023 (the SR5 NOTE; Annex F.2 item 2 → COBOL0903); "in all other cases" the move of an alphanumeric
 /// figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal") to a numeric or numeric-edited item
-/// is prohibited — NEWLY removed by 2023 (Annex E.2 item 1 bullet 1: permitted through ISO 2014 → COBOLNET0902,
+/// is prohibited — NEWLY removed by 2023 (Annex E.2 item 1 bullet 1: permitted through ISO 2014 → COBOL0902,
 /// error strict / warning permissive, silent below 2023) for every member of the list EXCEPT SPACE, which was
 /// already prohibited (ISO/IEC 1989:2002 clause 14.8.24.2 SR5: "The figurative constant SPACE shall not be moved to a
-/// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOLNET0819 at every edition (kb/Work PB3605). Value semantics: §8.3.3.6.4 GR2 (character-by-character
+/// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOL0819 at every edition (kb/Work PB3605). Value semantics: §8.3.3.6.4 GR2 (character-by-character
 /// repetition to the associated size) + §14.9.25.4 GR6d3b (a figurative sending operand takes the RECEIVER's
 /// digit count, fraction digits included). Pre-removal semantics of the prohibited shapes are a provisional
 /// adjudication (ratified owner decision 1): the fill characters become the receiver's character
@@ -170,12 +170,12 @@ public sealed class MoveEditionDifferentialTests
         "    MOVE ALL \"5\" TO W-INT.\n    DISPLAY W-INT.");
 
     [Fact]
-    // The SR5 NOTE / Annex F.2 item 2: obsolete AT 2023 — a COBOLNET0903 warning naming the construct.
+    // The SR5 NOTE / Annex F.2 item 2: obsolete AT 2023 — a COBOL0903 warning naming the construct.
     public void AllDigitToInteger_Obsolete0903_At2023()
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(AllDigitIntegerSource, 2023);
         Assert.True(ok);
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0903");
         EditionHarness.AssertHasDiagnostic(warnings, "digit-only ALL");
     }
 
@@ -188,8 +188,8 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(AllDigitIntegerSource, edition);
         Assert.True(ok);
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0902");
     }
 
     // ═══ Item 3 — the 0902 removal gate ("move-alphanumeric-figurative-removed-2023"; SR5 / E.2 item 1) ═══════
@@ -203,7 +203,7 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD1"), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
         EditionHarness.AssertHasDiagnostic(errors, "MOVE HIGH-VALUE TO W-NUM");
     }
 
@@ -213,7 +213,7 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD2"), 2023, permissive: true);
         Assert.True(ok);
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0902");
     }
 
     [Theory]
@@ -225,8 +225,8 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD3"), edition);
         Assert.True(ok);
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0902");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0902");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
     }
 
     [Theory]
@@ -240,10 +240,10 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDD4", "01 W-ED PIC ZZ9.", $"    MOVE {figurative} TO W-ED.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
         var (ok85, _, w85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85);
-        EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(w85, "COBOL0902");
     }
 
     [Theory]
@@ -259,15 +259,15 @@ public sealed class MoveEditionDifferentialTests
     // numeric or numeric-edited item" is syntax rule 5 of ISO/IEC 1989:2002 clause 14.8.24.2 and of the 2009 committee
     // draft, and the 2023 SR5 keeps SPACE on its list ("In all other cases, the move of an alphanumeric figurative
     // constant (SPACE, …) to either a numeric item or a numeric-edited item is prohibited"). So it is no removal
-    // (no COBOLNET0902, and --permissive does not admit it): the MOVE chain refuses it, COBOLNET0819 naming SR5.
+    // (no COBOL0902, and --permissive does not admit it): the MOVE chain refuses it, COBOL0819 naming SR5.
     public void SpaceToNumeric_Refused0819_AtEveryEdition_Sr5(int edition, string picture, bool permissive)
     {
         var source = Program("MVEDS1", $"01 W-N {picture}.", "    MOVE SPACES TO W-N.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition, permissive);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
         EditionHarness.AssertHasDiagnostic(errors, "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0902");
     }
 
     [Theory]
@@ -281,7 +281,7 @@ public sealed class MoveEditionDifferentialTests
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0902");
     }
 
     [Theory]
@@ -307,10 +307,10 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDD5", "01 W-FRAC PIC 9V9.", "    MOVE ALL \"5\" TO W-FRAC.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
         var (ok85, _, w85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85);
-        EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(w85, "COBOL0902");
     }
 
     [Theory]
@@ -325,7 +325,7 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDD6", "01 W-INT PIC 9(3).", "    MOVE ALL \"57\" TO W-INT.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
         EditionHarness.AssertHasDiagnostic(errors, "§8.3.3.6.3 SR3");
         EditionHarness.AssertNoDiagnostic(errors, "§14.9.25.3 SR5");
     }
@@ -343,7 +343,7 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDD8", "01 W-INT PIC 9(3) VALUE 575.", "    " + statement);
         var (ok85, e85, w85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85, string.Join(Environment.NewLine, e85));
-        EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(w85, "COBOL0902");
         foreach (var edition in new[] { 2002, 2014, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
@@ -383,7 +383,7 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDD7", "01 W-ED PIC ZZ9.", "    MOVE ALL \"5\" TO W-ED.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
     }
 
     // ═══ Exemptions (§14.9.25.3 SR5 scope boundaries) ══════════════════════════════════════════════════════════
@@ -400,8 +400,8 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDE1", "01 W-INT PIC 9(3).", "    MOVE ZERO TO W-INT.\n    DISPLAY W-INT.");
         var (ok, _, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.True(ok);
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0902");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0902");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
     }
 
     [Fact]
@@ -412,7 +412,7 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVEDE2", "01 W-GRP.\n   05 W-N PIC 9(3).", "    MOVE SPACE TO W-GRP.");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0902");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0902");
     }
 
     // ═══ The constructs.json row sources (activation readiness — the matrix theories' shapes) ═════════════════
@@ -445,8 +445,8 @@ public sealed class MoveEditionDifferentialTests
             + "    STOP RUN.\n";
         var (ok, _, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.True(ok);
-        if (edition >= 2023) EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
-        else EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+        if (edition >= 2023) EditionHarness.AssertHasDiagnostic(warnings, "COBOL0903");
+        else EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
     }
 
     // ── The W2 adversarial-review fixes (DEVLOG 595) ────────────────────────────────────────────────────────
@@ -465,8 +465,8 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(QuoteToNumeric, edition);
         Assert.True(ok, string.Join("\n", errors));
-        if (expectFlag) EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
-        else EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+        if (expectFlag) EditionHarness.AssertHasDiagnostic(warnings, "COBOL0903");
+        else EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
     }
 
     /// <summary>The QUOTE row's removal edge: 0902 error strict at 2023, warning + pre-removal run permissive.</summary>
@@ -475,12 +475,12 @@ public sealed class MoveEditionDifferentialTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(QuoteToNumeric, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
     }
 
     /// <summary>§14.9.25.3 SR1 — "The class of identifier-1 or identifier-2 shall not be index" — is
     /// version-INVARIANT (§13.18.60 GR10 admits only SET/SEARCH/relation references), never an Annex-E
-    /// removal row: COBOLNET0809 error at EVERY edition, on the receiver AND the sender arm, and it stays an
+    /// removal row: COBOL0809 error at EVERY edition, on the receiver AND the sender arm, and it stays an
     /// ERROR under --permissive (the review caught the 0902 row mislabeling this "permitted through 2014").</summary>
     [Theory]
     [InlineData(85)]
@@ -491,8 +491,8 @@ public sealed class MoveEditionDifferentialTests
             "    MOVE SPACE TO IXI.\n    MOVE 5 TO IXI.\n    MOVE IXI TO W.");
         var (ok, errors) = EditionHarness.Compile(source, edition);
         Assert.False(ok);
-        Assert.Equal(3, errors.Count(e => e.Contains("COBOLNET0809")));
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");   // never the edition row
+        Assert.Equal(3, errors.Count(e => e.Contains("COBOL0809")));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0902");   // never the edition row
     }
 
     [Fact]
@@ -501,7 +501,7 @@ public sealed class MoveEditionDifferentialTests
         var source = Program("MVIXSR2", "01 IXI USAGE INDEX.", "    MOVE SPACE TO IXI.");
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive: true);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0809");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0809");
     }
 
     /// <summary>The ref-mod round-trip-loss fix: a MOVE into a reference-modified slice of a numeric-DISPLAY

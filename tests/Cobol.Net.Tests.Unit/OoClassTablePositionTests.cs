@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY OO PASS-1 DIAGNOSTIC CARRIES ITS SOURCE POSITION (kb/Work PB975). <c>OoClassTable.Build</c> reported
 /// through <c>edition.Error</c> without positioning the diagnostic cursor, so an unresolved INHERITS, a mismatched
-/// END CLASS or a duplicate method printed <c>error COBOLNET0821: …</c> with no <c>file(line,col):</c> — in a
+/// END CLASS or a duplicate method printed <c>error COBOL0821: …</c> with no <c>file(line,col):</c> — in a
 /// compilation group of several classes the user could not find the clause. Each source below marks the line a
 /// diagnostic must land on with an inline <c>*&gt; @CODE</c> comment; the test asserts that EVERY error carries a
 /// position and that each marked (code, line) pair was reported. A new pass-1 report that forgets its scope fails
@@ -19,7 +19,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class OoClassTablePositionTests
 {
-    private static readonly Regex Positioned = new(@"\((\d+),(\d+)\): error (COBOLNET\d{4})", RegexOptions.Compiled);
+    private static readonly Regex Positioned = new(@"\((\d+),(\d+)\): error (COBOL\d{4})", RegexOptions.Compiled);
     private static readonly Regex Marker = new(@"\*> @(\d{4})", RegexOptions.Compiled);
 
     public static TheoryData<string, string> Sources => new()
@@ -75,8 +75,8 @@ public sealed class OoClassTablePositionTests
                 CLASS PB2.
             END CLASS PT5.
             """ },
-        // kb/Work PB1505 / PB1020: the §11.3.3 INHERITS rules (COBOLNET2791) land on the INHERITS name, the
-        // parameterized definition's included; kb/Work PB1503: the §11.7.3 property-method rules (COBOLNET2790) on the
+        // kb/Work PB1505 / PB1020: the §11.3.3 INHERITS rules (COBOL2791) land on the INHERITS name, the
+        // parameterized definition's included; kb/Work PB1503: the §11.7.3 property-method rules (COBOL2790) on the
         // METHOD-ID and on the subject entry.
         { "INHERITS-RULES", """
             IDENTIFICATION DIVISION.
@@ -166,7 +166,7 @@ public sealed class OoClassTablePositionTests
             var r = CompilerDriver.Compile(new CompilerDriver.Options(path, DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
             Assert.False(r.Success, $"{label}: expected a rejection");
             string all = string.Join("\n", r.Errors);
-            var unpositioned = r.Errors.Where(e => e.Contains("error COBOLNET", StringComparison.Ordinal)
+            var unpositioned = r.Errors.Where(e => e.Contains("error COBOL", StringComparison.Ordinal)
                 && !Positioned.IsMatch(e)).ToList();
             Assert.True(unpositioned.Count == 0, $"{label}: diagnostics with no source position:\n"
                 + string.Join("\n", unpositioned));
@@ -175,8 +175,8 @@ public sealed class OoClassTablePositionTests
             string[] lines = source.Split('\n');
             for (int i = 0; i < lines.Length; i++)
                 foreach (Match mk in Marker.Matches(lines[i]))
-                    Assert.True(got.Contains(("COBOLNET" + mk.Groups[1].Value, i + 1)),
-                        $"{label}: expected COBOLNET{mk.Groups[1].Value} at line {i + 1}; got:\n{all}");
+                    Assert.True(got.Contains(("COBOL" + mk.Groups[1].Value, i + 1)),
+                        $"{label}: expected COBOL{mk.Groups[1].Value} at line {i + 1}; got:\n{all}");
         }
         finally { ScratchDirectory.Remove(dir); }
     }

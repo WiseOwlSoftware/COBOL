@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 10.6.1: the contained program-definition slot is INSIDE the procedure-division bracket -
       *>   `[ procedure-division [ program-definition ] ... ]` - so a program that contains programs shall have a
-      *>   procedure division. NPD1507 has none and contains NPD1507B. COBOLNET2274.
+      *>   procedure division. NPD1507 has none and contains NPD1507B. COBOL2274.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NPD1507.
        IDENTIFICATION DIVISION.

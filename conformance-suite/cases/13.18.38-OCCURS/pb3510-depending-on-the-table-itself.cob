@@ -7,9 +7,9 @@
       *> kb/Work PB3510 - DEPENDING ON names the table's own entry WS-T.
       *> 13.18.38.3 SR2, "Data-name-1 and data-name-2 shall not be
       *> subscripted": WS-T is a table, so a reference to it is subscripted
-      *> (COBOLNET0853, the code this refusal expects - before PB3510 only an
+      *> (COBOL0853, the code this refusal expects - before PB3510 only an
       *> item WITHIN a table drew it, never the table itself); and SR20 - WS-T
-      *> occupies the table's own first byte (COBOLNET0857).
+      *> occupies the table's own first byte (COBOL0857).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3510N4.
        DATA DIVISION.

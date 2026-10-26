@@ -11,7 +11,7 @@
       *>   F-REC  GLOBAL on a level-1 FILE SECTION record - 13.18.27.3 SR1 b) admits "a data description entry
       *>          whose level-number is 1 that is specified in the file, working-storage, local-storage, or
       *>          linkage section". Before the screen the registration scan never read the FILE SECTION, so the
-      *>          contained program's reference to F-REC was UNDEFINED (COBOLNET1639) - legal source rejected.
+      *>          contained program's reference to F-REC was UNDEFINED (COBOL1639) - legal source rejected.
       *>   W-GLB  GLOBAL on a level-1 working-storage entry (13.16.3 SR6 / SR7).
       *>   X-ANC  EXTERNAL on the redefines ANCHOR (13.16.3 SR5 forbids it only on the entry that ALSO says
       *>          REDEFINES). 13.18.22.4 GR1: the record is external, and X-RED shares its storage, so the value

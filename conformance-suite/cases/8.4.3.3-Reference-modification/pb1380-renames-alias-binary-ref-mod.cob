@@ -13,7 +13,7 @@
       *> subordinate to a strongly-typed group item"). Before the fix the
       *> resolver returned the alias's place BEFORE the SR1 screen and
       *> the reference modifier, so this compiled clean and moved the
-      *> whole item. Expected: COBOLNET1647.
+      *> whole item. Expected: COBOL1647.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB1380RMBIN.
        DATA DIVISION.

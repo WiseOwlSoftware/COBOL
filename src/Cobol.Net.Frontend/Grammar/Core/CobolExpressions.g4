@@ -36,7 +36,7 @@ options {
 // and a level-numbered entry follows the period of only the data division's three lists: the data description entry
 // (§13.16.2), the file description entry (§13.4.5.2) and the sort-merge file description entry (§13.4.6.2), whose
 // record descriptions follow. A run that held the integer there read `01 X PIC X FOO` then `05 Y PIC X.`, the period
-// forgotten, as the ONE run `FOO 05 Y`, and Y's PICTURE as X's second (COBOLNET2423). Nothing that follows any other
+// forgotten, as the ONE run `FOO 05 Y`, and Y's PICTURE as X's second (COBOL2423). Nothing that follows any other
 // list begins with an integer, and there the run must hold one: `SOURCE-COMPUTER. XYZ 12.` (ISO §12.3.5.2 prints
 // `SOURCE-COMPUTER. [ computer-name-1 ] .`) had ONE viable parse while the run could not open at it, the name-less
 // paragraph (§12.3.5.3 SR1 lets its second period go) followed by `XYZ 12` as an unrecognized configuration
@@ -368,7 +368,7 @@ comparisonOperand
 // asserted otherwise (a green-looking claim holding a gap open, kb/Work PB158). ⛔ THE SECOND IS THE SHIFT ROW —
 // only an identifier or literal may follow a shift operator, and booleanShiftSuffix parses a whole
 // arithmeticExpression (kb/Work PB1413: the "but ONE" this comment then claimed was the same kind of false). Both
-// are screened by ExpressionFormationPass / ArithmeticFormationRules (COBOLNET1719), alongside §8.8.1.2 Table 3's
+// are screened by ExpressionFormationPass / ArithmeticFormationRules (COBOL1719), alongside §8.8.1.2 Table 3's
 // (unary, unary) cell — one mechanism for both adjacency tables, run by the compile-time evaluator too. The tiers
 // are SUPERSET-parsed (no edition predicate); they are reached ONLY through the boolExprAhead()-gated
 // primaryCondition ENTRY (or COMPUTE F2), so a condition with no B-operator and no parenthesized boolean literal
@@ -425,7 +425,7 @@ comparisonExpression
 // below those editions each is an ordinary user-defined word: `CLASS BOOLEAN IS "01"` in SPECIAL-NAMES is
 // conforming COBOL-85 and `IF X IS BOOLEAN` names that user class. The token-level reservation gate retypes such
 // a DECLARED class to IDENTIFIER, so it arrives through cobolWord; a keyword token that still arrives below its
-// edition is an UNDECLARED class-name-1, and ConditionBinder reads it as one (→ COBOLNET1639) instead of as the
+// edition is an UNDECLARED class-name-1, and ConditionBinder reads it as one (→ COBOL1639) instead of as the
 // §8.8.4.4.4 GR3 alternative. (Until PB655 the gate was a cobolWord predicate and the ORDER of these alternatives
 // was the edition gate; a predicate past the left edge of an enclosing decision cannot be one.)
 //   ⛔ ITS OWN NAME, NOT `className` (kb/Work PB2292). The rule used to be called className, as is the OO class-name
@@ -522,7 +522,7 @@ powerExpression
 // so `- -2` is the PERMISSIBLE (unary, literal) pair while `- - 2` is the invalid (unary, unary) one — and in the
 // DEFAULT lexer mode both emit MINUS MINUS INTEGERLIT (the SIGNED_INTEGERLIT/SIGNED_DECIMALLIT twins that encode
 // the adjacency exist only in the lexer's list regions — argument and subscript lists). No CFG tier can separate them; only
-// the TOKEN POSITIONS can. The cell is therefore screened post-parse by ArithmeticFormationRules (COBOLNET1719),
+// the TOKEN POSITIONS can. The cell is therefore screened post-parse by ArithmeticFormationRules (COBOL1719),
 // which reads that adjacency off the token stream. Precedence is unaffected and correct as written: powerExpression
 // puts a full unaryExpression in its base position, so `- 2 ** 2` binds as (-2)**2 = 4 per Table 3 GR2's rank 1
 // over rank 2 — COBOL's one inversion of the mainstream convention.
@@ -601,7 +601,7 @@ primaryExpression
 // reference-modification format identifier") forbids ref-modifying a ref-mod, and making the ARITY carry that
 // rule here would enforce SR3 in a SECOND place — the data-reference side already counts ref-mods in
 // ReferenceResolver, because `dataReferenceSuffix*` cannot express the limit either. One rule belongs in one
-// place, so both sides parse the extra modifier and the binder rejects it with COBOLNET1630, giving the same
+// place, so both sides parse the extra modifier and the binder rejects it with COBOL1630, giving the same
 // cited message for FUNCTION F(X) (1:4)(1:2) as for A (3:4)(2:2) instead of a raw parse error on one side only.
 // ⚠ The two alternatives are disjoint on the COLON and need no predicate: a functionArgList can never contain a
 // COLON at its own level (a nested data item's ref-mod inside an argument is that item's own refModPart). §8.4.3.2
@@ -622,7 +622,7 @@ primaryExpression
 // name slot is admissible as a VALUE-clause literal (a constant-name), so the greedy literal list swallows a
 // FOLLOWING data-description clause keyword:
 //     01 W PICTURE S99999 VALUE ZERO
-//            SIGN LEADING SEPARATE.        ->  COBOLNET1585 "takes exactly one literal"
+//            SIGN LEADING SEPARATE.        ->  COBOL1585 "takes exactly one literal"
 // SIGN and SUM both BEGIN a data-description clause (§13.18.52 SIGN, §13.18.54 report-writer SUM). This alternative is confined to expression/operand positions and
 // cannot reach a data description at all, so that whole class is structurally out of reach.
 // ⚠ THE ARGUMENT LIST IS A `subscriptPart`, NOT `FNARG_LPAREN functionArgList FNARG_RPAREN`, and a token dump is what
@@ -641,7 +641,7 @@ primaryExpression
 //            SIGN LEADING SEPARATE.
 // A VALUE clause operand is a `unaryExpression`, which reaches functionCall, and the operand loop is greedy —
 // so admitting a BARE SIGN made the loop swallow the SIGN CLAUSE of the NEXT line as a second VALUE literal
-// (COBOLNET1585). With the group required, `SIGN LEADING` cannot match a functionCall at all and the loop stops
+// (COBOL1585). With the group required, `SIGN LEADING` cannot match a functionCall at all and the loop stops
 // where it should. The same applies to the report-writer `SUM OF` clause (§13.18.54).
 // RANDOM is different and needs no group: §15.75.2 brackets the whole parenthesised part, so the bare form is
 // legal — and RANDOM begins no data-description clause, so nothing can swallow it.
@@ -691,7 +691,7 @@ functionArgList
 // FMT-15.45.2): it fires only when a B-operator belongs to THIS argument, so a bare boolean literal / item still
 // takes its literal / expression arm and a following B-AND outside the argument list is not this argument's.
 // An ADDRESS-IDENTIFIER (§8.4.3.1.2 identifier Format 9) is "an identifier" in SR8's sense, and SR10 names class
-// pointer for a user-defined function's BY VALUE argument (kb/Work PB1060: `F(ADDRESS OF A)` was COBOLNET0901
+// pointer for a user-defined function's BY VALUE argument (kb/Work PB1060: `F(ADDRESS OF A)` was COBOL0901
 // "'ADDRESS' is a reserved word"). It is the ONE `addressIdentifier` rule (kb/Work PB1021); ADDRESS heads no other
 // arm, so the alternative is unambiguous. Each intrinsic's own argument-class rule then accepts or refuses it.
 functionArgument
@@ -870,7 +870,7 @@ numericLiteral
 // literal-1 "AB" (§8.3.3.6.3 SR2 — literal-1 "may be a concatenation expression"), and ANTLR resolves the tie
 // between that reading and "a concatenation whose first operand is ALL "A"" (illegal — §8.8.3.2 SR1) toward the
 // lower alternative. A concatenation that merely CONTAINS an ALL figurative (`"X" & ALL "A"`) still parses as a
-// concatenation and is rejected COBOLNET1541 by ConcatFolder as before.
+// concatenation and is rejected COBOL1541 by ConcatFolder as before.
 // ⛔ predefinedNull is NOT a literal and NOT a figurative constant — see its rule below. It is an arm HERE only as
 // the parse CARRIER: this rule's slot set is exactly the set of operand positions that parsed NULL while it was
 // (wrongly) a figurativeConstant arm, so every position still PARSES it (superset parse) and the binder decides —
@@ -905,10 +905,10 @@ predefinedNull
 // the class and category of constant-name-1") and a symbolic-character (a figurative constant its SPECIAL-NAMES
 // SYMBOLIC CHARACTERS clause defines, §12.3.7.4 GR11 a)
 // — are both user-defined words, which the parse cannot tell apart from a data-name, so the arm admits any
-// cobolWord and ConcatFolder resolves it (COBOLNET2473 for a word that stands for no literal). The SR1 same-class
+// cobolWord and ConcatFolder resolves it (COBOL2473 for a word that stands for no literal). The SR1 same-class
 // rule, the no-ALL-figurative rule, and the SR2–SR4 8,191-position caps are BIND-time checks too (a superset
 // parse, per the repo's parse-wide/bind-narrow doctrine). Gated 2002+ by the VersionConformancePass parse arm
-// (concat-operator-2002 → COBOLNET0900 below 2002); the grammar itself is edition-agnostic (superset parse at
+// (concat-operator-2002 → COBOL0900 below 2002); the grammar itself is edition-agnostic (superset parse at
 // every --std).
 concatenationExpression
     : concatOperand (AMPERSAND concatOperand)+
@@ -965,7 +965,7 @@ numericLiteralCore
 // ⚠ SUPERSET-PARSE / BIND-NARROW, the standing doctrine: the sign is a SEPARATE token here (a DEFAULT-mode
 // `(` after FROM/TO opens no signed-literal lexer region), so `FROM ( + 1 )` — a space between the sign and
 // its digits, which §8.3.3.3.2 forbids because a literal is one character-string — also parses, and
-// DataBinder reports it BY NAME (COBOLNET2155) instead of leaving it to the ANTLR error reporter.
+// DataBinder reports it BY NAME (COBOL2155) instead of leaving it to the ANTLR error reporter.
 integerLiteral
     : INTEGERLIT
     ;

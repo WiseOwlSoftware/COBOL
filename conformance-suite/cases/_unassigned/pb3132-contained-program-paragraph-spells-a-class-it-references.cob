@@ -13,7 +13,7 @@
       *>   program's REPOSITORY, which applies to it by 12.3.4 GR1 and
       *>   lets it reference the class by 8.4.6.4) and then DECLARES
       *>   PB3132X as a paragraph-name: two types in PB3132IN's source
-      *>   element, refused COBOLNET2692 at the paragraph, exactly as the
+      *>   element, refused COBOL2692 at the paragraph, exactly as the
       *>   same shape is in the containing program itself. PB3132IN2
       *>   declares PB3132X as a paragraph-name and never references the
       *>   class: legal (8.4.6.1), and it must draw no diagnostic.

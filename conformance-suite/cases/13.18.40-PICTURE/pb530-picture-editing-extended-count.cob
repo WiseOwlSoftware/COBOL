@@ -9,7 +9,7 @@
       *> A THIRD FOR phrase exceeds that maximum, and nothing counted them: PIC 9L9F9G with three phrases
       *> bound clean and rendered MOVE -12 as "0(1)2]". The bound is what makes SR25's second sentence
       *> well-formed at all - that rule pairs the FIRST phrase with the leftmost symbol and the SECOND with
-      *> the rightmost and says nothing about a third. COBOLNET1985; 2023 only (the EDITING phrase is a
+      *> the rightmost and says nothing about a third. COBOL1985; 2023 only (the EDITING phrase is a
       *> COBOL-2023 introduction, Annex E.3.3 item 19).
       *>
       *> An extended symbol is the FOR form ALONE (SR12: "If literal-1 is specified, character-1 is a fixed

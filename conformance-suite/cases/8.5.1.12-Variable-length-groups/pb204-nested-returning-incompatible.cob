@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 14.9.4.3 SR25 -> 14.8.3.2, THE RETURNING HALF (kb/Work PB204; COBOLNET1736's witness). SR25 makes
+*> ISO 14.9.4.3 SR25 -> 14.8.3.2, THE RETURNING HALF (kb/Work PB204; COBOL1736's witness). SR25 makes
 *> "the rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items" apply to a
 *> Format-2 CALL, and 14.8.3.2 says: "If either the sending or the receiving operand is a variable length
 *> group, the sending operand and the receiving operand shall be compatible, as described in 8.5.1.12."

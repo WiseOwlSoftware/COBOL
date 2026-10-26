@@ -9,7 +9,7 @@
       *> that is not a property method" -> OK 13.18.2.3 2)): SR3 b) admits an ANY LENGTH RETURNING item of a
       *> METHOD, but a GET PROPERTY method is a property method, so its RETURNING item may not be described
       *> with ANY LENGTH.  PB1167 lifts the SR3 b) staging for ordinary methods and leaves this screen in
-      *> force.  COBOLNET1542.  kb/Work PB1167.
+      *> force.  COBOL1542.  kb/Work PB1167.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1167N2.
        ENVIRONMENT DIVISION.

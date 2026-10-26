@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO 15.97.2 / 15.97.4 r2: the LOCALE phrase of UPPER-CASE names a locale-name of the SPECIAL-NAMES LOCALE clause;
-      *> NOPE is none - COBOLNET1664 (kb/Work PB64 T5; the phrase was refused by name with COBOLNET1518 before T5).
+      *> NOPE is none - COBOL1664 (kb/Work PB64 T5; the phrase was refused by name with COBOL1518 before T5).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T5PUND.
        DATA DIVISION.

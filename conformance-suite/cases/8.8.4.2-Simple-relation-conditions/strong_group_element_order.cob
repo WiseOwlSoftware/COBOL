@@ -13,7 +13,7 @@
       *> alike), a character pair by 8.8.4.2.7/.9, a pointer pair for equality only (8.8.4.2.3 SR4, 8.8.4.2.16),
       *> and an OCCURS DEPENDING table over its current occurrences only (13.18.38.4 GR8). Before PB1469 the
       *> relation was a whole-group IMAGE comparison: F1/F3 printed GE/LE (a float image does not order
-      *> algebraically), every signed-leaf ordering was refused COBOLNET0899, and P1 = P2 aborted the run unit.
+      *> algebraically), every signed-leaf ordering was refused COBOL0899, and P1 = P2 aborted the run unit.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. STRONG-GROUP-ELEMENT-ORDER.
        DATA DIVISION.

@@ -11,8 +11,8 @@
       *> explicitly referenced, uniqueness shall be established through a sequence of qualifiers that precludes any
       *> ambiguity of reference."  The unqualified `MOVE TOT-N TO WS-SEEN` is such a reference and no qualifier
       *> separates the two (TOT-N OF WS-G reaches the data item only, TOT-N OF R-1 the counter only), so it is
-      *> refused - COBOLNET2145, as the same reference to two WORKING-STORAGE items of one spelling is refused
-      *> (COBOLNET1639).  It used to bind the counter silently, because the sum counter was asked BEFORE the
+      *> refused - COBOL2145, as the same reference to two WORKING-STORAGE items of one spelling is refused
+      *> (COBOL1639).  It used to bind the counter silently, because the sum counter was asked BEFORE the
       *> ordinary lookup and the data item was consulted only when the written qualifiers reached no counter.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3232N1.

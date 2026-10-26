@@ -16,7 +16,7 @@
       *>     the file description entry for file-name-4 describes fixed-length records, the file description entry for
       *>     file-name-1 shall not describe a record that is larger than the record described for file-name-4."
       *>     -> OK §14.9.24.3 12)
-      *> Each statement below breaks one arm and is refused (COBOLNET1757); the legal twin is in
+      *> Each statement below breaks one arm and is refused (COBOL1757); the legal twin is in
       *> 85/pb995_sort_merge_record_size_ranges:
       *>   1  SD fixed 5, one USING file of 5 and the other of 9          MERGE SR3, "file-name-2 or file-name-3": the
       *>      SECOND USING file is checked as well as the first

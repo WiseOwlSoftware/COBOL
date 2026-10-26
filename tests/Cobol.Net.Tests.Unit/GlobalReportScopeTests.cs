@@ -75,7 +75,7 @@ public sealed class GlobalReportScopeTests
     public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused(string stmt, string rule)
     {
         var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 85);
-        Assert.Single(d, x => x.Contains("COBOLNET2392") && x.Contains(rule));
+        Assert.Single(d, x => x.Contains("COBOL2392") && x.Contains(rule));
     }
 
     [Theory]
@@ -97,7 +97,7 @@ public sealed class GlobalReportScopeTests
     public void AContainedReportVerbOnANonGlobalReport_DoesNotResolve(string stmt)
     {
         var d = BindDiagnostics(Group(rdGlobal: false, fdGlobal: true, "", "", "           " + stmt), 85);
-        Assert.Contains(d, x => x.Contains("COBOLNET1757"));
+        Assert.Contains(d, x => x.Contains("COBOL1757"));
     }
 
     /// <summary>§13.18.27.4 GR1 — the sum counter TOT-N is a data-name subordinate to the global report, so a

@@ -37,7 +37,7 @@ internal enum ValueSubjectKind
 /// subject's kind — spelled twice, and a caller was free to spell a combination the standard does not have. It
 /// did: the three level-88 call sites in <c>BindCondition</c> each computed a size from the CONDITIONAL
 /// VARIABLE's picture and handed it to the screen, so `01 XV PIC X. 88 XC VALUE "cd".` was rejected
-/// (COBOLNET1740 / COBOLNET0898) where the standard makes it a legal, permanently-false condition
+/// (COBOL1740 / COBOL0898) where the standard makes it a legal, permanently-false condition
 /// (kb/Work PB598). A new subject kind now has to add a factory below and state its size rule with its citation;
 /// it cannot inherit one by accident.</para></summary>
 /// <param name="Kind">Which of §13.18.63.3's three subjects this is.</param>

@@ -11,7 +11,7 @@
       *> Format 1 into a class-index item takes identifier-2 "of class
       *> index" (14.9.39.3 SR2) and refuses arithmetic-expression-1 (SR3),
       *> so neither a PIC 9(4) item nor the literal 3 conforms -- both are
-      *> COBOLNET1688. (Before the fix an index data item, which carries
+      *> COBOL1688. (Before the fix an index data item, which carries
       *> category numeric, took the COMPUTE arm and both ran.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1113I.

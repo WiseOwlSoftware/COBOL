@@ -373,6 +373,12 @@ jobs:
       - name: Conflict markers — no tracked file carries an unresolved merge conflict (conflict_markers.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/conflict_markers.py --check
+      # Every diagnostic code is COBOL####, every number kept (kb/Work PB3575): the rename's own rules asked as a
+      # question, so a branch that merged main without converting itself is red here. An audit, not a Unit test, for the
+      # reason the conflict-marker check is one (kb/Work PB2878).
+      - name: Diagnostic prefix — no tracked file spells a code with the former prefix (rename_diagnostic_prefix.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/rename_diagnostic_prefix.py --check
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the

@@ -214,7 +214,7 @@ internal static class PictureComposition
         char grouping = GroupingSeparator(decimalPointIsComma);
         var syms = Tokenize(expanded);
         int n = syms.Count;
-        if (n == 0) return true;   // the empty string is already COBOLNET0808 at the caller
+        if (n == 0) return true;   // the empty string is already COBOL0808 at the caller
 
         bool Fail(DiagnosticDescriptor code, string why)
         {

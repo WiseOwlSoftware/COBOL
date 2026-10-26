@@ -7,7 +7,7 @@
       *> kb/Work PB244 - the receiving OCCURS DEPENDING count of a variable-length group MOVE
       *> (ISO 13.18.38.4 GR8 a) is a COBOL-2014 program: the DYNAMIC LENGTH clause that makes the
       *> group variable-length (ISO 8.5.1.12.1, 13.18.19) is a 2014 addition, so editions 85
-      *> and 2002 reject it with the edition-band diagnostic COBOLNET0900 BEFORE the MOVE's
+      *> and 2002 reject it with the edition-band diagnostic COBOL0900 BEFORE the MOVE's
       *> group rule (14.9.25.4 GR9) is ever in question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NRC.

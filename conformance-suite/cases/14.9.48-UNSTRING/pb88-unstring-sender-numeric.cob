@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.48.3 SR2: identifier-1 (the sender) "shall reference data items of category alphanumeric or
-      *> national" - a numeric item, usage DISPLAY or not, is neither. kb/Work PB88: COBOLNET1651 at bind (the
+      *> national" - a numeric item, usage DISPLAY or not, is neither. kb/Work PB88: COBOL1651 at bind (the
       *> program compiled and died at the UNSTRING before).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NUNSSND.

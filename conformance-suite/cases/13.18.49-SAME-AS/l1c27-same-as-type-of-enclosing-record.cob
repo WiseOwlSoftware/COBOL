@@ -21,7 +21,7 @@
       *> item to which this entry is subordinate" (B or T), and B's SAME
       *> AS references X. The only cycle runs through the TYPE clause.
       *> With X described as PIC X instead, the program compiles clean.
-      *> Expected diagnostic: COBOLNET1557, the SAME AS cycle code (the
+      *> Expected diagnostic: COBOL1557, the SAME AS cycle code (the
       *> catalog files it under SR3/SR4). The .err stops before the
       *> message's clause citation, which names SR3 for this SR4
       *> violation (a cosmetic mis-citation the adjudicator recorded).

@@ -22,7 +22,7 @@ public sealed record ContextSensitiveWordEntry(string Word, string Context);
 /// admits "a reserved word, a context-sensitive word, or an intrinsic function name" as the EXISTING word of a
 /// <c>&gt;&gt;COBOL-WORDS</c> directive, and SR4 bars all three as the NEW word. The category test used to answer
 /// "context-sensitive?" from the lexer vocabulary, which knows only the context words this compiler happens to
-/// TOKENIZE — so a legal <c>&gt;&gt;COBOL-WORDS EQUATE "HEX" WITH …</c> was rejected outright (COBOLNET1623), and
+/// TOKENIZE — so a legal <c>&gt;&gt;COBOL-WORDS EQUATE "HEX" WITH …</c> was rejected outright (COBOL1623), and
 /// with it every §15 phrase word, SET-statement locale category and ALPHABET coded-set name that arrives as a
 /// bare IDENTIFIER. §8.10's own NOTE points the other way: "Words can be added or deleted from this list for a
 /// specific compilation group by use of the COBOL-WORDS directive."</para>

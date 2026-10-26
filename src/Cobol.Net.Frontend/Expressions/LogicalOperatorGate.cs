@@ -17,7 +17,7 @@ namespace CobolNet.Frontend.Expressions;
 /// <para><b>Both lanes.</b> <c>VersionConformancePass</c> calls it per <c>xorOperator</c> node of the compilation
 /// unit; the conditional-compilation stage calls it per constant-conditional-expression FRAGMENT, which the
 /// compilation-unit walk never reaches — a >>IF operand is "a complex condition as specified in 8.8.4.9" (§7.3.8.2
-/// SR1 d)) of the targeted edition, so <c>&gt;&gt;IF A = 1 XOR B = 2</c> below 2023 is the same COBOLNET0900 its
+/// SR1 d)) of the targeted edition, so <c>&gt;&gt;IF A = 1 XOR B = 2</c> below 2023 is the same COBOL0900 its
 /// runtime twin draws (kb/Work PB1371). The <see cref="BooleanOperatorGate"/> precedent (kb/Work PB1370).</para>
 /// </summary>
 public static class LogicalOperatorGate

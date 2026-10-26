@@ -70,8 +70,8 @@ The driver ends its text block at every directive line, which is also the only p
 flushes, `Render` asks `CopyProcessor.OpenStatementAt` whether the text since a COPY or REPLACE keyword has reached its
 separator period (the §3.2a words, pseudo-text delimiters toggling, so a period inside pseudo-text ends nothing). The open
 statement's text is carried from its keyword across further directive lines, so a statement split by several is reported at
-each (COBOLNET2697, `DirectiveDiag.WithinStatement`). The directive then takes effect like any other (superset-continue),
-and a truncated COPY still draws its own COBOLNET2449 after it.
+each (COBOL2697, `DirectiveDiag.WithinStatement`). The directive then takes effect like any other (superset-continue),
+and a truncated COPY still draws its own COBOL2449 after it.
 
 A `>>SOURCE FORMAT` line never reaches `Render` (kb/Work PB1353): logical conversion DISCARDS it (§6.5 1)) and leaves a blank
 line, with its physical line recorded in the text's `ReferenceFormatMap.DirectiveLines`. `Render` therefore asks, of each
@@ -92,15 +92,15 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
 - **Locating COPY and REPLACE** — `FindStatementKeyword(text, pos, keyword, onGlued)` returns the next text-word
   `COPY` / `REPLACE`, so it cannot fire in a literal, a comment, a directive line or a longer word, and a REPLACE is
   found wherever it stands, not only first on a line (§7.2.4.3 SR1, kb/Work PB1358); a keyword glued behind
-  `.`/`,`/`;` forms no text-word and is reported (SR2: COBOLNET2451 for COPY, COBOLNET2449 for REPLACE).
+  `.`/`,`/`;` forms no text-word and is reported (SR2: COBOL2451 for COPY, COBOL2449 for REPLACE).
 - **Parsing the statements** — `ParseCopyStatement` reads the §7.2.3.2 general format in order
   (`{text-name-1 | literal-1} [{OF|IN} …] [SUPPRESS [PRINTING]] [REPLACING …] .`) through a `StatementCursor`, and
   the REPLACE statement uses the same cursor and the same `ParseReplacingOperands`. A statement ends at its
   SEPARATOR period (§7.2.3.4 GR6), never at a `.` inside pseudo-text or a literal; a word out of order is
-  COBOLNET2449, SR4/SR5 literal forms COBOLNET2450, a COPY within a COPY statement COBOLNET2451 (SR1). Each operand
+  COBOL2449, SR4/SR5 literal forms COBOL2450, a COPY within a COPY statement COBOL2451 (SR1). Each operand
   pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §7.2.3.3 / §7.2.4.3
-  content rules are word-for-word twins (COBOLNET2572) — and `ReadOperand` checks the §8.3.5 6) separation of each
-  `==` (COBOLNET2573) (kb/Work PB1353). A directive line CONSUMED before the operand is read leaves only a blank
+  content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §8.3.5 6) separation of each
+  `==` (COBOL2573) (kb/Work PB1353). A directive line CONSUMED before the operand is read leaves only a blank
   line, so the operand screen cannot see it; §3.2b's driver check does (§7.3.3 SR8 b), and names §7.2.3.3 SR10 /
   §7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
   introducing edition by constructs row `replacing-partial-word-2002` — ONE check, `OperandScreen.PartialWord`, asked
@@ -108,7 +108,7 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   that 1985's `COPY text-name [{OF | IN} library-name] [REPLACING …]` did not have are gated by ONE method,
   `CopyProcessor.GateCopyPhrase`: each literal written as text-name-1 / library-name-1 (`copy-literal-name-2002`,
   asked by `ReadCopyName`) and the SUPPRESS phrase (`copy-suppress-2002`, asked by `ParseCopyStatement`) —
-  COBOLNET0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.44).
+  COBOL0900 below 2002, an error under `--permissive` too (kb/Work PB1601; VCR row 7.44).
 - **The REPLACE states** — `ApplyReplaceStatements` parses format 1 `REPLACE [ALSO] …` and format 2
   `REPLACE [LAST] OFF` and drives `ReplaceStates` (§7.2.4.4 GR4–GR7): the active operands plus a LIFO stack of
   inactive ones; ALSO pushes and activates current-then-pushed operands, LAST OFF pops, a plain format 1 or OFF
@@ -120,7 +120,7 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   What a match PRODUCES is screened in the same pass by the statement's `ResultRule` (`ForbiddenIn`: §7.2.3.4 GR13 /
   §7.2.4.4 GR9 — no COPY statement, REPLACE statement (REPLACE only), SOURCE FORMAT directive or comment, the
   comment asked of the produced TEXT by `TextWordScanner.HoldsComment` since the scanner skips a comment; a blank
-  line cannot arise, §6.5 2) discarded it; COBOLNET2574), and a COPY with REPLACING met inside library text is COBOLNET1640 (GR12) (kb/Work PB1356).
+  line cannot arise, §6.5 2) discarded it; COBOL2574), and a COPY with REPLACING met inside library text is COBOL1640 (GR12) (kb/Work PB1356).
 - **Locating library text** — `FindCopybook` over `LibraryPlaces()` (the working directory, then each configured
   search path) and `LocateInLibrary` (as spelled, then — unless the FILE NAME holds a period —
   `.CPY .CBL .COB .cpy .cbl .cob`): the DOC-A.1-40

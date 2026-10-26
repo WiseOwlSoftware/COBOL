@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.10.3 SR2 - only an INTEGER constant-name may specify an OCCURS integer position
-*> (COBOLNET1547).
+*> (COBOL1547).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC06.
 DATA DIVISION.

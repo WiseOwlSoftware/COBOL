@@ -12,7 +12,7 @@
       *> reach it (its value is unchanged), and a WRITE of it sends the zero-length record.
       *>   record 1 "0123456789" : R2 = 0123456789, RP still addresses X
       *>   record 2 : the zero-length image fitted to the fixed record size - R2 is spaces
-      *> This used to be refused (COBOLNET1697, a REDEFINES rule the source never invoked, then COBOLNET0899).
+      *> This used to be refused (COBOL1697, a REDEFINES rule the source never invoked, then COBOL0899).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB981PTR.
        ENVIRONMENT DIVISION.

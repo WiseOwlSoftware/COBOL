@@ -12,8 +12,8 @@ namespace CobolNet.Tests.Conformance;
 /// overlap (GR15), and the dynamic-capacity computation (GR16) — over the WHOLE population §13.18.63.3 SR18 admits:
 /// the subject's own OCCURS entry, an entry SUBORDINATE to an OCCURS entry, and any number of dimensions.
 /// The geometry rules SR18 / SR20 / SR21 / SR22 / SR23 are each asserted here, in both directions (kb/Work PB505:
-/// one staged COBOLNET0899 used to answer for all of them at once, refusing the conforming shapes alongside the
-/// violations). The paired glued-multi-literal reject (COBOLNET1585) closes the Format-1 gluing defect.
+/// one staged COBOL0899 used to answer for all of them at once, refusing the conforming shapes alongside the
+/// violations). The paired glued-multi-literal reject (COBOL1585) closes the Format-1 gluing defect.
 /// Per §13.18.63.4 the initial value of occurrences OUTSIDE every FROM..TO range is UNDEFINED — never asserted here.
 /// </summary>
 public sealed class ValueFormat2Tests
@@ -97,7 +97,7 @@ public sealed class ValueFormat2Tests
     // ── The glued-multi-literal reject (the paired defect fix) ──
 
     /// <summary>A Format-1 data-item VALUE takes exactly ONE literal (§13.18.63.2); a bare list with no FROM was
-    /// silently GLUED into one corrupt value. Now rejected loud (COBOLNET1585).</summary>
+    /// silently GLUED into one corrupt value. Now rejected loud (COBOL1585).</summary>
     [Theory]
     [InlineData("01 W PIC 9(3) VALUE 1 2 3.")]
     [InlineData("01 W PIC XX VALUE \"A\" \"B\".")]
@@ -105,7 +105,7 @@ public sealed class ValueFormat2Tests
     {
         var (ok, diag) = EditionHarness.Compile(Prog(ws, "    DISPLAY \"X\"."), 2023);
         Assert.False(ok, "a bare multi-literal Format-1 VALUE must be rejected (ISO §13.18.63.2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1585");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1585");
     }
 
     /// <summary>A single-literal Format-1 VALUE still compiles clean (the reject did not over-fire).</summary>
@@ -118,24 +118,24 @@ public sealed class ValueFormat2Tests
 
     // ── Syntax rules ──
 
-    /// <summary>SR20 — a FROM subscript beyond the table maximum is rejected (COBOLNET1586).</summary>
+    /// <summary>SR20 — a FROM subscript beyond the table maximum is rejected (COBOL1586).</summary>
     [Fact]
     public void SubscriptOutOfRange_Rejected1586()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 T-GRP.\n   03 E PIC X OCCURS 3 VALUE \"A\" FROM (4).", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1586");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1586");
     }
 
-    /// <summary>SR21 — a TO subscript less than its FROM is rejected (COBOLNET1587).</summary>
+    /// <summary>SR21 — a TO subscript less than its FROM is rejected (COBOL1587).</summary>
     [Fact]
     public void ToLessThanFrom_Rejected1587()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 T-GRP.\n   03 E PIC X OCCURS 5 VALUES ARE \"A\" \"B\" FROM (4) TO (2).", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1587");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1587");
     }
 
     // ── The subscript TUPLE: §13.18.63.3 SR18/SR20/SR21/SR22/SR23 and the §13.18.63.4 GR12 odometer ──
@@ -146,7 +146,7 @@ public sealed class ValueFormat2Tests
     /// subscript is set to 1 and the subscript for the next most inclusive dimension of the table is incremented
     /// by 1." Six literals over a 2×3 table therefore fill (1 1)…(1 3) then (2 1)…(2 3) — 1 2 3 / 4 5 6.
     /// <para>This case USED to be the compiler's documented gap: the whole multi-dimension population exited
-    /// through one COBOLNET0899, and the test that stood here pinned that STAGE (kb/Work PB505, the
+    /// through one COBOL0899, and the test that stood here pinned that STAGE (kb/Work PB505, the
     /// [[green_test_can_hold_a_gap_open]] shape — four syntax rules looked covered from the test side because a
     /// green test asserted the refusal).</para></summary>
     [Fact]
@@ -186,8 +186,8 @@ public sealed class ValueFormat2Tests
     }
 
     /// <summary>SR18's violation half — no OCCURS on the entry and none above it — named as the user's bug
-    /// (COBOLNET1944), not as a compiler limitation. Edition-independent: SR18 carries no version proviso, so it
-    /// fires at all four (below 2002 the COBOLNET0900 introduction gate fires as well — both, not either).</summary>
+    /// (COBOL1944), not as a compiler limitation. Edition-independent: SR18 carries no version proviso, so it
+    /// fires at all four (below 2002 the COBOL0900 introduction gate fires as well — both, not either).</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -197,8 +197,8 @@ public sealed class ValueFormat2Tests
     {
         var (ok, diag) = EditionHarness.Compile(Prog("01 X PIC X(2) VALUE \"AB\" FROM (1).", "    DISPLAY \"X\"."), edition);
         Assert.False(ok, "a Format 2 VALUE on an entry with no OCCURS above it violates §13.18.63.3 SR18");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1944");
-        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1944");
+        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
 
     /// <summary>SR20 sentence 1 / SR21 sentence 1 — one subscript per OCCURS clause for the subject or
@@ -212,7 +212,7 @@ public sealed class ValueFormat2Tests
     {
         var (ok, diag) = EditionHarness.Compile(Prog(ws, "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1945");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1945");
     }
 
     /// <summary>SR21 sentence 3 over a TUPLE: "the table element associated with subscript-2 is the same
@@ -232,7 +232,7 @@ public sealed class ValueFormat2Tests
             Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC X OCCURS 3 VALUE \"A\" FROM (2 1) TO (1 1).",
                  "    DISPLAY \"X\"."), 2023);
         Assert.False(bad);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1587");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1587");
     }
 
     /// <summary>SR22's SUBORDINATE arm — "or in any entry subordinate to such an OCCURS clause". The same-entry
@@ -244,7 +244,7 @@ public sealed class ValueFormat2Tests
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 GG.\n   05 G OCCURS DYNAMIC CAPACITY IN C1.\n      10 X PIC X(2) VALUE \"AB\" FROM (1).", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1588");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1588");
     }
 
     /// <summary>SR23 — with a TO phrase over a dimension whose OCCURS DYNAMIC clause has no TO, the subscripts for
@@ -257,7 +257,7 @@ public sealed class ValueFormat2Tests
             Prog("01 GG.\n   05 G OCCURS 2.\n      10 T PIC X OCCURS DYNAMIC CAPACITY IN C1 VALUE \"A\" FROM (1 1) TO (2 3).",
                  "    DISPLAY \"X\"."), 2023);
         Assert.False(bad);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1946");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1946");
 
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(
             Prog("01 GG.\n   05 G OCCURS 2.\n      10 T PIC X OCCURS DYNAMIC CAPACITY IN C1 VALUE \"A\" FROM (1 1) TO (1 3).",
@@ -315,14 +315,14 @@ public sealed class ValueFormat2Tests
     // ── Edition gating ──
 
     /// <summary>The COBOL-2002 introduction gate (§13.18.63.2 Format 2): a table VALUE is rejected below 2002 with
-    /// COBOLNET0900 (VersionConformancePass ParseArm.VisitValueClause).</summary>
+    /// COBOL0900 (VersionConformancePass ParseArm.VisitValueClause).</summary>
     [Fact]
     public void BelowIntroduction_Rejected0900()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).", "    DISPLAY \"X\"."), 85);
         Assert.False(ok, "the Format 2 table VALUE must be rejected at COBOL-85 (introduced 2002)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
 
     // ── The ALL-FORMATS literal screen (kb/Work PB208) ──
@@ -333,7 +333,7 @@ public sealed class ValueFormat2Tests
         Prog($"01 T-GRP.\n   03 W {pic} OCCURS 2 VALUE {literal} FROM (1) TO (2).", "    DISPLAY \"X\".");
 
     private static IReadOnlyList<string> Codes(IEnumerable<string> diagnostics) =>
-        [.. diagnostics.SelectMany(d => Regex.Matches(d, @"COBOLNET\d{4}").Select(m => m.Value)).Distinct().Order()];
+        [.. diagnostics.SelectMany(d => Regex.Matches(d, @"COBOL\d{4}").Select(m => m.Value)).Distinct().Order()];
 
     /// <summary>⛔ THE DRIFT TEST FOR "ONE SCREEN, EVERY FORMAT" (kb/Work PB208). §13.18.63.3 SR2 is an ALL FORMATS
     /// rule — "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
@@ -341,7 +341,7 @@ public sealed class ValueFormat2Tests
     /// clause" — and SR16 carries SRs 10–15 into format 2 as well, so a literal FORMAT 1 rejects, FORMAT 2 shall
     /// reject, with the same verdict. The two lanes used to disagree completely: the format-1 literal went through
     /// DataBinder's screen and BuildTableValueSpecs' per-occurrence literals went straight to the emitter, so
-    /// <c>PIC 9(4) COMP VALUE "0012"</c> was COBOLNET1657 while
+    /// <c>PIC 9(4) COMP VALUE "0012"</c> was COBOL1657 while
     /// <c>PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2)</c> compiled CLEAN at strict 2023 and seeded zeros.
     /// <para>This compares the two lanes' VERDICTS rather than asserting one code, which is the point: a rule added
     /// to the funnel (<c>DataBinder.ScreenValueLiteral</c>) reaches both formats by construction, and a future rule
@@ -395,7 +395,7 @@ public sealed class ValueFormat2Tests
     }
 
     /// <summary>SR2 is EDITION-INDEPENDENT, so the format-2 screen fires at all four (§13.18.63.3 SR2 carries no
-    /// version proviso). At COBOL-85 the COBOLNET0900 introduction gate fires as well — both, not either.</summary>
+    /// version proviso). At COBOL-85 the COBOL0900 introduction gate fires as well — both, not either.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -405,8 +405,8 @@ public sealed class ValueFormat2Tests
     {
         var (ok, diag) = EditionHarness.Compile(Format2("PIC 9(4) COMP", "\"0012\""), edition);
         Assert.False(ok, "an alphanumeric literal on a numeric item is a §13.18.63.3 SR2 violation at every edition");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1657");
-        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1657");
+        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
 
     /// <summary>⛔ THE FORMAT 2 VALUE ON THE CHARACTER-IMAGE STORAGE LANE (kb/Work PB208 half 2), in the fast gate;

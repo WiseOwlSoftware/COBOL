@@ -17,7 +17,7 @@ namespace CobolNet.Tests.Unit;
 /// <c>KnownIgnoredDirectives</c> HashSet of directive NAMES with no edition column, so eleven ISO §7.3
 /// directives — <c>&gt;&gt;PUSH</c>, <c>&gt;&gt;POP</c> and <c>&gt;&gt;DISPLAY</c> among them — compiled clean at
 /// <c>--std 85</c>, an edition that has no compiler directives at all, while their siblings from the same
-/// Annex E.2 item 5 list drew COBOLNET0900. A name set cannot be wrong about an edition it does not record, and
+/// Annex E.2 item 5 list drew COBOL0900. A name set cannot be wrong about an edition it does not record, and
 /// nothing could have failed. Now the roster IS the <c>directiveWords</c> column of
 /// <c>tests/version-matrix/constructs.json</c>, and <see cref="Roster_Matches_TheSpecSection"/> re-derives it
 /// from §7.3 itself, so a directive added to the standard's clause list without a row is a red test rather than
@@ -115,7 +115,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         Assert.All(words, w =>
         {
             var row = CompilerDirectiveCatalog.Find(w)!;
-            Assert.Contains(row.DiagnosticCode, new[] { "COBOLNET0900", "COBOLNET0902" });
+            Assert.Contains(row.DiagnosticCode, new[] { "COBOL0900", "COBOL0902" });
             Assert.InRange(row.IntroducedIn, 2002, 2023);   // COBOL-85 has no compiler directives at all
         });
         Assert.True(CompilerDirectiveCatalog.IsDirective("push"));   // case-insensitive (§8.3.1: words fold)
@@ -153,7 +153,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
             ConditionalCompilationProcessor.Process(
                 $">>{word} ALL\nIDENTIFICATION DIVISION.\n", CobolNet.Frontend.Frontend.LeftDirectives,
                 bag, "t.cob", dialectLevel: 85);
-            if (!bag.Diagnostics.Any(d => d.Code == "COBOLNET0900")) silent.Add(word);
+            if (!bag.Diagnostics.Any(d => d.Code == "COBOL0900")) silent.Add(word);
         }
 
         // >>SOURCE FORMAT is consumed one stage earlier, by ReferenceFormatProcessor, so the driver never sees
@@ -166,19 +166,19 @@ public sealed class CompilerDirectiveCatalogDriftTests
 
     /// <summary>The one directive whose gate cannot live with its siblings: <c>&gt;&gt;SOURCE FORMAT</c> is
     /// consumed by the reference-format normalizer before the conditional-compilation driver runs, so its gate
-    /// emits there — same row, same COBOLNET0900, one stage earlier.</summary>
+    /// emits there — same row, same COBOL0900, one stage earlier.</summary>
     [Fact]
     public void SourceFormatDirective_IsRejectedAt85()
     {
         var bag = new DiagnosticBag();
         ReferenceFormatProcessor.NormalizeToFreeForm(
             ">>SOURCE FORMAT IS FREE\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(85, false, bag), "t.cob");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET0900");
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL0900");
 
         var ok = new DiagnosticBag();
         ReferenceFormatProcessor.NormalizeToFreeForm(
             ">>SOURCE FORMAT IS FREE\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2002, false, ok), "t.cob");
-        Assert.DoesNotContain(ok.Diagnostics, d => d.Code == "COBOLNET0900");
+        Assert.DoesNotContain(ok.Diagnostics, d => d.Code == "COBOL0900");
     }
 
     // ── The OPERAND column (kb/Work PB794) ───────────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
 
     /// <summary>
     /// THE witness, derived from the catalog rather than listed: for every directive whose operand the row
-    /// declares as a closed word set, a malformed operand DRIVEN THROUGH THE REAL STAGE draws COBOLNET1911.
+    /// declares as a closed word set, a malformed operand DRIVEN THROUGH THE REAL STAGE draws COBOL1911.
     /// The malformed spelling is derived too — a word the set does not admit, or a literal where the format
     /// writes a name, or nothing where the format requires an operand — so the next directive gets its witness
     /// from its row, with no test edit.
@@ -238,7 +238,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
             string? malformed = MalformedOperandOf(row.DirectiveOperand!);
             if (malformed is null) { exempt.Add(row.Id); continue; }
             if (!Diagnose(row.DirectiveWords[0], malformed, row.IntroducedIn)
-                    .Any(d => d.Code == "COBOLNET1911"))
+                    .Any(d => d.Code == "COBOL1911"))
                 silent.Add($"{row.DirectiveWords[0]} {malformed}".Trim());
         }
 
@@ -265,7 +265,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     /// <summary>ISO §7.2.1 (kb/Work PB1363): "compiler directives" shall be "syntactically correct in the initial source
     /// text and library text", and the false path of an IF directive is part of it — so the operand column is a
     /// property of the directive line, not of the branch the line is in. Derived from the same rows as the test above:
-    /// each malformed operand, written inside an OMITTED branch, still draws COBOLNET1911, and each conforming one
+    /// each malformed operand, written inside an OMITTED branch, still draws COBOL1911, and each conforming one
     /// there still draws nothing.</summary>
     [Fact]
     public void EveryClosedOperandDirective_IsCheckedInAnOmittedBranchToo()
@@ -278,7 +278,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
             var s = row.DirectiveOperand!;
             string word = row.DirectiveWords[0];
             if (MalformedOperandOf(s) is { } malformed
-                && !Diagnose(word, malformed, row.IntroducedIn, omittedBranch: true).Any(d => d.Code == "COBOLNET1911"))
+                && !Diagnose(word, malformed, row.IntroducedIn, omittedBranch: true).Any(d => d.Code == "COBOL1911"))
                 silent.Add($"{word} {malformed}".Trim());
             string conforming = s.Form switch
             {
@@ -288,7 +288,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
                 _ => "",
             };
             if (s.Form != DirectiveOperandForm.Stage
-                && Diagnose(word, conforming, row.IntroducedIn, omittedBranch: true).Any(d => d.Code == "COBOLNET1911"))
+                && Diagnose(word, conforming, row.IntroducedIn, omittedBranch: true).Any(d => d.Code == "COBOL1911"))
                 rejected.Add($"{word} {conforming}".Trim());
         }
 
@@ -304,9 +304,9 @@ public sealed class CompilerDirectiveCatalogDriftTests
     /// the owner, until both exist.</summary>
     private static readonly Dictionary<string, (string Code, string Conforming)> StageOwners = new()
     {
-        [nameof(TurnDirectiveProcessor)] = ("COBOLNET0718", "EC-ALL CHECKING ON"),
-        [nameof(FlagDirectiveProcessor)] = ("COBOLNET1622", "ALL ON"),
-        [nameof(CobolWordsDirectiveProcessor)] = ("COBOLNET1623", "RESERVE \"ZQXWORD\""),
+        [nameof(TurnDirectiveProcessor)] = ("COBOL0718", "EC-ALL CHECKING ON"),
+        [nameof(FlagDirectiveProcessor)] = ("COBOL1622", "ALL ON"),
+        [nameof(CobolWordsDirectiveProcessor)] = ("COBOL1623", "RESERVE \"ZQXWORD\""),
     };
 
     /// <summary>ISO §7.2.1 (kb/Work PB2003): every directive row whose operand a DOWNSTREAM stage parses is owned by the
@@ -374,13 +374,13 @@ public sealed class CompilerDirectiveCatalogDriftTests
                 _ => "",
             };
             foreach (var d in Diagnose(row.DirectiveWords[0], operand, row.IntroducedIn))
-                if (d.Code == "COBOLNET1911")
+                if (d.Code == "COBOL1911")
                     rejected.Add($"{row.DirectiveWords[0]} {operand}".Trim() + $" → {d.Message}");
 
             // And the omissible half, from the same column: where the printed format leaves an alternative
             // un-underlined (§5.2.3), writing nothing selects it and shall not be diagnosed.
             if (s is { Form: DirectiveOperandForm.Words, ChoiceOmissible: true }
-                && Diagnose(row.DirectiveWords[0], "", row.IntroducedIn).Any(d => d.Code == "COBOLNET1911"))
+                && Diagnose(row.DirectiveWords[0], "", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
                 rejected.Add($">>{row.DirectiveWords[0]} with the omitted phrase implied");
         }
 
@@ -390,7 +390,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
     /// <summary>kb/Work PB806 — a row is a directive FAMILY, and a word of it that writes no operand
     /// (<see cref="DirectiveOperandSyntax.NoOperandWords"/>) is checked centrally whatever the row's Form says about
     /// its other words. Derived from the rows, so the next multi-word directive that declares an operand-less word is
-    /// witnessed with no test edit: the word is a word OF ITS ROW, an operand after it draws COBOLNET1911 through the
+    /// witnessed with no test edit: the word is a word OF ITS ROW, an operand after it draws COBOL1911 through the
     /// real stage, and its complement (the bare word, and the word with an inline comment) does not.</summary>
     [Fact]
     public void EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord()
@@ -403,10 +403,10 @@ public sealed class CompilerDirectiveCatalogDriftTests
                 checkedWords++;
                 if (!row.DirectiveWords.Contains(word, StringComparer.OrdinalIgnoreCase))
                     bad.Add($"{row.Id}: noOperandWords names '{word}', which is not one of the row's directive words");
-                if (!Diagnose(word, "ZZJUNK", row.IntroducedIn).Any(d => d.Code == "COBOLNET1911"))
+                if (!Diagnose(word, "ZZJUNK", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
                     bad.Add($">>{word} ZZJUNK is accepted in silence (ISO §7.3.3 SR3/SR4)");
-                if (Diagnose(word, "", row.IntroducedIn).Any(d => d.Code == "COBOLNET1911")
-                    || Diagnose(word, "*> why", row.IntroducedIn).Any(d => d.Code == "COBOLNET1911"))
+                if (Diagnose(word, "", row.IntroducedIn).Any(d => d.Code == "COBOL1911")
+                    || Diagnose(word, "*> why", row.IntroducedIn).Any(d => d.Code == "COBOL1911"))
                     bad.Add($">>{word} bare, or with an inline comment, is rejected — §7.3.3 SR3/SR4 allow both");
             }
 
@@ -426,7 +426,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         {
             string word = line.Split(' ')[0];
             var diags = Diagnose(word, line[(word.Length + 1)..] + "   *> why", 2023);
-            Assert.DoesNotContain(diags, d => d.Code == "COBOLNET1911");
+            Assert.DoesNotContain(diags, d => d.Code == "COBOL1911");
         }
 
         // The reference-format stage is the one that consumes its own line, so it is checked through its own
@@ -434,7 +434,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
         var bag = new DiagnosticBag();
         string free = ReferenceFormatProcessor.NormalizeToFreeForm(
             ">>SOURCE FORMAT IS FREE *> switch\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob");
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET1911");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL1911");
         Assert.DoesNotContain(">>SOURCE", free);   // consumed, so the parser never sees it
 
         // …and the quote-aware half: the *> inside a literal is data (§8.3.3.1), not a comment.
@@ -458,7 +458,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
             var bag = new DiagnosticBag();
             string outp = ReferenceFormatProcessor.NormalizeToFreeForm(
                 $">>SOURCE FORMAT {operand}\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob");
-            Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET1911");
+            Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL1911");
             Assert.DoesNotContain(">>SOURCE", outp);
         }
     }
@@ -496,6 +496,6 @@ public sealed class CompilerDirectiveCatalogDriftTests
             ">>IFF X\nIDENTIFICATION DIVISION.\n", CobolNet.Frontend.Frontend.LeftDirectives, bag, "t.cob",
             dialectLevel: 2023);
         Assert.Contains(">>IFF", outp);
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET0900");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL0900");
     }
 }

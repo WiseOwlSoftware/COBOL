@@ -15,7 +15,7 @@
       *> DOC-A.1-99), so RAISE EXCEPTION EC-IMP-WIBBLE names nothing
       *> §14.6.13.1 lists: §14.9.29.3 SR1 "Exception-name-1 shall be a
       *> level-3 exception-name" is unsatisfiable, and the program is
-      *> refused with COBOLNET0711. (It used to compile and terminate
+      *> refused with COBOL0711. (It used to compile and terminate
       *> the run unit with 'EC-IMP-WIBBLE (fatal)'.) The complement -
       *> the level-2 name EC-IMP stays valid - is golden
       *> 2002/l1_dns_a1_99_ec_imp_level2_valid.

@@ -74,7 +74,7 @@ public sealed class WideNumericTests
     {
         var (ok, diags) = EditionHarness.Compile(Program("01 W PIC 9(19) VALUE 1.", "DISPLAY W."), 85);
         Assert.False(ok, "PIC 9(19) must be REJECTED at --std 85 (the 18-digit cap)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0802");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0802");
         EditionHarness.AssertHasDiagnostic(diags, "2002");
     }
 
@@ -83,7 +83,7 @@ public sealed class WideNumericTests
     {
         var (ok, diags) = EditionHarness.Compile(Program("01 W PIC 9(18).", "MOVE 1234567890123456789 TO W.\n    DISPLAY W."), 85);
         Assert.False(ok, "a 19-digit literal must be REJECTED at --std 85");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0802");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0802");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class WideNumericTests
         {
             var (ok, diags) = EditionHarness.Compile(Program("01 W PIC 9(32) VALUE 1.", "DISPLAY W."), edition);
             Assert.False(ok, $"PIC 9(32) must be REJECTED at --std {edition} (the ISO 31-digit cap)");
-            EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0801");
+            EditionHarness.AssertHasDiagnostic(diags, "COBOL0801");
         }
     }
 }

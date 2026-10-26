@@ -10,7 +10,7 @@
       *> arithmetic expressions. Unless specified otherwise in rules, transfer of data from an intermediate form
       *> into a resultant-identifier shall be according to the specifications in 14.6.8" — and its NOTE: "The
       *> ROUNDED phrase applies only to this transfer of data". The standard-binary half is declined (Annex A.3
-      *> item 2, COBOLNET0806); this program runs the standard-decimal half.
+      *> item 2, COBOL0806); this program runs the standard-decimal half.
       *> EXPECTED VALUES, from the rule. Under STANDARD-DECIMAL the intermediate is a 34-digit decimal rounded
       *> by the implied INTERMEDIATE ROUNDING mode (§11.9.11.2 GR3 a: "If the INTERMEDIATE ROUNDING clause is
       *> not specified, the NEAREST-AWAY-FROM-ZERO phrase is implied"): 1 / 3 is

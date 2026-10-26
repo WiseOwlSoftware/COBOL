@@ -8,7 +8,7 @@
       *> literal "of the class and category of constant-name-1", and
       *> 8.3.3.6.3 SR2 requires the literal-1 of ALL literal-1 to be "an
       *> alphanumeric, boolean, or national literal". K9 stands for the
-      *> numeric literal 7, so ALL K9 is refused by SR2: COBOLNET2491.
+      *> numeric literal 7, so ALL K9 is refused by SR2: COBOL2491.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1627NUM.
        DATA DIVISION.

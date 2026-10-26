@@ -13,7 +13,7 @@
 *> description entry describing an alphanumeric group item of the maximum size
 *> established by the RECORD clause". The second READ below omits INTO. This is the
 *> SEQUENTIAL arm of the READ binder; pb694-read-no-into-relative is the relative arm.
-*> The first READ, with INTO, is legal. kb/Work PB694 -> COBOLNET3983.
+*> The first READ, with INTO, is legal. kb/Work PB694 -> COBOL3983.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB694N1.
        ENVIRONMENT DIVISION.

@@ -11,7 +11,7 @@
       *> splitting the sequential one into its record- and line-delimited types (the { LINE | RECORD }
       *> inner choice of the 12.4.5.10.2 general format).  Below 2023 the ORGANIZATION clause therefore has
       *> only SEQUENTIAL / RELATIVE / INDEXED, and the version-conformance pass rejects the LINE phrase with
-      *> COBOLNET0900 (registry row file-organization-line-sequential-2023).  kb/Work PB688.
+      *> COBOL0900 (registry row file-organization-line-sequential-2023).  kb/Work PB688.
       *> This is the FILE-CONTROL site - the ISO general format's own position.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB688N1.

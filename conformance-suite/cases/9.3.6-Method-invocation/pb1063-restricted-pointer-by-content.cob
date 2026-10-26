@@ -11,7 +11,7 @@
       *> sending operand. DP is a data-pointer restricted to REC-T
       *> (13.18.60.4 GR23) and LP is unrestricted; 14.9.39.3 SR19 refuses
       *> storing a restricted data-pointer into a receiver not restricted
-      *> to the same type, so the INVOKE BY CONTENT is COBOLNET0828. (The
+      *> to the same type, so the INVOKE BY CONTENT is COBOL0828. (The
       *> BY REFERENCE twin was already refused by 14.8.2.3.2; before the
       *> fix this BY CONTENT form compiled and printed IN-M.)
        IDENTIFICATION DIVISION.

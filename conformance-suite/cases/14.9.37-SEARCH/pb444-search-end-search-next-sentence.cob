@@ -7,7 +7,7 @@
 *> ISO 1989:2023 §14.9.37.3 SR4 (ALL FORMATS): "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase
 *> shall not be specified." Format 1 arm. The pair used to compile and be given a MEANING - NEXT SENTENCE jumped
 *> past END-SEARCH to the separator period - with no diagnostic below 2023 and only the unrelated archaic-feature
-*> warning at 2023. Every edition refuses: the rule is unchanged since 1985. COBOLNET2409 (kb/Work PB444).
+*> warning at 2023. Every edition refuses: the rule is unchanged since 1985. COBOL2409 (kb/Work PB444).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB444ESNS1.
        DATA DIVISION.

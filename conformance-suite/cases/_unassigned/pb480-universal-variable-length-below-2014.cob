@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB480 - the NEGATIVE twin of conformance-suite/cases/14.9.23-INVOKE/pb480_universal_variable_length. A
       *> dynamic-capacity table (OCCURS DYNAMIC, ISO 13.18.38 Format 4 / 8.5.1.9) is a COBOL-2014 introduction, so
-      *> the variable-length group that crosses the universal INVOKE is rejected below 2014 (COBOLNET0900).
+      *> the variable-length group that crosses the universal INVOKE is rejected below 2014 (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB480VNG.
        DATA DIVISION.

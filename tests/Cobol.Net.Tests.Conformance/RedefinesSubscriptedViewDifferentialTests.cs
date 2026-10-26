@@ -89,7 +89,7 @@ public sealed class RedefinesSubscriptedViewDifferentialTests
     /// write it in the THEN phrase, so the rule under test is §14.9.19.4 GR4 twice: the first executes it (the
     /// statement that trails the IF in the SAME sentence is skipped and the FOLLOWING sentence runs — the IF is
     /// closed by END-IF, because NEXT SENTENCE followed by a statement inside one THEN phrase matches neither
-    /// §14.9.19.2 format and is refused, COBOLNET2269, kb/Work PB446; END-IF over a Format-2 body is the
+    /// §14.9.19.2 format and is refused, COBOL2269, kb/Work PB446; END-IF over a Format-2 body is the
     /// DESIGN-frontend-grammar §3.11 determination), and in the second the condition is FALSE, so GR5 ignores the THEN phrase and the ELSE arm
     /// runs. The IF branches are both exercised; the NEXT SENTENCE PLACEMENT is one arm, and the other —
     /// NEXT SENTENCE in an ELSE phrase, §14.9.19.4 GR6 — is measured by the spec-derived golden

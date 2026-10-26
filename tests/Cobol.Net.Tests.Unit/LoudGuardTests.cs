@@ -92,7 +92,7 @@ public sealed class LoudGuardTests
     // ── Analyze: the §13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
     /// <summary>The floating-point numeric-edited PICTURE symbol E (ISO §13.18.40.4 GR13 b) — LIVE since data-model
-    /// design D21 (kb/Work PB66). Its introduction gate (COBOLNET0900 below 2002) is the post-bind
+    /// design D21 (kb/Work PB66). Its introduction gate (COBOL0900 below 2002) is the post-bind
     /// <c>VersionConformancePass</c> GateData enumerator's (<c>PictureConstructId</c> keys on <c>IsFloatEdited</c>),
     /// so <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it classifies the form; the 0900 firing is verified
     /// in <c>RepositoryPrototypeEditionTests</c> + the version matrix.</summary>
@@ -107,7 +107,7 @@ public sealed class LoudGuardTests
     }
 
     /// <summary>NATIONAL-EDITED (ISO §13.18.40.4 GR10 / §8.5.2.11) — LIVE since kb/Work PB492. Like the
-    /// external-float form above, its introduction gate (COBOLNET0900 below 2002) is the post-bind
+    /// external-float form above, its introduction gate (COBOL0900 below 2002) is the post-bind
     /// <c>VersionConformancePass</c> GateData enumerator's, so <c>Analyze</c> at 85 emits NO picture-layer
     /// diagnostic and CLASSIFIES: category national (§8.5.2.1 Table 2 — class national), carrying the edit mask
     /// that Table 7's "Simple insertion" renders through. It used to be a loud staged skeleton whose category was
@@ -125,7 +125,7 @@ public sealed class LoudGuardTests
     }
 
     /// <summary>A floating-point numeric-edited picture whose significand carries a symbol Table 10 (§13.18.40.6, row
-    /// E) does not admit before the E — V, Z, *, P, S, CR, DB, the currency symbol — is COBOLNET1658 (kb/Work PB66);
+    /// E) does not admit before the E — V, Z, *, P, S, CR, DB, the currency symbol — is COBOL1658 (kb/Work PB66);
     /// the legal shape classifies numeric-edited silently at 2002+.</summary>
     [Theory]
     [InlineData("9V99E+99")]
@@ -137,7 +137,7 @@ public sealed class LoudGuardTests
         var ed = Ed(2023);
         PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
         Assert.True(ed.HasErrors, $"PIC {picture} must be rejected (§13.18.40.4 GR13 b / §13.18.40.6 Table 10)");
-        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET1658"));
+        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL1658"));
     }
 
     [Theory]
@@ -194,7 +194,7 @@ public sealed class LoudGuardTests
     /// phrase may be specified in a USAGE clause associated with an elementary data item whose explicit or
     /// implicit picture character-string contains the symbol 'N'" — and SR5 — "An elementary data item with
     /// usage bit shall be specified only with a picture character-string that describes a boolean data item" —
-    /// are declaration errors, COBOLNET0881.
+    /// are declaration errors, COBOL0881.
     /// <para>⛔ The 0899 half of this fact is GONE (kb/Work PB646), and it was a GREEN TEST HOLDING A GAP OPEN:
     /// it pinned the "national-form numeric"/"national-form boolean" staging as though it were a decision, so
     /// the screen's refusal of legal source read as covered. Its replacement is the sibling below — the same
@@ -204,18 +204,18 @@ public sealed class LoudGuardTests
     {
         var ed = Ed(2002);
         PictureAnalyzer.Analyze("N(4)", Usage.Display, ed, "data item 'T'", explicitUsage: true);   // SR20
-        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0881"));
+        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL0881"));
 
         var ed2 = Ed(2002);
         PictureAnalyzer.Analyze("X(4)", Usage.Bit, ed2, "data item 'T'", explicitUsage: true);      // SR5
-        Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOLNET0881"));
+        Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOL0881"));
     }
 
     /// <summary>The screen's ADMISSIONS: ISO §13.18.60.3 SR12 — "An elementary data item with usage national
     /// shall be described with a picture character-string that describes a boolean, national, national-edited,
     /// numeric, or numeric-edited data item" — names FIVE picture shapes, and the screen must pass every one of
     /// them with the usage INTACT. Three of them (numeric, numeric-edited, boolean) were refused by name at
-    /// COBOLNET0899 until kb/Work PB646; the category each carries is its ordinary one (§13.18.40.4 GR1 makes
+    /// COBOL0899 until kb/Work PB646; the category each carries is its ordinary one (§13.18.40.4 GR1 makes
     /// the usage a statement about the item's CHARACTER POSITIONS, not about its category), which is precisely
     /// why the data model needed no national-only category: design D-N7.</summary>
     [Theory]
@@ -230,12 +230,12 @@ public sealed class LoudGuardTests
         var pic = PictureAnalyzer.Analyze(picture, Usage.National, ed, "data item 'T'", explicitUsage: true);
         Assert.False(ed.HasErrors, $"PIC {picture} USAGE NATIONAL is admitted by §13.18.60.3 SR12: "
             + string.Join("; ", ed.Diagnostics));
-        Assert.DoesNotContain(ed.Diagnostics, d => d.Contains("COBOLNET0899"));
+        Assert.DoesNotContain(ed.Diagnostics, d => d.Contains("COBOL0899"));
         Assert.Equal(category, pic.Category);
         Assert.Equal(Usage.National, pic.Usage);
     }
 
-    /// <summary>A symbol outside the §13.18.40.3 SR2 set is an invalid PICTURE (COBOLNET0808) at every
+    /// <summary>A symbol outside the §13.18.40.3 SR2 set is an invalid PICTURE (COBOL0808) at every
     /// edition — previously it fell through to "pure numeric, zero digits".</summary>
     [Theory]
     [InlineData("9Q9", 'Q')]
@@ -248,7 +248,7 @@ public sealed class LoudGuardTests
             var ed = Ed(level);
             PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
             Assert.True(ed.HasErrors, $"PIC {picture} must be rejected at COBOL-{level} (§13.18.40.3 SR2)");
-            Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0808") && d.Contains($"'{bad}'"));
+            Assert.Contains(ed.Diagnostics, d => d.Contains("COBOL0808") && d.Contains($"'{bad}'"));
         }
     }
 

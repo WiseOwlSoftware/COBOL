@@ -19,12 +19,12 @@
       *> not only the two through PTR-B: the relation once compared two
       *> bit groups by their subordinate split while comparing a bit
       *> group to PIC 1(8) by the as-if picture, so PA = PB, PB = PC and
-      *> PA /= PC, and SET PTR-C TO PTR-A was refused (COBOLNET1959).
+      *> PA /= PC, and SET PTR-C TO PTR-A was refused (COBOL1959).
       *> The CALL through Q3101 passes PTR-A (restricted to PA) for a
       *> formal restricted to PC: 14.8.2.3.2 rule 4 "both shall be
       *> restricted and of the same type" asks the pointers' signature
       *> CLASS, which the founder-based partition split by presentation
-      *> order (COBOLNET1688). QD3101 sees the NULL PTR-A holds.
+      *> order (COBOL1688). QD3101 sees the NULL PTR-A holds.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PA IS PROTOTYPE.
        DATA DIVISION.

@@ -47,7 +47,7 @@ public sealed class RequiredFormatPhraseDriftTests
     /// re-derives is a dead lookup (feedback_a_dead_lookup_is_also_unverified).</summary>
     private static readonly Dictionary<string, string> Adjudicated = new(StringComparer.Ordinal)
     {
-        ["14.9.34.2|AT"] = "RETURN's AT END — bind-time COBOLNET1850 via "
+        ["14.9.34.2|AT"] = "RETURN's AT END — bind-time COBOL1850 via "
             + "StatementValidation.ScreenOmittedRequiredPhrase from SortBinder.BindReturn (kb/Work PB350); the "
             + "grammar keeps `returnAtEndPhrase?` on purpose so the diagnostic can name the rule",
         ["14.9.37.2|WHEN"] = "SEARCH ALL's WHEN — already required BY THE GRAMMAR: "

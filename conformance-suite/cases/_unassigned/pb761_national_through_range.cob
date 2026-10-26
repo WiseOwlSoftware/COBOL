@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB761 — a condition-name THROUGH range over a NATIONAL
       *> conditional variable is CONFORMING SOURCE and is implemented.
-      *> It used to be refused by a COBOLNET0899 "recognized but not yet
+      *> It used to be refused by a COBOL0899 "recognized but not yet
       *> implemented (Phase 4a residue)" stage citing 13.18.63 SR31 —
       *> but SR31 reads "Alphabet-name-1 may be specified only when the
       *> literals specified in the THROUGH phrase are of class
@@ -38,7 +38,7 @@
       *>      Under REV-AN the same two literals are INVERTED (A is 2,
       *>      C is 0), so the range is empty and the answer would be N.
       *>      Before PB761 this entry did not run at all: it was
-      *>      REFUSED at COBOLNET0899.
+      *>      REFUSED at COBOL0899.
       *>  V02 THE SECOND DISCRIMINATOR, in the other direction.  E3 is
       *>      N"AAA" and its range is N"AAA" THRU N"BBB": under REV-NAT
       *>      ascending with E3 at the LOWER bound -> Y; under REV-AN
@@ -57,7 +57,7 @@
       *>      under REV-AN (C < B < A) and excludes C -> N.  Under
       *>      REV-NAT ("ABC") the same pair is inverted, which
       *>      13.18.63.3 SR26 b) refuses at compile time for a known
-      *>      sequence (COBOLNET2961, kb/Work PB552), so a change that
+      *>      sequence (COBOL2961, kb/Work PB552), so a change that
       *>      moved the alphanumeric side to REV-NAT would not compile.
       *>      (The range was "AAA" THRU "CCC", inverted under REV-AN,
       *>      before SR26 was enforced.)

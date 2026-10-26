@@ -18,7 +18,7 @@
       *> DECIMAL-POINT IS COMMA, where '.' is an insertion character
       *> and 1.50 would read as 150,00. The declarations are therefore
       *> not equivalent, A and L are not of the same type, and the CALL
-      *> is rejected (COBOLNET1688, call-argument-conformance). An
+      *> is rejected (COBOL1688, call-argument-conformance). An
       *> implementation comparing the picture TEXT alone accepts it.
       *> kb/Work PB989 - ISO 12.3.8.4 GR10 a): the details come from a program definition specified PREVIOUSLY in the
       *> compilation group; a definition that follows the REPOSITORY entry is not one. The callee below is therefore

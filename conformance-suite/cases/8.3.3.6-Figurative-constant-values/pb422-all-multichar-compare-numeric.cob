@@ -11,7 +11,7 @@
 *> kb/Work PB422: the COMPARISON arm of the association was screened at no edition (the MOVE arm rode SR5's
 *> 2023 row); a numeric-EDITED item is asked the same. Edge DERIVED (VCR Table 7 row 7.13): an obsolete
 *> ANSI-85 element deleted by ISO 2002 - the 85 positive twin is 85/pb422_all_multichar_numeric_85.
-*> COBOLNET0902, from the one relation checkpoint (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN).
+*> COBOL0902, from the one relation checkpoint (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB422NCP.
        DATA DIVISION.

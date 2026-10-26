@@ -27,11 +27,11 @@ namespace CobolNet.Tests.Conformance;
 /// </list></para>
 ///
 /// <para>The "only once" half of §5.2.6.4 cannot be a parser rule without enumerating the orderings, so it is a
-/// bind-time screen (COBOLNET2104) and is asserted here beside the spellings it bounds.</para>
+/// bind-time screen (COBOL2104) and is asserted here beside the spellings it bounds.</para>
 /// </summary>
 public sealed class GobackGeneralFormatTests
 {
-    private const string ChoiceRepeated = "COBOLNET2104";
+    private const string ChoiceRepeated = "COBOL2104";
 
     /// <summary>A main program whose one paragraph is <paramref name="body"/>. The PD header carries
     /// RAISING EC-USER-X so an `EXCEPTION EC-USER-X` operand satisfies §14.9.18.3 SR2's second sentence.</summary>
@@ -108,7 +108,7 @@ public sealed class GobackGeneralFormatTests
 
     /// <summary>Fact 3, AT EVERY EDITION THAT HAS THE PHRASE (kb/Work PB402). The RAISING phrase arrives with
     /// the COBOL-2002 exception model, so the terse spelling shall be ACCEPTED at 2002/2014/2023, and at 85 it
-    /// shall draw the named introduction diagnostic — COBOLNET0879, the phrase's own gate — and never a parse
+    /// shall draw the named introduction diagnostic — COBOL0879, the phrase's own gate — and never a parse
     /// error, which is what a reader gets when a compiler limitation and a syntax mistake look alike. The 2023
     /// row alone could not tell those apart.</summary>
     [Theory]
@@ -131,7 +131,7 @@ public sealed class GobackGeneralFormatTests
     public void TheTerseRaisingLast_DrawsThePhrasesOwnEditionGateAt85(string pid, string body)
     {
         var diagnostics = EditionHarness.GetDiagnostics(InDeclarative(pid, body), 85);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0879");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0879");
         EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL0001");
     }
 
@@ -166,7 +166,7 @@ public sealed class GobackGeneralFormatTests
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1578");   // the A.3 item 4 decline, still named
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1578");   // the A.3 item 4 decline, still named
     }
 
     /// <summary>§5.2.6.4's "only once" half — the part a parser rule cannot state. Relaxing the tail to a
@@ -179,7 +179,7 @@ public sealed class GobackGeneralFormatTests
 
     /// <summary>⛔ THE EDITION GATE STILL READS THE PHRASE THAT WAS WRITTEN. Turning the tail into a repetition
     /// turns ANTLR's accessor into an ARRAY, which is never null — and the COBOL-2023 status gate tested
-    /// <c>is not null</c>, so for one build a BARE <c>GOBACK.</c> at --std 2002 drew COBOLNET0900 naming a
+    /// <c>is not null</c>, so for one build a BARE <c>GOBACK.</c> at --std 2002 drew COBOL0900 naming a
     /// phrase the program did not contain. A grammar cardinality change is an API change at every reader.</summary>
     [Theory]
     [InlineData("PBFM19", "GOBACK", 2002, true)]
@@ -191,6 +191,6 @@ public sealed class GobackGeneralFormatTests
     {
         var (ok, diagnostics) = EditionHarness.Compile(Prog(pid, body), edition);
         if (expectOk) Assert.True(ok, string.Join("\n", diagnostics));
-        else EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0900");
+        else EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0900");
     }
 }

@@ -34,7 +34,7 @@
       *> LEG 1's whole point is a file control entry with NO LOCK MODE
       *> clause, so the ALL phrase is not available to it: SHARING WITH
       *> ALL OTHER here is non-conforming source and is rejected at the
-      *> SELECT itself, before any OPEN is looked at (COBOLNET1512,
+      *> SELECT itself, before any OPEN is looked at (COBOL1512,
       *> DataBinder; see tests/conformance/negative/
       *> sharing-all-no-lockmode.cob, which carries no OPEN at all).
       *> Nor can an OPEN … SHARING WITH READ ONLY phrase rescue it —

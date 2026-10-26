@@ -49,7 +49,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
 
     /// <summary>FREE start; the handler switches to FIXED; END-PERFORM — written at column 1, which only free form
     /// reads as a word — is read in the RESTORED free form, because the POP precedes the phrase. Read in fixed form
-    /// its <c>END-PE</c> would be a sequence area and its <c>R</c> an invalid indicator (COBOLNET2616).</summary>
+    /// its <c>END-PE</c> would be a sequence area and its <c>R</c> an invalid indicator (COBOL2616).</summary>
     [Fact]
     public void FreeToFixed_InAHandler_RestoresBeforeTheEndPerformLineItself()
     {

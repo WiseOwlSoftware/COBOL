@@ -40,7 +40,7 @@ public sealed class Condition88DifferentialTests
             """));
 
     // PIC 9(3), not 9(2): the level-88 literal 100 must be a permissible value of the conditional variable's
-    // PICTURE (ISO §13.18.63.3 SR2; kb/Work PB586) — under 9(2) the program is illegal and draws COBOLNET1625.
+    // PICTURE (ISO §13.18.63.3 SR2; kb/Work PB586) — under 9(2) the program is illegal and draws COBOL1625.
     [Fact]
     public void NumericRange_Thru()
         => AssertMatchesGolden(Program("""

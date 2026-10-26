@@ -25,7 +25,7 @@
       *> NFOR UZ9 EDITING U FOR NEGATIVE IS ":" POSITIVE IS ":" <- 5: FIXED insertion, not part of
       *>      the string, and at the LEFT END where a fixed insertion symbol may stand (13.18.40.6: an
       *>      extended editing sign control symbol "has the same precedence as the 'cs' symbol in the column
-      *>      and row of non-floating insertion symbols", so the mid-string spelling ZU9 is COBOLNET1935 -
+      *>      and row of non-floating insertion symbols", so the mid-string spelling ZU9 is COBOL1935 -
       *>      kb/Work PB855); the ':' stands and the 'Z' after it suppresses => ": 5".
       *> NFL  ++T++9 EDITING T IS ":" <- 5: embedded in the FLOATING string, so rule 6 a) lands the
       *>      single '+' immediately preceding the first nonzero numeric character, every position
