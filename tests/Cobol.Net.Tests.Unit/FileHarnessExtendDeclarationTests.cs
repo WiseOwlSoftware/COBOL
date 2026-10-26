@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ A TEST THAT OPENS A FILE EXTEND MEASURES A PROGRAM THE COMPILER ACCEPTS (kb/Work PB3479). §14.9.27.3 SR2: <i>"The EXTEND
 /// phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is sequential"</i>, and
-/// the compiler refuses the other declarations (COBOLNET2372). <see cref="FileHarness.Register"/> declares a RELATIVE or
+/// the compiler refuses the other declarations (COBOL2372). <see cref="FileHarness.Register"/> declares a RELATIVE or
 /// INDEXED connector with DYNAMIC access unless told otherwise, so a theory that crossed the open modes and registered with
 /// the default opened EXTEND over a declaration no program makes, and the Table 19 and '61' answers it pinned were measured
 /// on that. <see cref="FileHarness.AccessFor"/> is the one place the rule is written and <see cref="FileHarness.Open"/> is

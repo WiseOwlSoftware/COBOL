@@ -17,7 +17,7 @@
       *> applies, OR FOR EACH NUMERIC ITEM SUBORDINATE TO THE GROUP TO WHICH IT APPLIES." N is subordinate to
       *> G, G carries SIGN IS LEADING SEPARATE, and N's picture character-string contains 'S' (GR1 sentence 2),
       *> so the clause applies to N: this record IS described with the SIGN IS SEPARATE clause and the program
-      *> SHALL COMPILE. The compiler used to refuse it with COBOLNET1672 because the screen ran at file-section
+      *> SHALL COMPILE. The compiler used to refuse it with COBOL1672 because the screen ran at file-section
       *> bind time, one phase before the group-clause propagation - a rejection by an ordering, not by a rule.
       *>
       *> EVERY expected character below is computed from the rules, never read off a run:
@@ -35,7 +35,7 @@
       *>
       *> The other direction - a signed numeric record item under a CODE-SET FD that is described with NO
       *> SIGN SEPARATE clause at all, neither its own nor an inherited one - is
-      *> conformance:cases/13.18.52-SIGN/pb536-code-set-signed-without-separate (COBOLNET1672).
+      *> conformance:cases/13.18.52-SIGN/pb536-code-set-signed-without-separate (COBOL1672).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB536GS.
        ENVIRONMENT DIVISION.

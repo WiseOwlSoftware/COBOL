@@ -58,7 +58,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             var atom = oref.objectReferenceAtom()?.objectReferenceTerm();
             if (atom?.predefinedNull() is not null || atom?.selfAndSuper()?.SUPER() is not null)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
+                return BoundRejected.Report(ctx.Edition, "COBOL0848",
                     $"RAISE {(atom.predefinedNull() is not null ? "NULL" : "SUPER")}: NULL and SUPER shall not be "
                     + "specified as the raised object (ISO §14.9.29.3 SR2)");
             }
@@ -66,14 +66,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // identifier-1 written as an inline invocation or a function-identifier (kb/Work PB1197, PB1425): SR2 asks
             // the CLASS of the item it references, so the temporary is the raised object when it is one.
             if (host.Oo.OoBindComputedObjectReference(oref) is { } computed)
-                return host.Oo.OoObjectReferenceTemporary(computed, oref, "COBOLNET0848",
+                return host.Oo.OoObjectReferenceTemporary(computed, oref, "COBOL0848",
                         "identifier-1 shall be an object reference (ISO §14.9.29.3 SR2)") is { } raised
                     ? new BoundRaiseObject(raised) : BoundRejected.Reported(ctx.Edition);
             if (atom!.selfAndSuper()?.SELF() is not null)
             {
                 if (!host.InMethod)
                 {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
+                    return BoundRejected.Report(ctx.Edition, "COBOL0848",
                         "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8.3 SR1)");
                 }
                 return new BoundRaiseObject(null);
@@ -83,7 +83,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
+                return BoundRejected.Report(ctx.Edition, "COBOL0848",
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §14.9.29.3 SR2)");
             }
@@ -124,7 +124,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     {
         // resume-statement-2002: the pass owns the edition gate (Exec Step E).
         // SR1 — RESUME may appear in a declarative OR a WHEN phrase of an exception-checking PERFORM (§14.9.33.3
-        // SR1). In a WHEN phrase it shall specify NEXT STATEMENT (XS-RESUME-OPERAND, COBOLNET1610) — the
+        // SR1). In a WHEN phrase it shall specify NEXT STATEMENT (XS-RESUME-OPERAND, COBOL1610) — the
         // ResumeSignal(targetPc) pc-jump path is bound ONLY for a declarative RESUME AT procedure-name.
         // ⛔ BOTH POSITIONS COME FROM THE ONE BIND-POSITION PROBE (kb/Work PB403/PB404): `ctx.Enclosing` answers
         // "am I in a WHEN phrase?" and "which declarative am I in?" for EVERY placement rule, so RESUME's rule
@@ -139,7 +139,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // EcEmitter.EmitResume; this is the STATIC case, which rejects.)
         if (where.Declarative is { Global: true })
         {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0713", "RESUME shall not be specified in a declarative procedure whose "
+            return BoundRejected.Report(ctx.Edition, "COBOL0713", "RESUME shall not be specified in a declarative procedure whose "
                 + "USE statement carries the GLOBAL phrase (ISO §14.9.33.3 SR2)");
         }
         if (where.InPerformWhen)
@@ -153,7 +153,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         {
             // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM
             // (neither a declarative nor a WHEN phrase) lands here too — the same "declarative or WHEN only" rule.
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
+            return BoundRejected.Report(ctx.Edition, "COBOL0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
                 + "an exception-checking PERFORM (ISO §14.9.33.3 SR1)");
         }
         ctx.EcState.Resume = true;
@@ -172,7 +172,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // declaratives portion consists of sections), and that is now what the resolution hands over.
         if (target.IsDeclarative)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
+            return BoundRejected.Report(ctx.Edition, "COBOL0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
         }
         return new BoundResume(target.Range.Start);   // GR3 — as if GO TO procedure-name-1
@@ -272,7 +272,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // shall appear in the PD-header RAISING phrase — the statically detectable half binds as an error; the
         // runtime condition is EC-RAISING-NOT-SPECIFIED.
         if (info.Level2Parent is "EC-USER" && !ctx.EcState.PdRaising.Contains(info.Name))
-            ctx.Edition.Error("COBOLNET0717", $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
+            ctx.Edition.Error("COBOL0717", $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
                 + "specified in the RAISING phrase of the procedure division header "
                 + $"({site.Cite(site.Level3Rule)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS

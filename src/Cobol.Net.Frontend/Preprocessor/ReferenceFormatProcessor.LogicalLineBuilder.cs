@@ -91,7 +91,7 @@ public static partial class ReferenceFormatProcessor
         /// after it still continues the literal (kb/Work PB1914; GnuCOBOL reads the line as a comment unless
         /// <c>-fdebugging-line</c>). It stays in the output as a logical line of its own, after the line it interrupts, and
         /// is NOTED to the gates: once the unit's WITH DEBUGGING MODE is known, a line that is source there is a source
-        /// line between the parts of a literal, which GnuCOBOL rejects and which is diagnosed (COBOLNET3473; kb/Work PB2490);</item>
+        /// line between the parts of a literal, which GnuCOBOL rejects and which is diagnosed (COBOL3473; kb/Work PB2490);</item>
         /// <item>any other debugging line is a new logical line and the join target from now on, so a continuation line
         /// after it continues the debugging line ("continuation of debugging lines is permitted").</item>
         /// </list></summary>
@@ -256,7 +256,7 @@ public static partial class ReferenceFormatProcessor
 
         /// <summary>The index in <paramref name="text"/> of the first character of a literal's continuation: the one after
         /// the continuation line's initial quotation symbol, which shall be <paramref name="quote"/> (§6.2.3.2 SR6; §6.3.5
-        /// 2); §6.4.2). A different first character is diagnosed (COBOLNET2684) and read the way the standard's rule would
+        /// 2); §6.4.2). A different first character is diagnosed (COBOL2684) and read the way the standard's rule would
         /// have it were it correct: another quotation symbol is dropped like the right one, anything else is content.</summary>
         private int AfterOpeningQuote(string text, int first, char quote, TextSite site)
         {

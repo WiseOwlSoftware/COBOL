@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// The APPLY COMMIT antecedent family (kb/Work PB666, PB3338): the syntax rules of the clauses and statements whose
-/// antecedent is "a file subject to an APPLY COMMIT clause" are enforced in their own right (COBOLNET2974,
+/// antecedent is "a file subject to an APPLY COMMIT clause" are enforced in their own right (COBOL2974,
 /// <c>DataBinder.ScreenApplyCommitSubject</c>) in BOTH lanes.
 /// </summary>
 /// <remarks>
@@ -47,11 +47,11 @@ public sealed class ApplyCommitSubjectRuleTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Fixture(fixture), 2023, permissive);
         Assert.False(ok, $"{fixture}: {rule} forbids this shape for a file subject to an APPLY COMMIT clause");
-        Assert.Contains(errors, e => e.Contains("COBOLNET2974", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL2974", StringComparison.Ordinal)
                                      && e.Contains(rule, StringComparison.Ordinal));
-        Assert.All(errors.Where(e => e.Contains("COBOLNET", StringComparison.Ordinal)),
-            e => Assert.Contains("COBOLNET2974", e, StringComparison.Ordinal));   // the clause is accepted: the rule is the only refusal
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET17", StringComparison.Ordinal));   // and no declined-facility warning
+        Assert.All(errors.Where(e => e.Contains("COBOL", StringComparison.Ordinal)),
+            e => Assert.Contains("COBOL2974", e, StringComparison.Ordinal));   // the clause is accepted: the rule is the only refusal
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL17", StringComparison.Ordinal));   // and no declined-facility warning
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the SR7 fixture with its I-O-CONTROL paragraph removed — the
@@ -71,7 +71,7 @@ public sealed class ApplyCommitSubjectRuleTests
                 StringComparison.Ordinal)));
         Assert.Contains("LOCK MODE IS AUTOMATIC", source, StringComparison.Ordinal);
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive);
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2974");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL2974");
         Assert.True(ok, string.Join("\n", errors));
     }
 }

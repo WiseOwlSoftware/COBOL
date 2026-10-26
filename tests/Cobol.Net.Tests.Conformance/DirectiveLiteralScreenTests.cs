@@ -8,10 +8,10 @@ namespace CobolNet.Tests.Conformance;
 /// kb/Work PB1616 — a literal in a COMPILER-DIRECTIVE operand obeys its own §8.3.3 syntax rules and the edition gates of
 /// its format, exactly as the same literal written in the program text does (kb/Work PB1393, PB1545, PB895). The
 /// directive operand is lexed apart from the unit, so the unit-tree screen never reached it: the evaluator asked the
-/// rules itself, under COBOLNET1619, along the one path it evaluated — an omitted branch, an operand a failed
+/// rules itself, under COBOL1619, along the one path it evaluated — an omitted branch, an operand a failed
 /// DEFINE left undefined and every edition gate of a literal FORMAT escaped. The conditional-compilation stage's three
 /// fragment funnels now hand every parsed fragment to <c>LiteralScreen</c>, the body the unit walk uses, so the codes
-/// are the unit lane's: COBOLNET0814 (length), COBOLNET1635 (grouping), COBOLNET2630 (repertoire), COBOLNET0900 (format).
+/// are the unit lane's: COBOL0814 (length), COBOL1635 (grouping), COBOL2630 (repertoire), COBOL0900 (format).
 /// Each case below is one DIRECTIVE POSITION a literal can be written in, paired with its legal twin so the rule is
 /// pinned from both sides. Sources are built programmatically: an 8,192-position literal never belongs in a checked-in file.
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class DirectiveLiteralScreenTests
 {
     /// <summary>The directive lines <paramref name="directives"/> in a minimal FREE-form program. A compiler directive is
     /// one line and cannot be continued, so a literal longer than a free-form line (255 positions, §6.1 3) a),
-    /// COBOLNET2653) makes the line itself an error too: the length tests below read the literal's own diagnostic out of
+    /// COBOL2653) makes the line itself an error too: the length tests below read the literal's own diagnostic out of
     /// the errors and never ask whether the compile as a whole succeeded.</summary>
     private static string Program(string id, string directives) =>
         ">>SOURCE FORMAT FREE\nIDENTIFICATION DIVISION.\nPROGRAM-ID. " + id + ".\n" + directives
@@ -43,8 +43,8 @@ public sealed class DirectiveLiteralScreenTests
     private static string Fill(string directives, string literal) => directives.Replace("{L}", literal);
 
     /// <summary>The length rule (§8.3.3.2.3 SR1 alphanumeric, §8.3.3.4.3 SR1 boolean, §8.3.3.5.3 SR1 national: at most
-    /// 8,191 positions of the class) at every directive position: an 8,192-position literal is COBOLNET0814, once, and
-    /// its 8,191-position twin draws no such diagnostic (the line it sits on still draws COBOLNET2653, which is the
+    /// 8,191 positions of the class) at every directive position: an 8,192-position literal is COBOL0814, once, and
+    /// its 8,191-position twin draws no such diagnostic (the line it sits on still draws COBOL2653, which is the
     /// line's, not the literal's).</summary>
     [Theory]
     [MemberData(nameof(Positions))]
@@ -56,11 +56,11 @@ public sealed class DirectiveLiteralScreenTests
                 Program("DLS" + positions, Fill(directives, "\"" + new string('A', positions) + "\"")), 2023);
             Assert.False(ok, $"[{position}] the {positions}-position line is over §6.1 3) a)'s 255");
             if (positions <= 8191)
-                Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0814"));   // §8.3.3.2.3 SR1 '≤ 8,191'
+                Assert.DoesNotContain(errors, e => e.Contains("COBOL0814"));   // §8.3.3.2.3 SR1 '≤ 8,191'
             else
             {
-                Assert.Single(errors, e => e.Contains("COBOLNET0814"));   // once: one screen
-                Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1619") && e.Contains("literal"));   // not the evaluator's as well
+                Assert.Single(errors, e => e.Contains("COBOL0814"));   // once: one screen
+                Assert.DoesNotContain(errors, e => e.Contains("COBOL1619") && e.Contains("literal"));   // not the evaluator's as well
             }
         }
     }
@@ -73,7 +73,7 @@ public sealed class DirectiveLiteralScreenTests
     {
         var (_, errors, _) = EditionHarness.CompileFull(
             Program("DLC" + kind, ">>DEFINE D AS " + open + new string(ch[0], 8192) + "\""), 2023);
-        Assert.Single(errors, e => e.Contains("COBOLNET0814"));   // an 8,192-position literal shall be rejected
+        Assert.Single(errors, e => e.Contains("COBOL0814"));   // an 8,192-position literal shall be rejected
     }
 
     /// <summary>The hexadecimal grouping rule (§8.3.3.2.3 SR6 pairs, §8.3.3.5.3 SR5 groups of four) and the content
@@ -86,13 +86,13 @@ public sealed class DirectiveLiteralScreenTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program("DLH", Fill(directives, literal)), 2023);
             Assert.False(ok, $"[{position}] {literal} shall be rejected (§8.3.3.2.3 SR6 / §8.3.3.5.3 SR5)");
-            Assert.Single(errors, e => e.Contains("COBOLNET1635"));
+            Assert.Single(errors, e => e.Contains("COBOL1635"));
         }
     }
 
     [Theory]
-    [InlineData("X\"GG\"", "COBOLNET2630")]
-    [InlineData("B\"012\"", "COBOLNET2630")]
+    [InlineData("X\"GG\"", "COBOL2630")]
+    [InlineData("B\"012\"", "COBOL2630")]
     public void LiteralRepertoire_IsScreenedInAnOmittedBranch(string literal, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
@@ -110,7 +110,7 @@ public sealed class DirectiveLiteralScreenTests
             Program("DLONCE", ">>DEFINE V AS \"A\"\n>>IF V = X\"414\"\n>>END-IF"), 2023);
         Assert.False(ok);
         Assert.Single(errors);
-        Assert.Contains("COBOLNET1635", errors[0]);
+        Assert.Contains("COBOL1635", errors[0]);
     }
 
     /// <summary>The edition gate of the literal's FORMAT (§8.3.3.1: the zero-length literal is a COBOL-2014 introduction,
@@ -131,7 +131,7 @@ public sealed class DirectiveLiteralScreenTests
         else
         {
             Assert.False(ok, "the zero-length literal is a COBOL-2014 introduction");
-            Assert.Single(errors, e => e.Contains("COBOLNET0900") && e.Contains("zero-length literal"));
+            Assert.Single(errors, e => e.Contains("COBOL0900") && e.Contains("zero-length literal"));
         }
     }
 }

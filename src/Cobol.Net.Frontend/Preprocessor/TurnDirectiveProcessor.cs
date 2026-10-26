@@ -52,8 +52,8 @@ public static class TurnDirectiveProcessor
             var loc = lineMap?.Locate(i + 1, at, sourcePath) ?? new SourceLocation(sourcePath, 0, i, at);   // the SOURCE position of the directive (kb/Work PB82, PB1801)
             // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
             // from the turn-directive-2002 row) — this stage ran its own `if (dialectLevel < 2002)` with a
-            // BESPOKE COBOLNET0875 until kb/Work PB725 reconciled the three mechanisms onto the registry's
-            // COBOLNET0900. COBOLNET0875 is RETIRED; never reallocate it. dialectLevel survives here because
+            // BESPOKE COBOL0875 until kb/Work PB725 reconciled the three mechanisms onto the registry's
+            // COBOL0900. COBOL0875 is RETIRED; never reallocate it. dialectLevel survives here because
             // ParseTurn passes it to the §8.3.2.1 word-length rule and to the exception-name edition window
             // (§14.6.13.1, ExceptionNameRule.Window), different rules.
             if (ParseTurn(operand, i + 1, dialectLevel, diagnostics, loc) is { } ev)
@@ -66,7 +66,7 @@ public static class TurnDirectiveProcessor
     /// <summary>The SYNTAX-ONLY check of one <c>&gt;&gt;TURN</c> operand — what ISO §7.2.1 asks of a directive line in an
     /// OMITTED conditional-compilation branch ("syntactically correct in the initial source text and library text";
     /// kb/Work PB2003): the same parse the compiled directive gets, reporting what it reports and applying nothing —
-    /// §7.3.25.3 SR2's unknown exception-name and edition-window diagnostics (COBOLNET0711/0878) included (kb/Work PB2740).</summary>
+    /// §7.3.25.3 SR2's unknown exception-name and edition-window diagnostics (COBOL0711/0878) included (kb/Work PB2740).</summary>
     internal static void CheckOperand(string operand, int dialectLevel, DiagnosticBag diagnostics, SourceLocation loc) =>
         ParseTurn(operand, 0, dialectLevel, diagnostics, loc);
 
@@ -109,7 +109,7 @@ public static class TurnDirectiveProcessor
         void AddPair(string ec, string? file)
         {
             if (!seen.Add(ec + "|" + (file ?? "")))
-                diagnostics.ReportError("COBOLNET0718",
+                diagnostics.ReportError("COBOL0718",
                     $">>TURN: the exception-name/file-name combination '{ec}{(file is null ? "" : " " + file)}' is "
                     + "specified more than once in this directive (ISO §7.3.25.3 SR3)", loc, default);
             else if (currentEcResolved)   // the catalog's canonical spelling: the binder's fold matches on it
@@ -120,7 +120,7 @@ public static class TurnDirectiveProcessor
         // rule of the directive, so it is asked HERE, where a compiled line and an omitted-branch line (§7.2.1,
         // CheckOperand) are parsed alike, through the one rule both this stage and the binder's written-name funnel
         // share (ExceptionNameRule; kb/Work PB2740). The binder fold used to be its only home, and it reads compiled
-        // events alone. Below COBOL-2002 the directive itself is refused (COBOLNET0900), so the per-name edition
+        // events alone. Below COBOL-2002 the directive itself is refused (COBOL0900), so the per-name edition
         // window has nothing to add there.
         bool ResolveName(string w)
         {
@@ -184,7 +184,7 @@ public static class TurnDirectiveProcessor
                 // ALL… can never be file-name-1, so the directive matches no format (kb/Work PB1365).
                 if (CompilerDirectiveWords.IsReserved(w))
                 {
-                    diagnostics.ReportError("COBOLNET0718",
+                    diagnostics.ReportError("COBOL0718",
                         $">>TURN: '{w}' duplicates a compiler-directive word, so it is interpreted as that directive "
                         + "word and not as file-name-1, and the directive matches no format (ISO §7.3.25.3 SR1; §8.12)",
                         loc, default);
@@ -192,7 +192,7 @@ public static class TurnDirectiveProcessor
                 }
                 // SR4 — a file-name only with an EC-I-O… name.
                 if (!CobolNames.StartsWith(currentEc, "EC-I-O"))
-                    diagnostics.ReportError("COBOLNET0719",
+                    diagnostics.ReportError("COBOL0719",
                         $">>TURN: file-name '{w}' specified with exception-name '{currentEc}', which does not begin "
                         + "with 'EC-I-O' (ISO §7.3.25.3 SR4)", loc, default);
                 else
@@ -204,7 +204,7 @@ public static class TurnDirectiveProcessor
             }
             else
             {
-                diagnostics.ReportError("COBOLNET0718",
+                diagnostics.ReportError("COBOL0718",
                     $">>TURN: unexpected word '{w}' — expected an exception-name (a word beginning 'EC-', "
                     + "ISO §7.3.25.3 SR1)", loc, default);
                 return null;
@@ -213,11 +213,11 @@ public static class TurnDirectiveProcessor
 
         // ⛔ THE DIRECTIVE ENDS AT THE CHECKING PHRASE (kb/Work PB1365). §7.3.3 SR3: a directive "may be followed only by
         // space characters and an optional inline comment". TURN is owned by THIS stage, so the shared closed-word screen
-        // (CompilerDirectiveCatalog.CheckOperand, COBOLNET1911) skips it by design — and the loop above `break`s at CHECKING,
+        // (CompilerDirectiveCatalog.CheckOperand, COBOL1911) skips it by design — and the loop above `break`s at CHECKING,
         // so a word after ON / OFF [WITH LOCATION] was never looked at (`>>TURN EC-ALL CHECKING OFF JUNK` took effect).
         if (checkingEnd >= 0 && checkingEnd < words.Length)
         {
-            diagnostics.ReportError("COBOLNET0718",
+            diagnostics.ReportError("COBOL0718",
                 $">>TURN: unexpected word '{words[checkingEnd]}' after the CHECKING phrase — the directive ends at "
                 + "CHECKING {ON [WITH LOCATION] | OFF} (ISO §7.3.25.2), and may be followed only by space characters "
                 + "and an optional inline comment (ISO §7.3.3 SR3)", loc, default);
@@ -227,7 +227,7 @@ public static class TurnDirectiveProcessor
         if (on is not null && names.Count == 0 && anyUnresolved) return null;   // every name was refused by SR2 above
         if (on is null || names.Count == 0)
         {
-            diagnostics.ReportError("COBOLNET0718",
+            diagnostics.ReportError("COBOL0718",
                 ">>TURN: malformed directive — the format is '>>TURN {exception-name [file-name]…}… CHECKING "
                 + "{ON [WITH LOCATION] | OFF}' (ISO §7.3.25.2)", loc, default);
             return null;

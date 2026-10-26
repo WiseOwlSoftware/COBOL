@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> ⛔ PAGE-COUNTER IS A LEGAL RECEIVING OPERAND, IN EVERY CONTEXT THAT ADMITS AN INTEGER DATA ITEM
-      *> (kb/Work PB429). Before this, `MOVE 7 TO PAGE-COUNTER` drew COBOLNET0899 "PAGE-COUNTER as a
+      *> (kb/Work PB429). Before this, `MOVE 7 TO PAGE-COUNTER` drew COBOL0899 "PAGE-COUNTER as a
       *> receiving operand (legal) is not yet implemented" — the compiler refusing a program while conceding
       *> in its own diagnostic that the program was right.
       *>

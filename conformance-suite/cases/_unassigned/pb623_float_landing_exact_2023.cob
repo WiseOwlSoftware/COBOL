@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB623 — the COBOL-2023 leg of the exact binary64 landing, with the ROUNDED MODE IS
-      *> PROHIBITED gate that the 2002 twin cannot carry (the phrase is COBOL-2014+, COBOLNET0803).
+      *> PROHIBITED gate that the 2002 twin cannot carry (the phrase is COBOL-2014+, COBOL0803).
       *> ISO 14.6.8.2 rule 1 ("the value is treated as if it had been converted to a fixed-point value")
       *> + rule 4 ("truncation on either end"); 14.7.4.3 item 7 for PROHIBITED ("the arithmetic value
       *> cannot be represented exactly in the resultant identifier"), asked of the EXACT value: the double

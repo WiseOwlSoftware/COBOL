@@ -9,7 +9,7 @@ using CobolNet.Runtime;
 namespace CobolNet.Validation;
 
 /// <summary>
-/// THE ONE PLACE A DECLINED ANNEX-A.4 OPTIONAL ELEMENT IS REFUSED BY NAME (COBOLNET1708) — a
+/// THE ONE PLACE A DECLINED ANNEX-A.4 OPTIONAL ELEMENT IS REFUSED BY NAME (COBOL1708) — a
 /// sibling to <see cref="VersionConformancePass"/> and <see cref="FlagConformancePass"/>, run right after them
 /// from <c>BinderDriver</c>.
 ///
@@ -99,7 +99,7 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// support … is claimed" — so one diagnostic per declined construct (the override below, which does not
     /// descend) is the whole posture. The §13.18.62.2 ON group's FORMAT / CONTENT / RELATION were the sharpest
     /// case: the funnel printed "'FORMAT' is a reserved word … cannot be used as a user-defined word" beside
-    /// COBOLNET1708, a false statement next to the true one.
+    /// COBOL1708, a false statement next to the true one.
     /// <para>⛔ NOT §4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
     /// is written of Annex A.3 PROCESSOR-DEPENDENT elements, and these rules are Annex A.4 optional ones (kb/Work
     /// PB709).</para></summary>

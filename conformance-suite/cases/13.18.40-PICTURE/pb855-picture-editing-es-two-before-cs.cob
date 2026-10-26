@@ -12,7 +12,7 @@
       *> rightmost symbol in character-string-1." So two extended symbols are the string's two ENDS, and
       *> PE02 LF$999 - 'L' leftmost, 'F' second and the currency symbol third - puts the second symbol's character-1
       *>     nowhere near the rightmost symbol. It bound clean before kb/Work PB855 (the rule was read as constraining
-      *>     only the order of the phrases) and rendered MOVE -12 as "()$012". COBOLNET1984, 2023 only.
+      *>     only the order of the phrases) and rendered MOVE -12 as "()$012". COBOL1984, 2023 only.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB855TWO.
        DATA DIVISION.

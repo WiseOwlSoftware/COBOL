@@ -72,7 +72,7 @@ public sealed class PerformVaryingDifferentialTests
     /// BY phrase that is omitted, the augment value is 1"); three 1..2 levels run the body 2×2×2 = 8 times. The
     /// former legacy binder crashes (IndexOutOfRange) on omitted BY with multiple AFTER levels, so it cannot oracle this.
     /// Run at 2002, the edition that introduced the omission: COBOL-85 writes BY in every VARYING and AFTER phrase, and
-    /// --std 85 refuses its omission COBOLNET0900 (perform-varying-by-omitted-2002; kb/Work PB2282, VCR row 7.42).</summary>
+    /// --std 85 refuses its omission COBOL0900 (perform-varying-by-omitted-2002; kb/Work PB2282, VCR row 7.42).</summary>
     [Fact]
     public void Varying_ThreeLevels_OmittedBy()
     {

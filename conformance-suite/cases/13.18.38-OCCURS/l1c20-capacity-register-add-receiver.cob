@@ -16,7 +16,7 @@
       *> ADD 1 TO T-CAP names T-CAP as the ADD receiving item (its
       *> resultant identifier).
       *> The statement is not a SET statement, so the exception does
-      *> not apply and the source shall be rejected: COBOLNET1523,
+      *> not apply and the source shall be rejected: COBOL1523,
       *> whose meaning is exactly this violation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C20D.

@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// present item is not external. Two non-external describers used to compare EQUAL (<c>"!" == "!"</c>) and silently
 /// pass; the fix treats any "!" (a whole ";"-token, so an embedded LINAGE token counts) as a violation regardless of
 /// equality. Conjunct 2 (same corresponding item) is the existing inequality comparison. A null ref (clause
-/// unspecified) is never a violation. The single-program face of conjunct 1 is enforced at COMPILE time (COBOLNET1624);
+/// unspecified) is never a violation. The single-program face of conjunct 1 is enforced at COMPILE time (COBOL1624);
 /// this covers the cross-compilation / permissive-carried-to-runtime face.
 /// </summary>
 public class ExternalTableTests

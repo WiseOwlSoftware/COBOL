@@ -382,8 +382,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// closure therefore answered with whichever element/activation installed it LAST, which is the executing one
     /// only by accident. Rendering the operands at the statement makes the right answer structural: the emitting
     /// unit IS the executing element, and the emitted expression reads the LIVE activation's storage.</para>
-    /// <para>An unresolvable USING operand falls back to the static specification — <c>COBOLNET1810</c>/
-    /// <c>COBOLNET1811</c> (§12.4.5.2 SR7) have already rejected the program, so this only keeps emission
+    /// <para>An unresolvable USING operand falls back to the static specification — <c>COBOL1810</c>/
+    /// <c>COBOL1811</c> (§12.4.5.2 SR7) have already rejected the program, so this only keeps emission
     /// total.</para></summary>
     internal string ExecutingElementArgs(FileModel file)
     {
@@ -950,7 +950,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
             // The phrase is never conforming source on this arm (Format 1 has no INVALID KEY bracket — the
-            // binder reports COBOLNET1720), so this renders only under --permissive, where the bind stands and
+            // binder reports COBOL1720), so this renders only under --permissive, where the bind stands and
             // the block has to MEAN something rather than vanish. There is deliberately NO invalid-key arm: a
             // sequential-organization READ raises no '2x' status (§9.1.13.5), so the condition cannot exist.
             if (rd.InvalidKey?.NotInvalid is { } notInvalid) EmitNotPhrase(hook, notInvalid);

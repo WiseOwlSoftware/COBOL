@@ -7,7 +7,7 @@
 *>---
       *> kb/Work R22's data-item-wins control: SQRT is a catalogued intrinsic name, but intrinsic
       *> names are not reserved words, and here SQRT is a DECLARED data item - so SQRT(2) is a
-      *> subscripted data reference, never a function call and never COBOLNET1543 (the declared item
+      *> subscripted data reference, never a function call and never COBOL1543 (the declared item
       *> wins the 8.4.3.2.3 SR2 discrimination in IntrinsicBinder.KeywordOmittedFunction).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. KOFSHADOW.

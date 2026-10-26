@@ -10,7 +10,7 @@
 *> The RETURN twin of pb337-read-into-strong-record-areas, and the wording differs: READ's rule 2
 *> says "at most one ... if specified" because 13.4.5.3 SR3 permits an FD with no record
 *> description entry, while this one says "exactly one" -- 13.4.6.3 SR2 requires a record
-*> description under an SD.  The SD here has TWO record areas.  COBOLNET1995.
+*> description under an SD.  The SD here has TWO record areas.  COBOL1995.
 *> 85 is not listed: TYPEDEF and the STRONG phrase are 2002 introductions.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB337N4.

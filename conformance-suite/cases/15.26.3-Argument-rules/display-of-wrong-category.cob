@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 15.26.3 rule 1: FUNCTION DISPLAY-OF argument-1 shall be of class NATIONAL — an alphanumeric
-*> argument is the inverse direction (FUNCTION NATIONAL-OF, 15.66). COBOLNET1546 (P10 national wave).
+*> argument is the inverse direction (FUNCTION NATIONAL-OF, 15.66). COBOL1546 (P10 national wave).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGDOF1P10N.
 DATA DIVISION.

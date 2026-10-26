@@ -14,7 +14,7 @@
       *> "known" (b): every sequence this processor fixes at compile time - an alphabet named by IN, the
       *> PROGRAM COLLATING SEQUENCE, the native order - is known; only a LOCALE one is not (SR26 NOTE;
       *> docs/CONFORMANCE.md D-RANGE-KNOWN, kb/Work PB552). Each 88 below is one arm, each refused with
-      *> COBOLNET2961; the .err pins the first. Before PB552 all compiled clean and each condition was
+      *> COBOL2961; the .err pins the first. Before PB552 all compiled clean and each condition was
       *> simply never TRUE.
       *>   C-NUM   5 THRU 1          a) reversed numeric
       *>   C-EQ    5 THRU 5          a) "less than": an equal pair is refused too

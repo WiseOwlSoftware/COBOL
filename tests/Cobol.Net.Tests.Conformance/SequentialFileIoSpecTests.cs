@@ -241,12 +241,12 @@ public sealed class SequentialFileIoSpecTests
     {
         var (stdout, warnings) = RunAt(SeqWriteInvalidKeyProgram, edition, permissive: true);
         Assert.Equal("W-NIK\nW=00", stdout);
-        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("INVALID KEY")
+        Assert.Contains(warnings, x => x.Contains("COBOL1720") && x.Contains("INVALID KEY")
             && x.Contains("WRITE") && x.Contains("14.9.51.3 SR2"));
     }
 
     /// <summary>The REWRITE twin, one method away in the same binder (§14.9.35.3 SR2 first arm). PB144 landed
-    /// the COBOLNET1720 screen here but still dropped the phrase, reasoning that a sequential REWRITE has no
+    /// the COBOL1720 screen here but still dropped the phrase, reasoning that a sequential REWRITE has no
     /// '2x' condition to carry — true of the INVALID arm, false of the NOT INVALID arm, which §9.1.14's final
     /// rule item 2 runs on the SUCCESSFUL completion this REWRITE has ('00', §9.1.13.2 item 1). Expected stdout
     /// is "R-NIK" then "R=00"; the pre-fix compiler warned and then printed only "R=00".</summary>
@@ -281,7 +281,7 @@ public sealed class SequentialFileIoSpecTests
             """;
         var (stdout, warnings) = RunAt(prog, 2023, permissive: true, ("pb691rwik.dat", "AAAA\n"));
         Assert.Equal("R-NIK\nR=00", stdout);
-        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("REWRITE")
+        Assert.Contains(warnings, x => x.Contains("COBOL1720") && x.Contains("REWRITE")
             && x.Contains("14.9.35.3 SR2"));
     }
 
@@ -318,7 +318,7 @@ public sealed class SequentialFileIoSpecTests
             """;
         var (stdout, warnings) = RunAt(prog, 2023, permissive: true);
         Assert.Equal("W-NIK\nW=00", stdout);
-        Assert.Contains(warnings, x => x.Contains("COBOLNET1720") && x.Contains("NOT INVALID KEY"));
+        Assert.Contains(warnings, x => x.Contains("COBOL1720") && x.Contains("NOT INVALID KEY"));
     }
 
     /// <summary>The same transfer with NO FILE STATUS clause on the file — the axis every other test here holds
@@ -369,7 +369,7 @@ public sealed class SequentialFileIoSpecTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(SeqWriteInvalidKeyProgram, edition);
         Assert.False(ok, $"--std {edition} strict must REJECT the phrase (ISO §14.9.51.3 SR2)");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1720"));
+        Assert.Contains(errors, e => e.Contains("COBOL1720"));
     }
 
     /// <summary>kb/Work PB737 — §13.18.43.4 GR16's CLOSING SENTENCE, the third obligation of the rule whose two

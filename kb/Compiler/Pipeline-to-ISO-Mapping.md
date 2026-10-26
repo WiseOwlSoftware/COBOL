@@ -65,7 +65,7 @@ conditional compilation, COPY/REPLACE expansion, and NIST placeholder fixups. Ru
 - **Related notes:** [[kb/Compiler/Phases]] · [[kb/Spec/Lookup/Keywords]]
 - **ISO constructs handled:** lexical elements — COBOL words, literals (alphanumeric/national/boolean/numeric), PICTURE character-strings, separators, the `*>` comment (§8.3).
 - **ISO rules enforced:** word-formation (§8.3.2, incl. the 2023 63-character word length, §8.3.2.1); PICTURE captured as a single token (PICMODE); the subscript-vs-grouping `(` disambiguation via SUBSCRIPT mode (§8.4.2 references).
-- **Constraints applied:** case-insensitivity; word-length limit (COBOLNET1567 for the 2023 relaxation).
+- **Constraints applied:** case-insensitivity; word-length limit (COBOL1567 for the 2023 relaxation).
 - **IR / semantic links:** feeds the parser; reserved-word truth is applied later by the §8.9 funnel ([[kb/Spec/Lookup/Semantic Rules]]).
 
 ## Phase 2 — Parsing
@@ -89,7 +89,7 @@ statement. Edition-agnostic (a closed exception ledger aside).
 - **Related source files:** `src/Cobol.Net.Compiler/Binding/BinderDriver.cs`, `BindSession.cs`, `DataBinder*.cs`, `ReferenceResolver.cs`, `Procedure/` (StatementBinder + `Verbs/*Binder.cs`), `Binding/Bound/BoundTree.cs`, `Binding/Model/{Place,DataItem,PicInfo,StorageForm}.cs`, `Binding/Passes/{BindPipeline,StorageFormPass,UsageCollectionPass}.cs`; visitor generator `src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs`.
 - **Related notes:** [[kb/IR/Node Types]] · [[kb/IR/Data Flow]] · [[kb/IR/Control Flow]] · [[kb/Spec/Lookup/IR Mapping]]
 - **ISO constructs handled:** every construct becomes a bound node — data items → `DataItem`/`record struct` (§13.16 PICTURE/USAGE/OCCURS/REDEFINES); statements → `Bound*` (§14.9.x); expressions/conditions → `BoundExpr`/`BoundCondition` (§8.8); references → `Place` (§8.4.2). Full node map: [[kb/Spec/Lookup/IR Mapping]].
-- **ISO rules enforced (edition-invariant):** reference qualification/subscript resolution (§8.4.2.2); category assignment & PICTURE analysis (§13.16); MOVE class legality (§14.9.25.3 SR1, `MoveBinder`, COBOLNET0809); condition precedence (§8.8.4.2); digit-capacity (§8.8, COBOLNET0801/0802); REDEFINES 4-tier legality (§13.16). See [[kb/Spec/Lookup/Semantic Rules]].
+- **ISO rules enforced (edition-invariant):** reference qualification/subscript resolution (§8.4.2.2); category assignment & PICTURE analysis (§13.16); MOVE class legality (§14.9.25.3 SR1, `MoveBinder`, COBOL0809); condition precedence (§8.8.4.2); digit-capacity (§8.8, COBOL0801/0802); REDEFINES 4-tier legality (§13.16). See [[kb/Spec/Lookup/Semantic Rules]].
 - **Constraints applied:** the bound tree is **total** (error nodes keep it complete); the binder emits no C# text (backend neutrality); `Place` is the single lvalue for all verbs.
 - **IR / semantic links:** ⇒ [[kb/Spec/Lookup/IR Mapping]] (node ↔ construct) and [[kb/IR/Data Flow]] (PIC → .NET type).
 
@@ -101,7 +101,7 @@ two arms, and **halts before emit** on any error. `FlagConformancePass` runs aft
 - **Related source files:** `src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs`, `Validation/FlagConformancePass.cs`; `Binding/EditionContext.cs`; `src/Cobol.Net.Editions/{ConstructRegistry,ConstructDialectStatus,EditionInfo,EditionSeverityPolicy,ReservedWords}.cs`.
 - **Related notes:** [[kb/Semantics/Passes]] · [[kb/Semantics/Validation Rules]] · [[kb/Diagrams/Semantic Rule Flow]]
 - **ISO constructs handled:** every edition-varying construct (see the full inventory [[kb/Spec/Lookup/Construct Catalogue]] — 183 constructs × edition).
-- **ISO rules enforced:** introduction gating (§ per construct → COBOLNET0900); removal gating (Annex F/VCR → 0902); §8.9 reserved-word funnel (→ 0901); obsolete/archaic flags (Annex F → 0903); the §4 conformance posture (documented non-support → 1560 band / 1518); external-file consistency (§9.1/§12.4 → 1573/1575/1624); migration flags §7.3.14/.15 (→ 1620/1621). See [[kb/Spec/Lookup/Semantic Rules]].
+- **ISO rules enforced:** introduction gating (§ per construct → COBOL0900); removal gating (Annex F/VCR → 0902); §8.9 reserved-word funnel (→ 0901); obsolete/archaic flags (Annex F → 0903); the §4 conformance posture (documented non-support → 1560 band / 1518); external-file consistency (§9.1/§12.4 → 1573/1575/1624); migration flags §7.3.14/.15 (→ 1620/1621). See [[kb/Spec/Lookup/Semantic Rules]].
 - **Constraints applied:** strict vs `--permissive` via the one `EditionSeverityPolicy` seam; `constructs.json` single-sources version numbers; **no codegen on errors** (D8). See [[kb/Spec/Lookup/Constraints]].
 - **IR / semantic links:** two-arm design — ParseArm (recognition-based) + bound-arm (resolved facts); all ~88 sites funnel through `ConstructRegistry.Check`. See [[kb/Spec/Version Targeting]].
 

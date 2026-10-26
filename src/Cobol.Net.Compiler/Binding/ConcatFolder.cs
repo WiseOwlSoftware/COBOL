@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// (statement operands, VALUE clauses, FUNCTION arguments, CALL/STOP/ALPHABET literal slots, …) then rides
 /// the pre-existing single-literal channels — there is no <c>BoundConcat</c> node and no emitter leg, by
 /// GR3's own equivalence. (The parse tree KEEPS the concat shape so the VersionConformancePass parse arm can
-/// gate the construct on recognition — concat-operator-2002, COBOLNET0900 below 2002.)
+/// gate the construct on recognition — concat-operator-2002, COBOL0900 below 2002.)
 /// </summary>
 /// <remarks>
 /// <para><b>The operand model (kb/Work PB1406).</b> §8.8.3.1 writes <c>{literal-1 | concatenation-expression-1}
@@ -37,16 +37,16 @@ using Core = CobolParserCore;
 /// whole chain by its first non-figurative operand accepted exactly that shape.</para>
 /// Rules enforced here, one diagnostic code per rule (DiagnosticCatalog):
 /// <list type="bullet">
-/// <item>§8.8.3.2 SR1 first sentence — both operands of each pair the same class → <c>COBOLNET1540</c> (a numeric
+/// <item>§8.8.3.2 SR1 first sentence — both operands of each pair the same class → <c>COBOL1540</c> (a numeric
 /// constant-name is of none of the three classes SR1 admits, and a figurative with no character value in the
 /// pair's class fails the same rule).</item>
 /// <item>§8.8.3.2 SR1 second sentence — neither operand a figurative constant beginning with ALL →
-/// <c>COBOLNET1541</c>.</item>
+/// <c>COBOL1541</c>.</item>
 /// <item>§8.8.3.2 SR2–SR4 — the resulting value at most 8,191 character positions (per class; 160 below COBOL-2014) →
-/// <c>COBOLNET1545</c>.</item>
+/// <c>COBOL1545</c>.</item>
 /// <item>§8.8.3.1 — a word operand that is neither a constant-name nor a symbolic-character is no literal →
-/// <c>COBOLNET2473</c>; inside SPECIAL-NAMES, §12.3.7.3 SR11's literals shall not specify a symbolic-character →
-/// <c>COBOLNET2474</c>.</item>
+/// <c>COBOL2473</c>; inside SPECIAL-NAMES, §12.3.7.3 SR11's literals shall not specify a symbolic-character →
+/// <c>COBOL2474</c>.</item>
 /// </list>
 /// A figurative constant inside a concatenation expression is ONE character (§8.3.3.6.4 GR3a): ZERO '0',
 /// SPACE ' ', QUOTE '"', a symbolic-character the character it was defined as, and the HIGH-VALUE/LOW-VALUE
@@ -102,8 +102,8 @@ internal static class ConcatFolder
     /// class and category of constant-name-1". A constant-name wins over the Format 7 reading, as it does in
     /// <see cref="Classify"/>.</item>
     /// </list>
-    /// With <paramref name="report"/> it reports SR2 (a numeric constant-name → <c>COBOLNET2491</c>; a zero-length
-    /// literal-1 → <c>COBOLNET1648</c>) and, for a concatenation, every §8.8.3.2 rule <see cref="Fold"/> reports; every
+    /// With <paramref name="report"/> it reports SR2 (a numeric constant-name → <c>COBOL2491</c>; a zero-length
+    /// literal-1 → <c>COBOL1648</c>) and, for a concatenation, every §8.8.3.2 rule <see cref="Fold"/> reports; every
     /// binder site that ACCEPTS a Format 6 figurative reports through here, and the per-position diagnostic dedup
     /// (<c>EditionContext.AddOnce</c>) keeps a figurative read at two sites to one report. Without it the fold is
     /// DIAGNOSTIC-FREE, for routing predicates. The value is always best-effort, so the caller's plumbing continues
@@ -169,7 +169,7 @@ internal static class ConcatFolder
 
     /// <summary>Whether a concatenation operand is a zero-length literal — asked STRUCTURALLY (contiguous delimiters,
     /// <see cref="CobolLiteral.IsZeroLength"/>), never as "decodes to nothing": a malformed hexadecimal literal decodes
-    /// to nothing too, and is LiteralScreen's COBOLNET1635, not SR2. A constant-name is its literal (§13.10.4
+    /// to nothing too, and is LiteralScreen's COBOL1635, not SR2. A constant-name is its literal (§13.10.4
     /// GR1); a figurative constant is one character (§8.3.3.6.4 GR3a).</summary>
     private static bool IsZeroLengthOperand(Core.ConcatOperandContext op, LiteralEnvironment env) =>
         op.cobolWord()?.GetText() is { } word ? env.Constant(word) is { } k && CobolLiteral.IsZeroLength(k.RawText)

@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// begins a new subscript (<c>ReferenceResolver.SegmentsOf</c>, a token splitter before kb/Work PB2113) asked
 /// <c>IsTable</c>, so <c>X</c> — <c>PIC 9</c> under <c>02 G2 OCCURS 3</c> — was
 /// judged unsubscriptable, its own <c>'('</c> opened a second subscript, and <c>Y (X(1))</c> became a
-/// two-subscript reference to a one-dimensional table: rejected loud on the receiving side (COBOLNET0899) and
+/// two-subscript reference to a one-dimensional table: rejected loud on the receiving side (COBOL0899) and
 /// compiled-then-aborted-at-run-time on the sending side.
 ///
 /// <para><b>What this pins, and why it is a source scan.</b> The property is not observable from behaviour once
@@ -116,7 +116,7 @@ public sealed class SubscriptAdmissionDriftTests
     }
 
     /// <summary>Both rules are reported by name, on both sides of a statement. Deleting either screen would put
-    /// COBOLNET0899's "not yet implemented" promise back on permanently illegal source (the PB489 shape).</summary>
+    /// COBOL0899's "not yet implemented" promise back on permanently illegal source (the PB489 shape).</summary>
     [Fact]
     public void BothSubscriptScreens_AreWiredAtTheOneResolutionSite()
     {

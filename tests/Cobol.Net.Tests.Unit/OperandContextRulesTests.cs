@@ -56,7 +56,7 @@ public sealed class OperandContextRulesTests
     /// is exactly as harmful as a missing row — and the two exempt contexts are exempt for a REASON that is
     /// citable: CALL … BY VALUE is governed by §14.9.4.3 SR22 and an intrinsic argument by the function's own
     /// §15.x argument rule, both NARROWER than §8.8.1.1, so quoting §8.8.1.1 at their programmer names a rule
-    /// that was not broken (the COBOLNET1628 lesson). ArithmeticIndexWindow and ArithmeticIndexNameWindow are
+    /// that was not broken (the COBOL1628 lesson). ArithmeticIndexWindow and ArithmeticIndexNameWindow are
     /// the r7 windows, so the index-name screen must NOT fire there — and CallByValue is likewise exempt because
     /// SR22 screens the operand itself.
     /// </summary>

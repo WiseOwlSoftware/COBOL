@@ -85,7 +85,7 @@ public sealed class CliParserTests
     /// <summary>⛔ <c>--sign-encoding</c> (kb/Work PB803, owner decision 2026-09-09) — the DISPLAY over-punch
     /// convention, Annex A.1 items 177/178. Both spellings, the documented IBM default when the option is absent,
     /// and a REFUSAL for an unrecognized value: it is refused by the parser exactly as <c>--std</c>'s year is,
-    /// because nothing about the SOURCE is wrong — a bad option is a CLI argument error, never a COBOLNET
+    /// because nothing about the SOURCE is wrong — a bad option is a CLI argument error, never a COBOL####
     /// diagnostic. `ebcdic` is the value most likely to be tried (it is GnuCOBOL's spelling of the default
     /// convention), so it is the one asserted refused rather than a nonsense string.</summary>
     [Fact]
@@ -161,7 +161,7 @@ public sealed class CliParserTests
     }
 
     /// <summary>kb/Work PB3175: the exit code says WHOSE error it is. A source the binding phase refuses (an edition
-    /// diagnostic, a syntax rule the binder checks — COBOLNET1675 on an alphanumeric COMPUTE receiver) is a data/format
+    /// diagnostic, a syntax rule the binder checks — COBOL1675 on an alphanumeric COMPUTE receiver) is a data/format
     /// error of the program, 65 like a parse error, never 70, the code of the compiler's own failure (the backend
     /// refusing its generated C#), which a conformance harness's adapter reads as the compiler having failed.</summary>
     [Theory]

@@ -15,7 +15,7 @@
       *> 13.18.60.4 -> OK 13.18.60.4 25)). So 14.9.39.3 SR22 (OK
       *> 14.9.39.3 22)) - "the program-prototypes associated with
       *> identifier-7 and identifier-8 shall have the same signature" -
-      *> refuses SET X TO A (COBOLNET1959).
+      *> refuses SET X TO A (COBOL1959).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NS1 IS PROTOTYPE.
        ENVIRONMENT DIVISION.

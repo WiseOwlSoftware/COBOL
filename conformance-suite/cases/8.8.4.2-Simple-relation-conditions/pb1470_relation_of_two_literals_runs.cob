@@ -13,7 +13,7 @@
       *> ISO 4.2.2 asks the warning mechanism to indicate it: "This
       *> warning mechanism shall indicate violations of such rules."
       *> Each relation below compares two literals, draws warning
-      *> COBOLNET3146, and still COMPILES and RUNS, its value the one
+      *> COBOL3146, and still COMPILES and RUNS, its value the one
       *> the 8.8.4.2 comparison rules give (docs/CONFORMANCE.md
       *> D-RELLITERAL; kb/Work PB1470).  A figurative constant is a
       *> literal (8.3.3.6 is a clause of 8.3.3 Literals), and so is a

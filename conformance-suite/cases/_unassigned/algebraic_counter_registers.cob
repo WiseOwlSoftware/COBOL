@@ -7,7 +7,7 @@
 *>---
       *> kb/Work R26 - 8.5.2.12 items 3/4/5 make LINAGE-COUNTER, PAGE-COUNTER and LINE-COUNTER
       *> category-numeric DATA ITEMS, so 15.43.3/15.58.3/15.83.3 r1 ADMITS them (they used to draw
-      *> COBOLNET1516 "not a data item"). The folds are compile-time constants: LINAGE-COUNTER's
+      *> COBOL1516 "not a data item"). The folds are compile-time constants: LINAGE-COUNTER's
       *> size "is equal to the page size specified in the LINAGE clause" (8.4.3.14.4 GR1) so
       *> HIGHEST = 66 here; the report counters carry no spec size (8.4.3.15.4 GR1) and take the
       *> documented implementor shape, an unsigned 32-bit binary integer, HIGHEST = 4294967295

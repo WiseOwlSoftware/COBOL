@@ -19,7 +19,7 @@
       *> collapsed width. 8.5.1.12.3 would call the two groups compatible,
       *> but a fixed-length group carries no variable-length-group signature
       *> information, so no superclass method has the SAME signature and
-      *> 11.7.3 SR3 is violated: COBOLNET0829. Before wave 59 H this program
+      *> 11.7.3 SR3 is violated: COBOL0829. Before wave 59 H this program
       *> passed the binder and died in Roslyn (CS0115, "no suitable method
       *> found to override"). The positive twin is
       *> 2014/w59h_vlg_override_signature.

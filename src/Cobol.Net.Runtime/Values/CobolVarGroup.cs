@@ -787,7 +787,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             // a space in a fixed-size field is padding, never data. ISO's own LINE SEQUENTIAL record does the same
             // (§14.9.51.4 GR21 — spaces to the right of the rightmost non-space are not transferred). Every component
             // of a FILE record is a dynamic-length ELEMENTARY item — a dynamic-capacity table "may be defined in any
-            // place, other than the file section" (§8.5.1.9.1 3), COBOLNET1526 — so the trim never meets a table whose
+            // place, other than the file section" (§8.5.1.9.1 3), COBOL1526 — so the trim never meets a table whose
             // blank elements are data; `fixedForm` is passed for a file record and nothing else. A STRUCTURED
             // component (§12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
             // so a trailing space is data, not padding (`data` is non-null for it).

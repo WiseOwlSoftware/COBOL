@@ -8,7 +8,7 @@
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicates (SELECT + OPEN) AND the
       *> reverse-signature ReservedWordEditionHints arm are GONE — SHARING parses at all editions (superset) and the
       *> introduction gate is enforced at BIND (DataBinder SELECT + BindOpen phrase -> Check(FileSharingClause2002)),
-      *> so below 2002 it is an exact COBOLNET0900. (A file NAMED SHARING stays a legal user word at 85 — verified:
+      *> so below 2002 it is an exact COBOL0900. (A file NAMED SHARING stays a legal user word at 85 — verified:
       *> the OPEN name-list disambiguation is byte-safe; only the SHARING WITH <mode> phrase is gated.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. SHB.

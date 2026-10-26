@@ -11,7 +11,7 @@
 *> lead an alternative AND all ride cobolWord. This fixture proves the CONCLUSION survives - ANTLR's
 *> full-context prediction still lands the word in the NAME slot when the entry parses that way, so the
 *> program gets the named 8.9 reserved-word diagnostic and NOT the facility decline.
-*> Make it fail once: swap the expected code to COBOLNET1708 and it goes red.
+*> Make it fail once: swap the expected code to COBOL1708 and it goes red.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DCLNAME.
        DATA DIVISION.

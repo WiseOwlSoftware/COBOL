@@ -14,7 +14,7 @@
       *>   cite.py --check 7.2.1 "shall be syntactically correct in
       *>     the initial source text and library text" -> OK
       *> ISO 8.3.3.2.3 SR6: X"414" has three digits where two map to
-      *>   one character (COBOLNET1635).
+      *>   one character (COBOL1635).
       *>   cite.py --check 8.3.3.2.3 "Each hex-character-sequence-1
       *>     shall consist of the number of hexadecimal" -> OK
        IDENTIFICATION DIVISION.

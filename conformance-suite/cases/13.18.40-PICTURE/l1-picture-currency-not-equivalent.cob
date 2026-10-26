@@ -60,7 +60,7 @@
       *> from 2002 onward and the reject-at header names 2002, 2014 and
       *> 2023 only. MEASURED at --std 85 (not a reject-at edition, so
       *> the runner gates nothing on it): this source is rejected on
-      *> BOTH grounds — COBOLNET0808 for SR28 first, then COBOLNET0893
+      *> BOTH grounds — COBOL0808 for SR28 first, then COBOL0893
       *> for the COBOL-2002 clause gate. 85 is therefore left out
       *> because its rejection does not DISCRIMINATE SR28, not because
       *> SR28 stops applying there.

@@ -173,7 +173,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         // ⛔ THE INVARIANT, ASSERTED RATHER THAN ASSUMED (PB10). `mutated` is true exactly for Formats 2/3/4 —
         // the formats in which §14.9.22.4 GR7/GR20 make identifier-1 a RECEIVING operand — and §8.4.3.2.3 SR1
         // bars a function-identifier from precisely those. So a non-field target reaching here means the
-        // binder's COBOLNET1632 screen was bypassed, not that this statement needs a fallback: fail loud rather
+        // binder's COBOL1632 screen was bypassed, not that this statement needs a fallback: fail loud rather
         // than silently dropping the write-back, which would compute the replacement and discard it.
         if (mutated)
         {
@@ -181,7 +181,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             {
                 ctx.Writer.Line(EmitText.LoudStmt(
                     "INSPECT REPLACING/CONVERTING over a non-field identifier-1 (ISO §8.4.3.2.3 SR1 — the "
-                    + "InspectBinder screen should have rejected this with COBOLNET1632)"));
+                    + "InspectBinder screen should have rejected this with COBOL1632)"));
                 return;
             }
             EmitStore(fieldTarget.Place, img);

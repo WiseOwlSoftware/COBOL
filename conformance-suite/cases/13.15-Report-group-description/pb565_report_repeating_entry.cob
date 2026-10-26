@@ -11,7 +11,7 @@
 *>---
       *> ⛔ A REPORT GROUP DESCRIPTION ENTRY MAY BE A REPEATING ENTRY, AND EVERY REPETITION IS A REAL REPORT
       *> ITEM (kb/Work PB565). Before this, an OCCURS clause anywhere in a report group was refused by name
-      *> (COBOLNET0899) — conforming source rejected — and with it two general rules had no population at all:
+      *> (COBOL0899) — conforming source rejected — and with it two general rules had no population at all:
       *> §13.18.63.4 GR21's import of GR9 and GR22's OCCURS-DEPENDING suppressor.
       *>
       *> THE CLAUSE. §13.18.38.2 format 3 (the report-writer format, read off the printed general-format

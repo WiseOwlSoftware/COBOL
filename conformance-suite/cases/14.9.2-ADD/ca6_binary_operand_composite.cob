@@ -9,7 +9,7 @@
       *> composite of operands (ISO 14.7.7 rule 2b) — the composite is then over the OTHER operands, still capped at
       *> 31. BL is BINARY-DOUBLE, so the composite is just F (11 + 13 = 24 digits) <= 31 -> the ADD is LEGAL.
       *> Pre-fix BL was superimposed (BinaryItem DOUBLE unsigned = 20 integer digits) -> a 33-digit composite -> a
-      *> spurious COBOLNET0805 rejection. Runtime: F = 3 + 5 = 8 -> PIC 9(11)V9(13) -> 000000000080000000000000.
+      *> spurious COBOL0805 rejection. Runtime: F = 3 + 5 = 8 -> PIC 9(11)V9(13) -> 000000000080000000000000.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. CA6.
        DATA DIVISION.

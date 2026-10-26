@@ -273,7 +273,7 @@ public sealed class ExceptionEngine
     /// condition is set to exist in the activating runtime element" — a clear status stages nothing.</para>
     ///
     /// <para>The substitution is a RUN-TIME question and has no compile-time twin: the STATIC sibling of the same
-    /// rule is §14.9.18.3 SR2, discharged at bind (COBOLNET0717) for <c>RAISING EXCEPTION exception-name-1</c>,
+    /// rule is §14.9.18.3 SR2, discharged at bind (COBOL0717) for <c>RAISING EXCEPTION exception-name-1</c>,
     /// whose name is known then. Only the LAST arm reaches here, which is exactly why it was the arm left out
     /// (kb/Work PB408).</para></summary>
     /// <param name="pdRaising">The containing source element's PROCEDURE DIVISION header RAISING list — the
@@ -1180,7 +1180,7 @@ public sealed class ExceptionEngine
     // statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist."
     //
     // ⛔ WITHIN THE RANGE OF, NOT SPECIFIED IN. §14.9.18.3 SR1 forbids a GOBACK *written inside* a global
-    // declarative and is a COMPILE-TIME refusal (COBOLNET2102). GR6 governs LEGAL source — a GOBACK in an
+    // declarative and is a COMPILE-TIME refusal (COBOL2102). GR6 governs LEGAL source — a GOBACK in an
     // ordinary paragraph that a global declarative PERFORMs — so it cannot be decided at bind time at all, and
     // the generated GOBACK asks the run-time question the emitted `__useActive` array already answers: is one of
     // THIS program's GLOBAL declaratives currently activated and not yet returned. "Same program" comes free:

@@ -12,9 +12,9 @@
       *> 13.18.63.4 GR12's odometer can never carry OUT of it into G's - which is what FROM (1 1) TO
       *> (2 3) asks it to do.  The rule had NO reachable population before kb/Work PB505 landed: its
       *> antecedent needs more than one subscript position, and every such tuple was refused by the
-      *> landable-scope stage (COBOLNET0899), so a green test pinned the STAGE and SR23 looked covered.
-      *> MEASURED AT ALL FOUR EDITIONS: COBOLNET1946 is reported at every one.  SR23 carries no version
-      *> proviso; below 2014 the OCCURS DYNAMIC introduction gate (COBOLNET0900, and the format-2
+      *> landable-scope stage (COBOL0899), so a green test pinned the STAGE and SR23 looked covered.
+      *> MEASURED AT ALL FOUR EDITIONS: COBOL1946 is reported at every one.  SR23 carries no version
+      *> proviso; below 2014 the OCCURS DYNAMIC introduction gate (COBOL0900, and the format-2
       *> VALUE's at 85) is reported ALONGSIDE it, not instead of it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB505N4.

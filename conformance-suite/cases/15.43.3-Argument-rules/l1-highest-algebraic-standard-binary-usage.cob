@@ -28,7 +28,7 @@
       *> must return a value. A screen that ignored the mode would fail that fixture; one that ignored the
       *> usage family would fail conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float, whose COMP-1/COMP-2
       *> arguments run under STANDARD-DECIMAL.
-      *> Expected: COBOLNET1516, the algebraic-family argument diagnostic.
+      *> Expected: COBOL1516, the algebraic-family argument diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGL1HASB.
        OPTIONS.

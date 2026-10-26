@@ -22,7 +22,7 @@
       *> preamble a Not-claimed module's syntax is not accepted, so
       *> "a parse error or a named error is the conforming posture".
       *> WITNESS: the AT phrase parses (acceptStatement's screenTail)
-      *> and the binder refuses Format 3 BY NAME, COBOLNET1707 "the
+      *> and the binder refuses Format 3 BY NAME, COBOL1707 "the
       *> ACCEPT statement's screen format 3" (ScreenFacility), so this
       *> source is REFUSED rather than silently reinterpreted as a
       *> Format-1 ACCEPT that drops the position operands. That refusal

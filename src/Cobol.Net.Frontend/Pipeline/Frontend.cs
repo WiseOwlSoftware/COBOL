@@ -288,7 +288,7 @@ public sealed class Frontend
         // decision D20; kb/Work PB595). It also consumes the >>PUSH / >>POP lines, which the conditional-
         // compilation driver now leaves for it (LeftDirectives) because that driver runs before COPY has settled
         // the line frame and cannot name the resultant line a directive ended on — recording each as a
-        // DirectiveStackOp every stage below replays over the state it holds, and warning (COBOLNET2297) for an
+        // DirectiveStackOp every stage below replays over the state it holds, and warning (COBOL2297) for an
         // unsuccessful named POP (§7.3.20 / §7.3.22; kb/Work PB941). Line-count preserving.
         (text, var directiveSites, var stackOps) = DirectiveSiteProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
@@ -464,7 +464,7 @@ public sealed class Frontend
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap);
         foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
             sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
-                $"[{Diagnostics.DiagnosticDescriptors.COBOLNET2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);
+                $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);
         // ISO §8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
         // the same characters and reported the same way (kb/Work PB1394). Hidden-channel tokens included: a ';' with no
         // space after it reaches the token stream only there.

@@ -21,8 +21,8 @@
       *> RULE (15.14.3 r1 / 15.50.3 r1): BYTE-LENGTH / LENGTH admit "a data
       *> item of any class or category" - the pointer item, 8 bytes in
       *> this implementation (the USAGE POINTER carrier width).
-      *> Before the fix the EVALUATE drew COBOLNET2318 "used as a
-      *> condition" and the argument COBOLNET0901 "ADDRESS is a reserved
+      *> Before the fix the EVALUATE drew COBOL2318 "used as a
+      *> condition" and the argument COBOL0901 "ADDRESS is a reserved
       *> word". The sweep found a WRONG ANSWER beside it: a POINTER subject
       *> read by two WHEN arms is held in an intermediate (14.9.13.4 GR3),
       *> and the copy into it was a MOVE, which stores no pointer - so

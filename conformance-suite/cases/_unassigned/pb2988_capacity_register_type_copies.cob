@@ -14,7 +14,7 @@
       *>   clause" -> OK 13.18.38.3 30). DC is defined ONCE, in ST; A
       *>   and B each reproduce it, and DC OF A / DC OF B tell the two
       *>   copies apart (8.4.2.2.3 SR1). The refusal this replaces
-      *>   (COBOLNET1523 at B's expansion) counted the copy as a second
+      *>   (COBOL1523 at B's expansion) counted the copy as a second
       *>   definition. Each leg fails if the copies share one register.
       *> Expected values, from the standard:
       *>   8.5.1.9.1: no FROM, no VALUE -> "the current capacity is

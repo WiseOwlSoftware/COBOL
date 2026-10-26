@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> GROUP INDICATE ON AN ENTRY WITH NO COLUMN CLAUSE (kb/Work PB1245 -- COBOLNET2519).
+      *> GROUP INDICATE ON AN ENTRY WITH NO COLUMN CLAUSE (kb/Work PB1245 -- COBOL2519).
       *> ISO/IEC 1989:2023 §13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."

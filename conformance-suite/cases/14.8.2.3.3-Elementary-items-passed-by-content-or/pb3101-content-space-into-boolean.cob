@@ -7,7 +7,7 @@
       *> kb/Work PB3101 - a figurative constant BY CONTENT takes 14.8.2.3.3 rule 2 d)'s MOVE, the WHOLE
       *> 14.9.25.3 question: SR7 "Any figurative constant for which the associated character or characters
       *> are not boolean characters shall not be moved to a boolean data item", so SPACE into the PIC 1(4)
-      *> formal of a method does not conform (14.9.23.3 SR5 c) applies 14.8.2) -> COBOLNET0828 naming SR7.
+      *> formal of a method does not conform (14.9.23.3 SR5 c) applies 14.8.2) -> COBOL0828 naming SR7.
       *> The INVOKE lane asked Table 16 alone of a figurative, under any category it could take, and the
       *> program ran.
       *> cite.py --check 14.9.25.3 "Any figurative constant for which the associated character or characters

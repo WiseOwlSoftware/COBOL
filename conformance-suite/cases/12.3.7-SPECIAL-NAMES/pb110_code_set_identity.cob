@@ -12,7 +12,7 @@
       *> by alphabet-name-1; GR7 c (12.3.7.4) makes STANDARD-1's correspondence to the native set the IDENTITY on the
       *> ISO 646 characters, so the conversion is the identity and the round trip is byte-exact - the CLAIMED case
       *> (CONFORMANCE.md section 2 row 27; an alphabet whose on-medium representation would differ is the documented
-      *> A.3 item 27 non-support, COBOLNET1672 - negative pb110-code-set-nonidentity). SR1 is checked (a FOR NATIONAL
+      *> A.3 item 27 non-support, COBOL1672 - negative pb110-code-set-nonidentity). SR1 is checked (a FOR NATIONAL
       *> alphabet here is 1672; a LOCALE alphabet is 1669 - negative pb110-code-set-locale-alphabet).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB110CS.

@@ -25,7 +25,7 @@
       *> The statement parses as Format 1 (a sole identifier predicts the
       *> arithmetic alternative) and the binder re-routes it to Format 2;
       *> the re-route used to recognize an unparenthesized DATA reference
-      *> only, so each leg below but the control was refused (COBOLNET1511).
+      *> only, so each leg below but the control was refused (COBOL1511).
       *> C0 - control: a sole boolean item, the one form the re-route knew.
       *> F1 - BOOLEAN-OF-INTEGER(5, 8): 5 is 101 in eight positions.
       *> F2 - the same function in parentheses: 3 is 00000011.

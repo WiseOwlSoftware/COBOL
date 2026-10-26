@@ -27,8 +27,8 @@
       *> 'X'=x58=01011000, 'Y'=x59=01011001 - high-order bit first (8.5.1.6.3's "first bit position").
       *> EDITIONS - MEASURED, not assumed. GROUP-USAGE and boolean data are both COBOL-2002 introductions
       *> (constructs.json group-usage-2002 / boolean-data-2002), and this file's output is BYTE-IDENTICAL at
-      *> --std 2002, 2014 and 2023; at --std 85 every leg is refused COBOLNET0900 ("GROUP-USAGE clause requires
-      *> COBOL-2002" / "boolean data (PICTURE symbol 1 / USAGE BIT) requires COBOL-2002") plus COBOLNET1502 for
+      *> --std 2002, 2014 and 2023; at --std 85 every leg is refused COBOL0900 ("GROUP-USAGE clause requires
+      *> COBOL-2002" / "boolean data (PICTURE symbol 1 / USAGE BIT) requires COBOL-2002") plus COBOL1502 for
       *> FUNCTION BYTE-LENGTH. The fix changes storage association, never the edition gate, so the corpus keeps
       *> ONE copy - a byte-identical 2002/2014 duplicate would test the gate a third time and nothing else.
        IDENTIFICATION DIVISION.

@@ -9,8 +9,8 @@
       *> referenced by identifier-1" (cite.py OK). CX has 5 positions and CX(1:10) needs 10, so the statement
       *> is the fatal EC-BOUND-REF-MOD; with checking NOT enabled here, ISO 14.6.13.1.3 8) (last paragraph,
       *> cite.py OK) lets the compiler produce no code for a fatal condition it detects, and the positions
-      *> being integer literals over an item of fixed size, it does (COBOLNET2670, as GnuCOBOL refuses
-      *> "length of 'CX' out of bounds"). With checking enabled the same statement is COBOLNET2671, a
+      *> being integer literals over an item of fixed size, it does (COBOL2670, as GnuCOBOL refuses
+      *> "length of 'CX' out of bounds"). With checking enabled the same statement is COBOL2671, a
       *> warning, and compiles: conformance:cases/A.1-Implementor-defined-language-element-list/l1_fatal_ec_runtime_detection.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGRMLIT.

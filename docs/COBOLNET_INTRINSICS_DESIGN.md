@@ -52,7 +52,7 @@ SMALLER SURFACES (one approach each, dependency named): figurative constants mod
 
 The row now carries `IntrinsicResultRule` — seven spec-derived shapes covering all twenty functions (`FollowsArgument1` alone covers ten) — and `IntrinsicResultType.Resolve` is the ONE reader, called from the generic bind path **and from every bespoke one**. That last clause is load-bearing: TRIM and SUBSTITUTE parse phrase keywords and build their own bound node, so a correct catalog row left them wrong until their construction sites read the rule too — the two-arm dispatch in its silent form, with the fix present and every test green.
 
-**The resolved type is also the function's §14.9.25.3 Table-16 ROW as a MOVE sender (kb/Work PB73, adjudicated 2026-08-18).** §15.2 item 5 gives an INTEGER function "no digits to the right of the decimal point" and item 4 gives a NUMERIC function only "an operational sign"; §8.4.3.2.3 SR11 says a numeric function is never an integer operand "even though a particular reference … might yield an integer value". So `MoveBinder` builds the intrinsic sender's `Table16Operand` with `IsNonInteger = ResultCategory is Numeric && !IntrinsicResultType.IsIntegerOperand(call)` — the ONE integer classifier, resolved per call, so `MAX(3 -14 8)` is the Integer row and `MAX(1.5 2)` the Noninteger one — and Table 16 refuses a NUMERIC function into an alphanumeric / national / boolean / alphabetic receiver (COBOLNET0819) exactly as it refuses a noninteger literal or item. `--permissive` keeps the earlier admission with a warning (the CONFORMANCE.md item-92 text form). Before this the computed-sender arm carried `IsNonInteger: false` for every function, an under-rejection.
+**The resolved type is also the function's §14.9.25.3 Table-16 ROW as a MOVE sender (kb/Work PB73, adjudicated 2026-08-18).** §15.2 item 5 gives an INTEGER function "no digits to the right of the decimal point" and item 4 gives a NUMERIC function only "an operational sign"; §8.4.3.2.3 SR11 says a numeric function is never an integer operand "even though a particular reference … might yield an integer value". So `MoveBinder` builds the intrinsic sender's `Table16Operand` with `IsNonInteger = ResultCategory is Numeric && !IntrinsicResultType.IsIntegerOperand(call)` — the ONE integer classifier, resolved per call, so `MAX(3 -14 8)` is the Integer row and `MAX(1.5 2)` the Noninteger one — and Table 16 refuses a NUMERIC function into an alphanumeric / national / boolean / alphabetic receiver (COBOL0819) exactly as it refuses a noninteger literal or item. `--permissive` keeps the earlier admission with a warning (the CONFORMANCE.md item-92 text form). Before this the computed-sender arm carried `IsNonInteger: false` for every function, an under-rejection.
 
 **Resolve returns the §15.2 TYPE, not the category.** `ResultCategory` folds INTEGER, NUMERIC and INDEX into `PicCategory.Numeric` — correct for every consumer that exists today, and precisely why resolving to a category would have made the four integer-following rules unrepresentable, i.e. dead members reading as coverage. Resolving the type keeps D1's §15.2 classification intact and leaves the answer already correct for the first consumer of integer-ness that arrives.
 
@@ -318,7 +318,7 @@ twelve cross-rule functions rejected `FUNCTION MAX(<PIC ZZ9 item> "A")` and its 
 eleven of whose inventory rows read CONFORMS. `IntrinsicArgumentClassDriftTests` holds both halves: no cross screen
 may SPLIT a Table-2 class, and every class-worded kind's admissible set stays closed under its class.
 `ClassOfCategory` maps category numeric-edited to the refined member unconditionally; §8.4.3.3.4 GR6 c)'s national
-half is unreachable while `PIC ZZ9 USAGE NATIONAL` is refused at COBOLNET0899 (kb/Work PB646), whose landing owns
+half is unreachable while `PIC ZZ9 USAGE NATIONAL` is refused at COBOL0899 (kb/Work PB646), whose landing owns
 the usage-keyed arm in `ClassOfItem` beside `Usage.Index`'s.
 
 `IntegerViolation` decides §15.3 type 6 — "an arithmetic expression that will always result in an
@@ -339,7 +339,7 @@ scale, so neither screen can grow an arm the other lacks. The literal test is on
 `NumericLiteral.TryParseExact` — the one exact parser — so the fixed-point form (§8.3.3.3.2) and the floating form
 (§8.3.3.3.3, whose GR5 value is the significand times ten to the exponent) are judged alike: `1.0` and `1.0E2` are
 admitted, `1.5` and `2.02402299E7` are not. ⚠ A floating-point operand at an integer position is REJECTED under
-strict and accepted with a COBOLNET1627 WARNING under `--permissive` (the documented coercion extension,
+strict and accepted with a COBOL1627 WARNING under `--permissive` (the documented coercion extension,
 `FloatIntegerArgumentPermissiveTests`). Rules a class kind cannot
 carry at all live beside the schema on the same axis (`StaticUsageOf` — CONCAT's §15.18.3 r2/r3 usage halves in
 `CheckConcatArgs`, BASECONVERT's argument-1 and CONVERT's usage screens) or in the function's own binder (SUBSTITUTE's per-pair
@@ -352,7 +352,7 @@ literal arm — which admits `ALL "…"` per §8.3.3.6.3 SR1). A schema may DECL
 ordinals: BASECONVERT is `[UnscreenedKind, 'i', 'i']` — argument-1's usage rule is `CheckBaseConvertArgs`', while
 argument-2/-3 ("positive nonzero numeric integer literals or data items", Table 21 `Int2`, `Int3`) ride the ONE class
 screen plus the data-item-or-literal-only predicate, so an alphanumeric item, a USAGE POINTER item and an ADDRESS OF
-base are COBOLNET1627 (kb/Work PB2079). The `--permissive` coercion in that screen reaches only an operand that holds
+base are COBOL1627 (kb/Work PB2079). The `--permissive` coercion in that screen reaches only an operand that holds
 characters to coerce (`IsDigitDecodable`): a pointer or object-reference operand stays an error under it, since the
 coercion has nothing to render or decode. Every catalogued function has a row in `Verified` or a
 cited reason in `DeliberatelyUnscreened` (`IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow`), so a
@@ -438,7 +438,7 @@ DefinitionPermitsArguments` / `Sr6ArgumentListError`, PB61 row SR-8.4.3.2.3-6): 
 arguments and a left parenthesis immediately follows … the left parenthesis is always treated as the left
 parenthesis of that function's arguments" — so `NAME (start:length)` on an argument-permitting intrinsic OR a
 REPOSITORY user function with USING formals (SR6 names function-prototype-name-1 too; §12.3.8.4 GR12 gives the user
-function precedence) is an ARGUMENT LIST holding a non-argument (SR8), reported COBOLNET1543 on every route: the
+function precedence) is an ARGUMENT LIST holding a non-argument (SR8), reported COBOL1543 on every route: the
 FUNCTION-keyword form (`FUNCTION UPPER-CASE (1:4)` — the FNARG_LPAREN belongs to the refModPart, so the argument list
 is EMPTY and binding first reported the §15.3 arity error), the reserved-name keyword-omitted form (RANDOM/SIGN/SUM),
 and `KeywordOmittedFunction` (`UPPER-CASE (1:4)` under FUNCTION ALL INTRINSIC — it fell through the MinArgs guard to
@@ -502,7 +502,7 @@ capacity register is minted for every dynamic table** (named only under `CAPACIT
 range is readable (PB61 first needed this for LENGTH r7c). **Admissibility is decided FIRST, from the
 DEFINITION:** `IntrinsicSig.RepeatsAnArgument` (`MaxArgs` unbounded — `IntrinsicRepeatedArgumentDriftTests` pins
 it to the ellipsis in every §15.x.2 general format, both ways; CONVERT/FIND-STRING are Variadic through phrase
-words and repeat nothing) — on any other function the ALL is COBOLNET1645 at any cardinality (`MOD(E(ALL) B)`
+words and repeat nothing) — on any other function the ALL is COBOL1645 at any cardinality (`MOD(E(ALL) B)`
 bound over a one-occurrence table before), and the arity gate counts the arguments as WRITTEN, an ALL as its
 elements when its ranges are fixed and as the one argument §15.3 guarantees otherwise. "The evaluation of an ALL
 subscript shall result in at least one argument, otherwise the result … is undefined" — WiseOwl COBOL defines the
@@ -601,7 +601,7 @@ and ANNUITY's binary64 body took 3.5 periods — measured by `IntrinsicIntegerPo
 probes every verified type-6 position against the integer-literal control.
 
 The defect was reachable only under `--permissive` (PB248's §15.3 type-6 screen rejects a floating-point item at
-an integer position under strict, COBOLNET1627), and the sweep measured **ten** functions crashing that way, not
+an integer position under strict, COBOL1627), and the sweep measured **ten** functions crashing that way, not
 one: FIND-STRING, ORD, INTEGER-OF-BOOLEAN, NUMVAL-F, TEST-NUMVAL, TEST-NUMVAL-C, TEST-NUMVAL-F,
 INTEGER-OF-FORMATTED-DATE, SECONDS-FROM-FORMATTED-TIME and TEST-FORMATTED-DATETIME. Pinned by
 `IntrinsicFloatLaneArgumentRunDriftTests` (the population is derived from the schema, and the probe is the emitted
@@ -698,7 +698,7 @@ filled and consulted by NOTHING at declaration time; `KeywordOmittedFunction` su
 data item wins" precedence, so under `FUNCTION HIGHEST-ALGEBRAIC INTRINSIC` a table named HIGHEST-ALGEBRAIC compiled
 clean and `HIGHEST-ALGEBRAIC(A1)` silently read the table element where §15.43.4 requires +999. **The rule now:**
 `DataBinder.DeclareUserWord(word, UserWordKind)` is THE declaration funnel of a user-defined word, and the screen
-lives there — **COBOLNET1649** at the declaration; a catalogued name the REPOSITORY does NOT identify stays a legal
+lives there — **COBOL1649** at the declaration; a catalogued name the REPOSITORY does NOT identify stays a legal
 user-defined word (SQRT as a table, MOD as an item), and only for those does the data item win the FUNCTION-less
 spelling. Golden `pb65_repository_r5_intrinsic_names`, negatives `pb65-repository-*`.
 
@@ -723,9 +723,9 @@ only from 2023). Golden `2023/pb1083_repository_all_cobol_words`; negatives `pb1
 (§12.3.8.2's intrinsic-function-specifier and user-defined-function-specifier — three grammar alternatives, one
 construct) is a 2002 introduction: the constructs.json row `repository-function-2002`, gated at the declaration by
 `VersionConformancePass.ParseArm.VisitRepositoryEntry` beside its CLASS / INTERFACE / PROGRAM / PROPERTY siblings
-(COBOLNET0900), so a program below 2002 cannot write the declaration that §8.4.3.2.3 SR2 requires before FUNCTION may
+(COBOL0900), so a program below 2002 cannot write the declaration that §8.4.3.2.3 SR2 requires before FUNCTION may
 be omitted. `KeywordOmittedFunction` is inert where the row is not available and the reserved-name arm names the
-missing edition in its COBOLNET1543 text; both read the row through `ConstructRegistry.IsAvailable`, never a literal
+missing edition in its COBOL1543 text; both read the row through `ConstructRegistry.IsAvailable`, never a literal
 2002. Golden `2002/pb2589_repository_function_keyword_omitted`; negative `pb2589-repository-function-at-85`.
 
 **The same funnel is the one-type-per-word census (kb/Work PB990, §8.3.2.2).** "*Within a source element, a given
@@ -753,7 +753,7 @@ resolves through `TryUse(site, name)`, which records the use through the ONE rec
 duplicate check or a second read of an already-resolved name asks `Declares` / `TryPeek`, which record nothing; the
 mnemonic-names keep their parse-tree registry (`Procedure.MnemonicRegistry`), whose `TryUse` records the same way.
 `InheritConfiguration` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
-before PB3153, so a contained program's use of one was COBOLNET1639). Where a format admits both an inherited name and
+before PB3153, so a contained program's use of one was COBOL1639). Where a format admits both an inherited name and
 another reading of the same word, the referring element's own item of the same spelling is asked first — §8.4.6.1: "a
 source element's reference to such a name, even when it is a different type of user-defined word, is to the item which
 that source element describes" — and only the inherited reading records a use. The own item may be a data item or a
@@ -774,7 +774,7 @@ method (SR2). `UserWordDeclarationDriftTests.EveryConfigurationSectionNameType_R
 parses §8.4.6.1's list and keeps every type's registry a recording one; negative
 `pb3153-contained-program-paragraph-spells-an-inherited-class-it-uses`, golden `85/pb3153_inherited_special_names_words`
 and `InheritedConfigurationNameUseTests` (every type, and a method) are the witnesses.
-A later declaration or reference of another type is **COBOLNET2692** unless
+A later declaration or reference of another type is **COBOL2692** unless
 `UserWordKinds.MayBeOneWord` allows it — the standard's three exceptions as DATA (a compilation-variable-name; a
 level-number beside a paragraph- or section-name; the constant-name / data-name / property-name / record-key-name /
 record-name group), which `UserWordDeclarationDriftTests.TheSharingRelation_IsRebuiltFromTheStandardsExceptions`
@@ -804,9 +804,9 @@ TEST-FORMATTED-DATETIME, INTEGER-OF-FORMATTED-DATE, FORMATTED-TIME, FORMATTED-DA
 ON: a seconds subfield may be 60 (§15.3.3.3 — `Analyze`'s field range), standard numeric time form is bounded at
 86,401 (§7.3.17.4 GR4 — `SecondsOutOfStandardForm`), and 86,400.x is presented as 23:59:60.x. The REPORTED side
 (GR2/GR4's "may a 60 / a value ≥ 86,400 be returned") stays the implementor's "never" (A.1 items 111 and 112 — the .NET clock
-has no leap seconds). SR1 (not within a compilation unit) is COBOLNET1650 — the one obligation only that stage can
+has no leap seconds). SR1 (not within a compilation unit) is COBOL1650 — the one obligation only that stage can
 see; the OPERAND (§7.3.17.2's ON/OFF, with ON un-underlined so a bare directive selects it) is checked with every
-other directive's, as COBOLNET1911 off the row's `directiveOperand` column (kb/Work PB794), and below 2002 the
+other directive's, as COBOL1911 off the row's `directiveOperand` column (kb/Work PB794), and below 2002 the
 directive is the introduction gate (construct `leap-second-directive-2002`). Goldens `pb65_leap_second_on` / `_off`.
 **The floor is a fact about the exact value, on every carrier (PB1379).** The screen compares the LANDED (unscaled, scale)
 pair, so a float or SDIDI seconds argument lands through `CobolDate.SecondsOfReal` / `SecondsOfDec`, which round toward
@@ -840,7 +840,7 @@ Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_
 - FACTORIAL(n) for n≥21 overflows long and n large overflows Int128 → size-error / EC-ARGUMENT-FUNCTION (legacy clamped at 28! for decimal). The Int128 boundary: 33! ≈ 8.68e36 FITS (Int128.Max ≈ 1.70e38); **34! is the first overflow**; the runtime returns the EC default 0 for n > 33 or n < 0.
 - RANDOM with vs without a seed argument — seeded form is deterministic per-call, unseeded shares one generator; the optional-trailing-arg arity must be modeled so the no-arg and one-arg forms both bind.
 - FUNCTION WHEN-COMPILED (§15.99.3 r1) and CURRENT-DATE (§15.21.3) share the SAME 21-character structure: `YYYYMMDDHHMMSShh` in positions 1-16 followed by the UTC-offset subfield in positions 17-21 (position 17 = `+`/`−`/`0`, positions 18-19 = offset hours, positions 20-21 = offset minutes). WHEN-COMPILED carries the compilation timestamp, CURRENT-DATE the run-time clock; both are nondeterministic and both route through the injectable clock (the ONE `CobolDate.Format21` formatter), so conformance tests must inject a fixed clock.
-- ADDRESS OF and SET … TO ADDRESS OF produce a ManagedPointer (managed ref), never a numeric address — and SET … TO NULL (the predefined address, an identifier — not a figurative constant; kb/Work PB1427) sets it to the null ManagedPointer, semantically distinct from LOW-VALUE. NULL is no intrinsic-function argument (§8.4.3.10.3 SR1 lists only the function-PROTOTYPE activation), so `FUNCTION LENGTH(NULL)` is COBOLNET2576.
+- ADDRESS OF and SET … TO ADDRESS OF produce a ManagedPointer (managed ref), never a numeric address — and SET … TO NULL (the predefined address, an identifier — not a figurative constant; kb/Work PB1427) sets it to the null ManagedPointer, semantically distinct from LOW-VALUE. NULL is no intrinsic-function argument (§8.4.3.10.3 SR1 lists only the function-PROTOTYPE activation), so `FUNCTION LENGTH(NULL)` is COBOL2576.
 - DAY-OF-WEEK ordinal: COBOL is 1=Monday..7=Sunday, .NET DayOfWeek is 0=Sunday — the (+6)%7+1 remap is easy to get wrong.
 - HIGH-VALUE used in a comparison vs in a MOVE: as a MOVE source it fills the receiver width with U+FFFF; in a comparison it compares as the highest ordinal — both fall out of the U+FFFF mapping + ordinal Compare, in both classes (D5).
 - INITIALIZE skips FILLER by default but INITIALIZE … REPLACING / WITH FILLER changes that; REDEFINES subordinates and items with the wrong category for the REPLACING clause are skipped (§14.9.20.4 GR5).

@@ -9,7 +9,7 @@
       *> literal (a comma that no space follows is no separator, ISO 8.3.5 2)), and the error
       *> production did not open at it, so XYZ was refused as an unrecognized configuration
       *> paragraph. It opens at it now: XYZ is the computer-name and ,5 is refused BY NAME in the
-      *> SOURCE-COMPUTER paragraph's format (COBOLNET1970), quoted whole, at every edition.
+      *> SOURCE-COMPUTER paragraph's format (COBOL1970), quoted whole, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3390SC.
        ENVIRONMENT DIVISION.

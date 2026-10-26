@@ -25,7 +25,7 @@
       *> an EMPTY specified block. CHAR then read every position as an
       *> "unspecified" one and SYMBOLIC CHARACTERS ... IN found no
       *> ordinal at all. Before the fix this program was REJECTED
-      *> (COBOLNET1670 on the SYMBOLIC CHARACTERS clause); without that
+      *> (COBOL1670 on the SYMBOLIC CHARACTERS clause); without that
       *> clause it ran and printed CHAR-65471=" " and RT66=65504.
       *>
       *>   ORD("A")   (15.70.1 - "the ordinal position of argument-1 in

@@ -24,7 +24,7 @@ namespace CobolNet.Frontend.Preprocessor;
 /// <c>&gt;&gt;WHEN</c> operand is fragment-parsed by ANTLR (<see cref="DirectiveExpressionFragment"/>) and evaluated
 /// by the ONE shared <see cref="CompileTimeExpressionEvaluator"/> — there is no hand-rolled tokenizer or condition
 /// parser; the ANTLR grammar is the single source of truth for directive-expression syntax (§7.3.6 arithmetic,
-/// §7.3.7 boolean, §7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOLNET1619</b>,
+/// §7.3.7 boolean, §7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOL1619</b>,
 /// never a silently mis-bound value.
 ///
 /// A THIRD job it owns for the whole §7.3 family, because this is the one place that sees every directive line:
@@ -37,7 +37,7 @@ namespace CobolNet.Frontend.Preprocessor;
 /// edition column, so eleven directives compiled clean at <c>--std 85</c>, an edition with no compiler directives
 /// at all, while the five with their own per-stage gate were correctly rejected. <c>&gt;&gt;SOURCE FORMAT</c> is
 /// the sole exception and gates in <see cref="ReferenceFormatProcessor"/>, which consumes its line before this
-/// driver runs — same row, same COBOLNET0900 producer, one stage earlier.
+/// driver runs — same row, same COBOL0900 producer, one stage earlier.
 ///
 /// A FOURTH job, the one thing a directive does here that is not a change to the text or to a table: (4) THE DISPLAY
 /// DIRECTIVE (§7.3.12, kb/Work PB807 / PB1538 — <c>ConditionalCompilationProcessor.Display.cs</c>). Its operands are read
@@ -187,7 +187,7 @@ public static partial class ConditionalCompilationProcessor
             _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan, _edition);
             // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
             // `_defines` (a directive may reference a variable an earlier directive — or a copybook — set); the
-            // frontend routes every formation diagnostic to COBOLNET1619; a directive operand is dot-decimal (§5.3).
+            // frontend routes every formation diagnostic to COBOL1619; a directive operand is dot-decimal (§5.3).
             _evaluator = new CompileTimeExpressionEvaluator(
                 edition: _edition,
                 resolveName: w => _defines.TryGetValue(w, out var v) ? v : null,
@@ -317,7 +317,7 @@ public static partial class ConditionalCompilationProcessor
                 // asked HERE, once, for the whole family: the recognized-and-consumed directives, the ones a
                 // downstream stage owns (_leave), and the conditional-compilation directives handled by the
                 // switch below alike. It routes through the ONE ConstructRegistry funnel, so the introduction
-                // edge is COBOLNET0900, a removal COBOLNET0902 and an obsolete use COBOLNET0903, with the
+                // edge is COBOL0900, a removal COBOL0902 and an obsolete use COBOL0903, with the
                 // §4.2 severity decided by the ONE EditionSeverityPolicy — never a local `if (dialect < N)`.
                 // A directive in an OMITTED branch is not compiled, so it is not gated (it drops with its
                 // branch, like every other omitted line). Its SYNTAX is another matter (§7.2.1, kb/Work PB1363): the
@@ -335,7 +335,7 @@ public static partial class ConditionalCompilationProcessor
                     // one answer each per directive, asked at the same point. Before PB794 the second was asked
                     // by six stages in six spellings with six codes — and not at all for the seven directives
                     // this stage consumes, so >>SOURCE FORMAT UNKNOWN, >>LISTING GARBAGE and >>PUSH GARBAGE
-                    // compiled clean. The closed-word-set rows answer here, through the ONE COBOLNET1911
+                    // compiled clean. The closed-word-set rows answer here, through the ONE COBOL1911
                     // producer; a row whose operand a downstream stage parses is a declared no-op.
                     CompilerDirectiveCatalog.CheckOperand(keyword, rest, _edition, sink);
                     // The directives a DOWNSTREAM stage parses never reach that stage from an omitted branch (the line is
@@ -750,7 +750,7 @@ public static partial class ConditionalCompilationProcessor
     /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §7.3.11.3 SR2: without the
     /// OVERRIDE phrase a compilation variable already defined (and not OFF'd) may be redefined only to the SAME
     /// value (category-aware value equality — <c>AS 1</c> / <c>AS 01</c> / <c>AS 1.0</c> are the same). A differing
-    /// no-OVERRIDE redefinition is COBOLNET1618 (superset-continue: the new value still binds).</summary>
+    /// no-OVERRIDE redefinition is COBOL1618 (superset-continue: the new value still binds).</summary>
     private static void AssignDefine(string name, CtValue newVal, bool over, Dictionary<string, CtValue> defines,
         DirectiveDiag diag)
     {
@@ -762,7 +762,7 @@ public static partial class ConditionalCompilationProcessor
     // ── operand / cce evaluation via the ANTLR fragment parse + the shared evaluator ──────────────────────────
 
     /// <summary>Fragment-parse and evaluate one compile-time operand to a <see cref="CtValue"/>, or null (a
-    /// syntax error is reported as COBOLNET1619; a formation error is reported by the evaluator).</summary>
+    /// syntax error is reported as COBOL1619; a formation error is reported by the evaluator).</summary>
     private static CtValue? EvaluateOperandText(string text, CompileTimeExpressionEvaluator evaluator,
         DirectiveDiag diag, string where)
     {
@@ -775,7 +775,7 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>Fragment-parse a compile-time operand WITHOUT evaluating it — the syntax check of a directive in an omitted
     /// branch (ISO §7.2.1: compiler directives shall be syntactically correct in the initial source text, and the false
-    /// path of an IF or EVALUATE is part of it). A syntax error is COBOLNET1619, exactly as in a compiled branch;
+    /// path of an IF or EVALUATE is part of it). A syntax error is COBOL1619, exactly as in a compiled branch;
     /// evaluation errors (undefined name, category, division) need values and belong to a compiled branch only.</summary>
     private static void CheckOperandSyntax(string text, DirectiveDiag diag, string where) =>
         ParseOperandFragment(text, diag, where, compiled: false);
@@ -787,7 +787,7 @@ public static partial class ConditionalCompilationProcessor
     // ── ⭐ THE THREE DIRECTIVE-FRAGMENT PARSE FUNNELS (kb/Work PB1616) ───────────────────────────────────────────
     // A directive operand is lexed apart from the unit, so no tree walk of the unit reaches it. Every fragment this stage
     // parses comes through one of these three, and each asks the same two things of it: is it SYNTACTICALLY a fragment
-    // (COBOLNET1619 when not), and is every literal in it sound (the literal's own §8.3.3 rules, always; the edition gates
+    // (COBOL1619 when not), and is every literal in it sound (the literal's own §8.3.3 rules, always; the edition gates
     // of its format, in a COMPILED branch). A fragment that fails either has no value and is returned as null — the
     // "already reported" result every caller keeps. A fourth parse site calls a funnel, never DirectiveExpressionFragment.
 
@@ -917,8 +917,8 @@ public static partial class ConditionalCompilationProcessor
         && (s.Length == word.Length || CobolSpace.IsSeparator(s[s.Length - word.Length - 1]));
 
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
-    /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOLNET1619 (the directive-expression
-    /// violation); the §7.3.11.3 SR2 redefinition is COBOLNET1618. <see cref="At"/> is set before each directive
+    /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOL1619 (the directive-expression
+    /// violation); the §7.3.11.3 SR2 redefinition is COBOL1618. <see cref="At"/> is set before each directive
     /// (kb/Work PB82: the SOURCE origin of the directive line — the copybook's own file and line when the directive
     /// is inside copied text — never an index into the text being rendered).</summary>
     private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath, FlagScanState flagScan, EditionInfo edition)
@@ -942,7 +942,7 @@ public static partial class ConditionalCompilationProcessor
 
         /// <summary>The boolean-operator introduction gate over an evaluated directive fragment (kb/Work PB1370): a
         /// compile-time boolean expression is "formed in accordance with 8.8.2" (ISO §7.3.7.2 SR1) OF THE TARGETED
-        /// EDITION, so a B-SHIFT-* below COBOL-2023 is the same COBOLNET0900 its runtime twin draws — asked through
+        /// EDITION, so a B-SHIFT-* below COBOL-2023 is the same COBOL0900 its runtime twin draws — asked through
         /// the ONE body the compilation-unit walk uses (<see cref="BooleanOperatorGate"/>), once per fragment.</summary>
         public void GateBooleanOperators(Antlr4.Runtime.Tree.IParseTree fragment)
         {
@@ -952,7 +952,7 @@ public static partial class ConditionalCompilationProcessor
         /// <summary>The logical-operator introduction gate over an evaluated constant-conditional-expression
         /// fragment (kb/Work PB1371): a >>IF operand is "a complex condition as specified in 8.8.4.9" (ISO §7.3.8.2
         /// SR1 d)) of the targeted edition, so an XOR / EXCLUSIVE-OR connective below COBOL-2023 is the same
-        /// COBOLNET0900 its runtime twin draws — asked through the ONE body the compilation-unit walk uses
+        /// COBOL0900 its runtime twin draws — asked through the ONE body the compilation-unit walk uses
         /// (<see cref="LogicalOperatorGate"/>), once per fragment.</summary>
         public void GateLogicalOperators(Antlr4.Runtime.Tree.IParseTree fragment)
         {
@@ -961,7 +961,7 @@ public static partial class ConditionalCompilationProcessor
 
         /// <summary>The relational-operator introduction gate over an evaluated constant-conditional-expression fragment
         /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §7.3.8.2 SR1 a)) of the
-        /// targeted edition, so the symbol <c>&lt;&gt;</c> below COBOL-2014 is the same COBOLNET0900 its runtime twin draws
+        /// targeted edition, so the symbol <c>&lt;&gt;</c> below COBOL-2014 is the same COBOL0900 its runtime twin draws
         /// — asked through the ONE body the compilation-unit walk uses (<see cref="RelationalOperatorGate"/>), once per
         /// fragment.</summary>
         public void GateRelationalOperators(Antlr4.Runtime.Tree.IParseTree fragment)
@@ -986,26 +986,26 @@ public static partial class ConditionalCompilationProcessor
 
         public void Report(CtDiagCode code, string message) => Emit(
             code == CtDiagCode.DirectiveWordAsName
-                ? Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code : "COBOLNET1619", message);
+                ? Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code : "COBOL1619", message);
 
-        /// <summary>COBOLNET2650 — a compilation-variable-name that is a §8.12 compiler-directive word (kb/Work PB1366).</summary>
+        /// <summary>COBOL2650 — a compilation-variable-name that is a §8.12 compiler-directive word (kb/Work PB1366).</summary>
         public void DirectiveWordAsName(string name, string where, string rule) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code,
                 $"'{name}' is a compiler-directive word (ISO §8.12) and shall not be used as a compilation-variable-name in {where} ({rule})");
 
-        /// <summary>COBOLNET2651 — a DEFINE directive that does not match its general format (kb/Work PB1367).</summary>
+        /// <summary>COBOL2651 — a DEFINE directive that does not match its general format (kb/Work PB1367).</summary>
         public void DefineMalformed(string complaint) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DefineDirectiveMalformed.Code,
                 $">>DEFINE is malformed: {complaint} — the general format is "
                 + ">>DEFINE compilation-variable-name-1 [AS] { { arithmetic-expression | boolean-expression | literal | PARAMETER } [OVERRIDE] | OFF } (ISO §7.3.11.2)");
 
-        /// <summary>COBOLNET2698 — a DISPLAY directive's UPON phrase names no available compile-time device, or breaks the
+        /// <summary>COBOL2698 — a DISPLAY directive's UPON phrase names no available compile-time device, or breaks the
         /// choice-indicator discipline of its format (kb/Work PB807).</summary>
         public void DisplayUpon(string complaint) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DisplayDirectiveUpon.Code,
                 $">>DISPLAY UPON: {complaint} (ISO §7.3.12.2, §7.3.12.4 GR5)");
 
-        /// <summary>COBOLNET2697 — the directive at <see cref="At"/> stands within an unfinished COPY or REPLACE
+        /// <summary>COBOL2697 — the directive at <see cref="At"/> stands within an unfinished COPY or REPLACE
         /// statement (kb/Work PB1384).</summary>
         public void WithinStatement(string statementKeyword, bool inPseudoText) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWithinTextManipulationStatement.Code,
@@ -1017,16 +1017,16 @@ public static partial class ConditionalCompilationProcessor
                     + "partial-word-1, or partial-word-2\""
                     : ""));
 
-        public void Report1618(string name) => Emit("COBOLNET1618",
+        public void Report1618(string name) => Emit("COBOL1618",
             $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
             + "phrase (ISO §7.3.11.3 SR2)");
 
-        /// <summary>COBOLNET2649 — a conditional-compilation directive breaks the structure of its general format
+        /// <summary>COBOL2649 — a conditional-compilation directive breaks the structure of its general format
         /// (kb/Work PB1363).</summary>
         public void Structure(string message) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveStructureViolation.Code, message);
 
-        public void Malformed(string where, string text) => Emit("COBOLNET1619",
+        public void Malformed(string where, string text) => Emit("COBOL1619",
             $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
 
         /// <summary>Emit a migration-flag WARNING for a frontend-inline FLAG option (b / c) at
@@ -1043,7 +1043,7 @@ public static partial class ConditionalCompilationProcessor
                 at, default);
         }
 
-        /// <summary>COBOLNET1567 / COBOLNET2773 — the §8.3.2.1 word length and word characters of a directive-carried
+        /// <summary>COBOL1567 / COBOL2773 — the §8.3.2.1 word length and word characters of a directive-carried
         /// word, the SAME codes and text the tree-walk funnel emits (CobolWordRule owns both).</summary>
         public void WordRule(string code, string violation) => Emit(code, violation);
 

@@ -11,7 +11,7 @@
       *> premises. (1) A floating-point literal is EXCLUDED from the
       *> composite (r2a's list): 1.5E+3 beside 9(28)V9 leaves the
       *> composite at 29 <= 31 - counting the E-form's characters
-      *> rejected this legal ADD with a spurious COBOLNET0805.
+      *> rejected this legal ADD with a spurious COBOL0805.
       *> (2) ADD's Format-2 composite excludes the data items after
       *> GIVING (14.9.2.3 SR1b): EW's 2-integer + 29-fraction digit
       *> positions do not count, so A(18 int) + B(4 int) compose at 18

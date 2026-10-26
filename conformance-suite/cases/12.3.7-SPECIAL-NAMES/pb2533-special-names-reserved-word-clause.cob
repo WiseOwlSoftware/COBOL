@@ -10,7 +10,7 @@
       *> 'GLOBAL'" reported several rules up, in the compilation unit, because the paragraph's entry loop may
       *> END and the parser left it before the word failed.  Two closed lists are open at GLOBAL - the
       *> paragraph's entries and the configuration section's paragraphs - and the INNERMOST one names it: the
-      *> word is written inside the SPECIAL-NAMES paragraph.  COBOLNET1970, at every edition.
+      *> word is written inside the SPECIAL-NAMES paragraph.  COBOL1970, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2533SN.
        ENVIRONMENT DIVISION.

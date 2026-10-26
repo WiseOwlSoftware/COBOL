@@ -19,10 +19,10 @@ namespace CobolNet.Validation;
 /// <item><see cref="DirectivePlacementRule.BetweenClauses"/> — ISO §7.3.14.3 SR1 (FLAG-02), §7.3.15.3 SR1 (FLAG-14)
 /// and, for the ALL form, §7.3.22.3 SR3 / §7.3.20.3 SR3: "shall be specified only between clauses in divisions other
 /// than the procedure division and only between statements in the procedure division" (and, for ALL, only in a
-/// compilation unit). A WARNING (<c>COBOLNET2344</c>, §4.2.2 — the D20 disposition of the sibling SR4 bans): the
+/// compilation unit). A WARNING (<c>COBOL2344</c>, §4.2.2 — the D20 disposition of the sibling SR4 bans): the
 /// directive is still processed.</item>
 /// <item><see cref="DirectivePlacementRule.OutsideCompilationUnits"/> — ISO §7.3.17.3 SR1 (LEAP-SECOND) and §7.3.21.3
-/// SR1 (PROPAGATE): "shall not be specified within a compilation unit". An ERROR (<c>COBOLNET2652</c>): the
+/// SR1 (PROPAGATE): "shall not be specified within a compilation unit". An ERROR (<c>COBOL2652</c>): the
 /// directive's effect is folded per unit at the unit's first line, which a directive inside the unit leaves
 /// undefined. BETWEEN two sibling units, or before the first, or after the last END marker, is outside every unit
 /// and LEGAL.</item>

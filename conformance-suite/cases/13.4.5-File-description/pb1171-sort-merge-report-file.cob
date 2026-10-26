@@ -19,7 +19,7 @@
       *>   file-name-4 shall be described in a file description entry
       *>   that is not for a report file" -> OK 9)
       *> Before the fix only the sort-merge half was asked; both
-      *> statements compiled clean. Each is COBOLNET2577.
+      *> statements compiled clean. Each is COBOL2577.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1171N2.
        ENVIRONMENT DIVISION.

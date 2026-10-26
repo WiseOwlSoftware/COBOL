@@ -7,11 +7,11 @@
       * kb/Work PB2017 - under DECIMAL-POINT IS COMMA the comma of
       * *,1 is the decimal point of the literal ,1 (12.3.7.4 14) a),
       * 8.3.3.3.2 3)), so the rule broken is 8.7.1 at the * - no
-      * space follows it.  The diagnostic used to be COBOLNET2631,
+      * space follows it.  The diagnostic used to be COBOL2631,
       * advising a space after the COMMA, which yields the conforming
       * but different program 1 *, 1 (1 times 1, not 1 times 0,1).
       * The Conformance test OperatorSpacingDiagnosticTests pins that
-      * COBOLNET2631 is no longer reported.  COBOLNET2993.
+      * COBOL2631 is no longer reported.  COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2017N5.
        ENVIRONMENT DIVISION.

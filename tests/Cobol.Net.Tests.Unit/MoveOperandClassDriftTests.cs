@@ -75,7 +75,7 @@ public sealed class MoveOperandClassDriftTests
         string? receiving = MoveTable16.ReceiverClassRefusal(place);
         string? sending = MoveTable16.SenderClassRefusal(new BoundFieldOperand(place));
         // A usage with no bound PicInfo (MESSAGE-TAG) cannot produce an operand at all — PictureAnalyzer refuses
-        // the clause by name (COBOLNET1943) — so the class reader answers null and the screen fails OPEN, which
+        // the clause by name (COBOL1943) — so the class reader answers null and the screen fails OPEN, which
         // is the posture every class screen here takes. Say so rather than asserting a refusal that cannot exist.
         if (item.Pic is null)
         {

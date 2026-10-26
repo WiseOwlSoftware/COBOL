@@ -9,7 +9,7 @@
       *>   cite.py --check 14.9.28.4 "There is no necessary relationship between procedure-name-1 and
       *>     procedure-name-2" -> OK §14.9.28.4 6
       *> OUTPUT PROCEDURE IS S-B THRU S-A names SECTIONS with S-A (A1, A2) BEFORE S-B (B1, B2, B3). The MERGE in B2
-      *> lies inside procedure-name-1 and is COBOL-2023's removal (COBOLNET1572, the sibling of SORT's SR3 arm); the
+      *> lies inside procedure-name-1 and is COBOL-2023's removal (COBOL1572, the sibling of SORT's SR3 arm); the
       *> composed pair (B1, A2) forgot B2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3254N3.

@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 13.18.40.3 SR33-SR35 + 13.18.40.6 Table 11 - the format-2 picture syntax rules, one violating item
-      *> per rule, each drawing COBOLNET1673 with the sub-rule named (kb/Work PB64 T6):
+      *> per rule, each drawing COBOL1673 with the sub-rule named (kb/Work PB64 T6):
       *>   B1 SR33 - no 'Z' or '9' at all.  B2 Table 11 - a 'Z' follows a '9' (no 9 may precede any Z).
       *>   B3 SR35 - 32 digit positions.   B4 Table 11 - '+' is not the first symbol.
       *>   B5 Table 11 - the currency symbol after a digit.  B6 - a symbol outside {+ cs Z 9 .} (an 'X').

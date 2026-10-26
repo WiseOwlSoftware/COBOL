@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1415 moved this to 2002+ with COBOLNET0902: the ALL half of SR1 a
+      *> kb/Work PB1415 moved this to 2002+ with COBOL0902: the ALL half of SR1 a
       *> has a DERIVED edition edge (VCR Table 7 row 7.28) - at 85 ALL before a
       *> figurative word is redundant (CCVS-85 NC201A), so the 85 twin is legal
       *> (conformance/85/pb1415_all_zero_numeric_85).

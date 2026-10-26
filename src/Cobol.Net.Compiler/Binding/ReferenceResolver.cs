@@ -58,7 +58,7 @@ internal enum SegmentPosition
 /// shape §13.18.16.3 SR4 / §13.18.54.3 SR8 / §13.18.57.3 SR10 each reject.</param>
 /// <param name="BeyondHostLimit">Exactly one ref-mod is written, both segments ARE integer literals, and one of them
 /// lies beyond the host range (kb/Work PB1579). <see cref="Start"/> and <see cref="Length"/> are then null: a
-/// clause that lays the slice out (the CONTROL prior-value copy, §13.18.16.4 GR3) reports COBOLNET2427 through
+/// clause that lays the slice out (the CONTROL prior-value copy, §13.18.16.4 GR3) reports COBOL2427 through
 /// <see cref="CobolNet.Validation.IntegerOperandRules.BeyondLimitMessage"/> rather than allocate a saturated
 /// bound.</param>
 internal readonly record struct RefModSuffixes(
@@ -68,7 +68,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
 {
     /// <summary>The D18 hook that MATERIALIZES a subscript / ref-mod position the direct walk cannot read
     /// (fix-queue PB17): given the position's PARSED arithmetic expression (null when the written position is not
-    /// one — the hook refuses it by name, COBOLNET2363), its written text for that message and its line, it binds the
+    /// one — the hook refuses it by name, COBOL2363), its written text for that message and its line, it binds the
     /// expression through the ONE <c>ExpressionBinder.BindExpr</c>, synthesizes the §15.4 temporary via
     /// <c>DataBinder.CreateCompilerTemp</c>, registers the store as a statement-scoped pending PRE-op on
     /// <see cref="DataBinder.PendingPreOps"/>, and returns the temp — which this resolver then reads as an ordinary
@@ -127,7 +127,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     }
 
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported
-    /// here — the DEMANDING form: a name that identifies NO declared item reports <c>COBOLNET1639</c> (kb/Work
+    /// here — the DEMANDING form: a name that identifies NO declared item reports <c>COBOL1639</c> (kb/Work
     /// R30 — §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"; before
     /// this, a typo in any reference position compiled clean and threw at RUN time). Every OTHER null return —
     /// a special register routed by the caller, an unsupported subscript/RENAMES/Tier-C shape — is feature-debt
@@ -148,7 +148,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// committed it into the bound tree. Everything <c>_probing</c> suppresses to keep a probe pure then went
     /// missing from the committed bind: the §8.8.1.1 position screen and the §13.18.38.3 r7 index-name screen
     /// never ran (<c>CALL "S" USING BY CONTENT E(XE)</c> with <c>XE PIC X(4)</c> compiled clean while the
-    /// adjacent <c>BY REFERENCE</c> operand drew COBOLNET0844 — one statement, two verdicts), and the D18
+    /// adjacent <c>BY REFERENCE</c> operand drew COBOL0844 — one statement, two verdicts), and the D18
     /// materializer's <c>return "1"</c> short-circuit made <c>E(FUNCTION INTEGER(2))</c> bind occurrence ONE — a
     /// WRONG ANSWER, live since PB157 landed the flag. A comment cannot hold that invariant; a return type can.
     /// A caller that has finished discriminating asks <see cref="Resolve"/> for the Place that enters the tree,
@@ -195,18 +195,18 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// receiving chokepoint reports an undiagnosed null itself (recognized-not-implemented shape).</summary>
     public bool WasDiagnosed(Core.DataReferenceContext dref) => _diagnosed.Contains(dref);
 
-    /// <summary>The COBOLNET1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
+    /// <summary>The COBOL1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
     /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
         // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the section
-        // itself is REFUSED (COBOLNET1560), so "is not defined" would send the user hunting a declaration that is
-        // right there — the reference is to a REFUSED declaration (COBOLNET2364). Before kb/Work PB1030 this arm
+        // itself is REFUSED (COBOL1560), so "is not defined" would send the user hunting a declaration that is
+        // right there — the reference is to a REFUSED declaration (COBOL2364). Before kb/Work PB1030 this arm
         // reported NOTHING, and the statement bound a run-time NotImplemented announced as a WiseOwl COBOL gap.
         if (data.ScreenNames.Contains(name))
         {
-            ReportRefusedDeclaration(dref, name, "a SCREEN SECTION entry — COBOLNET1560");
+            ReportRefusedDeclaration(dref, name, "a SCREEN SECTION entry — COBOL1560");
             return;
         }
         if (!_diagnosed.Add(dref)) return;
@@ -241,7 +241,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // identifier position an index-name cannot fill — landed in the "not defined" arm below and told the user that
         // no declaration gives 'IX', while INDEXED BY had declared it: false, and it sends the reader hunting a typo.
         // §13.18.38.3 SR7 closes the list of contexts an index-name may appear in, and this position is not one, so
-        // the reference is refused for the CATEGORY — the same COBOLNET1637 DISPLAY / MOVE / COMPUTE already draw.
+        // the reference is refused for the CATEGORY — the same COBOL1637 DISPLAY / MOVE / COMPUTE already draw.
         if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not null)
         {
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
@@ -350,7 +350,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         {
             var answer = ResolveImplCore(dref, report);
             // ⛔ A DEFERRAL GOES ON THE LEDGER HERE, BEFORE ANY CALLER SEES IT (kb/Work PB1030): the statement
-            // funnel announces it (COBOLNET1756) whatever the caller then does with the answer — a caller that
+            // funnel announces it (COBOL1756) whatever the caller then does with the answer — a caller that
             // drops it (`.OfType<Place>()`) cannot make it silent. A probe records nothing (R30 purity).
             if (report && answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
@@ -369,7 +369,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
     }
 
-    /// <summary>The ONE wording of COBOLNET2746, whichever kind of name (data-name, condition-name, index-name) the
+    /// <summary>The ONE wording of COBOL2746, whichever kind of name (data-name, condition-name, index-name) the
     /// written reference is.</summary>
     internal void ReportUnreferenceableLinkage(string written, DataItem record) =>
         data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
@@ -390,7 +390,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <summary>The non-place answer when <see cref="PlaceForItem"/> built no place: its deferred shape, or —
     /// when it names none — the entry whose declaration was refused (a REJECTED REDEFINES view, Tier D
     /// <see cref="RedefinesTier.Rejected"/>; a level-66 RENAMES entry whose operands did not resolve). A reference
-    /// to it is reported here, once per reference (COBOLNET2364), because the statement holding it must say why
+    /// to it is reported here, once per reference (COBOL2364), because the statement holding it must say why
     /// it cannot bind.</summary>
     private RefResolution ItemFailure(Core.DataReferenceContext dref, PlaceGap gap)
     {
@@ -407,8 +407,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// of its spanned leaves was refused, and the report must name that entry (kb/Work PB1380).</summary>
     private readonly record struct PlaceGap(DeferredShape? Deferred, DataItem Refused);
 
-    /// <summary>COBOLNET2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
-    /// view; a SCREEN SECTION name, the section being declined as COBOLNET1560). The compile has already failed at
+    /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
+    /// view; a SCREEN SECTION name, the section being declined as COBOL1560). The compile has already failed at
     /// the declaration; this names the consequence at the statement, instead of "not defined" (the name IS
     /// declared) or "not implemented" (it is not a gap in WiseOwl COBOL).</summary>
     private void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why)
@@ -477,7 +477,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>⛔ THE SECOND COPY OF THIS SEQUENCE IS WHAT THIS REPLACED. ResolveForAddressOf re-sequenced the front half
     /// by hand and dropped two of its screens: <c>SET P TO ADDRESS OF L-REC</c> over a LINKAGE record the procedure
     /// division may not reference (§13.7.3 SR4) compiled clean, and an ambiguous or index-name operand was told it
-    /// "names none" where <c>MOVE</c> drew COBOLNET1639 / COBOLNET1637.</para>
+    /// "names none" where <c>MOVE</c> drew COBOL1639 / COBOL1637.</para>
     /// <para><paramref name="forAddressOf"/> is the one place the operand differs: §8.4.3.11.3 SR1 admits only a data
     /// item of the file, working-storage, local-storage or linkage section, so an object-property or object-view
     /// chain (§8.4.3.9, §8.4.3.5) is not tried — it would synthesize a property temp, and register a pending
@@ -516,9 +516,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // pattern) to a read-only VIEW over the run unit's one instance (§8.4.3.6.4 GR2).
         // ⛔ IT IS RESOLVED IN THE ONE RESOLVER SO EVERY CALLER INHERITS IT. Before this, only SET asked the
         // question (OoBinder's own arm), so every OTHER reference — `IF EXCEPTION-OBJECT = NULL`, an INVOKE
-        // receiver, a function argument, and even the ILLEGAL `MOVE U TO EXCEPTION-OBJECT` — drew COBOLNET1639
+        // receiver, a function argument, and even the ILLEGAL `MOVE U TO EXCEPTION-OBJECT` — drew COBOL1639
         // "'EXCEPTION-OBJECT' is not defined … Check the spelling, or declare the item", advice the very next
-        // diagnostic (COBOLNET0901, "is a reserved word … cannot be used as a user-defined word") forbids taking.
+        // diagnostic (COBOL0901, "is a reserved word … cannot be used as a user-defined word") forbids taking.
         // The RECEIVING half of SR1 is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving);
         // this arm is what makes the SENDING half legal source rather than a typo.
         // The predicate is <see cref="IsExceptionObjectRegister"/> — the ONE answer every caller asks for.
@@ -615,7 +615,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE ADMISSION OF A REFERENCE MODIFIER, from the written reference to the screened
     /// <see cref="RefModSpec"/> (kb/Work PB1407 extracted it from <see cref="Resolve"/> so ADDRESS OF reads the same
-    /// rules): §8.4.3.3.3 SR1 — WHAT identifier-1 MAY BE (kb/Work PB70; a bind-time rejection, COBOLNET1647, never
+    /// rules): §8.4.3.3.3 SR1 — WHAT identifier-1 MAY BE (kb/Work PB70; a bind-time rejection, COBOL1647, never
     /// the run-time NotImplemented a sending ref-mod used to reach nor the silent drop a receiving one fell into),
     /// the spec read off whichever carrier the lexer chose, and the LITERAL out-of-range screen (kb/Work PB1707
     /// part 1, R60 — refused while checking is off, compiled with a warning while it is on, the run-time raise then
@@ -657,7 +657,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// caller today is the §8.4.3.4 inline method invocation, whose §8.4.3.4.4 GR1 c) temporary has no
     /// <c>dataReference</c> context of its own (kb/Work PB428). It is a thin ENTRY, not a second reading: the
     /// §8.4.3.3.3 SR1 screen is <see cref="RefModExclusion"/> and the view is <see cref="RefModView"/> — the
-    /// same two the syntactic path runs, in the same order, with the same COBOLNET1647.</summary>
+    /// same two the syntactic path runs, in the same order, with the same COBOL1647.</summary>
     internal Place? RefModOf(Place inner, Core.RefModPartContext rmp, string what)
     {
         if (RefModExclusion(inner.Item) is { } why)
@@ -746,7 +746,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// view is the SAME <see cref="RefModView"/> the procedure division builds, reached without a parse context.
     /// <para><paramref name="length"/> null is §8.4.3.3.2's bracketed, omitted length — the slice runs to the
     /// rightmost position (§8.4.3.3.4 GR5c last sentence). Null return: the item has no place, or §8.4.3.3.3 SR1
-    /// does not admit it (the CALLER rejects that at bind with COBOLNET1647 — this is the backstop).</para>
+    /// does not admit it (the CALLER rejects that at bind with COBOL1647 — this is the backstop).</para>
     /// <para>SR1 and the view read the PLACE's item, as <see cref="Resolve"/> does — a no-THROUGH level-66 alias is
     /// described by data-name-2 (§13.18.45.4 GR1), never by its own entry (kb/Work PB1380).</para></summary>
     public Place? ResolveItemRefMod(DataItem item, int start, int? length, bool allowZeroLength = false) =>
@@ -1082,7 +1082,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // the syntactic path got here (ScreenSubscriptArity); an item-path caller's count is the same mismatch
         // every other item reports.
         if (indexExprs.Count > 0) { gap = new(DeferredShape.UnbuiltAccessPath, alias); return null; }
-        // A RENAMES entry whose operands did not resolve was refused at its declaration (COBOLNET1655,
+        // A RENAMES entry whose operands did not resolve was refused at its declaration (COBOL1655,
         // §13.18.45.3), and the data binder leaves it with no From and an empty Span.
         if (ren.Thru is null ? ren.From is null : ren.Span.Count == 0) return null;
         // The no-THRU form is an ALIAS: §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the
@@ -1140,7 +1140,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>⛔ EVERY NUMERIC USAGE, NOT ONLY THE CHARACTER FORMS (kb/Work PB1054). GR2 defines data-name-1 as "an
     /// alphanumeric group item that includes all elementary items" of the range, so a COMP member contributes its
     /// storage bytes exactly as it does to the record's own group image. This used to admit only
-    /// <see cref="PicInfo.IsCharacterFormNumeric"/> leaves and DEFER the rest (a COBOLNET1756 warning and a run-time
+    /// <see cref="PicInfo.IsCharacterFormNumeric"/> leaves and DEFER the rest (a COBOL1756 warning and a run-time
     /// abort for <c>66 RN RENAMES RA THRU RC</c> over a <c>PIC 9(4) COMP</c> member), although the image place it
     /// declined renders every numeric usage through the ONE storage codec (<c>NumFormatImage</c> /
     /// <c>NumStoreImage</c>, and the float lane). Pointer, object and message-tag members never reach here: §13.18.45.3
@@ -1373,13 +1373,13 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// function-identifier's argument list, where §8.4.3.2.2 brackets the arguments inside the parentheses and
     /// <c>F()</c> is the zero-argument spelling — only the resolved symbol tells a function from a data item, and
     /// a name that reached THIS resolver resolved to a data item. Unscreened, <c>DISPLAY WS-X( )</c> compiled CLEAN
-    /// and aborted at RUN time on NotImplementedCobolFeatureException while the receiving side drew COBOLNET0899's
+    /// and aborted at RUN time on NotImplementedCobolFeatureException while the receiving side drew COBOL0899's
     /// "not yet implemented". It is asked of the written GROUP, before the subscript interpreter.</para></summary>
     /// <summary>THE test for an empty written parenthesis group — no subscript list inside it (kb/Work PB969). One
     /// definition for every reader that must refuse <c>X()</c> on a data reference.</summary>
     internal static bool IsEmptyGroup(Core.SubscriptPartContext group) => group.subscriptList() is null;
 
-    /// <summary>The COBOLNET2309 message body (the quoted reference is the caller's).</summary>
+    /// <summary>The COBOL2309 message body (the quoted reference is the caller's).</summary>
     internal const string EmptyParenthesesMessage = "parentheses with nothing inside them follow a data reference. A "
         + "subscript list writes at least one subscript (ISO §8.4.2.3.2 — \"( subscript … )\") and a reference "
         + "modifier a leftmost position (ISO §8.4.3.3.2); empty parentheses belong only to a function-identifier "
@@ -1407,7 +1407,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <see cref="DataItem.SubscriptArity"/>.</para>
     /// <para>⛔ BOTH WERE DECIDABLE HERE AND NEITHER WAS DECIDED. The resolver returned a bare null on an arity
     /// mismatch and what the programmer saw depended on WHICH SIDE OF THE STATEMENT the reference stood on:
-    /// <c>MOVE 1 TO PLAIN (1)</c> drew the receiving chokepoint's catch-all, COBOLNET0899 "a reference shape
+    /// <c>MOVE 1 TO PLAIN (1)</c> drew the receiving chokepoint's catch-all, COBOL0899 "a reference shape
     /// WiseOwl COBOL does not yet implement as a receiver" — a promise, about source no edition of the standard will
     /// ever admit (the PB489 shape) — while <c>DISPLAY PLAIN (1)</c> COMPILED CLEAN and aborted at run time on
     /// <c>NotImplementedCobolFeatureException</c>, where §4.2.2 requires a compile-time mechanism.</para>
@@ -1599,7 +1599,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>⛔ ASKED OF THE WHOLE QUALIFIED NAME (kb/Work PB1455's sibling sweep). §8.4.2.3.2 hangs the subscript list
     /// off <c>qualified-data-name-1</c>, so in <c>X (E OF T (1))</c> the paren belongs to <c>E OF T</c>; asking the
     /// LAST word alone asked about <c>T</c> — a group that carries no OCCURS — split <c>(1)</c> off as a second
-    /// subscript of X, and refused the legal reference COBOLNET2270 ("E OF T … shall be subscripted").</para></summary>
+    /// subscript of X, and refused the legal reference COBOL2270 ("E OF T … shall be subscripted").</para></summary>
     internal bool CannotBeSubscripted(string name, List<string> qualifiers) =>
         (qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name)) is { IsTableElement: false };
 
@@ -1621,7 +1621,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// two references that name a TABLE and not a place (the SEARCH / SORT table operand and the table(ALL) intrinsic
     /// argument), which read their own subscripts. Both used to call <see cref="FindItem"/> and stop, so `SEARCH L-TABLE`
     /// and `FUNCTION SUM (L-TABLE (ALL))` over a LINKAGE table the procedure division may not reference compiled clean
-    /// while `MOVE L-TABLE (1) TO X` drew COBOLNET2746. Null having reported.</summary>
+    /// while `MOVE L-TABLE (1) TO X` drew COBOL2746. Null having reported.</summary>
     internal DataItem? FindReportedItem(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
         if (FindItem(name, qualifiers) is not { } item)
@@ -1657,7 +1657,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// (§8.4.2.2 — qualification establishes uniqueness; §14.9.37.4 GR1 — the search varies the first index
     /// associated with identifier-1, and for a qualified reference identifier-1 is the QUALIFIED table).</para>
     /// <para>Reporting posture — the DEMANDING one of <see cref="Resolve"/>: a name that identifies no item, or
-    /// that qualification cannot single out, draws COBOLNET1639 here, so a null the caller gets back is already
+    /// that qualification cannot single out, draws COBOL1639 here, so a null the caller gets back is already
     /// reported (<see cref="WasDiagnosed"/> answers true). A SPECIAL REGISTER returns null having reported
     /// NOTHING — it identifies a resource, just not one with a data description, and the verdict that belongs to
     /// it is the statement's own operand rule, written in the one check catalog.</para></summary>
@@ -1947,7 +1947,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// the containing object definition, the use of that word in this method refers to the declaration in this
     /// method. The declaration in the containing object definition is inaccessible to this method" — which
     /// <see cref="Model.SymbolTable.TryResolve"/> already implements, one file away.</para>
-    /// <para>Returns null having REPORTED (COBOLNET1639) when no declaration in scope carries the name or when
+    /// <para>Returns null having REPORTED (COBOL1639) when no declaration in scope carries the name or when
     /// several do — §8.4.2.2.1's ambiguity is the ordinary qualification question and gets the ordinary
     /// diagnostic, never the silent first-wins the bypass took. A caller distinguishes "reported" from "resolved
     /// to the wrong kind of item" with <see cref="WasDiagnosed"/>.</para></summary>
@@ -2036,7 +2036,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <c>SET WS-CAP OF WS-TABLE TO 7</c> (§13.18.38.3 SR30 with §8.4.2.2.3 SR2 — "A name may be qualified even
     /// though it does not need qualification") failed it; the zero-index <c>BuildTablePath</c> returned null for
     /// every table with a table ancestor. Because the register is off <c>ByName</c>, failing either conjunct was
-    /// not a fallback but the END of resolution, and the general resolver then said COBOLNET1639 "is not defined"
+    /// not a fallback but the END of resolution, and the general resolver then said COBOL1639 "is not defined"
     /// — false about a name the OCCURS clause declares.</para>
     /// <para>The qualifier test is the ONE §8.4.2.2 matcher (<see cref="DataBinder.QualifierChainMatches"/>), read
     /// off the register's real <see cref="DataItem.Parent"/> — SR30's "treated as though implicitly defined at the
@@ -2087,7 +2087,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// reference names AND of the one the <c>--permissive</c> disposition of an ambiguous reference picks, because
     /// ambiguity is a fault of the WRITTEN reference and does not excuse the register it resolves to (kb/Work PB2988
     /// review R1-1: when only the unique arm asked it, the permissive arm handed back a null place with no
-    /// diagnostic, COBOLNET2362).</summary>
+    /// diagnostic, COBOL2362).</summary>
     private CapacityRegisterPlace? CapacityRegisterPlaceOf(DataItem table) =>
         table.OccursSpec?.CapacityRegister is { } reg && BuildTablePath(table) is { } path
             ? new CapacityRegisterPlace(path, reg) : null;
@@ -2103,7 +2103,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <c>--std 85</c> EXCEPTION-OBJECT is an ORDINARY user-defined word: <c>01 EXCEPTION-OBJECT PIC X(4).</c>
     /// followed by <c>MOVE "ABCD" TO EXCEPTION-OBJECT</c> is conforming '85 source. When only the resolver arm
     /// carried the gate and the receiving screen compared the spelling by itself, that program drew
-    /// COBOLNET2196 — SR1 quoted at a program that never referenced the register
+    /// COBOL2196 — SR1 quoted at a program that never referenced the register
     /// (feedback_two_arm_dispatch, feedback_edition_gate_sweep). From 2002 the reservation makes the name
     /// undeclarable, so there is nothing left for the interception to shadow.</para>
     /// <para>Only the plain unqualified / unsubscripted / unreference-modified form is the register:
@@ -2175,7 +2175,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             case CapacityRefFault.Ambiguous:
                 // §8.4.2.2.3 SR1, through the ONE verdict every name class shares. Its --permissive disposition
                 // picks the first declared register, which is then judged like a unique reference's: a register
-                // under a table is still COBOLNET2126, never a null place with no diagnostic (review R1-1).
+                // under a table is still COBOL2126, never a null place with no diagnostic (review R1-1).
                 if (data.UniqueOrReportAmbiguous(cap.Reached, "the CAPACITY register reference", text, out _, report)
                     is not { } picked) return null;
                 if (CapacityRegisterPlaceOf(picked) is { } pickedPlace) return pickedPlace;
@@ -2234,7 +2234,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // determination, docs/CONFORMANCE.md A.4.11). The same admission (ReadScreenedRefMod) and the same view
         // (RefModView: the counter's DISPLAY character image, GR1's digits) as every other numeric item. This used
         // to return null here, which sent the reference to ordinary resolution, where a sum counter is not in
-        // ByName: COBOLNET1639 "'CF-T(1:2)' is not defined", naming a rule the program had not broken.
+        // ByName: COBOL1639 "'CF-T(1:2)' is not defined", naming a rule the program had not broken.
         if (ReadScreenedRefMod(dref, written, counter.Item, out var refModRefusal) is not { } spec) return refModRefusal;
         return RefModView(counter.Item, counter, spec) is { } view
             ? RefResolution.Resolved(view, "")
@@ -2524,7 +2524,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>⚠ A cut has a subscript reading only when its list CLOSES the item: the item without the list is the
     /// first subscript and the list's single item the second. A list followed by more of the item
     /// (<c>T (A + X (- Y) + 1)</c>, where the tree joins <c>+ 1</c> to <c>X (- Y)</c>), or a second cut in one item,
-    /// has none the tree can give; its pieces carry no operand and the binder refuses them by name (COBOLNET2363)
+    /// has none the tree can give; its pieces carry no operand and the binder refuses them by name (COBOL2363)
     /// rather than re-cut the expression out of its tokens (DESIGN-binder-bound-tree.md §3.9.2).</para></summary>
     internal static List<PositionSegment> SegmentsOf(Core.SubscriptPartContext group,
         Func<string, List<string>, bool>? parenSplitsAfterName)
@@ -2606,7 +2606,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// ORDER-DEPENDENT — a later operand with no direct form (<c>**</c>), an unresolvable name, or a scaled operand in
     /// a compound abandons the walk AFTER an earlier name was already screened, and the D18 route then screens the
     /// same operand again through the expression binder. Measured: <c>MOVE E(XE ** 2) TO R</c> with <c>XE PIC X(4)</c>
-    /// emitted COBOLNET0844 TWICE. So the screens are QUEUED and flushed only when the walk returns a position; every
+    /// emitted COBOL0844 TWICE. So the screens are QUEUED and flushed only when the walk returns a position; every
     /// D18 reroute discards the queue, which makes the deduplication a property of the control flow.</para></summary>
     /// <param name="indexNames">§8.4.2.3.3 SR4's collector — see
     /// <see cref="ResolveSubscriptName(string,List{string},SegmentPosition,ref List{PendingScreen},out bool,ValueTuple{IToken,List{IndexUse}})"/>.</param>
@@ -2824,7 +2824,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>The candidate set is <see cref="Model.SymbolTable.IndexCandidates"/>'s; the count is §8.4.2.2.3 SR1's
     /// ("For each non unique user-defined name that is explicitly referenced, uniqueness shall be established
     /// through a sequence of qualifiers that precludes any ambiguity of reference"), judged by the ONE verdict
-    /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/> — the data-name's own diagnostic (COBOLNET1639) and
+    /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/> — the data-name's own diagnostic (COBOL1639) and
     /// its <c>--permissive</c> disposition. A spelling that IS an index-name but whose qualifiers name no table
     /// declaring it is the same diagnostic's "not defined" arm, citing SR6.</para></summary>
     internal IndexRef ResolveIndexName(string name, IReadOnlyList<string> qualifiers, object writtenAt)
@@ -2919,7 +2919,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>⛔ IT IS DELIBERATELY NOT GATED ON A TOKEN LIST. The ARITHMETIC-EXPRESSION GRAMMAR decides
     /// admissibility: a position that did not parse as an arithmetic expression — the word ALL outside §8.4.2.3.3
     /// SR6's two contexts, a nonnumeric literal, a piece of an item the declarations cut that has no subscript
-    /// reading (<see cref="SegmentsOf"/>) — is refused here by name (COBOLNET2363, kb/Work PB1030) and never reaches
+    /// reading (<see cref="SegmentsOf"/>) — is refused here by name (COBOL2363, kb/Work PB1030) and never reaches
     /// the hook. That is what lets a function-identifier, <c>**</c>, a decimal literal and every
     /// future arithmetic form share ONE route with no per-token edit.</para>
     /// <para>Null when the hook is absent (a data-division resolver builds a throwaway resolver with no procedure
@@ -2952,7 +2952,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return MaterializeSegment(expr, position, tokens[0].Line) is { } temp ? PositionRead(temp, position) : null;
     }
 
-    /// <summary>The COBOLNET2363 text for a position that is not an arithmetic expression (kb/Work PB1030) — the
+    /// <summary>The COBOL2363 text for a position that is not an arithmetic expression (kb/Work PB1030) — the
     /// word ALL in a subscript names §8.4.2.3.3 SR6's two contexts; anything else names the position's own rule.</summary>
     private static string IllegalPositionMessage(string segment, SegmentPosition position) =>
         position == SegmentPosition.RefMod
@@ -3089,7 +3089,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // parameter for — <c>long</c> or <c>string</c> for a non-numeric operand (numeric ones add the wide tiers). A group's
         // carrier is its per-program <c>record struct</c> and a pointer's is <c>ManagedPointer</c>, so
         // both now route to D18 and are screened by <c>ExpressionBinder.OperandRef</c> instead — the same
-        // COBOLNET0844 over the same §8.8.1.1, minus this method's position phrase.
+        // COBOL0844 over the same §8.8.1.1, minus this method's position phrase.
         // ⚠ THE INTERSECTION IS NARROWER THAN THAT LIST, and it is the second precondition that narrows it: only
         // an item <c>IntrinsicArgumentRules.IsArithmeticOperandClass</c> REJECTED is ever queued, and the
         // numeric-only carriers belong to class NUMERIC items, which it accepts. So what reaches HERE is
@@ -3110,12 +3110,12 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
-            data.Edition.Warning("COBOLNET0844", $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
+            data.Edition.Warning("COBOL0844", $"{what} is not a numeric operand — {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
                 + "unsigned integer");
         else
-            data.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
+            data.Edition.Error("COBOL0844", $"{what} is not a numeric operand: {where}, and ISO §8.8.1.1 "
                 + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
                 + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
     }
@@ -3135,7 +3135,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// is ITEM IDENTIFICATION, which rule 1 names as checked even inside a class condition (kb/Work PB1117). The
     /// profile-less form this replaced decoded that image through a tolerant digit scan: EC-DATA-INCOMPATIBLE was
     /// unreachable and a signed image's sign was dropped. Only a NON-numeric operand — the two <c>--permissive</c>
-    /// carriers COBOLNET0844 admits — keeps the bare <c>CobolTable.Occ(path)</c> digit decode.</para>
+    /// carriers COBOL0844 admits — keeps the bare <c>CobolTable.Occ(path)</c> digit decode.</para>
     /// <para>The read is a typed <see cref="PositionItemRead"/> (kb/Work PB2151): the item, its structural path
     /// and the overload form; <c>CodeGen.PositionRenderer</c> renders it through <c>RuntimeApi</c>.</para></summary>
     private PositionItemRead? PositionRead(DataItem item, SegmentPosition position)
@@ -3219,7 +3219,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         ["long", "string", "Int128", "ulong", "UInt128"];
 
     /// <summary>The carrier types <c>CobolTable.Occ(<i>x</i>)</c> declares a parameter for — a NON-numeric
-    /// position operand, which only <c>--permissive</c> admits (COBOLNET0844): an index data item's <c>long</c>
+    /// position operand, which only <c>--permissive</c> admits (COBOL0844): an index data item's <c>long</c>
     /// and a character item's <c>string</c>. Held to the runtime overloads by the same drift test.</summary>
     internal static readonly string[] NonNumericPositionCarriers = ["long", "string"];
 }

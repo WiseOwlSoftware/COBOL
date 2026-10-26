@@ -35,8 +35,8 @@
       *>   LINE 3 - BY names its own counter (SR3): M = 1; then 1 + 1 = 2; then 2 + 2 = 4 => `1  2  4`.
       *>   LINES 4, 5 - the name N reused by two entries that are not subordinate to one another is two independent
       *>            counters (SR2 NOTE): FROM 1 gives 1, 2, 3 and FROM 5 BY 2 gives 5, 7, 9.
-      *> Fails on a binder that keeps the counter only on the printable leaf (LINE 1 is COBOLNET0899 K does not
-      *> resolve'), that cannot see an ancestor's counter (LINE 2, COBOLNET1639), that stages BY-names-K loud
+      *> Fails on a binder that keeps the counter only on the printable leaf (LINE 1 is COBOL0899 K does not
+      *> resolve'), that cannot see an ancestor's counter (LINE 2, COBOL1639), that stages BY-names-K loud
       *> (LINE 3), or that counts L across the enclosing occurrences instead of restarting it (LINE 2).
       *>
       *> THE READ-BACK IS BYTE-WISE ON PURPOSE (see pb565_report_repeating_entry): LINE SEQUENTIAL is a COBOL-2023

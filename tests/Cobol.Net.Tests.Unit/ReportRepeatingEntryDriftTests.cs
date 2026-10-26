@@ -80,7 +80,7 @@ public sealed class ReportRepeatingEntryDriftTests
         Assert.Contains("__ra{spec.AnchorId}", emitter, StringComparison.Ordinal);     // the compose method's
     }
 
-    /// <summary>NEITHER AXIS STAGES ANY MORE, and the retired ids stay retired. The two COBOLNET0899
+    /// <summary>NEITHER AXIS STAGES ANY MORE, and the retired ids stay retired. The two COBOL0899
     /// descriptors that refused vertical repetition — <c>report-occurs-in-group</c> and
     /// <c>report-multiple-line</c> — are gone, and nothing may re-declare them: a re-added stage would refuse
     /// §13.18.38.4 GR10c/GR10d and §13.18.35.4 GR9, both of which are conforming source this compiler now

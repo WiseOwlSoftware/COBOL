@@ -23,7 +23,7 @@
       *>       clause and is NEVER OPENED. SR8 speaks only about an OPEN
       *>       statement's file-name-1, so it never speaks - LEGAL.
       *> THAT THIS PROGRAM COMPILES AT ALL IS THE ASSERTION for both. It
-      *> used to be rejected COBOLNET1512 at the SELECT line, by a second
+      *> used to be rejected COBOL1512 at the SELECT line, by a second
       *> copy of SR8 in DataBinder.BindFileControl that had to drop the
       *> antecedent because a file control entry cannot see an OPEN.
       *> THE PRINTED STATUSES stop a compiler from passing this by simply

@@ -11,7 +11,7 @@
       *> and the symbolic-character ABS are user-defined words declared in
       *> the scope of FUNCTION PI E ABS INTRINSIC. The screen used to be
       *> asked only for data-, condition-, index-, file-, paragraph- and
-      *> section-names, so this compiled and ran. COBOLNET1649.
+      *> section-names, so this compiled and ran. COBOL1649.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083SN.
        ENVIRONMENT DIVISION.

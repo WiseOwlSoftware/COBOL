@@ -14,7 +14,7 @@
 *> ONE record area (13.4.2) and the phrase moves that area (14.9.30.4 GR4 b), so which description
 *> the area holds is a run-time fact -- the only way the move's category can be known at compile
 *> time is for every description, and the receiver, to be a shape a group move copies without
-*> conversion.  COBOLNET1994.
+*> conversion.  COBOL1994.
 *> Before kb/Work PB337 this program compiled and printed GOT=0000: the INTO operand was resolved
 *> and never inspected, by either READ binder or by RETURN's.
 *> All four editions are listed: the admissibility rule is an all-editions rule (it is the 1985

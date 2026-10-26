@@ -14,7 +14,7 @@
       *> exactly as the written literal 5 does in the sibling conformance/2014/dynamic_length_limit: the
       *> constant KL = 5 gives L[ABCDE] and a length of 05. The LIMIT is read at FULL width (no host limit
       *> applies to it), so KBIG = 99999999999 (more than a host int) is a LIMIT too: the item is bounded
-      *> by the implementor maximum instead (8.5.1.10.1, warning COBOLNET2027), and the whole value is kept.
+      *> by the implementor maximum instead (8.5.1.10.1, warning COBOL2027), and the whole value is kept.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1948DL.
        DATA DIVISION.

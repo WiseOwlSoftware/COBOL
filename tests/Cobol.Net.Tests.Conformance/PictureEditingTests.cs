@@ -11,9 +11,9 @@ namespace CobolNet.Tests.Conformance;
 /// NEGATIVE literal on a negative value / the POSITIVE literal (or spaces, SR12c) otherwise — the sign map derived
 /// from Table 9 + Annex D.24 (the extracted Table 8 is sign-INVERTED; DEVLOG). The single-character render (IS form
 /// any occurrence; FOR form at a single character-1 occurrence) LANDS; multi-character literals and floating
-/// (character-1 repeated ≥2 under a FOR phrase) are a documented P14 render GAP staged loud (COBOLNET0899). The
-/// SR8–SR12 shape rules are COBOLNET1591–1596; the below-2023 introduction gate is COBOLNET0900; EDITING stays a
-/// legal user word below 2023 (COBOLNET0901 at 2023).
+/// (character-1 repeated ≥2 under a FOR phrase) are a documented P14 render GAP staged loud (COBOL0899). The
+/// SR8–SR12 shape rules are COBOL1591–1596; the below-2023 introduction gate is COBOL0900; EDITING stays a
+/// legal user word below 2023 (COBOL0901 at 2023).
 /// </summary>
 public sealed class PictureEditingTests
 {
@@ -73,7 +73,7 @@ public sealed class PictureEditingTests
     }
 
     // ── The VARIABLE-WIDTH render — Annex D.24's own examples (kb/Work PB491) ──
-    // Both shapes below used to be staged loud with COBOLNET0899 and PINNED THERE BY TWO GREEN TESTS, which
+    // Both shapes below used to be staged loud with COBOL0899 and PINNED THERE BY TWO GREEN TESTS, which
     // reads as a decision rather than a defect ([[green_test_can_hold_a_gap_open]]). They are legal COBOL-2023
     // the standard demonstrates itself, so the tests now measure the IMAGE the standard states.
 
@@ -149,51 +149,51 @@ public sealed class PictureEditingTests
     // ── The SR8–SR12 shape rules ──
 
     /// <summary>SR8 (ISO §13.18.40.3) — character-1 shall be a basic letter other than A B C D E N P R S V X Z or a
-    /// CURRENCY-SIGN letter: <c>EDITING X</c> is rejected (COBOLNET1591).</summary>
+    /// CURRENCY-SIGN letter: <c>EDITING X</c> is rejected (COBOL1591).</summary>
     [Fact]
     public void ReservedLetterChar1_Rejected1591()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 W PIC 99X99 EDITING X IS \":\".", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1591");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1591");
     }
 
-    /// <summary>SR11 — no two EDITING phrases may name the same character-1 (COBOLNET1592).</summary>
+    /// <summary>SR11 — no two EDITING phrases may name the same character-1 (COBOL1592).</summary>
     [Fact]
     public void DuplicateChar1_Rejected1592()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 W PIC 9G9G9 EDITING G IS \":\" EDITING G IS \"-\".", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1592");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1592");
     }
 
-    /// <summary>SR10 — character-1 shall appear at least once in the PICTURE character-string (COBOLNET1593).</summary>
+    /// <summary>SR10 — character-1 shall appear at least once in the PICTURE character-string (COBOL1593).</summary>
     [Fact]
     public void Char1AbsentFromMask_Rejected1593()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 W PIC 999.99 EDITING T IS \":\".", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1593");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1593");
     }
 
     /// <summary>SR12a — the NEGATIVE and POSITIVE literals of a FOR phrase shall occupy the same number of
-    /// character positions (COBOLNET1595).</summary>
+    /// character positions (COBOL1595).</summary>
     [Fact]
     public void UnequalForLiteralWidth_Rejected1595()
     {
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 W PIC L999 EDITING L FOR NEGATIVE IS \"(\" POSITIVE IS \"++\".", "    DISPLAY \"X\"."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1595");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1595");
     }
 
     // ── Edition gating ──
 
     /// <summary>The COBOL-2023 introduction gate (§13.18.40.2; Annex E.3.3 item 19): a PICTURE EDITING phrase is
-    /// rejected below 2023 with COBOLNET0900 (VersionConformancePass ParseArm.VisitPictureClause).</summary>
+    /// rejected below 2023 with COBOL0900 (VersionConformancePass ParseArm.VisitPictureClause).</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -203,11 +203,11 @@ public sealed class PictureEditingTests
         var (ok, diag) = EditionHarness.Compile(
             Prog("01 T-EDIT PIC 99T99 EDITING T IS \":\".", "    DISPLAY \"X\"."), edition);
         Assert.False(ok, $"PICTURE EDITING must be rejected at COBOL-{edition} (introduced 2023)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
 
     /// <summary>EDITING stays a legal user-defined word below 2023 (the cobolWord funnel admission): <c>01 EDITING
-    /// PIC 9</c> compiles clean at COBOL-85, and is rejected as a reserved word at 2023 (COBOLNET0901).</summary>
+    /// PIC 9</c> compiles clean at COBOL-85, and is rejected as a reserved word at 2023 (COBOL0901).</summary>
     [Fact]
     public void EditingAsUserWord_LegalBelow2023()
     {
@@ -218,6 +218,6 @@ public sealed class PictureEditingTests
         var (ok23, diag23) = EditionHarness.Compile(
             Prog("01 EDITING PIC 9 VALUE 1.", "    DISPLAY EDITING."), 2023);
         Assert.False(ok23, "EDITING is a reserved word at COBOL-2023");
-        EditionHarness.AssertHasDiagnostic(diag23, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diag23, "COBOL0901");
     }
 }

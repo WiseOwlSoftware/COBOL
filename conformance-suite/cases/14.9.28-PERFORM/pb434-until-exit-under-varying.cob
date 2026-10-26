@@ -9,7 +9,7 @@
       *> or TEST AFTER phrase". SUB-P is performed OUT OF LINE from inside a VARYING PERFORM, so by
       *> 14.9.28.4 GR1 ("The range includes all statements that are executed as the result of a transfer of
       *> control in the range of the PERFORM statement") its UNTIL EXIT PERFORM is under it. This used to
-      *> compile and print 0002; it now draws COBOLNET2954 at SUB-P's PERFORM. The inline shapes and the
+      *> compile and print 0002; it now draws COBOL2954 at SUB-P's PERFORM. The inline shapes and the
       *> "with" arm are pinned row by row in PerformUntilExitPlacementTests.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB434UV.

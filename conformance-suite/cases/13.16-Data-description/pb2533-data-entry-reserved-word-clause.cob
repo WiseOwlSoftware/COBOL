@@ -10,7 +10,7 @@
       *> BLOCK opens the BLOCK CONTAINS clause of a FILE description entry (13.4.5.2), not of a data
       *> description entry.  It was refused with a bare parse error ("COBOL0307: unexpected 'BLOCK'. A period
       *> may be missing ..."), because the error production that names a closed format's residue begins at an
-      *> IDENTIFIER; it is now COBOLNET1941, the code this format's refusal has always carried.  The entry's
+      *> IDENTIFIER; it is now COBOL1941, the code this format's refusal has always carried.  The entry's
       *> clause list had already ENDED when the parser met BLOCK (PIC X(3) is a complete entry), which is
       *> why the refusal is reported where the clause list stands rather than where the entry's period is
       *> missing.  Refused at every edition: BLOCK is reserved in every edition.

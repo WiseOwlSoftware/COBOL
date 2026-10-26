@@ -106,11 +106,11 @@ public sealed class RelationComparabilityTests
             if (l.Cls == Cls.Index && r.Cls == Cls.Index) return null;                     // rows 1 and 3
             var (ix, other) = l.Cls == Cls.Index ? (l, r) : (r, l);
             // Row 2 — "an index-name and a numeric data item or numeric literal"; ZERO is the numeric value 0 there.
-            return ix.IndexName && (other.NumericItemOrLiteral || other.Cls == Cls.Zero) ? null : "COBOLNET2533";
+            return ix.IndexName && (other.NumericItemOrLiteral || other.Cls == Cls.Zero) ? null : "COBOL2533";
         }
         if (l.Cls == Cls.Zero || r.Cls == Cls.Zero || l.Cls == r.Cls) return null;        // items 1, 2, 3, 5, 7
         var num = l.Cls == Cls.Numeric ? l : r;                                            // item 6 + §8.8.4.2.5
-        return num.NumericInteger ? null : "COBOLNET2532";
+        return num.NumericInteger ? null : "COBOL2532";
     }
 
     public static TheoryData<string> Subjects() => [.. Kinds.Select(k => k.Name)];
@@ -137,7 +137,7 @@ public sealed class RelationComparabilityTests
 
         var errors = CheckOnly(sb.ToString(), 2023);
         var codesByLine = errors
-            .Select(e => Regex.Match(e, @"\((\d+),\d+\): error (COBOLNET\d{4})"))
+            .Select(e => Regex.Match(e, @"\((\d+),\d+\): error (COBOL\d{4})"))
             .Where(m => m.Success)
             .GroupBy(m => int.Parse(m.Groups[1].Value), m => m.Groups[2].Value)
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -161,12 +161,12 @@ public sealed class RelationComparabilityTests
     /// selection objects "shall be valid operands for comparison to the corresponding operand in the set of selection
     /// subjects in accordance with 8.8.4.2").</summary>
     [Theory]
-    [InlineData("RCMPS1", "EVALUATE NB WHEN XA CONTINUE END-EVALUATE", "COBOLNET2532")]
-    [InlineData("RCMPS2", "EVALUATE XA WHEN NF THRU ND CONTINUE END-EVALUATE", "COBOLNET2532")]
-    [InlineData("RCMPS3", "PERFORM UNTIL I1 = XA CONTINUE END-PERFORM", "COBOLNET2533")]
-    [InlineData("RCMPS4", "SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN IDA = 3 CONTINUE END-SEARCH", "COBOLNET2533")]
-    [InlineData("RCMPS5", "IF NB = ND AND = XA CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPS6", "EVALUATE I1 WHEN \"3\" CONTINUE END-EVALUATE", "COBOLNET2533")]
+    [InlineData("RCMPS1", "EVALUATE NB WHEN XA CONTINUE END-EVALUATE", "COBOL2532")]
+    [InlineData("RCMPS2", "EVALUATE XA WHEN NF THRU ND CONTINUE END-EVALUATE", "COBOL2532")]
+    [InlineData("RCMPS3", "PERFORM UNTIL I1 = XA CONTINUE END-PERFORM", "COBOL2533")]
+    [InlineData("RCMPS4", "SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN IDA = 3 CONTINUE END-SEARCH", "COBOL2533")]
+    [InlineData("RCMPS5", "IF NB = ND AND = XA CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPS6", "EVALUATE I1 WHEN \"3\" CONTINUE END-EVALUATE", "COBOL2533")]
     public void EverySurface_ReportsTheBreach(string pid, string statement, string code)
     {
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n{Data}           {statement}.\n"
@@ -176,19 +176,19 @@ public sealed class RelationComparabilityTests
 
     /// <summary>⛔ A NUMERIC, INTEGER OR INDEX FUNCTION-IDENTIFIER IS NO ITEM-6 INTEGER OPERAND at ANY relation surface, in
     /// either operand order (kb/Work PB3691; §8.8.4.2.5; docs/CONFORMANCE.md D-FNUSE): the one checkpoint refuses it with
-    /// COBOLNET2532, and an index function opposite a character operand was always §8.8.4.2.13's COBOLNET2533.</summary>
+    /// COBOL2532, and an index function opposite a character operand was always §8.8.4.2.13's COBOL2533.</summary>
     [Theory]
-    [InlineData("RCMPF1", "IF FUNCTION INTEGER(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPF2", "IF XA = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPF3", "IF FUNCTION LENGTH(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPF4", "IF XN = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPF5", "EVALUATE FUNCTION INTEGER(ND) WHEN XA CONTINUE END-EVALUATE", "COBOLNET2532")]
-    [InlineData("RCMPF6", "EVALUATE XA WHEN FUNCTION ABS(ND) CONTINUE END-EVALUATE", "COBOLNET2532")]
-    [InlineData("RCMPF7", "PERFORM UNTIL XA = FUNCTION INTEGER(ND) CONTINUE END-PERFORM", "COBOLNET2532")]
-    [InlineData("RCMPF8", "SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN E1(I1) = FUNCTION INTEGER(ND) CONTINUE END-SEARCH", "COBOLNET2532")]
-    [InlineData("RCMPF9", "IF XA = XA OR FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPFA", "IF FUNCTION SQRT(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
-    [InlineData("RCMPFB", "IF FUNCTION MAX(IDA IDA) = XA CONTINUE END-IF", "COBOLNET2533")]
+    [InlineData("RCMPF1", "IF FUNCTION INTEGER(ND) = XA CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPF2", "IF XA = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPF3", "IF FUNCTION LENGTH(ND) = XA CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPF4", "IF XN = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPF5", "EVALUATE FUNCTION INTEGER(ND) WHEN XA CONTINUE END-EVALUATE", "COBOL2532")]
+    [InlineData("RCMPF6", "EVALUATE XA WHEN FUNCTION ABS(ND) CONTINUE END-EVALUATE", "COBOL2532")]
+    [InlineData("RCMPF7", "PERFORM UNTIL XA = FUNCTION INTEGER(ND) CONTINUE END-PERFORM", "COBOL2532")]
+    [InlineData("RCMPF8", "SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN E1(I1) = FUNCTION INTEGER(ND) CONTINUE END-SEARCH", "COBOL2532")]
+    [InlineData("RCMPF9", "IF XA = XA OR FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPFA", "IF FUNCTION SQRT(ND) = XA CONTINUE END-IF", "COBOL2532")]
+    [InlineData("RCMPFB", "IF FUNCTION MAX(IDA IDA) = XA CONTINUE END-IF", "COBOL2533")]
     public void FunctionIdentifier_IsNoItem6IntegerOperand_AtEverySurface(string pid, string statement, string code)
     {
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n{Data}           {statement}.\n"
@@ -221,8 +221,8 @@ public sealed class RelationComparabilityTests
     /// checkpoint — so the same breach compiled clean once the phrase was written. §14.9.13.4 GR4 a) 5. makes it
     /// "selection-subject &gt;= left-part AND selection-subject &lt;= right-part" either way.</summary>
     [Theory]
-    [InlineData("RCMPR1", "NB", "\"0001\"", "\"0020\"", "COBOLNET2532")]
-    [InlineData("RCMPR2", "I1", "\"1\"", "\"5\"", "COBOLNET2533")]
+    [InlineData("RCMPR1", "NB", "\"0001\"", "\"0020\"", "COBOL2532")]
+    [InlineData("RCMPR2", "I1", "\"1\"", "\"5\"", "COBOL2533")]
     public void RangeMembershipArm_ReportsTheBreach(string pid, string subject, string lo, string hi, string code)
     {
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n"
@@ -246,7 +246,7 @@ public sealed class RelationComparabilityTests
         Assert.True(legal.Count == 0, string.Join(" | ", legal));
         var bad = CheckOnly("       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RCMPE2.\n" + Data
             + "           EVALUATE I1 WHEN I2 CONTINUE WHEN XA CONTINUE END-EVALUATE.\n           STOP RUN.\n", 2023);
-        EditionHarness.AssertHasDiagnostic(bad, "COBOLNET2533");
+        EditionHarness.AssertHasDiagnostic(bad, "COBOL2533");
     }
 
     /// <summary>§8.8.4.2.5's refusal is the DA6 disposition — an error, with the pair kept under --permissive as a
@@ -268,22 +268,22 @@ public sealed class RelationComparabilityTests
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(src, 2023, permissive: true);
         Assert.True(ok, string.Join(" | ", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET2532");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL2532");
         var (strictOk, strictErrors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(strictOk);
-        EditionHarness.AssertHasDiagnostic(strictErrors, "COBOLNET2532");
+        EditionHarness.AssertHasDiagnostic(strictErrors, "COBOL2532");
     }
 
     /// <summary>kb/Work PB1427 at the same checkpoint: NULL is class pointer (§8.4.3.10.1) and §8.4.3.10.3 SR1 a)
     /// admits it only "in a pointer-or-object-reference relation condition" — opposite a character or numeric operand
-    /// it no longer borrows that operand's class (COBOLNET0869); and a boolean operand is compatible only with an
-    /// operand that may BE boolean (§8.3.3.6.4 GR4: ZERO may; SPACE may not — COBOLNET0844).</summary>
+    /// it no longer borrows that operand's class (COBOL0869); and a boolean operand is compatible only with an
+    /// operand that may BE boolean (§8.3.3.6.4 GR4: ZERO may; SPACE may not — COBOL0844).</summary>
     [Theory]
-    [InlineData("RCMPN1", "IF XA = NULL CONTINUE END-IF", "COBOLNET0869")]
-    [InlineData("RCMPN2", "IF ND = NULL CONTINUE END-IF", "COBOLNET0869")]
-    [InlineData("RCMPN3", "EVALUATE XA WHEN NULL CONTINUE END-EVALUATE", "COBOLNET0869")]
-    [InlineData("RCMPN4", "IF B1 = SPACE CONTINUE END-IF", "COBOLNET0844")]
-    [InlineData("RCMPN5", "IF B1 = IDA CONTINUE END-IF", "COBOLNET0844")]
+    [InlineData("RCMPN1", "IF XA = NULL CONTINUE END-IF", "COBOL0869")]
+    [InlineData("RCMPN2", "IF ND = NULL CONTINUE END-IF", "COBOL0869")]
+    [InlineData("RCMPN3", "EVALUATE XA WHEN NULL CONTINUE END-EVALUATE", "COBOL0869")]
+    [InlineData("RCMPN4", "IF B1 = SPACE CONTINUE END-IF", "COBOL0844")]
+    [InlineData("RCMPN5", "IF B1 = IDA CONTINUE END-IF", "COBOL0844")]
     public void NullAndBoolean_OutsideTheirRelation_Rejected(string pid, string statement, string code)
     {
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n"

@@ -9,7 +9,7 @@
       *> that function's arguments." REPOSITORY FUNCTION ALL INTRINSIC lets the word FUNCTION be omitted (SR2),
       *> and UPPER-CASE (15.97) permits an argument - so `UPPER-CASE (1:4)` opens an ARGUMENT LIST, and 1:4 is not
       *> a valid argument (SR8). It is the SR6/SR8 argument-list error, not the data path's "not defined"
-      *> (COBOLNET1639 was the pre-PB61 verdict) and not an arity error. Keyword omission is 2002+.
+      *> (COBOL1639 was the pre-PB61 verdict) and not an arity error. Keyword omission is 2002+.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB61SR6KO.
        ENVIRONMENT DIVISION.

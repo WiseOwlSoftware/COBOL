@@ -35,19 +35,19 @@ internal sealed partial class ControlFlowBinder
     /// never asking for one: <c>PERFORM 3 TIMES UNTIL X &gt; 100</c> ran three times, <c>PERFORM UNTIL X &gt; 4
     /// 3 TIMES</c> ran five (the FIRST phrase always won), and <c>PERFORM 3 TIMES … WHEN EC-ALL …</c> ran its
     /// body ONCE — every one of them with no diagnostic at any <c>--std</c>.</para>
-    /// <para>⛔ WHY AN ERROR AND NOT THE §4.2.2 WARNING — the COBOLNET1970 reading, which this follows: §4.2.2's
+    /// <para>⛔ WHY AN ERROR AND NOT THE §4.2.2 WARNING — the COBOL1970 reading, which this follows: §4.2.2's
     /// second paragraph obliges an implementation to be ABLE to "indicate violations of the general formats",
     /// which is the floor; its FIRST paragraph fixes what may be ACCEPTED — "An implementation shall accept the
     /// syntax and provide the functionality for all standard language elements required by this Working Draft
     /// International Standard and the optional or processor-dependent language elements for which support is
     /// claimed" — and a second loop-control phrase is neither. Refused at every edition and every strictness:
     /// nothing in the format changed across 1985/2002/2014/2023 (Format 3 is 2023-only and gated separately by
-    /// COBOLNET0900).</para></summary>
+    /// COBOL0900).</para></summary>
     private void CheckInlineHeadCardinality(Core.PerformStatementContext p)
     {
         if (p.performInlineHead() is not { } head) return;
         var options = head.performOptions();
-        if (options.Length == 0) return;   // a [WITH] LOCATION head — Format 3's own, screened by COBOLNET1597
+        if (options.Length == 0) return;   // a [WITH] LOCATION head — Format 3's own, screened by COBOL1597
 
         if (PerformFormat.IsFormat3(p))
         {
@@ -174,7 +174,7 @@ internal sealed partial class ControlFlowBinder
         CheckVaryingOperandRules(dref, var, from, by);
         var untilMark = host.Udf.Mark;
         // The varying-phrase prints `UNTIL condition-1` / `UNTIL condition-2`: an EXIT here is the superset
-        // spelling CheckUntilExitPlacement has already refused under §14.9.28.3 SR8 (COBOLNET2954), so the level
+        // spelling CheckUntilExitPlacement has already refused under §14.9.28.3 SR8 (COBOL2954), so the level
         // carries a refused condition rather than a loop the program never asked for.
         var cond = until.condition() is { } c
             ? host.Cond.BindCondition(c)

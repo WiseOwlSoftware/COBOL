@@ -15,8 +15,8 @@ namespace CobolNet.Tests.Unit;
 /// statement" — against GR12, which permits nesting (at least 5 levels) only WITHOUT replacing (kb/Work R34).
 /// The differential's syn_copy:630 ("COPY: recursive replacement", a GnuCOBOL EXTENSION) exposed the gap: the
 /// preprocessor recursed into the nested copybook OUTSIDE the replacement scope, so the ISO-illegal
-/// combination produced arbitrary partial text and a misleading downstream COBOLNET1639 on whatever name
-/// failed to materialize. The verdict (reject) was right by accident; COBOLNET1640 makes the REASON right —
+/// combination produced arbitrary partial text and a misleading downstream COBOL1639 on whatever name
+/// failed to materialize. The verdict (reject) was right by accident; COBOL1640 makes the REASON right —
 /// at the outer COPY's line, from the preprocessor that owns the rule.
 /// </summary>
 public sealed class CopyReplacingNestedCopyTests : IDisposable
@@ -36,13 +36,13 @@ public sealed class CopyReplacingNestedCopyTests : IDisposable
         return (text, bag);
     }
 
-    [Fact] // GR10 — the ISO-illegal combination draws COBOLNET1640, not a downstream undefined-reference.
+    [Fact] // GR10 — the ISO-illegal combination draws COBOL1640, not a downstream undefined-reference.
     public void ReplacingOverNestedCopy_DrawsGr10()
     {
         Copybook("inner.cpy", "01 TEST-VAR PIC X(2) VALUE \"OK\".\n");
         Copybook("outer.cpy", "COPY inner.\n");
         var (_, diags) = Run("COPY outer REPLACING ==TEST-VAR== BY ==COPY-VAR==.\n");
-        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOLNET1640" && d.IsError);
+        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOL1640" && d.IsError);
     }
 
     [Fact] // GR12 — nesting WITHOUT replacing is legal and expands.

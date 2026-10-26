@@ -8,7 +8,7 @@
       *> 8.4.3.1.2 identifier Format 9; 14.9.13.3 SR7 a) is legal from COBOL-2002 (positive
       *> 2002/pb1060_address_identifier_evaluate_argument). The address-identifier is a 2002 introduction, so at
       *> --std 85 the ONE introduction gate (VersionConformancePass.VisitAddressIdentifier) names the edition
-      *> (COBOLNET0900) - the EVALUATE surface reaches it through the same addressIdentifier rule as the relation
+      *> (COBOL0900) - the EVALUATE surface reaches it through the same addressIdentifier rule as the relation
       *> operand, rather than failing to parse.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1060N.

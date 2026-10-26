@@ -109,7 +109,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// d): "Otherwise, the conformance rules are the same as for a MOVE statement with the argument as the sending
     /// operand and the corresponding formal parameter as the receiving operand" — so HIGH-VALUE, LOW-VALUE, QUOTE and a
     /// non-digit ALL literal BY CONTENT into a numeric-edited formal are under the rows the written MOVE is under: valid
-    /// through 2014 and COBOLNET0902 at 2023 (QUOTE obsolete from 2014). The activation relation
+    /// through 2014 and COBOL0902 at 2023 (QUOTE obsolete from 2014). The activation relation
     /// (<see cref="ContentConformanceReason"/>) is EDITION-BLIND and asks only the flat refusals (SPACE, ZERO, boolean
     /// characters, Table 16), so the rows are asked here, after it passed, through the ONE body every asker of the MOVE
     /// rules shares (<see cref="FigurativeAssociation.GateSr5"/>); CALL AS NESTED, a user-defined function (both through

@@ -8,7 +8,7 @@
 *> in the FOR NATIONAL branch of the alphabet-name-clause; with the FOR phrase omitted the
 *> ALPHANUMERIC phrase is implied (12.3.7.3 SR13), whose branch admits LOCALE / NATIVE /
 *> STANDARD-1 / STANDARD-2 / code-name-1 / literal-phrase only. The binder rejects the branch
-*> mismatch - COBOLNET0898.
+*> mismatch - COBOL0898.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. ALPU4P10AN.
 ENVIRONMENT DIVISION.

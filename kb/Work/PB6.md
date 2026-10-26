@@ -26,7 +26,7 @@ tags: [cobolsharp, work, defect]
 > binder called `BindExpr` on it. §14.9.4.3 SR22 is the governing rule ("identifier-4 shall be of class numeric,
 > object, or pointer"), so the operand IS illegal — but a diagnostic naming the wrong clause sends the programmer
 > to the wrong place. **A production's NAME is not its operand's rule.**
-> `COBOLNET1628` + `OperandContext.CallByValue`; golden `pb6-call-by-value-alphanumeric`.
+> `COBOL1628` + `OperandContext.CallByValue`; golden `pb6-call-by-value-alphanumeric`.
 > ⚠ **The first fix was a SILENT REGRESSION that looked like success**: screening the wrapper via
 > `IntrinsicArgumentRules.ClassOf` made both cases compile CLEAN, because that method maps any
 > `BoundComputedOperand` to NUMERIC. A wrongly-worded reject had become no enforcement at all. **A fix whose

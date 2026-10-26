@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB1705, R56 and R61 - WITH DEBUGGING MODE and the
       *> debugging lines it keeps are accepted at COBOL-85, OBSOLETE
-      *> at COBOL-2002 (the obsolete-element warning COBOLNET0903 on
+      *> at COBOL-2002 (the obsolete-element warning COBOL0903 on
       *> the clause and on the line, never an error) and removed at
       *> 2014 (negative/debugging-mode, negative/pb1494-debugging-
       *> line-at-2014). At 2002 the clause still keeps the line: it

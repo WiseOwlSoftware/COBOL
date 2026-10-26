@@ -12,12 +12,12 @@
 *> its prior content.
 *> This program writes the SAME pair as an EXPLICIT MOVE, where 14.9.25.3 SR10 governs directly and table 16
 *> prints "Numeric / Noninteger -> National, National-edited = No". A syntax rule is a "shall", so 4.2.2
-*> paragraph 2 requires the compile-time mechanism: COBOLNET0819.
+*> paragraph 2 requires the compile-time mechanism: COBOL0819.
 *> The two goldens together are the whole point of PB391 - ONE table, asked by two askers, answering the
 *> same cell two ways because the two framings differ (selection vs. a written statement), never because the
 *> two askers carry two tables. A regression that made CORRESPONDING start diagnosing, or made the written
 *> MOVE stop, breaks exactly one of the pair.
-*> Below 2002 the national operand is itself introduction-gated (COBOLNET0900), which is a different rule
+*> Below 2002 the national operand is itself introduction-gated (COBOL0900), which is a different rule
 *> and a different verdict, so this program is reject-at 2002 and later only.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB391MOVENVN.

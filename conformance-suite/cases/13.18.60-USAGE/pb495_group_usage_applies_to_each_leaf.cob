@@ -35,7 +35,7 @@
       *> the GROUP as a scalar float (a raw Roslyn CS1061 on every member reference), and `MOVE 12 TO A-SHORT`
       *> crashed the compiler with a NullReferenceException in MoveEmitter.
       *>
-      *> COBOL-2002: BINARY-CHAR/-SHORT/-LONG/-DOUBLE and FLOAT-SHORT/-LONG are 2002 additions (COBOLNET0900
+      *> COBOL-2002: BINARY-CHAR/-SHORT/-LONG/-DOUBLE and FLOAT-SHORT/-LONG are 2002 additions (COBOL0900
       *> below it); USAGE INDEX is COBOL-85. The 2023 twin adds nothing this leg does not already pin.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB495GR1.

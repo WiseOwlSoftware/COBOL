@@ -75,7 +75,7 @@ internal readonly record struct ImpliedPicture(LiteralClass Class, int Length)
 /// before that it was the <c>feedback_two_arm_dispatch</c> shape at its purest — the report binder REJECTED
 /// <c>02 COLUMN 1 VALUE "HELLO".</c> while the identical data-division entry compiled. §13.17.3 SR10 is the
 /// SCREEN description entry, and it has no site because the whole SCREEN SECTION is a DECLINED Annex A.4.2
-/// module (<c>ScreenFacility</c>, COBOLNET1560, docs/CONFORMANCE.md §5): the entry never binds, so the rule has
+/// module (<c>ScreenFacility</c>, COBOL1560, docs/CONFORMANCE.md §5): the entry never binds, so the rule has
 /// nothing to apply to. If that module is ever claimed, its implied PICTURE is one more call to
 /// <see cref="Sr9ImpliedFor"/>.</para>
 ///

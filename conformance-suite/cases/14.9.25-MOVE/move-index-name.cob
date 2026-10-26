@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work R16 - MOVE is none of 13.18.38.3 r7's five index-name contexts; the numeric-receiver
-      *> form SILENTLY computed before (the same judgment COBOLNET0809 applies to class-index DATA items).
+      *> form SILENTLY computed before (the same judgment COBOL0809 applies to class-index DATA items).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R16NEGM.
        DATA DIVISION.

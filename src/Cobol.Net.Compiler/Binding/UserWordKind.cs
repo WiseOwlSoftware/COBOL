@@ -83,7 +83,7 @@ public static class UserWordKinds
     /// reference "shall contain a reference that uniquely identifies that resource" (ISO §8.4.2.1), and these words
     /// have no qualifier (§8.4.2.2 qualifies data, condition, file-report and index names), so a SECOND declaration of
     /// one in a source element leaves every reference to it ambiguous. <c>DataBinder.DeclareUserWord</c> refuses the
-    /// second under <c>COBOLNET4250</c>; a switch's condition-names (the <c>ConditionName</c> type is also the
+    /// second under <c>COBOL4250</c>; a switch's condition-names (the <c>ConditionName</c> type is also the
     /// level-88 entries', which qualification tells apart) ask the same check explicitly at their declaration. A new
     /// SPECIAL-NAMES declaration kind joins this set and nothing else.</summary>
     public static IReadOnlySet<UserWordKind> DeclaredUnqualifiable { get; } = new HashSet<UserWordKind>

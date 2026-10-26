@@ -8,7 +8,7 @@
       *> function-identifier of class object (it RETURNS an object reference), so it references a data item of class
       *> object — which §14.9.39.3 SR17 ("Identifier-6 shall be of category data-pointer") does not admit into a
       *> data-pointer receiver. The refusal names the SENDER's category, where it used to name "a literal or an
-      *> arithmetic expression" (COBOLNET0869).
+      *> arithmetic expression" (COBOL0869).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB1929NF.
        DATA DIVISION.

@@ -12,7 +12,7 @@
       *> F3 is a sequential FD; its key F3-REC is in F3's record
       *> (SR4 a) satisfied), F1/F2/FO are ordinary FDs as SR9 wants,
       *> no name repeats (SR7), so only SR2 is violated.  Diagnostic
-      *> COBOLNET1757 with the MERGE sort-merge message head.
+      *> COBOL1757 with the MERGE sort-merge message head.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C18C.
        ENVIRONMENT DIVISION.

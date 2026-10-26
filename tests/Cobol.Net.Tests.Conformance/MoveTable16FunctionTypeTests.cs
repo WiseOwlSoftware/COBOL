@@ -28,7 +28,7 @@ public sealed class MoveTable16FunctionTypeTests
         """;
 
     /// <summary>Strict (the default axis): a NUMERIC-typed function into an alphanumeric receiver is Table 16's
-    /// Noninteger × Alphanumeric "No" — COBOLNET0819 — even when the particular reference is integer-valued
+    /// Noninteger × Alphanumeric "No" — COBOL0819 — even when the particular reference is integer-valued
     /// (SQRT(16) = 4): the row is the TYPE's, per SR11's principle.</summary>
     [Theory]
     [InlineData(85)]
@@ -38,7 +38,7 @@ public sealed class MoveTable16FunctionTypeTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("MOVE FUNCTION SQRT(16) TO X10"), edition);
         Assert.False(ok, "a NUMERIC-typed function is the Noninteger sender (ISO §14.9.25.3 Table 16, §15.2 item 4)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
     }
 
     /// <summary>--permissive keeps the earlier admission — with a warning naming the rule — and renders the
@@ -48,7 +48,7 @@ public sealed class MoveTable16FunctionTypeTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Prog("MOVE FUNCTION SQRT(16) TO X10"), 2023, permissive: true);
         Assert.True(ok, "under --permissive the numeric-function MOVE is admitted: " + string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET0819", StringComparison.Ordinal) && w.Contains("--permissive", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("COBOL0819", StringComparison.Ordinal) && w.Contains("--permissive", StringComparison.Ordinal));
         var (ran, stdout, detail) = EditionHarness.CompileAndRun(Prog("MOVE FUNCTION SQRT(16) TO X10"), 2023, permissive: true);
         Assert.True(ran, detail);
         Assert.Equal("[4         ]", stdout.Trim());

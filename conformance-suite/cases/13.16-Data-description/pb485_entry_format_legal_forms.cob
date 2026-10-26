@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO 13.16.2 formats 1-3 and 13.18.33.4 GR2 -- the OVER-REJECTION
-      *> GUARD for the COBOLNET1747 format screen: every legal shape of
+      *> GUARD for the COBOL1747 format screen: every legal shape of
       *> each special level-number must still compile.
       *> A 66 RENAMES entry (format 2); the three condition-name spellings
       *> of format 3 -- a single literal, a VALUES ARE list with THRU, and

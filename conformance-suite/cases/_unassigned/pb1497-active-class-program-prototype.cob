@@ -9,7 +9,7 @@
       *> factory definition, an instance definition, or the linkage or local-storage section of a method
       *> definition" -> OK 13.18.60.3 16)) admits an interface's method PROTOTYPE (10.6.1 NOTE: a
       *> method-definition in an interface-definition defines a method prototype) and nothing else outside a
-      *> class body, so ACTIVE-CLASS in a program prototype's linkage section is still COBOLNET1924. The
+      *> class body, so ACTIVE-CLASS in a program prototype's linkage section is still COBOL1924. The
       *> positive half is conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb1497_interface_active_class_prototype.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1497NP IS PROTOTYPE.

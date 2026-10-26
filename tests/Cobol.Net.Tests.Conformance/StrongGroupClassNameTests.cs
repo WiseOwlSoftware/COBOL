@@ -144,11 +144,11 @@ public sealed class StrongGroupClassNameTests
 
     private static readonly Dictionary<string, (string Source, string Code)> Screens = new()
     {
-        ["header-formal"] = (HeaderFormal, "COBOLNET1553"),          // §14.2.2 SR2
-        ["call-argument"] = (CallArgument, "COBOLNET1628"),          // §14.9.4.3 SR22
-        ["function-argument"] = (FunctionArgument, "COBOLNET1554"),  // §8.4.3.2.3 SR10
-        ["invoke-typed-argument"] = (InvokeTypedArgument, "COBOLNET2741"),  // §14.9.23.3 SR15, the typed lane
-        ["invoke-null-argument"] = (InvokeNullArgument, "COBOLNET2741"),    // §14.9.23.3 SR15, the NULL receiver's screen
+        ["header-formal"] = (HeaderFormal, "COBOL1553"),          // §14.2.2 SR2
+        ["call-argument"] = (CallArgument, "COBOL1628"),          // §14.9.4.3 SR22
+        ["function-argument"] = (FunctionArgument, "COBOL1554"),  // §8.4.3.2.3 SR10
+        ["invoke-typed-argument"] = (InvokeTypedArgument, "COBOL2741"),  // §14.9.23.3 SR15, the typed lane
+        ["invoke-null-argument"] = (InvokeNullArgument, "COBOL2741"),    // §14.9.23.3 SR15, the NULL receiver's screen
     };
 
     public static TheoryData<int, string> Cases()

@@ -14,7 +14,7 @@
       *> conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes. This is the half that says the format is a CONSTRAINT and
       *> not merely a suggestion; without it, an arity model that silently ignored trailing arguments — or
       *> that treated FRACTION-PART as variadic like MAX — would pass every positive fixture in the corpus.
-      *> Expected: COBOLNET1504, the §15.3 argument-count diagnostic.
+      *> Expected: COBOL1504, the §15.3 argument-count diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FPARITY.
        DATA DIVISION.

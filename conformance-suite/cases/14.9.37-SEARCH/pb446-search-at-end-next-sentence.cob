@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 §14.9.37.2 (both formats): [ AT END imperative-statement-1 ] - NEXT SENTENCE is not a statement
 *> but a phrase, printed in exactly three places: IF Format 2's THEN/ELSE (§14.9.19.2) and the WHEN body of both
-*> SEARCH formats. An AT END NEXT SENTENCE used to compile. Refused at every edition. COBOLNET2269 (kb/Work PB446).
+*> SEARCH formats. An AT END NEXT SENTENCE used to compile. Refused at every edition. COBOL2269 (kb/Work PB446).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB446AENS.
        DATA DIVISION.

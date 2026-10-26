@@ -26,7 +26,7 @@
       *>                    takes: a numeric item to ZERO, an alphanumeric item to SPACE.
       *>
       *> The first pair of lines is the shape of GnuCOBOL's run_initialize:298, which battery #77 caught
-      *> regressing to COBOLNET0899 - INITIALIZE Y (X(1)) beside INITIALIZE Y (2) in one program.
+      *> regressing to COBOL0899 - INITIALIZE Y (X(1)) beside INITIALIZE Y (2) in one program.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB877SUBSCRIPT.
        DATA DIVISION.

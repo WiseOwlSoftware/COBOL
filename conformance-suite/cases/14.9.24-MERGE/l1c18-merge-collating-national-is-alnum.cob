@@ -13,7 +13,7 @@
       *> AB is declared but alphanumeric, the wrong class for the
       *> alphabet-name-2 position.  alphabet-name-2 exists only from
       *> COBOL 2002 (below that the form itself is refused for another
-      *> reason), hence 2002 and later.  Diagnostic COBOLNET0898 with
+      *> reason), hence 2002 and later.  Diagnostic COBOL0898 with
       *> the alphabet-name-2 message head.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C18E.

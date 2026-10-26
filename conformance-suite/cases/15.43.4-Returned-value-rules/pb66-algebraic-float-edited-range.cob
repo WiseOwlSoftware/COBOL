@@ -8,7 +8,7 @@
       *> LOWEST-ALGEBRAIC shall be described such that its value farthest from zero would pass an
       *> IN-ARITHMETIC-RANGE test (8.8.4.4.4 GR3 l - within the intermediate data item's range for the arithmetic
       *> mode in effect: native = binary64 here). 999E+999 is about 1E+1002, beyond binary64's 1.8E+308:
-      *> COBOLNET1660 (kb/Work PB66). Under ARITHMETIC IS STANDARD-DECIMAL the same entry is in range.
+      *> COBOL1660 (kb/Work PB66). Under ARITHMETIC IS STANDARD-DECIMAL the same entry is in range.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB66NAR.
        DATA DIVISION.

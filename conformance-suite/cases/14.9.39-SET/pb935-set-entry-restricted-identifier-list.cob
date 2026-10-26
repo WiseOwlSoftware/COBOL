@@ -12,7 +12,7 @@
       *> unrestricted program-address however it is spelled. UPP is unrestricted and is written FIRST; RP is
       *> restricted to PB935Y and is the SECOND receiver of the list, so the verdict is asked of every receiver
       *> and never of a representative one (the SR22 reading of kb/Work PB3224, which this form shares). Refused
-      *> COBOLNET1959 (prototype-pointer-signature) at every edition that has the program-pointer.
+      *> COBOL1959 (prototype-pointer-signature) at every edition that has the program-pointer.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB935Y IS PROTOTYPE.
        DATA DIVISION.

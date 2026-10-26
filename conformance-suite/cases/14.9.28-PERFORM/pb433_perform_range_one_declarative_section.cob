@@ -9,7 +9,7 @@
       *> is the name of a procedure in the declaratives portion of the procedure division, both shall be
       *> procedure-names in the same declarative section."
       *>
-      *> The POSITIVE side of that rule — the three shapes it does NOT forbid — so the COBOLNET2186 screen
+      *> The POSITIVE side of that rule — the three shapes it does NOT forbid — so the COBOL2186 screen
       *> (kb/Work PB433) cannot be written as "any PERFORM that touches the declaratives". The rule is unchanged
       *> from X3.23-1985, so 85 is its introducing edition and this golden is written here.
       *>

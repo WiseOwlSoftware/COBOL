@@ -28,7 +28,7 @@
       *> be evaluated as though 0 were specified" (§15.40.3 r7), so the screen is deliberately one-sided.
       *> The legal side of THIS rule — argument-4 written against an OFFSET format — is
       *> conformance:cases/15.40.3-Argument-rules/l1_formatted_datetime_offset_magnitude, which would go red if the screen widened.
-      *> Expected: COBOLNET1633, the datetime-offset-argument-not-permitted diagnostic.
+      *> Expected: COBOL1633, the datetime-offset-argument-not-permitted diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGL1FDTLOC.
        DATA DIVISION.

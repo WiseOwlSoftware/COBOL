@@ -10,7 +10,7 @@
       *> period." In "999,, USAGE" the first ',' is followed by ',' - a picture symbol - and the second
       *> by a space - a separator (8.3.5 rule 2) - so character-string-1 is "999," and USAGE follows it.
       *> kb/Work PB569: PICMODE trims ONE trailing separator and nothing re-examined SR7, so this bound
-      *> the legal "PIC 999,." item silently at every edition. Refused COBOLNET2419.
+      *> the legal "PIC 999,." item silently at every edition. Refused COBOL2419.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB569N1.
        DATA DIVISION.

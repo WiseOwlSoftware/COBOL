@@ -27,7 +27,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// phrase it is as if all of the categories listed in category-name were specified", represented as the
     /// absence of a restriction. ⛔ A BARE <c>TO VALUE</c> IS NOT ALL AND IS NOT CONFORMING: §14.9.20.2's brace
     /// requires one of ALL / category-name and §5.2.6.3 makes that mandatory, so <c>Bind</c> rejects it
-    /// (COBOLNET1981) and only then recovers as if ALL. The former code read it as ALL on the strength of a
+    /// (COBOL1981) and only then recovers as if ALL. The former code read it as ALL on the strength of a
     /// "§14.9.20.2 note 2" the clause does not have (kb/Work PB415).</para>
     /// <para>⛔ <paramref name="HasReplacing"/> IS THE PHRASE'S PRESENCE, NOT <paramref name="Replacements"/>'s
     /// COUNT. §14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
@@ -219,12 +219,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // RECEIVING OPERAND (kb/Work PB416). The statement used to call ctx.Refs.Resolve directly, which answers
         // "where does this reference live" and nothing else, so every receiving-operand PROHIBITION the compiler
         // owns was invisible here: a CONSTANT RECORD was silently overwritten at run time (§13.18.15.3 SR2 /
-        // COBOLNET1548 — whose own doc claimed INITIALIZE as a caller), and the same held for a constant-name,
+        // COBOL1548 — whose own doc claimed INITIALIZE as a caller), and the same held for a constant-name,
         // LINE-COUNTER, PAGE-COUNTER and the OCCURS DYNAMIC CAPACITY register. SR7 is not one check but a FUNNEL:
         // the standard's receiving-operand prohibitions are a growing set, and routing through ResolveReceiving
         // is what makes the NEXT one automatic instead of a second copy bolted onto this verb.
         // A null return is already diagnosed there (an undefined name by the resolver, a resolved-but-unsupported
-        // receiver shape as COBOLNET0899), so the old run-time InitializeErrorAction staging is gone with it —
+        // receiver shape as COBOL0899), so the old run-time InitializeErrorAction staging is gone with it —
         // §4.2.2 puts a syntax-rule violation in the compile-time mechanism.
         if (host.Expr.ResolveReceiving(dref) is not { } place) return;
         // ISO §14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
@@ -397,7 +397,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // per-occurrence loop every other dimension takes — only the count differs — so it uses the same
             // InitializeLoop over an AllCount.Capacity, and the element cursor is the dynamic one (its stores go
             // through RefReceiving, which within the bound never grows the table: GR10's "left unchanged").
-            // This replaced a staged COBOLNET1527 loud that predated GR10 being read.
+            // This replaced a staged COBOL1527 loud that predated GR10 being read.
             if (child.IsDynamicTable)
             {
                 string dv = $"__ini{_initializeLoopVar++}";
@@ -630,8 +630,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // REPLACING the sending operand is identifier-2, an implicit `SET receiver TO identifier-2`, and
             // writing NULL there would be a wrong answer rather than a missing one. kb/Work PB415 made the five
             // category-names spellable, so the arm PB418 staged LOUD is now the real SET. ⛔ THE ERROR ARM IS A
-            // "CANNOT HAPPEN" GUARD, NOT A STAGED FEATURE: §14.9.20.3 SR3 (COBOLNET1982) has already refused
-            // literal-1 for these categories, and SR4's category agreement (COBOLNET1983) refuses every sender
+            // "CANNOT HAPPEN" GUARD, NOT A STAGED FEATURE: §14.9.20.3 SR3 (COBOL1982) has already refused
+            // literal-1 for these categories, and SR4's category agreement (COBOL1983) refuses every sender
             // that is neither a data item of the named category nor the predefined NULL (identifier-2 by
             // §8.4.3.1.2 Format 8, kb/Work PB1427) — a function-identifier among them, since no SET
             // format admits one (§14.9.39). It stays because `EmitAction`'s switch has no default arm, so a
@@ -856,7 +856,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// prohibition has three EDITION rows, which are the post-bind <c>VersionConformancePass</c>'s. The written
     /// REPLACING phrase rides <see cref="BoundInitialize.Replacing"/> and <c>VersionConformancePass.GateInitialize</c>
     /// asks the same rows <c>GateMove</c> asks, per category (kb/Work PB879) — so <c>INITIALIZE g REPLACING NUMERIC
-    /// DATA BY HIGH-VALUE</c> is COBOLNET0902 at 2023 exactly as the explicit MOVE is, without a second, edition-blind
+    /// DATA BY HIGH-VALUE</c> is COBOL0902 at 2023 exactly as the explicit MOVE is, without a second, edition-blind
     /// copy of the rule here. SR5's SPACE arm IS asked here, through the chain below: it holds at every edition, so it
     /// is <c>MoveValidity.FigurativeRefusal</c>'s flat refusal, not an edition row (kb/Work PB3605).</para></summary>
     private void CheckReplacingMoveValidity(InitializeCategorySet cats, BoundOperand value, string senderText)

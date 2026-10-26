@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// hands every name it declares to the programs it contains. <c>DataBinder.InheritGlobalSubtree</c> is the ONE place
 /// that inheritance is written, and it once carried data-names, condition-names, RENAMES and index-names but not the
 /// OCCURS DYNAMIC CAPACITY register (§13.18.38.3 SR30 defines it at the OCCURS entry's level, so it is subordinate to
-/// the record): <c>DISPLAY D-CAP</c> in a contained program was COBOLNET1639 "is not defined" — legal source rejected.
+/// the record): <c>DISPLAY D-CAP</c> in a contained program was COBOL1639 "is not defined" — legal source rejected.
 /// The register lives in its own name index because it is a view, not storage, and nothing tied that index to the
 /// inheritance list.</para>
 /// <para>This test ties them. Every name index of <see cref="DataBinder"/> — a field mapping a name to a data-division

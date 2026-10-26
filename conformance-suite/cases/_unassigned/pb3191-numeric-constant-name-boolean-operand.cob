@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
 *> A boolean expression is a boolean item, a boolean literal, ZERO or ALL boolean-literal (8.8.2). A NUMERIC
-*> constant-name is the numeric literal it substitutes (13.10.4 GR1), which that list does not contain: COBOLNET1511
-*> names it as that literal - it used to be COBOLNET1639 "'N' is not defined" (kb/Work PB3191).
+*> constant-name is the numeric literal it substitutes (13.10.4 GR1), which that list does not contain: COBOL1511
+*> names it as that literal - it used to be COBOL1639 "'N' is not defined" (kb/Work PB3191).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEG3191B.
 DATA DIVISION.

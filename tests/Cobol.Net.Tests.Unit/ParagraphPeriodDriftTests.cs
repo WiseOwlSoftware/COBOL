@@ -18,7 +18,7 @@ namespace CobolNet.Tests.Unit;
 /// I-O-CONTROL, SPECIAL-NAMES and REPOSITORY paragraphs' entries, and the three grammar rules wrote
 /// <c>(entry DOT?)*</c> with nothing reading the periods — so a period after every entry, or none after the last,
 /// compiled clean at every edition. The grammar keeps the punctuation superset so <c>ClosedFormatPass</c> can refuse
-/// the misplaced period BY NAME (COBOLNET3407 / COBOLNET3408) through <see cref="ParagraphPeriods"/>. These facts
+/// the misplaced period BY NAME (COBOL3407 / COBOL3408) through <see cref="ParagraphPeriods"/>. These facts
 /// hold the two together in BOTH directions: every grammar rule that writes <c>DOT?</c> has a row, and every row
 /// names a rule the grammar still writes that way, with the periods as the rule's OWN children (which is what
 /// <see cref="ParagraphPeriods.Sentences"/> reads). Another rule written with the shape cannot parse into silence —

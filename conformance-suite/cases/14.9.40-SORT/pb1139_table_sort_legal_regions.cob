@@ -11,7 +11,7 @@
       *>     procedure." -> OK §14.9.40.3 3)
       *> §14.9.40.3 prints SR3 under its FORMAT 1 sub-heading (SR3-SR12 are Format 1, SR13-SR15 Format 2), so the
       *> three bans bind the FILE-format SORT only, and nothing else restricts where a table SORT may be written.
-      *> The statement used to draw COBOLNET1617 inside an exception-checking PERFORM, whatever its format.
+      *> The statement used to draw COBOL1617 inside an exception-checking PERFORM, whatever its format.
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules):
       *>   A  a table SORT in imperative-statement-1 of an exception-checking PERFORM sorts 312 to 123
       *>   B  a table SORT in the INPUT PROCEDURE of a file SORT sorts 321 DESCENDING to 321 and the file sort

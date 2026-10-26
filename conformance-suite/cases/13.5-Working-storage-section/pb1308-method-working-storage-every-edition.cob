@@ -10,7 +10,7 @@
       *> specified only in a factory definition or an instance definition, but not in a method definition."
       *> Annex E.2 lists no 2023 removal of it (it does list EXIT METHOD's), and the vendor documentation that
       *> follows the 2002 OO model states the same sentence, so the ban is original text, not a 2023 window: this
-      *> program is refused at 2002 and 2014 exactly as at 2023 (COBOLNET1519, the method-placement class the
+      *> program is refused at 2002 and 2014 exactly as at 2023 (COBOL1519, the method-placement class the
       *> FILE / REPORT / SCREEN sections of a method already draw). The method's storage is LOCAL-STORAGE and
       *> LINKAGE; data shared across activations lives in the factory or instance definition - see the positive
       *> golden 2002/pb1308_method_storage_is_local_or_object.

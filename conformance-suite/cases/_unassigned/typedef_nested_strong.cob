@@ -8,7 +8,7 @@
       *> Nested STRONG TYPEDEF (data-model D17; review DEVLOG 664 fixes #5/#6). A strong type referenced INSIDE another
       *> strong type (13.18.57.3 SR6 second arm) is legal; a nested strong subgroup is the SAME type as a standalone
       *> item of that type (8.5.3 by NEAREST TYPE anchor), so MOVE/compare between them is allowed. Before the fixes
-      *> this tripped a false COBOLNET1532 (SR6 ordering) and false COBOLNET1533 (outermost-root type mismatch).
+      *> this tripped a false COBOL1532 (SR6 ordering) and false COBOL1533 (outermost-root type mismatch).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TYPEDEF-NESTED-STRONG.
        DATA DIVISION.

@@ -13,7 +13,7 @@
       *> The digit-capacity screen once skipped exactly this count (its guard was DigitPositions > 0), so only
       *> the composition validator stood between these pictures and a ZERO-LENGTH category-numeric item whose
       *> every store is discarded; the screen now asks the lower bound itself (EditionContext.CheckDigitCapacity,
-      *> COBOLNET2882) and the composition validator reports the same pictures first as COBOLNET1934.
+      *> COBOL2882) and the composition validator reports the same pictures first as COBOL1934.
       *>
       *> The rule is the same at every edition (SR14 and SR12 a are 1985 rules too), so all four reject.
       *>

@@ -8,7 +8,7 @@
       *> specified as a receiving operand." (cite.py: OK 8.4.3.5.3 2))
       *> The view of a PLAIN name as INITIALIZE's identifier-1. INITIALIZE of
       *> an object reference is legal (it is set to null), so the view is the
-      *> one violation; it used to be a parse error on AS (COBOLNET0901).
+      *> one violation; it used to be a parse error on AS (COBOL0901).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551VM.
        ENVIRONMENT DIVISION.

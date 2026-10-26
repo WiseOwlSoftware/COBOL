@@ -10,7 +10,7 @@
 *> alphanumeric group items: "If a GROUP-USAGE clause is not specified or implied for a group item
 *> that is not strongly typed and is not a variable-length group, that group item is an alphanumeric
 *> group item."  A STRONGLY-TYPED group is excluded by name, so ASSIGN ... USING may not reference
-*> one.  COBOLNET1810.
+*> one.  COBOL1810.
 *> This fixture is the SIBLING SWEEP of kb/Work PB337, not its subject.  ItemCategory is the one
 *> reader of a data item's 8.5.2 category for a rule worded in categories, and its group arm carried
 *> only GR3's structural half -- it answered "alphanumeric group item" for ANY group.  Every rule

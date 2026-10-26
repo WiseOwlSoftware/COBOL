@@ -17,7 +17,7 @@
       *> before PB415 — this file is the '85 witness that the fix is not a 2002+ feature.
       *>
       *> The eight post-85 words are refused here by the initialize-category-2002 / -2014 / -2023 gates
-      *> (COBOLNET0900); the negative witness for that is
+      *> (COBOL0900); the negative witness for that is
       *> conformance-suite/cases/14.9.20-INITIALIZE/pb415-initialize-category-national-85.
       *>
       *> EXPECTED, DERIVED BEFORE THE RUN:

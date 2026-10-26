@@ -180,7 +180,7 @@ reset) is not a failure of the locale: the builder skips the rule and lists it i
 `CollationEngine.ResolveLocale`, which records the failure as `ResolvedLocaleCollation.Failure` over the root order
 (the nearest available order); `TryGetOrderingTable` and `IsKnownLocale` answer false (the locale is not available
 here), `LocaleManager.GetLocale` throws the failure to its host caller, `CollationRuntime.Warmup` reports it as its
-`Warning`, and the compiler's ORDER TABLE check warns COBOLNET1662 naming the file. Nothing on the path crashes a
+`Warning`, and the compiler's ORDER TABLE check warns COBOL1662 naming the file. Nothing on the path crashes a
 compile, a run unit's start-up or a comparison.
 
 **Locale lookup** (`TailoringRules.ForLocale`, `CollationEngine.ForLocale/TableForLocale`): `<tag>.tailor` is

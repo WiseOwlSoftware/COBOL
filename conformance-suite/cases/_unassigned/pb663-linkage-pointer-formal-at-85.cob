@@ -7,7 +7,7 @@
 *> ISO 1989:2023 13.18.60 / 8.5.2.6 - USAGE POINTER is a COBOL-2002 introduction, so the LINKAGE formal
 *> whose carrier kb/Work PB663 added (the class-pointer managed slot, CobolArgAdapt.Slot) does not exist
 *> below 2002 at all: the version-conformance pass rejects the data description entry itself with
-*> COBOLNET0900 (registry row usage-pointer-2002). The BELOW-EDITION half of the pair whose positive is
+*> COBOL0900 (registry row usage-pointer-2002). The BELOW-EDITION half of the pair whose positive is
 *> conformance-suite/cases/14.2-Procedure-division-structure/pb663_linkage_managed_formal_carrier.cob - the carrier landing must not have
 *> made a 2002 construct reachable at 85.
 *> The FORMAT-1 half of the same rule (14.9.4.3 SR10 - a Format 1 CALL shall pass no class-pointer item

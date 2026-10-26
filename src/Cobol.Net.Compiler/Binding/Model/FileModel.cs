@@ -300,9 +300,9 @@ public sealed class FileModel
     /// heading SR3 is written under) that specifies NO record description entries — the antecedent of ISO §13.4.5.3 SR3, "When no record description
     /// entries are specified:". Asked of <see cref="WrittenRecords"/>, so it holds whether or not
     /// <c>DataBinder.MaterializeImpliedRecord</c> could synthesize the implied record (an entry with no RECORD
-    /// maximum, COBOLNET1836, or an indexed one, COBOLNET1837, has none, and still has no record description
+    /// maximum, COBOL1836, or an indexed one, COBOL1837, has none, and still has no record description
     /// entries). A REPORT file (Format 3, SR8) and a sort-merge file description entry (§13.4.6) are not SR3's
-    /// subject, and a SELECT no entry describes has nothing to ask (COBOLNET2635).</summary>
+    /// subject, and a SELECT no entry describes has nothing to ask (COBOL2635).</summary>
     public bool HasNoRecordDescriptionEntries => HasFd && !IsSortMerge && !IsReportFile && !WrittenRecords.Any();
 
     /// <summary>The source position of the file control entry itself — the cursor the entry's own syntax rules
@@ -694,7 +694,7 @@ public sealed class FileModel
     /// maximum 12 and a legal <c>RECORD CONTAINS 11</c> was refused.</para>
     /// <para>⛔ A DYNAMIC-LENGTH ELEMENTARY ITEM IS THE ONLY VARIABLE-LENGTH MEMBER A RECORD CAN HOLD, so this
     /// walk has no dynamic-capacity-table arm (kb/Work PB1604, discharged): a dynamic-capacity table "may be
-    /// defined in any place, other than the file section" (§8.5.1.9.1 3)), and COBOLNET1526
+    /// defined in any place, other than the file section" (§8.5.1.9.1 3)), and COBOL1526
     /// (<c>DataBinder.DynamicResolve</c>) refuses one under any FD / SD record — written there directly, or
     /// arriving through a TYPE or SAME AS clause — so no record reaches this walk with one
     /// (<c>OccursDynamicGuardTests.FileSectionDynamicTable_EveryRoute_Rejected1526</c> pins every route). Were
@@ -864,7 +864,7 @@ public sealed class FileModel
     /// <summary>Whether an occurs-depending table — the one table in a record whose occurrence count varies —
     /// lies strictly beneath <paramref name="item"/> (a redefinition contributes nothing to GR8's sum, so one
     /// beneath a redefining entry does not count). A dynamic-capacity table cannot be in a record: see
-    /// <see cref="MaxDynamicExtent"/> (§8.5.1.9.1 3), COBOLNET1526).</summary>
+    /// <see cref="MaxDynamicExtent"/> (§8.5.1.9.1 3), COBOL1526).</summary>
     private static bool HasVaryingTableBeneath(DataItem item) =>
         item.Children.Any(c => c.RedefinesTargetName is null
             && (c.OccursSpec is { DependingName: not null } || HasVaryingTableBeneath(c)));
@@ -903,7 +903,7 @@ public sealed class FileModel
     /// (§14.9.24.4 GR13 a) names file-name-4; the printed name is a slip of the standard, so the GIVING side reads the
     /// record descriptions of the GIVING file.</para>
     /// <para>⚠ DETERMINATION — arm b) (several record descriptions WITH a SELECT WHEN clause, the clause choosing the
-    /// description) cannot arise: SELECT WHEN is Annex A.4.8's declined module (<c>COBOLNET1705</c>), refused at bind,
+    /// description) cannot arise: SELECT WHEN is Annex A.4.8's declined module (<c>COBOL1705</c>), refused at bind,
     /// so a file with several record descriptions always takes c).</para></summary>
     public bool ShortRecordFillNational => Records is [{ } only] && IsNationalRecord(only);
 

@@ -21,7 +21,7 @@ namespace CobolNet.Binding;
 /// (SR24 imports SRs 10 and 17 into format 3, never SR12), so a level-88 under a REDEFINES entry is legal and is
 /// NOT screened here. SR25's format-4 leg is VACUOUS under today's grammar: a report group description entry admits
 /// no CONSTANT RECORD clause (<c>reportGroupClause</c> has no such alternative), so the shape it forbids cannot be
-/// written; its format-5 leg belongs to the VALIDATE facility, refused by name (COBOLNET1708, Annex A.4.14). The
+/// written; its format-5 leg belongs to the VALIDATE facility, refused by name (COBOL1708, Annex A.4.14). The
 /// FORMAT-1 VALUEs of a CONSTANT RECORD's own entries are the record's content (the CONSTANT RECORD clause,
 /// §13.18.15) and stay legal — §13.18.63.3 SR25 names formats 3, 4 and 5 only.</para>
 ///

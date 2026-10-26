@@ -27,7 +27,7 @@
       *> Reject-at names every edition: SR2 carries no edition
       *> condition and the screen it drives has no edition axis.
       *> NOTE ON THE DIAGNOSTIC.  The compiler reports this through
-      *> the §8.8.1.1 operand-class screen (COBOLNET0844) rather than
+      *> the §8.8.1.1 operand-class screen (COBOL0844) rather than
       *> by SR2's number; the REJECTION is what SR2 obliges, and
       *> §8.8.1.1 is co-extensive with SR2 in a sending position.
        IDENTIFICATION DIVISION.

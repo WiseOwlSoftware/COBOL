@@ -110,7 +110,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>The compilation group's user-function signature table (FUNCTION-ID name → RETURNING +
     /// USING descriptions), built by the run-unit emitter between the DATA and PROCEDURE bind phases.
     /// Null in unit-test direct construction and in class-unit binders — every user-function reference
-    /// there fails loud (COBOLNET1505).</summary>
+    /// there fails loud (COBOL1505).</summary>
     public IReadOnlyDictionary<string, UserFunctionSignature>? UserFunctions { get; set; }
 
     /// <summary>The programs an AS NESTED call in THIS unit may name (§14.9.4.3 SR15: directly contained in
@@ -507,7 +507,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // non-table item) or a shape the resolver has not built — and the error count since this statement began
         // is what tells the two apart. A statement whose bind already drew an error is a refused statement: the
         // compile fails anyway, and announcing a gap in WiseOwl COBOL on top of it (`INSPECT A(1) …` on a non-table
-        // item used to draw COBOLNET2096 AND "not implemented") sends the user after the wrong party.
+        // item used to draw COBOL2096 AND "not implemented") sends the user after the wrong party.
         if (!drewError && deferred is null && (core is BoundUnsupported { Feature: var f } ? f : unbuiltOperand) is { } gap)
             data.Edition.Warning(DiagnosticCatalog.StatementNotImplemented,
                 $"{gap} — not implemented; reaching this statement aborts the run unit "
@@ -615,7 +615,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.callStatement() is { } call => Call.BindCall(call),
         _ when s.cancelStatement() is { } cancel => Call.BindCancel(cancel),
         // ENTRY: ISO/IEC 1989 defines no ENTRY statement — a vendor extension, which this implementation admits under
-        // no dialect (kb/Work PB909; the COBOLNET1941/1970 posture). It used to be a DEFERRAL (a COBOLNET1756
+        // no dialect (kb/Work PB909; the COBOL1941/1970 posture). It used to be a DEFERRAL (a COBOL1756
         // warning and a run-time abort), which is a promise to build something the standard does not contain.
         _ when s.entryStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and "
             + "this implementation admits none (ISO §4.2.2). Make the entry point a separate program, or a "
@@ -715,7 +715,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
     /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies
     /// the statement-shaped half (bind to a no-op), which is why it is reachable solely from
-    /// Warning-severity descriptors. A REFUSE-severity decline (COBOLNET1705/1706) calls
+    /// Warning-severity descriptors. A REFUSE-severity decline (COBOL1705/1706) calls
     /// <c>Declined</c> directly at its own site and yields <see cref="BoundUnsupported"/>, not a no-op.</summary>
     private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
     {
@@ -723,7 +723,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundNop();
     }
 
-    /// <summary>VALIDATE (ISO §14.9.50): the FACILITY is declined (COBOLNET1580) and its operands are still identifiers —
+    /// <summary>VALIDATE (ISO §14.9.50): the FACILITY is declined (COBOL1580) and its operands are still identifiers —
     /// <see cref="DeclinedFacilityBinder.BindValidate"/> resolves and screens each one (kb/Work PB3568).</summary>
     private BoundStatement BindDeclinedValidate(Core.ValidateFacilityStatementContext v)
     {
@@ -733,7 +733,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>An MCS SEND or RECEIVE (ISO §14.9.38, §14.9.31). RECEIVE and SEND parse at EVERY edition (the union
     /// grammar, kb/Work PB374), so below 2023 the facility is not this edition's to decline: the edition pass's
-    /// COBOLNET0900 (async-messaging-2023) is the whole answer there, and a COBOLNET1578 beside it would name a 2023
+    /// COBOL0900 (async-messaging-2023) is the whole answer there, and a COBOL1578 beside it would name a 2023
     /// facility to a COBOL-85 program. At 2023 the facility is declined and the operands are still identifiers —
     /// <paramref name="bindOperands"/> is the <see cref="DeclinedFacilityBinder"/> half for the statement (kb/Work PB3568).</summary>
     private BoundStatement BindDeclinedMcs<TStatement>(Action<TStatement> bindOperands, TStatement statement)

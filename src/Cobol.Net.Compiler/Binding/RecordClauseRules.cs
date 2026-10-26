@@ -115,7 +115,7 @@ internal sealed record RecordClauseRule(
 /// <list type="bullet">
 /// <item><b>SR1</b> ("If no record description entries are specified … the RECORD clause shall be specified") is
 /// about the clause's PRESENCE, is decidable while the entry is read, and is screened inline in
-/// <c>DataBinder.MaterializeImpliedRecord</c> (COBOLNET1836) — the same "needs nothing resolved, reports as the
+/// <c>DataBinder.MaterializeImpliedRecord</c> (COBOL1836) — the same "needs nothing resolved, reports as the
 /// entry is read" criterion that keeps §12.4.5.5.2 SR2 out of <see cref="FileControlKeyRules"/>.</item>
 /// <item><b>SR2</b> ("The words BYTES and CHARACTERS are synonymous and may be used interchangeably") is a
 /// LEXICAL permission, not a check: it is discharged by the grammar admitting both words in
@@ -293,7 +293,7 @@ internal static class RecordClauseRules
             // computes it, and the implied clause of PB1276 reads it), and its minimum is the item at zero length
             // (FileModel.MinRecordSize). Skipping these records made SR3 and SR4 vacuous for exactly the descriptions
             // that can overflow them: `RECORD CONTAINS 20` over two unbounded dynamic members compiled clean and its
-            // records read back mis-split. (A dynamic-capacity table cannot be in a record at all — COBOLNET1526,
+            // records read back mis-split. (A dynamic-capacity table cannot be in a record at all — COBOL1526,
             // §8.5.1.9.1 3) — so it needs no exclusion.)
             var subject = new RecordClauseSubject(record, FileModel.MinRecordSize(record), FileModel.MaxRecordSize(record));
             foreach (var rule in Rules)

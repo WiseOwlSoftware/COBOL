@@ -8,7 +8,7 @@
 // ⛔ THIS WHOLE FILE IS PARSE-SO-IT-CAN-BE-DIAGNOSED, NEVER PARSE-SO-IT-CAN-BE-USED. Screen handling is the
 // largest DECLINED optional module (docs/CONFORMANCE.md §5 "A.4.2 … Not claimed"); A.4.1 admits an optional
 // element's syntax only when support is claimed, so every construct here is refused at BIND with the named
-// COBOLNET1560 (data/environment surface) or COBOLNET1707 (procedure surface) — see ScreenFacility.cs. The
+// COBOL1560 (data/environment surface) or COBOL1707 (procedure surface) — see ScreenFacility.cs. The
 // surface exists because "a named refusal that says WHICH facility" beats a generic COBOL0001 parse error, and
 // because without it the two statement formats do not fail at all: `DISPLAY screen-name-1` and
 // `ACCEPT screen-name-1` are token-identical to their DEVICE formats and were silently re-read as those, i.e.
@@ -79,7 +79,7 @@ screenClause
 // §8.9-reserved from 2002 and modelled in the reserved-word funnel, not the lexer), so it arrives as an
 // IDENTIFIER — which is why IDENTIFIER is an alternative here. That over-admits (`LINE FOO 5` parses), and that
 // is harmless in a DECLINED module: everything this rule matches is refused by name at bind, so a wider surface
-// only converts more COBOL0001 parse errors into the named COBOLNET1560.
+// only converts more COBOL0001 parse errors into the named COBOL1560.
 screenLineClause
     : LINE NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (dataReference | integerLiteral)
     ;

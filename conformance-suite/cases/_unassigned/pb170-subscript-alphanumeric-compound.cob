@@ -6,7 +6,7 @@
 *>---
       *> THE CONTRAST CLAIM kb/Work PB170's note got WRONG, pinned so the fix
       *> cannot land on the simple arm alone and look green. The note asserted
-      *> that E(XE + 1) "now draws COBOLNET0844" and only the SIMPLE form
+      *> that E(XE + 1) "now draws COBOL0844" and only the SIMPLE form
       *> bypassed the screen. It does not: RenderSegment routes to the screened
       *> D18 path only for a slash, a function, an unresolvable name, a SCALED
       *> operand inside a compound, or a token with no case arm - and plain '+'

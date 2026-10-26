@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB780 - the slot witnesses ConstantNameLiteralPositionDriftTests reads: each statement writes a
       *> constant-name in a literal slot of the grammar that no other golden witnessed. The constant entry's own
-      *> literal-1 was REFUSED (COBOLNET1547 "all operands of the compile-time arithmetic expression shall be ...
+      *> literal-1 was REFUSED (COBOL1547 "all operands of the compile-time arithmetic expression shall be ...
       *> numeric") when the constant-name named an alphanumeric or national constant.
       *>
       *> RULES (cite.py --check, all OK):

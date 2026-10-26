@@ -10,7 +10,7 @@
       *> LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses" (cite.py --check 9.3.6 -> OK 9.3.6 3)): the
       *> argument has a PICTURE clause and the group formal none, so the method does not match - asked of
       *> every INVOKE by 14.9.23.4 GR7 b) (OK 14.9.23.4 7)). The typed lane refuses it at compile time
-      *> (COBOLNET0828); the universal lane raises EC-OO-METHOD (conformance:2002/
+      *> (COBOL0828); the universal lane raises EC-OO-METHOD (conformance:2002/
       *> pb480_universal_match_relations, pb2077_refmod_argument_both_lanes). Before the fix the typed lane
       *> asked 14.8.2.2 rule 1 alone and ran it.
        IDENTIFICATION DIVISION.

@@ -7,7 +7,7 @@
       *> kb/Work PB1408. ISO 14.8.2.3.2 (class pointer): "if either is a restricted pointer, both shall be restricted
       *> and of the same type". ADDRESS OF RP is, by 8.4.3.11.4 GR2, restricted to the type of RP -- PT -- and the
       *> formal FR is restricted to T-REC, the type RP's value addresses, so the argument does not conform: refused
-      *> COBOLNET1688 (the CALL arm of the one AddressOfRestriction accessor the SET arm shares). The conforming
+      *> COBOL1688 (the CALL arm of the one AddressOfRestriction accessor the SET arm shares). The conforming
       *> spellings are the positive golden 2002/pb1408_address_of_restricted_pointer.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1408N3.

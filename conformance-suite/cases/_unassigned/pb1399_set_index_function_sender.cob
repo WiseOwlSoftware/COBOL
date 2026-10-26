@@ -17,8 +17,8 @@
       *>   §14.9.39.4 GR2    the receiver takes the occurrence number the sender's value corresponds to: an index-name
       *>                     (TX) is positioned at it (a), an index data item (IC, IE) takes the value unchanged (b).
       *> The classifier used to take only a BARE data reference as identifier-2 and send every function down the
-      *> arithmetic-expression-1 lane, where the §8.8.1.1 numeric screen refused it (COBOLNET0844) and §14.9.39.3
-      *> SR3 refused an index data item receiver (COBOLNET2326).
+      *> arithmetic-expression-1 lane, where the §8.8.1.1 numeric screen refused it (COBOL0844) and §14.9.39.3
+      *> SR3 refused an index data item receiver (COBOL2326).
       *> EXPECTED OUTPUT, derived line by line (T holds "ABCDEFGHI", so occurrence n is the n-th letter):
       *>   A  IA = 3, IB = 7 (set through TX); MAX(IA IB) = 7 positions TX at occurrence 7  -> G
       *>   B  MIN(IA IB) = 3 positions TX at occurrence 3                                    -> C

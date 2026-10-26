@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> EXTERNAL type declaration (ISO 13.18.22 SR1/GR2/GR3 + 13.18.58.3 SR3, COBOL-2002; P10 Step 16 -
-      *> the former COBOLNET1534 stage LIFTED). EXTERNAL on a level-1 TYPEDEF puts the external attribute on
+      *> the former COBOL1534 stage LIFTED). EXTERNAL on a level-1 TYPEDEF puts the external attribute on
       *> the RECORDS declared with that type (13.18.22 GR3 - the type declaration itself has no storage,
       *> 13.18.58.4 GR2): each level-1 TYPE reference becomes an EXTERNAL record sharing ONE run-unit
       *> ExternalStore cell by its externalized name (GR1/GR5/GR6). MAIN sets the fields, the called program

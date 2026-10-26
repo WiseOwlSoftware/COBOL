@@ -7,7 +7,7 @@
       *> kb/Work PB1425 - ISO 14.9.23.3 SR1: "Identifier-1 shall be an object reference." An inline method
       *>   invocation is a legal INVOKE receiver only when the temporary it references is one (8.4.3.4.4 GR1:
       *>   the method's RETURNING description). WHO returns PIC 9(4), so `INVOKE A1 :: "WHO" "SPEAK"` names
-      *>   a numeric receiver and is refused by SR1 (COBOLNET0824), naming the receiver as written.
+      *>   a numeric receiver and is refused by SR1 (COBOL0824), naming the receiver as written.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425N1.
        ENVIRONMENT DIVISION.

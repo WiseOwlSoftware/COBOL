@@ -8,7 +8,7 @@
       *> ISO §14.9.34.2 at --std 85 — the SAME mandatory AT END phrase, at the OLDEST edition COBOL.NET
       *> compiles. The rule is a property of the printed general format, which brackets [ NOT AT END … ] and
       *> [ END-RETURN ] and leaves the AT END line unbracketed; §5.2.6.2 makes brackets the only convention
-      *> that makes a portion omissible, so nothing about the rule is edition-dependent and COBOLNET1850
+      *> that makes a portion omissible, so nothing about the rule is edition-dependent and COBOL1850
       *> screens it at every edition (kb/Work PB350). This is the 85 ACCEPT side; the reject side is
       *> conformance-suite/cases/14.9.34-RETURN/pb350-return-without-at-end.cob, whose reject-at header names all four.
       *>

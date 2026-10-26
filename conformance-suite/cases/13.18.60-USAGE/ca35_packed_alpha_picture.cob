@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> CA35 (CONFORMANCE-FIX-QUEUE): the SR3 guard covers USAGE PACKED-DECIMAL (= COMP-3) too. PIC A(4) is alphabetic,
-*> so USAGE PACKED-DECIMAL is illegal -> rejected (COBOLNET0881, ISO 13.18.60.3 SR3). Edition-invariant.
+*> so USAGE PACKED-DECIMAL is illegal -> rejected (COBOL0881, ISO 13.18.60.3 SR3). Edition-invariant.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGCA35B.
 DATA DIVISION.

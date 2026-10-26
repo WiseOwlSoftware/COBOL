@@ -8,7 +8,7 @@
       *> referenced, uniqueness shall be established through a sequence of qualifiers that precludes any
       *> ambiguity of reference." CNT is declared under GA and under GB, neither in T's own record, and
       *> DEPENDING ON CNT is unqualified. The resolver used to take the first declared (GA's) and run.
-      *> Expected: COBOLNET1639 at every edition.
+      *> Expected: COBOL1639 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB978NOD.
        DATA DIVISION.

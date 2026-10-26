@@ -11,7 +11,7 @@
       *>   cite.py --check 14.9.40.3 "Data-name-2 shall have an OCCURS clause in its data description entry"
       *>     -> OK §14.9.40.3 13) — an OCCURS DYNAMIC clause (§13.18.38 Format 4) IS an OCCURS clause, so the
       *>     table is a legal data-name-2. The pre-PB1174 binder asked for a FIXED integer and refused it
-      *>     (COBOLNET1757 "neither a SELECTed/SD file nor an OCCURS table").
+      *>     (COBOL1757 "neither a SELECTed/SD file nor an OCCURS table").
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
       *>     determined by the rules in the OCCURS clause" -> OK §14.9.40.4 20) — for a dynamic-capacity table
       *>     that is its CURRENT capacity (§8.5.1.9.1), never the store behind it.

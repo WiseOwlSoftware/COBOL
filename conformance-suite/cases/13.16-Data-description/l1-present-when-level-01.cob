@@ -29,7 +29,7 @@
       *> implementation does not claim (docs/CONFORMANCE.md §5). Annex
       *> A.4.1 admits the syntax of an optional element only when
       *> support is claimed, so the clause is refused BY NAME with
-      *> COBOLNET1708 in EVERY data description entry — level 1 and 77
+      *> COBOL1708 in EVERY data description entry — level 1 and 77
       *> included. The antecedent SR20 forbids can therefore never be
       *> constructed and the prohibition cannot be violated: kb/Work
       *> PB371's landed vacuously-satisfied CONFORMS shape.
@@ -38,7 +38,7 @@
       *> kb/Work PB283 (the A.4.14 posture) is OPEN. If VALIDATE is
       *> ever claimed, the clause is admitted and this level-1 entry
       *> must then be diagnosed on SR20's own ground rather than by the
-      *> decline; COBOLNET1708 stops being the answer and this fixture
+      *> decline; COBOL1708 stops being the answer and this fixture
       *> goes red — which is exactly what PB371 requires of a vacuity
       *> witness and exactly what the level-05 fixture cannot do.
       *>

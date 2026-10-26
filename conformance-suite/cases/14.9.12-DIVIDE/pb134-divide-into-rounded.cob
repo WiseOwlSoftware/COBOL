@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB134 - the ONE Format-2/Format-1 arithmetic operand discipline (COBOLNET1689): the
+      *> kb/Work PB134 - the ONE Format-2/Format-1 arithmetic operand discipline (COBOL1689): the
       *> GIVING forms print ONE sending operand with no ROUNDED; the non-GIVING forms print receiving
       *> identifiers only; every BY form of DIVIDE prints GIVING. The old binders silently dropped the
       *> extra operands / the ROUNDED, or crashed (DIVIDE's targets.Max on empty receivers).

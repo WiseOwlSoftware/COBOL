@@ -23,7 +23,7 @@ using CobolNet.Runtime;
 //  lists of printable fields. A printable item is carried as a SYNTHETIC DataItem (PicInfo + flags, never added
 //  to the storage forest — report groups are not data storage): the emitter then renders each SOURCE/VALUE
 //  through the ONE MOVE conversion path (CSharpEmitter.ConvertSource), which IS §13.18.53.4 GR1's implicit MOVE.
-//  Legal-but-unimplemented clauses stage LOUD here (Edition.Error, COBOLNET0899) — never silently dropped (§1.4).
+//  Legal-but-unimplemented clauses stage LOUD here (Edition.Error, COBOL0899) — never silently dropped (§1.4).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 /// <summary>One report description entry (ISO §13.14): identity, owning file (resolved post-build from the FD's
@@ -62,7 +62,7 @@ public sealed class ReportModel
     /// <summary>The page width — integer-2 of the PAGE clause (ISO §13.18.39.4 GR2b, "the maximum number of print
     /// columns that may be accommodated in any line of the report"), or 999 when it is omitted (GR5, "a value of
     /// 999 is assumed for the page width"). It is the bound of the COLUMN clause's own operands (§13.18.14.3 SR6,
-    /// COBOLNET2710) and of the line the engine places printable items in (§13.18.14.4 GR5, EC-REPORT-PAGE-WIDTH).
+    /// COBOL2710) and of the line the engine places printable items in (§13.18.14.4 GR5, EC-REPORT-PAGE-WIDTH).
     /// Independent of <see cref="Paged"/>: a PAGE clause may give the width alone.</summary>
     public int PageWidth { get; set; } = DefaultPageWidth;
 
@@ -1149,7 +1149,7 @@ public sealed partial class DataBinder
     {
         bool heading = false, firstDetail = false, lastControlHeading = false, lastDetail = false, footing = false;
         // §13.14.2 prints each clause in its own bracket with no ellipsis; §13.14.3 SR2 licenses any ORDER, never a
-        // repeat (COBOLNET2423 — the grammar's `reportDescriptionClause*` admits both).
+        // repeat (COBOL2423 — the grammar's `reportDescriptionClause*` admits both).
         var rdClauses = rd.reportDescriptionClause();
         string rdWhere = $"RD '{model.Name}'";
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportGlobalClause() is not null), rdWhere,
@@ -1175,7 +1175,7 @@ public sealed partial class DataBinder
             else if (clause.reportControlClause() is { } ctl)
             {
                 // Operand order IS the hierarchy, major→minor (§13.18.16.4 GR1); FINAL is the highest level (GR2).
-                int clauseStart = model.Controls.Count;   // a repeated CONTROL clause is COBOLNET2423 above
+                int clauseStart = model.Controls.Count;   // a repeated CONTROL clause is COBOL2423 above
                 for (int i = 0; i < ctl.ChildCount; i++)
                     switch (ctl.GetChild(i))
                     {
@@ -1242,7 +1242,7 @@ public sealed partial class DataBinder
                     model.PageWidthWritten = true;
                 }
                 // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
-                // never a repeat (COBOLNET2423).
+                // never a repeat (COBOL2423).
                 var subs = page.reportPageSubclause();
                 foreach (var phrase in Enum.GetValues<PagePhrase>())
                     UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => PagePhraseOf(s) == phrase), rdWhere,
@@ -1293,7 +1293,7 @@ public sealed partial class DataBinder
     /// greater than zero. Wherever specified, they shall be in ascending order, with equality allowed." The order is
     /// the HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING integers and then the page limit
     /// (<see cref="PagePhrase"/>'s declaration order), compared pairwise over the ones written, so an omitted phrase
-    /// is skipped and never invents a bound. (The "greater than zero" half is IntegerOperandPass, COBOLNET2386.)</item>
+    /// is skipped and never invents a bound. (The "greater than zero" half is IntegerOperandPass, COBOL2386.)</item>
     /// </list>
     /// An operand a rule has already refused (a constant-name that names no integer) is not in the list, so a
     /// recovered value never trips an ordering rule.</summary>
@@ -1526,7 +1526,7 @@ public sealed partial class DataBinder
     /// <c>BindReportEntry</c> would report it once per repetition (kb/Work PB884, PB1306). A first entry that is not
     /// level 1 is <see cref="DiagnosticCatalog.ReportGroupBefore01"/>'s, reported by the walk. An entry whose
     /// level-number is outside 1 through 49 (an 88, 66 or 77 written in an RD) is no report group description entry
-    /// (§13.18.33.3 SR4, COBOLNET1746 from <c>LevelNumberPass</c>), so it takes no place in the hierarchy: counting it
+    /// (§13.18.33.3 SR4, COBOL1746 from <c>LevelNumberPass</c>), so it takes no place in the hierarchy: counting it
     /// made `01 DT TYPE DETAIL. 88 D-ON VALUE "X". 05 LINE 1.` report the 05 as unequal to the 88.</summary>
     private void ScreenReportLevelNumbers(Core.ReportGroupEntryContext[] run, ReportModel model)
     {
@@ -1613,7 +1613,7 @@ public sealed partial class DataBinder
     /// (kb/Work PB1226). §13.8.2 prints the entries after a report description entry as the brace group
     /// <c>{ constant-entry | report-group-description-entry } …</c>, and §13.8.4 narrows the one-or-more to the
     /// report group kind: constant entries alone describe no report. The grammar admits the list empty (a
-    /// bind-time rule, like the sort-merge twin's COBOLNET1837, so the diagnostic names the rule rather than a
+    /// bind-time rule, like the sort-merge twin's COBOL1837, so the diagnostic names the rule rather than a
     /// parse position).</summary>
     private void ScreenReportDescriptionHasGroup(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
@@ -2493,7 +2493,7 @@ public sealed partial class DataBinder
             // only when the level-number of the subject of the entry is 88." And §13.18.33.3 SR4 already bounds
             // this section's level-numbers — "Report group description entries that are subordinate to an RD
             // entry shall have level-numbers with the values 1 through 49" — enforced over the whole parse tree
-            // by LevelNumberPass, COBOLNET1746. The conjunction is exact: a format-3 or format-5 VALUE clause in
+            // by LevelNumberPass, COBOL1746. The conjunction is exact: a format-3 or format-5 VALUE clause in
             // the report section requires a level-number this section does not admit, so SR30 is a consequence
             // of two rules each screened at the one place it belongs, not a third rule to write down here.
             // Pinned by conformance-suite/cases/13.18.63-VALUE/pb558-condition-name-in-report-section, all four editions.
@@ -4327,7 +4327,7 @@ public sealed partial class DataBinder
                     foreach (var p in NominalPlacements(ln))
                     {
                         // GR6 c)/d): integer-1 and the printable-size fix the leftmost column, and a line has no
-                        // column before 1 — the standard states no outcome for it, so it is refused here (COBOLNET2712).
+                        // column before 1 — the standard states no outcome for it, so it is refused here (COBOL2712).
                         if (p.Left < 1 && p.Spec.Kind == ReportColumnKindModel.Absolute && p.Spec.Alignment != ReportColumnAlignment.Left)
                             Edition.Error(DiagnosticCatalog.ReportColumnLeftOfLine, $"RD '{model.Name}' entry "
                                 + $"'{p.Field.PrintItem.CobolName ?? "FILLER"}': COLUMN {p.Spec.Alignment.ToString().ToUpperInvariant()} "
@@ -5134,7 +5134,7 @@ public sealed partial class DataBinder
     /// <para>The rule the three clauses SHARE is screened here, once — "If [data-name-1] is reference-modified,
     /// leftmost-position and length shall be integer literals" (§13.18.16.3 SR4, and word-for-word in §13.18.54.3 SR8
     /// and §13.18.57.3 SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
-    /// so each site keeps its own citation. Two ref-mods are §8.4.3.3.3 SR3 (the existing COBOLNET1630). A
+    /// so each site keeps its own citation. Two ref-mods are §8.4.3.3.3 SR3 (the existing COBOL1630). A
     /// SUBSCRIPT is rejected outright: §13.18.16.3 SR3 bars an operand subject to an OCCURS clause and
     /// §8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it
     /// was being dropped on the floor exactly as the ref-mod was.</para></summary>
@@ -5159,7 +5159,7 @@ public sealed partial class DataBinder
         else if (sfx.BeyondHostLimit)
             // kb/Work PB1579: the literals ARE integer literals (the rule above holds), but one lies beyond the host
             // range, and the slice is laid out as the prior control's own description — the limit a written
-            // integer-n that sizes or positions something meets (COBOLNET2427), never a saturated bound allocated.
+            // integer-n that sizes or positions something meets (COBOL2427), never a saturated bound allocated.
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
                 CobolNet.Validation.IntegerOperandRules.BeyondLimitMessage(where,
                     $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that"));

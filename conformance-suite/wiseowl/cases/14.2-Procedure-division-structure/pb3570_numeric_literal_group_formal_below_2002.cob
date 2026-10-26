@@ -7,7 +7,7 @@
 *> kb/Work PB3570, the negative of pb3570_numeric_literal_group_formal: the program-prototype
 *> format of CALL (the AS phrase, ISO 14.9.4.2 Format 2) is a COBOL-2002 introduction, so
 *> the BY CONTENT numeric literal into a group formal that its second regime moves
-*> (14.2.3 GR9) is refused at COBOL-85 by name (COBOLNET0900) and accepted from 2002 on.
+*> (14.2.3 GR9) is refused at COBOL-85 by name (COBOL0900) and accepted from 2002 on.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3570N1.
 PROCEDURE DIVISION.

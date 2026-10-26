@@ -58,7 +58,7 @@ public sealed class TurnState
     /// §7.3.25.3 SR2 (a name shall be one of the §14.6.13.1 names, here or in an edition that has it) is a syntax
     /// rule of the directive, asked by the directive stage for a compiled line and an omitted-branch line alike
     /// (<c>TurnDirectiveProcessor</c> through <see cref="ExceptionNameRule"/>; kb/Work PB2740), so this fold reports
-    /// no COBOLNET0711/0878. What it still asks is the policy half of the funnel
+    /// no COBOL0711/0878. What it still asks is the policy half of the funnel
     /// (<see cref="EcNameResolution.AdviseResolved"/>): a declined module's names are refused, the width advisory is
     /// raised.</summary>
     public static TurnState Build(IReadOnlyList<TurnEvent>? events, EditionContext edition)

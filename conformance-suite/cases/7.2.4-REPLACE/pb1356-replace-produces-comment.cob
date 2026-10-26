@@ -9,7 +9,7 @@
 *> statement, a SOURCE FORMAT directive, a comment, or a blank line"
 *> (cite.py --check: OK §7.2.4.4 9)). LEADING ==Q== BY ==*== turns
 *> the text-word Q>1 into *>1, a comment that would swallow the rest
-*> of the line: COBOLNET2574 (kb/Work PB1356). Pinned from 2002, the
+*> of the line: COBOL2574 (kb/Work PB1356). Pinned from 2002, the
 *> introducing edition of the partial-word phrase is kb/Work PB1670.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1356RC.

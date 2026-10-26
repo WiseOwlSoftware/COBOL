@@ -7,7 +7,7 @@
       *> kb/Work PB1292 - ISO 13.18.53.3 SR4: "If identifier-1 specifies a report section item, it shall be a report
       *> counter identifier or a sum counter defined in the current report." DET-AMT is a printable item of a detail
       *> group - a report section item that is neither - so naming it as the SOURCE of another item is refused:
-      *> COBOLNET2144 (the report-section-name screen both SOURCE operand forms share).
+      *> COBOL2144 (the report-section-name screen both SOURCE operand forms share).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1292N1.
        ENVIRONMENT DIVISION.

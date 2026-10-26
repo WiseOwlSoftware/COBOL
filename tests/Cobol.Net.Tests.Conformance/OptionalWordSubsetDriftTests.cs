@@ -288,7 +288,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // exercise the `IS alphabet-name-1` arm, so this row sweeps the head over that arm instead — at COBOL-85,
     // where that arm is the whole format.
     // ⛔ THE COMPUTER-NAME IS WRITTEN DELIBERATELY, and it is what makes this row bite. Omitting it is a
-    // SEPARATE 2002 relaxation (`computer-name-optional-2002`, COBOLNET0900), so a name-less spelling at 85 is
+    // SEPARATE 2002 relaxation (`computer-name-optional-2002`, COBOL0900), so a name-less spelling at 85 is
     // correctly rejected and would only measure that gate. With the name present, every subset also proves the
     // clause is read as a CLAUSE after the name and not as the closed format's residue (kb/Work PB830's
     // `unrecognizedClause`), whether it opens on PROGRAM, on COLLATING or on SEQUENCE.
@@ -683,7 +683,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // ⛔ WRITTEN TWICE, AT 85 AND AT 2023, AND THE SECOND ROW IS THE REGRESSION (kb/Work PB704). §8.9 reserves
     // ORDER from 2002, and while the word rode `cobolWord` the §8.9 funnel — which screens every IDENTIFIER
     // occurrence POSITION-BLIND — read the format's own word as a user-defined one: the four spellings that
-    // WRITE ORDER were COBOLNET0901 at 2002/2014/2023 and clean at 85. A single-edition row would have passed
+    // WRITE ORDER were COBOL0901 at 2002/2014/2023 and clean at 85. A single-edition row would have passed
     // the whole time (feedback_edition_gate_sweep).
     // The observable is §14.9.40.4 GR3 b): among records equal on every key the order of return is the order in
     // which the input procedure RELEASED them, so the output pins the phrase's ONE semantic effect and not
@@ -870,7 +870,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
 
     // RECEIVE (§14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
     // none in THIS format (§8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
-    // both and keeps them). The facility is declined and inert (COBOLNET1578), so the row pins the SPELLINGS: every
+    // both and keeps them). The facility is declined and inert (COBOL1578), so the row pins the SPELLINGS: every
     // subset must compile, and the run around the statements must not change.
     private const string ReceiveContinueWords = """
            IDENTIFICATION DIVISION.

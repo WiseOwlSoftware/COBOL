@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB2079 - ISO/IEC 1989:2023 15.12.3 r1: "numeric integer literals or data items" - a nested
       *> function is neither a literal nor a data item, so FUNCTION INTEGER(16) is refused as a base
-      *> (COBOLNET1627), as FIND-STRING refuses a function for its integer argument (15.37.3 r3).
+      *> (COBOL1627), as FIND-STRING refuses a function for its integer argument (15.37.3 r3).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2079FUN.
        DATA DIVISION.

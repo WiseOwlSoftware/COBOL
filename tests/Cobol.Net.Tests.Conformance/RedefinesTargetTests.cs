@@ -22,7 +22,7 @@ public sealed class RedefinesTargetTests
         string src = Head + "01 W PIC X.\n01 B REDEFINES NOPE PIC 9(2).\nPROCEDURE DIVISION.\n    MOVE 1 TO B.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1654");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1654");
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public sealed class RedefinesTargetTests
         string src = Head + "01 REC.\n   05 A REDEFINES B PIC X(2).\n   05 B PIC X(2) VALUE \"ab\".\nPROCEDURE DIVISION.\n    DISPLAY A.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1654");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1654");
     }
 
     [Fact]
@@ -41,12 +41,12 @@ public sealed class RedefinesTargetTests
             + "PROCEDURE DIVISION.\n    MOVE \"xy\" TO C.\n    DISPLAY A B C.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1656");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1656");
         var (pok, stdout, detail) = EditionHarness.CompileAndRun(src, 2023, permissive: true);
         Assert.True(pok, detail);
         Assert.Equal("xyxyxy", stdout.Trim());   // the anchor-chased chain: C, B and A share the one area
         var (_, _, warnings) = EditionHarness.CompileFull(src, 2023, permissive: true);
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1656"));
+        Assert.Contains(warnings, w => w.Contains("COBOL1656"));
     }
 
     [Theory]
@@ -58,7 +58,7 @@ public sealed class RedefinesTargetTests
             + "PROCEDURE DIVISION.\n    DISPLAY AB.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1655");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1655");
     }
 
     [Fact]   // the legal shapes still bind (a RENAMES range spanning a REDEFINES view is kb/Work PB96 — kept out of this shape)
@@ -74,9 +74,9 @@ public sealed class RedefinesTargetTests
     /// <summary>kb/Work PB2518 — a REDEFINES clause inside a TYPEDEF is screened where the type is DECLARED, used or not
     /// (the roots-only walk never reached a template), and a used type is diagnosed once, not once per clone.</summary>
     [Theory]
-    [InlineData("05 A PIC X(2).\n   05 C PIC X.\n   05 B REDEFINES A PIC X(2).\n", "COBOLNET2739")]   // SR10 across storage
-    [InlineData("05 A PIC X.\n   05 B REDEFINES A PIC X(2).\n", "COBOLNET1539")]                      // SR8 size screen
-    [InlineData("05 A PIC X.\n   05 B REDEFINES ZZ PIC X(2).\n", "COBOLNET1654")]                    // unresolved data-name-2
+    [InlineData("05 A PIC X(2).\n   05 C PIC X.\n   05 B REDEFINES A PIC X(2).\n", "COBOL2739")]   // SR10 across storage
+    [InlineData("05 A PIC X.\n   05 B REDEFINES A PIC X(2).\n", "COBOL1539")]                      // SR8 size screen
+    [InlineData("05 A PIC X.\n   05 B REDEFINES ZZ PIC X(2).\n", "COBOL1654")]                    // unresolved data-name-2
     public void RedefinerInsideUnusedTypedef_IsScreenedAtTheDeclaration(string members, string code)
     {
         string src = Head + "01 T TYPEDEF.\n   " + members + "01 U PIC X.\nPROCEDURE DIVISION.\n    STOP RUN.\n";
@@ -92,6 +92,6 @@ public sealed class RedefinesTargetTests
             + "PROCEDURE DIVISION.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok);
-        Assert.Single(errors, e => e.Contains("COBOLNET2739", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL2739", StringComparison.Ordinal));
     }
 }

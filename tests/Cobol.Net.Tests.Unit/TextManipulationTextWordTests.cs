@@ -204,7 +204,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.Contains("DISPLAY \"A==B\".", text);
     }
 
-    [Theory] // Each header outside the general format is COBOLNET2449 (and names the problem), never a silent compile.
+    [Theory] // Each header outside the general format is COBOL2449 (and names the problem), never a silent compile.
     [InlineData("COPY bk1 GARBAGE MORE.")]
     [InlineData("COPY bk1 PRINTING.")]
     [InlineData("COPY bk1 REPLACING.")]
@@ -216,10 +216,10 @@ public sealed class TextManipulationTextWordTests : IDisposable
     {
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (_, bag) = Run(statement + "\n");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2449" && d.IsError);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2449" && d.IsError);
     }
 
-    [Theory] // §7.2.3.3 SR4 (concatenation / figurative constant) and SR5 (alphanumeric literals only) — COBOLNET2450.
+    [Theory] // §7.2.3.3 SR4 (concatenation / figurative constant) and SR5 (alphanumeric literals only) — COBOL2450.
     [InlineData("COPY \"BK\" & \"1\".")]
     [InlineData("COPY SPACE.")]
     [InlineData("COPY ALL \"X\".")]
@@ -230,7 +230,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     {
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (_, bag) = Run(statement + "\n");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2450" && d.IsError);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2450" && d.IsError);
     }
 
     [Theory] // SR5's alphanumeric literal — plain or hexadecimal — names the library text by its VALUE.
@@ -246,7 +246,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     }
 
     [Theory] // §7.2.3.2: the literal forms of text-name-1 and library-name-1 are a COBOL-2002 introduction (kb/Work PB1601,
-             // constructs row copy-literal-name-2002): COBOLNET0900 below 2002, clean from it — each literal written, so
+             // constructs row copy-literal-name-2002): COBOL0900 below 2002, clean from it — each literal written, so
              // both names of one statement report; a name written as a WORD is 1985's own form and draws nothing.
     [InlineData("COPY \"bk1\".", 85, 1)]
     [InlineData("COPY 'bk1'.", 85, 1)]
@@ -264,7 +264,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Directory.CreateDirectory(Path.Combine(_dir, "lib1"));
         Copybook(Path.Combine("lib1", "bk1.cpy"), "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (_, bag) = Run(statement + "\n", edition);
-        var gates = bag.Diagnostics.Where(d => d.Code == "COBOLNET0900").ToList();
+        var gates = bag.Diagnostics.Where(d => d.Code == "COBOL0900").ToList();
         Assert.Equal(expectedGates, gates.Count);
         Assert.All(gates, g => Assert.True(g.IsError, "an introduction is an error, never a warning"));
         Assert.All(gates, g => Assert.Contains("COBOL-2002", g.Message));
@@ -282,13 +282,13 @@ public sealed class TextManipulationTextWordTests : IDisposable
     {
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (text, bag) = Run(statement + "\n", edition);
-        var gates = bag.Diagnostics.Where(d => d.Code == "COBOLNET0900").ToList();
+        var gates = bag.Diagnostics.Where(d => d.Code == "COBOL0900").ToList();
         Assert.Equal(expectedGates, gates.Count);
         Assert.All(gates, g => Assert.True(g.IsError, "an introduction is an error, never a warning"));
         Assert.Contains(statement.Contains("REPLACING") ? "BB-Y" : "AA-X", text);   // the library text is spliced either way
     }
 
-    [Theory] // SR1: a COPY statement within a COPY statement (its REPLACING operands or its header) — COBOLNET2451,
+    [Theory] // SR1: a COPY statement within a COPY statement (its REPLACING operands or its header) — COBOL2451,
              // and the inner COPY is NOT spliced from the operand.
     [InlineData("COPY bk1 REPLACING ==AA-X== BY ==COPY bk2.==.")]
     [InlineData("COPY bk1 COPY bk2.")]
@@ -297,7 +297,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         Copybook("bk2.cpy", "01 ZZ-Z PIC X(3) VALUE \"ZZZ\".\n");
         var (_, bag) = Run(statement + "\n");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2451" && d.IsError);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2451" && d.IsError);
     }
 
     [Theory] // SR2: "A COPY statement shall be preceded by a space" — after a parenthesis, or glued behind a period.
@@ -307,7 +307,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
     {
         Copybook("bk1.cpy", "01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (_, bag) = Run(line + "\n");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET2451" && d.IsError);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2451" && d.IsError);
     }
 
     [Fact] // The control for SR1/SR2: COPY after a level number or a data-name, and a COPY in a literal or comment.
@@ -326,7 +326,7 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Copybook("inner.cpy", "01 N1 PIC X VALUE \"N\".\n");
         Copybook("outer.cpy", "COPY inner.\n01 N2 PIC X VALUE \"M\".\n");
         var (_, bag) = Run("COPY outer SUPPRESS REPLACING ==N2== BY ==N3==.\n");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOLNET1640" && d.IsError);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL1640" && d.IsError);
     }
 
     [Fact] // The REPLACE arm of the same statement parse: a period inside pseudo-text is an operand text-word.
@@ -338,12 +338,12 @@ public sealed class TextManipulationTextWordTests : IDisposable
         Assert.DoesNotContain("STOP RUN", text);
     }
 
-    [Fact] // REPLACE missing its BY is COBOLNET2449 (a non-pseudo-text operand stays COBOLNET1641, one report).
+    [Fact] // REPLACE missing its BY is COBOL2449 (a non-pseudo-text operand stays COBOL1641, one report).
     public void ReplaceStatement_MissingBy_DrawsSyntaxError()
     {
         var (_, bag) = Run("REPLACE ==A== ==B==.\n    DISPLAY A.\n");
-        Assert.Equal("COBOLNET2449", Codes(bag));
+        Assert.Equal("COBOL2449", Codes(bag));
         var (_, bag2) = Run("REPLACE \"A\" BY \"B\".\n    DISPLAY A.\n");
-        Assert.Equal("COBOLNET1641", Codes(bag2));
+        Assert.Equal("COBOL1641", Codes(bag2));
     }
 }

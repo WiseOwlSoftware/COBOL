@@ -170,8 +170,8 @@ landing lease are deleted (kb/Work PB3024's closing change).
 `ReservedWordsDriftTests` binds `reserved-words.json`. Nothing silently undiscovered.
 
 ### 1.6 Diagnostics
-161 distinct `COBOLNET####` codes exist as **bare string literals**; only 4 are named consts (`EditionCodes.cs`).
-`COBOLNET0899` (catch-all "recognized-not-implemented") appears at ~47 sites; several codes are reused for
+161 distinct `COBOL####` codes exist as **bare string literals**; only 4 are named consts (`EditionCodes.cs`).
+`COBOL0899` (catch-all "recognized-not-implemented") appears at ~47 sites; several codes are reused for
 unrelated rules (e.g. `1533` ×3). There is no registry, no `docs/DIAGNOSTICS.md`, no per-code metadata, so tests
 and `--suppress` cannot target a specific rule and the version matrix cannot enumerate diagnostics.
 
@@ -432,21 +432,21 @@ A first-class subsystem (also required by the Editions dimension). Minimal shape
 
 ```csharp
 public sealed record DiagnosticDescriptor(
-    string Code,           // "COBOLNET1533" — one code, one rule
+    string Code,           // "COBOL1533" — one code, one rule
     Severity DefaultSeverity,
     string SpecRef,        // "ISO §8.4.3.9.4" — the citation
     string MessageTemplate,// "strong TYPE mismatch: {0} vs {1}"
     string? SuppressKey);  // stable --suppress token
 
 public static class Diag {                    // the catalogue (generated-friendly consts)
-    public static readonly DiagnosticDescriptor StrongTypeMoveMismatch = new("COBOLNET1533", …);
+    public static readonly DiagnosticDescriptor StrongTypeMoveMismatch = new("COBOL1533", …);
     // … one entry per distinct rule …
 }
 public readonly record struct Diagnostic(
     DiagnosticDescriptor Descriptor, string Message, SourceSpan Location, Severity Severity);
 ```
 
-- `EditionContext.Error("COBOLNET####", text)` → `sink.Report(Diag.X, args…)`. The 47 `0899` sites split into
+- `EditionContext.Error("COBOL####", text)` → `sink.Report(Diag.X, args…)`. The 47 `0899` sites split into
   named unimplemented-feature descriptors behind a tracked list; `1533`-style reuse is un-merged into distinct
   codes.
 - `DiagnosticRegistryDriftTests` (in `Tests.Unit`): every `Diag.*` descriptor has a unique code; every code emitted
@@ -1552,12 +1552,12 @@ product defect: all three stack samples of the CLI compile sit in `TableValueOdo
 bounded only by its `MaxFillElements` ceiling (64,000,000) — and when the odometer can never carry out of a DYNAMIC
 dimension with no TO, the phrase's TO is never reached, which is exactly the §13.18.63.3 SR23 violation ("the values
 of subscript-1 and subscript-2 corresponding to all levels higher than that of the OCCURS clause, if applicable,
-shall be equal") that `COBOLNET1946` then reports. The fix checks SR23 before any fill and bounds the
+shall be equal") that `COBOL1946` then reports. The fix checks SR23 before any fill and bounds the
 fill by the elements the phrase names; the test keeps asserting the diagnostic. **Landed (kb/Work PB1716):**
 `TableValueOdometer.ElementCount` computes a phrase's element count as the mixed-radix distance from subscript-1 to
 subscript-2 BEFORE anything is read and returns none for a phrase SR20/SR21/SR23 reject, so the `MaxFillElements`
 cap is gone (and since kb/Work PB1722 `Resolve` keeps the PHRASES, never filling an element map at all); the SR23 rule's shape ("a level above ANY unbounded
-dimension") lives once in `TableValueOdometer.UnboundedBelow`, read by both the fill and the `COBOLNET1946` screen,
+dimension") lives once in `TableValueOdometer.UnboundedBelow`, read by both the fill and the `COBOL1946` screen,
 which had tested only the OUTERMOST unbounded dimension and so accepted two nested ones spanned at the outer level.
 pb505 now rejects in 0.49 s through the CLI (was 25.3 s on the same build). The other poles over 30 s in `b1`
 (`CompiledProgramCacheDriftTests.TheOutputDirectory_DoesNotReachTheOutput` 55 s, `OptionalWordSubsetDriftTests`
@@ -1740,7 +1740,7 @@ above. The rejected design and both reviews are in the DEVLOG entry that pivoted
 | id | mechanism | files | acceptance (measured, never asserted) | depends on | size |
 |---|---|---|---|---|---|
 | M6 | after warm-up the lexer performs no ATN simulation (§3.14.5); kb/Work PB1715 | `src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4` and the predicate and action methods it calls; `tests/Cobol.Net.Tests.Unit/LexerDfaCacheDriftTests.cs`; this section | token streams of every suite source identical before/after (one-time differential, recorded in the DEVLOG); `LexerDfaCacheDriftTests` red on a planted predicate at the left edge AND on one placed after a common prefix's first character; zero ATN simulation on re-lexing the suite's ASCII sources (the one EOF transition per input ANTLR never caches is reported, not counted); the non-ASCII residual reported; `b2` at 12 threads ≥ 8× today's 1-thread wall, CPU utilisation ≥ 70 % (measured 55× and 21 %: the utilisation limit is now the workstation GC, §3.14.5); whole battery green | — | 140–200 turns |
-| M7 | SR23 before the table-value fill; the fill bounded by the phrase (§3.14.5); defect note: id allocated by the orchestrator | `src/Cobol.Net.Compiler/Binding/Model/TableValuePlan.cs` (`TableValueOdometer.Resolve`), `DataBinder.ResolveTableValues`; battery summary top-5 report in `scripts/battery.sh` | the pb505 program rejects with `COBOLNET1946` in < 1 s through the CLI (was 29.6 s); both tests keep their assertions; every Format 2 VALUE golden unchanged; the battery summary lists the five slowest tests | — | 60–100 turns |
+| M7 | SR23 before the table-value fill; the fill bounded by the phrase (§3.14.5); defect note: id allocated by the orchestrator | `src/Cobol.Net.Compiler/Binding/Model/TableValuePlan.cs` (`TableValueOdometer.Resolve`), `DataBinder.ResolveTableValues`; battery summary top-5 report in `scripts/battery.sh` | the pb505 program rejects with `COBOL1946` in < 1 s through the CLI (was 29.6 s); both tests keep their assertions; every Format 2 VALUE golden unchanged; the battery summary lists the five slowest tests | — | 60–100 turns |
 | M11 | the order plan: `NameKey`, tiers 0a/0u/1–3, the budgets and the collection cap (§3.13, §3.14.2); the NARROWING deleted — LANDED (kb/Work PB1717: b4 first red 0.32 %, b7 one tier-0u case and a 15.3 s floor; tier 0a corrected to ADDED test methods) | `scripts/spec/impacted_tests.py` (selection code DELETED — its filter line is always the whole-assembly filter until M13 deletes the line; `--plan` added), `scripts/gate_plan.py`, `tests/Cobol.Net.Tests.Unit/ImpactedTestsDriftTests.cs`, kb/Work PB1712 (closed) | `--self-test` covers every tier arm, `NameKey`, the unknown budget, the collection cap and the no-map / no-timings / stale-map / empty-leg-1 / whole-assembly-in-leg-1 arms; the filter line is the whole-assembly filter for a base WITH a map; `b4` re-run through the new script reproduces cheapest-first on 68b X (first red ≤ 1 % of the work); `b7` re-run through it: a golden appended to the 85 manifest leaves ONE tier-0u case and a leg-1 floor ≤ 16 s | — | 110–160 turns |
 | M14 | ONE population check for every whole-assembly run, and the handshake scrub (§3.14.3–4) | `scripts/test_population.py` + `--self-test`; `scripts/battery.sh` (PHASE 1 population check; scrub); `.github/workflows/build-and-test.yml` (`conformance-population` runs the tool on the shard trx files; the inline `grep -c` block DELETED; scrub); `gen-vcr.ps1`, `gen-diagnostics-doc.ps1`, `scripts/spec/record_verdicts.py`, `scripts/spec/record_impact_map.py` (scrub); `GateLegDriftTests` (6); `docs/DRIFT_RULES.md`. As landed, the arm-(6) scan also found `build-local.ps1`/`.sh`, `guard.sh`, `guard-fast.sh`, `measure-battery-determinism.sh` and `filter_population.py` (scrubbed), the scrub grew the VSTest channel, the two other `--list-tests` parsers were folded into the tool's, and `FilterPopulationGuardDriftTests` recognises the new shard shape | the self-test's arms (short, over, skipped, definitions vs results); the battery's PHASE 1 prints each assembly's population line and is red on a planted dropped case; CI's guard red on a planted shard overlap that keeps the count; `b8`'s two inputs pass | — | 60–100 turns |
 | M12 | the in-assembly leg filter, the handshake and the identity records (§3.14.3) — LANDED (kb/Work PB1719, evidence `m12`: no handshake, 35 / 29,715 / 9,319 definitions = `--list-tests`; a plan from `gate_plan.py` ran Characterization in one leg and Unit 28,754 + 961 and Conformance 5,069 + 4,250, each leg exactly its plan's cases, union = `--list-tests`, five identity records; eight partial or stale handshakes each `Failed!`, exit 1; a recording at its head recorded 39,100 tests, the gate's 9,319 + 29,746 + 35, with the watchdog clean) | `tests/_shared/GateLegs.cs` + `GateLegAudit.cs` (linked by the existing `_shared` glob, so no `.csproj` changes), `tests/Directory.Build.props` (the framework attribute, by assembly name), `tools/impact/ImpactTestFramework.cs` + `ImpactRecording.targets` (`IMPACT_RECORDING`), `tests/Cobol.Net.Tests.Unit/ParenTokenTwinDriftTests.cs` (repository-relative path argument), `GateLegDriftTests` (1), (2), (4), (5) in Unit and (4), (5) in Conformance and Characterization | with no handshake every assembly's count and verdict are unchanged; with a full one, each leg's trx definitions are exactly its leg's cases and the two legs' union equals `--list-tests`; each partial handshake (one variable, two, missing file, digest mismatch, bad leg) makes every case an execution error and the run RED; each leg writes its identity record; a planted non-permutation throws; no display name carries the repository root; a recording at HEAD still records every test (the recorder's watchdog) | M11 (the plan format) | 130–190 turns |
@@ -2438,7 +2438,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
    head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
-   merge group's CI, PB3389) and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
+   merge group's CI, PB3389), `rename_diagnostic_prefix.py --check` (the DIAGNOSTIC PREFIX audit, run by the merged head's own copy for the same
+   reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575)
+   and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
@@ -2871,7 +2873,7 @@ leg).
 | split | `NistDifferentialTests.cs` (318 `[InlineData]`) | `[MemberData]` over `corpus.tsv` + a thin theory | Remove the hand-maintained green list; single source of truth. |
 | refactor | ~60 `*DifferentialTests.cs` (assert `cobolnet==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
 | refactor | `EditionContext.Error(code,msg)` string-concat; 161 bare codes | `sink.Report(Diag.X, args)` | Route all diagnostics through the registry. |
-| split | `COBOLNET0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
+| split | `COBOL0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
 | move | `CompilerUnderTest.LegacyCompiler` / `ICompilerUnderTest` | DELETE after the bake | Legacy oracle gone once goldens are baked. |
 | refactor | `RoslynBackend.ReferenceAssemblies()` (uncached) | `static Lazy<ImmutableArray<MetadataReference>>` | Battery throughput (thousands of rebuilds → one). |
 | refactor | binder passes behind the `CSharpEmitter.Bind` host facade | `Binding.BindPipeline → BoundCompilation` (standalone) | Bind phase boundary: fast `CheckOnly`, probe-able bound tree, clean Emit snapshot. |

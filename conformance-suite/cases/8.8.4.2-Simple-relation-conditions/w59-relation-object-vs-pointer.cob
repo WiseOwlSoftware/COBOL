@@ -8,7 +8,7 @@
       *> identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the
       *> same category." An object reference and a data-pointer are of different classes and so of different
       *> categories; the relation is refused. The message-tag third of the rule cannot arise: USAGE MESSAGE-TAG
-      *> is refused by name (COBOLNET1943) because the asynchronous messaging facility is not claimed (Annex A.3
+      *> is refused by name (COBOL1943) because the asynchronous messaging facility is not claimed (Annex A.3
       *> item 4), which R43 item 2 records as the declined half. The pointer-vs-program-pointer half is
       *> negative/pb399-pointer-relation-category-mix.
        IDENTIFICATION DIVISION.

@@ -158,12 +158,12 @@ internal readonly record struct EntryClause(string Face, FileFormats Carried, Fu
 /// <param name="Applies">The entry-level precondition beyond the kind (an access mode, a present FD).</param>
 /// <param name="Violated">Whether this operand breaks the rule.</param>
 /// <param name="Message">The diagnostic body — what the operand IS, then the rule, then the citation.</param>
-/// <param name="Code">The diagnostic this row reports under. Almost every row is COBOLNET0863's own subject —
+/// <param name="Code">The diagnostic this row reports under. Almost every row is COBOL0863's own subject —
 /// "a file control entry's key clause breaks one of its syntax rules" — which is why the code is a column with a
 /// default rather than a parameter every row restates. §12.4.5.2 SR8/SR9/SR11's SECOND sentence and SR13 are the
 /// exception: their subject is the FILE DESCRIPTION ENTRY, not a key clause, and their remedy is a different edit,
-/// so they carry their own code (COBOLNET1900); SR11's FIRST sentence is about the file's organization and has
-/// COBOLNET2912.</param>
+/// so they carry their own code (COBOL1900); SR11's FIRST sentence is about the file's organization and has
+/// COBOL2912.</param>
 internal sealed record FileControlKeyRule(
     string? RuleId,
     string Clause,
@@ -240,7 +240,7 @@ internal sealed record FileControlKeyRule(
 /// RECORD KEY (PB1073) after them.</para>
 /// <para>ALSO NOT HERE, and the one place §12.4.5.2 SR8 is written down twice: the COLLATING SEQUENCE clause is a
 /// Format-1 clause too, and a file-level one on a non-indexed file is refused by
-/// <c>DataBinder.ResolveFileCollating</c> (COBOLNET1582) — because that test is ALSO the guard that stops the
+/// <c>DataBinder.ResolveFileCollating</c> (COBOL1582) — because that test is ALSO the guard that stops the
 /// rest of that method, and splitting a guard from its report would leave the resolution running on an entry it
 /// has already refused. Its citation was §12.4.5.7.1, the clause's descriptive General paragraph; it is SR8 and
 /// now says so. The traceability row `SR-12.4.5.2-8` names both sites.</para>
@@ -316,7 +316,7 @@ internal static class FileControlKeyRules
 
         // SR3 — kb/Work PB1073. §8.5.1.11.1 defines the term: "a dynamic-capacity table or a dynamic-length
         // elementary item". The TABLE arm is a key under an OCCURS clause and SR1 above already reports it (a
-        // dynamic-capacity table cannot even be in a record, COBOLNET1526), so this row asks the elementary arm
+        // dynamic-capacity table cannot even be in a record, COBOL1526), so this row asks the elementary arm
         // alone rather than telling the program the same fact in two sentences. A GROUP that merely CONTAINS a
         // dynamic-length item is a variable-length GROUP, which the standard names separately wherever it means
         // to forbid one (§12.4.5.8.3 SR3, §13.10.3 SR12) and does NOT name here.
@@ -605,7 +605,7 @@ internal static class FileControlKeyRules
     // ⚠ A clause carried by MORE THAN ONE format identifies none — ACCESS MODE IS RANDOM appears in Formats 1 and
     // 2 both, and the standard screens it with the ACCESS clause's own rule (§12.4.5.5.2 SR2, DataBinder), not
     // with SR8/SR9. The collating-sequence-clause is likewise screened at its own resolution site
-    // (DataBinder.ResolveFileCollating, COBOLNET1582), which has to guard on the organization anyway.
+    // (DataBinder.ResolveFileCollating, COBOL1582), which has to guard on the organization anyway.
     private const FileFormats Formats123 = FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3;
     private const FileFormats Formats12 = FileFormats.Format1 | FileFormats.Format2;
 
@@ -732,7 +732,7 @@ internal static class FileControlKeyRules
     /// consequence of WHERE the screen runs rather than a set the screen has to carry.</summary>
     /// <param name="refusedOperands">Key operand names already REFUSED and reported, for which no rule here may
     /// speak again: a §8.4.2.2.3 SR1 ambiguity (kb/Work PB978 — two items ARE described), and an operand the
-    /// capture refused for its written SHAPE (a subscript or reference-modifier, COBOLNET2024 — kb/Work PB481),
+    /// capture refused for its written SHAPE (a subscript or reference-modifier, COBOL2024 — kb/Work PB481),
     /// recorded as written and so naming no item. Either has no item, and SR2's "references nothing described"
     /// would be a false second verdict about it.</param>
     public static void Screen(FileModel file, EditionContext edition, IReadOnlySet<string>? refusedOperands = null)

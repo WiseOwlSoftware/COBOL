@@ -155,7 +155,7 @@ public sealed class DataItem
 
     /// <summary>The DEFERRED adjudication mark of a PICTURE-less <c>USAGE NATIONAL</c>/<c>BIT</c> entry
     /// (ISO §13.18.60.4): whether it is a legal GROUP header (the usage sheds to subordinates, GR1) or an illegal
-    /// picture-less elementary item (COBOLNET0881) is unknowable until the forest is complete —
+    /// picture-less elementary item (COBOL0881) is unknowable until the forest is complete —
     /// <c>DataBinder.MakeItem</c> writes it, <c>DataBinder.ResolveIndexItems</c> adjudicates and CLEARS it
     /// (P5.11c; <see cref="Pic"/> stays null meanwhile, never a sentinel shape).</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
@@ -292,7 +292,7 @@ public sealed class DataItem
     /// VALUE clause" (§13.18.63.3 SR13/SR14) speaks about the entry the PROGRAMMER WROTE: the template is
     /// screened once where it is declared, and re-screening each composed copy reports the identical source
     /// entry once per reference site. Measured: `01 A VALUE "ABCD". 05 X PIC 9(4) COMP. 01 B SAME AS A.` emitted
-    /// COBOLNET1702 TWICE, both anchored at X's one declaration. Without this fact it is unrecoverable at
+    /// COBOL1702 TWICE, both anchored at X's one declaration. Without this fact it is unrecoverable at
     /// screen time — the merge has already happened and the text is indistinguishable.</para>
     ///
     /// <para>⛔ AN ENTRY, NOT A FLAG (kb/Work PB2517). "The source already answered for it" is a statement about
@@ -438,7 +438,7 @@ public sealed class DataItem
     /// INITIALIZE background reaches it and a group-level VALUE sends nothing (§14.9.20.4 GR5 c), GR6) — so the
     /// emitters seed a constant record by <c>SeedRecipe.Initialize</c> (<c>ValueInitializer.RecipeFor</c>, kb/Work
     /// PB1233), and neither it nor any subordinate may be a receiving operand
-    /// (§13.18.15.3 SR2 → COBOLNET1548 at the receiving chokepoints; <c>DataBinder.IsConstantRecordItem</c>
+    /// (§13.18.15.3 SR2 → COBOL1548 at the receiving chokepoints; <c>DataBinder.IsConstantRecordItem</c>
     /// walks ancestors). Set only on the root; subordinates are covered by the ancestor walk.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §13.18.49.4 GR1 excludes CONSTANT RECORD by name (§13.18.49.3 SR10 also forbids it on data-name-1), and §13.18.15.3 SR1 confines it to level 1 so no subordinate carries it")]
@@ -557,7 +557,7 @@ public sealed class DataItem
     /// <c>Y (X(1))</c> was read as TWO subscripts on a one-dimensional reference. §8.4.2.3.2's <c>subscript</c>
     /// diagram admits <c>arithmetic-expression-1</c>, §8.8.1.1 admits "an identifier referencing a numeric data
     /// item" as one, and §8.4.3.1.2 Format 2 makes that identifier a qualified-data-name-WITH-SUBSCRIPTS — so
-    /// the shape is legal, and it was rejected on the receiving side (COBOLNET0899) and aborted at run time on
+    /// the shape is legal, and it was rejected on the receiving side (COBOL0899) and aborted at run time on
     /// the sending side.</para></summary>
     public bool IsTableElement => SubscriptArity > 0;
 
@@ -695,7 +695,7 @@ public sealed class DataItem
     public CobolNet.Editions.DiagnosticCursor DeclaredAt { get; init; }
 
     /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.
-    /// Settable so an UNRESOLVED redefiner (kb/Work PB93 — diagnosed COBOLNET1654) is demoted to an ordinary entry:
+    /// Settable so an UNRESOLVED redefiner (kb/Work PB93 — diagnosed COBOL1654) is demoted to an ordinary entry:
     /// the layout consumers key on this name, and a name without a target was the half-state.</summary>
     [DescriptionCopy(DescriptionCopyKind.MemberOnly,
         "ISO §13.18.49.4 GR1 excludes REDEFINES from a subject; a cloned subordinate's REDEFINES is part of the type (§13.18.58.4 GR1)")]
@@ -766,7 +766,7 @@ public sealed class DataItem
     /// <summary>ALIGNED (ISO §13.18.1; kb/Work PB487) — §13.18.1.4 GR1: "An ALIGNED clause causes the subject of
     /// the entry to be aligned on the first bit of the first available byte boundary. Implicit filler bits may be
     /// generated to complete the assignment of bits as described in 8.5.1.6.3". Set by <c>DataBinder.BindEntry</c>
-    /// only after §13.18.1.3 SR1 passes (a bit group item or an elementary bit data item — COBOLNET1942), and
+    /// only after §13.18.1.3 SR1 passes (a bit group item or an elementary bit data item — COBOL1942), and
     /// CLEARED on a violation so the item lays out by the default §8.5.1.6.3 rules under an already-failed
     /// compile (the <see cref="IsBased"/> discipline).
     /// <para>Read at exactly ONE site — <see cref="BitLayout.SharesByteWith"/>, the placement predicate both the
@@ -1429,7 +1429,7 @@ public sealed class DataItem
                     or Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64
                     or Usage.Index   // R40: the 8-byte occurrence-number image — one width authority
                     => pic.StorageWidth,
-                // The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — their pinned
+                // The processor-dependent non-support formats (rejected at ParseUsage, COBOL1564) — their pinned
                 // ISO/IEC 60559 byte widths, so a BYTE-LENGTH fold under an already-errored compile is not off by 1x.
                 Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes
                 Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes

@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
       *> ISO 15.54.3 r1: "Argument-1 shall be a numeric value in standard numeric time form." An alphanumeric literal is
-      *> not of class numeric - COBOLNET1627 (the class half of the §15.3 screen; kb/Work PB64 T4). 2014+: the function
-      *> itself is a 2014 introduction (COBOLNET1502 below it - the locale-time-from-seconds-2014 construct row).
+      *> not of class numeric - COBOL1627 (the class half of the §15.3 screen; kb/Work PB64 T4). 2014+: the function
+      *> itself is a 2014 introduction (COBOL1502 below it - the locale-time-from-seconds-2014 construct row).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T4CLS.
        DATA DIVISION.

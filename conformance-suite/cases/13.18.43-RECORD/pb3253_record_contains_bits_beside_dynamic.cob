@@ -18,7 +18,7 @@
       *> bytes at its greatest, EXACTLY integer-1 of RECORD CONTAINS 11, so the entry is LEGAL. The negative
       *> conformance-suite/cases/13.18.43-RECORD/pb3253-record-contains-bits-beside-dynamic-one-over.cob states 10.
       *> Before kb/Work PB3253 the maximum re-summed each bit item as a byte of its own, 12, and this legal entry was
-      *> refused (COBOLNET2010) - while the minimum, 1, already shared the byte.
+      *> refused (COBOL2010) - while the minimum, 1, already shared the byte.
       *>
       *> WHY EACH LEG CAN FAIL: a Format 1 file is plain 11-byte blocks (D-FRA (vi)), each member at the position it
       *> has at its maximum size; the members are overwritten with junk before every READ, so a value that is right

@@ -11,7 +11,7 @@
       *> is declared" (8.4.6.2.1 -> OK 8.4.6.2.1). SHOWB declares no M
       *> and its object has none (the object's TT declares M only as a
       *> member of a type, 13.18.58.4 GR1 -> OK 13.18.58.4 1)), so
-      *> SHOWB's DISPLAY M references nothing: refused COBOLNET1639. The
+      *> SHOWB's DISPLAY M references nothing: refused COBOL1639. The
       *> copy's names were registered class-wide, so SHOWB resolved
       *> SHOWA's local X's M silently and the C# backend failed CS0103.
        IDENTIFICATION DIVISION.

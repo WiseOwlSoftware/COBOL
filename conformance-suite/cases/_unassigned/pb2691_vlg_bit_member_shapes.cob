@@ -20,7 +20,7 @@
       *> 8.5.1.12.2: "Two dynamic-length elementary items correspond if they
       *> start at the same relative byte positions within their groups", so
       *> G3 and G4 are compatible; a per-member byte count put D of G3 at
-      *> byte 2 and refused the MOVE (COBOLNET1931 / COBOLNET2492). G5/G6:
+      *> byte 2 and refused the MOVE (COBOL1931 / COBOL2492). G5/G6:
       *> a 4-bit run then a fixed table opposite a 4-bit item then a
       *> dynamic-capacity table at the same relative byte position 1.
       *>

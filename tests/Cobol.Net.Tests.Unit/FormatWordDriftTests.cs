@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Unit;
 /// the word, outside §8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names").
 /// A §8.9-reserved word with NO lexer token arrives as IDENTIFIER, and the §8.9 funnel
 /// (<c>VersionConformancePass.VisitCobolWord</c>) screens every IDENTIFIER <c>cobolWord</c> position-blind — so a
-/// grammar rule that matches such a keyword through <c>cobolWord</c> draws a FALSE COBOLNET0901 at every edition
+/// grammar rule that matches such a keyword through <c>cobolWord</c> draws a FALSE COBOL0901 at every edition
 /// that reserves it (PB704: <c>SORT … WITH DUPLICATES IN ORDER</c>). The funnel used to paper over that with a
 /// LADDER of per-slot exemptions, one of which was always missing. The keyword slots now parse as
 /// <c>formatWord</c> (IDENTIFIER, never <c>cobolWord</c>), and the ladder is gone.</para>
@@ -150,7 +150,7 @@ public sealed class FormatWordDriftTests
         Assert.True(keywordCount >= 20, $"only {keywordCount} formatWord keyword(s) in the corpus — the grammar stopped producing them");
         Assert.True(violations.Count == 0,
             $"{violations.Count} general-format keyword(s) borrow cobolWord, which the §8.9 funnel screens as a user-defined "
-            + "word (a false COBOLNET0901 — or a ladder exemption hiding one). Route the slot through `formatWord` "
+            + "word (a false COBOL0901 — or a ladder exemption hiding one). Route the slot through `formatWord` "
             + "(ISO §5.2.2/§5.2.3; DESIGN-frontend-grammar \"A KEYWORD SLOT MAY NOT BORROW cobolWord\"): "
             + string.Join("; ", violations.Take(12)));
         foreach (string family in new[] { "LOCALE", "NESTED", "USER-DEFAULT", "CLASSIFICATION", "LC_ALL" })

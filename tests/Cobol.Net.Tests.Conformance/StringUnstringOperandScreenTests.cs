@@ -72,7 +72,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S3A", "STRING \"AB,CD\" DELIMITED BY \"\" INTO OUT1.")]
     [InlineData("S3B", "STRING \"AB,CD\" DELIMITED BY X\"\" INTO OUT1.")]
     public void String_ZeroLengthLiteral2_IsSR3(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOLNET1651", "ISO §14.9.43.3 SR3", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §14.9.43.3 SR3", fromEdition: 85);
 
     /// <summary>§14.9.43.3 SR8 — "Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be
     /// described as an integer without the symbol 'P' in its picture character-string." Only SR7's identifier-4 had
@@ -86,8 +86,8 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S8E", "STRING \"AB05CD\" DELIMITED BY N2 INTO OUT1.", "symbol P")]
     public void String_NonIntegerOrPScaledNumericIdentifier_IsSR8(string pid, string statement, string wording)
     {
-        Refuses("PB1182" + pid, "", statement, "COBOLNET1651", "ISO §14.9.43.3 SR8", fromEdition: 85);
-        Refuses("PB1182" + pid + "W", "", statement, "COBOLNET1651", wording, fromEdition: 85);
+        Refuses("PB1182" + pid, "", statement, "COBOL1651", "ISO §14.9.43.3 SR8", fromEdition: 85);
+        Refuses("PB1182" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 
     /// <summary>§14.9.43.3 SR2 — "Literal-1 or literal-2 shall not be a figurative constant that begins with the word
@@ -98,7 +98,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S2B", "STRING ALL ZEROS DELIMITED BY SIZE INTO OUT1.")]
     [InlineData("S2C", "STRING \"A B\" DELIMITED BY ALL SPACES INTO OUT1.")]
     public void String_FigurativeBeginningWithAll_IsSR2(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOLNET1757", "ISO §14.9.43.3 SR2", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1757", "ISO §14.9.43.3 SR2", fromEdition: 85);
 
     /// <summary>§14.9.48.3 SR1 — "Literal-1 and literal-2 shall be literals of the category alphanumeric or national
     /// and shall be neither a figurative constant that begins with the word ALL nor a zero-length literal." Its
@@ -114,8 +114,8 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U1G", "UNSTRING S DELIMITED BY \",\" OR X\"\" INTO A B C.", "zero-length literal")]
     public void Unstring_DelimiterLiteral_IsSR1(string pid, string statement, string wording)
     {
-        Refuses("PB1181" + pid, "", statement, "COBOLNET1651", "ISO §14.9.48.3 SR1", fromEdition: 85);
-        Refuses("PB1181" + pid + "W", "", statement, "COBOLNET1651", wording, fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §14.9.48.3 SR1", fromEdition: 85);
+        Refuses("PB1181" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 
     /// <summary>§14.9.48.3 SR1 on the BOOLEAN literal (a 2002 literal) and on a CONSTANT-NAME standing for a numeric
@@ -125,8 +125,8 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U1I", Constants, "UNSTRING S DELIMITED BY KN INTO A B C.", "is a numeric literal")]
     public void Unstring_BooleanOrNumericConstantDelimiter_IsSR1(string pid, string extraData, string statement, string wording)
     {
-        Refuses("PB1181" + pid, extraData, statement, "COBOLNET1651", "ISO §14.9.48.3 SR1", fromEdition: 2002);
-        Refuses("PB1181" + pid + "W", extraData, statement, "COBOLNET1651", wording, fromEdition: 2002);
+        Refuses("PB1181" + pid, extraData, statement, "COBOL1651", "ISO §14.9.48.3 SR1", fromEdition: 2002);
+        Refuses("PB1181" + pid + "W", extraData, statement, "COBOL1651", wording, fromEdition: 2002);
     }
 
     /// <summary>§14.9.48.3 SR4 — "Numeric items shall not be specified with the symbol 'P' in their picture
@@ -136,7 +136,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U4A", "UNSTRING S DELIMITED BY \",\" INTO N2 M.")]
     [InlineData("U4B", "UNSTRING S DELIMITED BY \",\" INTO NQ M.")]
     public void Unstring_PScaledNumericReceiver_IsSR4(string pid, string statement) =>
-        Refuses("PB1182" + pid, "", statement, "COBOLNET1626", "ISO §14.9.48.3 SR4", fromEdition: 85);
+        Refuses("PB1182" + pid, "", statement, "COBOL1626", "ISO §14.9.48.3 SR4", fromEdition: 85);
 
     /// <summary>§14.9.48.3 SR4 on the GROUP receivers the screen used to exempt wholesale: a BIT group is class and
     /// category boolean (§13.18.29.4 GR1 a)) and a strongly-typed group's category is its type-name (§8.5.2.1) —
@@ -145,13 +145,13 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U4C", BitGroup, "UNSTRING S DELIMITED BY \",\" INTO BG M.")]
     [InlineData("U4D", StrongGroup, "UNSTRING S DELIMITED BY \",\" INTO SG M.")]
     public void Unstring_BitOrStronglyTypedGroupReceiver_IsSR4(string pid, string extraData, string statement) =>
-        Refuses("PB1182" + pid, extraData, statement, "COBOLNET1626", "ISO §14.9.48.3 SR4", fromEdition: 2002);
+        Refuses("PB1182" + pid, extraData, statement, "COBOL1626", "ISO §14.9.48.3 SR4", fromEdition: 2002);
 
     /// <summary>§14.9.48.3 SR8 with §13.10.3 SR2 — identifier-1 is "the data item", and a constant-name stands only
-    /// where a format specifies a LITERAL. The receiving side refused it already (COBOLNET1548); the sending side ran
+    /// where a format specifies a LITERAL. The receiving side refused it already (COBOL1548); the sending side ran
     /// the constant's text through the splitter.</summary>
     [Fact]
     public void Unstring_ConstantNameSender_IsSR8() =>
-        Refuses("PB1182U8", Constants, "UNSTRING K DELIMITED BY \",\" INTO A B.", "COBOLNET1651", "ISO §14.9.48.3 SR8",
+        Refuses("PB1182U8", Constants, "UNSTRING K DELIMITED BY \",\" INTO A B.", "COBOL1651", "ISO §14.9.48.3 SR8",
             fromEdition: 2002);
 }

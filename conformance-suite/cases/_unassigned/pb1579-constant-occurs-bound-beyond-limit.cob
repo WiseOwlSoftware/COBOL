@@ -8,7 +8,7 @@
       *> BOUND (kb/Work PB1579). ISO/IEC 1989:2023 §13.10.4 GR1: "the effect of
       *> specifying constant-name-1 in other than this entry is as if literal-1
       *> ... were written where constant-name-1 is written", so OCCURS K is
-      *> OCCURS 77777777777 — and that written literal is COBOLNET2427, beyond the
+      *> OCCURS 77777777777 — and that written literal is COBOL2427, beyond the
       *> 2,147,483,647 this implementation lays out (ISO §4.5; docs/CONFORMANCE.md
       *> §3 "Integer operands and host carriers"). The substituted constant meets
       *> the same verdict. Before PB1579 the constant's integer text was read by

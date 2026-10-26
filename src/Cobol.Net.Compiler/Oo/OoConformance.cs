@@ -32,7 +32,7 @@ public static class OoConformance
     /// definition." So the OVERRIDE is interface-1's method and the overridden one interface-2's, and the rules
     /// are <see cref="MethodConformanceMismatches"/> — the ONE place they are written (kb/Work PB972: this pass
     /// used to re-spell rules 1–6 and 8 with its own wording, and rule 9 was missing from both copies). Runs AFTER
-    /// every class's data has bound (formals resolve at data-bind time, not pass-1). A violation is COBOLNET0829 —
+    /// every class's data has bound (formals resolve at data-bind time, not pass-1). A violation is COBOL0829 —
     /// a COBOL-worded bind diagnostic, never a Roslyn CS0508/CS0115 on user source (the G4 rule), positioned at
     /// the overriding method.</summary>
     public static void ValidateOverrideSignatures(OoClassTable table, EditionContext edition)
@@ -94,7 +94,7 @@ public static class OoConformance
     /// interface implementations forbid covariant returns that rules 5a/5c2 PERMIT [Roslyn over-rejects
     /// conforming COBOL — cured by the explicit-implementation adapters]). Runs AFTER all class AND
     /// interface formals resolve. The check runs over the §11.8.4 GR2 transitive CLOSURE (direct IMPLEMENTS
-    /// + interface-INHERITed + class-INHERITed) per class; each violation is COBOLNET0841 citing the
+    /// + interface-INHERITed + class-INHERITed) per class; each violation is COBOL0841 citing the
     /// numbered rule. RETURNS the covariant-return <see cref="AdapterPair"/>s (P9 R3 — a validation pass
     /// reports its findings; it does not mutate the symbol table).</summary>
     public static IReadOnlyList<AdapterPair> ValidateImplements(OoClassTable table, EditionContext edition)
@@ -406,8 +406,8 @@ public static class OoConformance
     /// asker shares) to every other — identical prototypes inherited twice trivially, and a covariant RETURNING pair
     /// (rule 5) through the more specific one. That prototype is recorded as the interface's own presentation
     /// (<see cref="OoInterfaceSymbol.ChooseInheritedPrototype"/>), so <see cref="OoInterfaceSymbol.AllPrototypes"/>, the
-    /// IMPLEMENTS pass and <see cref="InterfaceConformsTo"/> all read the conforming one. A violation is COBOLNET2762 on
-    /// the INHERITING interface — before this pass it surfaced only when some class implemented the interface (COBOLNET0841
+    /// IMPLEMENTS pass and <see cref="InterfaceConformsTo"/> all read the conforming one. A violation is COBOL2762 on
+    /// the INHERITING interface — before this pass it surfaced only when some class implemented the interface (COBOL0841
     /// at the class), and an unimplemented interface was accepted. Runs after every interface's prototype formals bound.</summary>
     public static void ValidateInterfaceInheritance(OoClassTable table, EditionContext edition)
     {

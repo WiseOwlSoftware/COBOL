@@ -19,7 +19,7 @@
       *> 21 characters from def to gh. MOVE of a 27-character literal to SALIAS (13.18.45.4 GR2 makes it an
       *> alphanumeric item over the window) distributes its characters over every cell, so SRC then holds
       *> ab + that literal. Before the fix each leaf under a table GROUP counted once and the alias was refused
-      *> COBOLNET1655 "the record's leaves do not tile the alias's storage window".
+      *> COBOL1655 "the record's leaves do not tile the alias's storage window".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB986A.
        DATA DIVISION.

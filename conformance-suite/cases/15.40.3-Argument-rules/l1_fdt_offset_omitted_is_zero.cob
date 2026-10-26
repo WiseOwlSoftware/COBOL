@@ -19,7 +19,7 @@
       *> pair that agreed by both being blank from reading as a pass.
       *>
       *> This is the CONVERSE of §15.40.3 r6, whose rejection is pinned by
-      *> negative/pb11-offset-arg-local-format-datetime (COBOLNET1633): an
+      *> negative/pb11-offset-arg-local-format-datetime (COBOL1633): an
       *> offset argument is barred only for a LOCAL time portion, and
       *> omitting it for a UTC or offset portion is expressly legal.
       *>

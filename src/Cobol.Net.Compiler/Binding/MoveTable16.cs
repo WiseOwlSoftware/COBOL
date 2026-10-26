@@ -132,7 +132,7 @@ public readonly record struct MoveRefusal(MoveRule Rule, string Reason);
 /// data item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
 /// SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity question, over two DATA ITEMS and
 /// no bound operands. <see cref="DataItemRefusal"/> is that question in SR order; <see cref="VariableLengthRefusal"/>
-/// is SR9's relation, which <c>MoveBinder.MoveCategoryLegality</c> frames as COBOLNET1931 for the MOVE the
+/// is SR9's relation, which <c>MoveBinder.MoveCategoryLegality</c> frames as COBOL1931 for the MOVE the
 /// program wrote. Rule 2 asked only Table 16, so SR8 and SR9 — the two rules SR10 explicitly defers to —
 /// were unasked under CORRESPONDING: a BINARY-LONG namesake paired with a PIC X(5) one, and a variable-length-group
 /// namesake paired with an elementary one and reached the run time.
@@ -274,7 +274,7 @@ public static class MoveTable16
     /// has data items and no bound operands at all. A new item-keyed rule goes HERE and both get it; putting one
     /// in the bound-operand entry instead is the two-arm split that made <c>MOVE CORRESPONDING</c> pair a
     /// <c>BINARY-LONG</c> sender with a <c>PIC X(5)</c> receiver while the written MOVE of the same two items was
-    /// refused COBOLNET0819.</para>
+    /// refused COBOL0819.</para>
     /// <para>⚠ A GROUP RECEIVER IS REFUSED, and that is the rule's letter: SR8 requires identifier-2 to
     /// reference "a numeric or numeric-edited item", and a group item is neither. The §14.9.25.4 GR4 group
     /// exemption is Table 16's, not SR8's — SR10 is the rule that routes to the table, and SR10 does not reach
@@ -302,7 +302,7 @@ public static class MoveTable16
     /// group"</i> — so such an operand is a violation, not a fall-through.</para>
     /// <para>⛔ IT IS A READER RATHER THAN A CHECK because its two askers frame it differently (kb/Work PB391),
     /// the same shape <see cref="SenderClassRefusal"/> already has: <c>MoveBinder</c>
-    /// <c>.MoveCategoryLegality</c> reports it as COBOLNET1931 about the MOVE the programmer wrote, and
+    /// <c>.MoveCategoryLegality</c> reports it as COBOL1931 about the MOVE the programmer wrote, and
     /// <see cref="DataItemRefusal"/> reads it SILENTLY, because §14.7.6 rule 2 makes an invalid move a pair that
     /// does not correspond rather than a diagnostic. Before this, CORRESPONDING did not ask it at all and a
     /// variable-length-group namesake paired with an elementary one, reaching the run time as a
@@ -342,7 +342,7 @@ public static class MoveTable16
     /// argument as the sending operand and the corresponding formal parameter as the receiving operand" — the
     /// WHOLE question, never Table 16 alone (kb/Work PB878).
     /// <para>The answer carries WHICH rule refused, because the explicit MOVE frames each rule under its own
-    /// diagnostic (COBOLNET1533 for SR2, COBOLNET1931 for SR9, COBOLNET0819 for the others, with SR10's
+    /// diagnostic (COBOL1533 for SR2, COBOL1931 for SR9, COBOL0819 for the others, with SR10's
     /// <c>--permissive</c> re-reading) while every other asker only needs "valid or not, and why". The RULES are
     /// written once, here; only the framing is the caller's.</para>
     /// </summary>
@@ -416,7 +416,7 @@ public static class MoveTable16
     /// index, message-tag, object, or pointer" — as the refusal text, or null when the sender's class is
     /// admitted.
     /// <para>⛔ IT IS A READER RATHER THAN A CHECK because its two askers frame it differently: <c>MoveBinder</c>
-    /// reports it as COBOLNET0809 about the MOVE the programmer wrote, and <c>InitializeBinder</c> reports it as
+    /// reports it as COBOL0809 about the MOVE the programmer wrote, and <c>InitializeBinder</c> reports it as
     /// §14.9.20.3 SR4 about a MOVE that exists only in the rule (kb/Work PB416). One rule, one classifier
     /// (<c>IntrinsicArgumentRules.ClassOf</c> — the ONE §8.5.2.1 Table-2 reader), two framings.</para>
     /// <para>⛔ THE CLASS COMES FROM <c>IntrinsicArgumentRules.ClassOf</c>, NEVER FROM A RE-DERIVED USAGE TEST.
@@ -462,7 +462,7 @@ public static class MoveTable16
     /// self-invalidating: it is written while a feature is staged and never revisited when the feature lands,
     /// so the rule is written out in full instead.</para>
     /// <para>⚠ MESSAGE-TAG has no <see cref="CobolClass"/> member and needs none: the MCS facility is unmodeled
-    /// (docs/CONFORMANCE.md §4) and <c>PictureAnalyzer.ParseUsage</c> refuses the usage by name (COBOLNET1943),
+    /// (docs/CONFORMANCE.md §4) and <c>PictureAnalyzer.ParseUsage</c> refuses the usage by name (COBOL1943),
     /// so no operand of that class can be bound. <c>MoveOperandClassDriftTests</c> asserts that every usage
     /// §13.18.60.3 SR4 names — which is exactly the six producing these four classes — is refused here, so the
     /// moment MESSAGE-TAG or any other gains a bound model the test fails rather than the screen silently

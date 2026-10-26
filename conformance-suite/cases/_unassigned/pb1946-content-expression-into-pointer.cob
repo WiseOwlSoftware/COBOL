@@ -10,7 +10,7 @@
       *> (14.9.39.3 SR17: identifier-5 and identifier-6 are of category
       *> data-pointer, so only a pointer identifier is sent). The BY CONTENT
       *> expression N3 * 2 into the USAGE POINTER nested-program formal is
-      *> COBOLNET1688 -- the value verdict asks the SET question before it
+      *> COBOL1688 -- the value verdict asks the SET question before it
       *> asks the numeric-sender question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1946P.

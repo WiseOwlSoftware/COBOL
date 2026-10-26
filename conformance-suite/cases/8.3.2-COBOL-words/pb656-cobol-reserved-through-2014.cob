@@ -13,7 +13,7 @@
       *>   which reserve it at 85, 2002 and 2014 (cobc -std=cobol2014
       *>   refuses 01 COBOL too). 8.3.2.1 2)'s "except those that are
       *>   also reserved words" is exactly this edge: the reserved word
-      *>   is refused as a data-name (COBOLNET0901). CONFORMANCE D-RW3.
+      *>   is refused as a data-name (COBOL0901). CONFORMANCE D-RW3.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB656CBL.
        DATA DIVISION.

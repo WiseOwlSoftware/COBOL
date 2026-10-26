@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1285. ISO/IEC 1989:2023 13.14.3 SR1: "There shall be one and only one REPORT clause specifying
       *> report-name-1 in a given file description entry." (cite.py OK). R-B has a report description entry and
-      *> no file description entry names it (COBOLNET2714, which replaced the not-implemented code this arm
+      *> no file description entry names it (COBOL2714, which replaced the not-implemented code this arm
       *> carried).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1285N3.

@@ -92,7 +92,7 @@ public sealed class PicturePlacementInvariantDriftTests
     public void PictureOnAnEntryWithSubordinates_IsReportedAndLeavesTheModelClassifiable(string ws)
     {
         var binder = Bind("SR1", ws, out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2191", StringComparison.Ordinal));
+        Assert.Contains(diags, d => d.Contains("COBOL2191", StringComparison.Ordinal));
         foreach (var item in Walk(binder.Roots))
             Assert.False(item.Pic is not null && item.Children.Count > 0,
                 $"'{item.CobolName ?? "FILLER"}' still carries BOTH a PICTURE and {item.Children.Count} "

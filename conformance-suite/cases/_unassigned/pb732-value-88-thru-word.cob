@@ -8,7 +8,7 @@
 *> operand) travels a separate code path (valueClauseRange) from the singleton, so it gets its own
 *> witness. ISO 13.18.63.2 Format 3 writes `literal-2 [{THROUGH|THRU} literal-3]` and 13.18.63.3 SR26 a)
 *> reads both as values ("the value of literal-2 shall be less than the value of literal-3"), so an
-*> undefined word at either end is COBOLNET1639 (8.4.2.1). Pre-fix this compiled clean and emitted a
+*> undefined word at either end is COBOL1639 (8.4.2.1). Pre-fix this compiled clean and emitted a
 *> comparison against the string "NOSUCHW".
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB732D.

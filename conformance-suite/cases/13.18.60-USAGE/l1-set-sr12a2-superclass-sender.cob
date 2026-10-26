@@ -27,7 +27,7 @@
       *> items and class definitions are COBOL-2002 constructs; the
       *> rule itself carries no edition condition.
       *> WHY THE .err ASSERTS THE RULE TAG AND NOT THE BARE CODE.
-      *> COBOLNET0867 is emitted from seven distinct sites in the
+      *> COBOL0867 is emitted from seven distinct sites in the
       *> object-reference SET binder (SR9, SR8, SELF outside a
       *> method, SR12c2, SR10d1/d2, SR13 and the sender-shape
       *> fallback), and the widening check itself has a SECOND
@@ -35,7 +35,7 @@
       *> how the forward/mutual class references below could
       *> plausibly misbehave.  A bare code would stay GREEN on any
       *> of them, and a shipped negative already asserts the bare
-      *> COBOLNET0867 for a different rule.  The .err therefore
+      *> COBOL0867 for a different rule.  The .err therefore
       *> holds `ISO SET SR12a2`, a contiguous substring of the
       *> conformance arm's own message; the code and the tag are
       *> NOT contiguous in the emitted text, so the tag is the

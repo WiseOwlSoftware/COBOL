@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1283 - SR11 - data-name-3 (B) is a SHORTER redefinition of data-name-2 (A): its end does not follow A's end.
       *>   cite.py --check 13.18.45.3 "The beginning of the storage area described by data-name-3 shall not precede the beginning of the storage area described by data-name-2" -> OK
-      *> COBOLNET2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
+      *> COBOL2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1283N8.
        DATA DIVISION.

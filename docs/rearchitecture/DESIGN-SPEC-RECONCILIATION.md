@@ -197,4 +197,4 @@
 |---|-----|----------|------|-----|-------|------------------|
 | 54 | minor | mis-cited | implemented | §1.1 gating-exception ledger, item 2 (line 90) | §8.3.1.2 | §8.3.1.2 does not exist in the spec. §8.3.1 is titled 'General' (a single one-line paragraph: 'The lexical elements are character-strings and separators.') and has NO numbered subsections; a grep for '8.3.1.2' returns zero hits. The actual digit-position cap lives elsewhere: §8.3.3.3.2 Fixed-point n |
 
-- **[MINOR/mis-cited] §1.1 gating-exception ledger, item 2 (line 90)** — CLAIM: The digit-capacity edition gate (binder-side per §1.1 exception ledger item 2: EditionContext.CheckDigitCapacity, diagnostics COBOLNET0801/0802, driven by the EditionInfo.MaxDigits table) is anchored to the spec as "the §8.3.1.2 digit caps".
+- **[MINOR/mis-cited] §1.1 gating-exception ledger, item 2 (line 90)** — CLAIM: The digit-capacity edition gate (binder-side per §1.1 exception ledger item 2: EditionContext.CheckDigitCapacity, diagnostics COBOL0801/0802, driven by the EditionInfo.MaxDigits table) is anchored to the spec as "the §8.3.1.2 digit caps".

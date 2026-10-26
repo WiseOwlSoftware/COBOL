@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Conformance;
 /// per-file <c>.err</c> substring per case would be five near-identical programs pinning five near-identical
 /// strings, where one class can state the pairing.</para>
 /// <para><b>Why the wording is the assertion.</b> Before PB770 the ALPHABET clause borrowed the CLASS clause's
-/// ordinal helper, so an out-of-range ALPHABET ordinal was reported as <c>COBOLNET1671: CLASS : … §12.3.7.3
+/// ordinal helper, so an out-of-range ALPHABET ordinal was reported as <c>COBOL1671: CLASS : … §12.3.7.3
 /// SR17 b2</c> on a program with no CLASS clause and under a rule about a different construct. A test that
 /// asserted only "it is rejected" would have called that green
 /// (<c>feedback_a_real_clause_can_answer_a_different_question</c>).</para>
@@ -98,7 +98,7 @@ public sealed class AlphabetLiteralPhraseTests
     [Fact]
     public void NationalUnsupportedCodeName_IsSR15() =>
         Rejects("PB770C15", "ALPHABET NALF FOR NATIONAL IS EBCDIC.",
-            "COBOLNET1907: ALPHABET NALF FOR NATIONAL IS EBCDIC: not a supported code-name");
+            "COBOL1907: ALPHABET NALF FOR NATIONAL IS EBCDIC: not a supported code-name");
 
     /// <summary>⛔ THE ARM-PAIRING FACT. §12.3.7.3 SR14 a is stated ONCE, above the b-series and the c-series, so
     /// it governs both classes; §12.3.7.4 GR7 k is likewise stated once "<i>where the native coded character set
@@ -124,7 +124,7 @@ public sealed class AlphabetLiteralPhraseTests
     [InlineData("PB790TAN", "ALPHABET ALF FOR NATIONAL IS N\"Z\", N\"A\" THROUGH N\"C\" ALSO N\"D\" ALSO N\"E\".",
         "ALPHABET ALF FOR NATIONAL: the entry for N\"A\"")]
     public void ThroughWithAlso_IsOneBracketsTwoAlternatives_OnBothArms(string pid, string clause, string expected) =>
-        Rejects(pid, clause, "COBOLNET2242: " + expected + " specifies both a THROUGH phrase and an ALSO phrase");
+        Rejects(pid, clause, "COBOL2242: " + expected + " specifies both a THROUGH phrase and an ALSO phrase");
 
     /// <summary>The POSITIVE CONTROL for every fact above: a phrase whose characters are all distinct, in both
     /// classes, compiles. Without it a regression that rejected EVERY literal phrase would read as green
@@ -149,7 +149,7 @@ public sealed class AlphabetLiteralPhraseTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("PB770MISF", "ALPHABET ALF IS 0 THRU 5."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1906: ALPHABET ALF: the ordinal 0");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1906: ALPHABET ALF: the ordinal 0");
         Assert.DoesNotContain(errors, e => e.Contains("SR17", System.StringComparison.Ordinal));
         Assert.DoesNotContain(errors, e => e.Contains("CLASS ", System.StringComparison.Ordinal));
 

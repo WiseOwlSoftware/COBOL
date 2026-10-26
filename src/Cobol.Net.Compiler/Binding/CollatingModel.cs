@@ -195,7 +195,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
     public char LowValue => Table?.LowValue ?? (char)0;
 
     /// <summary>The CODED CHARACTER SET this alphabet defines (ISO §12.3.7.4 GR7 Table 6; kb/Work PB110), or null
-    /// for a LOCALE alphabet — Table 6's one blank coded-character-set row (the reference sites raise COBOLNET1669
+    /// for a LOCALE alphabet — Table 6's one blank coded-character-set row (the reference sites raise COBOL1669
     /// through <c>DataBinder.CodedCharacterSetOf</c>, the ONE resolver).</summary>
     public CodedCharacterSet? CodedSet => Locale is not null ? null : new CodedCharacterSet(Phrase, National: false, Table, CodeName);
 }
@@ -397,7 +397,7 @@ public enum CodeSetMedium
 
     /// <summary>The set names a medium representation this processor does not provide — Annex A §A.3 item 27,
     /// "<i>The CODE-SET clause is dependent upon a device capable of supporting the specified code</i>". Refused
-    /// loudly (COBOLNET1672), never silently treated as the identity.</summary>
+    /// loudly (COBOL1672), never silently treated as the identity.</summary>
     NotProvided,
 }
 
@@ -558,7 +558,7 @@ public static class CollatingSelection
     {
         // §8.8.4.2.8 — a boolean comparison is "a comparison of their boolean value, regardless of their usage":
         // NO sequence, and the shorter operand is boolean-zero extended. §8.8.4.2.1 item 4 defines the comparison
-        // only for TWO class-boolean operands and a class mix is bind-rejected (COBOLNET0844), so either side
+        // only for TWO class-boolean operands and a class mix is bind-rejected (COBOL0844), so either side
         // answering boolean settles it. First, because an alphanumeric weight table that reorders '0' and '1'
         // would otherwise invert a boolean test over the D-B1 character substrate.
         if (left is PicCategory.Boolean || right is PicCategory.Boolean) return CollatingClass.Boolean;

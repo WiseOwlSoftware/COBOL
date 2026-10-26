@@ -13,8 +13,8 @@ using Core = CobolParserCore;
 /// The COBOL-2002 file-sharing / record-locking verb binder (ISO §14.9.47 UNLOCK, the READ/WRITE/REWRITE
 /// record-lock phrases §14.9.30/.51/.35, the RETRY phrase §14.7.9). The SHARING clause + OPEN SHARING phrase +
 /// connector-registry semantics live in DataBinder / BindOpen / the runtime; this collaborator binds UNLOCK,
-/// validates the per-verb lock-phrase syntax rules (COBOLNET1512 for the AUTOMATIC-locking ban §14.9.30 SR4 and
-/// its WRITE/REWRITE twins; COBOLNET1818 for §14.9.30 SR3's IGNORING-LOCK/LOCK exclusion), and supplies the lock/RETRY services the
+/// validates the per-verb lock-phrase syntax rules (COBOL1512 for the AUTOMATIC-locking ban §14.9.30 SR4 and
+/// its WRITE/REWRITE twins; COBOL1818 for §14.9.30 SR3's IGNORING-LOCK/LOCK exclusion), and supplies the lock/RETRY services the
 /// verb binders thread into their bound nodes — READ/WRITE/REWRITE carry <c>Lock</c>+<c>Retry</c> (all
 /// organizations), DELETE RECORD / DELETE FILE carry <c>Retry</c> (§14.9.10 GR6/GR15) — which the emitters
 /// route through the runtime's governed entries (ReadShared/ReadKeyedShared/WriteShared/RewriteShared/
@@ -29,11 +29,11 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         // UNLOCK is a COBOL-2002 introduction (§14.9.47), parsed at ALL editions (superset grammar). The edition
         // gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b) — it fires on the
         // self-identifying BoundUnlock node this method produces, so the binder is edition-agnostic here.
-        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639); the old
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639); the old
         // BoundUnsupported staged an UNDECLARED file-name to a run-time loud with no compile-time word.
         if (!ctx.Validation.ResolveFile(ul.fileName(), "UNLOCK", out var file)) return BoundRejected.Reported(ctx.Edition);
         // SR1 is the ONE sort-merge screen's (kb/Work PB700): §14.9.47.3 SR1 restates §13.4.6.3 SR3 in UNLOCK's own
-        // words, so the shared screen reports it (COBOLNET1692) and names the verb's own clause too.
+        // words, so the shared screen reports it (COBOL1692) and names the verb's own clause too.
         ctx.Validation.ScreenSortMergeFile(file, "UNLOCK", "§14.9.47.3 SR1");
         ctx.Data.ScreenApplyCommitSubject(file, true, "UNLOCK", "ISO §14.9.47.3 SR2: \"File-name-1 shall not be a "
             + "file specified in an APPLY COMMIT clause\"");   // kb/Work PB666
@@ -42,7 +42,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind and validate a verb's LOCK-RETENTION phrase — the printed <c>[ WITH LOCK | WITH NO LOCK ]</c>
     /// bracket of ISO §14.9.30.2 / §14.9.51.2 / §14.9.35.2 — against the file's effective LOCK MODE (§14.9.30 SR4
-    /// / §14.9.51 SR22 / §14.9.35 SR4 → COBOLNET1512): no explicit lock phrase is permitted when the effective
+    /// / §14.9.51 SR22 / §14.9.35 SR4 → COBOL1512): no explicit lock phrase is permitted when the effective
     /// LOCK MODE is AUTOMATIC, because the lock is then implicit. Called from the READ/WRITE/REWRITE binders,
     /// which thread the returned <see cref="BoundRecordLock"/> into their bound nodes for the emitters'
     /// governed-verb routing (§9.1.16).
@@ -95,7 +95,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     private void ScreenLockPhraseAgainstAutomatic(FileModel file, string verb, string phrase)
     {
         if (file.LockMode is { Kind: LockKind.Automatic })
-            ctx.Edition.Error("COBOLNET1512", $"{verb} on file '{file.CobolName}': the {phrase} phrase may not "
+            ctx.Edition.Error("COBOL1512", $"{verb} on file '{file.CobolName}': the {phrase} phrase may not "
                 + "be specified when the file's LOCK MODE is AUTOMATIC — the lock is implicit "
                 + "(ISO §14.9.30.3 SR4 / §14.9.51.3 SR22 / §14.9.35.3 SR4)");
         string? applyCommitRule = verb switch

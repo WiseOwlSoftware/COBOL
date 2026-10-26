@@ -61,7 +61,7 @@ public sealed class ClauseOperandQualificationSpecTests
     /// first-declared item and run.</summary>
     [Fact]
     public void LinageOperand_AmbiguousUnqualified_IsRejected()
-        => AssertRejects(TwoSzProgram("SZ"), "COBOLNET1639");
+        => AssertRejects(TwoSzProgram("SZ"), "COBOL1639");
 
     /// <summary>§8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements"; a
     /// file description entry is not one, and the register is an §8.4.3.1 Format 10 identifier rather than the
@@ -69,19 +69,19 @@ public sealed class ClauseOperandQualificationSpecTests
     /// data item, because the capture kept the first cobolWord — which for this alternative is the qualifier.</summary>
     [Fact]
     public void LinageOperand_WrittenAsTheRegister_IsRejected()
-        => AssertRejects(TwoLinageFileProgram(), "COBOLNET2024");
+        => AssertRejects(TwoLinageFileProgram(), "COBOL2024");
 
     /// <summary>A subscript is not part of §8.4.2.2.2 Format 1, and §13.18.34.3 SR1 forecloses the only reason to
     /// write one. The subscript used to be discarded silently and the program died at OPEN.</summary>
     [Fact]
     public void LinageOperand_Subscripted_IsRejected()
-        => AssertRejects(TableOperandProgram("T-LINES (2)"), "COBOLNET2024");
+        => AssertRejects(TableOperandProgram("T-LINES (2)"), "COBOL2024");
 
     /// <summary>§13.18.34.3 SR1 over the RESOLVED item — the unsubscripted spelling of the same violation, which
     /// no written-shape screen can see. The rule had no site in the compiler at all before kb/Work PB489.</summary>
     [Fact]
     public void LinageOperand_SubjectToOccurs_IsRejected()
-        => AssertRejects(TableOperandProgram("T-LINES"), "COBOLNET2025");
+        => AssertRejects(TableOperandProgram("T-LINES"), "COBOL2025");
 
     /// <summary>§8.4.3.14.3 SR2 — "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand."
     /// The outcome was already a rejection; the SENTENCE was "a reference shape WiseOwl COBOL does not yet implement
@@ -89,10 +89,10 @@ public sealed class ClauseOperandQualificationSpecTests
     [Fact]
     public void LinageCounter_AsAReceivingOperand_IsRejectedByItsOwnRule()
     {
-        AssertRejects(ReceivingProgram(), "COBOLNET2026");
+        AssertRejects(ReceivingProgram(), "COBOL2026");
         foreach (int ed in AllEditions)
             Assert.DoesNotContain(EditionHarness.GetDiagnostics(ReceivingProgram(), ed),
-                d => d.Contains("COBOLNET0899", StringComparison.Ordinal));
+                d => d.Contains("COBOL0899", StringComparison.Ordinal));
     }
 
     // ── The siblings: the SAME capture and the SAME resolver, on the other clauses that reduce a written
@@ -108,7 +108,7 @@ public sealed class ClauseOperandQualificationSpecTests
     /// <summary>§8.4.2.2.3 SR1 on the FILE STATUS operand — it used to take the first-declared FS silently.</summary>
     [Fact]
     public void FileStatusOperand_AmbiguousUnqualified_IsRejected()
-        => AssertRejects(FileStatusProgram("FS"), "COBOLNET1639");
+        => AssertRejects(FileStatusProgram("FS"), "COBOL1639");
 
     /// <summary>RELATIVE KEY (ISO §12.4.5.13) — the qualifier used to be DROPPED ENTIRELY at capture (only the
     /// base word was kept), so the clause could not even be written qualified without binding another item. The
@@ -120,13 +120,13 @@ public sealed class ClauseOperandQualificationSpecTests
     /// <summary>§8.4.2.2.3 SR1 on the RELATIVE KEY operand.</summary>
     [Fact]
     public void RelativeKeyOperand_AmbiguousUnqualified_IsRejected()
-        => AssertRejects(RelativeKeyProgram("RK"), "COBOLNET1639");
+        => AssertRejects(RelativeKeyProgram("RK"), "COBOL1639");
 
     /// <summary>§8.4.2.2.3 SR1 on RECORD … DEPENDING ON (ISO §13.18.43) — the third clause whose capture kept
     /// only the base word.</summary>
     [Fact]
     public void RecordDependingOperand_AmbiguousUnqualified_IsRejected()
-        => AssertRejects(DependingProgram("RL"), "COBOLNET1639");
+        => AssertRejects(DependingProgram("RL"), "COBOL1639");
 
     /// <summary>…and the qualified spelling binds the qualified item: §13.18.43.4 GR13 a) makes the WRITE release
     /// a record as long as the DEPENDING item says, so naming G-A's RL (3) and naming G-B's RL (6) must put
