@@ -135,8 +135,9 @@ the queue is not ACTIVE); there is no lander and no train. **A branch is gated l
 2026-10-23, kb/Work PB3612): leg 1 on Windows and the same plan's legs in a WSL clone of the committed head, under the
 one slot, inside that one gate. The merge with main is gated by the merge queue's CI, never re-gated locally** — except
 when bringing main in changed a file the branch also changes (a true textual merge in a shared file), where the one gate
-runs once on the merged head. A stale or missing impact map only
-changes the order, never what runs, and impact maps are recorded on demand, never per commit. Run the comprehensive
+runs once on the merged head. Under batched gating leg 1 is the local run, so the impact map's tiers decide which cases
+it holds: the loop records a map for every main commit it adopts (owner 2026-10-24, kb/Work PB3663), a map serves a
+base file by file, and a base with no map costs the aim, never the population (CI's merge-group run). Run the comprehensive
 battery plus the GnuCOBOL differential once per accumulated batch, pre-merge, in its own worktree. **CI also runs on
 Linux, so the implementer's gate runs the Linux half of the targeted leg under WSL before a push** (`scripts/linux-gate.sh
 --legs targeted`, kb/Work PB1732, PB3612); without `--legs targeted` that script runs CI's four whole Linux legs (unit,

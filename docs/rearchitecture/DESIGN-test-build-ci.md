@@ -827,11 +827,15 @@ reached — `DiagnosticPositionTests` after a COPY library-search change, and a 
 `DataBinder.Constants.cs` — and wave 69 (four agents, 1.17 M tokens) existed only to finish them. The map records
 the fact the names were guessing: which tests execute which code.
 
-⛔ **The map ORDERS the gate; it never SELECTS it** (owner, 2026-09-28, kb/Work PB1708). Every implementer gate runs
-the whole discovered population (§3.14); the map only decides which tests run FIRST, so a red surfaces in minutes.
-A dependency the map cannot see therefore costs a later red, never a missed one — and the single-process,
-memoizing compiler hides dependencies in more ways than one recorder can close (values memoized into static
-collections, edition state cached in the front end, static FIELD reads — PB1712).
+⛔ **The map ORDERS the plan; it never FILTERS a leg** (owner, 2026-09-28, kb/Work PB1708). Every gate PLANS the whole
+discovered population (§3.14) and the map only decides which tests come FIRST, so a red surfaces in minutes. Since
+batched gating (owner 2026-10-10, kb/Work PB2515) leg 1 is the only local run, which makes the map's tiers decide what
+a gate runs locally: a test the change reaches whose recorded time puts it in leg 2 runs only in CI's merge-group run
+(PB3666's bounce, 2026-10-24: two goldens its change reaches sat in leg 2 and went red there). So the loop records a
+map for EVERY main commit it adopts (owner 2026-10-24, kb/Work PB3663; below), and a dependency the map cannot see costs
+a later red, never a missed one — the single-process, memoizing compiler hides dependencies in more ways than one
+recorder can close (values memoized into static collections, edition state cached in the front end, static FIELD reads
+— PB1712).
 
 **Collection — a per-test hit recorder, chosen by measurement.** Per-test coverage from a coverage tool cannot
 attribute hits under xunit's parallel collections, and per-shard coverage bisected to tests multiplies the run.
@@ -843,12 +847,19 @@ The recorder instead rides the test run itself, in its own RECORDING build, and 
 | `tools/impact/ImpactInstrumenter` (Mono.Cecil) | rewrites each covered assembly once: every method with sequence points calls `ImpactProbe.Hit(id)` on entry, `id` being its entry in the probe table — its file and the LINE RANGES it owns (its sequence points, merged across the lines between two of them unless another method's point lies between, so braces, `else` lines and comments belong to it and a lambda's body to the lambda); members with no sequence points are charged to a TYPE-LEVEL entry; `implies` names each entry's type-chain static constructors; every `Process.Start` is redirected to the probe's twin |
 | `ImpactProbe` | one byte store per hit into the array of the running CONTEXT, an `AsyncLocal` every assembly's copy shares through `AppContext` data; a hit with no context lands in an AMBIENT array. In a child process (a compiled COBOL program loading the instrumented runtime) it records for the process and writes a hits file at exit, which the redirected `Process.Start` queued on the starting test |
 | `ImpactTestFramework` | xunit's own framework with the message bus wrapped: `ITestCollectionStarting` / `ITestClassStarting` / `ITestStarting` install a fresh context synchronously on the flow about to run it (the same `TestRunner.RunAsync` then awaits the test, so the context flows into constructor, body and every task it starts, while parallel tests keep their own); `…Finished` saves it with the children folded in. A `BeforeAfterTestAttribute` cannot do this — it is handed only the `MethodInfo`, which cannot tell a theory's rows apart, and the corpus theories are ~3,400 of the ~9,300 Conformance tests. It DERIVES from the gate's `GateTestFramework` (§3.14.3), so a recording build still names one framework |
-| `scripts/spec/record_impact_map.py` | a DETACHED worktree at the commit, the recording build, the instrumenter, each test assembly once with `COBOLNET_COMPILE_CACHE=off` (a cache hit skips the compiler and would record nothing for it), and the merge into `<git common dir>/cobol-impact/<sha>.json.gz` — shared by every worktree of the repository. Its watchdog fails the recording when a listed test was never recorded or no test reached the compiler, front end or runtime. Recorded ON DEMAND, never per commit (owner, 2026-09-28, kb/Work PB1709) |
+| `scripts/spec/record_impact_map.py` | a DETACHED worktree at the commit, the recording build, the instrumenter, each test assembly once with `COBOLNET_COMPILE_CACHE=off` (a cache hit skips the compiler and would record nothing for it), and the merge into `<git common dir>/cobol-impact/<sha>.json.gz` — shared by every worktree of the repository. Its watchdog fails the recording when a listed test was never recorded or no test reached the compiler, front end or runtime; a recorded test takes the name the gate knows it by (`adopt_listed_names`: the vstest adapter truncates a long theory row's display name with `···`, xunit's own name is the full one), and the map is written beside its name and renamed into it, so a reader never opens half a file. `--self-test` covers both |
+| `scripts/spec/impact_store.py` | THE ONE HOME OF THE STORE (kb/Work PB3663): its location (`<git common dir>/cobol-impact`), the map's schema and bitset codec, which paths are documentation, **which map serves a base** (`nearest`) and how the store is bounded (`prune`, `clean_work`). The recorder, the lookup and the loop's recorder lane each carried a copy of these before |
+| `scripts/orchestrator/impact_lane.py` | THE LOOP RECORDS A MAP FOR EVERY MAIN COMMIT IT ADOPTS (owner 2026-10-24, kb/Work PB3663; `DESIGN-orchestrator-loop.md` §4.10): `request` (called by `adopt_main.py adopt`) starts one DETACHED worker at BelowNormal or coalesces to the newest commit; the worker holds the recorder's gate slot; a failed recording posts to the operator's mailbox and shows in every adoption line until one succeeds; `measure` reports the share of gate plans a map served |
 | `scripts/spec/impacted_tests.py` | the lookup: `analyse()` → the change's TIERS (below) and its tier-0a facts (the test methods it adds, the corpus goldens it touches), which `scripts/gate_plan.py` computes in-process to assemble the plan (§3.14.2); `--base <cut point> --plan <file>` writes the same analysis as JSON for inspection. M11 deleted its selection (kb/Work PB1717): its last stdout line is ALWAYS the whole-assembly filter `FullyQualifiedName~.`, map or no map, until M13 deletes that line and `--plus` with every caller (§3.14.9) |
 
 **Measured cost.** At `dbea12428`, `BelowNormal` on the shared 32-core host: 35,578 probe entries; Conformance
 9,274 green in 15 m 19 s (cold, instrumented), Unit 29,693 green in 2 m 38 s, Characterization 33 in 2 s; build
-23 s, instrumentation 4 s; **18.7 min in all**. The map is ~5 MB compressed.
+23 s, instrumentation 4 s; **18.7 min in all**. The map was ~5 MB compressed. Re-measured at `7d769bcc1` (2026-10-25,
+the loop's own recorder lane, BelowNormal): 48,426 probe entries, 57,270 tests (Conformance 18,832, Unit 38,402,
+Characterization 36), build 84 s, Conformance 4 m 29 s, Unit 7 m 4 s; **13.6 min in all**, and the map is **25.2 MB**
+compressed, five times the earlier figure, which sizes the store's bound (`impact_store.KEEP_NEWEST`). Three tests fail
+in every recording, by design: `GateLegDriftTests` arm 4 asserts a test project names `GateTestFramework`, and a
+recording build names `ImpactTestFramework` (which derives from it).
 
 **What the lookup computes: a TIER per test.** A change is analysed exactly as PB1683 built it: a hunk inside a
 method's owned lines reaches the tests that executed that method; a comment-or-blank hunk reaches nothing; an ADDED
@@ -866,12 +877,38 @@ exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14
 | 2 | reached only through a widening — a static constructor, a declaration change, the file level | next, cheapest first |
 | 3 | reached by nothing the change touched | last |
 
-What used to force the WHOLE-assembly filter — no map for the base, a map older than the base, a `.g4`, project,
-build or source-generator input, a NEW src file, non-C# data under `src/`, a method reached only outside every
-test's context — now puts EVERY test in tier 1, and the gate still runs all of them. A stale map is harmless for
-the same reason: its line numbers can misplace a test by a tier, never drop it. So a map older than the base by
-anything but documentation is still USED — for its recorded durations and its test names (tier 0u, §3.14.2) — while
-every test is tier 1. `ImpactedTestsDriftTests` (Unit) drives every arm of both `impacted_tests.py --self-test` and
+What used to force the WHOLE-assembly filter — no map in the store, a `.g4`, project, build or source-generator input,
+a src file the map has never seen, non-C# data under `src/`, a method reached only outside every test's context — now
+puts EVERY test in tier 1, and the plan still contains all of them.
+
+**Which map serves a base (kb/Work PB3663; `impact_store.nearest`).** A map is a statement about the tree it was
+recorded at: per source file, the line ranges each method owns and the tests that executed them. It describes a base
+EXACTLY for every file that is the same in both trees and not at all for one that differs. The earlier rule asked only
+whether the map was older than the base by more than documentation and, when it was, called it STALE and put every
+test in tier 1 — but main moves about 1.6 landings an hour (many more in a burst) and a recording takes 14-25 minutes,
+so almost every base would have been stale. The question is instead which source files differ between the map's commit
+and the base (`drift`): the store's map with the fewest drifted files serves the base, whatever its age or ancestry (a
+map recorded after the base serves it too: the comparison is of the two trees). The plan's `map_state` says `exact`
+(the map's commit is the base), `documentation-only drift`, `nearest` (source files differ) or `none`. A change to a
+file outside `drift` is attributed by line range exactly as before. A change to a file IN `drift` is taken at the file
+level: every test that executed any method of it is tier 1 (`impacted_tests.drifted_change`), and a file new since the
+map's commit, which the map has never seen, puts every test in tier 1 with that reason printed. A test added since the
+map's commit is not in it and is tier 0u (§3.14.2); a reach the map under-states costs a later red, never a missed one.
+
+**Measured (2026-10-25, kb/Work PB3663).** One map, recorded at `315f9eb98`, replayed against the 44 landings that
+followed it over 5.9 hours (the base of each: its first parent; 22 changed a file under `src/` or `tests/`, 22 only
+documentation, kb, scripts or `.claude`): all 44 were served (1 `exact`, 43 `nearest`) where the earlier rule would have
+read 43 of them stale; of the 22 code-changing landings 18 were attributed (tier 1 from 0 to 17,515 of 18,580 Conformance
+tests, by what the change reaches) and 4 put every test in tier 1 (three grammar, project or generator inputs, one file new
+since the map). The replay also found two rules that fell back for no reason a test could see, now fixed: a public-API
+analyzer baseline (`PublicAPI.*.txt`) and the runtime ABI pin (`RuntimeAbi.pin`) are data a test may read and not "a non-C#
+input under `src/`" (2 landings, and PB3666's own change, whose replay then reads 6,642 of 18,832 Conformance tests in tier 1
+and both bounced goldens in leg 1 where it had read all of them), and a
+file-level change is unattributable for running only outside every test's context only when NO entry of the file was
+reached by a test (2 landings, both editing a file that holds a finalizer beside code every test runs). A hunk inside a
+method that only the ambient array reached stays unattributable. `impact_lane.py measure` repeats the count over the
+gates' own plans.
+`ImpactedTestsDriftTests` (Unit) drives every arm of both `impacted_tests.py --self-test` and
 `gate_plan.py --self-test`, proves through the real command line that a mapped change is tiered and that nothing
 it prints is a filter (M13 deleted the filter line and `--plus`, kb/Work PB1721), pins the partition-suffix contract `NameKey` relies on (§3.14.2), and requires every
 product project under `src/` to be in both the targets file and the recorder's `PROBED` list.
@@ -944,8 +981,8 @@ acceptance (§3.14.9) records the time to the first red of every implementer gat
 #### 3.14.2 The plan: `scripts/gate_plan.py`
 
 The driver first LISTS each assembly (`dotnet test --list-tests`, 2.0 s for Conformance), so the plan assigns every
-discovered case explicitly. Inputs, each optional: the diff against the worktree's cut point; the impact map for the
-base (§3.13, any age); TIMINGS — the per-test durations in the trx files of this worktree's most recent COMPLETED
+discovered case explicitly. Inputs, each optional: the diff against the worktree's cut point; the impact map that
+serves the base (§3.13, `impact_store.nearest`: whatever its age); TIMINGS — the per-test durations in the trx files of this worktree's most recent COMPLETED
 gate (its run directory, §3.14.3), else the map's recorded durations; and that gate's REDS (trx outcome `Failed`).
 
 **The name key.** Every lookup — rank, tier, timing, red — keys on `NameKey(display name)`, never on the raw name,
@@ -1085,7 +1122,10 @@ because the raw name is not stable (`b7`):
   `TestResults/ci-bounce/` (`gate_plan.CI_BOUNCE_RESULTS`), which `previous_gates` reads as its third source. The
   directory is replaced by the newest bounce's results (downloaded once per run: it holds a provenance marker), emptied
   when the pull request has no failed merge-group run (a cancelled group is no bounce), and left as it was when GitHub
-  cannot be asked; it orders the gate and never selects it. Every live tool that writes a trx file into a
+  cannot be asked or the download fails (kb/Work PB3716: the download lands in a sibling `ci-bounce.fetching` directory
+  that replaces the results only once whole, so a failed or half-done download neither deletes the previous results nor
+  leaves a partial one, and the line it prints names the run the directory still holds); it orders the gate and never
+  selects it. Every live tool that writes a trx file into a
   worktree is a row of `gate_plan.TRX_WRITERS` saying what the plan takes from it (the battery: nothing, it runs in its
   own detached worktree), and `GateLegDriftTests` holds the table equal to the tools (`gate_plan.py
   --audit-trx-writers`). Before it, a finisher's re-gate after a landing's Linux red ran neither failed case in leg 1
@@ -1286,7 +1326,8 @@ kb/Work PB2914). One gate:
    `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
    `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
    `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
-   BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
+   BRANCH. Two more rows classify the landing's merge of main, which is no gate but can fail the same two ways
+   (kb/Work PB3673, step 2 of section 3.17.2): `[merge-blocked]` ENVIRONMENT, `[merge-failed]` BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
    its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
    retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
    main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
@@ -1677,9 +1718,11 @@ every caller (kb/Work PB1721), so a map recorded into the shared store can only 
 
 #### 3.14.8 What the rejected SELECTION design's mechanisms become
 
-`M1` (field probes, map schema 3) and `M9` (a map recorded per main commit) are not needed for soundness, and per-
-commit recording is retired (owner, 2026-09-28, kb/Work PB1709): maps are recorded ON DEMAND. The gate works with any map or none, and on the one replay with named reds recorded cost
-carried the order (§3.13). `M3`, `M4`, `M5`, `M8` and `M10` (the registry restructuring) are shelved as a speed
+`M1` (field probes, map schema 3) and `M9` (a map recorded per main commit) are not needed for SOUNDNESS. M9's
+retirement (owner, 2026-09-28, kb/Work PB1709) is superseded by the owner's decision of
+2026-10-24 (kb/Work PB3663): the loop records a map for every main commit it adopts, because batched gating (PB2515)
+made leg 1 the only local run and the map's tiers now decide what it holds (§3.13). The gate still works with any map
+or none, and on the one replay with named reds recorded cost carried the order (§3.13). `M3`, `M4`, `M5`, `M8` and `M10` (the registry restructuring) are shelved as a speed
 measure (owner, 2026-09-28) and revisited on engineering merit only. `M2` (the cap), `M6` and `M7` are redesigned
 above. The rejected design and both reviews are in the DEVLOG entry that pivoted it and in kb/Work PB1708.
 
@@ -1942,9 +1985,9 @@ follower watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
 that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
-wave's await (`--worktree`, the agent's worktree) and `plan_wave.Report.gate_state` (the report's Worktree field) both
+wave's await (`--worktree`, the agent's worktree) and `reports.Report.gate_state` (the report's Worktree field) both
 read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
-`plan_wave.Report.gate_state` all read through `watch`.
+`reports.Report.gate_state` all read through `watch`.
 
 **3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
 head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
@@ -1953,7 +1996,7 @@ head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` an
 `cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
 as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
 finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
-also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
+also needs no awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
 is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
 gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
 
@@ -2211,9 +2254,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    below). Every decision is a line in
    `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
    the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
-   `FINDINGS <n> <reviewer> <head> <file>` — read back through `plan_wave.parse_review`, the one reader. The stamp sits
+   `FINDINGS <n> <reviewer> <head> <file>` — read back through `reports.parse_review`, the one reader. The stamp sits
    one line under the Status line, above an O11 header's `Branch:` line, and its reviewer label
-   (`land-review-<branch>-r<k>`) carries the branch name, so `plan_wave.parse_report` reads the branch, worktree and
+   (`land-review-<branch>-r<k>`) carries the branch name, so `reports.parse_report` reads the branch, worktree and
    head from the header's own fields with the stamp lines skipped (kb/Work PB3077). FINDINGS → a
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
@@ -2324,7 +2367,16 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
    conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
+   origin/main --keep`). A CLEAN merge that could not be COMPLETED is no conflict (kb/Work PB3673: a pin settle whose
+   measuring build met a locked DLL used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with
+   nothing to resolve). `merge_drivers.merge` answers with a `Merged` (`clean`, `conflicts`, or `incomplete`: abi_pin's
+   `Failure(cause, why)`, also for git's own refusal of the merge commit), and the cause is read from the gate's one
+   classification, the `merge-*` rows of `run_gate_legs.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
+   another process holds, MSB3027 or MSB3021, a full disk, no SDK, git refused a write) is exit 2, `MERGE NOT COMPLETED`,
+   no report line, retried once by the lane and then the operator's; `merge-failed` (BRANCH: the merged tree's pin, build
+   or measuring test) blocks like a red, exit 5, a finisher's. `merge_drivers.py merge` ends exit 3 with `NOT COMPLETED
+   [<cause>] — …` where a conflict ends 1; with `--keep` a merge stopped at the pin stays in progress, for
+   `abi_pin.py settle --stage` once the cause is removed. Before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
    line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
    the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
@@ -2435,7 +2487,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
    superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
    never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
-   which the queue no longer reads.
+   which the queue no longer reads. ⛔ The job checks out only `scripts/orchestrator` and `scripts/standard_streams.py`
+   (a sparse checkout) and its step is `continue-on-error`, so a module its scripts import that the list leaves out
+   would make it cancel nothing while the run stays green (kb/Work PB3637 added `standard_streams.py` by hand):
+   `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every sparse-checkout job of the workflow and
+   refuses a file it runs or imports that the list does not cover (§3.17.8).
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2695,7 +2751,13 @@ landing is held to a record of its own tree. Landed with kb/Work PB3769:
 `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
 is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
-are declared), the supersession rule of §3.17.2 step 4.
+are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
+`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `dotnet-sdk-cache`)
+lists each repository file its steps name, each file its local action names, and each repository module a Python script
+it runs imports as it starts, transitively (a function body's import is lazy and not followed; `importlib` and path
+strings are the static read's limits), and sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the
+arms hold the real workflow (without `scripts/standard_streams.py` it is flagged), a transitive import, a lazy import,
+a docstring, relative imports, packages, a local action, comments, the pattern forms, a cone-mode job and a negation.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 

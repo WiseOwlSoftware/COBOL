@@ -3221,10 +3221,11 @@ already-derivable coverage; none change the pipeline.
   `python scripts/gate_plan.py --out plan.json --list <Assembly>=<--list-tests output> … [--base <sha>]
   [--previous-run <dir>] [--worktree <dir>]` writes a plan (its tier-0a reds: both hosts' previous gates). Only the gate driver hands a test host the leg handshake
   (`COBOLNET_GATE_PLAN`, `COBOLNET_GATE_LEG`, `COBOLNET_GATE_PLAN_SHA256` — all three or none; one or two of them, or
-  a stale plan, makes every case an execution error, so never export them by hand). Maps are recorded ON DEMAND:
+  a stale plan, makes every case an execution error, so never export them by hand). The loop records a map for every
+  main commit it adopts (kb/Work PB3663: `adopt_main.py` asks `impact_lane.py`); by hand
   `python scripts/spec/record_impact_map.py [--commit <sha>]` (inside a gate slot; a detached worktree, a
   probe-instrumented build, every test assembly once with the compile cache off; the map lands in
-  `<git common dir>/cobol-impact/<sha>.json.gz`, shared by every worktree). The gate cap and the implementer scope have
+  `<git common dir>/cobol-impact/<sha>.json.gz`, shared by every worktree, the store bounded by `impact_store.prune`). The gate cap and the implementer scope have
   CODED DEFAULTS, the owner's decisions of 2026-10-10 (kb/Work PB2514, PB2515): cap 3, and scope `leg1` — batched
   gating: the gate runs leg 1 only and its verdict says `LEG 1 ONLY (batched gating, PB2515)`, and CI's
   whole-population run is the population check. ONE shared setting each, in the slot directory every

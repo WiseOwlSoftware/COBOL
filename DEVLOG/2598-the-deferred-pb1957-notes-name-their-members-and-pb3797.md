@@ -1,0 +1,4 @@
+## Entry 2598 — 2026-10-25 19:16 PDT — The deferred PB1957 notes name their members, and PB3797 files the check that enforces R3
+
+Nineteen open PB1957 notes named whole files in their `**Sites:**` blocks, so the wave planner (`plan_wave.collision`, PB3670) claimed each file whole and held 19 notes behind one dispatch and each other. Ten of them (PB3776, PB3777, PB3778, PB3722, PB3725, PB3774, PB3723, PB3663, PB3703, PB3787) now name the functions, classes or sections their fix edits, checked against `work.note_sites` on the tree; the rest already named members or can only be claimed whole (shell and JSON files have no unit reader, template and agent Markdown has no nameable heading). PB3797 files the missing check: `work.py check` accepts a code file without members, and the limits the rewrite found (a section number inside backticks reads as the whole file; headings with spaces cannot be named) are recorded in its body.
+

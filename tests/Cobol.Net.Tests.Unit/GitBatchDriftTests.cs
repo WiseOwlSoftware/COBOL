@@ -12,7 +12,8 @@ namespace CobolNet.Tests.Unit;
 /// ancestry of every branch beyond origin/main (<c>Ancestry</c>: one resolve, one <c>git log</c>), each (commit,
 /// parent) pair's files and register patch (one <c>git diff-tree --stdin</c>), each <c>&lt;rev&gt;:&lt;path&gt;</c>'s
 /// blob (one <c>git cat-file --batch-check</c>) — so <c>scripts/prune_worktrees.py</c>,
-/// <c>scripts/orchestrator/landing_check.py</c> and <c>scripts/orchestrator/plan_wave.py</c> spawn no
+/// <c>scripts/orchestrator/landing_check.py</c>, <c>scripts/orchestrator/plan_wave.py</c> and the planner's readers it was
+/// split into (<c>inflight.py</c>, <c>clusters.py</c>, <c>reports.py</c>, kb/Work PB3728) spawn no
 /// <c>merge-base --is-ancestor</c>, <c>rev-list --count</c> or
 /// <c>log -1</c> per branch, commit or pair outside their self-tests (prune_worktrees.py's one exception is
 /// <c>drop_remote</c>, one question per branch an <c>--apply</c> deletes).
@@ -31,6 +32,7 @@ public sealed class GitBatchDriftTests
     private static readonly string[] Readers =
     [
         "scripts/prune_worktrees.py", "scripts/orchestrator/landing_check.py", "scripts/orchestrator/plan_wave.py",
+        "scripts/orchestrator/inflight.py", "scripts/orchestrator/clusters.py", "scripts/orchestrator/reports.py",
     ];
 
     private static readonly Regex PerObjectQuestion = new(

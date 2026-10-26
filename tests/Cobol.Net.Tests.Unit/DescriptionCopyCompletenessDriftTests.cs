@@ -290,7 +290,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
             + "copy was renamed or removed; this gate and its callers must move with it.");
 
     private static void RealCopy(DataItem from, DataItem to, DescriptionCopyScope scope) =>
-        CopyEntryDescription.Invoke(null, [from, to, scope]);
+        CopyEntryDescription.Invoke(null, [from, to, scope, null]);   // the 4th: the PICTURE side as written (null = as it is)
 
     private static DataItem NewItem() => new() { Level = 1, CsName = "SUBJECT" };
 

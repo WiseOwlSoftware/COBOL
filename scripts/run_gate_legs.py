@@ -172,8 +172,11 @@ VERDICT_FILE = "verdict.json"
 BUSY = "BUSY"
 EXIT_BUSY = 3
 #: A gate that MEASURED NOTHING about the change prints `NOT RUN [<cause>]`, the cause's TAG naming one row of
-#: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). ENVIRONMENT: a cause outside the
-#: code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
+#: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). The landing's merge of main into
+#: the branch (merge_drivers.merge: a clean merge, then abi_pin.settle, a build and a measuring test on the merged tree) is
+#: a step that can measure nothing too, and its failure names its cause by the same two classes through the `merge-*` rows
+#: (kb/Work PB3673): a merge that could not be completed for a cause outside the tree is never reported as a CONFLICT.
+#: ENVIRONMENT: a cause outside the code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
 #: git): no finisher can fix it, so it never blocks the branch; the landing retries it once and a second at the same head
 #: is the operator's. BRANCH: a failure of code the gated tree CARRIES (a landing gates the branch merged with main, and
 #: runs that tree's own build-local, run_gate_legs.py and linux-gate.sh): the driver itself, the listing of the
@@ -217,7 +220,16 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
                                        "its lock's holder hung) or to start its process detached (scripts/detached.py)"),
     NotRunCause("run", ENVIRONMENT, "`--await` was handed no gate run directory (none at that path: a wrong path, or a "
                                     "run pruned since)"),
+    NotRunCause("merge-blocked", ENVIRONMENT, "the landing's clean merge of main (merge_drivers.merge) could not be "
+                                              "completed for a cause outside the merged tree: the ABI-pin settle's "
+                                              "measuring build met a build output locked by another process (MSB3027, "
+                                              "MSB3021: a language server or an antivirus scan), a full disk or no .NET "
+                                              "SDK to start, or git refused a write of the merge (kb/Work PB3673)"),
     NotRunCause("driver", BRANCH, "the gate driver (run_gate_legs.py, the tree's own) failed"),
+    NotRunCause("merge-failed", BRANCH, "the landing's clean merge of main could not be completed because of the "
+                                        "merged tree itself: the ABI pin or an owned file the settle writes is "
+                                        "malformed, the merged tree does not build, or the measuring test is red or "
+                                        "wrote no pin (kb/Work PB3673)"),
     NotRunCause("population", BRANCH, "the population could not be listed after a GREEN build (the tree's test "
                                       "projects: `--list-tests` failed, or not exactly one built test assembly)"),
     NotRunCause("arguments", BRANCH, "the tree's gate script refused the arguments it was given"),
@@ -548,7 +560,7 @@ class Host:
         so the worktree's own index is never touched. A path coord.NEVER_WORK names is never work (the harness edits a
         TRACKED `.claude/settings.local.json` in every agent's worktree, and an agent may not commit it): it measures
         at HEAD's content whatever is on disk or staged, so a worktree whose only dirt is the harness's measures as its
-        commit's own tree, the tree a GATE-PENDING report's HEAD is checked against (plan_wave.Report.gate_state;
+        commit's own tree, the tree a GATE-PENDING report's HEAD is checked against (reports.Report.gate_state;
         review R1-2 of wave 1152). None when git cannot say (then nothing is reused)."""
         try:
             index = Path(self.git("rev-parse", "--git-path", "index"))
@@ -2289,8 +2301,9 @@ def self_test() -> int:
                 not_run("sdk"), not_run("disk"), not_run("driver"), Reading(NOT_RUN, UNCLASSIFIED), Reading(NOT_RUN, UNCLASSIFIED),
                 RED_READING, GREEN_READING, RED_READING]
             and NOT_RUN_CAUSES["disk"].carried == ENVIRONMENT
+            and NOT_RUN_CAUSES["merge-blocked"].carried == ENVIRONMENT
             and [c.tag for c in NOT_RUN_CAUSES.values() if c.carried == BRANCH]
-            == ["driver", "population", "arguments", "verdict", "unslotted", "unclassified"])
+            == ["driver", "merge-failed", "population", "arguments", "verdict", "unslotted", "unclassified"])
         # Every printer of a NOT RUN verdict names its cause (the classification is read, never guessed from prose):
         # the gate scripts' verdict lines and this driver's own.
         printers = {f: (REPO / "scripts" / f).read_text(encoding="utf-8")
