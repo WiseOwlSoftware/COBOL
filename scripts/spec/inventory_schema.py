@@ -227,7 +227,7 @@ def statement_text(row: dict[str, Any], field: str) -> str:
     return (prose_of(value) if field == "notes" else value).strip()
 
 
-def statement_losses(before: dict[str, Any], after: dict[str, Any]) -> list[StatementLoss]:
+def statement_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema") -> list[StatementLoss]:
     """Every statement field `before` said something in that `after` says nothing in — THE one definition of an
     erased statement, the sibling of `witness_losses` (kb/Work PB3795, PB3375).
 
@@ -238,15 +238,18 @@ def statement_losses(before: dict[str, Any], after: dict[str, Any]) -> list[Stat
     Read by the writer (`record_verdicts.validate`, at record time) and by the auditor (`audit_witness_loss.py`,
     over a diff or the history), so the two cannot come to disagree about it.
 
-    ONE EXCUSE, `derivation`: it is the §1.1 alternative to a `test-ref` (PB386), so it leaves a row whenever a
-    spec-derived test arrives and the row's `test-ref` says so. Nothing else is excused: a statement that changed
-    is not a loss, one that went blank is.
+    ONE EXCUSE, `derivation`, and only when the row can no longer stand on it (`Schema.derivation_superseded`): it
+    is the §1.1 alternative to a spec-derived `test-ref` (PB386), so it leaves a row when such a test arrives, and
+    it MUST leave one whose verdict stops resolving (`Derivation.refusals` codes `has-spec-derived-test` and
+    `verdict-does-not-resolve`). Without the second, a rule closed on a derivation and then found defective could
+    not be re-adjudicated at all (the derivation is refused when kept, this rule refused when dropped). Nothing
+    else is excused: a statement that changed is not a loss, one that went blank is.
     """
     out: list[StatementLoss] = []
     for field in ADJUDICATED:
         if field in WITNESS_FIELDS or not (was := statement_text(before, field)) or statement_text(after, field):
             continue
-        if field == "derivation" and (after.get("test-ref", "") or "").strip():
+        if field == schema.derivation_field and schema.derivation_superseded(after):
             continue
         out.append(StatementLoss(before.get("rule-id", ""), field, len(was)))
     return out
@@ -714,7 +717,7 @@ class Derivation:
                                f"('{anchor}') — it is derived, never chosen"))
         # ⛔ REFUSAL 1 — the row demonstrably HAS an observable obligation. A derivation asserts that no
         # spec-derived test can exist; a spec-derived test on the same row refutes that outright.
-        if any(schema.is_spec_derived(r) for r in schema.split(row.get("test-ref", ""), schema.test_ref_sep)):
+        if schema.has_spec_derived_test(row):
             out.append(Refusal("has-spec-derived-test",
                                "this row already carries a SPEC-DERIVED test-ref, so it has an observable "
                                "obligation and may not close on a derivation (design doc §1.1 refusal 1)"))
@@ -1004,10 +1007,25 @@ class Schema:
                 return "GAP"
         if not self.spec_derived_required:
             return "OK" if row.get("test-ref") else "GAP"
-        refs = self.split(row.get("test-ref", ""), self.test_ref_sep)
-        if any(self.is_spec_derived(r) for r in refs):
+        if self.has_spec_derived_test(row):
             return "OK"
         return "OK" if self.derivation_stands(row) else "GAP"
+
+    def has_spec_derived_test(self, row: dict[str, Any]) -> bool:
+        """Does the row carry a test-ref that can be the basis for closing it (`is_spec_derived`)?"""
+        return any(self.is_spec_derived(r) for r in self.split(row.get("test-ref", "") or "", self.test_ref_sep))
+
+    @property
+    def derivation_field(self) -> str | None:
+        """The row field a §1.1 derivation is written in, or None when the schema defines none."""
+        return self.derivation.field if self.derivation is not None else None
+
+    def derivation_superseded(self, row: dict[str, Any]) -> bool:
+        """Is `row` one a derivation may not stand on: it carries a spec-derived test (the derivation's premise,
+        that none can exist, is refuted) or its verdict does not resolve (a derivation stands in for the covering
+        test, never for the verdict)? These are `Derivation.refusals`' first two refusals; `statement_losses` asks
+        it, so the one place that lets a derivation go is the one place that refuses it staying."""
+        return self.has_spec_derived_test(row) or (row.get("verdict") or "") not in self.resolving
 
     def derivation_stands(self, row: dict[str, Any]) -> bool:
         """Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test?

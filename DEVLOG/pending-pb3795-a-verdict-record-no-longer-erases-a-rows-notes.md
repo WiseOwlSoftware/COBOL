@@ -25,6 +25,18 @@ named `notes: ""` for a MATCHES finding; both now omit it. `derive_verdict_batch
 comment changed. `audit_witness_loss.py --history` also crashed on every pre-PB3172 inventory schema; `schema_at` now answers
 "cannot read" and the callers fall back to the current schema, as they already did for a missing one.
 
+**Branch review round 1.** (R1-1, blocking) `statement_losses` excused an emptied `derivation` only when the row had ANY
+`test-ref`, while `merged` now keeps an omitted one: a derivation-closed rule found defective could be recorded neither
+way (kept: `verdict-does-not-resolve`; written empty: erased statement; hand edit: RED in the audit). The excuse is now
+`Schema.derivation_superseded(after)`, the first two refusals of `Derivation.refusals` (a SPEC-DERIVED test, not any
+test-ref; or a verdict that does not resolve), so the one place that lets a derivation go is the one that refuses it
+staying; `statement_losses` takes the schema. A record that omits `derivation` under a defect verdict is refused with the
+way out spelled in the message. Probe: GR-4.4-1 to PARTIAL with `derivation: ""` is accepted by `record_verdicts --dry-run`.
+(R1-2, lead, in a file already changed) `--history --restore-batch` put erased `notes` back under the row's current
+verdict; `Erasure.verdict` records the verdict the prose argued and `owed_statements` strands (reports, never restores)
+a row whose verdict has changed since. Self-test +4 checks (differential test-ref is not an excuse, defect verdict is,
+the writer's two outcomes for the real derivation-closed row, the stranded restore).
+
 **Rows.** The 25 notes were restored from the commit before each loss (batch `pb3795-restore-erased-notes`); no verdict,
 witness or GAP count moved (`closes_rows: []`).
 

@@ -345,8 +345,10 @@ names one new test adds it and a record that omits the field keeps what the row 
 restates it and a record that omits one leaves it as the row has it (kb/Work PB3795, PB3375; until then an omitted
 `notes` was written as empty and four landings erased 25 rows' forensic prose with every gate green). A statement
 never goes from saying something to saying nothing (`inventory_schema.statement_losses`, asked by the writer and by
-the auditor: writing a field empty over a non-empty one is refused, and the `derivation` a spec-derived `test-ref`
-replaced is the one excuse), and a record that changes the verdict must restate `notes`, whose prose argues the old
+the auditor: writing a field empty over a non-empty one is refused, and the `derivation` of a row that can no longer
+stand on it, one that now carries a spec-derived `test-ref` or whose verdict no longer resolves, is the one excuse:
+`Schema.derivation_superseded`, the first two refusals of `Derivation.refusals`; a record re-adjudicating a
+derivation-closed rule to a defect verdict writes `"derivation": ""` to withdraw it), and a record that changes the verdict must restate `notes`, whose prose argues the old
 verdict. Three refinements, each measured:
 
 - **A witness leaves a row only by a named, reasoned retirement** — `"retire-witnesses": "<ref>; <ref>"` plus

@@ -43,7 +43,7 @@ import pathlib
 import subprocess
 import sys
 from collections import Counter
-from typing import Any
+from typing import Any, NamedTuple
 
 from inventory_schema import (INVENTORY_PATH, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, Schema, StatementLoss,
                               WitnessLoss, load_inventory, load_schema, statement_losses, statement_text,
@@ -142,13 +142,21 @@ def compare_revisions(before: list[dict[str, Any]], after: list[dict[str, Any]],
     return losses, vanished
 
 
-def compare_statements(before: list[dict[str, Any]], after: list[dict[str, Any]]) -> list[StatementLoss]:
+def compare_statements(before: list[dict[str, Any]], after: list[dict[str, Any]], schema) -> list[StatementLoss]:
     """Every statement (`notes` prose, `derivation`, `verdict`, `editions`) a row present on both sides said
     something in and says nothing in now (`inventory_schema.statement_losses`, kb/Work PB3795). A hand-written
     edit, a merge and a record from before the writer refused it are all caught here; there is no excuse to write."""
     by_after = {r["rule-id"]: r for r in after}
     return [s for row in before if (now := by_after.get(row["rule-id"])) is not None
-            for s in statement_losses(row, now)]
+            for s in statement_losses(row, now, schema)]
+
+
+class Erasure(NamedTuple):
+    """One statement a commit erased: where, what, the text it held, and the verdict that text ARGUED."""
+    label: str
+    loss: StatementLoss
+    text: str
+    verdict: str   # the row's verdict BEFORE the erasing commit: the verdict the erased prose was written for
 
 
 def default_base() -> str:
@@ -167,7 +175,7 @@ def check(base: str, schema) -> int:
         return 2
     after = load_inventory()
     losses, vanished = compare_revisions(before, after, base, None, schema)
-    erased = compare_statements(before, after)
+    erased = compare_statements(before, after, schema)
     unexcused = [l for l in losses if not l.excused]
     retired = [l for l in losses if l.retired]
     resited = [l for l in losses if l.resited and not l.retired]
@@ -192,20 +200,20 @@ def check(base: str, schema) -> int:
     return 1 if unexcused or erased else 0
 
 
-def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss]], Counter[str],
-                                                 list[tuple[str, StatementLoss, str]]]:
+def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss]], Counter[str], list[Erasure]]:
     """Walk every commit that touched the inventory (oldest first) and diff it against its first parent.
 
     Each witness loss comes back as (commit label, the row's verdict AFTER that commit, the loss): the verdict is
     what decides whether a code-location loss is still owed back (`owed_back`). Each erased statement comes back as
-    (commit label, the loss, the text it erased), which is what `owed_statements` restores (kb/Work PB3795).
+    an `Erasure` (commit label, the loss, the text it erased, the verdict that text argued), which is what
+    `owed_statements` restores (kb/Work PB3795).
     """
     rng = [f"{since}..HEAD"] if since else []
     shas = _git("log", "--reverse", "--first-parent", "--format=%H %ad %s", "--date=short", *rng, "--",
                 INVENTORY_REL).splitlines()
     found: list[tuple[str, str, WitnessLoss]] = []
     vanished: Counter[str] = Counter()
-    erased: list[tuple[str, StatementLoss, str]] = []
+    erased: list[Erasure] = []
     for line in shas:
         sha, date, *subject = line.split(" ", 2)
         after = rows_at(sha)
@@ -218,7 +226,8 @@ def history(since: str | None, schema) -> tuple[list[tuple[str, str, WitnessLoss
         found += [(label, verdict_after[l.rule_id], l) for l in losses]
         vanished[label] += len(gone)
         was = {r["rule-id"]: r for r in before}
-        erased += [(label, s, statement_text(was[s.rule_id], s.field)) for s in compare_statements(before, after)]
+        erased += [Erasure(label, s, statement_text(was[s.rule_id], s.field), was[s.rule_id].get("verdict", ""))
+                   for s in compare_statements(before, after, schema)]
     return found, vanished, erased
 
 
@@ -249,17 +258,32 @@ def owed_back(found: list[tuple[str, str, WitnessLoss]], current: dict[str, dict
     return owed
 
 
-def owed_statements(erased: list[tuple[str, StatementLoss, str]],
-                    current: dict[str, dict[str, Any]]) -> dict[str, dict[str, str]]:
+def owed_statements(erased: list[Erasure], current: dict[str, dict[str, Any]]
+                    ) -> tuple[dict[str, dict[str, str]], dict[str, str]]:
     """The statements history erased (`statement_losses`) that the row STILL says nothing in, with the text they
-    held when they went (the latest erasure wins: it is the nearest to the present). A row that vanished, or that
-    has said something in the field since, owes nothing."""
+    held when they went (the latest erasure wins: it is the nearest to the present) — and, apart, the rule-ids
+    whose erased prose is NOT owed back because it argued a verdict the row no longer carries.
+
+    A row that vanished, or that has said something in the field since, owes nothing. ⛔ A restore puts the text
+    back under the row's CURRENT verdict, so it is only sound while that is the verdict the text argued
+    (`Erasure.verdict`): a PARTIAL row's defect prose put back under the CONFORMS that later closed it is exactly
+    the state `record_verdicts.validate` refuses a verdict change to leave behind. Such a row is STRANDED: the
+    prose of its present verdict has to be written by a person, and `run_history` says so (kb/Work PB3795).
+    """
     owed: dict[str, dict[str, str]] = {}
-    for _, loss, text in erased:
-        row = current.get(loss.rule_id)
-        if row is not None and not statement_text(row, loss.field):
-            owed.setdefault(loss.rule_id, {})[loss.field] = text
-    return owed
+    stranded: dict[str, str] = {}
+    for e in erased:
+        row = current.get(e.loss.rule_id)
+        if row is None or statement_text(row, e.loss.field):
+            continue
+        if e.loss.field == "notes" and row.get("verdict", "") != e.verdict:
+            stranded[e.loss.rule_id] = e.verdict
+            owed.get(e.loss.rule_id, {}).pop("notes", None)
+            continue
+        if e.loss.field == "notes":
+            stranded.pop(e.loss.rule_id, None)
+        owed.setdefault(e.loss.rule_id, {})[e.loss.field] = e.text
+    return owed, stranded
 
 
 def restore_records(owed: dict[str, dict[str, set[str]]], owed_text: dict[str, dict[str, str]],
@@ -304,10 +328,14 @@ def run_history(args, schema) -> int:
     by_field = {f: sum(len(o.get(f, ())) for o in owed.values()) for f in ("code-location", "test-ref")}
     print(f"rows OWED a witness back       : {len(owed)} ({sum(by_field.values())} reference(s): "
           + ", ".join(f"{f} {n}" for f, n in by_field.items()) + ")")
-    owed_text = owed_statements(erased, current)
-    print(f"statement erasures in history  : {len(erased)} on {len({l.rule_id for _, l, _ in erased})} row(s)")
-    for label, n in Counter(label for label, _, _ in erased).most_common():
+    owed_text, stranded = owed_statements(erased, current)
+    print(f"statement erasures in history  : {len(erased)} on {len({e.loss.rule_id for e in erased})} row(s)")
+    for label, n in Counter(e.label for e in erased).most_common():
         print(f"   {n:5d}  {label}")
+    if stranded:
+        print(f"rows whose erased notes argued ANOTHER verdict (not restorable, write the prose by hand): {len(stranded)}")
+        for rid, was in sorted(stranded.items()):
+            print(f"   {rid}: the erased prose argued {was or '(no verdict)'}, the row is {current[rid].get('verdict', '')}")
     print(f"rows OWED a statement back     : {len(owed_text)} ("
           + ", ".join(f"{f} {sum(f in o for o in owed_text.values())}" for f in ("notes", "derivation")) + ")")
     if sum(vanished.values()):
@@ -473,7 +501,7 @@ def self_test(schema) -> int:
     mark = f"{RETIRED_WITNESS_MARK} src/Gone.cs#Gone (self-test)"
 
     def erased(after: dict[str, Any], before: dict[str, Any] = said) -> list[str]:
-        return [l.field for l in statement_losses(before, after)]
+        return [l.field for l in statement_losses(before, after, schema)]
 
     verify("statements: notes emptied is a loss", erased({**said, "notes": ""}) == ["notes"])
     verify("statements: notes left as only the retirement marks is a loss (the PROSE went)",
@@ -483,9 +511,16 @@ def self_test(schema) -> int:
     verify("statements: a verdict or editions emptied is a loss",
            erased({**said, "verdict": ""}) == ["verdict"] and erased({**said, "editions": ""}) == ["editions"])
     deriving = {**said, "notes": "", "derivation": "owner-signed", "test-ref": ""}
-    verify("statements: a derivation emptied is a loss, unless a test-ref took its place",
+    spec_ref = next((r for r in refs if schema.is_spec_derived(r)), None)
+    verify("statements: a derivation emptied is a loss, unless the row no longer stands on it",
            erased({**deriving, "derivation": ""}, deriving) == ["derivation"]
-           and not erased({**deriving, "derivation": "", "test-ref": refs[0]}, deriving))
+           and bool(spec_ref) and not erased({**deriving, "derivation": "", "test-ref": spec_ref}, deriving))
+    verify("statements: ... and the excuse is a SPEC-DERIVED test, not any test-ref (a differential one is a net)",
+           schema.derivation is None or erased({**deriving, "derivation": "", "test-ref": "nist:planted/golden"},
+                                               deriving) == ["derivation"])
+    verify("statements: ... or a verdict that stops resolving (a derivation never stands for the verdict)",
+           not erased({**deriving, "derivation": "", "verdict": next(iter(schema.defective))}, deriving)
+           and erased({**deriving, "derivation": "", "verdict": "CONFORMS"}, deriving) == ["derivation"])
     verify("statements: a row that had nothing to say loses nothing", not erased({**said, "notes": ""}, {**said, "notes": ""}))
     kept = {**said, **merged(said, {**said_stmt, "test-ref": refs[0]}, schema)}
     verify("writer: a full record that OMITS notes and derivation keeps the row's (PB3795)",
@@ -505,10 +540,27 @@ def self_test(schema) -> int:
     verify("writer: a record changing the verdict must restate notes, whose prose argues the old one",
            any("keeps the row's notes" in e for e in refused({**said_stmt, "verdict": other}, said))
            and not any("keeps the row's notes" in e for e in refused({**said_stmt, "verdict": other, "notes": "New."}, said)))
+    drow = next((r for r in rows if (r.get("derivation") or "").strip() and r.get("verdict") in schema.resolving), None)
+
+    def defect_errors(extra: dict[str, str]) -> list[str]:
+        """What the writer says about a derivation-closed row re-adjudicated to a defect verdict."""
+        rec = {"rule-id": drow["rule-id"], "verdict": sorted(schema.defective)[0], "editions": drow["editions"],
+               "notes": "Re-adjudicated.", **extra}
+        errs = validate([(pathlib.Path("self-test"), 0, rec)], schema, {drow["rule-id"]: drow.get("kind", "")},
+                        {drow["rule-id"]: drow})
+        return [e for e in errs if "derivation" in e or "does-not-resolve" in e]
+
+    verify("writer: a derivation-closed row re-adjudicated to a defect that OMITS derivation is refused, with the way out",
+           drow is not None and any("[verdict-does-not-resolve]" in e and "write it empty" in e
+                                    for e in defect_errors({})))
+    verify("writer: ... and writing derivation empty withdraws it, accepted (R1-1)",
+           drow is not None and not defect_errors({"derivation": ""}))
     with_mark = {**said, "notes": mark, "derivation": ""}
     prose_now = {**said, "notes": ""}
-    got = restore_records({}, owed_statements([("t", s, prose) for s in statement_losses(said, prose_now)],
-                                              {rid: with_mark}), {rid: with_mark}, schema)
+    def erasures(before: dict[str, Any], after: dict[str, Any]) -> list[Erasure]:
+        return [Erasure("t", s, prose, before.get("verdict", "")) for s in statement_losses(before, after, schema)]
+
+    got = restore_records({}, owed_statements(erasures(said, prose_now), {rid: with_mark})[0], {rid: with_mark}, schema)
     verify("history restore: owed notes come back BEFORE the marks the row carries, as a full record",
            got == [{"rule-id": rid, "verdict": said["verdict"], "editions": said["editions"], "notes": f"{prose} {mark}"}],
            f": {got}")
@@ -517,7 +569,11 @@ def self_test(schema) -> int:
     verify("normalize_batch: a record that names no notes still names none (an empty one would erase the row's)",
            "notes" not in got, f": {got}")
     verify("history restore: a row that says something again owes nothing",
-           not owed_statements([("t", s, prose) for s in statement_losses(said, prose_now)], {rid: said}))
+           not any(owed_statements(erasures(said, prose_now), {rid: said})))
+    partial = {**said, "verdict": other}
+    owed_p, stranded_p = owed_statements(erasures(partial, prose_now), {rid: {**prose_now}})
+    verify("history restore: prose that argued ANOTHER verdict is stranded, never put back under the row's (R1-2)",
+           not owed_p and stranded_p == {rid: other}, f": {owed_p} {stranded_p}")
     print(f"=== SELF-TEST: {'GREEN' if not fails else f'RED ({fails})'} ===")
     return 1 if fails else 0
 
