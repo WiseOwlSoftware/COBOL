@@ -238,6 +238,9 @@
       "tests",
       "scripts",
       ".github",
+      ".claude/skills",
+      ".claude/agents",
+      ".claude/workflows",
       "docs"
     ],
     "ext": ".cs,.g4,.py,.ps1,.sh,.js,.yml,.md",
@@ -248,7 +251,7 @@
       "conformance",
       "evidence"
     ],
-    "_why": "plan_wave.py --cluster (kb/Work PB2120): a campaign note's code sites are whatever it names, so its notes are clustered over the whole tree, not .agent-fleet.json's src/Cobol.Net.* (which the fix lane keeps). Project files (.csproj, .props, .targets) are not sites: their dotted names (Cobol.Net.Cli.csproj) make fix_clusters read every `Cobol.Net` in a note as a Type.Member reference to the first one indexed (measured on PB2108, 2026-10-07). exclude_dir names directories that hold corpora or generated output, never a fix site: the GnuCOBOL corpus (tests/external), the conformance programs and goldens, gate run output, and the frozen evidence records under docs/."
+    "_why": "plan_wave.py --cluster (kb/Work PB2120): a campaign note's code sites are whatever it names, so its notes are clustered over the whole tree, not .agent-fleet.json's src/Cobol.Net.* (which the fix lane keeps). Project files (.csproj, .props, .targets) are not sites: their dotted names (Cobol.Net.Cli.csproj) make fix_clusters read every `Cobol.Net` in a note as a Type.Member reference to the first one indexed (measured on PB2108, 2026-10-07). exclude_dir names directories that hold corpora or generated output, never a fix site: the GnuCOBOL corpus (tests/external), the conformance programs and goldens, gate run output, and the frozen evidence records under docs/. The roots name the tracked process code under .claude (skills, agents, workflows) one by one, never .claude whole, because .claude/worktrees holds whole working copies of the repository (kb/Work PB3720)."
   },
   "wave": {
     "max_notes_per_group": 4,

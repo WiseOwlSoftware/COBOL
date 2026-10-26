@@ -93,7 +93,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
                 queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
-       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
+       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG or register refusal 6,
                 UNREVIEWED 11, UNTESTED 14 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher

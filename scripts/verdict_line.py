@@ -10,7 +10,7 @@ of the landing logs. Until PB3714 the prefix was a literal in each of the three 
 second, so a change to the line's shape (a field, a terminator) had to be made in all three and no test failed when one
 was missed: a writer and a reader could drift apart unseen.
 
-This module is a LEAF (it imports nothing of the repository), so `merge_drivers.py` (which `enqueue.py` imports) can use
+This module is a LEAF (of the repository it imports only `standard_streams`, itself a leaf, kb/Work PB3637), so `merge_drivers.py` (which `enqueue.py` imports) can use
 it without importing the landing script. It owns:
   * the line: `PREFIX`, `render(outcome, branch)` (the one writer) and `parse(line)` / `outcomes(text)` (the readers);
   * the CONFLICT outcome inside it: `conflict_outcome(files)` (the one writer: `enqueue.py land`'s exit 4 and

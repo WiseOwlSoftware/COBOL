@@ -318,6 +318,19 @@ def _mandatory(alt: tuple[Elem, ...]) -> tuple[str, ...]:
     return tuple(out)
 
 
+def _flat_spellings(alt: tuple[Elem, ...], drop: int | None = None) -> set[tuple[str, ...]] | None:
+    """Every token sequence a FLAT alternative writes — one made only of tokens, each written once or optional —
+    with element `drop` deleted; None when the alternative holds a group, a rule reference or a repeated token,
+    whose language this sequence model does not enumerate."""
+    if any(e.kind != "tok" or e.suffix not in ("", "?") for e in alt):
+        return None
+    seqs: set[tuple[str, ...]] = {()}
+    for j, e in enumerate(alt):
+        if j != drop:
+            seqs = {s + (e.name,) for s in seqs} | (seqs if e.optional else set())
+    return seqs
+
+
 def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozenset[str]]:
     """Per alternative of ONE spelling unit (a rule body, or a group's body): the tokens it DEMANDS once present.
 
@@ -339,15 +352,29 @@ def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozen
     * the unit is OMITTABLE (an optional group, or a rule referenced only with `?`/`*`) and the alternative IS the
       word, alone: `(TIMES)?`, or `timesKeyword : TIMES ;` used as `timesKeyword?`, already permits `OCCURS 5` —
       the token is the optional unit. Contrast `startWithLength : WITH LENGTH …` used as `(startWithLength)?`:
-      omitting the whole PHRASE is legal, writing it without WITH is not, so WITH stays demanded.
+      omitting the whole PHRASE is legal, writing it without WITH is not, so WITH stays demanded;
+    * the unit is FLAT — every alternative only tokens, each written once or optional — and every spelling of the
+      alternative with the word deleted is a spelling the UNIT accepts (`_flat_spellings`). That is the exact
+      question, asked of the unit's whole language rather than of mandatory sequences, so it sees what they drop:
+      `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` (§13.18.39.2's all-plain `[ LIMIT IS | LIMITS ARE ]`, kb/Work
+      PB3751) demands nothing, because `LIMIT` without LIMIT is the group omitted and `LIMIT IS` without it is the
+      `IS` arm — while `(LIMIT IS?)?` still demands LIMIT, since `IS` alone is no spelling it accepts.
     """
     seqs = [_mandatory(a) for a in alts]
+    flat = [_flat_spellings(a) for a in alts]
+    language: set[tuple[str, ...]] | None = None
+    if all(f is not None for f in flat):
+        language = set().union(*flat) | ({()} if omittable else set())
     out: list[frozenset[str]] = []
     for i, alt in enumerate(alts):
         name_alternative = len(alts) > 1 and len(_tokens(alt)) == 1 and not _refs(alt)
         the_word_alone = omittable and len(alt) == 1 and alt[0].kind == "tok"
         if name_alternative or the_word_alone:
             out.append(frozenset())
+            continue
+        if language is not None:
+            out.append(frozenset(e.name for j, e in enumerate(alt)
+                                 if not e.optional and not _flat_spellings(alt, drop=j) <= language))
             continue
         seq = seqs[i]
         out.append(frozenset(w for k, w in enumerate(seq)
@@ -449,6 +476,36 @@ def closure(refs: dict[str, frozenset[str]], anchors: set[str]) -> set[str]:
                     inside.add(r)
                     changed = True
     return inside
+
+
+#: ⛔ A WORD THE GRAMMAR MUST DEMAND AND THE LANGUAGE STILL LETS YOU OMIT, recorded where the rule is (kb/Work
+#: PB3751). Some omissions only a later phase can see: §13.18.63.2's `[ IN alphabet-name-1 ]` with IN left out is,
+#: BY POSITION, one more literal operand (a constant-name, §13.10.3 SR2), so the parser always takes it as one and
+#: the binder tells the alphabet from the constant by SYMBOL (§8.3.2.2). The rule therefore writes `(IN cobolWord)?`
+#: and the language accepts the IN-less spelling all the same. The rule says so in a comment line of its own:
+#:     // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
+#: and the audit reports that word as DECIDED, not as a candidate. ⛔ A MARKER IS CHECKED, NEVER TRUSTED: the member
+#: it names must be declared in a `src/**/<Type>*.cs` file, and a full run in which a marker matched no candidate
+#: fails — a grammar change that dropped the demand leaves a dead marker, and a dead marker would hide the next one.
+#: The member's BEHAVIOUR is the goldens' and the drift tests' to pin (TrailingInPhraseDriftTests for this one).
+DECIDED_BY = re.compile(r"audit:optional-word\s+(?P<word>[A-Z][A-Z0-9-]*)\s+decided-by\s+"
+                        r"(?P<type>[A-Za-z_]\w*)\.(?P<member>[A-Za-z_]\w*)")
+
+
+def decisions(rules: dict[str, grammar_source.Rule]) -> dict[tuple[str, str], tuple[str, str]]:
+    """(rule, word) -> (type, member) for every `audit:optional-word … decided-by …` line in a rule's source or in
+    the comment block directly above its head."""
+    return {(r.name, m["word"]): (m["type"], m["member"])
+            for r in rules.values() for line in r.lead + r.source for m in DECIDED_BY.finditer(line)}
+
+
+def member_declared(type_name: str, member: str, src: pathlib.Path = REPO / "src") -> bool:
+    """Whether a `<type_name>*.cs` file under src (a partial class spans several) names `member(`, generated and
+    build-output trees excluded. A declaration or a call will do: the build refuses a call to no member."""
+    decl = re.compile(rf"\b{re.escape(member)}\s*\(")
+    return any(decl.search(f.read_text(encoding="utf-8"))
+               for f in src.rglob(f"{type_name}*.cs")
+               if not {"obj", "bin", "Generated"} & set(f.relative_to(src).parts))
 
 
 class Candidate(NamedTuple):
@@ -601,7 +658,7 @@ def _fixture(rules: str) -> GrammarModel:
 #: `PIC : 'PIC' | 'PICTURE'` does. IDENTIFIER and PIC_STRING are lexical classes, so they spell no word.
 _FIXTURE_KEYWORDS = {t: {t} for t in (
     "ALPHANUMERIC ARE BINARY CLASS DEBUGGING DELETE END ERROR FILE FOR IN INHERITS INTERFACE INTERFACE_ID INTO IS "
-    "LENGTH READ "
+    "LENGTH LIMIT LIMITS PAGE READ "
     "LOCATION NATIONAL OCCURS ON PERFORM POINTER PROCEDURE RECEIVE STANDARD START STATUS TIMES USAGE USE "
     "VENDORWORD WITH").split()} | {"PIC": {"PIC", "PICTURE"}}
 
@@ -652,6 +709,25 @@ def self_test() -> int:
     sibling = run("performStatement : PERFORM (WITH LOCATION | LOCATION)? ;", "PERFORM", "WITH", "PERFORM LOCATION")
     check("a sibling arm INSIDE a group subsumes the word (`(WITH LOCATION | LOCATION)?`)",
           not sibling.candidates, sibling)
+    page = "reportPageClause : PAGE {} integerLiteral ; integerLiteral : IDENTIFIER ;"
+    page_blind = run(page.format("(LIMIT IS? | LIMITS ARE?)?"), "PAGE", "LIMIT IS LIMITS ARE", "PAGE")
+    check("PB3751: an all-plain bracket written `(LIMIT IS? | LIMITS ARE?)?` demands LIMIT and LIMITS",
+          {w for w, _ in words(page_blind)} == {"LIMIT", "LIMITS"}, words(page_blind))
+    page_fixed = run(page.format("(LIMIT IS? | IS | LIMITS ARE? | ARE)?"), "PAGE", "LIMIT IS LIMITS ARE", "PAGE")
+    check("…and `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` demands nothing: each deletion is a spelling it accepts",
+          not page_fixed.candidates and page_fixed.anchoring == "named", page_fixed)
+    page_lone = run(page.format("(LIMIT IS?)?"), "PAGE", "LIMIT IS", "PAGE")
+    check("…while `(LIMIT IS?)?` still demands LIMIT: `IS` alone is no spelling the group accepts",
+          {w for w, _ in words(page_lone)} == {"LIMIT"}, words(page_lone))
+    marked = grammar_source.Rule(
+        "valueClause", "parser", pathlib.Path("Fixture.g4"), 1, 3, "valueClause : VALUE cobolWord (IN cobolWord)? ;",
+        ("valueClause : VALUE cobolWord", "    // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf",
+         "    (IN cobolWord)? ;"), ())
+    check("PB3751: an `audit:optional-word` line records the word and the member that decides it",
+          decisions({"valueClause": marked}) == {("valueClause", "IN"): ("DataBinder", "RangeAlphabetPhraseOf")},
+          decisions({"valueClause": marked}))
+    check("…and a member no src file names is UNDECLARED, so a marker can fail the run",
+          not member_declared("DataBinder", "RangeAlphabetPhraseOf", src=HERE / "no-such-src-tree"))
     seq = demanded(parse_body("ON STATUS IS cobolWord | ON IS? cobolWord"), False)
     check("subsumption compares the ordered SEQUENCE, never the set (`ON STATUS IS … | ON IS? …` keeps IS)",
           seq == [frozenset({"ON", "STATUS", "IS"}), frozenset({"ON"})], seq)
@@ -780,6 +856,8 @@ def main() -> int:
                 out |= printed_words(*m)
         return out
 
+    decided = decisions(grammar)
+    decided_used: set[tuple[str, str]] = set()
     candidates = 0
     measured = 0
     empty: list[Format] = []
@@ -812,6 +890,11 @@ def main() -> int:
             continue
         by_anchoring[ex.anchoring] += 1
         for c in ex.candidates:
+            if (by := decided.get((c.rule, c.word))) is not None:
+                decided_used.add((c.rule, c.word))
+                print(f"  DECIDED    {f.keyword:<14} {f.clause:<12} p{page:<5} "
+                      f"{c.word:<12} required in {gm.origin[c.rule]}#{c.rule}, omissible by {by[0]}.{by[1]}")
+                continue
             print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{page:<5} "
                   f"{c.word:<12} required in {gm.origin[c.rule]}#{c.rule}"
                   + (f" inside {c.group}" if c.group else ""))
@@ -828,7 +911,8 @@ def main() -> int:
     # Every count above is checked against the population it claims to have measured. A tool that measured
     # NOTHING must never be able to print a clean zero: that is precisely how this one stayed green while three
     # statements rejected legal COBOL (kb/Work PB332).
-    print(f"\n{candidates} candidate(s) — CONFIRM each against the raw rectangles before editing the grammar")
+    print(f"\n{candidates} candidate(s) — CONFIRM each against the raw rectangles before editing the grammar"
+          f"   ({len(decided_used)} more DECIDED by a later phase, named by their rule's audit:optional-word line)")
     print("constructs anchored: " + "   ".join(f"{a}: {by_anchoring[a]}" for a in ANCHORINGS)
           + f"   keyword spelled by no parser token (the preprocessor's directives, a prose title): "
             f"{len(not_parser)} — named by --list-unanchored")
@@ -848,6 +932,15 @@ def main() -> int:
                         + ", ".join(f.clause for f in empty[:12]) + (" …" if len(empty) > 12 else ""))
     if selected and not measured:
         failures.append("every selected general format measured zero words — the audit inspected nothing")
+    undeclared = sorted(f"{rule} {word} -> {t}.{m}" for (rule, word), (t, m) in decided.items()
+                        if not member_declared(t, m))
+    if undeclared:
+        failures.append(f"{len(undeclared)} `audit:optional-word` marker(s) name a member no src file declares: "
+                        + ", ".join(undeclared))
+    dead = sorted(f"{rule} {word}" for rule, word in set(decided) - decided_used)
+    if dead and not (args.construct or args.clause):
+        failures.append(f"{len(dead)} `audit:optional-word` marker(s) matched no candidate in a full run — the "
+                        "rule no longer demands the word, so the marker is dead: " + ", ".join(dead))
     if unexamined:
         failures.append(f"{len(unexamined)} anchored general format(s) with optional words were EXAMINED BY NO RULE "
                         "— their keyword is a parser token, yet no rule spelling the format was anchored "
