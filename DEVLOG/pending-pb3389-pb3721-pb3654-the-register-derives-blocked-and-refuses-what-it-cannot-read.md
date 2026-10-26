@@ -58,3 +58,15 @@ table became a `Check` named tuple (name, command, exit, range arguments, `in_tr
 the self-test maps all three refusals and runs a worktree copy of work.py that refuses and one that passes.
 
 Merging the reviewed head into current main also met `scripts/orchestrator/cancel_superseded.py`, a script main added after PB3637's sweep that carried its own `sys.stdout.reconfigure`: the standard-streams audit (COPY and ENTRY rules) was red on the merged tree, so it now calls `ensure_utf8()` first in its `__main__` block and its private copy is deleted.
+
+**Review round 2 (R2-1, blocking; R2-2, lead).** Checkpoint 91038484e of the round-1 finisher had committed the harness's
+local edits of the tracked `.claude/settings.local.json` (a `Bash(cd *)` allow rule, a one-off orient.py allow rule, a
+skillOverrides block). Once landed, a checkout whose copy of that file is modified would refuse `merge --ff-only` and
+every session would inherit the broader grant. This finisher restored the file to main's content, and, because round 2 of
+PB1563 (DEVLOG 2208) had the same finding and nothing prevented it, added landing-check arm 0 to `landing_check.py`:
+a landing whose diff against the base names a `coord.NEVER_WORK` path (the settings file, STATUS.md, TestResults/) STOPS,
+naming the path and the restore command. `plan_wave.changed_files` drops those paths by design, so the arm reads the
+diff's names unfiltered. The self-test plants a landing that carries the settings file (stops) and the same fix without it
+(lands). R2-2: DESIGN-test-build-ci.md section 3.17.2 step 3 and the DOC_INDEX landing-check sequence now name the
+`work.py check` landing check and the new arm. The merge of the reviewed head onto current main had one textual
+conflict, `cancel_superseded.py` (the same standard-streams change spelled two ways): the branch's side kept.
