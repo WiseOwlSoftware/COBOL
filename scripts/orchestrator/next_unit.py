@@ -12,10 +12,16 @@ Prints JSON {unit, reason}. The order (docs/rearchitecture/DESIGN-orchestrator-l
   1. the handoff carries owner_question            -> owner-question
   2. the handoff names next_unit                    -> that unit; a wave-type unit (`wave` or `campaign`) names only a WAVE, and with --cluster the campaign rule below decides
      its lane (kb/Work PB2522)
-  3. no meter reading of THIS account in 3 hours   -> meter (two accounts share readings.json; kb/Work PB2478)
+  3. no meter reading of THIS account in 3 hours   -> meter (two accounts share readings.json; kb/Work PB2478), unless
+     the meter is UNREADABLE: METER_ATTEMPTS meter units of this account in a row ended without a reading (any other
+     unit may have run between them) and the newest attempt is younger than the maximum age. The choice then carries
+     `meter_unreadable` ({failures, since, retry_at}), the supervisor tells the owner once, and the next attempt
+     waits for the maximum age (kb/Work PB2665: a meter that cannot reach its page is an ENVIRONMENT cause, not a
+     failure of the work, so it neither runs back to back nor trips the breaker)
   4. the repository is dirty or has unpushed commits -> resume
   5. the last unit failed or ended split, or a branch classified UNLANDED got a commit after the last unit
-     started (an agent of a unit that died)          -> resume
+     started (an agent of a unit that died)          -> resume (a meter unit is invisible here: it reads one page and
+     touches no branch, so the supervisor never lets it replace the handoff or count as the last unit, kb/Work PB2665)
   6. AGENT WORK for the enqueue unit                 -> enqueue: the landing lane's survey lists a branch WAITING FOR
      REVIEW, or BOUNCED while the lane is neither landing it nor re-armed to, or a lane attempt STOPPED or ENQUEUED is
      not yet collected (its finisher or reviewer, its leads, its landing record; a survey row STOPPED counts through
@@ -54,6 +60,9 @@ import work  # noqa: E402  (cluster_order: the one reader of cluster: and blocke
 from standard_streams import ensure_utf8  # noqa: E402
 
 WAVE_TYPES = ("wave", "campaign")
+# Consecutive meter units of one account that ended without a reading before the meter counts as UNREADABLE (kb/Work
+# PB2665): three is the breaker's own count, and the owner is told once, at the third.
+METER_ATTEMPTS = 3
 
 
 def git(repo: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
@@ -114,6 +123,50 @@ def unit_history(cdir: pathlib.Path) -> list[dict]:
 def ran_campaign(rec: dict, lead: str) -> bool:
     """A campaign unit of `lead`. A line written before the supervisor named the cluster ran the one lead it had."""
     return rec.get("unit") == "campaign" and rec.get("cluster", lead) == lead
+
+
+def attempted_at(rec: dict) -> dt.datetime | None:
+    """When a units.jsonl line's unit ended (else started), offset-aware, or None when the line has no usable time."""
+    for key in ("ended_at", "started_at"):
+        try:
+            when = dt.datetime.fromisoformat(str(rec[key]).replace("Z", "+00:00"))
+        except (KeyError, ValueError):
+            continue
+        if when.tzinfo is not None:
+            return when
+    return None
+
+
+def meter_failure_run(history: list[dict], acct_name: str) -> list[dict]:
+    """The newest unbroken run of this account's meter units that ended without a reading, oldest first. Only meter
+    units count, so a unit of another type between them neither extends nor breaks the run (kb/Work PB2665: a resume
+    between two failed meters reset the supervisor's consecutive-failure count to zero, so a meter that failed on
+    every cycle printed `FAILURE 1 of 3` for ever). The supervisor records `environment_failure` on the line of a
+    unit that reads the environment (`$ReadOnlyUnit`) and ended without a `done` handoff, valid or not."""
+    run: list[dict] = []
+    for rec in reversed(history):
+        if rec.get("unit") != "meter" or rec.get("account") != acct_name:
+            continue
+        if not rec.get("environment_failure"):
+            break
+        run.append(rec)
+    return run[::-1]
+
+
+def meter_unreadable(run: list[dict], now: dt.datetime, max_age_h: float) -> dict | None:
+    """The gate on rule 3: None while the meter may be tried; else {failures, since, retry_at} once METER_ATTEMPTS
+    attempts in a row failed and the newest is younger than the maximum age (the cadence of a healthy meter), so a
+    page that cannot be read is retried once per maximum age and not once per loop iteration. `since` names the
+    streak (its first attempt): the key under which the supervisor tells the owner exactly once."""
+    if len(run) < METER_ATTEMPTS:
+        return None
+    first, last = attempted_at(run[0]), attempted_at(run[-1])
+    if first is None or last is None:
+        return None
+    retry_at = last + dt.timedelta(hours=max_age_h)
+    if now >= retry_at:
+        return None
+    return {"failures": len(run), "since": first.isoformat(), "retry_at": retry_at.isoformat()}
 
 
 def lane_states(leads: list[str], work_dir: pathlib.Path) -> dict[str, dict]:
@@ -199,16 +252,25 @@ def campaign_choice(lanes: dict[str, dict], history: list[dict], named_reason: s
             "reason": f"campaign {lead}: {len(ids)} ready note(s): {', '.join(ids[:6])}{handoff}", "campaign": "run"}
 
 
+def meter_due(cdir: pathlib.Path, history: list[dict], now: dt.datetime, acct_name: str,
+              max_age_h: float) -> tuple[str | None, dict | None]:
+    """Rule 3's facts: (the reason a meter unit is due, else None; the unreadable gate when it is due but closed)."""
+    age = meter_age_hours(cdir, now, acct_name)
+    if age is not None and age <= max_age_h:
+        return None, None
+    reason = f"no {acct_name} meter reading" if age is None else f"{acct_name} meter reading {age:.1f} h old"
+    gate = meter_unreadable(meter_failure_run(history, acct_name), now, max_age_h)
+    return (None, gate) if gate else (reason, None)
+
+
 def base_choice(h: dict, cdir: pathlib.Path, repo: pathlib.Path, now: dt.datetime, last_failed: bool,
-                last_started: dt.datetime | None, max_meter_age_h: float,
-                acct_name: str) -> dict[str, str]:
-    """Rules 2 to 7: the unit, before the campaign rule decides the lane of a wave-type one."""
+                last_started: dt.datetime | None, meter_reason: str | None) -> dict[str, str]:
+    """Rules 2 to 7: the unit, before the campaign rule decides the lane of a wave-type one. `meter_reason` is rule
+    3's verdict from `meter_due`: the reason a meter unit is due, else None (fresh, or due but unreadable)."""
     if h.get("next_unit"):
         return {"unit": h["next_unit"], "reason": "named by the last handoff: " + h.get("next_unit_reason", "")}
-    age = meter_age_hours(cdir, now, acct_name)
-    if age is None or age > max_meter_age_h:
-        return {"unit": "meter", "reason": f"no {acct_name} meter reading" if age is None
-                else f"{acct_name} meter reading {age:.1f} h old"}
+    if meter_reason:
+        return {"unit": "meter", "reason": meter_reason}
     state = repo_state(repo)
     if state:
         return {"unit": "resume", "reason": state}
@@ -244,6 +306,8 @@ def choose(handoff: dict | None, cdir: pathlib.Path, repo: pathlib.Path, now: dt
            clusters: list[str] | None = None, work_dir: pathlib.Path = work.WORK,
            operator: dict | None = None) -> dict:
     h = handoff or {}
+    history = unit_history(cdir)
+    meter_reason, unreadable = meter_due(cdir, history, now, acct_name, max_meter_age_h)
     if operator and operator.get("next_unit"):
         # Rule 0: the operator's steer names the unit itself, so neither rules 1-7 nor the campaign rule re-decide it.
         choice = {"unit": operator["next_unit"], "reason": "the operator: " + operator.get("next_unit_reason", ""),
@@ -253,11 +317,12 @@ def choose(handoff: dict | None, cdir: pathlib.Path, repo: pathlib.Path, now: dt
     elif h.get("owner_question"):
         return {"unit": "owner-question", "reason": "the last handoff asks the owner"}
     else:
-        choice = base_choice(h, cdir, repo, now, last_failed, last_started, max_meter_age_h, acct_name)
+        choice = base_choice(h, cdir, repo, now, last_failed, last_started, meter_reason)
+    if unreadable:
+        choice["meter_unreadable"] = unreadable
     if not clusters:
         return choice
     lanes = lane_states(clusters, work_dir)
-    history = unit_history(cdir)
     if choice["unit"] in WAVE_TYPES and not choice.get("operator"):
         # The handoff named THIS wave only when its next_unit is wave-type.
         named = h.get("next_unit_reason", "") if h.get("next_unit") in WAVE_TYPES else None
