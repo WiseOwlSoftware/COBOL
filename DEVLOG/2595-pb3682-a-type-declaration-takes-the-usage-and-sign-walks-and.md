@@ -1,4 +1,4 @@
-## PB3682: a TYPE declaration takes the usage and SIGN walks, and a description copied before them still has its subordinates
+## Entry 2595 — 2026-10-25 18:44 PDT — PB3682: a TYPE declaration takes the usage and SIGN walks, and a description copied before them still has its subordinates
 
 PB3682 filed one silent screen: a TYPEDEF `GROUP-USAGE NATIONAL` over a `GROUP-USAGE BIT` subgroup compiled while its storage twin drew
 COBOLNET1653. Re-probed on the branch build, the root is the walk, not the block: `UsageInheritancePass` walked `Roots` only, so none of
@@ -43,3 +43,4 @@ screen muted on `ClonedFrom` alone, which also dropped the SR3 fact of a TYPE or
 the copy implied; `GroupUsagePairIsTheDeclarations` mutes only a pair the declaration holds. Refused goldens
 `pb3682-type-subject-group-usage-from-enclosing-group` (P3682P) and `pb3682-same-as-subject-group-usage-from-enclosing-group` (P3682Q),
 both COBOLNET1653 at 2002, 2014 and 2023.
+
