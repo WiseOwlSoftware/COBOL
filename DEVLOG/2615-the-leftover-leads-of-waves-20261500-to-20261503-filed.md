@@ -1,4 +1,4 @@
-## The leftover leads of waves 20261500 to 20261503, filed
+## Entry 2615 — 2026-10-26 10:28 PDT — The leftover leads of waves 20261500 to 20261503, filed
 
 Seven branches landed late on 2026-10-25, after the lead sweeps that filed the neighbouring waves, so their reports' leads were
 never filed: w20261500c (PB3677), w20261501b (PB498), w20261501e (PB1601), w20261501f (PB935), w20261502a (PB3769), w20261503a
@@ -20,3 +20,4 @@ correction. Not filed: PB3727's stale "two corrections" count (its note already 
 alone), the design-doc gap for merged_tree (3.17.2 step 2 names it on main now), PB3677's X(24) CALL observation (nonconforming
 source, the report leaves it) and PB1601's "coverage" lead (the report says not filed). The sparse-checkout import lead is PB3787
 and PB3810. Unused ids: PB3826, PB3827, PB3828.
+
