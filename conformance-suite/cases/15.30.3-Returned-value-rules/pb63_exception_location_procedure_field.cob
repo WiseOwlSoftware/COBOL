@@ -12,7 +12,7 @@
       *> before PB63 the CLASS-ID). 2. the procedure-name: a) no paragraph-name and no section-name -> ";" and a
       *> space (A= - an EMPTY field; before PB63 a display placeholder), b) a paragraph-name, plus " OF section"
       *> when within a section (B=), c) a section-name and no paragraph-name -> the section-name alone (C=).
-      *> 3. the implementor-defined line identifier - COBOL.NET's is the resultant-text line (CONFORMANCE.md);
+      *> 3. the implementor-defined line identifier - WiseOwl COBOL's is the resultant-text line (CONFORMANCE.md);
       *> with no COPY it is the source line: the RAISE statements sit on lines 39 and 42 of this file and
       *> lines 67 and 70 (the method's). Case a) is the METHOD's leading sentence: a procedure division with
       *> sections is 14.2.1 Format 1, which admits no sentence before its first section (kb/Work PB1146), so a

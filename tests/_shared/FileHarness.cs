@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.CompilerServices;
-using CobolNet.Runtime.IO;
+using WiseOwl.Cobol.Runtime.IO;
 using Xunit;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>⛔ THE THREE FILE ORGANIZATIONS, ONE ENUM (kb/Work PB771, PB3459, PB3471). §9.1.6: <i>"There are three
 /// organizations: sequential, relative, and indexed"</i>, and §9.1.15 names none of them — <i>"The successful opening of

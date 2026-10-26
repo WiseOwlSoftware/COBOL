@@ -1,0 +1,13 @@
+# THE RUNTIME ABI PIN (kb/Work PB3610; docs/rearchitecture/DESIGN-external-repository.md section 15.4).
+# ⛔ NOBODY EDITS THIS FILE: it is measured. RuntimeAbiPinDriftTests re-measures all four lines on the tree and is red
+# when the tree's measurement is not this file. When it moves, decide whether the boundary really changed:
+#   python scripts/abi_pin.py bump --runtime-major   a removed or changed public member or a codec image (PublicAPI.Shipped.txt)
+#   python scripts/abi_pin.py bump --call-abi        a compiler-side change to what crosses a CALL (RuntimeAbi.CallAbi)
+#   python scripts/abi_pin.py repin                  nothing incompatible (a pure rename): say why in the commit
+# Each raises the counters in Directory.Build.props <Version> and RuntimeAbi.cs and has the test write the hashes.
+# A merge of two branches that both changed this file is made by scripts/merge_drivers.py: the counters add, the hashes
+# read UNMEASURED and are measured on the merged tree before the merge commit.
+runtime-major 20
+runtime-hash 549AE057578D8D34
+call-abi 2
+boundary-hash B9091FBDDF8C7C0A

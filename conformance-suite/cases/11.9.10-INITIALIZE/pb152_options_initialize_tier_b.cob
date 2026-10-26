@@ -21,7 +21,7 @@
       *>   GA PIC X(3), no VALUE           -> ZZZ    (3 alphanumeric positions take the fill)
       *>   R  REDEFINES G PIC X(5)         -> ZZZ followed by GC's TWO bytes. GC is PIC 9(4) COMP: its
       *>      storage is two BYTES and action 1 fills "the storage allocated" with no numeric exception
-      *>      (owner decision kb/Work R53; COBOLNET_DATA_MODEL_DESIGN D23), so both bytes are X'5A':
+      *>      (owner decision kb/Work R53; DATA_MODEL_DESIGN D23), so both bytes are X'5A':
       *>      ORD 91 each (the byte X'5A' is the character U+005A, ordinal 90 + 1).
       *>
       *> The carrier bytes are asserted with FUNCTION ORD, not with a comparison against LOW-VALUES. 15.70.1:

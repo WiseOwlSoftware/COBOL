@@ -15,10 +15,10 @@
          version, and so every assembly's AssemblyVersion. The runtime's MAJOR is a contract: every compiled COBOL module
          records the runtime version it was compiled against ([assembly: CobolRepository], __CobolModule.EnsureRegistered),
          and a run unit refuses a module of another major (RuntimeAbi.Skew). Raise the major exactly when the runtime's
-         public surface (src/Cobol.Net.Runtime/PublicAPI.Shipped.txt) or a codec's image layout changes incompatibly;
-         RuntimeAbiPinDriftTests pins it beside the surface's hash in src/Cobol.Net.Runtime/RuntimeAbi.pin, a file
+         public surface (src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt) or a codec's image layout changes incompatibly;
+         RuntimeAbiPinDriftTests pins it beside the surface's hash in src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin, a file
          scripts/abi_pin.py writes (its bump command raises this number and measures; kb/Work PB3610). -->
-    <Version>19.0.0</Version>
+    <Version>20.0.0</Version>
   </PropertyGroup>
   <!-- The LICENSE file PackageLicenseFile names, packed at the package root. Items are evaluated after every property,
        so the project's own IsPackable (false in every test and tool project) is already set here. -->
@@ -40,8 +40,8 @@
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
   <!-- kb/Work PB2528 (owner decision 2026-10-07; DESIGN-test-build-ci §3.16): the platforms the WiseOwl COBOL runtime
-       is precompiled ReadyToRun for. src/Cobol.Net.Runtime builds one image per entry and every project that
-       references it carries them at ReadyToRun/<rid>/Cobol.Net.Runtime.dll; the CLI's publish (what the
+       is precompiled ReadyToRun for. src/WiseOwl.Cobol.Runtime builds one image per entry and every project that
+       references it carries them at ReadyToRun/<rid>/WiseOwl.Cobol.Runtime.dll; the CLI's publish (what the
        WiseOwl.COBOL tool package packs) refuses to finish without every one; ReadyToRunRuntimeDriftTests requires
        the platform each CI leg runs on. Adding a platform is one entry here. -->
   <PropertyGroup>

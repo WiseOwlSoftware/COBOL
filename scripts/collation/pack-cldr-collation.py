@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 pack-cldr-collation.py — bundle the pinned CLDR collation data into the ONE embedded pack the runtime's CLDR locale
-loader reads (src/Cobol.Net.Runtime/Collation/CLDR/CldrLocaleLoader.cs).
+loader reads (src/WiseOwl.Cobol.Runtime/Collation/CLDR/CldrLocaleLoader.cs).
 
-    python scripts/collation/pack-cldr-collation.py [--data data/unicode/cldr] [--out src/Cobol.Net.Runtime/Collation/CLDR/Data]
+    python scripts/collation/pack-cldr-collation.py [--data data/unicode/cldr] [--out src/WiseOwl.Cobol.Runtime/Collation/CLDR/Data]
 
 Inputs (pinned, committed, Unicode License — data/unicode/LICENSE-UNICODE.txt; provenance in data/unicode/SOURCES.md):
   <data>/collation/*.xml   every file of cldr/common/collation/ at the pinned release (135 files at release-48-2)
@@ -43,7 +43,7 @@ def sha256_bytes(b: bytes) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data", default="data/unicode/cldr")
-    ap.add_argument("--out", default="src/Cobol.Net.Runtime/Collation/CLDR/Data")
+    ap.add_argument("--out", default="src/WiseOwl.Cobol.Runtime/Collation/CLDR/Data")
     ap.add_argument("--release", default=None, help="the CLDR release tag (default: read from <data>/RELEASE)")
     args = ap.parse_args()
 

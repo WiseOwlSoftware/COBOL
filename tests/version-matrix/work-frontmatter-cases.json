@@ -27,7 +27,7 @@
   {
    "name": "a note as the register writes it (LF, one-line lists)",
    "file": "PB245.md",
-   "text": "---\ntitle: \"PB245 — the back-link from a landed fix to the rows it closed\"\nid: PB245\nkind: defect\nstatus: landed\nseverity: MAJOR\narea: process/traceability\nprocess_only: true\nblocked_by: []\nspec_refs: [\"15.4.1\"]\ninventory_rows: []\ncloses_rows: [\"RV-15.4.1-4\"]\ntags: [cobolsharp, work, defect]\n---\n\n# PB245\n\nbody text\n",
+   "text": "---\ntitle: \"PB245 — the back-link from a landed fix to the rows it closed\"\nid: PB245\nkind: defect\nstatus: landed\nseverity: MAJOR\narea: process/traceability\nprocess_only: true\nblocked_by: []\nspec_refs: [\"15.4.1\"]\ninventory_rows: []\ncloses_rows: [\"RV-15.4.1-4\"]\ntags: [wiseowl-cobol, work, defect]\n---\n\n# PB245\n\nbody text\n",
    "expect": {
     "note": true, "id": "PB245", "kind": "defect", "status": "landed", "terminal": true,
     "inventory_rows": [], "closes_rows": ["RV-15.4.1-4"], "closes_rows_reason": "", "errors": [], "refusal": ""
@@ -46,7 +46,7 @@
   {
    "name": "⛔ inventory_rows WRAPPED across two lines — the exact shape that broke both readers (PB875)",
    "file": "PB390.md",
-   "text": "---\nid: PB390\nkind: defect\nstatus: open\ninventory_rows: [\"SR-14.9.25.3-12\", \"SR-14.9.28.3-12\", \"SR-14.9.28.3-13\", \"SR-14.9.39.3-6\",\n  \"SR-14.9.16.3-1\", \"SR-14.9.21.3-1\", \"SR-14.9.46.3-1\"]\ntags: [cobolsharp, work, defect]\n---\nbody\n",
+   "text": "---\nid: PB390\nkind: defect\nstatus: open\ninventory_rows: [\"SR-14.9.25.3-12\", \"SR-14.9.28.3-12\", \"SR-14.9.28.3-13\", \"SR-14.9.39.3-6\",\n  \"SR-14.9.16.3-1\", \"SR-14.9.21.3-1\", \"SR-14.9.46.3-1\"]\ntags: [wiseowl-cobol, work, defect]\n---\nbody\n",
    "expect": {
     "note": true, "id": "PB390", "kind": "defect", "status": "open", "terminal": false,
     "inventory_rows": ["SR-14.9.25.3-12", "SR-14.9.28.3-12", "SR-14.9.28.3-13", "SR-14.9.39.3-6",
@@ -98,7 +98,7 @@
   {
    "name": "⛔ an UNTERMINATED list is an error, never an empty claim — the fail-open PB875 measured",
    "file": "PB390b.md",
-   "text": "---\nid: PB390\nkind: defect\nstatus: open\ninventory_rows: [\"SR-14.9.25.3-12\", \"SR-14.9.28.3-12\",\ntags: [cobolsharp, work, defect]\n---\nbody\n",
+   "text": "---\nid: PB390\nkind: defect\nstatus: open\ninventory_rows: [\"SR-14.9.25.3-12\", \"SR-14.9.28.3-12\",\ntags: [wiseowl-cobol, work, defect]\n---\nbody\n",
    "expect": {
     "note": true, "id": "PB390", "kind": "defect", "status": "open", "terminal": false,
     "inventory_rows": [], "closes_rows": [], "closes_rows_reason": "",

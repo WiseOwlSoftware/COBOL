@@ -4,10 +4,10 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs
-  - src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs
+  - src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
   - ir
@@ -17,7 +17,7 @@ tags:
 
 Maps **every** bound-tree node (the compiler's only IR — see [[kb/IR/Node Types]]) to the ISO COBOL construct
 it represents, the semantic rule that governs it, the compiler phase that produces/consumes it, and a diagram. This is
-the **full per-node table (158 rows)** enumerated from `src/Cobol.Net.Compiler/Binding/Bound/*.cs`; the abstract base
+the **full per-node table (158 rows)** enumerated from `src/WiseOwl.Cobol.Compiler/Binding/Bound/*.cs`; the abstract base
 records (`BoundExpr`, `BoundOperand`, `BoundBoolExpr`, `BoundCondition`, `BoundStatement`, `BoundSetTarget`,
 `BoundPerformControl`) are omitted. Every node is built at **Bind** and rendered at **Emit**
 ([[kb/Compiler/Pipeline]]) unless the Phase column notes `DispatchEmitter` (control flow). The **Diagram**

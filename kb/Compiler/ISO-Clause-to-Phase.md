@@ -4,10 +4,10 @@ area: compiler
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - docs/COBOLNET_PIPELINE_DESIGN.md
+  - docs/PIPELINE_DESIGN.md
   - specs/ISO_COBOL.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - compiler
   - spec
 ---

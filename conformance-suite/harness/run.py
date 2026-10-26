@@ -79,7 +79,7 @@ HANG_GUARD = 600
 #: The verdicts a test must not newly reach (with no recorded verdict, or a different one).
 BAD = (FAIL, NO_VERDICT)
 #: Line ends as .NET's String.ReplaceLineEndings reads them: CR LF, CR, LF, NEL, LS, FF and PS
-#: (CutRunner.Normalize, tests/Cobol.Net.Tests.Conformance/CompilerUnderTest.cs). The two normalizations are one rule.
+#: (CutRunner.Normalize, tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs). The two normalizations are one rule.
 _LINE_END = re.compile("\r\n|[\r\n\u0085  \u000c]")
 
 

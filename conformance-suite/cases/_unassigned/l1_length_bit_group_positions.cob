@@ -36,7 +36,7 @@
       *> implicit filler, the same rule 2023/pb43_usage_bit_occupies_bits measures as SPLIT=3. Between
       *> §8.5.1.6.3's boundary-advance bullet and its record-end bullet, every alphanumeric group carrying bit
       *> data ends byte-integral, so NO FUNCTION LENGTH golden can make r9's antecedent true: RV-15.50.4-9 stays
-      *> test-needed and wants an owner adjudication recorded per §4.2.16 (r9 vacuous under COBOL.NET's 8-bit
+      *> test-needed and wants an owner adjudication recorded per §4.2.16 (r9 vacuous under WiseOwl COBOL's 8-bit
       *> determination plus the filler rules), not a fixture.
       *>
       *> WHAT THIS FILE DOES PIN. §13.18.29.4 GR3 — "If a GROUP-USAGE clause is not specified or implied for a
@@ -44,7 +44,7 @@
       *> alphanumeric group item" — makes each group below alphanumeric (no GROUP-USAGE, no TYPE, no
       *> dynamic-length or dynamic-capacity subordinate, §8.5.1.12.1), so r3 measures it in alphanumeric
       *> character positions rather than r1 measuring it in boolean ones. §8.1.2 item 3 leaves the number of bits
-      *> in a byte to the implementor; COBOL.NET specifies 8 (docs/CONFORMANCE.md).
+      *> in a byte to the implementor; WiseOwl COBOL specifies 8 (docs/CONFORMANCE.md).
       *>   AG  11 bits + 5 implicit filler = 16 = 2  — a bit run that does NOT end on a byte boundary
       *>   BG  16 bits, no filler needed   = 16 = 2  — the exactly-integral control; a blanket +1 byte answers 3
       *>   CG   3 bits + 5 implicit filler =  8 = 1  — a sub-byte group; dropping the filler and truncating -> 0

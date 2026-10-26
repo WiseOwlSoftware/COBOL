@@ -42,7 +42,7 @@
       *>   the rules for 9.1.13, I-O status apply, then if the implementor
       *>   has not specified otherwise, the following rules apply for all
       *>   fatal exception conditions."   -> OK  §14.6.13.1.3 3)
-      *> No status value corresponds to this condition, so COBOL.NET makes
+      *> No status value corresponds to this condition, so WiseOwl COBOL makes
       *> it §9.1.13.11's implementor-defined one:
       *>   python scripts/spec/cite.py --check 9.1.13.11 "I-O status = 9x.
       *>   An implementor-defined condition exists. This condition shall

@@ -1,0 +1,251 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Reflection;
+using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Runtime.IO;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Unit.Collation;
+
+/// <summary>
+/// The ONE collating-sequence carrier <see cref="CobolCollation"/> (DESIGN-locale-facility §4.4; kb/Work PB101):
+/// the LOCALE arm's ISO §8.8.4.2.11 operand rule and engine comparison, its L7 materialized positions (ORD/CHAR,
+/// HIGH-/LOW-VALUE), the EC-LOCALE-INCOMPATIBLE determination (L6), the base class's single ThruMember, the table
+/// arms' unchanged answers through the carrier, and the DRIFT test that the overload set stays collapsed — no
+/// consumer may grow a raw-<c>ushort[]</c> or <c>NationalCollation</c>-typed collating slot again.
+/// </summary>
+public sealed class CobolCollationTests
+{
+    private static readonly LocaleCollation Loc = LocaleCollation.Current;
+
+    // ---- the LOCALE arm ----------------------------------------------------------------------------------------
+
+    [Fact]
+    public void LocaleArm_ComparesByTheEngine_NotByCodeUnit()
+    {
+        Assert.True(Loc.Compare("apple", "Zebra") < 0);        // native would say Zebra (0x5A) < apple (0x61)
+        Assert.True(Loc.Compare("zebra", "Zebra") < 0);        // lowercase first (tertiary)
+        Assert.True(Loc.Compare("resume", "resumE") < 0);
+        Assert.True(Loc.Compare("abc", "abd") < 0);
+        Assert.True(Loc.Compare("abd", "abc") > 0);
+        Assert.Equal(0, Loc.Compare("abc", "abc"));
+        Assert.Equal(0, CobolString.Compare("abc", "abc", Loc));   // through the carrier-taking entry
+        Assert.True(CobolString.Compare("apple", "Zebra", Loc) < 0);
+    }
+
+    /// <summary>§8.8.4.2.11 sentence 1: trailing spaces are truncated; an all-space operand becomes ONE space;
+    /// two zero-length operands are equal. No padding — unlike every table arm.</summary>
+    [Fact]
+    public void LocaleArm_TruncatesTrailingSpaces_AllSpacesToOne()
+    {
+        Assert.Equal(0, Loc.Compare("abc", "abc   "));
+        Assert.Equal(0, Loc.Compare("abc  ", "abc"));
+        Assert.Equal(0, Loc.Compare("     ", " "));
+        Assert.Equal(0, Loc.Compare("", ""));
+        Assert.Equal(0, Loc.Compare(null, ""));
+        Assert.True(Loc.Compare("", " ") < 0);                 // "" trims to ""; " " (all spaces) trims to ONE space, not ""
+        Assert.True(Loc.Compare("a", "") > 0);
+        Assert.Equal("", LocaleCollation.TrimForLocale(""));
+        Assert.Equal(" ", LocaleCollation.TrimForLocale("    "));
+        Assert.Equal("a  b", LocaleCollation.TrimForLocale("a  b   "));
+        Assert.Same("ab", LocaleCollation.TrimForLocale("ab"));   // no allocation when nothing trims
+    }
+
+    /// <summary>DETERMINATION L6: the derived table orders every well-formed text, so the only operand "the locale
+    /// does not define a collating sequence for" is ill-formed UTF-16 — an unpaired surrogate raises the fatal
+    /// EC-LOCALE-INCOMPATIBLE and the comparison still answers deterministically.</summary>
+    [Fact]
+    public void LocaleArm_UnpairedSurrogate_SetsEcLocaleIncompatible()
+    {
+        // Since kb/Work PB64 T1 the raise is CHECKING-GATED like every EC-LOCALE condition (§14.6.13.1.1: "if checking
+        // for an exception that occurs is not enabled, no exception condition is raised"): nothing is recorded with
+        // checking off and the comparison still answers a deterministic order; with checking on the statement guard's
+        // flag makes it a fatal CobolFatalException the USE declarative can observe (LocaleStateTests pins the flag path).
+        RunUnit.Run(_ =>
+        {
+            ExceptionState.Clear();
+            int c = Loc.Compare("a\uD800", "a");
+            Assert.Null(ExceptionState.LastName);                 // checking off: no condition (§14.6.13.1.1)
+            Assert.Equal(c, Loc.Compare("a\uD800", "a"));        // deterministic
+            ExceptionState.LocaleIncompatibleChecking = true;
+            try
+            {
+                var ex = Assert.Throws<CobolFatalException>(() => Loc.Compare("a\uD800", "a"));
+                Assert.Equal("EC-LOCALE-INCOMPATIBLE", ex.EcName);
+                Assert.Equal("EC-LOCALE-INCOMPATIBLE", ExceptionState.LastName);
+                Assert.True(ExceptionState.LastFatal);
+                ExceptionState.Clear();
+                Loc.Compare("a\U0001F600", "a");                // a well-formed supplementary character: no condition
+                Assert.Null(ExceptionState.LastName);
+            }
+            finally { ExceptionState.LocaleIncompatibleChecking = false; }
+        });
+    }
+
+    /// <summary>DETERMINATION L7: positions materialized from the engine — ORD/CHAR round-trip, equal-collating code
+    /// units share a position (CHAR returns the lowest-coded member), HIGH-VALUE is U+FFFF, LOW-VALUE U+0000.</summary>
+    [Fact]
+    public void LocaleArm_MaterializedPositions_RoundTrip_AndExtremes()
+    {
+        Assert.True(Loc.PositionCount > 1000 && Loc.PositionCount <= 0x10000);
+        Assert.True(Loc.Weight('a') < Loc.Weight('A'));
+        Assert.True(Loc.Weight('A') < Loc.Weight('b'));
+        Assert.True(Loc.Weight('1') < Loc.Weight('a'));
+        foreach (char c in "aAzZ09 é€中")
+            Assert.Equal(c, (char)Loc.CharAt(Loc.Weight(c)));   // each of these is the lowest code unit of its position
+        Assert.Equal(0, Loc.Weight('\0'));                        // completely ignorable — the first position
+        Assert.Equal(Loc.Weight('\0'), Loc.Weight('\U00000001'));     // shared with every other completely ignorable unit
+        Assert.Equal('\0', (char)Loc.CharAt(0));
+        Assert.Equal(-1, Loc.CharAt(Loc.PositionCount));
+        Assert.Equal(-1, Loc.CharAt(-1));
+        Assert.Equal('\U0000FFFF', Loc.HighValue);
+        Assert.Equal('\0', Loc.LowValue);
+        Assert.Equal(Loc.PositionCount - 1, Loc.Weight('\U0000FFFF'));
+        // The intrinsic bodies read the carrier.
+        Assert.Equal(Loc.Weight('Q') + 1L, CobolIntrinsics.Ord("Q", Loc));
+        Assert.Equal("Q", CobolIntrinsics.Char(Loc.Weight('Q') + 1, Loc));
+        Assert.Equal("Zebra", CobolIntrinsics.MaxString(Loc, "Zebra", "apple", "zebra"));
+        Assert.Equal("apple", CobolIntrinsics.MinString(Loc, "Zebra", "apple", "zebra"));
+    }
+
+    [Fact]
+    public void LocaleArm_NamedLocale_UsesItsTailoring_CurrentFollowsTheRunUnit()
+    {
+        var es = new LocaleCollation("es-ES");
+        Assert.Equal("es-ES", es.LocaleTag);
+        Assert.True(es.Compare("ñu", "nz") > 0);                 // Spanish: ñ after n
+        Assert.True(new LocaleCollation("root").Compare("ñu", "nz") < 0);
+        Assert.Null(LocaleCollation.Current.LocaleTag);
+        RunUnit.Run(ru =>
+        {
+            ru.Locale.Set(LocaleCategory.Collate, "es-ES");    // the seam SET LOCALE lands on
+            Assert.True(LocaleCollation.Current.Compare("ñu", "nz") > 0);
+            Assert.Equal("es-ES", LocaleCollation.Current.Resolve().Table.Name);
+            ru.Locale.Set(LocaleCategory.Collate, null);
+            Assert.Equal(ru.Locale.UserDefault.Collate, ru.Locale.Current(LocaleCategory.Collate));
+        });
+    }
+
+    /// <summary>DETERMINATION L2 (owner decision Q2): the environment variable wins; else the culture; "" is root.</summary>
+    [Fact]
+    public void LocaleState_DeterminesTheDefaultsFromTheEnvironment()
+    {
+        Assert.Equal("es-MX", Probe("WISEOWL_COBOL_TEST_LOCALE_PROBE_A", " es-MX ", () => System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal("", Probe("WISEOWL_COBOL_TEST_LOCALE_PROBE_B", " ", () => System.Globalization.CultureInfo.GetCultureInfo("fr-FR")));   // a blank value is the ROOT (Windows deletes an empty variable, so a space stands in)
+        Assert.Equal("fr-FR", Probe("WISEOWL_COBOL_TEST_LOCALE_PROBE_C", null, () => System.Globalization.CultureInfo.GetCultureInfo("fr-FR")));
+        Assert.Equal("", Probe("WISEOWL_COBOL_TEST_LOCALE_PROBE_D", null, () => throw new InvalidOperationException("no culture data")));
+
+        static string Probe(string variable, string? value, Func<System.Globalization.CultureInfo> fallback)
+        {
+            Environment.SetEnvironmentVariable(variable, value);
+            try { return LocaleState.Determine(variable, fallback); }
+            finally { Environment.SetEnvironmentVariable(variable, null); }
+        }
+    }
+
+    // ---- the base class and the table arms ---------------------------------------------------------------------
+
+    /// <summary>ISO §14.7.8: ONE ThruMember on the base class serves every arm — the inclusive test, and lo > hi
+    /// raises the nonfatal EC-RANGE-INVALID (rule 2) and answers false.
+    /// <para>The raise is GATED on the ambient checking flag, like every other condition the runtime detects:
+    /// §14.6.13.1.1's "if checking for an exception that occurs is not enabled, no exception condition is raised"
+    /// is applied once, in <c>ExceptionEngine</c>, per (flag, exception-name) pair — this site used to write its
+    /// own unconditional <c>Set</c>, which recorded a condition no TURN had enabled and could not reach the
+    /// §14.6.13.1.4 #3 declarative (kb/Work PB367b). The empty-range ANSWER does not depend on the flag.</para></summary>
+    [Fact]
+    public void ThruMember_IsOneImplementationOnTheBase()
+    {
+        RunUnit.Run(_ =>
+        {
+            Assert.True(Loc.ThruMember("m", "a", "z"));
+            Assert.True(Loc.ThruMember("a", "a", "z"));
+            Assert.True(Loc.ThruMember("z", "a", "z"));
+            Assert.False(Loc.ThruMember("Z", "a", "y"));         // Z sorts after y under the locale order
+            ExceptionState.Clear();
+            Assert.False(Loc.ThruMember("m", "z", "a"));         // lo collates after hi — checking OFF
+            Assert.Null(ExceptionState.LastName);                // §14.6.13.1.1 — not enabled ⇒ not raised
+            ExceptionState.RangeInvalidChecking = true;
+            try
+            {
+                Assert.False(Loc.ThruMember("m", "z", "a"));     // the same inverted range, checking ON
+                Assert.Equal("EC-RANGE-INVALID", ExceptionState.LastName);
+                Assert.False(ExceptionState.LastFatal);
+            }
+            finally { ExceptionState.RangeInvalidChecking = false; }
+            Assert.True(CobolString.ThruMember("m", "a", "z", Loc));
+        });
+        var reversed = Reversed();
+        Assert.True(reversed.ThruMember("M", "Z", "A"));          // under the reversed alphabet Z < A
+        Assert.False(reversed.ThruMember("M", "A", "Z"));         // …so A..Z is an inverted (empty) range
+    }
+
+    [Fact]
+    public void TableArms_AnswerThroughTheCarrier_AsBefore()
+    {
+        var reversed = Reversed();
+        CobolCollation c = reversed;
+        Assert.True(c.Compare("A", "B") > 0);                     // reversed A..Z
+        Assert.True(c.Compare("B", "A") < 0);
+        Assert.Equal(0, c.Compare("A", "A   "));                  // the table arm space-extends
+        Assert.True(c.Compare("A", "AĀ") < 0);               // above-block code unit keeps its native code — order-equivalent tail
+        Assert.Equal('A', c.HighValue);
+        Assert.Equal('Z', c.LowValue);
+        Assert.Equal(25, c.Weight('A'));
+        Assert.Equal('A', (char)c.CharAt(25));
+        var nat = new NationalCollation([(ushort)'A', (ushort)'B', (ushort)'C'], [2, 1, 0], [(ushort)'C', (ushort)'B', (ushort)'A'], 3, '\U0000FFFF', 'C');
+        CobolCollation n = nat;
+        Assert.True(n.Compare("C", "A") < 0);
+        Assert.Equal(0, n.Compare("C", "C  "));
+        Assert.Equal('C', n.LowValue);
+        Assert.Equal("CBA", CobolIntrinsics.MinString(n, "ABC", "CBA"));
+    }
+
+    /// <summary>The overload set stays COLLAPSED (DESIGN-locale-facility §4.4.1's drift test): the comparison entries
+    /// take a <c>char</c> pad (native) or the ONE <see cref="CobolCollation"/> — never a raw <c>ushort[]</c> or a
+    /// concrete arm — and every collating slot of the sort / file / MAX-MIN / CHAR-ORD surface is carrier-typed.
+    /// <para>⛔ THE FIGURATIVE-AWARE TWINS ARE IN THE LIST TOO (kb/Work PB401). A §8.3.3.6.4 GR2 variant is a
+    /// different QUESTION, so it takes its own NAME — <c>CompareFig</c> beside <c>Compare</c>,
+    /// <c>ThruMemberFig</c> beside <c>ThruMember</c> — and then owes the same collapsed pair of sequence
+    /// channels. Adding it as a sixth <c>ThruMember</c> overload instead is what this test caught: the entry
+    /// stayed carrier-typed and the SET stopped being two, which is the property the design fixes.</para></summary>
+    [Fact]
+    public void Drift_TheCarrierIsTheOnlyCollatingParameterType()
+    {
+        static IEnumerable<MethodInfo> Overloads(Type t, string name) =>
+            t.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).Where(m => m.Name == name);
+
+        foreach (string name in new[] { nameof(CobolString.Compare), nameof(CobolString.ThruMember),
+                                        nameof(CobolString.CompareFig), nameof(CobolString.ThruMemberFig) })
+        {
+            var lastParams = Overloads(typeof(CobolString), name).Select(m => m.GetParameters()[^1].ParameterType).ToList();
+            Assert.Equal(2, lastParams.Count);
+            Assert.Contains(typeof(char), lastParams);
+            Assert.Contains(typeof(CobolCollation), lastParams);
+        }
+        // Every collating parameter anywhere on the runtime's public surface is the carrier, never a raw table.
+        var offenders = new List<string>();
+        foreach (var t in new[] { typeof(CobolString), typeof(CobolSort), typeof(CobolFile), typeof(FileRegistry), typeof(CobolIntrinsics) })
+            foreach (var m in t.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                foreach (var p in m.GetParameters())
+                    if (p.ParameterType == typeof(ushort[]) || p.ParameterType == typeof(AlphanumericCollation) || p.ParameterType == typeof(NationalCollation))
+                        offenders.Add($"{t.Name}.{m.Name}({p.Name}: {p.ParameterType.Name})");
+        Assert.True(offenders.Count == 0, "collating parameters that bypass CobolCollation:\n" + string.Join("\n", offenders));
+        Assert.True(typeof(CobolCollation).IsAbstract);
+        Assert.True(typeof(AlphanumericCollation).IsSubclassOf(typeof(CobolCollation)));
+        Assert.True(typeof(NationalCollation).IsSubclassOf(typeof(CobolCollation)));
+        Assert.True(typeof(LocaleCollation).IsSubclassOf(typeof(CobolCollation)));
+    }
+
+    /// <summary><c>ALPHABET IS "ZYX…A"</c> as the SPARSE §12.3.7.4 GR7 k table: the 26 SPECIFIED letters occupy
+    /// positions 25..0 ('Z' first), and every UNSPECIFIED character follows in native relative order (GR7 k3),
+    /// which the carrier computes arithmetically rather than tabulating (kb/Work PB770 — one table shape for both
+    /// classes). GR8/GR9 make U+00FF the alphanumeric HIGH-VALUE pin and 'Z' the LOW-VALUE (position 0).</summary>
+    private static AlphanumericCollation Reversed()
+    {
+        var codes = Enumerable.Range('A', 26).Select(c => (ushort)c).ToArray();
+        var positions = codes.Select(c => (ushort)('Z' - c)).ToArray();
+        var rep = Enumerable.Range(0, 26).Select(i => (ushort)('Z' - i)).ToArray();
+        return new AlphanumericCollation(codes, positions, rep, 26, 'A', 'Z');
+    }
+}

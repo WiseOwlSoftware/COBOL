@@ -55,11 +55,11 @@
       *>     between the
       *>   user-defined word and the corresponding name"  -> OK
       *>     §8.3.2.2 2)
-      *> COBOL.NET's mapping (docs/CONFORMANCE.md DOC-A.1-64):
+      *> WiseOwl COBOL's mapping (docs/CONFORMANCE.md DOC-A.1-64):
       *>   case-insensitive, i.e. the
       *> §8.3.2.2 equivalence of upper- and lowercase letters in a
       *>   user-defined word.
-      *> The only entry convention COBOL.NET provides is COBOL, so the
+      *> The only entry convention WiseOwl COBOL provides is COBOL, so the
       *>   observable of "the
       *> convention is COBOL" is the GR2 name mapping: a method whose
       *>   METHOD-ID is SayHi is

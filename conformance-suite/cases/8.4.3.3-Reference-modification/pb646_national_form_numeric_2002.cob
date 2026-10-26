@@ -22,7 +22,7 @@
       *>     the same characters its DISPLAY twin holds, in a different character set.
       *>   13.18.60.4 GR8: "National characters shall be represented in the storage of the computer as
       *>     characters of a uniform size equal to or a multiple of the size of characters in the
-      *>     computer's alphanumeric character set." The implementor pins that size; COBOL.NET pins TWO
+      *>     computer's alphanumeric character set." The implementor pins that size; WiseOwl COBOL pins TWO
       *>     bytes, UTF-16BE (data-model design D-N1), so an n-position item occupies 2n bytes.
       *> Nothing else moves: the VALUE is the same number, the arithmetic is the same arithmetic, and
       *> the character image is the same digit run (design D-N7).

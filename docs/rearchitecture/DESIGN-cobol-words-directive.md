@@ -2,7 +2,7 @@
 
 > **STATUS: IMPLEMENTED (all four increments A–D landed; DEVLOG 962–965).** Subsystem deep-dive for the
 > `>>COBOL-WORDS` compiler directive (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12). Design SSOT for this
-> subsystem; the plan (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS
+> subsystem; the plan (`REARCHITECTURE_PLAN.md` §0) points here. When the design changes, update THIS
 > doc in the same change set (process rule 4). All four options (EQUATE/UNDEFINE/SUBSTITUTE/RESERVE) are fully
 > supported for reserved, context-sensitive, AND intrinsic-function words, with SR1–SR5 enforced; the token
 > rewriter + composed `ReservedWordSet` + the map-aware lexer + the binder intrinsic-synonym resolution are all
@@ -136,12 +136,12 @@ SUBSTITUTE lit4) and cannot distinguish keyword vs user-word uses; the token rew
 `CobolWordsMap` is a **pure-string data carrier** built in the Frontend and threaded to the Compiler, exactly
 like `FlagState`/`RefModZeroLengthState`.
 
-- **`Cobol.Net.Editions`** — `CobolWordsMap` (the four normalized operation lists, all words upper-cased);
+- **`WiseOwl.Cobol.Editions`** — `CobolWordsMap` (the four normalized operation lists, all words upper-cased);
   `ReservedWordSet` extended with an **overlay** (a `Reserve` set → high-confidence reserved-at-edition, and a
   `Suppress` set from UNDEFINE + SUBSTITUTE-lit4 → forces `RejectsAt=false`). `constructs.json` row
   `cobol-words-directive-2023` (introducedIn 2023, COBOL0900). Malformed/SR descriptor
   `CobolWordsDirectiveInvalid` = **COBOL1623**.
-- **`Cobol.Net.Frontend`** — `CobolWordsDirectiveProcessor` (text stage): parse the four options into a
+- **`WiseOwl.Cobol.Frontend`** — `CobolWordsDirectiveProcessor` (text stage): parse the four options into a
   `CobolWordsMap`, validate SR1/SR2/SR5, edition-gate (0900 via `ConstructRegistry.Check`), blank the directive
   lines (line-count preserving, the H3 discipline). `CobolWordsRewriter.Plan` (applied by the lexer's `NextToken`,
   primed by `TokenRetypes.PrimeLexer`): retype tokens using `CobolLexer.DefaultVocabulary` (the reverse word→type
@@ -149,7 +149,7 @@ like `FlagState`/`RefModZeroLengthState`.
   region, the SUBSCRIPT trigger — reads the word the directive made of it (resolves the frozen-lex hazards, §6).
   `Frontend` exposes `CobolWordsMap` and primes every lexer of the group (the main parse and every fragment
   re-parse) with it.
-- **`Cobol.Net.Compiler`** — `BinderDriver.Bind` receives the map; `VersionConformancePass` consults a
+- **`WiseOwl.Cobol.Compiler`** — `BinderDriver.Bind` receives the map; `VersionConformancePass` consults a
   **composed** `ReservedWordSet` (replacing the hard-coded `ReservedWordSet.Default` at `ParseArm._reservedWords`)
   so RESERVE rejects (COBOL0901) and UNDEFINE/SUBSTITUTE-lit4 no longer reject. `VersionConformancePass.Run`
   also runs the **SR3/SR4 semantic validation** of the map (needs all three registries — `ReservedWords`
@@ -289,7 +289,7 @@ gate) → commit + push + a DEVLOG entry.
 
 ## §10 Tests
 
-- **Unit** `tests/Cobol.Net.Tests.Unit/CobolWordsDirectiveTests.cs` — the directive parser (each option,
+- **Unit** `tests/WiseOwl.Cobol.Tests.Unit/CobolWordsDirectiveTests.cs` — the directive parser (each option,
   malformed, SR1/2/5), the `CobolWordsMap` composition, `ReservedWordSet` overlay, and end-to-end via
   `CompilerDriver` (RESERVE→0901, EQUATE→resolves).
 - **Conformance positive** `tests/conformance/2023/cobol_words_*.cob` (+ `.out`) — EQUATE (SHOW→DISPLAY prints
@@ -297,12 +297,12 @@ gate) → commit + push + a DEVLOG entry.
 - **Conformance negative** `tests/conformance/negative/cobol_words_*.cob` (+ `.err`) — below-2023 (0900),
   RESERVE-used-as-user-word (0901), SR violations (1623) — listed in `negative/manifest.json`.
 - **Version matrix** — the `cobol-words-directive-2023` row drives `VersionMatrixTests` + `ConstructRegistryDriftTests`.
-- **Reach drift** `tests/Cobol.Net.Tests.Unit/CobolWordsReachDriftTests.cs` — the §2.1 invariant, measured: every
+- **Reach drift** `tests/WiseOwl.Cobol.Tests.Unit/CobolWordsReachDriftTests.cs` — the §2.1 invariant, measured: every
   lexed §8.9/§8.10 word resolves to a token type; the lex probe agrees with the vocabulary wherever both answer;
   the multi-spelling keywords are reached ONLY by the probe (so removing it fails here, not silently in a user's
   program); the population really is partitioned between the two mechanisms; `Resolve` implements GR2–GR5; and
   `TokenIs` does not re-resolve a word the retype already resolved.
-- **§8.10 table drift** `tests/Cobol.Net.Tests.Unit/ContextSensitiveWordsDriftTests.cs` — the generated table
+- **§8.10 table drift** `tests/WiseOwl.Cobol.Tests.Unit/ContextSensitiveWordsDriftTests.cs` — the generated table
   equals its JSON AND the spec section, and no word is in both §8.9-at-2023 and §8.10.
 - **Conformance, the name-level half** `tests/conformance/2023/pb250_cobol_words_phrase_word_{equate,undefine}.cob`
   (a §15 phrase word the lexer does not tokenize, both directions),

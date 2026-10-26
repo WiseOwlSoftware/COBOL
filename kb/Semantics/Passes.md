@@ -4,14 +4,14 @@ area: semantics
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs
-  - src/Cobol.Net.Compiler/Validation/FlagConformancePass.cs
-  - src/Cobol.Net.Compiler/Binding/BinderDriver.cs
-  - src/Cobol.Net.Editions/EditionInfo.cs
+  - src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs
+  - src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs
+  - src/WiseOwl.Cobol.Editions/EditionInfo.cs
   - docs/rearchitecture/DESIGN-version-conformance-pipeline.md
   - docs/rearchitecture/DESIGN-edition-framework.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - semantics
 ---
 

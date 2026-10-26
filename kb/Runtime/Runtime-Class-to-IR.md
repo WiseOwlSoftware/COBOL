@@ -4,10 +4,10 @@ area: runtime
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Runtime
-  - src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs
+  - src/WiseOwl.Cobol.Runtime
+  - src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - runtime
   - ir
 ---
@@ -15,9 +15,9 @@ tags:
 # Reverse Index — Runtime Class → IR Nodes
 
 Companion to [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] read in the other direction: for each
-`Cobol.Net.Runtime` class, the bound-tree (`Bound*`) nodes whose emitted C# calls into it. Node names are real records
-in `src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs`; call sites verified against the emitters in
-`src/Cobol.Net.Compiler/CodeGen/` (the shared name table is `Roslyn/RuntimeApi.cs`). Where the emitter reaches a class
+`WiseOwl.Cobol.Runtime` class, the bound-tree (`Bound*`) nodes whose emitted C# calls into it. Node names are real records
+in `src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs`; call sites verified against the emitters in
+`src/WiseOwl.Cobol.Compiler/CodeGen/` (the shared name table is `Roslyn/RuntimeApi.cs`). Where the emitter reaches a class
 only through a facade or supertype, that path is marked *(transitive)*. See [[kb/Runtime/Execution Model]] and
 [[kb/Spec/Lookup/Runtime Mapping]].
 

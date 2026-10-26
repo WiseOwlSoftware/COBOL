@@ -1,0 +1,131 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Editions.Diagnostics;
+
+namespace WiseOwl.Cobol.Binding;
+
+/// <summary>
+/// ⭐ ISO §8.3.3.6.3 SR3 — <i>"If the length of literal-1 is greater than one, it is not permitted to be associated
+/// with a numeric or numeric-edited item"</i> — in ONE place, for every ASSOCIATION a program can write (kb/Work
+/// PB422). §8.3.3.6.4 GR2's NOTE 1 names the associations: "the figurative constant is moved to it, compared with it, or
+/// paired with it in a binary operation". The askers are therefore every asker of the MOVE rules, through
+/// <see cref="GateSr5"/> (the written MOVE, every implicit FROM/INTO move, INITIALIZE REPLACING's hypothetical MOVE and a
+/// BY CONTENT argument into a numeric-edited formal) and the ONE relation checkpoint (<c>StatementValidation.CheckRelationalOperands</c>, which IF, EVALUATE
+/// pairings and ranges, PERFORM UNTIL and SEARCH WHEN all pass through). The third association, a binary
+/// operation, cannot reach a numeric item: the boolean-expression binder refuses every non-boolean operand first
+/// (COBOL1511).
+///
+/// <para>⛔ THIS IS NOT §14.9.25.3 SR5. SR5's exception — "an ALL "literal" figurative constant (containing only
+/// digits) … to an integer numeric item" — carries no length qualifier, so <c>ALL "57"</c> is inside what SR5
+/// permits; what bars it is THIS rule, which is not a MOVE rule at all and reaches a comparison exactly as it
+/// reaches a move. Until kb/Work PB422 the multi-character case rode SR5's 2023 removal row, which accepted it at
+/// 85/2002/2014 and under a diagnostic naming the wrong rule at 2023, and no comparison was screened at any
+/// edition.</para>
+///
+/// <para>⚠ DETERMINATION — THE EDITION EDGE (VCR Table 7 row 7.13; the repository holds no 1985/2002/2014 text,
+/// ratified decision #1, so the edge is DERIVED and stated so it can be overturned in one line): the association
+/// is an OBSOLETE element of ANSI X3.23-1985 and was deleted with the rest of that list by ISO/IEC 1989:2002 —
+/// the posture of every other Table-7 row (DATA RECORDS, VALUE OF, ALTER …). The 2023 rule carries no edition
+/// qualifier and Annex E (the 2014→2023 delta) does not list it, so 2014 and 2023 agree; CCVS-85 carries the
+/// '74 tests of the shape (NC105A MOVE-TEST-176..178) only as "DELETED BY FCCTS" — consistent with the
+/// designation, not a proof of it. Hence the registry row
+/// <c>all-literal-multichar-numeric-removed-2002</c>: accepted at 85 with the §8.3.3.6.4 GR2 repeat-and-truncate
+/// value, COBOL0902 at 2002 and later (a warning under <c>--permissive</c>, the value preserved). The rejected
+/// reading — an error at EVERY edition, from the 2023 text alone — would reject a program the 1985 standard
+/// admits.</para>
+/// </summary>
+public static class FigurativeAssociation
+{
+    /// <summary>True when <paramref name="operand"/> is the Format-6 <c>ALL literal-1</c> figurative with a
+    /// literal-1 longer than one character — the sender shape SR3 names. (Format 7, <c>ALL symbolic-character</c>,
+    /// is one character by definition and SR3 is a Format-6 rule.)</summary>
+    public static bool IsMultiCharacterAll(BoundOperand operand) =>
+        operand is BoundAllLiteral { Literal.Length: > 1 };
+
+    /// <summary>Asks SR3 of one association: a multi-character ALL literal against a data item of category
+    /// numeric or numeric-edited. Reports through the construct registry and returns true when SR3 decides the
+    /// association (so the caller asks no other rule of the same pair — SR5 in the MOVE pass); false when SR3
+    /// does not reach it.</summary>
+    public static bool GateSr3(EditionInfo edition, IDiagnosticSink sink, BoundOperand figurative,
+        PicCategory? associatedCategory, string where)
+    {
+        if (!IsMultiCharacterAll(figurative)
+            || associatedCategory is not (PicCategory.Numeric or PicCategory.NumericEdited)) return false;
+        ConstructRegistry.Check(edition, sink, Constructs.AllLiteralMulticharNumericRemoved2002,
+            where);
+        return true;
+    }
+
+    /// <summary>The source spelling §14.9.25.3 SR5's closed list names — "SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
+    /// "literal", or ALL symbolic-character" — for the members whose prohibition is an EDITION row, or null. SPACE is on
+    /// SR5's list but not here: its prohibition holds at every edition and is the flat refusal
+    /// <c>MoveValidity.FigurativeRefusal</c> (kb/Work PB3605).</summary>
+    public static string? Sr5FigurativeText(BoundOperand source) => source switch
+    {
+        BoundFigurative { Kind: 'Q' } => "QUOTE",
+        BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
+        BoundFigurative { Kind: 'L' } => "LOW-VALUE",
+        BoundAllLiteral a => $"ALL \"{a.Literal}\"",
+        _ => null,
+    };
+
+    /// <summary>What SR5 reads of a RECEIVING data item: its category (numeric or numeric-edited) and whether it is an
+    /// integer numeric item (the digit-only-ALL exception's receiver).</summary>
+    public readonly record struct Sr5Receiver(PicCategory Category, bool Integer);
+
+    /// <summary>Whether §14.9.25.3 SR5 reaches <paramref name="item"/> as a receiver, and how: an elementary numeric or
+    /// numeric-edited item. A group receiver is a conversion-free character copy, a non-numeric receiver is no SR5 case,
+    /// and class index is SR1's, errored in the binder. Null when SR5 does not reach it. (A reference-modified receiver
+    /// is a unique elementary ALPHANUMERIC item, §8.4.3.3.4 GR5, so the caller that holds a place sets it aside.)</summary>
+    public static Sr5Receiver? Sr5ReceiverOf(DataItem item)
+    {
+        if (item.IsGroup || item.Pic is not { } pic) return null;
+        if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) return null;
+        if (pic.Usage is Usage.Index) return null;
+        return new Sr5Receiver(pic.Category, pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 });
+    }
+
+    /// <summary>⭐ §14.9.25.3 SR5's THREE EDITION ROWS, in ONE place, for one (SR5-listed sender, numeric or
+    /// numeric-edited receiver) pair — asked by EVERY asker of the MOVE rules (kb/Work PB879, PB3755): the written MOVE
+    /// and every implicit FROM/INTO move (<c>VersionConformancePass.GateMove</c>), INITIALIZE REPLACING's hypothetical MOVE
+    /// (<c>VersionConformancePass.GateInitialize</c>, §14.9.20.3 SR4), and a figurative argument BY CONTENT into the
+    /// formal parameter §14.8.2.3.3 rule 2 d) gives the MOVE rules (<c>ParameterConformance.GateFigurativeEdition</c>, CALL,
+    /// INVOKE and a user-defined function alike). A fourth asker calls this body; the rows are never spelled elsewhere
+    /// (<c>Sr5EditionRowAskerDriftTests</c>).
+    /// <para>⛔ §8.3.3.6.3 SR3 IS ASKED FIRST, AND IT IS NOT A §14.9.25.3 SR5 ROW (kb/Work PB422): a multi-character
+    /// <c>ALL literal</c> associated with a numeric or numeric-edited item is SR3's, whose edition edge (removed
+    /// 2002) is not §14.9.25.3 SR5's (removed 2023) — §14.9.25.3 SR5's digit-only exception has no length qualifier, so <c>ALL "57"</c>
+    /// was never SR5's to refuse. When SR3 decides the pair no SR5 row is asked of it.</para></summary>
+    /// <param name="integerReceiver">The receiver is an integer numeric item — the digit-only ALL exception's.</param>
+    /// <param name="where">How the diagnostic names the statement the programmer wrote.</param>
+    public static void GateSr5(EditionInfo edition, IDiagnosticSink sink, BoundOperand source,
+        PicCategory receiverCategory, bool integerReceiver, string where)
+    {
+        if (GateSr3(edition, sink, source, receiverCategory, where)) return;
+        if (source is BoundAllLiteral { IsDigitOnly: true } && integerReceiver)
+            // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
+            ConstructRegistry.Check(edition, sink, Constructs.MoveAllDigitIntegerObsolete2023, where);
+        else if (source is BoundFigurative { Kind: 'Q' })
+            // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
+            ConstructRegistry.Check(edition, sink, Constructs.MoveQuoteNumericObsolete2014, where);
+        else
+            // Every other shape (HIGH-VALUE, LOW-VALUE, a non-digit ALL literal; SPACE never reaches here) — REMOVED by
+            // ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
+            ConstructRegistry.Check(edition, sink, Constructs.MoveAlphanumericFigurativeRemoved2023, where);
+    }
+
+    /// <summary>⛔ THE ONE GATE FOR §8.3.3.6.3 SR1 a)'s ALL HALF (kb/Work PB1415): "If the literal is restricted to a
+    /// numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) WITHOUT the ALL phrase."
+    /// The caller has established both facts — the position is numeric-restricted (the VALUE clause of a numeric
+    /// subject, §13.18.63.3 SR2; an arithmetic-expression operand, §8.8.1.1) and the operand is ZERO written WITH
+    /// the word ALL — and this reports it through the construct registry. ⚠ DETERMINATION (VCR Table 7 row 7.28,
+    /// a DERIVED edge like SR3's row 7.13 above): accepted at 85, where ALL before a figurative word is redundant
+    /// and CCVS-85 writes <c>VALUE ALL ZEROS</c> on <c>PIC 999</c> (NC201A); COBOL0902 at 2002 and later, a
+    /// warning under <c>--permissive</c>. Where it is admitted the operand IS the figurative ZERO: the caller
+    /// keeps the value zero either way, because a refused compile reaches no output.</summary>
+    public static void GateAllZeroAsNumeric(EditionInfo edition, IDiagnosticSink sink, string where) =>
+        ConstructRegistry.Check(edition, sink, Constructs.FigurativeAllZeroNumericRemoved2002, where);
+}

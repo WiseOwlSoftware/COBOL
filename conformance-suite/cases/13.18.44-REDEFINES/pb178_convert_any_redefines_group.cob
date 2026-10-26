@@ -22,7 +22,7 @@
       *> guard did not help: it is the WRONG AXIS — the shape IS image-capable; the READ is already a window.
       *> The fix routes it through PlaceRenderer.SendingGroupImage, THE ONE reader, whose doc-comment already
       *> stated the law ("a consumer that spells .AsImage() itself is wrong for the window shape").
-      *> Held by tests/Cobol.Net.Tests.Unit/BoundaryImageChannelTests.cs.
+      *> Held by tests/WiseOwl.Cobol.Tests.Unit/BoundaryImageChannelTests.cs.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB178CVRD.
        DATA DIVISION.
@@ -53,7 +53,7 @@
       *> LEG 3 - FLIP THE AXIS THE FIRST TWO LEGS HOLD FIXED: a Tier-B group view containing a PIC S9(4) COMP
       *> leaf (the PB164-widened shape). Proves the fix routes by PLACE SHAPE, not by leaf category. The window
       *> is D1's four characters "WXYZ" (57 58 59 5A) then D2's radix-2 bytes for 258 (§13.18.60.4 GR4/GR11
-      *> leave the representation implementor-defined; COBOL.NET's determination is big-endian two's complement
+      *> leave the representation implementor-defined; WiseOwl COBOL's determination is big-endian two's complement
       *> of the storage width - docs/CONFORMANCE.md items 205-215) = 01 02.
            MOVE "WXYZ" TO D1.
            MOVE 258 TO D2.

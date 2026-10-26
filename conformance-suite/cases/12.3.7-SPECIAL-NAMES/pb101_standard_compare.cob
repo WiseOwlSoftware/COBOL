@@ -10,7 +10,7 @@
 *>---
       *> ISO 15.85 STANDARD-COMPARE + the SPECIAL-NAMES ORDER TABLE clause (12.3.7.2) — increment T7 of
       *> docs/rearchitecture/DESIGN-locale-facility.md 4.9 (kb/Work PB101; owner decision Q4, 2026-08-18).
-      *> COBOL.NET claims Annex A.3 item 25: "Implements collation behavior consistent with ISO/IEC 14651
+      *> WiseOwl COBOL claims Annex A.3 item 25: "Implements collation behavior consistent with ISO/IEC 14651
       *> through derived tables and CLDR/UCA data."
       *>
       *> The general format (15.85.2) is

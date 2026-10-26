@@ -13,7 +13,7 @@ Each script had its own copy of `sys.stdout.reconfigure(encoding="utf-8")` (126 
 stdout only, some stderr only), and in most of them the copy ran inside main() AFTER parse_args(), which prints --help
 and every usage error and exits before the copy is reached. ONE function, called first, replaces every copy.
 
-This is the scripts' counterpart of the compiler's src/Cobol.Net.Runtime/IO/StandardStreams.cs#EnsureUtf8 (kb/Work
+This is the scripts' counterpart of the compiler's src/WiseOwl.Cobol.Runtime/IO/StandardStreams.cs#EnsureUtf8 (kb/Work
 PB899), and it sits IN THE PROGRAM by the owner's direction (2026-10-10, kb/Work PB1546): "this would work if the
 compiler startup (plus likely test cases) set the console output encoding to UTF-8"; the environment variable alone does
 not do it. Measured: PYTHONIOENCODING=cp1252 beats PYTHONUTF8=1 for the standard streams, and a hand run from a shell

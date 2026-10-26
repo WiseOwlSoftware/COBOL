@@ -30,7 +30,7 @@
       *> association cannot be made -> '31', §9.1.13.6 item 2).
       *> §9.1.13.1: "control is transferred to the end of the statement
       *> that produced the fatal exception condition unless the rules
-      *> for that statement define other behavior" (COBOL.NET continues
+      *> for that statement define other behavior" (WiseOwl COBOL continues
       *> the run unit; CONFORMANCE.md, SORT/MERGE implicit transfers
       *> (a)).
       *>   cite.py: OK  §9.1.13.1   (General)

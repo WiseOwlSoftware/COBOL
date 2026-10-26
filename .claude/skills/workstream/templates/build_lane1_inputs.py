@@ -130,7 +130,7 @@ CONVENTIONS = {
     "test-ref-forms": "conformance:cases/<clause folder>/<id> (spec-derived) · conformance:wiseowl/cases/<folder>/<id> · "
                       "unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any "
                       "*_MatchesLegacy method are NOT spec-derived and cannot close a row.",
-    "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a "
+    "compiler": "src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a "
                 "scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet "
                 "is live).",
     "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",

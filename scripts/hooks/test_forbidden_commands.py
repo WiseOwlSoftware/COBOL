@@ -40,7 +40,7 @@ CASES = [
     ("python scripts/orchestrator/enqueue.py land worktree-agent-abc123", False),   # the landing script itself
     ("cd /e/claude-skills && git push -q origin main", False),
     ("cd /e/COBOL && git push origin HEAD:main", True),
-    ("cd E:/CobolSharp && git push origin HEAD:main", True),     # the pre-rename folder name is still this repo
+    ("cd E:/COBOL && git push origin HEAD:main", True),     # the pre-rename folder name is still this repo
     ("cd scripts && git push origin main", True),               # a relative cd never leaves the repo
     ("cd /e/COBOL-private && git push origin main", True),      # a sibling of this repo's name (fail closed)
     ("cd /e/Sites/wiseowlsoftware.com && git push origin main", False),
@@ -61,12 +61,12 @@ CASES = [
     ("dotnet test x.csproj", False),
     # 5. chaining after a verdict command
     ("dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("dotnet build Cobol.Net.sln -c Debug && dotnet test x.csproj > t.log", True),
+    ("dotnet build WiseOwl.Cobol.sln -c Debug && dotnet test x.csproj > t.log", True),
     ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; git log -1", True),
     ("pwsh -File scripts/build-local.ps1 -Priority BelowNormal *> b.log || true", True),
     ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; echo \"rc=$?\"; grep -E ENQUEUE l.log | tail -2", False),
-    ("dotnet build Cobol.Net.sln -c Debug -v q 2>&1 | grep -E 'error|Build succeeded'", False),
-    ("cd /e/COBOL && dotnet build Cobol.Net.sln -c Debug > b.log 2>&1", False),
+    ("dotnet build WiseOwl.Cobol.sln -c Debug -v q 2>&1 | grep -E 'error|Build succeeded'", False),
+    ("cd /e/COBOL && dotnet build WiseOwl.Cobol.sln -c Debug > b.log 2>&1", False),
     ("timeout 580 bash -c 'tail -n +1 -f b.log | grep -m1 VERDICT' ; tail -3 b.log", False),
     ("git status --short && git log --oneline -3", False),
     ("bash -c 'dotnet test x.csproj > t.log && echo done'", False),
@@ -398,7 +398,7 @@ GUI_PS_CASES = [
     # a DOCUMENT run in command position (branch review R1-1)
     ("& ./x.md", True),
     ("& 'E:/COBOL-coord/scratch/vault/kb/Work.base'", True),
-    ("./Cobol.Net.sln", True),
+    ("./WiseOwl.Cobol.sln", True),
     ("pwsh -c './x.md'", True),
     # the allowed `Start-Process <console tool> -NoNewWindow` form must not carry a launch inside it (branch review R1-2)
     ("Start-Process cmd -NoNewWindow -ArgumentList '/c','start','x.md'", True),

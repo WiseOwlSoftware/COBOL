@@ -90,7 +90,7 @@
            DISPLAY "IPOW-E=" N2
            DISPLAY "IPOW-D=" N3.
       *> ⛔ WHAT NOTATION STILL SELECTS - AND IT IS A DETERMINATION, NOT A DEFECT.  8.8.1.3 leaves "the method
-      *> of evaluating an arithmetic statement" to the implementor; COBOL.NET's is that a floating-point
+      *> of evaluating an arithmetic statement" to the implementor; WiseOwl COBOL's is that a floating-point
       *> literal operand puts the whole statement on the decimal128 INTERMEDIATE lane, even under native
       *> arithmetic, where a fixed-point literal keeps the ~38-digit Int128 one.  The two carry different
       *> intermediate precision, so an expression whose exact intermediate needs more than 34 significant

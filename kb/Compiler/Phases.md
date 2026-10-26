@@ -4,14 +4,14 @@ area: compiler
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4
-  - src/Cobol.Net.Frontend/Pipeline/Frontend.cs
-  - src/Cobol.Net.Frontend/Preprocessor
+  - src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4
+  - src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs
+  - src/WiseOwl.Cobol.Frontend/Preprocessor
   - docs/rearchitecture/DESIGN-frontend-grammar.md
   - docs/rearchitecture/DESIGN-version-conformance-pipeline.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - compiler
 ---
 

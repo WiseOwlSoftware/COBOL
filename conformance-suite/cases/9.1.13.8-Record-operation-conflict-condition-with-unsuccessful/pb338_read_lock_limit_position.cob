@@ -11,7 +11,7 @@
       *> connector; that maximum shall be at least 15. ... Any I-O
       *> statement that attempts to obtain a record lock that would
       *> exceed either limit is unsuccessful and receives an I-O status
-      *> that indicates that condition."  COBOL.NET's per-connector
+      *> that indicates that condition."  WiseOwl COBOL's per-connector
       *> maximum IS 15 (PhysicalFileTable.ConnectorLockMax, the
       *> standard's floor); §9.1.13.8 item 4 prices the denial '54'.
       *>

@@ -1,7 +1,7 @@
 # DESIGN — Target Module / Folder / File Topology (Rearchitecture)
 
 > Status: DESIGN (rearchitecture wave). Dimension owner deliverable.
-> SSOT alignment: `docs/COBOLNET_DESIGN.md` (§16 G0–G8 order, §17 emitter decomposition, §18 settled decisions).
+> SSOT alignment: `docs/DESIGN.md` (§16 G0–G8 order, §17 emitter decomposition, §18 settled decisions).
 > Sibling design dimensions this depends on / feeds: **pass-pipeline** (Bind phase extraction), **bound-tree dispatch**
 > (visitor), **diagnostics registry**, **edition framework**, **data-model / StorageForm**. This document decides ONLY
 > the physical topology — *where every type lives, what it is named, and which assembly owns it*. It defers the internal
@@ -12,7 +12,7 @@
 
 ## 1. The current problem (grounded in the survey + critique)
 
-The greenfield tree `src/Cobol.Net.*` (~40k LOC, ~153 files, 4 projects) is functionally strong but its **topology has
+The greenfield tree `src/WiseOwl.Cobol.*` (~40k LOC, ~153 files, 4 projects) is functionally strong but its **topology has
 drifted** in five concrete, survey-confirmed ways:
 
 1. **God classes hidden behind partial-file slicing.** Three types dominate and each is ONE `sealed partial class`
@@ -36,13 +36,13 @@ drifted** in five concrete, survey-confirmed ways:
    emit-form facts backward* into `DataBinder.Oo` fields. The Binding/CodeGen boundary is not clean in either direction.
 
 3. **The edition/version subsystem is fragmented across 3 namespaces / 2 assemblies with no home** — `EditionContext`,
-   `ConstructRegistry`, `ReservedWords` live in `Cobol.Net.Compiler`; `ReservedWordEditionHints` lives in the *legacy*
-   `legacy-root.Parsing` namespace inside `Cobol.Net.Frontend`; the preprocessor re-implements the strict/
+   `ConstructRegistry`, `ReservedWords` live in `WiseOwl.Cobol.Compiler`; `ReservedWordEditionHints` lives in the *legacy*
+   `legacy-root.Parsing` namespace inside `WiseOwl.Cobol.Frontend`; the preprocessor re-implements the strict/
    permissive severity policy twice. Because the canonical registry sits in Compiler (which Frontend cannot reference),
    the metadata is duplicated in the frontend — a topology defect, not a logic one.
 
 4. **Namespace/assembly split — resolved (PHASE 01).** The tree once emitted into the legacy root namespace while the assemblies
-   were already renamed `Cobol.Net.*`; it now declares `CobolNet.*`, the ANTLR package is `CobolNet.Frontend.Generated` (an MSBuild
+   were already renamed `WiseOwl.Cobol.*`; it now declares `WiseOwl.Cobol.*`, the ANTLR package is `WiseOwl.Cobol.Frontend.Generated` (an MSBuild
    property) and `Frontend.cs` is self-contained. Every consumer still aliases `using Core = CobolParserCore`.
 
 5. **Dead / mislabeled files in the tree.** Five top-level grammars (`CobolParserJsonXml.g4`, `CobolParserGenerics.g4`,
@@ -54,13 +54,13 @@ drifted** in five concrete, survey-confirmed ways:
 
 The rearchitecture's topology job is to convert **partial-file slicing into real class boundaries**, give every drifted
 subsystem **one owning folder/assembly**, kill the cross-layer channels by relocating their producers/consumers into a
-**real Bind phase**, and complete the **namespace rename** so `Cobol.Net.*` is true top to bottom.
+**real Bind phase**, and complete the **namespace rename** so `WiseOwl.Cobol.*` is true top to bottom.
 
 ---
 
 ## 2. Target design
 
-### 2.1 Project / assembly split — KEEP 4, ADD 1 (`Cobol.Net.Editions`)
+### 2.1 Project / assembly split — KEEP 4, ADD 1 (`WiseOwl.Cobol.Editions`)
 
 The current four-project split (`Frontend` / `Compiler` / `Runtime` / `Cli`) is **correct and retained**. The one
 structural change is extracting a new **lowest-layer** assembly so the edition catalogue has a single home both Frontend
@@ -68,29 +68,29 @@ and Compiler can reference (root cause of defect #3 above).
 
 | Assembly | Depends on | Role (unchanged unless noted) |
 |---|---|---|
-| **`Cobol.Net.Editions`** *(NEW)* | *(nothing — leaf)* | The construct/reserved-word catalogue + edition-severity policy + `EditionInfo` value + diagnostic-code registry. Referenced by BOTH Frontend and Compiler. |
-| **`Cobol.Net.Frontend`** | Editions | Preprocessor + ANTLR lexer/parser + parse tree + frontend diagnostics. |
-| **`Cobol.Net.Runtime`** | *(nothing)* | Typed-native runtime kernel emitted programs bind against. |
-| **`Cobol.Net.Compiler`** | Editions, Frontend, Runtime (compile-time ref for the emitted-API contract only) | Binder + Bind pipeline + CodeGen + Roslyn backend + driver. |
-| **`Cobol.Net.Cli`** | Compiler | Thin System.CommandLine shell. |
+| **`WiseOwl.Cobol.Editions`** *(NEW)* | *(nothing — leaf)* | The construct/reserved-word catalogue + edition-severity policy + `EditionInfo` value + diagnostic-code registry. Referenced by BOTH Frontend and Compiler. |
+| **`WiseOwl.Cobol.Frontend`** | Editions | Preprocessor + ANTLR lexer/parser + parse tree + frontend diagnostics. |
+| **`WiseOwl.Cobol.Runtime`** | *(nothing)* | Typed-native runtime kernel emitted programs bind against. |
+| **`WiseOwl.Cobol.Compiler`** | Editions, Frontend, Runtime (compile-time ref for the emitted-API contract only) | Binder + Bind pipeline + CodeGen + Roslyn backend + driver. |
+| **`WiseOwl.Cobol.Cli`** | Compiler | Thin System.CommandLine shell. |
 
 Rationale for a **new assembly, not a folder**: Frontend cannot reference Compiler (would cycle), so the *only* way
 Frontend and Compiler can share ONE `ConstructRegistry` + `EditionSeverityPolicy` is a common lower layer. This deletes
-the parse-layer metadata copy and the two preprocessor severity copies in one move. `Cobol.Net.Editions` holds pure data
+the parse-layer metadata copy and the two preprocessor severity copies in one move. `WiseOwl.Cobol.Editions` holds pure data
 + policy, no ANTLR, no Roslyn — it is genuinely leaf.
 
-> Deferred (not now): a separate `Cobol.Net.BoundTree` assembly. The bound tree stays inside `Cobol.Net.Compiler` — it is
+> Deferred (not now): a separate `WiseOwl.Cobol.BoundTree` assembly. The bound tree stays inside `WiseOwl.Cobol.Compiler` — it is
 > consumed only by the binder and emitter which are both in Compiler; a separate assembly would add a boundary with no
 > second consumer. Revisit only if a second backend (Cecil/CIL, per `project_dual_backend_goal`) is built.
 
 ### 2.2 Namespace policy — complete the rename NOW (do not wait for G8)
 
 > **Superseded 2026-10-07 (owner, kb/Work PB2118 question 1):** every root becomes its project's name
-> (`Cobol.Net.Editions`, `Cobol.Net.Frontend`, `Cobol.Net.Runtime` at P15 Cut 3, `Cobol.Net.Compiler`, `Cobol.Net.Cli`);
+> (`WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Runtime` at P15 Cut 3, `WiseOwl.Cobol.Compiler`, `WiseOwl.Cobol.Cli`);
 > the flips are `DESIGN-architecture-review.md` §8.2's waves PB2412–PB2415. The table below is the state before them
-> (the compiler's root is `CobolNet` in its csproj, not the `CobolNet.Compiler` the table names).
+> (the compiler's root is `WiseOwl.Cobol` in its csproj, not the `WiseOwl.Cobol.Compiler` the table names).
 
-**Decision: adopt `CobolNet.*` as the real namespace root across the greenfield tree as the FIRST mechanical step of the
+**Decision: adopt `WiseOwl.Cobol.*` as the real namespace root across the greenfield tree as the FIRST mechanical step of the
 rearchitecture, decoupled from the G8 legacy retirement.** The G8 "big-bang namespace rename" premise assumed the legacy
 oracle shared the namespace; but the rearchitecture is a clean-slate reimplementation of the greenfield tree, so the
 rename can and should happen up front — it is a pure `sed`-grade change and removes the `using Core = CobolParserCore`
@@ -98,23 +98,23 @@ alias noise from every file. Namespace roots:
 
 | Assembly | Namespace root |
 |---|---|
-| `Cobol.Net.Editions` | `CobolNet.Editions` |
-| `Cobol.Net.Frontend` | `CobolNet.Frontend` (generated parser: `CobolNet.Frontend.Generated`) |
-| `Cobol.Net.Runtime` | `CobolNet.Runtime` (already partially so) |
-| `Cobol.Net.Compiler` | `CobolNet.Compiler` with sub-namespaces per folder (below) |
-| `Cobol.Net.Cli` | `CobolNet.Cli` |
+| `WiseOwl.Cobol.Editions` | `WiseOwl.Cobol.Editions` |
+| `WiseOwl.Cobol.Frontend` | `WiseOwl.Cobol.Frontend` (generated parser: `WiseOwl.Cobol.Frontend.Generated`) |
+| `WiseOwl.Cobol.Runtime` | `WiseOwl.Cobol.Runtime` (already partially so) |
+| `WiseOwl.Cobol.Compiler` | `WiseOwl.Cobol.Compiler` with sub-namespaces per folder (below) |
+| `WiseOwl.Cobol.Cli` | `WiseOwl.Cobol.Cli` |
 
 The ANTLR package name is single-sourced in the MSBuild property
-`<AntlrNamespace>CobolNet.Frontend.Generated</AntlrNamespace>` of the Frontend csproj, which passes it to the generator
+`<AntlrNamespace>WiseOwl.Cobol.Frontend.Generated</AntlrNamespace>` of the Frontend csproj, which passes it to the generator
 (`Invoke-Antlr4CSharp.ps1 -PackageName`, a mandatory parameter with no default) and into the generation's up-to-date
 stamp (kb/Work PB2719, PB2730).
 
-### 2.3 `Cobol.Net.Compiler` — target folder structure and sub-namespaces
+### 2.3 `WiseOwl.Cobol.Compiler` — target folder structure and sub-namespaces
 
 ```
-Cobol.Net.Compiler/
-├─ CompilerDriver.cs                         CobolNet.Compiler          (thin phase orchestrator — unchanged role)
-├─ Pipeline/                                 CobolNet.Compiler.Pipeline (NEW — the explicit phase pipeline)
+WiseOwl.Cobol.Compiler/
+├─ CompilerDriver.cs                         WiseOwl.Cobol.Compiler          (thin phase orchestrator — unchanged role)
+├─ Pipeline/                                 WiseOwl.Cobol.Compiler.Pipeline (NEW — the explicit phase pipeline)
 │    ├─ CompilationContext.cs                   (mutable carry: source→tree→bound→csharp→diagnostics)
 │    ├─ IPass.cs / PassManifest.cs              (named passes, Requires/Produces, startup graph assert)
 │    ├─ BindPhase.cs                            (runs the binder passes; produces BoundCompilation)
@@ -122,7 +122,7 @@ Cobol.Net.Compiler/
 │    ├─ EmitPhase.cs                            (BoundCompilation → C# text)
 │    └─ RoslynPhase.cs                          (C# → dll; see Backend/)
 │
-├─ Model/                                    CobolNet.Compiler.Model    (NEW — the pure data model, was Binding/*)
+├─ Model/                                    WiseOwl.Cobol.Compiler.Model    (NEW — the pure data model, was Binding/*)
 │    ├─ DataItem.cs                             (slim core: level, name, Pic, Children, Parent, Occurs)
 │    ├─ PicInfo.cs                              (pure value record; scanner extracted → PictureAnalyzer)
 │    ├─ PictureAnalyzer.cs                      (NEW — the ~230-line Analyze scanner, split out of PicInfo)
@@ -135,7 +135,7 @@ Cobol.Net.Compiler/
 │    ├─ RecordLayout.cs                         (NEW — the ONE offset/width/key-index service; §2.6)
 │    └─ Place/                                  (the lvalue hierarchy — Place.cs + subtypes, OdoGroupPlace folded in)
 │
-├─ Binding/                                  CobolNet.Compiler.Binding  (the binders — real classes, not partials)
+├─ Binding/                                  WiseOwl.Cobol.Compiler.Binding  (the binders — real classes, not partials)
 │    ├─ DataDivision/
 │    │    ├─ DataBinder.cs                       (THIN orchestrator over the feature binders below)
 │    │    ├─ EntryTreeBuilder.cs                 (BindEntries/BindEntry level-stack builder + clause decode)
@@ -157,7 +157,7 @@ Cobol.Net.Compiler/
 │    │         ├─ StringBinder.cs  InspectBinder.cs  InitializeBinder.cs
 │    │         ├─ CallBinder.cs  IntrinsicBinder.cs  UdfBinder.cs  ReportWriterBinder.cs
 │    │         └─ AcceptDisplayBinder.cs  SetAlterBinder.cs  ExceptionBinder.cs
-│    ├─ Bound/                                CobolNet.Compiler.Binding.Bound
+│    ├─ Bound/                                WiseOwl.Cobol.Compiler.Binding.Bound
 │    │    ├─ BoundTree.cs                        (the record hierarchy — SSOT)
 │    │    ├─ BoundNode.Visitor.cs                (NEW — IBoundVisitor<T> + source-gen'd exhaustive Accept; §2.8)
 │    │    ├─ IBoundError.cs                      (NEW — marker over the 5 error-node families)
@@ -167,7 +167,7 @@ Cobol.Net.Compiler/
 │    ├─ SubscriptTokenParser.cs                  (NEW — subscript/refmod token machinery, out of ReferenceResolver)
 │    └─ ScopeResolver.cs                         (NEW — the ONE scoped lookup, folds OO method shadowing; §2.9)
 │
-├─ Oo/                                       CobolNet.Compiler.Oo       (NEW — the OO subsystem, one home; §2.10)
+├─ Oo/                                       WiseOwl.Cobol.Compiler.Oo       (NEW — the OO subsystem, one home; §2.10)
 │    ├─ OoClassTable.cs                          (PURE symbol table: Find/rosters/closures/Build)
 │    ├─ OoConformance.cs                         (NEW — override/implements validation, split out)
 │    ├─ OoMethodSymbol.cs / OoClassSymbol.cs / OoInterfaceSymbol.cs
@@ -178,13 +178,13 @@ Cobol.Net.Compiler/
 │    ├─ OoClassLayout.cs                         (NEW — emit-side facts, moved OUT of DataBinder)
 │    └─ NamingConvention.cs                      (NEW — the ONE place for __GET_/__FACTORY/::INST:: names)
 │
-├─ Editions/  →  MOVED OUT to the Cobol.Net.Editions assembly (see §2.11)
+├─ Editions/  →  MOVED OUT to the WiseOwl.Cobol.Editions assembly (see §2.11)
 │
-├─ Validation/                               CobolNet.Compiler.Validation
+├─ Validation/                               WiseOwl.Cobol.Compiler.Validation
 │    └─ StatementValidation.cs                   (NEW — the inline SR checks lifted out of the binder; §2.4.
 │                                                 Edition legality is NOT here — Pipeline/VersionConformancePass is the sole gate)
 │
-├─ CodeGen/                                  CobolNet.Compiler.CodeGen  (a PURE renderer over BoundCompilation)
+├─ CodeGen/                                  WiseOwl.Cobol.Compiler.CodeGen  (a PURE renderer over BoundCompilation)
 │    ├─ CSharpEmitter.cs                         (THIN dispatch table; run-unit orchestration REMOVED to Pipeline)
 │    ├─ CSharpEmitter.<Verb>.cs partials → real EmitXxx renderer classes under Emit/Statements/ (§2.4)
 │    ├─ CodeWriter.cs
@@ -201,11 +201,11 @@ Cobol.Net.Compiler/
 │         ├─ RecordStructEmitter.cs   GroupImageCodec.cs
 │         ├─ GroupValueSlicer.cs      ValueInitializer.cs
 │
-├─ Backend/                                  CobolNet.Compiler.Backend  (NEW — split from RoslynBackend)
+├─ Backend/                                  WiseOwl.Cobol.Compiler.Backend  (NEW — split from RoslynBackend)
 │    ├─ RoslynCompiler.cs                        (pure C# → EmitResult; cached reference set)
 │    └─ AssemblyPackager.cs                      (runtimeconfig + runtime-dll deploy)
 │
-└─ Diagnostics/  →  the registry moves to Cobol.Net.Editions (§2.11); thin sink stays if needed
+└─ Diagnostics/  →  the registry moves to WiseOwl.Cobol.Editions (§2.11); thin sink stays if needed
 ```
 
 ### 2.4 God-class breakup #1 — `StatementBinder` → dispatch + collaborators
@@ -304,7 +304,7 @@ file-qualifier), and `ScopeResolver` (the ONE scoped lookup that understands OO 
 deleted — FUNCTION args parse as real grammar `arithmeticExpression` (edition-gated) and bind through
 `ExpressionBinder` (removes the 3rd parallel numeric evaluator).
 
-### 2.10 OO — from cross-layer sprawl to one `Oo/` folder + `CobolNet.Compiler.Oo`
+### 2.10 OO — from cross-layer sprawl to one `Oo/` folder + `WiseOwl.Cobol.Compiler.Oo`
 
 All four OO slices move under `Oo/`. `OoClassTable` splits into a pure symbol table + `OoConformance` (validation).
 `OoDriver` owns the 8-step orchestration currently inlined in `CSharpEmitter.CallEmitRunUnit` (removing OO pass-ordering
@@ -312,9 +312,9 @@ from CodeGen). Emit-form facts leave `DataBinder.Oo` for `OoClassLayout` (emit-s
 (`ActiveMethodScope`/`OoInFactory`/`OoCurrentClass`/`OoIsClassUnit`) become a scoped push/pop on `BinderContext`
 (using-disposable that guarantees reset). All OO C# name conventions centralize in `NamingConvention`.
 
-### 2.11 Edition framework → `Cobol.Net.Editions`
+### 2.11 Edition framework → `WiseOwl.Cobol.Editions`
 
-Move to the new leaf assembly (namespace `CobolNet.Editions`): `ConstructRegistry`/`ConstructDialectStatus`,
+Move to the new leaf assembly (namespace `WiseOwl.Cobol.Editions`): `ConstructRegistry`/`ConstructDialectStatus`,
 `ReservedWords`(+`.Table`), `EditionCodes`, the diagnostic-code **`DiagnosticDescriptors` registry** (NEW — the ONE
 home for the 163 codes, generated consts + ISO §/severity/message-template/suppress-key), and a single
 `EditionSeverityPolicy.Removed(...)`. There is NO reverse-signature recogniser in this topology — hard-reserved
@@ -347,7 +347,7 @@ Delete the five dead top-level grammars. Quarantine JSON/XML: strip `jsonStateme
 `Core/CobolExtensionsJsonXml.g4` and their `{is2014()}?` wiring; move `inlineMethodInvocationStatement` into
 `Core/CobolOO.g4`; delete the now-empty fragment. Remove committed `.antlr` / `obj/antlr-lib` caches from source control
 (gitignore). Fix the stale `Frontend.cs` "reuses the legacy compiler assembly" banner. Rename the generated
-package to `CobolNet.Frontend.Generated` via the MSBuild property.
+package to `WiseOwl.Cobol.Frontend.Generated` via the MSBuild property.
 
 ### 2.15 Naming & partial-file convention (the rule going forward)
 
@@ -355,7 +355,7 @@ package to `CobolNet.Frontend.Generated` via the MSBuild property.
    unit that a human maintains is **one class in one file**, OR a set of **real collaborator classes** — never a
    `sealed partial class X` split for size.
 2. **File name = the single public type it contains.** `KeyedIoBinder.cs` contains `KeyedIoBinder`.
-3. **Folder = sub-namespace.** `Binding/Procedure/Verbs/KeyedIoBinder.cs` → `CobolNet.Compiler.Binding.Procedure.Verbs`.
+3. **Folder = sub-namespace.** `Binding/Procedure/Verbs/KeyedIoBinder.cs` → `WiseOwl.Cobol.Compiler.Binding.Procedure.Verbs`.
 4. **No verb named `Accept` unless it is the ACCEPT verb** — resolved (`AcceptDisplayBinder`); `Accept(IBoundVisitor)` is
    the only visitor Accept.
 5. Each subsystem file carries a short header block: *owns / requires-passes / produces* (preserving the strong
@@ -370,9 +370,9 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 ### Projects / assemblies
 | # | Action | From | To | Why |
 |---|---|---|---|---|
-| 1 | C | — | `src/Cobol.Net.Editions/` | Leaf assembly Frontend+Compiler both reference; kills edition metadata dup |
-| 2 | R (ns) | `namespace legacy-root.*` | `namespace CobolNet.Compiler.*` (per §2.3 sub-ns) | Complete the deferred rename up front |
-| 3 | R (ns) | `legacy-root.Generated` | `CobolNet.Frontend.Generated` | Remove `using Core=` alias; MSBuild property |
+| 1 | C | — | `src/WiseOwl.Cobol.Editions/` | Leaf assembly Frontend+Compiler both reference; kills edition metadata dup |
+| 2 | R (ns) | `namespace legacy-root.*` | `namespace WiseOwl.Cobol.Compiler.*` (per §2.3 sub-ns) | Complete the deferred rename up front |
+| 3 | R (ns) | `legacy-root.Generated` | `WiseOwl.Cobol.Frontend.Generated` | Remove `using Core=` alias; MSBuild property |
 
 ### Frontend
 | # | Action | From | To | Why |
@@ -447,9 +447,9 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 ### Editions → new assembly
 | # | Action | From | To | Why |
 |---|---|---|---|---|
-| 46 | M/S | `Binding/EditionContext.cs` | `Cobol.Net.Editions/EditionInfo.cs` (immutable) + `DiagnosticSink.cs` | Split "edition" from "diagnostic sink" |
-| 47 | M | `Validation/{ReservedWords,ReservedWords.Table,EditionCodes}.cs`, `Validation/ConstructDialectStatus.cs` | `Cobol.Net.Editions/` | ONE catalogue home |
-| 48 | C | (163 bare code literals) | `Cobol.Net.Editions/DiagnosticDescriptors.cs` (+ `docs/DIAGNOSTICS.md` generated) | Central registry; matrix/--suppress targets |
+| 46 | M/S | `Binding/EditionContext.cs` | `WiseOwl.Cobol.Editions/EditionInfo.cs` (immutable) + `DiagnosticSink.cs` | Split "edition" from "diagnostic sink" |
+| 47 | M | `Validation/{ReservedWords,ReservedWords.Table,EditionCodes}.cs`, `Validation/ConstructDialectStatus.cs` | `WiseOwl.Cobol.Editions/` | ONE catalogue home |
+| 48 | C | (163 bare code literals) | `WiseOwl.Cobol.Editions/DiagnosticDescriptors.cs` (+ `docs/DIAGNOSTICS.md` generated) | Central registry; matrix/--suppress targets |
 | 49 | S/X | `Validation/EditionValidator.cs` | absorbed by `Pipeline/VersionConformancePass.cs` (its §8.9 reserved-word funnel moves into the pass) | ONE edition-gating funnel over the bound tree |
 
 ### CompilerDriver / Cli
@@ -473,13 +473,13 @@ STATUS banners) must stay green at **every commit**. Sequence
 the topology work as **behavior-preserving mechanical steps**, each independently green:
 
 1. **Wave 0 — namespace rename (mechanical, zero behavior).** `sed` the greenfield tree `legacy-root.* →
-   CobolNet.Compiler.*`; set `<AntlrNamespace>` MSBuild property; drop the `using Core=` aliases. Update
+   WiseOwl.Cobol.Compiler.*`; set `<AntlrNamespace>` MSBuild property; drop the `using Core=` aliases. Update
    `InternalsVisibleTo` and test project references. One commit, guard green. **Do this first** — every later move is a
    file relocation within a stable namespace scheme.
 2. **Wave 1 — dead-file deletion + Frontend hygiene** (changes 4–6, 8). No live code references them; guard green
    immediately. JSON/XML strip (change 5) is behavior-affecting only if a test exercises it — confirm 0 conformance tests
    use JSON/XML first (dossier says 0 spec occurrences), then delete.
-3. **Wave 2 — `Cobol.Net.Editions` extraction** (changes 1, 7, 46–48). Move types with namespace-forwarding: keep the
+3. **Wave 2 — `WiseOwl.Cobol.Editions` extraction** (changes 1, 7, 46–48). Move types with namespace-forwarding: keep the
    old namespaces as `[Obsolete]` type-forwarders or global-usings during the move so the 290 call sites compile
    unchanged, then retarget in a follow-up. The `DiagnosticDescriptors` registry can be introduced **additively** (codes
    still strings) and call sites migrated incrementally.
@@ -498,8 +498,8 @@ the topology work as **behavior-preserving mechanical steps**, each independentl
 8. **Wave 7 — OO to `Oo/`** (changes 34–38) and **ReferenceResolver split** (change 33). OO last among the binders
    because `OoDriver` depends on the Bind phase (wave 5) already existing.
 9. **Wave 8 — Backend split + de-dup helpers** (changes 44–45, 52, 23, 30) and the driver pipeline (changes 50–51).
-10. **Legacy retirement (G8, out of this dimension's critical path).** Once the greenfield tree is fully `CobolNet.*` and
-    the differential oracle is no longer needed, delete `src/CobolSharp.*`. The namespace rename done in Wave 0 means G8
+10. **Legacy retirement (G8, out of this dimension's critical path).** Once the greenfield tree is fully `WiseOwl.Cobol.*` and
+    the differential oracle is no longer needed, delete `src/Legacy.*`. The namespace rename done in Wave 0 means G8
     is now *just a deletion*, not a rename big-bang.
 
 **Discipline per commit:** guard-fast + greenfield suites green; a shared-`.g4` change (waves 1) runs the FULL legacy
@@ -519,7 +519,7 @@ guard; each extracted class ships with the header block; DEVLOG entry per landin
 3. **Cross-partial hidden coupling surfaces as compile errors during Wave 6.** Real class boundaries will expose
    currently-implicit shared-state reads. *Mitigation:* `BinderContext`/`EmitContext` carry the genuinely-shared state
    explicitly; anything else that surfaces is a latent coupling bug to fix, not to re-hide.
-4. **`Cobol.Net.Editions` reference direction.** If any edition type accidentally depends on a Frontend or Compiler type,
+4. **`WiseOwl.Cobol.Editions` reference direction.** If any edition type accidentally depends on a Frontend or Compiler type,
    the leaf assembly won't build. *Mitigation:* the split is data+policy only; the `VersionConformancePass` (needs the
    bound tree) deliberately stays in Compiler.
 5. **Volume of mechanical renames** across ~150 files risks reference-drift in test projects and `InternalsVisibleTo`.
@@ -532,16 +532,16 @@ guard; each extracted class ships with the header block; DEVLOG entry per landin
 
 ## 6. Open questions for the owner
 
-1. **Namespace rename timing (§2.2).** This doc recommends doing the `legacy-root.* → CobolNet.*` rename **now**
+1. **Namespace rename timing (§2.2).** This doc recommends doing the `legacy-root.* → WiseOwl.Cobol.*` rename **now**
    (Wave 0), decoupled from G8, because the rearchitecture is a clean-slate greenfield reimplementation and the rename is
    mechanical. The current SSOT (§1.4 / csproj banner) defers it to a G8 big-bang. **Confirm we may pull the rename
    forward.**
-2. **New `Cobol.Net.Editions` assembly vs a shared folder link.** Recommended: a real assembly (clean leaf, no cycle).
+2. **New `WiseOwl.Cobol.Editions` assembly vs a shared folder link.** Recommended: a real assembly (clean leaf, no cycle).
    Acceptable alternative: keep the registry in Compiler and give Frontend a *generated* copy from `constructs.json` at
    build time. Assembly is cleaner; confirm the extra project is acceptable.
 3. **JSON/XML deletion vs quarantine (§2.14).** Delete outright (recommended — non-ISO, 0 spec occurrences) or keep
    behind a `--enable-json-xml` off-by-default flag for any downstream user? Confirm outright deletion.
-4. **`Cobol.Net.BoundTree` as its own assembly** — deferred here (single consumer). Revisit only if the second backend
+4. **`WiseOwl.Cobol.BoundTree` as its own assembly** — deferred here (single consumer). Revisit only if the second backend
    (Cecil/CIL, `project_dual_backend_goal`) is actually scheduled. Is it?
 5. **Depth of the `Verbs/` folder split.** ~18 verb-binder classes is a real decomposition but a lot of files. Acceptable,
    or prefer coarser grouping (e.g. one `FileIoBinder` for Sequential+Keyed+Lock+Sort)? Recommendation: keep them

@@ -13,7 +13,7 @@
 # must end naming that exception. Every other `divergent` row is compared with its golden like a green one (the
 # legacy engine's exemption list for them is retired with the engine, kb/Work PB2109). The marker is written down
 # here ONCE for the shell (the two runners and the audit all ask this file) and once for C#
-# (CorpusRow.ExpectedTermination in tests/Cobol.Net.Tests.Conformance/CorpusManifest.cs); CorpusManifestTests holds
+# (CorpusRow.ExpectedTermination in tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifest.cs); CorpusManifestTests holds
 # the two to the same grammar.
 #
 # Sourced, never executed, except for `--self-test`:

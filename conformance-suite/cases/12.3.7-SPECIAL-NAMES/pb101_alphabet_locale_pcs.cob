@@ -8,7 +8,7 @@
       *> PB101 (kb/Work): `ALPHABET name IS LOCALE` (ISO 1989:2023 12.3.7.2, no locale-name-2 = the locale CURRENT
       *> at each use, 12.3.7.4 GR7e) as the PROGRAM COLLATING SEQUENCE. Alphanumeric relation conditions become
       *> LOCALE-BASED comparisons (8.8.4.2.7 / 8.8.4.2.11: trailing spaces truncated, no padding, then the LC_COLLATE
-      *> algorithm - COBOL.NET's derived CLDR/UCA engine; determination L11: the locale's tailoring at tertiary
+      *> algorithm - WiseOwl COBOL's derived CLDR/UCA engine; determination L11: the locale's tailoring at tertiary
       *> strength, non-ignorable). Under the NATIVE order "Zebra" < "apple" (0x5A < 0x61) and "Zebra" < "zebra"; under
       *> the locale order letters outrank case and accents: apple < Apple < zebra < Zebra, resume < resumE at level 3
       *> and resume < r-e-acute-... at level 2. The Format-2 table SORT and MAX take the same sequence (14.9.40 GR5b,

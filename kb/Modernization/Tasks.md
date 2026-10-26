@@ -4,25 +4,25 @@ area: modernization
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - docs/COBOLNET_REARCHITECTURE_PLAN.md
+  - docs/REARCHITECTURE_PLAN.md
   - docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md
-  - docs/COBOLNET_DESIGN.md
+  - docs/DESIGN.md
   - docs/DOC_INDEX.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - modernization
 ---
 
 # Modernization — Tasks & Roadmap
 
-The rearchitecture roadmap lives in [[docs/COBOLNET_REARCHITECTURE_PLAN]] — **THE ONE PLANNING DOCUMENT** (owner
+The rearchitecture roadmap lives in [[docs/REARCHITECTURE_PLAN]] — **THE ONE PLANNING DOCUMENT** (owner
 directive 2026-07-19; it absorbed `resume-prompt.md`, all 17 per-phase docs, and the P13 audit). Its **§0 LIVE RESUME
 STATE** is the single-write live-state SSOT; every session reads §0 first and updates it before ending.
 
 ## 17 phases (00–16), dependency-ordered across four tracks
 (F = foundation, R = rearchitecture, I = feature/ISO, C = cleanup)
 
-- **Done (00–12):** 00 migration safety net → 01 namespace rename + dead-grammar removal → 02 `Cobol.Net.Editions`
+- **Done (00–12):** 00 migration safety net → 01 namespace rename + dead-grammar removal → 02 `WiseOwl.Cobol.Editions`
   leaf assembly → 03 version-conformance pipeline (superset parse + one two-arm gating pass) → 04 frontend
   consolidation → 05 unified data model (`StorageForm`/`RecordLayout`) → 06 real binder (`SymbolTable`, immutable
   `BoundCompilation`) → 07 god-class decomposition + source-generated exhaustive visitor → 08 runtime reorg → 09 OO

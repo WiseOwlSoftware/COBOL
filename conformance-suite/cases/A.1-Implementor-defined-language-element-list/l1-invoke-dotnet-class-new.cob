@@ -9,7 +9,7 @@
       *> implementor-defined." (cite.py --check 14.9.23.4 OK, GR 2.)
       *> Annex A.1 item 101 requires that behavior be documented. The
       *> documented determination (docs/CONFORMANCE.md DOC-A.1-101): "A
-      *> non-COBOL method is never invoked: COBOL.NET provides no way to
+      *> non-COBOL method is never invoked: WiseOwl COBOL provides no way to
       *> designate one ... A REPOSITORY class specifier whose
       *> externalized name is a .NET type (CLASS SB AS
       *> "System.Text.StringBuilder") does not bind to that type:

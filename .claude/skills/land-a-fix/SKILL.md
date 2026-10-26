@@ -26,7 +26,7 @@ positives.**
 
 ## 2. Scope it completely
 
-The spec plus the subsystem deep-dive (`docs/COBOLNET_DESIGN.md` §0.5 indexes them) define the scope. Tests
+The spec plus the subsystem deep-dive (`docs/DESIGN.md` §0.5 indexes them) define the scope. Tests
 verify; they never scope. Implement every SR and GR of the rule, not the leg the failing test happens to hit.
 
 **Deferral is debt.** "Document as a known non-conformance", "stage loud", "schedule for a dedicated pass", or

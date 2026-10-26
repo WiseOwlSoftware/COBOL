@@ -11,7 +11,7 @@
       *> single space is returned" - every LENGTH below equals its content (the sweep's RV-15.65.4-1 pin);
       *> r5 ACTIVATING names the element that activated the current one - "by a CALL statement, an INVOKE
       *> statement, a function reference" - so a plain program CALLed from a METHOD names the METHOD-ID
-      *> (S-ACT=SHOW, RV-15.65.4-5); r6 (an activation from a NESTED program): COBOL.NET returns the nested
+      *> (S-ACT=SHOW, RV-15.65.4-5); r6 (an activation from a NESTED program): WiseOwl COBOL returns the nested
       *> program's OWN name (CONFORMANCE.md A.1 item 137), and r9's STACK chain agrees entry for entry
       *> (X-ACT=INR and X-STK=EXT;INR;PB63MNMAIN; - RV-15.65.4-6); r10 TOP-LEVEL is the run-unit main
       *> (A.1 item 136 - the element RunMain started).

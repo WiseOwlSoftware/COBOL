@@ -4,12 +4,12 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs
-  - src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs
-  - src/Cobol.Net.Editions/ConstructDialectStatus.cs
-  - docs/COBOLNET_VALIDATION_DESIGN.md
+  - src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs
+  - src/WiseOwl.Cobol.Editions/ConstructDialectStatus.cs
+  - docs/VALIDATION_DESIGN.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
   - semantics

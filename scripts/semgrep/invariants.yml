@@ -1,16 +1,16 @@
 # WiseOwl COBOL architectural invariants, mechanized.
 #
-# These rules encode doctrine that was previously prose in PROMPT.md and COBOLNET_DESIGN.md §1.2 — rules only a
+# These rules encode doctrine that was previously prose in PROMPT.md and DESIGN.md §1.2 — rules only a
 # reviewer would catch, and only if they remembered. Anything checkable by a pattern should not be an instruction.
 #
 #   semgrep scan --config scripts/semgrep/invariants.yml \
-#       src/Cobol.Net.Cli src/Cobol.Net.Compiler src/Cobol.Net.Editions src/Cobol.Net.Frontend src/Cobol.Net.Runtime
+#       src/WiseOwl.Cobol.Cli src/WiseOwl.Cobol.Compiler src/WiseOwl.Cobol.Editions src/WiseOwl.Cobol.Frontend src/WiseOwl.Cobol.Runtime
 #
 # The scan names the product projects (here and in scripts/semgrep/verify.py) rather than excluding paths, so a
 # new directory is scanned only once it is named on purpose.
 #
 # SUPPRESSION: use semgrep's built-in `// nosemgrep: <rule-id>` on the line (or the line above), WITH a reason:
-#     byte[] _scratch = ...;  // nosemgrep: cobolnet-no-persistent-byte-storage - CODE-SET file boundary, §9.1
+#     byte[] _scratch = ...;  // nosemgrep: wiseowl-cobol-no-persistent-byte-storage - CODE-SET file boundary, §9.1
 # Do NOT invent a project-local suppression convention. An earlier draft used a `pattern-not-inside` on a
 # `// semgrep-ok(...)` comment; comments are not matchable context, and the construct SILENTLY DISABLED the whole
 # rule — it reported zero findings and looked green. Every rule below is verified against a deliberate violation
@@ -22,51 +22,51 @@ rules:
   # the compiler folds a constant at bind time — a compile-time evaluator (§7.3.6.3 expressions, HIGHEST/LOWEST-
   # ALGEBRAIC folding over a 16-byte container, where (1 << 128) - 1 genuinely exceeds Int128) legitimately needs
   # wider arithmetic to compute a literal it then renders as text.
-  - id: cobolnet-no-decimal
+  - id: wiseowl-cobol-no-decimal
     languages: [csharp]
     severity: ERROR
     message: >-
-      COBOLNET_DESIGN §1.2 invariant 2 — numerics are native: fixed-point is a native integer holding the UNSCALED
+      DESIGN §1.2 invariant 2 — numerics are native: fixed-point is a native integer holding the UNSCALED
       value (long, or Int128 for 19-38 digits), COMP-1/COMP-2 are float/double. `decimal` is banned in the runtime
       value model. If you reached for it to hold a scaled value, the scale belongs in compile-time metadata, not the
       runtime type.
     paths:
       include:
-        - "src/Cobol.Net.Runtime/**"
-        - "src/Cobol.Net.Compiler/Binding/Model/**"
+        - "src/WiseOwl.Cobol.Runtime/**"
+        - "src/WiseOwl.Cobol.Compiler/Binding/Model/**"
     pattern-either:
       - pattern: decimal $X;
       - pattern: decimal $X = ...;
       - pattern: System.Decimal
 
-  - id: cobolnet-no-biginteger
+  - id: wiseowl-cobol-no-biginteger
     languages: [csharp]
     severity: ERROR
     message: >-
-      COBOLNET_DESIGN §1.2 invariant 2 — `BigInteger` is banned in the runtime value model. 19-38 digit fixed-point
+      DESIGN §1.2 invariant 2 — `BigInteger` is banned in the runtime value model. 19-38 digit fixed-point
       uses Int128. If a value genuinely exceeds Int128, that is a spec question (§8.8.1 arithmetic bounds) to answer
       with a citation, not a wider type.
     paths:
       include:
-        - "src/Cobol.Net.Runtime/**"
-        - "src/Cobol.Net.Compiler/Binding/Model/**"
+        - "src/WiseOwl.Cobol.Runtime/**"
+        - "src/WiseOwl.Cobol.Compiler/Binding/Model/**"
     # A bare `pattern: BigInteger` does not match a TYPE position in semgrep's C# grammar (verified: it matched
     # nothing). Regex is the reliable form for a banned type name.
     pattern-regex: '(?<![A-Za-z0-9_])BigInteger\b'
 
   # ── Locked invariant 1: no persistent byte-array storage substrate ─────────────────────────────────────────
-  - id: cobolnet-no-persistent-byte-storage
+  - id: wiseowl-cobol-no-persistent-byte-storage
     languages: [csharp]
     severity: WARNING
     message: >-
-      COBOLNET_DESIGN §1.2 invariant 1 — a `byte[]` FIELD is a persisted byte substrate. A byte image may exist only
+      DESIGN §1.2 invariant 1 — a `byte[]` FIELD is a persisted byte substrate. A byte image may exist only
       TRANSIENTLY at a sanctioned boundary (file I/O / CODE-SET, a runtime API needing bytes, a genuine mixed-USAGE
       REDEFINES pun), built into a fresh LOCAL scratch buffer. If this is such a boundary, make it a local — or
-      suppress with `// nosemgrep: cobolnet-no-persistent-byte-storage - <which boundary, and why it must persist>`.
+      suppress with `// nosemgrep: wiseowl-cobol-no-persistent-byte-storage - <which boundary, and why it must persist>`.
     paths:
       include:
-        - "src/Cobol.Net.Compiler/Binding/**"
-        - "src/Cobol.Net.Runtime/Values/**"
+        - "src/WiseOwl.Cobol.Compiler/Binding/**"
+        - "src/WiseOwl.Cobol.Runtime/Values/**"
     patterns:
       - pattern-either:
           - pattern: byte[] $NAME;
@@ -74,11 +74,11 @@ rules:
       - pattern-inside: "class $C { ... }"
 
   # ── Loud-failure invariant §1.4 ────────────────────────────────────────────────────────────────────────────
-  - id: cobolnet-no-silent-todo
+  - id: wiseowl-cobol-no-silent-todo
     languages: [csharp]
     severity: WARNING
     message: >-
-      COBOLNET_DESIGN §1.4 — an unbound or unsupported construct emits a TRACKED deferral diagnostic plus a runtime
+      DESIGN §1.4 — an unbound or unsupported construct emits a TRACKED deferral diagnostic plus a runtime
       guard, never a silent TODO no-op. Either implement it, or emit the staged-not-implemented diagnostic
       (COBOL0899) with a `throw new NotImplementedCobolFeature(...)`. Deferral is debt and only an owner decision.
     # `///` is an XML doc comment — prose that may legitimately *describe* this invariant (NotImplemented.cs's own
@@ -86,7 +86,7 @@ rules:
     pattern-regex: '(?m)^(?!\s*///).*//[ \t]*(TODO|FIXME|HACK|XXX)\b'
 
   # ── Diagnostics: every emitted code is a catalog descriptor (ledger V11) ───────────────────────────────────
-  - id: cobolnet-raw-diagnostic-code-literal
+  - id: wiseowl-cobol-raw-diagnostic-code-literal
     languages: [csharp]
     severity: WARNING
     message: >-
@@ -112,11 +112,11 @@ rules:
           regex: '^"COBOL\d{4}"$'
 
   # ── Backend neutrality (G4 / DESIGN §1.3) ──────────────────────────────────────────────────────────────────
-  - id: cobolnet-bound-node-carries-rendered-text
+  - id: wiseowl-cobol-bound-node-carries-rendered-text
     languages: [csharp]
     severity: WARNING
     message: >-
-      COBOLNET_DESIGN §1.3 / G4 — the bound tree is BACKEND-NEUTRAL: no C# text, Roslyn syntax, mangled identifier
+      DESIGN §1.3 / G4 — the bound tree is BACKEND-NEUTRAL: no C# text, Roslyn syntax, mangled identifier
       or format literal enters a bound node or Place. A string member holding rendered output on a Bound* type is a
       seam violation; the CIL backend must be able to lower the same structure. Carry the STRUCTURE and let the
       backend's renderer produce the text.
@@ -125,7 +125,7 @@ rules:
     # is the form that actually fires.
     pattern-regex: '(?m)^[^\n]*\brecord\s+(?:struct\s+)?Bound[A-Za-z0-9_]*\s*\([^)]*\bstring\s+[A-Za-z0-9_]*(?:Text|Csharp|CSharp|Rendered|Fragment)\b'
   # -- One category reader for a condition operand (ISO 8.8.4.2.1; kb/Work PB728 / PB575) ---------------------
-  - id: cobolnet-condition-category-from-raw-picture
+  - id: wiseowl-cobol-condition-category-from-raw-picture
     languages: [csharp]
     severity: ERROR
     message: >-
@@ -138,20 +138,20 @@ rules:
       `StringCategoryOf`, THE ONE category reader. Measured before this rule existed: a GROUP-USAGE NATIONAL 88
       answered the OPPOSITE of its elementary twin, and a GROUP-USAGE BIT 88 lost 8.8.4.2.8's boolean-zero
       right-extension. The behavioural twin of this rule is
-      Cobol.Net.Tests.Unit.ConditionNameSubjectClassDriftTests. The rule is scoped to the PROPERTY, not to the file
+      WiseOwl.Cobol.Tests.Unit.ConditionNameSubjectClassDriftTests. The rule is scoped to the PROPERTY, not to the file
       it was found in (kb/Work PB760): the identical national test survived in IntrinsicRenderer.cs, feeding the
       12.3.6.4 GR7 a) UPPER-CASE / LOWER-CASE classification, because this rule once covered ConditionRenderer.cs
       alone. Both GR7 consumers now ask ObjectComputerEmit.ClassificationArg.
     paths:
       include:
-        - "src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs"
-        - "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs"
-        - "src/Cobol.Net.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs"
+        - "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs"
+        - "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs"
+        - "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs"
     # `Pic` reached as a member, in any of the three C# spellings (`x.Pic?.`, `x.Pic.`, `x.Pic is { ... }`). The
     # negative lookbehind is what keeps `OperandPic` - the CORRECT reader - from matching its own suffix.
     pattern-regex: '(?<![A-Za-z0-9_])Pic(\?\.|\.|\s+is\s+\{)'
   # -- One integer-n reader in the binder (kb/Work PB1058) ------------------------------------------------------
-  - id: cobolnet-integer-n-parsed-outside-host-value
+  - id: wiseowl-cobol-integer-n-parsed-outside-host-value
     languages: [csharp]
     severity: ERROR
     message: >-
@@ -165,8 +165,8 @@ rules:
       the one reader; ask a literal's CLASS of the grammar (numericLiteral()), never of a C# parse.
     paths:
       include:
-        - "src/Cobol.Net.Compiler/Binding/"
-        - "src/Cobol.Net.Compiler/Validation/"
+        - "src/WiseOwl.Cobol.Compiler/Binding/"
+        - "src/WiseOwl.Cobol.Compiler/Validation/"
     # Any C# parse of PARSE-TREE text (`.GetText()`) or of a token's / bound literal's `.Text` - the COBOL literal
     # spellings a regex can see. The PB1058 form matched only the `integerLiteral().GetText()` accessor, and the
     # seven PB1579 sites (`exprs[0].GetText()`, `only.Text`, `lit.GetText()`, `nl.Text`, ...) each read through
@@ -177,7 +177,7 @@ rules:
       - pattern-regex: '\b(?:int|long)\.(?:Try)?Parse\([^;\n]*(?:\.GetText\(\)|\.Text\b)'
       - pattern-not-regex: '\b(?:int|long)\.(?:Try)?Parse\([^;\n]*levelNumber\(\)'
   # -- One narrowing of a COBOL integer value to a host int / long (kb/Work PB1033) ----------------------------
-  - id: cobolnet-integer-value-cast-narrowed
+  - id: wiseowl-cobol-integer-value-cast-narrowed
     languages: [csharp]
     severity: ERROR
     message: >-
@@ -188,5 +188,5 @@ rules:
       (8.4.3.3.4 GR5 c raises EC-BOUND-REF-MOD).
     paths:
       include:
-        - "src/Cobol.Net.Compiler/CodeGen/"
+        - "src/WiseOwl.Cobol.Compiler/CodeGen/"
     pattern-regex: '\((?:int|long)\)\s*\(\{\s*(?:NumericRenderer\.)?Align(?:RoundedUp)?\('

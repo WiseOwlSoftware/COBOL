@@ -1,0 +1,998 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Runtime;
+
+namespace WiseOwl.Cobol.CodeGen;
+
+using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
+
+/// <summary>The MOVE-family emitter (P7 Step 9g — a real collaborator over the per-unit
+/// <see cref="EmitContext"/>, extracted from the orchestrator partial): the pure per-kind MOVE renderer
+/// (the dispatch travels on <c>BoundMove.Kinds</c>, P7 Step 7) and <c>ConvertSource</c> — the ONE MOVE
+/// conversion path Report Writer's synthetic print items and INITIALIZE's implicit stores share.</summary>
+internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs,
+    ReceiverBracketEmitter brackets)
+{
+    /// <summary>Render one MOVE — a PURE per-store renderer since P7 Step 7: the dispatch travels on the node
+    /// (<see cref="BoundMove.Stores"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
+    /// §14.9.25.4 GR4's elementary-vs-group decision incl. the sender side, NC105A MOVE-TEST-F1-16/-17/-20/-36/-38);
+    /// the emitter re-derives nothing.
+    /// <para>⛔ The SENDER is read per target off the store, never off <c>m.Source</c>: §14.9.25.4 GR2/GR3
+    /// substitute the figurative constant SPACE / ZERO for a zero-length literal-1 PER RECEIVING OPERAND
+    /// (excluding a dynamic-length one), so one statement can legitimately store two different senders
+    /// (kb/Work PB425). Rendering <c>m.Source</c> here is the defect that shape prevents.</para></summary>
+    public void Emit(BoundMove m)
+    {
+        // ⛔ kb/Work PB2078: each receiver is accessed and stored in turn, so an object-property receiver has its
+        // accessors placed around ITS store (ISO §14.9.25.4 GR1 — item identification for identifier-2 is performed
+        // immediately before the data is moved to the respective data item).
+        for (int i = 0; i < m.Targets.Count; i++)
+        {
+            int at = i;
+            brackets.Receive(m.Targets[at], null, () => EmitReceiver(m, at));
+        }
+    }
+
+    /// <summary>The access-and-store of receiving operand <paramref name="i"/> of <paramref name="m"/> — the body of
+    /// <see cref="Emit"/>'s per-receiver loop.</summary>
+    private void EmitReceiver(BoundMove m, int i)
+    {
+        var target = m.Targets[i];
+        var (source, kind, origin) = m.Stores[i];
+        // ⛔ kb/Work PB3261: the sending operand is evaluated BEFORE this receiver is identified (ISO §14.9.25.4 GR1 —
+        // identifier-1's reference modifier, subscript or function-identifier is evaluated "immediately before data is
+        // moved to the first of the receiving operands", and "Item identification for identifier-2 is performed
+        // immediately before the data is moved to the respective data item"), so every store below renders through
+        // PlaceIdentification.SenderFirst. A move whose carrying statement identifies the receiver first keeps C#'s
+        // order (INITIALIZE — ImplicitMovePhrase.ReceiverIdentifiedFirst), and so does an overlap prefill (EmitStore).
+        bool senderFirst = m.ImplicitOf is not { ReceiverIdentifiedFirst: true };
+        // ⛔ ISO §14.9.25.4 GR1's ZERO-LENGTH-ITEM clause — "If identifier-1 is a zero-length item, it is as
+        // if literal-1 were specified as a zero-length literal" — which lands in the GR2/GR3 substitution the
+        // store above already carries for a written literal. Whether the sending ITEM is zero-length is a
+        // RUNTIME state (§8.5.1.10), so this is the one arm of the rule that must be a runtime test; the
+        // classifier decides WHEN one is needed and over which sending place (kb/Work PB425). The length is
+        // read ONCE and both arms are the two stores the rule names, side by side.
+        if (MoveClassifier.ZeroLengthItemRoute(source, target) is { } zlSend)
+        {
+            // The LENGTH to test is the sending operand's CURRENT one. For the elementary shapes (§8.5.4
+            // items 3, 4, and 6/9 after their materialization) that is the carrier's own `.Length`; for a
+            // GROUP (items 1, 2, 5, 7 — kb/Work PB896) it is the group's SENDING VALUE, which §13.18.38.4
+            // GR8 a) already narrows to the occurs-depending current extent — through THE ONE group value
+            // reader, because a bit or national group's plain Read() is its STRUCT and has no length at all
+            // (kb/Work PB943: `NG.Length`, CS1061). Asking the plain place would also read the MAXIMUM extent
+            // and the test could never fire.
+            string len = zlSend.CurrentRecord is { } curRec ? OperandText.CurrentRecordLength(curRec)   // §8.5.4 item 5 — the record length is §13.18.43.4 GR16's byte count
+                : zlSend.Place.Item.IsGroup
+                ? $"{PlaceRenderer.SendingGroupValue(zlSend.Place, "zero-length-item test of")}.Length"
+                : $"{PlaceRenderer.Read(zlSend.Place)}.Length";
+            // ⛔ BOTH ARMS ARE THE STATEMENT'S OWN DISPATCH. GR1's substitution changes the move's KIND — a
+            // group sender becomes a literal one, so GR4's first sentence makes the zero-length arm an
+            // ELEMENTARY move while the non-zero arm stays the group move (kb/Work PB896) — and the zero arm's
+            // kind is whatever the substituted figurative dispatches to against THIS receiver: the image fill
+            // into a numeric one, the edited fill into an edited one, a slice fill into a reference-modified
+            // one, a group fill into a group (kb/Work PB943 — the arm used to be hard-wired to the elementary
+            // store, which is why the route could only ever serve the numeric receivers it was filtered to).
+            var fig = MoveClassifier.ZeroLengthItemFigurative(zlSend);
+            ctx.Writer.Line($"if ({len} == 0) {{");
+            EmitStore(target, fig, MoveClassifier.Kind(fig, target), MoveSenderOrigin.ZeroLengthItem, senderFirst);
+            ctx.Writer.Line("} else {");
+            EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
+            ctx.Writer.Line("}");
+            return;
+        }
+        EmitStore(target, source, kind, origin, senderFirst, m.Stores[i].Overlap);
+        EmitElementMoves(m, i);
+    }
+
+    /// <summary>ISO §14.6.9.2's last sentence, after a §14.9.25.4 GR9 group transfer into receiver
+    /// <paramref name="target"/>: "Correspondingly numbered elements are moved according to the rules of the MOVE
+    /// statement" (kb/Work PB1144). The group transfer moved each corresponding table as element IMAGES and fixed
+    /// the receiving table's capacity (recreated from the sender, raised to its minimum, §14.6.9.2); each pair whose
+    /// elementary elements differ in description then has its elements re-moved by the BOUND element MOVE — the
+    /// ONE MOVE path, so the conversion is §14.9.25.4 GR6's and never a second copy of it. The loop runs over
+    /// §14.6.9.1's current capacities read after the transfer, to the smaller of the two: rule 1's superfluous
+    /// sending elements are not moved, and rule 2's receiving elements past the sender stay space filled. Reached
+    /// only from the GR9 arm (the zero-length-item route excludes it, so the two arms never interleave).</summary>
+    private void EmitElementMoves(BoundMove m, int target)
+    {
+        var w = ctx.Writer;
+        foreach (var e in m.ElementMoves)
+        {
+            if (e.Target != target) continue;
+            if (e is not { Move: { } move, SendingCount: { } sc, ReceivingCount: { } rc })
+            {
+                w.Line(LoudStmt(e.Unsupported ?? "the element moves of a variable-length group MOVE (ISO §14.6.9.2)"));
+                continue;
+            }
+            using (w.Block($"for (long {e.Var} = 1, {e.Var}n = global::System.Math.Min((long)({PlaceRenderer.OccurrenceCount(sc)}), "
+                    + $"(long)({PlaceRenderer.OccurrenceCount(rc)})); {e.Var} <= {e.Var}n; {e.Var}++)"))
+                Emit(move);
+        }
+    }
+
+    /// <summary>The store of ONE receiving operand, by its bound <see cref="MoveKind"/> — factored out of
+    /// <see cref="Emit"/> so §14.9.25.4 GR1's zero-length-item test can place the statement's REAL store in its
+    /// else arm (kb/Work PB896). Every arm is the one it always was; the only change is that the dispatch has a
+    /// name and two callers.</summary>
+    private void EmitStore(Place target, BoundOperand source, MoveKind kind, MoveSenderOrigin origin, bool senderFirst,
+        OverlapStore overlap = default)
+    {
+        // An overlapping MOVE (D-OVL1/D-OVL2): an in-place kind IS the whole store; a prefill is written first.
+        if (EmitOverlapStore(target, source, overlap)) return;
+        // An overlapping receiver prepared BEFORE the sender is read keeps that order: the prefill has already
+        // identified it, so the store below renders as it always did (kb/Work PB3261).
+        senderFirst &= overlap.Kind == OverlapStoreKind.None;
+        switch (kind)
+        {
+            case MoveKind.Group:
+                EmitGroupMove(target, source, senderFirst);
+                break;
+            case MoveKind.GroupToElementary:
+                EmitGroupToElementaryMove(target, source, senderFirst);
+                break;
+            case MoveKind.FigurativeToNumericImage:
+            case MoveKind.Convert:
+                // WHY this store may be a fill decides how an unstorable one is NAMED: the written
+                // figurative is the pre-2023 residue §14.9.25.3 SR5 removed, the substituted one is
+                // §14.9.25.4 GR2 acting on a zero-length literal the standard still permits. Blaming the
+                // wrong rule in a loud is the misattribution kb/Work PB393 measured, one verb over — and the
+                // provenance rides the STORE, because it is a bind-time fact and reading m.Source to recover
+                // it is the scalar read this shape exists to remove.
+                ctx.Writer.Line(ElementaryStore(target, source, origin, senderFirst));
+                break;
+        }
+    }
+
+    /// <summary>⛔ ISO §14.6.10 1) / Annex A.2 item 36 — operands that overlap have an UNDEFINED result, so what
+    /// WiseOwl COBOL does is documented (docs/CONFORMANCE.md §3 D-OVL1/D-OVL2, kb/Work PB1907, PB1910): the receiver
+    /// is written while the sender is still being read, exactly as GnuCOBOL's <c>libcob</c> does. The decision was
+    /// made at bind time (<see cref="MoveOverlap"/>, carried on <see cref="MoveStore.Overlap"/>) and applies only
+    /// where the overlap is a compile-time fact, so every other MOVE emits nothing here and is unchanged.
+    /// <para>Returns true when the kind IS the whole store (the four in-place kinds: the runtime's
+    /// <c>OverlappingMove</c> converts the two storage images laid over each other, and the receiver's image is
+    /// written back); false when it only prepared the receiver (<see cref="OverlapStoreKind.LeadingSpaces"/>, whose
+    /// ordinary store follows and reads the sender AFTER this statement) or did nothing.</para></summary>
+    private bool EmitOverlapStore(Place target, BoundOperand source, OverlapStore overlap)
+    {
+        switch (overlap.Kind)
+        {
+            case OverlapStoreKind.LeadingSpaces:
+                // The leading `Positions` positions only: the sender may overlap the rest, which still holds its
+                // pre-move content when the store reads it.
+                ctx.Writer.Line(PlaceRenderer.Write(target, RuntimeApi.StrWindowInto(
+                    PlaceRenderer.Read(target), "1", $"{overlap.Positions}", CsLiteral(new string(' ', overlap.Positions)))));
+                return false;
+            case OverlapStoreKind.DisplayToDisplay:
+            case OverlapStoreKind.PackedToDisplay:
+            case OverlapStoreKind.AlphanumericToDisplay:
+            case OverlapStoreKind.DisplayToPacked:
+                EmitInPlaceStore(target, ((BoundFieldOperand)source).Place, overlap);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>The in-place store of one overlapping MOVE: both operands' STORAGE images are read, laid over each
+    /// other at the static offset <see cref="OverlapStore.ReceiverAt"/> and converted in the library's own order of
+    /// reads and writes (<c>OverlappingMove</c>), and the receiver's image is written back. An image-backed
+    /// receiver takes the image as it is; a NATIVE numeric DISPLAY receiver (the item a reference modification
+    /// moves into itself) takes its carrier from it through <see cref="NumericRenderer.CarrierOfImage"/>.</summary>
+    private void EmitInPlaceStore(Place target, Place from, OverlapStore overlap)
+    {
+        const string Context = "overlapping MOVE operand";
+        string senderImage = StorageImageOf(from, Context);
+        string receiverImage = StorageImageOf(target, Context);
+        string toProfile = target.Item.ProfileName;
+        string stored = overlap.Kind switch
+        {
+            OverlapStoreKind.DisplayToDisplay => RuntimeApi.OverlapDisplayToDisplay(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            OverlapStoreKind.PackedToDisplay => RuntimeApi.OverlapPackedToDisplay(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            OverlapStoreKind.DisplayToPacked => RuntimeApi.OverlapDisplayToPacked(
+                senderImage, receiverImage, overlap.ReceiverAt, from.Item.ProfileName, toProfile),
+            _ => RuntimeApi.OverlapAlphanumericToDisplay(
+                // The mode of the unit that DESCRIBES the receiver (§12.3.7.4 GR14 b), never the emitting unit's.
+                senderImage, receiverImage, overlap.ReceiverAt, toProfile, target.Item.Pic!.DecimalPointIsComma),
+        };
+        if (target is RedefViewPlace || target.Item.StoreAsImage)
+        {
+            ctx.Writer.Line(PlaceRenderer.Write(target, stored));
+            return;
+        }
+        // A native receiver takes its carrier from that image through THE ONE crossing decode, never a decode lane of
+        // its own (kb/Work PB186's named sites). The image is the receiver's own, so its value fits the receiver.
+        ctx.Writer.Line(PlaceRenderer.Write(target, NumericRenderer.CarrierOfImage(stored, target.Item)));
+    }
+
+    /// <summary>The bytes an overlapping operand occupies: a Tier-B view's window is its storage as it stands; every
+    /// other place answers THE ONE raw-storage reader (<see cref="OperandText.AsStorageImage"/>).</summary>
+    private static string StorageImageOf(Place p, string context) =>
+        p is RedefViewPlace { Coding: null } ? PlaceRenderer.Read(p) : OperandText.AsStorageImage(p, context);
+
+    /// <summary>Why a FILL is being stored into a numeric receiver — the rule to blame when the receiver has no
+    /// character image to hold it (<see cref="FigurativeToNumericImageStore"/>'s narrow loud). Three provenances,
+    /// three different rules, and only one of them is the removed construct.</summary>
+    private static string FillCite(MoveSenderOrigin origin) => origin switch
+    {
+        MoveSenderOrigin.ZeroLengthLiteral =>
+            "the figurative constant ISO §14.9.25.4 GR2/GR3 substitutes for a zero-length literal-1 (legal "
+            + "source at every edition — §14.9.25.3 SR5 names only figurative constants written in the source)",
+        MoveSenderOrigin.ZeroLengthItem =>
+            "the figurative constant ISO §14.9.25.4 GR1 substitutes when identifier-1 is a zero-length item at "
+            + "run time (§8.5.1.10), by way of GR2/GR3",
+        _ => "an alphanumeric figurative constant — narrow pre-2023 residue of the move ISO 2023 removed, "
+             + "§14.9.25.3 SR5 / Annex E.2 item 1",
+    };
+
+    /// <summary>The ONE-STATEMENT store of an ELEMENTARY move — the <see cref="MoveKind.Convert"/> and
+    /// <see cref="MoveKind.FigurativeToNumericImage"/> renderings, RETURNED rather than written so GR1's
+    /// zero-length-item test can place BOTH of its arms inside one emitted <c>if/else</c> (kb/Work PB425)
+    /// instead of the emitter growing a second copy of either rendering. The kind is re-asked of THIS sender
+    /// because GR1's two arms differ in it: the substituted figurative into a numeric receiver is the image
+    /// fill, the written sender is the conversion.</summary>
+    private string ElementaryStore(Place target, BoundOperand source, MoveSenderOrigin origin, bool senderFirst) =>
+        MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage
+            ? FigurativeToNumericImageStore(target, source, FillCite(origin))
+            : target is RefModPlace slice ? SliceStore(slice, source, senderFirst)
+            // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — the item is n
+            // repetitions of its picture symbol, n = the activating argument's length).
+            : Ordered(senderFirst, source, target, ConvertSource(source, target.Item,
+                target.Item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : null), v => PlaceRenderer.Write(target, v));
+
+    /// <summary>The elementary-move store into a REFERENCE-MODIFIED receiver — ISO §8.4.3.3.4 GR6's unique data
+    /// item, "an elementary data item without the JUSTIFIED clause" of <see cref="RefModPlace.Category"/>'s
+    /// category (alphanumeric, national or boolean; never numeric or edited). It differs from
+    /// <see cref="ConvertSource"/>'s character arm ONLY in the receiving half, because the slice's length is a
+    /// run-time value: the splice (<see cref="PlaceRenderer.Write"/>) is §14.6.8's alignment — left-justified,
+    /// space filled (boolean-zero filled, §14.6.8.6), truncated on the right — and a figurative constant or
+    /// <c>ALL literal-1</c> fills EVERY position of the slice (§8.3.3.6.4 GR2 — "the string of characters is repeated
+    /// character by character until the size of the resultant string is greater than or equal to the number of
+    /// character positions in the associated data item"; kb/Work PB1655), its fill character read from the slice's
+    /// CLASS, never the inner item's raw <c>Pic</c> (kb/Work PB173, PB442). Every other sender is
+    /// <see cref="SendingCharacters"/> — THE characters every elementary character receiver takes, so §14.9.25.4
+    /// GR6 a)'s sign rule is written once for the whole item and the slice alike (kb/Work PB3512: this store used
+    /// to read the sender's raw text and moved the operational sign).</summary>
+    private string SliceStore(RefModPlace slice, BoundOperand source, bool senderFirst) => source switch
+    {
+        BoundFigurative fig => PlaceRenderer.WriteFill(slice,
+            FigurativeConstants.FillText(fig.Kind, ctx.Data.Collating,
+                IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPlace(slice)), ctx.Data.NationalCollating)),
+        BoundAllLiteral all => PlaceRenderer.WriteFill(slice, CsLiteral(all.Literal)),
+        _ => Ordered(senderFirst, source, slice, SendingCharacters(source), v => PlaceRenderer.Write(slice, v)),
+    };
+
+    /// <summary>⛔ THE CHARACTERS AN ELEMENTARY MOVE DELIVERS TO A CHARACTER RECEIVER — alphanumeric,
+    /// alphanumeric-edited, national, national-edited, numeric-edited (the GR5 alphanumeric-sender read aside) and
+    /// boolean, whole item or reference-modified slice (kb/Work PB3512). ISO §14.9.25.4 GR6 a): "If the sending
+    /// operand is described as being signed numeric, the operational sign is not moved; if the operational sign
+    /// occupies a separate character position, that character is not moved and the size of the sending operand is
+    /// considered to be one less than its actual size." GR6's own lead sentence performs the alphanumeric-to-national
+    /// conversion "before any alignment" (here the D-N4 character correspondence, so the characters are the
+    /// same), and the receiving half then aligns them. Written once so the receivers cannot disagree about the
+    /// sign.</summary>
+    private string SendingCharacters(BoundOperand source) => OperandText.AsString(source, num, deSign: true);
+
+    /// <summary>The store of <paramref name="value"/>, the rendered sending value, into <paramref name="target"/> —
+    /// through <see cref="PlaceIdentification.SenderFirst"/> when the move keeps the MOVE statement's own order
+    /// (<paramref name="senderFirst"/>, decided once per receiver by <see cref="EmitReceiver"/>; kb/Work PB3261), and
+    /// in C#'s receiver-first order otherwise.</summary>
+    private static string Ordered(bool senderFirst, BoundOperand source, Place target, string value, Func<string, string> store) =>
+        senderFirst ? PlaceIdentification.SenderFirst(source, target, value, store) : store(value);
+
+    /// <summary>MOVE of an alphanumeric figurative constant (QUOTE / HIGH-VALUE / LOW-VALUE; SPACE only as the sender
+    /// §14.9.25.4 GR1-GR3 substitute for a zero-length one, since a WRITTEN SPACE is refused at every edition, kb/Work
+    /// PB3605) or an ALL "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
+    /// construct ISO/IEC 1989:2023 REMOVED (§14.9.25.3 SR5; Annex E.2 item 1 bullet 1 — permitted through 2014).
+    /// The binder's "move-alphanumeric-figurative-removed-2023" gate carries the 0902 diagnostics; this emit path
+    /// exists regardless, reachable at --std 85/2002/2014 and at 2023 --permissive. Provisional (ratified decision
+    /// 1 — the pre-2023 behavior recorded from the former legacy engine is the interim authority for removed constructs): the fill
+    /// CHARACTERS are deposited as the receiver's character image, repeated to its width (§8.3.3.6.4 GR2), exactly
+    /// the pre-2023 fill — MOVE QUOTE TO PIC 9(3) leaves three quotation marks, IS NUMERIC is then
+    /// false, and a later numeric read decodes deterministically (§14.6.13.2: a non-digit contributes no digit).
+    /// The binder flagged an eligible numeric-DISPLAY receiver <see cref="DataItem.StoreAsImage"/> (REUSING the
+    /// §14.9.25.4 MOVE GR4 whole-group image substrate — never a parallel mechanism), so the store is a plain image
+    /// write; a Tier-B REDEFINES window / NumericImagePlace writes its character image directly. Only a
+    /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
+    /// model) remains a NARROW loud guard (§1.4). Eligibility is the NODE's <see cref="MoveKind"/> (classified
+    /// once — figurative ZERO and digit-only ALL classify as Convert, VALUE moves not fills).</summary>
+    private string FigurativeToNumericImageStore(Place target, BoundOperand source, string fillCite)
+    {
+        // The KIND already decided eligibility (MoveClassifier — numeric receiver + S/Q/H/L figurative or
+        // non-digit ALL); an unmatched shape here is a classifier/renderer drift bug, not a fallthrough.
+        string image = source switch
+        {
+            BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } f =>
+                $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {target.Item.ImageWidth})",
+            BoundAllLiteral { IsDigitOnly: false } a =>
+                CsLiteral(EmitText.RepeatToWidth(a.Literal, target.Item.ImageWidth)),
+            _ => throw new InvalidOperationException(
+                $"MoveKind.FigurativeToNumericImage with a non-fill source ({source.GetType().Name}) — "
+                + "MoveClassifier and this renderer have drifted"),
+        };
+        return target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
+            ? PlaceRenderer.Write(target, image)
+            : LoudStmt($"MOVE of {fillCite} into the numeric item '{target.Item.CobolName}' without "
+                + "image-backed storage (a BINARY/PACKED/COMP-5/float or Tier-A shared-storage receiver has no "
+                + "character image to fill)");
+    }
+
+    // IsGroupSender lives on MoveClassifier since P7 Step 7 (the ONE GR4 sender-side test).
+
+    /// <summary>MOVE from a GROUP sender into an ELEMENTARY receiver — a GROUP MOVE (ISO §14.9.25.4 GR4): treated
+    /// "exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion
+    /// of data from one form of internal representation to another", the receiving area "filled without
+    /// consideration for the individual elementary or group items" — NO numeric conversion (F1-16), NO editing
+    /// into a numeric-edited or alphanumeric-edited mask (F1-38 / F1-20, F1-36; GR5 editing applies only to valid
+    /// ELEMENTARY moves), NO de-editing. Alignment is §14.6.8 alphanumeric: left-justified, right space-fill /
+    /// right truncation — and the receiver's JUSTIFIED still applies ("exactly as if … elementary move";
+    /// §13.18.32 attaches to the receiver). The width-fitted area is then decoded into the receiver's own
+    /// representation by THE ONE elementary storage-area store (<see cref="ReceivingStore.StorageArea"/> — the
+    /// same decode a READ into an elementary record area rides, kb/Work PB1556): string-backed receivers take
+    /// the bytes as they are; a native numeric receiver decodes them in its OWN byte form (zoned, radix-2, BCD or
+    /// IEEE), deterministically for possibly-incompatible content as §14.6.13.2 permits.</summary>
+    private void EmitGroupToElementaryMove(Place target, BoundOperand source, bool senderFirst)
+    {
+        // A REFERENCE-MODIFIED receiver is §8.4.3.3.4 GR6's elementary item, so a group sender into it is GR4's group
+        // move like any other (kb/Work PB3512 — MoveClassifier no longer short-circuits the slice before the sender is
+        // asked): the sending group's image, through the ONE GR4 sending codec, lands in the slice's storage unconverted
+        // (ReceivingStore.SliceStorageArea — a national slice decodes its UTF-16BE pairs as the whole national receiver
+        // below does). A slice of a dynamic-length item is "treated as a fixed-length data item" (§8.5.1.10.4), so it
+        // takes this arm, never the dynamic one below.
+        if (target is RefModPlace slice)
+        {
+            ctx.Writer.Line(Ordered(senderFirst, source, slice, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"),
+                v => ReceivingStore.SliceStorageArea(slice, v)));
+            return;
+        }
+        var item = target.Item;
+        // ⛔ ISO §14.9.25.4 GR8 FIRST — "If the sending or receiving item is a dynamic-length elementary item,
+        // the current content of the dynamic-length elementary item is moved or changed as specified in
+        // 8.5.1.10.4" — and §8.5.1.10.4: "the new value becomes the content of the item. The new length … is
+        // determined by the length of new content." A dynamic-length receiver therefore takes the sending
+        // GROUP's image WHOLE, with NO width fitting: it has no width to fit to (kb/Work PB393).
+        // <para>This arm exists because the ONE dynamic-length store (<see cref="ConvertSource"/>'s
+        // RuntimeApi.DynStore) is reached only by MoveKind.Convert, and a GROUP sender routes here instead —
+        // the two-arm dispatch with one arm fixed. The other three kinds cannot reach a dynamic-length
+        // receiver: MoveKind.Group's receiver is a group, FigurativeToNumericImage's is numeric (a
+        // dynamic-length item is alphanumeric or national, §8.5.1.10.1), and a reference-modified receiver (the arm
+        // above) is by §8.5.1.10.4's own first sentence a FIXED-length item of the current length.</para>
+        // The image is the receiver's new STORAGE (GR4: no conversion), so a national receiver decodes its
+        // characters from the bytes exactly as the fixed national receiver below does (design D-N8, kb/Work PB546).
+        if (item.IsDynamicLength)
+        {
+            ctx.Writer.Line(Ordered(senderFirst, source, target, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"),
+                v => PlaceRenderer.Write(target, ReceivingStore.Characters(item, ReceivingStore.ContentCharacters(item, v), ""))));
+            return;
+        }
+        // ⛔ THE OPERAND'S capability, not the declaring entry's (Place.ImageCapable, kb/Work PB189): one occurrence
+        // of an elementary OCCURS DYNAMIC table is an ordinary fixed-length item, while the table entry answers
+        // false on its dynamic axis — `MOVE G TO DN (1)` stopped the run unit as a Tier-C island (kb/Work PB2004's
+        // sibling sweep).
+        if (!target.ImageCapable)
+        {
+            ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "group MOVE into")));
+            return;
+        }
+        // The width-fitted image (§14.6.8), fitted in the receiver's STORAGE positions — the unit the sending
+        // group's image is in. GR4's move is "an alphanumeric to alphanumeric elementary move, except that there
+        // is no conversion of data from one form of internal representation to another", so the receiving AREA
+        // takes the sending bytes as they are and the receiver's own representation is decoded FROM them, never
+        // the sending characters re-encoded into it (kb/Work PB943's sibling sweep). For every DISPLAY-usage
+        // receiver the two units coincide (ByteWidth IS ImageWidth: V occupies no position, SIGN SEPARATE adds
+        // one, P adds none — §13.18.40). ⛔ For a USAGE NATIONAL receiver they do not — §13.18.60.4 GR8's uniform
+        // size, pinned at two bytes by D-N1 — and for a USAGE BIT receiver the area is its ceil(n/8) packed bytes:
+        // both used to take the group's BYTES as their CHARACTERS, so `MOVE AG TO PIC N(4)` stored the sending
+        // characters widened (a conversion GR4 forbids) and `MOVE AG TO PIC 1(3) USAGE BIT` left the letter "A"
+        // in a boolean carrier. An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the
+        // carrier's current length, in its own positions).
+        // ReceivingStore.AnyLengthWidth is the ONE spelling of an ANY LENGTH receiver's width (kb/Work PB979).
+        string gw = !item.IsAnyLength ? $"{item.ByteWidth}"
+            : ReceivingStore.StorageBytes(item, ReceivingStore.AnyLengthWidth(target));
+        // The receiver's representation is decoded FROM the area's bytes by THE ONE elementary storage-area
+        // store — the same decode a READ into an elementary record area rides (kb/Work PB1556). The width-fitted
+        // area reads the receiver's width, so only the sending image is the value evaluated first (kb/Work PB3261).
+        ctx.Writer.Line(Ordered(senderFirst, source, target, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"),
+            v => ReceivingStore.StorageArea(target, ReceivingStore.Characters(item, v, gw), ReceivingStore.StoragePositions(target))));
+    }
+
+    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9.25.4 MOVE GR4 — no conversion, filled without
+    /// consideration for subordinate items): the source's character image fills the group's leaves via
+    /// <c>FromImage</c>. Handles any image-capable group — alphanumeric, numeric-edited, numeric-DISPLAY (native or
+    /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED/COMP-5/float
+    /// leaves (their image slices are the pinned byte representations — radix-2/BCD/IEEE, DESIGN
+    /// §14.4; kb/Work PB164 + R40 — INDEX leaves included). Only a variable-length group or a group with a
+    /// pointer/object-class leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
+    private void EmitGroupMove(Place target, BoundOperand source, bool senderFirst)
+    {
+        // ⛔ TWO STRONGLY-TYPED GROUPS OF ONE TYPE WITH AN OBJECT-REFERENCE OR POINTER LEAF (kb/Work PB1940): they have no
+        // character image, and §14.9.25.3 SR2 makes the sender "a group item of the same type", so their subordinates
+        // correspond one to one and the move is the leaf vector — every reference SET, every other item its content —
+        // through the ONE composer, which reads and writes a record struct and a group in a storage cell alike (a
+        // cell-backed operand: an area formal, a group passed BY REFERENCE, a function's result temporary).
+        // It precedes GR9's composer (kb/Work PB3139): a VARIABLE-LENGTH strong group with a reference leaf has no
+        // current-extent carrier, and two groups of one type are GR9 a)'s "groups of equal length" whose every position,
+        // dynamic-length item and table corresponds — the vector moves each one (a dynamic-capacity table as its
+        // occurrences, §14.6.9.2), so the binder's element moves, which skip a pair of identical descriptions, add none.
+        if (WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(target.Item)
+            && source is BoundFieldOperand { Place: var sendPlace } && WiseOwl.Cobol.Compiler.Oo.OoClassTable.LeafCarried(sendPlace.Item))
+        {
+            ctx.Writer.Line(Ordered(senderFirst, source, target, PlaceRenderer.GroupLeaves(sendPlace),
+                v => PlaceRenderer.WriteGroupLeaves(target, v)));
+            return;
+        }
+        // ⛔ ISO §14.9.25.4 GR9 GOVERNS FIRST (kb/Work PB393) — "If both the sending operand and the receiving
+        // data item are group items and one or both is a variable-length group, the following rules apply".
+        // GR4's plain group move is explicitly the OTHER case ("Any move that is not an elementary move, AND
+        // DOES NOT REFERENCE A VARIABLE-LENGTH GROUP, is treated exactly as if it were an alphanumeric to
+        // alphanumeric elementary move"), so this test precedes every GR4 path below — including
+        // AlignedLeafPairs, which for two identically-laid-out variable-length groups produced the RIGHT answer
+        // by accident and thereby hid the hole (the shape a first test covers).
+        if (VariableLengthGroupMove(target, source, senderFirst)) return;
+        if (!target.Item.IsCharacterImage)
+        {
+            // A group MOVE is a content copy of the underlying representation, without conversion (ISO
+            // §14.9.25.4 GR4 — both operands treated as elementary alphanumeric). When the source is a group
+            // whose flattened leaf LAYOUT is positionally identical to the receiver's (same usage / digits /
+            // scale / sign / width leaf-by-leaf — NC107A's all-COMP U5 → U9), that representation copy is
+            // exactly a memberwise leaf copy — kept FIRST: under the digit-image representation both paths are
+            // correct (GR4's representation copy ≡ memberwise copy for identical layouts), but the memberwise
+            // path skips the encode/decode round trip and is the locked NC107A shape.
+            if (source is BoundFieldOperand { Place.Item: { IsGroup: true } srcGroup }
+                && AlignedLeafPairs(srcGroup, target.Item) is { } pairs
+                && pairs.Select(p => (S: refs.ResolveItem(p.Src), T: refs.ResolveItem(p.Tgt))).ToList()
+                    is { } resolved && resolved.All(r => r.S is not null && r.T is not null))
+            {
+                // C#'s receiver-first order is unobservable here (kb/Work PB3261): AlignedLeafPairs admits no OCCURS on
+                // either ancestor chain, so no leaf carries a subscript or an occurs-depending length, and the one run-time
+                // step left to either side, an omitted formal's guard, raises the same condition on both.
+                foreach (var (s, t) in resolved)
+                    ctx.Writer.Line(PlaceRenderer.Write(t!, PlaceRenderer.Read(s!)));
+                return;
+            }
+            // Non-aligned layouts (ST127A's 10-leaf WS twin → 11-leaf SD record) and class-view sources
+            // (ST134A's SAME-RECORD-AREA window → SD record) fall through to the image path below: an
+            // image-capable receiver distributes the source's character image via FromImage exactly like a
+            // character group — its fixed-point leaves decode their zoned slices (GR4: filled without
+            // consideration for the individual items, over the implementor digit-image representation). Only
+            // the genuinely incapable receiver (a VARIABLE-LENGTH group or a group with a pointer/object-class leaf, kb/Work PB164 + R40) stays loud (§1.4).
+            if (!target.ImageCapable)   // the OPERAND's capability — a dynamic-table ELEMENT has an image (kb/Work PB189)
+            {
+                ctx.Writer.Line(LoudStmt(TierCIsland.Reason(target.Item, "MOVE to group")));
+                return;
+            }
+        }
+        int width = target.Item.ImageWidth;
+        // §14.9.25.4 GR4: a GROUP receiver makes the move NON-elementary — "treated as an alphanumeric to alphanumeric
+        // elementary move, EXCEPT that there is no conversion of data from one form of internal representation to
+        // another". GR6a's operational-sign drop applies only to valid ELEMENTARY moves, so a signed-numeric elementary
+        // source keeps its DISPLAY overpunch image here (deSign:false — the sign-aware CobolNum.FormatDisplay), copied
+        // verbatim into the group's leaves; this matches the already-correct GROUP-sender path (OperandText.AsImage
+        // keeps the sign). A no-op for non-numeric / unsigned-numeric senders. (CA28.)
+        // ALL "literal" repeats to the RECEIVER width (ISO §8.3.3.6.4 GR2) — space-padding it would fill the group's
+        // tail leaves with blanks instead of the repeated pattern (NC243A's 7-dim table seed).
+        string image = source is BoundFigurative f
+            ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {width})"
+            : source is BoundAllLiteral all
+            ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
+            : RuntimeApi.StrStore(OperandText.NonElementaryMoveSender(source, num, "MOVE to group"), $"{width}");
+        // The ONE group-image store (PlaceRenderer.WriteGroupImage — kb/Work PB70): the §13.18.38 GR8a current-extent
+        // splice for an occurs-depending receiver with data-name-1 outside, the Tier-B view's window, the OCCURS
+        // DYNAMIC receiving accessor, and the plain FromImage — written once for every verb that deposits an image.
+        ctx.Writer.Line(Ordered(senderFirst, source, target, image, v => PlaceRenderer.WriteGroupImage(target, v, "MOVE to group")));
+    }
+
+    /// <summary>⛔ THE ISO §14.9.25.4 GR9 MOVE — "If both the sending operand and the receiving data item are
+    /// group items and one or both is a variable-length group" (kb/Work PB393). Returns false when GR9's own
+    /// antecedent does not hold, so the caller falls through to GR4's plain group move.
+    ///
+    /// <para><b>GR9 is a STRUCTURAL walk over the two groups' §8.5.1.12 components, not a flat byte copy</b>, and
+    /// the standard says so in its COMPARISON twin: §8.8.4.2.17 has the identical operation proceed "from left to
+    /// right … except that — when corresponding tables are encountered, they are compared as described in
+    /// 14.6.9.3 … — when corresponding dynamic-length elementary items are encountered, the length is determined
+    /// as described in 8.5.1.10.4 … After comparison of corresponding tables or dynamic-length elementary items,
+    /// comparison continues with the next data item in each of the compatible groups." GR9a's "corresponding
+    /// character position" is therefore the position under §8.5.1.12.2's correspondence — the accounting in which
+    /// a dynamic-length item is zero-length and a matched dynamic-capacity table is one element — and NOT the
+    /// receiver's incidental current content lengths, which would make the result of a MOVE depend on what the
+    /// receiving group happened to hold.</para>
+    ///
+    /// <para>That is exactly the carrier <c>CobolVarGroup</c> already models (kb/Work PB204): the collapsed fixed
+    /// run plus each variable-length component's current content, in order. So GR9 IS
+    /// <c>receiver.FromVarImage(sender.AsVarImage())</c> — the sender's carrier first seen in the RECEIVER's shape when
+    /// the two differ (<c>CobolVarGroup.Reshape</c>, kb/Work PB2496) — and each of GR9's sub-rules is discharged by a
+    /// part of that codec that was already written to the same clause:</para>
+    /// <list type="bullet">
+    ///   <item>GR9a's positional move of the non-table character positions — the fixed run, stored through the
+    ///     ONE image-member law at §8.5.1.12.3 offsets.</item>
+    ///   <item>GR9a's "the table in the sending group is moved to the corresponding table in the receiving group,
+    ///     as specified in 14.6.9.2" — the component store (<c>FromCurrentImage</c>: recreate the receiving table
+    ///     from the sending capacity; a non-dynamic receiver fits to its own occurrence count, §14.6.9.2 rules 1
+    ///     and 2). The store moves element IMAGES; §14.6.9.2's "Correspondingly numbered elements are moved
+    ///     according to the rules of the MOVE statement" is completed by the bound element moves
+    ///     <see cref="EmitElementMoves"/> renders after it, for every elementary pair the image does not already
+    ///     answer (kb/Work PB1144).</item>
+    ///   <item>GR9b's excess part — the fixed run is width-fitted, which IGNORES a longer sender's excess and
+    ///     SPACE-FILLS a shorter one's (step 3, "all other character positions are filled with space
+    ///     characters"); step 1 ("if the data item to be space-filled is a dynamic-length elementary item, the
+    ///     length of the receiving operand is set to zero") is the empty component a missing sender component
+    ///     yields, stored through §8.5.1.10.4's replace-with-no-padding rule; step 2 is
+    ///     <c>FromCurrentImage</c>'s own §14.6.9.4 space fill.</item>
+    /// </list>
+    ///
+    /// <para>A FIXED-length group on either side is admitted by §8.5.1.12.1 ("only one of the operands may be a
+    /// variable-length group"): it is its record image with no components, in its own shape, and
+    /// <c>CobolVarGroup.Reshape</c> pairs its tables with the other group's dynamic-capacity tables over the two shapes —
+    /// §8.5.1.12.3 sentence 3 and §14.6.9.1 both say to treat its table as a dynamic-capacity table of its fixed or
+    /// DEPENDING count, so this is the standard's own conversion rather than an adapter invented here.</para>
+    ///
+    /// <para>The pair reached emit only after §14.9.25.3 SR9 passed at bind
+    /// (<c>MoveTable16.Validity</c>, framed by <c>MoveBinder.MoveCategoryLegality</c>), so the two component sequences correspond one for
+    /// one by construction — which is why an ordinal carrier is faithful here for the same reason it is at the
+    /// activation boundary.</para></summary>
+    private bool VariableLengthGroupMove(Place target, BoundOperand source, bool senderFirst)
+    {
+        // §14.9.25.4 GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
+        // reference-modified operand is an ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6), never a group.
+        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets §14.9.25.4 GR9's first conjunct and is
+        // asked as ItemCategory.IsGroupItem — the CATEGORY question — never the structural IsGroup, which it
+        // fails for want of subordinate entries (kb/Work PB907; the bind-side twin is
+        // MoveClassifier.VariableLengthGroupSender, which this method asks). It is never
+        // VARIABLE-LENGTH (§13.18.45.3 SR8), so it takes the FIXED-group arm of PlaceRenderer.VarGroupOperand / VarCarrierWrite:
+        // its atoms are its span (VariableLengthCompatibility.GroupAtoms), and its image is the composed RenamesPlace string (PlaceRenderer).
+        // The antecedent is MoveClassifier's ONE reading, which the binder's §14.6.9.2 element moves ask too (kb/Work PB1144).
+        if (MoveClassifier.VariableLengthGroupSender(source, target) is not { } send) return false;
+        ctx.Writer.Line(PlaceRenderer.VarGroupOperand(send, "the sending variable-length group",
+                "the sending group of a variable-length group MOVE") is not var (carrier, sendShape)
+            ? LoudStmt(VarShapeReason(send.Item, "the sending operand of a variable-length group MOVE"))
+            : VarCarrierWrite(target, carrier, sendShape) is null ? LoudStmt(
+                VarShapeReason(target.Item, "the receiving operand of a variable-length group MOVE"))
+            : Ordered(senderFirst, source, target, carrier, c => VarCarrierWrite(target, c, sendShape)!));
+        return true;
+    }
+
+    /// <summary>The RECEIVING half of <see cref="PlaceRenderer.VarGroupOperand"/> (the ONE sending-side reader, shared
+    /// with the §8.8.4.2.17 comparison — kb/Work PB1467) — the statement that distributes the sender's carrier, seen in
+    /// the RECEIVER's shape, into the receiving group's members. ⛔ THE CARRIER IS RESHAPED (kb/Work PB2496): two
+    /// compatible groups may differ in everything but the positions of their variable-length items (§8.5.1.12.1), so a
+    /// sender's carrier is not, in general, the receiver's — a dynamic-capacity table opposite a fixed table (§8.5.1.12.3
+    /// sentence 3), a table of variable-length elements opposite another (§14.6.9.2, element by element). The pair is
+    /// the one the INVOKE boundary already reshapes (<c>OoEmitter</c>); handing the sender's carrier over ordinally put
+    /// a dynamic table's occurrences into the receiver's dynamic-length item. A fixed-length receiver takes the reshaped
+    /// carrier's fixed run, which is its whole record image. Null when the shape cannot be distributed.</summary>
+    private string? VarCarrierWrite(Place g, string carrier, GroupAtom[] sendShape)
+    {
+        if (VariableLengthCompatibility.GroupAtoms(g.Item) is not { } recvShape) return null;
+        string moved = PlaceRenderer.VarGroupInShape(carrier, sendShape, recvShape, ctx.Atoms);
+        return VariableLengthCompatibility.IsVariableLength(g.Item)
+            ? g.Item.CurrentExtentImageCapable
+                ? PlaceRenderer.WriteVarGroupImage(g, moved, "the receiving variable-length group", receivingOperand: true)
+                : null
+            : g.ImageCapable
+                ? PlaceRenderer.WriteGroupImage(g, RuntimeApi.StrStore($"{moved}.Fixed", g.Item.ImageWidth.ToString()),
+                    "the receiving group of a variable-length group MOVE")
+                : null;
+    }
+
+    /// <summary>Why a GR9 operand's §8.5.1.12 components cannot be composed by THIS implementation — a named
+    /// shape, never the generic Tier-C string, because the generic one blames "a dynamic-length /
+    /// dynamic-capacity member" and a FIXED group operand has none (the misattribution kb/Work PB393 measured).
+    /// Both residues are the pre-existing current-extent boundary published as CONFORMANCE.md A.1 item 57, not
+    /// something GR9 introduces.</summary>
+    private static string VarShapeReason(DataItem g, string role) =>
+        VariableLengthCompatibility.IsVariableLength(g)
+            ? $"{role}, '{g.CobolName ?? g.CsName}', is a variable-length group whose current extent this "
+              + "implementation cannot compose (an OCCURS DEPENDING table inside a dynamic-capacity table's element or "
+              + "beneath another table's element, or a member with no character image) "
+              + "— ISO §14.9.25.4 GR9 over §8.5.1.12; CONFORMANCE.md A.1 item 57"
+            : $"{role}, '{g.CobolName ?? g.CsName}', is a fixed-length group whose record image this "
+              + "implementation cannot lay out in character positions (a USAGE BIT leaf, or a leaf with no "
+              + "character image) — ISO §14.9.25.4 GR9 over §8.5.1.12.3; DESIGN §4.2";
+
+    /// <summary>The positionally-paired leaves of two groups whose flattened layouts are IDENTICAL — each pair
+    /// shares usage, digit count, scale, sign and storage shape, and neither group involves OCCURS, REDEFINES,
+    /// RENAMES or reference ambiguity (so <see cref="ReferenceResolver.ResolveItem"/> is exact). Null when the
+    /// layouts differ — the caller falls back to the Tier-C loud guard. (ISO §14.9.25.4 GR4: the group move
+    /// copies the underlying representation; identical layouts make that a memberwise copy.)</summary>
+    private static List<(DataItem Src, DataItem Tgt)>? AlignedLeafPairs(DataItem source, DataItem target)
+    {
+        // An OCCURS anywhere on the ancestor chain means the group reference is an ELEMENT (needs subscripts
+        // this item-level resolution cannot supply) — not this fast path.
+        for (var a = source; a is not null; a = a.Parent) if (a.Occurs is not null) return null;
+        for (var a = target; a is not null; a = a.Parent) if (a.Occurs is not null) return null;
+        var src = new List<DataItem>();
+        var tgt = new List<DataItem>();
+        if (!Flatten(source, src) || !Flatten(target, tgt) || src.Count != tgt.Count || src.Count == 0)
+            return null;
+        for (int i = 0; i < src.Count; i++)
+        {
+            var (a, b) = (src[i].Pic!, tgt[i].Pic!);
+            if (a.Usage != b.Usage || a.Category != b.Category || a.Digits != b.Digits || a.Scale != b.Scale
+                || a.Signed != b.Signed || a.Length != b.Length || src[i].StoreAsImage != tgt[i].StoreAsImage)
+                return null;
+        }
+        return src.Zip(tgt).ToList();
+
+        // Declaration-order leaves; false when the subtree has a shape the pairing cannot prove equivalent.
+        static bool Flatten(DataItem item, List<DataItem> leaves)
+        {
+            if (item.Occurs is not null || item.RedefinesTargetName is not null
+                || item.Renames66.Count > 0 || item.Class is not null)
+                return false;
+            if (!item.IsGroup)
+            {
+                if (item.Pic is null) return false;
+                leaves.Add(item);
+                return true;
+            }
+            foreach (var c in item.Children)
+                if (!Flatten(c, leaves))
+                    return false;
+            return true;
+        }
+    }
+
+    /// <summary>The compile-time numeric value of a digit-only <c>ALL "literal"</c> moving to a numeric receiver
+    /// (ISO §8.3.3.6.4 GR2 repetition + §14.9.25.4 GR6d3b — the digit string spans the receiver's digit positions,
+    /// fraction digits included, so the unscaled value IS the repeated digit run at the receiver's scale). ≤18
+    /// digit positions fold to a native <c>long</c> literal; a WIDE receiver (19–31 digits, COBOL-2002+ — ISO
+    /// §8.3.3.3.2) decodes its digit run through the ONE deterministic digit decode (<c>FromAlphanumeric</c>,
+    /// Int128 — numeric design D1).</summary>
+    private static NumX AllDigitFill(string literal, PicInfo pic)
+    {
+        string digits = EmitText.RepeatToWidth(literal, Math.Max(pic.Digits, 1));
+        return digits.Length <= 18
+            ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", pic.Scale)
+            : new NumX(RuntimeApi.NumDigitMagnitude(CsLiteral(digits)), pic.Scale);
+    }
+
+    /// <summary>True when a MOVE source carries a NUMERIC VALUE for the §14.9.25.4 GR5 editing path into a
+    /// numeric-edited receiver: a numeric literal/expression, figurative ZERO, a numeric data item, OR a
+    /// numeric-EDITED data item (GR5 + GR6d1 — a numeric-edited sender is DE-EDITED to its numeric value, which may be
+    /// signed, before being re-edited into the receiver mask). A plain alphanumeric source is NOT numeric — it moves
+    /// as characters (the §14.9.25.3 Table-16 unsigned-integer edit at the fall-through arm).</summary>
+    private static bool IsNumericOperand(BoundOperand source) => source switch
+    {
+        BoundNumericLiteral or BoundComputedOperand => true,
+        BoundFigurative { Kind: 'Z' } => true,
+        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
+        _ => false,
+    };
+
+    /// <summary>⛔ THE VALUE OF A RECORD THAT EXISTS ONLY AS A VALUE, FILLED BY A MOVE (kb/Work PB2587) — the C# expression
+    /// of a FIXED- or DYNAMIC-length elementary record of <paramref name="record"/>'s description after a MOVE from
+    /// <paramref name="source"/>. ISO §14.2.3 GR9's second regime allocates, for a non-numeric formal, "a data item with
+    /// the same description and the same number of bytes as the formal parameter" and fills it by "otherwise, a MOVE
+    /// statement": the activating element performs that MOVE and the activated element reads the record "as if it were
+    /// the argument and it were passed by reference", so the record never has a place of its own.
+    /// <para>The two arms a MOVE into an elementary receiver takes, chosen by the ONE GR4 sender test
+    /// (<see cref="MoveClassifier.IsGroupSender"/>): a GROUP sender is §14.9.25.4 GR4's move "as if it were an
+    /// alphanumeric to alphanumeric elementary move, except that there is no conversion" — the sender's storage through
+    /// the one representation codec, fitted to the record's bytes and decoded into its characters exactly as
+    /// <see cref="EmitGroupToElementaryMove"/> decodes a receiving place — and every other sender is the elementary
+    /// conversion <see cref="ConvertSource"/>, editing and alignment included (GR6).</para></summary>
+    public string RecordValue(BoundOperand source, DataItem record) =>
+        MoveClassifier.IsGroupSender(source)
+            ? GroupRecord(record, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"))
+            : ConvertSource(source, record);
+
+    /// <summary>⛔ THE SAME RECORD, FILLED AT THE ACTIVATION BOUNDARY (kb/Work PB2587) — the C# expression of
+    /// <see cref="RecordValue"/>'s record over a sending operand known only at run time, <paramref name="sending"/> (a C#
+    /// expression of a <see cref="MoveSending"/>, which the activating element renders from its argument: see
+    /// <c>CallEmitter.MoveSendingText</c>). It is what an activated unit registers for each non-numeric elementary formal
+    /// (<see cref="MoveLanding"/>), so a CALL that could not see the formal — a CALL by data-name or through a
+    /// program-pointer, or a prototype whose details §12.3.8.4 GR10 c) takes from the external repository — fills the
+    /// record exactly as one that could.
+    /// <para>The receiving half is THIS emitter's, arm for arm: GR4's group move (<see cref="GroupRecord"/>), a figurative
+    /// constant repeated to the record's size (§8.3.3.6.4 GR2, edited by an edited receiver exactly as
+    /// <see cref="ConvertSource"/> edits one), a value edited into a numeric-edited receiver at its own scale, and every
+    /// other sender's characters through <see cref="CharacterStore"/>.</para></summary>
+    public string MovedRecord(DataItem record, string sending)
+    {
+        var pic = record.OperandPic!;
+        string chars = RuntimeApi.MoveSendingCharacters(sending);
+        string fill = RuntimeApi.MoveSendingFill(sending);
+        string wN = $"{pic.Length}";
+        // §8.3.3.6.4 GR2: the fill repeated to the record's character positions — never for a dynamic-length record, which
+        // has no fixed size, so a figurative's one character is its whole content (§8.3.3.6.4 GR3 b)).
+        string repeated = RuntimeApi.StrStore(RuntimeApi.StrRepeat(chars, wN), wN);
+        string elementary =
+            record.IsDynamicLength ? CharacterStore(record, chars, "")
+            // A numeric-edited record EDITS a value (ZERO included) and takes a fill's characters unedited, as
+            // ConvertSource's figurative and ALL-literal arms store them.
+            : pic.Category is PicCategory.NumericEdited && !pic.IsCharacterEdited
+                ? $"({RuntimeApi.MoveSendingNumeric(sending)} ? {EditedValue(record, sending)} "
+                  + $": {fill} ? {repeated} : {CharacterStore(record, chars, wN)})"
+            : CharacterStore(record, $"({fill} ? {repeated} : {chars})", wN);
+        return $"({RuntimeApi.MoveSendingGroup(sending)} ? {GroupRecord(record, chars)} : {elementary})";
+    }
+
+    /// <summary>A run-time VALUE <paramref name="sending"/> edited into the numeric-edited <paramref name="record"/>
+    /// (§14.9.25.4 GR6 — "any editing specified for … the receiving data item"): aligned at the record's own scale
+    /// (<see cref="MoveSending.AtScale"/>, §14.6.8.2's truncation) for a fixed-point mask or a LOCALE picture, and handed
+    /// over as its exact decimal (<see cref="MoveSending.ExactValue"/>, never binary64) to a floating-point one —the forms <see cref="RuntimeApi.EditFormatFor"/> takes from
+    /// <see cref="ConvertSource"/>'s numeric arm.</summary>
+    private string EditedValue(DataItem record, string sending)
+    {
+        var pic = record.OperandPic!;
+        string cfg = ArithmeticEmitter.BwzFlag(record) + ctx.EditCfg(pic);
+        if (pic.IsFloatEdited)
+            return RuntimeApi.EditFormatFor(pic, new NumX(RuntimeApi.MoveSendingExactValue(sending), 0, Dec: true), "", "", cfg);
+        int scale = pic.ReceiverScale();
+        string aligned = RuntimeApi.MoveSendingAtScale(sending, scale);
+        return RuntimeApi.EditFormatFor(pic, new NumX(aligned, scale), aligned, $"{scale}", cfg);
+    }
+
+    /// <summary>§14.9.25.4 GR4's GROUP MOVE into an elementary RECORD: the sending group's storage image
+    /// <paramref name="sent"/>, fitted "as if it were an alphanumeric to alphanumeric elementary move" (the receiver's
+    /// JUSTIFIED included) to the record's bytes and decoded into its characters by the one storage decode — with no
+    /// conversion and no editing. A dynamic-length record takes the image whole (§8.5.1.10.4), as
+    /// <see cref="EmitGroupToElementaryMove"/> stores a dynamic-length place.</summary>
+    private static string GroupRecord(DataItem record, string sent) =>
+        record.IsDynamicLength
+            ? ReceivingStore.Characters(record, sent, "")
+            : ReceivingStore.StorageCharacters(record, ReceivingStore.Characters(record, sent, $"{record.ByteWidth}"),
+                $"{ReceivingStore.StoragePositions(record)}");
+
+    /// <summary>⛔ THE RECEIVING HALF OF AN ELEMENTARY MOVE OF CHARACTERS (kb/Work PB2587) — the store of
+    /// <paramref name="chars"/> (a C# string expression holding the sending operand's characters, its operational sign
+    /// already dropped, §14.9.25.4 GR6 a)) into an elementary receiver of <paramref name="target"/>'s non-numeric
+    /// description, at <paramref name="width"/> (the PICTURE length, or an ANY LENGTH receiver's runtime length). ONE
+    /// place for both the MOVE statement (<see cref="ConvertSource"/>) and §14.2.3 GR9's record at the activation boundary
+    /// (<see cref="MovedRecord"/>), so a receiving rule cannot be taught to one and not the other:
+    /// <list type="bullet">
+    ///   <item>a DYNAMIC-LENGTH receiver takes the characters whole (§8.5.1.10.4 — <see cref="ReceivingStore.Characters"/>);</item>
+    ///   <item>an alphanumeric-edited or national-edited one edits them by simple insertion (§13.18.40.5 Table 7), the mask
+    ///     AND the item's EDITING rules from the one PicInfo (kb/Work PB490);</item>
+    ///   <item>a NUMERIC-EDITED one reads them as an unsigned integer and edits it (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39:
+    ///     "12345" → $12,345.00);</item>
+    ///   <item>an ALPHANUMERIC or NATIONAL one aligns them (§14.6.8: left-justified, space-filled, a JUSTIFIED one
+    ///     right-justified — §13.18.32; the national substrate is the character one under the D-N4 correspondence);</item>
+    ///   <item>a BOOLEAN one CONVERTS each character ('1' to boolean one, every other character to zero — determination
+    ///     D-B5, kb/Work PB3666: §14.6.8.6 transfers "after any necessary conversion" and no rule names the conversion
+    ///     of a character that is not a boolean one) and then pads and left-fills with boolean ZEROS (§14.6.8.6;
+    ///     JUSTIFIED §13.18.32 GR2), so DISPLAY of the item and the boolean operators over it agree.</item>
+    /// </list></summary>
+    private string CharacterStore(DataItem target, string chars, string width)
+    {
+        if (target.IsDynamicLength) return ReceivingStore.Characters(target, chars, "");
+        var pic = target.OperandPic!;
+        if (pic.IsCharacterEdited) return RuntimeApi.EditFormatSimpleInsertion(chars, pic);
+        switch (pic.Category)
+        {
+            case PicCategory.NumericEdited:
+            {
+                string unsignedInt = RuntimeApi.NumFromAlphanumeric(chars, sending: true);
+                return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+            }
+            case PicCategory.Boolean:   // converts, then fits (D-B5): the ONE boolean store, StrStoreBoolean
+                return RuntimeApi.StrStoreBoolean(chars, width, target.Justified);
+            case PicCategory.Alphanumeric or PicCategory.National:
+                return ReceivingStore.Characters(target, chars, width);
+            default:
+                throw new InvalidOperationException(
+                    $"MoveEmitter.CharacterStore: a {pic.Category} receiver is not a character receiver ({target.CobolName})");
+        }
+    }
+
+    /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.
+    /// <paramref name="runtimeWidth"/> — the receiver's RUNTIME character count expression for an ANY LENGTH
+    /// receiver (ISO §13.18.2 GR1: the item behaves as n repetitions of its picture symbol where n is the
+    /// activating argument's length, so a MOVE stores at the CARRIER's current length, never Pic.Length=1);
+    /// null (every other receiver) keeps the compile-time width.</summary>
+    /// <param name="rounding">The ROUNDING MODE of the transfer. A MOVE never passes it — §14.6.8.2 r4's
+    /// alignment truncates by rule — and the default therefore preserves that. The ONE caller that does is the
+    /// REPORT SECTION's implicit COMPUTE: §13.18.53.4 GR2 ("If the ROUNDED phrase is specified, the implicit
+    /// COMPUTE statement has the corresponding ROUNDED phrase") and §13.18.54.4 GR4 ("the content of the sum
+    /// counter is computed according to the general rules for the COMPUTE statement with the ROUNDED phrase").
+    /// A rounded implicit transfer is still THIS conversion — the receiver's PICTURE governs the store either
+    /// way — so the mode is threaded rather than a second conversion written (kb/Work PB852).</param>
+    public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null,
+        CobolRounding rounding = CobolRounding.Truncation)
+    {
+        var pic = target.OperandPic!;   // an elementary receiver's picture, or a bit / national group's as-if picture (D20/PB79)
+        // The figurative's CATEGORY is the receiver's character context — §14.9.25.4 GR7 Table 17, i.e. its Table 2
+        // CLASS (kb/Work PB442): a numeric-edited USAGE NATIONAL receiver makes HIGH-/LOW-VALUE NATIONAL.
+        var figContext = IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfItem(target));
+        // A DYNAMIC LENGTH receiver (ISO §8.5.1.10.4 / §13.18.19): store the sender's DISPLAY image, replacing the
+        // old content, with the new length = the SENDING length TRUNCATED ON THE RIGHT to the LIMIT and NO padding
+        // (the minimum length is zero, §13.18.19.4 GR1). A figurative constant OTHER THAN `ALL literal` has a
+        // sending length of ONE character (§8.3.3.6.4 GR3b) — so MOVE SPACE/ZERO/HIGH-VALUE/… each store a single
+        // fill character (length 1), never length 0; a zero-length literal "" is a BoundStringLiteral whose AsString
+        // is "" (length 0 — honoring §14.9.25.4 GR2's NOT-SPACE-substituted rule for the dynamic-length receiver).
+        // AsString already renders every source correctly (a figurative as new string(fill,1)), so the general
+        // DynStore path is exhaustive. A PIC X/N dynamic-length item carries no edit mask, so this precedes the
+        // fixed-width figurative/ALL and numeric-edited paths below.
+        if (target.IsDynamicLength)   // the ONE elementary character receiving store owns §8.5.1.10.4 (kb/Work PB871)
+            return CharacterStore(target, SendingCharacters(source), "");
+        string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
+        // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §8.3.3.6.4 GR2
+        // and §14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first
+        // repeated "until the size of the resultant string is greater than or equal to the number of character
+        // positions in the associated data item", and THEN the move performs "any editing specified for … the
+        // receiving data item", so an INSERTION position still takes its own character — `MOVE SPACES TO
+        // PIC XX/XX` yields `  /  ` (NIST NC223A INI-TEST-GF-1) and `MOVE ALL "X"` yields `XX/XX`. The two guards
+        // below therefore share ONE predicate, PicInfo.IsCharacterEdited, and defer to the switch's edited arm.
+        // (kb/Work PB492: the figurative guard named only the ALPHANUMERIC half — measured `MOVE SPACE TO
+        // PIC NN0NN` → five spaces where the zero must survive — and the ALL-literal guard named neither, so
+        // `MOVE ALL "X" TO PIC XX/XX` stored `XXXXX`. One rule, two call sites, wrong at both.)
+        // The OTHER exception is figurative ZERO into a numeric-edited receiver, which is the numeric value 0
+        // EDITED into the mask ('ZZ9.99' shows '  0.00', not a zero-fill).
+        if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
+            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited) && !pic.IsCharacterEdited)
+            // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
+            // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
+            // program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
+            return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, figContext, ctx.Data.NationalCollating)}, {wN})";
+        // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2). An ANY LENGTH
+        // receiver's width exists only at runtime — repeat at runtime, then width-fit (§13.18.2 GR1).
+        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited)
+            return runtimeWidth is null
+                ? CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length))
+                : RuntimeApi.StrStore(RuntimeApi.StrRepeat(CsLiteral(a.Literal), runtimeWidth), runtimeWidth);
+
+        // ⭐ THE EDITED CHARACTER CATEGORIES — alphanumeric-edited and national-edited — take ONE arm, ABOVE the
+        // per-category switch, because §13.18.40.5 Table 7 gives them ONE type of editing between them ("Simple
+        // insertion") and nothing else. Hoisting it here rather than writing a `case` per category is the point:
+        // a case list is what the ACCEPT, STRING and MOVE arms each grew with only the alphanumeric half in it,
+        // leaving a national-edited receiver with no renderer at all (kb/Work PB492). ISO §14.9.25.4 GR6 makes
+        // the editing part of every valid elementary move, and GR6 a) the alignment: "When an alphanumeric,
+        // alphanumeric-edited, national, or national-edited data item is a receiving operand, alignment and any
+        // necessary space filling shall take place as defined in 14.6.8".
+        if (pic.IsCharacterEdited)
+        {
+            // A figurative or ALL-literal source supplies the fill §8.3.3.6.4 GR2 computes — repeated to the
+            // receiver's size — as the EDIT's sending characters, which the data positions then consume in
+            // order while each insertion position takes its own character. The figurative fill is the
+            // CATEGORY-AWARE one, so a national-edited receiver's HIGH/LOW-VALUE reads the national sequence
+            // (§8.3.3.6 GR6/GR7), exactly as the whole-width guard above does.
+            string aeSrc = source switch
+            {
+                BoundFigurative ff =>
+                    $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating, figContext, ctx.Data.NationalCollating)}, {pic.Length})",
+                BoundAllLiteral al => CsLiteral(EmitText.RepeatToWidth(al.Literal, pic.Length)),
+                _ => SendingCharacters(source),
+            };
+            return CharacterStore(target, aeSrc, wN);
+        }
+
+        switch (pic.Category)
+        {
+            // A NUMERIC source moving to a numeric-edited receiver is EDITED into the receiver's picture
+            // (ISO §14.9.25.4 GR6 — "any editing specified for … the receiving data item"; GR6 a) alignment);
+            // an alphanumeric source stays a plain character move.
+            case PicCategory.NumericEdited when IsNumericOperand(source):
+                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
+                // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
+                // mask scale (it has none); the dispatch is RuntimeApi.EditFormatFor's, keyed on the receiver's picture.
+                if (pic.IsFloatEdited)
+                    return RuntimeApi.EditFormatFor(pic, e, "", "", ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+                // The edit Format takes a scaled Int128. A NATIVE scaled sender passes at its own scale: the formatter's
+                // own alignment IS the MOVE's truncation (§14.6.8.2). Every other carrier — a float (D16 review: CS1503),
+                // a STANDARD-DECIMAL intermediate (fix-queue PB65: CS1503), an unsigned-wide item (kb/Work PB2163's
+                // sibling sweep: CS1503) — lands at the RECEIVER's fraction scale through the ONE edited landing
+                // (NumericRenderer.EditedLanding), unchecked: a MOVE keeps the low-order digits past the carrier
+                // (kb/Work PB77) and carries an unsigned item's full container range (DOC-A.1-179). NB the receiver
+                // scale is the ONE PicInfo.ReceiverScale rule, NOT pic.Scale (a masked item's Scale is 0 — the point
+                // is in the mask; a format-2 LOCALE item's IS pic.Scale — kb/Work PB64 T6).
+                int ems = pic.ReceiverScale();
+                bool nativeScaled = e.Carrier == NumXCarrier.Scaled;
+                string editVal = nativeScaled ? e.Expr : NumericRenderer.EditedLanding(e, ems, rounding, checkedLanding: false);
+                int editScale = nativeScaled ? e.Scale : ems;
+                // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.
+                return RuntimeApi.EditFormatFor(pic, e, editVal, $"{editScale}",
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+            // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
+            // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
+            // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
+            // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
+            // Every other sender into a numeric-edited, alphanumeric, national or boolean receiver is its characters
+            // (a signed numeric source drops its operational sign, ISO §14.9.25.4 GR6a) through the ONE receiving half.
+            // Figurative ZERO into a boolean receiver already early-returned above as a '0' fill; the SR7-illegal
+            // figurative shapes never reach emit (bind-rejected, MoveCategoryLegality).
+            case PicCategory.NumericEdited or PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean:
+                return CharacterStore(target, SendingCharacters(source), wN);
+            case PicCategory.Numeric:
+                // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
+                // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a
+                // figurative sending operand takes the receiver's digit count, fraction digits included), so
+                // every digit position holds the pattern: ALL "5" → PIC 9(3) stores 555; → PIC 9V9 stores 5.5
+                // (unscaled 55 at scale 1 — legacy-oracle confirmed). Valid at EVERY edition for the
+                // single-digit-ALL → integer case (§14.9.25.3 SR5, obsolete-flagged 0903 at 2023 by the binder);
+                // the non-integer / multi-character shapes are 0902-gated at 2023 and keep these pre-removal
+                // semantics at 85/2002/2014 and under --permissive (ALL "57" → PIC 9(3) stores 575, the legacy
+                // oracle's '85-obsolete-element behavior — provisional, ratified decision 1). This was the
+                // BoundAllLiteral runtime-loud latent bug (W2 track A): the move compiled then died in AsNum.
+                // A float RECEIVER (COMP-1/2/FLOAT-*, D16) holds the algebraic value in a native float/double —
+                // no PICTURE, no scaled-integer store, no SIZE ERROR (an arithmetic ±Inf is a valid value; §14.6.8.3
+                // GR1). §14.6.13.2 dash-3: the source read is EC-DATA-NOT-FINITE-EXEMPT only when sending and receiving
+                // share the SAME floating-point usage specification (a verbatim copy, endianness aside — Usage enum
+                // equality; endianness is a separate phrase, not a Usage value). A fixed source or a DIFFERENT float
+                // usage (COMP-1↔COMP-2, and the reachable narrowing) keeps the CobolFloat.Sending wrap.
+                if (pic.IsFloat)
+                {
+                    bool sameUsage = source is BoundFieldOperand fsrc
+                        && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
+                    // ⛔ A SAME-USAGE FLOAT MOVE IS A COPY, NOT A CONVERSION (kb/Work PB961). §14.9.25.4 GR6 c):
+                    // "When the receiving data item is described with the same usage specification as the sending
+                    // operand, the data in the sending operand is transferred to the receiving data item without
+                    // change" — NOTE 3 names NaN representations as what that preserves. The algebraic path below
+                    // widens a binary32 sender to binary64, which QUIETS a signaling NaN, so the copy reads the
+                    // sender on its OWN carrier (a float stays a float end to end) and re-encodes only the
+                    // receiver's endianness, which is the one change GR6 c) permits.
+                    if (sameUsage)
+                    {
+                        string raw = NumericRenderer.FloatCarrierRead(((BoundFieldOperand)source).Place, SendingRef.SameUsageMove);
+                        return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(raw, target.ProfileName, pic.IsSingle) : raw;
+                    }
+                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, SendingRef.MoveToNumeric);
+                    // §14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
+                    // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
+                    // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by
+                    // EcBinder. THE TEST IS ON THE ALGEBRAIC VALUE, so a decimal sender is handed over WHOLE:
+                    // ⛔ an SDIDI sender reaches ±9.999…E+6144 and collapses to ±Infinity in ToDouble, so BOTH arms
+                    // used to miss it (kb/Work PB271) — the double arm was a bare cast whose stated premise, "a
+                    // double receiver cannot overflow from a finite double", quietly assumed a finite DOUBLE ever
+                    // reached it, and StoreSingleChecked's own finite-source guard was already false.
+                    // `MOVE 1.0E+400 TO F` stored +Infinity with no condition raised, at every checking level.
+                    // A non-decimal sender cannot exceed binary64 (a fixed-point item caps at 31 digits, a float
+                    // item is already binary64), so it keeps the double-domain single-precision check.
+                    string fval = fsrcNum.Dec
+                        ? $"({pic.ClrType})({RuntimeApi.FloatStoreDecChecked(fsrcNum.Expr, pic.IsSingle)})"
+                        : pic.IsSingle
+                            ? fsrcNum.Real
+                                ? RuntimeApi.FloatStoreSingleChecked(NumericRenderer.Real(fsrcNum))
+                                // A fixed-point sender converts to binary32 in ONE rounding (kb/Work PB1110): narrowing its
+                                // binary64 is a second one, and a value just above a binary32 midpoint lands on the midpoint.
+                                : RuntimeApi.FloatStoreScaledSingleChecked(NumericRenderer.ScaledSingle(fsrcNum))
+                            : $"({pic.ClrType})({NumericRenderer.Real(fsrcNum)})";
+                    // A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) re-encodes
+                    // as its IEEE window bytes.
+                    return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName, pic.IsSingle) : fval;
+                }
+                NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
+                    ? AllDigitFill(allDigit.Literal, pic)
+                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
+                // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
+                // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
+                // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
+                int recvScaleM = target.OperandPic!.Scale;
+                // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
+                // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
+                // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.
+                // …and every carrier stores through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84), so
+                // the Dec/float/native switch is written once for MOVE, the arithmetic store and INVOKE alike.
+                string stored = ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName, rounding), target);
+                // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
+                return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
+            default:
+                return "default";
+        }
+    }
+
+    /// <summary>The RECEIVER-SCALE context a numeric MOVE source renders under (fix-queue PB60 /
+    /// RV-15.68.4-1 half 2). <c>Receiverless</c> STAYS TRUE — the float family keeps its deliberate binary64
+    /// sending value (only a genuinely receiver-less render keeps a float in binary64, per
+    /// <see cref="ReceiverContext"/>'s own doc; MOVE's float landing owns the <c>ToScaled</c> at the receiver
+    /// scale) — but the SCALE and the Int128-headroom cap now carry the ACTUAL receiver, so an exact-family
+    /// intrinsic source renders at the precision the receiver can store instead of the receiver-less floor.
+    /// Measured: <c>MOVE FUNCTION NUMVAL-C("$0.123456789") TO PIC S9(4)V9(9)</c> stored 0.123456000 while
+    /// COMPUTE stored the exact value — §15.68.4 r1 carries no channel qualification. The scale mirrors
+    /// <c>ArithmeticEmitter.ScaleOf</c> (a numeric-edited receiver's scale is its MASK's) and the digits
+    /// <c>ArithmeticEmitter.IntDigitsOf</c> (from <c>DigitPositions</c>, never the '9' count — under-counting
+    /// breaks the PB13 saturation-is-visible invariant).</summary>
+    private ReceiverContext SenderContext(DataItem target)
+    {
+        if (target.Pic is not { } pic) return ReceiverContext.None;
+        // The ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf — PB64 T6: this copy and ArithmeticEmitter's
+        // both fell to pic.Scale = 0 for a format-2 LOCALE item, silently truncating a fractional sender).
+        int scale = pic.ReceiverScale();
+        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
+    }
+}

@@ -7,13 +7,13 @@ is built in the tree: the DAG-validated pass framework, the immutable `BoundComp
 (Step 11), and the FUNCTION-argument grammar (Step 12 — arguments bind through the ONE `ExpressionBinder.BindExpr`;
 the hand-rolled intrinsic argument parser is deleted). The §7 open questions were resolved during execution (the
 source generator was adopted).
-Scope: the binding middle-end of the greenfield compiler (`src/Cobol.Net.Compiler/Binding/**`) and the
+Scope: the binding middle-end of the greenfield compiler (`src/WiseOwl.Cobol.Compiler/Binding/**`) and the
 bound-tree contract it produces (`Binding/Bound/BoundTree.cs`). Dimension: **Target binder pipeline &
 bound-tree/IR design**. Sibling design docs own the data model (`DataItem`/`PicInfo`/`Place`/`StorageForm`),
 the emitter decomposition, the editions framework, and the driver/pipeline shell; this doc cites them where
 they meet the binder and declares the dependencies explicitly at the end.
 
-SSOT alignment: `docs/COBOLNET_DESIGN.md` §1.1 (no shared lowered IR), §2 (bind-once bound tree), §16 (build
+SSOT alignment: `docs/DESIGN.md` §1.1 (no shared lowered IR), §2 (bind-once bound tree), §16 (build
 order), §18 (settled decisions). This design **keeps** the owner-locked §1.1/§18.23 "no shared lowered IR"
 decision and works within it — see §3.3 for the precise distinction between the *rejected* CIL-shaped branch IR
 and the *adopted* semantic-normalization-on-the-bound-tree.
@@ -135,7 +135,7 @@ A pass is a unit of forest computation that declares what forest facts it consum
 an enum of named facts, NOT free strings, so the DAG is compile-time enumerable and greppable.
 
 ```csharp
-namespace CobolNet.Binding.Pipeline;
+namespace WiseOwl.Cobol.Binding.Pipeline;
 
 /// One computed forest fact. A pass may only READ a capability listed in Requires and may only
 /// WRITE (mark produced) a capability listed in Produces. The manifest validates the DAG at startup.
@@ -385,7 +385,7 @@ into `IBoundStatementVisitor<T>` implementations. The loud runtime defaults are 
 types:** `BoundRejected`, `BoundExprError`, `BoundOperandError` and `BoundBoolError` have private constructors and are
 obtained only through factories (`Report` / `Reported`; `Refused` / `Unbuilt` / `Carry` / `Report`) that put them on
 the `EditionContext` refusal ledger, which `StatementBinder.BindStatement` checks per statement (COBOL2362 for a
-refusal that drew no error; COBOL1756 for an unbuilt operand) — `COBOLNET_DESIGN.md` §1.4 is the contract and
+refusal that drew no error; COBOL1756 for an unbuilt operand) — `DESIGN.md` §1.4 is the contract and
 `RefusalNodeDriftTests` the drift test. The reference resolver's own answer is closed the same way (kb/Work PB1030):
 `RefResolution` — `Place | Reported | Deferred` — from which a caller picks its refusal node, with `DeferredShape` the one
 census of unbuilt reference shapes (`RefResolutionDriftTests`). (If the owner declines a source generator, the
@@ -1062,7 +1062,7 @@ the bit-alignment proof and the string hoist deleted, and `PositionCarrierDriftT
 | rename | `BoundStores` | `BoundStoreAnalysis` | It is an analysis, not storage |
 | create | — | `Common/CobolLiteral.cs` (Decode), `Binding/RecordLayout.cs`, `Binding/PhraseBlocks.cs`, `DataItem.Root` | One canonical helper per job (dedup) |
 | move | `ReferenceResolver` subscript readers (`SegmentsOf`/`BindPosition`/`WindowScopeOf` — the hand-rolled token splitter is gone, kb/Work PB2113, and positions are the typed `Position` carrier, §3.9, kb/Work PB2151) | `NameResolver` collaborator | Thin the resolver; it becomes an orchestrator over SymbolTable |
-| retire (G8) | `using Core = CobolParserCore; using legacy-root.Generated;` (`StatementBinder.cs:6,11`) | `CobolNet.Frontend.Generated` | Decouple from the legacy generated namespace at cut-over (driver/frontend sibling) |
+| retire (G8) | `using Core = CobolParserCore; using legacy-root.Generated;` (`StatementBinder.cs:6,11`) | `WiseOwl.Cobol.Frontend.Generated` | Decouple from the legacy generated namespace at cut-over (driver/frontend sibling) |
 
 ---
 

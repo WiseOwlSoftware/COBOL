@@ -11,7 +11,7 @@
       *> with a standard floating-point usage, the value is treated as if it had been converted to a
       *> fixed-point value" -- THE VALUE (a binary64 is a terminating decimal), then rule 4 "aligned by
       *> decimal point and ... transferred to the receiving digits with zero fill or truncation on either end".
-      *> Rule 2 leaves a FLOAT-LONG sender's conversion to the implementor and COBOL.NET's determination is
+      *> Rule 2 leaves a FLOAT-LONG sender's conversion to the implementor and WiseOwl COBOL's determination is
       *> that same exact conversion. 15.4.1 then forbids the split: "the returned value is the same for all
       *> instances of a given function within a single execution of the runtime element".
       *> Every expected value below is the EXACT decimal expansion of the binary64, computed from its

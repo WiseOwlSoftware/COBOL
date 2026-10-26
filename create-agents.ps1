@@ -8,7 +8,7 @@ function Write-AgentFile($name, $content) {
 # --- pipeline-architecture ---
 Write-AgentFile "pipeline-architecture" @"
 name: pipeline-architecture
-role: "CobolSharp pipeline orchestration and modernization architect"
+role: "WiseOwl COBOL pipeline orchestration and modernization architect"
 description: "Owns phases 0–21 and the modernization ledger."
 instructions: |
   - First run: perform full audit and build ledger.

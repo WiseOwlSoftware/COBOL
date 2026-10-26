@@ -67,7 +67,7 @@ THE PLAN FILE (`--out`), canonical JSON (UTF-8, sorted keys, no insignificant wh
 `leg1` and `leg2` are in RANK order: a key's rank is its position, leg 1's list first. THE LEG FUNCTION (`leg_of`,
 mirrored by the test hosts): 1 for a leg-1 key, 2 for a leg-2 key, and 1 for a key in neither — total over every
 name, so a case the plan never heard of runs in leg 1, never nowhere. The last stdout line is the SHA-256 of the
-file's BYTES: the digest the gate driver hands the test hosts (COBOLNET_GATE_PLAN_SHA256).
+file's BYTES: the digest the gate driver hands the test hosts (WISEOWL_COBOL_GATE_PLAN_SHA256).
 
 Usage:
     python scripts/gate_plan.py --out plan.json --list Conformance=conf.txt --list Unit=unit.txt \\
@@ -685,7 +685,7 @@ def self_test() -> int:
         failures += 0 if ok else 1
         print(f"  {'PASS' if ok else '⛔ FAIL'}  {label}{': ' + str(detail) if detail != '' else ''}")
 
-    ns = "CobolNet.Tests.Conformance."
+    ns = "WiseOwl.Cobol.Tests.Conformance."
     check("NameKey strips the partition suffix from the class segment",
           name_key(ns + 'ConformanceSuiteTests_P2.SuiteTest_IsNoWorseThanItsVerdictAllows(edition: "85", id: "x")')
           == ns + 'ConformanceSuiteTests.SuiteTest_IsNoWorseThanItsVerdictAllows(edition: "85", id: "x")')

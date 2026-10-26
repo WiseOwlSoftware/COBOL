@@ -39,7 +39,7 @@ KINDS = ("devlog", "pb", "code", "wave")
 PB_FILE = re.compile(r"^PB(\d+)\.md$")
 CODE = re.compile(r"\bCOBOL(\d{4})\b")
 CATALOG_CODE = re.compile(r'"COBOL(\d{4})"')
-CATALOG = pathlib.Path("src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs")
+CATALOG = pathlib.Path("src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs")
 
 
 # ── truth: one rule per kind ─────────────────────────────────────────────────────────────────────────────────────

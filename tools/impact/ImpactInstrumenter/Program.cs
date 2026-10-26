@@ -6,13 +6,13 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-namespace CobolNet.Impact.Instrumenter;
+namespace WiseOwl.Cobol.Impact.Instrumenter;
 
 /// <summary>
 /// The impact recorder's IL rewriter (kb/Work PB1683; docs/rearchitecture/DESIGN-test-build-ci.md §3.13).
 ///
 /// <para>Given the bin directories of a RECORDING build (one whose assemblies carry the internal
-/// <c>CobolNet.Impact.ImpactProbe</c> — tools/impact/ImpactRecording.targets), it rewrites every covered assembly
+/// <c>WiseOwl.Cobol.Impact.ImpactProbe</c> — tools/impact/ImpactRecording.targets), it rewrites every covered assembly
 /// ONCE and copies the result over every copy of it in those directories:</para>
 /// <list type="bullet">
 /// <item>every method with sequence points calls <c>ImpactProbe.Hit(id)</c> on entry, where <c>id</c> is that
@@ -34,8 +34,8 @@ namespace CobolNet.Impact.Instrumenter;
 /// </summary>
 internal static class Program
 {
-    private const string ProbeType = "CobolNet.Impact.ImpactProbe";
-    private const string ImpactNamespace = "CobolNet.Impact";
+    private const string ProbeType = "WiseOwl.Cobol.Impact.ImpactProbe";
+    private const string ImpactNamespace = "WiseOwl.Cobol.Impact";
 
     private static int Main(string[] args)
     {
