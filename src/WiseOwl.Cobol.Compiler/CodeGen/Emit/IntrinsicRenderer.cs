@@ -62,7 +62,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // scope over an arithmetic operand (kb/Work PB844).
             return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic), sending: false), 0);
 
-        // ⛔ THE §15.4.1 NATIVE LATITUDE IS WITHDRAWN WHERE THE FUNCTION DEFINITION FIXES THE VALUE — SO THIS ARM
+        // ⛔ THE §15.4.1 NATIVE LATITUDE IS WITHDRAWN WHERE THE FUNCTION DEFINITION FIXES THE VALUE (NUMVAL, NUMVAL-C) AND
+        // IS RESOLVED TO THE EXACT PARSE WHERE IT LEAVES AN APPROXIMATION (NUMVAL-F, kb/Work PB3839, below) — SO THIS ARM
         // RUNS BEFORE THE ARITHMETIC-MODE DISPATCH, NOT INSIDE ITS STANDARD BRANCH (kb/Work PB251, rows
         // RV-15.4.1-2 / RV-15.4.1-L2.2). §15.4.1's closing sentence is a CONDITIONAL — "When a numeric or integer
         // function does not have an equivalent arithmetic expression, its returned value is implementor-defined
@@ -83,10 +84,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // before this landed, `DISPLAY FUNCTION NUMVAL("0.1234567")` printed 0.123456, and — a real receiver being
         // no protection, because the receiver bounds the STATEMENT's result and not an OPERAND's precision —
         // `COMPUTE R = FUNCTION NUMVAL("0.1234567") * 10000000` stored 1234560 into PIC 9(9) where r1 owes
-        // 1234567. NUMVAL-F is NOT here and must not be: §15.69.4 r2 grants native arithmetic "an approximation of
-        // the numeric value represented by argument-1", so its native lane keeps the float family's determination
-        // (CONFORMANCE.md item 92, PB60/RV-15.69.4-2) — the r2/r3 split is the standard drawing this exact line.
-        if (IntrinsicCarrierRules.ValueFixedByDefinition(sig.RuntimeMethod) && RenderDec(ic) is { } fixedByDefinition)
+        // 1234567.
+        // ⛔ NUMVAL-F IS HERE TOO, AND FOR A DIFFERENT REASON (kb/Work PB3839). §15.69.4 r2 grants native arithmetic "an
+        // approximation of the numeric value represented by argument-1" and r3 gives standard-decimal arithmetic the value
+        // itself, so the native digits are the IMPLEMENTOR's (§15.4.1) and the only question is which approximation. The
+        // float family's (a binary64 wherever no fixed-point scale governs, an Int128 truncation at the receiver-capped
+        // working scale where one does) made ONE reference two values: `DISPLAY FUNCTION NUMVAL-F("0.12340000000001")`
+        // printed the full value while `COMPUTE R ROUNDED MODE AWAY-FROM-ZERO = FUNCTION NUMVAL-F("0.12340000000001")` into
+        // `9V9(4)` truncated at the working scale first and stored 0.1234 where NUMVAL and GnuCOBOL store 0.1235: the
+        // receiver-shape dependence CONFORMANCE.md item 92's NUMVAL paragraph rejects, and a double rounding
+        // (§14.7.4.3's rounding happens ONCE, at the receiver). The determination is the exact parse, r3's value, in every
+        // mode and channel; a floating-point receiver is the SDIDI landing's own one conversion of that exact value.
+        if (IntrinsicCarrierRules.ReturnsExactParse(sig.RuntimeMethod) && RenderDec(ic) is { } fixedByDefinition)
             return fixedByDefinition;
 
         // ⛔ ROUTE ON THE ARGUMENT'S TYPE, NOT ONLY THE FUNCTION'S FAMILY (fix-queue PB2). The exact family
@@ -248,14 +257,22 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "MaxScaled" or "MinScaled":
             {
                 var (vals, scales, s) = RawArgPairs(ic);
-                // The result scale is the RECEIVER's when one is known (a store then rescales by identity and
-                // the receiver's own §14.9.25.4 GR6 truncation semantics apply, via the store-cap); a
-                // receiverless/float context keeps the common scale and stays LOUD past the escape boundary —
-                // a capped value inside a comparison would silently compare the wrong number (PB13's
-                // receiver-blind-scale lesson, applied in both directions). A FLOATING-POINT edited receiver is
-                // the float context too: its Scale is only the mask's hint (ReceiverContext.RoundsAtItsScale).
+                // ⛔ THE SELECTED VALUE REACHES A RECEIVER WITH EVERY DIGIT IT HAS (kb/Work PB3839). The result scale
+                // is the common argument scale s, widened to the receiver's own scale and capped at the receiver's
+                // Int128 headroom (ReceiverContext.WorkingScale), NEVER the receiver's scale alone: landing the
+                // selected value at a coarser receiver scale truncated it there first and the receiver's ROUNDED
+                // phrase then rounded the truncation, so MAX(0.12345 0.1) into PIC 9V99 ROUNDED MODE
+                // AWAY-FROM-ZERO stored 0.12 where §14.7.4.3 GR3 owes the one rounding of 0.12345, 0.13 - the same
+                // reference giving a different value to a different receiver, which §15.59.4 r1 ("the content of the
+                // argument-1 having the greatest value") does not allow. The receiver-bound result keeps the
+                // store-cap (§14.9.25.4 GR6 high-order truncation semantics, the receiver's own capacity finishing
+                // the job: the headroom cap is what keeps every digit a receiver can hold below the cap); a
+                // receiverless/float context keeps the common scale and stays LOUD past the escape boundary — a
+                // capped value inside a comparison would silently compare the wrong number (PB13's
+                // receiver-blind-scale lesson, applied in both directions). A FLOATING-POINT edited receiver is the
+                // float context too: its Scale is only the mask's hint (ReceiverContext.RoundsAtItsScale).
                 bool store = num.Receiver.RoundsAtItsScale;
-                int to = store ? num.Receiver.Scale : s;
+                int to = store ? num.Receiver.WorkingScale(s) : s;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod is "MaxScaled" ? "MaxAt" : "MinAt",
                     $"{to}, {(store ? "true" : "false")}, {vals}, {scales}"), to);
             }
@@ -426,36 +443,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "TestFormattedDatetime":                                       // §15.92 — 0 (valid) or the 1-based error position
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{LeapSecondFlag}"), 0);
-            // §15.69 NUMVAL-F — the ws floor follows the float-family precedent, and so does its CAP: this is a
-            // THIRD instance of the PB13 quantizer defect, and the one PB5 itself missed. The runtime still
-            // clamped at long.MaxValue (PB5's original 9.2×10¹⁸ clamp, never swept to this sibling), so
-            // FUNCTION NUMVAL-F("1E+20") into a PIC 9(31) returned 9223372036 — ten orders of magnitude out,
-            // with NO SIZE ERROR, where §15.69.4 r2 requires "an approximation of the numeric value represented
-            // by argument-1". Found by FloatQuantizeHeadroomDriftTests, not by eye.
-            case "NumvalF":
-            {
-                // ⛔ THE FLOAT FAMILY'S RECEIVERLESS/REAL ARM, SWEPT HERE AT LAST (fix-queue PB60 / RV-15.69.4-2 —
-                // the sweep RenderFloat's own comment asked for). §15.69.4 r2 makes NUMVAL-F's NATIVE value an
-                // APPROXIMATION, and this compiler's documented determination for an approximated returned value
-                // (CONFORMANCE.md item 92) is the float family's: binary64 unless a FIXED-POINT arithmetic receiver
-                // quantizes it. With no receiver there is no scale to quantize TO, and the ws-9 stand-in was not a
-                // rendering choice but a wrong answer: `IF FUNCTION NUMVAL-F("5E+30") = FUNCTION NUMVAL-F("9E+30")`
-                // was TRUE (both saturating to the Int128 sentinel), `DISPLAY` printed that sentinel, a COMP-2
-                // receiver got 1.7E+29, and NUMVAL-F("1.5E-12") was 0 in every receiver-less channel. Every consumer
-                // of a receiver-less numeric already has its Real arm (relation, text, subscript, argument).
-                // A fixed arithmetic receiver keeps the EXACT Int128 parse below — the receiver's scale is known and
-                // the PB13 cap makes any saturation visible to its capacity check — and so does a MOVE SENDER
-                // (ReceiverContext.MoveSender: the receiver's scale is known and MOVE lands the parsed decimal
-                // digit-for-digit; the binary64 route would land NUMVAL-F("1.5E-8") into V9(9) as 14 through
-                // ToScaled's multiply-then-truncate, and lose every digit past the 17th of a 20-digit argument).
-                // ⛔ A FLOATING-POINT NUMERIC-EDITED receiver has no fixed scale either (kb/Work PB3829's sweep, the
-                // FloatLanding rule): its store normalizes the value into the mask, so a landing at the ≥ 9 working
-                // scale first turned NUMVAL-F("1.5E-12") into +0.000E+00. It takes the binary64 too.
-                if (num.Receiver.Real || num.Receiver.FloatEdited || (num.Receiver.Receiverless && !num.Receiver.MoveSender))
-                    return new NumX(RuntimeApi.Intrinsic("NumvalFDouble", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0, Real: true, Approximate: true);
-                int ws = num.Receiver.FloatWorkingScale;
-                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}{CheckedFlag}"), ws);
-            }
+            // (NUMVAL-F has NO arm here in ANY arithmetic mode or channel: its value is the exact parse, so RenderNum's first
+            // arm routes it to the SDIDI projection before the mode dispatch, exactly as NUMVAL and NUMVAL-C; kb/Work PB3839.)
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,         //   the r1b digit-cap sub-note is MODE-dependent,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);         //   exactly as its two TEST- siblings (PB60)
@@ -1062,6 +1051,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// The second half of the always-SDIDI set: functions whose standard-mode returned value a RULE fixes
     /// outright, so the argument carrier cannot matter. Unlike <see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/> this half has
     /// no structural derivation — each member is here for its own cited reason and is listed one by one.
+    /// The NUMVAL family is not listed: <see cref="IntrinsicCarrierRules.ReturnsExactParse"/> (every mode, every
+    /// channel) is the third member of the always-SDIDI union <see cref="RenderDec"/> forms.
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
@@ -1073,24 +1064,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     ///   <item><c>Annuity</c> / <c>PresentValue</c> / <c>Variance</c> / <c>StandardDeviation</c> — the four
     ///         INEXACT-EAE functions: their equivalent arithmetic expressions DIVIDE, so even an all-fixed-point
     ///         argument list must evaluate in SDIDI form. This is what removed their COBOL0899 stage.</item>
-    ///   <item><c>Numval</c> / <c>NumvalC</c> / <c>NumvalF</c> — §15.67.4 r1 / §15.68.4 r1 / §15.69.4 r3 name the
-    ///         returned value outright ("the numeric value represented by argument-1"; NUMVAL-F's r2/r3 pair
-    ///         grants NATIVE arithmetic the approximation and STANDARD-DECIMAL none) and §15.4.1 places it in an
-    ///         SDIDI. Their argument is a string, so the carrier question never arises; before this arm the
-    ///         standard-mode value rode the native Int128 projection at the item-92 working scale
-    ///         (fix-queue PB60, RV-15.67.4-1a). ⛔ For NUMVAL and NUMVAL-C the MODE is not part of the
-    ///         question at all (kb/Work PB251): <see cref="IntrinsicCarrierRules.ValueFixedByDefinition"/> routes them to
-    ///         <see cref="RenderDec"/> BEFORE the arithmetic-mode dispatch, so that arm precedes this
-    ///         set; they are listed here because a string argument makes <c>AnyDecOrRealRaw</c> false
-    ///         and the early-out would otherwise return null under native. NUMVAL-F is standard-mode
-    ///         only — §15.69.4 r2 grants IT, and only it, the native approximation.</item>
     /// </list>
     /// </remarks>
     private static readonly FrozenSet<string> StandardValueFixedByRule = new[]
     {
         "Sqrt", "Factorial",
         "Annuity", "PresentValue", "Variance", "StandardDeviation",
-        "Numval", "NumvalC", "NumvalF",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
@@ -1135,7 +1114,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// unscaled landing whose fixed working scale truncated sub-microscale operands to zero.
     /// </summary>
     /// <remarks>
-    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule</c> route here for EVERY
+    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule ∪ ReturnsExactParse</c> route here for EVERY
     /// argument shape, and everything else routes here only when a RAW argument is Dec or float — or, for an
     /// <see cref="EquivalentExpressionUnaryArms"/> member, when the argument's lift would ROUND
     /// (<see cref="ArgumentRoundsAtLift"/>, kb/Work PB2965). The remaining NON-aligning exact-EAE functions with an
@@ -1152,17 +1131,19 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
         string m = ic.Sig.RuntimeMethod;
-        // ⛔ TWO SETS, ONE DECISION (kb/Work PB252): CrossAlignedNativeArms is STRUCTURAL (the native arm
-        // cross-aligns, so alignment can need more digits than the Int128 carrier holds) and
-        // StandardValueFixedByRule is the cited-exception half. Between them they replace the inline
-        // `alwaysDec` name chain, and ExactCarrierBoundaryDriftTests derives the first from this switch.
-        // ⛔ AND THE NUMVAL PAIR REACHES HERE IN EVERY MODE (kb/Work PB251): RenderNum consults RenderDec for
-        // Numval/NumvalC through ValueFixedByDefinition BEFORE the arithmetic-mode dispatch, because
-        // §15.67.4 r1 / §15.68.4 r1 name the returned value with no mode qualification and §15.4.1's
-        // implementor latitude reaches only a function whose definition does NOT otherwise specify it. That
-        // arm precedes this set; the pair is listed below anyway because their argument is a STRING, so
-        // AnyDecOrRealRaw is false and without the membership this early-out would return null under native.
-        bool alwaysSdidi = IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m);
+        // ⛔ THREE SETS, ONE DECISION (kb/Work PB252): CrossAlignedNativeArms is STRUCTURAL (the native arm
+        // cross-aligns, so alignment can need more digits than the Int128 carrier holds),
+        // StandardValueFixedByRule is the cited-exception half, and ReturnsExactParse is the NUMVAL family.
+        // Between them they replace the inline `alwaysDec` name chain, and ExactCarrierBoundaryDriftTests derives
+        // the first from this switch.
+        // ⛔ THE NUMVAL FAMILY REACHES HERE IN EVERY MODE AND CHANNEL (kb/Work PB251, PB3839): RenderNum consults
+        // RenderDec for it through ReturnsExactParse BEFORE the arithmetic-mode dispatch, because §15.67.4 r1 /
+        // §15.68.4 r1 name the returned value with no mode qualification, §15.4.1's implementor latitude reaches only
+        // a function whose definition does NOT otherwise specify it, and NUMVAL-F's §15.69.4 r2 approximation is
+        // resolved to r3's exact value. Their argument is a STRING, so AnyDecOrRealRaw is false and the set is the
+        // only thing that keeps this early-out from returning null under native.
+        bool alwaysSdidi = IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m)
+            || IntrinsicCarrierRules.ReturnsExactParse(m);
         if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic)) return null;
 
         string mode = num.IntermediateMode;
@@ -1174,11 +1155,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // and §15.4.1's "unless otherwise specified in the function definition" is what makes that binding
             // under native too), so the digit cap is 31 or 34 by the MODE and is passed explicitly whenever it is
             // not the family's default — exactly as the TEST- twins receive it, so the scan's r1b sub-note-4
-            // verdict and the value agree on the same number. NUMVAL-F alone stays standard-mode-only here: its
-            // §15.69.4 r2 grants native arithmetic an approximation, which RenderNum's float arm delivers.
+            // verdict and the value agree on the same number. NUMVAL-F is the third member (kb/Work PB3839): its
+            // §15.69.4 r2 grants native arithmetic an approximation, and the implementor's determination is r3's exact
+            // value, so it cannot depend on the receiver that lands it or on the channel that reads it.
             "Numval" => Dec(RuntimeApi.Intrinsic("NumvalDec", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
-            // StandardValueFixedByRule keeps this the path for EVERY NUMVAL-C under a standard arithmetic
-            // mode, and RenderNum's ValueFixedByDefinition arm reaches it under NATIVE too (PB251) — the
+            // ReturnsExactParse makes this the path for EVERY NUMVAL-C in every arithmetic mode: RenderNum's
+            // first arm reaches it under NATIVE too (PB251) — the
             // LOCALE arm is needed HERE too or --arithmetic standard is silently wrong (indexing the absent
             // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
             "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",
