@@ -55,3 +55,10 @@ arm of the three new self-tests (`impact_lane.py`, `impact_store.py`, `record_im
 log, the mailbox); a worker that raises is a FAILED recording of the commit it held, not a silently dead worker; a plan file
 `measure` cannot read is counted and said; a map `prune` cannot remove is reported busy. The first draft let a lane exception
 escape `adopt` after the checkout had moved, which would have hidden the supervisor's restart trigger; fixed and tested.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at head 4d1a4e348, run 000003-20261026T041742Z:
+Conformance 8,346/18,832, Unit 36,641/38,371, Characterization 7/36 cases ran, `Linux half (WSL clone of HEAD) GREEN`; the four
+`ImpactMapLaneDriftTests` and the six `ImpactedTestsDriftTests` Passed in `leg-1-Unit.trx`. Two earlier reds, both this change's
+own: the line-endings audit (five self-test writers lacked `newline=`) and `HostWitnessTraitDriftTests` (the new drift test reads
+the tree and so carries the `Sweep` trait the drift-rule index names it for). The gate's own plan read `map none`: the lane
+that this change adds had never run.
