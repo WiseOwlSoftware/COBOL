@@ -14,7 +14,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the one definition of the reports directory)
 sys.path.insert(0, str(HERE.parents[2] / 'scripts' / 'arch'))
-import plan_wave  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
+import inflight  # noqa: E402  (collision: THE meeting rule of the partition, kb/Work PB3670, PB3696)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 T = HERE / 'templates'
@@ -197,7 +197,7 @@ def mechanical_model_overrides():
     return found
 
 
-# O2: two groups of one wave whose CLAIMS meet (plan_wave.collision: on ANY file both claim, either claims it whole or a
+# O2: two groups of one wave whose CLAIMS meet (inflight.collision: on ANY file both claim, either claims it whole or a
 # member of one matches a member of the other: the groups file's `file_set` and `member_set`) are a SUCCESSOR chain
 # (`after:`), so the second merges the first's branch instead of conflicting with it: the rule the planner chains by and
 # holds in-flight work by (kb/Work PB3696; it once compared the primary file alone, a second copy of the rule). Two
@@ -210,7 +210,7 @@ def group_claim(g):
     """A group's claim as the groups file states it: its `file_set` with its `member_set` (plan_wave.py writes both), or,
     for a hand-built group without one, the primary src/ file its `root` names, whole."""
     files = g.get('file_set') or ([m.group(0)] if (m := PRIMARY.search(g.get('root', ''))) else [])
-    return plan_wave.Claim.of(files, g.get('member_set'))
+    return inflight.Claim.of(files, g.get('member_set'))
 
 
 def claims_meet_without_successor(groups_path):
@@ -228,7 +228,7 @@ def claims_meet_without_successor(groups_path):
     for i, a in enumerate(groups):
         for b in groups[i + 1:]:
             if a['letter'] not in chain(b['letter']) and b['letter'] not in chain(a['letter']):
-                if hit := plan_wave.collision(group_claim(a), group_claim(b)):
+                if hit := inflight.collision(group_claim(a), group_claim(b)):
                     found.append(f"{a['letter']}+{b['letter']} on {hit}")
     return found
 
@@ -236,7 +236,7 @@ def claims_meet_without_successor(groups_path):
 def specs_missing_requirements(groups_path, specs):
     """The (spec name, requirement) pairs where a rendered spec lacks a requirement the groups file declares (kb/Work
     PB3359). A group's `requirements` is {campaign lead: [requirement]}, the lead notes' `## Standing requirements`
-    (plan_wave.group_requirements) of every campaign the group's notes belong to: the owner's instructions that the
+    (groups.group_requirements) of every campaign the group's notes belong to: the owner's instructions that the
     group must meet, which reach an implementer only through its spec. A spec is matched to its group by the name
     `msg-w<wave>-<letter>.txt` (make_dispatch_specs.py's), so a group's requirement is checked in its OWN spec only.
     Whitespace is compared collapsed, as the planner collapses it. A group with none declares none."""

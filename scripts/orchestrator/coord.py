@@ -147,8 +147,8 @@ DISPATCH_LEDGER = "inflight-groups.json"
 
 def ledger_groups(coord_dir: pathlib.Path) -> list[dict[str, Any]]:
     """THE reader of the dispatch ledger (<coord>/inflight-groups.json): its wave GROUPS, each keyed by (wave, letter),
-    written only by plan_wave.record_dispatch from a planned or rendered wave (kb/Work PB3186). An entry with `hand: true`
-    or a wave that is not a number is no dispatch: the retired guard hook wrote it from a scrape of every note id a prompt
+    written only by dispatch_ledger.record_dispatch from a planned or rendered wave (kb/Work PB3186). An entry with
+    `hand: true` or a wave that is not a number is no dispatch: the retired guard hook wrote it from a scrape of every note id a prompt
     mentioned, with the union of their file sets (six entries of 303-910 files on 2026-10-15). Every reader ignores
     such an entry, and the next record_dispatch drops it."""
     groups = read_json(coord_dir / DISPATCH_LEDGER, {"groups": []}).get("groups", [])
