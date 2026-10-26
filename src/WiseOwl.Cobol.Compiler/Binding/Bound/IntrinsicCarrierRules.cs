@@ -48,27 +48,37 @@ internal static class IntrinsicCarrierRules
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
-    /// The functions whose DEFINITION fixes the returned value in EVERY arithmetic mode, so §15.4.1's
-    /// implementor latitude never reaches them and no working scale may be imposed (kb/Work PB251). Asked by
-    /// <c>IntrinsicRenderer.RenderNum</c> BEFORE the arithmetic-mode dispatch.
+    /// ⛔ THE FUNCTIONS WHOSE RETURNED VALUE IS THE EXACT PARSE OF THEIR STRING ARGUMENT IN EVERY ARITHMETIC MODE AND IN
+    /// EVERY CHANNEL, so no working scale and no receiver shape may touch it (kb/Work PB251, PB3839). Asked by
+    /// <c>IntrinsicRenderer.RenderNum</c> BEFORE the arithmetic-mode dispatch, and by <c>FunctionValueLane</c>.
     /// </summary>
     /// <remarks>
-    /// <para>⛔ THE SET IS TWO, AND IT WAS DERIVED BY SWEEPING CLAUSE 15 RATHER THAN BY RECALL — the refuted
-    /// adjudication's screen ("standard-decimal arithmetic is in effect" + "34 digits") could only find
-    /// MODE-CONDITIONED specifications and so missed the one function that states its value unconditionally.
-    /// The sound screen is: a §15.x "Returned value rule(s)" clause that mentions NEITHER an arithmetic mode,
-    /// NOR "implementor", NOR "approximation", NOR an equivalent arithmetic expression. Over clause 15 that
-    /// yields 38 functions, and every one but these two returns an INTEGER, a STRING, or a selected argument's
-    /// own content — shapes no fraction-digit working scale can damage. E (§15.27.3 r1), PI (§15.73.3 r1),
-    /// SQRT (§15.84.4 r4) and NUMVAL-F (§15.69.4 r2) each say "native … implementor-defined approximation" in
-    /// so many words, which is why they keep the float lane and are NOT here.</para>
-    /// <para>The members: NUMVAL §15.67.4 r1 and NUMVAL-C §15.68.4 r1, both "The returned value is the numeric
-    /// value represented by argument-1". <c>IntrinsicRenderer.RenderDec</c> holds their SDIDI arms (its <c>alwaysDec</c>
-    /// list already named them), so this predicate only decides WHEN that lane is taken, never what it does.
-    /// If it ever returned <c>null</c> here the switch's <c>default</c> stages LOUD — never a quiet fallback to
-    /// a working-scale render.</para>
+    /// <para>⛔ THE SET IS THREE: TWO BY DEFINITION AND ONE BY THE IMPLEMENTOR'S DETERMINATION. NUMVAL §15.67.4 r1 and
+    /// NUMVAL-C §15.68.4 r1 are specifications "otherwise" in §15.4.1's closing conditional ("implementor-defined unless
+    /// otherwise specified in the function definition"): "The returned value is the numeric value represented by
+    /// argument-1", with no arithmetic-mode qualification, so the latitude is withdrawn. NUMVAL-F is the opposite
+    /// case: §15.69.4 r2 makes the native and standard-binary value "an approximation of the numeric value represented
+    /// by argument-1" and r3 gives standard-decimal arithmetic the value itself, so the approximation is the
+    /// implementor's to choose. WiseOwl COBOL chooses the one approximation that is also r3's value, the EXACT parse
+    /// (owner, 2026-10-26, kb/Work PB3839: "We should always be consistent with ourself barring an explicit requirement
+    /// differently"). Every other approximation made the value depend on the receiver: a binary64 for a DISPLAY, a
+    /// working-scale truncation for a fixed-point receiver that then rounded the truncation again.</para>
+    /// <para>The sweep that derived the first two members screened clause 15 for a "Returned value rules" clause that
+    /// mentions NEITHER an arithmetic mode, NOR "implementor", NOR "approximation", NOR an equivalent arithmetic
+    /// expression. Over clause 15 that yields 38 functions, and every one but NUMVAL and NUMVAL-C returns an INTEGER, a
+    /// STRING, or a selected argument's own content, shapes no fraction-digit working scale can damage. E (§15.27.3) and
+    /// PI (§15.73.3) return, under native arithmetic, "an implementor-defined approximation of the arithmetic expression" and SQRT (§15.84.4) the absolute value of an approximation, all of values with no finite decimal
+    /// spelling, which is why they keep the float lane; NUMVAL-F is the one approximating function whose exact value is
+    /// a decimal its argument already spells. <c>IntrinsicRenderer.RenderDec</c> holds the SDIDI arms, so this predicate
+    /// only decides WHEN that lane is taken, never what it does. If it ever returned <c>null</c> there the switch's
+    /// <c>default</c> stages LOUD, never a quiet fallback to a working-scale render.</para>
     /// </remarks>
-    internal static bool ValueFixedByDefinition(string runtimeMethod) => runtimeMethod is "Numval" or "NumvalC";
+    internal static bool ReturnsExactParse(string runtimeMethod) => ExactParseFunctions.Contains(runtimeMethod);
+
+    /// <summary>The runtime-method names <see cref="ReturnsExactParse"/> answers true for, as a set so that
+    /// <c>ReceiverShapeReaderDriftTests</c> can hold each member against the renderer (no <c>RenderNum</c> arm of its own,
+    /// an SDIDI arm in <c>RenderDec</c>) instead of restating the list.</summary>
+    internal static readonly FrozenSet<string> ExactParseFunctions = new[] { "Numval", "NumvalC", "NumvalF" }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>An exact scaled operand whose digit bound is known: its unscaled digits (<c>NumX.Digits</c>), its scale
     /// and whether it is a table(ALL) argument, which stands for an unknown number of elements.</summary>

@@ -86,7 +86,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > `IF 2.50E0 / 3 * 1000000000000000 > 833333333333333` was NOT GREATER where the `2.50` spelling is GREATER (R4-1,
 > `pb3538_written_precision`); the written scale still decides, as it does for a fixed-point operand and in
 > GnuCOBOL's `cob_decimal`, so `2.5E0` and `2.5` truncate one place sooner than `2.50`. A binary64 approximation
-> lifted to the SDIDI (a floating-math function's value, NUMVAL-F under native arithmetic, §15.69.4 2)) has no written
+> lifted to the SDIDI (a floating-math function's value, §15.4.1) has no written
 > scale: it is held at the places of its shortest round-trip decimal. A nested quotient over such a value, and every sum,
 > difference, product and negation between it and that quotient, is then also spelled as a `CobolDecWithPrecision`
 > (the value paired with its operands' precision, `NumX.WithPrecision`: an alternative spelling of the same
@@ -225,9 +225,12 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   scale, no receiver, no ≥6/≥9 floor: `NUMVAL("1.2345678")` is 1.2345678 in every channel, a 34-digit argument
 >   (legal under the standard-mode digit cap) is exact, and NUMVAL-F's E-exponent lifts through
 >   `CobolDec.FromParsed` — the ONE §8.8.1.5.2 r2 range check every SDIDI result gets (`1E+9999` ⇒
->   EC-SIZE-OVERFLOW). The NATIVE-mode value stays the documented item-92 working-scale determination
->   (CONFORMANCE.md). Pinned by `pb60_numval_standard_decimal` + the NUMVAL tests in `CobolIntrinsicsDecTests`
->   (incl. the native-agreement theory on the shared fixed-point domain).
+>   EC-SIZE-OVERFLOW). ⛔ **The NATIVE-mode value is the same SDIDI** (kb/Work PB251 for NUMVAL / NUMVAL-C; kb/Work
+>   PB3839 for NUMVAL-F, whose §15.69.4 r2 approximation the implementor resolves to r3's exact value so that no
+>   receiver shape, channel or mode changes it; `IntrinsicCarrierRules.ReturnsExactParse` is the ONE predicate, asked by
+>   `RenderNum`'s first arm and by `FunctionValueLane`). There is no scaled-`Int128` projection of the family left.
+>   Pinned by `pb60_numval_standard_decimal`, `pb3839_numval_f_one_value` + the NUMVAL tests in
+>   `CobolIntrinsicsDecTests` (incl. the one-projection theory on the shared fixed-point domain).
 > - **The RW SUM clause (§8.8.1.5.1 names it):** documented-equivalence consumption at the ReportWriterEmitter
 >   chokepoint — each §13.18.54 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
 >   in both engines; no routing needed.
@@ -459,11 +462,15 @@ conformant usages — a documented asymmetry, matches the legacy engine).
 ### D18. Every WORKING SCALE is capped at the receiver's Int128 headroom, and a RECEIVER-LESS float render is not quantized at all (`ReceiverContext.WorkingScale(floor)` / `.Receiverless`).
 
 **Decision.** Two rules, one carrier. (a) When a fixed-point receiver governs the render, a value landed at a
-WORKING scale uses `ws = min(max(receiverScale, floor), 38 − receiverIntegerDigits)`, where `floor` is the
-family's own: **9** for the §15.4.1 float family and `**` (`FloatWorkingScale`), **6** for the NUMVAL family
-(§15.67/§15.68/§15.69). One method parameterised by the floor — NOT one rule per family, because the defect is a
-property of the working-scale-then-rescale SHAPE and not of which function produced the value, and a per-family
-copy is exactly how PB5 fixed the float clamp while leaving `Numval`/`NumvalF` clamping at `long.MaxValue`.
+WORKING scale uses `ws = min(max(receiverScale, floor), 38 − receiverIntegerDigits)` (`ReceiverContext.WorkingScale`),
+where `floor` is the landing's own choice. The float family and `**` no longer land at a working scale at all
+(kb/Work PB3829: `FloatLanding` quantizes at the receiver's own scale), and the NUMVAL family has none (kb/Work PB251,
+PB3839: the SDIDI carries it); what remains is the landing of an SDIDI intermediate into the `Int128` lane
+(`SdidiLandingScaleFloor` = 6) and MAX / MIN's receiver-bound selection (`WorkingScale(s)` with the common argument scale
+as the floor, kb/Work PB3839: a selected value must reach a ROUNDED receiver with every digit it has). One method
+parameterised by the floor — NOT one rule per family, because the defect is a property of the working-scale-then-rescale
+SHAPE and not of which function produced the value, and a per-family copy is exactly how PB5 fixed the float clamp while
+leaving `Numval`/`NumvalF` clamping at `long.MaxValue`.
 (b) When NOTHING governs the render — `ReceiverContext.None`: a relation operand, a sign condition, a
 DISPLAY/STRING text operand, a MOVE source — a float-family value stays binary64 (`NumX.Real`) and is never
 quantized. ⛔ (b) IS NOT THE ONLY UNQUANTIZED SHAPE ANY MORE: a NESTED float operand inside a larger expression
@@ -471,9 +478,10 @@ keeps its binary64 too (D20, kb/Work PB653), and both answers now come from the 
 `ReceiverContext.FloatLanding` decision rather than from a receiver-shape test each consumer writes for itself.
 
 **Corollaries that fall out of (a) and (b), both landed with it.** `CobolIntrinsics.Numval`/`NumvalC`/`NumvalF`
-return `Int128` and saturate there through one shared `Rescaled` helper (which also BOUNDS the decimal shift
+returned `Int128` and saturated there through one shared `Rescaled` helper (which also BOUNDED the decimal shift
 before calling `Pow10.AsWide`, which THROWS outside its 0..38 table (it used to wrap past 10³⁸ and answer 1 for a negative
-exponent, kb/Work PB2633 — an unbounded `E±nn` would otherwise reach a caller that computed with a plausible wrong power). And `NumericRenderer.Align`
+exponent, kb/Work PB2633 — an unbounded `E±nn` would otherwise reach a caller that computed with a plausible wrong power).
+(Retired: all three are SDIDI functions now — kb/Work PB251, PB3839 — and `Rescaled` is deleted with the last `Int128` NUMVAL-F body.) And `NumericRenderer.Align`
 gained a `Real` arm: rule (b) lets a binary64 reach the receiver-less integral sites (subscript, SET amount,
 PERFORM VARYING FROM/BY, report VARYING, RETRY count), and without it the double expression went straight to a
 caller expecting a scaled integral — the PB2 shape. It was already reachable through a COMP-2 operand, so the arm
@@ -603,9 +611,8 @@ CONSTRUCTION across the arithmetic, relation, text and MOVE channels.
 BOTH consumers wrote the receiver-shape test out for themselves (`Receiver.Real || Receiver.Receiverless` in
 `RenderFloatNative`, `b.Real || e.Real || _rcv.Real || _rcv.Receiverless` in `Power`), and neither private copy
 learned about the nested case when PB647 added it. That is this codebase's recurring two-arm shape, sixth
-sighting. `NUMVAL-F` deliberately does NOT consult the decision — its fixed-receiver landing is an EXACT decimal
-parse (§15.69.4 r2 / kb/Work PB60) carrying MORE precision than a binary64, so "keep the binary64" would lose
-digits there; its nested arm has PB653's shape and is filed on its own.
+sighting. `NUMVAL-F` does NOT consult the decision — it is not a binary64 at all: its value is the EXACT decimal parse in
+every channel (§15.69.4 r2's approximation resolved to r3's value, kb/Work PB3839), landed by the SDIDI rules.
 
 **Rationale (kb/Work PB647).** The quantizer hard-coded `NearestAwayFromZero` at a working scale in BOTH
 positions while the MOVE channel (`CobolFloat.ToScaledUnchecked`) had always taken the receiver's mode at the
@@ -971,7 +978,7 @@ capacity check raises the size error (PB13's invariant, `ReceiverContext.Working
 above the receiver). The UNCHECKED landing — a MOVE (§14.6.8.2 r4 "truncation on either end"; there is no size
 error in a MOVE), the no-phrase arithmetic store (§14.6.13.1.3 item 8 — CONFORMANCE.md item 70: the resultant takes
 the LOW-ORDER digits), INVOKE BY CONTENT — keeps the low-order digits, because it has no check to see a sentinel and
-truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)` stored 884105727 and
+truncating a sentinel stores garbage: `MOVE FUNCTION NUMVAL-F("5E+30") TO PIC V9(9)` (before NUMVAL-F became an SDIDI function) stored 884105727 and
 `COMPUTE X5 = <COMP-2 1.0E+40>` stored 03715, the low digits of `Int128.MaxValue`. The SDIDI carrier had the two
 forms since PB74 (`CobolDec.ToUnscaledChecked` / `ToUnscaled`); the pair now exists for the native exact family
 (`CobolIntrinsics.Rescaled(…, checkedLanding)` — the unchecked arm is `CobolNum.RescaleStoreCap`, digits a ≤38-digit
