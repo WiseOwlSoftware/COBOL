@@ -23192,7 +23192,7 @@ The CONTINUE statement is a no-operation statement. It indicates that no executa
 ##### 14.9.9.2 General format
 
 <pre style="line-height:1">
-CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
+<u>CONTINUE</u> [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
 </pre>
 > **Figure notes (CONTINUE, 14.9.9.2).** Underlining measured from the printed page: `AFTER` and `SECONDS`
 > carry underline rules (required words, 5.2.2); the bracket makes the whole phrase optional.
@@ -23210,11 +23210,12 @@ CONTINUE [ <u>AFTER</u> arithmetic-expression-1 <u>SECONDS</u> ]
 >   ("Implicit CONTINUE statements shall be processed as if AFTER ZERO SECONDS were specified") is about
 >   their BEHAVIOUR, not about the notation of this format. If `CONTINUE` were omissible, an *implicit*
 >   CONTINUE would be writable — a contradiction in terms.
-> ⚠ **The standard contradicts itself about this phrase.** Page 732 (RECEIVE, 14.9.31.2) prints the same
-> `CONTINUE AFTER … SECONDS` phrase with `CONTINUE` underlined and `AFTER`/`SECONDS` NOT underlined —
-> exactly inverted from this page. This clause is the DEFINING occurrence and governs: `AFTER` and
-> `SECONDS` are required. It is also the only reading that means anything, since `CONTINUE 5` with both
-> words omitted would be legal and undefined.
+> **This page governs the CONTINUE statement only.** Page 732 (RECEIVE, 14.9.31.2) prints a `CONTINUE AFTER …
+> SECONDS` phrase of its own with `CONTINUE` underlined and `AFTER`/`SECONDS` NOT underlined. That is not a
+> contradiction to resolve here: 8.3.2.4.3 decides optional words "within each format", and 14.9.31.4 GR2
+> gives RECEIVE's "CONTINUE phrase" its own semantics rather than borrowing this statement's. So `AFTER` and
+> `SECONDS` are required in the CONTINUE statement and optional in the RECEIVE statement's CONTINUE phrase
+> (kb/Work PB3751, which reversed an earlier note here that made this page govern both).
 
 <a id="section-14-9-9-3"></a>
 ##### 14.9.9.3 Syntax rules
