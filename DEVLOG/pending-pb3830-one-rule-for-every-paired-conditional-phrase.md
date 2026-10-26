@@ -45,3 +45,11 @@ and three COBOLNET2269 refusals. `ConditionalPhraseDriftTests` holds the table t
 transcription, statement by statement at the latest edition. It also holds the owners to exactly the rules that write
 `conditionalPhrases`, bare, and the phrase keywords to the one head rule. Ten CONFORMS inventory rows had their
 code-locations re-sited from the deleted rules (batch `pb3830-conditional-phrases`); GAP unchanged at 31.
+
+The first gate was red on two `GeneralFormatViolationTests` rows that pinned the bare COBOL0307 for a repeated ON
+OVERFLOW and a repeated AT END; the test's own header asks a change that names the rule to update the row, and both now
+pin COBOLNET2269. Self-review folded the two readings of a phrase's leading tokens into one
+(`ConditionalPhrases.KindOfLeadingTokens`), shared `CobolErrorStrategy.LastRuleChild` instead of copying it, and
+dropped an unused accessor. Gate (run `000002-20261026T192839Z`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN — … Conformance 10,369/18,884 · Unit 37,292/38,397 · Characterization 7/36 cases ran (skipped 0) in 1 of
+2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
