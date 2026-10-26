@@ -1253,13 +1253,16 @@ and runs `scripts/orchestrator/autostart.ps1`, which lives in git: wait 25 s for
 `OWNER-QUESTIONS.md`, adopt `origin/main` into the checkout (`adopt_main.py`, section 4.10: the routine the supervisor runs between its units), then run
 `orchestrate.ps1 -Watch` in that window so the owner can watch it, and print what the exit code means.
 
-This replaces the old arrangement (a `%LOCALAPPDATA%\WiseOwl.Cobol` script that started an interactive `claude` session whose prompt had
+This replaced an older arrangement (a script under `%LOCALAPPDATA%` that started an interactive `claude` session whose prompt had
 to re-create a session-only cron job at `5 3 * * *`). The supervisor needs no cron: `budget.py` returns `hold-day` until 03:05 and
 `hold-session` until the 5-hour reset, and every unit is a fresh session chained by `handoff.json`, so a reboot loses at most the unit
 that was running (a Workflow in flight dies with its process; its worktrees and checkpoints survive and the next `resume` unit
-picks them up). The installer moves the old script and the old `.cmd` to `%LOCALAPPDATA%\WiseOwl.Cobol\replaced\` as a rollback copy and
-nothing calls them. `test_autostart.ps1` proves the install, the idempotent re-install, the uninstall, and that STOP and a waiting
-owner question stop the start, all in temp directories.
+picks them up). EXACTLY ONE entry starts the loop: the installer moves every other Startup `.cmd` whose text runs
+`orchestrator/autostart.ps1` (an entry written under an earlier name before kb/Work PB3837 retired the product's old names)
+to `%LOCALAPPDATA%\WiseOwl.Cobol\replaced\`, and copies there an entry under its own name that does not start the loop before
+replacing it: rollback copies, which nothing calls. `test_autostart.ps1` proves the install, that the earlier entry is moved and
+an unrelated one stays, the idempotent re-install, the uninstall, and that STOP and a waiting owner question stop the start, all
+in temp directories.
 
 ## 10b. Starting an ATTENDED session (and the context-full restart)
 

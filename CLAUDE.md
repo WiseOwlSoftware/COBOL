@@ -87,9 +87,10 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
 4. Before the session ends: update the `kb/Work/` notes you touched, update §0, add a DEVLOG entry.
 
 ## The project
-WiseOwl COBOL (repo `WiseOwlSoftware/COBOL`; code `src/WiseOwl.Cobol.*`, exe `cobol`, NuGet `WiseOwl.COBOL`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a
+WiseOwl COBOL (repo `WiseOwlSoftware/COBOL`; code `src/WiseOwl.Cobol.*` in namespaces `WiseOwl.Cobol.*`, solution
+`WiseOwl.Cobol.sln`, exe `cobol`, NuGet `WiseOwl.COBOL`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a
 COBOL record IS a .NET `record struct`, an elementary item IS a native field. **There is NO byte `ProgramState`
-substrate — never reintroduce one.** The legacy WiseOwl COBOL engine that had one is deleted from `main` (PHASE 15 Cut 2,
+substrate — never reintroduce one.** The legacy byte engine that had one is deleted from `main` (PHASE 15 Cut 2,
 kb/Work PB2110); `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it.
 
 **Mission (owner decision D13):** a commercial-quality, decades-sustainable compiler that is **100% conforming to
@@ -105,6 +106,9 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 - **Plan / live state:** `docs/REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8
   forward-residue ledger · §9 verification commands + corpus mechanics · §11 analysis backlog · §12 risk register.
 - **Design SSOT:** `docs/DESIGN.md` plus the `docs/rearchitecture/DESIGN-*.md` deep-dives.
+- **Names:** the code carries the product's name, `WiseOwl.Cobol` (owner, kb/Work PB3837); the product's earlier names
+  live only in history, and `scripts/rename_retired_names.py --check` (the RETIRED NAMES audit) refuses them elsewhere.
+  Implementor environment variables are `WISEOWL_COBOL_*`.
 - **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision),
   tracked in git, with the forensic prose in the note body. `kb/Work.base` is the view; **`Fix next`** ranks
   on what a defect DOES to a user's program, not on its severity label. `python scripts/spec/work.py next`

@@ -860,15 +860,15 @@ The rules (each a drift assertion, listed with the measure that shows today's di
   ids, which NuGet keeps independent of assembly names. R64 #3 allows a change ("Project and assembly names may
   change in the review"); nothing is gained by one.
 - *The namespace roots become the project names: **owner decision, PB2118 question 1, answered YES on 2026-10-07***
-  ("Yes to: May the namespace roots WiseOwl.Cobol, WiseOwl.Cobol.Frontend, WiseOwl.Cobol.Editions and WiseOwl.Cobol.Cli become the project names (WiseOwl.Cobol.Compiler, WiseOwl.Cobol.Frontend, WiseOwl.Cobol.Editions, WiseOwl.Cobol.Cli), reversing PROJECT_ORG_DESIGN.md §1.1, which keeps the single token WiseOwl.Cobol?"). It was the owner's question because R64 #3 speaks of project and assembly
-  names only. The record that speaks of namespaces is `PROJECT_ORG_DESIGN.md` §1.1 ("root namespaces stay
-  the single token `WiseOwl.Cobol`", with the owner named as the one who may prefer `WiseOwl.Cobol` namespaces), and §8.2
+  ("Yes to: May the namespace roots [of the compiler, the front end, the editions leaf and the CLI] become the project names ([WiseOwl.Cobol.Compiler, WiseOwl.Cobol.Frontend, WiseOwl.Cobol.Editions, WiseOwl.Cobol.Cli]), reversing PROJECT_ORG_DESIGN.md §1.1, which keeps the single token [root]?"; the bracketed names are today's, kb/Work PB3837 having retired the ones the question spelled). It was the owner's question because R64 #3 speaks of project and assembly
+  names only. The record that spoke of namespaces was `PROJECT_ORG_DESIGN.md` §1.1 (root namespaces under one
+  undotted token, with the owner named as the one who may prefer the dotted project names), and §8.2
   rule 1 does not force a flip: the census's rule is the project's `RootNamespace` plus its folders, and the
   compiler's `RootNamespace` is `WiseOwl.Cobol` (`WiseOwl.Cobol.Compiler.csproj:16`); Draft 2 had decided the flip from R64 #3,
   which was the owner's to decide. The owner chose shape A of the two Draft 3 put:
-  - **Shape A — the roots become the project names (CHOSEN):** `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, `WiseOwl.Cobol.Frontend` →
-    `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions` → `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Cli` → `WiseOwl.Cobol.Cli`, the test roots
-    likewise, the generated parser through the single-sourced `<AntlrNamespace>`; it reverses PROJECT_ORG §1.1 and
+  - **Shape A — the roots become the project names (CHOSEN):** `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`; the front end's,
+    the editions leaf's, the CLI's and the test roots already ARE their project names since the product rename (kb/Work
+    PB3837, 2026-10-26), the generated parser through the single-sourced `<AntlrNamespace>`; it reverses PROJECT_ORG §1.1 and
     resolves R0-0220 by itself (`Oo/` under `WiseOwl.Cobol.Compiler` is `WiseOwl.Cobol.Compiler.Oo`). Files (*text scan,
     provisional*): the editions flip edits the `using` lines of 117 binding, code-generation, validation and OO files
     and 48 test files, the front-end flip 113 and 152, the compiler flip every compiler file (288) and about 650 test

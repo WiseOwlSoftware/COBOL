@@ -111,6 +111,12 @@ PREFIX=$?
 note "$(printf '%-16s %s' 'diag prefix:' "$(grep -E '^=== DIAGNOSTIC PREFIX' "$OUT/citations.log" | tail -1)")"
 [ "$PREFIX" -eq 0 ] || { note "diag prefix:     ⛔ a code spelled with the former prefix — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND THE PRODUCT'S NAME, WiseOwl.Cobol (kb/Work PB3837), the gate driver's RETIRED NAMES audit.
+"$PY" scripts/rename_retired_names.py --check >> "$OUT/citations.log" 2>&1
+RETIRED=$?
+note "$(printf '%-16s %s' 'retired names:' "$(grep -E '^=== RETIRED NAMES' "$OUT/citations.log" | tail -1)")"
+[ "$RETIRED" -eq 0 ] || { note "retired names:   ⛔ a path or line spells a retired name — see $OUT/citations.log"; RC=1; }
+
 # ⛔ THE EXTERNAL CORPUS, BY THE GATE'S OWN RULE (kb/Work PB2611). The GPL GnuCOBOL corpus is git-ignored and per
 # worktree, and two legs below measure it: phase 1's Unit (ExternalCorpusPopulationDriftTests) and phase 3 (the
 # differential). Battery #89 ran in a fresh worktree with no fetch here, so both were red for a reason that was not the

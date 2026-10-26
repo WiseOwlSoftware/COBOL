@@ -154,15 +154,17 @@ public sealed class CorpusManifestTests
 
     /// <summary>
     /// ⛔ THE GUARD DRIVES ONE COMPILER (kb/Work R69, PB2109). A second (legacy) compiler was reachable from the guard
-    /// scripts through a selector arm (<c>GUARD_COMPILER=legacy</c>, <c>WISEOWL_COBOL_LEGACY_DIFFERENTIAL=1</c>), an
+    /// scripts through a selector arm (<c>GUARD_COMPILER=legacy</c>, the <c>…_LEGACY_DIFFERENTIAL=1</c> switch), an
     /// exemption list for the programs it diverged on (<c>LEGACY_DIVERGENT</c>, <c>GUARD_DIVERGENT</c>) and its own
     /// Unit and Integration legs. All of it is retired with the engine, and this fact keeps every guard script from
-    /// naming any of it again: a gate that can be pointed at another compiler is the PB750 shape.
+    /// naming any of it again: a gate that can be pointed at another compiler is the PB750 shape. The engine's product
+    /// name is no word here: the RETIRED NAMES audit (scripts/rename_retired_names.py, kb/Work PB3837) refuses it in
+    /// every tracked file, so this fact keeps the switch by the part of its name no prefix rename can move.
     /// </summary>
     [Fact]
     public void GuardScripts_NameNoLegacyEngine()
     {
-        string[] retired = ["WiseOwl COBOL", "wiseowl-cobol", "WISEOWL_COBOL_LEGACY_DIFFERENTIAL", "LEGACY_DIVERGENT", "GUARD_DIVERGENT"];
+        string[] retired = ["LEGACY_DIFFERENTIAL", "LEGACY_DIVERGENT", "GUARD_DIVERGENT"];
         var offenders = new List<string>();
         var scripts = Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh").Order().ToList();
         Assert.True(scripts.Count >= 8, $"expected the guard family under scripts/, found {scripts.Count} — the scan would assert over nothing");

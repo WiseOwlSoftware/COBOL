@@ -17,7 +17,7 @@
 > migration). **Use this doc ONLY for the M2/M3/M4 FEATURE CATALOG (the still-valid list of post-85 features to
 > implement).** ⚠ **Every ☑/◐/🐛 status and every recipe/file path in §1/§3 records the LEGACY byte-engine
 > compiler (`src/Legacy.*` — differential oracle only, deleted at G8). In the greenfield `src/WiseOwl.Cobol.*` a
-> feature counts as done ONLY when implemented there per the `WISEOWL_COBOL_*` deep-dives + the ISO spec, with BOTH
+> feature counts as done ONLY when implemented there per the `docs/*_DESIGN.md` deep-dives + the ISO spec, with BOTH
 > per-edition obligations: the complete spec behavior AND the rejecting diagnostic under every `--std` edition
 > that lacks it.** The live plan is `docs/REARCHITECTURE_PLAN.md` §0 (THE ONE PLAN — it absorbed `resume-prompt.md`, now deleted) over the SSOT `docs/DESIGN.md`;
 > multi-edition correctness is driven by `docs/VERSION_TEST_MATRIX_DESIGN.md` / `docs/VERSION_CHANGE_REFERENCE.md`.
@@ -89,7 +89,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   scaffolding (classify *everything* byte-backed = today's behavior) → Stage 1 numeric pipeline + differential
   oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data first — the
   cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend w/ Cecil oracle → Stage 6
-  finalize runtime + post-conformance rename (`WiseOwl COBOL` → `WiseOwl COBOL`, exe `cobol.exe`).
+  finalize runtime + post-conformance rename (to the product's present name, WiseOwl COBOL, exe `cobol.exe`).
   - **PROGRESS — Stage 0/1 slice 1 LANDED (DEVLOG 394):** ☑ the numeric substrate is in (`legacy-runtime/
     Numeric/`): `CobolRounding` (8 ISO modes), **`CobolDecimal`** (the exact `BigInteger` base-10 carrier — the
     owner-gated substrate), `NumProfile` (runtime numeric descriptor + `FromDescriptor` bridge), **`CobolNum`**
@@ -778,8 +778,8 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 ### 6.2 Project + executable rename — ☑ SUPERSEDED (realized by the PIVOT)
 > The greenfield is born `src/WiseOwl.Cobol.*` with exe `cobol` (`docs/PROJECT_ORG_DESIGN.md`); the legacy
 > `Legacy.*` projects are deleted at G8, so no rename remains. The touch-points below are historical.
-- Rename the project **`WiseOwl COBOL` → `WiseOwl COBOL`** (rationale: it is COBOL for the .NET runtime — there is no
-  "sharp" in it).
+- Rename the project to the product's present name, **WiseOwl COBOL** (kb/Work PB3837 retired the earlier names in
+  the code too).
 - **Produced executable MUST be named `cobol.exe`** (lowercase).
 - Touch-points to plan for: `.csproj` `AssemblyName` + output exe name; the `.sln`; root namespaces
   (`Legacy.*`); `scripts/guard.sh` paths; `CLAUDE.md`/`README`/docs; the runtime assembly name; NuGet/package

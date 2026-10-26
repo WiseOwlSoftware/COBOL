@@ -136,13 +136,13 @@ src/
   WiseOwl.Cobol.Compiler.SourceGen/  the source generator for the bound-tree visitor
   WiseOwl.Cobol.Editions/            the construct registry and per-edition gating
   WiseOwl.Cobol.Runtime/             the library every compiled program runs on
-tests/                           the populations above
-specs/ISO_COBOL.md               the standard, transcribed to Markdown and searchable
-docs/DESIGN.md          the design, with one deep-dive document per subsystem beside it
-docs/CONFORMANCE.md              every implementor-defined choice, with its reasons
-kb/Work/                         the work register: one note per defect, analysis or decision
-DEVLOG/                          the history, one file per landing
-scripts/                         the gate, the specification tools, the generators
+tests/                               the populations above
+specs/ISO_COBOL.md                   the standard, transcribed to Markdown and searchable
+docs/DESIGN.md                       the design, with one deep-dive document per subsystem beside it
+docs/CONFORMANCE.md                  every implementor-defined choice, with its reasons
+kb/Work/                             the work register: one note per defect, analysis or decision
+DEVLOG/                              the history, one file per landing
+scripts/                             the gate, the specification tools, the generators
 ```
 
 Start with [docs/DOC_INDEX.md](docs/DOC_INDEX.md), the map of every document.

@@ -362,6 +362,8 @@ AUDITS = (
     # kb/Work PB3575: every diagnostic code is COBOL####; the rename's own rules, asked as a question over the committed
     # tree, an audit for the reason CONFLICT MARKERS is one (PB2878).
     ("DIAGNOSTIC PREFIX", ["scripts/rename_diagnostic_prefix.py", "--check"]),
+    # kb/Work PB3837: the code carries the product's name; the rename's own audit over the committed tree, for the same reason.
+    ("RETIRED NAMES", ["scripts/rename_retired_names.py", "--check"]),
     ("SELF-TESTS", ["scripts/self_tests.py"]),
     # kb/Work PB1957 row 44, the CI invariant: CI's `audits` job ran these two and the gate did not, so train 1067's
     # PR 9 went RED in CI on a `blocked: true` the work register refuses, behind a GREEN gate.

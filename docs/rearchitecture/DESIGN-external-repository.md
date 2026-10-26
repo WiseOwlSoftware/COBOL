@@ -697,7 +697,7 @@ program-class scope. `CsNameReservationDriftTests` reads every member declaratio
 members C# synthesizes for a record struct and the `ICobolProgram` members, and is red when one is in neither seed.
 Within a run unit one externalized name identifies one kind of entity (§8.3.2.2), so a program and a class never
 legally share one. Generated code roots every name outside the unit's own namespace at `global::`: an assembly named
-`System`, `Cobol` or `WiseOwl.Cobol` makes `Cobol.System` (…) a member of `Cobol`, which would otherwise capture a written
+`System`, `Cobol` or `WiseOwl` makes `Cobol.System` (…) a member of `Cobol`, which would otherwise capture a written
 prefix (CS0234 on legal source), and an assembly named after a runtime type (`CobolNum`) would capture that simple name
 (CS0118). Two mechanisms root them, both in `ProgramEmitter.Emit`: the file's using directives sit INSIDE the
 module's namespace and name their namespaces from `global::` (`using global::WiseOwl.Cobol.Runtime;`), so a simple name is

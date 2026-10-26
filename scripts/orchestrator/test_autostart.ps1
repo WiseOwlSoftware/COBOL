@@ -11,24 +11,27 @@ function Check([string]$name, [bool]$ok) { $script:checks++; if (-not $ok) { $sc
 
 try {
     $startup = Join-Path $tmp 'Startup'
-    $old = Join-Path $tmp 'WiseOwl.Cobol'
-    New-Item -ItemType Directory -Force -Path $startup, $old | Out-Null
-    Set-Content (Join-Path $old 'wiseowl-cobol-autoresume.ps1') 'old interactive launcher'
+    $replaced = Join-Path $tmp 'replaced'
+    New-Item -ItemType Directory -Force -Path $startup | Out-Null
     Set-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') '@echo old startup entry'
+    Set-Content (Join-Path $startup 'earlier-autoresume.cmd') 'pwsh -File C:/r/scripts/orchestrator/autostart.ps1'
+    Set-Content (Join-Path $startup 'unrelated.cmd') '@echo another program'
     $installer = Join-Path $here 'install-autostart.ps1'
 
-    $dry = (& pwsh -NoProfile -File $installer -StartupDir $startup -OldDir $old -Wt 'C:/x/wt.exe' -DryRun) -join "`n"
+    $dry = (& pwsh -NoProfile -File $installer -StartupDir $startup -ReplacedDir $replaced -Wt 'C:/x/wt.exe' -DryRun) -join "`n"
     Check 'installer dry run shows the entry' ($dry -match 'orchestrator/autostart\.ps1' -and $dry -match '-w cobol-supervisor')
-    Check 'installer dry run changed nothing' ((Get-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') -Raw) -match 'old startup entry')
+    Check 'installer dry run names the other entry that starts the loop' ($dry -match 'earlier-autoresume\.cmd' -and $dry -notmatch 'unrelated\.cmd')
+    Check 'installer dry run changed nothing' ((Get-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') -Raw) -match 'old startup entry' -and (Test-Path (Join-Path $startup 'earlier-autoresume.cmd')) -and -not (Test-Path $replaced))
 
-    & pwsh -NoProfile -File $installer -StartupDir $startup -OldDir $old -Wt 'C:/x/wt.exe' | Out-Null
+    & pwsh -NoProfile -File $installer -StartupDir $startup -ReplacedDir $replaced -Wt 'C:/x/wt.exe' | Out-Null
     $cmd = Get-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') -Raw
     Check 'install wrote the new entry' ($cmd -match 'orchestrator/autostart\.ps1' -and $cmd -match 'C:/x/wt\.exe')
-    Check 'old script moved to replaced' ((Test-Path (Join-Path $old 'replaced/wiseowl-cobol-autoresume.ps1')) -and -not (Test-Path (Join-Path $old 'wiseowl-cobol-autoresume.ps1')))
-    Check 'old startup entry kept as a rollback copy' ((Get-Content (Join-Path $old 'replaced/wiseowl-cobol-autoresume.cmd') -Raw) -match 'old startup entry')
-    & pwsh -NoProfile -File $installer -StartupDir $startup -OldDir $old -Wt 'C:/x/wt.exe' | Out-Null
-    Check 'install is idempotent' ((Get-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') -Raw) -eq $cmd)
-    & pwsh -NoProfile -File $installer -StartupDir $startup -OldDir $old -Uninstall | Out-Null
+    Check 'an earlier entry that starts the loop moved to replaced' ((Test-Path (Join-Path $replaced 'earlier-autoresume.cmd')) -and -not (Test-Path (Join-Path $startup 'earlier-autoresume.cmd')))
+    Check 'an entry that does not start the loop stays' (Test-Path (Join-Path $startup 'unrelated.cmd'))
+    Check 'old startup entry kept as a rollback copy' ((Get-Content (Join-Path $replaced 'wiseowl-cobol-autoresume.cmd') -Raw) -match 'old startup entry')
+    & pwsh -NoProfile -File $installer -StartupDir $startup -ReplacedDir $replaced -Wt 'C:/x/wt.exe' | Out-Null
+    Check 'install is idempotent' ((Get-Content (Join-Path $startup 'wiseowl-cobol-autoresume.cmd') -Raw) -eq $cmd -and @(Get-ChildItem $startup -Filter '*.cmd').Count -eq 2)
+    & pwsh -NoProfile -File $installer -StartupDir $startup -ReplacedDir $replaced -Uninstall | Out-Null
     Check 'uninstall removes the entry' (-not (Test-Path (Join-Path $startup 'wiseowl-cobol-autoresume.cmd')))
 
     $coord = Join-Path $tmp 'coord'

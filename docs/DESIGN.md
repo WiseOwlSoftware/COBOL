@@ -1611,8 +1611,8 @@ UNSTRING. **Named loser:** the data-model design's `CobolString.RefMod/SpliceInt
 Every WiseOwl COBOL diagnostic carries ONE prefix, **`COBOL####`**, in ONE number space (owner decision 2026-10-23,
 kb/Work PB3575): the parser's series is `COBOL0001`-`COBOL0313`, every other compiler diagnostic is `COBOL0400` and up
 (conditions start at `COBOL07xx`), each registered in `DiagnosticCatalog` and numbered by `scripts/orchestrator/alloc.py
-code`; the COPY preprocessor's codes are `CBL####`. Until PB3575 the codes from 0400 up carried the prefix `WISEOWL`; the rename
-kept every number (`scripts/rename_diagnostic_prefix.py`), so the two series never overlapped. **Named loser:** reusing the
+code`; the COPY preprocessor's codes are `CBL####`. Until PB3575 the codes from 0400 up carried a longer prefix named for the
+product; the rename kept every number (`scripts/rename_diagnostic_prefix.py`), so the two series never overlapped. **Named loser:** reusing the
 deleted legacy engine's codes for continuity.
 
 ### 14.11 Dialect, EC-default, and the differential harness are threaded consistently
@@ -1686,7 +1686,7 @@ everywhere (§11.1); conditional phrases are always active. The differential har
     through the G6 byte path for byte-exact fidelity? (Pure DISPLAY groups are fine via `AsImage`.)
 
 12. **Diagnostic numbering scheme — RESOLVED (kb/Work PB3575, 2026-10-23).** One prefix, `COBOL####`, in one number
-    space, every number of the codes once prefixed `WISEOWL` kept; the deleted legacy engine's codes are not reused
+    space, every number of the codes that once carried a longer prefix kept; the deleted legacy engine's codes are not reused
     (§14.10).
 
 13. **Differential-oracle dependency — RESOLVED (R69, 2026-10-06).** The conformance/CI harness does not depend on the legacy
@@ -1842,7 +1842,7 @@ follows §16.*
 | T1 | **`WiseOwl.Cobol.Tests.Unit`** | xUnit | `WiseOwl.Cobol.Tests.Unit` | — | Unit tests for the new compiler + runtime. |
 | T2 | **`WiseOwl.Cobol.Tests.Conformance`** | xUnit | `WiseOwl.Cobol.Tests.Conformance` | — | NIST + post-85 conformance corpus, run against the new compiler. |
 
-**Decision — name form.** Assembly/package/folder names use the dotted product brand **`WiseOwl.Cobol.*`** (reads as the product "WiseOwl COBOL"); **root namespaces stay the single token `WiseOwl.Cobol`** (e.g. `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.CodeGen`). Rationale: dotted `WiseOwl.Cobol.*` is the marketing/NuGet identity; `WiseOwl.Cobol` as the namespace root avoids a clash with the `.Net`/`System.Net` reading and keeps `using WiseOwl.Cobol.CodeGen;` clean. One rule, applied consistently. (Owner may prefer `WiseOwl.Cobol` namespaces too — trivially flippable since it is just the `<RootNamespace>` value; not load-bearing.)
+**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name. Assemblies, projects, folders and the solution are **`WiseOwl.Cobol.*`** (`WiseOwl.Cobol.sln`), and so are the namespaces: the compiler's root namespace is `WiseOwl.Cobol` (e.g. `WiseOwl.Cobol.CodeGen`), and the front end's, the editions leaf's, the CLI's and the runtime's roots ARE their project names (`WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Cli`, `WiseOwl.Cobol.Runtime`). The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`; the implementor's environment variables are `WISEOWL_COBOL_*` (never `COBOL_*`, the external-switch family `SwitchStore.Prefix` names, §12.3.7.4 GR2 "Switch-name-1 identifies an implementor-defined external switch"). The product's earlier names are retired outside history: `scripts/rename_retired_names.py` is both the one rename and the RETIRED NAMES audit that keeps them out. **Named loser:** `WiseOwl.COBOL` as the code's root (the NuGet id's casing), against .NET's casing of an acronym of three letters or more.
 
 **Decision — CLI split (P2/P3).** Today `Program.cs` lives *inside* the exe project, so tests cannot reference the compiler without referencing an exe. Split it: `WiseOwl.Cobol.Compiler` (library, everything except the CLI shell) + `WiseOwl.Cobol.Cli` (exe, `<AssemblyName>cobol</AssemblyName>`, ~120-line driver). This lets the test projects reference a library.
 

@@ -148,6 +148,9 @@ refusing on the landing's own range before a CI run is spent:
                     an old-prefix code conflicts with nothing — is gated at its own head, whose gate has no such audit,
                     so the old spelling meets the audit here, not for the first time in CI's `audits` job; the finisher
                     converts the tree with the same script; kb/Work PB3575 review R1-1) → exit 6
+  rename_retired_names.py --check   (the RETIRED NAMES audit of the MERGED head, by that head's own copy, for the
+                    same reason: a branch cut before the code took the product's name, WiseOwl.Cobol, that merges main
+                    cleanly — a new note tagged or worded with a retired name — meets it here; kb/Work PB3837) → exit 6
 A check that cannot read its range is exit 2 (NOT RUN, never a pass). No landing check reads a record of one tree
 (kb/Work PB3107): a merge group is built on every group queued ahead of it, so a committed record of the branch's own
 tree (the arch-oracle baseline the retired landing oracle held it to, exit 7 until PB3107) cannot describe the tree that
@@ -293,6 +296,8 @@ CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
           Check("landing_check.py", ("orchestrator/landing_check.py",), 3, every_nonzero_refuses=True),
           Check("work.py check", ("spec/work.py", "check"), 6, takes_base=False, takes_range=False, in_tree=True),
           Check("rename_diagnostic_prefix.py --check", ("rename_diagnostic_prefix.py", "--check"), 6, takes_base=False,
+                takes_range=False, in_tree=True),
+          Check("rename_retired_names.py --check", ("rename_retired_names.py", "--check"), 6, takes_base=False,
                 takes_range=False, in_tree=True))
 
 Say = Callable[[str], None]

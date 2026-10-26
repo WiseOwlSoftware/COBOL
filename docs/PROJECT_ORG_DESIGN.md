@@ -27,12 +27,12 @@
 | T1 | **`WiseOwl.Cobol.Tests.Unit`** | xUnit | `WiseOwl.Cobol.Tests.Unit` | — | Unit tests for the new compiler + runtime. |
 | T2 | **`WiseOwl.Cobol.Tests.Conformance`** | xUnit | `WiseOwl.Cobol.Tests.Conformance` | — | NIST + post-85 conformance corpus + the differential harness + the VERSION TEST MATRIX (`VersionMatrixTests` — the compiler exercised as four per-edition compilers per `docs/VERSION_TEST_MATRIX_DESIGN.md`), run against the new compiler. |
 
-> **Reversed 2026-10-07 (owner, kb/Work PB2118 question 1):** the namespace roots become the project names —
-> `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, `WiseOwl.Cobol.Frontend` → `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions` →
-> `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Cli` → `WiseOwl.Cobol.Cli` (the runtime's is P15 Cut 3). The flips are the architecture
-> review's waves PB2412–PB2415 (`DESIGN-architecture-review.md` §8.2); until each lands, the code keeps the root below.
+> **2026-10-07 (owner, kb/Work PB2118 question 1):** the namespace roots become the project names. The product rename
+> (kb/Work PB3837, 2026-10-26) made the front end's, the editions leaf's, the CLI's and the runtime's roots their project
+> names; the compiler's, `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`, is the architecture review's wave PB2415
+> (`DESIGN-architecture-review.md` §8.2), and until it lands the compiler keeps the root below.
 
-**Decision — name form.** Assembly/package/folder names use the dotted product brand **`WiseOwl.Cobol.*`** (reads as the product "WiseOwl COBOL"); **root namespaces stay the single token `WiseOwl.Cobol`** (e.g. `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.CodeGen`). Rationale: dotted `WiseOwl.Cobol.*` is the marketing/NuGet identity; `WiseOwl.Cobol` as the namespace root avoids a clash with the `.Net`/`System.Net` reading and keeps `using WiseOwl.Cobol.CodeGen;` clean. One rule, applied consistently. (Owner may prefer `WiseOwl.Cobol` namespaces too — trivially flippable since it is just the `<RootNamespace>` value; not load-bearing.)
+**Decision — name form (owner, kb/Work PB3837, 2026-10-26).** The code takes the product's name: assemblies, projects, folders, the solution and the namespace roots are **`WiseOwl.Cobol.*`**; the compiler's root namespace is `WiseOwl.Cobol` (e.g. `WiseOwl.Cobol.CodeGen`) until PB2415 makes it its project name. The NuGet id stays `WiseOwl.COBOL` and the executable `cobol`. The product's earlier names are retired outside history (`scripts/rename_retired_names.py`, the rename and the RETIRED NAMES audit). The design SSOT, `docs/DESIGN.md` §17, carries the full decision.
 
 **Decision — CLI split (P2/P3).** Today `Program.cs` lives *inside* the exe project, so tests cannot reference the compiler without referencing an exe. Split it: `WiseOwl.Cobol.Compiler` (library, everything except the CLI shell) + `WiseOwl.Cobol.Cli` (exe, `<AssemblyName>cobol</AssemblyName>`, ~120-line driver). This lets the test projects reference a library.
 

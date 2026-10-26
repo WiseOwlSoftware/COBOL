@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <list type="bullet">
 ///   <item>Every emitted type lives in the module's namespace <c>Cobol.&lt;S&gt;</c> and every foreign name is
 ///     <c>global::</c>-rooted, so modules whose assembly names are the namespaces the generated code uses
-///     (<c>Cobol</c>, <c>WiseOwl.Cobol</c>) or a runtime type's name (<c>CobolNum</c>) compile and call each other.</item>
+///     (<c>Cobol</c>, and <c>WiseOwl</c>, the first segment of <c>WiseOwl.Cobol.Runtime</c>) or a runtime type's name (<c>CobolNum</c>) compile and call each other.</item>
 ///   <item>A sibling module that defines an outermost program another module already registered is refused WHOLE by
 ///     <c>ProgramTable.RegisterModule</c>: §8.3.2.2 2) (cite.py OK) "when two or more source elements identify something
 ///     with the same externalized name, they refer to the same instance", so the second definition is not registered and
@@ -55,8 +55,8 @@ public sealed class ModuleRegistrationHostTests
         string dir = ScratchDirectory.Create("pb2097ns");
         try
         {
-            // The sibling probe finds a program's module by the program's name (WISEOWL -> WiseOwl.Cobol.dll).
-            NonCobolElement.CompileCobol(dir, "WiseOwl.Cobol", Callee("WISEOWL", 10));
+            // The sibling probe finds a program's module by the program's name (WISEOWL -> WiseOwl.dll).
+            NonCobolElement.CompileCobol(dir, "WiseOwl", Callee("WISEOWL", 10));
             NonCobolElement.CompileCobol(dir, "CobolNum", Callee("COBOLNUM", 100));
             NonCobolElement.CompileCobol(dir, "Cobol", main);
             var (exit, stdout, detail) = CutRunner.RunExit(Path.Combine(dir, "Cobol.dll"), dir);
