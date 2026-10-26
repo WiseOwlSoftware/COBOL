@@ -93,8 +93,8 @@ is this closed, documented set:
 3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
    the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
    2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).
-4. **The bind-time `Check` for SYNCHRONIZED on a group item** (`DataBinder.UsageInheritanceGroup`, row
-   sync-on-group-2023): a group/elementary distinction the parse tree does not carry — whether the entry HAS
+4. **The bind-time `Check` for SYNCHRONIZED on a group item** (`DataBinder.GateSynchronizedGroup`, row
+   sync-on-group-2023; asked of every group entry that WROTE the clause, a TYPEDEF's included — kb/Work PB494): a group/elementary distinction the parse tree does not carry — whether the entry HAS
    subordinates is known only once the hierarchy is resolved — so this introduction fires at bind, through the
    canonical `ConstructRegistry.Check` funnel like every other. It is an ERROR ON BOTH AXES.
    ⛔ It was, until CA14 (2026-07-28), a manual `Edition.Removed`-severity emission chosen for accept-inert

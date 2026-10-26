@@ -26,6 +26,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+from standard_streams import ensure_utf8  # noqa: E402
 from scratch_repo import remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: every entry point's UTF-8 streams, kb/Work PB3637)
 from test_population import scrubbed_env  # noqa: E402  (scripts/: the gate-environment scrub, kb/Work PB1718)

@@ -9,7 +9,8 @@ reads (M12) and the gate driver hands them (M13).
 Inputs, each optional except the listings:
   * the DISCOVERED population, per assembly: the raw output of a `--list-tests` run (`--list Unit=<file>`);
   * the change: the diff against `--base` (the worktree's, or `--head`'s for a replay), analysed by
-    `scripts/spec/impacted_tests.py` against the impact map for the base (any age; `--map`/`--store`);
+    `scripts/spec/impacted_tests.py` against the impact map that serves the base (`impact_store.nearest`: the map whose
+    tree differs from the base's in the fewest source files, whatever its age; `--map`/`--store`);
   * TIMINGS: the per-case durations in the trx files of the worktree's previous gate (`--previous-run <dir>`),
     else the map's recorded durations. The gate driver times its plan from the SHARED TIMINGS STORE instead
     (`publish_timings`/`read_shared_timings`, kb/Work PB2527): every gate publishes there, so a fresh worktree's plan
@@ -444,7 +445,7 @@ class Context:
     """Everything one assembly's plan needs beyond its listing."""
     tiers: dict[str, int]                   # name key -> map tier (1..3), for this assembly
     map_known: set[str]                     # every name key the map recorded, in any assembly
-    every_tier1: bool                       # the change cannot be attributed (no map, stale map, ...)
+    every_tier1: bool                       # the change cannot be attributed (no map, a grammar input, a file the map never saw, ...)
     changed_tests: set[str]                 # test methods the change adds or edits (impacted_tests.tests_changed)
     goldens: set[str]                       # suite test ids the change touches (impacted_tests.suite_tests)
     reds: set[str]
@@ -748,10 +749,11 @@ def self_test() -> int:
     p = plan_assembly(cheap + [pole], ctx(previous=t, every_tier1=True))
     check("no map: every case is tier 1", p["stats"]["tiers"]["1"] == 101 and p["stats"]["leg1_cases"] == 22,
           p["stats"]["tiers"])
-    # stale map: every case tier 1, its recorded durations still time the plan.
+    # a map exists but the change cannot be attributed (a grammar input, a file the map never saw): every case tier 1,
+    # the map's recorded durations still time the plan.
     p = plan_assembly(cheap + [pole], ctx(recorded=t, map_known=known, tiers={k: 3 for k in known},
                                           every_tier1=True))
-    check("a stale map: every case tier 1, its durations still order leg 1",
+    check("an unattributable change under a map: every case tier 1, its durations still order leg 1",
           p["stats"]["tiers"]["1"] == 101 and p["stats"]["leg1_cases"] == 22, p["stats"])
     # no timings: leg 1 is tier 0a alone, ordered by tier.
     p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}))

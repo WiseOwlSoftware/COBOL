@@ -101,7 +101,7 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    <file>`) under the report's Status line, and lists each LEAD under the report's `## Review findings` (once), where
    the enqueue unit's clerk files it. CLEAN at the branch's tip is what lists it WAITING TO LAND
    (`prune_worktrees.py`); FINDINGS sends it to a finisher: the wave's review finisher, or the next wave's planner
-   (`plan_wave.py`). The stamp REFUSES a report that is not finished (`plan_wave.Report.finished`: a status line saying
+   (`plan_wave.py`). The stamp REFUSES a report that is not finished (`reports.Report.finished`: a status line saying
    DONE, or DISCHARGED with a HEAD past its base; kb/Work PB3181): return verdict STOPPED with its refusal in the
    summary rather than edit the implementer's report. Return the verdict, the count, the head and the stamp line.
 

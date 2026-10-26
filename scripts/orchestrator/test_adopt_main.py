@@ -180,8 +180,44 @@ check("no adoption record (no loop ever ran) passes", am.require_current(REPO, T
 am.record(COORD, "f" * 40, new)
 check("an adopted commit the checkout never fetched is behind", bool(am.require_current(REPO, COORD)), True)
 
+# 8b. THE IMPACT-MAP LANE (kb/Work PB3663) is asked ONCE, for the commit the checkout is at, when the adoption moved it
+# (ADOPTED) or found it already there (CURRENT); never for a KEPT outcome and never on a dry run; its words ride the line.
+asked = []
+
+
+def lane(repo, cdir, sha):
+    asked.append(sha)
+    return f"impact map: asked for {sha[:9]}"
+
+
+lane_new = land("a landing for the lane", {"kb/Work/PB9.md": "i\n"})
+r = am.adopt(REPO, COORD, GREEN, impact=lane)
+check("an ADOPTED commit is asked of the impact-map lane once, by its sha", (r.action, asked), (am.ADOPTED, [lane_new]))
+check("... and the lane's words ride the adoption line", (r.impact, "; impact map: asked for" in r.line), (f"impact map: asked for {lane_new[:9]}", True))
+r = am.adopt(REPO, COORD, GREEN, impact=lane)
+check("a CURRENT checkout asks again (a missing map is retried, a present one skipped by the lane)", (r.action, asked), (am.CURRENT, [lane_new, lane_new]))
+land("a landing CI has not passed", {"kb/Work/PB10.md": "j\n"})
+r = am.adopt(REPO, COORD, gh_says([{"status": "completed", "conclusion": "failure"}]), impact=lane)
+check("a KEPT outcome asks the lane nothing: the checkout is not at a new stable commit", (r.action, asked, r.impact), (am.KEPT, [lane_new, lane_new], ""))
+r = am.adopt(REPO, COORD, GREEN, dry_run=True, impact=lane)
+check("a dry run asks the lane nothing", (r.action, asked), (am.KEPT, [lane_new, lane_new]))
+check("the default lane is the real one", am.adopt.__kwdefaults__["impact"], am.impact_lane.request)
+
+
+def lane_raises(repo, cdir, sha):
+    raise KeyError("state")
+
+
+loaded_head = head()
+new_fix = land("a process fix beside a lane that raises", {"scripts/orchestrator/orchestrate.ps1": "v4\n"})
+r = am.adopt(REPO, COORD, GREEN, loaded=loaded_head, impact=lane_raises)
+check("a lane that raises neither hides the adoption nor the supervisor's restart trigger",
+      (r.action, r.after, r.supervisor_changed, "the lane raised KeyError" in r.impact, "the lane raised KeyError" in r.line),
+      (am.ADOPTED, new_fix, True, True, True))
+
 # 9. the command line: `require` is an exit code, a missing GitHub CLI keeps the checkout and says so, and the planner refuses
 py = [sys.executable, str(HERE / "adopt_main.py")]
+am.record(COORD, "f" * 40, head())   # the floor section 8 set and 8b moved: a commit the checkout never fetched
 r = subprocess.run([*py, "require", "--repo", str(REPO), "--coord", str(COORD)], capture_output=True, text=True, encoding="utf-8")
 check("require exits 2 behind the adopted commit", r.returncode, 2)
 am.record(COORD, head(), head())

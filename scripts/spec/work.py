@@ -572,7 +572,7 @@ def actionable(items: list[dict]) -> list[dict]:
 # owner's order for one says nothing about another. In a campaign a note has no tier for, it ranks after every tiered
 # note. `cluster_order` reads a note's EFFECTIVE tier, the lowest of its own and of every open cluster member it blocks
 # (a tier-1 note's blocker is tier 1 too), so ranking by tier and then depth is still a blocked_by order, and
-# `plan_wave.campaign_clusters` lifts its clusters the same way, so `work.py next --cluster` and the planner read one
+# `clusters.campaign_clusters` lifts its clusters the same way, so `work.py next --cluster` and the planner read one
 # order. A held note (`status: owner`, a `blocked_by` hold) is still held: a tier ranks the READY notes, nothing more.
 TIER = re.compile(r"\A(?P<campaign>[^:\s]+):(?P<tier>[1-9][0-9]*)\Z")
 
@@ -831,7 +831,7 @@ class NoteSites:
     wave: str
     #: The note HAS a site block, whatever it names: `**Sites:** none (…)` declares that it changes no code file, which
     #: sites_problems accepts, while a note with no block at all reserves nothing and is dispatched UNPARTITIONED
-    #: (plan_wave.unpartitioned, kb/Work PB3263, PB3670).
+    #: (groups.unpartitioned, kb/Work PB3263, PB3670).
     declared: bool = False
     #: {path: the members its site blocks name in it} (kb/Work PB3670), for a path EVERY mention of which names its
     #: members: `path#Member`, or `path (`member`, `Type.Member`, …)` (a parenthesis right after the path that opens
@@ -906,7 +906,7 @@ def campaign_domain():
 
 def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Path | None = None) -> NoteSites:
     """THE ONE READER of a note's structured sites (kb/Work PB3242; DESIGN-architecture-review §8.7): the planner and the
-    landing check (plan_wave.declared_sets), the member index (member_index.note_file_set) and this register's checks
+    landing check (inflight.declared_sets), the member index (member_index.note_file_set) and this register's checks
     all read a note through it, and no other module scans a note's text for paths. A path counts only inside a site
     block and only under a campaign root (`roots`, default campaign_domain()'s); a path in prose, a `Gate:` line or a
     tool command, and a bare type name, declare nothing. With `repo` (the tree the claim is planned on), a file's
@@ -1017,7 +1017,7 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
 #: when the rule landed). Every cluster is a campaign the moment an operator runs it (orchestrate.ps1 -Cluster), and on
 #: 2026-10-19 198 open notes naming 218 clusters declared no site block, most of them in long-idle clusters: refusing
 #: those would turn the check into a backlog, so they stay readable (the planner reads each one's set as empty: it
-#: holds nothing and is planned UNPARTITIONED, plan_wave.collision, kb/Work PB3670), and the open notes of the RUNNING campaigns
+#: holds nothing and is planned UNPARTITIONED, inflight.collision, kb/Work PB3670), and the open notes of the RUNNING campaigns
 #: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
 #: into a cluster carries its block from its first commit. A note of a cluster the owner RANKS AS A CAMPAIGN needs one
 #: whatever its id (campaign_leads, kb/Work PB3640): the campaign's notes are planned side by side, and two of them
@@ -1292,7 +1292,7 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
     name it moves or changes is one the member index knows (so the planner can compute its callers); a note whose
     declared Sites meet the external repository's in-flight set waits for an open slice; and every measured wave
     waits for the drift test. The CALLERS' collision with the slices is the planner's, recomputed at every plan
-    (plan_wave.campaign_clusters; DESIGN-architecture-review §8.7): callers change with every landing, so a
+    (clusters.campaign_clusters; DESIGN-architecture-review §8.7): callers change with every landing, so a
     blocked_by written from them would be a hand list that drifts. `unknown_names` is {note id: unknown names}
     (computed here when None)."""
     by_id = {i.get("id"): i for i in items}

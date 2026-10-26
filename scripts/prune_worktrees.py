@@ -17,7 +17,7 @@ who acts next:
   IN FLIGHT        a live dispatch owns it: its worktree is locked by an agent whose process is alive (the harness
                    writes `claude agent <id> (pid N)`; a lock with no pid was placed by hand and counts as live), a
                    dispatch-ledger wave group still in flight names it (`<coord>/inflight-groups.json`, the planner's
-                   ledger, read through plan_wave.inflight_file_sets; the branch name starts with the group's slug
+                   ledger, read through inflight.inflight_file_sets; the branch name starts with the group's slug
                    `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
                    Nobody touches it.
                    A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
@@ -45,17 +45,17 @@ who acts next:
                    rule, so the survey and the planner never disagree on WHO carries whom).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, coord.py REPORT_NAME, under
-       coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
+       coord.reports_dir()) is FINISHED (reports.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
        the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
-       report's HEAD is its header's HEAD field, else the head its review stamp names (plan_wave.parse_report: the
+       report's HEAD is its header's HEAD field, else the head its review stamp names (reports.parse_report: the
        reviewer stamps the head it reviewed, kb/Work PB3476). A report naming neither, or followed by a commit no
        report describes (an agent resumed after writing it), covers nothing: DECISION, with the count;
     2. its header's review stamp COVERS the tip (`stamp_covers`, the one rule the planner's FINDINGS arm reads too,
        kb/Work PB3394): the stamp names the tip, or an older head the same coverage reaches; CLEAN and FINDINGS alike;
     3. the landing lane's newest attempt AT THE TIP (land_lane.view: its head, or the end head its run left).
   WAITING FOR REVIEW  coverage 1 holds, but no review stamp covers the tip (none, or one at an older head followed by
-                   commits that are not mechanical; plan_wave.REVIEW, written by review_findings.py stamp): ONE
+                   commits that are not mechanical; reports.REVIEW, written by review_findings.py stamp): ONE
                    read-only cobol-reviewer reviews it (the `review` skill's branch form, kb/Work PB3027; a diff-only
                    re-review of the commits since an older stamp, PB3381). The landing step never reviews and never
                    fixes a finding. A FINDINGS stamp at an older head is unreviewed work too, never a finisher's: the
@@ -170,8 +170,10 @@ from git_batch import Ancestry  # noqa: E402
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 from queue_facts import PullRequest  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
+# THE fleet-report reader (scripts/orchestrator/reports.py, kb/Work PB3728): the survey's index of the reports, the
+# newest report about a branch, the review stamp and a file's age, read there and never here
+from reports import FINISH_STATUSES, IndexedReport, Review, age_minutes, newest_report, report_index  # noqa: E402
 if TYPE_CHECKING:
-    from plan_wave import Review  # noqa: E402  (imported lazily at run time: plan_wave imports this module back)
     from land_lane import Lane  # noqa: E402  (likewise: land_lane imports this module back)
 
 DECL = re.compile(r'^\+\s*(?:(?:public|internal|private|protected|static|sealed|abstract|partial|override|readonly|async|virtual|unsafe|new)\s+)*'
@@ -368,7 +370,7 @@ def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int]
 
 
 def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[str], graph: Ancestry) -> dict[str, Replay]:
-    """`replays` over the branches both of its readers mean (kb/Work PB3170, PB3652): the PLANNER (plan_wave.branch_replays:
+    """`replays` over the branches both of its readers mean (kb/Work PB3170, PB3652): the PLANNER (inflight.branch_replays:
     which branch gets a finisher) and the SURVEY (contained(): which branch is a DECISION row). One function builds the
     inputs, so the two cannot disagree on who carries whom. `ranked`: {branch: the position of its newest report,
     oldest first} for each UNLANDED branch that has a report: the branches allowed to carry work, the later report
@@ -465,17 +467,6 @@ def live_lock(reason: str | None, alive: Callable[[int], str | None] = coord.pro
     return bool(name) and 'claude' in name.lower()
 
 
-def age_minutes(*paths: pathlib.Path) -> float:
-    """Minutes since the newest of `paths` changed (a missing path is ignored; none present = 0, i.e. fresh)."""
-    stamps = []
-    for p in paths:
-        try:
-            stamps.append(p.stat().st_mtime)
-        except OSError:
-            pass
-    return (time.time() - max(stamps)) / 60 if stamps else 0.0
-
-
 @dataclasses.dataclass
 class Row:
     name: str                       # the branch, or '(detached) <path name>'
@@ -488,7 +479,7 @@ class Row:
     dirty: int
     age_min: float                  # minutes since its last activity (branch reflog, worktree HEAD log, STATUS.md)
     last_commit: str
-    report: Report | None = None    # the newest fix-lane report that names it
+    report: IndexedReport | None = None    # the newest fix-lane report that names it
     state: str = ''
     why: str = ''
     how: str = ''                   # a LANDED row whose own merge would change main: how its work got there (carried)
@@ -603,19 +594,6 @@ class Coverage:
         return bool(head and tip) and report_since(head, tip, repo=self.repo, graph=self.graph()) == []
 
 
-@dataclasses.dataclass
-class Report:
-    name: str                       # the file name, w<wave><letter>-PB<lead>-report.md
-    status: str                     # DONE | SPLIT | DISCHARGED | BLOCKED | NOT STARTED | '' (plan_wave.parse_report)
-    lead: str                       # its lead note
-    lead_terminal: bool             # the lead note is landed or retired: the work reached main some other way
-    age_min: float                  # minutes since the report was written
-    header: str = dataclasses.field(default='', repr=False)
-    review: Review | None = None    # the header's branch-review stamp (plan_wave.parse_review, kb/Work PB3027)
-    head: str | None = None         # the header's HEAD: the branch tip the report describes (plan_wave.HEAD)
-    finished: bool = False          # plan_wave.Report.finished: DONE, or DISCHARGED with a HEAD past its base
-
-
 def lane_latest(row: Row, lane: Lane | None) -> tuple[dict, str] | None:
     """The landing lane's newest attempt for the branch and its class (land_lane.effective), or None."""
     return next(((a, c) for a, c in (lane.latest if lane else ()) if a.get('branch') == row.name), None)
@@ -644,7 +622,7 @@ def not_queued(row: Row, pr: PullRequest, lane: Lane | None, now: dt.datetime) -
                              'no landing-lane attempt at this tip watches it (the lane watches only its own landings)'))
 
 
-def landing_state(row: Row, rep: Report, rv: Review, lane: Lane | None, observed: bool = False,
+def landing_state(row: Row, rep: IndexedReport, rv: Review, lane: Lane | None, observed: bool = False,
                   pr: PullRequest | None = None) -> tuple[str, str]:
     """A report-covered, review-CLEAN-covered branch, by the landing lane's newest attempt AT THIS TIP (its head, or the
     end head its run left: main merged in, the DEVLOG stamp) — the third coverage of lifecycle() (kb/Work PB3181,
@@ -769,7 +747,7 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         return 'LANDED', f'{row.content}{f" ({row.how})" if row.how else ""}: its work is on main; --apply deletes it'
     rep = row.report
     if row.content not in LANDED_CONTENT and rep and rep.finished:
-        # A FINISHED report (plan_wave.Report.finished) decides the branch only where it COVERS the tip: its HEAD is the
+        # A FINISHED report (reports.Report.finished) decides the branch only where it COVERS the tip: its HEAD is the
         # tip, or every commit after it is mechanical (unreviewed_since, the coverage rule of the review stamp and of
         # `enqueue.py land`). Never the report's age (kb/Work PB3181: enqueue.py's merge and DEVLOG stamp postdate it).
         if rep.lead_terminal:
@@ -829,50 +807,18 @@ def note_terminal(work_dir: pathlib.Path | None = None) -> Callable[[str], bool]
     return lambda n: status.get(n) in work.TERMINAL_STATUSES
 
 
-def report_index(reports_dir: pathlib.Path | None, terminal: Callable[[str], bool]) -> list[Report]:
-    """Every fix-lane report, oldest first, through plan_wave's reader (coord.REPORT_NAME, the status line), reused and never
-    forked: a suffixed name is invisible here exactly as it is to the planner (kb/Work PB2602). The header (up to the
-    first `## ` heading, as plan_wave.parse_report reads it) is where a report names its branch and worktree."""
-    if not reports_dir or not reports_dir.is_dir():
-        return []
-    import plan_wave  # noqa: PLC0415  (it imports this module back, lazily: no cycle at import time)
-    out = []
-    for r in plan_wave.load_reports(reports_dir):
-        header = plan_wave.header_lines(r.path.read_text(encoding='utf-8', errors='replace').splitlines())
-        out.append(Report(r.path.name, r.status, r.lead, terminal(r.lead), age_minutes(r.path), '\n'.join(header),
-                          r.review, r.head, r.finished))
-    return out
-
-
-BRANCH_FIELD = re.compile(r'(?i)\bbranch\b[\s:*`(]*([A-Za-z0-9_][\w.\-/]*[\w])')
-
-
-def newest_report(reports: list[Report], branch: str | None, path: str | None) -> Report | None:
-    """The newest report about this branch. A header with a `branch` field (`Branch: x`, `**branch:** `x``, `(branch x)`)
-    is about exactly the branch(es) it names: a header that ALSO names another branch, e.g. as its base or its
-    predecessor, is not about that one (2026-10-08: w1037r's report names landing-lease as its base). A header with no
-    branch field is about any branch it names as a whole word, or whose worktree directory it names (either slash)."""
-    word = re.compile(r'(?<![\w.\-/\\])' + re.escape(branch) + r'(?![\w.\-])') if branch else None
-    tree = re.compile(r'worktrees[\\/]+' + re.escape(pathlib.PurePath(path).name) + r'(?![\w.\-])') if path else None
-    hit = None
-    for rep in reports:
-        named = set(BRANCH_FIELD.findall(rep.header))
-        if (branch in named) if named else any(p and p.search(rep.header) for p in (word, tree)):
-            hit = rep
-    return hit
-
-
 def in_flight_slugs(coord_dir: pathlib.Path | None, terminal: Callable[[str], bool],
                     reports_dir: pathlib.Path | None = None) -> set[str]:
     """The `w<wave><letter>` slugs of the dispatch-ledger wave groups still in flight, by the planner's own liveness rule
-    (plan_wave.inflight_file_sets, source 3: a group with a note that is not landed or retired and that no report in
+    (inflight.inflight_file_sets, source 3: a group with a note that is not landed or retired and that no report in
     `reports_dir` answers, kb/Work PB2795), read from its `meta` (each entry's recorded slug), never parsed back out of
     an owner label. A dispatch made without a rendered group has no ledger entry (kb/Work PB3186); its worktree is
     caught by its live lock or its recency instead."""
-    import plan_wave  # noqa: PLC0415
+    from inflight import inflight_file_sets  # noqa: PLC0415  (scripts/orchestrator: it imports this module back, lazily)
+    from reports import load_reports  # noqa: PLC0415
     meta: dict[str, dict] = {}
-    plan_wave.inflight_file_sets(coord_dir=coord_dir, with_git=False, terminal=terminal, meta=meta,
-                                 reports=plan_wave.load_reports(reports_dir) if reports_dir else ())
+    inflight_file_sets(coord_dir=coord_dir, with_git=False, terminal=terminal, meta=meta,
+                       reports=load_reports(reports_dir) if reports_dir else ())
     return {m['slug'] for m in meta.values() if m.get('slug')}
 
 
@@ -895,7 +841,7 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
                   prs=queue_facts.read(gh) if prs is UNREAD else prs)
 
 
-def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Report] = (),
+def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[IndexedReport] = (),
            slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
            live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None) -> list[Row]:
     """Every local branch but main, and every detached worktree, measured and given its lifecycle state. `prs`:
@@ -990,7 +936,7 @@ CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED
 CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
 
 
-def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir: pathlib.Path | None) -> None:
+def contained(rows: list[Row], graph: Ancestry, reports: list[IndexedReport], work_dir: pathlib.Path | None) -> None:
     """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
     tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
     (CARRIER_STATES) or whose review ended FINDINGS (finisher_due: the planner owns its finisher, and everything it
@@ -1009,7 +955,7 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
     the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing.
 
     AN UNFINISHED (SPLIT, NOT STARTED) BRANCH IS CARRIED TOO (kb/Work PB3652): the planner reads one a finished branch
-    contains (plan_wave.branch_carrier) or that another branch REPLAYS (plan_wave.branch_replays: the planner's own
+    contains (inflight.branch_carrier) or that another branch REPLAYS (inflight.branch_replays: the planner's own
     FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor, so the successor is no descendant of it)
     as carried: under --drain it waits for the carrier, and otherwise its finisher's pred names the carrier (as for a
     carried FINDINGS branch). Either way the work lands through the carrier, and the survey listed it as a DECISION row
@@ -1026,7 +972,6 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
     already landed each read DECISION (land it or abandon it) beside a carrier that lands the same commits. The arm's
     first form skipped every DECISION that had a report unless its review ended FINDINGS, and PB3652 added the
     unfinished ones, so a SPLIT predecessor its successor merged read DECISION until then."""
-    import plan_wave  # noqa: PLC0415  (it imports this module back, lazily: no cycle at import time)
     carriers = [c for c in rows if c.report and c.tip and (c.state in CARRIER_STATES or finisher_due(c))]
     candidates = []
     replayable = set()   # the candidates the replay arm reads too: the rows the planner plans a finisher from
@@ -1037,7 +982,7 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
         # the replay arm is the planner's own: it plans a finisher only from a DECISION with no report or an unfinished
         # one (never from a FINDINGS stamp, whose finisher answers the findings), so only those rows are read for it
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
-        if r.state == 'DECISION' and not findings and (r.report is None or r.report.status in plan_wave.FINISH_STATUSES):
+        if r.state == 'DECISION' and not findings and (r.report is None or r.report.status in FINISH_STATUSES):
             replayable.add(r.name)
     if not candidates:
         return
@@ -1061,7 +1006,7 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[Report], work_dir:
                      f'of its own (kb/Work PB3170, PB3652); ' + evidence(r))
 
 
-def survey_replays(rows: list[Row], reports: list[Report], graph: Ancestry,
+def survey_replays(rows: list[Row], reports: list[IndexedReport], graph: Ancestry,
                    work_dir: pathlib.Path | None) -> dict[str, Replay]:
     """{branch: Replay} for the survey's unlanded branches, by the planner's own function (replay_view; kb/Work PB3652).
     A branch with a report is ranked by the position of its newest report in `reports` (oldest first), as the planner
@@ -1077,7 +1022,7 @@ def survey_replays(rows: list[Row], reports: list[Report], graph: Ancestry,
     return replay_view(ranked, names, abandoned, graph)
 
 
-def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
+def findings_lead(v: dict, reports: list[IndexedReport], rows: list[Row]) -> str:
     """The note whose branch review recorded the last verdict `v` (review_findings.last_verdict): the report whose stamp
     names its file; else, for a wave's file (`review-w<wave>-<letter>.jsonl`), that group's report
     (`w<wave><letter>-PB<lead>-report.md`), which a review finisher rewrites for its own branch but never renames; else
@@ -1114,7 +1059,7 @@ def answered_by_carrier(findings_review, carrier_review, graph: Ancestry) -> boo
 
 
 def findings_answered_by(v: dict, rv, graph: Ancestry) -> bool:
-    """Does the review `rv` (plan_wave.Review, or None) answer the findings of the reading `v` (kb/Work PB3404)? ONE FINDINGS CASE, ONE OWNER
+    """Does the review `rv` (reports.Review, or None) answer the findings of the reading `v` (kb/Work PB3404)? ONE FINDINGS CASE, ONE OWNER
     (review_findings.capped): a CAPPED verdict (the round after the last review finisher) belongs to its branch's
     next-wave finisher, which no review of a successor answers; an UNCAPPED one had a review finisher dispatched that
     came back without answering, and the successor that merged the branch is reviewed over the whole branch, the
@@ -1125,7 +1070,7 @@ def findings_answered_by(v: dict, rv, graph: Ancestry) -> bool:
     return any(c.startswith(v['head']) for c in graph.beyond(graph.sha(rv.sha) or rv.sha))
 
 
-def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (), reports: list[Report] = ()) -> None:
+def carrying_findings(rows: list[Row], graph: Ancestry, findings: list[dict] = (), reports: list[IndexedReport] = ()) -> None:
     """A WAITING TO LAND branch that carries ANOTHER note's unanswered review findings waits for them (kb/Work PB3381):
     its tip contains, not yet on main, the head at which a branch review's LAST verdict is FINDINGS with blocking
     findings (`findings`: review_findings.unanswered over review_findings.findings_files, the ONE reader the rolling
@@ -1233,7 +1178,7 @@ def locked(rows: list[Row], live: Callable[[str | None], bool] = live_lock) -> s
     """The LOCK-ONLY half of owned() (kb/Work PB3653): the branches whose worktree a live agent holds (live_lock, the
     one liveness rule lifecycle() reads first). owned() folds three signals into one set: this lock, a dispatch-ledger
     group still out, and a touch inside --min-age. The planner's finisher arm needs them apart. A ledger dispatch
-    leaves its own record (plan_wave.held_by_dispatch), and a just-touched SPLIT branch is the normal state of one
+    leaves its own record (dispatch_ledger.held_by_dispatch), and a just-touched SPLIT branch is the normal state of one
     whose agent has just returned (holding it would stall every finisher for --min-age), but a lock is someone working
     IN that worktree right now with no record anywhere else, e.g. an agent the operator started by hand on a SPLIT
     branch: a finisher planned over it would cherry-pick the same commits twice (plan_wave.plan's branch-unit hold,
@@ -1251,13 +1196,13 @@ def verdict(rows: list[Row]) -> str:
 
 
 def note_rank(work_dir: pathlib.Path | None = None) -> Callable[[str], tuple[int, int]]:
-    """`rank(note id)`: a sort key, most urgent first: minus the note's harm weight (plan_wave.harm_weights, the
+    """`rank(note id)`: a sort key, most urgent first: minus the note's harm weight (clusters.harm_weights, the
     planner's weights), then a compiler note (0) before a process-only one (1). A note main does not hold yet (filed on
     its own branch) ranks as harmless process work."""
     sys.path.insert(0, str(REPO / 'scripts' / 'spec'))
     import work  # noqa: PLC0415
-    import plan_wave  # noqa: PLC0415
-    weights = plan_wave.harm_weights()
+    from clusters import harm_weights  # noqa: PLC0415  (scripts/orchestrator: the notes' one weight reading)
+    weights = harm_weights()
     items = {i.get('id'): i for i in (work.load(work_dir) if work_dir else work.load())}
 
     def rank(note: str) -> tuple[int, int]:
@@ -1977,8 +1922,10 @@ def self_test() -> int:
               f'a FINDINGS stamp at an older head is unreviewed work; one followed only by the DEVLOG stamp covers: '
               f'{rows["findings-moved"].why} / {rows["findings-stamped"].why}')
         coverage = Coverage(list(rows.values()), repo=repo)
-        preps = plan_wave.load_reports(rdir)
-        pnotes = {n: plan_wave.Note(n, 'open', 'process', n, [], '', 0) for n in ('PB50', 'PB51', 'PB52')}
+        from reports import load_reports  # noqa: PLC0415
+        from clusters import Note  # noqa: PLC0415
+        preps = load_reports(rdir)
+        pnotes = {n: Note(n, 'open', 'process', n, [], '', 0) for n in ('PB50', 'PB51', 'PB52')}
         plan = plan_wave.plan(pnotes, [{'file': f'src/{f}.cs', 'files': [], 'harm': 0, 'notes': [{'id': n}]}
                                        for n, f in (('PB50', 'FM'), ('PB51', 'FS'), ('PB52', 'FR'))], [], preps,
                               lambda b: rows[b].content if b in rows else 'ABSENT', {}, coord.rules(), 100,
@@ -2076,8 +2023,7 @@ def self_test() -> int:
               'review_answers: only an uncapped, untorn verdict whose head the row\'s CLEAN review contains is answered')
         # the planner's side reads the same rule from the findings file itself (answered_by_carrier): rpred's uncapped
         # file is answered by rsucc's CLEAN review, xpred's capped one is not, a stamp naming no file answers nothing
-        import plan_wave  # noqa: PLC0415
-        stamp_of = lambda b, f: plan_wave.Review('FINDINGS', 1, 'w-self-test', tips[b], str(f) if f else None)  # noqa: E731
+        stamp_of = lambda b, f: Review('FINDINGS', 1, 'w-self-test', tips[b], str(f) if f else None)  # noqa: E731
         rs_review = rows['rsucc'].report.review
         check([answered_by_carrier(stamp_of('rpred', fscratch / 'w9996' / 'review-w9996-a.jsonl'), rs_review, graph_now),
                answered_by_carrier(stamp_of('xpred', fscratch / 'w9997' / 'review-w9997-c.jsonl'), rows['xsucc'].report.review,
@@ -2351,7 +2297,7 @@ def self_test() -> int:
         # first, a compiler fix before process work at equal harm, the oldest report first; nothing else
         def waiting(name, lead, age):
             return Row(name, 'CHECK', [], [], 1, None, None, 0, 999.0, '',
-                       Report(f'w1a-{lead}-report.md', 'DONE', lead, False, age), 'WAITING TO LAND')
+                       IndexedReport(f'w1a-{lead}-report.md', 'DONE', lead, False, age), 'WAITING TO LAND')
         ranks = {'PB1': (-8, 0), 'PB2': (-4, 0), 'PB3': (0, 0), 'PB4': (0, 1)}
         eight = [waiting(f'b{i}', lead, age) for i, (lead, age) in enumerate(
             (('PB4', 500), ('PB3', 10), ('PB3', 90), ('PB1', 5), ('PB4', 50), ('PB2', 7), ('PB3', 30), ('PB4', 900)))]

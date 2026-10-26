@@ -110,6 +110,8 @@ class Step:
                                  # next step at a LOWER level), and its output is that step's text, not a command of the
                                  # line; the steps of one level that follow each other are that level's own command line
                                  # (`$(a | b)`: b, at a's level, reads a; a step of b's own substitutions is one deeper)
+    shell: str = BASH            # the shell whose syntax parsed the step: the tool's own, or the one a `cmd /c`,
+                                 # `pwsh -Command` or `bash -c` payload (or `iex` / `eval` text) was walked in (gui_launch.py)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -523,11 +525,11 @@ def _command(text: str, sep: str, heredocs: tuple[str, ...], subs: tuple[str, ..
     if location is not None:
         verb, target = location
         out.append(Step(text, words, state.cwd, sep, depth, target if target is not None else "",
-                        heredocs=heredocs))
+                        heredocs=heredocs, shell=shell))
         if not transient:
             _move(state, verb, target)
         return
-    out.append(Step(text, words, _workdir(words, state.cwd), sep, depth, heredocs=heredocs))
+    out.append(Step(text, words, _workdir(words, state.cwd), sep, depth, heredocs=heredocs, shell=shell))
 
 
 def _location(words: tuple[str, ...], shell: str, cwd: str | None) -> tuple[str, str | None] | None:
