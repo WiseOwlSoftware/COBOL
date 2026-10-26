@@ -1,4 +1,4 @@
-## PB3831, PB3832: a declined clause's printed keywords are all arms, and the parse hints read the offending token's position
+## Entry 2631 — 2026-10-26 16:06 PDT — PB3831, PB3832: a declined clause's printed keywords are all arms, and the parse hints read the offending token's position
 
 Two fuzz findings the owner approved on 2026-10-26 ("Approve the CLASS IS BOOLEAN and COBOL2072 wording fixes too"),
 under the standing rule of the same morning: "We always strive to fix the root causes, never simply making the
@@ -108,3 +108,4 @@ whole Conformance population (18,857) and the whole Unit population ran green lo
 environment tests.
 
 Review-round-2 gate (run 000001-20261026T211413Z, head 83cb6de35): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,303/18,857, Unit 37,263/38,449, Characterization 36/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
+
