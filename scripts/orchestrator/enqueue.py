@@ -143,6 +143,11 @@ refusing on the landing's own range before a CI run is spent:
   work.py check     (the work register of the MERGED head, read by that head's own work.py: a branch is gated at its
                     own head, so a note main gained since — one carrying a key the branch's rule now refuses — meets
                     the rule here, not for the first time in the merge group's CI; kb/Work PB3389) → exit 6
+  rename_diagnostic_prefix.py --check   (the DIAGNOSTIC PREFIX audit of the MERGED head, by that head's own copy: a
+                    branch cut before the codes became COBOL#### that merges main CLEANLY — a new note or test spelling
+                    an old-prefix code conflicts with nothing — is gated at its own head, whose gate has no such audit,
+                    so the old spelling meets the audit here, not for the first time in CI's `audits` job; the finisher
+                    converts the tree with the same script; kb/Work PB3575 review R1-1) → exit 6
 A check that cannot read its range is exit 2 (NOT RUN, never a pass). No landing check reads a record of one tree
 (kb/Work PB3107): a merge group is built on every group queued ahead of it, so a committed record of the branch's own
 tree (the arch-oracle baseline the retired landing oracle held it to, exit 7 until PB3107) cannot describe the tree that
@@ -280,9 +285,15 @@ class Check(NamedTuple):
 # branch's gate (a branch is gated at its own head, never again after main comes in) is read by the rule the branch
 # carries, so a rule a branch adds (kb/Work PB3389: a stored `blocked:` key is refused) cannot meet a note it never saw
 # for the first time in the merge group's CI (PB3389 review R1-1). Its refusal is exit 6, a finisher's, like DEVLOG's.
+# The diagnostic-prefix audit is the same shape for the same reason (kb/Work PB3575 review R1-1): a branch cut before
+# the rename merges main cleanly, its own gate never ran the audit, and CI's `audits` job would be the first to see the
+# old spelling. It reads the merged head's tree with that head's own script; its refusal is exit 6 (the finisher runs
+# the rename), and its exit 2 (the tree could not be listed) is NOT RUN.
 CHECKS = (Check("devlog.py check", ("devlog.py", "check"), 6),
           Check("landing_check.py", ("orchestrator/landing_check.py",), 3, every_nonzero_refuses=True),
-          Check("work.py check", ("spec/work.py", "check"), 6, takes_base=False, takes_range=False, in_tree=True))
+          Check("work.py check", ("spec/work.py", "check"), 6, takes_base=False, takes_range=False, in_tree=True),
+          Check("rename_diagnostic_prefix.py --check", ("rename_diagnostic_prefix.py", "--check"), 6, takes_base=False,
+                takes_range=False, in_tree=True))
 
 Say = Callable[[str], None]
 Gh = Callable[[list[str]], tuple[int, str, str]]
@@ -1457,7 +1468,7 @@ def self_test() -> int:
                rc_nothing == 0 and any("nothing to land" in ln for ln in lines) and rc_title == 2,
                f"{rc_nothing} {rc_title}")
 
-        devlog_check, partition, register = (c.command for c in CHECKS)
+        devlog_check, partition, register, prefix = (c.command for c in CHECKS)
 
         def runner(results: dict[tuple[str, ...], int], seen: list[tuple[tuple[str, ...], list[str]]]):
             def run(check: Check, args: list[str]) -> int:
@@ -1466,29 +1477,32 @@ def self_test() -> int:
             return run
         mapped = []
         for results in ({devlog_check: 1}, {partition: 1}, {devlog_check: 2}, {partition: 2}, {register: 1},
-                        {register: 2}, {}):
+                        {register: 2}, {prefix: 1}, {prefix: 2}, {}):
             seen: list[tuple[tuple[str, ...], list[str]]] = []
             mapped.append(run_checks("S", "B", runner(results, seen), say=lines.append))
         seen = []
         run_checks("S", "B", runner({}, seen), say=lines.append)
         missing = [c.command[0] for c in CHECKS if not (HERE.parent / c.command[0]).is_file()]
-        expect("checks runs the three landing scripts in order, the range only to the two that read one, and maps each "
-               "refusal to its own code: DEVLOG 6, landing check 3, register 6, unreadable 2",
-               mapped == [6, 3, 2, 3, 6, 2, 0] and not missing
+        expect("checks runs the four landing scripts in order, the range only to the two that read one, and maps each "
+               "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, unreadable 2",
+               mapped == [6, 3, 2, 3, 6, 2, 6, 2, 0] and not missing
                and seen == [(devlog_check, ["--rev", "S", "--base", "B"]), (partition, ["--rev", "S", "--base", "B"]),
-                            (register, [])],
+                            (register, []), (prefix, [])],
                f"{mapped} {seen} missing={missing}")
 
-        # The register check runs the merged head's OWN work.py from the worktree's tree (kb/Work PB3389 review R1-1),
-        # the other two this lane's: a worktree whose copy refuses is exit 1, one whose copy passes is exit 0.
+        # The register check and the diagnostic-prefix audit run the merged head's OWN scripts from the worktree's tree
+        # (kb/Work PB3389 review R1-1, PB3575 review R1-1), the other two this lane's: a worktree whose copies refuse
+        # is exit 1, one whose copies pass is exit 0.
         for code in (1, 0):
             tree = root / f"register-{code}"
             (tree / "scripts" / "spec").mkdir(parents=True)
-            fake = tree / "scripts" / "spec" / "work.py"
-            fake.write_text(f"import sys; sys.exit({code})", encoding="utf-8", newline=chr(10))
-            expect(f"the register check runs the worktree's own scripts/spec/work.py (exit {code})",
-                   _script_runner(tree)(CHECKS[2], []) == code
-                   and CHECKS[2].in_tree and not CHECKS[0].in_tree and not CHECKS[1].in_tree, f"code {code}")
+            for in_tree in (CHECKS[2], CHECKS[3]):
+                (tree / "scripts" / in_tree.command[0]).write_text(f"import sys; sys.exit({code})", encoding="utf-8",
+                                                                   newline=chr(10))
+            expect(f"the register check and the diagnostic-prefix audit run the worktree's own scripts (exit {code})",
+                   _script_runner(tree)(CHECKS[2], []) == code and _script_runner(tree)(CHECKS[3], []) == code
+                   and CHECKS[2].in_tree and CHECKS[3].in_tree and not CHECKS[0].in_tree and not CHECKS[1].in_tree,
+                   f"code {code}")
 
         # The migrating landing (kb/Work PB3023 review R1-3): the base holds the monolithic DEVLOG.md, the branch adds
         # the whole history as files plus its own one entry; the pull request is titled from that one (devlog.check's).

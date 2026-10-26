@@ -2438,7 +2438,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
    head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
-   merge group's CI, PB3389) and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
+   merge group's CI, PB3389), `rename_diagnostic_prefix.py --check` (the DIAGNOSTIC PREFIX audit, run by the merged head's own copy for the same
+   reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575)
+   and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
