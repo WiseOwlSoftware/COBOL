@@ -1118,4 +1118,15 @@ public abstract class CobolParserCoreBase : Parser
             if (la1 == stop) return false;
         return true;
     }
+
+    /// <summary>
+    /// ISO §14.5.3.3: whether the conditional phrase the token stream holds next is the next phrase of the statement
+    /// that owns <paramref name="phrases"/> — the one predicate of the one <c>conditionalPhrases</c> rule (kb/Work
+    /// PB3830). The decision is <see cref="Parsing.ConditionalPhraseAssociation.Associates"/>; this reads the edition
+    /// because which general formats a statement has is an edition fact (the CALL statement's ON OVERFLOW format is
+    /// printed 85–2014 only), and a phrase belongs to a statement only when a format the edition prints admits it.
+    /// </summary>
+    protected bool conditionalPhraseAssociates(CobolParserCore.ConditionalPhrasesContext phrases) =>
+        Parsing.ConditionalPhrases.KindAhead(TokenStream) is { } next
+        && Parsing.ConditionalPhraseAssociation.Associates(phrases, next, Edition);
 }

@@ -4,6 +4,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -531,19 +532,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             into = host.Move.BindIntoPhrase(file, area, ip, IntoPhraseRules.Return);
         }
-        List<BoundStatement>? atEnd = null, notAtEnd = null;
-        if (r.returnAtEndPhrase() is { } ae)
-            // §14.9.34.3 SR4 — the phrases may be written in reversed order; Split's positional swap covers
-            // BOTH the NOT-only form and the full reversed pair (P7 Step 10b).
-            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
+        // §14.9.34.3 SR4 — the phrases may be written in reversed order; PhraseBlocks binds each by its role.
+        var (atEnd, notAtEnd) = PhraseBlocks.Bind(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
         // ⛔ §14.9.34.2 prints `AT END imperative-statement-1` on its own line with NO brackets, between the
         // bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` — so the AT END phrase is MANDATORY on every
         // RETURN (§5.2.6.2: brackets are the only thing that makes a portion omissible; §5.2.2: an underlined
         // keyword is required subject to those conventions). SR4's "when specified" permits REVERSING the two
-        // phrases, never omitting either. ONE test covers BOTH grammar arms because Split has already
-        // normalized position out: `atEnd is null` holds for the absent phrase AND for the reversed spelling
-        // that writes only NOT AT END (kb/Work PB350 — the two-arm trap: screening `returnAtEndPhrase() is
-        // null` alone would have left the NOT-only arm compiling).
+        // phrases, never omitting either. ONE test covers every spelling because the phrases are bound by ROLE:
+        // `atEnd is null` holds for no phrase at all AND for a RETURN that writes only NOT AT END (kb/Work PB350 —
+        // the two-arm trap: screening "no phrase written" alone would have left the NOT-only spelling compiling).
         ctx.Validation.ScreenOmittedRequiredPhrase(atEnd is null, "AT END", "RETURN",
             "its general format prints the AT END line without brackets, and §14.9.34.4 GR3 gives that phrase "
             + "the only defined destination for control when no next logical record exists — without it a "

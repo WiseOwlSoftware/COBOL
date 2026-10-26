@@ -117,12 +117,25 @@ public sealed class BooleanOperatorTests
 
     [Theory]
     [InlineData("COMPUTE R ROUNDED = A B-AND B.")]                       // SR: no ROUNDED on F2
-    [InlineData("COMPUTE R = A B-AND B ON SIZE ERROR DISPLAY \"E\".")]   // SR: no SIZE ERROR on F2
+    [InlineData("COMPUTE R = A ON SIZE ERROR DISPLAY \"E\".")]           // a sole boolean identifier: parsed as F1, re-routed to F2 by operand class
+    [InlineData("COMPUTE R = ZERO ON SIZE ERROR DISPLAY \"E\".")]        // a sole figurative ZERO: either format (§8.8.1.1), owns the phrase (PB3830 R2-1), F2 by the boolean receiver
     public void BooleanCompute_RoundedOrSizeError_Rejected1511(string proc)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("BOP04", proc), 2002);
         Assert.False(ok, "ROUNDED / ON SIZE ERROR is invalid on a boolean COMPUTE (ISO §14.9.8 Format 2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1511");
+    }
+
+    /// <summary>A right side that PARSES as a boolean-expression (a B-operator) is §14.9.8.2 Format 2, which prints no
+    /// SIZE ERROR phrase, so the phrase may not be syntactically associated with the COMPUTE at all (ISO §14.5.3.3;
+    /// kb/Work PB3830 review R1-1): COBOL2269 at the phrase, never a phrase the binder then refuses.</summary>
+    [Fact]
+    public void BooleanCompute_BooleanExpression_SizeErrorIsUnowned2269()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(
+            Prog("BOP05", "COMPUTE R = A B-AND B ON SIZE ERROR DISPLAY \"E\"."), 2002);
+        Assert.False(ok, "a boolean-compute COMPUTE prints no SIZE ERROR phrase (ISO §14.9.8.2 Format 2)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2269");
     }
 
     [Fact]
