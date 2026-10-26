@@ -1,4 +1,4 @@
-## PB3691 — a numeric, integer or index function-identifier is no integer operand of a relation with a character operand (D-FNUSE reaches §8.8.4.2.5)
+## Entry 2591 — 2026-10-25 18:03 PDT — PB3691 — a numeric, integer or index function-identifier is no integer operand of a relation with a character operand (D-FNUSE reaches §8.8.4.2.5)
 
 **The question the owner closed.** PB3665 read §15.2 as giving numeric, integer and index functions no usage, so STRING SR1 and
 INSPECT SR2 refuse them as "described … as usage display or national". §8.8.4.2.5 states the same condition a third time for
@@ -44,3 +44,4 @@ the test side names each refused shape and each admitted complement. The pair ma
 **Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN, run
 `000001-20261026T003453Z`: Conformance 8,579 of 18,752, Unit 37,135 of 38,338, Characterization 7 of 36 cases ran; 42 `pb3691`
 cases passed in `leg-1-Conformance.trx`, none failed.
+
