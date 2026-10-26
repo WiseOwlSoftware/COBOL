@@ -367,6 +367,14 @@ GUI_CASES = [
     ("xargs grep code < files.txt", False),
     ("wsl -d Ubuntu -e bash -lc 'ls ~'", False),
     ("timeout 5 dotnet test x.csproj", False),
+    # a DOCUMENT run in command position opens its associated application (branch review R1-1)
+    ("cmd //c x.md", True),
+    ("cmd.exe /c report.html", True),
+    ("pwsh -c './x.md'", True),
+    ("cmd /c start x.md", True),
+    ("cat x.md", False),
+    ("git commit -q -m 'open x.md in the viewer'", False),
+    ("python scripts/x.py --out x.json", False),
     ("chrome --headless --print-to-pdf=x.pdf x.html", False),                 # a headless browser draws no window
     ("chrome --headless=new --screenshot x.html", False),
 ]
@@ -384,6 +392,17 @@ GUI_PS_CASES = [
     ("ii .", True),
     ("explorer .", True),
     ("& '" + OBS + "'", True),
+    # a DOCUMENT run in command position (branch review R1-1)
+    ("& ./x.md", True),
+    ("& 'E:/COBOL-coord/scratch/vault/kb/Work.base'", True),
+    ("./Cobol.Net.sln", True),
+    ("pwsh -c './x.md'", True),
+    # the allowed `Start-Process <console tool> -NoNewWindow` form must not carry a launch inside it (branch review R1-2)
+    ("Start-Process cmd -NoNewWindow -ArgumentList '/c','start','x.md'", True),
+    ("saps -FilePath cmd -ArgumentList '/c start x.md' -NoNewWindow", True),
+    ("Start-Process pwsh -NoNewWindow -ArgumentList '-c','Start-Process','x.md'", True),
+    ("Start-Process cmd -NoNewWindow -ArgumentList '/c','x.md'", True),
+    ("Start-Process pwsh -NoNewWindow -ArgumentList 'Start-Process x.md'", True),
     ("Start-Process pwsh -ArgumentList '-File','x.ps1'", True),               # a console tool, but with a window of its own
     ("Start-Process pwsh -Verb RunAs -WindowStyle Hidden", True),             # UAC prompt
     ("Start-Process pwsh -W Hidden", True),                                   # ambiguous prefix: whether it hides cannot be told
@@ -397,6 +416,15 @@ GUI_PS_CASES = [
     ("$p = [Diagnostics.Process]::Start('" + OBS + "')", True),
     ("New-Object -ComObject Shell.Application", True),
     ("New-Object -ComObject 'WScript.Shell'", True),
+    # false refusals the branch review found (R1-3): a non-shell console tool is handed data, and a string in a PowerShell
+    # expression is no command
+    ("Start-Process git -NoNewWindow -ArgumentList 'clone','https://github.com/x/y' -Wait", False),
+    ("Start-Process python -NoNewWindow -ArgumentList 'x.py','open'", False),
+    ("Start-Process python -NoNewWindow -ArgumentList 'scripts/x.py','--name','code'", False),
+    ("Get-Process -Name ('obsidian') | Stop-Process", False),
+    ("Start-Process cmd -NoNewWindow -ArgumentList '/c','dir'", False),
+    ("Get-Content x.md", False),
+    ("Start-Process pwsh -NoNewWindow -ArgumentList '-c','Get-Content x.md'", False),
     ("Start-Process pwsh -NoNewWindow -ArgumentList '-File','x.ps1'", False),
     ("Start-Process -FilePath pwsh -WindowStyle Hidden -PassThru", False),
     ("Start-Process pwsh -Win Hidden -ArgumentList '-NoProfile'", False),

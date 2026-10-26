@@ -12,11 +12,19 @@ A step launches a GUI when it is, in this order of check:
      by name or by path (`C:/.../Obsidian.exe`), also behind a prefix command (`timeout 5 obsidian`, `& obsidian`,
      `wsl -e explorer.exe`) and behind `cmd /c`, `pwsh -Command` and `bash -c`, which the shared parser has already
      walked into steps of their own;
-  3. `Start-Process` / `saps` / PowerShell's `start` alias / cmd.exe's `start`, which launch ANYTHING (a document or a URL
+  3. a DOCUMENT run in command position (`& ./x.md`, `.\report.html`, `cmd /c x.md`): PowerShell and cmd.exe hand a file
+     that is no program to ShellExecute, which opens its associated application exactly as `Invoke-Item` does
+     (`DOCUMENT_EXTENSIONS`; branch review R1-1);
+  4. `Start-Process` / `saps` / PowerShell's `start` alias / cmd.exe's `start`, which launch ANYTHING (a document or a URL
      opens its associated application): refused unless the target is a console tool (`CONSOLE_TOOLS`) AND the command
      says it opens no window (`-NoNewWindow`, `-WindowStyle Hidden`, cmd's `/b`), has no `-Verb` (`-Verb RunAs` is a UAC
-     prompt on the owner's screen), and hands no GUI program to the console tool through its arguments;
-  4. the library forms of the same act: `[System.Diagnostics.Process]::Start`, `New-Object -ComObject Shell.Application`
+     prompt on the owner's screen), and the command line it hands the tool is itself no launch: the tool and its
+     arguments are re-read as a command (`Start-Process cmd -ArgumentList '/c','start','x.md'` is `cmd /c start x.md`,
+     whose `start` is refused), and a SHELL (`cmd`, `pwsh`, `bash` ...) is also refused when any of its arguments names a
+     launcher, a start verb or a desktop application, because a shell may take its arguments as a command in a form the
+     parser cannot tell (`pwsh Start-Process x.md`; branch review R1-2). A non-shell console tool (`git clone <url>`,
+     `python x.py open`) is handed data, so its arguments are no launch;
+  5. the library forms of the same act: `[System.Diagnostics.Process]::Start`, `New-Object -ComObject Shell.Application`
      (and `WScript.Shell`), Python's `os.startfile` / `webbrowser.open` among a Python command's words.
 
 This is a deny list for what is known to open a window plus a default-deny for the shell's generic launchers; an
@@ -42,6 +50,14 @@ GUI_APPS = {"obsidian", "chrome", "msedge", "firefox", "brave", "opera", "vivald
             "slack", "discord", "teams", "ms-teams", "zoom", "spotify", "vlc", "steam", "mstsc", "gimp", "inkscape"}
 # the browsers among them: run with `--headless` they open no window
 BROWSERS = {"chrome", "msedge", "firefox", "brave", "opera", "vivaldi"}
+# files that are no program: named in command position, PowerShell and cmd.exe open them in the application the desktop
+# associates with the extension (documents, media, project files an IDE owns, shortcuts and Windows Script Host files)
+DOCUMENT_EXTENSIONS = {"md", "markdown", "txt", "text", "log", "rtf", "pdf", "doc", "docx", "docm", "odt", "xls", "xlsx", "xlsm",
+                       "ods", "csv", "tsv", "ppt", "pptx", "odp", "html", "htm", "xhtml", "mht", "mhtml", "svg", "xml", "json",
+                       "yaml", "yml", "toml", "ini", "cfg", "conf", "base", "canvas", "png", "jpg", "jpeg", "gif", "bmp", "ico",
+                       "webp", "tif", "tiff", "mp3", "mp4", "wav", "avi", "mkv", "mov", "zip", "7z", "rar", "sln", "slnx",
+                       "csproj", "vcxproj", "ipynb", "trx", "binlog", "cob", "cbl", "cpy", "cs", "c", "h", "cpp", "java", "ts",
+                       "lnk", "url", "vbs", "vbe", "wsf", "jse", "js", "hta", "msi", "msc", "cpl", "scr"}
 # console programs: they write to the stream they are given, so a `Start-Process` of one that opens no window is a
 # background job, not a desktop launch
 CONSOLE_TOOLS = {"pwsh", "powershell", "cmd", "bash", "sh", "wsl", "dotnet", "python", "python3", "py", "git", "gh", "node",
@@ -51,6 +67,8 @@ CONSOLE_TOOLS = {"pwsh", "powershell", "cmd", "bash", "sh", "wsl", "dotnet", "py
 _PREFIX = {"timeout", "env", "sudo", "doas", "nohup", "nice", "ionice", "time", "xargs", "exec", "command", "builtin",
            "stdbuf", "watch", "wsl", "&", "call"}
 _START = {"start-process", "saps", "start"}
+# console programs that take their arguments as a command line of their own
+_SHELLS = {"cmd", "pwsh", "powershell", "bash", "sh", "wsl"}
 _ASSIGN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 _NUMBER = re.compile(r"^[0-9][0-9.]*[smhd]?$")
 # Start-Process's parameters, by full name: a word `-x` names the ONE parameter it prefixes (PowerShell binds an
@@ -102,7 +120,7 @@ def _parameter(word: str, names: tuple[str, ...]) -> str | None:
     return hits[0] if len(hits) == 1 else None
 
 
-def _start_refusal(words: tuple[str, ...]) -> str | None:
+def _start_refusal(words: tuple[str, ...], shell: str) -> str | None:
     """Why this Start-Process / `start` command may open a window or run a GUI, or None when it is a console tool opened
     in no window (arguments: the words after the verb)."""
     target: str | None = None
@@ -132,7 +150,7 @@ def _start_refusal(words: tuple[str, ...]) -> str | None:
                 elif value == "windowstyle":
                     quiet = quiet or v.lower() in ("hidden", "h", "hi", "hid", "hidd", "hidde")
                 elif value == "argumentlist":
-                    rest.append(v)
+                    rest.extend(t for t in re.split(r"[\s,;'\"@()]+", v) if t)
         elif w and w != '""' and w != "''" and target is None and not w.startswith("/"):
             target = w
         elif w.startswith("/") and len(w) > 2:
@@ -148,20 +166,36 @@ def _start_refusal(words: tuple[str, ...]) -> str | None:
     if not quiet:
         return (f"`{target}` is started without `-NoNewWindow` / `-WindowStyle Hidden` / cmd's `/b`, so it gets a console "
                 "window of its own")
-    for token in re.split(r"[\s,;'\"@()]+", " ".join(rest)):
-        if token and (sl.program(token) in GUI_APPS or sl.program(token) in LAUNCHERS
-                      or re.match(r"^[a-z][a-z0-9+.-]*://", token, re.I)):
-            return f"its arguments hand `{token}` to the console tool, which opens a desktop application"
+    if name in _SHELLS:
+        for token in rest:
+            if sl.program(token) in GUI_APPS or sl.program(token) in LAUNCHERS or sl.program(token) in _START:
+                return f"its arguments hand `{token}` to the shell `{target}`, which opens a desktop application"
+    # the tool and its arguments, read as the command the tool runs (`cmd /c x.md`, `pwsh -c Start-Process x.md`)
+    for st in sl.steps(" ".join([target, *rest]), None, shell):
+        why = refusal(st, shell)
+        if why:
+            return f"handed to `{target}` it is a launch: {why}"
     return None
 
 
-def refusal(step: sl.Step) -> str | None:
-    """Why this step starts a desktop GUI application, or None. The text names the offending form."""
+def _extension(word: str) -> str:
+    """The lower-case extension of the file a command word names ('' for none)."""
+    base = word.replace("\\", "/").rsplit("/", 1)[-1].lower()
+    return base.rsplit(".", 1)[1] if "." in base.strip(".") else ""
+
+
+def refusal(step: sl.Step, shell: str = sl.BASH) -> str | None:
+    """Why this step starts a desktop GUI application, or None. The text names the offending form. `shell` is the
+    shell whose syntax the step was parsed in."""
     words = step.words
+    if shell == sl.POWERSHELL and step.substitution and step.text.lstrip()[:1] in ("'", '"'):
+        return None                             # `('obsidian')`: a string in a PowerShell expression, no command
     k = _command_word(words)
     if k is None:
         return None
     name = sl.program(words[k])
+    if _extension(words[k]) in DOCUMENT_EXTENSIONS:
+        return f"`{words[k]}` is a document, and running it opens the application associated with its extension"
     if name in LAUNCHERS:
         return f"`{words[k]}` opens its operand in the associated desktop application"
     if name in GUI_APPS:
@@ -170,7 +204,7 @@ def refusal(step: sl.Step) -> str | None:
             return None                         # a headless browser draws no window (print-to-pdf, screenshots)
         return f"`{words[k]}` is a desktop application"
     if name in _START:
-        why = _start_refusal(words[k + 1:])
+        why = _start_refusal(words[k + 1:], shell)
         if why:
             return f"`{words[k]}`: {why}"
     if name == "new-object" and any(w.lower() in ("shell.application", "wscript.shell") for w in words[k + 1:]):
