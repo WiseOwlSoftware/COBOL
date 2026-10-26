@@ -4112,15 +4112,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         PictureAsWritten? picAsWritten = null)
     {
         bool entryCopy = scope is not DescriptionCopyScope.CompilerTemp;
-        var (fromPic, fromSynthesized, fromPending) = picAsWritten is { } w
-            ? (w.Pic, w.UsageSynthesized, w.Pending)
-            : (from.Pic, from.PicIsUsageSynthesized, from.Pending);
-        if (to.Pic is null && fromPic is not null)
-        {
-            to.Pic = fromPic;
-            to.PicIsUsageSynthesized = fromSynthesized;              // the profile's provenance travels with it (PB495)
-            to.PicIsValueImplied = from.PicIsValueImplied;           // … written or SR9-implied (§13.18.57.4 GR3; PB1300)
-        }
+        var pictureSide = picAsWritten ?? new PictureAsWritten(from.Pic, from.PicIsUsageSynthesized, from.Pending);
+        bool takesPicture = to.Pic is null && pictureSide.Pic is not null;
+        pictureSide.GiveTo(to);
+        if (takesPicture) to.PicIsValueImplied = from.PicIsValueImplied;   // … written or SR9-implied (§13.18.57.4 GR3; PB1300)
         // ⛔ The WRITTEN character-string travels on its OWN condition, not on Pic's. §13.16.3 SR8's recovery
         // clears the analyzed profile while keeping the spelling the later screens have to name, so an entry can
         // carry PictureText with a NULL Pic; guarding this on `from.Pic is not null` would drop the spelling from
@@ -4135,7 +4130,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // subject: §13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, so a false antecedent here
         // silently re-categorized a whole subtree (kb/Work PB522).
         if (to.GroupUsage is GroupUsage.None) to.GroupUsage = from.GroupUsage;
-        if (to.Pending is PicPending.None) to.Pending = fromPending;
         // The provenance of the VALUE travels with it (DataItem.ValueCopiedFrom): the §13.18.63.3 SR13/SR14
         // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
         // template's / target's already-screened entry once per reference site.
@@ -4414,7 +4408,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // §13.18.49.3 SR7: data-name-1 shall reference an elementary item or a level-1 group item (of the
         // file / working-storage / local-storage / linkage section; a level-66 RENAMES alias is neither).
-        if (target.Level == 66 || !((target.IsElementary && !target.HasSubordinates) || target.Level == 1))
+        if (target.Level == 66 || target.HasSubordinates && target.Level != 1)
         {
             Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{targetName}' shall "
                 + "reference an elementary item or a level 1 group item (ISO §13.18.49.3 SR7)");
@@ -4494,6 +4488,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // third acquisition route cannot drift from the other two (before PB495 it carried its own
                     // copy of the `Binary or Packed or Comp5` hand-list and silently dropped every other usage).
                     ApplyEffectiveUsage(item, au);
+                    // ⛔ A PICTURE-LESS data-name-1 (`01 G USAGE BINARY-LONG. 05 E.`) has no profile to rewrite: its
+                    // representation IS the group's clause, so the subject takes what the usage walk hands E — the profile
+                    // entry bind synthesized for the group and its deferred NATIONAL / BIT mark (§13.18.60.4 GR1; the
+                    // elementary arm of UsageInheritanceWalk). Without them the subject holds a usage and no picture, which
+                    // the walk (it completes only an item with no usage of its own) never repairs (kb/Work PB3682).
+                    if (item.Pic is null && PictureAsWrittenOf(p) is var groupProfile
+                        && (groupProfile.UsageSynthesized || groupProfile.Pending is not PicPending.None))
+                        groupProfile.GiveTo(item);
                     // The clause travels WHOLE: its WITH NO SIGN phrase (§13.18.60.2) is not a separate clause,
                     // so GR3's "as though specified for the subject" carries it too. Recorded, not applied — the
                     // ONE adjudication site (ApplyEffectiveNoSign, from UsageInheritancePass) runs later in the
@@ -7096,6 +7098,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return subordinate.GroupUsage == group.GroupUsage;
     }
 
+    /// <summary>Is the GROUP-USAGE pair (<paramref name="group"/>'s clause against its subgroup <paramref name="copy"/>'s)
+    /// one the declaration a copy came from holds in its own text? True when <paramref name="copy"/> is a copy and the
+    /// group is a member of the same copy, or is the TYPE / SAME AS subject whose clause is the one its declaration's header
+    /// wrote (<see cref="DataItem.ClonedFrom"/> of the subgroup names the declaration's own entry, whose parent is that
+    /// header). False for a subject whose clause an enclosing group IMPLIED (its declaration's header writes none or another).</summary>
+    private static bool GroupUsagePairIsTheDeclarations(DataItem group, DataItem copy) =>
+        copy.ClonedFrom is { } original
+        && (group.ClonedFrom is not null || original.Parent?.GroupUsage == group.GroupUsage);
+
     /// <summary>The GROUP arm of the §13.18.60.4 GR1 walk: the GROUP-USAGE conformance rules (§13.18.29.3), the
     /// COBOL-2023 SYNCHRONIZED-on-a-group gate, and GR1's own "not to the group itself" — shed the profile entry
     /// bind synthesized here and hand it to the elementary items below.</summary>
@@ -7125,9 +7136,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (!ImplyGroupUsage(item, c))
                 {
                     using var __c = Edition.At(c);
-                    // A subgroup that is a COPY was written in the declaration it copies (the subject of a TYPE clause
-                    // has the declaration's GROUP-USAGE, never a clause of its own): the pair is the declaration's.
-                    using var __m = Edition.Muted(c.ClonedFrom is not null);
+                    // A subgroup that is a COPY was written in the declaration it copies, and when the GROUP-USAGE it
+                    // contradicts was written there too the pair is the declaration's, reported where it is written. A
+                    // clause the group took from OUTSIDE the copy (an enclosing group implied it onto the TYPE or SAME AS
+                    // subject) is a fact of the PLACEMENT, and the copy reports it (kb/Work PB3682).
+                    using var __m = Edition.Muted(GroupUsagePairIsTheDeclarations(item, c));
                     Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{c.CobolName ?? "FILLER"}': a group "
                         + $"subordinate to a GROUP-USAGE {gu} group shall itself be GROUP-USAGE {gu}, explicitly or "
                         + $"implicitly — not GROUP-USAGE {(c.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
