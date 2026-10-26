@@ -16,7 +16,7 @@ tags:
 > Notes are best-effort with a `last_updated` stamp — refresh, don't diverge. Tracking & docs-integration setup:
 > [[kb/Context/Vault & Docs Integration]].
 
-> A cross-linked "second brain" for the **WiseOwl COBOL / WiseOwl COBOL** compiler: a commercial-quality,
+> A cross-linked "second brain" for the **WiseOwl COBOL** compiler: a commercial-quality,
 > decades-sustainable COBOL compiler that translates standard COBOL into **idiomatic, typed-native C#**
 > compiled by **Roslyn** into a .NET assembly. Built from the **ISO/IEC 1989:2023** specification with
 > correct support for all prior editions (**1985 / 2002 / 2014**).

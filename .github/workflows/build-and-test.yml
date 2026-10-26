@@ -379,6 +379,11 @@ jobs:
       - name: Diagnostic prefix — no tracked file spells a code with the former prefix (rename_diagnostic_prefix.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/rename_diagnostic_prefix.py --check
+      # The code carries the product's name, WiseOwl.Cobol (kb/Work PB3837): no tracked path or line outside history spells
+      # a retired name. The rename's audit, for the same reason as the two above.
+      - name: Retired names — no tracked path or file outside history spells a retired name (rename_retired_names.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/rename_retired_names.py --check
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the

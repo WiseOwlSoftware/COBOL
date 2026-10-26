@@ -15,10 +15,11 @@ A compiler (`src/WiseOwl.Cobol.*`, exe `cobol`) that translates standard COBOL i
 Roslyn compiles into a .NET assembly. Built from the ISO/IEC 1989:2023 spec with support for editions 1985/2002/2014.
 See [[kb/Architecture/High-Level Design]].
 
-## Why "WiseOwl COBOL" *and* "WiseOwl COBOL"?
-The repository is `WiseOwl COBOL`; the *product* the current code builds is **WiseOwl COBOL**. WiseOwl COBOL was the original
-byte-engine compiler; a 2026-06-08 owner pivot began the blank-slate typed-native rewrite. The legacy `Legacy.*`
-projects survive only as a differential oracle until the G8 cut-over. See [[kb/Context/Project History]].
+## Why do older records name other products?
+The repository is `WiseOwlSoftware/COBOL`; the *product* the code builds is **WiseOwl COBOL**, and the code carries its
+name (`WiseOwl.Cobol.*`). The original byte-engine compiler had another name; a 2026-06-08 owner pivot began the
+blank-slate typed-native rewrite, and the legacy `Legacy.*` projects were deleted at the G8 cut-over
+(`docs/rearchitecture/LEGACY-ARCHIVE.md`). kb/Work PB3837 retired the earlier names everywhere but the history. See [[kb/Context/Project History]].
 
 ## Is there an intermediate representation (IR)?
 Yes and no. There is **one** IR — the typed **bound tree** — and **no separate lowered/branch IR**. C# already has
