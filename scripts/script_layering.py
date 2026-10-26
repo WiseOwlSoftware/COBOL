@@ -27,6 +27,9 @@ THE RULES (--check):
                 and from then on the module is checked like any other (kb/Work PB3731, PB3733, PB3735, PB3737).
   5. TESTS      an import inside a function named `self_test` or `_self_test` is test code, not a layer: a script's cases
                 move to scripts/selftests/ (section 16.2), which the DAG does not constrain.
+  6. PRESENT    a declared module that existed before PB3726, or whose creating step's kb/Work note is landed or
+                retired, exists: a rename or a deletion would otherwise read as "not created yet" (rule 3) and leave the
+                net blind to the module's imports.
 """
 from __future__ import annotations
 
@@ -39,6 +42,8 @@ from typing import Iterable, Mapping, Sequence
 from standard_streams import ensure_utf8  # (scripts/, this file's own directory)
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts" / "spec"))
+import work  # noqa: E402  (the ONE frontmatter reader and the terminal statuses: rule 6)
 
 #: THE DAG: each LINE is a sequence of TIERS (tuples of module names). A module may import every module of an EARLIER
 #: tier of any line it is on; modules of one tier never import each other. Section 16.10 of the design draws these lines.
@@ -170,7 +175,18 @@ def check(root: pathlib.Path, lines: Sequence[Sequence[Sequence[str]]] = LINES,
     if loop := cycle(edges):
         findings.append(f"DAG: the declared lines make a cycle: {' -> '.join(loop)}")
     present = {m for m, (rel, _) in nodes.items() if (root / rel).is_file()}
-    unsplit = {m for m, (_, made) in splits.items() if m in present and not any(x in present for x in made)}
+
+    def landed(step: str) -> bool:
+        note = root / "kb" / "Work" / f"{step}.md"
+        fm = work.parse_frontmatter(note.read_text(encoding="utf-8")) if note.is_file() else None
+        return bool(fm) and fm.get("status") in work.TERMINAL_STATUSES
+
+    for m, (rel, step) in sorted(nodes.items()):
+        if m not in present and (step is None or landed(step)):
+            made = f"its step {step} is landed" if step else "it existed before the restructure"
+            findings.append(f"{rel}: {m} is declared and {made}, but the file is absent: a rename or a deletion "
+                            f"changes NODES in the same change (rule 6)")
+    unsplit ={m for m, (_, made) in splits.items() if m in present and not any(x in present for x in made)}
     # "or in scripts/" (section 16.10): the modules of a line that holds scripts/ modules only (the gate's), which every
     # module of scripts/orchestrator/ may import; prune_worktrees.py lives in scripts/ too, but stands on the survey's line
     in_scripts = {m for m, (rel, _) in nodes.items() if rel.count("/") == 1}
@@ -243,10 +259,25 @@ def self_test() -> int:
         return check(root, lines, nodes, splits)
 
     base = {"coord": "import json\n", "reports": "import coord\n", "inflight": "import coord\nfrom reports import X\n",
-            "plan_wave": "import reports\nimport inflight\n", "prune_worktrees": "import coord\nimport inflight\n"}
+            "plan_wave": "import reports\nimport inflight\n", "prune_worktrees": "import coord\nimport inflight\n",
+            "run_gate_legs": "import json\n"}
     f, c = plant(base)
     expect("the declared edges pass (an earlier tier, the standard library, an unsplit module's own imports)",
-           f == [] and c == {"checked": 4, "absent": 4, "unsplit": 1}, f"{f} {c}")
+           f == [] and c == {"checked": 4, "absent": 3, "unsplit": 2}, f"{f} {c}")
+    f, _ = plant({k: v for k, v in base.items() if k != "coord"})
+    expect("a module that existed before the restructure and is gone is a finding (rule 6)",
+           len(f) == 1 and "coord is declared and it existed before the restructure" in f[0], str(f))
+    note = root / "kb" / "Work" / "X1.md"
+    note.parent.mkdir(parents=True, exist_ok=True)
+    note.write_text("---\nid: X1\nstatus: open\n---\n", encoding="utf-8", newline="\n")
+    f, _ = plant({k: v for k, v in base.items() if k != "reports"})
+    expect("a module whose step is still open may be absent (rule 3)", f == [], str(f))
+    note.write_text("---\nid: X1\nstatus: landed\n---\n", encoding="utf-8", newline="\n")
+    f, _ = plant({k: v for k, v in base.items() if k != "reports"})
+    expect("a module whose step landed and is gone is a finding (rule 6: a rename leaves NODES behind)",
+           len(f) == 1 and "reports is declared and its step X1 is landed" in f[0], str(f))
+    f, _ = plant(base)
+    expect("... and present, it is checked like any other", f == [], str(f))
     f, _ = plant({**base, "reports": "import coord\nimport inflight\n"})
     expect("an import of a LATER tier is a finding (the report reader importing the in-flight module)",
            len(f) == 1 and "reports.py:2: reports imports inflight" in f[0], str(f))
@@ -263,7 +294,7 @@ def self_test() -> int:
                   "branch_classify": "import reports\n", "branch_survey": "import inflight\n",
                   "prune_worktrees": "import branch_survey\n"})
     expect("once its split exists, an import of the CLI prune_worktrees from inflight is a finding",
-           len(f) == 1 and "inflight imports prune_worktrees, which" in f[0] and c["unsplit"] == 0, f"{f} {c}")
+           len(f) == 1 and "inflight imports prune_worktrees, which" in f[0] and c["unsplit"] == 1, f"{f} {c}")
     f, _ = plant({**base, "branch_classify": "import reports\n", "branch_survey": "import inflight\n",
                   "prune_worktrees": "import plan_wave\n"})
     expect("once its split exists, prune_worktrees' own imports are checked (it may not import the planner)",

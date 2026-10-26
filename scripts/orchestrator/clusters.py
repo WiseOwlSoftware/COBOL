@@ -6,8 +6,9 @@ declare_fix_lane), a campaign's clusters on the sites its notes declare (campaig
 the tiers that order them (lift_tiers, kb/Work PB3423), and a cluster's claim (cluster_claim, set_claim).
 
 Its readers: the wave planner (plan_wave.py), the ledger's estimate (scripts/spec/ledger_plan.py: the same
-run_fix_clusters call, kb/Work PB2912), the branch survey's train order (prune_worktrees.note_rank: harm_weights). In
-the import DAG of section 16.10 (scripts/script_layering.py) it imports reports and inflight.
+run_fix_clusters call, kb/Work PB2912), the branch survey's train order (prune_worktrees.note_rank: harm_weights) and
+the landing lane's conflict brief (land_lane._note_line: note_of). In the import DAG of section 16.10
+(scripts/script_layering.py) it imports reports and inflight.
 """
 from __future__ import annotations
 

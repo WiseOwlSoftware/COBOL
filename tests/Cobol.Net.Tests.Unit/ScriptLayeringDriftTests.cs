@@ -15,7 +15,9 @@ namespace CobolNet.Tests.Unit;
 /// declared ONCE, in <c>scripts/script_layering.py</c> (<c>LINES</c>, <c>NODES</c>, <c>SPLITS</c>), and must itself be
 /// acyclic; each module's imports are read from its syntax tree (module level, inside a function, under
 /// <c>TYPE_CHECKING</c>), a declared module not created yet is skipped, a module whose split has not landed stands for
-/// the modules its split creates, and an import inside a script's <c>self_test</c> is test code, never a layer.
+/// the modules its split creates, an import inside a script's <c>self_test</c> is test code, never a layer, and a
+/// declared module that existed before the restructure or whose step's note is landed must exist (a rename that left the
+/// declaration behind would otherwise read as "not created yet").
 /// </summary>
 /// <remarks>
 /// Why: in the seven days to 2026-10-25 the five pipeline scripts took 209 of 1,240 commits, each one doing several jobs
