@@ -9,8 +9,11 @@ Experiment record (owner standing rule 2026-09-28: every fleet experiment goes h
 compiler.
 
 **The owner's instruction** (2026-10-24, restated for each night): "run the fuzz analysis and report its findings. Do not
-begin fixing any fuzz identified issues without my explicit approval". So every finding is filed with `status: owner`
-(PB3829 to PB3832), which no lane plans. The owner asked for the summary on 2026-10-26 about 10:50, and it was given.
+begin fixing any fuzz identified issues without my explicit approval". So every finding was first filed with `status: owner`
+(PB3829 to PB3832). The owner asked for the summary on 2026-10-26 about 10:50, and it was given. He then approved all
+four in chat (about 11:05 PDT PB3829, with "Ensure that the fix actually corrects the ROUNDED root cause, not just fixes
+that one example"; 11:10 PB3831 and PB3832; 11:15 PB3830), so they are `status: open`, each with an Owner decision
+section.
 
 ## The run
 
@@ -45,32 +48,48 @@ were 1,773 programs in 314 signatures, and the slices decided 258 signatures cov
   `r0901` draws COBOLNET0901; `r14` draws COBOLNET2072 and COBOL0001; `r2796` draws COBOLNET2796 at (11,23).
 - **Cost.** 2,077,082 subagent tokens, 862 tool uses and 27.0 minutes of wall time. Every slice returned DONE.
 
-Totals from the verdict lines (258 signatures; programs in brackets): WISEOWL-CORRECT 123 (1,150) · GNUCOBOL-SIDE 50
-(243) · LATITUDE 45 (184) · NOT-COMPARABLE 19 (72) · UNINITIALIZED 12 (36) · MODEL-ERROR 4 (9) · KNOWN 1 (1) ·
-WISEOWL-DEFECT 4 (10) · UNDECIDED 0.
+Totals after the orchestrator's correction (258 signatures; programs in brackets): WISEOWL-CORRECT 124 (1,156) ·
+GNUCOBOL-SIDE 50 (243) · LATITUDE 45 (184) · NOT-COMPARABLE 19 (72) · UNINITIALIZED 12 (36) · MODEL-ERROR 4 (9) · KNOWN
+1 (1) · WISEOWL-DEFECT 3 (4: B4 `OUTPUT_DIFFERS:15.8` 1, C2 `WE_REJECT:COBOLNET0901` 2, C3
+`WE_REJECT:COBOL0001,COBOLNET2072` 1) · UNDECIDED 0.
 
-## The findings (filed, held for the owner)
+The adjudicators' own count was WISEOWL-CORRECT 123 (1,150) and WISEOWL-DEFECT 4 (10). It changed because the C2
+`WE_REJECT:COBOLNET2796` signature (6 programs) moved from WISEOWL-DEFECT to WISEOWL-CORRECT: WiseOwl's refusal is right
+(see the lesson below).
+
+## The findings (filed; approved by the owner and open)
 
 | Note | Title | Class | Witnesses |
 |---|---|---|---|
 | PB3829 | COMPUTE ROUNDED from ACOS, ASIN, ATAN, RANDOM or FRACTION-PART truncates through PB65's codomain clamp: `COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `PIC 9V9999` stores 3.1415, not 3.1416 | defect, wrong answer (MAJOR, runtime/intrinsics) | fz00612 (B4) |
-| PB3830 | Nested arithmetic size-error phrase binding: `SUBTRACT ... ON SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR ... END-SUBTRACT` draws COBOLNET2796 (the MULTIPLY sibling too) | adjudication, rejects-legal-source candidate (MINOR, grammar) | fz02050 (C2; five more programs of its signature are correct refusals) |
+| PB3830 | Nested arithmetic size-error phrase binding: the refusal of `SUBTRACT ... ON SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR ... END-SUBTRACT` (COBOLNET2796) is RIGHT under §14.5.3.3 4); the work is one grammar mechanism for every Table 12 paired phrase | adjudication (MINOR, grammar; the slice's defect verdict was overturned) | fz02050 (C2; five more programs of its signature are correct refusals) |
 | PB3831 | `CLASS IS BOOLEAN` draws COBOLNET0901 where the declined VALIDATE facility's refusal is COBOLNET1708 | defect, diagnostic wording only (MINOR) | fz02486 (C2) |
 | PB3832 | COBOLNET2072 claims an IF lacks its imperative-statement when the fault is `LENGTH OF` (only after an open `IF .. ELSE IF .. END-IF`) | defect, diagnostic wording only (MINOR) | fz02783 (C3) |
 
-Two readings the owner should see before approving anything:
+Two things the owner saw before approving:
 
-- **PB3829 would overturn part of a LANDED fix.** The adjudicator found §14.7.4.3 4) requires "the nearest value that
+- **PB3829 overturns part of a LANDED fix.** The adjudicator found §14.7.4.3 4) requires "the nearest value that
   can be represented in the resultant identifier", and §15.8.4 1) bounds only the returned value of ACOS. PB65's clamp
   (`FromDoubleBounded`; inventory row RV-15.75.4-1, with RV-15.10.4-1 and RV-15.11.4-1 on the same clamp) cuts the
   rounded value back to floor(bound x 10^scale), and the golden `pb65_codomain_clamp` asserts the clamped values in its
   ROUNDED legs, which landed PB647 added. GnuCOBOL 3.2 prints 3.1416, which agrees with the adjudicator but is no
-  authority. The owner decides whether the clamp and the golden are re-derived.
-- **PB3830 rests on one reading of §14.5.1.** The adjudicator held that NOT ON SIZE ERROR belongs to SUBTRACT's format
-  and ends imperative-statement-1, so the program is legal. WiseOwl's own diagnostic says an ADD written without END-ADD
-  "is a conditional statement", and ADD's own format also has NOT ON SIZE ERROR, so which statement owns the phrase is
-  the question. GnuCOBOL binds the phrase inward and prints `D=1 F=N`, so it settles nothing. Both readings are in the
-  note.
+  authority. The owner approved re-deriving the clamp and the golden.
+- **PB3830 first looked like a defect and is not.** The adjudicator held that NOT ON SIZE ERROR belongs to SUBTRACT's
+  format and ends imperative-statement-1, so the program is legal. WiseOwl's own diagnostic said an ADD written without
+  END-ADD "is a conditional statement". §14.5.3.3 4) settles it: a phrase belongs to the most recently preceding
+  unterminated statement that may still take it, so the NOT ON SIZE ERROR binds inward to the ADD, and the ADD becomes a
+  conditional statement inside imperative-statement-1 (§14.5.1). The refusal is correct. What remains, on the owner's
+  requirement that "all COBOL paired conditional phrases should be handled grammatically in the same consistent
+  manner", is one grammar mechanism for every Table 12 pair.
+
+## Lesson: the adjudicator's miss on PB3830
+
+Slice C2 cited a real clause, §14.5.1, which only defines imperative and conditional statements, and missed the specific
+rule that decides phrase ownership, §14.5.3.3 4). The orchestrator relayed the verdict as a defect before reading
+§14.5.3, and caught it only when re-running the repro, because WiseOwl's own diagnostic argued the opposite reading and
+the argument held up. The rule for future triage: before a verdict that a refusal is WRONG, (a) ask whether a more
+specific rule governs the exact construct, and (b) refute the argument the compiler's own message makes. The standing
+brief (`fuzz5\briefs\common.md`, the next night's template) and the spec-lookup skill now carry both.
 
 ## Side observations (no finding filed except as noted)
 
