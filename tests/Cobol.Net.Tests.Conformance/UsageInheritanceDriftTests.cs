@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -149,8 +150,33 @@ public sealed class UsageInheritanceDriftTests
             string label = $"{clause} / {(pic.Length == 0 ? "(no picture)" : pic)}";
 
             Assert.Equal($"{label} → {dv}", $"{label} → {iv}");
+
+            // ⛔ THE THIRD SPELLING (kb/Work PB3682): the same group written in a TYPE DECLARATION, which is "as though
+            // … coded in place" (§13.18.57.4 GR1). A subject typed by it is the same item (same verdict, same width), and
+            // the declaration answers for itself whether or not anything references it — the usage walk used to run over
+            // the storage roots only, so every refusal above was silent for an unreferenced declaration.
+            string typed = Program($"UT{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.\n01 V TYPE TG.");
+            Assert.Equal($"{label} → {dv}", $"{label} → {Verdict(typed)}");
+            string declared = ProgramNoReference($"UX{cell}", $"01 TG TYPEDEF USAGE {clause}.\n    05 A {pic}.");
+            Assert.Equal($"{label} → {Outcome(dv)}", $"{label} → {Outcome(Verdict(declared))}");
         }
     }
+
+    /// <summary>The verdict a program with NO reference to the item can share with one that has it: the refusal's codes,
+    /// or just "OK" (the width is only printed by the program that names the item).</summary>
+    private static string Outcome(string verdict) => verdict.StartsWith("OK") ? "OK" : verdict;
+
+    private static string ProgramNoReference(string id, string ws) =>
+        $"""
+         IDENTIFICATION DIVISION.
+         PROGRAM-ID. {id}.
+         DATA DIVISION.
+         WORKING-STORAGE SECTION.
+         {ws}
+         PROCEDURE DIVISION.
+             DISPLAY "X".
+             STOP RUN.
+         """;
 
     /// <summary>The set against the REPRESENTATION MACHINERY — not against the standard (that is
     /// <c>PicturelessUsageSetDriftTests</c>, and this one cannot substitute for it: the SR8 screen is driven by
@@ -298,5 +324,132 @@ public sealed class UsageInheritanceDriftTests
         var (ok2, stdout, detail2) = new CobolNetCompiler(2023).CompileAndRun(ok3);
         Assert.True(ok2, detail2);
         Assert.Equal("A=2 B=2 C=2 G=6", stdout);
+    }
+
+    /// <summary>⛔ A DECLARATION'S DEFECT IS REPORTED ONCE, WHERE IT IS WRITTEN (kb/Work PB3682). A TYPE or SAME AS copy
+    /// reproduces a description "as though … coded in place" (§13.18.57.4 GR1, §13.18.49.4 GR1), so a defect INSIDE the
+    /// copy is the declaration's. The usage walk applies the clause to every copy but screens only what is the copy's own or
+    /// its placement's, so a TYPEDEF referenced twice reports its contradiction once and names the declaration — not once per
+    /// reference naming the subject — and a defect that comes from OUTSIDE the copy (a group the subject is subordinate to)
+    /// is still the subject's to report.</summary>
+    [Fact]
+    public void ATypedefDefect_IsReportedOnce_AtTheDeclaration()
+    {
+        const string twice = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3682ONCE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TG TYPEDEF USAGE BINARY.
+                05 S USAGE PACKED-DECIMAL PIC 9.
+            01 V1 TYPE TG.
+            01 V2 TYPE TG.
+            PROCEDURE DIVISION.
+                STOP RUN.
+            """;
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(twice);
+        Assert.False(ok);
+        var reports = detail.Split('\n').Where(l => l.Contains("COBOLNET1927")).ToList();
+        Assert.Single(reports);
+        Assert.Contains("group item 'TG'", reports[0]);
+
+        // The same declaration beside an UNREFERENCED copy source is reported by the source alone: SAME AS copies a storage
+        // entry, which the roots' own walk screens.
+        const string sameAs = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3682SAME.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X USAGE BINARY.
+                05 S USAGE PACKED-DECIMAL PIC 9.
+            01 Y SAME AS X.
+            PROCEDURE DIVISION.
+                STOP RUN.
+            """;
+        var (ok2, _, detail2) = new CobolNetCompiler(2023).CompileAndRun(sameAs);
+        Assert.False(ok2);
+        Assert.Single(detail2.Split('\n'), l => l.Contains("COBOLNET1927"));
+    }
+
+    /// <summary>⛔ A DESCRIPTION COPIED BEFORE THE USAGE WALK STILL HAS ITS SUBORDINATES (kb/Work PB3682). Entry bind answers
+    /// a picture-less usage with a PICTURE profile on the entry, before its subordinates are parsed, and
+    /// <c>UsageInheritancePass</c> sheds it from a group header (§13.18.60.4 GR1, "and not to the group itself"). TYPE and
+    /// SAME AS copy first, so a copy that asked <c>DataItem.IsGroup</c> ("no PICTURE") of `01 G USAGE BINARY-LONG. 05 A.
+    /// 05 B.` saw an ELEMENTARY item, cloned no subordinates, and gave the subject one member's width: a SAME AS subject was
+    /// a quarter of its source's size, and a TYPEDEF with the same shape was refused outright (COBOLNET2191 beside COBOLNET0881).
+    /// The subject is the source's size, its members are addressable, and a GLOBAL declaration copied by a contained program
+    /// — after the container's own bind completed it — keeps them too.</summary>
+    [Fact]
+    public void APicturelessGroupUsage_IsCopiedWithItsSubordinates()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3682COPY.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X USAGE BINARY-LONG.
+                05 XA.
+                05 XB.
+            01 V SAME AS X.
+            01 TG TYPEDEF GLOBAL USAGE BINARY-LONG.
+                05 TA.
+                05 TB.
+            01 W TYPE TG.
+            PROCEDURE DIVISION.
+                MOVE 5 TO XA OF V.
+                MOVE 6 TO XB OF V.
+                MOVE 3 TO TA OF W.
+                MOVE 4 TO TB OF W.
+                DISPLAY FUNCTION BYTE-LENGTH(X) " " FUNCTION BYTE-LENGTH(V) " " FUNCTION BYTE-LENGTH(W)
+                        " " FUNCTION BYTE-LENGTH(XA OF X) " " XA OF V " " XB OF V " " TA OF W " " TB OF W.
+                CALL "PB3682INNER".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3682INNER.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 Z TYPE TG.
+            PROCEDURE DIVISION.
+                MOVE 7 TO TA OF Z.
+                MOVE 8 TO TB OF Z.
+                DISPLAY FUNCTION BYTE-LENGTH(Z) " " TA OF Z " " TB OF Z.
+                GOBACK.
+            END PROGRAM PB3682INNER.
+            END PROGRAM PB3682COPY.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        string[] lines = stdout.Split('\n').Select(l => l.Trim()).ToArray();
+        string[] outer = lines[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        // One width for the source, its SAME AS copy and its TYPE subject (two members of one member's width each) ...
+        Assert.Equal(outer[0], outer[1]);
+        Assert.Equal(outer[0], outer[2]);
+        Assert.Equal(2 * int.Parse(outer[3]), int.Parse(outer[0]));
+        // ... and each member holds its own value (+0000000005 is the DISPLAY of a binary item).
+        Assert.Equal([5, 6, 3, 4], outer[4..8].Select(int.Parse).ToArray());
+        string[] inner = lines[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(outer[0], inner[0]);
+        Assert.Equal([7, 8], inner[1..3].Select(int.Parse).ToArray());
+    }
+
+    /// <summary>The structural pin under <see cref="APicturelessGroupUsage_IsCopiedWithItsSubordinates"/>: the three
+    /// description copies run BEFORE the usage walk, so they ask the ENTRY a question that holds then
+    /// (<c>DataItem.HasSubordinates</c>), never the COMPLETED form (<c>IsGroup</c>, "no PICTURE") — and an
+    /// <c>IsElementary</c> test beside it is the completed form too, so it is read with HasSubordinates.</summary>
+    [Theory]
+    [InlineData("ExpandTemplate")]
+    [InlineData("ExpandType")]
+    [InlineData("ExpandSameAsEntry")]
+    public void TheDescriptionCopies_AskTheEntry_NotTheCompletedForm(string method)
+    {
+        string text = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "DataBinder.cs"));
+        var start = Regex.Match(text, $@"^    private (?:bool|void) {method}\(", RegexOptions.Multiline);
+        Assert.True(start.Success, $"{method} not found — the pin measured nothing");
+        var end = Regex.Match(text[start.Index..], @"^    \}\s*$", RegexOptions.Multiline);
+        string body = text.Substring(start.Index, end.Index + end.Length);
+        Assert.DoesNotContain(".IsGroup", body);
+        foreach (string line in body.Split('\n').Where(l => l.Contains(".IsElementary") && !l.TrimStart().StartsWith("//")
+                     && !l.TrimStart().StartsWith("///")))
+            Assert.Contains("HasSubordinates", line);
     }
 }
