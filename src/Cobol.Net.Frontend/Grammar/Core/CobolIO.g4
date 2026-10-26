@@ -502,8 +502,7 @@ readStatement
       readLockContentionPhrase?   // bracket 1 (§14.9.30.2) — at most ONE of ADVANCING ON LOCK / IGNORING LOCK / retry-phrase
       recordLockPhrase?           // bracket 2 (§14.9.30.2) — at most ONE of WITH LOCK / WITH NO LOCK; INDEPENDENT of bracket 1 (§5.2.6.1)
       readKey?
-      readAtEnd?
-      readInvalidKey?
+      conditionalPhrases
       END_READ?
 
     ;
@@ -565,40 +564,6 @@ readKey
     : KEY IS? dataReference
     ;
 
-// AT is an optional word in the at-end phrase (ISO §6 optional-word rule; the CCVS suite and
-// mainstream compilers accept "READ … RECORD END …" without AT).
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-readAtEnd
-    : AT? END statementBlock
-      (NOT AT? END statementBlock)?
-    | NOT AT? END statementBlock
-      (AT? END statementBlock)?
-    ;
-
-// ⚠ NOT A LENIENCY — THIS IS CONFORMANCE. Recorded as "Leniency L1" on the reasoning that KEY is
-// "unbracketed → required". That criterion is wrong: ISO 5.2.2/5.2.3 make UNDERLINING the test for a required
-// word, not bracketing. Bracketing marks whether a whole PHRASE may be omitted; underlining marks whether a
-// WORD within it must be written. Measured on the printed pages, INVALID carries an underline rule and KEY
-// carries none in ALL FIVE statements that have the phrase — DELETE (p635), READ (p722), REWRITE (p740),
-// START (p784) and WRITE (p816) — so `INVALID <imperative>` is conforming ISO. The same mistake was made for
-// the RECORD KEY clause above (p359: RECORD and SOURCE underlined, KEY and IS not) and for COLLATING in
-// SORT/MERGE (p687, p776). A strict-mode check once DIAGNOSED all of these (CBL3611–3618), i.e. it
-// reported conforming source; those checks and codes are retired (kb/Work PB756). The grammar accepting them is
-// correct. 'INVALID' is a reserved word, so `KEY?` is unambiguous. Applies to all five INVALID KEY phrases below.
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-readInvalidKey
-    : INVALID KEY? statementBlock
-      (NOT INVALID KEY? statementBlock)?
-    | NOT INVALID KEY? statementBlock
-      (INVALID KEY? statementBlock)?
-    ;
-
 // ==========================================
 // WRITE (§14.9.51 — full expansion)
 // ==========================================
@@ -621,8 +586,7 @@ writeStatement
       writeBeforeAfter?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
-      writeAtEndOfPage?
-      writeInvalidKey?
+      conditionalPhrases
       END_WRITE?
 
     ;
@@ -679,28 +643,6 @@ writeBeforeAfter
       )
     ;
 
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-writeAtEndOfPage
-    : AT? (END_OF_PAGE | EOP) statementBlock
-      (NOT AT? (END_OF_PAGE | EOP) statementBlock)?
-    | NOT AT? (END_OF_PAGE | EOP) statementBlock
-      (AT? (END_OF_PAGE | EOP) statementBlock)?
-    ;
-
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-writeInvalidKey
-    : INVALID KEY? statementBlock
-      (NOT INVALID KEY? statementBlock)?
-    | NOT INVALID KEY? statementBlock
-      (INVALID KEY? statementBlock)?
-    ;
-
 recordName
     : dataReference
     ;
@@ -725,20 +667,9 @@ rewriteStatement
       recordFromPhrase?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
-      rewriteInvalidKeyPhrase?
+      conditionalPhrases
       END_REWRITE?
 
-    ;
-
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-rewriteInvalidKeyPhrase
-    : INVALID KEY? statementBlock
-      (NOT INVALID KEY? statementBlock)?
-    | NOT INVALID KEY? statementBlock
-      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -748,20 +679,9 @@ rewriteInvalidKeyPhrase
 deleteStatement
     : DELETE fileName RECORD?
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      deleteInvalidKeyPhrase?
+      conditionalPhrases
       END_DELETE?
 
-    ;
-
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-deleteInvalidKeyPhrase
-    : INVALID KEY? statementBlock
-      (NOT INVALID KEY? statementBlock)?
-    | NOT INVALID KEY? statementBlock
-      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -776,7 +696,7 @@ deleteFileStatement
       // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
       fileName*
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
-      deleteFileOnException?
+      conditionalPhrases
       END_DELETE?
 
     ;
@@ -786,23 +706,6 @@ unlockStatement
     : UNLOCK fileName (RECORD | RECORDS)?
     ;
 
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-// ⛔ TWO ARMS, AND ONLY ONE OF THEM HAD BEEN RELAXED (kb/Work PB695 family 3). PB134 made ON optional in the
-// POSITIVE-first arm and left the NEGATIVE-first arm demanding it, so `DELETE FILE F NOT EXCEPTION …` — the same
-// omission, in the arm §5.2.6.4's choice indicators say is equally legal — stayed a COBOL0001. MEASURED on
-// printed page 635 / folio 605: in `[ ON EXCEPTION … ]` ON's box 101.42–115.69 has no rule (EXCEPTION's is at
-// 120.18–172.23, 95.5%), and in `[ NOT ON EXCEPTION … ]` NOT is underlined (89.5%) while its ON's box
-// 125.82–140.09 again has none. All four occurrences are therefore optional words (§8.3.2.4.3).
-deleteFileOnException
-    : ON? EXCEPTION statementBlock
-      (NOT ON? EXCEPTION statementBlock)?   // ON is not underlined (§5.2.3 optional word; kb/Work PB134)
-    | NOT ON? EXCEPTION statementBlock
-      (ON? EXCEPTION statementBlock)?
-    ;
-
 // ==========================================
 // START (§14.9.41)
 // ==========================================
@@ -810,7 +713,7 @@ deleteFileOnException
 startStatement
     : START fileName
       (FIRST | LAST | startKeyPhrase)?
-      startInvalidKeyPhrase?
+      conditionalPhrases
       END_START?
 
     ;
@@ -838,17 +741,6 @@ startKeyPhrase
 // site — that is the printed bracket — and LENGTH remains required inside it.
 startWithLength
     : WITH? LENGTH arithmeticExpression
-    ;
-
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-startInvalidKeyPhrase
-    : INVALID KEY? statementBlock
-      (NOT INVALID KEY? statementBlock)?
-    | NOT INVALID KEY? statementBlock
-      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -973,38 +865,17 @@ mergeOutputProcedurePhrase
 // RETURN (§14.9.34)
 // ==========================================
 
+// ⛔ §14.9.34.2 prints `AT END imperative-statement-1` WITHOUT brackets (rendered, PDF p738), so RETURN's AT END is
+// REQUIRED — but the phrase stays inside the optional `conditionalPhrases` on purpose: the binder names the omission
+// (StatementValidation.ScreenOmittedRequiredPhrase from SortBinder.BindReturn, COBOL1850; kb/Work PB350), which
+// a parse error could not. SR4 lets AT END and NOT AT END be written in reversed order. READ is NOT the same case:
+// §14.9.30.2 brackets its pair with choice indicators, so there both phrases really are optional.
 returnStatement
     : RETURN fileName RECORD?
       (INTO receivingIdentifier)?
-      returnAtEndPhrase?
+      conditionalPhrases
       END_RETURN?
 
-    ;
-
-// AT is optional in the AT END phrase (ISO §14.9.34.2 — "AT" is not underlined in RETURN's general
-// format, so it is an optional word),
-// and RECORD above is optional, so "RETURN f END …" and "RETURN f RECORD AT END …" both parse.
-// ISO §14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order.
-//
-// ⛔ THE `?` ON `returnAtEndPhrase` ABOVE IS DELIBERATE AND IS NOT A LICENCE — DO NOT MAKE IT REQUIRED.
-// §14.9.34.2 prints `AT END imperative-statement-1` with NO brackets (rendered from the printed page,
-// PDF p738 / folio 708 — the bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` sit on the lines around
-// it), so the phrase IS mandatory: §5.2.6.2 makes brackets the only convention that lets a portion of a
-// format be omitted. It is enforced at BIND time — StatementValidation.ScreenOmittedRequiredPhrase from
-// SortBinder.BindReturn, COBOL1850 — because a bind-time diagnostic can NAME the omitted phrase, the
-// statement and the clause where a parse error can only report an unexpected token, and because the
-// second alternative below (SR4's reversed order) would otherwise fail mid-alternative rather than
-// reporting the real rule. Keeping the phrase optional here is what lets the binder see the tree and say
-// so; the grammar recognizes, the binder conforms (kb/Work PB350).
-// ⚠ readAtEnd is NOT the same case and must not be changed to match: §14.9.30.2 Format 1 prints READ's
-// AT END / NOT AT END pair inside BRACKETS WITH CHOICE INDICATORS, which §5.2.6.4 reads as "zero or more
-// of the alternatives", so there BOTH phrases really are optional. The asymmetry is the point, and it is
-// why the two pages are measured separately.
-returnAtEndPhrase
-    : AT? END statementBlock
-      (NOT AT? END statementBlock)?
-    | NOT AT? END statementBlock
-      (AT? END statementBlock)?
     ;
 
 // ==========================================
@@ -1022,7 +893,7 @@ releaseStatement
 // ==========================================
 
 stringStatement
-    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? END_STRING?
+    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? conditionalPhrases END_STRING?
     ;
 
 // ── The two STRING/UNSTRING SENDING-operand shapes, named ONCE each ──────────────────────────────────────
@@ -1062,15 +933,6 @@ stringWithPointer
     : WITH? POINTER receivingIdentifier
     ;
 
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-stringOnOverflow
-    : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
-    | NOT ON? OVERFLOW statementBlock (ON? OVERFLOW statementBlock)?
-    ;
-
 // ==========================================
 // UNSTRING (§14.9.48)
 // ==========================================
@@ -1081,7 +943,7 @@ unstringStatement
       unstringIntoPhrase
       unstringWithPointer?
       unstringTallying?
-      unstringOnOverflow?
+      conditionalPhrases
       END_UNSTRING?
     ;
 
@@ -1113,15 +975,6 @@ unstringWithPointer
 
 unstringTallying
     : TALLYING IN? receivingIdentifier
-    ;
-
-// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
-// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
-// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-unstringOnOverflow
-    : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
-    | NOT ON? OVERFLOW statementBlock (ON? OVERFLOW statementBlock)?
     ;
 
 // ==========================================

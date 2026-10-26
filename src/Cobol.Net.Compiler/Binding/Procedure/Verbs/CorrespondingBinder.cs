@@ -27,7 +27,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     public BoundStatement BindAddCorresponding(Core.AddStatementContext add) =>
         add.CORRESPONDING() is not null || add.CORR() is not null
             ? Bind(CorrVerb.Add, add.dataReference(), add.receivingIdentifier(), host.Expr.RoundingOf(add.roundedPhrase()),
-                host.BindSizeError(add.arithmeticOnSizeError()))
+                host.BindSizeError(add.conditionalPhrases()))
             : BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "ADD: the statement matches no ADD format (ISO §14.9.2.2)");
 
     /// <summary>Bind <c>SUBTRACT {CORRESPONDING|CORR} id-4 FROM id-5 [ROUNDED] [ON SIZE ERROR …] [END-SUBTRACT]</c>
@@ -35,7 +35,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     public BoundStatement BindSubtractCorresponding(Core.SubtractStatementContext sub) =>
         sub.CORRESPONDING() is not null || sub.CORR() is not null
             ? Bind(CorrVerb.Subtract, sub.dataReference(), sub.receivingIdentifier(), host.Expr.RoundingOf(sub.roundedPhrase()),
-                host.BindSizeError(sub.arithmeticOnSizeError()))
+                host.BindSizeError(sub.conditionalPhrases()))
             : BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SUBTRACT: the statement matches no SUBTRACT format (ISO §14.9.44.2)");
 
     /// <summary>
