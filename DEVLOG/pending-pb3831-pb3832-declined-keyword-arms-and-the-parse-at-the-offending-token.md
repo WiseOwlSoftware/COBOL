@@ -67,7 +67,9 @@ drew COBOL2073 "a WHEN OTHER phrase may be specified at most once" at depth 0, w
 IF fails at OF. The whole Conformance population (18,844) and the whole Unit population ran green on the change but for
 one pinned row, `GeneralFormatViolationTests` PBGF38 (`READ F1 AT END DISPLAY "E" AT END DISPLAY "F" END-READ`): its
 second AT continues the DISPLAY's screen AT phrase, that parse dies at END, and the row now draws the COBOL0001 at END it
-draws inside an open IF instead of COBOL0307 at AT. The rename was carried to the test class
+draws inside an open IF instead of COBOL0307 at AT. PB3830, which landed first, refuses that second AT END from the
+parser state as COBOL2269 (§14.5.3.3, a phrase no open statement may take), and so does the merged compiler: PBGF38 and
+its STRING sibling PBGF15 pin COBOL2269. The rename was carried to the test class
 (`ResimulationWalkNestingTests`, lead R1-4).
 
 Self-review: the new walk methods allocate only on an error report, and the three new readers share one walk per report; the per-path owner search
