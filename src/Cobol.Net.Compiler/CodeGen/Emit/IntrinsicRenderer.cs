@@ -688,16 +688,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // Float: true catalog row, so a new float function inherits it without anyone remembering to).
         return num.StandardDecimal
             ? new NumX(RuntimeApi.DecFromApproximation(RuntimeApi.Intrinsic("RealResult", call)), 0, Dec: true)
-            : RenderFloatNative(ic, call);
+            : RenderFloatNative(call);
     }
 
     /// <summary>The §15.4.1 float family under NATIVE arithmetic — the receiver-shape arms, and ONLY those.
     /// <para>⛔ It is a separate method so the arithmetic mode is settled before any of this runs: the container
     /// question belongs to <see cref="RenderFloat"/>, this one answers the D16 quantization question. Deliberately
     /// mode-blind (kb/Work PB253).</para></summary>
-    private NumX RenderFloatNative(BoundIntrinsicCall ic, string call)
+    private NumX RenderFloatNative(string call)
     {
-        var sig = ic.Sig;
         // ⛔ WHETHER THIS VALUE LANDS AT ALL, AND AT WHAT SCALE AND MODE, IS ONE DECISION TAKEN ONCE ON
         // ReceiverContext (kb/Work PB647, then PB653 — ReceiverContext.FloatLanding carries the derivation):
         // the FINAL TRANSFER into a fixed-point resultant lands at THAT identifier's scale with the statement's
@@ -757,19 +756,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the 17.1 a truncating store of 13.199999999999999 + 4.0 gives.
         if (!landing.Quantize)
             return new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true, Approximate: true);
-        // ⛔ A BOUNDED CODOMAIN CLAMPS THE QUANTIZED VALUE (fix-queue PB65 / RV-15.75.4-1): the catalog row
-        // carries the §15.x.4 bound and the quantizer refuses to round out of it — RANDOM's [0,1) reached
-        // exactly 1.000000000 in a 9V9(9) receiver, ASIN(1) exceeded its closed-but-irrational π/2. The
-        // rounding itself stays (it recovers the SQRT(10) ** 2 binary64 artifact); only the exit is closed.
-        // RenderFloat's standard-mode Dec arm needs no clamp: the un-quantized double never exits its codomain.
+        // ⛔ ONE LANDING FOR EVERY FUNCTION OF THE FAMILY, WITH NO CODOMAIN CLAMP (kb/Work PB3829, overturning PB65's
+        // clamp). A §15.x.4 bound (ACOS's [0, π], ASIN's and ATAN's ±π/2, RANDOM's [0, 1)) is a rule on the RETURNED
+        // value, which the binary64 already satisfies; the value the resultant identifier receives is the returned
+        // value ROUNDED per §14.7.4.3 and checked per §14.7.5 (§14.9.8.4 r2), so ROUNDED may legitimately land past
+        // the bound (ACOS(-1) ROUNDED into 9V9999 is 3.1416) and a rounded value the receiver cannot hold is a size
+        // error (RANDOM ROUNDED into V9(4)). The clamp cut those back to 3.1415 and 0.9999 for a bare reference only:
+        // `FUNCTION ACOS(-1) + 0` already landed 3.1416, the nested arm above, and so did standard-decimal.
         // The quantizer's landing form past the carrier is the STATEMENT's (kb/Work PB77): saturate under ON SIZE
         // ERROR / EC-SIZE checking (the capacity check raises), the low-order digits for the no-phrase store.
-        // ⛔ AND THE CLAMP IS NOW ONLY LIVE UNDER AN EXPLICIT ROUNDING MODE (kb/Work PB647): a TRUNCATING landing
-        // can never leave a codomain the double is already inside, so the no-phrase COMPUTE and the MOVE agree by
-        // construction; a ROUNDED one still needs the clamp, which is the case PB65 measured.
-        if (sig.Codomain != IntrinsicCodomain.None)
-            return new NumX(RuntimeApi.Intrinsic("FromDoubleBounded",
-                $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), landing.Scale);
         return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 

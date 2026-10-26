@@ -591,14 +591,6 @@ internal static class RuntimeApi
     /// <c>NumericRenderer.DeU</c> before it reaches the intake.</summary>
     public enum IntegerArgCarrier { Scaled, Dec, Real }
 
-    /// <summary>The runtime scale-37 codomain-maximum constant for a bounded float-family function (PB65 /
-    /// RV-15.75.4-1) — consumed by <c>CobolIntrinsics.FromDoubleBounded</c>'s clamp.</summary>
-    public static string CodomainConst(CobolNet.Binding.IntrinsicCodomain c) => c switch
-    {
-        CobolNet.Binding.IntrinsicCodomain.UnitOpen => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainBelowOne37)}",
-        CobolNet.Binding.IntrinsicCodomain.HalfPi => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainHalfPi37)}",
-        _ => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainPi37)}",
-    };
 
     /// <summary>⛔ THE argument-1 domain screen (ISO §15.3 rule 14; kb/Work PB952) — <c>CobolIntrinsics.DomainScaled</c>
     /// / <c>DomainDec</c> / <c>DomainReal</c> over the operand on its OWN carrier, returning the binary64 the body
