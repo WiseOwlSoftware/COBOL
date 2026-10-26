@@ -1925,9 +1925,9 @@ watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
 that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
-wave's await (`--worktree`, the agent's worktree) and `plan_wave.Report.gate_state` (the report's Worktree field) both
+wave's await (`--worktree`, the agent's worktree) and `reports.Report.gate_state` (the report's Worktree field) both
 read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
-`plan_wave.Report.gate_state` all read through `watch`.
+`reports.Report.gate_state` all read through `watch`.
 
 **3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
 head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
@@ -1936,7 +1936,7 @@ head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` an
 `cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
 as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
 finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
-also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
+also needs no awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
 is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
 gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
 
@@ -2194,9 +2194,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    below). Every decision is a line in
    `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
    the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
-   `FINDINGS <n> <reviewer> <head> <file>` — read back through `plan_wave.parse_review`, the one reader. The stamp sits
+   `FINDINGS <n> <reviewer> <head> <file>` — read back through `reports.parse_review`, the one reader. The stamp sits
    one line under the Status line, above an O11 header's `Branch:` line, and its reviewer label
-   (`land-review-<branch>-r<k>`) carries the branch name, so `plan_wave.parse_report` reads the branch, worktree and
+   (`land-review-<branch>-r<k>`) carries the branch name, so `reports.parse_report` reads the branch, worktree and
    head from the header's own fields with the stamp lines skipped (kb/Work PB3077). FINDINGS → a
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and

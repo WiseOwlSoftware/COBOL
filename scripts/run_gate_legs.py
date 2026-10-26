@@ -541,7 +541,7 @@ class Host:
         so the worktree's own index is never touched. A path coord.NEVER_WORK names is never work (the harness edits a
         TRACKED `.claude/settings.local.json` in every agent's worktree, and an agent may not commit it): it measures
         at HEAD's content whatever is on disk or staged, so a worktree whose only dirt is the harness's measures as its
-        commit's own tree, the tree a GATE-PENDING report's HEAD is checked against (plan_wave.Report.gate_state;
+        commit's own tree, the tree a GATE-PENDING report's HEAD is checked against (reports.Report.gate_state;
         review R1-2 of wave 1152). None when git cannot say (then nothing is reused)."""
         try:
             index = Path(self.git("rev-parse", "--git-path", "index"))
