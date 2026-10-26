@@ -3,6 +3,7 @@
 
     python scripts/rename_diagnostic_prefix.py              # rewrite the committed tree in place; prints the counts
     python scripts/rename_diagnostic_prefix.py --dry-run    # name the files it would change, change nothing
+    python scripts/rename_diagnostic_prefix.py --check      # the gate's audit: exit 1 naming every old-prefix line
     python scripts/rename_diagnostic_prefix.py --self-test
 
 ⛔ WHY (owner decision 2026-10-23, kb/Work PB3575, "COBOL####"; restated 2026-10-26 ~10:55 PDT): every diagnostic
@@ -27,10 +28,19 @@ THE RULES (one table, RULES, in the order they apply), all anchored on the old p
 Anything else spelled with the old letters is NOT a diagnostic prefix and stays: the docs/COBOLNET_*.md design-doc file
 names (an underscore follows), a COBOL program named COBOLNET in a test, the CobolNet namespaces.
 
-WHAT IT NEVER REWRITES (EXCEPT, the one list; DiagnosticCodePrefixDriftTests reads it from here and holds its own
-TreeScope to it): history and frozen records, which keep the spelling of their day (CLAUDE.md rule 6; kb/Work PB785) —
-DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence under docs/rearchitecture/evidence/ —
-and the three files that own the rule: the decision note that quotes the owner's words, this script and the drift test.
+WHAT IT NEVER REWRITES (EXCEPT, the one list): history and frozen records, which keep the spelling of their day
+(CLAUDE.md rule 6; kb/Work PB785) — DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence under
+docs/rearchitecture/evidence/ — and the two files that own the rule: the decision note that quotes the owner's words,
+and this script. Inside a file, a witness the traceability inventory records as RETIRED keeps the spelling it was
+retired under (PROTECTED, below).
+
+⭐ AN AUDIT, NOT A TEST (`--check`; the gate driver's DIAGNOSTIC PREFIX audit, CI's `audits` job, the battery). A tree
+that still spells a code with the old prefix outside EXCEPT is RED, naming each line, so a branch that merged main
+without converting itself is red before its build, never in a golden's diff. It is the SAME rules, asked as a
+question: a line is an offender exactly when a rewrite would change it, so the rename and its guard cannot disagree.
+It is an audit rather than a tree-sweeping Unit test for the reason scripts/conflict_markers.py is (kb/Work PB2878):
+a test that reads every tracked file makes every path one a test reads, and the inert lane could then skip nothing.
+A broken enumeration (no git, too few tracked paths) is RED, never a clean tree.
 """
 from __future__ import annotations
 
@@ -46,16 +56,17 @@ from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
 
-#: Paths never rewritten: a directory (ending in `/`) and everything beneath it, or one exact path. The drift test
-#: (tests/Cobol.Net.Tests.Unit/DiagnosticCodePrefixDriftTests.cs) parses this tuple, so keep one quoted path per entry.
+#: Paths never rewritten and never audited: a directory (ending in `/`) and everything beneath it, or one exact path.
 EXCEPT = (
     "DEVLOG/",
     "adjudication/",
     "docs/rearchitecture/evidence/",
     "kb/Work/PB3575.md",
     "scripts/rename_diagnostic_prefix.py",
-    "tests/Cobol.Net.Tests.Unit/DiagnosticCodePrefixDriftTests.cs",
 )
+
+#: An enumeration of fewer tracked paths than this is a broken one (a missing observation is not a negative one).
+MIN_TRACKED = 10000
 
 #: (pattern, replacement), applied in this order to the raw bytes of every file in scope.
 RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
@@ -87,7 +98,7 @@ PROTECTED = re.compile(re.escape(RETIRED_MARK) + rb"\s*\S+")
 
 
 def excluded(path: str) -> bool:
-    """Whether the repo-relative `path` is one EXCEPT sets aside (the drift test's TreeScope.Except, the same rule)."""
+    """Whether the repo-relative `path` is one EXCEPT sets aside."""
     return any(path.startswith(e) if e.endswith("/") else path == e for e in EXCEPT)
 
 
@@ -220,19 +231,72 @@ def self_test() -> int:
     expect("the history keeps its spelling", (root / "DEVLOG" / "0001-x.md").read_bytes(),
            f"history {old}1234\n".encode())
     expect("a second run over the tree changes nothing", run(root, tracked(root), write=True).changed, [])
+    (root / "late.md").write_bytes(f"clean line\nerror {old}0899: x\n".encode())
+    repo.git("add", "-A")
+    expect("the audit is RED on an old-prefix line and names it", (check(root, min_tracked=1),
+           offenders(root, ["late.md"])), (1, [f"late.md:2: error {old}0899: x"]))
+    run(root, tracked(root), write=True)
+    expect("the audit is GREEN once the tree is converted", check(root, min_tracked=1), 0)
+    expect("an enumeration of too few tracked paths is RED", check(root), 1)
+    bare = scratch_dir("rename-prefix-bare-")
+    expect("a directory git cannot enumerate is RED", check(bare, min_tracked=1), 1)
     print(f"=== RENAME DIAGNOSTIC PREFIX SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
+
+
+def offenders(root: Path, changed: list[str]) -> list[str]:
+    """Every `path:line: text` of the `changed` files that a rewrite would change (the rules work within a line)."""
+    found = []
+    for rel in changed:
+        for n, line in enumerate((root / rel).read_bytes().split(b"\n"), 1):
+            if rewrite(line)[1]:
+                found.append(f"{rel}:{n}: {line.decode('utf-8', errors='replace').strip()}")
+    return found
+
+
+def check(root: Path, min_tracked: int = MIN_TRACKED) -> int:
+    """The audit: 0 when no tracked file outside EXCEPT spells a code with the old prefix, 1 naming every line when one
+    does, and 1 when the tree cannot be enumerated or enumerates to fewer than `min_tracked` paths."""
+    try:
+        paths = tracked(root)
+    except (subprocess.CalledProcessError, OSError, SystemExit) as e:
+        print(f"=== DIAGNOSTIC PREFIX: RED — the tracked tree of {root} could not be listed ({e}) ===")
+        return 1
+    if len(paths) < min_tracked:
+        print(f"=== DIAGNOSTIC PREFIX: RED — only {len(paths)} tracked path(s) under {root} (at least {min_tracked} "
+              "expected): the enumeration is broken, so the audit would read nothing ===")
+        return 1
+    r = run(root, paths, write=False)
+    found = offenders(root, r.changed)
+    if found:
+        for o in found[:SHOWN]:
+            print(f"    {o}")
+        if len(found) > SHOWN:
+            print(f"    ... and {len(found) - SHOWN} more")
+        print(f"=== DIAGNOSTIC PREFIX: RED — {len(found)} line(s) in {len(r.changed)} file(s) spell a diagnostic code "
+              "with the former prefix; the codes are COBOL#### with every number kept (kb/Work PB3575). Convert the "
+              "tree with `python scripts/rename_diagnostic_prefix.py` ===")
+        return 1
+    print(f"=== DIAGNOSTIC PREFIX: GREEN — {len(paths)} tracked path(s), none spells a code with the former prefix ===")
+    return 0
+
+
+#: How many offending lines `--check` prints before it summarizes.
+SHOWN = 40
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     group = ap.add_mutually_exclusive_group()
     group.add_argument("--dry-run", action="store_true", help="name the files a run would change; change nothing")
+    group.add_argument("--check", action="store_true", help="the audit: exit 1 naming every old-prefix line")
     group.add_argument("--self-test", action="store_true")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.check:
+        return check(args.root)
     r = run(args.root, tracked(args.root), write=not args.dry_run)
     for rel in r.changed if args.dry_run else []:
         print(f"    {rel}")

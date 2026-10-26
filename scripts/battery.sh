@@ -105,6 +105,12 @@ MARKS=$?
 note "$(printf '%-16s %s' 'conflicts:' "$(grep -E '^=== CONFLICT MARKERS' "$OUT/citations.log" | tail -1)")"
 [ "$MARKS" -eq 0 ] || { note "conflicts:       ⛔ an unresolved merge-conflict marker — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND ONE DIAGNOSTIC PREFIX, COBOL#### (kb/Work PB3575), the gate driver's DIAGNOSTIC PREFIX audit.
+"$PY" scripts/rename_diagnostic_prefix.py --check >> "$OUT/citations.log" 2>&1
+PREFIX=$?
+note "$(printf '%-16s %s' 'diag prefix:' "$(grep -E '^=== DIAGNOSTIC PREFIX' "$OUT/citations.log" | tail -1)")"
+[ "$PREFIX" -eq 0 ] || { note "diag prefix:     ⛔ a code spelled with the former prefix — see $OUT/citations.log"; RC=1; }
+
 # ⛔ THE EXTERNAL CORPUS, BY THE GATE'S OWN RULE (kb/Work PB2611). The GPL GnuCOBOL corpus is git-ignored and per
 # worktree, and two legs below measure it: phase 1's Unit (ExternalCorpusPopulationDriftTests) and phase 3 (the
 # differential). Battery #89 ran in a fresh worktree with no fetch here, so both were red for a reason that was not the
