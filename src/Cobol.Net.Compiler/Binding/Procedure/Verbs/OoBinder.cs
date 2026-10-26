@@ -1574,6 +1574,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     Err($"figurative-constant argument {literalText} for formal '{formal.CobolName}': {fErr}");
                     return null;
                 }
+                // §14.8.2.3.3 rule 2 d)'s MOVE also carries §14.9.25.3 SR5's edition rows — the CALL and function
+                // lanes ask them through the same method (kb/Work PB3755).
+                host.Params.GateFigurativeEdition(formal, literal2, $"{verb} \"{methodName}\" argument");
                 return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
                     { ContentFill = literal2 };
             case BoundOperandError { IsUnbuilt: false }:
