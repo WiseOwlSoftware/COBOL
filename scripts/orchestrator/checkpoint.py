@@ -114,17 +114,31 @@ def build(a: argparse.Namespace, cdir: pathlib.Path, repo: pathlib.Path) -> dict
     }
 
 
+def unmeasured(tree: dict) -> bool:
+    """True when git could not measure the worktree: `worktrees()` reports `ahead_of_main` or `uncommitted` as None for a
+    count it could not read, "unknown, never a clean 0" (kb/Work PB3250)."""
+    return tree["ahead_of_main"] is None or tree["uncommitted"] is None
+
+
+def holds_work(tree: dict) -> bool:
+    """True when the worktree has commits ahead of origin/main or uncommitted files, or is unmeasured: an unknown state may
+    be exactly the work a crash left behind, so it is never read as clean. None is falsy, so a bare `ahead or uncommitted`
+    drops the unknown worktree; the unknown arm is tested by name (kb/Work PB3715)."""
+    return unmeasured(tree) or bool(tree["ahead_of_main"]) or bool(tree["uncommitted"])
+
+
 def synthesize(cdir: pathlib.Path, repo: pathlib.Path, unit: str) -> dict:
     cp = coord.read_json(cdir / CHECKPOINT, {})
-    trees = worktrees(repo)
+    trees = [t for t in worktrees(repo) if holds_work(t)]
     pending = [{"branch": t["branch"], "worktree": t["worktree"], "status": "SPLIT",
-                **({"report": t["worktree"] + "/STATUS.md"} if t["status_md"] else {})}
-               for t in trees if t["ahead_of_main"] or t["uncommitted"]]
+                **({"report": t["worktree"] + "/STATUS.md"} if t["status_md"] else {})} for t in trees]
+    unknown = [t["branch"] for t in trees if unmeasured(t)]
     ms = milestones(cdir, 5)
     said = "; ".join(str(m.get("what", m))[:90] for m in ms) or "no milestone lines"
     seen = f"last checkpoint {cp.get('written_at', 'none')} ({cp.get('calls', '?')} calls)" if cp else "no checkpoint"
     summary = (f"The {unit} unit ended with no valid handoff (crash, kill or terminated background task); synthesized by "
-               f"the supervisor. {seen}. {len(pending)} worktree(s) hold work (see checkpoint.json). Last milestones: {said}")
+               f"the supervisor. {seen}. {len(pending)} worktree(s) hold work or could not be measured (see checkpoint.json)"
+               f"{'; git could not measure ' + ', '.join(unknown) if unknown else ''}. Last milestones: {said}")
     return {"schema_version": 1, "unit": unit, "outcome": "split", "summary": summary[:SUMMARY_CAP],
             "next_unit": "resume", "next_unit_reason": "the unit ended without a handoff; rebuild from the checkpoint",
             "branches_pending": pending, "workflow": {"state": "stopped", "scratch": str(cdir / "scratch").replace("\\", "/")},
