@@ -14,7 +14,7 @@
 *> COLUMN forms, VARYING and PRESENT WHEN.
 *>
 *> So a COBOL-85 compilation shall name the edition rather than silently print one line: construct
-*> `report-multi-line-2002`, diagnostic COBOLNET0900. Above 85 the same source compiles and prints M on page
+*> `report-multi-line-2002`, diagnostic COBOL0900. Above 85 the same source compiles and prints M on page
 *> lines 2, 4 and 7.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB565L85.

@@ -9,7 +9,7 @@
       *> boolean positions, the definition's PIC 1(4) USAGE BIT. A bit
       *> group is the elementary PIC 1(8) item 13.18.29.4 GR1 b) treats
       *> it as, which is not the PIC 1(4) item, so the two signatures
-      *> differ and 10.6.2 SR2 refuses the pair (COBOLNET1513).
+      *> differ and 10.6.2 SR2 refuses the pair (COBOL1513).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3101G AS "N3101GX" IS PROTOTYPE.
        DATA DIVISION.

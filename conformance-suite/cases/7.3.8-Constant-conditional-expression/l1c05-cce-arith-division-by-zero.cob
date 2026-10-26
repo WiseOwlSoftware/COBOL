@@ -16,7 +16,7 @@
       *>   §7.3.6.2 1) c)  (Syntax rules)
       *> The >>IF below is otherwise a well-formed relation cce; only
       *>   its arithmetic operand breaks §7.3.6, so the only reason to
-      *>   reject is SR2 (COBOLNET1619, the directive-expression
+      *>   reject is SR2 (COBOL1619, the directive-expression
       *>   formation diagnostic).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C05F.

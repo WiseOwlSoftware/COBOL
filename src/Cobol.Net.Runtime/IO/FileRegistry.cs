@@ -350,7 +350,7 @@ public sealed class FileRegistry
     /// <c>CloseByFormat</c>'s <c>UnitStructuredOnly</c> guard rests on — so reaching GR12 b) here would mean a
     /// new medium had been added without implementing its suppress-the-repositioning arm, and that is LOUD
     /// rather than a silent plain open. Category (d) is unreachable from the other side: §14.9.27.3 SR5 rejects
-    /// the phrase on a non-sequential file at bind time (COBOLNET1802).</para>
+    /// the phrase on a non-sequential file at bind time (COBOL1802).</para>
     ///
     /// <para>The '07' rides a SUCCESSFUL open only. §14.9.27.4 GR25 a) makes an unsuccessful OPEN place "a
     /// value … to indicate the condition that caused the OPEN statement to be unsuccessful", which GR11's
@@ -375,7 +375,7 @@ public sealed class FileRegistry
     /// <summary>⛔ THE ONE SITE for the OPEN statement's COBOL-85 REVERSED phrase — <i>the file is positioned at
     /// its END, and every subsequent READ makes the PRECEDING record available, the at end condition arising at
     /// the file's first record</i>. The phrase was deleted by ISO 2002 (VERSION_CHANGE_REFERENCE row 7.12,
-    /// gate <c>open-reversed-removed-2002</c>/COBOLNET0902), so this runs only under <c>--std 85</c>; the
+    /// gate <c>open-reversed-removed-2002</c>/COBOL0902), so this runs only under <c>--std 85</c>; the
     /// repository holds no 1985 text, so the semantics are the VCR row's plus the surveyed implementations
     /// (GnuCOBOL implements REVERSED for sequential files), per the standing latitude decision.
     ///
@@ -389,7 +389,7 @@ public sealed class FileRegistry
     /// one has goldens for.</para>
     ///
     /// <para>The connector is a <see cref="SequentialConnector"/> by construction — the binder admits REVERSED
-    /// for RECORD sequential organization only (COBOLNET2210), because the backward walk §14.9.30.3 SR7 denies
+    /// for RECORD sequential organization only (COBOL2210), because the backward walk §14.9.30.3 SR7 denies
     /// to LINE SEQUENTIAL is exactly the walk this phrase establishes — so anything else here is a COMPILER
     /// defect and LOUD, the same posture <see cref="NoRewindPhraseEffect"/> takes for an unexpected medium.
     /// §14.9.27.4 GR25 a) owns an unsuccessful open's status and its "the file is not affected", so an
@@ -1733,7 +1733,7 @@ public sealed class FileRegistry
     /// <summary>Declare the file's RESERVE clause (ISO §12.4.5.14.3 GR1: <i>"If the RESERVE clause is specified, the
     /// number of input-output areas allocated is equal to the value of integer-1"</i>; emitted right after
     /// registration, only for a file control entry that writes the clause — kb/Work PB643). The compiler has
-    /// already refused an integer-1 above <see cref="HostFile.MaxInputOutputAreas"/> (COBOLNET2897), so a value out
+    /// already refused an integer-1 above <see cref="HostFile.MaxInputOutputAreas"/> (COBOL2897), so a value out
     /// of range here is a broken caller, not a program's error.</summary>
     public void RegisterReserve(string name, int areas)
     {

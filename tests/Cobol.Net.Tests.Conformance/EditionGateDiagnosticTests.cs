@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// Introduction-diagnostic QUALITY facts (VERSION_TEST_MATRIX_DESIGN P2.8): a too-new construct compiled below its
-/// edition must name the required edition on the COBOLNET0900 band through the ONE <c>ConstructRegistry.Check</c>
+/// edition must name the required edition on the COBOL0900 band through the ONE <c>ConstructRegistry.Check</c>
 /// funnel (superset parse + bind-time gate → the VersionConformancePass — every construct now gates at BIND). The
 /// matrix reject cells assert code PRESENCE per row (expectDiagnostic); these facts assert message QUALITY
 /// (edition-naming) for one representative construct of each class, plus the vendor JSON/XML disposition (COBOL0313
@@ -19,7 +19,7 @@ public sealed class EditionGateDiagnosticTests
 
     private static void AssertNames(IReadOnlyList<string> errors, string requiredEdition, string targeting)
     {
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors, $"requires COBOL-{requiredEdition}");
         EditionHarness.AssertHasDiagnostic(errors, $"targeting COBOL-{targeting}");
     }
@@ -132,7 +132,7 @@ public sealed class EditionGateDiagnosticTests
             """, 85), "2002", "85");
 
     /// <summary>The 0860 collision migration: READ PREVIOUS (ISO §14.9.30 Format 1, 2002) at 85 now routes
-    /// through the registry — 0900, never the WRITE-END-OF-PAGE-colliding COBOLNET0860.</summary>
+    /// through the registry — 0900, never the WRITE-END-OF-PAGE-colliding COBOL0860.</summary>
     [Fact]
     public void ReadPrevious_At85_Registry0900_Not0860()
     {
@@ -155,7 +155,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85);
         AssertNames(errors, "2002", "85");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0860");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0860");
     }
 
     /// <summary>The 0861 collision migration: START FIRST (ISO §14.9.41, 2002) at 85 → registry 0900.</summary>
@@ -181,7 +181,7 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85);
         AssertNames(errors, "2002", "85");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0861");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0861");
     }
 
     /// <summary>JSON GENERATE is NOT ISO (0 spec hits; owner decision 2, DEVLOG 581). As of rearch P1 (the
@@ -208,7 +208,7 @@ public sealed class EditionGateDiagnosticTests
             """, 85);
         Assert.NotEmpty(errors);
         EditionHarness.AssertHasDiagnostic(errors, "not an ISO/IEC 1989 construct");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0900");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0900");
     }
 
     /// <summary>Negative control: the mapping must not fire where the construct IS available — DELETE FILE

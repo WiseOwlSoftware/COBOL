@@ -37,7 +37,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
             + "schema would split ONE function's argument rules across two mechanisms to unify one rule across "
             + "six — a worse trade. Verified enforced by SpecZeroLengthArguments below.",
         // ⛔ STANDARD-COMPARE WAS ADJUDICATED OUT HERE AND IS NOT ANY MORE (kb/Work PB101 T7). Its reason read
-        // "documented non-support, Bind = Unsupported, so COBOLNET1518 fires before any argument screen and the
+        // "documented non-support, Bind = Unsupported, so COBOL1518 fires before any argument screen and the
         // row would be a dead lookup" — TRUE while support was declined under A.3 item 25, and FALSE the moment
         // it was claimed. An adjudication is a fact about the compiler, not a permanent exemption: leaving it
         // would have kept this guard green while `FUNCTION STANDARD-COMPARE("" "AB")` — which §15.85.3 r4

@@ -79,7 +79,7 @@
       *> identifier) to the formal L-ARG PIC S9(4), and 8.4.3.2.3 SR13
       *> imports 14.8.2.3.2 rule 2: the two shall have the same PICTURE and
       *> SIGN clauses. The loop varied I PIC 9 itself until kb/Work PB1418
-      *> made the function arm enforce the rule (COBOLNET2470); I still
+      *> made the function arm enforce the rule (COBOL2470); I still
       *> receives the final value, so the output is unchanged.
        01 IA PIC S9(4).
        PROCEDURE DIVISION.

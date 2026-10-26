@@ -17,7 +17,7 @@
       *> (obsolete at 2023, still supported), so 2014 is its introducing edition.
       *>
       *> Each directive sits between data description entries (7.3.14.3 SR1), and the PROCEDURE DIVISION runs
-      *> only if the whole compilation group was accepted: any of them rejected with COBOLNET1622 (the pre-fix
+      *> only if the whole compilation group was accepted: any of them rejected with COBOL1622 (the pre-fix
       *> behaviour for ON, the bare form and a lone OFF) is a compile failure and the program never prints.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN: R is VALUE 5 -> "5".

@@ -13,7 +13,7 @@
       *> type" - 14.8.2.3.2 (OK 14.8.2.3.2 4)): "If either is a restricted
       *> pointer, both shall be restricted and of the same type" - and
       *> 14.8.3.3 (OK 14.8.3.3 2)) asks the same USAGE clause of the pair
-      *> (COBOLNET0828). A differently NAMED prototype of the same
+      *> (COBOL0828). A differently NAMED prototype of the same
       *> signature is accepted: the positive golden.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P1N IS PROTOTYPE.

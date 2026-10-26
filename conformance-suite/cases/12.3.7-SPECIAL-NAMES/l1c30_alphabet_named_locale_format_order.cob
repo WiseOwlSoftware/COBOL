@@ -11,7 +11,7 @@
       *> format"; §12.3.7.2 puts alphabet-name-clause BEFORE the
       *> LOCALE clause (rendered PDF p290), so SR24's locale-name-2
       *> is necessarily a FORWARD reference. The compiler bound the
-      *> clauses in source order and refused it (COBOLNET1664 'no
+      *> clauses in source order and refused it (COBOL1664 'no
       *> LOCALE clause is in scope'); it now resolves locale-names
       *> after the whole paragraph is bound.
       *> THE RULES (GR7 d) 2. and its sibling items, in row

@@ -16,7 +16,7 @@
       *> (fix-queue R02). It died as `no viable alternative at input 'MY_'`, which
       *> is an unexplained rejection rather than a named edition diagnostic; the
       *> COBOL-85 rejection is now the construct gate user-word-underscore-2002
-      *> (COBOLNET0900), pinned by the version matrix.
+      *> (COBOL0900), pinned by the version matrix.
       *>
       *> WATCH THE SECOND HALF OF THAT SENTENCE. "nor last" held only in the
       *> ALPHA-start lexer alternative; the two DIGIT-start alternatives ended in

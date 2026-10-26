@@ -52,10 +52,10 @@ public sealed class OpenSharingLockModeTests
         """;
 
     private static int Count1512(IEnumerable<string> diagnostics) =>
-        diagnostics.Count(d => d.Contains("COBOLNET1512", StringComparison.Ordinal));
+        diagnostics.Count(d => d.Contains("COBOL1512", StringComparison.Ordinal));
 
     /// <summary>⛔ THE DRIFT GUARD FOR THE EXTRACTION. One violation of one rule draws exactly ONE diagnostic.
-    /// Before kb/Work PB319 this program drew TWO COBOLNET1512s in two different spellings — one off the SELECT
+    /// Before kb/Work PB319 this program drew TWO COBOL1512s in two different spellings — one off the SELECT
     /// clause alone (<c>DataBinder.BindFileControl</c>) and one from the OPEN binder — because SR8 was written
     /// down twice. A substring-matching <c>.err</c> golden cannot see that; the count can.</summary>
     [Theory]
@@ -80,8 +80,8 @@ public sealed class OpenSharingLockModeTests
     public void ApplyCommitFile_IsExemptFromSr8()
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Violation("PB319APC", applyCommit: true), 2023);
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET17", StringComparison.Ordinal));   // the clause is accepted, not declined
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1512");
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL17", StringComparison.Ordinal));   // the clause is accepted, not declined
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1512");
         Assert.True(ok, "§14.9.27.3 SR8 exempts a file subject to an APPLY COMMIT clause: "
             + string.Join("\n", errors));
     }

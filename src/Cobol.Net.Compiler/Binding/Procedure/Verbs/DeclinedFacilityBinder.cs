@@ -27,8 +27,8 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
 {
     /// <summary>Bind the operands of <c>VALIDATE { identifier-1 } …</c> (ISO §14.9.50.2): each identifier-1 is
     /// resolved and screened against §14.9.50.3 SR1, SR2, SR4 and SR5. SR6 (more than one identifier in an
-    /// exception-checking PERFORM) is the EC binder's (COBOLNET1607) and SR3 (a VALIDATE-STATUS clause referencing the
-    /// operand) reads a data-division clause the declined facility refuses by name (COBOLNET1708), so neither is
+    /// exception-checking PERFORM) is the EC binder's (COBOL1607) and SR3 (a VALIDATE-STATUS clause referencing the
+    /// operand) reads a data-division clause the declined facility refuses by name (COBOL1708), so neither is
     /// asked here.</summary>
     public void BindValidate(Core.ValidateFacilityStatementContext v)
     {
@@ -64,7 +64,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         foreach (var dref in DataReferencesAfter(s, Core.FROM, Core.RETURNING))
             _ = host.Expr.ResolveSending(dref);
         // Format 2's RAISING EXCEPTION exception-name-1 (§14.9.38.2) is a WRITTEN exception-name, so it resolves through
-        // the ONE funnel every written name takes (EcNameResolution — an unknown name is COBOLNET0711, an EC-MCS name
+        // the ONE funnel every written name takes (EcNameResolution — an unknown name is COBOL0711, an EC-MCS name
         // keeps the accept-inert warning of the declined facility); it was never read.
         if (s.cobolWord() is { } exceptionName)
             _ = EcNameResolution.TryResolve(ctx.Edition, exceptionName.GetText(),

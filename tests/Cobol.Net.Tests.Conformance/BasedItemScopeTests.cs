@@ -23,7 +23,7 @@ namespace CobolNet.Tests.Conformance;
 /// that is merely INCOMPLETE fails one way; one that answers a DIFFERENT question fails both.</para>
 ///
 /// <para>The positive programs here COMPILE now (kb/Work PB956): BASED data and ADDRESS OF targets in a class
-/// definition's data divisions used to draw a whole-unit <c>COBOLNET0899</c>, and PB467 sequenced this resolver
+/// definition's data divisions used to draw a whole-unit <c>COBOL0899</c>, and PB467 sequenced this resolver
 /// fix first so that these verdicts would be the visible behaviour of the landing that lifted it. The positive
 /// cases therefore assert the whole compilation, not only the absence of the SR18 diagnostic.</para>
 /// </summary>
@@ -58,12 +58,12 @@ public sealed class BasedItemScopeTests
     private const string Rebase = "    SET ADDRESS OF MB TO P1.";
 
     /// <summary>The control: the BASED item declared at OBJECT level, referenced from the method. SR18 is
-    /// satisfied and no COBOLNET0869 is owed.</summary>
+    /// satisfied and no COBOL0869 is owed.</summary>
     [Fact]
     public void ObjectLevelBasedItem_SatisfiesSr18()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Cls("PB467CA", Based, "01 FILLER-X PIC X.", Rebase), 2002);
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
         Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
@@ -75,7 +75,7 @@ public sealed class BasedItemScopeTests
     public void MethodLocalBasedItem_SatisfiesSr18()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Cls("PB467CB", "01 FILLER-Y PIC X.", Based, Rebase), 2002);
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
         Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
@@ -87,7 +87,7 @@ public sealed class BasedItemScopeTests
     public void MethodLocalNonBasedItem_ShadowingABasedOne_ViolatesSr18()
     {
         var (_, errors, _) = EditionHarness.CompileFull(Cls("PB467CC", Based, NotBased, Rebase), 2002);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>The negative control at object level: a non-BASED item with no shadowing anywhere still violates
@@ -96,7 +96,7 @@ public sealed class BasedItemScopeTests
     public void ObjectLevelNonBasedItem_ViolatesSr18()
     {
         var (_, errors, _) = EditionHarness.CompileFull(Cls("PB467CD", NotBased, "01 FILLER-Z PIC X.", Rebase), 2002);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>ALLOCATE reaches the SAME helper, so §14.9.3.3 SR1 gets the same scoped verdict: the method's own
@@ -107,7 +107,7 @@ public sealed class BasedItemScopeTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Cls("PB467CE", "01 FILLER-W PIC X.", Based, "    ALLOCATE MB RETURNING P1."), 2002);
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
         Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
@@ -117,7 +117,7 @@ public sealed class BasedItemScopeTests
     {
         var (_, errors, _) = EditionHarness.CompileFull(
             Cls("PB467CF", Based, NotBased, "    ALLOCATE MB RETURNING P1."), 2002);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>A name NO declaration in scope carries is an ISO §8.4.2.1 failure, not a category failure: the
@@ -139,7 +139,7 @@ public sealed class BasedItemScopeTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1639");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0869");
     }
 }

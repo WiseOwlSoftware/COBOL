@@ -17,7 +17,7 @@
       *> a rejection that came from the inner call would be the right error for the wrong reason.
       *> The exclusion has to be written down separately from the category test because §8.5.2.12 gives
       *> function results a category too, so "category numeric" alone would admit this.
-      *> Expected: COBOLNET1516, the algebraic-family argument diagnostic.
+      *> Expected: COBOL1516, the algebraic-family argument diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1HAFUNC.
        DATA DIVISION.

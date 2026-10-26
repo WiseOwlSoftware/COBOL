@@ -13,7 +13,7 @@
       *> L1C15PB's REPOSITORY does not specify it (it specifies only
       *> L1C15PC), so the INHERITS FROM L1C15PA violates SR2. Nothing
       *> else is wrong: the INHERITS graph is acyclic and the program
-      *> is otherwise legal. Diagnostic COBOLNET0840 (interface
+      *> is otherwise legal. Diagnostic COBOL0840 (interface
       *> definition rules; the message names §11.6.3 SR2).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C15P.

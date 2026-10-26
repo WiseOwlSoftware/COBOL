@@ -23,7 +23,7 @@
       *> at its own start):
       *>   R-A, CODE IS WS-CD(2): WS-CD(2) = A then B   => records `ADA1`, `BDA2` (code, the VALUE "DA", the SOURCE).
       *>   R-B, CODE IS WS-CT(2:1): WS-CT = xyz then XYZ => the one-character slice y then Y => `yDB1`, `YDB2`.
-      *> Fails (COBOLNET0899 'a subscripted or reference-modified CODE operand ... is not yet implemented') on a binder
+      *> Fails (COBOL0899 'a subscripted or reference-modified CODE operand ... is not yet implemented') on a binder
       *> whose CODE identifier keeps only a base name.
       *>
       *> THE READ-BACK IS BYTE-WISE: a one-character record on a second SELECT over each report file is legal at every

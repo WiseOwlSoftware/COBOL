@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.18.37.3 SR6 c): "If the current report group is a page footing, integer-1
       *> shall be greater than the minimum last line number of the report group." The footing's last line
       *> is 17 and integer-1 is 17.
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NFA.
        ENVIRONMENT DIVISION.

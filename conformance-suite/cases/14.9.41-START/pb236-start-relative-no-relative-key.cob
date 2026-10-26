@@ -12,7 +12,7 @@
 *> So the SOURCE is legal and GR8's substitution has NO OPERAND: there is no data-name-1 to compare, and the
 *> standard gives the statement no meaning. ISO 4.2.2's last paragraph leaves flagging a general rule to the
 *> implementor ("An implementation may, but is not required to, flag violations of such rules"); the
-*> alternative to flagging is emitting code that cannot work, so COBOL.NET flags it, in the SAME COBOLNET0862
+*> alternative to flagging is emitting code that cannot work, so COBOL.NET flags it, in the SAME COBOL0862
 *> channel the method already uses for SR1/SR3/SR5/SR6/SR8. Before PB236 it compiled clean and aborted the
 *> run unit with NotImplementedCobolFeatureException.
 IDENTIFICATION DIVISION.

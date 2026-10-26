@@ -13,7 +13,7 @@
       *> were invisible to it and this entry compiled clean.  The rule now reads the WRITTEN clause SET of the
       *> entry against ConstantRecordExcluded, a constant transcribed from the sentence above and pinned by
       *> DataClauseKindDriftTests, and the message NAMES which excluded clause was specified.
-      *> COBOLNET1549 (the CONSTANT RECORD band).  COBOLNET1563 fires too and correctly: SR18 is the mirror
+      *> COBOL1549 (the CONSTANT RECORD band).  COBOL1563 fires too and correctly: SR18 is the mirror
       *> rule, and CONSTANT RECORD is not among DYNAMIC LENGTH's five permitted co-clauses either.
       *> Rejected from 2014, not 85/2002: DYNAMIC LENGTH is a COBOL-2014 introduction, so below it this source
       *> is a different program and the introduction gate answers first.

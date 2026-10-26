@@ -30,7 +30,7 @@
       *>   equivalent (§8.5.3.1): the prototype's formal is a
       *>   strongly-typed group item and the method's is not of its
       *>   type, so the factory interface does not conform and
-      *>   §11.4.3 SR2 is violated: COBOLNET0841.
+      *>   §11.4.3 SR2 is violated: COBOL0841.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. PB1012NI.
        PROCEDURE DIVISION.

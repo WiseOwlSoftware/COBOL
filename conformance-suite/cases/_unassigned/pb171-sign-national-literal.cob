@@ -14,7 +14,7 @@
       *> queue drained, and the fallback returned BoundNumLiteral("0").
       *> 
       *> Run at 2002+ only, so the CLASS rejection is what is pinned: below 2002
-      *> the N"..." literal's own introduction gate (COBOLNET0900) would answer
+      *> the N"..." literal's own introduction gate (COBOL0900) would answer
       *> first and this fixture would assert the wrong rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB171N5.

@@ -11,7 +11,7 @@
       *> 13.18.60.4 -> OK 13.18.60.4 25)) must still find a difference.
       *> QA takes a PIC 9(4), QB a PIC X(4): two signatures, so PX's
       *> prototype and its definition do not have "the same" signature
-      *> and 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair (COBOLNET1513).
+      *> and 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair (COBOL1513).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. QA IS PROTOTYPE.
        DATA DIVISION.

@@ -27,7 +27,7 @@
       *>   GENERATE D2:  R1's PAGE-COUNTER is 1; R2's own (implicitly qualified) LINE-COUNTER is 1  => R2: `01 01`
       *>   MOVE 40 TO PAGE-COUNTER OF R1, then GENERATE D2: 40 and R2's LINE-COUNTER 2              => R2: `40 02`
       *>   GENERATE D1:  R1's PAGE-COUNTER is now 40; R2's LINE-COUNTER is 2                        => R1: `40 02`
-      *> Fails (COBOLNET0899 'a counter of another report ... not yet implemented') on a binder that stages the
+      *> Fails (COBOL0899 'a counter of another report ... not yet implemented') on a binder that stages the
       *> qualified counter of a different report.
       *>
       *> THE READ-BACK IS BYTE-WISE: a one-character record on a second SELECT over each report file is legal at every

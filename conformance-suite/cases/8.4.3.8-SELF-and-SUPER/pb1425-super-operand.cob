@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1425 - ISO 8.4.3.8.3 SR3: "SUPER may be specified only as the object in an object-property
       *>   identifier or as the object used to invoke a method with the INVOKE statement or an inline invocation
-      *>   of a method." SUPER as a relation operand is neither, so it is refused by SR3 (COBOLNET2900) - never by
+      *>   of a method." SUPER as a relation operand is neither, so it is refused by SR3 (COBOL2900) - never by
       *>   a parse error, now that SELF and SUPER are identifiers of the expression tier.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425SM.

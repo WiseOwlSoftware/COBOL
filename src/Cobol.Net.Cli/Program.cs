@@ -86,7 +86,7 @@ internal static class Program
         // kb/Work PB803 (owner decision 2026-09-09): the DISPLAY over-punch convention, Annex A.1 items 177/178.
         // A REPRESENTATION option, orthogonal to --std/--permissive — every edition grants the same latitude
         // (ISO §13.18.52.4 GR4 / GR5 b). An unknown value is refused by the parser exactly as --std's is: a CLI
-        // argument error, never a COBOLNET source diagnostic (nothing about the SOURCE is wrong).
+        // argument error, never a COBOL#### source diagnostic (nothing about the SOURCE is wrong).
         var signEncodingOption = new Option<string?>("--sign-encoding")
         {
             Description = "DISPLAY operational-sign convention for a signed item whose sign is not SEPARATE: "
@@ -138,7 +138,7 @@ internal static class Program
         // This is that mechanism. It is a pure opt-in: without it a compile prints exactly what it printed before.
         var flagExtensionsOption = new Option<bool>("--flag-extensions")
         {
-            Description = "Warn (COBOLNET2894) at every use of a nonstandard extension this compiler accepts — a "
+            Description = "Warn (COBOL2894) at every use of a nonstandard extension this compiler accepts — a "
                 + "construct ISO/IEC 1989 does not define (ISO 4.2.10). The register is docs/CONFORMANCE.md 3.2.",
         };
 

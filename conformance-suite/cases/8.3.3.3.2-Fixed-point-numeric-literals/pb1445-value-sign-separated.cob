@@ -9,7 +9,7 @@
       *> character-string and a space is a separator (8.3.5 1)), so a sign separated from its digits,
       *> or a second sign, is not part of any literal (kb/Work PB1445).
       *> NEGATIVE: a VALUE literal whose sign is separated by a space (`- 5`).
-      *> Not a literal, so refused COBOLNET2155 at every edition (the rule has no introducing edition).
+      *> Not a literal, so refused COBOL2155 at every edition (the rule has no introducing edition).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1445N3.
        DATA DIVISION.

@@ -105,7 +105,7 @@ public enum Usage
     ObjectReference,
 
     // ── The post-'85 §13.18.60 usage inventory — every member is LIVE (each keyword's ConstructRegistry
-    // introduction gate fires COBOLNET0900 below its edition, silent at/above; PictureAnalyzer.ParseUsage maps
+    // introduction gate fires COBOL0900 below its edition, silent at/above; PictureAnalyzer.ParseUsage maps
     // the full grammar inventory explicitly). The former W2 usage-skeleton scaffolding — the sentinel shapes,
     // IsUnimplementedSkeleton, and the throw guards on the storage-mapping switches — is DELETED (P5.11c):
     // nothing had constructed a skeleton usage since the 14g.1 introduction-gate migration. ──
@@ -133,7 +133,7 @@ public enum Usage
     FunctionPointer,
     /// <summary>USAGE MESSAGE-TAG (ISO §13.18.60.4 GR9; COBOL-2023, Annex E.2 item 25) — DECLINED
     /// NON-SUPPORT: the data-item half of the asynchronous messaging facility (Annex A.3 item 4,
-    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition with COBOLNET1943, the
+    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition with COBOL1943, the
     /// FLOAT-BINARY-128 posture. The member exists for exactly the reason that one does: <c>ParseUsage</c> must
     /// return SOMETHING, and the entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without a member
     /// of its own the recovery Pic could not be synthesized and the errored compile would carry a null
@@ -158,15 +158,15 @@ public enum Usage
     FloatBinary64,
     /// <summary>USAGE FLOAT-BINARY-128 (ISO §13.18.60.4 GR16 — binary128; COBOL-2014) — PROCESSOR-DEPENDENT
     /// NON-SUPPORT (Annex A.3 item 17): .NET has no IEEE binary128 type, and GR16 PINS the format (backing it by
-    /// <c>double</c> would be non-conforming), so ParseUsage rejects it LOUD (COBOLNET1564). The member exists so
+    /// <c>double</c> would be non-conforming), so ParseUsage rejects it LOUD (COBOL1564). The member exists so
     /// the 2014 introduction gate still fires below 2014.</summary>
     FloatBinary128,
     /// <summary>USAGE FLOAT-DECIMAL-16 (ISO §13.18.60.4 GR17 — ISO/IEC 60559:2020 decimal64; COBOL-2014) —
     /// PROCESSOR-DEPENDENT NON-SUPPORT (Annex A.3 item 19): .NET has no IEEE decimal64 type (System.Decimal is a
-    /// different format), and GR17 PINS it, so ParseUsage rejects it LOUD (COBOLNET1564).</summary>
+    /// different format), and GR17 PINS it, so ParseUsage rejects it LOUD (COBOL1564).</summary>
     FloatDecimal16,
     /// <summary>USAGE FLOAT-DECIMAL-34 (ISO §13.18.60.4 GR18 — decimal128; COBOL-2014) — PROCESSOR-DEPENDENT
-    /// NON-SUPPORT (Annex A.3 item 19): rejected LOUD (COBOLNET1564), the FLOAT-DECIMAL-16 twin.</summary>
+    /// NON-SUPPORT (Annex A.3 item 19): rejected LOUD (COBOL1564), the FLOAT-DECIMAL-16 twin.</summary>
     FloatDecimal34,
     /// <summary>USAGE BINARY-CHAR [SIGNED|UNSIGNED] (ISO §13.18.60.4 GR12) — LIVE (Phase 4 M2-DATA-1): a
     /// PICTURE-less native 1-byte two's-complement integer (SIGNED −128..127, UNSIGNED 0..255), realized on the
@@ -248,7 +248,7 @@ public static class UsageFamilies
     /// binary32 item. No picture character-string can describe one: §13.18.60.4 GR14/GR15/GR16/GR17/GR18 PIN each
     /// of those usages to a named ISO/IEC 60559:2020 interchange format, and §13.18.40 has no form that denotes
     /// one. They are therefore treated as picture-less, which is also what the compiler has always done on the
-    /// written-clause path (COBOLNET1521). COMP-1 / COMP-2 need no determination — they are this implementation's
+    /// written-clause path (COBOL1521). COMP-1 / COMP-2 need no determination — they are this implementation's
     /// spellings of float-short / float-long (docs/CONFORMANCE.md item 22), which SR8 names.</para></summary>
     public static bool IsPictureless(Usage u) => u
         // ── §13.16.3 SR8's list, verbatim ──
@@ -256,7 +256,7 @@ public static class UsageFamilies
         or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
         or Usage.Index or Usage.ObjectReference
         or Usage.Pointer or Usage.FunctionPointer or Usage.ProgramPointer
-        // message-tag is SR8's thirteenth entry. The usage itself is DECLINED non-support (COBOLNET1943, Annex
+        // message-tag is SR8's thirteenth entry. The usage itself is DECLINED non-support (COBOL1943, Annex
         // A.3 item 4) and refused by name in ParseUsage, so this arm is reached only on the errored-recovery
         // path — but SR8 names it either way, and leaving it out is what
         // PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless caught the moment kb/Work
@@ -293,8 +293,8 @@ public static class UsageFamilies
     /// value is the standard's, with no clause written.</para>
     ///
     /// <para>MESSAGE-TAG's arm IS reached, and reports BESIDE the facility decline rather than instead of it —
-    /// MEASURED: `01 M USAGE MESSAGE-TAG VALUE "X".` draws COBOLNET1943 (this implementation does not provide
-    /// the Annex A.3 item 4 facility) and COBOLNET2168 (the standard forbids the clause on that usage at all).
+    /// MEASURED: `01 M USAGE MESSAGE-TAG VALUE "X".` draws COBOL1943 (this implementation does not provide
+    /// the Annex A.3 item 4 facility) and COBOL2168 (the standard forbids the clause on that usage at all).
     /// The two say different things about the same line and both are true, which is why the decline does not
     /// stand in for the rule. The FUNCTION-POINTER arm is the one that cannot be exercised today: such an entry
     /// needs a prototype the repository work has not landed. A rule written only over its reachable arms is how
@@ -400,7 +400,7 @@ public sealed record PicInfo(
     /// <c>ExpressionBinder.ScreenResultant</c>) reads THIS, so the nullable type forces it to handle the recovery
     /// case, and each handles it by their existing contract — "not statically decidable" fails OPEN. Reading
     /// <see cref="Category"/> there turned <c>PIC 9V9V9</c> into "item 'W-BAD' of category alphanumeric is not
-    /// a numeric operand" beside the real COBOLNET1934, at every operand position the item appeared in.</summary>
+    /// a numeric operand" beside the real COBOL1934, at every operand position the item appeared in.</summary>
     public PicCategory? AnalyzedCategory => IsRecovery ? null : Category;
 
     /// <summary>The <c>type-name-1</c> of a RESTRICTED data-pointer — <c>USAGE POINTER TO type-name-1</c>
@@ -461,7 +461,7 @@ public sealed record PicInfo(
     /// endianness-phrase is not specified" (§11.9.8.3 SR2/SR3 — so the per-item phrase wins by the implying
     /// clause's own wording, not by preference); §11.9.8.3 SR1 makes the no-clause default the implementor's
     /// documented choice, ours HIGH-ORDER-LEFT / big-endian, Annex A.1 item 48. <c>DataBinder</c> performs that
-    /// merge at the single call site and screens the phrase's applicability (COBOLNET1716/1717/1718). Always
+    /// merge at the single call site and screens the phrase's applicability (COBOL1716/1717/1718). Always
     /// <c>false</c> for the implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED,
     /// GR13/GR21 — pinned big-endian; GR19c scopes the clause AND the phrase to the standard usages). Rides
     /// <see cref="ProfileInitializer"/> into the runtime's <c>NumProfile.FloatLittleEndian</c>, the one switch the
@@ -554,7 +554,7 @@ public sealed record PicInfo(
     /// position in <see cref="EditMask"/> — the simple-insertion (IS) form and the single-occurrence sign-control
     /// (FOR) form. Threaded to <c>CobolEdit.Format</c>/<c>DeEdit</c>. Null on every non-editing item AND on the
     /// render-staged forms (multi-character literals / floating character-1) which <c>PictureAnalyzer</c> rejects
-    /// loud (COBOLNET0899) as a documented P14 render GAP — so a non-null value always renders 1:1.</summary>
+    /// loud (COBOL0899) as a documented P14 render GAP — so a non-null value always renders 1:1.</summary>
     public IReadOnlyList<CobolNet.Runtime.CobolEdit.EditRule>? EditingRules { get; init; }
 
     /// <summary>⛔ THE ONE "is this an EDITED CHARACTER item?" predicate — category alphanumeric-edited
@@ -912,7 +912,7 @@ public sealed record PicInfo(
             Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "float",   // COMP-1 / FLOAT-SHORT / IEEE binary32
             Usage.Double or Usage.FloatLong or Usage.FloatExtended => "double",
             // FLOAT-BINARY-64 = IEEE binary64 (double). FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 are processor-
-            // dependent NON-support (rejected at ParseUsage, COBOLNET1564) — these fallback maps are unreached in a
+            // dependent NON-support (rejected at ParseUsage, COBOL1564) — these fallback maps are unreached in a
             // valid compile (never emit a non-conforming double/decimal for a pinned IEEE format).
             Usage.FloatBinary64 or Usage.FloatBinary128 => "double",
             Usage.FloatDecimal16 or Usage.FloatDecimal34 => "decimal",
@@ -953,7 +953,7 @@ public sealed record PicInfo(
         {
             Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "0f",
             Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 or Usage.FloatBinary128 => "0d",
-            Usage.FloatDecimal16 or Usage.FloatDecimal34 => "0m",   // unreached (rejected at ParseUsage, COBOLNET1564)
+            Usage.FloatDecimal16 or Usage.FloatDecimal34 => "0m",   // unreached (rejected at ParseUsage, COBOL1564)
             _ when IsUnsignedWideBinary => "(UInt128)0",
             _ when IsUnsignedLongBinary => "0UL",
             _ => Digits > 18 ? "(Int128)0" : "0L",
@@ -1163,16 +1163,16 @@ public sealed record PicInfo(
         { IsRecovery = true };
 
     /// <summary><see cref="Recovery"/> for a <c>USAGE MESSAGE-TAG</c> entry — a DECLINED usage, refused by name
-    /// at the data description entry (<c>PictureAnalyzer.ParseUsage</c>, COBOLNET1943; Annex A.3 item 4).
+    /// at the data description entry (<c>PictureAnalyzer.ParseUsage</c>, COBOL1943; Annex A.3 item 4).
     /// <para>⛔ IT CARRIES THE WRITTEN USAGE, AND THAT IS THE WHOLE POINT (kb/Work PB453). The profile is still a
     /// recovery placeholder — <see cref="IsRecovery"/> is set and its category is NOT an analysis of anything,
     /// because §13.18.60.4 GR9 makes the category of a message-tag item message-tag and this implementation
     /// declines to model it — but the USAGE is a FACT the source states, and hiding it made every later screen
     /// answer about a category the item does not have. A Format-17 SET on such an item reached the
-    /// object-reference screen KEYED TO §14.9.39.3 SR8 — COBOLNET0867, whose MESSAGE says the receiving operand
+    /// object-reference screen KEYED TO §14.9.39.3 SR8 — COBOL0867, whose MESSAGE says the receiving operand
     /// "shall be a USAGE OBJECT REFERENCE data item"; ⛔ those are the DIAGNOSTIC's words, not the rule's, and
     /// SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item" — and the
-    /// §8.8.1.1 arithmetic screen (COBOLNET0844, "of category alphanumeric is not a numeric operand", the
+    /// §8.8.1.1 arithmetic screen (COBOL0844, "of category alphanumeric is not a numeric operand", the
     /// diagnostic's words again). Both are false about the program. With the usage visible,
     /// <c>SetFormatSelection</c> selects Format 17 and the statement names the declined FACILITY instead.</para>
     /// <para>⚠ Both arms of <c>ItemCategory.IsMessageTag</c> need it: <c>DataItem.OwnUsage</c> sees an entry
@@ -1207,7 +1207,7 @@ public sealed record PicInfo(
     /// <see cref="FloatEndianness.Unspecified"/>/HIGH-ORDER-LEFT and every non-standard float usage stay
     /// big-endian (§11.9.8.3 SR1 — our documented default; GR13/GR21 — our implementor pin). FLOAT-BINARY-128 is
     /// in §3.166's family and so ADMITS the phrase, but the usage itself is documented non-support
-    /// (COBOLNET1564) and has no IEEE image lane, so it stays big-endian here too.</para></summary>
+    /// (COBOL1564) and has no IEEE image lane, so it stays big-endian here too.</para></summary>
     public static PicInfo FloatItem(Usage usage, FloatEndianness floatBinaryEndianness = FloatEndianness.Unspecified) =>
         new(PicCategory.Numeric, usage, Length: 0, Digits: 0, Scale: 0, Signed: true)
         {

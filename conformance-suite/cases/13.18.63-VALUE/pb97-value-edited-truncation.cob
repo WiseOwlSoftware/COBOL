@@ -8,7 +8,7 @@
       *> "such that no truncation of digits or sign is required", and SR3 admits a signed literal only for "a
       *> numeric-edited data item with a representation of a sign": 12345 does not fit ZZ9.99 (three integer
       *> positions), 123.456 loses a decimal, -5 has no sign position in ZZ9.99, and 12345 exceeds the scaled
-      *> range of ZZZPP (COBOLNET1625 for each; kb/Work PB97 - before it every one compiled silently).
+      *> range of ZZZPP (COBOL1625 for each; kb/Work PB97 - before it every one compiled silently).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB97NVT.
        DATA DIVISION.

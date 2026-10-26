@@ -46,12 +46,12 @@ internal static class ChoiceIndicators
         return occurrences.Length > 0 ? occurrences[0] : null;
     }
 
-    /// <summary>⛔ THE ONE DIAGNOSTIC OF §5.2.6.4's "only once" half (COBOLNET2104), for a reader that has already
+    /// <summary>⛔ THE ONE DIAGNOSTIC OF §5.2.6.4's "only once" half (COBOL2104), for a reader that has already
     /// COUNTED the alternative: <see cref="AtMostOnce{T}"/> counts a parsed array and calls this, and
     /// <c>ClosedFormatPass</c> calls it for a <c>ClauseCardinalities</c> row whose figure encloses its clauses in
     /// choice indicators (<c>ClauseList.ChoiceIndicators</c>: the OBJECT-COMPUTER paragraph, §12.3.6.2; kb/Work
     /// PB3133, ISO review R1-1) — two ways to count, one rule and one code. A repeated bracket WITHOUT choice
-    /// indicators (§5.2.6.2, §5.2.7) is <c>UnrepeatedElements</c>' COBOLNET2423.</summary>
+    /// indicators (§5.2.6.2, §5.2.7) is <c>UnrepeatedElements</c>' COBOL2423.</summary>
     /// <param name="edition">The one diagnostic sink.</param>
     /// <param name="count">How many times the alternative was written; nothing is reported at 1 or fewer.</param>
     /// <param name="statement">The construct as the user wrote it, for the message.</param>
@@ -72,7 +72,7 @@ internal static class ChoiceIndicators
     /// CLASSIFICATION clauses (§12.3.6.2), the file control entry's file-level COLLATING SEQUENCE clause
     /// (§12.4.5.7.2 Format 1), the SORT/MERGE COLLATING SEQUENCE phrase (§14.9.40.2 / §14.9.24.2) and the CODE-SET
     /// clause (§13.18.13.2). Each used to walk its FOR phrases itself: four reported a repeat under their own
-    /// messages (two of them the bare string COBOLNET0898) and the file clause let the LAST repeat win in silence.
+    /// messages (two of them the bare string COBOL0898) and the file clause let the LAST repeat win in silence.
     /// A repeat is §5.2.6.4's violation, read by <see cref="AtMostOnce{T}"/>; the FIRST phrase of each class is
     /// returned, so binding continues on the first as written.</summary>
     /// <param name="edition">The one diagnostic sink.</param>

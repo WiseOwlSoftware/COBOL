@@ -135,7 +135,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// <c>DeEditFloat</c>).
     /// <para>⛔ It also carries the item's PICTURE EDITING rules (<see cref="RuntimeApi.EditsArg"/>). They were a
     /// SEPARATE suffix every caller had to remember to append, and the two floating-point arms were exactly the
-    /// callers that did not — harmless only while COBOLNET1658 refused every EDITING phrase on that form; once the
+    /// callers that did not — harmless only while COBOL1658 refused every EDITING phrase on that form; once the
     /// IS form is admitted (§13.18.40.3 SR12 bars only the FOR form's extended symbols; kb/Work PB866) a dropped
     /// suffix renders the mask LETTER. One producer, so the next edited-store site cannot drop it.</para></summary>
     public string EditCfg(PicInfo? pic) =>

@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB1224 - ISO 13.15.3 SR9: "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate
       *> to an entry with a LINE clause."   cite.py: OK  13.15.3 9)  (Syntax rules)
-      *> No entry of the group has a LINE clause. This case was refused before, but on the shared COBOLNET0899 "recognized but not
-      *> implemented" code citing 13.18.14; it is now the rule's own COBOLNET2247, and had no witness.
+      *> No entry of the group has a LINE clause. This case was refused before, but on the shared COBOL0899 "recognized but not
+      *> implemented" code citing 13.18.14; it is now the rule's own COBOL2247, and had no witness.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W11EPB1224REPORTCOLUMNWI.
        ENVIRONMENT DIVISION.

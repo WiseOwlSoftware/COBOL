@@ -8,7 +8,7 @@
       *>   2002 introduction: COBOL-85 fixed-form source has only the
       *>   fixed comment indicators * and / (these header lines). At
       *>   --std 85 the inline *> is refused with the introduction band
-      *>   COBOLNET0900 (constructs.json floating-comment-indicator-2002;
+      *>   COBOL0900 (constructs.json floating-comment-indicator-2002;
       *>   kb/Work PB1493). The 2002 twin is the positive golden
       *>   2002/pb1493_floating_comment_fixed.
 000100 IDENTIFICATION DIVISION.

@@ -10,7 +10,7 @@
 *> a bare condition-name-1. A condition-name is an ALTERNATIVE TO the whole comparison, never its receiving
 *> operand, so `WHEN K-ONE (IX) = 05` is a shape the format does not print.
 *>
-*> It draws the EXISTING COBOLNET1757 ("an operand a statement's own syntax rules or general format do not
+*> It draws the EXISTING COBOL1757 ("an operand a statement's own syntax rules or general format do not
 *> admit"), not one of PB445's three syntax-rule codes: the shape question and the syntax rules are different
 *> questions and the diagnostic identity follows the mechanism. Without this arm the operand fell through to
 *> 14.9.37.3 SR8's "not referenced in the KEY phrase" verdict, which sends a reader looking for a KEY phrase

@@ -89,7 +89,7 @@ public sealed class ReservedWordMigrationGateDriftTests
     /// restore for such a word.
     /// <para>The entry writes COLUMN because §13.15.3 SR13 requires it of every elementary report entry with a VALUE
     /// clause — the control used to omit it, and became non-conforming source the day kb/Work PB853 enforced SR13
-    /// (COBOLNET2247).</para></summary>
+    /// (COBOL2247).</para></summary>
     private const string ProbeTemplate = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB792D{0}.

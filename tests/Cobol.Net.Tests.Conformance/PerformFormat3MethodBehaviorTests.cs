@@ -221,7 +221,7 @@ public sealed class PerformFormat3MethodBehaviorTests
              // this used to rely on the enclosing `>>TURN EC-ALL CHECKING ON` reaching into the handler, which
              // §14.9.28.4 GR14 forbids — "an implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
              // imperative-statement-1", so the ADD raises nothing. An explicit RAISE cannot substitute (§14.9.29.3
-             // SR4 bars RAISE outside imp-1, COBOLNET1611), so re-enabling inside the handler is the legal way to
+             // SR4 bars RAISE outside imp-1, COBOL1611), so re-enabling inside the handler is the legal way to
              // raise there — and it proves a handler-local directive still wins over the GR14 floor.
     public void Gr21_ReRaiseInHandler_NotReCaught_FallsToFatal()
         => AssertFatal("""

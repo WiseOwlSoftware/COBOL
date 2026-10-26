@@ -7,7 +7,7 @@
       *> ISO 1989:2023 8.8.4.4.3 SR6: "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is
       *> specified, identifier-1 shall reference a data item whose category is numeric." The operand here is a
       *> REFERENCE-MODIFIED numeric item, and 8.4.3.3.4 GR6 c) makes that unique data item "class and category
-      *> alphanumeric" - the OPERAND's category is asked, never its base item's. COBOLNET2216 (kb/Work PB225).
+      *> alphanumeric" - the OPERAND's category is asked, never its base item's. COBOL2216 (kb/Work PB225).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB225NOTNUMERIC.
        DATA DIVISION.

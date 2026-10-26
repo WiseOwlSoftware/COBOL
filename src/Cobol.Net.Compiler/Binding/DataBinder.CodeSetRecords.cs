@@ -29,7 +29,7 @@ namespace CobolNet.Binding;
 /// </list>
 /// <para>Run from inside <c>BindFileSection</c>, the screen read the entry-bind default <c>SignKind</c> — trailing
 /// over-punch — for every leaf, and so REFUSED the legal <c>01 R. 05 G SIGN IS LEADING SEPARATE. 10 N PIC S9(4).</c>
-/// under a CODE-SET FD with COBOLNET1672, while the compiler's OWN storage model gave N a separate sign character.
+/// under a CODE-SET FD with COBOL1672, while the compiler's OWN storage model gave N a separate sign character.
 /// A screen that reads an EFFECTIVE description fact must run no earlier than the pass that settles it; placing it
 /// at <see cref="PassPhase.SignResolved"/> is what makes that true by construction rather than by care, and the
 /// pipeline's phase contract (<c>BindPipeline.ValidateDag</c>) asserts it at startup.</para>

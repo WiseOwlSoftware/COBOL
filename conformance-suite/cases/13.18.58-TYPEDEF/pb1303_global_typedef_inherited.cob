@@ -15,7 +15,7 @@
       *>   directly in MID) uses T from OUTER (two levels out) and U from MID, NOT OUTER's U (the nearer declaration).
       *>   SHADOW1303 declares its OWN data item T (five characters): 8.4.6.2.1 3 a) - the name declared in the element
       *>   itself is the one referenced - so FUNCTION LENGTH (T) is 5, not the 3 positions of OUTER's type T.
-      *>   Each leg can fail: an inherited type is refused as undefined (COBOLNET1530), or LEAF's U resolves to OUTER's
+      *>   Each leg can fail: an inherited type is refused as undefined (COBOL1530), or LEAF's U resolves to OUTER's
       *>   "OUT" instead of MID's "MID", or T's group description (the 88 and the numeric member) is lost in the copy.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1303OK.

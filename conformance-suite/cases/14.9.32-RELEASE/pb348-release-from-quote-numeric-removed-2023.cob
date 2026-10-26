@@ -8,7 +8,7 @@
 *> TO record-name-1 according to the rules specified for the MOVE statement".  The rules specified
 *> for the MOVE statement include the 14.9.25.3 SR5 restriction on an alphanumeric figurative sender
 *> to a numeric receiver, which Annex F.2 records as REMOVED at COBOL-2023 -- so the implicit move
-*> is removed exactly as the explicit one is, and the program is refused (COBOLNET0902).
+*> is removed exactly as the explicit one is, and the program is refused (COBOL0902).
 *> The EDITION half of kb/Work PB348.  At 2023 the explicit `MOVE QUOTE TO SRT-NUM` errored while
 *> `RELEASE SRT-NUM FROM QUOTE` compiled with NO DIAGNOSTIC AT ALL: "according to the rules
 *> specified for the MOVE statement" was applied at no edition, because the implicit move was

@@ -10,7 +10,7 @@
       *> the rules of COBOL refers to the category unless class is specifically indicated" (cite.py --check -> OK), and
       *> SR1 names no class, so the rule admits the CATEGORY alphanumeric; Table 2 lists alphanumeric-edited as a
       *> category of its own (class alphanumeric, category alphanumeric-edited). W-EDITED is of category
-      *> alphanumeric-edited and is refused (COBOLNET1681), exactly as ASSIGN USING (12.4.5.2 SR7: "Data-name-1 shall
+      *> alphanumeric-edited and is refused (COBOL1681), exactly as ASSIGN USING (12.4.5.2 SR7: "Data-name-1 shall
       *> reference an alphanumeric data item") and the record keys refuse it (kb/Work PB850).
       *> Why this can fail: the screen asked the class lattice, where alphanumeric-edited answers class alphanumeric.
        IDENTIFICATION DIVISION.

@@ -8,7 +8,7 @@
       *> SPECIAL-NAMES paragraph of the environment division and shall
       *> be associated with an implementor-defined device-name ...".
       *> NO-SUCH-DEV is declared nowhere, so the ACCEPT is rejected
-      *> (COBOLNET0817). The paragraph DOES declare a mnemonic, so an
+      *> (COBOL0817). The paragraph DOES declare a mnemonic, so an
       *> empty registry cannot pass for the SR2 rejection.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1ACC01.

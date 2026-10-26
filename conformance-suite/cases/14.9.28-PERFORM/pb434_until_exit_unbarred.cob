@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB434 - ISO/IEC 1989:2023 14.9.28.3 SR8: "The UNTIL EXIT phrase shall not be specified in a
       *> PERFORM statement with or under a PERFORM statement with the VARYING phrase or either the TEST BEFORE
-      *> or TEST AFTER phrase" (negative pb434-until-exit-under-varying, COBOLNET2954). This golden pins what
+      *> or TEST AFTER phrase" (negative pb434-until-exit-under-varying, COBOL2954). This golden pins what
       *> the rule does NOT reach, each case running its 14.9.28.4 GR11 loop ("condition-1 never evaluates as
       *> true") to its EXIT PERFORM:
       *>   - UNTIL EXIT under a TIMES PERFORM: neither VARYING nor TEST;

@@ -8,7 +8,7 @@
       *> underlined: a KEYWORD (5.2.2), and ZEROES is a different reserved word (8.9). A relation
       *> condition needs a relational operator, so "N1 IS NOT ZEROES" is no condition at all; the
       *> figurative comparison is spelled "N1 NOT = ZEROES". kb/Work PB510 (the lexer folded the three
-      *> spellings into one token and this compiled as a sign condition). Refused COBOLNET2418.
+      *> spellings into one token and this compiled as a sign condition). Refused COBOL2418.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB510N2.
        DATA DIVISION.

@@ -13,7 +13,7 @@ using Core = CobolParserCore;
 /// three prototype kinds — "The following restrictions apply to program prototypes, function prototypes, and
 /// method prototypes" (§10.6.2 SR4) — so they are screened once here and every prototype-bearing construct asks:
 /// <list type="bullet">
-/// <item><b>§10.6.2 SR4 a)–f)</b> — the BODY of a prototype (<see cref="ScreenBody"/>, COBOLNET2272). Called by
+/// <item><b>§10.6.2 SR4 a)–f)</b> — the BODY of a prototype (<see cref="ScreenBody"/>, COBOL2272). Called by
 /// <c>BinderDriver.MakeUnit</c> for a PROGRAM-ID or FUNCTION-ID prototype and by <c>OoClassTable</c> for an
 /// interface's method prototypes. Before PB894 only the method arm had any of it — two of the six restrictions,
 /// the data division checked against three of its five non-linkage sections — and a FUNCTION prototype carrying
@@ -21,9 +21,9 @@ using Core = CobolParserCore;
 /// no body).</item>
 /// <item><b>§10.6.1's source-unit formats</b> are NOT here any more: every unit kind — the two prototype kinds and
 /// the program and function definitions — is screened by the ONE table in <see cref="SourceUnitShape"/>
-/// (COBOLNET2274; kb/Work PB1507).</item>
+/// (COBOL2274; kb/Work PB1507).</item>
 /// <item><b>§10.6.2 SR1</b> — prototypes precede every other source unit of the compilation group
-/// (<see cref="ScreenOrder"/>, COBOLNET2273).</item>
+/// (<see cref="ScreenOrder"/>, COBOL2273).</item>
 /// </list>
 /// §10.6.2 SR2 / SR3 (the prototype-and-definition signature pair) live beside the tables that pair them,
 /// <c>BinderDriver.CheckPrototypeSignaturePairs</c>, because they need the bound LINKAGE descriptions.
@@ -58,7 +58,7 @@ internal static class PrototypeUnitRules
                 // c) "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the ALPHABET
                 //    clause, the CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the
                 //    SYMBOLIC-CHARACTERS clause." An unrecognized clause is refused BY NAME elsewhere
-                //    (ClosedFormatPass, COBOLNET1970), so it is not reported twice here.
+                //    (ClosedFormatPass, COBOL1970), so it is not reported twice here.
                 foreach (var entry in paragraph.specialNamesParagraph()?.specialNameEntry() ?? [])
                     if (!AdmittedInPrototype(entry))
                         Refuse(entry, "c)", "the only clauses a prototype's SPECIAL-NAMES paragraph may specify "

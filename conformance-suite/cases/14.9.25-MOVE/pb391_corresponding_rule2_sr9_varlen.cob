@@ -33,7 +33,7 @@
       *> every GROUP operand under 14.9.25.4 GR4: VA and VB both paired, and the emitted implied MOVE asked for
       *> a whole-group character image the pair can never have, so the program reached the RUN TIME and threw
       *> NotImplementedCobolFeatureException - while the SAME compiler refused the written MOVE of those two
-      *> items with COBOLNET1931.
+      *> items with COBOL1931.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB391CORRSR9.
        DATA DIVISION.

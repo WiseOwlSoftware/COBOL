@@ -9,7 +9,7 @@
       *> (14.9.23) through a universal object reference, a CLASS-ID,
       *> USAGE OBJECT REFERENCE and its ACTIVE-CLASS phrase (13.18.60)
       *> are COBOL 2002 features, so the 14.8.3.3 rule 2 b) 4. crossing
-      *> cannot be written at --std 85 (COBOLNET0900).
+      *> cannot be written at --std 85 (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2985N.
        ENVIRONMENT DIVISION.

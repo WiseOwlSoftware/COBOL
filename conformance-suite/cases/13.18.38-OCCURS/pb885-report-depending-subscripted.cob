@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be
       *> subscripted." The grammar's shared dataReference parses WS-TE (2), and the binder used to keep the
       *> name and DROP the subscript in silence — this entry printed three repetitions where WS-TE (2) = 2
-      *> asked for two. The capture is now the ONE data-name-n screen (COBOLNET2024). The report-writer
+      *> asked for two. The capture is now the ONE data-name-n screen (COBOL2024). The report-writer
       *> OCCURS clause is COBOL-2002, so 1985 rejects it earlier, under the edition gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB885RDS.

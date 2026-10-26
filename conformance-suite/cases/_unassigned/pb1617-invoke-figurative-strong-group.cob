@@ -20,7 +20,7 @@
       *>   strongly-typed group item, identifier-1 shall be specified"
       *>   -> OK 14.9.25.3 2)
       *> Before the fix INVOKE refused every figurative as "not yet
-      *> carried" (COBOLNET0828) - the refusal now names the rule.
+      *> carried" (COBOL0828) - the refusal now names the rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1617SM.
        ENVIRONMENT DIVISION.

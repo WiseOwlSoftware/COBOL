@@ -11,7 +11,7 @@
       *> format — so a function-identifier whose RETURNING item is a FUNCTION-POINTER references a data item of that
       *> category (§8.4.3.2.1: "A function-identifier references the unique data item that results from the evaluation
       *> of a function") and is identifier-13. Two defects stood in front of it: the sender sniff took only a bare data
-      *> reference (COBOLNET0869), and a FUNCTION-ID RETURNING USAGE FUNCTION-POINTER did not compile at all — the
+      *> reference (COBOL0869), and a FUNCTION-ID RETURNING USAGE FUNCTION-POINTER did not compile at all — the
       *> generated StoreReturn call bound only to the object-reference generic (CS0315) because no overload took the
       *> FunctionPointer carrier, the program-pointer / data-pointer shape already fixed one category earlier.
       *> EXPECTED OUTPUT: PB1929FP returns the address of PB1929T (SET … TO ADDRESS OF FUNCTION, §8.4.3.12.4 GR1 b));

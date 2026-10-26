@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// The <c>&gt;&gt;COBOL-WORDS</c> directive (ISO §7.3.10) — Increment A: the text-stage parser
 /// (<see cref="CobolWordsDirectiveProcessor"/>), the resulting <see cref="CobolWordsMap"/> composition, the
-/// SR1/SR2/SR5 syntax rules, and the introduction gate (COBOLNET0900 below 2023). Design SSOT:
+/// SR1/SR2/SR5 syntax rules, and the introduction gate (COBOL0900 below 2023). Design SSOT:
 /// <c>docs/rearchitecture/DESIGN-cobol-words-directive.md</c>.
 /// </summary>
 public sealed class CobolWordsDirectiveTests
@@ -85,7 +85,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Equal("DISPLAY", map.Synonyms["SHOW"]);
     }
 
-    // ── malformed directives → COBOLNET1623, no op collected ─────────────────────────────────────────────────
+    // ── malformed directives → COBOL1623, no op collected ─────────────────────────────────────────────────
 
     [Theory]
     [InlineData(">>COBOL-WORDS BOGUS \"FOO\"\n")]                       // unknown option
@@ -99,7 +99,7 @@ public sealed class CobolWordsDirectiveTests
     public void Malformed_Emits1623_AndCollectsNoOp(string src)
     {
         var (map, diags) = Run(src);
-        Assert.True(Has(diags, "COBOLNET1623"));
+        Assert.True(Has(diags, "COBOL1623"));
         Assert.True(map.IsEmpty);
     }
 
@@ -107,22 +107,22 @@ public sealed class CobolWordsDirectiveTests
     public void Sr4_BadUserWord_Rejected1623()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"-BAD\"\n");
-        Assert.True(Has(diags, "COBOLNET1623"));
+        Assert.True(Has(diags, "COBOL1623"));
     }
 
     [Fact] // SR5 — the same COBOL word may appear in at most one directive's literals.
     public void Sr5_DuplicateWord_Rejected1623()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"FOO\"\n>>COBOL-WORDS EQUATE \"MOVE\" WITH \"FOO\"\n");
-        Assert.True(Has(diags, "COBOLNET1623"));
+        Assert.True(Has(diags, "COBOL1623"));
     }
 
-    [Fact] // SR1 — a directive after the first IDENTIFICATION DIVISION is illegal: COBOLNET2652, the ONE placement screen.
+    [Fact] // SR1 — a directive after the first IDENTIFICATION DIVISION is illegal: COBOL2652, the ONE placement screen.
     public void Sr1_AfterIdDivision_RejectedAsAPlacementViolation()
     {
         var (_, diags) = Run("IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>COBOL-WORDS RESERVE \"FOO\"\n");
-        Assert.True(Has(diags, "COBOLNET2652"));
-        Assert.False(Has(diags, "COBOLNET1623"));   // the directive stage no longer writes the rule a second time
+        Assert.True(Has(diags, "COBOL2652"));
+        Assert.False(Has(diags, "COBOL1623"));   // the directive stage no longer writes the rule a second time
     }
 
     [Fact] // §7.3.22.3 SR2 / §7.3.20.3 SR2 — a PUSH / POP NAMING COBOL-WORDS inherits its placement rule.
@@ -131,7 +131,7 @@ public sealed class CobolWordsDirectiveTests
         foreach (string op in (string[])["PUSH", "POP"])
         {
             var (_, diags) = Run($">>PUSH COBOL-WORDS\nIDENTIFICATION DIVISION.\nPROGRAM-ID. P.\n>>{op} COBOL-WORDS\n");
-            Assert.True(Has(diags, "COBOLNET2652"), op);
+            Assert.True(Has(diags, "COBOL2652"), op);
         }
 
         // and the control: the same PUSH/POP BEFORE the first unit is legal.
@@ -168,7 +168,7 @@ public sealed class CobolWordsDirectiveTests
     public void CommaOrSemicolonThatSeparatesNothing_IsMalformed1623(string src)
     {
         var (map, diags) = Run(src);
-        Assert.True(Has(diags, "COBOLNET1623"));
+        Assert.True(Has(diags, "COBOL1623"));
         Assert.True(map.IsEmpty);
     }
 
@@ -177,7 +177,7 @@ public sealed class CobolWordsDirectiveTests
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"A, B\"\n");
         // a space inside the one literal (SR2) — not a split operand, which would be an arity error of another sentence
-        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOLNET1623" && d.Message.Contains("space-free"));
+        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains("space-free"));
     }
 
     [Theory] // SR2 — "Each literal shall be an alphanumeric literal": no closing delimiter, or one the next character
@@ -189,7 +189,7 @@ public sealed class CobolWordsDirectiveTests
     public void MalformedLiteral_IsRejectedWithItsReason(string src, string reason)
     {
         var (map, diags) = Run(src);
-        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOLNET1623" && d.Message.Contains(reason));
+        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains(reason));
         Assert.True(map.IsEmpty);
     }
 
@@ -197,7 +197,7 @@ public sealed class CobolWordsDirectiveTests
     public void DoubledQuotationSymbol_IsOneCharacterOfTheLiteral()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"A\"\"B\"\n");
-        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOLNET1623" && d.Message.Contains("'A\"B'"));
+        Assert.Contains(diags.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains("'A\"B'"));
     }
 
     [Fact] // §8.3.2.1 + §8.3.2.2 — 63 characters is the ceiling of the fresh word; 64 is not a user-defined word.
@@ -208,7 +208,7 @@ public sealed class CobolWordsDirectiveTests
         Assert.Single(map.Reserved);
 
         var (_, tooLong) = Run($">>COBOL-WORDS RESERVE \"{new string('A', 64)}\"\n");
-        Assert.Contains(tooLong.Diagnostics, d => d.Code == "COBOLNET1623" && d.Message.Contains("64 characters"));
+        Assert.Contains(tooLong.Diagnostics, d => d.Code == "COBOL1623" && d.Message.Contains("64 characters"));
     }
 
     [Theory] // §8.3.2.1 — hyphen and underscore are word characters (not first or last); §8.3.2.2 wants a LETTER.
@@ -221,7 +221,7 @@ public sealed class CobolWordsDirectiveTests
     public void FreshWord_Shape(string word, bool legal)
     {
         var (_, diags) = Run($">>COBOL-WORDS RESERVE \"{word}\"\n");
-        Assert.Equal(!legal, Has(diags, "COBOLNET1623"));
+        Assert.Equal(!legal, Has(diags, "COBOL1623"));
     }
 
     [Theory] // §7.3.10.3 SR1 + §7.3.10.4 GR2 — the unit's header, spelled with a word the group's own EQUATE made a synonym,
@@ -234,14 +234,14 @@ public sealed class CobolWordsDirectiveTests
     public void Sr1_UnitHeaderSpelledWithAGroupSynonym_ClosesTheRegion(string src)
     {
         var (_, diags) = Run(src);
-        Assert.True(Has(diags, "COBOLNET2652"));
+        Assert.True(Has(diags, "COBOL2652"));
     }
 
     [Fact] // the synonym is read at the line it is written on: before its EQUATE, IDENT is no header.
     public void Sr1_ASynonymNotYetEquated_DoesNotCloseTheRegion()
     {
         var (_, diags) = Run("IDENT DIVISION.\n>>COBOL-WORDS EQUATE \"IDENTIFICATION\" WITH \"IDENT\"\n");
-        Assert.False(Has(diags, "COBOLNET2652"));   // (the IDENT line is a parse error of its own, not this stage's)
+        Assert.False(Has(diags, "COBOL2652"));   // (the IDENT line is a parse error of its own, not this stage's)
     }
 
     [Fact] // §7.3.20.4 GR1 — a synonym a POP withdrew before the line is no synonym there: IDENT is no header.
@@ -250,23 +250,23 @@ public sealed class CobolWordsDirectiveTests
         var (_, diags) = Run(
             ">>PUSH COBOL-WORDS\n>>COBOL-WORDS EQUATE \"IDENTIFICATION\" WITH \"IDENT\"\n>>POP COBOL-WORDS\n"
             + "IDENT DIVISION.\n>>COBOL-WORDS RESERVE \"ZQX\"\n");
-        Assert.False(Has(diags, "COBOLNET2652"));
+        Assert.False(Has(diags, "COBOL2652"));
     }
 
     // ── edition gate ────────────────────────────────────────────────────────────────────────────────────────
 
-    [Fact] // §7.3.10 is a COBOL-2023 addition — below 2023 the directive word is COBOLNET0900.
+    [Fact] // §7.3.10 is a COBOL-2023 addition — below 2023 the directive word is COBOL0900.
     public void Below2023_Emits0900()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"FOO\"\n", std: 2014);
-        Assert.True(Has(diags, "COBOLNET0900"));
+        Assert.True(Has(diags, "COBOL0900"));
     }
 
     [Fact] // at 2023 the directive word introduces no gate diagnostic.
     public void At2023_NoGate()
     {
         var (_, diags) = Run(">>COBOL-WORDS RESERVE \"FOO\"\n", std: 2023);
-        Assert.False(Has(diags, "COBOLNET0900"));
+        Assert.False(Has(diags, "COBOL0900"));
     }
 
     // ── mechanics ───────────────────────────────────────────────────────────────────────────────────────────
@@ -342,7 +342,7 @@ public sealed class CobolWordsDirectiveTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    [Fact] // GR5 end-to-end — a RESERVE'd word used as a user-defined name is COBOLNET0901-rejected.
+    [Fact] // GR5 end-to-end — a RESERVE'd word used as a user-defined name is COBOL0901-rejected.
     public void Reserve_UsedAsUserWord_Rejected0901()
     {
         var errors = CompileErrors(
@@ -350,7 +350,7 @@ public sealed class CobolWordsDirectiveTests
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE1.\n" +
             "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 FOO PIC X(3) VALUE \"ABC\".\n" +
             "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY FOO.\n           STOP RUN.\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET0901") && e.Contains("FOO"));
+        Assert.Contains(errors, e => e.Contains("COBOL0901") && e.Contains("FOO"));
     }
 
     [Fact] // SR3 end-to-end — the existing word must be reserved/context/intrinsic.
@@ -360,7 +360,7 @@ public sealed class CobolWordsDirectiveTests
             "       >>COBOL-WORDS EQUATE \"NOTAWORD\" WITH \"SYN\"\n" +
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE2.\n" +
             "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR3"));
+        Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR3"));
     }
 
     [Fact] // SR4 end-to-end — the new word must not itself be reserved.
@@ -370,7 +370,7 @@ public sealed class CobolWordsDirectiveTests
             "       >>COBOL-WORDS RESERVE \"MOVE\"\n" +
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE3.\n" +
             "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR4"));
+        Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR4"));
     }
 
     private static string NoOpProgram(string directive) =>
@@ -385,7 +385,7 @@ public sealed class CobolWordsDirectiveTests
     public void Sr3_AWordNo2023ListHolds_Rejected1623(string option)
     {
         var errors = CompileErrors(NoOpProgram(">>COBOL-WORDS " + option));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR3"));
+        Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR3"));
     }
 
     [Theory] // SR4 — the fresh word is in none of the three 2023 lists: AUTHOR (a lexer keyword, not a §8.9 word) is legal.
@@ -394,7 +394,7 @@ public sealed class CobolWordsDirectiveTests
     public void Sr4_AWordNo2023ListHolds_IsAFreshWord(string option)
     {
         var errors = CompileErrors(NoOpProgram(">>COBOL-WORDS " + option));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1623"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));
     }
 
     [Theory] // SR3 admits each of the three lists: §8.9 (DISPLAY), §8.10 (HEX), §8.11 (SQRT, an intrinsic-function-name).
@@ -404,7 +404,7 @@ public sealed class CobolWordsDirectiveTests
     public void Sr3_EachOfTheThreeLists_IsAnExistingWord(string option)
     {
         var errors = CompileErrors(NoOpProgram(">>COBOL-WORDS " + option));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1623"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623"));
     }
 
     [Theory] // SR4 refuses a word of each of the three lists as the fresh word.
@@ -414,7 +414,7 @@ public sealed class CobolWordsDirectiveTests
     public void Sr4_EachOfTheThreeLists_IsNotAFreshWord(string option)
     {
         var errors = CompileErrors(NoOpProgram(">>COBOL-WORDS " + option));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1623") && e.Contains("SR4"));
+        Assert.Contains(errors, e => e.Contains("COBOL1623") && e.Contains("SR4"));
     }
 
     // ── Increment C — the lexer retype's de-reserved token-type set (CobolWordsRewriter.Plan) ──────────────────
@@ -440,7 +440,7 @@ public sealed class CobolWordsDirectiveTests
             "       >>COBOL-WORDS EQUATE \"DISPLAY\" WITH \"SHOW\"\n" +
             "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWE4.\n" +
             "       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n");
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1623") || e.Contains("COBOLNET0901"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1623") || e.Contains("COBOL0901"));
     }
 
     // ── Increment D — intrinsic-function-name synonyms (GR2/GR3/GR4 for a FUNCTION name) ─────────────────────
@@ -458,16 +458,16 @@ public sealed class CobolWordsDirectiveTests
         var errors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS EQUATE \"MAX\" WITH \"MYMAX\"\n")
             .Replace("{NAME}", "MYMAX"));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1501"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1501"));
     }
 
-    [Fact] // GR3 — UNDEFINE an intrinsic; FUNCTION MAX(...) is no longer a function (COBOLNET1501).
+    [Fact] // GR3 — UNDEFINE an intrinsic; FUNCTION MAX(...) is no longer a function (COBOL1501).
     public void Intrinsic_Undefine_NoLongerAFunction()
     {
         var errors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS UNDEFINE \"MAX\"\n")
             .Replace("{NAME}", "MAX"));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1501"));
+        Assert.Contains(errors, e => e.Contains("COBOL1501"));
     }
 
     [Fact] // GR4 — SUBSTITUTE: the new name resolves; the old intrinsic name is no longer a function.
@@ -476,11 +476,11 @@ public sealed class CobolWordsDirectiveTests
         var okErrors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
             .Replace("{NAME}", "MYMAX"));
-        Assert.DoesNotContain(okErrors, e => e.Contains("COBOLNET1501"));
+        Assert.DoesNotContain(okErrors, e => e.Contains("COBOL1501"));
 
         var oldErrors = CompileErrors(IntrinsicProgram
             .Replace("{DIRECTIVE}", "       >>COBOL-WORDS SUBSTITUTE \"MAX\" BY \"MYMAX\"\n")
             .Replace("{NAME}", "MAX"));
-        Assert.Contains(oldErrors, e => e.Contains("COBOLNET1501"));
+        Assert.Contains(oldErrors, e => e.Contains("COBOL1501"));
     }
 }

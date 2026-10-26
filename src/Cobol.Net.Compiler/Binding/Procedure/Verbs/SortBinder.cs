@@ -438,7 +438,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ScreenIndexedGivingKey(keys, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);         // SR10
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);   // SR3, SR12
         // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
-        // or output procedure (§14.9.24; Annex E.2 item 20) is the ≥2023 static diagnostic COBOLNET1572 — a
+        // or output procedure (§14.9.24; Annex E.2 item 20) is the ≥2023 static diagnostic COBOL1572 — a
         // procedure-range cross-pass in VersionConformancePass.GateSortMergeProcedures (the paragraph-pc ranges are
         // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE raise in
         // CobolSort.Init covers the dynamic case when checking is enabled (kb/Work PB1036).
@@ -556,10 +556,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ An SD with NO record description entry is ILLEGAL SOURCE, not a compiler gap (kb/Work PB345).
     /// §13.4.6.3 SR2 — "One or more record description entries shall be associated with the sort-merge file
-    /// description entry." — and <c>DataBinder.BindFileSection</c> has already rejected it, COBOLNET1837. Until
+    /// description entry." — and <c>DataBinder.BindFileSection</c> has already rejected it, COBOL1837. Until
     /// PB345 the three sort-family verbs fell into their <c>BoundUnsupported</c> arms instead, so the ONLY
     /// diagnostic a record-less SD ever drew was <c>SORT 'S1' without an SD record — not implemented</c>
-    /// (COBOLNET1756, a WARNING): the compiler apologising for the source's error and then aborting the run unit
+    /// (COBOL1756, a WARNING): the compiler apologising for the source's error and then aborting the run unit
     /// at the statement. The statement binds to a no-op here because the entry's own error already failed the
     /// compile; announcing a DEFERRAL on top of it would be a second, wrong diagnosis of the same fault.</summary>
     private static bool RecordLessSd(FileModel file) => file.Records.Count == 0;
@@ -644,7 +644,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
             if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
-                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
+                ctx.Edition.Error("COBOL0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"
                         : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
@@ -708,7 +708,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (natName is not null)
         {
             if (ctx.Data.CollatingAlphabetFault(natName, national: true) is { } natFault)
-                ctx.Edition.Error("COBOLNET0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+                ctx.Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     natName, national: true, natFault, clauses.National));
             else if (ctx.Data.NationalAlphabets.TryPeek(natName, out var def))
                 nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
@@ -720,7 +720,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Data.Alphabets.TryPeek(alnumName, out var alnumDef))
         {
             if (ctx.Data.CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                ctx.Edition.Error("COBOLNET0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
+                ctx.Edition.Error("COBOL0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
                     alnumName, national: false, fault, clauses.Alphanumeric));
             // A FOR NATIONAL alphabet in the slot leaves the statement bindable (the alphanumeric keys fall to the
             // native order); any other word is no alphabet at all and the statement is rejected (PB236).

@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §12.4.5.7.2 Format 1 encloses FOR ALPHANUMERIC / FOR NATIONAL in
       *> choice indicators, and §5.2.6.4: "any single alternative may be specified only
       *> once". The second phrase used to win in silence (REV was dropped for DREV); now
-      *> COBOLNET2104, through the one reader the four clauses printing this pair share.
+      *> COBOL2104, through the one reader the four clauses printing this pair share.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1075FR.
        ENVIRONMENT DIVISION.

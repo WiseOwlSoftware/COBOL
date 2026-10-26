@@ -13,7 +13,7 @@
 *> also be specified for either format") separates the fixed-point from the floating-point formats INSIDE that
 *> permission; it is no all-edition exemption, and the only zero a numeric-edited item had before 2023 was the
 *> FIGURATIVE constant ZERO (Annex E.2 item 28), which stays legal (pb3566_numeric_edited_value_zero_figurative).
-*> Both literal spellings below shall be refused at 85, 2002 and 2014 (COBOLNET0900); the positive is
+*> Both literal spellings below shall be refused at 85, 2002 and 2014 (COBOL0900); the positive is
 *> pb3566_numeric_edited_value_zero_2023.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3566NEZ.

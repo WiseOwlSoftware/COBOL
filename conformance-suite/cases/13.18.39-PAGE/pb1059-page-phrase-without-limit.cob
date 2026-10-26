@@ -14,7 +14,7 @@
       *> the page limit the phrase subdivides. The rule never had a screen
       *> while integer-1 was grammatically mandatory.
       *> No edition changes the rule (no introducedIn), so all four reject,
-      *> with COBOLNET2709.
+      *> with COBOL2709.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1059N1.
        ENVIRONMENT DIVISION.

@@ -8,8 +8,8 @@
 *> a report file." The RECORD DELIMITER clause is printed in 12.4.5.1 Format 3 (sequential) ALONE
 *> (Format 1, the indexed format, prints no such clause), so an entry that writes it specifies Format 3
 *> - and here the same entry says ORGANIZATION IS INDEXED. The mirror of SR8/SR9's first sentences,
-*> except that no KEY clause is involved (kb/Work PB773), so the rule has its own code, COBOLNET2912,
-*> rather than the key-clause band COBOLNET0863.
+*> except that no KEY clause is involved (kb/Work PB773), so the rule has its own code, COBOL2912,
+*> rather than the key-clause band COBOL0863.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB773IXRD.
 ENVIRONMENT DIVISION.

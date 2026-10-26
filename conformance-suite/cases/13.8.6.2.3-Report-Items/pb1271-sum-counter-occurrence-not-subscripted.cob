@@ -11,9 +11,9 @@
       *> added into the corresponding occurrence of the sum counter" - cite.py: OK 13.18.54.4 8) a)). CF-U is
       *> therefore a table element, and 8.4.2.3.3 SR5 - "Each table element reference shall be subscripted"
       *> (cite.py: OK 8.4.2.3.3 5)) - outside its seven listed contexts, none of which a MOVE receiver is.
-      *> COBOLNET2270. Before the fix this compiled clean and altered ONE counter shared by all three printable
+      *> COBOL2270. Before the fix this compiled clean and altered ONE counter shared by all three printable
       *> items, printing 0503 in every column. (The multiple COLUMN clause itself is a COBOL-2002 form, so
-      *> COBOL-85 also refuses the entry on its edition gate, COBOLNET0900.)
+      *> COBOL-85 also refuses the entry on its edition gate, COBOL0900.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1271N1.
        ENVIRONMENT DIVISION.

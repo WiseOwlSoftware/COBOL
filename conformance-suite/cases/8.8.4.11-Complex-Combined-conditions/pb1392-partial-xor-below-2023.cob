@@ -9,7 +9,7 @@
       *> were it preceded by the corresponding selection subject, a conditional expression would result"
       *> (§14.9.13.3 SR7 d)) — so an XOR inside one is the same 2023 connective. The introduction gate hung off the
       *> condition's own XOR tier only, so `WHEN > 5 XOR < 3` compiled clean below 2023; it now recognizes the ONE
-      *> xorOperator rule every tier spells the connective through (COBOLNET0900).
+      *> xorOperator rule every tier spells the connective through (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W68NPX.
        DATA DIVISION.

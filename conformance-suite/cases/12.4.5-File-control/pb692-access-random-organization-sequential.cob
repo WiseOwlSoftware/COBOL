@@ -10,7 +10,7 @@
 *> structurally (Format 3, the sequential file control entry, admits only
 *> [ ACCESS MODE IS SEQUENTIAL ]). No VERSION_CHANGE_REFERENCE row touches 12.4.5.5, and the
 *> 1985 sequential I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL, so
-*> all four editions reject. COBOLNET1858 (kb/Work PB692).
+*> all four editions reject. COBOL1858 (kb/Work PB692).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB692N1.
        ENVIRONMENT DIVISION.

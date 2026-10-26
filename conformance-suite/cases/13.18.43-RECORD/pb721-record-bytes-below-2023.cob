@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> The BYTES spelling of the RECORD clause's { BYTES | CHARACTERS } brace group is a COBOL-2023
-*> ADDITION, and below 2023 it is refused by name (COBOLNET0900, the introduction band).
+*> ADDITION, and below 2023 it is refused by name (COBOL0900, the introduction band).
 *> THE EDITION FACT IS DERIVED, NOT ASSUMED. Annex E.3.3 item 13 lists BYTES among the words that
 *> "have either been added to the list of context-sensitive words or the context in which they
 *> are reserved has been expanded" - an OR - and 8.10 gives BYTES exactly ONE construct, the

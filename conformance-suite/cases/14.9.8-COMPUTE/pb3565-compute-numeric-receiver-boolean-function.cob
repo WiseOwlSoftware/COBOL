@@ -7,7 +7,7 @@
       *> kb/Work PB3565 - a sole boolean function-identifier is a boolean
       *> expression (ISO 8.8.2; 15.2 2), so the statement is COMPUTE Format
       *> 2, whose receiver "shall reference an elementary boolean data item"
-      *> (ISO 14.9.8.3 SR2). The numeric receiver N is refused (COBOLNET1511),
+      *> (ISO 14.9.8.3 SR2). The numeric receiver N is refused (COBOL1511),
       *> never stored into; Format 1 admits no boolean operand either
       *> (8.8.1.1), so there is no reading that accepts it.
        IDENTIFICATION DIVISION.

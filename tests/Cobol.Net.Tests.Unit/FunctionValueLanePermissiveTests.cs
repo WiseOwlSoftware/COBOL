@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// arguments the same way: reading the COMP-2 as a float argument gave the intermediate a COMP-2 that rounded the exact
 /// value, so a MOVE to two receivers stored a different digit than the MOVE to one (§15.4.1: "the returned value is the
 /// same for all instances of a given function"). Strict conformance rejects a float at a type-6 position
-/// (COBOLNET1627, §15.3), so the witness runs under <c>--permissive</c> — the only mode in which the shape exists,
+/// (COBOL1627, §15.3), so the witness runs under <c>--permissive</c> — the only mode in which the shape exists,
 /// which is why it is not a conformance golden.
 /// </summary>
 public sealed class FunctionValueLanePermissiveTests : CobolNetTestBase

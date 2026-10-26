@@ -29,7 +29,7 @@
       *>                 received this GENERATE's WS-AMT before the group's lines are printed (GR7 b/c): 5 then 7.
       *>                 => `0005 0005` then `0007 0007` (the counter resets after each detail group, GR2).
       *>   control footing FINAL - the counter was reset after the last detail, so SOURCE RUNTOT reads 0000.
-      *> Fails (COBOLNET0899 'a subscripted or reference-modified SOURCE operand ... is not yet implemented',
+      *> Fails (COBOL0899 'a subscripted or reference-modified SOURCE operand ... is not yet implemented',
       *> 'SOURCE RUNTOT does not resolve to a data item') on a binder whose identifier arm looks a NAME up in ordinary
       *> storage.
       *>

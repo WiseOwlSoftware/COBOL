@@ -14,8 +14,8 @@
       *> cite.py --check 13.4.5.3 "The subject of a file description
       *>   entry that specifies a REPORT clause may be referenced in the
       *>   procedure division only by the USE statement" -> OK 9)
-      *> Before the fix only OPEN INPUT / I-O was refused (COBOLNET2371);
-      *> each statement below compiled and ran. Each is COBOLNET2577.
+      *> Before the fix only OPEN INPUT / I-O was refused (COBOL2371);
+      *> each statement below compiled and ran. Each is COBOL2577.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1171N1.
        ENVIRONMENT DIVISION.

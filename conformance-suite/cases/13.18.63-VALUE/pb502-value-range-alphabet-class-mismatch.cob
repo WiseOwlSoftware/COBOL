@@ -15,7 +15,7 @@
       *> AT 85 THE PROGRAM IS REFUSED TWICE OVER, WHICH IS WHY 85 IS OFF THE reject-at LINE. The
       *> ALPHABET ... FOR NATIONAL clause is itself a COBOL-2002 introduction (the national class; the
       *> compiler's own gate cites ISO 12.3.7, the SPECIAL-NAMES paragraph), so --std 85 emits
-      *> COBOLNET0900 for the clause IN ADDITION TO the COBOLNET1999 below - measured, both. A case whose
+      *> COBOL0900 for the clause IN ADDITION TO the COBOL1999 below - measured, both. A case whose
       *> rejection at an edition has two independent causes witnesses neither cleanly, so the edition is
       *> left unclaimed rather than counted for this rule; the 85 leg of the phrase itself is carried by the
       *> sibling negatives pb502-value-range-alphabet-undeclared and -numeric-operands, which reject at 85

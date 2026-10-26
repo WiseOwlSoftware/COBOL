@@ -8,7 +8,7 @@
 *> literal shall be a national literal."  "0" and "9" are ALPHANUMERIC literals in a FOR NATIONAL
 *> class.  The FOR phrase used to be parsed and ignored, so this compiled clean and SR17 was recorded
 *> CONFORMS on evidence that never exercised it.  (Below 2002 the FOR phrase itself is the
-*> version matrix's refusal.)  Expected: COBOLNET1671 naming SR17 c3.
+*> version matrix's refusal.)  Expected: COBOL1671 naming SR17 c3.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB976NEG.
 ENVIRONMENT DIVISION.

@@ -8,7 +8,7 @@
 *> FUNCTION ALL INTRINSIC) and FUNCTION INTEGER(N) ONE function-identifier, so ISO 14.9.22.3 SR2 refuses it at
 *> an identifier-3 ... identifier-n position exactly as it refuses the written form
 *> (pb3665-inspect-integer-function-operand): 15.2 5) gives an integer function no usage. The operand used to
-*> resolve as a data name and be refused as undefined (COBOLNET1639) whatever the function.
+*> resolve as a data name and be refused as undefined (COBOL1639) whatever the function.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3665OI.
        ENVIRONMENT DIVISION.

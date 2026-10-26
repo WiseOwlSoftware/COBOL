@@ -8,7 +8,7 @@
       *>  and semicolon, immediately followed by a space, are
       *>  separators". N,M and N;M therefore hold no separator. Both
       *>  used to compile as two receivers and print 001001.
-      *>  COBOLNET2631 at every edition.
+      *>  COBOL2631 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73ACM.
        DATA DIVISION.

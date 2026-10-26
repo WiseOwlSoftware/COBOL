@@ -13,7 +13,7 @@
       *> below that the grammar recognizes by TEXT is 8.9-RESERVED at 2014
       *> (reserved-words.json r2014): COBOL, NESTED, LOCALE, SYSTEM-DEFAULT,
       *> USER-DEFAULT. Each now parses as `formatWord`, which the 8.9 funnel
-      *> never meets, so this program compiles with no COBOLNET0901 - where
+      *> never meets, so this program compiles with no COBOL0901 - where
       *> the funnel used to keep a ladder of per-slot exemptions instead.
       *>   11.9.7   ENTRY-CONVENTION IS COBOL      (the 2014 clause)
       *>   12.3.6.2 CHARACTER CLASSIFICATION IS SYSTEM-DEFAULT

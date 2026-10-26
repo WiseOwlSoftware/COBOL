@@ -9,7 +9,7 @@
       *> corresponding formal parameter or argument shall be described
       *> with the same interface-name." 8.4.3.2.3 SR13 imports it into a
       *> function activation. The formal names interface N1115II and
-      *> W-O names class N1115IC (which implements it) -> COBOLNET2470.
+      *> W-O names class N1115IC (which implements it) -> COBOL2470.
       *> cite.py --check 14.8.2.3.2 "described with an interface-name, the
       *>   corresponding formal parameter or argument shall be described
       *>   with the same interface-name" -> OK  14.8.2.3.2 2)

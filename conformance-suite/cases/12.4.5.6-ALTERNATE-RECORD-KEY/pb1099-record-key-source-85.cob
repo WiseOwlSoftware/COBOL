@@ -8,7 +8,7 @@
       *> data-name-1 only; the second key form, record-key-name-1 SOURCE IS { data-name-2 } ... (ISO
       *> 12.4.5.12.2 / 12.4.5.6.2), is a post-1985 form on the provisional 2002 edge (VCR row 7.36, derived:
       *> Annex E lists no 2014->2023 change for it, and the 2002/2014 split is not derivable in-repo). Both
-      *> clauses share the one grammar rule and the one gate, so each SOURCE phrase draws COBOLNET0900 at 85;
+      *> clauses share the one grammar rule and the one gate, so each SOURCE phrase draws COBOL0900 at 85;
       *> the positive is the suite test pb1099_record_key_source.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1099N.

@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// DISPLAY … UPON mnemonic-name-1 (ISO/IEC 1989:2023 §14.9.11.3 SR2 / §14.9.11.4 GR8; review finding V6). The legacy
 /// silently DROPPED the UPON phrase — every DISPLAY went to the standard device regardless of the named device, and an
 /// undeclared / input-only mnemonic compiled clean. Fixed: the mnemonic resolves through SPECIAL-NAMES; SR2 rejects an
-/// undeclared name or a device not capable of receiving data (COBOLNET0817); SYSERR routes to standard error while
+/// undeclared name or a device not capable of receiving data (COBOL0817); SYSERR routes to standard error while
 /// CONSOLE / SYSOUT and the no-UPON default use the standard display device (standard output — the implementor choice
 /// documented in CONFORMANCE.md §3 / A.1 item 59).
 /// </summary>
@@ -104,14 +104,14 @@ public sealed class DisplayUponTests
     }
 
     [Fact]   // §14.9.11.3 SR2: mnemonic-name-1 shall be declared in SPECIAL-NAMES — an undeclared name is rejected
-             // (COBOLNET0817), not silently dropped.
+             // (COBOL0817), not silently dropped.
     public void Upon_UndeclaredMnemonic_Rejected0817()
         => EditionHarness.AssertHasDiagnostic(
-            EditionHarness.GetDiagnostics(Prog("            DISPLAY \"X\" UPON NO-SUCH-DEV"), 2023), "COBOLNET0817");
+            EditionHarness.GetDiagnostics(Prog("            DISPLAY \"X\" UPON NO-SUCH-DEV"), 2023), "COBOL0817");
 
     [Fact]   // §14.9.11.3 SR2: the device shall be capable of RECEIVING data — SYSIN is input-only (the ACCEPT side),
-             // so DISPLAY UPON an SYSIN-bound mnemonic is rejected (COBOLNET0817).
+             // so DISPLAY UPON an SYSIN-bound mnemonic is rejected (COBOL0817).
     public void Upon_InputOnlyDevice_Rejected0817()
         => EditionHarness.AssertHasDiagnostic(
-            EditionHarness.GetDiagnostics(Prog("            DISPLAY \"X\" UPON IN-DEV"), 2023), "COBOLNET0817");
+            EditionHarness.GetDiagnostics(Prog("            DISPLAY \"X\" UPON IN-DEV"), 2023), "COBOL0817");
 }

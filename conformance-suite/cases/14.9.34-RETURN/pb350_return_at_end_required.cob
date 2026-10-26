@@ -13,7 +13,7 @@
       *>         [ END-RETURN ]
       *> — the AT END line carries NO brackets while the two lines under it do, and §5.2.6.2 makes brackets
       *> the only convention that lets a portion of a general format be omitted. This is the ACCEPT side of
-      *> COBOLNET1850 (kb/Work PB350): both a bare AT END and the §14.9.34.3 SR4 REVERSED pair still compile,
+      *> COBOL1850 (kb/Work PB350): both a bare AT END and the §14.9.34.3 SR4 REVERSED pair still compile,
       *> because the screen keys on the AT END phrase being ABSENT, never on the order it is written in.
       *>
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
@@ -83,7 +83,7 @@
            MOVE 2 TO S2-K MOVE "BBB" TO S2-T RELEASE S2-REC.
        DRAIN-2.
       *> §14.9.34.3 SR4 — the AT END and NOT AT END phrases written in REVERSED order. The AT END phrase is
-      *> present, so COBOLNET1850 must NOT fire: the screen reads the phrase's PRESENCE, not its position.
+      *> present, so COBOL1850 must NOT fire: the screen reads the phrase's PRESENCE, not its position.
            PERFORM UNTIL WS-EOF2 = "Y"
                RETURN SF2 RECORD
                    NOT AT END DISPLAY "B=" S2-T

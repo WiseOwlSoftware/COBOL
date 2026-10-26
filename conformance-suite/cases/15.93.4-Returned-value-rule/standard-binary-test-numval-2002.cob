@@ -6,7 +6,7 @@
 *>---
       *> The OTHER leg of the same clause, asserted separately: at --std 2002 the mode does
       *> not EXIST yet (STANDARD-BINARY was introduced by COBOL-2014), so the introduction
-      *> gate COBOLNET0900 is what must fire -- not the 4.2.6 non-support screen. Two
+      *> gate COBOL0900 is what must fire -- not the 4.2.6 non-support screen. Two
       *> different obligations; collapsing them would let a regression in either hide
       *> behind the other.
        IDENTIFICATION DIVISION.

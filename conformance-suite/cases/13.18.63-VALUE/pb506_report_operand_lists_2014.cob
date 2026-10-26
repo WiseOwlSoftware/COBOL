@@ -15,7 +15,7 @@
       *> 2023, and there is no gating diagnostic to check here: nothing this program writes is edition-gated at
       *> 2014.  The binder's operand list, the SR35/SR6 screen and the emitter's cycling all carry no version
       *> predicate, so a divergence between the editions could only come from a gate — which would show up here
-      *> as a COBOLNET0900 rejection.
+      *> as a COBOL0900 rejection.
       *>
       *> WHY THIS PROGRAM DOES NOT READ THE REPORT FILE BACK, and the 2023 twin does.  The read-back needs
       *> ORGANIZATION IS LINE SEQUENTIAL, which is itself a COBOL-2023 introduction (§12.4.5.10.3 GR2 — the

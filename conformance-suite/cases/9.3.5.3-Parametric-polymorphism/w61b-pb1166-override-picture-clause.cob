@@ -21,7 +21,7 @@
       *>   MC  PIC $$9,99 - "E" vs "$" (and DPC for one only).
       *>   MA  PIC A(4) overridden by PIC X(4) - two PICTURE clauses.
       *>   MR  RETURNING ZZ9,99 - rule 6, DPC for one only.
-      *> Each is COBOLNET0829 on the overriding method.
+      *> Each is COBOL0829 on the overriding method.
        IDENTIFICATION DIVISION.
        CLASS-ID. W61BNEGOVA INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

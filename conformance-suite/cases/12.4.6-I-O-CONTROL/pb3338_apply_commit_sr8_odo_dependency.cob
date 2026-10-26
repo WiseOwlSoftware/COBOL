@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3338 - ISO 12.4.6.3.3 SR8: "the 01 or 77 level data items that contain or refer to them shall each either or neither be specified in the list of identifiers"
 *> The shape: WS-T (OCCURS DEPENDING ON WS-N) named without WS-N, the 01 item it depends on. The clause is accepted for a RELATIVE file, so the only refusal this program can
-*> draw is SR8's own, by name (COBOLNET4709). Fails if the clause is accepted or refused for another reason.
+*> draw is SR8's own, by name (COBOL4709). Fails if the clause is accepted or refused for another reason.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338S8.
        ENVIRONMENT DIVISION.

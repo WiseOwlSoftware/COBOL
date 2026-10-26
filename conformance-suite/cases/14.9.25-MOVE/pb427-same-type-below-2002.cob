@@ -8,7 +8,7 @@
 *> about below COBOL-2002, because the TYPEDEF clause that declares a type and the TYPE clause that
 *> references one are both 2002 introductions (ISO 1989:2023 13.18.58 / 13.18.57; Annex F.2).  The
 *> minimal shape of the positive -- one STRONG type declaration and two items described with it -- is
-*> therefore COBOLNET0900 at 85 and conforming from 2002 up.
+*> therefore COBOL0900 at 85 and conforming from 2002 up.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB427BELOW.
        DATA DIVISION.

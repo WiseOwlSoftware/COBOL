@@ -8,7 +8,7 @@
       *> ELEMENTARY item of category alphanumeric - so 14.9.25.3 Table 16 governs a MOVE into it, and a
       *> noninteger numeric sender does not move to an alphanumeric receiver (SR10). kb/Work PB70: the
       *> receiver-category reader answered "group" for a group ref-mod (a conversion-free GR4 copy, no
-      *> Table-16 check); the ref-mod view now answers alphanumeric first - COBOLNET0819.
+      *> Table-16 check); the ref-mod view now answers alphanumeric first - COBOL0819.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70NTABLE16.
        DATA DIVISION.

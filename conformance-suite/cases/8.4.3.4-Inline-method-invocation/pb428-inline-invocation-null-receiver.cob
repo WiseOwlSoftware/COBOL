@@ -11,7 +11,7 @@
       *> INVOKE's own `objectReference` receiver rule so that §8.4.3.4.4 GR1's
       *> equivalence cannot be broken by the two forms disagreeing about what
       *> a receiver is (the superset parse).  SR2 is therefore enforced by a
-      *> NAMED bind-time diagnostic, COBOLNET2138, never by the construct's
+      *> NAMED bind-time diagnostic, COBOL2138, never by the construct's
       *> absence from the grammar.  kb/Work PB428.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB428N2.

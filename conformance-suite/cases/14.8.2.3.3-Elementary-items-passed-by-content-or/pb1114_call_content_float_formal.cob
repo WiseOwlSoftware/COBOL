@@ -11,8 +11,8 @@
       *> (rule 2's second leg) moves a BY CONTENT / BY VALUE argument into it by 14.2.3 GR9's "a COMPUTE
       *> statement without the ROUNDED phrase" (9: "if the formal parameter is numeric"). Before the fix the
       *> activator's COMPUTE covered fixed-point formals only, and the float formal read 0 (BY CONTENT), or the
-      *> program was refused outright (BY VALUE formal: COBOLNET0899; a numeric literal or an expression:
-      *> COBOLNET1688).
+      *> program was refused outright (BY VALUE formal: COBOL0899; a numeric literal or an expression:
+      *> COBOL1688).
       *> EXPECTED VALUES, DERIVED - every value is exact in binary, so the COMPUTE is exact:
       *>  L1  A PIC 9(3)V99 = 12.5 BY CONTENT into FLOAT-LONG   => L = 12.5   => W = +012.50
       *>  L2  N PIC S9(3)V99 = -7.25 BY CONTENT                  => L = -7.25   => W = -007.25

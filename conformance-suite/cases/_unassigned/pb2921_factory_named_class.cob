@@ -12,7 +12,7 @@
       *>   X--FACTORY is a user-defined word naming a class beside the
       *>   class X. The compiler named X's factory class X__FACTORY, the
       *>   C# identifier of X--FACTORY, and refused the second class
-      *>   COBOLNET0820.
+      *>   COBOL0820.
       *> Expected values: 9.3.6 "If an invocation specifies the object
       *>   using a class name, the factory object of the specified class
       *>   is used" -> each INVOKE reaches its own class's factory, and

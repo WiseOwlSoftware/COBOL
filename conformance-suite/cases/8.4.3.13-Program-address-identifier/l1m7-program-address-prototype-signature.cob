@@ -18,7 +18,7 @@
       *> unit, excluding the externalized name of the source unit, is called its signature." — cite.py: OK
       *> §8.13; the information listed there includes the parameters).  Every other rule is met: both prototypes
       *> precede the program and are named in its REPOSITORY (§8.4.3.13.3 SR3), RPT is a TYPEDEF
-      *> (§13.18.60.3 SR19).  Expected: COBOLNET1959 (prototype-pointer-signature, docs/DIAGNOSTICS.md).
+      *> (§13.18.60.3 SR19).  Expected: COBOL1959 (prototype-pointer-signature, docs/DIAGNOSTICS.md).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1M7PNA IS PROTOTYPE.
        DATA DIVISION.

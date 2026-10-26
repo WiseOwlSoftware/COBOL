@@ -7,7 +7,7 @@
 *>---
 *> kb/Work PB732 POSITIVE TWIN — every word spelling a VALUE literal position DOES admit, so the
 *> literal-position screen that closed PB732 (a word that is neither a constant-name nor a
-*> symbolic-character draws COBOLNET1639) cannot be tightened into a rejection of legal source.
+*> symbolic-character draws COBOL1639) cannot be tightened into a rejection of legal source.
 *>   K-NUM / K-TXT  ISO 13.10.3 SR2: "constant-name-1 may be used anywhere that a format specifies a
 *>                  literal of the class and category of constant-name-1"; 13.10.4 GR1 substitutes it
 *>                  "as if [the] literal were written".
@@ -25,7 +25,7 @@
 *>                  not be equal to the value of any occurrence of literal-2" - is satisfied by
 *>                  construction: 0 against 7, and "A" against "B".
 *>                  The VALUES themselves are unobservable here on purpose: SET condition-name TO FALSE
-*>                  (14.9.39 SR7) is a declared not-implemented feature (COBOLNET1756 + a runtime
+*>                  (14.9.39 SR7) is a declared not-implemented feature (COBOL1756 + a runtime
 *>                  abort), so this program never writes one. What it proves is that the conforming
 *>                  spellings COMPILE and the condition-names still evaluate by their literal-2 values.
 *> Formats exercised: 1 (data-item), 2 (table, with its FROM/TO subscripts) and 3 (condition-name,

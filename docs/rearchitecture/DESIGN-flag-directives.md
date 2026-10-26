@@ -41,7 +41,7 @@ indicators** (the `|…|` bars the OCR dropped, restored in the `.md` figure not
 ```
 
 * One directive names **`ALL`** or **one-or-more option words** (each at most once, **any order**; a repeated
-  word is a syntax error, COBOLNET1622, §5.2.6.4), then `ON | OFF`. In BOTH directives the printed format leaves
+  word is a syntax error, COBOL1622, §5.2.6.4), then `ON | OFF`. In BOTH directives the printed format leaves
   `ALL` and `ON` un-underlined (rendered ISO PDF pp. 100 and 102): optional words (§5.2.3), so each is the
   DEFAULT of its braces (§5.2.6.3) and is selected when the other alternative is not written. A bare directive
   is `ALL ON`, a lone `OFF` is `ALL OFF`, a lone option list is `ON`, and `ON`/`OFF` is the last word
@@ -58,7 +58,7 @@ The directive *words* were added at different editions (Annex E.2 item 5 lists `
 2023). This gates the DIRECTIVE, distinct from the flagging it drives:
 
 * `>>FLAG-14` — a **2023 introduction** (below 2023 the word is a compilation-variable name, not a directive):
-  introduction gate **COBOLNET0900** below 2023, via `ConstructRegistry.Check` (the `>>REF-MOD-ZERO-LENGTH`
+  introduction gate **COBOL0900** below 2023, via `ConstructRegistry.Check` (the `>>REF-MOD-ZERO-LENGTH`
   precedent). New registry construct `Flag14Directive2023`.
 * `>>FLAG-02` — introduced with the **2014** standard (it flags 2002↔2014); **obsolete — NOT removed — at 2023**
   (§7.3.14.1 NOTE, PDF-confirmed p.100: *"an obsolete element in this Working Draft … to be deleted from the
@@ -157,7 +157,7 @@ and blanks them. **Copybook-internal `>>FLAG` directives ride the CC-in-COPY fix
 item) — a documented limitation shared by every copybook-internal directive today, not specific to FLAG.
 
 **D5 — diagnostics: two catalog codes, per-option identity.** Two Warning descriptors —
-`Flag02Warning` (**COBOLNET1620**) and `Flag14Warning` (**COBOLNET1621**) — are the channel; each emitted
+`Flag02Warning` (**COBOL1620**) and `Flag14Warning` (**COBOL1621**) — are the channel; each emitted
 `EditionDiagnostic` carries the **per-option** `ConstructId` (suppress-key), `Message` (naming the option + the
 behavior change), and `Citation` (the exact `§7.3.1x.4 GR4 <letter>` + Annex-E item). This gives per-option
 citation precision and suppressibility while keeping the band to two codes (the reflected `All` auto-lists them;

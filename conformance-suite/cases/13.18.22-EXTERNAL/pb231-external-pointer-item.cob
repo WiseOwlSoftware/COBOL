@@ -7,7 +7,7 @@
       *> ISO 13.18.22.3 SR4: "The EXTERNAL clause shall not be
       *> specified for a data item of class object or pointer."
       *> kb/Work PB231 (the pointer third): this shape USED to be
-      *> rejected - by COBOLNET1695's EXTERNAL twin, i.e. "recognized
+      *> rejected - by COBOL1695's EXTERNAL twin, i.e. "recognized
       *> but not yet implemented", which is a different verdict about a
       *> different thing. Opening the byte-window carriage gate to
       *> pointer-class leaves would have made a NONCONFORMING program
@@ -24,7 +24,7 @@
       *> be satisfied by refusing pointers under EXTERNAL wholesale.
       *> The EXTERNAL clause is a COBOL-85 element, but USAGE POINTER
       *> is a COBOL-2002 introduction, so at --std 85 the program draws
-      *> the edition gate (COBOLNET0900) instead and the reject-at list
+      *> the edition gate (COBOL0900) instead and the reject-at list
       *> names the three editions where SR4 is the reason.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB231EXTP.

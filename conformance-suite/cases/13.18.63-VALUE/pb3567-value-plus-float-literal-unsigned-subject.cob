@@ -12,7 +12,7 @@
 *> floating-point literal to its exact fixed-point value (8.3.3.3.3 GR5) dropped a leading '+', so SR3 was never asked.
 *> U1 is an unsigned item whose literal (1.5) is representable, so only SR3 refuses it; U2 is the zero-valued
 *> spelling (SR3 has no sign-value carve-out); U3 is an unsigned conditional variable whose level-88 set names
-*> +1.0E+1. Each shall be refused at every edition (COBOLNET1625).
+*> +1.0E+1. Each shall be refused at every edition (COBOL1625).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3567PLUSF.
 DATA DIVISION.

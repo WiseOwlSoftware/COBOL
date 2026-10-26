@@ -10,7 +10,7 @@
 *> binary-char, binary-short, binary-long, or binary-double, identifier-2 shall reference a numeric or
 *> numeric-edited item." A BINARY-LONG argument BY CONTENT to a PIC X(4) formal is therefore non-conforming.
 *> kb/Work PB878: the INVOKE screen asked Table 16 alone (a hand list that admitted every integer numeric
-*> sender), so this compiled clean and the method printed LK-X=[0000]. Refused with COBOLNET0828.
+*> sender), so this compiled clean and the method printed LK-X=[0000]. Refused with COBOL0828.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB878NOO.
        ENVIRONMENT DIVISION.

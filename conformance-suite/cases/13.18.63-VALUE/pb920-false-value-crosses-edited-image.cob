@@ -18,11 +18,11 @@
 *> MEASURED before the fix: this program compiled with NO diagnostic, ran, and `SET X-TEN TO FALSE` left the
 *> condition TRUE (it printed X-STILL-TRUE and XF=[ 10.00]) - a wrong answer under a row that read CONFORMS.
 *> THE BAND IS 2002+, WHICH IS WHERE THE PHRASE EXISTS. The WHEN SET TO FALSE phrase and SET condition-name
-*> TO FALSE are both COBOL-2002 additions, so at --std 85 this entry draws the two COBOLNET0900 gates ON TOP
+*> TO FALSE are both COBOL-2002 additions, so at --std 85 this entry draws the two COBOL0900 gates ON TOP
 *> of SR27 (MEASURED: three diagnostics) - a reject that would pass for the wrong reason, so 85 is left out.
-*> MEASURED at 2002 and 2014: COBOLNET2048 alone. Note that a numeric literal-2 on a numeric-edited subject
+*> MEASURED at 2002 and 2014: COBOL2048 alone. Note that a numeric literal-2 on a numeric-edited subject
 *> is NOT edition-gated in format 3 the way the format-1 twin is (negative/pb560-numeric-edited-value-below-
-*> 2023 pins that one at COBOLNET0900); that asymmetry is a REGISTERED lead, and it cannot make this case
+*> 2023 pins that one at COBOL0900); that asymmetry is a REGISTERED lead, and it cannot make this case
 *> pass for the wrong reason either way, because the SR27 screen runs at every edition alongside any gate.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB920A.

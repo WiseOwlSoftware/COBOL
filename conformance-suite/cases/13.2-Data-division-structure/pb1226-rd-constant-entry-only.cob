@@ -11,7 +11,7 @@
       *> after an RD, but 13.8.4 asks for REPORT GROUP description entries: a
       *> constant describes no report group, so an RD followed by constant
       *> entries alone is as undescribed as an RD followed by nothing.
-      *> (At 85 the constant entry is itself rejected, COBOLNET0900, so the
+      *> (At 85 the constant entry is itself rejected, COBOL0900, so the
       *> witness for this rule starts at 2002.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1226N2.

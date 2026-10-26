@@ -66,7 +66,7 @@ public sealed class IdentifierInjectivityTests
     /// which no word's identifier can spell, because no identifier the mapping gives begins with <c>__</c> (a leading
     /// hyphen or underscore is escaped <c>_u…_</c>, a leading digit gets one <c>_</c>). A SUFFIX family has no such
     /// guarantee: the factory class of <c>X</c> was <c>X__FACTORY</c>, the identifier of the legal class-name
-    /// <c>X--FACTORY</c>, and the compilation group refused the second class (COBOLNET0820) — and the CS0542 rename of
+    /// <c>X--FACTORY</c>, and the compilation group refused the second class (COBOL0820) — and the CS0542 rename of
     /// a method named like its class was <c>X_M</c>, the identifier of the method-name <c>X-M</c>.</summary>
     [Fact]
     public void NoIdentifier_BeginsAWordDerivedFamily_SoNoClassNameSpellsAFactoryClass()

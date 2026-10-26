@@ -34,7 +34,7 @@ public enum OpenTapePhrase
     NoRewind,
     /// <summary>REVERSED — the COBOL-85 phrase: the file is positioned at its END and every subsequent READ
     /// retrieves the PRECEDING record, the at end condition arising at the file's first record. Legal source
-    /// only at <c>--std 85</c>; the edition gate is <c>open-reversed-removed-2002</c> (COBOLNET0902).</summary>
+    /// only at <c>--std 85</c>; the edition gate is <c>open-reversed-removed-2002</c> (COBOL0902).</summary>
     Reversed,
 }
 
@@ -645,7 +645,7 @@ public static class HostFile
     /// implementation may place such limits"</i>. A connector's areas are ONE contiguous buffer whose length is an
     /// <see cref="int"/>, so the limit is the largest count whose areas that length can hold (524,287 areas,
     /// 2,147,479,552 bytes, inside <see cref="Array.MaxLength"/>). The compiler refuses a larger integer-1
-    /// (COBOLNET2897), so every count that reaches the runtime fits.</summary>
+    /// (COBOL2897), so every count that reaches the runtime fits.</summary>
     public const int MaxInputOutputAreas = int.MaxValue / InputOutputAreaBytes;
 
     /// <summary>⛔ THE ONE SIZE OF A CONNECTOR'S INPUT-OUTPUT AREAS — ISO §12.4.5.14.3 GR1, <i>"If the RESERVE clause

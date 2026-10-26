@@ -8,7 +8,7 @@
       *> 2002/pb2076_universal_returning_move_match: an INVOKE (14.9.23)
       *> through a universal object reference, a CLASS-ID and USAGE
       *> OBJECT REFERENCE are COBOL 2002 features, so the 9.3.6 match
-      *> rule 7 crossing cannot be written at --std 85 (COBOLNET0900).
+      *> rule 7 crossing cannot be written at --std 85 (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2076N.
        ENVIRONMENT DIVISION.

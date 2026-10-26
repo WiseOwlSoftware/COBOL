@@ -16,11 +16,11 @@ namespace CobolNet.Tests.Conformance;
 /// every <c>BoundUnsupported</c> / <c>BoundNop</c> return that precedes its node. Five gates were on the wrong
 /// arm, and the compiler measured this way at <c>--std 85</c> before the correction:
 /// <list type="bullet">
-/// <item><c>START NOSUCHF FIRST</c> → COBOLNET1639 alone. No edition named.</item>
-/// <item><c>START SDF FIRST</c> (an SD) → COBOLNET1692 alone.</item>
-/// <item><c>START IXF KEY = NOSUCHK WITH LENGTH 3</c> → COBOLNET1639 alone.</item>
-/// <item><c>READ NOSUCHF PREVIOUS ADVANCING ON LOCK</c> → COBOLNET1639 alone; TWO 2002 phrases dropped.</item>
-/// <item><c>INVOKE NOSUCHO "M1"</c> → COBOLNET0823 alone.</item>
+/// <item><c>START NOSUCHF FIRST</c> → COBOL1639 alone. No edition named.</item>
+/// <item><c>START SDF FIRST</c> (an SD) → COBOL1692 alone.</item>
+/// <item><c>START IXF KEY = NOSUCHK WITH LENGTH 3</c> → COBOL1639 alone.</item>
+/// <item><c>READ NOSUCHF PREVIOUS ADVANCING ON LOCK</c> → COBOL1639 alone; TWO 2002 phrases dropped.</item>
+/// <item><c>INVOKE NOSUCHO "M1"</c> → COBOL0823 alone.</item>
 /// </list>
 /// Each of those five keyed on a bound member (<c>Mode</c>, <c>Length</c>, <c>Kind</c>, <c>AdvancingOnLock</c>,
 /// the node type) that the binder assigns from a PARSE fact and nothing else — so the bound-tree home bought no
@@ -258,7 +258,7 @@ public sealed class EditionGateArmDriftTests
             string id = (string)row[0];
             var (_, diagnostics) = EditionHarness.Compile(
                 BreakOperands(VersionMatrixCatalogue.ById[id].Source)!, (int)row[1]);
-            (diagnostics.Any(d => d.Contains("COBOLNET1639", StringComparison.Ordinal)) ? reached : missed).Add(id);
+            (diagnostics.Any(d => d.Contains("COBOL1639", StringComparison.Ordinal)) ? reached : missed).Add(id);
         }
 
         Assert.True(reached.Count >= 80,

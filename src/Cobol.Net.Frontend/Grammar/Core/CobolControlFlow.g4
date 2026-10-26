@@ -23,7 +23,7 @@ performStatement
     | PERFORM procedureName (THRU | THROUGH) procedureName performOptions?     // PERFORM para THRU para [options]
     // Inline forms — Formats 2 & 3 MERGED into ONE inline alternative (design §1.4 ⇒ zero cross-format lookahead):
     //   ≥1 WHEN ⇒ Format 3 (exception-checking, §14.9.28.2 Format 3), enforced at BIND
-    //   (PF3-STRUCT-WHEN-REQUIRED / COBOLNET1597); no WHEN ⇒ Format 2 (inline). performInlineHead? absent +
+    //   (PF3-STRUCT-WHEN-REQUIRED / COBOL1597); no WHEN ⇒ Format 2 (inline). performInlineHead? absent +
     //   no WHEN = the old bare-block inline PERFORM; performInlineHead = performOptions+ = the old options inline.
     // MUST precede the simple `PERFORM procedureName` below: `PERFORM LOCATION …` is genuinely ambiguous
     // (LOCATION is a cobolWord ⇒ a valid out-of-line target), and only the inline arm's trailing END_PERFORM
@@ -46,7 +46,7 @@ performStatement
 // admitted — `PERFORM [ times-phrase | until-phrase | varying-phrase ] imperative-statement-1 END-PERFORM`
 // (§14.9.28.2 Format 2, rendered from the printed page 683/PDF 713, not read off the OCR), and Format 3 prints
 // NO loop-control phrase at all. The head stays a LIST here on the project's standing superset posture, so the
-// BINDER still SEES a second phrase and can name the format it violates (COBOLNET2117 / COBOLNET2118 in
+// BINDER still SEES a second phrase and can name the format it violates (COBOL2117 / COBOL2118 in
 // ControlFlowBinder.CheckInlineHeadCardinality) instead of the programmer getting a bare
 // `COBOL0001 no viable alternative`. It is spelled `performOptions performOptions*` — one required element plus
 // a superset tail — rather than `performOptions+`, so the cardinality the format prints is legible in the
@@ -69,7 +69,7 @@ performLocationPhrase
 // A Format-3 WHEN phrase (§14.9.28.2). Two DISJOINT operand forms; each operand list's CONTINUATION is bounded
 // by whenOperandAhead() so it cannot annex the leading verb of imperative-statement-2 (design §1.2/§1.5). The
 // first operand after WHEN / WHEN EXCEPTION is taken UNCONDITIONALLY (superset posture — a bad first operand
-// binds and the binder emits the specific COBOLNET0711 rather than a generic parse error).
+// binds and the binder emits the specific COBOL0711 rather than a generic parse error).
 // imperative-statement-2 is unbracketed inside the WHEN group's brace ⇒ REQUIRED (§5.2.6.3; kb/Work PB396).
 performWhenPhrase
     : WHEN EXCEPTION performWhenModeList statementBlock      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
@@ -78,7 +78,7 @@ performWhenPhrase
 
 // EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | {file-name-1}… }. The figure's "IO" denotes I-O (§8.9; a standard
 // typesetting defect — every sibling format prints I-O), so the existing I_O token is reused. A single WHEN
-// EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOLNET1598).
+// EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOL1598).
 performWhenModeList
     : INPUT | OUTPUT | I_O | EXTEND
     | fileName ({whenOperandAhead()}? fileName)*             // gated CONTINUATION only (first operand unconditional)
@@ -140,7 +140,7 @@ performUntil
 // (kb/Work PB434): the varying-phrase prints `UNTIL condition-1` and `UNTIL condition-2` only, and §14.9.28.3 SR8
 // says "The UNTIL EXIT phrase shall not be specified in a PERFORM statement with or under a PERFORM statement with
 // the VARYING phrase or either the TEST BEFORE or TEST AFTER phrase". Spelling EXIT here for all three UNTILs lets
-// the binder NAME that rule (COBOLNET2954, ControlFlowBinder.CheckUntilExitPlacement) where the grammar used to
+// the binder NAME that rule (COBOL2954, ControlFlowBinder.CheckUntilExitPlacement) where the grammar used to
 // refuse `WITH TEST BEFORE UNTIL EXIT` and `VARYING … UNTIL EXIT` with a bare COBOL0001 naming nothing.
 performUntilTarget
     : EXIT
@@ -162,9 +162,9 @@ performUntilTarget
 // ADJACENCY to an operator, and a bare operand has no neighbour). kb/Work PB432.
 // The slot is now `valueOperand` — the SAME `arithmeticExpression | nonNumericLiteral` rule every comparison
 // operand uses, so the figurative arm is the one the binder already reads (ExpressionBinder's ONE
-// numeric-context literal reading: ZERO ⇒ 0, every other figurative ⇒ COBOLNET0844) rather than a second copy
+// numeric-context literal reading: ZERO ⇒ 0, every other figurative ⇒ COBOL0844) rather than a second copy
 // — and the brace group itself is screened at BIND, where the diagnostic can name the format and the syntax
-// rule (COBOLNET2119 for a shape outside the group, COBOLNET2120 for §14.9.28.3 SR4/SR5/SR6). Superset parse,
+// rule (COBOL2119 for a shape outside the group, COBOL2120 for §14.9.28.3 SR4/SR5/SR6). Superset parse,
 // bind narrow: the project's standing posture for a general-format shape violation.
 performVarying
     : (WITH? TEST (BEFORE | AFTER))?
@@ -260,7 +260,7 @@ evaluateStatement
 // each subject/object pair "valid operands for comparison … in accordance with 8.8.4.2" — the relation that compares
 // data-pointers (kb/Work PB1060). It is the ONE `addressIdentifier` rule PB1021 gave comparisonOperand, so the
 // storage forcing and the 2002 introduction gate reach this surface unchanged. ADDRESS heads no valueOperand, so
-// the arm is unambiguous; it fell to `condition` before and drew a false COBOLNET2318 "used as a condition".
+// the arm is unambiguous; it fell to `condition` before and drew a false COBOL2318 "used as a condition".
 evaluateSubject
     : booleanLiteral                                     // EVALUATE TRUE / FALSE
     | addressIdentifier                                  // identifier-1 that is an address-identifier (PB1060)
@@ -328,7 +328,7 @@ evaluateWhenPhrase
 // ⛔ `NOT? booleanLiteral` AND `NOT? ANY` ARE THE PARSE-WIDE HALF OF A BIND-NARROW SCREEN (DESIGN-frontend-grammar.md
 // invariant 8). §14.9.13.2 prints TRUE, FALSE and ANY with no NOT, so `WHEN NOT ANY` and `WHEN NOT TRUE` are source no
 // format admits and §4.2.2 owes them an indication: they PARSE so EvaluateBinder.ScreenObjectNegation refuses them by
-// name (COBOLNET3710) rather than ANTLR reporting a stray token. `WHEN NOT ANY` used to compile clean and bind to the
+// name (COBOL3710) rather than ANTLR reporting a stray token. `WHEN NOT ANY` used to compile clean and bind to the
 // negation of GR4 a) 1.'s constant true — an arm that can never run. TRUE/FALSE is its own alternative (it used to
 // reach the binder as a one-word `condition`), so the object word is read off the parse tree as ANY is; it precedes
 // `condition`, which a TRUE or FALSE inside a longer condition still parses as.
@@ -352,10 +352,10 @@ evaluateWhenItem
     | NOT? addressIdentifier                     // [NOT] identifier-2 that is an address-identifier (kb/Work PB1060)
     | NOT? valueOperand                          // [NOT] identifier-2 / literal-2 / arithmetic-expression-2: "A", 1, VAR
     | {boolExprAhead()}? NOT? booleanExpression  // [NOT] boolean-expression-2: WHEN A B-AND C (§14.9.13.4 GR4 a) 6.)
-    | NOT? booleanLiteral                        // TRUE / FALSE: a NOT here is refused by name (COBOLNET3710)
+    | NOT? booleanLiteral                        // TRUE / FALSE: a NOT here is refused by name (COBOL3710)
     | condition                                  // condition-2 (EVALUATE TRUE / complex WHEN), owning its leading NOT
     | partialExpression                          // WHEN > 5, WHEN NOT NUMERIC, WHEN > 5 AND < 10 (§14.9.13.3 SR5), owning its NOT
-    | NOT? ANY                                   // ANY: a NOT here is refused by name (COBOLNET3710)
+    | NOT? ANY                                   // ANY: a NOT here is refused by name (COBOL3710)
     ;
 
 // ==========================================
@@ -417,7 +417,7 @@ searchWhenClause
 // rule used to carry a `(NOT AT? END statementBlock)?` arm: the READ/RETURN phrase, which neither SEARCH format
 // prints, admitted on BOTH at once because the rule is shared — and refused only downstream, by a binder helper
 // that existed solely to name a shape the grammar should never have produced. The shape now arrives as a syntax
-// error that CobolErrorStrategy re-codes by name (COBOLNET2269, the one statement-format-shape code).
+// error that CobolErrorStrategy re-codes by name (COBOL2269, the one statement-format-shape code).
 // ISO 5.2.3: AT is printed WITHOUT an underline in every AT END phrase in the standard — measured across all
 // 11 occurrences on pages 600-829, none underlined. It is an OPTIONAL WORD, so `SEARCH … END …` is CONFORMING
 // ISO, not a vendor extension.
@@ -436,7 +436,7 @@ searchAtEndClause
 // statement, captured the enclosing statement's next WHEN as its own. And there is no `KEY IS` phrase in any
 // edition's SEARCH format: the key lives in the OCCURS clause (§14.9.37.3 SR7), and the home-grown
 // `searchAllKeyPhrase` this rule referenced was read by NO binder, so the phrase was accepted and silently
-// discarded. Both shapes now arrive as syntax errors that CobolErrorStrategy re-codes as COBOLNET2269.
+// discarded. Both shapes now arrive as syntax errors that CobolErrorStrategy re-codes as COBOL2269.
 searchAllStatement
     : SEARCH ALL dataReference
       searchAtEndClause?
@@ -510,7 +510,7 @@ useStatement
     // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .
     // Accepted-inert at 85 (the section is compiled as if comment lines — the conforming posture when
     // WITH DEBUGGING MODE is absent, and our permanently-off object-time switch when present); the
-    // EditionValidator flags it COBOLNET0902 ≥2002 (`use-for-debugging-removed-2002`, VCR Table 7
+    // EditionValidator flags it COBOL0902 ≥2002 (`use-for-debugging-removed-2002`, VCR Table 7
     // row 7.17). ON is written by every CCVS-85 witness but accepted as optional (house optional-word
     // tolerance, cf. Format 1's ON).
     | USE FOR DEBUGGING ON? useDebugTarget+

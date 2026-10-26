@@ -35,7 +35,7 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
             // one WHEN phrase with its imperative-statement-1 and the grammar enforces it — `Whens` cannot be
             // empty for any statement the parser produces. The arm stays because emitting `else` with no `if`
             // would be invalid C#, and it is CORRECT rather than merely tolerated: the loss this shape used to
-            // cause — the selection subject never evaluated, taking a compile-time COBOLNET1639 and two fatal
+            // cause — the selection subject never evaluated, taking a compile-time COBOL1639 and two fatal
             // exception conditions with it — was the BINDER's lazy subject slot, not this shortcut, and GR3's
             // evaluation is now a bind-time PRE-op ahead of the whole chain (EvaluateBinder.Bind).
             if (first) { Statements.EmitStatementList(other); return; }

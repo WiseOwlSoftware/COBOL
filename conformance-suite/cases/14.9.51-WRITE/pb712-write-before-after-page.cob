@@ -10,7 +10,7 @@
 *> position the record "before or after (depending on the phrase used) the device is repositioned to the
 *> next logical page" and with both words written there is no phrase to depend on.
 *> Rejected at 2023 ONLY — below 2023 the pair itself does not exist, and the introduction gate
-*> (COBOLNET0900, construct write-before-and-after-advancing-2023) answers first with a different code.
+*> (COBOL0900, construct write-before-and-after-advancing-2023) answers first with a different code.
 *> Its own edition arms are the version-matrix construct row; kb/Work PB712.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB712NEG2.

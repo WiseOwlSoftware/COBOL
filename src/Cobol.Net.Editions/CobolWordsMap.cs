@@ -103,7 +103,7 @@ public sealed class CobolWordsMap
     public IReadOnlySet<string> DeReserved => _deReserved;
 
     /// <summary>Words newly reserved for this group (RESERVE literal-6): the <see cref="ReservedWordSet"/> reserve
-    /// overlay reads this so a use as a user-defined word is COBOLNET0901-rejected.</summary>
+    /// overlay reads this so a use as a user-defined word is COBOL0901-rejected.</summary>
     public IReadOnlySet<string> Reserved => _reserved;
 
     /// <summary>

@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.16.3 SR6 - the CONSTANT RECORD clause may be specified only in data description
-*> entries whose level-number is 1 (COBOLNET1549).
+*> entries whose level-number is 1 (COBOL1549).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC08.
 DATA DIVISION.

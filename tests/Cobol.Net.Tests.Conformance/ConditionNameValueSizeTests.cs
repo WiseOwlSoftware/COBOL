@@ -86,7 +86,7 @@ public sealed class ConditionNameValueSizeTests
     }
 
     /// <summary>⛔ THE GATING DIAGNOSTIC, not a size diagnostic. Below 2002 the same source is rejected for the
-    /// national / boolean CATEGORY itself (COBOLNET0900), and it must never be rejected for a size rule that does
+    /// national / boolean CATEGORY itself (COBOL0900), and it must never be rejected for a size rule that does
     /// not apply — an edition gate reported as a syntax-rule violation is the wrong answer twice over.</summary>
     [Theory]
     [InlineData(National)]
@@ -95,9 +95,9 @@ public sealed class ConditionNameValueSizeTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program(decls, "    CONTINUE"), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0898");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1740");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0898");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1740");
     }
 
     /// <summary>⛔ THE OTHER ARM (kb/Work PB206). The SIZE sentences still bind the two subjects they DO name — an
@@ -115,12 +115,12 @@ public sealed class ConditionNameValueSizeTests
         var (eok, eerrors, _) = EditionHarness.CompileFull(
             Program("01 E1 PIC X(2) VALUE \"ABCD\".", "    DISPLAY E1"), edition);
         Assert.False(eok);
-        EditionHarness.AssertHasDiagnostic(eerrors, "COBOLNET1740");
+        EditionHarness.AssertHasDiagnostic(eerrors, "COBOL1740");
 
         var (gok, gerrors, _) = EditionHarness.CompileFull(
             Program("01 GZ VALUE \"ABCDEF\".\n   05 O1 PIC X(2).\n   05 O2 PIC X(2).", "    DISPLAY O1"), edition);
         Assert.False(gok);
-        EditionHarness.AssertHasDiagnostic(gerrors, "COBOLNET1740");
+        EditionHarness.AssertHasDiagnostic(gerrors, "COBOL1740");
     }
 
     /// <summary>And the national / boolean twins of that same other arm, over their own positions (SR5 / SR10
@@ -134,12 +134,12 @@ public sealed class ConditionNameValueSizeTests
         var (nok, nerrors, _) = EditionHarness.CompileFull(
             Program("01 N1 PIC N(2) VALUE N\"ABC\".", "    DISPLAY N1"), edition);
         Assert.False(nok);
-        EditionHarness.AssertHasDiagnostic(nerrors, "COBOLNET0898");
+        EditionHarness.AssertHasDiagnostic(nerrors, "COBOL0898");
 
         var (bok, berrors, _) = EditionHarness.CompileFull(
             Program("01 B1 PIC 1(2) USAGE BIT VALUE B\"101\".", "    DISPLAY B1"), edition);
         Assert.False(bok);
-        EditionHarness.AssertHasDiagnostic(berrors, "COBOLNET0898");
+        EditionHarness.AssertHasDiagnostic(berrors, "COBOL0898");
     }
 
     /// <summary>The CLASS half of SR4 / SR5 / SR10 is untouched and still binds a condition-name: SR4 and SR5 are
@@ -155,6 +155,6 @@ public sealed class ConditionNameValueSizeTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program(decls, "    CONTINUE"), edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0898");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
     }
 }

@@ -12,7 +12,7 @@
 *> item ... within a record description entry associated with the file-name specified in
 *> this file control entry" -- and there is none here.
 *> The RELATIVE twin of this same shape is LEGAL and is exercised positively by
-*> conformance/2023/pb345_record_less_fd_area. kb/Work PB345 -> COBOLNET1837.
+*> conformance/2023/pb345_record_less_fd_area. kb/Work PB345 -> COBOL1837.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB345N3.
        ENVIRONMENT DIVISION.

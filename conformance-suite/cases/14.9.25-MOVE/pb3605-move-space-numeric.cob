@@ -12,7 +12,7 @@
       *> The 2002 text states the SPACE arm alone, as syntax rule 5 of its clause 14.8.24.2: "The figurative
       *> constant SPACE shall not be moved to a numeric or numeric-edited item" (the same sentence is in the 2009
       *> committee draft that led to 2014); VCR row 7.41 records the derived 1985 edge. So it is no 2023 removal
-      *> (COBOLNET0902) and --permissive does not admit it: COBOLNET0819 names SR5 at 85, 2002, 2014 and 2023.
+      *> (COBOL0902) and --permissive does not admit it: COBOL0819 names SR5 at 85, 2002, 2014 and 2023.
       *> The numeric receiver reports first; the numeric-edited one is refused the same way.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3605N.

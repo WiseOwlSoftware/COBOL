@@ -130,7 +130,7 @@ public sealed class InvokeContentOperandChannelTests
     /// operand text is asserted against BOTH phrases so the contrast IS the assertion: under BY CONTENT the
     /// operator is consumed and the whole thing is ONE boolean-expression argument; under BY VALUE it is not
     /// consumed at all, and at COBOL-2023 <c>B-AND</c> then stands where only an identifier or literal may stand,
-    /// which §8.9 reserves — so the statement is refused by name with COBOLNET0901 rather than parsed.
+    /// which §8.9 reserves — so the statement is refused by name with COBOL0901 rather than parsed.
     /// <para>⚠ THAT LAST HALF USED TO READ "spills into further argument positions", and it did, because the
     /// §8.9 reservation gate on <c>cobolWord</c> was silently INOPERATIVE for every hyphenated word: the
     /// generator emitted <c>userWordHere("B_AND")</c>, the ANTLR token name, into a predicate that looks its
@@ -148,7 +148,7 @@ public sealed class InvokeContentOperandChannelTests
         Assert.True(byValue.Diags.HasErrors,
             "BY VALUE must not consume the boolean operator — the operand group has no boolean alternative");
         Assert.Contains(byValue.Diags.Diagnostics,
-            d => d.IsError && d.Code == "COBOLNET0901" && d.Message.Contains("B-AND"));
+            d => d.IsError && d.Code == "COBOL0901" && d.Message.Contains("B-AND"));
     }
 
     /// <summary>⛔ THE EDITION SWEEP ON THE SAME LINE (feedback_edition_gate_sweep). <c>B-AND</c> is §8.9-reserved

@@ -9,14 +9,14 @@ namespace CobolNet.Tests.Conformance;
 /// ISO/IEC 1989:2023 §4.2.10's warning mechanism, end to end (kb/Work PB1525): "An implementation shall provide a
 /// warning mechanism that optionally may be invoked by the user at compile time to indicate use of a nonstandard
 /// extension in a compilation group. This warning mechanism shall flag only extensions that are syntactically
-/// distinguishable." Each leg below can fail on its own: the flag ON names the extension (COBOLNET2894) at every
+/// distinguishable." Each leg below can fail on its own: the flag ON names the extension (COBOL2894) at every
 /// edition that accepts it; the flag OFF compiles byte-identically to a compiler that never had the option; and the
 /// STANDARD spelling beside each extension is never named, which is what "flag only extensions" means. The register
 /// itself, its documentation and its use sites are held equal by <c>NonstandardExtensionRegisterDriftTests</c> (Unit).
 /// </summary>
 public sealed class NonstandardExtensionWarningTests
 {
-    private const string Code = "COBOLNET2894";
+    private const string Code = "COBOL2894";
 
     private static string Prog(string data, string procedure) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. NSX" + Guid.NewGuid().ToString("N")[..8] + ".\n"
@@ -33,7 +33,7 @@ public sealed class NonstandardExtensionWarningTests
     /// <summary>Every usage spelling of the register, at all four editions (the COMP-n family is a vendor spelling at
     /// every one of them): named with the flag, silent without it.</summary>
     [Theory]
-    [InlineData("COMP-1", "", "USAGE COMP-1")]                       // a floating-point usage takes no PICTURE (COBOLNET1521)
+    [InlineData("COMP-1", "", "USAGE COMP-1")]                       // a floating-point usage takes no PICTURE (COBOL1521)
     [InlineData("COMPUTATIONAL-2", "", "USAGE COMPUTATIONAL-2")]
     [InlineData("COMP-3", "PIC S9(4)", "USAGE COMP-3")]
     [InlineData("COMPUTATIONAL-4", "PIC S9(4)", "USAGE COMPUTATIONAL-4")]

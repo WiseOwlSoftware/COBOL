@@ -8,7 +8,7 @@
       *> identifier-5 shall reference a data-pointer restricted to the same type or data-name-1 shall be a typed item of the
       *> type to which identifier-6 is restricted." SET ADDRESS OF names no identifier-5, so data-name-1 shall be that typed
       *> item: the untyped window W (from the pointer PS and from ADDRESS OF HOLDER, the other spelling of identifier-6)
-      *> and R3, typed to a DIFFERENT, weakly-typed type, are each refused COBOLNET0869 ("third sentence"). The
+      *> and R3, typed to a DIFFERENT, weakly-typed type, are each refused COBOL0869 ("third sentence"). The
       *> conforming spelling (R2, TYPE T-REC) and a plain pointer sender (PL) are legal and are the positive golden
       *> 2002/pb665_restricted_pointer_conforming.
        IDENTIFICATION DIVISION.

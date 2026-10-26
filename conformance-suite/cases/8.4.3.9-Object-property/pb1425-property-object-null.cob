@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1425 - ISO 8.4.3.9.3 SR2: "Identifier-1 shall be an object reference; neither a universal
       *>   object reference nor the predefined object reference NULL shall be specified." The object of the
-      *>   object-property identifier BAL OF NULL is NULL, so it is refused by SR2 (COBOLNET2918, the code of
+      *>   object-property identifier BAL OF NULL is NULL, so it is refused by SR2 (COBOL2918, the code of
       *>   this rule alone) - never by a parse error: the object of a property is any identifier (8.4.3.1.3
       *>   SR1), and NULL is one (8.4.3.1.2 Format 6). Everything else is valid: BAL is a REPOSITORY property
       *>   (SR1) of class PB1425NC with a GET PROPERTY method (SR3), and BAL OF O compiles.

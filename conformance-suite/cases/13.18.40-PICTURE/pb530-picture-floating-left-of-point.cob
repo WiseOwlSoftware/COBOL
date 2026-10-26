@@ -12,7 +12,7 @@
       *> insertion symbol", whose result "is the same as if the floating insertion editing were defined only
       *> to the left of the decimal point position". A string lying wholly to the RIGHT matches neither, so
       *> the standard derives no image for it, and every one of these used to bind and render one anyway:
-      *> PIC .$$ turned MOVE 0.5 into ".00" and PIC V-- into "  ". Each entry is COBOLNET1934, and SR29 is a
+      *> PIC .$$ turned MOVE 0.5 into ".00" and PIC V-- into "  ". Each entry is COBOL1934, and SR29 is a
       *> syntax rule of every edition from 1985 on, so all four reject.
       *>
       *> PF01 .$$   - the floating currency string with NOTHING to the left of the point. This is the

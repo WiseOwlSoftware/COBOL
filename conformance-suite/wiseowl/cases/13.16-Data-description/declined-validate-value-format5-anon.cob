@@ -7,7 +7,7 @@
 *> ISO 13.16.2 FORMAT 4 (validation): "88 [ condition-name-2 ] value-clause ." - the condition-name is
 *> OPTIONAL in this format. Its own witness because the binder's condition-name path returns early on an
 *> UNNAMED level-88 (DataBinder.BindCondition needs entry.dataName()), so a binder-hook implementation of
-*> COBOLNET1708 would have dropped exactly this shape in silence; the parse-tree pass sees it.
+*> COBOL1708 would have dropped exactly this shape in silence; the parse-tree pass sees it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DCLVAL5A.
        DATA DIVISION.

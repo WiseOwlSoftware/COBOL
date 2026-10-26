@@ -17,7 +17,7 @@
       *>   record-name-1 shall contain a GLOBAL clause." -> OK 21)
       *> Before the fix the WRITE was refused only because the record
       *> was "not a logical record of any file description entry" - a
-      *> false reason. COBOLNET1757 now names SR21.
+      *> false reason. COBOL1757 now names SR21.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1193N1.
        ENVIRONMENT DIVISION.

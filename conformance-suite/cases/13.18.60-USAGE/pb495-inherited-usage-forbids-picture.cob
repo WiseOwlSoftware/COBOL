@@ -10,9 +10,9 @@
 *> program-pointer." A's usage IS binary-long: 13.18.60.4 GR1 says a group-level USAGE clause "applies only
 *> to each elementary item in the group", so the clause written on G is A's clause, and SR8 forbids A's
 *> PICTURE exactly as it forbids `05 A PIC 9(2) USAGE BINARY-LONG.` -- the same verdict, the same
-*> COBOLNET0870, for the same item written two ways. Before PB495 the inherited spelling was accepted in
+*> COBOL0870, for the same item written two ways. Before PB495 the inherited spelling was accepted in
 *> SILENCE and A bound as a 2-byte USAGE DISPLAY item, where BINARY-LONG is 4 bytes.
-*> BINARY-LONG is a COBOL-2002 addition, so 85 rejects it through the introduction gate (COBOLNET0900)
+*> BINARY-LONG is a COBOL-2002 addition, so 85 rejects it through the introduction gate (COBOL0900)
 *> rather than through this rule and is not claimed here.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB495B.

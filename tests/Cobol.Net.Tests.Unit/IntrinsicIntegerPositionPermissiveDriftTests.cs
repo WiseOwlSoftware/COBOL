@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// <remarks>
 /// <para><b>The rule.</b> ISO §15.3 type 6: "An arithmetic expression that will always result in an integer value or
 /// an integer data item shall be specified." A floating-point item is neither, so STRICT conformance refuses it there
-/// (COBOLNET1627, kb/Work PB248) and only <c>--permissive</c> binds it. What it then means is the determination
+/// (COBOL1627, kb/Work PB248) and only <c>--permissive</c> binds it. What it then means is the determination
 /// docs/CONFORMANCE.md DOC-A.1-124 records: an operand represents an integer exactly when its value has no nonzero
 /// fraction digit, the same value gets the same answer at every rule that asks, and with EC-ARGUMENT-FUNCTION
 /// checking off a non-integer is TRUNCATED to the integer the implementor defines. So a <c>FLOAT-LONG</c> holding
@@ -147,10 +147,10 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : CobolNetTestB
         Assert.True(compiled.Success,
             $"--permissive must accept a float at every §15.3 type-6 position and generate C# that compiles "
             + $"({compiled.Status}):\n  {string.Join("\n  ", compiled.Errors)}");
-        var unwarned = keys.Where(k => !compiled.Warnings.Any(w => w.Contains("COBOLNET1627", StringComparison.Ordinal)
+        var unwarned = keys.Where(k => !compiled.Warnings.Any(w => w.Contains("COBOL1627", StringComparison.Ordinal)
             && w.Contains(k[..k.IndexOf('#')], StringComparison.OrdinalIgnoreCase))).ToList();
         Assert.True(unwarned.Count == 0,
-            "--permissive bound a float at a §15.3 type-6 position WITHOUT the COBOLNET1627 warning that names the "
+            "--permissive bound a float at a §15.3 type-6 position WITHOUT the COBOL1627 warning that names the "
             + "extension:\n  " + string.Join("\n  ", unwarned));
 
         var (ran, stdout, detail) = RunAssembly(dllPath);

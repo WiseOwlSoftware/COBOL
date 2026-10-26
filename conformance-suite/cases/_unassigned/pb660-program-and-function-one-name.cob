@@ -11,7 +11,7 @@
 *> function-prototype-names, interface-names, method-names, program-prototype-names, property-names, and
 *> user-function-names"), so a program and a function under one name are two KINDS under one name.
 *> The SAME-kind sentence of the same clause governs two programs or two functions and is pinned by
-*> pb660-duplicate-outermost-externalized-name.cob - one clause, one check (COBOLNET2213), two messages.
+*> pb660-duplicate-outermost-externalized-name.cob - one clause, one check (COBOL2213), two messages.
 *> Measured before kb/Work PB660: both registered and both ran (the run-unit table discriminates on a
 *> Node.IsFunction flag), so FUNCTION PBSAME returned 0007 and CALL "PBSAME" printed PROGRAM-RAN in one run.
 *> reject-at begins at 2002 because a user-defined FUNCTION-ID definition is a COBOL-2002 introduction.

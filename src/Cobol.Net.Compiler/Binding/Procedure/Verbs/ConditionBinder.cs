@@ -20,7 +20,7 @@ using CobolNet.Runtime;
 /// B-AND/B-OR/B-XOR/B-NOT, §14.9.8 Format-2 boolean COMPUTE, §8.8.4.2.2 the boolean relation, §8.8.4.3 the
 /// simple boolean condition). A boolean expression binds into the <see cref="BoundBoolExpr"/> value channel
 /// (a '0'/'1' string world, D-B1) — never the numeric or DISPLAY operand channels. Operand SHAPES are validated
-/// here (the COBOLNET1511 constraint band); the {is2002()}?-gated grammar tiers enforce the §8.8.2 formation
+/// here (the COBOL1511 constraint band); the {is2002()}?-gated grammar tiers enforce the §8.8.2 formation
 /// rules structurally, and the operators are unreachable below 2002 (so no binder-side introduction gate — the
 /// XOR precedent: the grammar predicate + the parse-layer hint ARE the gate).
 /// P7 Step 10o: the WHOLE condition/relation/boolean channel as ONE collaborator over
@@ -58,12 +58,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Apply one boolean shift suffix (<c>(B-SHIFT-L|R|LC|RC) integer</c>) to <paramref name="operand"/>
     /// (ISO §8.8.2 rule 8, COBOL-2023). Rule 5 has two halves: the first operand shall not be the figurative ALL
-    /// literal (COBOLNET1511, the boolean-constraint band), and "The second operand shall be an integer operand"
-    /// (COBOLNET2513, kb/Work PB1413) — asked through the ONE integer classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>:
+    /// literal (COBOL1511, the boolean-constraint band), and "The second operand shall be an integer operand"
+    /// (COBOL2513, kb/Work PB1413) — asked through the ONE integer classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>:
     /// §5.5 2)'s integer literal, integer data item, or integer-type function; a numeric function is refused even
     /// when its value is integral, §8.4.3.2.3 SR11). The count's SHAPE — Table 4's single identifier or literal —
     /// is <see cref="ArithmeticFormationRules.ShiftCountNotSoleOperand"/>'s, reported by ExpressionFormationPass
-    /// (COBOLNET1719); a malformed count is not asked the integer question too, so it draws one diagnostic. The 2023
+    /// (COBOL1719); a malformed count is not asked the integer question too, so it draws one diagnostic. The 2023
     /// introduction is gated in the VersionConformancePass parse arm, so there is no binder-side edition gate here.</summary>
     private BoundBoolExpr BindBoolShiftSuffix(BoundBoolExpr operand, Core.BooleanShiftSuffixContext suf)
     {
@@ -72,7 +72,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
                  : BoolShiftKind.Right;
         if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §8.8.2 operand (kb/Work PB157)
-            ctx.Edition.Error("COBOLNET1511", "the first operand of a boolean shift operation shall not be the "
+            ctx.Edition.Error("COBOL1511", "the first operand of a boolean shift operation shall not be the "
                 + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
         var count = host.Expr.BindExpr(suf.arithmeticExpression());
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
@@ -91,14 +91,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (left is BoundBoolAll { IsAllLiteral: true } && right is BoundBoolAll { IsAllLiteral: true })
             // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
             // ALL-literal operand and is legal (kb/Work PB157).
-            ctx.Edition.Error("COBOLNET1511", "both operands of a boolean operator shall not be ALL literals "
+            ctx.Edition.Error("COBOL1511", "both operands of a boolean operator shall not be ALL literals "
                 + "(ISO §8.8.2 rule 4)");
         return new BoundBoolBinary(left, op, right);
     }
 
     /// <summary>Resolve a boolean-expression leaf operand (ISO §8.8.2 operand list): a boolean literal, the
     /// figurative ZERO / <c>ALL B"…"</c>, or a category-boolean data item. Anything else — a non-boolean item,
-    /// a plain string, an arithmetic expression, another figurative — is COBOLNET1511.</summary>
+    /// a plain string, an arithmetic expression, another figurative — is COBOL1511.</summary>
     private BoundBoolExpr BindBoolOperandValue(Core.ValueOperandContext vo)
     {
         var nn = vo.nonNumericLiteral();
@@ -112,7 +112,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
             return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
         // The predefined NULL is no boolean operand and a boolean expression is no §8.4.3.10.3 SR1 context: the ONE
-        // SR1 refusal (COBOLNET2576), through the literal mapping that owns it (kb/Work PB1427).
+        // SR1 refusal (COBOL2576), through the literal mapping that owns it (kb/Work PB1427).
         if (nn?.predefinedNull() is not null && host.Expr.NonNumericLiteralOperand(nn) is BoundOperandError nullErr)
             return BoundBoolError.Carry(nullErr.Feature, nullErr.IsUnbuilt);
         if (nn?.figurativeConstant() is { } fig)
@@ -125,7 +125,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return new BoundBoolAll(literal1.Value, IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
             // kb/Work PB1029 — this refusal carried no diagnostic (`COMPUTE B = B B-AND SPACE` compiled clean and
             // aborted the run unit); it is the §8.8.2 operand list's figurative half, reported as its siblings are.
-            ctx.Edition.Error("COBOLNET1511", $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
+            ctx.Edition.Error("COBOL1511", $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
                 + "constants a boolean expression admits are ZERO (ZEROS, ZEROES) and ALL literal where the literal is a "
                 + "boolean literal (ISO §8.8.2)");
             return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a boolean expression "
@@ -134,7 +134,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
-        ctx.Edition.Error("COBOLNET1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
+        ctx.Edition.Error("COBOL1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{vo.GetText()}'");
@@ -149,7 +149,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// reroute (<c>ArithmeticBinder.BindCompute</c>), whose sole right-hand operand parses as an arithmetic
     /// expression and must be classified and bound exactly as the same words are inside a boolean expression
     /// (kb/Work PB3565: the reroute read only an unparenthesized data reference, so a sole boolean function, a
-    /// parenthesised boolean item and a boolean constant-name were each refused with COBOLNET1511 on legal
+    /// parenthesised boolean item and a boolean constant-name were each refused with COBOL1511 on legal
     /// source). <see cref="IsSoleBooleanOperand"/> is the diagnostic-free routing predicate over the same three
     /// arms.</summary>
     internal BoundBoolExpr? BindSoleBooleanOperand(Core.ArithmeticExpressionContext? whole)
@@ -167,14 +167,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (alias is null)
             {
                 // The resolver's own answer when it built no place (kb/Work PB1030) — never the 1511 default below,
-                // which told a user whose name was undefined (already COBOLNET1639) that it was "not a boolean operand".
+                // which told a user whose name was undefined (already COBOL1639) that it was "not a boolean operand".
                 if (host.Expr.ResolveSending(dref) is var r && r.Place is not { } p) return r.BoolError(ctx.Edition);
                 // THE ONE category reader (D20/PB79): a ref-mod view's category (GR6), else the item's own picture or a
                 // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
                 var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
                 if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             }
-            ctx.Edition.Error("COBOLNET1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
+            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
                 + (alias is null ? "not a boolean data item" : $"{alias.Described}, not a boolean literal")
                 + " (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{DataBinder.WrittenText(dref)}'"
@@ -194,7 +194,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
-            ctx.Edition.Error("COBOLNET1511", $"operand '{fc.GetText()}' in a boolean expression is not a "
+            ctx.Edition.Error("COBOL1511", $"operand '{fc.GetText()}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{fc.GetText()}'");
         }
@@ -316,11 +316,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind a SIMPLE boolean condition (ISO §8.8.4.3): a bare boolean expression used as a condition,
     /// true iff its value is boolean 1 (GR1). SR1 (:9810) — every referenced boolean item AND literal shall be
-    /// of length 1; a wider operand is COBOLNET1511. Called from the sole-operand comparison path.</summary>
+    /// of length 1; a wider operand is COBOL1511. Called from the sole-operand comparison path.</summary>
     private BoundCondition BindSimpleBooleanCondition(BoundBoolExpr expr)
     {
         if (!BoolExprAllLengthOne(expr))
-            ctx.Edition.Error("COBOLNET1511", "a simple boolean condition shall reference only boolean items "
+            ctx.Edition.Error("COBOL1511", "a simple boolean condition shall reference only boolean items "
                 + "and literals of length 1 (ISO §8.8.4.3.3 SR1)");
         return new BoundBooleanCondition(expr);
     }
@@ -365,10 +365,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (left is BoundBoolOperand || right is BoundBoolOperand)
             {
                 if (op is not ("==" or "!="))
-                    ctx.Edition.Error("COBOLNET1511", "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
+                    ctx.Edition.Error("COBOL1511", "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
                         + "(ISO §8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
                 else if (!BoolValued(left) || !BoolValued(right))
-                    ctx.Edition.Error("COBOLNET1511", "both operands of a boolean relation shall be "
+                    ctx.Edition.Error("COBOL1511", "both operands of a boolean relation shall be "
                         + "boolean-valued (ISO §8.8.4.2.2)");
             }
             return WrittenRelational(left, op, right);
@@ -695,8 +695,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>An abbreviated relation with the subject omitted (<c>comparisonOperator comparisonOperand</c>): the
     /// carried subject is inserted and the newly-stated operator becomes the carried operator (ISO §8.8.4.12.4 GR1).
     /// With no carried subject — GR1's insertion "terminates once a complete simple condition is encountered", and a
-    /// parenthesized group opens a fresh scope — the relation has nothing to insert: COBOLNET2552 (kb/Work PB1390;
-    /// it used to be refused unreported, which the COBOLNET2319 internal-error net caught).</summary>
+    /// parenthesized group opens a fresh scope — the relation has nothing to insert: COBOL2552 (kb/Work PB1390;
+    /// it used to be refused unreported, which the COBOL2319 internal-error net caught).</summary>
     private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry)
     {
         if (carry.BooleanRelation) return RefuseAbbreviationAfterBooleanRelation(DataBinder.WrittenText(ar));
@@ -742,7 +742,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
-        // This arm keeps the COBOLNET1533 strong-typing family's own code; SR1's other two arms are COBOLNET2200.
+        // This arm keeps the COBOL1533 strong-typing family's own code; SR1's other two arms are COBOL2200.
         if (op is BoundFieldOperand fg && StrongTypeModel.IsStrongGroup(fg.Place.Item))
         {
             ctx.Edition.Error(DiagnosticCatalog.StrongClassCondition, "a strongly-typed group item may not appear in a class condition — "
@@ -850,7 +850,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // was a cobolWord PREDICATE and cobolWord comes first; the gate is token-level now, so a DECLARED class of
         // that spelling arrives as an IDENTIFIER, and a keyword token that still reaches this rule at an edition
         // where §8.9 leaves the word free is an UNDECLARED class-name-1 / alphabet-name-1 reference — §8.8.4.4.2
-        // offers no other reading there. It falls to the name arms below and draws their §8.4.2.1 COBOLNET1639
+        // offers no other reading there. It falls to the name arms below and draws their §8.4.2.1 COBOL1639
         // (`IF X IS BOOLEAN` at 85 used to compile clean for a moment on this branch — measured).
         string? userWord = cls.cobolWord()?.GetText();
         if (kind is not null && CobolNames.UpperFold(cls.Start.Text) is var kw
@@ -927,7 +927,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // ⛔ A NAME THAT DECLARES NOTHING IS A BIND ERROR, NOT A RUN-TIME ONE. §8.8.4.4.2 offers exactly two
         // user-defined words here — alphabet-name-1 and class-name-1 — and both arms above have refused this
         // spelling, so it identifies no resource: ISO §8.4.2.1, "In order to use a resource, a statement shall
-        // contain a reference that uniquely identifies that resource". That is COBOLNET1639's OWN rule, and
+        // contain a reference that uniquely identifies that resource". That is COBOL1639's OWN rule, and
         // this is one more site of it rather than a new code.
         // ⛔ IT USED TO FALL TO BoundConditionError, which is the SILENT-COMPILE / LOUD-RUNTIME staging:
         // `IF X IS NOSUCHCLASS` compiled with zero diagnostics and aborted with
@@ -1124,7 +1124,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + (probe.OperandCategory is { } cat ? $" of category {cat.ToString().ToLowerInvariant()}" : "");
         else if (dref is { } undefined)
         {
-            // A word that names nothing is the resolver's own diagnostic (COBOLNET1639), not a second one here —
+            // A word that names nothing is the resolver's own diagnostic (COBOL1639), not a second one here —
             // and a shape it DEFERS is announced, not refused (kb/Work PB1030).
             return Unresolved(host.Expr.ResolveSending(undefined), $"condition '{text}'");
         }
@@ -1132,7 +1132,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return Refused($"condition '{text}'");
     }
 
-    /// <summary>⛔ THE ONE WORDING OF "THIS OPERAND IS WRITTEN WHERE A CONDITION IS REQUIRED" (COBOLNET2318). Every
+    /// <summary>⛔ THE ONE WORDING OF "THIS OPERAND IS WRITTEN WHERE A CONDITION IS REQUIRED" (COBOL2318). Every
     /// arm that finds a bare operand, an address-identifier or a truth word in a condition position names what it
     /// IS and the rule it breaks through here, so the §8.8.4.2.1 list of the simple conditions is written once.</summary>
     private void ReportNotACondition(string text, string what) =>
@@ -1145,7 +1145,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// condition position is lowered by the emitter to a run-time <c>NotImplemented</c> throw, so a refusal that
     /// forgot its diagnostic compiled clean and aborted the run unit — the silent-compile / loud-run channel PB982
     /// found open at <see cref="BindSoleOperandCondition"/>. Every refusal now comes through here, and when the
-    /// compilation has recorded NO failing diagnostic yet this reports COBOLNET2319: an internal-error diagnostic
+    /// compilation has recorded NO failing diagnostic yet this reports COBOL2319: an internal-error diagnostic
     /// naming the refused form, so no condition error node can ever reach a successful compile. The invariant is
     /// exactly "a program that compiles contains no condition error node", which is why the test is the sink's
     /// <see cref="EditionContext.HasErrors"/> rather than a per-site flag. <c>ConditionErrorConstructionDriftTests</c>
@@ -1158,7 +1158,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The condition node for a reference the resolver built no place for, chosen FROM its closed answer
     /// (kb/Work PB1030): a DEFERRED shape is already on the unbuilt ledger and is announced by the statement funnel
-    /// (COBOLNET1756) — it is not a refusal of the source; a REPORTED one is <see cref="Refused"/>.</summary>
+    /// (COBOL1756) — it is not a refusal of the source; a REPORTED one is <see cref="Refused"/>.</summary>
     internal BoundConditionError Unresolved(RefResolution answer, string feature) =>
         answer.Outcome == RefOutcome.Deferred ? ConditionErrorNode(answer.Feature) : Refused(feature);
 
@@ -1494,7 +1494,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// §8.8.2 lists "a boolean expression enclosed in parentheses" as a boolean expression, so <c>(BW)</c> — or a
     /// parenthesized boolean function — IS the boolean operand it encloses, in the boolean relation of §8.8.4.2.2
     /// Format 2. It used to be read as the arithmetic expression the grammar's parenthesized primary spells, and
-    /// `IF (BW) = BZ` drew COBOLNET0844 "not a numeric operand". An enclosed NON-boolean
+    /// `IF (BW) = BZ` drew COBOL0844 "not a numeric operand". An enclosed NON-boolean
     /// operand stays an arithmetic expression (§8.8.1.1), and null says so. The ONE reading both operand binders
     /// ask (ComparisonOperandOf and EVALUATE's BindValueOperand answer one question, kb/Work PB224).</summary>
     internal BoundOperand? EnclosedBooleanOperand(Core.ValueOperandContext? vo)
@@ -1524,7 +1524,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §8.3.3.2 Format 2 makes X"…" an alphanumeric literal — fell past every arm here and staged loud as
         // "comparison operand" at run time, while the SAME literal worked in a MOVE (DA3).
         // §8.4.3.10.3 SR1: a relation condition is a context NULL may occupy — the checkpoint's §8.8.4.2.3 SR5
-        // band then decides it against the other operand (pointer / object / message-tag only, COBOLNET0869).
+        // band then decides it against the other operand (pointer / object / message-tag only, COBOL0869).
         if (host.Expr.NullAdmittingOperand(vo?.nonNumericLiteral()) is { } litOp) return litOp;
         if (EnclosedBooleanOperand(vo) is { } enclosedBoolean) return enclosedBoolean;
         if (vo?.arithmeticExpression() is { } expr)

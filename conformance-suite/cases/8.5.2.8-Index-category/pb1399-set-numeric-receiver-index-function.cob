@@ -9,7 +9,7 @@
       *> references a numeric data item, index-name-2 shall be specified" — so a numeric receiver (N, PIC 9(4))
       *> cannot take it. SET N TO FUNCTION MAX(IA IB) is refused by SR4 alone: the index function is classified as
       *> the sender it IS rather than put through the arithmetic screen, which used to answer first with
-      *> COBOLNET0844 ("an index function is not a numeric operand") about a statement whose broken rule is SR4.
+      *> COBOL0844 ("an index function is not a numeric operand") about a statement whose broken rule is SR4.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1399N1.
        DATA DIVISION.

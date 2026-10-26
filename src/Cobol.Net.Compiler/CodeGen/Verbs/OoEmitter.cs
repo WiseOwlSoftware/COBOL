@@ -138,7 +138,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// bridge, and each BASED root's implicit data-address pointer + its deref cell + backing. ⛔ THE ONE RENDERER
     /// for the program class AND the OO type-halves (kb/Work PB956): the OO emitter rendered
     /// <c>FieldEmitter</c> output only, so a class had to REFUSE every BASED item and ADDRESS OF target (a whole-unit
-    /// COBOLNET0899) — the members the bound places name did not exist.
+    /// COBOL0899) — the members the bound places name did not exist.
     /// <para>Storage duration follows the owning section. A RECURSIVE unit's static-WS based root and a method
     /// WORKING-STORAGE root emit STATIC members (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); a method
     /// LOCAL-STORAGE / LINKAGE root's member is per ACTIVATION, so it is not <c>readonly</c> — <see cref="EmitMethod"/>
@@ -652,7 +652,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             return;
         }
         // A formal or returning item with no universal crossing form (a Tier-C group) can match no argument: the binder
-        // refuses every such argument (COBOLNET0866), so no description of the caller's can be its.
+        // refuses every such argument (COBOL0866), so no description of the caller's can be its.
         if (formalsList.Any(f => ActivationDescriptions.OfFormal(f, ecState.OoClasses) is null)
             || returning is not null && ActivationDescriptions.Of(returning, ecState.OoClasses) is null)
         {

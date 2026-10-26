@@ -26,7 +26,7 @@
       *> numeric-edited item and from a group item. Both are class alphanumeric by Table 2, so a screen that
       *> closed this hole by narrowing to CATEGORY alphanumeric would turn this fixture green and that one
       *> red — the pair is the measurement, neither half alone.
-      *> Expected: COBOLNET1627, the intrinsic-argument-class diagnostic.
+      *> Expected: COBOL1627, the intrinsic-argument-class diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGL1TNVFA.
        DATA DIVISION.

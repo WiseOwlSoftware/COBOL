@@ -39,7 +39,7 @@ doc to read as always-correct* (no was-X-now-Y — that lives only in DEVLOG). S
 ## PHASE-13 review ledger — `PHASE-13-plan-vs-spec-review.md` (§24 = the fix SSOT)
 A 16-finder multi-agent review (184 agents launched, 85 completed, ~7.7M tokens; a session outage killed 99 mid-run →
 partial coverage). **28 findings confirmed** (1 critical, 14 major, 13 minor). The one critical: diagnostic code
-**COBOLNET1573 shipped with two meanings**. §24 is the 10-tier prioritized fix queue.
+**COBOL1573 shipped with two meanings**. §24 is the 10-tier prioritized fix queue.
 
 ## The two PowerShell audit scripts (early scaffolding, legacy-era)
 - **`create-agents.ps1`** — writes 10 role-scoped agent YAML files into `agents/` (pipeline-architecture,

@@ -8,7 +8,7 @@
       *> condition-name, switch-status, sign, and omitted-argument conditions": no member of that list is a bare
       *> truth word. TRUE and FALSE are written only as an EVALUATE selection subject or selection object
       *> (14.9.13.3 SR7 b). `IF TRUE` is therefore not a conditional expression in any edition. It reached the
-      *> internal-error net (COBOLNET2319), which names no rule; it is now COBOLNET2318, which names the word and
+      *> internal-error net (COBOL2319), which names no rule; it is now COBOL2318, which names the word and
       *> the rule it breaks.
       *>   cite.py --check 8.8.4.2.1 "The simple conditions are the relation, boolean, class, condition-name,
       *>     switch-status, sign, and omitted-argument conditions" -> OK

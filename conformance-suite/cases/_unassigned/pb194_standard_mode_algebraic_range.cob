@@ -13,7 +13,7 @@
       *> The IN-ARITHMETIC-RANGE screen of 15.43.4 r1 / 15.58.4 r1 (8.8.4.4.4 GR3 l) measures a floating-point
       *> numeric-edited argument-1's extreme against the intermediate data item's range for the arithmetic mode
       *> in effect.  PIC 9(3)E+999 reaches 1E+1002 - past binary64's 1.8E+308, INSIDE the SDIDI's 9.99E+6144.
-      *> This program was REJECTED before PB194 ("COBOLNET1660 ... outside the native (binary64) intermediate's
+      *> This program was REJECTED before PB194 ("COBOL1660 ... outside the native (binary64) intermediate's
       *> range") while the identical entry under ARITHMETIC IS STANDARD-DECIMAL compiled: the mode SET was
       *> written down in four places and two of the copies named STANDARD-DECIMAL alone.  It now lives once, in
       *> ArithmeticModes.IntermediateExponentRange.

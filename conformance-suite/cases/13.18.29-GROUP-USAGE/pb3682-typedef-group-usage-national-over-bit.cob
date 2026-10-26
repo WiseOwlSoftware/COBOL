@@ -8,7 +8,7 @@
       *> described as GROUP-USAGE NATIONAL" (cite.py: OK  13.18.29.3 3)). A TYPE DECLARATION's group is a group item whose
       *> clauses are source (13.18.57.4 GR1: "as though the data description identified by type-name-1 had been coded in
       *> place"), so the rule holds of the declaration although nothing references it. The usage walk ran over the storage
-      *> roots only, so this program compiled clean while the same two groups in storage drew COBOLNET1653.
+      *> roots only, so this program compiled clean while the same two groups in storage drew COBOL1653.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P3682A.
        DATA DIVISION.

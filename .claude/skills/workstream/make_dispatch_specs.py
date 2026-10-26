@@ -9,7 +9,7 @@ groups.json:
   "stop_file": "E:\\\\Temp\\\\...\\\\scratchpad\\\\STOP-w58",   # REQUIRED: this fleet's own stop (kb/Work PB2483)
   "groups": [
     {"letter": "KA", "slug": "w58a", "group": "INTRINSICS BEYOND BINARY64", "notes": "PB999, PB1000", "lead": "PB999",
-     "codes": "COBOLNET2400–COBOLNET2402", "root": "...", "files": "`kb/Work/PB999.md`, ...", "body": "...",
+     "codes": "COBOL2400–COBOL2402", "root": "...", "files": "`kb/Work/PB999.md`, ...", "body": "...",
      "file_set": ["src/...", ...],   # the files the group changes, a LIST (plan_wave.py writes it); when absent or
                                       # empty, the set computed now from its notes (inflight.computed_file_set);
                                       # a file under src/Cobol.Net.Runtime/IO/ makes it a host-I-O group (below)

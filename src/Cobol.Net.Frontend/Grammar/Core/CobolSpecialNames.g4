@@ -17,8 +17,8 @@ specialNamesParagraph
     // as the SOURCE-COMPUTER / OBJECT-COMPUTER siblings write theirs. ⛔ A non-empty paragraph has ONE closing period,
     // after its last clause. The `DOT?` after every entry is a PUNCTUATION SUPERSET written HERE, on the paragraph
     // (not inside specialNameEntry), so the periods are this rule's own children: ClosedFormatPass reads them through
-    // ParagraphPeriods and refuses a period after an inner entry (COBOLNET3407) or a missing closing one
-    // (COBOLNET3408) BY NAME (kb/Work PB2727) — `SPECIAL-NAMES. CLASS HEXD IS "0" THRU "9". DECIMAL-POINT IS COMMA.`
+    // ParagraphPeriods and refuses a period after an inner entry (COBOL3407) or a missing closing one
+    // (COBOL3408) BY NAME (kb/Work PB2727) — `SPECIAL-NAMES. CLASS HEXD IS "0" THRU "9". DECIMAL-POINT IS COMMA.`
     // compiled clean, a period-per-entry spelling §12.3.7.2 does not print.
     : SPECIAL_NAMES DOT ((specialNameEntry DOT?)+ | DOT)?
     ;
@@ -30,7 +30,7 @@ specialNameEntry
     | symbolicCharactersClause
     | alphabetClause
     // CRT STATUS / CURSOR (§12.3.7; Annex A.4.2 item 25 — the DECLINED screen module, refused by name at bind
-    // with COBOLNET1560). ⚠ RESERVATION-GATED. §8.9 reserves CRT and CURSOR from 2002 ONLY, so at COBOL-85 they
+    // with COBOL1560). ⚠ RESERVATION-GATED. §8.9 reserves CRT and CURSOR from 2002 ONLY, so at COBOL-85 they
     // are ordinary user words and `SPECIAL-NAMES. CURSOR IS FOO.` is a legal '85 implementor-switch entry that
     // must keep parsing as one — the localeClause precedent exactly. Without the gate the '85 program drew a
     // screen-facility refusal for a switch entry that has nothing to do with screens (kb/Work PB301).
@@ -59,20 +59,20 @@ specialNameEntry
     // ⚠ REACH: `implementorSwitchEntry` above takes a word plus a REQUIRED continuation, and IS is un-underlined
     // in the printed format, so a TWO-word entry (`WIBBLE WOBBLE`) is shape-legal as `device-name-1 [IS]
     // mnemonic-name-3` and never reaches here — what the standard refuses there is §12.3.7.3 SR8 (the name is
-    // not one the implementor specifies), a SEMANTIC rule refused by name at bind (COBOLNET2241, kb/Work PB862).
+    // not one the implementor specifies), a SEMANTIC rule refused by name at bind (COBOL2241, kb/Work PB862).
     // This alternative catches what NO arm of the format admits: a lone word (kb/Work PB716), a run carrying a
     // literal, or three or more words. The vendor `CHANNEL integer IS mnemonic-name` and `RESERVE integer
     // [CHANNELS]` entries, which no ISO format prints and nothing implements, match no arm at all, this one
     // included (its word run stops at IS, and RESERVE is a reserved word that never starts it), so they are a
     // syntax error, COBOL0001, rather than arms no binder reads (kb/Work PB2727; they compiled clean and did nothing).
-    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 // LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 } (§12.3.7).
 // ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED. This is an §A.4.9 item 10 optional-locale element —
 // "SPECIAL-NAMES paragraph: LOCALE clause and LOCALE phrases in the ALPHABET clause (12.3.7)" — and WiseOwl COBOL's
 // documented non-support of the locale module is conformant per §4.2.7 / §A.4.1 ONLY if it is DIAGNOSED. The
-// binder emits COBOLNET1518, the same cited message the LOCALE phrase of LOWER-CASE / NUMVAL-C already gets; a
+// binder emits COBOL1518, the same cited message the LOCALE phrase of LOWER-CASE / NUMVAL-C already gets; a
 // raw parse error is not documented non-support, it is an unexplained rejection. Superset-parse / bind-narrow,
 // exactly as the rest of this grammar does it.
 // ⚠ The predicate is EDITION-GATED (2002+, where §8.9 reserves LOCALE). At COBOL-85 LOCALE is an ordinary user
@@ -175,7 +175,7 @@ dynamicLengthDelimitedPhrase
 // switchOnClause? switchOffClause?` had a one-word minimum spelling, and inside the unbounded `specialNameEntry*`
 // loop every word left over after a clause became a complete, silent entry (`CLASS DIGITS IS "0" ZOTZOT.` ran).
 // Which system-name the first word IS — and so which arm it may be written in — is §12.3.7.3 SR8's implementor
-// table (Cobol.Net.Editions/ImplementorNames.cs, COBOLNET2241), a semantic rule the grammar cannot decide: the three arms
+// table (Cobol.Net.Editions/ImplementorNames.cs, COBOL2241), a semantic rule the grammar cannot decide: the three arms
 // share one shape here and the NAME picks the arm.
 implementorSwitchEntry
     : cobolWord ( IS? cobolWord switchStatusPhrases?
@@ -345,14 +345,14 @@ alphabetLocalePhrase
 // literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed
 // figure (RENDERED — PDF p321 / folio 291) stacks the two phrases in ONE bracket with no choice indicators, so an
 // entry carries at most one of them (§5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
-// (COBOLNET2242, DataBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
+// (COBOL2242, DataBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
 alphabetEntry
     : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?
       (ALSO (cobolWord | literal))*
     ;
 
 // [ CRT STATUS IS data-name-2 ] — folio 290 rules CRT and STATUS, not IS (kb/Work PB695). The clause is still
-// refused by name at bind (COBOLNET1560, the DECLINED screen module); an optional word omitted must reach that
+// refused by name at bind (COBOL1560, the DECLINED screen module); an optional word omitted must reach that
 // documented refusal, not a parse error.
 crtStatusClause
     : CRT STATUS IS? dataReference

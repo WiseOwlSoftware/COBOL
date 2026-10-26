@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 13.18.13.3 SR1 via 12.3.7.4 GR7 Table 6: a LOCALE alphabet defines a collating sequence and NO coded
-      *> character set, so CODE-SET cannot name it - COBOLNET1669 through the ONE resolver (kb/Work PB110).
+      *> character set, so CODE-SET cannot name it - COBOL1669 through the ONE resolver (kb/Work PB110).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB110CL.
        ENVIRONMENT DIVISION.

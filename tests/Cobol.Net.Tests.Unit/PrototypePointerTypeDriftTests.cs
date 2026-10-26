@@ -84,7 +84,7 @@ public sealed class PrototypePointerTypeDriftTests
     /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the NAMES
     /// §8.5.3.1 does not compare. A group formal that held a pointer restricted to two differently named prototypes of one
     /// signature (or to two declarations of one type-name) was therefore decided by the name while the elementary formal of
-    /// the same pair was decided by the type, refusing the first (COBOLNET1513) and admitting the second. Every
+    /// the same pair was decided by the type, refusing the first (COBOL1513) and admitting the second. Every
     /// <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names, and the comparison reads
     /// <c>PrototypeSignatures.SameType</c> / <c>StrongTypeModel.SameRestriction</c> instead.</summary>
     [Fact]

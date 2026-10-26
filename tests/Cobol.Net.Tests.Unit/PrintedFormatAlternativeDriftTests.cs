@@ -98,7 +98,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// <summary>⛔ ONE <c>goToStatement</c> ALTERNATIVE PER PRINTED §14.9.17.2 FORMAT, PLUS EXACTLY ONE
     /// ADJUDICATED ARM. That one arm is the ANSI X3.23-1985 target-less <c>GO TO.</c>, which the 2023 standard
     /// prints NO format for: it stays in the grammar so the removal can be reported by name
-    /// (COBOLNET0811 / <c>BareGotoRemoved2002</c>) instead of as a no-viable-alternative parse error, which the
+    /// (COBOL0811 / <c>BareGotoRemoved2002</c>) instead of as a no-viable-alternative parse error, which the
     /// four-compilers rule would not accept. Any OTHER extra alternative is the union shape coming back — the
     /// rule was once <c>GO TO? procedureName? (procedureName)* (DEPENDING ON? dataReference)?</c>, a single
     /// alternative covering both formats and the legacy arm, and the two shapes in its complement were accepted

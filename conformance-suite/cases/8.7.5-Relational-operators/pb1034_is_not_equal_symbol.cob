@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1034 (the `<>` half of 85/pb1034_printed_relational_operator_set), moved to its introducing
-      *> edition: `<>` is a COBOL-2014 relational operator (VCR row 7.26, kb/Work PB1459, PB3604; COBOLNET0900 below
+      *> edition: `<>` is a COBOL-2014 relational operator (VCR row 7.26, kb/Work PB1459, PB3604; COBOL0900 below
       *> 2014, so COBOL-85 and COBOL-2002 cannot carry it). ISO 1989:2023 8.8.4.2.2 Format 1 prints the alternative `IS <>`
       *> with IS (not underlined, optional) and WITHOUT the NOT bracket that the first six alternatives carry,
       *> so `IS <>` is the whole printed spelling.

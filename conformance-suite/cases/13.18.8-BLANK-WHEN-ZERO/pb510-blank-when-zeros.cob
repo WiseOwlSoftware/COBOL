@@ -9,7 +9,7 @@
       *> keyword"), not the figurative constant, and ZEROS is a different reserved word (8.9). The
       *> spellings are interchangeable only where the figurative constant itself is written (8.3.3.6.2).
       *> kb/Work PB510: the lexer folded ZERO/ZEROS/ZEROES into ONE token, so this compiled at every
-      *> edition and blanked the item. Refused COBOLNET2418.
+      *> edition and blanked the item. Refused COBOL2418.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB510N1.
        DATA DIVISION.

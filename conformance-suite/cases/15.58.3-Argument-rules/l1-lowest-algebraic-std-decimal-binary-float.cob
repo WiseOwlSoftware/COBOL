@@ -8,7 +8,7 @@
       *> item whose data description entry specifies a standard binary floating-point usage." §3.166 defines
       *> the term outright: "usages float-binary-32, float-binary-64, and float-binary-128". The OPTIONS
       *> paragraph writes ARITHMETIC IS STANDARD-DECIMAL (§11.9.5.1), which §11.9.5.2 GR3 puts in effect for
-      *> this source element, so the FLOAT-BINARY-64 argument-1 below is illegal source: COBOLNET1516.
+      *> this source element, so the FLOAT-BINARY-64 argument-1 below is illegal source: COBOL1516.
       *>
       *> THE CONDITION IS LOAD-BEARING, so this fixture is only half the evidence. The IDENTICAL item under
       *> the default NATIVE arithmetic (§11.9.5.2 GR4 — no ARITHMETIC clause, so NATIVE) is LEGAL and folds:

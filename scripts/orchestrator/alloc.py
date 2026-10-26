@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""The ONE locked allocator for DEVLOG entry numbers (`devlog.py stamp` takes them), kb/Work `PB` ids, `COBOLNET` diagnostic codes and wave numbers.
+"""The ONE locked allocator for DEVLOG entry numbers (`devlog.py stamp` takes them), kb/Work `PB` ids, `COBOL####` diagnostic codes and wave numbers.
 
     python scripts/orchestrator/alloc.py devlog          # reserve the next DEVLOG entry number   -> 1866
     python scripts/orchestrator/alloc.py wave            # reserve the next wave number (plan_wave's and a hand dispatch's) -> 20261108
     python scripts/orchestrator/alloc.py pb 5            # reserve five kb/Work ids                -> PB1982-PB1986
-    python scripts/orchestrator/alloc.py code 3          # reserve three diagnostic codes          -> COBOLNET2799-COBOLNET2801
+    python scripts/orchestrator/alloc.py code 3          # reserve three diagnostic codes          -> COBOL2799-COBOL2801
     python scripts/orchestrator/alloc.py peek code       # the next free value, reserving nothing
     python scripts/orchestrator/alloc.py peek code --probe   # the session-probe's "diag" line
     python scripts/orchestrator/alloc.py seed code 2798  # record values handed out before the allocator (never lowers)
@@ -37,8 +37,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 LOCK = "alloc.lock"
 KINDS = ("devlog", "pb", "code", "wave")
 PB_FILE = re.compile(r"^PB(\d+)\.md$")
-CODE = re.compile(r"COBOLNET(\d{4})")
-CATALOG_CODE = re.compile(r'"COBOLNET(\d{4})"')
+CODE = re.compile(r"\bCOBOL(\d{4})\b")
+CATALOG_CODE = re.compile(r'"COBOL(\d{4})"')
 CATALOG = pathlib.Path("src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs")
 
 
@@ -57,9 +57,9 @@ def pb_max(repo: pathlib.Path) -> int:
 
 
 def code_scans(repo: pathlib.Path) -> tuple[int, int]:
-    """(highest COBOLNET code anywhere in src/**/*.cs outside bin/obj, highest quoted code in the catalog).
+    """(highest COBOL#### code anywhere in src/**/*.cs outside bin/obj, highest quoted code in the catalog).
 
-    The next free code is the CEILING of BOTH (the COBOLNET1573/1518 collision lesson). No band is pinned: a
+    The next free code is the CEILING of BOTH (the COBOL1573/1518 collision lesson). No band is pinned: a
     band in this pattern capped out twice (at 1600 and at 2000) and reported a code the catalog already held.
     The compiler channel's raw codes are not catalog descriptors, so src >= catalog is the steady state; a
     catalog maximum ABOVE every emitted code is an orphan descriptor worth reconciling before allocating.
@@ -115,7 +115,7 @@ def render(kind: str, first: int, count: int) -> str:
         return str(first) if count == 1 else f"{first}-{last}"
     if kind == "pb":
         return f"PB{first}" if count == 1 else f"PB{first}-PB{last}"
-    return f"COBOLNET{first:04d}" if count == 1 else f"COBOLNET{first:04d}-COBOLNET{last:04d}"
+    return f"COBOL{first:04d}" if count == 1 else f"COBOL{first:04d}-COBOL{last:04d}"
 
 
 # ── allocation ───────────────────────────────────────────────────────────────────────────────────────────────────

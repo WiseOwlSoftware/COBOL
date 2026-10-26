@@ -12,13 +12,13 @@
       *> FLOAT-DECIMAL clause is dependent both on the capabilities of
       *> the processor and on support for the standard decimal
       *> floating-point usages", and FLOAT-DECIMAL-16 / FLOAT-DECIMAL-34
-      *> are not provided (A.3 item 19, refused COBOLNET1564). §4.2.6
+      *> are not provided (A.3 item 19, refused COBOL1564). §4.2.6
       *> makes the compile-time warning mandatory for a declined
       *> processor-dependent element: "An implementation shall provide a
       *> warning mechanism at compile time to indicate use of
       *> syntactically-detectable processor-dependent language elements
       *> not supported by that implementation." That warning is
-      *> COBOLNET2424, pinned by conformance-test
+      *> COBOL2424, pinned by conformance-test
       *> DocumentedNonSupportWitnessTests; until kb/Work R43 the clause
       *> compiled with no diagnostic at all.
       *> THE OUTPUT IS THE INERT HALF. Every rule the clause states

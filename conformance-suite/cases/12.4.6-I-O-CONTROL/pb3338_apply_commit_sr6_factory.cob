@@ -9,7 +9,7 @@
 *> in factory and object classes". The shape: a factory definition's I-O-CONTROL paragraph writes the clause over
 *> its own RELATIVE file. A class definition's own environment division has no INPUT-OUTPUT SECTION (12.4.3 SR1),
 *> so a factory or an instance definition is where the clause can be written. The clause is accepted for a
-*> RELATIVE file in a program, so the only refusal this program can draw is SR6's, by name (COBOLNET4709).
+*> RELATIVE file in a program, so the only refusal this program can draw is SR6's, by name (COBOL4709).
        IDENTIFICATION DIVISION.
        CLASS-ID. PB3338F6 INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

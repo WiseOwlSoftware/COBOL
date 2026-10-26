@@ -9,7 +9,7 @@
       *> data description clauses and subordinate data descriptions are assumed by data defined using the type-name."
       *> So the REDEFINES written inside the STRONG template STRT is assumed by S1, a strongly-typed group item (ISO
       *> 8.5.3.1: described with a TYPE clause that references a STRONG type declaration), and its data-name-2 SA is an item
-      *> subordinate to that strongly-typed group item: refused COBOLNET1697. 13.18.57.3 SR2 forbids a written
+      *> subordinate to that strongly-typed group item: refused COBOL1697. 13.18.57.3 SR2 forbids a written
       *> subordinate entry under a TYPE entry, so the template is the only place the clause could be written at all;
       *> the earlier golden pb183_redefines_in_strong_typedef_ok answered 13.18.57.3 SR4 (the TYPE entry's own
       *> subject), a different rule, and pinned the acceptance this negative replaces.

@@ -33,7 +33,7 @@ tags: [cobolsharp, work, defect]
 > **⛔ TWO WRONG FIXES BEFORE THE RIGHT ONE, both caught by NIST NC116A, both the SAME collision:**
 > ```
 > 01  WRK-DS-LS-5 PICTURE S99999   VALUE ZERO
->         SIGN LEADING SEPARATE.        ->  COBOLNET1585 "takes exactly one literal"
+>         SIGN LEADING SEPARATE.        ->  COBOL1585 "takes exactly one literal"
 > ```
 > · **Attempt 1 — `nameSlot: true`** (copying LENGTH). A name-slot word is admissible as a VALUE-clause literal,
 >   and the operand loop is greedy, so it swallowed the SIGN CLAUSE of the next line as a second literal. LENGTH

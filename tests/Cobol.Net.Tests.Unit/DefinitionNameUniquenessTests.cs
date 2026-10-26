@@ -68,7 +68,7 @@ public sealed class DefinitionNameUniquenessTests : CobolNetTestBase
                    P2. GOBACK.
 
                    """);
-        Assert.Contains("COBOLNET2213", errors);
+        Assert.Contains("COBOL2213", errors);
     }
 
     /// <summary>§8.3.2.2, the CROSS-KIND sentence: a program definition and a function definition are not the
@@ -92,7 +92,7 @@ public sealed class DefinitionNameUniquenessTests : CobolNetTestBase
                    END FUNCTION DNUSAME.
 
                    """);
-        Assert.Contains("COBOLNET2213", errors);
+        Assert.Contains("COBOL2213", errors);
     }
 
     /// <summary>§8.4.6.3: two programs contained within ONE outermost program. A DIFFERENT code from the
@@ -118,13 +118,13 @@ public sealed class DefinitionNameUniquenessTests : CobolNetTestBase
                    END PROGRAM DNUCTM.
 
                    """);
-        Assert.Contains("COBOLNET2214", errors);
+        Assert.Contains("COBOL2214", errors);
     }
 
     /// <summary>The SIBLING SWEEP arm: §8.3.2.2's list item 1 puts object-class-names in the SAME externalized
     /// population as program-names, so a CLASS-ID and an outermost PROGRAM-ID under one name are two kinds under
-    /// one name. Before kb/Work PB660 each namespace policed only itself — class-vs-class by COBOLNET0820 under
-    /// §8.4.6.4, function-vs-function by COBOLNET1508, program-vs-program by nothing — and nothing ever compared
+    /// one name. Before kb/Work PB660 each namespace policed only itself — class-vs-class by COBOL0820 under
+    /// §8.4.6.4, function-vs-function by COBOL1508, program-vs-program by nothing — and nothing ever compared
     /// a definition of one kind against a definition of another.</summary>
     [Fact]
     public void AClassAndAProgramMayNotShareAnExternalizedName()
@@ -140,11 +140,11 @@ public sealed class DefinitionNameUniquenessTests : CobolNetTestBase
                    END CLASS DNUBOTH.
 
                    """);
-        Assert.Contains("COBOLNET2213", errors);
+        Assert.Contains("COBOL2213", errors);
     }
 
     /// <summary>§8.4.6.4 owns class-name and interface-name uniqueness and the OO class table enforces it on the
-    /// declared WORD (COBOLNET0820, for classes and interfaces alike). The group-wide externalized check must not RESTATE that
+    /// declared WORD (COBOL0820, for classes and interfaces alike). The group-wide externalized check must not RESTATE that
     /// sentence — one fault, one diagnostic — so a duplicate CLASS-ID draws 0820 and NOT 2213.</summary>
     [Fact]
     public void ADuplicateClassNameStaysTheOoTablesDiagnostic()
@@ -163,8 +163,8 @@ public sealed class DefinitionNameUniquenessTests : CobolNetTestBase
                    END PROGRAM DNUCLSM.
 
                    """);
-        Assert.Contains("COBOLNET0820", errors);
-        Assert.DoesNotContain("COBOLNET2213", errors);
+        Assert.Contains("COBOL0820", errors);
+        Assert.DoesNotContain("COBOL2213", errors);
     }
 
     // ── ACCEPT (the complement — legal source a wider check would refuse) ──────────────────────────────────

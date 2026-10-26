@@ -9,7 +9,7 @@
       *>   items described with the EXTERNAL attribute." and "Within a run unit, all instances of a given name that
       *>   is externalized to the operating environment shall identify the same kind of entity or item."
       *>   KCSUB1404 is externalized as an outermost PROGRAM-ID and, by the EXTERNAL clause, as a data item.
-      *>   COBOLNET2213 (duplicate-externalized-definition). The positive twin is
+      *>   COBOL2213 (duplicate-externalized-definition). The positive twin is
       *>   conformance/2002/pb1404_external_same_kind_is_one_instance.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1404N1.

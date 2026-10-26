@@ -15,7 +15,7 @@
       *> entry: SR1 is violated, and only the reference composes it.  The screen used to skip every entry whose
       *> VALUE was assumed, on the ground that the template had answered for it -- true of SR13 and SR14, false
       *> of SR1.  Twin: pb184-group-value-strong-subject (the VALUE written on the TYPE entry itself).
-      *> Edition band: STRONG TYPEDEF is COBOL-2002, so 85 rejects the declaration itself (COBOLNET0900).
+      *> Edition band: STRONG TYPEDEF is COBOL-2002, so 85 rejects the declaration itself (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2517N1.
        DATA DIVISION.

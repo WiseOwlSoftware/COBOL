@@ -12,7 +12,7 @@
       *> conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply", cite.py --check 14.9.23.4
       *> -> OK 14.9.23.4 7)), a violation of which is EC-OO-UNIVERSAL. Before the fix one descriptor STRING compared
       *> for equality stood for both: national / boolean / numeric-edited / LOCALE arguments were refused at compile
-      *> time (COBOLNET0866), a group matched a PIC X of its width, a smaller formal group did not match, and a
+      *> time (COBOL0866), a group matched a PIC X of its width, a smaller formal group did not match, and a
       *> class-typed RETURNING item into a universal receiver raised EC-OO-UNIVERSAL.
       *> Match rule 3 c) "is the same class and category" (OK 9.3.6 3) c)) and 3 e) "has the same ALIGNED, ANY
       *> LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses" (OK 9.3.6 3)): a group

@@ -38,7 +38,7 @@ public static class PictureSeparatorPeriodRule
         }
     }
 
-    /// <summary>The COBOLNET2419 message for one violating character-string.</summary>
+    /// <summary>The COBOL2419 message for one violating character-string.</summary>
     public static string Message(IToken t)
         => $"the PICTURE character-string {t.Text} ends in the symbol '{t.Text![^1]}', so the PICTURE clause shall "
            + "be the last clause of the entry and be followed immediately, with no intervening separator, by the "

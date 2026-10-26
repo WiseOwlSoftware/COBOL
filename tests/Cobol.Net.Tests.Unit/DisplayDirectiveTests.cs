@@ -66,7 +66,7 @@ public sealed class DisplayDirectiveTests
         Assert.All(output, o => Assert.Equal("X", o.Text));
     }
 
-    [Theory] // the UPON phrase's format and GR5 b): refused as COBOLNET2698, and nothing is transferred
+    [Theory] // the UPON phrase's format and GR5 b): refused as COBOL2698, and nothing is transferred
     [InlineData("UPON SYSIN")]                    // an INPUT-only device-name
     [InlineData("UPON NOSUCH")]                   // no such device
     [InlineData("UPON LISTING LISTING")]          // LISTING twice
@@ -74,7 +74,7 @@ public sealed class DisplayDirectiveTests
     public void Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing(string upon)
     {
         var (output, bag) = Run($" >>DISPLAY \"X\" {upon}\n");
-        Assert.Contains("COBOLNET2698", Codes(bag));
+        Assert.Contains("COBOL2698", Codes(bag));
         Assert.Empty(output);
     }
 
@@ -107,7 +107,7 @@ public sealed class DisplayDirectiveTests
     public void ANameAfterDefineOff_IsNotAnOperand()
     {
         var (output, bag) = Run(" >>DEFINE X AS 1\n >>DEFINE X OFF\n >>DISPLAY X\n");
-        Assert.Contains("COBOLNET1619", Codes(bag));
+        Assert.Contains("COBOL1619", Codes(bag));
         Assert.Empty(output);
     }
 
@@ -120,7 +120,7 @@ public sealed class DisplayDirectiveTests
     public void ParameterWithNoName_IsNotAnOperand()
     {
         var (output, bag) = Run(" >>DISPLAY PARAMETER\n");
-        Assert.Contains("COBOLNET1619", Codes(bag));
+        Assert.Contains("COBOL1619", Codes(bag));
         Assert.Empty(output);
     }
 
@@ -158,13 +158,13 @@ public sealed class DisplayDirectiveTests
 
     [Theory] // §7.3.12.3 SR2 / SR3 and §7.3.3 SR10: the operand is not an arithmetic expression, a boolean expression, a
              // literal or a PARAMETER phrase, or is a literal form a directive bars — one diagnostic, nothing transferred
-    [InlineData(")( 3 +", "COBOLNET1619")]            // the PB807 repro: four alternatives, none matched
-    [InlineData("\"A\" & \"B\"", "COBOLNET1619")]     // concatenation expression (SR10)
-    [InlineData("ZERO", "COBOLNET1619")]              // figurative constant (SR10)
-    [InlineData("1.0E3", "COBOLNET1619")]             // floating-point literal (SR10)
-    [InlineData("\"A\" UPON", "COBOLNET1619")]        // UPON with no destination
-    [InlineData("UPON CONSOLE", "COBOLNET1619")]      // no operand before UPON
-    [InlineData("\"A\" B-AND 1", "COBOLNET1619")]     // a boolean operator over a non-boolean operand
+    [InlineData(")( 3 +", "COBOL1619")]            // the PB807 repro: four alternatives, none matched
+    [InlineData("\"A\" & \"B\"", "COBOL1619")]     // concatenation expression (SR10)
+    [InlineData("ZERO", "COBOL1619")]              // figurative constant (SR10)
+    [InlineData("1.0E3", "COBOL1619")]             // floating-point literal (SR10)
+    [InlineData("\"A\" UPON", "COBOL1619")]        // UPON with no destination
+    [InlineData("UPON CONSOLE", "COBOL1619")]      // no operand before UPON
+    [InlineData("\"A\" B-AND 1", "COBOL1619")]     // a boolean operator over a non-boolean operand
     public void AMalformedOperand_IsDiagnosedAndTransfersNothing(string operands, string code)
     {
         var (output, bag) = Run($" >>DISPLAY {operands}\n");

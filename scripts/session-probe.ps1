@@ -1,6 +1,6 @@
 # session-probe.ps1 — the §0 SESSION BOOTSTRAP step-③ mechanizer (plan §0; added 2026-07-19, DEVLOG 922).
 # Prints the live repo state a session must confirm before touching code. Mechanical, because manual state
-# ledgers drift (the COBOLNET1573 collision class). Read-only; safe to run any time.
+# ledgers drift (the COBOL1573 collision class). Read-only; safe to run any time.
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

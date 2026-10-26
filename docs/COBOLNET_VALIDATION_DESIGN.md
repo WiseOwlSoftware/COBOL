@@ -15,7 +15,7 @@
 
 The syntax-side half of the four-compilers-in-one obligation (`--std 85|2002|2014|2023`, default 2023): every
 construct carries (1) its full ISO behavior in every edition that HAS it and (2) the correct DIAGNOSTIC in
-every edition that LACKS it — not-yet-introduced (COBOLNET0900), reserved spelling (0901), removed (0902),
+every edition that LACKS it — not-yet-introduced (COBOL0900), reserved spelling (0901), removed (0902),
 obsolete/archaic (0903). Severity is two-axis: **strict** (default; removals reject) vs **`--permissive`**
 (the documented migration mode, owner decision 4: removals compile with warnings and the pre-removal
 semantics).
@@ -100,9 +100,9 @@ semantics).
   (ONE pending mechanism, shared with the corpus manifests).
 - **The DECLINED-OPTIONAL-ELEMENT pass** (`Validation/DeclinedFacilityPass.cs` + the grammar fragment
   `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
-  `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOLNET1708 (the VALIDATE
+  `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOL1708 (the VALIDATE
   facility's §13.16.2 *validation-clauses* group and the §13.18.63 format-5 content-validation entry),
-  COBOLNET1710 (a declined module's
+  COBOL1710 (a declined module's
   exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
   `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
   `CursorFollowingVisitor`.
@@ -116,7 +116,7 @@ semantics).
     it means — and the binder's own entry paths drop it exactly where it matters: `DataBinder.BindEntry` returns
     early for levels 66/88 and `BindCondition` returns early for an UNNAMED level-88, which IS the §13.16.2
     format-4 validation entry.
-  - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOLNET1578/1778 cover
+  - **⛔ ERROR, not Warning — the distinction from the ACCEPT-INERT band.** COBOL1578/1778 cover
     PROCESSOR-DEPENDENT elements (Annex A.3), where §4.2.6 ¶3 requires only a compile-time warning and the
     construct may be accepted-inert. A.4.1 is stronger: syntax is accepted "only when support … is claimed", so
     accepting a declined optional element's syntax IS the non-conformance. All three route through the ONE
@@ -161,7 +161,7 @@ switch, the ON procedure-name / ALL PROCEDURES leg is MODELED — the DEBUG-ITEM
 triggers with the START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH DEBUG-CONTENTS taxonomy, object-time
 switch `RunUnit.DebugMode` default ON; a DEBUG-* register reference under the switch resolves to the register,
 never the false 0901; the data-name / file-name / cd-name subject kinds + the SORT/MERGE cause are staged loud
-COBOLNET1571) · section-header
+COBOL1571) · section-header
 segment-numbers (both header rules)**. 2014→2023: CLOSE WITH LOCK · CALL ON OVERFLOW (0882). Windows:
 EXIT METHOD/FUNCTION (2002→2023). Archaic 0903 @≥2023: EXIT PROGRAM · NEXT SENTENCE. Reserved-word intervals:
 COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014 → re-reserved 2023). Pass

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB816. ISO 14.9.39.3 SR24 (Format 10): "Identifier-9 shall not be a data-pointer restricted to a type
       *> described with the STRONG phrase." P1 is restricted to REC-T, a STRONG TYPEDEF, so SET P1 UP BY and SET P1 DOWN BY
-      *> are each refused COBOLNET0869 (the message names SR24); a list that includes it is refused once for it. P2 (an
+      *> are each refused COBOL0869 (the message names SR24); a list that includes it is refused once for it. P2 (an
       *> unrestricted pointer) and PW (restricted to the WEAK type REC-W) are legal receivers, and are the positive golden
       *> 2002/pb665_restricted_pointer_conforming. The record is addressed through the Format-7 sibling, which already
       *> screens the same restriction.

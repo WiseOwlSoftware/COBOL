@@ -27,7 +27,7 @@ namespace CobolNet.Frontend.Parsing;
 /// reading §8.9 leaves it is a user-defined word — which is how a name introduced in a slot that does not offer
 /// <c>reservedGatedWord</c> (an index-name, a SPECIAL-NAMES class-name) is reached. Where §8.9 RESERVES the word
 /// nothing is retyped: no name slot can take the
-/// keyword token, a reference fails with the targeted COBOLNET0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>)
+/// keyword token, a reference fails with the targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>)
 /// and a declaration draws it from the funnel.</para>
 /// <para><b>Why DECLARED, not merely free.</b> The union grammar still spells the word's constructs at editions
 /// that lack them, so the named edition gate can answer (<c>GOBACK.</c> at COBOL-85 → "requires COBOL-2002"), and

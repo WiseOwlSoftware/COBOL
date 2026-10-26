@@ -13,7 +13,7 @@
 *> NOT a syntax rule - the GENERAL FORMAT. 14.9.37.2 Format 2 prints the WHEN operand as
 *> `data-name-1 { IS EQUAL TO | IS = } { identifier-3 | literal-1 | arithmetic-expression-1 }` or a bare
 *> condition-name-1, and prints no other relational operator; an ordering comparison has no meaning for a
-*> search that converges on an equal key. It draws the EXISTING COBOLNET1757 ("an operand a statement's own
+*> search that converges on an equal key. It draws the EXISTING COBOL1757 ("an operand a statement's own
 *> syntax rules or general format do not admit"), not one of PB445's three new codes: the shape question and
 *> the syntax rules are different questions and the diagnostic identity follows the mechanism.
 *> The serial SEARCH (Format 1) is the form whose WHEN takes any conditional expression (14.9.37.3 SR6).

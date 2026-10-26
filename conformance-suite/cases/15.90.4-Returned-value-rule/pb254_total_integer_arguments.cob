@@ -23,7 +23,7 @@
       *> 19 and of 31 digits; the arithmetic-expression form (§15.3 argument type 6) that PB22
       *> documents reaching the intake intact.  The FLOATING-POINT carrier is deliberately NOT here:
       *> §15.3 type 6 admits "an integer data item or an always-integral arithmetic expression" and a
-      *> floating-point item is neither, so kb/Work PB248 refuses it under strict (COBOLNET1627).  The float
+      *> floating-point item is neither, so kb/Work PB248 refuses it under strict (COBOL1627).  The float
       *> twins are reachable only under --permissive, and their r1a verdict is witnessed there, in
       *> FloatIntegerArgumentPermissiveTests (the home PB248 made for exactly this).
       *>

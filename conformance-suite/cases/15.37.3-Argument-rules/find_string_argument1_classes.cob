@@ -22,7 +22,7 @@
       *> class alphabetic or alphanumeric, argument-2 shall be a data item or literal of either class
       *> alphabetic or alphanumeric" — Table 2 makes BOTH items class alphanumeric). The OTHER pairing r2
       *> equally admits — the same argument-1 beside an alphanumeric LITERAL — is legal source this compiler
-      *> REJECTS (COBOLNET1627). That is a defect of r2's CROSS screen, not of r1's own screen: it belongs to
+      *> REJECTS (COBOL1627). That is a defect of r2's CROSS screen, not of r1's own screen: it belongs to
       *> inventory row AR-15.37.3-2, which today records verdict CONFORMS / state OK, and the repro that
       *> falsifies that reading is repro/find-string-numeric-edited-arg1.cob. r1's admitted set — three
       *> classes × the data-item and literal species, every Table 2 category among them — is complete here.

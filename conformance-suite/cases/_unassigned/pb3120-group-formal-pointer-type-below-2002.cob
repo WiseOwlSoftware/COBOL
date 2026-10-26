@@ -8,7 +8,7 @@
       *> 2002/pb3120_group_formal_pointer_type: program prototypes,
       *> TYPEDEF and restricted pointers are COBOL-2002 constructs,
       *> so the program is refused when it targets COBOL-85 (the
-      *> edition gate, COBOLNET0900).
+      *> edition gate, COBOL0900).
       *> kb/Work PB3120 - a strongly-typed GROUP formal that holds a
       *> restricted pointer is compared by the pointer's TYPE, as the
       *> elementary formal is, never by the name it was written with.

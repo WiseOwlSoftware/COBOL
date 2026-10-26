@@ -9,7 +9,7 @@
       *> `[ IN alphabet-name-1 ]` phrase and 14.9.13.3 SR3 governs it: "Alphabet-name-1 may be specified only
       *> when the literals or identifiers specified in the THROUGH phrase are of class alphabetic,
       *> alphanumeric, or national." WS-LO and WS-HI are numeric. Before PB843 the phrase was read as a
-      *> qualifier and the verdict was COBOLNET1639 on 'WS-HIINAL' - the phrase's own rule never ran.
+      *> qualifier and the verdict was COBOL1639 on 'WS-HIINAL' - the phrase's own rule never ran.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB843NEG2.
        ENVIRONMENT DIVISION.

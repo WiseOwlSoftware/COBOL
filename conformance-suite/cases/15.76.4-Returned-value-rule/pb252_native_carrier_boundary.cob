@@ -39,7 +39,7 @@
       *>     least value" -> OK §15.63.4 1)   -- together these two make MAX >= MIN, hence case (3).
       *>
       *> ⚠ EDITION. The witness needs 31-digit items: COBOL-85 caps fixed-point at 18 digits
-      *> (COBOLNET0802), and eighteen-digit arguments cannot reach a 38-digit carrier in four terms.
+      *> (COBOL0802), and eighteen-digit arguments cannot reach a 38-digit carrier in four terms.
       *> COBOL-2002 is therefore the EARLIEST edition at which this defect is expressible, which is
       *> why the file lives here rather than in 85/.
        IDENTIFICATION DIVISION.

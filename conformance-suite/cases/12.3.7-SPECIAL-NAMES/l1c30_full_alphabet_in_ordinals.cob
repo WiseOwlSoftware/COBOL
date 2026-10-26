@@ -31,8 +31,8 @@
       *>
       *> WHY IT CAN FAIL: the binder counted the alphabet's positions in
       *> a 16-bit counter that wrapped 65,536 to 0, so every ordinal of
-      *> NREV "did not exist" - the CLASS clause drew COBOLNET1671 and the
-      *> SYMBOLIC CHARACTERS clause COBOLNET1670 on legal source.
+      *> NREV "did not exist" - the CLASS clause drew COBOL1671 and the
+      *> SYMBOLIC CHARACTERS clause COBOL1670 on legal source.
       *>
       *> DERIVATION: NREV = 65536 THRU 1, so ordinal 1 of NREV is U+FFFF
       *> and ordinal 65536 is U+0000; GR12's THROUGH takes the contiguous

@@ -8,7 +8,7 @@
       *> index-name associated with a data item that satisfies one of the above conditions"
       *> -> OK 13.7.3 4)). L-Z-ON is a condition-name of L-Z, and L-Z satisfies none of a)-d)
       *> (it is not a USING operand, nor under one, nor a redefinition, nor BASED), so the
-      *> condition-name is not referenceable either: COBOLNET2746.
+      *> condition-name is not referenceable either: COBOL2746.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1249N2.
        DATA DIVISION.

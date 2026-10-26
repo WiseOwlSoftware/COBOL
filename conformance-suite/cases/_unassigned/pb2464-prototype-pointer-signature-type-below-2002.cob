@@ -8,7 +8,7 @@
       *> 2002/pb2464_prototype_pointer_signature_type: a CLASS-ID, a
       *> PROTOTYPE program and USAGE PROGRAM-POINTER TO are COBOL 2002
       *> features, so the pointer-type crossing cannot be written at
-      *> --std 85 (COBOLNET0900).
+      *> --std 85 (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P1N IS PROTOTYPE.
        DATA DIVISION.

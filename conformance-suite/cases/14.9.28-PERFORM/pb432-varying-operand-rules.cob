@@ -10,7 +10,7 @@
       *> and the UNTIL condition can never become true through the phrase — a guaranteed non-terminating loop.
       *> This program used to compile at every --std; it only ever returned because of the counter guard below,
       *> which fired with N = 11 while the loop was still running.
-      *> The other six lettered obligations of SR4 and SR5 report the same COBOLNET2120 with their own rule
+      *> The other six lettered obligations of SR4 and SR5 report the same COBOL2120 with their own rule
       *> named; the positive coverage of every legal operand shape is tests/conformance/85/
       *> pb432_varying_brace_group.cob.
        IDENTIFICATION DIVISION.

@@ -78,7 +78,7 @@ public sealed class ObjectRefDescriptorDriftTests
         }
         Assert.False(ok, $"USAGE OBJECT REFERENCE{shape} accepted a UNIVERSAL sender — SR10 / SR12 / SR14 each "
                          + "enumerate a CLOSED list of senders and a universal reference is in none of them");
-        Assert.Contains("COBOLNET0867", detail);
+        Assert.Contains("COBOL0867", detail);
     }
 
     /// <summary>⛔ The class-NAME sender's governing rule is READ OFF THE RECEIVER (kb/Work PB451). Every

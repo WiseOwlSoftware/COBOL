@@ -9,7 +9,7 @@
       *>   30). B is a SAME AS copy of A, so its DC is A's one
       *>   definition reproduced (legal); E's CAPACITY IN DC is a
       *>   SECOND written definition of the name and is refused
-      *>   COBOLNET1523 - "defined elsewhere" compares the written
+      *>   COBOL1523 - "defined elsewhere" compares the written
       *>   definitions, not their copies.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2988M.

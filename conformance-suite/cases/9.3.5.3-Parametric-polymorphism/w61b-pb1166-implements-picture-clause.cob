@@ -15,7 +15,7 @@
       *> under F. The prototype and the implementation write the same
       *> character-string F9.99 (equal length, so no width accident can
       *> refuse it), and M2 repeats PIC A(4) as PIC X(4). Each makes the
-      *> class not conform to the interface it IMPLEMENTS: COBOLNET0841.
+      *> class not conform to the interface it IMPLEMENTS: COBOL0841.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. W61BNEGIMI.
        ENVIRONMENT DIVISION.

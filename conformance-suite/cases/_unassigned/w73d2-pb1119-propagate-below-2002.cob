@@ -8,7 +8,7 @@
       *> (kb/Work PB1119). The PROPAGATE directive (ISO 7.3.21) belongs to
       *> the ISO/IEC 1989:2002 exception-condition facility; at COBOL-85
       *> the directive does not exist, so the compiler refuses it with the
-      *> registry's introduction band COBOLNET0900 rather than compiling a
+      *> registry's introduction band COBOL0900 rather than compiling a
       *> program whose unhandled conditions would no longer propagate.
        >>PROPAGATE ON
        IDENTIFICATION DIVISION.

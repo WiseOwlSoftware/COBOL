@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> The SEQUENTIAL-ORGANIZATION arm of the same COBOL-2002 gate
-      *> (COBOLNET0900, construct record-lock-phrase-2002):
+      *> (COBOL0900, construct record-lock-phrase-2002):
       *> VersionConformancePass fires on BoundRead.AdvancingOnLock. Two arms,
       *> one construct - the twin of pb340-advancing-on-lock-keyed-85, so a
       *> future edit that reaches only one of them is caught (kb/Work PB340).

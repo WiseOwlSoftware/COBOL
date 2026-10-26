@@ -14,7 +14,7 @@
       *> literal" as a boolean expression, so a boolean constant-name is
       *> a boolean-expression operand and, of length 1, a simple boolean
       *> condition (8.8.4.3.3 SR1; GR1: true iff the value is 1; GR2:
-      *> NOT reverses it). It used to be refused COBOLNET1639 "'BK' is
+      *> NOT reverses it). It used to be refused COBOL1639 "'BK' is
       *> not defined". Each line prints iff its condition is TRUE:
       *>   BK = B"1", BZ = B"0", BK2 = B"10", B1 = 1, B0 = 0, B2 = B"10"
       *>   A  B1 = BK                      1 = 1 (a relation, already live)

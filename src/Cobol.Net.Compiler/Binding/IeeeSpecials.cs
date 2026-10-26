@@ -25,7 +25,7 @@ public enum IeeeSpecial
 /// usage; of those, the two WiseOwl COBOL provides map EXACTLY onto the CLR's IEEE types — FLOAT-BINARY-32 →
 /// <c>float</c> = binary32, FLOAT-BINARY-64 → <c>double</c> = binary64 — so the interchange format GR33–GR35
 /// name IS the carrier and nothing is approximated here. FLOAT-BINARY-128 and the two FLOAT-DECIMAL usages are
-/// Annex A.3 items 17/19 documented non-support, refused at declaration (COBOLNET1564), so no receiver of those
+/// Annex A.3 items 17/19 documented non-support, refused at declaration (COBOL1564), so no receiver of those
 /// usages reaches this code.</para>
 /// <para>⛔ EVERY VALUE IS SPELLED AS A BIT PATTERN, never as a CLR constant or a negation. <c>double.NaN</c> is
 /// 0xFFF8000000000000 — its sign bit is SET — so GR34's "otherwise the sign is positive" would have to be

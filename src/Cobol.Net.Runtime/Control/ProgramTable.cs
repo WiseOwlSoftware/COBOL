@@ -509,7 +509,7 @@ public sealed class ProgramTable
         // unit's TURN state at its PD entry, the §14.8.4.1 ExternalCheckMask precedent), the activating half
         // rides the call. Unchecked, the call proceeds LENIENTLY: a missing argument behaves as omitted, an
         // excess argument is ignored (the design doc's documented posture). The AS NESTED lane diagnoses the
-        // same rule at BIND (COBOLNET1684) and never reaches this.
+        // same rule at BIND (COBOL1684) and never reaches this.
         bool mismatchChecked = siteArgMismatchChecking && n.ArgMismatchChecking;
         if (n.FormalCount >= 0 && (args.Length > n.FormalCount || args.Length < n.RequiredCount) && mismatchChecked)
             throw new CobolCallException(
@@ -783,7 +783,7 @@ public sealed class ProgramTable
     /// registered function whose declared formal count is <paramref name="expectedFormals"/>.
     /// <para>⛔ GRANULARITY, STATED: the compare is ARITY-ONLY, because a registered unit carries
     /// <c>FormalCount</c>/<c>RequiredCount</c> and nothing finer. Both compile-time compares are richer, because each
-    /// has the two bound <c>CalleeSignature</c>s: the COBOLNET1513 prototype-vs-definition check
+    /// has the two bound <c>CalleeSignature</c>s: the COBOL1513 prototype-vs-definition check
     /// (<c>BinderDriver.CheckPrototypeSignaturePairs</c>, the full <c>PrototypeSignatures.Same</c> comparison since
     /// kb/Work PB894) and the §14.9.39.3 SR20 compare in <c>SetBinder</c>. This site exists for the one case SR20
     /// cannot reach — a sender resolved from a run-time NAME (§8.4.3.12.4 GR1 a), the identifier-1 form).</para>

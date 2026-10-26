@@ -11,7 +11,7 @@
 *> a report file, the RECORD clause shall be specified."
 *> The rule is load-bearing, not decorative: §14.9.30.4 GR6 sizes the implied record
 *> description by "the maximum size established by the RECORD clause", so without one
-*> this file has no record area at all. kb/Work PB345 -> COBOLNET1836.
+*> this file has no record area at all. kb/Work PB345 -> COBOL1836.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB345N1.
        ENVIRONMENT DIVISION.

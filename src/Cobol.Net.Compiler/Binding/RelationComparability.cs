@@ -29,7 +29,7 @@ internal enum RelationComparabilityBreach
 /// <para>⛔ ONE TABLE, AND IT OWNS ONLY THE GENERAL-RELATION ROWS. The other items of the list already have their
 /// own band at the same checkpoint (<c>StatementValidation.CheckRelationalOperands</c>), and this table answers
 /// "not mine" for every pair one of them owns, so a written relation draws ONE diagnostic: item 4 (class boolean)
-/// is COBOLNET0844's; items 9–11 (message-tag, object, pointer — and the predefined NULL, class pointer by
+/// is COBOL0844's; items 9–11 (message-tag, object, pointer — and the predefined NULL, class pointer by
 /// §8.4.3.10.1) are the §8.8.4.2.2 Format 3 screen's; item 12 (strongly-typed groups) is §8.8.4.2.3 SR1's; item 13
 /// (variable-length groups) is §8.5.1.12.1's. What is left is items 1–3 and 5–8 over the classes numeric,
 /// alphabetic, alphanumeric, national and index.</para>
@@ -133,7 +133,7 @@ internal static class RelationComparability
             or CobolClass.Alphabetic or CobolClass.National);
 
     /// <summary>A class another band of the relation checkpoint owns, in EVERY reading: boolean (§8.8.4.2.2 Format
-    /// 2, COBOLNET0844), object and pointer (Format 3, COBOLNET0868/0869 — NULL's only class here).</summary>
+    /// 2, COBOL0844), object and pointer (Format 3, COBOL0868/0869 — NULL's only class here).</summary>
     private static bool OwnedByAnotherBand(CobolClass[] set) =>
         Array.TrueForAll(set, c => c is CobolClass.Boolean or CobolClass.Object or CobolClass.Pointer);
 }

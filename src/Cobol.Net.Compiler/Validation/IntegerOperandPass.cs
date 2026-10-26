@@ -95,7 +95,7 @@ internal static class IntegerOperandRules
     private static Classifier All(IntegerSlot slot) => (_, _) => slot;
     private static readonly Classifier Nonzero = All(IntegerSlot.Default);
     private static readonly Classifier ScreenDeclined = All(IntegerSlot.Not(
-        "the SCREEN SECTION is a declined optional module (Annex A.4.2) refused whole by COBOLNET1560; its "
+        "the SCREEN SECTION is a declined optional module (Annex A.4.2) refused whole by COBOL1560; its "
         + "clauses never bind, and a color integer may be zero"));
 
     /// <summary>⛔ EVERY grammar rule that writes <c>integerLiteral</c>, classified. Enumerated from the generated
@@ -142,7 +142,7 @@ internal static class IntegerOperandRules
         [typeof(Core.ReportNextGroupClauseContext)] = Nonzero, // §13.18.37 NEXT GROUP integer-1 / PLUS integer-2
         [typeof(Core.ReportColumnOperandContext)] = Nonzero,   // §13.18.14 Format 1 COLUMN integer-1 / PLUS
 
-        // ── SCREEN SECTION (Annex A.4.2 — declined, refused whole by COBOLNET1560) ──────────────────────────
+        // ── SCREEN SECTION (Annex A.4.2 — declined, refused whole by COBOL1560) ──────────────────────────
         [typeof(Core.ScreenLineClauseContext)] = ScreenDeclined,
         [typeof(Core.ScreenColumnClauseContext)] = ScreenDeclined,
         [typeof(Core.ScreenForegroundColorClauseContext)] = ScreenDeclined,
@@ -228,7 +228,7 @@ internal static class IntegerOperandRules
         + "holds both the clause and a constant-name to stand in it";
 
     private const string ScreenDeclinedReason =
-        "the SCREEN SECTION is a declined optional module (Annex A.4.2) refused whole by COBOLNET1560; its clauses never bind";
+        "the SCREEN SECTION is a declined optional module (Annex A.4.2) refused whole by COBOL1560; its clauses never bind";
 
     private const string DataNameOrInteger =
         "the format prints 'data-name-1 or integer-1': a constant-name parses as the dataReference arm and the binder reads "
@@ -315,7 +315,7 @@ internal static class IntegerOperandRules
     /// integer" for an 11-digit literal, and each site then took ANOTHER branch: an integer constant-name was
     /// refused as "not an INTEGER constant-name", a reference-modification literal as "not an integer literal", a
     /// 31-digit CURRENCY SIGN literal as not numeric. A site whose integer sizes or positions something the compiler
-    /// lays out asks for <c>saturated</c> and raises COBOLNET2427 (<see cref="BeyondLimitMessage"/>) — handing the
+    /// lays out asks for <c>saturated</c> and raises COBOL2427 (<see cref="BeyondLimitMessage"/>) — handing the
     /// saturated bound on would have the layout allocate it.</summary>
     internal static bool TryHostValue(string text, out int value) => TryHostValue(text, out value, out _);
 
@@ -367,7 +367,7 @@ internal static class IntegerOperandRules
         return true;
     }
 
-    /// <summary>⛔ THE ONE SENTENCE of COBOLNET2427 (kb/Work PB1579) — the pre-bind screen of a written
+    /// <summary>⛔ THE ONE SENTENCE of COBOL2427 (kb/Work PB1579) — the pre-bind screen of a written
     /// <c>integer-n</c> and every binder site that meets the same over-limit integer by another road (an integer
     /// constant-name substituted for integer-n, a reference-modification literal of a data-division clause
     /// operand) report it in the same words, quoting the integer as the source wrote it.</summary>

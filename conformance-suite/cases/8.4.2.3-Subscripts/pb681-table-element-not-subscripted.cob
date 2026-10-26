@@ -10,7 +10,7 @@
 *> reference resolver returned an UNREPORTED null for the omitted list, so `MOVE E TO B` over a two-dimensional
 *> table element compiled clean and aborted the run unit at the MOVE; the condition-name arm (a level 88 under
 *> a table element, SET/IF with no subscript) was the same null through the second resolver entry. The rule is
-*> written the same way at every edition. COBOLNET2270 (kb/Work PB681).
+*> written the same way at every edition. COBOL2270 (kb/Work PB681).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB681NTES.
        DATA DIVISION.

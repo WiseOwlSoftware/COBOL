@@ -7,7 +7,7 @@
 *> kb/Work PB1930 - the refusing half of the CALL lane. 14.8.2.3.3 rule 2 a): "If the formal parameter is numeric, the
 *> conformance rules are the same as for a COMPUTE statement with the argument as the sending operand", and a COMPUTE
 *> sender shall be numeric (8.8.1.1). A function-identifier is now an identifier argument (14.9.4.4 GR8), so the verdict
-*> is the ACTIVATION'S conformance (COBOLNET1688, 14.8.2 via 14.9.4.3 SR25) and not the arithmetic screen's: an
+*> is the ACTIVATION'S conformance (COBOL1688, 14.8.2 via 14.9.4.3 SR25) and not the arithmetic screen's: an
 *> ALPHANUMERIC function into a numeric formal stays refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1930NEGN.

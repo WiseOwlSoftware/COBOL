@@ -27,7 +27,7 @@
       *> the written entry does not apply; only the TYPE-side rule
       *>   catches it.
       *> Expected: rejected with the SAME AS cycle diagnostic
-      *>   (COBOLNET1557).
+      *>   (COBOL1557).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C34A.
        DATA DIVISION.

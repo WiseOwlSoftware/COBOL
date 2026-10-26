@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB654 at COBOL-2014 -- ONE INITIAL EVALUATION, AND ONE 14.7.4.3 r7 GATE OVER IT, FOR EVERY
       *> FIXED-SCALE RECEIVER CATEGORY. ROUNDED MODE IS is a COBOL-2014 introduction, so this is the earliest
-      *> edition that can state the defect at all (COBOLNET0803 below it -- the negative is
+      *> edition that can state the defect at all (COBOL0803 below it -- the negative is
       *> conformance-suite/cases/_unassigned/pb653-nested-float-rounded-mode-below-2014).
       *>
       *> (1) THE DOUBLE EVALUATION. ArithmeticEmitter.StoreArith wrote the right-hand side's expression TWICE

@@ -13,7 +13,7 @@
 *> READ's arm a) also admits "no record description entry" because 13.4.5.3 SR3 permits a
 *> record-less FD, while 13.4.6.3 SR2 requires a record description under an SD.  Here the SD has
 *> TWO -- an alphanumeric group and an elementary category-NUMERIC item -- so arm a) fails and
-*> S-NUM fails arm b).  COBOLNET1994.
+*> S-NUM fails arm b).  COBOL1994.
 *> Before kb/Work PB337 this compiled and ran, printing INTO=1ONE / INTO=2TWO.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB337N2.

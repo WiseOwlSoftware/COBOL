@@ -9,7 +9,7 @@
       *> The rule names a CATEGORY (8.5.2.1: "Use of the name of a data class or data category in the rules of COBOL
       *> refers to the category unless class is specifically indicated" -> OK) and "Both the class and the category
       *> of a strongly-typed group item are the type-name specified in the TYPE clause" (8.5.2.1 -> OK), so the
-      *> strongly-typed group V is not an alphanumeric data item and CANCEL V is refused (COBOLNET1696).
+      *> strongly-typed group V is not an alphanumeric data item and CANCEL V is refused (COBOL1696).
       *> Why this can fail: the class lattice answers alphanumeric for a strongly-typed group (15.3 item 2, a function
       *> ARGUMENT), so a screen that asked it accepted the group.
        IDENTIFICATION DIVISION.

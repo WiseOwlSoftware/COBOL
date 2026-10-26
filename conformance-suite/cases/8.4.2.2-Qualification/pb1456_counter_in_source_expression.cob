@@ -25,8 +25,8 @@
       *>   (PAGE-COUNTER OF R1 + 100) = 101 at column 1; the UNQUALIFIED (PAGE-COUNTER + 100) names R2's own counter,
       *>   the report in whose RD the reference is made, even though the program has two reports: 101 at column 5
       *>   => `101 101`. After MOVE 40 TO PAGE-COUNTER OF R1 the first expression is 140 => `140 101`.
-      *> Fails (COBOLNET2144 'neither a report counter nor a sum counter of this report' for the qualified form and
-      *> COBOLNET0899 'unqualified PAGE-COUNTER with more than one report' for the unqualified one) on a binder that
+      *> Fails (COBOL2144 'neither a report counter nor a sum counter of this report' for the qualified form and
+      *> COBOL0899 'unqualified PAGE-COUNTER with more than one report' for the unqualified one) on a binder that
       *> resolves a counter inside an expression by the procedure division's 'exactly one report' rule.
       *>
       *> THE READ-BACK IS BYTE-WISE (see pb565_report_repeating_entry).

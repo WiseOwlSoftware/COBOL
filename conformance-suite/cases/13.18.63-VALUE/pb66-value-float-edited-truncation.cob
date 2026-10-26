@@ -7,7 +7,7 @@
       *> ISO 1989:2023 13.18.63.3 SR6 for the floating-point numeric-edited item (D21/PB66): the floating-point
       *> literal converts per the MOVE rules "such that no truncation of digits or sign is required" - 1.234E+5
       *> has four significant digits for a three-digit significand, 1.0E+10 lies beyond a one-digit exponent
-      *> (+9), 1.23E-10 below it, and -1.23E+5 has no sign position in 9.99E+9 (SR3): COBOLNET1625 for each.
+      *> (+9), 1.23E-10 below it, and -1.23E+5 has no sign position in 9.99E+9 (SR3): COBOL1625 for each.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB66NVT.
        DATA DIVISION.

@@ -21,7 +21,7 @@ public sealed class OoOccursDynEditionTests
     private static int Count0900(string source, int edition, string whereFragment)
     {
         var (_, errors, _) = EditionHarness.CompileFull(source, edition);
-        return errors.Count(e => e.Contains("COBOLNET0900", StringComparison.OrdinalIgnoreCase)
+        return errors.Count(e => e.Contains("COBOL0900", StringComparison.OrdinalIgnoreCase)
             && e.Contains(whereFragment, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -67,7 +67,7 @@ public sealed class OoOccursDynEditionTests
         """;
 
     // OCCURS DYNAMIC under a REPORT-group entry: the shared occursClause rule reaches report groups, but the binder
-    // routes report OCCURS to COBOLNET0899 (unimplemented), never through OdoBindOccursSpec — so the former gate did
+    // routes report OCCURS to COBOL0899 (unimplemented), never through OdoBindOccursSpec — so the former gate did
     // not fire here (DEVLOG-736 regression witness).
     private const string ReportGroupDynamic = """
         IDENTIFICATION DIVISION.
@@ -91,7 +91,7 @@ public sealed class OoOccursDynEditionTests
     // OCCURS DYNAMIC under a SCREEN-section entry: the screen section is parsed but never routed through
     // OdoBindOccursSpec, so the introduction gate does not reach it (DEVLOG-736 verdict-change witness).
     // ⚠ Since kb/Work PB260 this program does NOT compile — the SCREEN SECTION is refused as the declined
-    // Annex A.4.2 module (COBOLNET1560). That is not what this test measures: Count0900 counts COBOLNET0900
+    // Annex A.4.2 module (COBOL1560). That is not what this test measures: Count0900 counts COBOL0900
     // diagnostics naming the OCCURS DYNAMIC clause, and the assertion is still that there are none.
     private const string ScreenSectionDynamic = """
         IDENTIFICATION DIVISION.
@@ -105,7 +105,7 @@ public sealed class OoOccursDynEditionTests
             STOP RUN.
         """;
 
-    /// <summary>OCCURS DYNAMIC below its 2014 introduction produces EXACTLY ONE COBOLNET0900; none at 2014.</summary>
+    /// <summary>OCCURS DYNAMIC below its 2014 introduction produces EXACTLY ONE COBOL0900; none at 2014.</summary>
     [Fact]
     public void OccursDynamic_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("""
@@ -120,7 +120,7 @@ public sealed class OoOccursDynEditionTests
                05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 1 TO 5.
             """), 2014, "the OCCURS DYNAMIC clause"));
 
-    /// <summary>A class definition below 2002 produces EXACTLY ONE COBOLNET0900 naming the class; none at 2002.</summary>
+    /// <summary>A class definition below 2002 produces EXACTLY ONE COBOL0900 naming the class; none at 2002.</summary>
     [Fact]
     public void ClassDefinition_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(DriverPlusClass, 85, "class definition 'MYCLS'"));
@@ -129,7 +129,7 @@ public sealed class OoOccursDynEditionTests
     public void ClassDefinition_At2002_NoGate()
         => Assert.Equal(0, Count0900(DriverPlusClass, 2002, "class definition 'MYCLS'"));
 
-    /// <summary>An interface definition below 2002 produces EXACTLY ONE COBOLNET0900 naming the interface.</summary>
+    /// <summary>An interface definition below 2002 produces EXACTLY ONE COBOL0900 naming the interface.</summary>
     [Fact]
     public void InterfaceDefinition_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(DriverPlusInterface, 85, "interface definition 'MYIF'"));
@@ -151,16 +151,16 @@ public sealed class OoOccursDynEditionTests
     // OdoBindOccursSpec gate was reached only from BindEntry (data). A bare parse-tree walk over-fired in the other
     // two; InGatedDataEntry restricts firing to a real dataDescriptionEntry.
 
-    /// <summary>OCCURS DYNAMIC in a REPORT-group entry does NOT gate at 85 — report OCCURS is COBOLNET0899, never a
-    /// COBOLNET0900 (the binder never routed it through OdoBindOccursSpec).</summary>
+    /// <summary>OCCURS DYNAMIC in a REPORT-group entry does NOT gate at 85 — report OCCURS is COBOL0899, never a
+    /// COBOL0900 (the binder never routed it through OdoBindOccursSpec).</summary>
     [Fact]
     public void OccursDynamicInReportGroup_At85_DoesNotGate()
         => Assert.Equal(0, Count0900(ReportGroupDynamic, 85, "the OCCURS DYNAMIC clause"));
 
     /// <summary>OCCURS DYNAMIC in a SCREEN-section entry does NOT draw the 2014 introduction gate at 85 — the
     /// entry is never routed through OdoBindOccursSpec, so the gate never reaches it; a bare walk added a
-    /// COBOLNET0900 that had nothing to do with the edition. (The program is separately REFUSED for the screen
-    /// facility itself, COBOLNET1560 — a different code and a different question.)</summary>
+    /// COBOL0900 that had nothing to do with the edition. (The program is separately REFUSED for the screen
+    /// facility itself, COBOL1560 — a different code and a different question.)</summary>
     [Fact]
     public void OccursDynamicInScreenSection_At85_DoesNotGate()
         => Assert.Equal(0, Count0900(ScreenSectionDynamic, 85, "the OCCURS DYNAMIC clause"));

@@ -26,7 +26,7 @@
       *> no concept of level; 13.18.63.4 GR19 gives it its conditional
       *> variable's characteristics only IMPLICITLY, which is what
       *> "explicit" excludes).  Measured before this fix: both were
-      *> COBOLNET0898, legal source rejected - and unlike the
+      *> COBOL0898, legal source rejected - and unlike the
       *> alphanumeric arm these two had been wrong since they were
       *> written, which is why no differential case caught them (0 of
       *> 1,611 GnuCOBOL corpus members carries an oversize national or
@@ -56,7 +56,7 @@
       *> B3  The BOUNDARY: DC is B"10" over two positions -> TRUE.
       *>
       *> National data and boolean data are COBOL-2002 introductions
-      *> (COBOLNET0900 below that), which is why this half of PB598's
+      *> (COBOL0900 below that), which is why this half of PB598's
       *> proof lives at 2002 and not at 85.
        DATA DIVISION.
        WORKING-STORAGE SECTION.

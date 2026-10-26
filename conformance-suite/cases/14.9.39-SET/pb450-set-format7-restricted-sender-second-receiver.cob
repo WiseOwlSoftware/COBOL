@@ -15,7 +15,7 @@
       *> !! IT IS SR19, NOT SR20 - RENDERED, folio 736 / PDF p766. The sentence is an UNNUMBERED continuation
       *> paragraph of 19); 20) is FORMAT 8's "Identifier-12 shall reference a data item of category
       *> function-pointer ..." (cite.py --check 14.9.39.3 "identifier-12" -> OK 20)). Six code sites and two
-      *> goldens carried the inherited SR20, including the user-visible COBOLNET0869 text.
+      *> goldens carried the inherited SR20, including the user-visible COBOL0869 text.
       *> !! THE CELL THIS PINS COULD NOT BE WRITTEN BEFORE kb/Work PB450 half 2. identifier-6's restriction
       *> reached this screen only through an `ADDRESS OF x` sender (8.4.3.11.4 GR2, Annex D.9.2.2 source 2),
       *> because the two fixed productions split on the SENDER's spelling meant a plain pointer sender could
@@ -26,7 +26,7 @@
       *> is the arm the diagnostic's parenthetical now names.
       *> The FIRST receiving operand is a conforming `ADDRESS OF B1` over a TYPE TT based item, so the only
       *> thing this case can be rejected for is the SECOND one (feedback_green_gates_arent_evidence).
-      *> Below 2002 the whole family draws the introduction gate instead (COBOLNET0900 on TYPEDEF), which is
+      *> Below 2002 the whole family draws the introduction gate instead (COBOL0900 on TYPEDEF), which is
       *> why reject-at names 2002 and up.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB450SR19C.

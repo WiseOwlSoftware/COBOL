@@ -11,7 +11,7 @@
       *> categories of data: alphabetic, alphanumeric, alphanumeric-edited, boolean, national,
       *> national-edited, numeric, numeric-edited." Three of them - boolean (GR8), national (GR9) and
       *> national-edited (GR10) - are the COBOL-2002 additions, so this is the edition at which the whole
-      *> list is expressible; the introduction gate below 2002 is COBOLNET0900 (constructs boolean-data-2002,
+      *> list is expressible; the introduction gate below 2002 is COBOL0900 (constructs boolean-data-2002,
       *> national-data-2002, national-edited-2002, and negative golden pb492-national-edited-at-85).
       *>
       *> FUNCTION LENGTH returns the argument's length in character or boolean positions (ISO 15.50.1), which

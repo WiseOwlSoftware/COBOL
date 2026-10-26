@@ -8,7 +8,7 @@
       *> selects ISO 14.9.4.2 Format 2, the program-prototype CALL, which
       *> arrived in COBOL-2002 with program prototypes (8.9 reserves NESTED
       *> from 2002). An 85 compile accepted this program silently; it is now
-      *> an introduction gate (COBOLNET0900). Nothing else here is post-85.
+      *> an introduction gate (COBOL0900). Nothing else here is post-85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB239A85.
        DATA DIVISION.

@@ -29,7 +29,7 @@
       *>      length 1") cannot be decided at compile time for BX(1:M) or
       *>      BX(2:M); M = 1 makes both conforming, so they compile and
       *>      evaluate to BX's positions 1 (1) and 2 (0). Before the fix
-      *>      they were REJECTED as 8-position operands (COBOLNET1511).
+      *>      they were REJECTED as 8-position operands (COBOL1511).
       *> E1 - 14.9.13.3 SR6 a): the same slice facing TRUE is a
       *>      one-boolean-character condition -> WHEN taken.
        IDENTIFICATION DIVISION.

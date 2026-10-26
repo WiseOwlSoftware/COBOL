@@ -11,8 +11,8 @@
       *> shall be described with a picture character-string that
       *> describes a boolean, national, national-edited, numeric, or
       *> numeric-edited data item" - PIC X is none of those, so the entry
-      *> is COBOLNET0881 by that rule. Before the fix the word was read as
-      *> the entry's NAME and the error was COBOLNET0901, the wrong rule.
+      *> is COBOL0881 by that rule. Before the fix the word was read as
+      *> the entry's NAME and the error was COBOL0901, the wrong rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB845NU.
        DATA DIVISION.

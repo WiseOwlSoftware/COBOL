@@ -384,8 +384,8 @@ into `IBoundStatementVisitor<T>` implementations. The loud runtime defaults are 
 `IBoundError` marker so a visitor handles "any error node" once. ⛔ **As built (kb/Work PB1029), the error families are CLOSED
 types:** `BoundRejected`, `BoundExprError`, `BoundOperandError` and `BoundBoolError` have private constructors and are
 obtained only through factories (`Report` / `Reported`; `Refused` / `Unbuilt` / `Carry` / `Report`) that put them on
-the `EditionContext` refusal ledger, which `StatementBinder.BindStatement` checks per statement (COBOLNET2362 for a
-refusal that drew no error; COBOLNET1756 for an unbuilt operand) — `COBOLNET_DESIGN.md` §1.4 is the contract and
+the `EditionContext` refusal ledger, which `StatementBinder.BindStatement` checks per statement (COBOL2362 for a
+refusal that drew no error; COBOL1756 for an unbuilt operand) — `COBOLNET_DESIGN.md` §1.4 is the contract and
 `RefusalNodeDriftTests` the drift test. The reference resolver's own answer is closed the same way (kb/Work PB1030):
 `RefResolution` — `Place | Reported | Deferred` — from which a caller picks its refusal node, with `DeferredShape` the one
 census of unbuilt reference shapes (`RefResolutionDriftTests`). (If the owner declines a source generator, the
@@ -465,8 +465,8 @@ Every operand slot answers **three independent axes**, and both now live in `Ope
 | `Arithmetic` | screen | screen | no | the plain arithmetic-expression position |
 | `ArithmeticIndexWindow` | screen | exempt | yes | BOTH lists name it (SET amounts and values; a SEARCH or relation operand that is a bare name never reaches the expression spine, PB2018) |
 | `ArithmeticIndexNameWindow` | screen | exempt | no | r7 lists it, SR10 does not (subscript segment · PERFORM VARYING FROM/BY) — PB215 |
-| `FunctionArgument` | exempt | screen | yes | the function's own §15.x argument rule governs (COBOLNET1627) |
-| `CallByValue` | exempt | exempt | yes | §14.9.4.3 SR22 governs, and screens the operand itself (COBOLNET1628) |
+| `FunctionArgument` | exempt | screen | yes | the function's own §15.x argument rule governs (COBOL1627) |
+| `CallByValue` | exempt | exempt | yes | §14.9.4.3 SR22 governs, and screens the operand itself (COBOL1628) |
 
 ⛔ **AXIS C IS NOT A CONSEQUENCE OF AXIS A, and assuming it was is a measured mistake.** The two index lists
 are genuinely different rules about different things:
@@ -506,18 +506,18 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 | simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `ReferenceResolver.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
 | sign-condition operand | §8.8.4.7.3 SR1 → §8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
 | **SOLE** relation / EVALUATE comparand | §8.8.4.2.1 + §15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §14.9.13.4 GR4 a) 6. makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
-| CALL … USING BY VALUE | §14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOLNET1628 | exempt |
-| intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOLNET1627 | arithmetic: warn+coerce |
+| CALL … USING BY VALUE | §14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOL1628 | exempt |
+| intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOL1627 | arithmetic: warn+coerce |
 | PERFORM … TIMES count | §14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
 | OCCURS DEPENDING ON data-name-1 | §13.18.38.3 SR17 — **exempt** | `DataBinder.Odo` | n/a |
 | ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `ReferenceResolver.RefModExclusion` | n/a |
-| STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOLNET1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
+| STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOL1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
 | arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §8.8.1.1 sending question — a resultant turns on an axis §8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
-| GO TO … DEPENDING ON identifier-1 | §14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOLNET2324 (PB210) | identifier slot: reject in BOTH lanes |
-| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`ReferenceResolver.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOLNET2325 (PB211) | identifier slot: reject in BOTH lanes |
-| SET Format-1 receiving identifier-1 | §14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOLNET2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
-| PERFORM VARYING / AFTER varied identifier | §14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOLNET2120 | identifier slot: reject in BOTH lanes |
-| WRITE … ADVANCING identifier-2 / integer-1 | §14.9.51.3 SR14 ("an integer data item") and SR15 ("Integer-1 shall be positive or zero"); keyed on the BOUND shape so a constant-name is integer-1 (§13.10.4 GR1) | `OperandPositions.WriteAdvancingIdentifier` → `OperandClassScreen`; integer-1 beside it in `SequentialIoBinder.ScreenAdvancingCount` — both COBOLNET2365 (PB1023) | reject in BOTH lanes |
+| GO TO … DEPENDING ON identifier-1 | §14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOL2324 (PB210) | identifier slot: reject in BOTH lanes |
+| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`ReferenceResolver.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOL2325 (PB211) | identifier slot: reject in BOTH lanes |
+| SET Format-1 receiving identifier-1 | §14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOL2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
+| PERFORM VARYING / AFTER varied identifier | §14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOL2120 | identifier slot: reject in BOTH lanes |
+| WRITE … ADVANCING identifier-2 / integer-1 | §14.9.51.3 SR14 ("an integer data item") and SR15 ("Integer-1 shall be positive or zero"); keyed on the BOUND shape so a constant-name is integer-1 (§13.10.4 GR1) | `OperandPositions.WriteAdvancingIdentifier` → `OperandClassScreen`; integer-1 beside it in `SequentialIoBinder.ScreenAdvancingCount` — both COBOL2365 (PB1023) | reject in BOTH lanes |
 
 **⛔ A CLASS-CLOSED IDENTIFIER POSITION IS A ROW OF `OperandPositions`, NEVER A HAND CHECK AT ITS BINDER**
 (`Binding/Procedure/OperandClassScreen.cs`; kb/Work PB210 · PB211 · PB212). Where a statement's syntax rule reads
@@ -559,8 +559,8 @@ symbolic-character ("defines a figurative constant", §12.3.7.4 GR11 a)) both ar
 resolution returns a `LiteralAlias` (the constant's definition or the symbolic character's value), `AliasOperand` binds
 it to the shape the written literal takes (a symbolic-character is the bare `BoundAllLiteral`, `BeginsWithAll = false`:
 fill when the context sizes it, one character when it does not, §8.3.3.6.4 GR2/GR3), and every procedure position asks
-it: `FieldOperand`, the numeric-expression `RefExpr` (COBOLNET0844 for a non-numeric alias), the receiving refusal
-(COBOLNET1548), intrinsic and user-function arguments, INSPECT operands, the UNSTRING sender refusal, CALL Format 2's
+it: `FieldOperand`, the numeric-expression `RefExpr` (COBOL0844 for a non-numeric alias), the receiving refusal
+(COBOL1548), intrinsic and user-function arguments, INSPECT operands, the UNSTRING sender refusal, CALL Format 2's
 keyword-less, BY CONTENT and BY VALUE literal-2 (§14.9.4.3 SR23 asked of the alias) and INVOKE's literal-2 (§14.9.23.3
 SR16). A numeric constant-name in a BY CONTENT / BY VALUE / intrinsic-argument position keeps the expression path a
 written numeric literal takes there. The chain had been written separately in six binders, and the positions missing a
@@ -772,7 +772,7 @@ format is a property of the WHOLE receiving list: classify each operand once (`K
 a committing resolve), then pick the single table row whose brace admits all of them. When no row does, pick the
 NEAREST row — the first, in specificity order, that admits any of them — and the selected format's own syntax
 rule refuses the operands it does not admit, by name and in its own words. Nothing at all matching is the
-RESIDUAL, `COBOLNET2112`: no printed general format admits this receiving list.
+RESIDUAL, `COBOL2112`: no printed general format admits this receiving list.
 
 The sender does not participate, with ONE exception the table carries as a column. §14.9.39.2 writes a format's
 identity into its receiving brace; the sending brace is then constrained by that format's own rules (SR9 for
@@ -874,7 +874,7 @@ integer-1, SR34 for Format 16's integer-2) beside a GENERAL rule on the expressi
 `SetLiteralAmount` is the one screen: it answers "is this operand a single integer literal" through
 `SoleOperand.NumericLiteral` — THE §8.3.3.3.2 rule-2 contiguity reading, shared with DEFINE, CONSTANT and
 EVALUATE — and compares it against a `SetAmountBound` the call site declares, so each format names its own
-operand and its own rule (`COBOLNET2113`) and the next amount-taking format is a bound, not a fourth `if`.
+operand and its own rule (`COBOL2113`) and the next amount-taking format is a bound, not a fourth `if`.
 
 ### 3.9 The typed position carrier — subscripts and reference-modification positions (D10's second half, kb/Work PB2151)
 
@@ -965,7 +965,7 @@ one — what the evaluate-once identification asks before it hoists).
   (`StatementBinder.BindPositionTemporary`) takes the position's own `arithmeticExpression` node and binds it through
   the expression binder. A `functionArgument` that is not an `arithmeticExpression` (a nonnumeric literal, a boolean
   expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §8.4.2.3.3 SR6's two contexts
-  never reach the hook: the resolver refuses them by name — COBOLNET2363 (kb/Work PB1030).
+  never reach the hook: the resolver refuses them by name — COBOL2363 (kb/Work PB1030).
 - ⛔ **an expression whose worst case passes the host's `long` routes the WHOLE position to the D18 temporary too**
   (kb/Work PB2616). `PositionRenderer` renders `+ - *` as C# `long` arithmetic, but §8.4.2.3.4 1) b) takes the
   subscript from "the evaluation of arithmetic-expression-1", so a product past 18 digits must not wrap into another
@@ -981,7 +981,7 @@ gives its paren to a NEW subscript) is applied to the tree (`CollectCuts`): the 
 `dataReference` nodes, reads a cut reference without its subscript list, and the cut list's items become the
 following subscripts, each a `PositionGroup` of its item. A cut list that does not close its subscript item
 (`T (A + X (- Y) + 1)`, where the tree joins `+ 1` to `X (- Y)`) has no subscript reading the tree can give; it is
-refused by name (COBOLNET2363).
+refused by name (COBOL2363).
 
 The place model's producers build the offsets as nodes: `ReferenceResolver.WindowScopeOf` (the ONE walk of a Tier-B
 reference's levels, its byte, bit and ordinal terms side by side), the ADDRESS OF displacement, the `ViewCursor` that

@@ -11,8 +11,8 @@
       *> SR2: "This identifier format shall not be specified as a
       *> receiving operand." (cite.py: OK 8.4.3.8.3 2)). BY CONTENT SELF
       *> is the legal sending form; BY REFERENCE SELF makes SELF a
-      *> receiving operand, refused by SR2 (COBOLNET3978) - it was a
-      *> parse error re-coded to 8.9 (COBOLNET0901, a reserved word
+      *> receiving operand, refused by SR2 (COBOL3978) - it was a
+      *> parse error re-coded to 8.9 (COBOL0901, a reserved word
       *> misused).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551CRM.

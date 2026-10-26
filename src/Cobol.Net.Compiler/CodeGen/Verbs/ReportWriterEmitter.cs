@@ -636,7 +636,7 @@ internal sealed class ReportWriterEmitter(
                     string addend = SumAddition(r, sum, driven.Select(a => a.Value),
                         $"report {r.Name}: SUM addend was rejected at bind (ISO §13.18.54.3 SR5)");
                     // null = no UPON phrase (GR7 c) 1) — every GENERATE for this report). An UPON phrase whose
-                    // operands were ALL rejected emits the EMPTY filter instead, so a suppressed COBOLNET2046
+                    // operands were ALL rejected emits the EMPTY filter instead, so a suppressed COBOL2046
                     // accumulates on NOTHING rather than on everything: the absence of the phrase and the
                     // failure to resolve it are opposite answers, and the fallback has to be the narrow one.
                     // A detail of ANOTHER report fires on that report's GENERATE, so it registers with that report's

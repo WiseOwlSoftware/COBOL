@@ -10,8 +10,8 @@
       *> why the rule exists: the phrase names "the same class as the object that was used to
       *> invoke the method in which this data description entry is specified", and a program
       *> has no such method.  Before kb/Work PB389 ACTIVE-CLASS had no grammar alternative at
-      *> all, so this drew COBOLNET0813 ("names the unknown class or interface 'ACTIVE-CLASS'")
-      *> plus COBOLNET0901 ("is a reserved word") — a required word of the general format
+      *> all, so this drew COBOL0813 ("names the unknown class or interface 'ACTIVE-CLASS'")
+      *> plus COBOL0901 ("is a reserved word") — a required word of the general format
       *> reported twice over as a botched user-defined name.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB389N1.
