@@ -254,9 +254,36 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// text and is kept for each expansion — which is exactly the per-expansion report a user needs.</summary>
     private void AddOnce(List<string> into, string line)
     {
-        if (_reported.Add(line)) into.Add(line);
+        if (_muted == 0 && _reported.Add(line)) into.Add(line);
     }
     private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
+
+    /// <summary>The depth of open <see cref="Muted"/> scopes: while it is above zero no diagnostic is recorded.</summary>
+    private int _muted;
+
+    /// <summary>⛔ RECORD NOTHING WHILE THE SCOPE IS OPEN, when <paramref name="when"/> — for a pass that must still APPLY
+    /// the clauses of an entry whose facts another entry already answers for (kb/Work PB3682). A TYPE or SAME AS copy
+    /// reproduces a description that was screened where it is WRITTEN (ISO §13.18.57.4 GR1 and §13.18.49.4 GR1: "as
+    /// though … coded in place"), so a defect INSIDE the copy is the declaration's, reported once, at the declaration;
+    /// the copy's own screens would repeat it at every reference, naming the subject where the declaration is named.
+    /// The walk that screens and applies in one body (<c>DataBinder.UsageInheritanceWalk</c>) opens this scope around the
+    /// screens of such an entry and keeps the application. <see cref="ErrorsRecorded"/> still counts the call, and a
+    /// muted fact is never one nobody reports: the caller shows that the declaration's own walk asks the same question.
+    /// A struct, like <see cref="DiagnosticCursorScope"/>: the walk is per entry and must not allocate.</summary>
+    internal MutedScope Muted(bool when)
+    {
+        if (when) _muted++;
+        return new MutedScope(this, when);
+    }
+
+    /// <summary>Closes a <see cref="Muted"/> scope.</summary>
+    internal readonly struct MutedScope(EditionContext context, bool active) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (active) context._muted--;
+        }
+    }
 
     /// <summary>Record a diagnostic keyed by a catalogue <see cref="DiagnosticDescriptor"/> (P2.10 — the
     /// first-class registry replacing bare <c>COBOLNETnnnn</c> string literals). Emits the descriptor's
