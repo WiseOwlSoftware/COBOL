@@ -44,7 +44,11 @@
       *>  c13 RU  universal   -> universal   SR8               match
       *>  c14 RA  ACTIVE-CLASS (in C2463M) -> C2463M  SR12 b)2. "the
       *>      class containing the data item referenced by identifier-4"
-      *>      is C2463M                                        match
+      *>      is C2463M, so the method MATCHES (rule 6); BOUND, its
+      *>      conformance is 14.8.3.3 rule 2 b) 4. (OK 14.8.3.3 2) b)
+      *>      4.): invoked through the universal U, the sending operand
+      *>      is universal, which SR12's closed list does not admit
+      *>      into C2463M       EC-OO-UNIVERSAL (GR7 c); kb/Work PB2985)
       *>  c15 RA  ACTIVE-CLASS (in C2463M) -> C2463P  SR12 b)2. C2463M
       *>      is not C2463P or a subclass                  EC-OO-METHOD
       *>  c16 BASE's New (16.2: "usage object reference active-class",

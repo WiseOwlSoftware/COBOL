@@ -43,7 +43,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import queue_facts  # noqa: E402  (live_heads: the one reader of the merge queue's facts)
 import ruleset  # noqa: E402  (the gh runner: a hang guard, Unobserved on any failure; the repository's name)
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+sys.path.append(str(HERE.parent))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 Gh = ruleset.Gh
@@ -258,7 +258,7 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None, gh: Gh | None = None) -> int:
-    ap =argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
+    ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument('--self-test', action='store_true')
     ap.add_argument('--run-id', type=int, default=0, help="this workflow run's id (github.run_id): never cancelled")
     ap.add_argument('--sha', default='', help="this run's head commit (github.sha): must head a live entry")

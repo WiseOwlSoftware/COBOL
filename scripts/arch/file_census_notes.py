@@ -94,7 +94,6 @@ silent: false
 rejects_legal_source: false
 under_rejects: false
 process_only: true
-blocked: {blocked}
 blocked_by: {blocked_by}
 cluster: ["PB2119"]
 spec_refs: []
@@ -120,7 +119,7 @@ EXTRACT_MODEL = "Opus (an extract wave: kb/Work R69 §4; `model_rules.json` rout
 
 
 def frontmatter(title, nid, blocked_by=(), reason=DEFAULT_REASON):
-    return FRONTMATTER.format(title=title, nid=nid, blocked="true" if blocked_by else "false",
+    return FRONTMATTER.format(title=title, nid=nid,
                               blocked_by=json.dumps(list(blocked_by)), reason=reason)
 
 
@@ -618,7 +617,6 @@ silent: {silent}
 rejects_legal_source: {rejects_legal_source}
 under_rejects: {under_rejects}
 process_only: {process_only}
-blocked: false
 blocked_by: []
 cluster: ["PB1754"]
 spec_refs: {spec_refs}
@@ -1008,7 +1006,7 @@ def self_test():
             with open(os.path.join(nd, n + ".md"), encoding="utf-8", newline="") as fh:
                 return fh.read().replace("\r\n", "\n")
         g = read("PB9004")
-        assert 'blocked: true\nblocked_by: ["PB9100", "R69"]' in g, g[:900]
+        assert 'blocked_by: ["PB9100", "R69"]' in g and "\nblocked:" not in g, g[:900]   # derived, never stored (PB3389)
         assert "**Seam:** S." in g and "T1; T2" in g and "census_ids: R0-9003" in g and "Extract:" in g
         assert "**Blocked by:** PB9100, R69 (" in g          # body and frontmatter come from one list
         u = read("PB9005")
