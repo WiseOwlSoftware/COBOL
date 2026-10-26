@@ -1289,7 +1289,8 @@ kb/Work PB2914). One gate:
    `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
    `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
    `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
-   BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
+   BRANCH. Two more rows classify the landing's merge of main, which is no gate but can fail the same two ways
+   (kb/Work PB3673, step 2 of section 3.17.2): `[merge-blocked]` ENVIRONMENT, `[merge-failed]` BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
    its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
    retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
    main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
@@ -2306,7 +2307,16 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
    conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
+   origin/main --keep`). A CLEAN merge that could not be COMPLETED is no conflict (kb/Work PB3673: a pin settle whose
+   measuring build met a locked DLL used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with
+   nothing to resolve). `merge_drivers.merge` answers with a `Merged` (`clean`, `conflicts`, or `incomplete`: abi_pin's
+   `Failure(cause, why)`, also for git's own refusal of the merge commit), and the cause is read from the gate's one
+   classification, the `merge-*` rows of `run_gate_legs.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
+   another process holds, MSB3027 or MSB3021, a full disk, no SDK, git refused a write) is exit 2, `MERGE NOT COMPLETED`,
+   no report line, retried once by the lane and then the operator's; `merge-failed` (BRANCH: the merged tree's pin, build
+   or measuring test) blocks like a red, exit 5, a finisher's. `merge_drivers.py merge` ends exit 3 with `NOT COMPLETED
+   [<cause>] — …` where a conflict ends 1; with `--keep` a merge stopped at the pin stays in progress, for
+   `abi_pin.py settle --stage` once the cause is removed. Before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
    line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
    the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one
