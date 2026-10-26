@@ -80,4 +80,7 @@ the foreign-module CALL case's item that holds the runtime's name grew past its 
 differential golden keyed by its source's hash moved to its new key; `EmittedGlobalNameDriftTests` now names the
 captured root `WiseOwl`; the landing pipeline's arm names; and the architecture census re-recorded at the renamed head.
 Run 3: `=== BUILD-LOCAL GATE: GREEN — Conformance 18,832/18,832 · Unit 38,392/38,392 · Characterization 36/36 cases ran
-(skipped 0) in 1 of 1 leg(s) · Linux half (WSL clone of HEAD) GREEN … run 000003-20261026T204806Z) ===`.
+(skipped 0) in 1 of 1 leg(s) · Linux half (WSL clone of HEAD) GREEN … run 000003-20261026T204806Z) ===`. After the
+merge with main and the review round, the finisher's gate at `622a62fab`: `=== BUILD-LOCAL GATE: GREEN — Conformance
+18,836/18,836 · Unit 38,391/38,391 · Characterization 36/36 cases ran (skipped 0) in 1 of 1 leg(s) · Linux half (WSL
+clone of HEAD) GREEN … run 000001-20261026T213510Z) ===`.
