@@ -35,7 +35,14 @@ public sealed partial class DataBinder
 
     /// <summary>The PICTURE profile each entry of a subtree completed ahead had before its ancestors' USAGE and SIGN
     /// reached it — what a clause copy of that entry reads (<see cref="CopyEntryDescription"/>).</summary>
-    private readonly Dictionary<DataItem, PicInfo?> _picAsWrittenAhead = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<DataItem, PictureAsWritten> _picAsWrittenAhead = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>What the usage walk rewrites on an entry's PICTURE side: the profile, whether entry bind synthesized it for
+    /// a picture-less usage (<see cref="DataItem.PicIsUsageSynthesized"/> — the walk sheds it from a group header and
+    /// clears the flag with it) and the deferred NATIONAL / BIT mark. A copy of a group completed ahead needs all three
+    /// as they were: the header's profile without its provenance reads as a WRITTEN PICTURE on a group (COBOLNET2191), and
+    /// without it its leaves have no profile to take (kb/Work PB3682).</summary>
+    private readonly record struct PictureAsWritten(PicInfo? Pic, bool UsageSynthesized, PicPending Pending);
 
     /// <summary>A CLAUSE copy (TYPE, SAME AS) of <paramref name="from"/>'s entry: <see cref="CopyEntryDescription"/>, then
     /// the PICTURE profile as WRITTEN when a constant's length phrase completed <paramref name="from"/> ahead. The
@@ -45,9 +52,7 @@ public sealed partial class DataBinder
     /// whether or not `CONSTANT AS BYTE-LENGTH OF E` measured E first (train 1047 review of kb/Work PB2465).</summary>
     private void CopyClauseDescription(DataItem from, DataItem to, DescriptionCopyScope scope)
     {
-        bool takesPicture = to.Pic is null;
-        CopyEntryDescription(from, to, scope);
-        if (takesPicture && _picAsWrittenAhead.TryGetValue(from, out var written)) to.Pic = written;
+        CopyEntryDescription(from, to, scope, _picAsWrittenAhead.TryGetValue(from, out var written) ? written : null);
     }
 
     /// <summary>Complete <paramref name="item"/>'s description now — the subtree's SR9 implied PICTUREs, TYPE and SAME
@@ -60,7 +65,7 @@ public sealed partial class DataBinder
         ComposeAhead(item);
         // The walks below replace each entry's PICTURE profile with the effective one; a later TYPE or SAME AS clause
         // that names an entry of this subtree copies the profile as written (CopyEntryDescription).
-        foreach (var d in PreOrder(item)) _picAsWrittenAhead.TryAdd(d, d.Pic);
+        foreach (var d in PreOrder(item)) _picAsWrittenAhead.TryAdd(d, new PictureAsWritten(d.Pic, d.PicIsUsageSynthesized, d.Pending));
         UsageInheritanceWalk(item, InheritedUsageAt(item));
         InheritSignWalk(item, InheritedSignAt(item));
         _completedAhead.Add(item);
