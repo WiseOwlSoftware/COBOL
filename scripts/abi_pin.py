@@ -24,6 +24,13 @@ surface is an incompatible change against main's 17: major 18"). So:
     increments) and marks the hashes UNMEASURED, and `merge_drivers.merge` runs `settle` before it makes the merge
     commit: the numbers are written into `Directory.Build.props` and `RuntimeAbi.cs`, and the test measures the merged
     tree and writes the hashes. Nothing is bumped by a branch's author that the landing then has to guess.
+
+⛔ A SETTLE THAT FAILS SAYS WHOSE FAILURE IT IS (kb/Work PB3673). `settle` returns a `Failure(cause, why)`, the cause one of
+the two `merge-*` rows of run_gate_legs.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
+(the host's: a build output another process holds, a full disk, a command that cannot start, a git write refused; no finisher
+can fix it and a retry may clear it) or MERGE_FAILED (the merged tree's own: a malformed pin or owned file, a build or the
+measuring test that is red, a measurement that wrote no pin). `merge_drivers.merge` hands it to `enqueue.py land` as it is,
+so a settle that could not run is never reported as a merge conflict.
 """
 from __future__ import annotations
 
@@ -32,7 +39,7 @@ import pathlib
 import re
 import subprocess
 import sys
-from typing import Callable
+from typing import Callable, NamedTuple
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -55,7 +62,35 @@ TEST_FILTER = "FullyQualifiedName~RuntimeAbiPinDriftTests"
 NL = chr(10)
 _VERSION = re.compile(r"(<Version>)(\d+)(\.0\.0</Version>)")
 _CALL_ABI = re.compile(r"(public const int CallAbi = )(\d+)(;)")
-Runner = Callable[[pathlib.Path], "str | None"]
+#: THE TWO CLASSES OF A CLEAN MERGE THAT COULD NOT BE COMPLETED (kb/Work PB3673): the tags of the two `merge-*` rows of
+#: run_gate_legs.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
+#: from there; enqueue.py's self-test holds each tag to a row). BLOCKED is a cause outside the merged tree, which no
+#: finisher fixes and a retry may clear; FAILED is the merged tree's own. The settle's Failure carries them, and
+#: merge_drivers.merge gives git's own refusals of the merge commit the same two.
+MERGE_BLOCKED, MERGE_FAILED = "merge-blocked", "merge-failed"
+#: What a failed build or test run says when the cause is the host's, not the tree's: MSBuild's copy of an output over a
+#: file another process holds (MSB3027 after its retries, MSB3021: the language server of a session holds an analyzer
+#: DLL, an antivirus scan holds a new one), a full disk, and a command that cannot start (gate_slot.py's `run` lets the
+#: spawn's FileNotFoundError reach its stderr when there is no `dotnet` on the PATH).
+_HOST_CAUSE = re.compile(r"MSB3027|MSB3021|being used by another process|is locked by|not enough space on the disk"
+                         r"|No space left on device|FileNotFoundError", re.IGNORECASE)
+
+
+class Failure(NamedTuple):
+    """Why a settle did not settle: `cause`, the tag of the NOT_RUN_CAUSES row (MERGE_BLOCKED or MERGE_FAILED) that
+    classifies it, and `why`, what to tell a person."""
+    cause: str
+    why: str
+
+
+Runner = Callable[[pathlib.Path], "Failure | None"]
+
+
+def failure(why: str, output: str = "") -> Failure:
+    """The Failure of a command that exited non-zero: MERGE_BLOCKED when its FULL `output` names a cause of the host's
+    (_HOST_CAUSE), else MERGE_FAILED. The caller keeps only the tail of the output in `why`, and the error that decides
+    the class can be above that tail, so the class is read from the whole output."""
+    return Failure(MERGE_BLOCKED if _HOST_CAUSE.search(output) else MERGE_FAILED, why)
 
 
 def parse(text: str) -> dict[str, str] | None:
@@ -114,53 +149,66 @@ def _sub(path: pathlib.Path, pattern: re.Pattern, number: str) -> None:
     path.write_bytes(new.encode("utf-8"))
 
 
-def run_measurement(repo: pathlib.Path) -> str | None:
+def run_measurement(repo: pathlib.Path) -> Failure | None:
     """Build the Unit tests and run RuntimeAbiPinDriftTests in WRITE mode, under the shared gate slot (it is a build):
-    None, or why it failed. The filter is asserted to select something first (filter_population.py: vstest answers an
-    unmatched filter with a passing run of zero tests, kb/Work PB708) and the run is scrubbed of the gate's
+    None, or why it failed, classified (failure: a build output another process holds is the host's, MERGE_BLOCKED, and a
+    command that cannot start is too). The filter is asserted to select something first (filter_population.py: vstest
+    answers an unmatched filter with a passing run of zero tests, kb/Work PB708) and the run is scrubbed of the gate's
     environment (test_population.scrubbed_env, kb/Work PB1718); the write switch is the one variable added."""
     slot = [sys.executable, str(HERE / "gate_slot.py"), "run", "--repo", str(repo), "--label", "abi_pin: measure", "--"]
     spawn = {"cwd": repo, "capture_output": True, "text": True, "encoding": "utf-8", "errors": "replace"}
-    guard = subprocess.run([*slot, sys.executable, str(HERE / "filter_population.py"), "--filter", TEST_FILTER, "--filtered",
-                            TEST_PROJECT, "--allow-build"], env=scrubbed_env(), **spawn)
-    if guard.returncode != 0:
-        return f"the measuring filter selects no test (filter_population.py rc {guard.returncode}):{NL}{guard.stdout}{guard.stderr}"
-    run = ["dotnet", "test", TEST_PROJECT, "-c", "Debug", "--filter", TEST_FILTER, "--nologo"]
-    p = subprocess.run([*slot, *run], env={**scrubbed_env(), WRITE_VARIABLE: "1"}, **spawn)
-    return None if p.returncode == 0 else f"the measuring run exited {p.returncode}:{NL}" + NL.join((p.stdout + p.stderr).split(NL)[-40:])
+    try:
+        guard = subprocess.run([*slot, sys.executable, str(HERE / "filter_population.py"), "--filter", TEST_FILTER, "--filtered",
+                                TEST_PROJECT, "--allow-build"], env=scrubbed_env(), **spawn)
+        if guard.returncode != 0:
+            said = guard.stdout + guard.stderr
+            return failure(f"the measuring filter's population check failed (filter_population.py rc {guard.returncode}):{NL}{said}", said)
+        run = ["dotnet", "test", TEST_PROJECT, "-c", "Debug", "--filter", TEST_FILTER, "--nologo"]
+        p = subprocess.run([*slot, *run], env={**scrubbed_env(), WRITE_VARIABLE: "1"}, **spawn)
+    except OSError as e:
+        return Failure(MERGE_BLOCKED, f"a command of the measurement could not start ({e}): is the .NET SDK installed?")
+    said = p.stdout + p.stderr
+    return None if p.returncode == 0 else failure(f"the measuring run exited {p.returncode}:{NL}" + NL.join(said.split(NL)[-40:]), said)
 
 
-def settle(repo: pathlib.Path, *, stage: bool = True, measure: Runner = run_measurement) -> str | None:
+def settle(repo: pathlib.Path, *, stage: bool = True, measure: Runner = run_measurement) -> Failure | None:
     """Make the tree agree with the pin's counters and measure its hashes: the counters are written into
     Directory.Build.props (the major) and RuntimeAbi.cs (the call ABI), `measure` builds the tree and has the test write
-    the hashes, and the owned files are staged (`stage`, for a merge in progress). None, or why it could not."""
-    pin = parse((repo / PIN_PATH).read_text(encoding="utf-8"))
+    the hashes, and the owned files are staged (`stage`, for a merge in progress). None, or the Failure: MERGE_FAILED
+    for the merged tree's own (the pin or an owned file is malformed, the measurement wrote no pin), MERGE_BLOCKED for a
+    host that refused a write (the measurement classifies its own, run_measurement; kb/Work PB3673)."""
+    try:
+        pin = parse((repo / PIN_PATH).read_text(encoding="utf-8"))
+    except OSError as e:
+        return Failure(MERGE_FAILED, f"{PIN_PATH} cannot be read ({e})")
     if pin is None:
-        return f"{PIN_PATH} does not hold exactly {', '.join(KEYS)}"
+        return Failure(MERGE_FAILED, f"{PIN_PATH} does not hold exactly {', '.join(KEYS)}")
     try:
         _sub(repo / PROPS_PATH, _VERSION, pin["runtime-major"])
         _sub(repo / CALL_ABI_PATH, _CALL_ABI, pin["call-abi"])
-    except (ValueError, OSError) as e:
-        return str(e)
+    except ValueError as e:
+        return Failure(MERGE_FAILED, str(e))
+    except OSError as e:
+        return Failure(MERGE_BLOCKED, f"an owned file could not be read or written ({e})")
     if why := measure(repo):
         return why
     after = parse((repo / PIN_PATH).read_text(encoding="utf-8"))
     if after is None or UNMEASURED in after.values() or any(after[k] != pin[k] for k in COUNTERS):
-        return f"the measurement did not write {PIN_PATH} (hashes measured, counters as merged)"
+        return Failure(MERGE_FAILED, f"the measurement did not write {PIN_PATH} (hashes measured, counters as merged)")
     if stage:
         added = subprocess.run(["git", "add", "--", *OWNED], cwd=repo, capture_output=True, text=True)
         if added.returncode != 0:
-            return f"git add of the settled files failed: {added.stderr.strip()}"
+            return Failure(MERGE_BLOCKED, f"git add of the settled files failed: {added.stderr.strip()}")
     return None
 
 
-def bump(repo: pathlib.Path, *, runtime_major: bool, call_abi: bool, measure: Runner = run_measurement) -> str | None:
+def bump(repo: pathlib.Path, *, runtime_major: bool, call_abi: bool, measure: Runner = run_measurement) -> Failure | None:
     """An author's bump: raise the named counters, mark the hashes UNMEASURED and settle (nothing staged)."""
     path = repo / PIN_PATH
     text = path.read_text(encoding="utf-8")
     pin = parse(text)
     if pin is None:
-        return f"{PIN_PATH} does not hold exactly {', '.join(KEYS)}"
+        return Failure(MERGE_FAILED, f"{PIN_PATH} does not hold exactly {', '.join(KEYS)}")
     values = {**pin, **{k: UNMEASURED for k in HASHES}}
     if runtime_major:
         values["runtime-major"] = str(int(pin["runtime-major"]) + 1)
@@ -215,7 +263,7 @@ def self_test() -> int:
         s.git("commit", "-q", "-m", "x")
         seen: list[str] = []
 
-        def writes(r: pathlib.Path) -> str | None:     # the test's write mode: the tree's live numbers and hashes
+        def writes(r: pathlib.Path) -> Failure | None:     # the test's write mode: the tree's live numbers and hashes
             seen.append((r / PROPS_PATH).read_text(encoding="utf-8") + (r / CALL_ABI_PATH).read_text(encoding="utf-8"))
             (r / PIN_PATH).write_bytes(with_values((r / PIN_PATH).read_text(encoding="utf-8"),
                                                    {"runtime-hash": "1111", "boundary-hash": "2222"}).encode("utf-8"))
@@ -230,9 +278,31 @@ def self_test() -> int:
                and not needs_settle(repo) and set(s.git("diff", "--cached", "--name-only").split()) == set(OWNED),
                f"{why} {seen}")
         (repo / PIN_PATH).write_bytes(pin(18, UNMEASURED, 3, UNMEASURED).encode("utf-8"))
-        expect("settle: a measurement that fails, or writes nothing, is the reason, never a pass",
-               settle(repo, measure=lambda r: "the measuring run exited 1") == "the measuring run exited 1"
-               and "did not write" in (settle(repo, measure=lambda r: None) or ""))
+        exited = Failure(MERGE_FAILED, "the measuring run exited 1")
+        silent = settle(repo, measure=lambda r: None)
+        expect("settle: a measurement that fails, or writes nothing, is the reason, never a pass; the measurement's own "
+               "class passes through, and a measurement that wrote nothing is the merged tree's (MERGE_FAILED)",
+               settle(repo, measure=lambda r: exited) == exited and silent is not None and "did not write" in silent.why
+               and silent.cause == MERGE_FAILED)
+        long_output = NL.join(["error MSB3027: Could not copy SourceGen.dll. The file is locked by: csharp-ls (62616)"]
+                              + [f"line {i}" for i in range(100)])
+        expect("failure: a build output another process holds (MSB3027, MSB3021), a full disk and a command that cannot "
+               "start are MERGE_BLOCKED, read from the WHOLE output though the message keeps only its tail; a compile "
+               "error or a red test is MERGE_FAILED (kb/Work PB3673)",
+               failure("tail", long_output).cause == MERGE_BLOCKED
+               and failure("x", "error MSB3021: Unable to copy file").cause == MERGE_BLOCKED
+               and failure("x", "System.IO.IOException: There is not enough space on the disk.").cause == MERGE_BLOCKED
+               and failure("x", "FileNotFoundError: [WinError 2] The system cannot find the file specified").cause == MERGE_BLOCKED
+               and failure("x", "error CS0103: The name 'x' does not exist in the current context").cause == MERGE_FAILED
+               and failure("x", "Failed RuntimeAbiPinDriftTests.RuntimeHash_IsThePin").cause == MERGE_FAILED
+               and failure("x").cause == MERGE_FAILED)
+        (repo / PROPS_PATH).write_bytes(b"<Project />")
+        malformed = settle(repo, measure=writes)
+        expect("settle: an owned file that lacks the line the settle rewrites is the merged tree's (MERGE_FAILED), and "
+               "the measurement never runs",
+               malformed is not None and malformed.cause == MERGE_FAILED and "not there exactly once" in malformed.why
+               and len(seen) == 1, f"{malformed}")
+        (repo / PROPS_PATH).write_bytes(("<Project><Version>17.0.0</Version></Project>" + NL).encode("utf-8"))
         (repo / PIN_PATH).write_bytes(pin(18, "1111", 3, "2222").encode("utf-8"))
         fresh = bump(repo, runtime_major=True, call_abi=False, measure=writes)
         expect("bump: the named counter rises by one, the other stays, and the tree is measured (nothing staged by it)",
@@ -269,7 +339,7 @@ def main() -> int:
         ap.print_help()
         return 2
     if err:
-        print(f"abi_pin: {err}", file=sys.stderr)
+        print(f"abi_pin: [{err.cause}] {err.why}", file=sys.stderr)
         return 1
     print("abi_pin: the pin, Directory.Build.props and RuntimeAbi.cs agree and the tree is measured")
     return 0
