@@ -826,6 +826,7 @@ public static partial class ConditionalCompilationProcessor
         diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — evaluated context
         diag.GateBooleanOperators(cce);
         diag.GateLogicalOperators(cce);
+        diag.GateRelationalOperators(cce);
         return evaluator.EvaluateCce(cce, where) ?? false;
     }
 
@@ -956,6 +957,16 @@ public static partial class ConditionalCompilationProcessor
         public void GateLogicalOperators(Antlr4.Runtime.Tree.IParseTree fragment)
         {
             if (bag is not null) LogicalOperatorGate.Check(edition, new BagSink(bag, At), fragment);
+        }
+
+        /// <summary>The relational-operator introduction gate over an evaluated constant-conditional-expression fragment
+        /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §7.3.8.2 SR1 a)) of the
+        /// targeted edition, so the symbol <c>&lt;&gt;</c> below COBOL-2014 is the same COBOLNET0900 its runtime twin draws
+        /// — asked through the ONE body the compilation-unit walk uses (<see cref="RelationalOperatorGate"/>), once per
+        /// fragment.</summary>
+        public void GateRelationalOperators(Antlr4.Runtime.Tree.IParseTree fragment)
+        {
+            if (bag is not null) RelationalOperatorGate.Check(edition, new BagSink(bag, At), fragment);
         }
 
         /// <summary>The syntax-level screens of a parsed directive fragment, once per fragment, at the directive's line:
