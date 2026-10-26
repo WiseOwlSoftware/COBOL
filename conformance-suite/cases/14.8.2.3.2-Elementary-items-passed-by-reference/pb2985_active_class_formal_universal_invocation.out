@@ -1,0 +1,9 @@
+t01 HANDLED=EC-OO-UNIVERSAL                
+t02 HANDLED=EC-OO-UNIVERSAL                
+FN-RAN
+FO-RAN
+t05 HANDLED=EC-OO-UNIVERSAL                
+FA-RAN
+FA-RAN-Q
+t08 HANDLED=EC-OO-METHOD                   
+END
