@@ -23,7 +23,12 @@
       *>   U = a D1112U, argument a C1112U                      -> EC-OO-METHOD
       *>   U = a C1112U, FACTORY formal, argument C1112U's factory object -> TF-RAN
       *>   U = a C1112U, FACTORY formal, argument an instance   -> EC-OO-METHOD
+      *> EC-OO-UNIVERSAL checking is OFF (kb/Work PB2985): with it on, 14.9.23.4 GR7 c) applies 14.8.2.3.2 rule 4 to
+      *> the bound method, and a universal invoking reference is none of the invocations rule 4 a) / b) admit, so every
+      *> TA-RAN / TF-RAN case here would be EC-OO-UNIVERSAL (pb2985_active_class_formal_universal_invocation). This
+      *> case keeps witnessing the MATCH alone: unchecked, a method that matches runs.
        >>TURN EC-OO CHECKING ON
+       >>TURN EC-OO-UNIVERSAL CHECKING OFF
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1112U.
        ENVIRONMENT DIVISION.

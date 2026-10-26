@@ -1,0 +1,15 @@
+t01 delivered
+t02 HANDLED=EC-OO-UNIVERSAL                
+t02 NULL
+t03 delivered
+t04 delivered
+t05 HANDLED=EC-OO-UNIVERSAL                
+t05 NULL
+t06 HANDLED=EC-OO-UNIVERSAL                
+t06 NULL
+t07 delivered
+t08 HANDLED=EC-OO-UNIVERSAL                
+t08 NULL
+t09 delivered
+t10 delivered
+END
