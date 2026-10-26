@@ -1,4 +1,4 @@
-## The leads of waves 20261504 and 20261505, filed
+## Entry 2596 — 2026-10-25 18:47 PDT — The leads of waves 20261504 and 20261505, filed
 
 The clerk read the twelve branch reports and eight findings files of waves 20261504 (seven branches) and 20261505 (five) and
 filed each lead no report answered as fixed. Leads naming an open note were appended to it (PB3744, PB3604, PB3682); the
@@ -15,3 +15,4 @@ documentation does not name (PB3691).
 
 Appended: PB3744 (the failed restore in `_swap_in` reports "left as it was"), PB3604 (three stale references to the renamed
 `GateSr5` / `Sr5FigurativeText`), PB3682 (the GROUP-USAGE mute is shallow).
+
