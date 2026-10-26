@@ -361,11 +361,12 @@ public sealed class LandingPipelineDriftTests
             "GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",
             "HEAD beside origin/main is refused (main brought in first), and HEAD on main is refused before any check",
             "HEAD at origin/main has nothing to land; an empty title or body is a usage error",
-            "checks runs the four landing scripts in order, the range only to the two that read one, and maps each "
-                + "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, unreadable 2",
-            // kb/Work PB3389 review R1-1 and PB3575 review R1-1: the register and the diagnostic-prefix audit of the
+            "checks runs the five landing scripts in order, the range only to the two that read one, and maps each "
+                + "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, retired names 6, "
+                + "unreadable 2",
+            // kb/Work PB3389 review R1-1, PB3575 review R1-1 and PB3837: the register and the two rename audits of the
             // merged head, each read by that head's own script
-            "the register check and the diagnostic-prefix audit run the worktree's own scripts (exit {code})",
+            "the register check and the two rename audits run the worktree's own scripts (exit {code})",
             // kb/Work PB3023: the whole landing step, one script
             "land: the migrating landing (the whole history added as files) titles its pull request from its ONE new "
                 + "entry, the landing rule's own (devlog.landing_entries)",
