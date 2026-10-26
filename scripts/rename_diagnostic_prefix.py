@@ -59,9 +59,11 @@ EXCEPT = (
 
 #: (pattern, replacement), applied in this order to the raw bytes of every file in scope.
 RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
-    # a regex alternation and an optional group that named both prefixes collapse to the one prefix
+    # a regex alternation and an optional group that named both prefixes collapse to the one prefix; the optional
+    # group only before a digit atom, since `COBOL(?:NET)?_` matches the runtime's environment-variable names
+    # (COBOL_*, COBOLNET_CLOCK), which are no diagnostic prefix
     (re.compile(rb"COBOLNET\|COBOL\|"), b"COBOL|"),
-    (re.compile(rb"COBOL\(\?:NET\)\?"), b"COBOL"),
+    (re.compile(rb"COBOL\(\?:NET\)\?(?=[0-9]|\\+d|\[0-9\])"), b"COBOL"),
     # a code, a Markdown-bold code, a placeholder, or a regex that matches a code
     (re.compile(rb"COBOLNET(?=[0-9]|\*\*[0-9]|nnnn|####|<n>|\xe2\x80\xa6|\\+d|\[0-9\]|\()"), b"COBOL"),
     # the prose word for a code of the family
@@ -176,6 +178,9 @@ def self_test() -> int:
          "the prose word for the family"),
         (f"docs/{old}_DESIGN.md, CALL \"{old}\" USING, HELLO FROM {old}.",
          f"docs/{old}_DESIGN.md, CALL \"{old}\" USING, HELLO FROM {old}.", "a name that is no diagnostic prefix stays"),
+        (r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"") and ' + old + "_CLOCK",
+         r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"") and ' + old + "_CLOCK",
+         "an environment-variable name and the regex that matches the names stay"),
     ]
     for before, after, label in cases:
         got, _ = rewrite(before.encode("utf-8"))
