@@ -239,7 +239,7 @@ def self_test() -> int:
         for m, text in files.items():
             p = root / nodes[m][0]
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(text, encoding="utf-8")
+            p.write_text(text, encoding="utf-8", newline="\n")
         return check(root, lines, nodes, splits)
 
     base = {"coord": "import json\n", "reports": "import coord\n", "inflight": "import coord\nfrom reports import X\n",
