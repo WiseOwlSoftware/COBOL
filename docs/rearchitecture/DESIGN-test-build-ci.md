@@ -1578,6 +1578,19 @@ cannot start.
   measure; owner 2026-10-12, "Supervisor lane (Recommended)"). The cap is the same for both classes, so the
   machine's total gate load does not change. An unknown class value stops the gate with the reason, as malformed
   settings do; `status` lists the queue in service order with each ticket's class.
+- **Two pools: a light gate never waits for a full one (kb/Work PB3724).** The cap exists to ration builds and test legs,
+  and a gate that runs neither queued for it anyway: on 2026-10-25 a notes-only gate (the INERT lane, §3.18), whose only
+  slot work is about a minute of script self-tests in a WSL clone of HEAD, waited ten minutes behind the implementers' full
+  gates. The slot directory therefore holds TWO POOLS (`gate_slot.Pool`, `GATE_POOL` and `LIGHT_POOL`), each with its own
+  slot files, ticket queue (service order within it as above), cap and hold history (`light/`): the GATE pool is the one
+  above, and the LIGHT pool's cap is the coded default `DEFAULT_LIGHT_SLOTS = 2` (an implementor's choice, not an owner
+  decision: it adds at most two script-test runs beside the full gates), departed from by the shared setting `light_cap`
+  (`gate_slot.py set-light-cap N [--until ISO]`; `clear light-cap` removes it). `Host.take_slot(label, say, pool)` takes the
+  pool its work follows: `Gate._inert` takes a LIGHT slot, the full lane's gate a GATE slot, and `gate_slot.py run --pool
+  light|gate` wraps a command in either. No gate holds both, so neither pool waits on the other. `status` prints both
+  pools. A waiting gate also says WHY it waits: a count that rises while it waits (`k ahead` 0, 1, 2, 0) is a landing
+  ticket numbered after its own and served first (PB3103), and the log names each such ticket once; the gate next in line
+  says it waits for the first released slot of its pool.
 - **What holds it.** A Python caller holds a slot with `GateSlots.for_repo().acquire(label)` (a `Slot`, released by
   its `with` block or by the holder's death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] --
   <command>`, which exits with the command's code. `run_gate_legs.py` takes the slot after the worktree's gate lock
@@ -1911,13 +1924,21 @@ holds `gate.log` (the gate's whole output), `gate.pid` and, at the end, `verdict
 echoes the log as it grows and exits with the gate's own exit code once the verdict file is written, so every caller
 that blocks on the `=== BUILD-LOCAL GATE: ` line (agents, `enqueue.py`, a person) sees exactly what it saw before. A
 caller that is killed leaves the gate running to its verdict. The gate writes `gate.pid` itself, UNDER its worktree's gate lock (the launcher writes none), so a
-pid file proves the gate took the lock. To stop a gate, end the process `gate.pid` names.
+pid file proves the gate took the lock. ⛔ **The window before the lock (kb/Work PB3707).** The run directory exists, and its
+child is alive, for the moment of interpreter start and imports before the child takes the lock and writes `gate.pid`; neither
+fact says a gate is coming. The launcher therefore records the child it spawned in `gate.spawn` (its pid), and the child's first
+act under the lock replaces it with `gate.pid`. `run_gate_legs.gate_phase` reads a run by THREE facts, never a pid alone: the
+gate lock is held by a gate writing this run (RUNNING); else the run has no `gate.pid`, is younger than `START_WINDOW_S` (60 s,
+read from the stamp in its name, so no gap lies between the directory and its record) and its spawn record, when it has one,
+names a live process (STARTING); else the gate DIED. A reused pid can therefore read a dead child as starting for the window and
+no longer. `enqueue.tested_locally` reads a STARTING run as a verdict still owed (exit 12, GATE BUSY, never exit 14), and
+`--await` reports it PENDING. To stop a gate, end the process `gate.pid` names.
 
 **2. One way to wait: the verdict file.** `run_gate_legs.watch` — the CLI `run_gate_legs.py --await <run> [--worktree
 W] [--wait-s N]` — reads the run directory, never a log's tail: the record's line and exit code once `verdict.json` is
-there; `NOT RUN [verdict]` (exit 2, BRANCH) when the gate DIED without one (`gate_running`: the run has a `gate.pid` and its
-worktree's gate lock is not held by a gate writing that run; never the pid's liveness, which the OS reuses; only the follower
-watches its own freshly spawned child); PENDING (exit 4: exit 3
+there; `NOT RUN [verdict]` (exit 2, BRANCH) when the gate DIED without one (`gate_running`, over `gate_phase`: the worktree's gate
+lock is not held by a gate writing that run and the run is not STARTING; never the pid's liveness, which the OS reuses; only the
+follower watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
 that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
@@ -2334,7 +2355,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    record the landing gates their tip once itself. That one gate's verdicts are read as before: exit 5 on a red,
    the host named; exit 12, never a red, when the gate driver says BUSY (another gate holds the worktree's gate lock,
    nothing ran, and the landing lane retries it once the lock is free, kb/Work PB3527; the same exit when the gate's Linux half found a Linux gate of the tree running (`linux-gate.sh` BUSY: its message names the running gate's pid and start time, and `linux-gate.sh --probe` is what the lane's wait asks, kb/Work PB3649); the same exit, for the same wait, when the
-   worktree's own gate is still running and has written no verdict, `run_gate_legs.live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
+   worktree's own gate is still running (or STARTING: spawned moments ago, its child alive, the lock not yet taken, kb/Work PB3707) and has written no verdict, `run_gate_legs.gate_phase` over `live_gate` (the gate lock held; never a process id, which Windows reuses), kb/Work PB3662, where the record would
    otherwise read as exit 14, UNTESTED, and stop the branch); exit 15, never a red, in step 4 when the branch merged a predecessor
    whose pull request is still open into main and so adds that pull request's stamped DEVLOG entry beside its own
    (`enqueue.open_predecessors`: nothing queued, and the lane retries it once no open pull request owns an entry the
@@ -2729,7 +2750,7 @@ the skills submodule they initialize), so the inert watch cannot vouch for them 
 them red on Linux. Until PB3646 both local Linux processes ended GREEN in the inert lane before any of them ran, so
 CI could fail on code the local gates passed (the CI invariant, PB1957). Now `linux-gate.sh` runs its `selftests` leg
 in the inert lane (a clone of HEAD, no build, no corpus: measured 25 s of self-tests, 45 s for the whole run) and
-`--legs inert` is the same run for the Windows gate, whose inert lane takes a slot, runs it after the audits
+`--legs inert` is the same run for the Windows gate, whose inert lane takes a LIGHT slot (§3.14.6, kb/Work PB3724: its own pool and cap, so a notes-only landing never queues behind the full gates' builds), runs it after the audits
 (`Gate._inert`, `Host.linux_leg(inert=True)`), records it as the Linux half, and ends BUSY, NOT RUN or RED on it exactly
 as the full lane does. `tested_locally` and the gate's reuse rule therefore require a GREEN Linux half for an inert
 record on a host that runs one (an inert record from before PB3646 has none, and the gate runs again).

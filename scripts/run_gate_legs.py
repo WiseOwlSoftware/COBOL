@@ -125,8 +125,8 @@ import impacted_tests  # noqa: E402
 import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
-from gate_slot import (DEFAULT_SCOPE, ExclusiveLock, GateSettings, GateSlots, Setting, Slot,  # noqa: E402
-                       git_common_dir, slot_dir)
+from gate_slot import (DEFAULT_SCOPE, GATE_POOL, LIGHT_POOL, ExclusiveLock, GateSettings, GateSlots, Pool,  # noqa: E402
+                       Setting, Slot, git_common_dir, slot_dir)
 from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
@@ -449,8 +449,10 @@ class Host:
         """`<worktree git dir>/cobol-gate.lock` — per WORKTREE (a linked worktree's git dir is its own)."""
         return Path(self.git("rev-parse", "--absolute-git-dir")) / LOCK_NAME
 
-    def take_slot(self, label: str, say: Callable[[str], None]) -> Slot:
-        return GateSlots.for_repo(self.repo).acquire(label, say=say)
+    def take_slot(self, label: str, say: Callable[[str], None], pool: Pool = GATE_POOL) -> Slot:
+        """A slot of `pool`: the GATE pool for the builds and test legs the cap rations, the LIGHT pool for a gate whose
+        whole job is script self-tests (the inert lane's Linux half, kb/Work PB3724)."""
+        return GateSlots.for_repo(self.repo, pool=pool).acquire(label, say=say)
 
     def implementer_scope(self) -> tuple[str, Setting | None]:
         """The shared implementer scope (gate_slot.py; kb/Work PB2515): `leg1` or `whole`, and the live setting that
@@ -775,7 +777,10 @@ def leg_env(handshake: dict[str, str], observations: Path) -> dict[str, str]:
 def write_pid(run: Path, pid: int) -> None:
     """The gate's own pid, written UNDER its gate lock; it replaces the launcher's spawn record (`write_spawn`)."""
     (run / PID_FILE).write_text(json.dumps({"pid": pid}) + "\n", encoding="utf-8", newline="\n")
-    (run / SPAWN_FILE).unlink(missing_ok=True)
+    try:
+        (run / SPAWN_FILE).unlink(missing_ok=True)
+    except OSError:  # the launcher has the record open this instant (Windows): it lingers, and the pid file outranks it
+        pass
 
 
 def read_pid(run: Path) -> int | None:
@@ -807,7 +812,10 @@ def run_age_s(run: Path, now: float | None = None) -> float | None:
     m = _RUN_STAMP.search(run.name)
     if m is None:
         return None
-    made = dt.datetime.strptime(m.group(), "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc).timestamp()
+    try:
+        made = dt.datetime.strptime(m.group(), "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc).timestamp()
+    except ValueError:  # digits that are no date (a hand-made name): no age, so never "starting"
+        return None
     return (time.time() if now is None else now) - made
 
 
@@ -980,7 +988,11 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
     # window before the lock reads a young run with a live child as STARTING (`gate_phase`), never as a gate that died. The
     # run is young from the moment its directory exists (its name's stamp), so no gap lies between the two. The follower
     # alone has watched its child since the spawn, so its liveness is the child's.
-    write_spawn(run, pid)
+    try:
+        write_spawn(run, pid)
+    except OSError as e:  # the record only shortens a dead child's STARTING; the gate runs and is followed without it
+        say(f"build-local: ⚠ the spawned gate's pid could not be recorded in {run} ({e}); a reader reads the run as "
+            f"STARTING for {START_WINDOW_S:.0f} s whether or not it dies")
     say(f"build-local: the gate runs DETACHED (pid {pid}, run directory {run}): it outlives this process; "
         f"`python scripts/run_gate_legs.py --await {run}` reads its verdict (kb/Work PB3536)")
     code, line = watch(run, None, lambda: _pid_alive(pid), echo=say)
@@ -1315,7 +1327,9 @@ class Gate:
         if self.host.runs_linux_leg():
             t = time.monotonic()
             try:
-                slot = self.host.take_slot(label, self.say)
+                # a LIGHT slot (kb/Work PB3724): a notes-only landing's gate runs about a minute of script self-tests, so it
+                # waits for none of the full gates' builds and legs, whatever the gate pool's queue holds
+                slot = self.host.take_slot(label, self.say, LIGHT_POOL)
             except ValueError as e:  # the shared gate settings turned malformed while this gate queued
                 return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
             out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
@@ -1740,6 +1754,7 @@ class FakeHost(Host):
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
+        self.pools: list[str] = []   # the pool of each slot the gate took (kb/Work PB3724)
         self.audited = self.built = False
         self.events: list[str] = []  # the order the gate drove the host in: audits, fetch, slot, build
         self.envs: dict[tuple[int, str], dict[str, str]] = {}
@@ -1751,8 +1766,9 @@ class FakeHost(Host):
     def fetch_bounce_results(self) -> str:
         return "build-local: ci bounce: none (a planted host asks GitHub nothing)"
 
-    def take_slot(self, label, say):
+    def take_slot(self, label, say, pool=GATE_POOL):
         self.events.append("slot")
+        self.pools.append(pool.name)
         if "slot-settings" in self.plant:
             raise ValueError("planted: settings.json turned malformed while the gate queued")
         self.slots_taken += 1
@@ -2622,6 +2638,12 @@ def self_test() -> int:
             o.exit_code == 0 and o.lane == "inert" and o.linux is not None and o.linux["verdict"] == "GREEN"
             and h.events == ["audits", "slot", "linux inert"] and not h.built and h.slots_taken == 1
             and "Linux self-tests (WSL clone of HEAD) are GREEN" in o.line, f"{o.line} {h.events}")
+        o_full, h_full = gate("linux-full-pool", plant={"linux"}, scope=None)
+        arm("the pool a gate waits in follows its work (kb/Work PB3724): the inert lane's script self-tests take a LIGHT "
+            "slot, so a notes-only landing never queues behind the full gates' builds and legs; a full-lane gate takes a "
+            "GATE-pool slot",
+            h.pools == [LIGHT_POOL.name] and h_full.pools == [GATE_POOL.name] and h.slots_taken == h_full.slots_taken == 1,
+            f"{h.pools} {h_full.pools}")
         o_red, _ = gate("linux-inert-red", plant={"linux-red", "inert"}, scope=None)
         o_sdk, _ = gate("linux-inert-sdk", plant={"linux-sdk", "inert"}, scope=None)
         o_busy, _ = gate("linux-inert-busy", plant={"linux-busy", "inert"}, scope=None)
@@ -2703,12 +2725,14 @@ def self_test() -> int:
         write_spawn(orphan, child.pid)
         aged = d / "000093-20200101T000000Z"  # ... a run with no pid, no verdict, long past the start-up window
         aged.mkdir()
+        bogus = d / "000094-20261399T000000Z"  # ... and one whose name's stamp is no date at all: no age, never starting
+        bogus.mkdir()
         wlock = d / "worktree.lock"
         with ExclusiveLock.try_take(wlock, f"gate {d} (pid 7, since T{RUN_LABEL}{live})"):   # the gate that runs `live`
             got = {n: watch(d / n, 0, lock_running(d / n, wlock))
                    for n in ("done", "live", "dead", fresh.name, spawned.name, orphan.name, aged.name, "missing")}
             other = watch(dead, 0, lock_running(dead, wlock))   # the lock is held, but by another run's gate
-        phases = {n: gate_phase(d / n, None) for n in (fresh.name, spawned.name, orphan.name, aged.name)}
+        phases = {n: gate_phase(d / n, None) for n in (fresh.name, spawned.name, orphan.name, aged.name, bogus.name)}
         arm("--await reads the verdict file (its line and exit code), PENDING (its own exit, never BUSY's) while the "
             "run's gate holds the gate lock (or is STARTING: spawned moments ago, its child alive, no lock yet), NOT RUN "
             "[verdict] (exit 2, BRANCH) when it DIED without a verdict EVEN WHEN gate.pid names a live process (a "
@@ -2717,7 +2741,7 @@ def self_test() -> int:
             got["done"] == (1, f"{VERDICT}RED — planted ===")
             and got["live"][0] == got[fresh.name][0] == got[spawned.name][0] == AWAIT_PENDING_EXIT != EXIT_BUSY
             and got["live"][1].startswith(AWAIT_PENDING) and "STARTING" in got[fresh.name][1]
-            and phases == {fresh.name: STARTING, spawned.name: STARTING, orphan.name: DIED, aged.name: DIED}
+            and phases == {fresh.name: STARTING, spawned.name: STARTING, orphan.name: DIED, aged.name: DIED, bogus.name: DIED}
             and got[orphan.name][0] == got[aged.name][0] == 2 and "DIED" in got[orphan.name][1]
             and "DIED" in got[aged.name][1]
             and got["dead"][0] == other[0] == 2 and read_verdict(got["dead"][1][len(VERDICT):]) == not_run("verdict")

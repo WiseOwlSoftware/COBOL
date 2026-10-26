@@ -82,9 +82,12 @@ PB2526). Each leg runs the three assemblies concurrently.
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):
   `python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]` departs from it in the slot directory every
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting
-  is the coded default again with no one acting. `gate_slot.py clear [cap] [implementer-scope]` returns a setting (none
-  named: both) to its coded default at once. `gate_slot.py status` prints the cap, the implementer scope, every held
-  slot and the queue. No environment variable sets either.
+  is the coded default again with no one acting. `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns a
+  setting (none named: all) to its coded default at once. `gate_slot.py status` prints the cap, the light cap, the
+  implementer scope, every held slot and the queue of both pools. No environment variable sets either. **A notes-only
+  (inert-lane) gate does not queue for this cap** (kb/Work PB3724): its one slot-bound step, the Linux script self-tests,
+  takes a slot of the separate LIGHT pool (cap 2 by default, `set-light-cap N`), so it waits for no implementer's build;
+  a waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
 - **The impact map only ORDERS.** It is recorded ON DEMAND (`python scripts/spec/record_impact_map.py`, a detached
   worktree, ~25 min at BelowNormal, inside a gate slot), never per commit (kb/Work PB1709). With no map, or a stale
   one, the gate still runs everything — the order is plainer, never the population smaller.
