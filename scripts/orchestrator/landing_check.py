@@ -7,7 +7,8 @@ ONLY gate between the R3 restructuring waves (cluster PB2119) and the fix lane's
 planner (plan_wave.py --cluster) admits a wave on its COMPUTED file set: its sites, the callers the member index
 finds, the files under its site folders. Three refuter rounds each found a new hole in that computation (hand lists,
 then the index's blind spots, then its staleness), so the planner's set is an ADMISSION ESTIMATE; a miss in it must
-be caught, never silently landed. This is the second line: before a landing reaches main it compares what the landing
+be caught, never silently landed. This is the second line: before a landing reaches main it first refuses a path no landing carries (0: coord.NEVER_WORK,
+above all the harness's tracked `.claude/settings.local.json`, which `git add -A` stages), then compares what the landing
 ACTUALLY changed with
 
   1. its DECLARED file set, for the R3 work it lands: the set the dispatch ledger recorded for those notes when they
@@ -215,6 +216,17 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     my_at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & notes]
                 + [first_commit_time(graph, rev) or float("inf")])
     stops, warnings = [], []
+    # 0. a path no landing carries (coord.NEVER_WORK: the harness's tracked per-machine settings, the checkpoint file, the
+    # gate's results). `git add -A` and `git commit -a` stage the harness's edits of .claude/settings.local.json, and a
+    # landing that carried them would make every checkout whose copy is locally modified refuse `merge --ff-only` and
+    # grant every session the broadened permissions (branch review R2-1 of PB3389; the same shape as round 2 of
+    # kb/Work PB1563, which the DEVLOG recorded and nothing prevented).
+    # (changed_files drops these paths by design, so this reads the diff's names unfiltered.)
+    changed = git("diff", "--name-only", "--no-renames", f"{base}...{rev}").stdout.splitlines()
+    if leaked := sorted(p for p in changed if p.strip() and not coord.is_work(p.strip())):
+        stops.append(f"carries {', '.join(leaked[:5])}{' …' if len(leaked) > 5 else ''}, which no landing carries "
+                     f"(coord.NEVER_WORK: the harness's per-machine settings, the checkpoint file, the gate's results): "
+                     f"restore each to its content on {base} (`git checkout {base} -- <path>`), commit, and re-gate")
 
     if mine_r3:   # 1. the declared set
         # From the FULL ledger, terminal or not: the declaration recorded when the work was planned is the authority
@@ -377,7 +389,9 @@ def self_test() -> int:
     for f in ("src/A.cs", "src/B.cs", "src/C.cs", "docs/D.md"):
         write(f, "// base\n")
     write("kb/Work/PB9002.md", "---\nid: PB9002\nstatus: open\n---\n")
+    write(".claude/settings.local.json", "{}\n")
     scratch.git("add", "-A")
+    scratch.git("add", "-f", ".claude/settings.local.json")   # a machine's global ignore may name it; the real one is tracked
     scratch.git("commit", "-qm", "base", when=1_000_000)
     scratch.git("update-ref", "refs/remotes/origin/main", "HEAD")
 
@@ -725,6 +739,19 @@ def self_test() -> int:
            check(repo, "origin/main", "r-theirs", cdir, items, rules, never, git), 0, 0)
     for b in ("r-theirs", "side"):
         scratch.git("branch", "-D", b)
+
+    # R2-1 of PB3389: a landing that changes a NEVER_WORK path (the harness edits the tracked settings file in every
+    # worktree) STOPS, whatever else it carries; the same fix without it lands
+    branch("s-set", "PB9100: a fix that also committed the harness's settings edit",
+           {"src/B.cs": "// fixed\n", ".claude/settings.local.json": '{"permissions": {}}\n'}, 1_000_950)
+    got = check(repo, "origin/main", "s-set", cdir, items, rules, never, git)
+    expect("a landing that carries .claude/settings.local.json STOPS, naming it",
+           ([s for s in got[0] if ".claude/settings.local.json" in s and "NEVER_WORK" in s], got[1]), 1, 0)
+    scratch.git("branch", "-D", "s-set")
+    branch("s-clean", "PB9100: the same fix without it", {"src/B.cs": "// fixed\n"}, 1_000_960)
+    expect("... and the same fix without it lands",
+           check(repo, "origin/main", "s-clean", cdir, items, rules, never, git), 0, 0)
+    scratch.git("branch", "-D", "s-clean")
 
     base_sha = scratch.git("rev-parse", "main")
     commits("f-behind", ("PB9100: a fix-lane branch", {"src/B.cs": "// fixed\n"}, 1_001_200))

@@ -492,6 +492,11 @@ def self_test() -> int:
     # a FIX-LANE note's folder site reserves nothing (kb/Work PB3670): never a whole subsystem
     fs = note_file_set("**Sites:**\n- folder `src/A/`, `src/A/Sym.cs#Sym.Flag`", root, index=no_index, drifted=no_index)
     check("fix-lane-folder-reserves-nothing", (fs["files"], fs["members"]), (["src/A/Sym.cs"], {"src/A/Sym.cs": ["Sym.Flag"]}))
+    # a GLOB site is a sweep over the tracked files it matches, each claimed whole, even beside a member of one of them
+    # (kb/Work PB3721): a fix-lane note that sweeps `src/A/*.cs` holds every group on those files, not on a folder
+    fs = note_file_set("**Sites:**\n- every `src/A/Binder*.cs`, `src/A/Binder.cs#Pending`", root, index=no_index, drifted=no_index)
+    check("glob-sweeps-whole", (fs["files"], fs["members"], fs["sites"]),
+          (["src/A/Binder.Oo.cs", "src/A/Binder.cs"], {}, ["src/A/Binder.Oo.cs", "src/A/Binder.cs"]))
     # a restructuring note's CALLER files are whole: what it moves is re-signed at every call site (kb/Work PB3670)
     fs = note_file_set(move + "- `src/A/Sym.cs#Sym.Flag`\n\n**Moves or changes:** `N.Sym.Flag`", root, index=idx,
                        drifted={})

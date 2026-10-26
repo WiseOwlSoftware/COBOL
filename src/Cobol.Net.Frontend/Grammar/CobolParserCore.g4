@@ -1009,17 +1009,24 @@ statement
 // RECEIVED is not in §8.9's reserved list and is not a §8.10 context-sensitive word either — the standard
 // simply never classifies it (recorded as a P14 Step-0 GAP row); matched as cobolWord, which is safe here.
 // ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 732: RECEIVE, GIVING,
-// CONTINUE, MESSAGE and RECEIVED carry underline rules; FROM carries NONE, so FROM may be omitted.
+// CONTINUE, MESSAGE and RECEIVED carry underline rules; FROM, AFTER and SECONDS carry NONE, so each may be
+// omitted (§8.3.2.4.3: "Within each format, uppercase words that are not underlined are called optional words").
 //
-// ⚠ AFTER and SECONDS are NOT made optional here even though page 732 prints them without underlines, because
-// THE STANDARD CONTRADICTS ITSELF about them. On page 634 — 14.9.9.2, the CONTINUE statement's OWN defining
-// general format — AFTER and SECONDS ARE underlined while CONTINUE is not; page 732 is exactly inverted. One of
-// the two pages is a typesetting defect, and page 634 is the defining occurrence, so it wins. It is also the
-// only reading that makes sense: with AFTER and SECONDS optional, `CONTINUE 5` would be legal and meaningless.
-// Recorded in specs/ISO_COBOL.md at both pages rather than silently resolved.
+// ⛔ AFTER AND SECONDS ARE OPTIONAL WORDS OF THIS FORMAT (kb/Work PB3751), whatever §14.9.9.2 prints. The rule once
+// demanded both on the reading that page 634 — the CONTINUE STATEMENT's format, which underlines AFTER and SECONDS
+// and not CONTINUE — "defines" this phrase and wins. It does not: §14.9.31.4 GR2 names it "the CONTINUE phrase" of
+// RECEIVE and gives it RECEIVE's own semantics (a wait completed by a message, an exception or the CONTINUE
+// parameters), not by reference to the CONTINUE statement, and §8.3.2.4.3 decides optional words within EACH
+// format. Page 634 is also the page with the demonstrable defect (its own statement name unruled, corrected in
+// specs/ISO_COBOL.md as C2), so it cannot overrule page 732's internally consistent rules. Nor is `CONTINUE 5`
+// meaningless here: the brace selects `arithmetic-expression-1 [SECONDS]` or `MESSAGE RECEIVED`, and the two stay
+// apart without the plain words — MESSAGE is not reserved at 2023 (§8.9), so a data item may bear the name, but
+// RECEIVED can follow no arithmetic expression, so the parser's lookahead tells the arms apart by the word after
+// MESSAGE. The CONTINUE statement keeps its own AFTER and SECONDS
+// (CobolControlFlow.g4 `continueStatement`, page 634 as printed).
 mcsReceiveStatement
     : RECEIVE FROM? dataReference GIVING dataReference dataReference
-      (CONTINUE AFTER (arithmeticExpression SECONDS | MESSAGE cobolWord))?
+      (CONTINUE AFTER? (arithmeticExpression SECONDS? | MESSAGE cobolWord))?
       mcsExceptionPhrases?
       END_RECEIVE?
     ;

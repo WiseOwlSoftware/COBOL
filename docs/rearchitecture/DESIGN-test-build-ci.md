@@ -688,8 +688,8 @@ why that direction cannot reach the audit at all).
 |---|---|---|---|
 | `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
 | `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
-| `ConformanceSuiteTests_P0 … _P23` (formerly `CorpusRunnerTests`) | 24 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `CorpusPartitioningDriftTests` bounds a partition at 250 rows |
-| `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 × about 3 formats (kb/Work PB2527), bounded at 3 |
+| `ConformanceSuiteTests_P0 … _P23` (formerly `CorpusRunnerTests`) | 24 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `ConformancePartitioningDriftTests` bounds a partition at 500 rows |
+| `OptionalWordSubsetDriftTests_P0 … _P8` | 9 | one 23-row class, 131–152 s span (one row 59 s) | 9 × at most 3 formats (kb/Work PB2527; 9 since kb/Work PB3751's rows made 26), bounded at 3 by `ConformancePartitioningDriftTests` |
 | `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
 
 Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
@@ -2338,7 +2338,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    merge group below integrates the branch on the current main and runs the whole population; a conflict here is exit 4
    too);
    `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
-   the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed) and `landing_check.py` (the R3 file-set
+   the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
+   head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
+   merge group's CI, PB3389) and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
@@ -2555,7 +2557,7 @@ demand and not committed.
   at `landing_tokens` (`model_rules.json`) instead of one lander per train.
 - **Measurement** (PB3028, landed): `landing_measure.py` replaced `train_measure.py`, which is deleted with its drift
   test. One record per pull request in `<coord>/landing-measurements.jsonl`, built up by patches because no tool sees
-  a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time, which the branch review's stamp rewrites; the changes are the reports naming the branch plus those a train commit's `Report:` line names, one per lead note, each the earliest of its finisher chain; a report whose HEAD is already an ancestor of origin/main is a change that landed before this one and counts for nothing, because the queue's MERGE method makes every landed head an ancestor of every later branch) the dispatch and review-clean times (`stage_times`, kb/Work PB3638: `dispatched` the dispatch ledger's time of the earliest dispatch still recorded for a lead note the branch's reports answer, `review_clean` the time of the CLEAN verdict record the newest report's stamp names; a time out of order stays null) and the worktree's local gate seconds (the sum of its `verdict.json` `timings.wall_s`);
+  a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time, which the branch review's stamp rewrites; the changes are the reports naming the branch plus those a train commit's `Report:` line names, one per lead note, each the earliest of its finisher chain; a report whose HEAD is already an ancestor of origin/main is a change that landed before this one and counts for nothing, because the queue's MERGE method makes every landed head an ancestor of every later branch) the dispatch and review-clean times (`stage_times`, kb/Work PB3638: `dispatched` the dispatch ledger's time of the earliest dispatch still recorded for a lead note the branch's reports answer, `review_clean` the time of the CLEAN verdict record the newest report's stamp names; a time out of order stays null; the order is judged against the record the enqueue will patch, so a re-enqueue after a bounce and a re-review keeps the first `enqueued`, the earliest `dispatched` and `done`, and leaves out a CLEAN verdict, and a DONE (`done_times` is bounded by the first enqueue, not this call's time), that follows the first enqueue, kb/Work PB3710) and the worktree's local gate seconds (the sum of its `verdict.json` `timings.wall_s`);
   `record --review-clean` (a hand correction) and `--bounce-causes` (cluster-defect · load-timing · conflict · infrastructure) are named by
   whoever knows; `complete` reads `mergedAt`, the count of FAILED merge-group runs of the PR (a run GitHub cancelled
   because an earlier entry failed is a ripple, not a bounce), the count of FAILED `pull_request` runs on the PR's head

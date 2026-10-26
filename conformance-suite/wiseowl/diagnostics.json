@@ -3902,6 +3902,15 @@
   ],
   "expect": "COBOLNET2709"
  },
+ "pb3751-page-limit-mixed-alternatives": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0001"
+ },
  "pb1060-baseconvert-address-identifier": {
   "refuse-at": [
    "2023"
@@ -13150,6 +13159,12 @@
    "2023"
   ],
   "expect": "(17,24): error COBOLNET1941"
+ },
+ "pb2985-active-class-returning-universal-invocation-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
  },
  "pb2988-capacity-register-copies-unqualified": {
   "refuse-at": [
