@@ -1,4 +1,4 @@
-## PB3837: the code takes the product's name, WiseOwl.Cobol; the earlier names are retired outside history
+## Entry 2630 — 2026-10-26 15:28 PDT — PB3837: the code takes the product's name, WiseOwl.Cobol; the earlier names are retired outside history
 
 The owner, 2026-10-26: the product is no longer named for its first name, so the assemblies, namespaces and every
 ongoing use of that name go, with root name `WiseOwl.Cobol`; and the legacy byte engine's product name "should appear
@@ -84,3 +84,4 @@ Run 3: `=== BUILD-LOCAL GATE: GREEN — Conformance 18,832/18,832 · Unit 38,392
 merge with main and the review round, the finisher's gate at `622a62fab`: `=== BUILD-LOCAL GATE: GREEN — Conformance
 18,836/18,836 · Unit 38,391/38,391 · Characterization 36/36 cases ran (skipped 0) in 1 of 1 leg(s) · Linux half (WSL
 clone of HEAD) GREEN … run 000001-20261026T213510Z) ===`.
+
