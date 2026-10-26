@@ -309,7 +309,114 @@ UNIT_CASES = [
     ("echo `git push`", True),
 ]
 
+# 8. a desktop GUI application started from a command (owner 2026-10-25, kb/Work PB3798: an agent launched Obsidian over and
+# over on the owner's screen). Every form the acceptance names refuses; a console tool, a lookup and a word that merely
+# MENTIONS an application stay silent. The hook is tested only by feeding it command text: no case here starts anything.
+OBS = "C:/Users/x/AppData/Local/Programs/Obsidian/Obsidian.exe"
+GUI_CASES = [
+    # the application by name or path, directly and behind a prefix command, a `-c` payload, a substitution, a pipe stage
+    ("obsidian", True),
+    (OBS + " --remote-debugging-port=9222 --user-data-dir=/e/scratch/ud", True),   # the PB3789 shape
+    ("timeout 5 obsidian", True),
+    ("nohup obsidian &", True),
+    ("env A=1 chrome https://example.com", True),
+    ("wsl -d Ubuntu -e explorer.exe .", True),
+    ("bash -c 'obsidian'", True),
+    ("x=$(obsidian)", True),
+    ("echo y | xargs notepad", True),
+    ("code .", True),
+    ("msedge x.html", True),
+    ("winword report.docx", True),
+    (HD + "obsidian", True),                                                  # after a heredoc (PB3198)
+    (QS + "obsidian", True),                                                  # after a quoted `<<`
+    # the launcher verbs
+    ("explorer .", True),
+    ("explorer.exe /select,x.md", True),
+    ("xdg-open x.html", True),
+    ("wslview x.html", True),
+    ("open x.md", True),
+    ("rundll32 url.dll,FileProtocolHandler x.html", True),
+    ("start x.md", True),
+    ('start "" obsidian://open', True),
+    ("cmd /c start https://example.com", True),
+    ('cmd.exe /c start "" obsidian', True),
+    ("cmd //c start x.md", True),
+    ("start /b obsidian", True),                                              # /b does not make a GUI a console tool
+    ("start /b dotnet build x.sln", False),                                   # a console tool in the current console
+    ("start /b cmd /c start obsidian://x", True),                             # but not one that launches a GUI
+    # the library forms
+    ("python -c \"import os; os.startfile('x.md')\"", True),
+    ("python3 -c \"import webbrowser; webbrowser.open('http://x')\"", True),
+    ("python -c \"print(1)\"", False),
+    # PowerShell launched from Bash
+    ('pwsh -NoProfile -Command "Start-Process obsidian"', True),
+    ("pwsh -c 'Invoke-Item x.md'", True),
+    ("pwsh -NoProfile -Command \"Start-Process dotnet -NoNewWindow -ArgumentList build\"", False),
+    ("pwsh -NoProfile -File scripts/build-local.ps1 -Priority BelowNormal", False),
+    # neighbours that only MENTION an application, look one up, or are a console tool
+    ("grep -rn obsidian kb/Work", False),
+    ("grep -n 'Start-Process' scripts/orchestrator/orchestrate.ps1", False),
+    ("git commit -m 'PB3798: refuse Start-Process obsidian and explorer .'", False),
+    ("cat > m.txt <<'EOF'" + NL + "Start-Process obsidian" + NL + "explorer ." + NL + "EOF" + NL + "git status", False),
+    ("echo start", False),
+    ("command -v obsidian", False),
+    ("which code", False),
+    ("find . -name obsidian -o -name code", False),
+    ("ls /e/open", False),
+    ("git log --oneline -3 -- kb/Work.base", False),
+    ("xargs grep code < files.txt", False),
+    ("wsl -d Ubuntu -e bash -lc 'ls ~'", False),
+    ("timeout 5 dotnet test x.csproj", False),
+    ("chrome --headless --print-to-pdf=x.pdf x.html", False),                 # a headless browser draws no window
+    ("chrome --headless=new --screenshot x.html", False),
+]
+
+# The same in PowerShell, whose Start-Process is the usual way to launch (kb/Work PB3798).
+GUI_PS_CASES = [
+    ("Start-Process obsidian", True),
+    ("Start-Process -FilePath '" + OBS + "' -ArgumentList '--remote-debugging-port=9222'", True),
+    ("saps notepad.exe", True),
+    ("start obsidian", True),
+    ("Start-Process https://example.com", True),
+    ("Start-Process x.md", True),
+    ("Start-Process explorer .", True),
+    ("Invoke-Item x.md", True),
+    ("ii .", True),
+    ("explorer .", True),
+    ("& '" + OBS + "'", True),
+    ("Start-Process pwsh -ArgumentList '-File','x.ps1'", True),               # a console tool, but with a window of its own
+    ("Start-Process pwsh -Verb RunAs -WindowStyle Hidden", True),             # UAC prompt
+    ("Start-Process pwsh -W Hidden", True),                                   # ambiguous prefix: whether it hides cannot be told
+    ("Start-Process -WindowStyle Normal pwsh", True),
+    ("Start-Process pwsh -NoNewWindow -ArgumentList 'Start-Process obsidian'", True),   # a console tool handed a GUI
+    ("Start-Process cmd -NoNewWindow -ArgumentList '/c','start','obsidian://x'", True),
+    ("Start-Process -FilePath (Get-Command pwsh).Source -WindowStyle Hidden", True),    # the target is not literal
+    ("Start-Job { Start-Process obsidian }", True),
+    ("Get-ChildItem | ForEach-Object { Invoke-Item $_ }", True),
+    ("[System.Diagnostics.Process]::Start('obsidian')", True),
+    ("$p = [Diagnostics.Process]::Start('" + OBS + "')", True),
+    ("New-Object -ComObject Shell.Application", True),
+    ("New-Object -ComObject 'WScript.Shell'", True),
+    ("Start-Process pwsh -NoNewWindow -ArgumentList '-File','x.ps1'", False),
+    ("Start-Process -FilePath pwsh -WindowStyle Hidden -PassThru", False),
+    ("Start-Process pwsh -Win Hidden -ArgumentList '-NoProfile'", False),
+    ("Start-Process dotnet -ArgumentList build -NoNewWindow -WorkingDirectory E:/x", False),
+    ("Start-Process -Wait -NoNewWindow git -ArgumentList status", False),
+    ("saps python -NoNewWindow -ArgumentList x.py", False),
+    ("Get-Process obsidian", False),
+    ("Stop-Process -Name obsidian", False),
+    ("Get-Command obsidian -ErrorAction SilentlyContinue", False),
+    ("Write-Output 'Start-Process obsidian'", False),
+    ("git commit -m 'Start-Process notepad'", False),
+    ("Select-String -Path x.md -Pattern 'explorer'", False),
+    ("Get-ChildItem | ForEach-Object { $_.Name }", False),
+    ("New-Object System.Text.StringBuilder", False),
+    ("Write-Output '[System.Diagnostics.Process]::Start(1)'", False),
+]
+
 fails =[(c, e) for c, e in CASES if blocked(c) != e]
+fails += [(f"[gui] {c}", e) for c, e in GUI_CASES if blocked(c) != e]
+fails += [(f"[gui PowerShell] {c}", e) for c, e in GUI_PS_CASES if blocked(c, tool="PowerShell") != e]
 fails += [(f"[unit] {c}", e) for c, e in UNIT_CASES if blocked(c, unit=True) != e]
 fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="PowerShell") != e]
 # The same pushes in an ATTENDED session (no COBOL_COORD_DIR) keep their old behaviour: rule 2 alone decides.
@@ -318,6 +425,6 @@ ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-ski
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
 for c, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {c!r}")
-total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED)
+total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED) + len(GUI_CASES) + len(GUI_PS_CASES)
 print(f"forbidden_commands self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
 sys.exit(1 if fails else 0)
