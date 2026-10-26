@@ -1,4 +1,4 @@
-## #664's two review leads: PB3489's Landing section restored, PB3853 filed; PB3852's deadline becomes a requirement
+## Entry 2634 — 2026-10-26 16:33 PDT — #664's two review leads: PB3489's Landing section restored, PB3853 filed; PB3852's deadline becomes a requirement
 
 The branch review of w20261707b (PB3831, PB3832; #664) left two LOW leads for the operator. R4-1: the merge with main
 kept main's stale `#ResidueWalk` and `ResidueWalkNestingTests.cs` bullets inside kb/Work/PB3489.md's Landing section,
@@ -10,3 +10,4 @@ class in the fuzz-deadline campaign and an edit beside them would only make a co
 
 PB3852 records the owner's ~16:20 word that the deadline is a requirement: every member lands before the night's
 fuzz run, and the run starts only then.
+
