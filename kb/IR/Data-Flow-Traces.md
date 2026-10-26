@@ -4,12 +4,12 @@ area: ir
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs
-  - src/Cobol.Net.Compiler/Binding/Model/Place.cs
-  - src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs
-  - src/Cobol.Net.Runtime/IO/CobolFile.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
+  - src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs
+  - src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - ir
 ---
 

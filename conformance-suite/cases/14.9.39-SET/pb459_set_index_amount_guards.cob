@@ -17,7 +17,7 @@
       *> ISO 14.9.39.4 GR4 a) - if the incremented/decremented occurrence number "is outside the limit specified
       *>   in General rule 2 of 13.18.38, OCCURS clause", EC-RANGE-INDEX, unsuccessful, receiving operand
       *>   unchanged.
-      *> ISO 13.18.38.4 GR2 - that limit is the IMPLEMENTOR's index range. COBOL.NET's index cell is a signed
+      *> ISO 13.18.38.4 GR2 - that limit is the IMPLEMENTOR's index range. WiseOwl COBOL's index cell is a signed
       *>   64-bit occurrence number (docs/CONFORMANCE.md 7, DOC-A.1-128), so the range is
       *>   -9223372036854775808 .. +9223372036854775807.
       *>

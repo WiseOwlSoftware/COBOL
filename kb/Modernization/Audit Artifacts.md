@@ -11,7 +11,7 @@ related_files:
   - create-agents.ps1
   - create-auditartifacts.ps1
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - modernization
 ---
 

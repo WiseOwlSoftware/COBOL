@@ -3,7 +3,7 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-NAME        PIC X(30) VALUE "CobolSharp Compiler".
+       01 WS-NAME        PIC X(30) VALUE "WiseOwl COBOL Compiler".
        01 WS-COUNTER     PIC 9(3) VALUE 0.
        01 WS-TOTAL       PIC 9(5) VALUE 0.
        01 WS-FLAG        PIC 9    VALUE 0.

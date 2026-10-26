@@ -575,7 +575,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 if [ "$probe" = 1 ]; then   # needs no SDK and no interpreter: it reads the owner files (kb/Work PB3649)
-  if [ ! -f Cobol.Net.sln ]; then
+  if [ ! -f WiseOwl.Cobol.sln ]; then
     echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
   fi
   tree="$(pwd)"
@@ -594,7 +594,7 @@ resolve_py
 if ! "$PY" -c 'import yaml' >/dev/null 2>&1; then
   echo "=== LINUX GATE: NOT RUN [interpreter] ($PY, $(command -v "$PY"), has no PyYAML — run scripts/wsl/setup-wsl.sh once) ==="; exit 2
 fi
-if [ ! -f Cobol.Net.sln ]; then
+if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
 tree="$(pwd)"
@@ -696,7 +696,7 @@ fi
 
 bad="$corpus_red"; ran=""
 # PB2879 (owner 2026-10-09): the legs ran one after another and used about 10 % of a 32-CPU WSL VM (351 s alone). The
-# clone is now built ONCE (`dotnet build Cobol.Net.sln`) and every leg runs in PARALLEL against that build, each to its
+# clone is now built ONCE (`dotnet build WiseOwl.Cobol.sln`) and every leg runs in PARALLEL against that build, each to its
 # own log. A background leg cannot set this shell's variables, so each writes its report lines to <leg>.result and
 # GREEN|RED|NOT RUN to <leg>.status; after `wait` they are printed in a fixed order and folded into the verdict.
 # `selftests` needs no build, so it starts beside the build. Every script self-test runs on Linux through the ONE runner
@@ -779,7 +779,7 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
   # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
-  ( cd "$snap" && export COBOLNET_HARNESS_LOG="$gate/$leg.observations.log" \
+  ( cd "$snap" && export WISEOWL_COBOL_HARNESS_LOG="$gate/$leg.observations.log" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?
@@ -832,7 +832,7 @@ order=(selftests)
 [ "$targeted" = 1 ] && order=()
 audit_built_legs() {  # the audit clone's build, then the legs that need it
   local abrc
-  ( cd "$auditsnap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build-audits.log" 2>&1
+  ( cd "$auditsnap" && "${nice_prefix[@]}" dotnet build WiseOwl.Cobol.sln -c Debug ) > "$out/build-audits.log" 2>&1
   abrc=$?
   if [[ " ${wanted[*]} " == *" guard "* ]]; then
     if [ $abrc -eq 0 ]; then guard_leg > "$out/guard.result" 2>&1 &
@@ -869,17 +869,17 @@ else
   done
 fi
 start=$(date +%s)
-( cd "$snap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build.log" 2>&1 &
+( cd "$snap" && "${nice_prefix[@]}" dotnet build WiseOwl.Cobol.sln -c Debug ) > "$out/build.log" 2>&1 &
 wait $!   # in the background, so a signal reaches on_signal during the build (bash defers a trap past a foreground command)
 brc=$?
-echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the test legs run in parallel against it"
+echo "linux-gate: ONE build of WiseOwl.Cobol.sln in $(( $(date +%s) - start ))s (rc=$brc); the test legs run in parallel against it"
 # THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI, which is safe only while nothing builds this clone again
 # (the guard's own `dotnet build` of the CLI now runs in the audit clone, kb/Work PB2878). A fresh clone's second build once recompiled the frontend
 # and everything above it (the generated parser joined Compile after the SDK hashed it), replacing the `cobol` apphost
 # while the conformance leg ran it: "No such file or directory", "Text file busy". The fix is the build's own
-# (Cobol.Net.Frontend.csproj, AntlrGenerationDriftTests); this fingerprint of the CLI's output names a recurrence as
+# (WiseOwl.Cobol.Frontend.csproj, AntlrGenerationDriftTests); this fingerprint of the CLI's output names a recurrence as
 # itself instead of as a red in whichever leg ran the binary at that moment.
-cli_fingerprint() { find "$snap/src/Cobol.Net.Cli/bin" -type f -printf '%i %T@ %P\n' 2>/dev/null | sort; }
+cli_fingerprint() { find "$snap/src/WiseOwl.Cobol.Cli/bin" -type f -printf '%i %T@ %P\n' 2>/dev/null | sort; }
 cli_before="$(cli_fingerprint)"
 if [ $brc -ne 0 ]; then
   echo "linux-gate: the Linux BUILD failed; see TestResults/linux-gate/build.log"
@@ -907,9 +907,9 @@ fi
 for leg in "${wanted[@]}"; do
   order+=("$leg")
   case "$leg" in
-    unit)             proj="tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj" ;;
-    characterization) proj="tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj" ;;
-    conformance)      proj="tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj" ;;
+    unit)             proj="tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj" ;;
+    characterization) proj="tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj" ;;
+    conformance)      proj="tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj" ;;
     guard)            continue ;;   # the audit clone runs it (audit_built_legs)
   esac
   if [ $brc -ne 0 ]; then

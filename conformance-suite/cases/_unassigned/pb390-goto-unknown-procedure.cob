@@ -9,7 +9,7 @@
 *> resource, a statement shall contain a reference that uniquely identifies that resource" - with 8.4.6.1,
 *> which lists paragraph-name and section-name among the words that "may be referenced only by statements
 *> in the source element in which the user-defined word is declared". The GO TO carrier was the sibling of
-*> PERFORM's: same BoundUnsupported, same run-time abort under a message naming a COBOL.NET gap.
+*> PERFORM's: same BoundUnsupported, same run-time abort under a message naming a WiseOwl COBOL gap.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB390GOTOUNK.
 PROCEDURE DIVISION.

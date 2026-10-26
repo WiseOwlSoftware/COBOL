@@ -19,7 +19,7 @@
       *> Such a connector's sharing mode is 9.1.15's implementor default
       *> ("If no specification is made in either location, the implementor
       *> defines the sharing mode in which the file is opened"), which
-      *> COBOL.NET has not yet defined (kb/Work PB322). The arbitration
+      *> WiseOwl COBOL has not yet defined (kb/Work PB322). The arbitration
       *> therefore answers a conflict only where EVERY sharing mode the
       *> standard offers gives Table 19's "Unsuccessful open" — which for two
       *> undetermined connectors is exactly 9.1.13.9 1) e), the sub-case that

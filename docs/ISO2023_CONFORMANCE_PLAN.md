@@ -16,17 +16,17 @@
 > EnableTypedFields, "island the legacy engine" — is **OBSOLETE** (the greenfield is born typed-native; there is no
 > migration). **Use this doc ONLY for the M2/M3/M4 FEATURE CATALOG (the still-valid list of post-85 features to
 > implement).** ⚠ **Every ☑/◐/🐛 status and every recipe/file path in §1/§3 records the LEGACY byte-engine
-> compiler (`src/CobolSharp.*` — differential oracle only, deleted at G8). In the greenfield `src/Cobol.Net.*` a
-> feature counts as done ONLY when implemented there per the `COBOLNET_*` deep-dives + the ISO spec, with BOTH
+> compiler (`src/Legacy.*` — differential oracle only, deleted at G8). In the greenfield `src/WiseOwl.Cobol.*` a
+> feature counts as done ONLY when implemented there per the `docs/*_DESIGN.md` deep-dives + the ISO spec, with BOTH
 > per-edition obligations: the complete spec behavior AND the rejecting diagnostic under every `--std` edition
-> that lacks it.** The live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 (THE ONE PLAN — it absorbed `resume-prompt.md`, now deleted) over the SSOT `docs/COBOLNET_DESIGN.md`;
+> that lacks it.** The live plan is `docs/REARCHITECTURE_PLAN.md` §0 (THE ONE PLAN — it absorbed `resume-prompt.md`, now deleted) over the SSOT `docs/DESIGN.md`;
 > multi-edition correctness is driven by `docs/VERSION_TEST_MATRIX_DESIGN.md` / `docs/VERSION_CHANGE_REFERENCE.md`.
 
 > **Purpose.** This is the durable, authoritative work-breakdown to take the compiler to **complete,
 > production-quality ISO/IEC 1989:2023 COBOL support**. Work *from* this document — do **not** re-run the gap
 > analysis each session (it has been done at least three times). When an item lands, tick it here in the same
 > commit. When you discover a new gap, add it here. This supersedes ad-hoc backlogs scattered across DEVLOG /
-> memory; the live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 over the SSOT `docs/COBOLNET_DESIGN.md` (the former milestone view
+> memory; the live plan is `docs/REARCHITECTURE_PLAN.md` §0 over the SSOT `docs/DESIGN.md` (the former milestone view
 > `docs/MULTIVERSION_ROADMAP.md` was deleted with the pre-PIVOT docs, DEVLOG 523–524).
 >
 > **Provenance.** Built 2026-06-05 from a 15-area parallel spec-conformance audit (workflow
@@ -64,14 +64,14 @@
 ## 0.5 [RETIRED 2026-06-10 — pre-PIVOT history only] The byte-engine data-model migration (DEVLOG 393–456)
 
 > ⛔ **OBSOLETE — do NOT execute anything in this section.** It describes the legacy byte-engine → typed-fields
-> migration. The greenfield WiseOwl COBOL (`src/Cobol.Net.*`) is born typed-native (no byte substrate, no migration);
+> migration. The greenfield WiseOwl COBOL (`src/WiseOwl.Cobol.*`) is born typed-native (no byte substrate, no migration);
 > the Roslyn C# backend is PRIMARY with a Cecil/CIL backend future-additive behind `ICodeGenBackend`
-> (`docs/COBOLNET_DESIGN.md`). Its supporting docs (`DATA_MODEL_ARCHITECTURE.md`, `DATA_MODEL_REVIEW.md`,
+> (`docs/DESIGN.md`). Its supporting docs (`DATA_MODEL_ARCHITECTURE.md`, `DATA_MODEL_REVIEW.md`,
 > `RECORD_STRUCT_STORAGE_DESIGN.md`, `OO_IMPLEMENTATION_DESIGN.md`) were DELETED (DEVLOG 523–524).
 
 The owner had directed a foundational re-architecture to **"the best native .NET implementation of COBOL"** — this
 was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the greenfield is born typed-native
-(no migration); the live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0. Kept below for history only.
+(no migration); the live plan is `docs/REARCHITECTURE_PLAN.md` §0. Kept below for history only.
 
 - **The design is settled and reviewed — do NOT re-litigate it** (the owner co-authored it across a long dialogue,
   DEVLOG 393). Read both first:
@@ -89,7 +89,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   scaffolding (classify *everything* byte-backed = today's behavior) → Stage 1 numeric pipeline + differential
   oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data first — the
   cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend w/ Cecil oracle → Stage 6
-  finalize runtime + post-conformance rename (`CobolSharp` → `WiseOwl COBOL`, exe `cobol.exe`).
+  finalize runtime + post-conformance rename (to the product's present name, WiseOwl COBOL, exe `cobol.exe`).
   - **PROGRESS — Stage 0/1 slice 1 LANDED (DEVLOG 394):** ☑ the numeric substrate is in (`legacy-runtime/
     Numeric/`): `CobolRounding` (8 ISO modes), **`CobolDecimal`** (the exact `BigInteger` base-10 carrier — the
     owner-gated substrate), `NumProfile` (runtime numeric descriptor + `FromDescriptor` bridge), **`CobolNum`**
@@ -230,7 +230,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **Stage-4 OO → .NET classes: SLICE 1 DONE (DEVLOG 447)** — CLASS/NEW/INVOKE/OBJECT REFERENCE end-to-end (a
     class is an instance .NET type with per-instance `ProgramState`); see M2-OO-1 (§3.7) + `docs/OO_IMPLEMENTATION_DESIGN.md`.
     **[STALE NEXT — pre-PIVOT; live next steps = `resume-prompt.md`; the cited `OO_IMPLEMENTATION_DESIGN.md` and
-    `RECORD_STRUCT_STORAGE_DESIGN.md` were DELETED (DEVLOG 523–524); OO design now = `docs/COBOLNET_OO_DESIGN.md`]**, then
+    `RECORD_STRUCT_STORAGE_DESIGN.md` were DELETED (DEVLOG 523–524); OO design now = `docs/OO_DESIGN.md`]**, then
     OO slices 3–6. Then Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-
     on-by-default + rename. Substrate runtime ready (`CobolNum`/`CobolString` + oracles). See also
     `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.
@@ -463,7 +463,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☑ **M2-DATA-4b — `&` concatenation expressions (GREENFIELD DONE — P10 Step 14, 2026-07-16).** ISO §8.8.3:
   the `&` operator joins alphanumeric (incl. `X"…"` hex) / national / boolean literals and figurative
   constants into ONE literal; §8.8.3.3 GR3 makes the result a compile-time literal usable anywhere a literal
-  of its class may appear — implemented in the greenfield `src/Cobol.Net.*` as the `Binding/ConcatFolder.cs`
+  of its class may appear — implemented in the greenfield `src/WiseOwl.Cobol.*` as the `Binding/ConcatFolder.cs`
   fold (NO runtime operator; no emitter leg) — operands include a constant-name and a symbolic-character, and the
   class is folded pairwise per §8.8.3.3 GR1 (kb/Work PB1406) — with the §8.8.3.2 SRs as `COBOL1540/1541/1545`
   (a word standing for no literal `COBOL2473`; §12.3.7.3 SR11's symbolic-character operand `COBOL2474`), the
@@ -624,7 +624,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   REFERENCE class` → a `_OBJ_` managed reference, and PERFORM inside an OBJECT method. Conformance
   `conformance-suite/cases/11.7-METHOD-ID/oo_hello` + `oo_method_perform`. Adversarial-reviewed (non-OO corpus byte-identical; 2
   latent landmines fixed: instance-State LOCAL-STORAGE load + receiver-less PERFORM). Turnkey map +
-  per-slice scope in `docs/COBOLNET_OO_DESIGN.md`. **Slice 2 (DEVLOG 448): `INVOKE …
+  per-slice scope in `docs/OO_DESIGN.md`. **Slice 2 (DEVLOG 448): `INVOKE …
   USING/RETURNING`** — OO methods take USING args + a RETURNING value via the CALL ManagedPointer[] ABI (an OO method
   is an instance "Entry"); per-instance state proven (`oo_method_args`: two objects accumulate independently).
   **Slice 3a (DEVLOG 450): `INHERITS FROM` + virtual methods + polymorphism** — a subclass extends a base (`class
@@ -695,7 +695,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 The PROPAGATE compiler directive (automatic propagation of unhandled exception conditions to the activating
 runtime element, §7.3.21 + §14.6.13.1.3 6)'s "as if a GOBACK statement with the RAISING LAST EXCEPTION phrase" rule)
-is implemented (kb/Work PB1119; the mechanism is COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN "Automatic propagation", the
+is implemented (kb/Work PB1119; the mechanism is CONDITIONS_EXCEPTIONS_DESIGN "Automatic propagation", the
 readings CONFORMANCE.md D-PROP). The deliberate GOBACK/EXIT ... RAISING propagation path it reuses is
 `oo_ec_goback_raising`. Note the spec
 correction recorded with this finding: USE Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2) — only the
@@ -776,13 +776,13 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 - Adopt the **latest C# language features**.
 
 ### 6.2 Project + executable rename — ☑ SUPERSEDED (realized by the PIVOT)
-> The greenfield is born `src/Cobol.Net.*` with exe `cobol` (`docs/COBOLNET_PROJECT_ORG_DESIGN.md`); the legacy
-> `CobolSharp.*` projects are deleted at G8, so no rename remains. The touch-points below are historical.
-- Rename the project **`CobolSharp` → `WiseOwl COBOL`** (rationale: it is COBOL for the .NET runtime — there is no
-  "sharp" in it).
+> The greenfield is born `src/WiseOwl.Cobol.*` with exe `cobol` (`docs/PROJECT_ORG_DESIGN.md`); the legacy
+> `Legacy.*` projects are deleted at G8, so no rename remains. The touch-points below are historical.
+- Rename the project to the product's present name, **WiseOwl COBOL** (kb/Work PB3837 retired the earlier names in
+  the code too).
 - **Produced executable MUST be named `cobol.exe`** (lowercase).
 - Touch-points to plan for: `.csproj` `AssemblyName` + output exe name; the `.sln`; root namespaces
-  (`CobolSharp.*`); `scripts/guard.sh` paths; `CLAUDE.md`/`README`/docs; the runtime assembly name; NuGet/package
+  (`Legacy.*`); `scripts/guard.sh` paths; `CLAUDE.md`/`README`/docs; the runtime assembly name; NuGet/package
   ids. Execute as one planned, guard-verified operation — not ad hoc.
 
 ---

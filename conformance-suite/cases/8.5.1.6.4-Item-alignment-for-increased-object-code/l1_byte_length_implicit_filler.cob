@@ -53,11 +53,11 @@
       *> §13.18.55.4 GR10 withholds even the AUTOMATIC form from the shape - "An implementor may optionally
       *> specify automatic alignment for any internal data representations except for bit data items and, within
       *> a record, data items described with usage display or national" - so nothing but the implementor's own
-      *> determination decides it. COBOL.NET's is ZERO filler bit positions, the bit item sitting exactly where
+      *> determination decides it. WiseOwl COBOL's is ZERO filler bit positions, the bit item sitting exactly where
       *> the same item without the clause would (Annex A.1 item 195; CONFORMANCE.md §7 item 195).
       *> SO THIS GOLDEN CLOSES §15.14.4 r3 ON SOURCES (a) AND (c), and states why (b) is not closable here.
       *> BITS PER BYTE. §8.1.2: "The implementor shall specify the number of bits in a byte for each supported
-      *> computer." COBOL.NET pins 8 (CONFORMANCE.md §4.2.16; Annex A.1 item 12, "Byte (number of bits in) …
+      *> computer." WiseOwl COBOL pins 8 (CONFORMANCE.md §4.2.16; Annex A.1 item 12, "Byte (number of bits in) …
       *> (8.1.2, Computer's coded character set)" — item 209 is USAGE DISPLAY, and this comment inherited that
       *> number from the misfiled §7 row repaired 2026-09-03), which is what turns every bit
       *> count below into its byte answer.
@@ -87,7 +87,7 @@
       *>         §13.18.55.4 GR9 b) - "Any necessary generation of implicit FILLER, if the elementary item
       *>         immediately preceding an item containing the SYNCHRONIZED clause does not terminate at an
       *>         appropriate natural boundary" - under GR9's "The effect of this clause is defined by the
-      *>         implementor". That obligation is Annex A.1 item 195, and COBOL.NET's determination is NO
+      *>         implementor". That obligation is Annex A.1 item 195, and WiseOwl COBOL's determination is NO
       *>         physical alignment and NO generated FILLER (CONFORMANCE.md §7 item 195). A COMP 9(4) item is
       *>         2 bytes (item 205: 3-4 digits -> 2), so the group is 1 + 2 = 3. An implementation aligning SYN
       *>         to a 2-byte boundary would answer 4, so the leg measures the determination rather than assuming it.

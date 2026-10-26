@@ -20,7 +20,7 @@ const RECORD = {
   properties: {
     'rule-id': { type: 'string' },
     verdict: { type: 'string', enum: ['CONFORMS', 'PARTIAL', 'DIVERGES', 'NOT-IMPLEMENTED', 'NEEDS-OWNER-DECISION'] },
-    'code-location': { type: 'string', description: 'path#Symbol into src/Cobol.Net.*; several separated by "; "; empty only for NOT-IMPLEMENTED' },
+    'code-location': { type: 'string', description: 'path#Symbol into src/WiseOwl.Cobol.*; several separated by "; "; empty only for NOT-IMPLEMENTED' },
     'test-ref': { type: 'string', description: 'a SPEC-DERIVED covering test that already exists (conformance:<edition>/<case>, unit:<Class>.<Method>, conformance-test:<Class>.<Method>) or empty = test-needed; nist:/characterization: never close' },
     editions: { type: 'string', description: 'from the SPEC (Annex E / the clause), never from the code under review' },
     notes: { type: 'string', description: 'the derivation: the rule text quoted, what the code does, the cite.py --check line; for a defective verdict the repro program and the spec-derived expected result' },
@@ -64,7 +64,7 @@ const COMMON = `
 ${STOPS.length ? `⛔ GRACEFUL STOP (MANDATORY-PRACTICES P3): before EACH rule check for the file(s) ${STOPS.join(' and ')}; if one exists, make sure every decided rule is
 in your checkpoint file and return at once with what is decided (summary starting "STOPPED"). Never start a probe once it exists.
 ` : ''}You work in the WiseOwl COBOL project. SOURCE OF TRUTH FOR CODE: the PINNED worktree ${PIN} (read-only snapshot, so verdicts
-are attributable; it carries its OWN built compiler at ${PIN}/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe — use THAT
+are attributable; it carries its OWN built compiler at ${PIN}/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe — use THAT
 for probes, never the main tree's). SPEC: E:\\COBOL\\specs\\ISO_COBOL.md (ISO/IEC 1989:2023). Read E:\\COBOL\\CLAUDE.md
 first — its eight rules bind you. You may run python scripts under ${PIN}/scripts (cite.py) and the pinned cobol.exe
 (compile-and-run a scratch program under ${OUT}/probe/<slug>/). You MUST NOT run dotnet build/test, git, or write inside

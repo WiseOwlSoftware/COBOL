@@ -2024,7 +2024,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--repairs", type=int, default=3, help="corrections offered to the model after both compilers refuse (0: none)")
     ap.add_argument("--seed", type=int, default=20261020, help="shuffles the seed clauses deterministically (same seed, same walk)")
     ap.add_argument("--in-order", action="store_true", help="walk the seed clauses in the spec's order instead")
-    ap.add_argument("--cobol", default=str(REPO / "src/Cobol.Net.Cli/bin/Debug/net10.0" / ("cobol.exe" if os.name == "nt" else "cobol")),
+    ap.add_argument("--cobol", default=str(REPO / "src/WiseOwl.Cobol.Cli/bin/Debug/net10.0" / ("cobol.exe" if os.name == "nt" else "cobol")),
                     help="the WiseOwl compiler to test")
     ap.add_argument("--out", help="the run directory (default conformance-suite/results/fuzz-<stamp>)")
     ap.add_argument("--keep", action="store_true", help="keep every program's working directories")
@@ -2045,7 +2045,7 @@ def main(argv: list[str]) -> int:
     if not a.bake_off and not cadence_gate(WORK_DIR, a.force_open_notes):
         return EXIT_OPEN_NOTES
     if not Path(a.cobol).exists():
-        ap.error(f"compiler not found: {a.cobol} (build src/Cobol.Net.Cli first, or pass --cobol)")
+        ap.error(f"compiler not found: {a.cobol} (build src/WiseOwl.Cobol.Cli first, or pass --cobol)")
     out = Path(a.out) if a.out else SUITE / "results" / f"fuzz-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,

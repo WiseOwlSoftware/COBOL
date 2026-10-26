@@ -4,13 +4,13 @@ area: search
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - search
 ---
 
 # Glossary
 
-Vocabulary of the COBOL.NET project. Each term links to where it is developed.
+Vocabulary of the WiseOwl COBOL project. Each term links to where it is developed.
 
 ## Architecture & pipeline
 - **Bound tree** — the typed semantic model the binder produces; the compiler's single IR (there is no separate
@@ -68,8 +68,8 @@ Vocabulary of the COBOL.NET project. Each term links to where it is developed.
 - **`IClock` / `SystemClock`** — the injectable clock for deterministic CURRENT-DATE.
 
 ## Process & project
-- **Legacy oracle** — `src/CobolSharp.*`, the byte-engine kept only as a differential oracle until the G8 cut-over
-  (opt-in `COBOLSHARP_LEGACY_DIFFERENTIAL=1`). See [[kb/Context/Project History]].
+- **Legacy oracle** — `src/Legacy.*`, the byte-engine kept only as a differential oracle until the G8 cut-over
+  (opt-in `WISEOWL_COBOL_LEGACY_DIFFERENTIAL=1`). See [[kb/Context/Project History]].
 - **G0–G8** — the greenfield build order (G0 reorg … G8 legacy retirement).
 - **P00–P16** — the 17-phase rearchitecture plan. See [[kb/Modernization/Tasks]].
 - **CONFORMANCE-FIX-QUEUE** — the verified, spec-derived fix-ready defect queue (30 landed / 16 remain).

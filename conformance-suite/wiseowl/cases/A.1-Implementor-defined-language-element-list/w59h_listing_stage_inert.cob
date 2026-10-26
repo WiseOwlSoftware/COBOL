@@ -9,7 +9,7 @@
       *> kb/Work PB1536 Q1 / R43 item 3 - Annex A.1 item 200 (the STAGE of
       *> processing the LISTING and PAGE directives and the SUPPRESS phrase
       *> of COPY) is conditioned on the implementor producing listings, and
-      *> COBOL.NET never produces one (A.1 item 117): docs/CONFORMANCE.md
+      *> WiseOwl COBOL never produces one (A.1 item 117): docs/CONFORMANCE.md
       *> section 7 records item 200 as "Condition absent.".
       *>   cite.py --check A.1 "Conditionally required: If the associated
       *>     feature or language element is implemented then this element

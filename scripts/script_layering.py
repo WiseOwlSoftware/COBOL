@@ -11,7 +11,7 @@ kept only if the modules stay layered: a report reader that imports the planner,
 CLI built on it, is the tangle coming back. This audit holds the layering by structure, not by a list of forbidden
 pairs: the DAG below is the one declaration, read from each module's own syntax tree (every `import` and `from ...
 import`, at module level, inside a function, or under `if TYPE_CHECKING:`), and the C# sweep
-tests/Cobol.Net.Tests.Unit/ScriptLayeringDriftTests.cs runs `--check` in every gate's leg 1.
+tests/WiseOwl.Cobol.Tests.Unit/ScriptLayeringDriftTests.cs runs `--check` in every gate's leg 1.
 
 THE RULES (--check):
   1. DECLARED   a declared module may import another declared module only where the DAG lets it: a module of an

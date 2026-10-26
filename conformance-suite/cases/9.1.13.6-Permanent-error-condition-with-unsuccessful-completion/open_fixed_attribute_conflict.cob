@@ -25,7 +25,7 @@
       *> statement. The validation of fixed-file attributes may vary
       *> depending on the organization or storage medium of the file."
       *>
-      *> COBOL.NET's determination USES that permission, and this golden
+      *> WiseOwl COBOL's determination USES that permission, and this golden
       *> pins BOTH of its arms:
       *>
       *>   PART A (steps 1-9), a RELATIVE subject. A relative store is
@@ -43,7 +43,7 @@
       *>   file — "In record sequential files the length of each
       *>   record is determined by any information the implementor may
       *>   add to the record on the physical storage medium (such as
-      *>   record length headers)", and COBOL.NET adds none to a
+      *>   record length headers)", and WiseOwl COBOL adds none to a
       *>   fixed-length record sequential file — and the standard
       *>   answers the resulting disagreement with a SUCCESSFUL
       *>   completion: §9.1.13.2 item 3, "I-O status = 04. A READ
@@ -58,7 +58,7 @@
       *>
       *>   PART C (steps 14-16), a RECORD VARYING SEQUENTIAL subject.
       *>   §9.1.7.2's "such as record length headers" is exactly what
-      *>   COBOL.NET adds to a VARYING record-sequential file — a
+      *>   WiseOwl COBOL adds to a VARYING record-sequential file — a
       *>   4-byte little-endian length prefix per record, by the method
       *>   §12.4.5.11.4 GR5 leaves to the implementor ("If the RECORD
       *>   DELIMITER clause is not specified, the method used for
@@ -123,7 +123,7 @@
            SELECT G-VARY ASSIGN TO "opnfat85b.dat"
                ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS GV-ST.
-      *> PART C's own subject: a varying file COBOL.NET writes.
+      *> PART C's own subject: a varying file WiseOwl COBOL writes.
            SELECT H-VARY ASSIGN TO "opnfat85c.dat"
                ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS HV-ST.
@@ -270,7 +270,7 @@
            DISPLAY "S9-VARYING=" VR-ST
       *> 10. PART B. Create the SEQUENTIAL subject the same way: two
       *>     fixed 20-byte records, a 40-byte plain byte stream with
-      *>     no length information of COBOL.NET's on it at all.
+      *>     no length information of WiseOwl COBOL's on it at all.
            OPEN OUTPUT G-MAKE
            MOVE "ABCDEFGHIJKLMNOPQRST" TO GM-REC
            WRITE GM-REC
@@ -319,7 +319,7 @@
            OPEN INPUT G-VARY
            DISPLAY "S14-VARY-FOREIGN=" GV-ST
       *> 15. The other direction, without which the check could pass by
-      *>     refusing every varying file: a varying file COBOL.NET
+      *>     refusing every varying file: a varying file WiseOwl COBOL
       *>     itself wrote parses, so the OPEN succeeds and the record
       *>     comes back at the length it was written (§13.18.43 GR13,
       *>     reported by GR15 in the DEPENDING ON item).

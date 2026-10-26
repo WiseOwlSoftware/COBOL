@@ -7,7 +7,7 @@
 *>---
       *> ISO 8.4.2.3.2 / 8.4.3.3.3 SR4 - a FUNCTION-IDENTIFIER is legal in a
       *> SUBSCRIPT and in a REFERENCE-MODIFIER position (fix-queue PB17; design
-      *> COBOLNET_DATA_MODEL_DESIGN.md D18). The chain: 8.4.3.1.2 Format 1 makes a
+      *> DATA_MODEL_DESIGN.md D18). The chain: 8.4.3.1.2 Format 1 makes a
       *> function-identifier an identifier -> 15.4 "the evaluation of a function
       *> produces a returned value in a temporary elementary data item" -> 15.2
       *> items 5-6 put integer and numeric functions "of the class and category

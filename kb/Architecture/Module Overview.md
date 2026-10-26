@@ -5,58 +5,58 @@ status: draft
 last_updated: 2026-07-23
 related_files:
   - docs/rearchitecture/DESIGN-module-topology.md
-  - docs/COBOLNET_PROJECT_ORG_DESIGN.md
+  - docs/PROJECT_ORG_DESIGN.md
   - docs/rearchitecture/CRITIQUE-encapsulation.md
-  - src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs
-  - src/Cobol.Net.Cli/Program.cs
+  - src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs
+  - src/WiseOwl.Cobol.Cli/Program.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - architecture
 ---
 
 # Module Overview (Assembly Topology)
 
-The solution is a **five-assembly greenfield tree** (`src/Cobol.Net.*`) plus a **source-generator project** (the legacy
+The solution is a **five-assembly greenfield tree** (`src/WiseOwl.Cobol.*`) plus a **source-generator project** (the legacy
 engine is deleted from `main`: `docs/rearchitecture/LEGACY-ARCHIVE.md`). The one structural addition over the original
-four-project split is the leaf **`Cobol.Net.Editions`**, so both Frontend and Compiler can share one
+four-project split is the leaf **`WiseOwl.Cobol.Editions`**, so both Frontend and Compiler can share one
 construct/reserved-word catalogue without a cycle.
 
 ## Dependency graph (from the live `.csproj` files)
 ```
-                    Cobol.Net.Editions   (LEAF — no refs)
+                    WiseOwl.Cobol.Editions   (LEAF — no refs)
                        ▲            ▲
                        │            │
-   Cobol.Net.Frontend ─┘            └── Cobol.Net.Compiler ──► Cobol.Net.Runtime  (LEAF)
+   WiseOwl.Cobol.Frontend ─┘            └── WiseOwl.Cobol.Compiler ──► WiseOwl.Cobol.Runtime  (LEAF)
         (→ Editions,                          │  ▲
          Antlr4.Runtime)                      │  │ (analyzer-only, netstandard2.0,
                        ▲                      │  └─ ReferenceOutputAssembly=false)
                        └──────────────────────┤
-                                              ├──► Cobol.Net.Frontend
-   Cobol.Net.Compiler.SourceGen ──────────────┘    Cobol.Net.Compiler.SourceGen
+                                              ├──► WiseOwl.Cobol.Frontend
+   WiseOwl.Cobol.Compiler.SourceGen ──────────────┘    WiseOwl.Cobol.Compiler.SourceGen
    (source generator)                              (+ Microsoft.CodeAnalysis.CSharp)
 
-   Cobol.Net.Cli (exe → cobol.exe) ──► Cobol.Net.Compiler ──► (System.CommandLine)
+   WiseOwl.Cobol.Cli (exe → cobol.exe) ──► WiseOwl.Cobol.Compiler ──► (System.CommandLine)
 ```
 
 ## Per-project responsibility
-- **`Cobol.Net.Editions`** *(leaf)* — the construct/reserved-word catalogue, edition-severity policy, the immutable
+- **`WiseOwl.Cobol.Editions`** *(leaf)* — the construct/reserved-word catalogue, edition-severity policy, the immutable
   `EditionInfo` value, and the diagnostic-code registry. Pure data + policy; referenced by both Frontend and Compiler.
-- **`Cobol.Net.Frontend`** (→ Editions, `Antlr4.Runtime.Standard`) — preprocessor, ANTLR lexer/parser, parse tree,
+- **`WiseOwl.Cobol.Frontend`** (→ Editions, `Antlr4.Runtime.Standard`) — preprocessor, ANTLR lexer/parser, parse tree,
   frontend diagnostics. Subfolders: `Grammar/`, `Generated/`, `Parsing/`, `Preprocessor/`, `Diagnostics/`, `Common/`,
   `Pipeline/`, `Cst/`, `Expressions/`. See [[kb/Compiler/Phases]].
-- **`Cobol.Net.Runtime`** *(leaf)* — the typed-native runtime kernel the *generated* programs bind against. Subfolders:
+- **`WiseOwl.Cobol.Runtime`** *(leaf)* — the typed-native runtime kernel the *generated* programs bind against. Subfolders:
   `Values/` (CobolNum, NumProfile), `Verbs/`, `Control/`, `Exceptions/` (EC model), `IO/`, `Intrinsics/`. No compiler
   back-reference. See [[kb/Runtime/Execution Model]].
-- **`Cobol.Net.Compiler`** (→ Editions, Frontend, Runtime; + SourceGen as analyzer) — binder + bind pipeline + CodeGen +
+- **`WiseOwl.Cobol.Compiler`** (→ Editions, Frontend, Runtime; + SourceGen as analyzer) — binder + bind pipeline + CodeGen +
   Roslyn backend + `CompilerDriver`. Subsystems: `Binding/` (`Model/`, `Bound/`, `Passes/`, `Procedure/`,
   `Validation/`), `CodeGen/` (`Emit/`, `DataDivision/`, `Verbs/`, `Roslyn/`), `Oo/`, top-level `Validation/`.
-- **`Cobol.Net.Compiler.SourceGen`** — a Roslyn source generator (`BoundVisitorGenerator.cs`) emitting the exhaustive
+- **`WiseOwl.Cobol.Compiler.SourceGen`** — a Roslyn source generator (`BoundVisitorGenerator.cs`) emitting the exhaustive
   `IBoundVisitor<T>` dispatch so a missing bound-node arm is a **compile error**. Wired analyzer-only
   (`OutputItemType=Analyzer`, `ReferenceOutputAssembly=false`; netstandard2.0). See [[kb/IR/Node Types]].
-- **`Cobol.Net.Cli`** (→ Compiler; `AssemblyName=cobol`) — thin `System.CommandLine` shell (`Program.cs` +
+- **`WiseOwl.Cobol.Cli`** (→ Compiler; `AssemblyName=cobol`) — thin `System.CommandLine` shell (`Program.cs` +
   `CliOptions.cs`); parses `--std`/`--backend`, orchestrates files.
-- **Legacy `CobolSharp.{Compiler,Runtime,CLI}`** — the byte-engine, kept **only** as a differential oracle (opt-in
-  `COBOLSHARP_LEGACY_DIFFERENTIAL=1`), deleted at G8. See [[kb/Modernization/Tasks]].
+- **Legacy `Legacy.{Compiler,Runtime,CLI}`** — the byte-engine, kept **only** as a differential oracle (opt-in
+  `WISEOWL_COBOL_LEGACY_DIFFERENTIAL=1`), deleted at G8. See [[kb/Modernization/Tasks]].
 
 ## Layering / dependency-direction rules
 Dependencies flow one way — Editions ← Frontend/Runtime ← Compiler ← Cli — with **no assembly cycle and no
@@ -68,7 +68,7 @@ binder's model or re-discover semantics. Shared state travels in `BinderContext`
 
 ## Key concepts
 - 5 greenfield assemblies + 1 source-gen + 3 legacy (oracle-only).
-- `Cobol.Net.Editions` = a new leaf so Frontend + Compiler share ONE catalogue (no cycle).
+- `WiseOwl.Cobol.Editions` = a new leaf so Frontend + Compiler share ONE catalogue (no cycle).
 - Runtime is a dependency-free leaf; Compiler references Frontend/Editions/Runtime + SourceGen (analyzer).
 - Folder = sub-namespace; one file per public type.
 - Source-generated exhaustive bound-visitor: a missing dispatch arm is a compile error.

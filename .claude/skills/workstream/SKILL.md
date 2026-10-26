@@ -146,7 +146,7 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   R5-1, R6-1, R6-2). A successor may also follow a group in the same technological
   area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
-  work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
+  work the fix lane cannot see (`process_only`, sites outside `src/WiseOwl.Cobol.*`: the legacy retirement `PB2108`, the
   architecture review `PB1754`) runs from its notes' `cluster:`, `blocked_by:` and the owner's `tier:` (`tier:
   ["<lead>:1"]` ranks a ready note first in that campaign, kb/Work PB3423):
   `python scripts/spec/work.py next --cluster <lead>` lists it in tier, then dependency order,

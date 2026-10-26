@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THE ONE READER of the ANTLR grammar under `src/Cobol.Net.Frontend/Grammar`: which rules it declares, where, and
+"""THE ONE READER of the ANTLR grammar under `src/WiseOwl.Cobol.Frontend/Grammar`: which rules it declares, where, and
 with what body.
 
     python scripts/spec/grammar_source.py              # the population: files, parser, lexer and fragment rules
@@ -44,7 +44,7 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-GRAMMAR_DIR = REPO / "src" / "Cobol.Net.Frontend" / "Grammar"
+GRAMMAR_DIR = REPO / "src" / "WiseOwl.Cobol.Frontend" / "Grammar"
 #: Build output that can hold COPIES of the grammar (the ANTLR task's `obj/antlr-lib`): reading it would count
 #: every rule twice.
 BUILD_DIRS = {"obj", "bin"}

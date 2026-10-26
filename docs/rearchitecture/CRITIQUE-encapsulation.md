@@ -1,7 +1,7 @@
 # CRITIQUE — Encapsulation / Coupling / God-Classes
 
 > Dimension: **encapsulation, coupling, and god-classes** across the WiseOwl COBOL compiler
-> (`src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}`, ~40k LOC). Method: read the real code — the three god
+> (`src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}`, ~40k LOC). Method: read the real code — the three god
 > classes and a sampling of their partials, the data model (`DataItem`, `Place`), the bound-store analysis,
 > the emitter orchestrator, and the frontend edition surface. Every finding cites `file:line`.
 > Invariants under test: typed-native only; one canonical mechanism per job; NO god classes; ownership +
@@ -13,12 +13,12 @@
 ## Overall assessment
 
 Encapsulation health is **POOR at the module/class boundary, good at the assembly boundary**. The four-project
-split is genuinely clean and one-directional — `Cobol.Net.Frontend` depends only on the ANTLR runtime,
-`Cobol.Net.Runtime` is a dependency-free leaf, and `Cobol.Net.Compiler` references
-Frontend + Runtime + Roslyn (`src/Cobol.Net.Compiler/Cobol.Net.Compiler.csproj`). There is no assembly cycle
+split is genuinely clean and one-directional — `WiseOwl.Cobol.Frontend` depends only on the ANTLR runtime,
+`WiseOwl.Cobol.Runtime` is a dependency-free leaf, and `WiseOwl.Cobol.Compiler` references
+Frontend + Runtime + Roslyn (`src/WiseOwl.Cobol.Compiler/WiseOwl.Cobol.Compiler.csproj`). There is no assembly cycle
 and no runtime→compiler back-reference. That is the one part of the topology the codebase gets right.
 
-Inside `Cobol.Net.Compiler`, however, encapsulation is largely a **fiction produced by `sealed partial class`
+Inside `WiseOwl.Cobol.Compiler`, however, encapsulation is largely a **fiction produced by `sealed partial class`
 file-slicing**. The three dominant types — `StatementBinder` (21 partials), `CSharpEmitter` (15 partials),
 `DataBinder` (6 partials) — are each ONE object whose full private mutable state is visible to every partial.
 A partial is a *naming-convention firewall, not an encapsulation boundary*: the C# compiler enforces nothing
@@ -53,9 +53,9 @@ immutability, which is exactly what the rearchitecture roadmap targets (see ROAD
 ## Findings
 
 ### F1 — `sealed partial class` slicing is not decomposition (the three god classes share ALL private state)  — HIGH
-**Location:** `src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs:18` (+20 partials);
-`src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs:24` (+14 partials);
-`src/Cobol.Net.Compiler/Binding/DataBinder.cs:15` (+5 partials).
+**Location:** `src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs:18` (+20 partials);
+`src/WiseOwl.Cobol.Compiler/CodeGen/CSharpEmitter.cs:24` (+14 partials);
+`src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:15` (+5 partials).
 
 **Description.** Each of the three biggest types is one `sealed partial class` scattered across many files. The
 partitioning is by *feature* (`.KeyedIo`, `.Sort`, `.Intrinsics`, `.Oo`, …), which reads like decomposition, but
@@ -88,7 +88,7 @@ roadmap changes 25-28 / 39-43 and PHASE-07.
 ---
 
 ### F2 — The emitter MUTATES the binder's data model (cross-layer write-back) — HIGH  *(worst invariant breach)*
-**Location:** `src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs:50-68` (`MarkStoreAsImage`, writes at `:65`);
+**Location:** `src/WiseOwl.Cobol.Compiler/CodeGen/CSharpEmitter.cs:50-68` (`MarkStoreAsImage`, writes at `:65`);
 `CSharpEmitter.Call.cs:115-120` (compiler-temp `StoreAsImage` re-sync at `:118`, `MarkStoreAsImage` calls at
 `:119-120`); `CSharpEmitter.Oo.cs:697` (`native.StoreAsImage = true`); `CSharpEmitter.Call.cs:319`
 (`data.IndexFields.TryAdd(...)`).
@@ -124,7 +124,7 @@ CodeGen writes into the Binding data model").
 ---
 
 ### F3 — The Bind/Emit phase boundary does not exist; CodeGen drives binding (layer inversion) — HIGH
-**Location:** `src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.Call.cs:88-194` (`CallEmitRunUnit`, the real
+**Location:** `src/WiseOwl.Cobol.Compiler/CodeGen/CSharpEmitter.Call.cs:88-194` (`CallEmitRunUnit`, the real
 middle-end orchestrator); `CSharpEmitter.Oo.cs:64,86,104` (`data.BindResolve(synthetic)` / `fdata.BindResolve`).
 
 **Description.** The compiler's *actual* pass pipeline — collect units, bind interface/class/program data,
@@ -152,7 +152,7 @@ halts after Bind. This is roadmap change 39 and PHASE-06 Steps 2/4.
 ---
 
 ### F4 — `DataBinder` is a public-mutable-dictionary blackboard with no ownership discipline — HIGH
-**Location:** `src/Cobol.Net.Compiler/Binding/DataBinder.cs:26-108`; plus
+**Location:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:26-108`; plus
 `DataBinder.Linkage.cs:65,70` (`CallSuppressedRootFields`, `CallGlobalRoots`).
 
 **Description.** `DataBinder`'s public surface *is* ~15 get-only-but-mutable collections; there is no symbol-table
@@ -192,7 +192,7 @@ lookup quadruple into one `TryResolve(name, scope)`. Roadmap §3.2 / PHASE-06 St
 ---
 
 ### F5 — `DataItem` is broadly mutable and multi-phase-written (no immutable core) — HIGH
-**Location:** `src/Cobol.Net.Compiler/Binding/DataItem.cs` — settable properties at
+**Location:** `src/WiseOwl.Cobol.Compiler/Binding/DataItem.cs` — settable properties at
 `:23` (`Uid`), `:29` (`CsName`), `:32` (`Pic`), `:60` (`TypeRefName`), `:64` (`TypeName`), `:68` (`StrongType`),
 `:169` (`StoreAsImage`), `:193` (`RedefinesTarget`), `:196` (`Renames`), `:200` (`Class`), `:204` (`IsCanonical`),
 `:209` (`IsBased`), `:213` (`ClassOffset`), `:221` (`Parent`).
@@ -224,7 +224,7 @@ its producing pass ran is a located compiler error. Roadmap §2.7 / §3.1 / PHAS
 ---
 
 ### F6 — `Place` leaks emit-time C# text (the abstraction is not backend-neutral) — MED
-**Location:** `src/Cobol.Net.Compiler/Binding/Place.cs:22-25` (`Read()`/`Write()` return `string`);
+**Location:** `src/WiseOwl.Cobol.Compiler/Binding/Place.cs:22-25` (`Read()`/`Write()` return `string`);
 subtypes hard-coding runtime text at `:45` (`MemberPlace`), `:94-101` (`RedefViewPlace` →
 `CobolString.RefMod`/`SpliceInto`), `:160-164` (`NumericImagePlace` → `CobolNum.FormatDisplay`/`StoreDisplay`),
 `:185` (`CapacityRegisterPlace` → `{TablePath}.Capacity`), `:58` (`DynTablePlace` carries two precomputed path
@@ -254,15 +254,15 @@ generated-code failure. Roadmap §2.12 / PHASE-07 Steps 5, 11-12.
 ---
 
 ### F7 — Edition metadata is duplicated across Frontend and Compiler (no shared home) — MED
-**Location:** `src/Cobol.Net.Frontend/Parsing/EditionGateHints.cs:35-63` (a `Gate` table with `IntroducedIn` +
+**Location:** `src/WiseOwl.Cobol.Frontend/Parsing/EditionGateHints.cs:35-63` (a `Gate` table with `IntroducedIn` +
 ISO citation + `constructs.json` row id, in the **legacy** `legacy-root.Parsing` namespace);
-`src/Cobol.Net.Frontend/Parsing/CobolParserCoreBase.cs:17-22` (`DialectLevel` + `is2002/2014/2023`);
-`src/Cobol.Net.Compiler/Binding/EditionContext.cs:26-49` (`DialectLevel`, `MaxDigits`).
+`src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs:17-22` (`DialectLevel` + `is2002/2014/2023`);
+`src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs:26-49` (`DialectLevel`, `MaxDigits`).
 
 **Description.** The construct→introduction-edition catalogue exists in two places on two sides of the assembly
 boundary. The frontend's `EditionGateHints` hard-codes ~30 `Gate` rows (construct, introducing edition, ISO
 citation), which the comment itself says duplicates the canonical `constructs.json` / `ConstructRegistry.Check`
-that lives in `Cobol.Net.Compiler` ("one wording, two emit layers", `EditionGateHints.cs:14-18`). The frontend
+that lives in `WiseOwl.Cobol.Compiler` ("one wording, two emit layers", `EditionGateHints.cs:14-18`). The frontend
 cannot reference the compiler's registry (would cycle), so the metadata is copied. Two edition scalars
 (`CobolParserCoreBase.DialectLevel` int and `EditionContext.DialectLevel` int) model the same concept
 independently.
@@ -277,34 +277,34 @@ EditionContext.cs:26        public sealed class EditionContext(int dialectLevel,
 This is a *topology* defect (no shared lower layer), not a logic bug — but it means an edition-introduction
 change must be made in two assemblies, and drift silently diverges the parse-time and bind-time diagnosis.
 
-**Recommendation.** Extract a leaf `Cobol.Net.Editions` assembly (referenced by both Frontend and Compiler)
+**Recommendation.** Extract a leaf `WiseOwl.Cobol.Editions` assembly (referenced by both Frontend and Compiler)
 holding `constructs.json` + `ConstructRegistry` + `EditionGateHints` + an immutable `EditionInfo`, deleting the
 frontend copy. Roadmap §2.1 / §2.11 (new assembly, changes 1, 7, 46-48).
 
 ---
 
 ### F8 — Stale legacy namespace inside the greenfield Frontend (assembly/namespace mismatch) — LOW
-**Location:** `src/Cobol.Net.Frontend/Parsing/CobolParserCoreBase.cs:5` (`namespace
+**Location:** `src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs:5` (`namespace
 legacy-root.Generated`); `EditionGateHints.cs:6` (`namespace legacy-root.Parsing`); every
 Compiler consumer aliases `using Core = CobolParserCore` (e.g. `DataBinder.cs:7`, `StatementBinder.cs:11`,
 `CSharpEmitter.cs:11`).
 
-**Description.** The assemblies are renamed `Cobol.Net.*` but the code still emits into `namespace
+**Description.** The assemblies are renamed `WiseOwl.Cobol.*` but the code still emits into `namespace
 legacy-root.*` (the pre-PIVOT legacy root) and the ANTLR package is `legacy-root.Generated`. This
 is only a cosmetic/understandability coupling, but it forces the `using Core =` alias noise into every file and
 keeps a false "reuses the legacy assembly" mental model.
 
 **Evidence.** `namespace legacy-root.Generated;` (`CobolParserCoreBase.cs:5`) inside the
-`Cobol.Net.Frontend` project; `using Core = CobolParserCore;` at the top of essentially every binder/emitter file.
+`WiseOwl.Cobol.Frontend` project; `using Core = CobolParserCore;` at the top of essentially every binder/emitter file.
 
-**Recommendation.** Complete the `legacy-root.* → CobolNet.*` rename now (single scripted commit, MSBuild
+**Recommendation.** Complete the `legacy-root.* → WiseOwl.Cobol.*` rename now (single scripted commit, MSBuild
 `<AntlrNamespace>` property), decoupled from G8. Roadmap §2.2 (changes 2-3, Wave 0).
 
 ---
 
 ### Positive notes (what NOT to disturb)
-- **Assembly layering is clean and one-directional** (`Cobol.Net.Compiler.csproj`; Runtime is a dependency-free
-  leaf). Keep it; add only the `Cobol.Net.Editions` leaf.
+- **Assembly layering is clean and one-directional** (`WiseOwl.Cobol.Compiler.csproj`; Runtime is a dependency-free
+  leaf). Keep it; add only the `WiseOwl.Cobol.Editions` leaf.
 - **`Place` is the right *shape*** for a single canonical lvalue mechanism (F6 is about the string leak, not the
   abstraction).
 - **`BoundStores.StoreKindOf` (`Binding/Bound/BoundStores.cs:47-183`) is a model of disciplined analysis** — a
@@ -335,7 +335,7 @@ the public dictionaries, and an immutable `BoundCompilation`. Concretely:
 | F4 public-dict blackboard + lookup quadruple | binder-tree §3.2 + PHASE-06 Steps 5/7 (`SymbolTable`/`SymbolTableBuilder`, read-only views, one `TryResolve(name, scope)`) | **Yes** |
 | F5 mutable `DataItem` | topology §2.7 + binder-tree §3.1 (`StorageForm` init-only, `StrongTypeModel` side-table, watermark gate) + PHASE-06 Step 6 | **Yes** |
 | F6 `Place` leaks C# text | topology §2.12 + binder-tree §3.3 + PHASE-07 Steps 5/11-12 (structural `Place`, `PlaceRenderer`, `RuntimeApi`, `ICodeGenBackend`) | **Yes** |
-| F7 edition metadata dup | topology §2.1/§2.11 (new `Cobol.Net.Editions` leaf) | **Yes** |
+| F7 edition metadata dup | topology §2.1/§2.11 (new `WiseOwl.Cobol.Editions` leaf) | **Yes** |
 | F8 stale namespace | topology §2.2 (rename now, Wave 0) | **Yes** |
 
 The plan is also *stronger than my critique in two respects*: (a) it adds a **DAG-validated pass manifest +

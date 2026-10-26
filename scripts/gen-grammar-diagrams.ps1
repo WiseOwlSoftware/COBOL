@@ -33,14 +33,14 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo   = Split-Path $PSScriptRoot -Parent
 $rrWar  = Join-Path $repo 'tools/rr/rr.war'
-$grmDir = Join-Path $repo 'src/Cobol.Net.Frontend/Grammar/Core'
-# ⛔ A -Check run writes to its OWN directory. It used to be the FIXED %TEMP%\cobolnet-grammar-check, shared by
+$grmDir = Join-Path $repo 'src/WiseOwl.Cobol.Frontend/Grammar/Core'
+# ⛔ A -Check run writes to its OWN directory. It used to be the FIXED %TEMP%\wiseowl-cobol-grammar-check, shared by
 # every run on the host — and the Unit assembly's GrammarDiagramGeneratorDriftTests runs this script from EVERY
 # worktree's gate, so two concurrent gates raced: one run's opening Remove-Item deleted the directory under the
-# other's WriteAllText ("Could not find a part of the path '…\cobolnet-grammar-check\CobolOO.md'"), exit 1, and
+# other's WriteAllText ("Could not find a part of the path '…\wiseowl-cobol-grammar-check\CobolOO.md'"), exit 1, and
 # the drift test went red with a message build-local's line filter then dropped. Measured 2026-09-24 (wave 59 H):
 # four concurrent -Check runs, three exited 1 that way. A per-run GUID directory makes the runs independent.
-$outDir = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("cobolnet-grammar-check-" + [guid]::NewGuid().ToString('N')) }
+$outDir = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("wiseowl-cobol-grammar-check-" + [guid]::NewGuid().ToString('N')) }
           else        { Join-Path $repo 'kb/Grammar' }
 
 if (-not (Test-Path $rrWar)) { Write-Error "missing vendored railroad tool: $rrWar"; exit 1 }
@@ -106,7 +106,7 @@ generated: true
 cssclasses:
   - wide-diagram
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - grammar
   - diagram
   - generated
@@ -114,7 +114,7 @@ tags:
 
 # $frag — railroad syntax diagrams
 
-> ⚙ **Generated** from ``src/Cobol.Net.Frontend/Grammar/Core/$frag.g4`` by ``scripts/gen-grammar-diagrams.ps1``
+> ⚙ **Generated** from ``src/WiseOwl.Cobol.Frontend/Grammar/Core/$frag.g4`` by ``scripts/gen-grammar-diagrams.ps1``
 > (railroad via the vendored bottlecaps ``tools/rr/rr.war``). Build output (gitignored) — do not edit; regenerate.
 > Semantic predicates/actions are stripped; ALL-CAPS lexer tokens are terminals; camelCase rule references to
 > **other** fragments render as leaf non-terminals. **$countText** See also [[kb/Spec/Lookup/Grammar]] ·
@@ -139,7 +139,7 @@ $indexMd = @"
 title: Grammar syntax diagrams — index
 generated: true
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - grammar
   - diagram
   - generated
@@ -149,7 +149,7 @@ tags:
 # Grammar syntax diagrams
 
 > ⚙ **Generated** by ``scripts/gen-grammar-diagrams.ps1`` from the ANTLR parser fragments under
-> ``src/Cobol.Net.Frontend/Grammar/Core/`` (railroad via the vendored bottlecaps ``tools/rr/rr.war``). Build
+> ``src/WiseOwl.Cobol.Frontend/Grammar/Core/`` (railroad via the vendored bottlecaps ``tools/rr/rr.war``). Build
 > output (gitignored) — do not edit; regenerate. **$($results.Count) fragments, $totalDia diagrams.**
 > See also [[kb/Spec/Lookup/Grammar]] · [[kb/Diagrams/Grammar Hierarchy]] · [[kb/Compiler/Phases]].
 

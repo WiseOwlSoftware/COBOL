@@ -1,10 +1,10 @@
-# DESIGN — Target Runtime Library Organization (`Cobol.Net.Runtime`)
+# DESIGN — Target Runtime Library Organization (`WiseOwl.Cobol.Runtime`)
 
 Status: EXECUTED (PHASE-08) — §2's target design IS the as-built runtime; §4's migration steps 1–5 are DONE
-(plus the `ExternalSwitches`→`SwitchStore` conversion the §5 hidden-static gate surfaced); step 6 (the G8
-RootNamespace flip + real sub-namespaces) is the ONE remaining item, deferred to G8 Cut 3 behind the compiler's
-`RuntimeApi` façade. §1 records the pre-P8 problems as the rationale; §6's former open questions are resolved
-inline. Scope: the organization + API of the greenfield runtime `src/Cobol.Net.Runtime` that WiseOwl COBOL-generated
+(plus the `ExternalSwitches`→`SwitchStore` conversion the §5 hidden-static gate surfaced); step 6's RootNamespace
+flip is DONE (kb/Work PB3837, the product rename, through the compiler's `RuntimeApi` façade); its real
+sub-namespaces are the ONE remaining item, deferred to G8 Cut 3 behind the same façade. §1 records the pre-P8 problems as the rationale; §6's former open questions are resolved
+inline. Scope: the organization + API of the greenfield runtime `src/WiseOwl.Cobol.Runtime` that WiseOwl COBOL-generated
 C# programs call. Upholds the HARD INVARIANTS (typed-native only; spec-first; battery green throughout; singular
 pattern; four-editions-in-one; JSON/XML out of scope).
 
@@ -60,10 +60,10 @@ type split — a singular-pattern violation.
 `Text/` holds value types (`CobolString`, `CobolBool`, `CobolClass`) while `Strings/` holds *statement runtime*
 (`CobolStringOps` = STRING/UNSTRING, `CobolInspect` = INSPECT) — the split is by word, not by role. Namespaces are
 mixed: `CobolIntrinsics`, `ProgramRegistry`, `NumProfile`, `CobolModule`, `ManagedPointer`, `ExternalStore` sit in the
-**root** `CobolNet.Runtime`; `CobolNum`/`CobolDec` in `.Numeric` reference-only-by-string from the compiler;
+**root** `WiseOwl.Cobol.Runtime`; `CobolNum`/`CobolDec` in `.Numeric` reference-only-by-string from the compiler;
 `ExceptionState` in `.Exceptions`; files in `.IO`. There is no `.Control` namespace even though a `Control/` folder
-exists. And the assembly is `Cobol.Net.Runtime` while the root namespace is still `CobolNet.Runtime` (a deliberate
-G0→G7 deferral so generated `using CobolNet.Runtime;` is unaffected — csproj comment).
+exists. And the assembly is `WiseOwl.Cobol.Runtime` while the root namespace is still `WiseOwl.Cobol.Runtime` (a deliberate
+G0→G7 deferral so generated `using WiseOwl.Cobol.Runtime;` is unaffected — csproj comment).
 
 ### 1.5 Minor API-coherence nicks
 `NotImplemented`, `StopRun`, `MethodReturn`, `CobolInvokeArg`, `ResumeSignal`, `CobolFatalException` are one-purpose
@@ -87,7 +87,7 @@ inside `FileSupport.cs:74` next to the enums but is consumed by all three connec
 
 ### 2.1 The `RunUnit` context (NEW) — the state-ownership + threading fix
 ```csharp
-namespace Cobol.Net.Runtime.Control;
+namespace WiseOwl.Cobol.Runtime.Control;
 
 /// The single owner of all run-unit-lifetime state (ISO §14.6.1 run unit). Replaces the five independent
 /// process-global static stores. One instance per run unit; the ambient current run unit is an AsyncLocal so a
@@ -139,7 +139,7 @@ termination epilogue `ProgramTable.RunMain` and `RunUnit.Run` both call, closes 
 adopted reset again, so a static POINTER, OBJECT REFERENCE or dynamic item releases what it held (§14.6.11 3, 4, 6).
 
 **No run-unit state in a static — enforced.** `RunUnitStateDriftTests.NoWritableStatic_OutsideTheDocumentedProcessStores`
-enumerates every writable static field in `Cobol.Net.Runtime` and fails on one not documented there as
+enumerates every writable static field in `WiseOwl.Cobol.Runtime` and fails on one not documented there as
 PROCESS-lifetime (console encoding, collation-subsystem configuration, the per-thread overwritten-before-use
 subscript scratch cell). The RANDOM sequence was the sixth process-global store the consolidation missed (kb/Work
 PB307).
@@ -204,7 +204,7 @@ public static class ProgramRegistry {                 // compat shim (deleted at
 
 ### 2.2 IO — one `FileConnector` base, three organization subclasses, one registry
 ```csharp
-namespace Cobol.Net.Runtime.IO;
+namespace WiseOwl.Cobol.Runtime.IO;
 
 /// Shared control logic for every organization (ISO §9.1.13 status machine + §14.9.30/§14.9.35 read-position
 /// state + OPEN/CLOSE/mode + host path). Organization-specific record SELECTION is abstract.
@@ -814,8 +814,8 @@ the sort-merge store as well: a SORT of a multi-gigabyte file is ordinary COBOL 
 API and the procedure phase (`SortStore`), and the records live in ONE engine, `SortWork` (`IO/SortWork.cs`), owned by
 the store for the statement's life:
 - **The limit** is `SortMemory` (`IO/SortMemory.cs`), read once per run unit when `RunUnit.SortFiles` is built:
-  `COBOLNET_SORT_MEMORY` (bytes, with an optional `K`/`M`/`G` suffix; default 128 MiB, GnuCOBOL's `COB_SORT_MEMORY`
-  default; floor 64 KiB) and `COBOLNET_SORT_TMPDIR` (else `Path.GetTempPath()`), both registered in `RuntimeConfig`.
+  `WISEOWL_COBOL_SORT_MEMORY` (bytes, with an optional `K`/`M`/`G` suffix; default 128 MiB, GnuCOBOL's `COB_SORT_MEMORY`
+  default; floor 64 KiB) and `WISEOWL_COBOL_SORT_TMPDIR` (else `Path.GetTempPath()`), both registered in `RuntimeConfig`.
 - **The release phase** appends to one in-memory chunk and charges each record its resident estimate (image,
   frame, extent table and the decoded key columns the chunk's sort will build). A record that would pass the limit
   first SEALS the chunk: a SORT sorts it (`SortKeyColumns` decoded once per record, an index sort whose tie is the
@@ -862,10 +862,10 @@ retires a transaction, `IRestoringTrees`), the UNDO and HOLDINGS edits of every 
 (`PagedFile.Commit`, `Retire`), ROLLBACK and the dead-owner rollback as one statement (`KeyedStore.RollBack`), the
 dead-owner step at every exclusive entry and writable OPEN, the holdings lock test (`KeyedConnector.HoldingsGate`), and
 `FileRegistry.RegisterCommitControl` / `Commit` / `Rollback`, with the connector-level cases in
-`tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs` (among them the abnormal-ending wiring of each run-unit
+`tests/WiseOwl.Cobol.Tests.Unit/Store/CommitRollbackRuntimeTests.cs` (among them the abnormal-ending wiring of each run-unit
 boundary, `RunUnit.Run`, `ProgramTable.RunMain` and the host's `CallFromHost`, which record the ending that
 `RunUnit.Terminate` reads to choose the commit or the file-only ROLLBACK, kb/Work PB3481); every transaction row of 2.2.1.16 and 2.2.1.17 runs
-through the fault-injecting medium of 2.2.1.12 in `tests/Cobol.Net.Tests.Unit/Store/TransactionFaultMatrixTests.cs`
+through the fault-injecting medium of 2.2.1.12 in `tests/WiseOwl.Cobol.Tests.Unit/Store/TransactionFaultMatrixTests.cs`
 (the process death, the refusal and the power loss at every point of COMMIT, its reversal, ROLLBACK, the dead-owner step
 and a first change, and a holder's death at every point of another run unit's statement), and witness (e) of 2.2.1.11 in
 `KeyedStorePerformanceWitnessTests`. Still the target: the compiler half (PB3338) and the sequential journal (PB3340). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
@@ -1159,7 +1159,7 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   root set, page 2 last), and the statement's ordinal is the one `PagedFile.ReleaseMint` names after the statement's entry,
   which `PagedFile.Begin` then claims (in the tree: `IndexedConnector` over `IndexedStore`, kb/Work PB3334). The frame
   carries one ordinal per key the META PAGE records, and an alternate entry is a record's only while the record still
-  carries the entry's ordinal under that key: the opt-out of DOC-A.1-129 (`COBOLNET_KEYCHECK=OFF`) lets a description with a
+  carries the entry's ordinal under that key: the opt-out of DOC-A.1-129 (`WISEOWL_COBOL_KEYCHECK=OFF`) lets a description with a
   different key table drive the file's trees by key number, a tree it does not declare is not maintained by its statements,
   and such a tree's stale entry is passed over by every reader instead of naming a record that no longer has it.
 - **A RELATIVE record is one entry.** The record number is the key; `Highest` (§14.9.51.4 GR29 a), *"one greater than the
@@ -2149,7 +2149,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   keeps the tree's key), taken from the tree by a REWRITE, a DELETE and a random READ (`IndexedStore.Get`), so the before-image a
   ROLLBACK restores goes back under the image it came from and the §9.1.16 record lock of every statement names one
   string (`IndexedConnector.MutationTargetRecordIdCore`, `FindRandom`). A key number the order table has none for (the
-  `COBOLNET_KEYCHECK` opt-out) compares as bytes. Under commit control the prime key bound is 1 015 bytes, one below the
+  `WISEOWL_COBOL_KEYCHECK` opt-out) compares as bytes. Under commit control the prime key bound is 1 015 bytes, one below the
   tree's, for the kind byte (DOC-A.1-129).
   (5) A transaction the run unit OWES a rollback — one whose ROLLBACK the medium refused, or whose file is MARKED
   UNACKNOWLEDGED — is never committed (finding R1-4): a COMMIT, the program's or the implicit one of a run unit ending
@@ -2264,13 +2264,13 @@ tree once and its AT END READ answers '10'; and every unsuccessful row above is 
 refused '22', a READ and a DELETE refused '23', a WRITE the medium refuses ('30'), then the permanent error's replay by WRITE, READ, READ NEXT, START, REWRITE and
 DELETE, one case each in both sharing modes, each reading, writing and syncing nothing (the unsuccessful row), a READ
 meeting another run unit's lock ('51', a RETRY of three attempts, and a RETRY that sees the lock released and succeeds); (d) **no whole-store I/O exists** — a
-drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
+drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/WiseOwl.Cobol.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
 m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping
 (the ROLLBACK row above) and leaves every record of another run unit byte-identical; a COMMIT reads its UNDO tree once.
-Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are `tests/Cobol.Net.Tests.Unit/Store/
+Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are `tests/WiseOwl.Cobol.Tests.Unit/Store/
 KeyedStorePerformanceWitnessTests.cs` (kb/Work PB3336: one class per file shape, the real connectors over `PageArrayMedium`,
 an in-memory page array per physical file, so a load costs no host I/O and the counts are the same on every host); (e) needs
 the transaction runtime and is `KeyedStorePerformanceWitnessTests.A_transaction_costs_its_own_records_only` (kb/Work
@@ -2444,9 +2444,9 @@ today.
 
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
-crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
+crash matrix (in the tree: `src/WiseOwl.Cobol.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
 `Ledger`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
-`tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
+`tests/WiseOwl.Cobol.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
 PB3332's tree replaced both); PB3332 the B+ tree over it
 (in the tree: `BTree`, `BTreeCursor`, `IKeyOrder`, `KeyOrders`, `OverflowChain`, with the LEDGER a resident tree and the FREE
 set the FREE tree, and its model, shape and crash cases beside the page layer's); PB3333 RELATIVE on the engine (its connector, its tests, the
@@ -2457,17 +2457,17 @@ PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader 
 over `RelativeStore` in `KeyedStore.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
 `KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
 `IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
-`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `KeyedStore.MediumObserver`); PB3334 INDEXED on the engine
+`tests/WiseOwl.Cobol.Tests.Unit/RelativeEngineTests.cs` over `KeyedStore.MediumObserver`); PB3334 INDEXED on the engine
 (the trees, the ordinals, the collations, the indexed half of DOC-A.1-107 — and, once both organizations drive one engine, the
 keyed lifecycle written ONCE, kb/Work PB2753; in the tree: `IndexedConnector` over `IndexedStore` in `KeyedStore.cs`, the
 engine handle `KeyedStore` both stores derive from, with `KeyedStore.Change` the one multi-tree statement and
 `KeyedStore.MediumObserver` the one fault seam; `KeyedConnector.OpenCore`/`CloseCore`/`Attach`/`Detach`/`FormatHolds`;
 `IndexedConnector.WholeStore.cs` deleted, so no connector reaches the whole-store model; the connector-level cases in
-`tests/Cobol.Net.Tests.Unit/IndexedEngineTests.cs`); PB3335 the deletion of the whole-store model's remains and
+`tests/WiseOwl.Cobol.Tests.Unit/IndexedEngineTests.cs`); PB3335 the deletion of the whole-store model's remains and
 the rest of page-granular coherence (in the tree: `StoreTable`, `IO/KeyedStore.cs`, a reader's entry through a shared
 mutex, `PagedFile.Enter(exclusive)`, and the reader's re-adoption under the mutex, `KeyedConnector.Detach`; the rest of
 DOC-A.1-75; the whole-store ban, `WholeStoreBanDriftTests`; the connector-level coherence cases in
-`tests/Cobol.Net.Tests.Unit/StoreCoherenceTests.cs`); PB3336 the performance
+`tests/WiseOwl.Cobol.Tests.Unit/StoreCoherenceTests.cs`); PB3336 the performance
 witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and
 witness (e); PB3338 the compiler's APPLY COMMIT.
 Same-file work is sequenced by `blocked_by`, and every group lands green on its own: no landing between two groups leaves main
@@ -3323,7 +3323,7 @@ existing PREVIOUS and REVERSED cases stay byte-identical.
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
-Values/                         namespace Cobol.Net.Runtime.Values
+Values/                         namespace WiseOwl.Cobol.Runtime.Values
   Numeric/  CobolNum, CobolDec, CobolFloat, CobolEdit, CobolRounding, CobolSizeError, NumProfile, Pow10 (NEW)
   Text/     CobolString, CobolBool, CobolClass
   Tables/   CobolTable, CobolDynTable
@@ -3358,7 +3358,7 @@ the `Pow10` dedup change. (The compiler-side "force everything through Int128 ev
 
 ### 2.4 Verbs — the statement runtime (moved out of the mislabeled `Strings/`)
 ```
-Verbs/                          namespace Cobol.Net.Runtime.Verbs
+Verbs/                          namespace WiseOwl.Cobol.Runtime.Verbs
   CobolStringOps  (STRING / UNSTRING)
   CobolInspect    (INSPECT)
 ```
@@ -3368,13 +3368,13 @@ report-connector-bound; noted, not moved.)
 
 ### 2.5 Control — run-unit + inter-program
 ```
-Control/                        namespace Cobol.Net.Runtime.Control
+Control/                        namespace WiseOwl.Cobol.Runtime.Control
   RunUnit (NEW) · ProgramTable (was ProgramRegistry) · ExternalStore · ModuleStack (was CobolModule)
   ManagedPointer / StorageCell / CellPointer · CobolArg / ICobolProgram / CobolArgAdapt
   CobolObject · CobolPtr · ExternalSwitches · CobolInvokeArg
   RuntimeAbi (the runtime version and call ABI a compiled module records and RegisterModule checks; kb/Work PB2097)
   Signals/  StopRun · ProgramReturn · MethodReturn · ResumeSignal · NotImplemented
-Repository/                     namespace CobolNet.Runtime.Repository
+Repository/                     namespace WiseOwl.Cobol.Runtime.Repository
   CobolRepositoryAttribute (a module's assembly record: schema, runtime version, call ABI, registrar) — the attribute
   family of the external repository's schema (DESIGN-external-repository §6) grows here
 ```
@@ -3405,7 +3405,7 @@ ABI types (`ManagedPointer`, `CobolArg`, `ICobolProgram`, `CobolArgAdapt`, `Stor
 
 ### 2.6 Exceptions — EC engine (instance-owned)
 ```
-Exceptions/                     namespace Cobol.Net.Runtime.Exceptions
+Exceptions/                     namespace WiseOwl.Cobol.Runtime.Exceptions
   ExceptionState (instance on RunUnit) · ExceptionCatalog (static, immutable table — stays static) · EcFunctions
   Signals moved to Control/Signals/ (CobolFatalException stays here — it is an EC condition carrier)
 ```
@@ -3421,7 +3421,7 @@ reorg beyond: `Pow10*` → `Values/Numeric/Pow10`; `CobolDate`'s `AcceptSource.N
 wall-clock reading WITH the local time differential factor CURRENT-DATE renders at positions 17–21 (§15.21.3 r1)
 and the §15.3.3 offset format fields emit. EVERY now-reading in the greenfield tree goes through the seam —
 the ACCEPT temporal sources, CURRENT-DATE, FORMATTED-CURRENT-DATE, SECONDS-PAST-MIDNIGHT and the §15.100
-windowing execution-time defaults — so one run unit observes one clock and `COBOLNET_CLOCK` pins all of them
+windowing execution-time defaults — so one run unit observes one clock and `WISEOWL_COBOL_CLOCK` pins all of them
 at once (a pin may carry an explicit offset, `2026-06-10T14:30:45.67+02:30`; without one the machine-local
 offset is assumed). The only direct `DateTime[Offset].Now` reads are `SystemClock`'s unpinned fallback and
 `IntrinsicBinder.CompileClock`'s default (WHEN-COMPILED is the compilation timestamp, §15.99.3 r2);
@@ -3498,11 +3498,10 @@ Roslyn with CS0117, while the dispatch asked only whether SOME argument was floa
 `CheckArgumentClasses` warns and binds under `--permissive`, which is exactly the lane these bodies live in.
 
 ### 2.8 Namespace / assembly rename (G8)
-Assembly is already `Cobol.Net.Runtime`. At G8, `RootNamespace` `CobolNet.Runtime` → **`Cobol.Net.Runtime`** and the
-sub-namespaces above become real. This is a single coordinated change with the compiler's `RuntimeApi` façade (one
-file emits the `using`s), so generated `using CobolNet.Runtime;` flips to `using Cobol.Net.Runtime.*;` in exactly one
-place. Until G8 the root namespace stays `CobolNet.Runtime` and the reorg below is **folder-only** (namespaces
-unchanged) to keep the emitted surface byte-stable.
+The assembly and the root namespace are both `WiseOwl.Cobol.Runtime`: the product rename (kb/Work PB3837) made them
+one name in one change, with the compiler's `RuntimeApi` façade (one file emits the `using`s). Realizing the
+sub-namespaces above is a separate change through the same façade; until it is made the reorg below is
+**folder-only** (namespaces unchanged) to keep the emitted surface byte-stable.
 
 ---
 
@@ -3529,7 +3528,7 @@ unchanged) to keep the emitted surface byte-stable.
 | merge | 4× `Pow10`/`Pow10Wide`/`Pow10I`/`Pow10D` | delegate to `Values/Numeric/Pow10` | one source of truth |
 | merge | `KeyedFrames` (relative/indexed) + sequential varying framing | `IO/RecordFraming.cs` | one framing helper across organizations |
 | move | `StopRun`, `MethodReturn`, `ProgramReturn`, `ResumeSignal`, `NotImplemented` | `Control/Signals/` | cohesive control-signal group |
-| rename (G8) | RootNamespace `CobolNet.Runtime` | `Cobol.Net.Runtime` (+ real sub-namespaces) | assembly/namespace coherence; one coordinated flip with the emitter `RuntimeApi` façade |
+| rename (G8) | RootNamespace `WiseOwl.Cobol.Runtime` | `WiseOwl.Cobol.Runtime` (+ real sub-namespaces) | assembly/namespace coherence; one coordinated flip with the emitter `RuntimeApi` façade |
 | keep | `CobolNum`/`CobolDec`/`CobolFloat`/`CobolEdit`/`NumProfile`, `ExceptionCatalog`, `CobolIntrinsics.*`, `CobolDate` (type designs) | — | already coherent; only path/`Pow10`/clock touched |
 
 ---
@@ -3548,7 +3547,7 @@ every pre-P8 static name survives as the emitted-surface shim.
 1. **`Pow10` dedup (safe, isolated).** Add `Values/Numeric/Pow10.cs`; repoint the 4 copies; delete them. Pure value
    identity — run the numeric unit tests + full conformance. No emitted-surface change.
 2. **Folder moves, namespaces unchanged.** Physically move files into `Values/`, `Verbs/`, split
-   `ProgramRegistry.cs` into per-type files, group `Control/Signals/`. Namespaces stay `CobolNet.Runtime[.X]` exactly
+   `ProgramRegistry.cs` into per-type files, group `Control/Signals/`. Namespaces stay `WiseOwl.Cobol.Runtime[.X]` exactly
    as today, so nothing the compiler emits changes. Green by construction (rename/move only).
 3. **`FileConnector` base extraction.** Introduce the abstract base + `FileRegistry`; make
    `Sequential/Relative/Indexed` derive from it, hoisting ONLY the provably-identical status/position/mode/host-path
@@ -3566,9 +3565,10 @@ every pre-P8 static name survives as the emitted-surface shim.
 5. **Clock injection.** Replace `AcceptSource.Now` with `RunUnit.Clock`; the test seam that set `AcceptSource.Now`
    sets `ru.Clock` instead (update the ~handful of date/time conformance fixtures' harness hook). Green when the
    date/time goldens pass.
-6. **G8 namespace flip.** Once the compiler routes runtime references through a single `RuntimeApi` façade, flip
-   `RootNamespace` to `Cobol.Net.Runtime` and realize the sub-namespaces; update the façade's emitted `using`s in one
-   place. Full battery + a from-clean regen. Decide static-shim retirement here (OPEN QUESTION).
+6. **G8 namespace flip.** The root is DONE: the product rename (kb/Work PB3837) made `RootNamespace`
+   `WiseOwl.Cobol.Runtime` and changed the façade's emitted `using`s in one place. Still to do: realize the
+   sub-namespaces through the same façade, and the static-shim retirement (kb/Work PB2349). Full battery + a
+   from-clean regen.
 
 Each step is a commit with its own DEVLOG entry and a guard-fast/greenfield-suite run (per the process rules).
 

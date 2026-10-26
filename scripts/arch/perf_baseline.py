@@ -8,11 +8,11 @@ docs/rearchitecture/DESIGN-architecture-review.md §3 R0 and §4 item 5).
     python scripts/arch/perf_baseline.py --self-test                                    # prove the compare can fail
 
 WHAT IT MEASURES, each with the witness that proves the work ran (an unwitnessed number is never recorded):
-  * compile throughput, WARM: tests/Cobol.Net.Benchmarks' CompileBenchmarks (BenchmarkDotNet, in-process): the
+  * compile throughput, WARM: tests/WiseOwl.Cobol.Benchmarks' CompileBenchmarks (BenchmarkDotNet, in-process): the
     largest NIST programs and the most copybook-heavy one, front end + bind alone and the whole compile;
   * compile throughput, COLD: a fresh Release `cobol` process per compile of the same programs (what a user waits for);
   * generated-program hot paths: GeneratedProgramBenchmarks (BenchmarkDotNet, in-process: the generated code and the
-    runtime, no start-up) over tests/Cobol.Net.Benchmarks/Programs/ (MOVE-heavy loop, PERFORM dispatch, sequential and
+    runtime, no start-up) over tests/WiseOwl.Cobol.Benchmarks/Programs/ (MOVE-heavy loop, PERFORM dispatch, sequential and
     indexed file I/O, SORT and MERGE), with allocated bytes per run;
   * the EXTERNAL comparison: the same programs as whole processes, ours (`dotnet prog.dll`) against GnuCOBOL 3.2
     (`cobc -x -O2`), both under WSL on the same kernel and the same native file system, each net of its own start-up
@@ -67,7 +67,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for stand
 from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-BENCH = os.path.join(ROOT, "tests", "Cobol.Net.Benchmarks")
+BENCH = os.path.join(ROOT, "tests", "WiseOwl.Cobol.Benchmarks")
 PROGRAMS = os.path.join(BENCH, "Programs")
 EVIDENCE = os.path.join(ROOT, "docs", "rearchitecture", "evidence", "perf-baseline")
 SCRATCH = os.path.join(ROOT, "TestResults", "perf-baseline")
@@ -78,7 +78,7 @@ WIDE_NOISE = 0.15   # a row noisier than this is named in the record as one whos
 RUN_LIMIT_S = 900   # one timed process; the slowest row (our IDXHOT at 4x) takes about 11 s
 # The sort memory limit of both implementations: ours (docs/CONFORMANCE.md §3 D-SWK (a)) and GnuCOBOL 3.2's
 # (runtime.cfg: "COB_SORT_MEMORY ... if this size is exceeded the SORT will be done on disk instead of memory").
-SORT_MEMORY_VARIABLES = ("COBOLNET_SORT_MEMORY", "COB_SORT_MEMORY")
+SORT_MEMORY_VARIABLES = ("WISEOWL_COBOL_SORT_MEMORY", "COB_SORT_MEMORY")
 # (case suffix, limit) per memory regime of a program with an SD entry. 128M is both implementations' default, stated
 # so a host's own setting cannot move a case out of its regime; every scale of Programs/ fits it (100,000 to 400,000
 # 80-byte records: at most about 104 MiB by our resident estimate). 4M is about a sixth of the smallest scale's records
@@ -310,7 +310,7 @@ def load_sample() -> dict:
 def release_exe(project_dir: str, name: str) -> str:
     exe = os.path.join(project_dir, "bin", "Release", "net10.0", name + (".exe" if os.name == "nt" else ""))
     if not os.path.exists(exe):
-        raise MeasurementError(f"{exe} is missing: build Cobol.Net.sln in Release first (or drop --no-build)")
+        raise MeasurementError(f"{exe} is missing: build WiseOwl.Cobol.sln in Release first (or drop --no-build)")
     return exe
 
 
@@ -322,7 +322,7 @@ def measure_bdn(work: str) -> dict:
     expected = {f"compile/{p}/{m}" for p in compile_programs for m in ("FrontEndAndBind", "FullCompile")} \
         | {f"run/{p}" for p in hot}
     artifacts = os.path.join(work, "bdn")
-    exe = release_exe(BENCH, "Cobol.Net.Benchmarks")
+    exe = release_exe(BENCH, "WiseOwl.Cobol.Benchmarks")
     log = os.path.join(work, "bdn.log")
     with open(log, "w", encoding="utf-8", newline="\n") as fh:
         rc = subprocess.run([exe, "--filter", "*CompileBenchmarks*", "*GeneratedProgramBenchmarks*",
@@ -354,7 +354,7 @@ def measure_bdn(work: str) -> dict:
 def measure_cold_compile(work: str, repeat: int) -> dict:
     """A fresh Release `cobol` process per compile, exactly as the NIST harness compiles (--nist: COBOL 85 and the
     CCVS preprocessing); the witness is exit 0 and a written assembly."""
-    cobol = release_exe(os.path.join(ROOT, "src", "Cobol.Net.Cli"), "cobol")
+    cobol = release_exe(os.path.join(ROOT, "src", "WiseOwl.Cobol.Cli"), "cobol")
     rows = {}
     for p in bench_params(os.path.join("Compile", "CompileBenchmarks.cs")):
         src = os.path.join(ROOT, "tests", "nist", "programs", p + ".cob")
@@ -380,7 +380,7 @@ def stage_programs(work: str) -> str:
     """Compile every case (hot_cases) at every scale with the Release compiler into <work>/stage/<case>@x<k>/, beside
     its CASE_FILE: the directory both the Windows and the WSL runs use (the same assembly, so the two OSes measure one
     compile, under one environment)."""
-    cobol = release_exe(os.path.join(ROOT, "src", "Cobol.Net.Cli"), "cobol")
+    cobol = release_exe(os.path.join(ROOT, "src", "WiseOwl.Cobol.Cli"), "cobol")
     stage = os.path.join(work, "stage")
     for case, program, env in [(FLOOR_PROGRAM, FLOOR_PROGRAM, {}), *hot_cases()]:
         for k in (SCALES if program != FLOOR_PROGRAM else (1,)):
@@ -442,10 +442,10 @@ def linux_runtime_image() -> str:
     """The runtime the Release compiler deploys beside a program compiled on this Linux host, resolved as
     AssemblyPackager.ResolveRuntimePath resolves it: the ReadyToRun image of this platform, else the portable
     assembly."""
-    cli = os.path.join(ROOT, "src", "Cobol.Net.Cli", "bin", "Release", "net10.0")
+    cli = os.path.join(ROOT, "src", "WiseOwl.Cobol.Cli", "bin", "Release", "net10.0")
     arch = {"x86_64": "x64", "aarch64": "arm64"}.get(platform.machine(), platform.machine())
-    image = os.path.join(cli, "ReadyToRun", "linux-" + arch, "Cobol.Net.Runtime.dll")
-    return image if os.path.exists(image) else os.path.join(cli, "Cobol.Net.Runtime.dll")
+    image = os.path.join(cli, "ReadyToRun", "linux-" + arch, "WiseOwl.Cobol.Runtime.dll")
+    return image if os.path.exists(image) else os.path.join(cli, "WiseOwl.Cobol.Runtime.dll")
 
 
 def wsl_leg(stage_mnt: str, repeat: int) -> int:
@@ -460,7 +460,7 @@ def wsl_leg(stage_mnt: str, repeat: int) -> int:
     # (AssemblyPackager.ResolveRuntimePath: ReadyToRun/<platform>/, else the portable assembly; kb/Work PB2528).
     runtime = linux_runtime_image()
     if not os.path.exists(runtime):
-        print(f"WSL LEG FAILED: no runtime to deploy ({runtime}): build Cobol.Net.sln in Release first")
+        print(f"WSL LEG FAILED: no runtime to deploy ({runtime}): build WiseOwl.Cobol.sln in Release first")
         return 2
     for case_dir in glob.glob(os.path.join(native, "*@x*")):
         shutil.copy(runtime, os.path.join(case_dir, os.path.basename(runtime)))
@@ -899,8 +899,8 @@ def main(argv: list[str]) -> int:
     sessions = args.sessions or (1 if args.against else 2)
     try:
         if not args.no_build:
-            print("building Cobol.Net.sln (Release) ...", flush=True)
-            run_cmd(["dotnet", "build", os.path.join(ROOT, "Cobol.Net.sln"), "-c", "Release", "-nologo", "-v:q"], cwd=ROOT)
+            print("building WiseOwl.Cobol.sln (Release) ...", flush=True)
+            run_cmd(["dotnet", "build", os.path.join(ROOT, "WiseOwl.Cobol.sln"), "-c", "Release", "-nologo", "-v:q"], cwd=ROOT)
         cond = conditions()
         if cond["dirty_src"]:
             raise MeasurementError("src/ has uncommitted changes: a baseline must name the product it measured")

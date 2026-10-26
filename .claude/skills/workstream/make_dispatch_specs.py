@@ -12,7 +12,7 @@ groups.json:
      "codes": "COBOL2400–COBOL2402", "root": "...", "files": "`kb/Work/PB999.md`, ...", "body": "...",
      "file_set": ["src/...", ...],   # the files the group changes, a LIST (plan_wave.py writes it); when absent or
                                       # empty, the set computed now from its notes (inflight.computed_file_set);
-                                      # a file under src/Cobol.Net.Runtime/IO/ makes it a host-I-O group (below)
+                                      # a file under src/WiseOwl.Cobol.Runtime/IO/ makes it a host-I-O group (below)
      "member_set": {"src/...": ["Type.Member", ...]},   # optional: the members it claims in those files (a file
                                       # absent is claimed whole; kb/Work PB3670), recorded in the ledger with them
      "pred": "",          # optional: predecessor-branch / resume instruction, rendered into the spec
@@ -48,7 +48,7 @@ and the branch survey read that one directory, and a report anywhere else is nev
 
 A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381, MANDATORY-PRACTICES I8). A group whose file set
 (`group_claim`: its `file_set`, or, when that is empty, the set its notes declare) holds a file under HOST_IO
-(`src/Cobol.Net.Runtime/IO/`: the connectors, the keyed-store engine, the host file medium) is `host_io`, and its spec's
+(`src/WiseOwl.Cobol.Runtime/IO/`: the connectors, the keyed-store engine, the host file medium) is `host_io`, and its spec's
 LINUX GATE paragraph tells the implementer to run CI's Linux unit and conformance legs from WSL after the Windows gate
 is GREEN; every other group keeps the paragraph that says the targeted Linux half is inside its own gate. Wave 1118 measured why:
 PB3333 was DONE at 08:50, reviewed CLEAN at 11:07 and refused at its landing at 11:26 because 31 NIST RL programs
@@ -74,7 +74,7 @@ PB = re.compile(r'\bPB\d+\b')
 IMPLEMENTER = 'cobol-implementer'
 
 #: The host file I/O layer (module docstring): a group that changes a file under it is a host-I-O group.
-HOST_IO = 'src/Cobol.Net.Runtime/IO/'
+HOST_IO = 'src/WiseOwl.Cobol.Runtime/IO/'
 #: The LINUX GATE paragraph of a spec ({linux_gate} in the template), by `host_io`. Every other group's: the targeted
 #: Linux half runs inside the implementer's own gate (MANDATORY-PRACTICES I8, L10; kb/Work PB3612).
 LINUX_GATE = {

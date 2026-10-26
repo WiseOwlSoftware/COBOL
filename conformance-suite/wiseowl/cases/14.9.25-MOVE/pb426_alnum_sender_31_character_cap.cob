@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO §14.9.25.4 GR6 d) 3 — THE SIZE OF AN ALPHANUMERIC SENDING OPERAND MOVING TO A NUMERIC
-      *> RECEIVER, at the earliest edition COBOL.NET compiles. The rule is not edition-gated: it reads
+      *> RECEIVER, at the earliest edition WiseOwl COBOL compiles. The rule is not edition-gated: it reads
       *> identically at 85, 2002, 2014 and 2023, and the 2002 golden pb426_alnum_sender_data_incompatible
       *> carries the legs that need a 19-31 digit receiver or the >>TURN checking model (both 2002+).
       *>

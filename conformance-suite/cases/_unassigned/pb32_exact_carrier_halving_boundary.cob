@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> THE EXACT CARRIER'S ESCAPE BOUNDARY IS A SIZE ERROR, NEVER A WRAP.
-      *> COBOLNET_NUMERIC_DESIGN.md's substrate paragraph fixes the policy: "the Int128 escape boundary is
+      *> NUMERIC_DESIGN.md's substrate paragraph fixes the policy: "the Int128 escape boundary is
       *> reached only when a single product ... exceeds Int128 (~38 digits) -> EC-SIZE-OVERFLOW". 15.4.1 asks at
       *> worst for "an implementor-defined approximation of the value of that expression", and a value produced by
       *> a silent modulo-2^128 wrap approximates nothing.

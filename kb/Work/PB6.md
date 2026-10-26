@@ -15,7 +15,7 @@ blocked_by: []
 spec_refs: [14.9.4.3, 8.8.1.1]
 closes_rows: []
 closes_rows_reason: "no inventory row is attributable to this landing — derived by scripts/spec/backfill_closes_rows.py from the inventory's own commit history, re-derivable"
-tags: [cobolsharp, work, defect]
+tags: [wiseowl-cobol, work, defect]
 ---
 
 # PB6 — LANDED (DEVLOG 1126) — CALL BY VALUE quoted §8.8.1.1 at a programmer who broke §14.9.4.3 SR22

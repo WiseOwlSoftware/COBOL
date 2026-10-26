@@ -13,7 +13,7 @@
       *> sum counter and size error indicator."  EACH ENTRY — so two entries that spell their data-name the same
       *> way still have two counters.  The source below is conforming: 8.4.2.2.1's uniqueness requirement bites on
       *> a REFERENCE ("a statement shall contain a reference that uniquely identifies that resource"), and neither
-      *> CF-T is referenced anywhere.  COBOL.NET keyed its counters by that data-name, so the second registration
+      *> CF-T is referenced anywhere.  WiseOwl COBOL keyed its counters by that data-name, so the second registration
       *> destroyed the first and BOTH printable faces rendered the second counter: `0022  0022` printed where the
       *> standard owes `0011  0022`.
       *>

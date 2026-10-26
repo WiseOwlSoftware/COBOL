@@ -1,0 +1,256 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;           // ITerminalNode — a paragraph's separator period
+using WiseOwl.Cobol.Binding;             // EditionContext
+using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
+using WiseOwl.Cobol.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
+using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
+using WiseOwl.Cobol.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
+
+namespace WiseOwl.Cobol.Validation;
+
+/// <summary>
+/// THE ONE PLACE A CLOSED GENERAL FORMAT'S RESIDUE IS REFUSED BY NAME (kb/Work PB829) — a sibling to
+/// <see cref="DeclinedFacilityPass"/>, run right after it from <c>BinderDriver</c>.
+///
+/// <para>WHAT IT CLOSES. The word run <c>genericClause</c> matched ANY run of words, so
+/// wherever it sat in an alternative list it was a TOTAL SINK for everything the named alternatives missed. The
+/// grammar called it a "vendor/extension hook" and reached it from SIX sites spanning EIGHT closed general
+/// formats. It is not a vendor hook: a vendor extension is admitted only under the dialect that owns it, never by
+/// a catch-all, and this compiler declares no vendor dialect. What it did was swallow — at every edition and
+/// every strictness, with no diagnostic anywhere, so §4.2.2's warning obligation ("An implementation shall
+/// provide a warning mechanism … to indicate violations of the general formats and the explicit syntax rules of
+/// standard COBOL") could not be met for a construct the compiler never represented.</para>
+///
+/// <para>WHY ONE PASS AND ONE TABLE, NOT EIGHT DIAGNOSTIC SITES. Closing it one site at a time is how it
+/// survived: kb/Work PB487 closed §13.16.2 and its sibling sweep, reading the grammar by rule NAME, counted four
+/// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
+/// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production, in two forms
+/// (<c>unrecognizedClause</c>, and <c>unrecognizedDataClause</c> where a level-number may follow the list, whose run
+/// holds no literal that begins with an unsigned integer: kb/Work PB3390), this pass is its ONE consumer, and
+/// <see cref="ClosedFormats.ByContext"/> is its ONE table — which the parse layer reads too, for the residue the
+/// production cannot hold: a RESERVED word, or a literal the data form cannot hold (<c>1,5</c>), at its position is
+/// refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533);
+/// <c>ClosedFormatDriftTests</c> derives the obligation from the generated parser, in BOTH directions, so a new closed
+/// format cannot parse into silence and a stale row cannot linger. Adding a closed format is the error production (the
+/// form its follow set calls for, which the drift test checks) plus a table row — no code here changes. (The pass owns one
+/// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
+/// position no format prints; see <see cref="VisitMisplacedSpecialNamesForPhrase"/> — and the punctuation half of
+/// five paragraph formats, their separator periods, read through <see cref="ParagraphPeriods"/>; see
+/// <see cref="ScreenParagraphPeriods"/>.)</para>
+///
+/// <para>WHY A PARSE-TREE WALK AND NOT A BINDER HOOK — the <see cref="DeclinedFacilityPass"/> argument, and here
+/// it is load-bearing rather than convenient. The §13.16.2 refusal used to live in <c>DataBinder.BindEntry</c>,
+/// which is NOT reached for every written entry: the level-66 and level-88 paths return before it, so an
+/// unrecognized word on <c>88 CN WIBBLE VALUE 1.</c> was dropped in silence by the very fix that closed the
+/// format — MEASURED on the pre-change build, where only COBOL1747 fired and WIBBLE vanished. Four of the
+/// other seven formats have no binder entry point at all — an unrecognized
+/// CONFIGURATION SECTION or IDENTIFICATION DIVISION paragraph binds nothing by construction. A walk over the
+/// parse tree sees the written syntax whether or not anything binds it.</para>
+///
+/// <para>SEVERITY. Error at every edition and every strictness, through <see cref="EditionContext.Error"/> and
+/// not the declined/removed seam: this is not an optional element this implementation declines (§4.2.7) nor a
+/// construct of another edition (§8.9) — it is source no edition of the standard admits, and there is no
+/// permissive reading of it that is not "compile something the programmer did not write".</para>
+/// </summary>
+internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowingVisitor(edition)
+{
+    private readonly EditionContext _edition = edition;
+
+    public static void Run(GroupBindContext group, EditionContext edition)
+        => new ClosedFormatPass(edition).VisitPositioned(group.Tree);
+
+    /// <summary>Do not descend into a PROCEDURE DIVISION: the error production (either form) is reachable only from the
+    /// identification division, the environment division and the data division (every row of
+    /// <see cref="ClosedFormats.ByContext"/> is in one of those three), so the largest part of a real compilation
+    /// unit carries none. ⚠ The same verification <see cref="DeclinedFacilityPass"/> records applies and is what
+    /// makes the skip safe rather than a silent hole: a nested program's divisions are SIBLINGS of
+    /// <c>procedureDivision</c> in <c>programUnit</c>, a method's <c>dataDivision?</c> is a sibling of its
+    /// <c>procedureDivision?</c> inside <c>methodDefinition</c>, and the FACTORY / OBJECT paragraphs spell their
+    /// method list with literal tokens rather than the <c>procedureDivision</c> rule.</summary>
+    public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx) => null;
+
+    /// <summary>⛔ THE OTHER HALF OF A CLOSED FORMAT — an element the figure prints ONCE, written twice (kb/Work
+    /// PB917). Every rule node's clause children are screened against <see cref="ClauseCardinalities"/>: the
+    /// parse-tree walk reaches every written entry (level-88 and level-66 entries, which return from
+    /// <c>BindEntry</c> early, included), and a new clause list is one table row.</summary>
+    public override object? VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
+    {
+        if (node is ParserRuleContext container)
+        {
+            ScreenClauseRepetition(container);
+            if (ParagraphPeriods.ByContext.TryGetValue(container.GetType(), out var periods))
+                ScreenParagraphPeriods(container, periods);
+        }
+        return base.VisitChildren(node);
+    }
+
+    /// <summary>⛔ THE PUNCTUATION HALF OF A CLOSED FORMAT (kb/Work PB2727). ISO §12.4.6.2, §12.3.7.2 and §12.3.8.2
+    /// print ONE separator period after the paragraph's entries — §12.4.6.2 a second only around the APPLY COMMIT
+    /// clause, a sentence of its own — and §5.2.1 binds "the words, phrases, clauses, punctuation, and operands in
+    /// each general format". The grammar superset-parses a period after every entry so the refusal can name the
+    /// rule: a period that splits the paragraph is COBOL3407, at the period; a paragraph that ends without its
+    /// closing period is COBOL3408, at its last entry. Error at every edition: the 1985, 2002, 2014 and 2023
+    /// formats all print the single period. The SOURCE-COMPUTER and OBJECT-COMPUTER rows (§12.3.5.2, §12.3.6.2;
+    /// kb/Work PB3370) read the same way: a paragraph with nothing after its header has no sentence, which is the
+    /// one spelling §12.3.5.3 SR1 and §12.3.6.3 SR4 let omit the second period.</summary>
+    private void ScreenParagraphPeriods(ParserRuleContext paragraph, ParagraphPeriod row)
+    {
+        var sentences = ParagraphPeriods.Sentences(paragraph);
+        if (sentences.Count == 0) return;
+        // The one period the format lets stand between two sentences: the boundary of the first sentence that is the
+        // clause it prints as a sentence of its own (the APPLY COMMIT clause) — the period closing it, or, when it is
+        // the last sentence, the period closing the sentence before it. Every other inner period splits a sentence.
+        ITerminalNode? licensed = null;
+        int own = -1;
+        for (int i = 0; sentences.Count > 1 && i < sentences.Count && own < 0; i++)
+            if (ParagraphPeriods.IsOwnSentence(row, sentences[i])) own = i;
+        if (own >= 0) licensed = sentences[own < sentences.Count - 1 ? own : own - 1].Period;
+        for (int i = 0; i < sentences.Count - 1; i++)
+        {
+            var period = sentences[i].Period!;   // every sentence but the last is closed by the period that ends it
+            if (period == licensed) continue;
+            using var at = _edition.At(period.Symbol);
+            _edition.Error(DiagnosticCatalog.ParagraphInteriorPeriod,
+                $"{row.Subject} paragraph: a separator period follows '{WrittenOpening(sentences[i].Entries[^1])}' "
+                + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the ISO "
+                + $"§{row.Clause} general format prints {row.Printed} (§5.2.1); delete this period");
+        }
+        if (sentences[^1].Period is null)
+        {
+            var last = sentences[^1].Entries[^1];
+            using var at = _edition.At(last.Stop);
+            _edition.Error(DiagnosticCatalog.ParagraphPeriodMissing,
+                $"{row.Subject} paragraph: it ends after '{WrittenOpening(last)}' without a separator period — the "
+                + $"ISO §{row.Clause} general format prints {row.Printed} (§5.2.1); write the period");
+        }
+    }
+
+    /// <summary>Count the elements <paramref name="container"/>'s clause children fill and diagnose each that is
+    /// written more than once (ISO §5.2.6.2, §5.2.7), through the ONE <see cref="UnrepeatedElements"/> reader the
+    /// RD entry already uses — or, for a figure whose clauses sit in choice indicators (§5.2.6.4,
+    /// <see cref="ClauseList.ChoiceIndicators"/>), through <see cref="ChoiceIndicators"/>. Reported at the SECOND occurrence — the one that makes the entry non-conforming. Where
+    /// the list's figure fixes the order (<see cref="ClauseList.Sequence"/>), an element written after one the figure
+    /// prints LATER is refused too (§5.2.1; kb/Work PB1508), at the element written out of place. The figure is the
+    /// one the targeted edition prints (<see cref="ClauseList.At"/>; kb/Work PB2532 — the COBOL-85 identification
+    /// division's comment-entry paragraphs are counted and ranked at 85 only).</summary>
+    private void ScreenClauseRepetition(ParserRuleContext container)
+    {
+        Dictionary<(string Format, object Element), (ClauseList List, int Count, ParserRuleContext First, ParserRuleContext Second)>? seen = null;
+        (int Rank, ParserRuleContext Clause)? latest = null;   // the element the figure prints LAST among those written so far
+        for (int i = 0; i < container.ChildCount; i++)
+        {
+            if (container.GetChild(i) is not ParserRuleContext clause
+                || !ClauseCardinalities.ByClauseContext.TryGetValue(clause.GetType(), out var row)) continue;
+            var list = row.At(_edition.DialectLevel);
+            if (ClauseCardinalities.ElementOf(list, clause) is not { } element) continue;
+            seen ??= [];
+            var key = (list.Format, element);
+            seen[key] = seen.TryGetValue(key, out var prior)
+                ? (list, prior.Count + 1, prior.First, prior.Count == 1 ? clause : prior.Second)
+                : (list, 1, clause, clause);
+            if (list.RankOf(element) is not { } rank) continue;
+            // An EQUAL rank is a repeat, which the count below reports; only a strictly lower rank is out of order.
+            if (latest is { } last && rank < last.Rank) ReportOutOfOrder(container, list, clause, last.Clause);
+            else latest = (rank, clause);
+        }
+        if (seen is null) return;
+        foreach (var (list, count, first, second) in seen.Values)
+        {
+            if (count < 2) continue;
+            using var at = _edition.At(second);
+            // A paragraph list (the identification division, the CONFIGURATION SECTION) names its elements
+            // "paragraph"s, as the closed-format refusal does; every other list holds clauses.
+            string noun = ClosedFormats.Of(first.GetType())?.Noun ?? "clause";
+            string subject = $"{list.Subject}{OwnerSuffix(container)}", written = $"the {noun} '{WrittenOpening(first)}'";
+            // A figure whose clauses sit in CHOICE INDICATORS is §5.2.6.4's, read by the ONE choice-indicator reader
+            // (COBOL2104); any other repeated bracket is §5.2.6.2 / §5.2.7's (COBOL2423; kb/Work PB3133, review R1-1).
+            if (list.ChoiceIndicators) ChoiceIndicators.AtMostOnce(_edition, count, subject, written, list.Format);
+            else UnrepeatedElements.AtMostOnce(_edition, count, subject, written, list.Format, orderFree: list.Sequence is null);
+        }
+    }
+
+    /// <summary>ISO §5.2.1 — "The words, phrases, clauses, punctuation, and operands in each general format shall be
+    /// written in the compilation group in the sequence given in the general format, unless otherwise specified by
+    /// the rules of that format." Reported at <paramref name="clause"/>, the element written after
+    /// <paramref name="printedLater"/> although the figure prints it first (COBOL2987).</summary>
+    private void ReportOutOfOrder(ParserRuleContext container, ClauseList list, ParserRuleContext clause,
+        ParserRuleContext printedLater)
+    {
+        using var at = _edition.At(clause);
+        _edition.Error(DiagnosticCatalog.FormatElementOutOfOrder,
+            $"{list.Subject}{OwnerSuffix(container)}: '{WrittenOpening(clause)}' is written after "
+            + $"'{WrittenOpening(printedLater)}', but {list.Format}'s general format prints it before — no rule "
+            + "of that format frees the order, so the elements shall be written in the sequence the format gives "
+            + "(§5.2.1)");
+    }
+
+    private static string OwnerSuffix(ParserRuleContext container)
+        => ClosedFormats.OwnerName(container) is { Length: > 0 } n ? $" '{n}'" : "";
+
+    /// <summary>The first words of a clause as the programmer wrote them (at most 32 characters), to name it in the message.</summary>
+    private static string WrittenOpening(ParserRuleContext clause)
+    {
+        string text = clause.Start?.InputStream is { } chars && clause.Stop is { } stop
+            ? chars.GetText(new Antlr4.Runtime.Misc.Interval(clause.Start.StartIndex, stop.StopIndex))
+            : clause.GetText();
+        text = string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return text.Length <= 32 ? text : text[..32] + "…";
+    }
+
+    /// <summary>THE refusal. The format is identified by the PARENT context — the alternative list the error
+    /// production was written into — so one visitor serves every closed format and a new one needs no arm. Its
+    /// wording and code are the row's (<see cref="ClosedFormat.Refusal"/>, <see cref="ClosedFormat.Diagnostic"/>),
+    /// shared with the parse layer's refusal of a RESERVED word or a literal the data form cannot hold at the same
+    /// position (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373, PB3390), which the production cannot take. The word quoted is the
+    /// run's OPENING item as written, a word or a whole literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c>
+    /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign). The production has two forms, the data
+    /// division's holding no unsigned integer (kb/Work PB3390); both are refused here, the same way.</summary>
+    public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx) => Refuse(ctx);
+
+    /// <inheritdoc cref="VisitUnrecognizedClause"/>
+    public override object? VisitUnrecognizedDataClause(CobolParserCore.UnrecognizedDataClauseContext ctx) => Refuse(ctx);
+
+    private object? Refuse(ParserRuleContext ctx)
+    {
+        var format = ClosedFormats.Of(ctx.Parent?.GetType());
+        // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
+        // silent return here is precisely the defect this pass exists to end.
+        string word = ctx.GetChild(0) is ParserRuleContext opening ? WrittenSource.Of(opening) : ctx.GetText();
+        if (format is null)
+        {
+            _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,
+                $"'{word}' is not a clause of the general format it is written in — and that format has no row "
+                + "in ClosedFormats.ByContext, which ClosedFormatDriftTests exists to prevent");
+            return null;
+        }
+        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx)));
+        return null;   // nothing below an error production is diagnosed — one diagnostic per word run
+    }
+
+    /// <summary>A SPECIAL-NAMES FOR phrase written AFTER its clause's definition (kb/Work PB977) — the second error
+    /// production this pass owns, and the same posture: source no edition admits, refused at every edition and
+    /// every strictness. ISO §12.3.7.2 prints <c>FOR {ALPHANUMERIC | NATIONAL}</c> only immediately after the name
+    /// the ALPHABET / CLASS clause declares, and before the first symbolic-character-1 of SYMBOLIC CHARACTERS; the
+    /// trailing spelling is owned by no dialect (CLAUDE.md rule 1's precedence — GnuCOBOL takes the phrase only
+    /// before IS). ONE visitor for all three clauses: the ALPHABET one used to be ACCEPTED as a "historical
+    /// superset" and the CLASS one drew a bare parse error — one spelling, two answers.</summary>
+    public override object? VisitMisplacedSpecialNamesForPhrase(CobolParserCore.MisplacedSpecialNamesForPhraseContext ctx)
+    {
+        string clause = ctx.Parent switch
+        {
+            CobolParserCore.AlphabetClauseContext a => $"ALPHABET {a.cobolWord().GetText()}",
+            CobolParserCore.ClassDefinitionClauseContext c => $"CLASS {c.cobolWord(0).GetText()}",
+            _ => "SYMBOLIC CHARACTERS",
+        };
+        string where = ctx.Parent is CobolParserCore.SymbolicCharactersClauseContext
+            ? "before the first symbolic-character-1" : "between the name and IS";
+        var phrase = ctx.specialNamesForPhrase();
+        string words = string.Join(" ", Enumerable.Range(0, phrase.ChildCount).Select(i => phrase.GetChild(i).GetText()));
+        _edition.Error(DiagnosticCatalog.SpecialNamesForPhraseMisplaced, $"{clause}: the phrase '{words}' "
+            + $"follows the clause's definition — the FOR phrase belongs {where} (ISO §12.3.7.2 general format)");
+        return null;
+    }
+}

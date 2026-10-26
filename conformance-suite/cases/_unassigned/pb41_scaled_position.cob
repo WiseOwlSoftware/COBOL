@@ -11,7 +11,7 @@
       *> evaluation of arithmetic-expression-1"; 8.8.1.1 admits "an identifier
       *> referencing a numeric data item", so a PIC 9V9 item is a legal subscript.
       *>
-      *> COBOL.NET stores numerics UNSCALED - PIC 9V9 VALUE 2.0 is the field 20L at
+      *> WiseOwl COBOL stores numerics UNSCALED - PIC 9V9 VALUE 2.0 is the field 20L at
       *> scale 1 - so the VALUE (2) and the STORAGE (20) are different numbers
       *> whenever the PICTURE has a V. Reading the storage is what made W-E(W-S)
       *> with W-S = 2.0 index occurrence 20, land outside 1..5, and DISPLAY the

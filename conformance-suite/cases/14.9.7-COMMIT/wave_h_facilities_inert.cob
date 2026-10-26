@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> Wave H — the ISO §4.2.6 ¶3 recognize-and-name band. MCS (SEND/RECEIVE) and VALIDATE are
-      *> facilities COBOL.NET does not implement: MCS is PROCESSOR-DEPENDENT (§4.2.6, Annex A.3 item 4) and
+      *> facilities WiseOwl COBOL does not implement: MCS is PROCESSOR-DEPENDENT (§4.2.6, Annex A.3 item 4) and
       *> VALIDATE is OPTIONAL (§4.2.7, A.4.14) and, at 2023, also OBSOLETE (§4.2.13, F.2 item 5). §4.2.6 ¶3
       *> nonetheless makes the compile-time WARNING MECHANISM mandatory, and §14.6.13.1.1 licenses raising
       *> no exception condition for them. COMMIT and ROLLBACK are PROVIDED since kb/Work PB3338; with no

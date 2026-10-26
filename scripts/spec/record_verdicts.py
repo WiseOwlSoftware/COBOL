@@ -17,7 +17,7 @@ A batch file is a JSON list of records, or an object with a "records" list (and 
      "records": [
        {"rule-id": "AR-15.7-1",
         "verdict": "CONFORMS",
-        "code-location": "src/Cobol.Net.Compiler/Binder/Intrinsics/IntrinsicSignatures.cs#Abs",
+        "code-location": "src/WiseOwl.Cobol.Compiler/Binder/Intrinsics/IntrinsicSignatures.cs#Abs",
         "test-ref": "conformance:cases/15.7-ABS/intrinsic_abs; unit:IntrinsicArgumentRuleTests.Abs_RejectsAlphanumeric",
         "editions": "85,2002,2014,2023",
         "notes": ""}]}
@@ -95,7 +95,7 @@ CONTROL = (RETIRE, RETIRE_REASON)
 # place — so the two lines below fail loudly instead. The run itself is SCRUBBED (kb/Work PB1718): a gate leg
 # handshake or a VSTest*/RunSettingsFilePath variable left in the operator's shell would narrow it further.
 GATE_FILTER = "FullyQualifiedName~SpecTraceabilityInventory"
-GATE_PROJECT = "tests/Cobol.Net.Tests.Unit"
+GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit"
 GATE = (f'python scripts/filter_population.py --filter "{GATE_FILTER}" --filtered {GATE_PROJECT} --allow-build\n'
         f'    python scripts/test_population.py scrubbed dotnet test {GATE_PROJECT} --filter "{GATE_FILTER}"')
 INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"

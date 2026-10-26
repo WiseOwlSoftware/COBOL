@@ -589,7 +589,7 @@ def self_test() -> int:
     ok("title of an early header (date and colon)", title_of(f"## Entry 185 {DASH} 2026-03-30: Ledger") == "Ledger")
     ok("title of a double-encoded dash header", title_of("## Entry 1228 â\u0080\u0094 2026-08-08 13:24 PDT "
                                                          "â\u0080\u0094 R20: walk") == "R20: walk")
-    ok("title of an undated header", title_of(f"## Entry 511 {DASH} COBOL.NET: IS NUMERIC") == "COBOL.NET: IS NUMERIC")
+    ok("title of an undated header", title_of(f"## Entry 511 {DASH} WiseOwl COBOL: IS NUMERIC") == "WiseOwl COBOL: IS NUMERIC")
 
     def e(num: str, title: str = "t", body: str = "body\n\n") -> str:
         return f"## Entry {num} {DASH} 2026-10-11 10:00 PDT {DASH} {title}\n\n{body}"

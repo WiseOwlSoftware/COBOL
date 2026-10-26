@@ -34,7 +34,7 @@
       *> ... FOR NATIONAL IS LOCALE sequence is an algorithm, not a
       *> written order: characters the locale collates EQUALLY share an
       *> ordinal position and their relative order is undefined -
-      *> exactly r2's second branch. COBOL.NET's answer lives in
+      *> exactly r2's second branch. WiseOwl COBOL's answer lives in
       *> LocaleCollation (determination L7: the positions are
       *> materialized once and CHAR takes "the lowest-coded member of a
       *> rank"), documented under the locale facility, never connected

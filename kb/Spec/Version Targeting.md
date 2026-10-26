@@ -9,9 +9,9 @@ related_files:
   - tests/version-matrix/constructs.json
   - tests/version-matrix/reserved-words.json
   - docs/GnuCOBOL extensions.md
-  - src/Cobol.Net.Editions/ConstructRegistry.cs
+  - src/WiseOwl.Cobol.Editions/ConstructRegistry.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
 ---
 

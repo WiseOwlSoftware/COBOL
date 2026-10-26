@@ -10,7 +10,7 @@
       *> valid sign set (Annex A.1 items 177 and 178; kb/Work PB803).
       *>
       *> ⛔ WHY AN 85 TWIN EXISTS.  The SIGN clause and the implementor's latitude over the fused
-      *> sign are IDENTICAL in every edition COBOL.NET compiles — X3.23-1985 already carried both
+      *> sign are IDENTICAL in every edition WiseOwl COBOL compiles — X3.23-1985 already carried both
       *> GR4's "the implementor shall specify the position and representation" and GR5 b)'s "the
       *> implementor defines what constitutes valid signs" — so the determination is edition-
       *> independent and the CLAIM to be edition-independent is what this file makes falsifiable.

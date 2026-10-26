@@ -16,15 +16,15 @@
 #                                           the word → row map the text-manipulation stage gates on, so a new
 #                                           directive is ONE row here plus a regen — never a hand-kept name set.
 # Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal constructs.json):
-#   src/Cobol.Net.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
-#   src/Cobol.Net.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
+#   src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
+#   src/WiseOwl.Cobol.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
 
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'LfText.psm1') -Force   # every tracked output is written LF (kb/Work PB3029)
 $repo = Split-Path -Parent $PSScriptRoot
 $jsonIn   = Join-Path $repo 'tests/version-matrix/constructs.json'
-$regOut   = Join-Path $repo 'src/Cobol.Net.Editions/ConstructRegistry.g.cs'
-$idsOut   = Join-Path $repo 'src/Cobol.Net.Editions/Constructs.g.cs'
+$regOut   = Join-Path $repo 'src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs'
+$idsOut   = Join-Path $repo 'src/WiseOwl.Cobol.Editions/Constructs.g.cs'
 
 function To-Pascal([string]$id) {
     (($id -split '-') | ForEach-Object {
@@ -84,7 +84,7 @@ $hdr = @"
 # ---- 1. ConstructRegistry.g.cs (the Entries partial) ----
 $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine($hdr)
-[void]$sb.AppendLine('namespace CobolNet.Editions;')
+[void]$sb.AppendLine('namespace WiseOwl.Cobol.Editions;')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('public static partial class ConstructRegistry')
 [void]$sb.AppendLine('{')
@@ -137,7 +137,7 @@ Set-LfContent -LiteralPath $regOut -Value $sb.ToString().TrimEnd()
 # ---- 2. Constants.g.cs (compile-checked ids) ----
 $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine($hdr)
-[void]$sb.AppendLine('namespace CobolNet.Editions;')
+[void]$sb.AppendLine('namespace WiseOwl.Cobol.Editions;')
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('/// <summary>Compile-checked constructs.json row ids (P2.6): use <c>Constructs.X</c> at every')
 [void]$sb.AppendLine('/// <see cref="ConstructRegistry.Check"/> call site so an unregistered id is a COMPILE error.</summary>')

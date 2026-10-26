@@ -1,6 +1,6 @@
 # SURVEY — CSharpEmitter codegen subsystem
 
-**Subsystem:** `src/Cobol.Net.Compiler/CodeGen/` — the Roslyn (C#) backend: `CSharpEmitter` (15 partials) +
+**Subsystem:** `src/WiseOwl.Cobol.Compiler/CodeGen/` — the Roslyn (C#) backend: `CSharpEmitter` (15 partials) +
 `CodeWriter` + `RoslynBackend` + the `Emit/` renderer sub-package.
 **Reviewer:** codegen-emitter survey agent. **Date:** 2026-07-07. **Method:** full read of `CSharpEmitter.cs`
 (1813 LOC) + all 14 partials + `CodeWriter.cs` + `RoslynBackend.cs` + `Emit/EmitCore.cs` + `Emit/NumericRenderer.cs`

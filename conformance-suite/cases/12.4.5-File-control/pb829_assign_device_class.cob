@@ -9,7 +9,7 @@
       *>   ASSIGN [TO] {device-name-1 | literal-1} ...
       *> with the ellipsis on the inner brace pair, and ISO 12.4.5.2 SR5 leaves "the meaning and rules
       *> for the allowable specification of device-name-1 and the value of literal-1" to the implementor.
-      *> COBOL.NET's determination (docs/CONFORMANCE.md section 7, DOC-A.1-71, following GnuCOBOL): ONE
+      *> WiseOwl COBOL's determination (docs/CONFORMANCE.md section 7, DOC-A.1-71, following GnuCOBOL): ONE
       *> operand names the file, or a device class (DISK or PRINTER) is followed by ONE operand naming
       *> the file.  The second operand was a COBOL0308 parse error before.
       *> The witness: F1 (DISK + literal) and F3 (the literal alone) are the SAME physical file, and so

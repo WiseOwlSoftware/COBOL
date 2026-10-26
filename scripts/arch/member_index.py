@@ -55,7 +55,7 @@ landing check's computed set, all on THE index of the tree: kb/Work PB3203) retu
 bounded by time).
 
 Usage:
-    python scripts/arch/member_index.py --record            # build Cobol.Net.sln, run the host, write the record for HEAD
+    python scripts/arch/member_index.py --record            # build WiseOwl.Cobol.sln, run the host, write the record for HEAD
     python scripts/arch/member_index.py --current --cache <dir>   # the index of this tree: found, or regenerated
     python scripts/arch/member_index.py --note PB2296       # print a note's names, unknowns and computed file set
     python scripts/arch/member_index.py --self-test
@@ -84,7 +84,7 @@ SUFFIX = ".members.json.gz"   # gzip: the index names every symbol (about 4.5 MB
 HOST = Path("tools/ArchCensus")
 SCANNED_ROOTS = ("src/", "tests/")
 SCHEMA = 2   # 2: `emitted` (names written as C# text) and `treeKey` (PB2118 Draft 9)
-KEY_INPUTS = ("src/", "tests/", "tools/ArchCensus/", "Cobol.Net.sln")   # what the walk reads: tree_key hashes them
+KEY_INPUTS = ("src/", "tests/", "tools/ArchCensus/", "WiseOwl.Cobol.sln")   # what the walk reads: tree_key hashes them
 KEY_EXTS = (".cs", ".csproj", ".props", ".targets", ".sln")
 FROZEN = ("⛔ FROZEN EVIDENCE — the member index of ONE commit, recorded by scripts/arch/member_index.py --record and "
           "never edited (kb/Work PB785, PB2118 Draft 9): a newer measurement is a new file named by its commit. It "
@@ -137,12 +137,12 @@ def record(repo: Path = REPO, out_dir: Path | None = None) -> Path:
     key = tree_key(repo)
     date = git("show", "-s", "--format=%cI", sha, cwd=repo).strip()
     work = Path(tempfile.mkdtemp(prefix="member-index-"))
-    scope = census.scope_of(census.solution_projects((repo / "Cobol.Net.sln").read_text(encoding="utf-8-sig")))
+    scope = census.scope_of(census.solution_projects((repo / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig")))
     (work / "scope.json").write_text(json.dumps(scope), encoding="utf-8", newline="\n")
-    census.run_logged(["dotnet", "build", "Cobol.Net.sln", "-c", "Debug", "-v", "quiet"], repo, work / "build.log")
+    census.run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], repo, work / "build.log")
     census.run_logged(["dotnet", "build", str(repo / HOST), "-c", "Release", "-o", str(work / "host"), "-v", "quiet"],
                       repo, work / "host-build.log")
-    census.run_logged(["dotnet", str(work / "host" / "ArchCensus.dll"), "--solution", str(repo / "Cobol.Net.sln"),
+    census.run_logged(["dotnet", str(work / "host" / "ArchCensus.dll"), "--solution", str(repo / "WiseOwl.Cobol.sln"),
                        "--scope", str(work / "scope.json"), "--member-index", str(work / "raw.json")], repo,
                       work / "host.log")
     raw = json.loads((work / "raw.json").read_text(encoding="utf-8"))
@@ -358,7 +358,7 @@ def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict]
     the members its sites name in it} for the site files every mention of which names members (work.NoteSites.members)
     and that are no caller: the partition reads those by member and every other file whole (inflight.collision).
     A FIX-LANE note's folder site reserves NOTHING (kb/Work PB3670): a fix changes files, and a folder named as where
-    to look (`Binding/`, `src/Cobol.Net.Runtime`) once reserved its whole subsystem (234 and 222 files for wave
+    to look (`Binding/`, `src/WiseOwl.Cobol.Runtime`) once reserved its whole subsystem (234 and 222 files for wave
     20261032's groups A and B), holding every unrelated fix on any file under it. A restructuring note that moves or
     renames a folder still claims every file in it, the ones a landing added since included (PB2251's
     OfdRegionLocks.cs). Callers are reserved only for what a note MOVES, RENAMES or RE-SIGNS (its `**Moves or

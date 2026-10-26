@@ -171,11 +171,11 @@ def render(data: dict[str, list[tuple[int, int]]], names: list[str], namespace: 
 # C is also needed at RUN time (an externalized name is matched by the same fold, DOC-A.1-219), so it lives in the
 # runtime, which both the compiler and every generated program reference.
 OUTPUTS = [
-    (ROOT / "src" / "Cobol.Net.Editions" / "CobolCharacterRepertoire.Table.cs", "CobolNet.Editions",
+    (ROOT / "src" / "WiseOwl.Cobol.Editions" / "CobolCharacterRepertoire.Table.cs", "WiseOwl.Cobol.Editions",
      "CobolCharacterRepertoire", "Annex B.3 (characters permitted in user-defined words)",
      ["B3Anywhere", "B3NotFirst", "B3Medial", "E2Item4Deleted", "E2Item4MadeMedial", "E33Item4MadeFirst",
       "E33Item5Added"]),
-    (ROOT / "src" / "Cobol.Net.Runtime" / "CobolNames.Table.cs", "CobolNet.Runtime", "CobolNames",
+    (ROOT / "src" / "WiseOwl.Cobol.Runtime" / "CobolNames.Table.cs", "WiseOwl.Cobol.Runtime", "CobolNames",
      "Annex C.2 (general case mappings, as (uppercase, lowercase) pairs)",
      ["C2Mappings", "E2Item14Deleted", "E33Item6Added"]),
 ]

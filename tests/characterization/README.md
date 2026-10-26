@@ -8,7 +8,7 @@ behavior.
 ## Layout
 - `positive/*.cob` — programs expected to COMPILE. Exercised by both gates:
   - **gate 2** (`DiagnosticSnapshotTests`) — the WiseOwl COBOL diagnostic surface (a CheckOnly compile), snapshotted to
-    `../Cobol.Net.Tests.Characterization/Snapshots/<name>.<edition>.diag.txt`.
+    `../WiseOwl.Cobol.Tests.Characterization/Snapshots/<name>.<edition>.diag.txt`.
   - **gate 3** (`EmittedCSharpSnapshotTests`) — the generated C#, snapshotted to `<name>.<edition>.g.cs.txt`.
 - `negative/*.cob` — programs expected to FAIL with a diagnostic. Exercised by **gate 2 only** (they emit no C#).
 - `<name>.std` sidecar (optional) — the ISO edition to compile at. **Default = 85** (the core edition). Feature
@@ -28,7 +28,7 @@ diagnostic), `char_neg_pic` (`JUSTIFIED` on a numeric item — illegal per §13.
 ## Re-seeding / re-baselining (LOCAL ONLY — never in CI)
 When a phase INTENTIONALLY changes emission/diagnostics, re-baseline with review:
 ```
-COBOLNET_UPDATE_SNAPSHOTS=1 dotnet test tests/Cobol.Net.Tests.Characterization
+WISEOWL_COBOL_UPDATE_SNAPSHOTS=1 dotnet test tests/WiseOwl.Cobol.Tests.Characterization
 ```
 Then read the snapshot diff in the PR and commit it alongside the source change. CI never sets that variable; it only
 compares. Gate 3 (emitted C#) is advisory — a diff is a RED only if gate 1 (goldens) or gate 2 fails too, OR there is

@@ -13,7 +13,7 @@
 > sourced from [`VERSION_CHANGE_REFERENCE.md`](VERSION_CHANGE_REFERENCE.md). Companion memories:
 > `feedback_four_editions_one_compiler`, `feedback_four_editions_one_compiler`, `project_dialect_two_axes`.
 >
-> **Scope:** the **greenfield** compiler (`src/Cobol.Net.*`, the active engine) is the target. The legacy
+> **Scope:** the **greenfield** compiler (`src/WiseOwl.Cobol.*`, the active engine) is the target. The legacy
 > compiler was the **blueprint** (it had the per-edition machinery) and is deleted (P15 Cut 2).
 >
 > **Scope honesty (don't over-read this):** this matrix validates the edition **deltas / boundaries** — where gating
@@ -127,7 +127,7 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   + `<id>.out`; WiseOwl's own behaviour under `wiseowl/cases/`), each opening with a metadata header that names its
   `rules` and the editions it is accepted at (`accept`). `conformance-suite/harness/generate.py` reads the headers
   and generates the per-edition suites and WiseOwl's manifest; `ConformanceSuiteTests` (24 partitions,
-  `tests/Cobol.Net.Tests.Conformance/ConformanceSuiteTests.cs`) compiles and runs every test at each accepted
+  `tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteTests.cs`) compiles and runs every test at each accepted
   edition and compares its output. `conformance-suite/README.md` is the authoring guide.
 - **Refused programs:** a program WiseOwl must refuse names no `accept` edition; its entry in
   `conformance-suite/wiseowl/diagnostics.json` gives the editions it is refused at (`refuse-at`) and the code or
@@ -147,8 +147,8 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   form, so the Roslyn emitter AND the future Cecil/CIL backend satisfy INV-3 for free. Do NOT pass `dialectLevel`
   into `CSharpEmitter`/`OperandText`/`ConditionRenderer` for semantic decisions (the §3 INV-3 hook; not needed until
   a real behavior-variant appears, but the seam belongs bind-side).
-- **`CobolNetCompiler.CompileAndRun` and `NistDifferentialTests` hard-code `DialectLevel: 85`** — add a target-edition
-  parameter (the differential `ICompilerUnderTest` gains a dialect). `CobolNetTestBase` already exposes a
+- **`WiseOwlCobolCompiler.CompileAndRun` and `NistDifferentialTests` hard-code `DialectLevel: 85`** — add a target-edition
+  parameter (the differential `ICompilerUnderTest` gains a dialect). `WiseOwlCobolTestBase` already exposes a
   `dialectLevel` param — generalize its use.
 
 **6.2 Port the legacy per-edition model to the greenfield (the core rework).** The legacy already solved this; reuse
@@ -163,7 +163,7 @@ the design (do not re-invent — `feedback_one_mechanism_per_job`):
 - **A `ConstructDialectStatus` registry** (survey recommendation): one table mapping each construct → per-edition
   severity {ERROR | WARNING | SILENT}. The registry is the code-side twin of the construct catalogue (§4) and is
   generated/checked against `VERSION_CHANGE_REFERENCE.md` so the doc and the compiler cannot drift.
-- **Version diagnostics:** the edition-gating band `COBOL0900–0999` (`CobolNet.Editions.EditionCodes`):
+- **Version diagnostics:** the edition-gating band `COBOL0900–0999` (`WiseOwl.Cobol.Editions.EditionCodes`):
   0900 "feature requires COBOL-YYYY", 0901 reserved word, 0902 "removed in COBOL-YYYY", 0903 obsolete/archaic flag,
   reported through `ConstructRegistry.Check` — the greenfield successors of legacy `CBL3601/3602/3607/3611…3618`.
 
@@ -173,7 +173,7 @@ the design (do not re-invent — `feedback_one_mechanism_per_job`):
 public void Construct_MatchesEditionExpectation(string caseId, int edition) {
     var case = Catalogue[caseId];
     var expected = ExpectedOutcome(case, edition);     // the f(case,V) of §2
-    var actual = CobolNet.CompileAndRun(case.snippet, edition);
+    var actual = WiseOwlCobol.CompileAndRun(case.snippet, edition);
     if (expected.Rejected) AssertRejectedWith(actual, expected.Diagnostic);
     else { AssertCompiles(actual); if (case.behaviorVariants is {}) AssertOutput(actual, expected.Output); }
 }
@@ -197,7 +197,7 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
 
 ## 8. Phased rollout (the "substantial rework")
 
-- **Phase 0 — harness scaffold ✅ DONE.** `tests/Cobol.Net.Tests.Conformance/VersionMatrixTests.cs`
+- **Phase 0 — harness scaffold ✅ DONE.** `tests/WiseOwl.Cobol.Tests.Conformance/VersionMatrixTests.cs`
   stands up the matrix `[Theory]` over (construct × edition) with the computed `f(case,V)` and an inline seed catalogue,
   plus the INV-1 continuity `[Theory]`, exercising **introduction-gating both
   directions** (DELETE FILE, introduced 2023 — rejected at 85/2002/2014, compiles at 2023) and **continuity**
@@ -205,8 +205,8 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
   example, but ALTER is a lexer token with no greenfield statement rule — removed-construct gating goes through the
   `VersionConformancePass`; DELETE FILE is the cleaner proof since it is fully grammar-gated AND compiles at its intro
   edition.) **Decision #2 — default `--std`:** the `CompilerDriver.Options.DialectLevel` default is
-  **2023** (`src/Cobol.Net.Compiler/CompilerDriver.cs`), pinned by a `CompilerDriverTests` regression test; the CLI
-  `--std` defaults to 2023 and `--nist` without an explicit `--std` targets 85 (`src/Cobol.Net.Cli/CliOptions.cs`).
+  **2023** (`src/WiseOwl.Cobol.Compiler/CompilerDriver.cs`), pinned by a `CompilerDriverTests` regression test; the CLI
+  `--std` defaults to 2023 and `--nist` without an explicit `--std` targets 85 (`src/WiseOwl.Cobol.Cli/CliOptions.cs`).
   **Phase 1 — seed + continuity ✅ DONE:** the canonical **`tests/version-matrix/constructs.json`** (12 seeded rows —
   85 baseline; 2002: ALLOCATE, FREE, INVOKE, GOBACK RETURNING, STOP-status, BASED, PROCEDURE…RETURNING; 2014: JSON
   GENERATE, XML GENERATE; 2023: DELETE FILE, TYPE IS) loaded by `VersionMatrixTests` — 48 matrix cells, all green;
@@ -246,13 +246,13 @@ appended there would fail the compile; `Warning()` is the only writer to `Warnin
 every return); CLI `--permissive` flag (orthogonal to `--std`/`--nist`; the `--nist`-without-`--std` ⇒ 85 logic
 untouched); `Program.cs` prints warnings to stderr always.
 
-### P2.2 The conformance pass (`src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs`)
+### P2.2 The conformance pass (`src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs`)
 
 - **Two arms.** The gate is the two-arm `VersionConformancePass`: a **parse-tree arm** (the edition validator — it
   fires the syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel on RECOGNITION) and a
   **bound-tree arm** (the genuinely-semantic statement-level gates).
 - **Walk (parse-tree arm):** NO listener is generated (ANTLR runs `-no-listener -visitor`) — the arm derives from the
-  generated `CobolParserCoreBaseVisitor<object?>` (namespace `CobolNet.Frontend.Generated`); overrides return
+  generated `CobolParserCoreBaseVisitor<object?>` (namespace `WiseOwl.Cobol.Frontend.Generated`); overrides return
   `base.VisitChildren(ctx)` to keep descending. Root = the compilation unit produced by `Frontend.Parse`.
 - **Hook:** the pass is the NAMED TERMINAL pass of the binder manifest (run behind `emitter.Bind`), so the returned
   `BoundCompilation` already carries EVERY edition diagnostic on the sink — for both a full compile and a CheckOnly
@@ -294,7 +294,7 @@ GO TO), 0882 (CALL ON OVERFLOW).
   ⇒ continuous; ∈added2023 ⇒ 2023-only EXCEPT RECEIVE/SEND/END-RECEIVE (85/2002-reserved → unreserved 2014 →
   re-reserved 2023; kb/Work PB656); ∈85 ∧ ∉2023 ⇒ 85-only (removed 2002, flagged); remainder ⇒ added 2002. ROUNDED-mode words etc. are
   §8.10 CONTEXT-SENSITIVE in 2023 — not reserved, not in the table. Script emits BOTH the C# table
-  (`src/Cobol.Net.Editions/ReservedWords.Table.cs`) AND the canonical `tests/version-matrix/reserved-words.json`; a
+  (`src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs`) AND the canonical `tests/version-matrix/reserved-words.json`; a
   drift test compares them.
 - **Conservative policy:** only `confidence: high` rows REJECT; lower-confidence rows are present but inert
   (documented), per the VCR scope-limit rule ("confirm against the older standard before gating") — a wrong
@@ -304,7 +304,7 @@ GO TO), 0882 (CALL ON OVERFLOW).
 
 ### P2.5 `ConstructDialectStatus` registry + drift checks
 
-`src/Cobol.Net.Editions/ConstructDialectStatus.cs` (record: Id, Display, IntroducedIn, RemovedIn, ObsoleteIn?,
+`src/WiseOwl.Cobol.Editions/ConstructDialectStatus.cs` (record: Id, Display, IntroducedIn, RemovedIn, ObsoleteIn?,
 DiagnosticCode, Citation) + `ConstructRegistry` with `StatusAt(edition, permissive)` and the one `Check(...)`
 entry. `tests/version-matrix/constructs.json` stays THE canonical catalogue (§10 #5; gains an optional
 `expectDiagnostic` field); a unit drift test asserts registry↔json metadata equality both directions, and the
@@ -348,7 +348,7 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 > (not 2023-only); Annex E.2 item 25 decides only the 2014 edge (E.1 compares with the previous standard), where the GnuCOBOL 2014
 > list already agrees; at 2002 the trio stays reserved like the rest of the communication vocabulary (kb/Work PB656). ORDER carries
 > a CCVS-proof not-85 override (conforming ST127A uses it as a data name). The interval rows include
-> `end-receive-as-user-word`. The INV-1-strong behavioral leg is `COBOLNET_NIST_STD=2023 COBOLNET_NIST_PERMISSIVE=1`
+> `end-receive-as-user-word`. The INV-1-strong behavioral leg is `WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1`
 > over the golden run — byte-exact at the default edition (the roadmap's fatal-challenge criterion). The four binder
 > Error→`Removed()` migrations (0810/0811/0882/0873-SD) run the construct after a permissive warn (zero behavioral
 > diffs).
