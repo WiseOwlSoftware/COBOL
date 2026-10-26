@@ -263,6 +263,8 @@ jobs:
         with:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
+          # SparseCheckoutDriftTests (kb/Work PB3787) holds this list: every file the job runs, and every module those
+          # import as they start, must be listed, or the continue-on-error step cancels nothing while the run stays green
           sparse-checkout: |
             scripts/orchestrator
             scripts/standard_streams.py
