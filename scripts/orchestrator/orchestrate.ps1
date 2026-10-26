@@ -10,7 +10,10 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      the unit down gracefully first (STOP-UNIT plus the LOOP's own fleet stop scratch\STOP-loop, so nothing is lost and
      no other session's agents are stopped; kb/Work PB2483), see stop.ps1
   3. circuit breaker: three consecutive units that fail (nonzero exit, invalid or missing handoff, or under
-     -FastFailSeconds without a `done` handoff) stop the loop with an owner note; exponential backoff between failures
+     -FastFailSeconds without a `done` handoff) stop the loop with an owner note; exponential backoff between failures.
+     A READ-ONLY unit (the meter) is no failure of the work (kb/Work PB2665): its handoff never replaces the last one, it
+     moves no count, and three meter units in a row without a reading close the meter for one reading age and ask the
+     owner once, whatever ran in between
   4. budget.py decides go / hold-session / hold-day / stop-week
   5. the next unit: next_unit.py (the OPERATOR's steer handoff.operator.json first, written by steer.ps1 and consumed when
      its unit starts, kb/Work PB2596; -Unit writes the first unit through steer.ps1; then the last handoff's next_unit,
@@ -117,6 +120,12 @@ if ($LASTEXITCODE -ne 0) { $LoadedHead = '' }
 $Here = $PSScriptRoot
 $Schema = Join-Path $Here 'handoff.schema.json'
 $UnitModel = @{ wave = 'opus'; campaign = 'opus'; enqueue = 'opus'; resume = 'opus'; meter = 'sonnet' }
+# READ-ONLY units read the environment (a web page) and touch no branch (kb/Work PB2665; design section 4.5): they are
+# invisible to the work chain. Their handoff never replaces handoff.last.json (it only spends the name when the last
+# handoff named the unit), no synthesized `resume` stands in for a missing one, they do not move the breaker's count, the
+# last-failed flag or the last-started time, and a failure to read is an ENVIRONMENT failure that next_unit.py counts
+# per unit type (units.jsonl `environment_failure`) and tells the owner about once.
+$ReadOnlyUnit = @('meter')
 # A `campaign` unit is a `wave` unit whose plan_wave.py call carries --cluster: one prompt file, one placeholder.
 $PromptFile = @{ campaign = 'wave' }
 $Allowed = @('opus', 'sonnet')   # never Fable or Mythos: each needs the owner's approval per dispatch (owner 2026-10-02; kb/Work R69 2026-10-06)
@@ -331,6 +340,37 @@ function Invoke-Py([string[]]$ArgList) {
 
 function Add-OwnerQuestion([string]$title, [string]$body) {
     Add-Content -Path $Questions -Encoding utf8 -Value "`n## $(Get-Date -Format 'yyyy-MM-dd HH:mm') — $title`n`n$body`n"
+}
+
+# next_unit.py reports `meter_unreadable` while METER_ATTEMPTS meter units in a row ended without a reading (PB2665). The
+# loop goes on from budget.py's estimate and tells the owner ONCE per streak: the streak's first attempt is the marker
+# written into the question, so a restart of the supervisor, or any later iteration, finds it and asks nothing more.
+function Report-MeterUnreadable($gate) {
+    # ConvertFrom-Json already turns an ISO time into a local DateTime; a string is parsed with its offset.
+    $local = { param($t) if ($t -is [datetime]) { $t } else { [datetimeoffset]::Parse([string]$t, [Globalization.CultureInfo]::InvariantCulture).LocalDateTime } }
+    $marker = "meter unreadable since $((& $local $gate.since).ToString('o'))"
+    if ((Test-Path $Questions) -and (Select-String -Path $Questions -SimpleMatch $marker -Quiet)) { return }
+    $retry = & $local $gate.retry_at
+    $say = "the last $($gate.failures) meter units of $($Account.name) ended without a reading; the next attempt waits until $($retry.ToString('yyyy-MM-dd HH:mm'))"
+    if ($DryRun) { Say "DRY RUN: would tell the owner: $say"; return }
+    Add-OwnerQuestion 'meter unreadable' ("$say.`n`nUsually the Claude in Chrome extension is not connected, or is signed into another account than $($Account.name) (units/meter.md step 1). " +
+        "The loop goes on from budget.py's estimate, tries the meter again at that time and then once per maximum reading age, and counts none of these against the circuit breaker. " +
+        "Reconnect or sign in, or record a reading yourself: python scripts/orchestrator/budget.py --record --weekly <W> --session <S> --session-reset <ISO time>.`n`n($marker)")
+    Say "owner question written to ${Questions}: $say (the loop continues)"
+}
+
+# A read-only unit never replaces handoff.last.json, so a handoff (or the operator's steer) that NAMED it would name it
+# again for ever. Spend the name and keep everything else the handoff said (branches_pending, workflow, outcome).
+function Clear-NamedUnit([string]$unit) {
+    if (-not (Test-Path $LastHandoff)) { return }
+    try {
+        $prev = Get-Content $LastHandoff -Raw | ConvertFrom-Json
+        if ($prev.PSObject.Properties['next_unit'] -and $prev.next_unit -eq $unit) {
+            $prev.PSObject.Properties.Remove('next_unit')
+            $prev.PSObject.Properties.Remove('next_unit_reason')
+            $prev | ConvertTo-Json -Depth 10 | Set-Content -Path $LastHandoff -Encoding utf8
+        }
+    } catch { Say "the name '$unit' was not spent in ${LastHandoff} (the loop continues): $_" }
 }
 
 function Resolve-Launch([string]$exe) {
@@ -625,8 +665,13 @@ try {
         # The previous supervisor died mid-unit (a reboot, a kill): its last checkpoint is the only record. Turn it into the
         # handoff the dead unit never wrote, so the first unit of this run is a `resume` with facts.
         $cpUnit = [string]((Get-Content $leftover -Raw | ConvertFrom-Json).unit)
-        Say "a checkpoint of unit '$cpUnit' survives from a supervisor that died mid-unit: synthesizing its handoff"
-        [void](Invoke-Py @((Join-Path $Here 'checkpoint.py'), 'synthesize', '--unit', $cpUnit, '--out', $LastHandoff, '--repo', $RepoDir))
+        if ($cpUnit -in $ReadOnlyUnit) {
+            # It read a page and touched no branch: the work chain's last handoff still says everything true.
+            Say "a checkpoint of read-only unit '$cpUnit' survives from a supervisor that died mid-unit: the last handoff stands"
+        } else {
+            Say "a checkpoint of unit '$cpUnit' survives from a supervisor that died mid-unit: synthesizing its handoff"
+            [void](Invoke-Py @((Join-Path $Here 'checkpoint.py'), 'synthesize', '--unit', $cpUnit, '--out', $LastHandoff, '--repo', $RepoDir))
+        }
         Move-Item $leftover (Join-Path $CoordDir "logs/$(Get-Date -Format 'yyyyMMdd-HHmmss')-$cpUnit.checkpoint.json") -Force
     }
     $failures = $CarryFailures
@@ -692,6 +737,7 @@ try {
         foreach ($lead in $Clusters) { $na += @('--cluster', $lead) }
         if ($Clusters.Count -and $WorkDir) { $na += @('--work', $WorkDir) }
         $choice = Invoke-Py $na | ConvertFrom-Json
+        if ($choice.PSObject.Properties['meter_unreadable']) { Report-MeterUnreadable $choice.meter_unreadable }
         # With -Cluster every choice carries each lead's lane state (`campaigns`) and the starved leads (`starved`,
         # kb/Work PB2522): a landed lead's lane ends, and a ready note that waits through wave after wave is said aloud.
         $campaigns = if ($choice.PSObject.Properties['campaigns']) { $choice.campaigns } else { $null }
@@ -754,6 +800,7 @@ try {
         $valid = $false
         $outcome = 'missing'
         $h = $null
+        $readOnly = $choice.unit -in $ReadOnlyUnit
         if (Test-Path $Handoff) {
             $raw = Get-Content $Handoff -Raw
             $valid = [bool]($raw | Test-Json -SchemaFile $Schema -ErrorAction SilentlyContinue)
@@ -761,13 +808,14 @@ try {
                 $h = $raw | ConvertFrom-Json
                 $outcome = $h.outcome
                 Copy-Item $Handoff "$logBase.handoff.json" -Force
-                Copy-Item $Handoff $LastHandoff -Force
+                if (-not $readOnly) { Copy-Item $Handoff $LastHandoff -Force }
             } else { $outcome = 'invalid'; Copy-Item $Handoff "$logBase.handoff.invalid.json" -Force }
         }
-        if (-not $valid) {
+        if (-not $valid -and -not $readOnly) {
             # No usable handoff from the model (a crash, a kill, a terminated background task): the supervisor writes
             # one from its last checkpoint and the worktrees as they are now, so the successor starts with facts, not a
-            # guess. The unit still counts as failed for the breaker.
+            # guess. The unit still counts as failed for the breaker. (A read-only unit gets none: it touched no branch,
+            # so a synthesized `resume` would only re-derive the state the work chain's last handoff already holds.)
             try {
                 [void](Invoke-Py @((Join-Path $Here 'checkpoint.py'), 'synthesize', '--unit', $choice.unit, '--out', $Handoff, '--repo', $RepoDir))
                 Copy-Item $Handoff $LastHandoff -Force
@@ -775,24 +823,36 @@ try {
                 $outcome = "synthesized ($outcome)"
             } catch { Say "handoff not synthesized: $_" }
         }
+        # Archived above beside the unit's log: handoff.json is the RUNNING unit's file, and one left here would be taken
+        # for a hand-written orphan at the next unit's start (31 false "no unit of this run wrote" lines in one log).
+        Remove-Item $Handoff -Force -ErrorAction SilentlyContinue
+        if ($readOnly) { Clear-NamedUnit $choice.unit }
         # Moved, not copied: a checkpoint.json that is still here at the next supervisor start means the supervisor itself died mid-unit.
         if (Test-Path (Join-Path $CoordDir 'checkpoint.json')) { Move-Item (Join-Path $CoordDir 'checkpoint.json') "$logBase.checkpoint.json" -Force }
         if (Test-Path (Join-Path $CoordDir 'milestones.jsonl')) { Move-Item (Join-Path $CoordDir 'milestones.jsonl') "$logBase.milestones.jsonl" -Force }
-        $failed = ($r.exit -ne 0) -or (-not $valid) -or (($duration -lt $FastFailSeconds) -and ($outcome -ne 'done'))
-        $failures = if ($failed) { $failures + 1 } else { 0 }
-        $lastFailed = $failed
-        $lastStarted = $started
+        # ONE classification of how a unit ended (PB2665; the pattern of PB3673 and PB3674: an ENVIRONMENT cause is never
+        # read as a failure of the WORK). A read-only unit that ended without a `done` handoff could not read its page:
+        # that is `environment_failure`, counted per unit type by next_unit.py and never by the breaker. It moves none of
+        # the work chain's state ($failures, $lastFailed, $lastStarted), so a meter between two failed work units neither
+        # hides nor adds a failure. Every other unit is judged as before.
+        $environmentFailed = $readOnly -and (($r.exit -ne 0) -or (-not $valid) -or ($outcome -ne 'done'))
+        $failed = (-not $readOnly) -and (($r.exit -ne 0) -or (-not $valid) -or (($duration -lt $FastFailSeconds) -and ($outcome -ne 'done')))
+        if (-not $readOnly) {
+            $failures = if ($failed) { $failures + 1 } else { 0 }
+            $lastFailed = $failed
+            $lastStarted = $started
+        }
         $line = [ordered]@{ unit = $choice.unit; reason = $choice.reason; model = $model; account = $Account.name; session_id = $sessionId
             started_at = $started.ToString('o'); ended_at = (Get-Date).ToString('o'); duration_s = [Math]::Round($duration, 1)
             exit_code = $r.exit; handoff_outcome = $outcome; next_unit = $(if ($h -and $h.PSObject.Properties['next_unit']) { $h.next_unit } else { $null })
-            failed = $failed; log = "$logBase.jsonl" }
+            failed = $failed; environment_failure = $environmentFailed; log = "$logBase.jsonl" }
         # The campaign record next_unit.py reads back: whose turn a campaign was, and each lead's lane at this choice
         # (the round-robin and the starvation measure, kb/Work PB2522).
         if ($UnitCluster) { $line['cluster'] = $UnitCluster }
         if ($campaigns) { $line['campaigns'] = $campaigns }
         foreach ($k in $r.stats.Keys) { $line[$k] = $r.stats[$k] }
         Add-Content -Path $UnitsLog -Encoding utf8 -Value ($line | ConvertTo-Json -Compress -Depth 5)
-        Say "unit '$($choice.unit)' ended: exit $($r.exit), handoff $outcome, $([Math]::Round($duration)) s, $($r.stats.calls) calls$(if ($failed) { " — FAILURE $failures of 3" })"
+        Say "unit '$($choice.unit)' ended: exit $($r.exit), handoff $outcome, $([Math]::Round($duration)) s, $($r.stats.calls) calls$(if ($failed) { " — FAILURE $failures of 3" } elseif ($environmentFailed) { " — ENVIRONMENT FAILURE: no reading (the breaker does not count it)" })"
         $ran++
         # A headless unit cannot publish the owner's ledger artifact (no Artifact tool); say loudly when a publish is owed
         # so the attended session does it (ledger_state.py compares the page's stamp with the last published one).
@@ -819,8 +879,9 @@ try {
             $exitCode = 5; break
         }
         if ($MaxUnits -gt 0 -and $ran -ge $MaxUnits) { Say "-MaxUnits $MaxUnits reached"; break }
-        if ($failed -and $failures -lt 3) {
-            $wait = [Math]::Min(1800, $BackoffBaseSeconds * [Math]::Pow(2, $failures - 1))
+        if (($failed -and $failures -lt 3) -or $environmentFailed) {
+            # An environment failure waits the base once (the third in a row closes the meter for a maximum reading age).
+            $wait = if ($failed) { [Math]::Min(1800, $BackoffBaseSeconds * [Math]::Pow(2, $failures - 1)) } else { $BackoffBaseSeconds }
             if ($wait -gt 0) {
                 Say "backing off $wait s"
                 if (-not (Wait-Until ((Get-Date).AddSeconds($wait)))) { Say 'STOP during the backoff'; break }
