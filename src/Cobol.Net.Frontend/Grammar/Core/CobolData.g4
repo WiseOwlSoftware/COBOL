@@ -832,9 +832,9 @@ valueClause
     // recognition-fired by VersionConformancePass ParseArm.VisitValueClause on a valueClauseTablePhrase.
     : (VALUE | VALUES) (IS | ARE)? valueClauseTablePhrase+
     | (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
-      // ⛔ WHEN, SET AND TO ARE OPTIONAL WORDS (kb/Work PB695 family 2 — the sibling sweep the audit cannot see,
-      // because a word REQUIRED INSIDE an optional group never reaches its candidate list). Measured off the
-      // printed §13.18.63.2 format 3 (PDF p546 / folio 516): the bracket reads `[ WHEN SET TO FALSE IS
+      // ⛔ WHEN, SET AND TO ARE OPTIONAL WORDS (kb/Work PB695 family 2 — found by hand: a word REQUIRED INSIDE an
+      // optional group reached the optional-word audit's candidate list only once kb/Work PB715 made it judge
+      // each group as a unit of its own). Measured off the printed §13.18.63.2 format 3 (PDF p546 / folio 516): the bracket reads `[ WHEN SET TO FALSE IS
       // literal-4 ]` and the ONLY rule on that line sits under FALSE (x 228.02–255.10, 92% cover) — WHEN, SET,
       // TO and IS carry no rule at all, and the transcription's own figure note agrees. §8.3.2.4.3 therefore
       // makes `88 X VALUE 1 FALSE 0` conforming source. FALSE_ stays the required anchor and is reachable from
@@ -856,6 +856,10 @@ valueClause
       // puts alphabet-names and constant-names in disjoint types, so a LAST operand that names a declared
       // alphabet is the phrase. alphabet-name-1 is a user-defined word, so the IN spelling takes `cobolWord`
       // (the EVALUATE range-expression's own spelling), not the narrower IDENTIFIER token.
+      // The optional-word audit reads the next line and reports IN as DECIDED rather than as a candidate (kb/Work
+      // PB3751; the IN-less spelling is pinned by the pb983_range_alphabet_in_optional golden and
+      // TrailingInPhraseDriftTests):
+      // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
       (IN cobolWord)?
       valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail

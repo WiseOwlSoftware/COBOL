@@ -20,7 +20,15 @@ HOW. For every general format PRINTED IN THE STANDARD — all of them, not the s
   * the grammar rules that spell the construct are its CLOSURE: the rules naming the construct's leading keyword,
     plus every rule reachable from them that NOTHING ELSE references. That closure is what makes helper rules
     visible — `readAdvancingOnLock` never mentions READ, and a keyword-only scan could never have found PB331;
-  * a word printed WITHOUT an underline but appearing as a BARE (non-optional) token is reported.
+  * a word printed WITHOUT an underline that a rule DEMANDS is reported — demanded by an alternative of the rule,
+    or by a `( … )` group of it once the group is written (`examine`, `demanded`).
+
+⛔ A GROUP IS A SPELLING OF ITS OWN, NOT AN EXCUSE (kb/Work PB715). Until 2026-10-25 every token inside an
+optional group counted as omittable, so `(FOR (ALPHANUMERIC | NATIONAL))?` hid a demanded FOR and the six optional
+words PB695 relaxed by hand (CURRENCY's WITH, CLASS's and SYMBOLIC's FOR, the switches' STATUS, IS, the collating
+FOR) all ran clean. And a construct whose keyword is itself optional (`[ USAGE IS ]`), or whose own rule carried
+one arm its format no longer prints (USE FOR DEBUGGING), anchored NO rule and was reported clean unexamined; such a
+construct now FAILS the run (`examine`'s anchoring, the population assertion).
 
 ⛔ IT ASSERTS ITS OWN POPULATION, and that assertion is the point. Until 2026-09-05 this tool located its pages
 from the markdown's `#page-N` anchors; DE-PAGING DELETED THE ANCHORS, so it located 0 general formats, scanned
@@ -42,6 +50,7 @@ docstring records the fix; the discipline stands regardless.
     python scripts/spec/audit_grammar_optional_words.py
     python scripts/spec/audit_grammar_optional_words.py --construct USE
     python scripts/spec/audit_grammar_optional_words.py --clause 14.9.41.2 --show-format
+    python scripts/spec/audit_grammar_optional_words.py --self-test     # fixture grammars; needs no PDF
 """
 from __future__ import annotations
 
@@ -50,7 +59,7 @@ import collections
 import pathlib
 import re
 import sys
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 # The grammar is SPLIT ACROSS TWELVE FILES — CobolParserCore.g4 plus Grammar/Core/*.g4. An earlier version of this
 # script read only the root file and therefore scanned a fraction of the rules, reporting a reassuring "3
@@ -58,6 +67,8 @@ from typing import NamedTuple
 # it excludes the build-time COPIES under obj/, blanks comments and actions, and refuses an empty population.
 import grammar_source
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -130,8 +141,6 @@ def parser_rules() -> dict[str, grammar_source.Rule]:
     return {r.name: r for r in grammar_source.read() if r.kind == "parser"}
 
 
-_TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-
 #: What is left of a lexer body once its quoted literals, its `->` action, and its punctuation are removed. A
 #: KEYWORD token's body is nothing but literals; a LEXICAL CLASS names fragments, character sets or predicates.
 _LEX_LITERAL = re.compile(r"'((?:[^'\\]|\\.)*)'")
@@ -172,128 +181,276 @@ def keyword_spellings() -> dict[str, set[str]]:
     return out
 
 
-def alternatives(body: str) -> list[str]:
-    """One rule body split into its TOP-LEVEL alternatives (a `|` inside `(…)` belongs to an inner group)."""
-    body = body[body.find(":") + 1:]
-    stop = body.rfind(";")
-    if stop >= 0:
-        body = body[:stop]
-    out, depth, start = [], 0, 0
-    for i, c in enumerate(body):
-        if c == "(":
-            depth += 1
-        elif c == ")":
-            depth -= 1
-        elif c == "|" and depth == 0:
-            out.append(body[start:i])
-            start = i + 1
-    out.append(body[start:])
-    return out
+class Elem(NamedTuple):
+    """One element of a parser-rule alternative, read from its STRUCTURE rather than from the character after it."""
+    kind: str                       # "tok" (an UPPERCASE token), "ref" (a parser rule) or "group" (a `( … )`)
+    name: str                       # the token or rule name; a group's normalized source text, suffix included
+    suffix: str                     # "", "?", "*" or "+"
+    alts: tuple = ()                # a group's alternatives, each a tuple of Elem
+
+    @property
+    def optional(self) -> bool:
+        return self.suffix in ("?", "*")
 
 
-def scan_alternative(alt: str) -> list[tuple[str, bool]]:
-    """(token, may-be-omitted) for every UPPERCASE token in one alternative.
+_IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_UPPER_TOKEN = re.compile(r"[A-Z][A-Z0-9_]*")
 
-    A token may be omitted when it carries a `?`/`*` suffix of its own, or when ANY enclosing group does. That
-    is the whole optionality question the audit asks, and it has to be read from the STRUCTURE: the previous
-    regex only looked at the character after the token, so a required word inside `( … )?` read as required.
+
+def parse_body(rhs: str) -> tuple[tuple[Elem, ...], ...]:
+    """One rule's blanked right-hand side (the text between `:` and `;`) as its tree of alternatives.
+
+    `grammar_source` has already blanked comments, actions and predicates. What remains that is not a reference
+    is skipped STRUCTURALLY: a quoted literal, an element label (`leftmost=`), an alternative label (`# Name`), an
+    `<option>`, and a NEGATED set (`~DOT+` matches every token but DOT, so DOT is no word the rule demands).
     """
-    toks: list[list] = []
-    stack: list[list[int]] = [[]]
-    i, n = 0, len(alt)
-    while i < n:
-        c = alt[i]
-        if c == "(":
-            stack.append([])
-            i += 1
-            continue
-        if c == ")":
-            group = stack.pop() if len(stack) > 1 else []
-            i += 1
-            if i < n and alt[i] in "?*":
-                for k in group:
-                    toks[k][1] = True
-                i += 1
-            elif i < n and alt[i] == "+":
-                i += 1
-            stack[-1].extend(group)
-            continue
-        m = _TOKEN.match(alt, i)
-        if not m:
-            i += 1
-            continue
-        word = m.group(0)
-        i = m.end()
-        optional = i < n and alt[i] in "?*"
-        if i < n and alt[i] in "?*+":
-            i += 1
-        if re.fullmatch(r"[A-Z][A-Z0-9_]*", word):
-            toks.append([word, optional])
-            stack[-1].append(len(toks) - 1)
-    return [(w, o) for w, o in toks]
+    pos = 0
+    n = len(rhs)
 
+    def suffix() -> str:
+        nonlocal pos
+        s = ""
+        if pos < n and rhs[pos] in "?*+":
+            s = rhs[pos]
+            pos += 1
+            if pos < n and rhs[pos] == "?":             # a non-greedy `??` / `*?` / `+?` is the same quantity
+                pos += 1
+        return s
 
-def required_tokens(rules: dict[str, str]) -> dict[str, set[str]]:
-    """Rule -> the tokens it makes MANDATORY somewhere in its spelling.
-
-    Two structural exclusions, each earned by a false positive this audit produced:
-
-    * a SINGLE-TOKEN ALTERNATIVE in a rule that has several is a NAME alternative, not a format spelling —
-      `cobolWord`'s `| RECEIVE |` says RECEIVE may be a user-defined word, and `readDirection`'s `NEXT |
-      PREVIOUS` is a printed choice where one arm is not underlined. Neither is a word the parser demands;
-    * a rule whose ENTIRE body is one token and that is only ever referenced with a `?`/`*` suffix —
-      `timesKeyword : TIMES ;` used as `timesKeyword?` already permits `OCCURS 5`, so TIMES is not demanded.
-      Contrast `startWithLength : WITH LENGTH …` used as `(startWithLength)?`: omitting the whole PHRASE is
-      legal, writing it without WITH is not, so WITH stays a finding.
-    """
-    optional_only: dict[str, bool] = {}
-    for owner, body in rules.items():
-        for m in re.finditer(r"(?<![A-Za-z0-9_])([a-z][A-Za-z0-9_]*)[ \t]*([?*+]?)", body):
-            name = m.group(1)
-            if m.start() == 0 and name == owner:
-                continue                                  # the rule's own head is a definition, not a reference
-            if name in rules:
-                # ⚠ `"" in "?*"` is True — the suffix must be tested for MEMBERSHIP in a set, not a substring.
-                optional_only[name] = optional_only.get(name, True) and m.group(2) in {"?", "*"}
-    out: dict[str, set[str]] = {}
-    for name, body in rules.items():
-        alts = alternatives(body)
-        spellings: list[tuple[str, ...]] = []             # the mandatory token SEQUENCE of each alternative
-        is_spelling: list[bool] = []                      # …and whether it is a FORMAT rather than a name list
-        for alt in alts:
-            scanned = scan_alternative(alt)
-            spellings.append(tuple(w for w, opt in scanned if not opt))
-            # A bare name alternative contributes no demand of its own — but it is still a real spelling that
-            # can subsume a sibling's, which is why the sequence above is recorded either way.
-            is_spelling.append(not (len(alts) > 1 and len(scanned) == 1
-                                    and not re.search(r"(?<![A-Za-z0-9_])[a-z][A-Za-z0-9_]*", alt)))
-        need: set[str] = set()
-        for i, seq in enumerate(spellings):
-            if not is_spelling[i]:
-                continue
-            for k, w in enumerate(seq):
-                # ⛔ A SIBLING ALTERNATIVE MAY ALREADY SPELL THIS FORM WITHOUT THE WORD, and then the RULE does
-                # not demand it even though this alternative does. `performLocationPhrase : WITH LOCATION |
-                # {is2023()}? LOCATION` writes the two spellings of one optional word as two arms, so WITH is
-                # mandatory in the first and the rule still accepts `LOCATION` — reporting it wasted a whole
-                # confirmation pass (kb/Work PB695).
-                # ⚠ THE COMPARISON IS ON THE ORDERED SEQUENCE, not on the required SET. With sets, the old
-                # `switchOnClause : ON STATUS IS cobolWord | ON IS? cobolWord` would have subsumed its own IS
-                # (the sibling's required set {ON} is a subset of {ON, STATUS}) and hidden a REAL rejection of
-                # `ON STATUS condition-name-1`. Deleting the word must leave a sequence some sibling spells
-                # EXACTLY — which `ON STATUS cobolWord` is not, and `LOCATION` is.
-                if any(other == seq[:k] + seq[k + 1:] for j, other in enumerate(spellings) if j != i):
+    def alternatives_until(close: str | None) -> tuple[tuple[Elem, ...], ...]:
+        nonlocal pos
+        alts: list[tuple[Elem, ...]] = []
+        cur: list[Elem] = []
+        while pos < n:
+            c = rhs[pos]
+            if c == ")" and close == ")":
+                pos += 1
+                break
+            if c == "|":
+                alts.append(tuple(cur))
+                cur = []
+                pos += 1
+            elif c == "(":
+                start = pos
+                pos += 1
+                inner = alternatives_until(")")
+                sfx = suffix()
+                cur.append(Elem("group", " ".join(rhs[start:pos].split()), sfx, inner))
+            elif c == "'":
+                pos += 1
+                while pos < n and rhs[pos] != "'":
+                    pos += 2 if rhs[pos] == "\\" else 1
+                pos += 1
+                suffix()
+            elif c == "<":
+                pos = rhs.find(">", pos) + 1 or n
+            elif c == "#":
+                m = re.compile(r"#\s*[A-Za-z_][A-Za-z0-9_]*").match(rhs, pos)
+                pos = m.end() if m else pos + 1
+            elif c == "~":
+                pos += 1
+                while pos < n and rhs[pos].isspace():
+                    pos += 1
+                if pos < n and rhs[pos] == "(":
+                    pos += 1
+                    alternatives_until(")")
+                else:
+                    m = _IDENT.match(rhs, pos)
+                    pos = m.end() if m else pos + 1
+                suffix()
+            elif (m := _IDENT.match(rhs, pos)) is not None:
+                pos = m.end()
+                label = re.match(r"\s*\+?=", rhs[pos:])
+                if label:                                   # `name=` / `name+=` labels the NEXT element
+                    pos += label.end()
                     continue
-                need.add(w)
-        if len(need) == 1 and optional_only.get(name, False):
-            whole = [w for alt in alts for w, _ in scan_alternative(alt)]
-            if len(whole) == 1:
-                need = set()                              # the token IS the optional unit — already omittable
-        out[name] = need
+                word = m.group(0)
+                sfx = suffix()
+                if _UPPER_TOKEN.fullmatch(word):
+                    cur.append(Elem("tok", word, sfx))
+                elif word[0].islower():
+                    cur.append(Elem("ref", word, sfx))
+            else:
+                pos += 1
+        alts.append(tuple(cur))
+        return tuple(alts)
+
+    return alternatives_until(None)
+
+
+def _tokens(alt: tuple[Elem, ...]) -> list[str]:
+    """Every token the alternative names, optional or not, nested groups included, in order."""
+    out: list[str] = []
+    for e in alt:
+        if e.kind == "tok":
+            out.append(e.name)
+        elif e.kind == "group":
+            for inner in e.alts:
+                out += _tokens(inner)
     return out
 
 
-def closure(rules: dict[str, str], anchors: set[str]) -> set[str]:
+def _refs(alt: tuple[Elem, ...]) -> list[str]:
+    """Every parser rule the alternative references, nested groups included."""
+    out: list[str] = []
+    for e in alt:
+        if e.kind == "ref":
+            out.append(e.name)
+        elif e.kind == "group":
+            for inner in e.alts:
+                out += _refs(inner)
+    return out
+
+
+def _mandatory(alt: tuple[Elem, ...]) -> tuple[str, ...]:
+    """The token SEQUENCE every use of this alternative writes: optional tokens and optional groups drop out, and
+    a required group contributes every one of its alternatives' mandatory tokens (a choice among required words
+    demands each of them — `(IS | ARE)` written bare is a demand of whichever is chosen)."""
+    out: list[str] = []
+    for e in alt:
+        if e.optional:
+            continue
+        if e.kind == "tok":
+            out.append(e.name)
+        elif e.kind == "group":
+            for inner in e.alts:
+                out += _mandatory(inner)
+    return tuple(out)
+
+
+def _flat_spellings(alt: tuple[Elem, ...], drop: int | None = None) -> set[tuple[str, ...]] | None:
+    """Every token sequence a FLAT alternative writes — one made only of tokens, each written once or optional —
+    with element `drop` deleted; None when the alternative holds a group, a rule reference or a repeated token,
+    whose language this sequence model does not enumerate."""
+    if any(e.kind != "tok" or e.suffix not in ("", "?") for e in alt):
+        return None
+    seqs: set[tuple[str, ...]] = {()}
+    for j, e in enumerate(alt):
+        if j != drop:
+            seqs = {s + (e.name,) for s in seqs} | (seqs if e.optional else set())
+    return seqs
+
+
+def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozenset[str]]:
+    """Per alternative of ONE spelling unit (a rule body, or a group's body): the tokens it DEMANDS once present.
+
+    ⛔ THIS IS THE ONE TEST, applied at every nesting level (kb/Work PB715). §8.3.2.4.3 asks of each word whether it
+    may be omitted WHILE ITS PHRASE IS PRESENT, so a group is judged as a unit of its own and never written off:
+    `(FOR (ALPHANUMERIC | NATIONAL))?` may be omitted whole, but once written it demands FOR, and the audit that
+    marked every token of an optional group omittable could never report that FOR.
+
+    A word is NOT demanded by an alternative when:
+
+    * the alternative is a NAME alternative — a single token in a unit that has several, with no rule reference:
+      `cobolWord`'s `| RECEIVE |` says RECEIVE may be a user-defined word, and `readDirection`'s `NEXT | PREVIOUS`
+      is a printed choice where one arm is not underlined. Neither is a word the parser demands;
+    * deleting it leaves a sequence a SIBLING alternative spells EXACTLY. `performLocationPhrase : WITH LOCATION |
+      {is2023()}? LOCATION` writes the two spellings of one optional word as two arms, so WITH is mandatory in the
+      first and the unit still accepts `LOCATION` (kb/Work PB695). ⚠ The comparison is on the ORDERED SEQUENCE,
+      never on the required SET: with sets, `switchOnClause : ON STATUS IS cobolWord | ON IS? cobolWord` would
+      subsume its own IS and hide a real rejection of `ON STATUS condition-name-1`;
+    * the unit is OMITTABLE (an optional group, or a rule referenced only with `?`/`*`) and the alternative IS the
+      word, alone: `(TIMES)?`, or `timesKeyword : TIMES ;` used as `timesKeyword?`, already permits `OCCURS 5` —
+      the token is the optional unit. Contrast `startWithLength : WITH LENGTH …` used as `(startWithLength)?`:
+      omitting the whole PHRASE is legal, writing it without WITH is not, so WITH stays demanded;
+    * the unit is FLAT — every alternative only tokens, each written once or optional — and every spelling of the
+      alternative with the word deleted is a spelling the UNIT accepts (`_flat_spellings`). That is the exact
+      question, asked of the unit's whole language rather than of mandatory sequences, so it sees what they drop:
+      `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` (§13.18.39.2's all-plain `[ LIMIT IS | LIMITS ARE ]`, kb/Work
+      PB3751) demands nothing, because `LIMIT` without LIMIT is the group omitted and `LIMIT IS` without it is the
+      `IS` arm — while `(LIMIT IS?)?` still demands LIMIT, since `IS` alone is no spelling it accepts.
+    """
+    seqs = [_mandatory(a) for a in alts]
+    flat = [_flat_spellings(a) for a in alts]
+    language: set[tuple[str, ...]] | None = None
+    if all(f is not None for f in flat):
+        language = set().union(*flat) | ({()} if omittable else set())
+    out: list[frozenset[str]] = []
+    for i, alt in enumerate(alts):
+        name_alternative = len(alts) > 1 and len(_tokens(alt)) == 1 and not _refs(alt)
+        the_word_alone = omittable and len(alt) == 1 and alt[0].kind == "tok"
+        if name_alternative or the_word_alone:
+            out.append(frozenset())
+            continue
+        if language is not None:
+            out.append(frozenset(e.name for j, e in enumerate(alt)
+                                 if not e.optional and not _flat_spellings(alt, drop=j) <= language))
+            continue
+        seq = seqs[i]
+        out.append(frozenset(w for k, w in enumerate(seq)
+                             if not any(other == seq[:k] + seq[k + 1:] for j, other in enumerate(seqs) if j != i)))
+    return out
+
+
+class Unit(NamedTuple):
+    """A group inside an alternative, judged as a spelling of its own once it is present (kb/Work PB715)."""
+    text: str                       # the group's normalized source, e.g. `(FOR (ALPHANUMERIC | NATIONAL))?`
+    demands: frozenset[str]         # the tokens it demands once written
+
+
+class Spelling(NamedTuple):
+    """One top-level alternative of a parser rule: ONE way of writing the construct."""
+    own: frozenset[str]             # the tokens every use of this alternative demands
+    groups: tuple[Unit, ...]        # every group inside it, at any depth, with what it demands once present
+    mentions: frozenset[str]        # every token it names, optional or not
+
+
+def _groups(alt: tuple[Elem, ...]) -> list[Unit]:
+    """Every group inside an alternative, at any depth, each judged by `demanded` as a unit of its own."""
+    out: list[Unit] = []
+    for e in alt:
+        if e.kind != "group":
+            continue
+        out.append(Unit(e.name, frozenset().union(*demanded(e.alts, e.optional))))
+        for inner in e.alts:
+            out += _groups(inner)
+    return out
+
+
+class GrammarModel(NamedTuple):
+    """The parser grammar as the audit reads it: each rule's spellings, references and file of origin."""
+    spellings: dict[str, tuple[Spelling, ...]]
+    refs: dict[str, frozenset[str]]
+    origin: dict[str, str]
+
+    def demands(self, rule: str) -> frozenset[str]:
+        """Every token the rule demands of every use of one of its alternatives (the union over them)."""
+        return frozenset().union(*(s.own for s in self.spellings[rule]))
+
+    @property
+    def tokens(self) -> frozenset[str]:
+        """Every token some parser rule names."""
+        return frozenset().union(*(s.mentions for sps in self.spellings.values() for s in sps))
+
+
+def model(trees: dict[str, tuple[tuple[Elem, ...], ...]], origin: dict[str, str]) -> GrammarModel:
+    """Build the audit's grammar model from each rule's parsed alternatives (`parse_body`).
+
+    A rule referenced ONLY with a `?`/`*` suffix is an omittable unit, exactly as an optional group is: that is
+    the one fact the two levels share, and it is why `demanded` takes `omittable` rather than knowing about rules.
+    """
+    refs = {n: frozenset(r for alt in alts for r in _refs(alt) if r in trees and r != n) for n, alts in trees.items()}
+    optional_only: dict[str, bool] = {}
+
+    def note_refs(alt: tuple[Elem, ...], owner: str) -> None:
+        for e in alt:
+            if e.kind == "ref" and e.name in trees and e.name != owner:
+                optional_only[e.name] = optional_only.get(e.name, True) and e.optional
+            elif e.kind == "group":
+                for inner in e.alts:
+                    note_refs(inner, owner)
+
+    for owner, alts in trees.items():
+        for alt in alts:
+            note_refs(alt, owner)
+    spellings = {
+        name: tuple(Spelling(own, tuple(_groups(alt)), frozenset(_tokens(alt)))
+                    for alt, own in zip(alts, demanded(alts, optional_only.get(name, False))))
+        for name, alts in trees.items()}
+    return GrammarModel(spellings, refs, origin)
+
+
+def closure(refs: dict[str, frozenset[str]], anchors: set[str]) -> set[str]:
     """The rules that spell ONE construct: its anchor rules plus every rule EXCLUSIVELY reachable from them.
 
     ⛔ THIS IS WHY HELPER RULES ARE VISIBLE AT ALL. `readAdvancingOnLock` does not contain the word READ and
@@ -305,9 +462,6 @@ def closure(rules: dict[str, str], anchors: set[str]) -> set[str]:
     `useStatement` alone) joins; `fileName`, `dataReference`, `statementBlock` and `retryPhrase` — referenced
     from all over the grammar — never do, because they are not this construct's private spelling.
     """
-    names = set(rules)
-    refs = {n: {r for r in re.findall(r"(?<![A-Za-z0-9_])([a-z][A-Za-z0-9_]*)", b) if r in names and r != n}
-            for n, b in rules.items()}
     referrers: dict[str, set[str]] = collections.defaultdict(set)
     for n, rs in refs.items():
         for r in rs:
@@ -322,6 +476,136 @@ def closure(rules: dict[str, str], anchors: set[str]) -> set[str]:
                     inside.add(r)
                     changed = True
     return inside
+
+
+#: ⛔ A WORD THE GRAMMAR MUST DEMAND AND THE LANGUAGE STILL LETS YOU OMIT, recorded where the rule is (kb/Work
+#: PB3751). Some omissions only a later phase can see: §13.18.63.2's `[ IN alphabet-name-1 ]` with IN left out is,
+#: BY POSITION, one more literal operand (a constant-name, §13.10.3 SR2), so the parser always takes it as one and
+#: the binder tells the alphabet from the constant by SYMBOL (§8.3.2.2). The rule therefore writes `(IN cobolWord)?`
+#: and the language accepts the IN-less spelling all the same. The rule says so in a comment line of its own:
+#:     // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
+#: and the audit reports that word as DECIDED, not as a candidate. ⛔ A MARKER IS CHECKED, NEVER TRUSTED: the member
+#: it names must be declared in a `src/**/<Type>*.cs` file, and a full run in which a marker matched no candidate
+#: fails — a grammar change that dropped the demand leaves a dead marker, and a dead marker would hide the next one.
+#: The member's BEHAVIOUR is the goldens' and the drift tests' to pin (TrailingInPhraseDriftTests for this one).
+DECIDED_BY = re.compile(r"audit:optional-word\s+(?P<word>[A-Z][A-Z0-9-]*)\s+decided-by\s+"
+                        r"(?P<type>[A-Za-z_]\w*)\.(?P<member>[A-Za-z_]\w*)")
+
+
+def decisions(rules: dict[str, grammar_source.Rule]) -> dict[tuple[str, str], tuple[str, str]]:
+    """(rule, word) -> (type, member) for every `audit:optional-word … decided-by …` line in a rule's source or in
+    the comment block directly above its head."""
+    return {(r.name, m["word"]): (m["type"], m["member"])
+            for r in rules.values() for line in r.lead + r.source for m in DECIDED_BY.finditer(line)}
+
+
+def member_declared(type_name: str, member: str, src: pathlib.Path = REPO / "src") -> bool:
+    """Whether a `<type_name>*.cs` file under src (a partial class spans several) names `member(`, generated and
+    build-output trees excluded. A declaration or a call will do: the build refuses a call to no member."""
+    decl = re.compile(rf"\b{re.escape(member)}\s*\(")
+    return any(decl.search(f.read_text(encoding="utf-8"))
+               for f in src.rglob(f"{type_name}*.cs")
+               if not {"obj", "bin", "Generated"} & set(f.relative_to(src).parts))
+
+
+class Candidate(NamedTuple):
+    """A word printed WITHOUT an underline that a rule spelling the construct demands."""
+    word: str
+    rule: str
+    group: str                      # "" when the alternative itself demands it, else the group that does
+
+
+class Examination(NamedTuple):
+    """How one construct was anchored in the grammar, and what that found."""
+    anchoring: str                  # one of ANCHORINGS, or "" when no rule spells the construct (UNEXAMINED)
+    anchors: frozenset[str]
+    candidates: tuple[Candidate, ...]
+
+
+#: How a construct's rules are found, tried in this order; the first that anchors any rule is the one used.
+#: "named": the rules with an alternative that names the anchor keyword, demanded or optional, and spells the
+#: format — `usageClause : (USAGE IS?)? usageKeyword …` writes USAGE only inside an optional group and
+#: `fileStatusClause : FILE? STATUS …` only as an optional token, and each is still its construct's own rule.
+#: "enclosing": the same test, judged against this format plus every format that underlines the keyword — a
+#: paragraph printed INSIDE a definition (§11.6.2 INTERFACE-ID within §10.6.1's interface-definition) is spelled
+#: by the definition's rule, which demands END INTERFACE from the enclosing format.
+ANCHORINGS = ("named", "enclosing")
+
+
+def keyword_tokens(keyword: str, keywords: dict[str, set[str]], token_names: set[str]) -> frozenset[str]:
+    """The lexer tokens that spell a construct's anchor keyword: the token of that NAME, and every token whose
+    literals SPELL it — §13.18.40's PICTURE is the token PIC (`'PIC' | 'PICTURE'`), named after neither."""
+    word = keyword.replace("-", "_")
+    return frozenset({t for t, sp in keywords.items() if word in sp} | ({word} & token_names))
+
+
+def examine(gm: GrammarModel, keywords: dict[str, set[str]], keyword: str, plain: set[str], printed: set[str],
+            enclosing: Callable[[], set[str]]) -> Examination:
+    """Anchor one construct in the grammar and report every demanded word its format prints without an underline.
+
+    `printed` holds every word the format prints (normalized `-` → `_`), `plain` the ones it never underlines,
+    and `enclosing()` the words of every format that underlines the keyword (measured only when needed).
+
+    ⛔ THE CLOSURE MATCHES ON ONE TOKEN, AND ONE TOKEN IS NOT A CONSTRUCT. The anchor set is "every rule
+    demanding the clause title's leading word", so the FILE STATUS clause (§12.4.5.8.2, whose `[FILE]` is
+    un-underlined) drew in `deleteFileStatement`, `fileSection`, `multipleFileClause`, `readStatement`,
+    `rewriteStatement`, `writeStatement` and `valueOfClause` — seven rules that merely also demand a FILE, and all
+    seven were reported against a page none of them is printed on. So a spelling counts only when every COBOL WORD
+    it demands is printed in this construct's own format (`deleteFileStatement` demands DELETE, which the FILE
+    STATUS clause never prints; `channelClause` demands CHANNEL, which the standard never prints). Operand tokens
+    (IDENTIFIER, INTEGERLIT …) are exempt by construction — see `keyword_spellings`.
+
+    ⛔ THE TEST IS PER ALTERNATIVE, NOT PER RULE (kb/Work PB715). An alternative is one way of writing the
+    construct, and a rule is several: `useStatement` carries the USE FOR DEBUGGING arm the 2023 format no longer
+    prints, so the whole-rule test disqualified the USE statement's own rule and the audit examined NOTHING of
+    §14.9.49.2 while reporting a clean run. The same test judges each group before its words are reported, so an
+    extension phrase nobody prints cannot raise a candidate from a word it happens to share.
+
+    ⛔ AN EMPTY ANCHOR SET IS NOT A CLEAN CONSTRUCT. Before PB715 the anchor was "a rule DEMANDING the keyword", so
+    a construct whose keyword is itself optional (`[ USAGE IS ] { BINARY | … }`) anchored nothing and reported
+    nothing — that is how PB848's TO in the pointer usages went unreported. `ANCHORINGS` is tried in order, and a
+    construct none of them anchors comes back with `anchoring` "" for the caller to FAIL on.
+    """
+    toks = keyword_tokens(keyword, keywords, gm.tokens)
+    if not toks:
+        return Examination("", frozenset(), ())
+
+    def spells(demands: frozenset[str], words: set[str]) -> bool:
+        return all(sp & words for t in demands if (sp := keywords.get(t)))
+
+    def anchor(words: set[str]) -> set[str]:
+        return {r for r, sps in gm.spellings.items() if any(toks & s.mentions and spells(s.own, words) for s in sps)}
+
+    words, anchors, anchoring = printed, set(), ""
+    for anchoring in ANCHORINGS:
+        if anchoring == "enclosing":
+            words = printed | enclosing()
+        anchors = anchor(words)
+        if anchors:
+            break
+    else:
+        return Examination("", frozenset(), ())
+
+    def spelled(t: str) -> set[str]:
+        return keywords.get(t) or {t}
+
+    found: dict[tuple[str, str], Candidate] = {}
+    for rule in sorted(closure(gm.refs, anchors)):
+        for s in gm.spellings[rule]:
+            if not spells(s.own, words):
+                continue
+            units = [("", s.own)] + [(u.text, u.demands) for u in s.groups if spells(u.demands, words)]
+            for group, demands in units:
+                said = set().union(*(spelled(t) for t in demands))
+                for w in sorted(plain):
+                    # ⛔ THE CONSTRUCT'S OWN ANCHOR KEYWORD IS NEVER A CANDIDATE. It is the word this format was
+                    # LOCATED by, so the anchor rule demands it by construction and reporting it is circular. It
+                    # reaches `plain` whenever the printed format leaves the head word un-underlined — folio 604
+                    # does exactly that to CONTINUE, whose whole format is `CONTINUE [ AFTER … SECONDS ]` with
+                    # rules under AFTER and SECONDS only (kb/Work PB695).
+                    if w != keyword and w.replace("-", "_") in said:
+                        found.setdefault((rule, w), Candidate(w, rule, group))
+    return Examination(anchoring, frozenset(anchors), tuple(found[k] for k in sorted(found)))
 
 
 def band_words(doc, cache: dict[int, list], start, nxt) -> list[dict]:
@@ -362,19 +646,148 @@ def measure(words: list[dict]) -> tuple[set[str], set[str]]:
     return plain - underlined, underlined
 
 
+def _fixture(rules: str) -> GrammarModel:
+    """A grammar model from fixture rule text, `name : body ;` per rule, with no grammar file behind it."""
+    trees: dict[str, tuple[tuple[Elem, ...], ...]] = {}
+    for m in re.finditer(r"([a-z][A-Za-z0-9_]*)\s*:(.*?);", rules, flags=re.S):
+        trees[m.group(1)] = parse_body(m.group(2))
+    return model(trees, {n: "Fixture.g4" for n in trees})
+
+
+#: Fixture keyword spellings: every token below spells its own name, and PIC spells PICTURE too, as the real lexer's
+#: `PIC : 'PIC' | 'PICTURE'` does. IDENTIFIER and PIC_STRING are lexical classes, so they spell no word.
+_FIXTURE_KEYWORDS = {t: {t} for t in (
+    "ALPHANUMERIC ARE BINARY CLASS DEBUGGING DELETE END ERROR FILE FOR IN INHERITS INTERFACE INTERFACE_ID INTO IS "
+    "LENGTH LIMIT LIMITS PAGE READ "
+    "LOCATION NATIONAL OCCURS ON PERFORM POINTER PROCEDURE RECEIVE STANDARD START STATUS TIMES USAGE USE "
+    "VENDORWORD WITH").split()} | {"PIC": {"PIC", "PICTURE"}}
+
+
+def self_test() -> int:
+    """⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE (feedback_prove_the_watchdog_fails). Each arm
+    fires the audit on the exact shape it was blind to, and then on the repaired twin, which must be silent. The
+    fixtures are grammar text, so this needs neither the private PDF nor the real grammar."""
+    ok = True
+
+    def check(name: str, cond: bool, detail: object = "") -> None:
+        nonlocal ok
+        print(f"  {'ok  ' if cond else 'FAIL'} {name}" + ("" if cond else f"  (got {detail})"))
+        ok &= cond
+
+    def run(rules: str, keyword: str, plain: str, printed: str, enclosing: str = "") -> Examination:
+        p = set(plain.split())
+        return examine(_fixture(rules), _FIXTURE_KEYWORDS, keyword, p, set(printed.split()) | p,
+                       lambda: set(enclosing.split()))
+
+    def words(ex: Examination) -> set[tuple[str, str]]:
+        return {(c.word, c.group) for c in ex.candidates}
+
+    blind = run("classDefinitionClause : CLASS cobolWord IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? "
+                "(IN cobolWord)? ; cobolWord : IDENTIFIER ; classValueSet : IDENTIFIER ;",
+                "CLASS", "IS FOR", "CLASS ALPHANUMERIC NATIONAL IN")
+    check("PB715: a word demanded INSIDE an optional group is a candidate, named with its group",
+          words(blind) == {("FOR", "(FOR (ALPHANUMERIC | NATIONAL))?")}, words(blind))
+    repaired = run("classDefinitionClause : CLASS cobolWord IS? classValueSet (FOR? (ALPHANUMERIC | NATIONAL))? "
+                   "(IN cobolWord)? ; cobolWord : IDENTIFIER ; classValueSet : IDENTIFIER ;",
+                   "CLASS", "IS FOR", "CLASS ALPHANUMERIC NATIONAL IN")
+    check("…and the repaired `(FOR? …)?` is silent", not repaired.candidates and repaired.anchoring == "named",
+          repaired)
+
+    unit = run("occursClause : OCCURS integerLiteral (TIMES)? ; integerLiteral : IDENTIFIER ;", "OCCURS", "TIMES", "")
+    check("a one-word optional group IS the optional unit: `(TIMES)?` demands nothing", not unit.candidates, unit)
+    rule_unit = run("occursClause : OCCURS integerLiteral timesKeyword? ; timesKeyword : TIMES ; "
+                    "integerLiteral : IDENTIFIER ;", "OCCURS", "TIMES", "")
+    check("a one-word rule referenced only with `?` is the optional unit too", not rule_unit.candidates, rule_unit)
+    phrase = run("startStatement : START fileName startWithLength? ; startWithLength : WITH LENGTH fileName ; "
+                 "fileName : IDENTIFIER ;", "START", "WITH", "START LENGTH")
+    check("a PHRASE rule referenced with `?` still demands its words (WITH in START … WITH LENGTH)",
+          words(phrase) == {("WITH", "")}, words(phrase))
+    into = run("readStatement : READ fileName readInto? ; readInto : INTO fileName ; fileName : IDENTIFIER ;",
+               "READ", "INTO", "READ")
+    check("an optional phrase rule of one word AND an operand demands the word (`readInto : INTO …`)",
+          words(into) == {("INTO", "")}, words(into))
+    sibling = run("performStatement : PERFORM (WITH LOCATION | LOCATION)? ;", "PERFORM", "WITH", "PERFORM LOCATION")
+    check("a sibling arm INSIDE a group subsumes the word (`(WITH LOCATION | LOCATION)?`)",
+          not sibling.candidates, sibling)
+    page = "reportPageClause : PAGE {} integerLiteral ; integerLiteral : IDENTIFIER ;"
+    page_blind = run(page.format("(LIMIT IS? | LIMITS ARE?)?"), "PAGE", "LIMIT IS LIMITS ARE", "PAGE")
+    check("PB3751: an all-plain bracket written `(LIMIT IS? | LIMITS ARE?)?` demands LIMIT and LIMITS",
+          {w for w, _ in words(page_blind)} == {"LIMIT", "LIMITS"}, words(page_blind))
+    page_fixed = run(page.format("(LIMIT IS? | IS | LIMITS ARE? | ARE)?"), "PAGE", "LIMIT IS LIMITS ARE", "PAGE")
+    check("…and `(LIMIT IS? | IS | LIMITS ARE? | ARE)?` demands nothing: each deletion is a spelling it accepts",
+          not page_fixed.candidates and page_fixed.anchoring == "named", page_fixed)
+    page_lone = run(page.format("(LIMIT IS?)?"), "PAGE", "LIMIT IS", "PAGE")
+    check("…while `(LIMIT IS?)?` still demands LIMIT: `IS` alone is no spelling the group accepts",
+          {w for w, _ in words(page_lone)} == {"LIMIT"}, words(page_lone))
+    marked = grammar_source.Rule(
+        "valueClause", "parser", pathlib.Path("Fixture.g4"), 1, 3, "valueClause : VALUE cobolWord (IN cobolWord)? ;",
+        ("valueClause : VALUE cobolWord", "    // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf",
+         "    (IN cobolWord)? ;"), ())
+    check("PB3751: an `audit:optional-word` line records the word and the member that decides it",
+          decisions({"valueClause": marked}) == {("valueClause", "IN"): ("DataBinder", "RangeAlphabetPhraseOf")},
+          decisions({"valueClause": marked}))
+    check("…and a member no src file names is UNDECLARED, so a marker can fail the run",
+          not member_declared("DataBinder", "RangeAlphabetPhraseOf", src=HERE / "no-such-src-tree"))
+    seq = demanded(parse_body("ON STATUS IS cobolWord | ON IS? cobolWord"), False)
+    check("subsumption compares the ordered SEQUENCE, never the set (`ON STATUS IS … | ON IS? …` keeps IS)",
+          seq == [frozenset({"ON", "STATUS", "IS"}), frozenset({"ON"})], seq)
+    names = demanded(parse_body("IDENTIFIER | RECEIVE"), False)
+    check("a NAME alternative demands nothing (`cobolWord : IDENTIFIER | RECEIVE`)",
+          names == [frozenset(), frozenset()], names)
+    parsed = parse_body("LPAREN leftmost=arithmeticExpression? COLON RPAREN | ~DOT+ # Label")
+    check("parse: an element label and an alternative label are no references, a negated set no demand",
+          [_refs(a) for a in parsed] == [["arithmeticExpression"], []]
+          and demanded(parsed, False) == [frozenset({"LPAREN", "COLON", "RPAREN"}), frozenset()], parsed)
+
+    usage = run("usageClause : (USAGE IS)? usageKeyword ; usageKeyword : BINARY | POINTER ;",
+                "USAGE", "IS", "USAGE BINARY POINTER")
+    check("an OPTIONAL anchor keyword still anchors its rule (`(USAGE IS)?`), and the group's IS is reported",
+          usage.anchoring == "named" and words(usage) == {("IS", "(USAGE IS)?")}, usage)
+    stranger_arm = run("useStatement : USE AFTER? STANDARD ERROR PROCEDURE ON? fileName "
+                       "| USE FOR DEBUGGING ON? fileName ; fileName : IDENTIFIER ;",
+                       "USE", "AFTER STANDARD PROCEDURE ON", "USE ERROR")
+    check("an arm the format does not print (USE FOR DEBUGGING) no longer hides its rule's other arm",
+          stranger_arm.anchors == {"useStatement"}
+          and words(stranger_arm) == {("STANDARD", ""), ("PROCEDURE", "")}, stranger_arm)
+    stranger = run("fileStatusClause : FILE? STATUS IS dataReference ; deleteFileStatement : DELETE FILE "
+                   "dataReference IS? ; dataReference : IDENTIFIER ;", "FILE", "FILE IS", "STATUS")
+    check("a same-keyword STRANGER that demands an unprinted word is never anchored (FILE STATUS vs DELETE FILE)",
+          stranger.anchors == {"fileStatusClause"} and words(stranger) == {("IS", "")}, stranger)
+    extension = run("classDefinitionClause : CLASS cobolWord (IS VENDORWORD)? ; cobolWord : IDENTIFIER ;",
+                    "CLASS", "IS", "CLASS")
+    check("a group demanding a word no format prints (an extension phrase) raises no candidate",
+          extension.anchoring == "named" and not extension.candidates, extension)
+    picture = run("pictureClause : PIC IS PIC_STRING ;", "PICTURE", "IS", "PICTURE")
+    check("a keyword SPELLED by a differently named token anchors (PICTURE is the token PIC)",
+          words(picture) == {("IS", "")}, picture)
+    definition = ("interfaceDefinition : INTERFACE_ID DOT cobolWord (INHERITS FROM cobolWord)? END INTERFACE "
+                  "cobolWord DOT ; cobolWord : IDENTIFIER ;")
+    embedded = run(definition, "INTERFACE-ID", "FROM", "INTERFACE_ID INHERITS", enclosing="END INTERFACE")
+    check("a paragraph printed INSIDE a definition anchors through the ENCLOSING format",
+          embedded.anchoring == "enclosing" and words(embedded) == {("FROM", "(INHERITS FROM cobolWord)?")},
+          embedded)
+    lost = run(definition, "INTERFACE-ID", "FROM", "INTERFACE_ID INHERITS")
+    check("a construct NO rule spells comes back UNEXAMINED, for the run to fail — never a clean zero",
+          lost.anchoring == "" and not lost.candidates, lost)
+    directive = run(definition, "TURN", "ON", "TURN")
+    check("a keyword no parser token spells (a directive) is unexamined here and classified by the caller",
+          directive.anchoring == "" and not keyword_tokens("TURN", _FIXTURE_KEYWORDS, _fixture(definition).tokens),
+          directive)
+    print("SELF-TEST:", "PASS" if ok else "FAIL")
+    return 0 if ok else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--construct", help="check only this construct's anchor keyword, e.g. USE")
     ap.add_argument("--clause", help="check only this general-format clause, e.g. 14.9.41.2")
     ap.add_argument("--show-format", action="store_true", help="print the measured words of each format checked")
     ap.add_argument("--list-unanchored", action="store_true",
-                    help="name the prose-titled formats that carry no anchor keyword")
+                    help="name the formats the run cannot anchor: prose titles, and keywords no parser token spells")
+    ap.add_argument("--self-test", action="store_true", help="run the fixture-grammar self-test (needs no PDF)")
     args = ap.parse_args()
-    for stream in (sys.stdout, sys.stderr):        # the failure branch writes to stderr, and it must be legible
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
+    if args.self_test:
+        return self_test()
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
                  "git submodule update --init specs-private")
@@ -387,32 +800,12 @@ def main() -> int:
 
     # ---- the grammar side --------------------------------------------------------------------------------
     grammar = parser_rules()                      # ⛔ grammar_source.read refuses an empty population
-    rules = {n: r.body for n, r in grammar.items()}
-    origin = {n: r.file.name for n, r in grammar.items()}
-    needed = required_tokens(rules)
+    gm = model({n: parse_body(r.rhs) for n, r in grammar.items()}, {n: r.file.name for n, r in grammar.items()})
     keywords = keyword_spellings()
-    print(f"grammar files scanned: {len(grammar_source.grammar_files())}   parser rules: {len(rules)}   "
-          f"rules demanding at least one token: {sum(1 for v in needed.values() if v)}   "
+    print(f"grammar files scanned: {len(grammar_source.grammar_files())}   parser rules: {len(gm.spellings)}   "
+          f"rules demanding at least one token: {sum(1 for n in gm.spellings if gm.demands(n))}   "
+          f"groups judged as units: {sum(len(s.groups) for sps in gm.spellings.values() for s in sps)}   "
           f"lexer tokens spelling COBOL words: {len(keywords)}")
-
-    def spells_this_construct(rule: str, printed: set[str]) -> bool:
-        """Does this rule spell the construct whose format printed `printed`, or is it a same-token stranger?
-
-        ⛔ THE CLOSURE MATCHES ON ONE TOKEN, AND ONE TOKEN IS NOT A CONSTRUCT. The anchor set is "every rule
-        demanding the clause title's leading word", so the FILE STATUS clause (§12.4.5.8.2, whose `[FILE]` is
-        un-underlined) drew in `deleteFileStatement`, `fileSection`, `multipleFileClause`, `readStatement`,
-        `rewriteStatement`, `writeStatement` and `valueOfClause` — seven rules that merely also demand a FILE,
-        and all seven were reported against a page none of them is printed on. The SPECIAL-NAMES paragraph did
-        the same to `channelClause`, a vendor extension the standard never prints at all, and the INITIALIZE
-        statement and the OPTIONS INITIALIZE clause did it to each other in both directions.
-
-        The test is structural and needs no exclusion list: a rule spells THIS construct only if every COBOL
-        WORD it demands is printed in this construct's own format. `deleteFileStatement` demands DELETE, which
-        the FILE STATUS clause never prints; `channelClause` demands CHANNEL, which the standard never prints;
-        `initializeCategoryToValue` demands VALUE, which the OPTIONS INITIALIZE clause never prints. Operand
-        tokens (IDENTIFIER, INTEGERLIT …) are exempt by construction — see `keyword_spellings`.
-        """
-        return all(sp & printed for t in needed[rule] if (sp := keywords.get(t)))
 
     # ---- the spec side -----------------------------------------------------------------------------------
     formats = declared_formats(SPEC_MD.read_text(encoding="utf-8"))
@@ -426,10 +819,6 @@ def main() -> int:
     anchored = [f for f in located if f.keyword]
     print(f"general formats declared by the transcription: {len(formats)}   "
           f"located on the printed page: {len(located)}   with an anchor keyword: {len(anchored)}")
-    if args.list_unanchored:
-        for f in located:
-            if not f.keyword:
-                print(f"    unanchored  {f.clause:<14} {f.title}")
 
     selected = located
     if args.construct:
@@ -443,48 +832,90 @@ def main() -> int:
     print(f"formats checked this run: {len(selected)}\n")
 
     cache: dict[int, list] = {}
+    measures: dict[str, tuple[set[str], set[str]] | None] = {}
+
+    def measured_format(f: Format) -> tuple[set[str], set[str]] | None:
+        """(plain, underlined) words of one located format, measured once; None when the band holds no word."""
+        if f.clause not in measures:
+            i = where[f.clause]
+            words = band_words(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None)
+            measures[f.clause] = measure(words) if words else None
+        return measures[f.clause]
+
+    def printed_words(plain: set[str], underlined: set[str]) -> set[str]:
+        # A word `measure` deliberately SKIPS (FORMAT, ALL, TRUE …) is never measured, so it cannot testify that a
+        # rule demands an unprinted word: the FORMAT clause's own rule demands FORMAT (§13.18.24.2).
+        return {w.replace("-", "_") for w in plain | underlined | SKIP}
+
+    def enclosing_words(f: Format) -> set[str]:
+        """Every word printed by another located format that UNDERLINES this one's keyword."""
+        out: set[str] = set()
+        for g in located:
+            m = measured_format(g) if g.clause != f.clause else None
+            if m and f.keyword in m[1]:
+                out |= printed_words(*m)
+        return out
+
+    decided = decisions(grammar)
+    decided_used: set[tuple[str, str]] = set()
     candidates = 0
     measured = 0
     empty: list[Format] = []
+    by_anchoring: collections.Counter = collections.Counter()
+    unexamined: list[Format] = []
+    not_parser: list[Format] = []
     for f in selected:
-        i = where[f.clause]
-        words = band_words(doc, cache, heads[i], heads[i + 1] if i + 1 < len(heads) else None)
-        if not words:
+        m = measured_format(f)
+        if m is None:
             empty.append(f)
             continue
         measured += 1
-        plain, underlined = measure(words)
+        plain, underlined = m
+        page = heads[where[f.clause]].page
         if args.show_format:
-            print(f"  {f.clause:<14} p{heads[i].page:<5} {f.title}\n"
+            print(f"  {f.clause:<14} p{page:<5} {f.title}\n"
                   f"      required: {' '.join(sorted(underlined)) or '(none)'}\n"
                   f"      optional: {' '.join(sorted(plain)) or '(none)'}")
         if not plain or not f.keyword:
             continue
-        printed = {w.replace("-", "_") for w in plain | underlined}
-        tok = f.keyword.replace("-", "_")
-        anchors = {n for n in rules if tok in needed[n] and spells_this_construct(n, printed)}
-        for rule in sorted(closure(rules, anchors)):
-            if not spells_this_construct(rule, printed):
+        if not keyword_tokens(f.keyword, keywords, gm.tokens):
+            not_parser.append(f)
+            continue
+        ex = examine(gm, keywords, f.keyword, plain, printed_words(plain, underlined),
+                     lambda f=f: enclosing_words(f))
+        if args.show_format:
+            print(f"      anchored: {ex.anchoring or 'NOTHING'} — {' '.join(sorted(ex.anchors)) or '(no rule)'}")
+        if not ex.anchoring:
+            unexamined.append(f)
+            continue
+        by_anchoring[ex.anchoring] += 1
+        for c in ex.candidates:
+            if (by := decided.get((c.rule, c.word))) is not None:
+                decided_used.add((c.rule, c.word))
+                print(f"  DECIDED    {f.keyword:<14} {f.clause:<12} p{page:<5} "
+                      f"{c.word:<12} required in {gm.origin[c.rule]}#{c.rule}, omissible by {by[0]}.{by[1]}")
                 continue
-            for w in sorted(plain):
-                # ⛔ THE CONSTRUCT'S OWN ANCHOR KEYWORD IS NEVER A CANDIDATE. It is the word this format was
-                # LOCATED by, so the anchor rule demands it by construction and reporting it is circular. It
-                # reaches `plain` whenever the printed format leaves the head word un-underlined — folio 604
-                # does exactly that to CONTINUE, whose whole format is `CONTINUE [ AFTER … SECONDS ]` with
-                # rules under AFTER and SECONDS only (kb/Work PB695).
-                if w == f.keyword:
-                    continue
-                if w.replace("-", "_") in needed[rule]:
-                    print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{heads[i].page:<5} "
-                          f"{w:<12} required in {origin[rule]}#{rule}")
-                    candidates += 1
+            print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{page:<5} "
+                  f"{c.word:<12} required in {gm.origin[c.rule]}#{c.rule}"
+                  + (f" inside {c.group}" if c.group else ""))
+            candidates += 1
     doc.close()
+    if args.list_unanchored:
+        for f in located:
+            if not f.keyword:
+                print(f"    unanchored  {f.clause:<14} {f.title}")
+        for f in not_parser:
+            print(f"    no parser token spells {f.keyword:<12} {f.clause:<14} {f.title}")
 
     # ---- ⛔ THE POPULATION ASSERTION ----------------------------------------------------------------------
     # Every count above is checked against the population it claims to have measured. A tool that measured
     # NOTHING must never be able to print a clean zero: that is precisely how this one stayed green while three
     # statements rejected legal COBOL (kb/Work PB332).
-    print(f"\n{candidates} candidate(s) — CONFIRM each against the raw rectangles before editing the grammar")
+    print(f"\n{candidates} candidate(s) — CONFIRM each against the raw rectangles before editing the grammar"
+          f"   ({len(decided_used)} more DECIDED by a later phase, named by their rule's audit:optional-word line)")
+    print("constructs anchored: " + "   ".join(f"{a}: {by_anchoring[a]}" for a in ANCHORINGS)
+          + f"   keyword spelled by no parser token (the preprocessor's directives, a prose title): "
+            f"{len(not_parser)} — named by --list-unanchored")
     # (The grammar half of the population — at least one .g4 file and one parser rule — is asserted by
     # `grammar_source.read`, which refuses before a single format is measured.)
     failures: list[str] = []
@@ -501,6 +932,19 @@ def main() -> int:
                         + ", ".join(f.clause for f in empty[:12]) + (" …" if len(empty) > 12 else ""))
     if selected and not measured:
         failures.append("every selected general format measured zero words — the audit inspected nothing")
+    undeclared = sorted(f"{rule} {word} -> {t}.{m}" for (rule, word), (t, m) in decided.items()
+                        if not member_declared(t, m))
+    if undeclared:
+        failures.append(f"{len(undeclared)} `audit:optional-word` marker(s) name a member no src file declares: "
+                        + ", ".join(undeclared))
+    dead = sorted(f"{rule} {word}" for rule, word in set(decided) - decided_used)
+    if dead and not (args.construct or args.clause):
+        failures.append(f"{len(dead)} `audit:optional-word` marker(s) matched no candidate in a full run — the "
+                        "rule no longer demands the word, so the marker is dead: " + ", ".join(dead))
+    if unexamined:
+        failures.append(f"{len(unexamined)} anchored general format(s) with optional words were EXAMINED BY NO RULE "
+                        "— their keyword is a parser token, yet no rule spelling the format was anchored "
+                        "(kb/Work PB715): " + ", ".join(f"{f.clause} {f.keyword}" for f in unexamined))
     if failures:
         print("\n⛔ POPULATION ASSERTION FAILED — this run measured less than it claims:", file=sys.stderr)
         for line in failures:
@@ -508,9 +952,10 @@ def main() -> int:
         print("   A clean zero from this tool is only meaningful when it measured the whole population.",
               file=sys.stderr)
         return 1
-    print(f"population OK: {measured} general format(s) measured, {len(rules)} parser rules scanned")
+    print(f"population OK: {measured} general format(s) measured, {len(gm.spellings)} parser rules scanned")
     return 0
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -74,6 +74,8 @@ from collections import Counter
 from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, WITNESS_FIELDS, load_catalog, load_inventory,
                               load_schema, resites, retired_symbols_left_in_prose, witness_losses,
                               witness_shape_error, write_inventory)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The record-level CONTROL fields: they steer the write and are never stored on the row as themselves.
 RETIRE, RETIRE_REASON = "retire-witnesses", "retire-reason"
@@ -302,10 +304,6 @@ def main() -> int:
     ap.add_argument("batches", nargs="+", type=pathlib.Path, help="one or more verdict batch files")
     ap.add_argument("--dry-run", action="store_true", help="validate and report; write nothing")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     schema = load_schema()
     rows = load_inventory()
@@ -418,4 +416,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

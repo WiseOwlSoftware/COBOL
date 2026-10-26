@@ -8,7 +8,8 @@
       *> ISO 5.2.3 — an uppercase word printed WITHOUT an underline is an OPTIONAL WORD: it may be written or
       *> omitted with no change of meaning. Measured off the printed pages rather than assumed, by reading the
       *> underline rectangles per word (scripts/spec/figure_extract.py):
-      *>   p732 RECEIVE — RECEIVE, GIVING, CONTINUE, MESSAGE, RECEIVED carry underline rules; FROM carries NONE.
+      *>   p732 RECEIVE — RECEIVE, GIVING, CONTINUE, MESSAGE, RECEIVED carry underline rules; FROM, AFTER and
+      *>                  SECONDS carry NONE.
       *>   p756 SEND    — SEND, FROM, RETURNING, RAISING carry rules; TO carries none (both send formats).
       *> The grammar required both tokens, so each line below was a parse error. Sibling of the ON fix
       *> (DEVLOG 1041): same notation rule, different statements, found by the same measurement.
@@ -27,11 +28,26 @@
       *> FROM omitted on RECEIVE
            RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
            END-RECEIVE.
-      *> FROM omitted with the CONTINUE phrase present. AFTER and SECONDS are NOT exercised as omissible:
-      *> page 732 prints them without underlines but page 634 - 14.9.9.2, the CONTINUE statement's own defining
-      *> format - underlines both, so the standard contradicts itself and the defining occurrence wins.
+      *> FROM omitted with the CONTINUE phrase present.
            RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
                CONTINUE AFTER 5 SECONDS
+           END-RECEIVE.
+      *> AFTER and SECONDS omitted (kb/Work PB3751): p732 rules neither, and 8.3.2.4.3 decides optional
+      *> words "Within each format" - 14.9.9.2's CONTINUE statement, which rules both on p634, is another
+      *> format, and 14.9.31.4 GR2 gives RECEIVE's "CONTINUE phrase" semantics of its own. Each of the
+      *> four spellings of the first arm, then the MESSAGE RECEIVED arm without AFTER.
+      *>   OK  8.3.2.4.3  (Optional words)   OK  14.9.31.4 2)  (General rules)
+           RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
+               CONTINUE AFTER 5
+           END-RECEIVE.
+           RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
+               CONTINUE 5 SECONDS
+           END-RECEIVE.
+           RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
+               CONTINUE 5
+           END-RECEIVE.
+           RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
+               CONTINUE MESSAGE RECEIVED
            END-RECEIVE.
       *> TO omitted on SEND, both spellings of the operand
            SEND MSG-TAG FROM MSG-BODY

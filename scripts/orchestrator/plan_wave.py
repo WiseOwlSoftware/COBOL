@@ -163,6 +163,7 @@ import importlib.util
 import json
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -183,6 +184,7 @@ import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocke
 sys.path.insert(0, str(HERE.parent / "arch"))
 import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
 from work import parse_frontmatter  # noqa: E402  (the ONE frontmatter reader, with its C# parity twin)
+from standard_streams import ensure_utf8  # noqa: E402
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
 
@@ -368,8 +370,12 @@ def note_of(text: str, stem: str, harm_weights: dict[str, int]) -> Note | None:
 def load_notes(work_dir: pathlib.Path, harm_weights: dict[str, int]) -> dict[str, Note]:
     notes = {}
     for p in sorted(work_dir.glob("PB*.md")):
-        if n := note_of(p.read_text(encoding="utf-8", errors="replace"), p.stem, harm_weights):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        if n := note_of(text, p.stem, harm_weights):
             notes[n.id] = n
+        elif work.NOTE_FILE.match(p.name):   # a damaged note leaves the plan as silently as it left the register (PB3654)
+            raise SystemExit(f"⛔ {p.name}: unreadable as a work note — {work.unreadable_why(text)}: no plan is made on a "
+                             f"register missing a note (python scripts/spec/work.py check)")
     return notes
 
 
@@ -1161,13 +1167,32 @@ def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
           "its tip lands through the branch that carries it; one reviewed CLEAN lands on its own first).")
 
 
+def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | None = None) -> pathlib.Path:
+    """The notes of `status` that wait on nothing (work.waiting_on), copied into the empty directory `view` for
+    fix_clusters.py to read (kb/Work PB3389). fix_clusters skips a note by a flag of its stored frontmatter
+    (`.agent-fleet.json` `skip_flag`), and whether a note is blocked is derived, never stored, so the fix lane's
+    population is the register's own answer and the public script reads only what is ready."""
+    work_dir = work_dir or work.WORK
+    items = work.load(work_dir)
+    by_id = {i.get("id"): i for i in items}
+    if view.exists():
+        shutil.rmtree(view)
+    view.mkdir(parents=True)
+    for it in items:
+        if it.get("status") == status and not work.waiting_on(it, by_id):
+            shutil.copyfile(work_dir / it["_file"], view / it["_file"])
+    return view
+
+
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
-    """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) at the
-    planner's group cap, written to `out` and returned whole (`clusters`, `unsited`). The ONE call, shared by this
-    planner and the ledger's estimate (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
+    """The fix lane's groups: fix_clusters.py --json over .agent-fleet.json's population (`kind`, `skip_flag`) of the
+    notes that wait on nothing (ready_notes_view), at the planner's group cap, written to `out` and returned whole
+    (`clusters`, `unsited`). The ONE call, shared by this planner and the ledger's estimate
+    (scripts/spec/ledger_plan.py, kb/Work PB2912), so both size the lane alike."""
     if not FIX_CLUSTERS.exists():
         raise SystemExit(f"⛔ {FIX_CLUSTERS} is missing: run `git submodule update --init tools/claude-skills`")
-    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--max", str(rules["wave"]["max_notes_per_group"]),
+    view = ready_notes_view(status, out.with_name(f"{out.stem}-notes"))
+    subprocess.run([sys.executable, str(FIX_CLUSTERS), "--notes", str(view), "--max", str(rules["wave"]["max_notes_per_group"]),
                     "--open-status", status, "--json", str(out)], cwd=REPO, check=True, capture_output=True)
     return json.loads(out.read_text(encoding="utf-8"))
 
@@ -1235,7 +1260,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
     by_status: dict[str, dict[int, list[dict]]] = {"open": {}, "half": {}}
     for nid, r in plannable.items():
         entry = {"id": nid, "area": r["area"], "harm": notes[nid].harm, "title": r["title"][:140], "tier": r["tier"],
-                 "sites": {p: 3 for p in work.note_sites(texts[nid]).paths if (repo / p).is_file()},
+                 "sites": {p: 3 for p in work.note_sites(texts[nid], repo=repo).paths if (repo / p).is_file()},
                  "fileset": declared(texts[nid])}
         by_status["half" if r["status"] == "half" else "open"].setdefault(r["depth"], []).append(entry)
     out: dict[str, list[dict]] = {"open": [], "half": []}
@@ -1433,7 +1458,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          review_covers: Callable[[Report], bool] | None = None,
          report_covers: Callable[[Report], bool] | None = None,
          replay: "Callable[[str], Replay | None] | None" = None,
-         abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None) -> dict[str, Any]:
+         abandoned: set[str] | None = None, tiers: dict[str, int | None] | None = None,
+         answered: Callable[[Report], str | None] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -1614,6 +1640,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                                 f"{r.branch} has commits since {r.slug}'s HEAD that no report describes (lifecycle() "
                                 f"reads it IN FLIGHT or a DECISION, never WAITING FOR REVIEW): no reviewer and no "
                                 f"finisher is dispatched until its agent rewrites its report")
+        elif findings(r, cls) and answered and (by := answered(r)):
+            # ONE FINDINGS CASE, ONE OWNER (kb/Work PB3404): this branch is carried by `by`, whose own review is CLEAN
+            # over a head that contains the reviewed one, and whose review the wave told to cover these commits as its
+            # own (the findings file's last verdict is not the capped round): a finisher here would fix again what
+            # the carrier's review finisher fixed, and the carrier lands the branch's commits
+            waiting[nid] = (f"its review findings are answered by {by}'s own review (CLEAN over a head that contains "
+                            f"the reviewed one): {by} lands the branch's commits, so a finisher would fix them twice "
+                            f"(kb/Work PB3404); it is planned again if {by} does not land")
         elif r.gate_state == "RUNNING":
             # A GATE HANDED TO THE WAVE (kb/Work PB3536): its agent returned GATE-PENDING at its turn cap and the gate
             # still runs, detached; the wave awaits its verdict, and a GREEN one makes the report finished. A finisher
@@ -2205,10 +2239,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--partition-summary", action="store_true", help="print the partition's measurement per day (the "
                     "waves' groups, same-file pairs run side by side, notes held by a collision; kb/Work PB3670) and exit")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.finished:
         return finished_main(pathlib.Path(a.finished))
     if a.partition_summary:
@@ -2284,12 +2314,18 @@ def main(argv: list[str] | None = None) -> int:
     reports_dir = pathlib.Path(a.reports) if a.reports else coord.reports_dir(a.coord)
     reports = load_reports(reports_dir, cdir)
     if a.no_branches:
-        classify, unlanded, carrier, replay, abandoned = (lambda _b: "ABSENT"), {}, None, None, set()
+        classify, unlanded, carrier, replay, abandoned, answered = (lambda _b: "ABSENT"), {}, None, None, set(), None
     else:
         import prune_worktrees  # noqa: PLC0415  (its git runner, reused)
         local, graph = local_branches()
         classify, unlanded = git_branch_classifier(local, graph), unlanded_branch_notes(local, graph)
         carrier = branch_carrier(reports, classify, graph.is_ancestor)
+        newest_review = {r.branch: r.review for r in reports if r.branch}   # oldest first: the newest report of a branch wins
+
+        def answered(rep: Report) -> str | None:
+            """The branch carrying `rep`'s branch whose own CLEAN review answers its findings (kb/Work PB3404)."""
+            by = carrier(rep.branch or "")
+            return by if by and prune_worktrees.answered_by_carrier(rep.review, newest_review.get(by), graph) else None
         abandoned = set(prune_worktrees.abandon_records(
             sorted({r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES} | set(unlanded)),
             REPO / "kb" / "Work"))
@@ -2331,7 +2367,7 @@ def main(argv: list[str] | None = None) -> int:
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
              owned=owned, locked=locked, review_covers=review_covers, report_covers=report_covers, replay=replay,
-             abandoned=abandoned, tiers=tiers)
+             abandoned=abandoned, tiers=tiers, answered=answered)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
@@ -2432,4 +2468,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

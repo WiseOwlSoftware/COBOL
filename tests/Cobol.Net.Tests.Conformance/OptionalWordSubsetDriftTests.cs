@@ -34,10 +34,11 @@ namespace CobolNet.Tests.Conformance;
 public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: 8 collections of about 3 rows each, so no partition holds more than the 59 s row
+    /// <summary>Partition count: collections of at most 3 rows each, so no partition holds more than the 59 s row
     /// and a neighbour (w1033 gate diagnosis; modeled with the 24 corpus partitions and longest-first order: the
-    /// Conformance leg 162 s to 118 s, against a floor of 117 s). <c>CorpusPartitioningDriftTests</c> pins it.</summary>
-    public const int Partitions = 8;
+    /// Conformance leg 162 s to 118 s, against a floor of 117 s). 8 held the first 23 rows; kb/Work PB3751's three
+    /// made 26, so 9. <c>ConformancePartitioningDriftTests</c> pins the bound.</summary>
+    public const int Partitions = 9;
 
     /// <param name="Name">Test identity, and the PROGRAM-ID stem.</param>
     /// <param name="Clause">The general format whose underlining was measured.</param>
@@ -616,10 +617,10 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     """;
 
     // INHERITS (§11.3.2). PDF p294 / folio 264: INHERITS carries a rule (95.0%) and FROM's box 140.01–168.09
-    // carries none. ⛔ FROM is REQUIRED INSIDE the optional `[ INHERITS FROM … ]` group, so
-    // audit_grammar_optional_words.py structurally cannot report it (kb/Work PB715) — this row is the only
-    // mechanical guard the omission has. §11.3.4 GR1 gives the subclass its superclass's methods, so the
-    // inherited MIX must answer in both spellings.
+    // carries none. ⛔ FROM sits inside the optional `[ INHERITS FROM … ]` group, the shape
+    // audit_grammar_optional_words.py reports only since kb/Work PB715 — and that audit reads the private PDF and
+    // runs in no gate, so this row is the mechanical guard the gates run. §11.3.4 GR1 gives the subclass its
+    // superclass's methods, so the inherited MIX must answer in both spellings.
     private const string InheritsFromWord = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWS.
@@ -745,7 +746,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     // function-prototype-name-1, PROGRAM-POINTER [ TO program-prototype-name-1 ] (kb/Work PB848). RENDERED — PDF
     // p533 / folio 503: the underline rule sits under POINTER / FUNCTION-POINTER / PROGRAM-POINTER, never under TO.
     // ⛔ TO IS REQUIRED-INSIDE-AN-OPTIONAL-GROUP in the grammar's old `(TO cobolWord)?`, the shape
-    // audit_grammar_optional_words.py cannot see (kb/Work PB715), so this row is the mechanical guard. Each TO slot
+    // audit_grammar_optional_words.py reports only since kb/Work PB715 and in no gate (it reads the private PDF),
+    // so this row is the mechanical guard the gates run. Each TO slot
     // sits on the TO-FULL twin of a TO-less entry, and §14.9.39.3 SR19/SR20/SR22 admit the copy between the twins
     // only because both name the same type / prototype — a TO-less operand that bound as nothing would fail to
     // compile rather than print something else.
@@ -798,7 +800,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
                SET FP1 TO ADDRESS OF FUNCTION OPWVF
                SET FP2 TO FP1
                IF FP2 = FP1 DISPLAY "FP-SAME" END-IF
-               SET PP1 TO ENTRY "OPWVP"
+               SET PP1 TO ADDRESS OF PROGRAM OPWVP
                SET PP2 TO PP1
                IF PP2 = PP1 DISPLAY "PP-SAME" END-IF
                CALL PP2 USING WS-N
@@ -827,6 +829,69 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             .Replace("FACTORY OF ACTIVE-CLASS", "FACTORY {1} ACTIVE-CLASS", StringComparison.Ordinal)
             .Replace("PROGRAM-ID. PB389M.", "PROGRAM-ID. OPWX.", StringComparison.Ordinal)
             .Replace("END PROGRAM PB389M.", "END PROGRAM OPWX.", StringComparison.Ordinal);
+
+    // ── kb/Work PB3751 ─────────────────────────────────────────────────────────────────────────────────────────
+    // PAGE (§13.18.39.2). PDF p468 / folio 438 underlines PAGE alone, so all four words of `[ LIMIT IS | LIMITS ARE ]`
+    // are optional — within the alternative chosen (the two rows below; a word of each, `PAGE LIMIT ARE`, is the
+    // negative corpus's pb3751-page-limit-mixed-alternatives). The page limit is observable: GR3 d) makes LAST
+    // DETAIL the page limit 3, so the fourth one-line detail advances the page (2/01) in every spelling.
+    private const string PageLimitWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWY.
+           ENVIRONMENT DIVISION.
+           INPUT-OUTPUT SECTION.
+           FILE-CONTROL.
+               SELECT P ASSIGN TO "opwy.rpt".
+           DATA DIVISION.
+           FILE SECTION.
+           FD P REPORT IS R.
+           WORKING-STORAGE SECTION.
+           01 PC PIC 9.
+           01 LC PIC 99.
+           REPORT SECTION.
+           RD R PAGE {0} {1} 3 LINES.
+           01 D TYPE DE LINE PLUS 1.
+              02 COLUMN 1 PIC X VALUE "D".
+           PROCEDURE DIVISION.
+           MAIN.
+               OPEN OUTPUT P
+               INITIATE R
+               PERFORM G 4 TIMES
+               TERMINATE R
+               CLOSE P
+               DISPLAY "DONE"
+               STOP RUN.
+           G.
+               GENERATE D
+               MOVE PAGE-COUNTER OF R TO PC
+               MOVE LINE-COUNTER OF R TO LC
+               DISPLAY "R " PC "/" LC.
+    """;
+
+    // RECEIVE (§14.9.31.2). PDF p732 / folio 702: CONTINUE, MESSAGE and RECEIVED carry rules; AFTER and SECONDS carry
+    // none in THIS format (§8.3.2.4.3 decides "within each format"; the CONTINUE statement's own p634 format rules
+    // both and keeps them). The facility is declined and inert (COBOLNET1578), so the row pins the SPELLINGS: every
+    // subset must compile, and the run around the statements must not change.
+    private const string ReceiveContinueWords = """
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPW1.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 T PIC X(16) VALUE "TAG".
+           01 B PIC X(32) VALUE "BODY".
+           01 L PIC 9(4) VALUE 0.
+           PROCEDURE DIVISION.
+           MAIN.
+               RECEIVE T GIVING B L
+                   CONTINUE {0} 5 {1}
+               END-RECEIVE
+               RECEIVE T GIVING B L
+                   CONTINUE {2} MESSAGE RECEIVED
+               END-RECEIVE
+               DISPLAY "L=" L
+               DISPLAY "DONE"
+               STOP RUN.
+    """;
 
     private static readonly FormatCase[] Formats =
     [
@@ -872,6 +937,12 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
         new("pointer-usage-to", "13.18.60.2 (pointer usages)", 2014, ["TO", "TO", "TO"], "OPWV", PointerUsageTo),
         new("object-reference-factory-of", "13.18.60.2 (OBJECT REFERENCE FACTORY OF)", 2002, ["OF", "OF"], "OPWX",
             ObjectReferenceFactoryOf),
+        // kb/Work PB3751 — the optional words of an optional GROUP, which the audit judges as a unit since PB715.
+        new("page-limit-is", "13.18.39.2 (LIMIT IS)", 85, ["LIMIT", "IS"], "OPWY", PageLimitWords),
+        new("page-limits-are", "13.18.39.2 (LIMITS ARE)", 85, ["LIMITS", "ARE"], "OPWZ",
+            PageLimitWords.Replace("OPWY", "OPWZ", StringComparison.Ordinal)),
+        new("receive-continue-after-seconds", "14.9.31.2 (CONTINUE phrase)", 2023, ["AFTER", "SECONDS", "AFTER"],
+            "OPW1", ReceiveContinueWords),
     ];
 
     [PartitionedRowSource(nameof(Cases))]
@@ -958,7 +1029,7 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     }
 }
 
-// ⛔ THE 8 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the formats exactly once.
+// ⛔ THE 9 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the formats exactly once.
 
 /// <summary>Optional-word subset partition 0 of <see cref="OptionalWordSubsetDriftTestsBase{TSlot}.Partitions"/>.</summary>
 public sealed class OptionalWordSubsetDriftTests_P0 : OptionalWordSubsetDriftTestsBase<Slot0>;
@@ -983,3 +1054,6 @@ public sealed class OptionalWordSubsetDriftTests_P6 : OptionalWordSubsetDriftTes
 
 /// <summary>Optional-word subset partition 7.</summary>
 public sealed class OptionalWordSubsetDriftTests_P7 : OptionalWordSubsetDriftTestsBase<Slot7>;
+
+/// <summary>Optional-word subset partition 8.</summary>
+public sealed class OptionalWordSubsetDriftTests_P8 : OptionalWordSubsetDriftTestsBase<Slot8>;

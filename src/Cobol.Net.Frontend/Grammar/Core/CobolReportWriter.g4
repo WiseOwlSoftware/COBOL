@@ -79,8 +79,15 @@ reportControlClause
 // grammar's own (an empty brace group has no alternative). SR3 — the five trailing phrases "may be specified only
 // if integer-1 is specified" — is a bind-time rule (COBOLNET2709), because the grammar cannot see which
 // alternative preceded a repeated phrase list without duplicating it.
+// ⛔ ALL FOUR WORDS OF `[ LIMIT IS | LIMITS ARE ]` ARE OPTIONAL WORDS (kb/Work PB3751). On the printed format
+// (PDF p468 / folio 438) only PAGE carries an underline, and §8.3.2.4.3 makes each un-underlined uppercase word
+// one that "may be specified at the user's option", so a chosen alternative may drop either of its words:
+// `PAGE IS 60`, `PAGE LIMIT 60` and `PAGE ARE 60` are conforming source. The rule demanded LIMIT before IS and
+// LIMITS before ARE — the words of an optional GROUP written as required inside it, the shape the optional-word
+// audit judges as a unit of its own since kb/Work PB715. GnuCOBOL demands LIMIT too; the printed page controls
+// (CLAUDE.md rule 1). A word of one alternative never joins the other's (`PAGE LIMIT ARE` stays refused).
 reportPageClause
-    : PAGE (LIMIT IS? | LIMITS ARE?)?
+    : PAGE (LIMIT IS? | IS | LIMITS ARE? | ARE)?
       ( integerOperand (LINE | LINES) reportPageWidth?
       | integerOperand
       | reportPageWidth )

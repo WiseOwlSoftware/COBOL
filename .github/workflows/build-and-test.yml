@@ -39,7 +39,8 @@ on:
 # `pull_request` run, by contrast, is superseded the moment its head moves, so cancelling it costs no coverage
 # and saves the minutes this group was added for. A merge group's ref is unique to the group
 # (`gh-readonly-queue/main/pr-<n>-<sha>`), so two groups never collide anyway; this expression makes that safety
-# explicit instead of incidental.
+# explicit instead of incidental. For the same reason no concurrency group can cancel a merge-group run the queue has
+# replaced: the `supersede` job does (kb/Work PB3769).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -240,6 +241,40 @@ jobs:
             exit 1
           fi
           echo "drift: ci-gate needs all $((n - 1)) other jobs — $flat"
+
+  # ── SUPERSEDED MERGE-GROUP RUNS ARE CANCELLED, SO THEY RELEASE THEIR RUNNERS (kb/Work PB3769;
+  # DESIGN-test-build-ci.md §3.17.2 step 4). When an entry ahead fails or leaves, GitHub rebuilds every group behind it with new commits and new
+  # runs, and the old runs kept their runners until they finished (2026-10-25: five such runs after #591's ejection,
+  # cancelled by hand). `concurrency` cannot catch them: each group's ref is unique. So every merge-group run starts
+  # with this job (no `needs`): it cancels each unfinished merge-group run whose head commit no current queue entry
+  # heads, never its own and never a live entry's, and cancels NOTHING when the queue cannot be read whole
+  # (scripts/orchestrator/cancel_superseded.py, whose self-test holds every arm). It is the ONE job with `actions:
+  # write`, and its step is `continue-on-error`: housekeeping never decides a verdict (LandingPipelineDriftTests). ──
+  supersede:
+    name: supersede (cancel the merge-group runs the queue replaced)
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: write          # cancel a superseded workflow run: this job only
+      contents: read          # the sparse checkout of the script
+      pull-requests: read     # the merge queue's entries (GraphQL mergeQueue), each a pull request
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
+          sparse-checkout: |
+            scripts/orchestrator
+            scripts/standard_streams.py
+          sparse-checkout-cone-mode: false
+      - name: Cancel the superseded merge-group runs (cancel_superseded.py)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: python3 scripts/orchestrator/cancel_superseded.py --repo "$REPO" --run-id "$RUN_ID" --sha "$SHA"
 
   # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
   # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md
@@ -837,7 +872,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, dotnet-sdk-cache]
+    needs: [changes, supersede, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, windows-self-tests, dotnet-sdk-cache]
     runs-on: ubuntu-26.04
     steps:
       - name: Verdict

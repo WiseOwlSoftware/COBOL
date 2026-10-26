@@ -26,6 +26,8 @@ from __future__ import annotations
 import pathlib
 import re
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
@@ -59,10 +61,6 @@ def slice_between(text: str, first: str, last: str, label: str) -> str:
 
 
 def main() -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/. It is licensed per-copy and lives in a PRIVATE submodule; the public repository carries only the Markdown transcription at specs/ISO_COBOL.md. This tool measures the printed page, so it needs the PDF: "
              "git submodule update --init specs-private")
@@ -116,4 +114,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

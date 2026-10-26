@@ -5370,6 +5370,23 @@ public static class DiagnosticCatalog
         + "by the data-names of the report group description entries it is subordinate to (§8.4.2.2.3 SR4) and "
         + "by its report-name (§8.4.2.2.2 Format 1).",
         "ISO §13.18.54.4 / §8.4.2.2.1 / §8.4.2.2.2");
+    /// <summary>A reference to a report group description entry's data-name from a procedure division statement or from
+    /// a clause of a data division section other than the report section (kb/Work PB1046). The name IS declared — in the
+    /// report section — so the refusal is for the position, not for the name: §13.8.6.2.3 closes the list of ways a
+    /// report item is reached (a sum counter in the procedure division, a DETAIL group by GENERATE), and §13.15.3 SR7
+    /// closes the list for the entry's data-name. Before this descriptor the reference was told "not defined"
+    /// (COBOLNET1639), which is false and names the wrong rule.</summary>
+    public static readonly DiagnosticDescriptor ReportItemReference = new(
+        "COBOLNET5092", "report-item-reference", EditionSeverity.Error,
+        "A reference names a report group description entry where the standard admits none. §13.8.6.2.3: \"Report "
+        + "items shall not be accessed or referred to by any clauses in any other section of the data division or by "
+        + "any other procedure division statements, except in the following cases: 1) Sum counters may be inspected "
+        + "or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE "
+        + "statement.\" §13.15.3 SR7: \"The data-name format of the entry-name clause shall be specified when the "
+        + "data-name is referenced in a GENERATE statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM "
+        + "counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be "
+        + "referenced in any other way.\"",
+        "ISO §13.8.6.2.3 / §13.15.3 SR7");
     /// <summary>An inline method invocation's receiver (ISO §8.4.3.4.2's <c>{object-class-name-1 |
     /// identifier-1}</c>) or its method-name literal-1 is one the construct's own syntax rules exclude.
     /// §8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither the predefined object reference NULL

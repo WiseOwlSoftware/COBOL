@@ -43,6 +43,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import account  # noqa: E402
 import coord  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 PARTIES = ("operator", "mythos")
 SENDERS = PARTIES + ("loop",)
@@ -547,10 +549,6 @@ def main(argv: list[str] | None = None) -> int:
     se.add_argument("--session-id")
     se.add_argument("--has-tick", choices=("true", "false"))
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.self_test:
         return _self_test()
     if not a.cmd:
@@ -607,4 +605,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

@@ -90,6 +90,8 @@ import sys
 import citation_corpus  # noqa: E402  (same directory; the ONE definition of "frozen")
 import grammar_source  # noqa: E402  (same directory; THE reader of the grammar's rules, kb/Work PB3204)
 import work  # noqa: E402  (work.tracked_paths: a path exists when the COMMITTED tree has it; PB1957 2026-10-07)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
@@ -361,10 +363,6 @@ def main() -> int:
     ap.add_argument("--anchors", action="store_true", help="list the line-coordinate drift as well")
     ap.add_argument("--self-test", action="store_true", help="prove every check fires on a real defect")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if args.self_test:
         return self_test()
 
@@ -383,4 +381,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

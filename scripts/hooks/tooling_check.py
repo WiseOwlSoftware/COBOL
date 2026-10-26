@@ -24,6 +24,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
 import account  # noqa: E402  (the one resolver of Claude's config dir, kb/Work PB2479)
 import coord  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 HOME = pathlib.Path.home()
 CONFIG = account.config_dir()   # THIS session's account: its user settings, skills and plugins live here
@@ -304,7 +306,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
+    ensure_utf8()
     if "--self-test" in sys.argv[1:]:
         sys.exit(self_test())
     print(check())
