@@ -390,7 +390,7 @@ def self_test() -> int:
             recorded_order.append(sha)
             impact_store.map_file(store, sha).write_bytes(b"x")
             log.parent.mkdir(parents=True, exist_ok=True)
-            log.write_text("recorded\n", encoding="utf-8")
+            log.write_text("recorded\n", encoding="utf-8", newline="\n")
             return 0, f"{VERDICT_PREFIX}RECORDED {sha} (1 tests, 1.0 s) ==="
 
         st = load(cdir)
@@ -419,7 +419,7 @@ def self_test() -> int:
 
         def bad_record(_repo: pathlib.Path, sha: str, log: pathlib.Path) -> tuple[int, str]:
             log.parent.mkdir(parents=True, exist_ok=True)
-            log.write_text("the build broke\n", encoding="utf-8")
+            log.write_text("the build broke\n", encoding="utf-8", newline="\n")
             return 1, f"{VERDICT_PREFIX}FAILED — the recording build failed (logs {log}) ==="
 
         ask(s5)
@@ -472,7 +472,7 @@ def self_test() -> int:
         check("a checkout without the recorder starts nothing and says so", "no recorder in this checkout" in ask(s8), True)
         elsewhere = tmp / "not-a-repo"
         (elsewhere / RECORDER.parent).mkdir(parents=True)
-        (elsewhere / RECORDER).write_text("#", encoding="utf-8")
+        (elsewhere / RECORDER).write_text("#", encoding="utf-8", newline="\n")
         check("a lane that cannot decide reports it, never raises",
               "could not decide" in request(elsewhere, cdir, s8, start=fake_start, alive=fake_alive), True)
         # 8b. the worker's liveness is read from the OS: a Python whose command line names this script is the worker, a
@@ -498,12 +498,12 @@ def self_test() -> int:
                            ("000004-20261025T120000Z", "stale"), ("000005-20261025T130000Z", "documentation-only drift")):
             d = wt / "TestResults" / "build-local" / run
             d.mkdir(parents=True)
-            (d / "plan.json").write_text(json.dumps({"map_state": state}), encoding="utf-8")
+            (d / "plan.json").write_text(json.dumps({"map_state": state}), encoding="utf-8", newline="\n")
         check("measure counts the gate plans a map served", measure(repo.path, roots=[wt]).endswith("served by a map: 3/5 = 60 %"), True)
         check("... from a date on", measure(repo.path, since="2026-10-25", roots=[wt]).endswith("served by a map: 3/4 = 75 %"), True)
         check("... and says so when there are no plans", measure(repo.path, roots=[tmp / "none"]).endswith("served by a map: 0/0"), True)
         (wt / "TestResults" / "build-local" / "000006-20261025T140000Z").mkdir()
-        (wt / "TestResults" / "build-local" / "000006-20261025T140000Z" / "plan.json").write_text("{torn", encoding="utf-8")
+        (wt / "TestResults" / "build-local" / "000006-20261025T140000Z" / "plan.json").write_text("{torn", encoding="utf-8", newline="\n")
         check("... counts a plan file it cannot read, never drops it silently",
               measure(repo.path, roots=[wt]).endswith("served by a map: 3/5 = 60 %; 1 plan file(s) unreadable and not counted"), True)
         # 10. a worker that raises is a FAILED recording of the commit it held, not a silently dead worker
