@@ -32,7 +32,7 @@ public sealed class RelationComparabilityTests
     /// <param name="Operand">The operand as written in the relation.</param>
     /// <param name="Cls">Its §8.5.2.1 class (Zero = the figurative ZERO, whose class the context picks, §8.3.3.6.4 GR4).</param>
     /// <param name="NumericInteger">§8.8.4.2.5's admitted numeric operand: an integer literal or an integer numeric
-    /// data item of usage display or national (or an INTEGER function — docs/CONFORMANCE.md D-RELCLASS).</param>
+    /// data item of usage display or national. A function-identifier is neither (kb/Work PB3691).</param>
     /// <param name="Literal">A literal or figurative constant (a literal-to-literal pair is PB1470's rule, skipped).</param>
     /// <param name="IndexName">An index-name (§8.8.4.2.13 rows 1 and 2), as opposed to an index data item.</param>
     /// <param name="NumericItemOrLiteral">§8.8.4.2.13 row 2's partner: "a numeric data item or numeric literal".</param>
@@ -60,9 +60,16 @@ public sealed class RelationComparabilityTests
         new("EX", "ND + 1", Cls.Numeric),                                                 // arithmetic expression
         // A function-identifier references "the unique data item that results from the evaluation of a function"
         // (§8.4.3.2.1), numeric by §15.2 items 4 and 5, so it is row 2's "numeric data item" (kb/Work PB1662).
-        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericInteger: true, NumericItemOrLiteral: true),   // INTEGER function (§15.2 item 5)
+        // A function-identifier is NEVER item 6's numeric integer operand: §15.2 states no usage for the item a numeric,
+        // integer or index function returns, and §8.8.4.2.5 admits only "an integer literal or an integer numeric data
+        // item of usage display or national" (kb/Work PB3691, docs/CONFORMANCE.md D-FNUSE).
+        new("FI", "FUNCTION INTEGER(NF)", Cls.Numeric, NumericItemOrLiteral: true),                       // INTEGER function (§15.2 item 5)
         new("FN", "FUNCTION SQRT(ND)", Cls.Numeric, NumericItemOrLiteral: true),                           // NUMERIC function (§15.2 item 4)
-        new("FL", "FUNCTION LENGTH(XA)", Cls.Numeric, NumericInteger: true, NumericItemOrLiteral: true),   // an INTEGER function the binder FOLDS (kb/Work PB1662)
+        new("FL", "FUNCTION LENGTH(XA)", Cls.Numeric, NumericItemOrLiteral: true),                         // an INTEGER function the binder FOLDS (kb/Work PB1662): the function it folds, not "an integer literal"
+        // The function-identifiers of a CHARACTER class (§15.2 1) and 3)): data items of usage display / national, so each
+        // is item 2/3/5/7's character operand and item 6's "other operand" (kb/Work PB3691).
+        new("FA", "FUNCTION UPPER-CASE(XA)", Cls.Character),
+        new("FU", "FUNCTION NATIONAL-OF(XA)", Cls.Character),
         new("IX", "I1", Cls.Index, IndexName: true),
         new("IY", "I2", Cls.Index, IndexName: true),
         new("ID", "IDA", Cls.Index),
@@ -165,6 +172,48 @@ public sealed class RelationComparabilityTests
         var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n{Data}           {statement}.\n"
             + "           STOP RUN.\n", 2023);
         EditionHarness.AssertHasDiagnostic(errors, code);
+    }
+
+    /// <summary>⛔ A NUMERIC, INTEGER OR INDEX FUNCTION-IDENTIFIER IS NO ITEM-6 INTEGER OPERAND at ANY relation surface, in
+    /// either operand order (kb/Work PB3691; §8.8.4.2.5; docs/CONFORMANCE.md D-FNUSE): the one checkpoint refuses it with
+    /// COBOLNET2532, and an index function opposite a character operand was always §8.8.4.2.13's COBOLNET2533.</summary>
+    [Theory]
+    [InlineData("RCMPF1", "IF FUNCTION INTEGER(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPF2", "IF XA = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPF3", "IF FUNCTION LENGTH(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPF4", "IF XN = FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPF5", "EVALUATE FUNCTION INTEGER(ND) WHEN XA CONTINUE END-EVALUATE", "COBOLNET2532")]
+    [InlineData("RCMPF6", "EVALUATE XA WHEN FUNCTION ABS(ND) CONTINUE END-EVALUATE", "COBOLNET2532")]
+    [InlineData("RCMPF7", "PERFORM UNTIL XA = FUNCTION INTEGER(ND) CONTINUE END-PERFORM", "COBOLNET2532")]
+    [InlineData("RCMPF8", "SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN E1(I1) = FUNCTION INTEGER(ND) CONTINUE END-SEARCH", "COBOLNET2532")]
+    [InlineData("RCMPF9", "IF XA = XA OR FUNCTION INTEGER(ND) CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPFA", "IF FUNCTION SQRT(ND) = XA CONTINUE END-IF", "COBOLNET2532")]
+    [InlineData("RCMPFB", "IF FUNCTION MAX(IDA IDA) = XA CONTINUE END-IF", "COBOLNET2533")]
+    public void FunctionIdentifier_IsNoItem6IntegerOperand_AtEverySurface(string pid, string statement, string code)
+    {
+        var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n{Data}           {statement}.\n"
+            + "           STOP RUN.\n", 2023);
+        EditionHarness.AssertHasDiagnostic(errors, code);
+    }
+
+    /// <summary>The complement (feedback_measure_the_selectors_complement): the function relations §8.8.4.2.1 DOES define
+    /// still compile — a numeric or integer function against a numeric operand (item 1), an alphanumeric or national
+    /// function against a character operand (items 2, 3, 5, 7, §15.2 1) and 3)), and an integer display item against an
+    /// alphanumeric function (item 6 with the integer operand a usage-display item).</summary>
+    [Theory]
+    [InlineData("RCMPG1", "IF FUNCTION INTEGER(ND) = 7 CONTINUE END-IF")]
+    [InlineData("RCMPG2", "IF FUNCTION INTEGER(ND) = ND CONTINUE END-IF")]
+    [InlineData("RCMPG3", "IF XA = FUNCTION UPPER-CASE(XA) CONTINUE END-IF")]
+    [InlineData("RCMPG4", "IF ND = FUNCTION UPPER-CASE(XA) CONTINUE END-IF")]
+    [InlineData("RCMPG5", "IF FUNCTION NATIONAL-OF(XA) = XN CONTINUE END-IF")]
+    [InlineData("RCMPG6", "IF FUNCTION LENGTH(XA) = 4 CONTINUE END-IF")]
+    [InlineData("RCMPG7", "EVALUATE FUNCTION INTEGER(ND) WHEN 7 CONTINUE END-EVALUATE")]
+    [InlineData("RCMPG8", "IF FUNCTION SQRT(ND) = NB CONTINUE END-IF")]
+    public void FunctionIdentifier_InADefinedRelation_Compiles(string pid, string statement)
+    {
+        var errors = CheckOnly($"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. {pid}.\n{Data}           {statement}.\n"
+            + "           STOP RUN.\n", 2023);
+        Assert.True(errors.Count == 0, string.Join(" | ", errors));
     }
 
     /// <summary>⛔ THE SIBLING ARM (kb/Work PB1468): a THROUGH range with an IN alphabet-name lowers to
