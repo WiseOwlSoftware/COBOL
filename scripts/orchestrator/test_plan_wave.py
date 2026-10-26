@@ -2502,7 +2502,7 @@ FAKE_SPECS.write_text("import pathlib, sys\npathlib.Path(sys.argv[1]).with_name(
 def main3114(scratch, stop, specs, wave="9114"):
     saved_plan, saved_specs = pw.plan, pw.MAKE_SPECS
     pw.plan = lambda *_a, **_k: {"groups": [Group("cluster", ["PB3114"], "scripts/orchestrator/plan_wave.py",
-                                                     ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
+                                                  ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
                                  "points": 0.1, "awaiting_landing": {}, "waiting": {}, "collided": {}, "unlanded_without_note": [],
                                  "drain_not_started": [], "skipped": []}
     pw.MAKE_SPECS = specs

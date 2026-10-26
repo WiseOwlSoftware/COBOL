@@ -546,7 +546,7 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     every branch. The pull requests are read BEFORE the fetch, so one the queue merges in between reads open (or
     queued) and its branch then reads on main: never a merged pull request missing from both (the queue watch would
     take that for one closed by hand)."""
-    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
+    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and the report reader back)
     import queue_facts  # noqa: PLC0415
     probe = prune_worktrees.git("rev-parse", "--git-common-dir", cwd=repo)
     if probe.returncode != 0:

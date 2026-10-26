@@ -98,7 +98,8 @@ public sealed class MergeDriverDriftTests
 
     /// <summary>
     /// Main is merged in through the drivers at every site that merges it: the landing (<c>enqueue.merge_main</c>), the
-    /// review's coverage rule (<c>prune_worktrees.mechanical</c>) and the predecessor-merge instructions the planner and the
+    /// review's coverage rule (<c>prune_worktrees.mechanical</c>) and the predecessor-merge instructions the planner's groups
+    /// (<c>scripts/orchestrator/groups.py</c>: <c>finisher_pred</c>, <c>continuation_pred</c>) and the
     /// rolling wave give an agent — none spells a bare <c>git merge</c>, which would make a keyed catalogue conflict again.
     /// The landing lane's conflict brief foresees the merge through the same drivers (<c>merge_drivers.merge_conflicts</c>,
     /// kb/Work PB3640 review R1-1): a plain <c>git merge-tree</c> there, with every driver-covered file dropped, read a keyed
@@ -124,7 +125,7 @@ public sealed class MergeDriverDriftTests
         Assert.True(!lane.Contains("\"merge-tree\"", StringComparison.Ordinal) && !lane.Contains("CONFLICT in ", StringComparison.Ordinal),
             "scripts/orchestrator/land_lane.py runs its own `git merge-tree` or parses `CONFLICT in` itself: foresee the merge with " +
             "merge_drivers.merge_conflicts and read the outcome with verdict_line.outcome_files (kb/Work PB3640 review R1-1, R1-3, PB3714)");
-        foreach (string rel in new[] { "scripts/orchestrator/plan_wave.py", ".claude/skills/workstream/templates/wf_rolling_wave.js",
+        foreach (string rel in new[] { "scripts/orchestrator/groups.py", ".claude/skills/workstream/templates/wf_rolling_wave.js",
                      ".claude/skills/workstream/templates/finisher-brief.md", ".claude/skills/workstream/templates/golden-lane-brief.md" })
         {
             string text = File.ReadAllText(TestRepo.At(rel));

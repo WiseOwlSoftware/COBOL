@@ -69,7 +69,6 @@ Exit 0: the landing may proceed (warnings name branches that must rebase). Exit 
 from __future__ import annotations
 
 import argparse
-import json
 import pathlib
 import re
 import subprocess
