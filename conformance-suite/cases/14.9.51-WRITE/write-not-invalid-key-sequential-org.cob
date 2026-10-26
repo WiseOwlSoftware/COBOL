@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 14.9.51.3 SR2, the NOT-alone spelling. The writeInvalidKey
-      *> grammar rule has TWO alternatives -- INVALID first or NOT INVALID
-      *> first -- and only the second reaches the screen through
-      *> PhraseBlocks.StartsWithNot, so a fixture carrying INVALID KEY
-      *> alone proves one alternative and leaves the other unmeasured.
+      *> ISO 14.9.51.3 SR2, the NOT-alone spelling. Either phrase may be
+      *> written first, and the screen names the FIRST written phrase
+      *> (ConditionalPhrases.FirstOf, kb/Work PB3830), so a fixture
+      *> carrying INVALID KEY alone proves one spelling and leaves the
+      *> other unmeasured.
       *> It matters here beyond message wording: NOT INVALID KEY is the
       *> arm with a LIVE meaning on this organization (9.1.14 final rule
       *> item 2 runs it on successful completion), so it is the arm a

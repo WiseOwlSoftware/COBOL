@@ -4,12 +4,12 @@ using Antlr4.Runtime;                // ParserRuleContext — the source-element
 using CobolNet.Binding;              // FlagState / PictureAnalyzer / EditionContext
 using CobolNet.Binding.Model;        // Usage / PicCategory / PicInfo
 using CobolNet.Binding.Passes;       // GroupBindContext
-using CobolNet.Binding.Procedure;    // PhraseBlocks (the AT END-OF-PAGE branch test)
 using CobolNet.Common;               // CobolLiteral (the one literal decoder)
 using CobolNet.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
 using CobolNet.Frontend.Cst;         // DataReferenceCst / SpecialRegister
 using CobolNet.Frontend.Generated;   // CobolParserCore / CobolParserCoreBaseVisitor
+using CobolNet.Frontend.Parsing;
 using CobolNet.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
 using CobolNet.Runtime.IO;           // FileOpenMode (the USE-declarative open-mode ordinal, I-O-DECLARATIVE)
 using CobolNet.Runtime;
@@ -318,11 +318,11 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         bool sequential = ctx.readDirection() is not null || file?.AccessMode == FileAccessMode.Sequential;
         if (sequential)
         {
-            if (ctx.readAtEnd() is null && _hasReadModeDecl)
+            if (!ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.AtEnd) && _hasReadModeDecl)
                 FlagIoDeclarative(ctx.Start.Line, "a READ without an AT END phrase");
         }
         else
-            IoDeclarativeInvalidKey(InvalidKeyVerb.Read, ctx.readInvalidKey() is not null, file, ctx.Start.Line);
+            IoDeclarativeInvalidKey(InvalidKeyVerb.Read, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey), file, ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
@@ -458,12 +458,11 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     {
         var file = FileByRecordOrName(ctx.recordName(), ctx.fileName());
         if (file?.Linage is not null
-            && (ctx.writeAtEndOfPage() is not { } eop
-                || !PhraseBlocks.HasOnBranch(eop.statementBlock(), PhraseBlocks.StartsWithNot(eop))))
+            && ConditionalPhrases.Find(ctx.conditionalPhrases(), new(ConditionalPhraseFamily.EndOfPage, Negated: false)) is null)
             Flag(FlagOption.Flag14WriteEndOfPage, ctx.Start.Line,
                 "the WRITE without an END-OF-PAGE phrase (the file has a LINAGE clause)");
         // d I-O-DECLARATIVE — a WRITE to a keyed file (INVALID-KEY-capable) without an INVALID KEY phrase.
-        IoDeclarativeInvalidKey(InvalidKeyVerb.Write, ctx.writeInvalidKey() is not null, file, ctx.Start.Line);
+        IoDeclarativeInvalidKey(InvalidKeyVerb.Write, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey), file, ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
@@ -472,21 +471,21 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     //    has an INPUT/OUTPUT/I-O/EXTEND USE declarative (which now executes on the exception at 2023). ──
     public override object? VisitRewriteStatement(CobolParserCore.RewriteStatementContext ctx)
     {
-        IoDeclarativeInvalidKey(InvalidKeyVerb.Rewrite, ctx.rewriteInvalidKeyPhrase() is not null,
+        IoDeclarativeInvalidKey(InvalidKeyVerb.Rewrite, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey),
             FileByRecordOrName(ctx.recordName(), ctx.fileName()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
     public override object? VisitDeleteStatement(CobolParserCore.DeleteStatementContext ctx)
     {
-        IoDeclarativeInvalidKey(InvalidKeyVerb.Delete, ctx.deleteInvalidKeyPhrase() is not null,
+        IoDeclarativeInvalidKey(InvalidKeyVerb.Delete, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey),
             FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
     public override object? VisitStartStatement(CobolParserCore.StartStatementContext ctx)
     {
-        IoDeclarativeInvalidKey(InvalidKeyVerb.Start, ctx.startInvalidKeyPhrase() is not null,
+        IoDeclarativeInvalidKey(InvalidKeyVerb.Start, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey),
             FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }

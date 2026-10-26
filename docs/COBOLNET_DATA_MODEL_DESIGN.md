@@ -2621,7 +2621,7 @@ added `MINUS`/`-` to the LINE and COLUMN clauses, the `END OF LINE` / `END OF SC
 ⛔ **The ACCEPT/DISPLAY exception phrases are bound to the positioning phrase (`screenTail`), and that coupling
 is load-bearing.** `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the
 statements that already own one, and DISPLAY sits inside every one of their imperative-statement slots — so a
-free-standing optional `screenExceptionPhrases` made the inner DISPLAY of
+free-standing optional exception-phrase pair on DISPLAY made the inner DISPLAY of
 `DELETE FILE F ON EXCEPTION DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE` swallow DELETE's own
 NOT-arm. Requiring the AT/LINE/COLUMN phrase first makes the tail unambiguous, because no other statement's
 exception arm can begin with it. `NestedDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsNotArm` pins

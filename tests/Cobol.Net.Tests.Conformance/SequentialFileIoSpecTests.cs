@@ -285,10 +285,10 @@ public sealed class SequentialFileIoSpecTests
             && x.Contains("14.9.35.3 SR2"));
     }
 
-    /// <summary>The NOT-alone spelling reaches the SAME screen and the SAME §9.1.14 item 2 transfer. The
-    /// grammar's <c>writeInvalidKey</c> rule has two alternatives (INVALID first, or NOT INVALID first) and only
-    /// the second travels through <c>PhraseBlocks.StartsWithNot</c>, so the alternative a real --permissive
-    /// program is most likely to write is exactly the one an INVALID-first fixture leaves unmeasured.</summary>
+    /// <summary>The NOT-alone spelling reaches the SAME screen and the SAME §9.1.14 item 2 transfer. The phrases
+    /// are bound by ROLE (<c>PhraseBlocks.Bind</c>, kb/Work PB3830), and the screen names the FIRST written phrase,
+    /// so the spelling a real --permissive program is most likely to write is exactly the one an INVALID-first
+    /// fixture leaves unmeasured.</summary>
     [Fact]
     public void Permissive_SequentialWriteNotInvalidKeyAlone_RunsOnSuccess_AndNamesThePhrase()
     {

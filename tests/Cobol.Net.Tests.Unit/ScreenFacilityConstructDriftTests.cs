@@ -127,7 +127,7 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>⛔ THE REGRESSION THIS WAVE ALMOST SHIPPED. `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the
     /// same on a screen ACCEPT/DISPLAY as on the statements that already own one, and DISPLAY sits inside every
-    /// one of their imperative-statement slots — so a free-standing optional `screenExceptionPhrases` on
+    /// one of their imperative-statement slots — so a free-standing optional exception-phrase pair on
     /// DISPLAY made the INNER display swallow the ENCLOSING statement's NOT-arm, and the enclosing statement
     /// lost it silently. Four corpus programs went red (delete_file_absent, ec_external_*). The grammar now
     /// binds the exception phrases to the AT/LINE/COLUMN positioning phrase (`screenTail`), which no other
