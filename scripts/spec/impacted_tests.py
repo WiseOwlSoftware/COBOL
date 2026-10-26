@@ -92,12 +92,13 @@ TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
 # Structural inputs: every assembly may change.
 STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
                            r"|^src/Cobol\.Net\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
-#: The public-API baselines of the Roslyn public-API analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017):
-#: read by the analyzer at build time and by the tests that name them, embedded in no assembly. A change to one is no
-#: input to any test's execution, so it is data a test may READ (`readers`) and not "a non-C# input under src/" that
-#: puts every test in tier 1. Measured (kb/Work PB3663): two of 22 code-changing landings of a replayed day fell back to
-#: tier 1 for this file alone.
-ANALYZER_DATA_RE = re.compile(r"(^|/)PublicAPI\.(Shipped|Unshipped)\.txt$")
+#: Two non-C# files under `src/` that no assembly embeds and no test executes: the public-API baselines of the Roslyn
+#: analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017: read at build time) and the runtime ABI pin
+#: (`RuntimeAbi.pin`, which scripts/abi_pin.py measures and RuntimeAbiPinDriftTests reads; the version the build uses is
+#: `Directory.Build.props`, a structural input). A change to one is data a test may READ (`readers`), not "a non-C#
+#: input under src/" that puts every test in tier 1. Measured (kb/Work PB3663): two of 22 code-changing landings of a
+#: replayed day fell back to tier 1 for the baselines alone, and PB3666's own change for the pin alone.
+READ_ONLY_DATA_RE = re.compile(r"(^|/)(PublicAPI\.(Shipped|Unshipped)\.txt|RuntimeAbi\.pin)$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
 #: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
@@ -487,7 +488,14 @@ def find_map(store: Path, base: str, reach: Reach) -> MapChoice:
         reach.every_tier1.append(f"no impact map recorded in {store} for the base {base[:12]} (the loop records one for "
                                  f"every main commit it adopts; by hand: record_impact_map.py --commit {base[:12]})")
         return MapChoice(None, "none", frozenset())
-    m = load_map(choice.path)
+    try:
+        m = load_map(choice.path)
+    except (OSError, EOFError, ValueError) as e:   # gzip.BadGzipFile is an OSError; a torn JSON body a ValueError
+        # A map pruned or replaced between the choice and the read, or torn by a killed recorder: the plan goes on
+        # unaimed and says why, never fails (a schema mismatch is another matter: load_map exits, loudly).
+        reach.every_tier1.append(f"the impact map {choice.sha[:12]} for the base {base[:12]} could not be read "
+                                 f"({type(e).__name__}: {e}) — record it again")
+        return MapChoice(None, "none", frozenset())
     if choice.sha == base:
         return MapChoice(m, "exact", frozenset())
     if not choice.drift:
@@ -702,7 +710,7 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
                 reach_test_file(path, base, reach)
             continue
-        if path.startswith("src/") and not ANALYZER_DATA_RE.search(path):
+        if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
             reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
             continue
         if path in SUITE_KEYED:
@@ -931,6 +939,15 @@ def map_service_arms(check) -> None:
                 json.dump(synthetic_map(), fh)   # its commit is 40 zeros: git holds no such commit
             check("... and one whose commit git does not know describes the base as given",
                   explicit_map(unknown, docs).state == "exact", explicit_map(unknown, docs).state)
+            torn = tmp / "torn"
+            torn.mkdir()
+            impact_store.map_file(torn, recorded).write_bytes(b"this is not a gzip file")
+            r = Reach()
+            found = find_map(torn, docs, r)
+            check("a map file that cannot be read (torn by a killed recorder, or pruned meanwhile) leaves the plan unaimed "
+                  "with the cause printed, never a failed plan",
+                  found.map is None and found.state == "none" and any("could not be read" in w for w in r.every_tier1),
+                  r.every_tier1[:1])
         finally:
             REPO, HEAD = repo.path, None
     finally:
@@ -966,8 +983,10 @@ def self_test() -> int:
                      ("a runtime data file puts every test in tier 1", "src/Cobol.Net.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
         check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
-    t, reach = tiers_for(["src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/Cobol.Net.Runtime/PublicAPI.Shipped.txt"])
-    check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it",
+    t, reach = tiers_for(["src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/Cobol.Net.Runtime/PublicAPI.Shipped.txt",
+                          "src/Cobol.Net.Runtime/RuntimeAbi.pin"])
+    check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it "
+          "(nor for the runtime ABI pin)",
           not reach.every_tier1 and set(t.values()) == {3}, (reach.every_tier1[:1], t))
     planted =["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
                "    [InlineData(\"x]\")]", "    public async Task B(string s) { }", "    [Fact(Skip = \"y\")]",

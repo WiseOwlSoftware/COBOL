@@ -100,8 +100,9 @@ def worker_alive(st: dict[str, Any]) -> bool:
 
 
 def skip_reason(store: pathlib.Path, repo: pathlib.Path, sha: str, st: dict[str, Any]) -> str | None:
-    """Why `sha` is not recorded, or None to record it. The first reason is only a statement that the commit is served;
-    `served` (below) says whether a queued older commit is served by it too."""
+    """Why `sha` is not recorded, or None to record it: a map for it exists, the nearest map differs from it in
+    documentation only, or a recording of it already FAILED. `served` says which of those reasons mean a map serves the
+    commit (the last does not)."""
     if impact_store.map_file(store, sha).exists():
         return f"a map for {sha[:9]} exists"
     near = impact_store.nearest(store, sha, repo)
@@ -218,9 +219,26 @@ def real_record(repo: pathlib.Path, sha: str, log: pathlib.Path, store: pathlib.
 def work(repo: pathlib.Path, cdir: pathlib.Path, *, record: Record | None = None, store: pathlib.Path | None = None,
          bases: Callable[[pathlib.Path], list[str]] = impact_store.live_bases) -> int:
     """The worker: record the pending commit, then whatever was queued meanwhile (the newest only), then exit. Each
-    cycle re-decides under the lock, so a commit served by a map recorded since it was queued is skipped."""
+    cycle re-decides under the lock, so a commit served by a map recorded since it was queued is skipped. A worker that
+    raises is a FAILED recording of the commit it held, reported like any other (state, mailbox, the adoption line),
+    never a silently dead worker that the next request quietly replaces."""
     record = record or (lambda r, s, log, trial=store: real_record(r, s, log, trial))
-    store = store or impact_store.default_store(repo)
+    try:
+        return drain(repo, cdir, record, store or impact_store.default_store(repo), bases)
+    except Exception as e:  # noqa: BLE001  (every way the worker can die is reported; see the docstring)
+        with coord.locked(cdir, LOCK):
+            st = load(cdir)
+            held = st.get("current") or {}
+            fail(cdir, st, repo, str(held.get("sha") or st.get("pending") or "unknown"),
+                 f"the worker raised {type(e).__name__}: {e}", pathlib.Path(held.get("log") or cdir / STATE))
+            st["worker"] = st["current"] = None
+            save(cdir, st)
+        return 1
+
+
+def drain(repo: pathlib.Path, cdir: pathlib.Path, record: Record, store: pathlib.Path,
+          bases: Callable[[pathlib.Path], list[str]]) -> int:
+    """`work`'s loop: take the pending commit, record it, report it, tidy the store, until nothing is pending."""
     with coord.locked(cdir, LOCK):
         st = load(cdir)
         st["worker"] = {"pid": os.getpid(), "started": now_iso()}
@@ -259,9 +277,12 @@ def work(repo: pathlib.Path, cdir: pathlib.Path, *, record: Record | None = None
             save(cdir, st)
         try:
             if ok:
-                gone = impact_store.prune(store, repo, bases(repo))
-                if gone:
-                    print(f"impact-lane: pruned {len(gone)} map file(s): {', '.join(gone)}", flush=True)
+                pruned = impact_store.prune(store, repo, bases(repo))
+                if pruned.removed:
+                    print(f"impact-lane: pruned {len(pruned.removed)} map file(s): {', '.join(pruned.removed)}", flush=True)
+                if pruned.busy:
+                    print(f"impact-lane: could not remove {', '.join(pruned.busy)} (held open; the next prune tries again)",
+                          flush=True)
             impact_store.clean_work(store, repo, sha, recorded=ok)
         except Exception as e:  # noqa: BLE001  (a store that cannot be tidied is reported, never a lost recording)
             print(f"impact-lane: the store could not be tidied ({e})", flush=True)
@@ -280,6 +301,7 @@ def measure(repo: pathlib.Path, since: str = "", roots: list[pathlib.Path] | Non
     `since` is an ISO date or time: runs started before it are not counted (a run directory names its start)."""
     cutoff = since.replace("-", "").replace(":", "") if since else ""
     counts: dict[str, int] = {}
+    unreadable = 0
     for wt in roots if roots is not None else worktrees(repo):
         for plan in sorted((wt / "TestResults" / "build-local").glob("*/plan.json")):
             stamp = plan.parent.name.split("-", 1)[-1]   # 000004-20261024T221346Z -> 20261024T221346Z
@@ -287,14 +309,16 @@ def measure(repo: pathlib.Path, since: str = "", roots: list[pathlib.Path] | Non
                 continue
             try:
                 state = str(json.loads(plan.read_text(encoding="utf-8")).get("map_state") or "none")
-            except (OSError, ValueError):
+            except (OSError, ValueError, AttributeError):
+                unreadable += 1   # counted and said, never dropped: a measurement that loses plans silently is wrong
                 continue
             counts[state] = counts.get(state, 0) + 1
     total = sum(counts.values())
     with_map = sum(n for k, n in counts.items() if k in ("exact", "documentation-only drift", "nearest"))
     detail = ", ".join(f"{k} {n}" for k, n in sorted(counts.items())) or "no gate plans"
     return (f"impact map use: {total} gate plan(s){f' since {since}' if since else ''}: {detail}; "
-            f"served by a map: {with_map}/{total}" + (f" = {100 * with_map / total:.0f} %" if total else ""))
+            f"served by a map: {with_map}/{total}" + (f" = {100 * with_map / total:.0f} %" if total else "")
+            + (f"; {unreadable} plan file(s) unreadable and not counted" if unreadable else ""))
 
 
 def self_test() -> int:
@@ -478,6 +502,30 @@ def self_test() -> int:
         check("measure counts the gate plans a map served", measure(repo.path, roots=[wt]).endswith("served by a map: 3/5 = 60 %"), True)
         check("... from a date on", measure(repo.path, since="2026-10-25", roots=[wt]).endswith("served by a map: 3/4 = 75 %"), True)
         check("... and says so when there are no plans", measure(repo.path, roots=[tmp / "none"]).endswith("served by a map: 0/0"), True)
+        (wt / "TestResults" / "build-local" / "000006-20261025T140000Z").mkdir()
+        (wt / "TestResults" / "build-local" / "000006-20261025T140000Z" / "plan.json").write_text("{torn", encoding="utf-8")
+        check("... counts a plan file it cannot read, never drops it silently",
+              measure(repo.path, roots=[wt]).endswith("served by a map: 3/5 = 60 %; 1 plan file(s) unreadable and not counted"), True)
+        # 10. a worker that raises is a FAILED recording of the commit it held, not a silently dead worker
+        repo.commit("code 9", {"src/A.cs": "a9\n"})
+        s9 = repo.git("rev-parse", "HEAD")
+        st = load(cdir)
+        st.update({"pending": s9, "failure": None, "worker": None, "current": None})
+        save(cdir, st)
+        real_nearest = impact_store.nearest
+
+        def boom(*_args: Any, **_kw: Any) -> None:
+            raise RuntimeError("the store broke")
+
+        impact_store.nearest = boom
+        try:
+            rc = work(repo.path, cdir, record=fake_record, store=store, bases=lambda r: [])
+        finally:
+            impact_store.nearest = real_nearest
+        st = load(cdir)
+        check("a worker that raises reports the commit it held FAILED, with its cause, and leaves no worker behind",
+              (rc, st["failure"]["sha"], "RuntimeError: the store broke" in st["failure"]["line"], st["worker"], st["current"]),
+              (1, s9, True, None, None))
     finally:
         remove_tree(tmp)
     print("impact_lane self-test: all checks OK" if not fails else f"FAILED: {len(fails)} check(s): {fails}")

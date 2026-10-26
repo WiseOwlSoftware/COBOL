@@ -72,6 +72,7 @@ public sealed class ImpactedTestsDriftTests
             "a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed",
             "a file the map has never seen, new since its commit, puts every test in tier 1",
             "a map recorded AFTER the base serves it", "a map named with --map is served by the same comparison",
+            "a map file that cannot be read (torn by a killed recorder, or pruned meanwhile) leaves the plan unaimed",
             // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
             // the change removes (kb/Work PB3131)
             "a changed file names every drift test the index says governs it",

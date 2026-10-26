@@ -168,27 +168,35 @@ def live_bases(repo: Path) -> list[str]:
     return out
 
 
+class Pruned(NamedTuple):
+    """What a prune did, for the caller's log: the files it removed, and the ones it could not (a Windows reader holds
+    a map it is planning from open: the next prune, after the next recording, tries again)."""
+    removed: list[str]
+    busy: list[str]
+
+
 def prune(store: Path, repo: Path, wanted: Iterable[str], keep_newest: int = KEEP_NEWEST,
-          now: float | None = None) -> list[str]:
+          now: float | None = None) -> Pruned:
     """Remove every complete map but the `keep_newest` most recently recorded and the one that serves each commit in
-    `wanted` (the live worktrees' bases), and any temporary file a dead recorder left; returns what it removed, for the
-    caller's log. Never removes a map a live base could use: that is the bound's whole meaning (kb/Work PB3663 bar 3)."""
+    `wanted` (the live worktrees' bases), and any temporary file a dead recorder left. Never removes a map a live base
+    could use: that is the bound's whole meaning (kb/Work PB3663 bar 3)."""
     now = time.time() if now is None else now
     held = maps(store)
     keep = {sha for sha, _ in held[:keep_newest]}
     for base in wanted:
         if (c := nearest(store, base, repo)) is not None:
             keep.add(c.sha)
-    removed = []
-    for sha, path in held:
-        if sha not in keep:
+    out = Pruned([], [])
+    doomed = [path for sha, path in held if sha not in keep]
+    doomed += [p for p in store.glob(f"*{SUFFIX}*{TMP_MARK}") if now - p.stat().st_mtime > TMP_STALE_S] if store.is_dir() else []
+    for path in doomed:
+        try:
             path.unlink(missing_ok=True)
-            removed.append(path.name)
-    for p in store.glob(f"*{SUFFIX}*{TMP_MARK}") if store.is_dir() else []:
-        if now - p.stat().st_mtime > TMP_STALE_S:
-            p.unlink(missing_ok=True)
-            removed.append(p.name)
-    return removed
+        except OSError:
+            out.busy.append(path.name)
+            continue
+        out.removed.append(path.name)
+    return out
 
 
 def work_name(sha: str, epoch: int) -> str:
@@ -294,9 +302,18 @@ def self_test() -> int:
         check("prune keeps the newest map and the map serving each live base",
               left, sorted([sha_more, sha_a]))
         check("... removes the others and a dead recorder's temp file, never a fresh temp file",
-              (sorted(gone) == sorted([f"{sha_code}.json.gz", f"{'f' * 40}.json.gz", stale_tmp.name]),
-               fresh_tmp.exists()), (True, True))
-        check("a prune with nothing to remove removes nothing", prune(store, repo.path, [sha_a], keep_newest=1), [])
+              (sorted(gone.removed) == sorted([f"{sha_code}.json.gz", f"{'f' * 40}.json.gz", stale_tmp.name]),
+               gone.busy, fresh_tmp.exists()), (True, [], True))
+        check("a prune with nothing to remove removes nothing", prune(store, repo.path, [sha_a], keep_newest=1), ([], []))
+        # a path that cannot be unlinked (a directory named like a map; on Windows a reader's open handle does the same)
+        # is reported busy, never an exception that loses the rest of the prune
+        stuck = store / f"{'e' * 40}{SUFFIX}"
+        (stuck / "held").mkdir(parents=True)
+        os.utime(stuck, (time.time() - 900,) * 2)
+        done = prune(store, repo.path, [sha_a], keep_newest=1)
+        check("a map that cannot be removed is reported busy and the prune goes on",
+              (done.removed, done.busy), ([], [stuck.name]))
+        shutil.rmtree(stuck)
         check("live_bases of a repository with no origin/main reads none", live_bases(repo.path), [])
 
         # the recorder's work directories: a finished recording's own goes, a failed one's stays, an old dead one's goes
