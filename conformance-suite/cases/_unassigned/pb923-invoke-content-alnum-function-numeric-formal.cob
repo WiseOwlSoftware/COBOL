@@ -7,7 +7,7 @@
 *> kb/Work PB923 — the refusing half. 14.8.2.3.3 rule 2 a): "If the formal parameter is numeric, the conformance
 *> rules are the same as for a COMPUTE statement with the argument as the sending operand and the corresponding
 *> formal parameter as the receiving operand." A COMPUTE sender shall be numeric (8.8.1.1), so an ALPHANUMERIC
-*> function-identifier into a numeric formal stays refused (COBOLNET0844, the 8.8.1.1 arithmetic-operand screen) while the same function into an
+*> function-identifier into a numeric formal stays refused (COBOL0844, the 8.8.1.1 arithmetic-operand screen) while the same function into an
 *> alphanumeric formal now takes rule 2 d)'s MOVE lane. The lane is chosen by the FORMAL, as rule 2 chooses it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB923NAN.

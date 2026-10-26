@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO §15.81.3 rule 1 — "Argument-1 shall be of class numeric." Two violations, both refused by the
-      *> §15.3 argument-class screen with COBOLNET1627:
+      *> §15.3 argument-class screen with COBOL1627:
       *>   (a) AN PIC X(5) — class alphanumeric (§8.5.2.1 Table 2).
       *>   (b) NE PIC ZZ9.99 — CLASS, not category: §8.5.2.1 Table 2 files NUMERIC-EDITED under class
       *>       ALPHANUMERIC when its usage is display, so a numeric-edited item is not of class numeric

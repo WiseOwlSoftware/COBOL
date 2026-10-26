@@ -8,7 +8,7 @@
 *> COMMIT and ROLLBACK statements are not permitted in factory and object classes, nor in any of their methods nor in
 *> any runtime elements that they invoke." A ROLLBACK written in a method of a factory definition is refused at
 *> translation: 14.9.36.3 SR1 reads "This statement shall not be specified in a recursive source element." (8.6.6:
-*> "Functions and methods are always recursive."), COBOLNET1690. Its object-method twin for COMMIT is
+*> "Functions and methods are always recursive."), COBOL1690. Its object-method twin for COMMIT is
 *> pb3540_commit_in_object_method.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3540H.

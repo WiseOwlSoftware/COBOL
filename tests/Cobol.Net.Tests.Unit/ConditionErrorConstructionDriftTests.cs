@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>kb/Work PB982 — a condition error node reaches a successful compile only if its refusal forgot the
 /// diagnostic, and the emitter lowers it to a run-time <c>NotImplemented</c> throw: <c>IF WS-X</c> over a PIC X item
 /// compiled clean and aborted the run unit. <c>ConditionBinder.Refused</c> is now the ONE construction site of
-/// <c>BoundConditionError</c>, and it fails the compile (COBOLNET2319) when no failing diagnostic has been recorded.
+/// <c>BoundConditionError</c>, and it fails the compile (COBOL2319) when no failing diagnostic has been recorded.
 /// This test keeps every other <c>new BoundConditionError(</c> out of the compiler, so a new refusal path cannot
 /// reopen the silent-compile / loud-run channel by writing its own.</summary>
 [Trait("Sweep", "tree")]

@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB2502 - a level-66 RENAMES item named as a SORT key data-name. The same record-layout reader
       *> that places an indexed file's RECORD KEY answered "no position" for a RENAMES alias, which the SORT
-      *> key screen read as "subject to an OCCURS clause" (COBOLNET1757) and refused legal source.
+      *> key screen read as "subject to an OCCURS clause" (COBOL1757) and refused legal source.
       *>   cite.py --check 14.9.40.3 "The same byte positions that are referenced by a key data-name in one record description entry are taken as the key in all records of the file"
       *>     -> OK 14.9.40.3 6) e)   (SR6 a): the key is "described in records associated with file-name-1"; a
       *>        RENAMES entry follows the record's last data description entry, 13.18.45.3 SR2)

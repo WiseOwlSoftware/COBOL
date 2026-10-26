@@ -16,7 +16,7 @@ public sealed class PerformFrame
     /// <summary>The tier-ordered WHEN selector the emitted PERFORM installs. Given the raised exception-name and
     /// (for EC-I-O) the file-connector key, it returns the per-statement dispatch-result action —
     /// <see cref="DispatchResult.Normal"/> handled/continue, <see cref="DispatchResult.ResumeNext"/> RESUME AT NEXT STATEMENT, or a pc <c>&gt;= 0</c> (the last is
-    /// unreachable from a WHEN body: RESUME AT procedure-name in a WHEN is bind-rejected, COBOLNET1610) — or
+    /// unreachable from a WHEN body: RESUME AT procedure-name in a WHEN is bind-rejected, COBOL1610) — or
     /// <see cref="NoMatch"/> when neither a WHEN nor WHEN OTHER selects <c>(ec, file)</c>. <c>file</c> is null for a
     /// non-I-O condition. <c>fatal</c> is deliberately NOT a parameter: the fatal-vs-nonfatal split (GR20) is
     /// realized by each raise site's own throw idiom, not by the matcher.</summary>

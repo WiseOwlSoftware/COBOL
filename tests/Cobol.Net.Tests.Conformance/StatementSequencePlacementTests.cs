@@ -30,9 +30,9 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class StatementSequencePlacementTests
 {
-    private const string ExitNotAlone = "COBOLNET2966";
-    private const string GoToNotLast = "COBOLNET2967";
-    private const string StopNotLast = "COBOLNET2968";
+    private const string ExitNotAlone = "COBOL2966";
+    private const string GoToNotLast = "COBOL2967";
+    private const string StopNotLast = "COBOL2968";
 
     // ── §14.9.14.3 SR1 ───────────────────────────────────────────────────────────────────────────────────
 

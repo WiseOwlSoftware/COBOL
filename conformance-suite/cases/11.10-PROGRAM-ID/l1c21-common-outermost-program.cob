@@ -11,7 +11,7 @@
       *> L1C21J is the outermost program of its compilation group (it
       *> is contained in nothing), yet its PROGRAM-ID says IS COMMON.
       *> Everything else is valid in every edition, so the only reason
-      *> to reject is SR4: COBOLNET0887 ("COMMON may be specified only
+      *> to reject is SR4: COBOL0887 ("COMMON may be specified only
       *> in a CONTAINED program"). Its contained program L1C21K, which
       *> MAY be COMMON, is present to show that the diagnostic keys on
       *> containment and not on the clause itself.

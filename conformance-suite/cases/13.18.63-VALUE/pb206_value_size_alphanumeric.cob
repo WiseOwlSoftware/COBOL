@@ -21,7 +21,7 @@
       *> TRUNCATED: measured on 1d949007, `01 E1 PIC X(2) VALUE "ABCD".`
       *> displayed AB and `01 GZ VALUE "ABCDEF". 05 O1 PIC X(2).
       *> 05 O2 PIC X(2).` displayed ABCD, neither with a diagnostic.
-      *> They are now COBOLNET1740 (negative fixtures
+      *> They are now COBOL1740 (negative fixtures
       *> pb206-value-oversize-elementary, pb206-group-value-oversize).
       *> A screen that also OVER-rejected would pass both of those, so
       *> THIS program pins the population the rule admits.

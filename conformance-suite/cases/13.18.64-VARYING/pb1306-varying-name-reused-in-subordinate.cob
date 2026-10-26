@@ -8,7 +8,7 @@
       *> data-name-1 in another VARYING clause of an entry not subordinate to the subject of the current entry."
       *> The 04 entry is SUBORDINATE to the 03 entry whose VARYING clause already defines K, so the second VARYING K
       *> is not the permitted reuse (an entry NOT subordinate, whose counter would be an independent data item).
-      *> COBOLNET1559 (the report group clause rule family, 13.15.3 / 13.18.64.3).
+      *> COBOL1559 (the report group clause rule family, 13.15.3 / 13.18.64.3).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1306N1.
        ENVIRONMENT DIVISION.

@@ -9,7 +9,7 @@
       *> program-prototype-name-1." PP is restricted to PBT609A, whose one formal is PIC 9(4), and the CALL's AS phrase
       *> names PBT609C, whose formal is PIC X(4): the two signatures differ (8.13: a signature includes "the
       *> description of the parameters of the source unit, if any, and the manner of receiving parameters"), so the
-      *> CALL is refused COBOLNET2936. The same-signature spelling is the positive golden
+      *> CALL is refused COBOL2936. The same-signature spelling is the positive golden
       *> 2002/pb609_call_restricted_program_pointer.
       *> kb/Work PB989 - ISO 12.3.8.4 GR10 a): the details come from a program definition specified PREVIOUSLY in the
       *> compilation group; a definition that follows the REPOSITORY entry is not one. The callee below is therefore

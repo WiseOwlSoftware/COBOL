@@ -10,7 +10,7 @@
       *> the argument as the sending operand and the corresponding formal parameter as the receiving
       *> operand", so each INV- line must show what the MOVE- line above it shows. An integer function
       *> (15.2 item 5) is Table 16's Integer row, admitted into alphanumeric, national and numeric-edited
-      *> receivers; the INVOKE used to REFUSE it (COBOLNET0828, "requires a category-numeric formal").
+      *> receivers; the INVOKE used to REFUSE it (COBOL0828, "requires a category-numeric formal").
       *>   INTEGER(3.7) = 3 (15.44.1)          -> PIC X(4)   "3   " (literal form, left-justified)
       *>   INTEGER-PART(-12.5) = -12 (15.49.1) -> PIC X(4)   "12  " (GR6 a: the sign is not moved)
       *>   ORD("A") = 66 (15.70.1)             -> PIC N(4)   "66  "

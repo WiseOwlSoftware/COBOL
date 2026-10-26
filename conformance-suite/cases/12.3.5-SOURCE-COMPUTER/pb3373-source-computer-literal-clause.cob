@@ -8,8 +8,8 @@
       *> A literal is not in it.  Written after the computer-name, the literal used to leave the
       *> parser ONE reading: the name-less paragraph (12.3.5.3 SR1 lets its second period go) and
       *> then an unrecognized configuration paragraph XYZ "LIT", so XYZ was refused as a paragraph of
-      *> the CONFIGURATION SECTION (COBOLNET1971; at 85 also as an area-A header, COBOLNET3734).  The
-      *> literal is now refused BY NAME in the SOURCE-COMPUTER paragraph's format (COBOLNET1970), the
+      *> the CONFIGURATION SECTION (COBOL1971; at 85 also as an area-A header, COBOL3734).  The
+      *> literal is now refused BY NAME in the SOURCE-COMPUTER paragraph's format (COBOL1970), the
       *> one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3373SL.

@@ -11,7 +11,7 @@
       *> strictness, with no diagnostic anywhere.  This program compiled CLEAN and RAN, with WIBBLE simply
       *> discarded.  ISO 4.2.2 makes a general format the definition of what may be written ("An
       *> implementation shall provide a warning mechanism ... to indicate violations of the general formats
-      *> and the explicit syntax rules of standard COBOL"), so the word is now NAMED: COBOLNET1970.
+      *> and the explicit syntax rules of standard COBOL"), so the word is now NAMED: COBOL1970.
       *> The 12.4.5.1 clause list was RENDERED from the printed page (PDF p342-344 / folios 312-314) before it was
       *> closed - closing a list against the lossy OCR diagram would REJECT LEGAL SOURCE, which is strictly
       *> worse than the silence it replaces.
@@ -24,7 +24,7 @@
        FILE-CONTROL.
       *> The residue follows ORGANIZATION, not ASSIGN: since the TO phrase became the list ISO 12.4.5.1
       *> prints (kb/Work PB829 finisher), words after an ASSIGN operand are further TO operands, refused
-      *> by the ISO 12.4.5.2 SR5 determination (COBOLNET2256), not by this closed-format rule.
+      *> by the ISO 12.4.5.2 SR5 determination (COBOL2256), not by this closed-format rule.
            SELECT F ASSIGN TO "pb829fc.dat" ORGANIZATION IS SEQUENTIAL
                WIBBLE WOBBLE.
        DATA DIVISION.

@@ -20,7 +20,7 @@ namespace CobolNet.Frontend.Parsing;
 /// </summary>
 public static class MnemonicNameSlot
 {
-    /// <summary>The COBOLNET2269 (statement-format-shape) message for a subscript, reference modification or
+    /// <summary>The COBOL2269 (statement-format-shape) message for a subscript, reference modification or
     /// qualifier written on the word <paramref name="name"/> in the mnemonic-name-1 slot of <paramref name="statement"/>
     /// (for example <c>ACCEPT … FROM</c>), whose general format is <paramref name="format"/> (for example
     /// <c>§14.9.1.2 Format 1</c>). Worded by POSITION ("stands in the mnemonic-name-1 position"), not by the

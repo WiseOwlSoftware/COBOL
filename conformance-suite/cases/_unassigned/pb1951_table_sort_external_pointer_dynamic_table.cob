@@ -17,7 +17,7 @@
       *> its own capacity and occurrences (§8.5.1.9), and every pointer in it keeps its value. In an EXTERNAL record
       *> the pointers ride the record's managed slots, one per occurrence of the table each element holds. The STRONG
       *> type that admits a pointer below level 1 (§13.18.60.3 SR14) must itself be EXTERNAL (§13.18.22.3 SR5), a
-      *> COBOL-2023 description. Before this change the statement was deferred (COBOLNET1756) and aborted the run unit.
+      *> COBOL-2023 description. Before this change the statement was deferred (COBOL1756) and aborted the run unit.
       *>
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules, not copied from a run):
       *>   keys 3, 1, 2; the key-3 element's table holds two pointers (AAAA, BBBB), the key-1 element's one (CCCC),

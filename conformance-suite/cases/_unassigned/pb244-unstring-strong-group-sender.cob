@@ -8,7 +8,7 @@
       *> data items of category alphanumeric or national." 8.5.2.1: "Both the class and the category of a
       *> strongly-typed group item are the type-name specified in the TYPE clause" - so a strongly-typed group is
       *> neither. The program used to compile, and abort at run time in the Tier-C whole-group island when the group
-      *> held a pointer leaf; it is refused at bind (COBOLNET1651).
+      *> held a pointer leaf; it is refused at bind (COBOL1651).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NUNSTR.
        DATA DIVISION.

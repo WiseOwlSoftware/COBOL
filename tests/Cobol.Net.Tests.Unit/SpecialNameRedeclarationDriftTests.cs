@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// dynamic-length-structure-name, mnemonic-name or switch condition-name has no qualifier. The ALPHABET, CLASS and
 /// switch condition-name registries dropped the second declaration silently (<c>TryAdd</c>, first wins) while LOCALE and
 /// DYNAMIC LENGTH STRUCTURE each carried a private refusal. <c>DataBinder.DeclareUserWord</c> now asks
-/// <c>UserWordKinds.DeclaredUnqualifiable</c> (COBOLNET4250), so a NEW SPECIAL-NAMES declaration kind is covered the
+/// <c>UserWordKinds.DeclaredUnqualifiable</c> (COBOL4250), so a NEW SPECIAL-NAMES declaration kind is covered the
 /// moment it declares its word through the funnel and joins that set — this test fails when it declares without joining.
 /// </summary>
 public sealed class SpecialNameRedeclarationDriftTests
@@ -51,7 +51,7 @@ public sealed class SpecialNameRedeclarationDriftTests
     public void NoClauseKeepsAPrivateDuplicateRefusal()
     {
         string text = Switches();
-        Assert.DoesNotContain("COBOLNET1665", text);
+        Assert.DoesNotContain("COBOL1665", text);
         Assert.DoesNotContain("ownDls", text);
         Assert.DoesNotContain("ownNames", text);
     }

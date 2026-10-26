@@ -41,7 +41,7 @@ public sealed class ImplicitRecordRedefinitionTests
     public void StrongRecord_InAMultiRecordFd_IsSr4_NeverAClauseRule(string records)
     {
         var (_, ed) = Compile(Fd(records, Strong));
-        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOLNET1532", StringComparison.Ordinal));
+        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL1532", StringComparison.Ordinal));
         Assert.Contains("'F-BIG' is a strongly-typed item", sr4);
         Assert.Contains("§13.18.33.4 GR3", sr4);
         Assert.Contains("§13.18.57.3 SR4", sr4);
@@ -76,7 +76,7 @@ public sealed class ImplicitRecordRedefinitionTests
             """;
         var (d, ed) = Compile(src);
         Assert.Equal(RedefinitionKind.SameRecordArea, d.ByName["R2"][0].RedefinesKind);
-        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOLNET1532", StringComparison.Ordinal));
+        var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL1532", StringComparison.Ordinal));
         Assert.Contains("§12.4.6.4.4 GR2", sr4);
         Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
     }
@@ -85,12 +85,12 @@ public sealed class ImplicitRecordRedefinitionTests
     /// §3). A level-1 <c>USAGE POINTER</c> record is legal (§13.18.60.3 SR14 admits a pointer "only for an
     /// elementary data item at level 1"), and so are a dynamic-length record and a variable-length group; §13.18.33.4
     /// GR3 makes each an implicit redefinition of the FD's area. None of them has a window over the character area,
-    /// so the binder does NOT link it into the area's class (which staged every one of them loud as COBOLNET0899,
+    /// so the binder does NOT link it into the area's class (which staged every one of them loud as COBOL0899,
     /// and before PB836 drew the REDEFINES-clause rules SR12/SR17). It shares the area at the transfer boundary
     /// instead: <see cref="FileModel.OutOfLineRecords"/> is what a READ reaches, and the character-window record is
     /// the <see cref="FileModel.AreaRecord"/>. One row per out-of-line shape, so a new shape added to
     /// <see cref="FileModel.IsOutOfLineRecord"/> without its binder half fails here. (A dynamic-capacity table is
-    /// never one: it "may be defined in any place, other than the file section", §8.5.1.9.1 3) — COBOLNET1526.)</summary>
+    /// never one: it "may be defined in any place, other than the file section", §8.5.1.9.1 3) — COBOL1526.)</summary>
     [Theory]
     [InlineData("01 R3 USAGE POINTER.")]
     [InlineData("01 R3 USAGE PROGRAM-POINTER.")]

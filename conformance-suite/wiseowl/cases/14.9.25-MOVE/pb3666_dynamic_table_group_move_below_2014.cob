@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> kb/Work PB3666, the negative of pb3666_dynamic_table_group_move: a dynamic-capacity table (OCCURS DYNAMIC) is a
-*> COBOL-2014 introduction, so the program is refused at COBOL-85 and COBOL-2002 by name (COBOLNET0900) and accepted
+*> COBOL-2014 introduction, so the program is refused at COBOL-85 and COBOL-2002 by name (COBOL0900) and accepted
 *> from 2014 on.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3666DTN.

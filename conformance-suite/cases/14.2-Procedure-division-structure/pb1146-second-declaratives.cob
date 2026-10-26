@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1146. ISO 14.2.1 Format 1 prints ONE bracketed DECLARATIVES ... END DECLARATIVES portion
       *> right after the procedure division header (rendered from PDF page 557: no ellipsis follows it), so a
-      *> second portion is refused COBOLNET2797 at every edition.
+      *> second portion is refused COBOL2797 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1146ND.
        ENVIRONMENT DIVISION.

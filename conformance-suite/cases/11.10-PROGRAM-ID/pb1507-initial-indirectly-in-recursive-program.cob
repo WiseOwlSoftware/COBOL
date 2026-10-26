@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 11.10.3 SR5 says "directly or indirectly contains": S5C1507 is INITIAL and is contained in
       *>   the plain S5B1507, which is contained in the RECURSIVE S5A1507 - and S5B1507 IS a recursive program
-      *>   (11.10.4 GR4: the RECURSIVE clause makes the programs contained within the program recursive). COBOLNET2755.
+      *>   (11.10.4 GR4: the RECURSIVE clause makes the programs contained within the program recursive). COBOL2755.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S5A1507 IS RECURSIVE.
        PROCEDURE DIVISION.

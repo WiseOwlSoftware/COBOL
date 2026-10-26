@@ -6,7 +6,7 @@
 *> kb/Work PB3562, the negative of pb3562_group_move_function_values:
 *> BOOLEAN-OF-INTEGER (ISO 15.13) and usage bit are COBOL-2002
 *> introductions, so a MOVE of the function value to a group is refused
-*> at COBOL-85 by name (COBOLNET1502, the intrinsic window gate) and
+*> at COBOL-85 by name (COBOL1502, the intrinsic window gate) and
 *> accepted from 2002 on.
 identification division.
 program-id. pb3562n1.

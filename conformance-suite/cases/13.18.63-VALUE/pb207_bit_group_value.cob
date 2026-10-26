@@ -18,7 +18,7 @@
       *> boolean - "transferred ... into the corresponding boolean positions of the receiving data item, with
       *> ZERO FILL or truncation to the right".  ZERO, not the space 14.6.8.5 gives an alphanumeric area; leg 3
       *> is the leg that tells the two arms apart.
-      *> BEFORE: every program below was REFUSED by name (COBOLNET0899).  Before that refusal the multi-member
+      *> BEFORE: every program below was REFUSED by name (COBOL0899).  Before that refusal the multi-member
       *> shape CRASHED the compiler (ArgumentOutOfRangeException out of GroupValueSlicer.SliceInit, slicing a
       *> 1-character area for two members that each occupy ceil(2/8) = 1 character) and the single-member shape
       *> stored ONE boolean position where the literal has four.
@@ -48,7 +48,7 @@
       *>                                         so both bytes are 11000000 = 0xC0 and FUNCTION ORD is 193.
       *> EDITIONS - MEASURED, not assumed.  GROUP-USAGE and boolean data are COBOL-2002 introductions
       *> (constructs.json group-usage-2002 / boolean-data-2002); this file's output is byte-identical at
-      *> --std 2002, 2014 and 2023, and at --std 85 every leg is refused COBOLNET0900.  The area rule changes
+      *> --std 2002, 2014 and 2023, and at --std 85 every leg is refused COBOL0900.  The area rule changes
       *> what a VALUE deposits, never the edition gate, so the corpus keeps ONE copy.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB207GV.

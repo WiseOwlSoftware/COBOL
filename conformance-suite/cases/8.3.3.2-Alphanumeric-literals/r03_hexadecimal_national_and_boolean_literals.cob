@@ -81,7 +81,7 @@
       *> 8.3.3.4.3 r3 says only "Hexadecimal-digit-1 shall be a hexadecimal
       *> digit", because 8.3.3.4.4 GR5 maps EACH digit independently to four
       *> boolean characters. So an odd digit count is well formed here, while
-      *> the same count in X"..." or NX"..." is a COBOLNET1635 error (see the
+      *> the same count in X"..." or NX"..." is a COBOL1635 error (see the
       *> negative fixture r03-hex-literal-digit-grouping). A grouping check
       *> written "for symmetry" would reject all three of these.
            MOVE BX"5" TO BB.

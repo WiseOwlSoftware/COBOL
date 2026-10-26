@@ -43,7 +43,7 @@ public class __FACTORY_FOO : __FACTORY_ANIMAL /* or CobolObject when no INHERITS
 - `INVOKE FOO "NEW" RETURNING o` stays EXACTLY as landed: `o = new FOO()` (the generated ctor IS the predefined New; D4). No change to OoBindClassInvoke's NEW branch (StatementBinder.Oo.cs:241-281).
 - **`INVOKE SELF "NEW" RETURNING r` inside a FACTORY method** (the canonical factory-MAKE pattern): §16.2.1.2 GR1 + the BaseFactoryInterface prototype (:39148-39158 — `returning outObject usage object reference active-class`) mean New creates an instance of the RUNTIME factory's class. Realization: the generated `__New()` virtual (covariantly overridden per class) → bind to a new `InvokeForm.NewSelf`; emit `r = this.__New()`. An inherited MAKE reached via `INVOKE DOG "MAKE"` thereby creates a DOG. RETURNING is required (reuse the 0826 wording); USING on it is 0826 (NEW takes no arguments). Receiver conformance = the existing NEW check with cls = the CONTAINING class (containing.ConformsTo(declared) — a runtime subclass instance still conforms downstream).
 - **`INVOKE SUPER "NEW"`** in a factory method binds to the SAME `this.__New()`: SUPER restricts the METHOD SEARCH (§8.4.3.8 GR3) to the inherited factory interface, but the found method IS the predefined New, whose behavior is active-class creation on the object SUPER references (= the same runtime factory object, GR1 :7331). Document this equivalence in a code comment.
-- **A user factory METHOD-ID named NEW → COBOLNET0836** (new code; 0830-0835 are taken by INITIALIZE, 0836+ verified free). ISO permits overriding New, but v1 keeps NEW = the generated ctor (D4); reject loudly, cite §16.2.1 + the v1 restriction. (`INVOKE obj "NEW"` through an instance receiver already 0825s naturally — NEW is not in the instance interface.) **Superseded (kb/Work PB1582): 0836 is retired — outside BASE's hierarchy NEW is an ordinary factory method, and in a BASE subclass `METHOD-ID. NEW OVERRIDE.` overrides BASE's New (§11.7.3 SR3; COBOLNET_OO_DESIGN D4).**
+- **A user factory METHOD-ID named NEW → COBOL0836** (new code; 0830-0835 are taken by INITIALIZE, 0836+ verified free). ISO permits overriding New, but v1 keeps NEW = the generated ctor (D4); reject loudly, cite §16.2.1 + the v1 restriction. (`INVOKE obj "NEW"` through an instance receiver already 0825s naturally — NEW is not in the instance interface.) **Superseded (kb/Work PB1582): 0836 is retired — outside BASE's hierarchy NEW is an ordinary factory method, and in a BASE subclass `METHOD-ID. NEW OVERRIDE.` overrides BASE's New (§11.7.3 SR3; COBOLNET_OO_DESIGN D4).**
 - SELF "NEW" in an INSTANCE method: falls out — the instance roster has no NEW → existing 0825.
 
 ## D13 — factory data binds in its OWN DataBinder forest (name separation is structural)
@@ -76,7 +76,7 @@ factoryParagraph
     ;
 ```
    Mirrors objectParagraph (:34-40) exactly — same methodDefinition rule, so OoBindMethodData/OoEmitMethod reuse is verbatim. No `{is2002()}?` gate needed: factoryParagraph is reachable only inside classDefinition, which is already gated at compilationGroup (CobolParserCore.g4:123).
-5. **Core/CobolOO.g4 objectReferenceUsage** (:95-98): add a FIRST alternative `OBJECT REFERENCE FACTORY OF className` (keep the two-explicit-alternatives discipline — never an optional tail, the DEVLOG-438/439 lesson). BINDING stages it loud: in DataBinder.cs:609 (the objectReferenceUsage consumer), when the new alternative is present → COBOLNET0899 "factory object references (USAGE OBJECT REFERENCE FACTORY OF, §13.18.60 :22681; method resolution via the factory interface, §14.9.23.3 SR4 a)) are recognized but not yet implemented (the universal-reference wave, with §16.2.2 FactoryObject)". Rationale: graceful staged diagnostic beats a bare parse error; the dead sketch CobolParserOO.g4 is reference-only (do NOT revive its invokeOnException/ABSTRACT/generics content — spec-wrong per Spec corrections #3/#4).
+5. **Core/CobolOO.g4 objectReferenceUsage** (:95-98): add a FIRST alternative `OBJECT REFERENCE FACTORY OF className` (keep the two-explicit-alternatives discipline — never an optional tail, the DEVLOG-438/439 lesson). BINDING stages it loud: in DataBinder.cs:609 (the objectReferenceUsage consumer), when the new alternative is present → COBOL0899 "factory object references (USAGE OBJECT REFERENCE FACTORY OF, §13.18.60 :22681; method resolution via the factory interface, §14.9.23.3 SR4 a)) are recognized but not yet implemented (the universal-reference wave, with §16.2.2 FactoryObject)". Rationale: graceful staged diagnostic beats a bare parse error; the dead sketch CobolParserOO.g4 is reference-only (do NOT revive its invokeOnException/ABSTRACT/generics content — spec-wrong per Spec corrections #3/#4).
 6. Dead-sketch note: CobolParserOO.g4:57-63 imagines `CLASS SECTION`/`OBJECT SECTION` data divisions — NOT ISO; ignore entirely. The ISO shape is the factory-definition block (:12752-12760), which factoryParagraph above matches.
 Process: grammar change → regen both OSes, guard-fast after the grammar commit (feedback_grammar_version_factoring; OO/NIST-expansion grammar work is pre-authorized, log it).
 
@@ -84,7 +84,7 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 
 - **OoClassSymbol** gains: `public string FactoryCsName => NamingConvention.FactoryClassName(CsName);`, a SEPARATE factory roster (`_factoryMethods` dict + `FactoryMethods` list + `TryAddFactoryMethod` — clone of :240-251), and `FindFactoryMethod(string)` walking the base chain (clone of FindMethod :255-262). The rosters NEVER merge: an instance method and a factory method may share a name (§9.3.6 — two interfaces); day-one test.
 - **OoMethodSymbol** gains `public bool IsFactory { get; init; }` (diagnostic wording + the SELF/SUPER roster choice).
-- **Build()** (:128-226): after the instance-method loop (:158-178), an identical loop over `ctx.factoryParagraph()?.methodDefinition() ?? []` → TryAddFactoryMethod (dup → 0822 with "factory method" wording), END METHOD mismatch → 0820, name NEW → **COBOLNET0836**. END FACTORY has no name — no mismatch check exists. Reserve `FactoryCsName` in usedCsNames (:131,:142).
+- **Build()** (:128-226): after the instance-method loop (:158-178), an identical loop over `ctx.factoryParagraph()?.methodDefinition() ?? []` → TryAddFactoryMethod (dup → 0822 with "factory method" wording), END METHOD mismatch → 0820, name NEW → **COBOL0836**. END FACTORY has no name — no mismatch check exists. Reserve `FactoryCsName` in usedCsNames (:131,:142).
 - **OverrideOf marking** (:218-224): second loop marking factory overrides against `sym.Base.FindFactoryMethod` (factory overrides factory ONLY — §9.3.8.2 signature conformance per interface, never cross-roster).
 - **ValidateOverrideSignatures** (:34-59): iterate `cls.Methods.Concat(cls.FactoryMethods)` — 0829 unchanged.
 
@@ -114,7 +114,7 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 **Runtime**: NO changes. CobolObject (Control/CobolObject.cs) and MethodReturn (Control/MethodReturn.cs) already cover factory classes (they derive CobolObject → future universal __CobolInvoke free).
 
 ## Diagnostics (complete list)
-- **COBOLNET0836 (NEW)**: "class 'X': a factory method may not be named 'NEW' — the predefined New (ISO §16.2.1) is realized by the generated constructor (deep-dive D4); overriding New is a deferred v1 restriction". Raised in OoClassTable.Build.
+- **COBOL0836 (NEW)**: "class 'X': a factory method may not be named 'NEW' — the predefined New (ISO §16.2.1) is realized by the generated constructor (deep-dive D4); overriding New is a deferred v1 restriction". Raised in OoClassTable.Build.
 - 0822 (existing): duplicate factory method name within the factory roster.
 - 0825 (existing, new wordings): factory-interface lookup failure (SR3 :28399) at INVOKE class-name; the "it's a factory method" hint on instance-receiver misses.
 - 0826 (existing, reused): SELF "NEW" without RETURNING / with USING; NewSelf receiver conformance.
@@ -273,7 +273,7 @@ Lands AFTER slice 3b (SELF/SUPER instance dispatch — the roster-switch code ex
   redefinition WITHOUT OVERRIDE is an ERROR; this is why C# `new`/hiding is never emitted, D7); **SR8 :13262**
   (FINAL not in a method prototype); SR9 :13264 (inherited/implemented-name conformance per §9.3.8.2.3);
   **GR2 :13275** (OVERRIDE = overrides the inherited method); **GR3 :13277** (FINAL = shall not be overridden).
-- §9.3.8.2 method-signature conformance :12294 (already enforced — COBOLNET0829, `OoClassTable.ValidateOverrideSignatures`).
+- §9.3.8.2 method-signature conformance :12294 (already enforced — COBOL0829, `OoClassTable.ValidateOverrideSignatures`).
 - §A.4.10 :40408–40414 — OVERRIDE/FINAL are MANDATORY 2023 surface (not among the three optional OO items).
 - Reserved words: `OVERRIDE` added 2002 (already a row in `ReservedWords.Table.cs:315` — R85=false, R2002+=true, high);
   `FINAL` reserved continuously since 1985 (row :191; it is already a lexer token, `CobolLexer.g4:358`, used by Report Writer).
@@ -336,19 +336,19 @@ context-sensitive keyword — FOUR mirrored touch points (the pattern documented
 - `OoMethodSymbol` (:280–282): add positional `bool HasOverride, bool IsFinal` (before `Ctx`), filled in the
   method loop (:158–178) from `m.OVERRIDE()` / `m.FINAL()`.
 - After base-link resolution (:181–192): if `sym.Base is { IsFinal: true }` →
-  `edition.Error("COBOLNET0838", "class '{sym.Name}': INHERITS FROM '{base.Name}', which is declared FINAL — a FINAL class shall not be a superclass (ISO §11.3.3 SR5 / §11.3.4 GR3)")`.
+  `edition.Error("COBOL0838", "class '{sym.Name}': INHERITS FROM '{base.Name}', which is declared FINAL — a FINAL class shall not be a superclass (ISO §11.3.3 SR5 / §11.3.4 GR3)")`.
 - REWRITE the override-marking loop (:210–224; delete its "documented leniency" comment block — the leniency
   is retired this wave). For each `m` in each class with a base, `baseM = sym.Base.FindMethod(m.Name)`
   (nearest definition on the chain — correct for FINAL layering):
   - `baseM != null && m.HasOverride` → `m.OverrideOf = baseM`; if `baseM.IsFinal` →
-    `Error("COBOLNET0838", "… overrides '{base}.{name}', which is declared FINAL — the overridden method shall not be defined with the FINAL clause (ISO §11.7.3 SR3; §11.7.4 GR3)")`.
-  - `baseM != null && !m.HasOverride` → **SR4a**: `edition.Removed("COBOLNET0836", "class '{cls}': method '{name}' redefines a method inherited from '{base.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an inherited method may only be redefined with OVERRIDE; add OVERRIDE to the METHOD-ID paragraph)")`
+    `Error("COBOL0838", "… overrides '{base}.{name}', which is declared FINAL — the overridden method shall not be defined with the FINAL clause (ISO §11.7.3 SR3; §11.7.4 GR3)")`.
+  - `baseM != null && !m.HasOverride` → **SR4a**: `edition.Removed("COBOL0836", "class '{cls}': method '{name}' redefines a method inherited from '{base.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an inherited method may only be redefined with OVERRIDE; add OVERRIDE to the METHOD-ID paragraph)")`
     and STILL set `m.OverrideOf = baseM` in both severities — under strict the compile fails before emission
     anyway (setting it keeps 0829 messages coherent); under `--permissive` this IS the pre-wave inference,
     preserved as the documented migration leniency (two-axis dialect model, `project_dialect_two_axes`;
     §10 #1 migration contract precedent = `method-working-storage-window`).
   - `baseM == null && m.HasOverride` → **SR3**:
-    `Error("COBOLNET0837", "class '{cls}': method '{name}' specifies OVERRIDE but no superclass defines a method with that signature{sym.Base is null ? " (the class has no INHERITS clause)" : ""} (ISO §11.7.3 SR3)")`.
+    `Error("COBOL0837", "class '{cls}': method '{name}' specifies OVERRIDE but no superclass defines a method with that signature{sym.Base is null ? " (the class has no INHERITS clause)" : ""} (ISO §11.7.3 SR3)")`.
     Fires for both the no-INHERITS class and the wrong-name case.
 - `ValidateOverrideSignatures` (0829) is UNCHANGED and still a hard error even under `--permissive` (D9: no
   overloading — two same-named methods with different signatures cannot emit as C# at all; hiding is never
@@ -432,11 +432,11 @@ These files are greenfield-only (2002 manifest); the legacy NIST guard never com
 
 | Code | Rule | Severity | Message anchor |
 |------|------|----------|----------------|
-| COBOLNET0836 | §11.7 SR4a — redefinition without OVERRIDE | `EditionContext.Removed` (error strict / warning + inferred override under `--permissive`) | cites §11.7.3 SR4a + "add OVERRIDE" fix-it hint |
-| COBOLNET0837 | §11.7 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) | error | cites §11.7.3 SR3 |
-| COBOLNET0838 | §11.7 SR3/GR3 — override of a FINAL method; §11.3.3 SR5/GR3 — INHERITS FROM a FINAL class | error (both sites, one code — the FINAL-violation family) | cites the exact § per site |
-| COBOLNET0829 | §9.3.8.2 signature conformance (existing) | error (both axes — D9 makes it unemittable) | unchanged |
-| COBOLNET0901 | OVERRIDE as a user word at 2002+ (existing funnel + table row) | via `Removed` policy (existing) | activated by D-B item 4 |
+| COBOL0836 | §11.7 SR4a — redefinition without OVERRIDE | `EditionContext.Removed` (error strict / warning + inferred override under `--permissive`) | cites §11.7.3 SR4a + "add OVERRIDE" fix-it hint |
+| COBOL0837 | §11.7 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) | error | cites §11.7.3 SR3 |
+| COBOL0838 | §11.7 SR3/GR3 — override of a FINAL method; §11.3.3 SR5/GR3 — INHERITS FROM a FINAL class | error (both sites, one code — the FINAL-violation family) | cites the exact § per site |
+| COBOL0829 | §9.3.8.2 signature conformance (existing) | error (both axes — D9 makes it unemittable) | unchanged |
+| COBOL0901 | OVERRIDE as a user word at 2002+ (existing funnel + table row) | via `Removed` policy (existing) | activated by D-B item 4 |
 
 ## 4. Tests (same commit — `feedback_goldens_ship_with_the_feature`, `feedback_goldens_ship_with_the_feature`)
 
@@ -598,9 +598,9 @@ Boxing per the ARG's crossing form (the callee's is identical by descriptor equa
 - **"IS class" disposition (spec-verified)**: NOT ISO — no spec surface, no grammar surface. Do NOT add it. STRIKE the deep-dive C# mapping/edge-case lines claiming `IF G IS GREETER → G is GREETER` (docs/COBOLNET_OO_DESIGN.md :191 and the "`o IS Class`" edge-case bullet :241) in the same change set (process rule 4), replacing them with: Format-3 relations (this slice) + object views §8.4.3.5 (:6760, EC-OO-CONFORMANCE :24750, deferred to the EC-OO/object-view wave); a vendor IS-class test would be dialect-gated extension surface, never default.
 
 ## 3. Diagnostics (new; the OO band 0813/0820-0829 is full — 0836-0838 are unused repo-wide, verified)
-- **COBOLNET0836** — universal-INVOKE misuse: explicit BY CONTENT/BY VALUE via universal (SR6 :28435); identifier-2 with a non-universal receiver (SR7 :28437); identifier-2 not alphanumeric (SR8); literal/arith-expression argument via universal (SR6 — BY REFERENCE assumed, literal cannot cross by reference); OBJECT-data argument via universal (SR10 :28443 + SR6); Tier-C group argument (no character image).
-- **COBOLNET0837** — SET Format 5 violations: non-object receiver (SR8 :31298); SUPER sender (SR9 :31300); universal-into-typed / non-conforming typed-into-typed (SR12 :31335-:31369); SELF outside a method / SELF class non-conformance (SR12c).
-- **COBOLNET0838** — object relation violations: ordering operator on class-object operands (Format 3 :9591); object-vs-non-object operand mix (SR5 :9614).
+- **COBOL0836** — universal-INVOKE misuse: explicit BY CONTENT/BY VALUE via universal (SR6 :28435); identifier-2 with a non-universal receiver (SR7 :28437); identifier-2 not alphanumeric (SR8); literal/arith-expression argument via universal (SR6 — BY REFERENCE assumed, literal cannot cross by reference); OBJECT-data argument via universal (SR10 :28443 + SR6); Tier-C group argument (no character image).
+- **COBOL0837** — SET Format 5 violations: non-object receiver (SR8 :31298); SUPER sender (SR9 :31300); universal-into-typed / non-conforming typed-into-typed (SR12 :31335-:31369); SELF outside a method / SELF class non-conformance (SR12c).
+- **COBOL0838** — object relation violations: ordering operator on class-object operands (Format 3 :9591); object-vs-non-object operand mix (SR5 :9614).
 - Runtime: `CobolFatalException("EC-OO-UNIVERSAL", …)` (Table 13 :24756, Fatal) from the generated switch — arity, per-arg descriptor, RETURNING presence/descriptor; EC-OO-METHOD from the CobolObject default (unchanged); EC-OO-NULL guard unchanged. Edition surface: everything is 2002+ and already rides the existing `{is2002()}?` gates + `invoke-2002`/`usage-object-reference-2002` rows; the one NEW row is `set-object-reference-2002` (D-U7). No VCR rows (OO's 2002 introduction has no VCR row by design — deep-dive "Version gating" §3).
 
 ## 4. File/seam summary
@@ -703,7 +703,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 - **EXCEPTION-STATUS §15.33.3 r1** (:35701): returns the exception-name **or the value 'EXCEPTION-OBJECT'**,
   31 chars, space-filled; last-exception-status concept incl. "the fact that an exception object was raised"
   (:24481).
-- **EC-RAISING-NOT-SPECIFIED** (:24787) applies to EC-USER names only (already handled, COBOLNET0717).
+- **EC-RAISING-NOT-SPECIFIED** (:24787) applies to EC-USER names only (already handled, COBOL0717).
 - Runtime type-check failure on a universal→typed crossing: §9.3.8.2 runtime conformance (:12291) +
   EC-OO-UNIVERSAL "A runtime type check failed" (:24756). (EC-OO-CONFORMANCE is the object-VIEW failure,
   §8.4.3.5 :7211-7229 — NOT this case.)
@@ -743,7 +743,7 @@ Grammar (CobolParserCore.g4:1119-1121): `RAISE (EXCEPTION cobolWord | dataRefere
 `RAISE (EXCEPTION cobolWord | objectReference)` (objectReference = dataReference | NULL_ | SELF | SUPER,
 :1053-1056) so SR2's "NULL and SUPER shall not be specified" gets a TARGETED diagnostic instead of a parse
 error, and `RAISE SELF` (legal, deep-dive :367 note) parses. Bind (`StatementBinder.Exceptions.cs` — replace
-the `BoundUnsupported` at :53-54): keep the existing 0876 pre-2002 gate; NULL/SUPER → **COBOLNET0830**; SELF
+the `BoundUnsupported` at :53-54): keep the existing 0876 pre-2002 gate; NULL/SUPER → **COBOL0830**; SELF
 outside a method → 0830; dataReference must resolve to `Pic.Category == PicCategory.ObjectReference` (else
 0830); set `_ecRaise = true` (the machinery gate — NO TurnState consultation: objects are not TURN-gated, §1
 above). New node: `public sealed record BoundRaiseObject(Place? Source) : BoundStatement;` (`Source == null`
@@ -764,7 +764,7 @@ do not exist for objects); a raw throw (RAISE of an object is NEVER fatal by its
 `BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled, Place? ObjectSource = null)` — tri-state
 invariant: exactly one of EcName / IsLast / ObjectSource. `EcBindRaising` (:149-169) identifier leg (replace
 `return null` at :157): resolve the dataReference; require ObjectReference category; **SR4d** universal
-(`Pic.ObjectClassName is null`) → **COBOLNET0831**; **SR4a** — the declared class, or one of its superclasses
+(`Pic.ObjectClassName is null`) → **COBOL0831**; **SR4a** — the declared class, or one of its superclasses
 (walk `OoClassSymbol.Base`), must appear in the containing source element's PD-header RAISING class list, else
 0831 (compile-time; the FACTORY-parity / interface / ACTIVE-CLASS legs stage 0899). Callers stop degrading:
 `CallBindGoback` (StatementBinder.Call.cs:218-222) and EXIT PROGRAM (StatementBinder.cs:249-251) drop their
@@ -779,7 +779,7 @@ GOBACK RETURNING/GIVING in a method stays unsupported (unchanged).
 it conforms to, with the SAME FACTORY presence) into the header list, and every object a typed reference holds
 conforms to its declared class (§14.8), and an identifier-1 that is UNIVERSAL is refused (SR4d). So item 1 **always
 holds** for the operand and the binder discharges it at COMPILE time (`EcBinder.RaisingObjectMismatch`,
-COBOLNET0849); no generated check follows the operand's staging.
+COBOL0849); no generated check follows the operand's staging.
 `RAISING LAST EXCEPTION` (kb/Work PB1121): the object it re-propagates is whatever the last exception status holds,
 its class known only at run time, so the static discharge cannot reach it. The emitted staging passes
 `ExceptionState.ExceptionObject is <census>` to `ExceptionState.SetPropagatingLast`, where `<census>` is the element's
@@ -829,7 +829,7 @@ Grammar (Core/CobolControlFlow.g4:176-198): add alternative
 context-sensitive word set exactly like `EC` (CobolParserCore.g4:40 + the lexer `_dataNameTokens` mirror —
 the continuity invariant: EO stays a legal user word at every edition). Binder
 (StatementBinder.Declaratives.cs): 2002+ gate mirroring F3's (0876-band); resolve the word against
-`OoClasses` — unknown → **COBOLNET0833** (an interface name is indistinguishable until INTERFACE-ID lands, so
+`OoClasses` — unknown → **COBOL0833** (an interface name is indistinguishable until INTERFACE-ID lands, so
 the message says "not a class of the compilation group; interface entries are the INTERFACE-ID slice");
 `BoundDeclarative` (BoundTree.cs:59-68) gains `string? EoClassCsName = null`; binding an F4 sets `_ecF3 = true`
 (the one "EC declaratives present" feature bit — F4 rides the same group gate). Emitter
@@ -856,7 +856,7 @@ F1/F3 tiers for object raises).
 Retire the 0899 at DataBinder.Oo.cs:146-148. In `OoBindMethodData` (DataBinder has `OoClasses` — set at
 CSharpEmitter.Oo.cs:50): for each `raisingClause` cobolWord — (a) a catalog level-3 **EC-USER** name → the
 method's `RaisingEcNames`; (b) a class in `OoClassTable` → `RaisingClasses` (store `OoClassSymbol`); (c) any
-other catalog EC name → **COBOLNET0832** (§14.2.2 SR7: exception-name-1 shall be level-3 for EC-USER); (d)
+other catalog EC name → **COBOL0832** (§14.2.2 SR7: exception-name-1 shall be level-3 for EC-USER); (d)
 unresolvable → 0832 (message notes interface names are the INTERFACE-ID slice). Add both lists to
 `OoMethodSymbol` (OoClassTable.cs:280+). PROGRAM headers: upgrade `EcCollectPdRaising`
 (StatementBinder.Exceptions.cs:173-177) to the same partition — `_pdRaising` keeps the EC-USER names (the
@@ -916,13 +916,13 @@ methods; RAISING LAST inside a method (needs method declaratives); EXCEPTION-OBJ
 
 ## 4. Diagnostics (new band; all COBOL-worded, never a Roslyn CS on user source — the G4 rule)
 
-- **COBOLNET0830** — RAISE identifier-1 violations: not an object reference / NULL or SUPER specified
+- **COBOL0830** — RAISE identifier-1 violations: not an object reference / NULL or SUPER specified
   (§14.9.29.3 SR2) / SELF outside a method; EXCEPTION-OBJECT as a receiving operand (§8.4.3.6 SR1).
-- **COBOLNET0831** — GOBACK / EXIT … RAISING identifier-1: universal object reference (§14.9.18.3 SR4d /
+- **COBOL0831** — GOBACK / EXIT … RAISING identifier-1: universal object reference (§14.9.18.3 SR4d /
   §14.9.14.3); declared class (and superclasses) not specified in the PD-header RAISING phrase (SR4a).
-- **COBOLNET0832** — PD-header RAISING operand invalid: a non-EC-USER exception-name (§14.2.2 SR7) or an
+- **COBOL0832** — PD-header RAISING operand invalid: a non-EC-USER exception-name (§14.2.2 SR7) or an
   unresolvable word (SR8/SR9; interfaces = INTERFACE-ID slice).
-- **COBOLNET0833** — USE AFTER EXCEPTION OBJECT: unknown class name (§14.9.49.3 SR16).
+- **COBOL0833** — USE AFTER EXCEPTION OBJECT: unknown class name (§14.9.49.3 SR16).
 - Edition: RAISE below 2002 already 0876 (fires before the leg split — keep); USE F4 below 2002 → the same
   0876-band message as F3; EXIT METHOD RAISING at 2023 already rides `exit-method-window` (0902).
 - Version-matrix negatives: RAISE identifier and USE F4 at `--std 85` (targeted diagnostic, not a parse error).
@@ -1099,7 +1099,7 @@ SET = exactly one USING + no RETURNING; §11.7.3 SR5 (:13248) a WS data-name tha
 ALSO carry the PROPERTY clause (duplicate accessor → 0838); §13.18.42.3 SR4 (:21159) the subject's data-name
 must not collide with a superclass property (walk `Base` chain rosters); §8.4.3.9.3 SR7 (:7388) when both
 accessors exist, GET's returning description == SET's using description (`OoConformance.DescriptionMismatch` in pair mode,
-asked by `OoConformance.ValidatePropertyAccessorPairs` over each pair AS THE CLASS SEES IT, inheritance included → COBOLNET2727,
+asked by `OoConformance.ValidatePropertyAccessorPairs` over each pair AS THE CLASS SEES IT, inheritance included → COBOL2727,
 kb/Work PB1450).
 
 **The subject, and where each §13.18.42.3 rule lives (kb/Work PB1273).** `BindEntry` records the written clause
@@ -1108,7 +1108,7 @@ on the ITEM (`DataItem.Property`, a `PropertyClauseSpec`), and `OoBindPropertyCl
 SR1 (only factory / instance working storage) is screened in `BindEntry`, because its axis is the source element;
 SR3's elementary half and §13.16.3 SR21 are rows of the data-clause placement table; SR2 (subject to OCCURS in any
 format, by ancestry — `RecordLayout.OccursSubjectOf`), SR3's qualification half, SR5 (CONSTANT RECORD requires
-WITH NO SET) and SR6 (no ACTIVE-CLASS object reference) are asked in `OoBindPropertyClauses` (COBOLNET2563); SR4
+WITH NO SET) and SR6 (no ACTIVE-CLASS object reference) are asked in `OoBindPropertyClauses` (COBOL2563); SR4
 keeps 0842.
 
 **Naming (§11.7.4 GR1a :13271 — "implementor-defined"): PIN the implementor definition here:** the emitted C#
@@ -1281,19 +1281,19 @@ deferred like the CLASS entry's).
 
 ## Diagnostics (new band — 0830-0835 are TAKEN by INITIALIZE, `StatementBinder.Initialize.cs:67-114`; 0836-0839 are free)
 
-- **COBOLNET0836** — interface/attribute structural: duplicate interface name or class/interface collision;
+- **COBOL0836** — interface/attribute structural: duplicate interface name or class/interface collision;
   END INTERFACE mismatch (§10.7); unknown/cyclic/duplicated INHERITS FROM interface (§11.6.3 SR2/SR3/SR6);
   SR5 multi-inherit method incompatibility; prototype-shape violations (§10.6.2 SR4); OVERRIDE/FINAL in a
   prototype (§11.7.3 SR2/SR8); IMPLEMENTS naming a non-REPOSITORY interface (§11.8.3 SR1).
-- **COBOLNET0837** — IMPLEMENTS conformance (§9.3.11 via §9.3.8.2.3): missing method; each numbered-rule
+- **COBOL0837** — IMPLEMENTS conformance (§9.3.11 via §9.3.8.2.3): missing method; each numbered-rule
   mismatch with the rule cited in the message (the 0829 wording style).
-- **COBOLNET0838** — PROPERTY declaration: §13.18.42.3 SR1-SR6; §11.7.3 SR5/SR6/SR7; §8.4.3.9.3 SR7 get/set
+- **COBOL0838** — PROPERTY declaration: §13.18.42.3 SR1-SR6; §11.7.3 SR5/SR6/SR7; §8.4.3.9.3 SR7 get/set
   description mismatch; duplicate accessor (explicit + implicit, or two explicit) for one property-name.
-- **COBOLNET0839** — object-property reference: unknown property / not REPOSITORY-declared (SR1); universal
+- **COBOL0839** — object-property reference: unknown property / not REPOSITORY-declared (SR1); universal
   or NULL receiver (SR2); no GET when sending (SR3) / no SET when receiving (SR4, incl. WITH NO SET/GET).
 - 0900/0902 via the registry rows at `--std 85`. Parameterized interfaces and classes (INTERFACE-ID /
   CLASS-ID USING, REPOSITORY EXPANDS) are no longer residue — LANDED by kb/Work PB759 as expansion-by-re-parse
-  (`COBOLNET_OO_DESIGN.md` D12; COBOLNET2239/2240). 0899 staged-loud residue:
+  (`COBOLNET_OO_DESIGN.md` D12; COBOL2239/2240). 0899 staged-loud residue:
   `FACTORY OF`/`ONLY`/`ACTIVE-CLASS` usage tails, interface-typed RAISING conformance (EC-OO slice),
   CONSTANT RECORD properties, factory-interface-typed references.
 

@@ -8,7 +8,7 @@
 *> THE RULE (ISO 14.9.47.3 SR2): "File-name-1 shall not be a file specified in an APPLY COMMIT clause."
 *> SINCE kb/Work PB3338 THE ANTECEDENT IS REACHABLE: the APPLY COMMIT clause (Annex A.4.3 item 2) is accepted for
 *> a RELATIVE or INDEXED file, so this program, written in the rule's OWN forbidden shape over a RELATIVE file, is
-*> refused by the rule itself (COBOLNET2974, DataBinder.ScreenApplyCommitSubject) in the strict lane and under
+*> refused by the rule itself (COBOL2974, DataBinder.ScreenApplyCommitSubject) in the strict lane and under
 *> --permissive alike (ApplyCommitSubjectRuleTests). Until PB3338 the row was recorded CONFORMS as vacuously
 *> satisfied (kb/Work PB371, owner 2026-09-02) and this fixture pinned the clause's decline. The file here is
 *> RELATIVE; the rule is the same for a SEQUENTIAL file, which APPLY COMMIT admits too (kb/Work PB3340).

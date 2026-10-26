@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.18.37.3 SR7 a): "If the current report group is a report heading, the
       *> minimum last line number of the report group plus integer-2 shall be less than the FIRST DETAIL
       *> integer." The heading's last line is 3, integer-2 is 2, FIRST DETAIL is 5: 3 + 2 is not less.
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NRR.
        ENVIRONMENT DIVISION.

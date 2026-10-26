@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 §14.9.37.3 SR4 (ALL FORMATS): "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase
 *> shall not be specified." Format 2 arm - the SECOND arm of the same rule (both formats reach one check, so
-*> they cannot disagree). Every edition refuses. COBOLNET2409 (kb/Work PB444).
+*> they cannot disagree). Every edition refuses. COBOL2409 (kb/Work PB444).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB444ESNS2.
        DATA DIVISION.

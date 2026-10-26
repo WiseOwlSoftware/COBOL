@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// PERFORM Format 3 (exception-checking, ISO §14.9.28 Format 3, COBOL-2023) conformance tests: the §14.9.28.3
-/// syntax rules + cross-statement bans (COBOLNET1597-1617), the COBOLNET0900 introduction gate, and the LANDED
+/// syntax rules + cross-statement bans (COBOL1597-1617), the COBOL0900 introduction gate, and the LANDED
 /// runtime interceptor (the pc-range interceptor — at 2023 a well-formed F3 PERFORM compiles clean and runs, in a
 /// program AND inside an OO method [design §9.10]; the open-mode WHEN operand + F3-in-a-method sub-GAPs are LANDED).
 /// The runtime BEHAVIOUR is verified in PerformFormat3BehaviorTests (program) + PerformFormat3MethodBehaviorTests
@@ -40,43 +40,43 @@ public sealed class PerformFormat3Tests
 
     [Fact] // PF3-STRUCT-WHEN-REQUIRED
     public void NoWhenPhrase_Rejected1597() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1597");
+        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1597");
 
     [Fact] // PF3-SR15 — a duplicate exception-name without a distinct file-name
     public void DuplicateExceptionName_Rejected1600() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"a\"\n    WHEN EC-SIZE DISPLAY \"b\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1600");
+        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"a\"\n    WHEN EC-SIZE DISPLAY \"b\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1600");
 
     [Fact] // PF3-SR15 — a BARE exception-name coexisting with a FILE-paired instance of the SAME name (a bare
            //           occurrence is not "in conjunction with a file-name", so the repeat is illegal).
     public void BareAndFilePairedSameName_Rejected1600() =>
-        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1613");
+        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1613");
 
     [Fact] // XS-CLOSE-MULTI (region A — imperative-statement-1 only)
     public void MultiFileCloseInImp1_Rejected1612() =>
-        AssertRejects(ProgFiles("    PERFORM\n        CLOSE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1612");
+        AssertRejects(ProgFiles("    PERFORM\n        CLOSE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1612");
 
     [Fact] // XS-INITIALIZE-DUP (region A)
     public void InitializeDupInImp1_Rejected1614() =>
-        AssertRejects(Prog("    PERFORM\n        INITIALIZE N N\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1614");
+        AssertRejects(Prog("    PERFORM\n        INITIALIZE N N\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1614");
 
     [Fact] // XS-OPEN-DUP (region A)
     public void OpenDupInImp1_Rejected1616() =>
-        AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 F1\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
+        AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 F1\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1616");
 
     // kb/Work PB330 / PB417 — §14.9.27.3 SR3 and §14.9.20.3 SR2 ban the MULTI-OPERAND statement (their own
     // §14.9.27.4 GR20 / §14.9.20.4 GR3 say "more than one file-name / identifier-1 is specified"), so two
     // DIFFERENT operands are rejected too, across open-mode groups as well as inside one.
     [Fact]
     public void MultiFileOpenInImp1_Rejected1616() =>
-        AssertRejects(ProgFiles("    PERFORM\n        OPEN OUTPUT F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
+        AssertRejects(ProgFiles("    PERFORM\n        OPEN OUTPUT F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1616");
 
     [Fact]
     public void MultiGroupOpenInImp1_Rejected1616() =>
-        AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 OUTPUT F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
+        AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 OUTPUT F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1616");
 
     [Fact]
     public void MultiIdentifierInitializeInImp1_Rejected1614() =>
-        AssertRejects(Prog("    PERFORM\n        INITIALIZE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1614");
+        AssertRejects(Prog("    PERFORM\n        INITIALIZE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1614");
 
     [Fact] // the ban is region A only: one operand in imp-1, several in a WHEN body, compile clean
     public void SingleOperandInImp1_MultiInWhenBody_Accepted()
@@ -101,24 +101,24 @@ public sealed class PerformFormat3Tests
             "WORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\n" +
             "PROCEDURE DIVISION.\nMAIN.\n" +
             "    PERFORM\n        SORT SF ON ASCENDING KEY SK USING F1 GIVING F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN.\n";
-        AssertRejects(src, "COBOLNET1617");
+        AssertRejects(src, "COBOL1617");
     }
 
     [Fact] // XS-VALIDATE-MULTI (region B) — VALIDATE naming >1 identifier
     public void MultiIdentifierValidate_Rejected1607() =>
-        AssertRejects(Prog("    PERFORM\n        VALIDATE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1607");
+        AssertRejects(Prog("    PERFORM\n        VALIDATE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1607");
 
     [Fact] // XS-DELETE-FILE-MULTI (region A) — went LIVE with PB134's Format-2 DELETE FILE grammar (§14.9.10.3 SR4)
     public void MultiFileDeleteInImp1_Rejected1613() =>
-        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1613");
+        AssertRejects(ProgFiles("    PERFORM\n        DELETE FILE F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL1613");
 
     [Fact] // XS-RESUME-PLACEMENT — RESUME NEXT STATEMENT in imperative-statement-1 (not a WHEN phrase) → 0712
     public void ResumeNextInImp1_Rejected0712() =>
-        AssertRejects(Prog("    PERFORM\n        RESUME NEXT STATEMENT\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET0712");
+        AssertRejects(Prog("    PERFORM\n        RESUME NEXT STATEMENT\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOL0712");
 
     [Fact] // XS-GOTO — region C includes WHEN OTHER (not just the ordinary WHEN)
     public void GoToInWhenOther_Rejected1608() =>
-        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER GO TO SKIP\n    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE."), "COBOLNET1608");
+        AssertRejects(Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER GO TO SKIP\n    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE."), "COBOL1608");
 
     // ── Region discrimination: the imp-1-only bans do NOT fire in a WHEN body; the imp-2..5 bans do NOT fire in imp-1. ──
 
@@ -127,7 +127,7 @@ public sealed class PerformFormat3Tests
     {
         var (_, diag) = EditionHarness.Compile(
             ProgFiles("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE CLOSE F1 F2\n    END-PERFORM.\n    STOP RUN."), 2023);
-        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET1612");   // CLOSE-multi is region A (imp-1) only
+        EditionHarness.AssertNoDiagnostic(diag, "COBOL1612");   // CLOSE-multi is region A (imp-1) only
     }
 
     [Fact]
@@ -135,10 +135,10 @@ public sealed class PerformFormat3Tests
     {
         var (_, diag) = EditionHarness.Compile(
             Prog("    PERFORM\n        RAISE EXCEPTION EC-BOUND-SUBSCRIPT\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), 2023);
-        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET1611");   // RAISE is legal in imperative-statement-1
+        EditionHarness.AssertNoDiagnostic(diag, "COBOL1611");   // RAISE is legal in imperative-statement-1
     }
 
-    // ── Version gate (COBOLNET0900) + the staged-runtime disposition (COBOLNET0899). ──
+    // ── Version gate (COBOL0900) + the staged-runtime disposition (COBOL0899). ──
 
     [Theory]
     [InlineData(85)]
@@ -149,9 +149,9 @@ public sealed class PerformFormat3Tests
         var (ok, diag) = EditionHarness.Compile(
             Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
         // Below 2023 the introduction gate (0900) fires; the staged-runtime 0899 is suppressed (mutual exclusivity).
-        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(diag, "COBOL0899");
     }
 
     // ── Landed runtime: at 2023 a well-formed F3 PERFORM compiles clean (the pc-range interceptor, §9 — the 0899
@@ -163,7 +163,7 @@ public sealed class PerformFormat3Tests
         var (ok, diag) = EditionHarness.Compile(
             Prog("    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), 2023);
         Assert.True(ok, "the exception-checking PERFORM runtime has landed — it compiles at 2023: " + string.Join("\n", diag));
-        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(diag, "COBOL0899");
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class PerformFormat3Tests
             Prog("    PERFORM WITH LOCATION\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER EXCEPTION DISPLAY \"o\"\n    FINALLY DISPLAY \"f\"\n    END-PERFORM.\n    STOP RUN."), 2023);
         Assert.True(ok, string.Join("\n", diag));
         foreach (var code in new[] { "0899", "1597", "1598", "1599", "1600", "1601", "1604", "1608", "1610", "1611" })
-            EditionHarness.AssertNoDiagnostic(diag, "COBOLNET" + code);
+            EditionHarness.AssertNoDiagnostic(diag, "COBOL" + code);
     }
 
     // ── Continuity: a paragraph named LOCATION + `PERFORM LOCATION` (out-of-line) compiles below 2023. ──

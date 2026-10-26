@@ -11,7 +11,7 @@
       *> listed") is a COBOL-2002 introduction (constructs row
       *> copy-suppress-2002, VCR row 7.44; kb/Work PB1601): ANSI
       *> X3.23-1985's COPY has no such phrase. The statement below draws
-      *> COBOLNET0900 at --std 85; the positive twin at 2002 is
+      *> COBOL0900 at --std 85; the positive twin at 2002 is
       *> pb1354_copy_header_2002.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1601SP.

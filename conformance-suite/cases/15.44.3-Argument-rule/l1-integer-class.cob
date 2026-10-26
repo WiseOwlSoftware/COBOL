@@ -17,7 +17,7 @@
       *> fixture catches. The complementary shape — class INDEX, which is also not class numeric — is pinned
       *> by conformance:cases/15.3-Arguments/intrinsic-index-argument, and the ACCEPT side by
       *> conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85 and conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes.
-      *> Expected: COBOLNET1627, the intrinsic-argument-class diagnostic.
+      *> Expected: COBOL1627, the intrinsic-argument-class diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1INTCLASS.
        DATA DIVISION.

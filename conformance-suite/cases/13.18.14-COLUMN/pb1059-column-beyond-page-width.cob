@@ -13,7 +13,7 @@
       *> time, because the operand is a written integer. (The run-time twin for
       *> a line whose FINAL column passes the width is EC-REPORT-PAGE-WIDTH,
       *> 13.18.14.4 GR5.)
-      *> No edition changes the rule, so all four reject, with COBOLNET2710.
+      *> No edition changes the rule, so all four reject, with COBOL2710.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1059N2.
        ENVIRONMENT DIVISION.

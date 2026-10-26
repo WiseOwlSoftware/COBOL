@@ -14,7 +14,7 @@
       *> admit "a report counter identifier or a sum counter defined in the
       *> current report", and conformance-suite/cases/13.18.53-SOURCE/pb852_report_source_expression
       *> exercises that side.  Two clauses, two lines, and each is screened
-      *> against its own rule (COBOLNET2144).
+      *> against its own rule (COBOL2144).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB883N2.
        ENVIRONMENT DIVISION.

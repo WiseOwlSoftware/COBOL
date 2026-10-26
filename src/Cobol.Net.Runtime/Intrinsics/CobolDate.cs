@@ -547,7 +547,7 @@ public static class CobolDate
     /// <summary>§15.40.3 r5 / §15.41.3 r4: "If argument-4 [argument-3] is specified, the magnitude of the value
     /// shall be less than or equal to 1439." The NOTE explains the bound — 1439 minutes is 23 hours 59 minutes,
     /// one minute short of a day.
-    /// <para>⛔ A RUN-TIME check, unlike its §15.40.3 r6 / §15.41.3 r5 sibling (COBOLNET1633, bind time): the
+    /// <para>⛔ A RUN-TIME check, unlike its §15.40.3 r6 / §15.41.3 r5 sibling (COBOL1633, bind time): the
     /// offset is an ordinary numeric argument, so its VALUE is generally not known until execution. It was
     /// enforced NOWHERE — an offset of 5000 minutes formatted a nonsense zone with no exception condition, which
     /// is the fabricated-value failure mode PB11 exists to close, not mere over-acceptance.</para></summary>

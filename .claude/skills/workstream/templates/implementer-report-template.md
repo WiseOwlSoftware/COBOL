@@ -1,7 +1,7 @@
 # {PB} — implementer report (≤ 60 lines; the reviewer and a finisher read every line, so nothing decorative)
 
 **Status:** DONE | SPLIT | PAUSED | GATE-PENDING (+ `**Gate run:** <run directory>`, kb/Work PB3536) · **turns:** N of cap · **worktree:** `<path>` · **branch:** `<branch>` · **base:** `<sha>` · **HEAD:** `<sha>`
-**diffstat:** `git diff --stat <base>..HEAD` last line · **codes used:** COBOLNET#### (unused ones returned: ####)
+**diffstat:** `git diff --stat <base>..HEAD` last line · **codes used:** COBOL#### (unused ones returned: ####)
 
 (The branch reviewer adds `**Review:** CLEAN <reviewer> <head>` under the Status line through `review_findings.py stamp`
 when it has reviewed your DONE branch — MANDATORY-PRACTICES I10, kb/Work PB3027. Never write that line yourself.)

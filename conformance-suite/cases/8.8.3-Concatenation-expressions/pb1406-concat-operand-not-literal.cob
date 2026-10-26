@@ -8,7 +8,7 @@
       *> expression are literal-1 and literal-2. The only words that
       *> stand for a literal are a constant-name (13.10.3 SR2) and a
       *> symbolic-character (12.3.7.4 GR11); W-Y is a data-name, so it
-      *> is not an operand: COBOLNET2473.
+      *> is not an operand: COBOL2473.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1406NLT.
        DATA DIVISION.

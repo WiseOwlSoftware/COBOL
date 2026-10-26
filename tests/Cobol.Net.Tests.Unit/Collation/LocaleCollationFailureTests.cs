@@ -18,7 +18,7 @@ namespace CobolNet.Tests.Unit.Collation;
 /// in <see cref="ResolvedLocaleCollation.Unsupported"/> and the rest of the collation is built. And every consumer
 /// reaches its defined outcome instead of dying: <see cref="CollationEngine.ResolveLocale"/> records the failure over the
 /// root order, <see cref="CollationEngine.TryGetOrderingTable"/> answers false, <see cref="CollationEngine.IsKnownLocale"/>
-/// answers false, <see cref="CollationRuntime.Warmup"/> reports a Warning, and the compiler warns COBOLNET1662 naming the
+/// answers false, <see cref="CollationRuntime.Warmup"/> reports a Warning, and the compiler warns COBOL1662 naming the
 /// file. Before, a malformed site <c>hu.xml</c> crashed the COMPILE of a legal ORDER TABLE program (FormatException) and a
 /// stale <c>de.tailor</c> killed the first run unit at start-up under COBOL_COLLATION_WARMUP (InvalidOperationException).
 /// <para>The site files use the private-use language codes qaa–qad (BCP 47), which no CLDR file and no other test names,
@@ -165,7 +165,7 @@ public sealed class LocaleCollationFailureTests
         var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(site.Path, "ot.dll"),
             DialectLevel: 2023, CheckOnly: true, SourceFormat: InitialReferenceFormat.Auto));
         Assert.True(r.Success, string.Join("; ", r.Errors));
-        Assert.Contains(r.Warnings, w => w.Contains("COBOLNET1662") && w.Contains(file) && w.Contains("negated UnicodeSets"));
+        Assert.Contains(r.Warnings, w => w.Contains("COBOL1662") && w.Contains(file) && w.Contains("negated UnicodeSets"));
     }
 
     private static string Ldml(string language, string rules) =>

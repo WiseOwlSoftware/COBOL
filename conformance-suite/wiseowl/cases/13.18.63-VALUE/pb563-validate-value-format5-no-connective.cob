@@ -11,7 +11,7 @@
 *> { INVALID | VALID } [ WHEN condition-1 ]` - so `VALUES 10 THRU 20 VALID.` is the standard's own spelling,
 *> not a vendor one. The VALIDATE facility is an OPTIONAL element (Annex A.4.14 item 7) whose support this
 *> implementation does not claim (docs/CONFORMANCE.md section 4 item 3, section 5) and which 2023 additionally
-*> makes obsolete (4.2.13; Annex F.2 item 5), so the entry is refused BY NAME - COBOLNET1708 - exactly as its
+*> makes obsolete (4.2.13; Annex F.2 item 5), so the entry is refused BY NAME - COBOL1708 - exactly as its
 *> IS-bearing twin is.
 *> WHY IT EXISTS: `declined-validate-value-format5` and its -anon sibling BOTH write `IS VALID`, so the green
 *> negative corpus was evidence about the spelling it returned and silent about the one it dropped. PB563
@@ -23,7 +23,7 @@
 *> (feedback_green_gates_arent_evidence).
 *> The condition-name is REFERENCED on purpose: that is the half that reached the backend.
 *> 2002+ ONLY: below COBOL-2002 VALID is an ordinary user-defined word (8.9), so `VALUES 10 THRU 20 VALID.`
-*> is an ordinary syntax error there (COBOLNET1639, "the VALUE operand 'VALID' is not a literal") and not this
+*> is an ordinary syntax error there (COBOL1639, "the VALUE operand 'VALID' is not a literal") and not this
 *> decline - which is the edition-correct answer, and pinning 85 here would assert the wrong rule.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB563NC.

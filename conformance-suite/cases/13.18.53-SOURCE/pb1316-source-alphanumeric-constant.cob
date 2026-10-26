@@ -8,7 +8,7 @@
       *> class and category of constant-name-1". The SOURCE operand is `{ identifier-1 | arithmetic-expression-1 }`
       *> (13.18.53.2); a constant-name is not an identifier, and an arithmetic-expression-1 operand may be a NUMERIC
       *> literal only (8.8.1.1), so the ALPHANUMERIC constant KS is no SOURCE operand - and 13.18.53.3 SR3 asks the
-      *> entry of an arithmetic-expression-1 for a numeric item, which PIC X(2) is not. COBOLNET2141.
+      *> entry of an arithmetic-expression-1 for a numeric item, which PIC X(2) is not. COBOL2141.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1316N1.
        ENVIRONMENT DIVISION.

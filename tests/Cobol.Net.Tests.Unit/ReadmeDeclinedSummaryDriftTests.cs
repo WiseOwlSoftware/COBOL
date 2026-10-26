@@ -15,8 +15,8 @@ namespace CobolNet.Tests.Unit;
 ///
 /// <para>⛔ WHY THIS EXISTS (kb/Work PB3134, its review R1-1). The README's list was rewritten by hand to "name every
 /// declined element" and still left out four the tables decline by name: CODE-SET with an alphabet no device encodes
-/// (A.3 item 27, COBOLNET1672), a national collating sequence by literals or LOCALE on a national record key (items
-/// 41–42, COBOLNET1584), CONTINUE AFTER beyond whole seconds (item 8), and the MESSAGE-TAG usage, APPLY COMMIT and
+/// (A.3 item 27, COBOL1672), a national collating sequence by literals or LOCALE on a national record key (items
+/// 41–42, COBOL1584), CONTINUE AFTER beyond whole seconds (item 8), and the MESSAGE-TAG usage, APPLY COMMIT and
 /// VALIDATE's refused halves. A summary presented as the whole set is a claim, and a hand-kept one drifts the day a
 /// row changes; this test is what makes the next row automatic (CLAUDE.md rule 5).</para>
 /// </summary>

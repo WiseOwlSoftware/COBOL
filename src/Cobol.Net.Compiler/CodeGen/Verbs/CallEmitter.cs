@@ -1167,7 +1167,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// `B"10"` into PIC XBX is "1 0"), and a JUSTIFIED one right-justifies — and a plain GROUP formal takes the characters
     /// as §14.9.25.4 GR4's group move does, an alphanumeric copy to the group's image width, space-filled (kb/Work
     /// PB1113). There is no second store of a boolean beside the MOVE's (PB1014: the hand-written one skipped the editing).
-    /// A NUMERIC formal never reaches here: §14.8.2.3.3 rule 2 a) refuses a boolean sender at bind (COBOLNET0828).</para></summary>
+    /// A NUMERIC formal never reaches here: §14.8.2.3.3 rule 2 a) refuses a boolean sender at bind (COBOL0828).</para></summary>
     internal string BooleanArgumentRecord(BoundBoolExpr value, DataItem formal)
     {
         var sender = new BoundBoolOperand(value, AtItemWidth: true);
@@ -1298,7 +1298,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // expression and the cell type derived independently again — which is the precise shape of the defect
         // this method exists to remove.
         if (!NumericLiteral.TryUnscaledParts(literalText, out string unscaled, out int scale))
-            // Not a canonical numeric literal — the binder has already diagnosed it (COBOLNET1661 for an
+            // Not a canonical numeric literal — the binder has already diagnosed it (COBOL1661 for an
             // out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks otherwise). Stage loud rather than
             // emit a cell whose type cannot be derived; never a silent value.
             return $"new CobolArg({RuntimeApi.PassModeText(mode)}, ManagedPointer<string>.Cell("

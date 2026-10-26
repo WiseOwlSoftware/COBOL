@@ -11,7 +11,7 @@
       *> action to be taken, the fatality, and when any of these
       *> exceptions are raised"), and this implementation defines none
       *> (docs/CONFORMANCE.md DOC-A.1-99), so the declarative names no
-      *> exception-name and is refused with COBOLNET0711.
+      *> exception-name and is refused with COBOL0711.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1531N3.
        PROCEDURE DIVISION.

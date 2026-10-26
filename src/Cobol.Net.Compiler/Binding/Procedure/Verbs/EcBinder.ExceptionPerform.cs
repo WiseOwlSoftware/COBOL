@@ -15,8 +15,8 @@ using CobolNet.Runtime;
 /// <summary>
 /// The exception-checking (Format-3) PERFORM binder (ISO §14.9.28 Format 3, COBOL-2023). Produces a
 /// <see cref="BoundExceptionPerform"/> and emits the Format-3 syntax-rule + cross-statement-ban diagnostics
-/// (COBOLNET1597-1617; see <c>docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md</c>). The version
-/// gate (COBOLNET0900, below 2023) is the VersionConformancePass's <c>VisitPerformStatement</c> arm — not here.
+/// (COBOL1597-1617; see <c>docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md</c>). The version
+/// gate (COBOL0900, below 2023) is the VersionConformancePass's <c>VisitPerformStatement</c> arm — not here.
 /// </summary>
 internal sealed partial class EcBinder
 {
@@ -37,7 +37,7 @@ internal sealed partial class EcBinder
         var whenPhrases = p.performWhenPhrase();
         bool withLocation = p.performInlineHead()?.performLocationPhrase()?.LOCATION() is not null;
 
-        // PF3-STRUCT-WHEN-REQUIRED (COBOLNET1597): ≥1 ordinary WHEN — the outer brace is a required group in the
+        // PF3-STRUCT-WHEN-REQUIRED (COBOL1597): ≥1 ordinary WHEN — the outer brace is a required group in the
         // §14.9.28.2 Format-3 general format (PDF-resolved). WHEN OTHER / WHEN COMMON / FINALLY alone is not admitted.
         if (whenPhrases.Length == 0)
             ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformWhenRequired, "an exception-checking (Format-3) PERFORM requires at least one WHEN "
@@ -68,7 +68,7 @@ internal sealed partial class EcBinder
         // An F3 PERFORM inside an OO method binds its handler pc-ranges EXACTLY like a program's (design SSOT §9.10):
         // AddF3Handler records ctx.CurrentMethodScope so StatementBinder.BindMethodRoster stamps each method's
         // contiguous handler sub-range, and OoEmitter emits the method-LOCAL __RunUse/__RunF3 + the two-range
-        // __MDispatch + the entry frame FLOOR. (Formerly rejected loud COBOLNET0899 — the F3StagedInMethodStub gap,
+        // __MDispatch + the entry frame FLOOR. (Formerly rejected loud COBOL0899 — the F3StagedInMethodStub gap,
         // lifted here.)
 
         // imp-2/3/4 (WHEN / OTHER / COMMON bodies) bind IN LEXICAL CONTEXT with InF3When (RESUME-NEXT relaxation)
@@ -149,7 +149,7 @@ internal sealed partial class EcBinder
     }
 
     /// <summary>Resolve ONE WHEN phrase's operands. The mode form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) is a
-    /// STAGED runtime match (COBOLNET0899, §5.4-1). The name/file forms resolve each exception-name against the
+    /// STAGED runtime match (COBOL0899, §5.4-1). The name/file forms resolve each exception-name against the
     /// §14.6.13.1 catalog at ANY level (the USE §14.9.49.4 GR3a-3g tiers select by level — NOT the RAISE level-3-only rule),
     /// enforce SR16 (a FILE-paired name shall begin EC-I-O), and the per-name edition window. Contributes GR14
     /// overlay enables and the SR14/SR15 census.</summary>
@@ -167,8 +167,8 @@ internal sealed partial class EcBinder
             {
                 // The open-mode operand form is IMPLEMENTED, and this comment used to say otherwise (kb/Work
                 // PB595's second finding, re-probed 2026-09-21): it called the runtime match a staged sub-GAP
-                // "covered by the one COBOLNET0899 raised at the top of EcBindExceptionPerform", and no
-                // COBOLNET0899 is raised anywhere on the Format-3 path any more — the F3-in-a-method staged
+                // "covered by the one COBOL0899 raised at the top of EcBindExceptionPerform", and no
+                // COBOL0899 is raised anywhere on the Format-3 path any more — the F3-in-a-method staged
                 // reject that used to raise it was lifted (see above). The match itself lives where §14.9.28.4
                 // GR17 puts it, at the raise site, through the USE tiers ("The rules for determining a match are
                 // specified in General rules 3a to 3g of the USE statement"): ControlFlowEmitter emits this form
@@ -197,7 +197,7 @@ internal sealed partial class EcBinder
             var files = item.fileName();
             if (files.Length > 0 && !ExceptionCatalog.IsIoName(info.Name))
             {
-                // PF3-SR16 (COBOLNET1601): if file-name-2 is specified, exception-name-2 shall begin 'EC-I-O'.
+                // PF3-SR16 (COBOL1601): if file-name-2 is specified, exception-name-2 shall begin 'EC-I-O'.
                 using var at = ctx.Edition.At(item);
                 ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFilePairingNotIo, $"WHEN exception-name '{info.Name}' is paired with FILE but does "
                     + "not begin with the COBOL characters 'EC-I-O' (ISO §14.9.28.3 SR16)");
@@ -224,7 +224,7 @@ internal sealed partial class EcBinder
     private FileModel? ResolveWhenFile(string name)
     {
         if (ctx.Data.FilesByName.TryGetValue(name, out var file)) return file;
-        ctx.Edition.Error("COBOLNET0897", $"WHEN names unknown file '{name}' (ISO §14.9.28.2 Format 3)");
+        ctx.Edition.Error("COBOL0897", $"WHEN names unknown file '{name}' (ISO §14.9.28.2 Format 3)");
         return null;
     }
 
@@ -232,8 +232,8 @@ internal sealed partial class EcBinder
     /// the token a repeat is reported at (the operand itself, not the PERFORM that contains it).</summary>
     private readonly record struct WhenOperandSite(string? Ec, string? File, Antlr4.Runtime.IToken At);
 
-    /// <summary>PF3-SR14 (COBOLNET1599) — a file-name shall not appear more than once across the WHEN phrases
-    /// unless every instance is paired with an exception-name (§14.9.28.3 SR14). PF3-SR15 (COBOLNET1600) — an
+    /// <summary>PF3-SR14 (COBOL1599) — a file-name shall not appear more than once across the WHEN phrases
+    /// unless every instance is paired with an exception-name (§14.9.28.3 SR14). PF3-SR15 (COBOL1600) — an
     /// exception-name shall appear only once unless each occurrence pairs a DIFFERENT file-name (§14.9.28.3
     /// SR15). Each rule is a predicate over one name's instances; a group that breaks it is reported once, at its
     /// <see cref="FirstOffender"/>.</summary>
@@ -307,7 +307,7 @@ internal sealed partial class EcBinder
         var regionB = regionA.Concat(regionD).ToList();
 
         // ── Region B (whole PERFORM) ──
-        // ⛔ XS-EXIT-PERFORM-CYCLE (COBOLNET1604, §14.9.14.3 SR8 sentence 2) IS NO LONGER CHECKED HERE, and its
+        // ⛔ XS-EXIT-PERFORM-CYCLE (COBOL1604, §14.9.14.3 SR8 sentence 2) IS NO LONGER CHECKED HERE, and its
         // ExitCyclesOfThisPerform walker is gone (kb/Work PB403). SR8 is ONE syntax rule about the EXIT PERFORM
         // statement — "may be specified only in an inline or exception-checking PERFORM statement. The CYCLE
         // phrase shall not be specified within an exception-checking PERFORM statement" — and it is now enforced

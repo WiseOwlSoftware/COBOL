@@ -273,11 +273,11 @@ public abstract class VersionMatrixTestsBase<TSlot>
         Assert.True(ok, $"[{constructId}] must COMPILE at COBOL-{edition} (archaic ≠ removed): {string.Join("\n", errors)}");
         if (edition >= c.ObsoleteIn)
         {
-            EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
+            EditionHarness.AssertHasDiagnostic(warnings, "COBOL0903");
         }
         else
         {
-            EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+            EditionHarness.AssertNoDiagnostic(warnings, "COBOL0903");
         }
     }
 
@@ -295,7 +295,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     /// <see cref="NistDifferentialTestsBase{TSlot}.NistProgram_MatchesGolden"/>. A program that compiles at 85 must
     /// STILL compile at each later edition **UNDER PERMISSIVE** — a permissive break is a regression. Under STRICT a
     /// rejection is legitimate (the removed '85 elements every NIST program carries — LABEL RECORDS in every FD, …)
-    /// but must trace to a recognized edition-band code (COBOLNET08xx/09xx), never a generic parse error. Uses
+    /// but must trace to a recognized edition-band code (COBOL08xx/09xx), never a generic parse error. Uses
     /// <c>CheckOnly</c> (parse + edition-validate + bind, no Roslyn backend — the verdict is settled pre-backend,
     /// DEVLOG 627).</summary>
     [Theory]
@@ -315,7 +315,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
         {
             Assert.True(strictDiag.Any(d => VersionMatrixTests.EditionBandCode.IsMatch(d)),
                 $"[INV-1 diagnosis] {testName} strict@COBOL-{edition} was rejected WITHOUT a recognized edition-band "
-                + "code (COBOLNET08xx/09xx):\n" + string.Join("\n", strictDiag));
+                + "code (COBOL08xx/09xx):\n" + string.Join("\n", strictDiag));
         }
     }
 }
@@ -368,15 +368,15 @@ public sealed class VersionMatrixTests_P11 : VersionMatrixTestsBase<Slot11>;
 public sealed class VersionMatrixTests
 {
     /// <summary>A recognized edition diagnostic (the 0900–0903 band or any pinned 08xx gate, plus the 15xx
-    /// conformance-requirement band) — as opposed to a generic <c>COBOL0001</c> parse error. The point is "a COBOLNET
+    /// conformance-requirement band) — as opposed to a generic <c>COBOL0001</c> parse error. The point is "a COBOL####
     /// code diagnosed the edition delta." The 15xx band is included because a version-conditioned structural SR read
     /// directly in the binder (the CheckDigitCapacity/binder-reads-edition doctrine — e.g. VCR 18/31's external-file
-    /// FILE-STATUS/RELATIVE-KEY consistency, COBOLNET1573/1575) reports in that band, not 08xx/09xx: for a CONTINUITY
+    /// FILE-STATUS/RELATIVE-KEY consistency, COBOL1573/1575) reports in that band, not 08xx/09xx: for a CONTINUITY
     /// witness (green at 85 by construction), ANY 15xx ERROR surfacing only at a later edition is necessarily
     /// edition-conditioned — an edition-invariant 15xx SR would have errored at 85 too and excluded the program from
     /// the green set — so it is a legitimate recognized-edition rejection, never a generic parse error.</summary>
     internal static readonly System.Text.RegularExpressions.Regex EditionBandCode =
-        new(@"COBOLNET(0[89]|15)\d\d", System.Text.RegularExpressions.RegexOptions.Compiled);
+        new(@"COBOL(0[89]|15)\d\d", System.Text.RegularExpressions.RegexOptions.Compiled);
 
     /// <summary>Every pending row must carry its activation contract: an owning-phase note in the description
     /// and edition metadata good enough to freeze — pending is a scheduling state, never a metadata hole.</summary>
@@ -408,9 +408,9 @@ public sealed class VersionMatrixTests
         Assert.True(ok85, "ST101A must compile at --std 85");
         var (ok, diagnostics) = EditionHarness.CompileNist("ST101A", 2023);
         Assert.False(ok, "ST101A's removed '85 elements must be rejected at COBOL-2023 strict");
-        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0902"));   // the FD LABEL RECORDS gate
+        Assert.Contains(diagnostics, d => d.Contains("COBOL0902"));   // the FD LABEL RECORDS gate
         // Both removed elements surface in the ONE validator pass now that the SD DATA RECORDS 0873 gate
         // migrated validator-side (P2.6 / Table-7 row 7.1 — the fail-fast no longer hides it behind Emit).
-        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0873"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOL0873"));
     }
 }

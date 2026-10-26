@@ -9,10 +9,10 @@
       *> from the absolute value of the negative value farthest from zero, the SIGN phrase shall be specified."
       *> A PIC S9(4) COMP-5 item owns its 2-byte container's whole two's-complement range (CONFORMANCE.md DOC-A.1-208),
       *> -32768 .. 32767, so |min| is not |max| and GR32 a)'s "the value farthest away from zero permitted by the
-      *> specifications of identifier-14" names two different magnitudes. COBOLNET1939 (kb/Work PB452).
+      *> specifications of identifier-14" names two different magnitudes. COBOL1939 (kb/Work PB452).
       *> The same statement WITH the phrase is legal and appears in 2014/pb452_set_content_numeric lines K and L.
       *> Rejected at 2014 and 2023 only because the format itself is a 2014 addition: below that the statement
-      *> draws the introduction diagnostic COBOLNET0900 instead (constructs.json set-numeric-content-2014).
+      *> draws the introduction diagnostic COBOL0900 instead (constructs.json set-numeric-content-2014).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB452SIGNREQUIRED.
        DATA DIVISION.

@@ -10,7 +10,7 @@
       *>   cite.py --check 13.18.44.3 "without intervening entries that define new storage areas" -> OK  10)
       *> The REDEFINES rules are about the entries as WRITTEN, and a type declaration is written whether or not any
       *> entry says TYPE T: the declaration is where T's members are diagnosed. TYPEDEF is a 2002 clause, so the rule
-      *> is asked from 2002. COBOLNET2739.
+      *> is asked from 2002. COBOL2739.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2518N3.
        DATA DIVISION.

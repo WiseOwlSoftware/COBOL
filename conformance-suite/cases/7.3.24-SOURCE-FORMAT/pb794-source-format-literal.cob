@@ -17,7 +17,7 @@
       *>
       *> It is the spelling GnuCOBOL rejects and this compiler ACCEPTED at battery #62
       *> (run_extensions:5006, AGREE_REJECT -> WE_ACCEPT_THEY_REJECT), which is how the
-      *> defect surfaced. Expected: COBOLNET1911.
+      *> defect surfaced. Expected: COBOL1911.
        >>SOURCE FORMAT "literal"
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB794NL.

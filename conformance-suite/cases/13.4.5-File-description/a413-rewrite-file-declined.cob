@@ -7,7 +7,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 Annex A.4.13 item 1) "REWRITE FILE file-name-1 (14.9.35)" - the REWRITE twin, refused by
-*> name with COBOLNET1706 from the SAME binder site as its WRITE sibling. Before 2026-09-02 the two arms
+*> name with COBOL1706 from the SAME binder site as its WRITE sibling. Before 2026-09-02 the two arms
 *> diverged: WRITE FILE compiled and ran, REWRITE FILE compiled clean and deferred to a RUN-TIME
 *> NotImplemented throw whose interpolated record name was EMPTY. One construct, two arms, two postures,
 *> neither of them the documented one - which is why these two fixtures land as a PAIR.

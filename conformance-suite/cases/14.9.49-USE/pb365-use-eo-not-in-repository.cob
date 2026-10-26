@@ -15,7 +15,7 @@
 *> named the wrong condition out loud ("does not name a class of the compilation group").
 *>
 *> Rejected at 2002/2014/2023 — every edition at which Format 4 exists.  Below 2002 the FORMAT does not exist
-*> and its introduction gate (COBOLNET0876, use-after-exception-object-2002) answers first with a different
+*> and its introduction gate (COBOL0876, use-after-exception-object-2002) answers first with a different
 *> code, which is why 85 is not listed.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB365NOREP.

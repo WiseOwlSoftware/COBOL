@@ -8,7 +8,7 @@
       *> and integer-5, if both are present, shall be greater than integer-4." FROM 3 TO 2 is not. The template has no
       *> storage (ISO 13.18.58.4 GR2) and no TYPE clause references it, but a syntax rule binds the source as written
       *> (ISO 4.3). Before kb/Work PB2548 the OCCURS DYNAMIC resolver walked the storage forest only, so this compiled
-      *> clean. (OCCURS DYNAMIC is COBOL-2014; below it COBOLNET0900 refuses the clause itself.)
+      *> clean. (OCCURS DYNAMIC is COBOL-2014; below it COBOL0900 refuses the clause itself.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2548DYN.
        DATA DIVISION.

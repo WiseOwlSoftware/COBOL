@@ -9,7 +9,7 @@
       *> leftmost character of the literal", and a space is a separator (§8.3.5 1)), so
       *> `- 5` is a sign and then the literal 5 — not the literal -5 — and a VALUE
       *> position admits no expression. It used to be taken silently as -5 (C1 true for
-      *> B = -5); now COBOLNET2155.
+      *> B = -5); now COBOL2155.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1445CV.
        DATA DIVISION.

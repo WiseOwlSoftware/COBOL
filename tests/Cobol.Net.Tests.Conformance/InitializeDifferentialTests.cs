@@ -210,6 +210,6 @@ public sealed class InitializeDifferentialTests
                 DISPLAY G5.
             """), 85);
         Assert.False(ok, "INITIALIZE … WITH FILLER must be rejected at --std 85 (introduced by ISO/IEC 1989:2002)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0830");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0830");
     }
 }

@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.18.37.3 SR6 b): "If the current report group is a body group, integer-1
       *> shall lie between the FIRST DETAIL integer and the FOOTING integer, inclusive." FIRST DETAIL 5,
       *> integer-1 3.
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NBR.
        ENVIRONMENT DIVISION.

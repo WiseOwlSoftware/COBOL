@@ -10,7 +10,7 @@
       *> is an identifier (8.4.3.1.2 Format 1; the word FUNCTION may be omitted for a repository function, 8.4.3.2.3
       *> SR2), and it references "the unique data item that results from the evaluation of a function" (8.4.3.2.1),
       *> a temporary of the RETURNING item's class and category. The CALL binder bound it as arithmetic-expression-1
-      *> and 8.8.1.1 refused every function that does not return a number ("not a numeric operand", COBOLNET0844) --
+      *> and 8.8.1.1 refused every function that does not return a number ("not a numeric operand", COBOL0844) --
       *> an object reference, a pointer, and even an alphanumeric intrinsic. It is a sending temporary instead:
       *>   BY CONTENT / keyword-less in Format 2 (14.9.4.4 GR9 a)2: it is in no file, working-storage, local-storage
       *>   or linkage section, so SR3 is not met and BY CONTENT is assumed), BY VALUE (SR22: numeric, object and

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1551 - at COBOL-85 SELF is no reserved word (8.9 reserves it
       *> from 2002) and there is no predefined object reference: a program that
-      *> does not DECLARE it references nothing (8.4.2.1, COBOLNET1639). The
+      *> does not DECLARE it references nothing (8.4.2.1, COBOL1639). The
       *> receiving superset parse must not answer with 8.4.3.8.3 SR2, a rule
       *> about an identifier the edition does not have.
        IDENTIFICATION DIVISION.

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1407. ISO 8.4.3.11.3 SR6: "Identifier-1 shall not reference a dynamic-length elementary item, an
       *> element of a dynamic-capacity table, an item subordinate to a dynamic-capacity table, or an item subordinate to a
-      *> group that contains a dynamic-length elementary item." Each shape below is refused COBOLNET2785: the dynamic-length
+      *> group that contains a dynamic-length elementary item." Each shape below is refused COBOL2785: the dynamic-length
       *> item (D1), its sibling under the group that contains it (D2), an element of a dynamic-capacity table (TE) and an
       *> item under a dynamic-capacity table (TG-A). A fixed item beside them (F1) is addressed in the same statement.
        IDENTIFICATION DIVISION.

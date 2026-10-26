@@ -168,13 +168,13 @@ public sealed class ClauseCardinalityDriftTests : CobolNetTestBase
             ],
             cobol85.Sequence!);
         Assert.Contains(typeof(Core.CharacterClassificationClauseContext), cobol85.Repeatable);
-        Assert.False(cobol85.ChoiceIndicators);   // three separate brackets: COBOLNET2423, not the choice-indicator reader
+        Assert.False(cobol85.ChoiceIndicators);   // three separate brackets: COBOL2423, not the choice-indicator reader
         foreach (int year in new[] { 2002, 2014, 2023 })
         {
             var figure = row.At(year);
             Assert.Same(row, figure);
             Assert.Null(figure.Sequence);   // choice indicators: any order
-            Assert.True(figure.ChoiceIndicators);   // 5.2.6.4: a repeat is the one choice-indicator reader's COBOLNET2104
+            Assert.True(figure.ChoiceIndicators);   // 5.2.6.4: a repeat is the one choice-indicator reader's COBOL2104
             Assert.DoesNotContain(typeof(Core.ProgramCollatingSequenceClauseContext), figure.Repeatable);
             Assert.DoesNotContain(typeof(Core.CharacterClassificationClauseContext), figure.Repeatable);
         }
@@ -182,7 +182,7 @@ public sealed class ClauseCardinalityDriftTests : CobolNetTestBase
 
     /// <summary>⛔ A CHOICE-INDICATOR FIGURE IS ORDER-FREE (ISO §5.2.6.4: "The alternatives may be specified in any order").
     /// A figure flagged <see cref="ClauseList.ChoiceIndicators"/> is reported through the one choice-indicator reader
-    /// (COBOLNET2104), whose message grants that licence, so it can never also carry a fixed
+    /// (COBOL2104), whose message grants that licence, so it can never also carry a fixed
     /// <see cref="ClauseList.Sequence"/> (kb/Work PB3133, review R1-1).</summary>
     [Fact]
     public void EveryChoiceIndicatorFigure_IsOrderFree()

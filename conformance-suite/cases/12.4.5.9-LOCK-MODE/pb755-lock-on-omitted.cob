@@ -12,7 +12,7 @@
       *> Measured on printed page 355 / folio 325: ON's box 311.09-325.35 carries a rule at 312.52-324.43
       *> (83.5% cover). Only the outer bracket makes the whole phrase omittable and only the inner one
       *> makes MULTIPLE omittable; neither touches ON, so `WITH LOCK MULTIPLE RECORDS` is a syntax error at
-      *> every edition that has the clause (below 2002 the clause itself draws COBOLNET0900).
+      *> every edition that has the clause (below 2002 the clause itself draws COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB755N.
        ENVIRONMENT DIVISION.

@@ -28,7 +28,7 @@
       *> (ACCEPT and DISPLAY screen handling) is recorded "Not claimed" in docs/CONFORMANCE.md, and Annex
       *> A.4.1 admits an optional element's syntax "only when support for that language element is claimed
       *> by the implementor" — so screen-name-1, the AT LINE/COLUMN phrase and the [NOT] ON EXCEPTION pair
-      *> are refused BY NAME (COBOLNET1707), witnessed by conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal
+      *> are refused BY NAME (COBOL1707), witnessed by conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal
       *> and conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-positioned.
       *>
       *> DERIVED OUTPUT:

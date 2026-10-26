@@ -8,7 +8,7 @@
       *> conformance rules are those of a COMPUTE with the argument as
       *> the sending operand, and a boolean value is not a numeric
       *> sending operand. The BY CONTENT boolean literal into the PIC 9(4)
-      *> method formal is COBOLNET0828, so the boolean argument record
+      *> method formal is COBOL0828, so the boolean argument record
       *> (CallEmitter.BooleanArgumentRecord) never has a numeric formal to
       *> fill: the MOVE receiving store it routes through has no numeric
       *> arm for a boolean sender.

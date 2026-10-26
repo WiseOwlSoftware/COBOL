@@ -17,7 +17,7 @@
       *>   Format 9  §14.9.39.3 SR21  identifier-8 of category program-pointer
       *>   Format 1  §14.9.39.3 SR2   "Identifier-2 shall reference a data item of class index"
       *> The bare-reference sniff (OoExtractBareReference) answered null for all three shapes, so each format saw "no
-      *> identifier" and refused the sender as a literal or an arithmetic expression (COBOLNET0867 / 0869).
+      *> identifier" and refused the sender as a literal or an arithmetic expression (COBOL0867 / 0869).
       *> (Format 8, the function-pointer twin, is 2014 and has its own golden:
       *> 2014/pb1929_set_function_pointer_function_sender.)
       *> EXPECTED OUTPUT, derived line by line:

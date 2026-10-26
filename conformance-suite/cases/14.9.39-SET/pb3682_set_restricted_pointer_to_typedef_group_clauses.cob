@@ -15,7 +15,7 @@
       *>   The pointer's restriction names the type declaration itself (the TEMPLATE) and WA's type is the declaration its TYPE
       *>   clause copied, and the §8.5.3.1 comparison reads both forms by the same characteristics. The usage walk and the SIGN
       *>   walk reached the copies and never the template, so the template's members kept the default usage and sign and the
-      *>   same type was refused as two (COBOLNET0869).
+      *>   same type was refused as two (COBOL0869).
       *>   Each leg can fail: any of the three SET statements is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P3682N.

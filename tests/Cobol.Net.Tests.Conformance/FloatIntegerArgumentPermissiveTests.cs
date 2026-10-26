@@ -19,7 +19,7 @@ namespace CobolNet.Tests.Conformance;
 /// COMP-2 one; the two could not both be right. Re-derived, §15.3 type 6 admits "an arithmetic expression that
 /// will always result in an integer value <b>or</b> an integer data item" (--check verified) and a floating-point
 /// item is neither — §14.6.8.3 sets its content to "the algebraic value of the sending operand", so its DECLARED
-/// value set contains non-integers whatever a given reference holds. Strict now rejects (COBOLNET1627), and the
+/// value set contains non-integers whatever a given reference holds. Strict now rejects (COBOL1627), and the
 /// four <c>negative/pb248-*</c> fixtures pin that.
 /// </para>
 /// <para>
@@ -96,7 +96,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
         string src = which == nameof(Pb21Program) ? Pb21Program : Pb2ModProgram;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
         EditionHarness.AssertHasDiagnostic(errors, "floating-point numeric data item");
     }
 
@@ -111,7 +111,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Pb21Program, 2023, permissive: true);
         Assert.True(ok, $"--permissive must accept the coercion: {string.Join("\n", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb21Program, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -136,7 +136,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(Pb2ModProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb2ModProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -179,7 +179,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(Pb254TotalDateProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb254TotalDateProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -200,7 +200,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Pb254TotalDateProgram, 2023);
         Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
     }
 
     /// <summary>
@@ -256,7 +256,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Pb635FindStringProgram, 2023, permissive: true);
         Assert.True(ok, $"--permissive must accept the coercion: {string.Join("\n", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb635FindStringProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -308,7 +308,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Pb651FractionProgram, 2023, permissive: true);
         Assert.True(ok, $"--permissive must accept the coercion: {string.Join("\n", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb651FractionProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -369,7 +369,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Pb651PastTheCarrierProgram, 2023, permissive: true);
         Assert.True(ok, $"--permissive must accept the coercion: {string.Join("\n", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb651PastTheCarrierProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -385,7 +385,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Pb635FindStringProgram, 2023);
         Assert.False(ok, "a floating-point operand at an ISO §15.3 type-6 position is not conforming");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
         EditionHarness.AssertHasDiagnostic(errors, "FUNCTION FIND-STRING argument-3");
     }
 }

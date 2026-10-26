@@ -15,7 +15,7 @@
       *> entries ... and in level 1 type declarations") forbid the same
       *> entry; this witness pins the COMBINATION SR3 names, which
       *> pb488-typedef-subordinate (TYPEDEF without EXTERNAL) does not.
-      *> Expected diagnostic: COBOLNET1529 type-declaration-shape
+      *> Expected diagnostic: COBOL1529 type-declaration-shape
       *> (docs/DIAGNOSTICS.md: "a type declaration at the wrong level or
       *> under another entry").
        IDENTIFICATION DIVISION.

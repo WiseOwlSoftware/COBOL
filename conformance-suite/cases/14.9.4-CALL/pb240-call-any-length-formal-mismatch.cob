@@ -8,7 +8,7 @@
       *> CALL by 14.9.4.3 SR25: "If the argument is described with the ANY
       *> LENGTH clause, the corresponding formal parameter shall be described
       *> with the ANY LENGTH clause." L (ANY LENGTH) crosses BY REFERENCE to
-      *> a fixed PIC X(6) formal - COBOLNET1688. (The converse - a fixed
+      *> a fixed PIC X(6) formal - COBOL1688. (The converse - a fixed
       *> argument meeting an ANY LENGTH formal - is rule d)'s legal case.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB240NM.

@@ -18,7 +18,7 @@
       *>   is prohibited, ſ
       *> (U+017F LATIN SMALL LETTER LONG S), because its invariant
       *>   uppercase is the picture
-      *> letter S excluded by SR22 b); it is refused with COBOLNET0891.
+      *> letter S excluded by SR22 b); it is refused with COBOL0891.
       *>   The bare
       *> single-character form exists in every edition, so every edition
       *>   rejects.

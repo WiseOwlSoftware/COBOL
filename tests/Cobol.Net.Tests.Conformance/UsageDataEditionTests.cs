@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// EXACT-COUNT witnesses for the Step-14g.1 data-attribute USAGE / PICTURE-category introduction gates — relocated
 /// from the bind-time <c>PictureAnalyzer.ParseUsage</c>/<c>Analyze</c> Checks to the post-bind <c>VersionConformancePass</c>
 /// <c>GateData</c> enumerator (keyed on the RESOLVED item). The version matrix + the contains-based conformance suite
-/// verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOLNET0900 per SOURCE declaration — which a
+/// verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOL0900 per SOURCE declaration — which a
 /// contains-based assertion cannot catch. They guard the three dedup hazards the recon flagged: (1) the dual
 /// USAGE-clause vs PICTURE analysis paths must not double-fire; (2) a TYPE-clause CLONE + a compiler temp share the
 /// source item's <c>PicInfo</c> by reference and must NOT be gated (the once-per-source gate fired on the template);
@@ -20,7 +20,7 @@ public sealed class UsageDataEditionTests
     private static int Count0900(string source, int edition, string whereFragment)
     {
         var (_, errors, _) = EditionHarness.CompileFull(source, edition);
-        return errors.Count(e => e.Contains("COBOLNET0900", StringComparison.OrdinalIgnoreCase)
+        return errors.Count(e => e.Contains("COBOL0900", StringComparison.OrdinalIgnoreCase)
             && e.Contains(whereFragment, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -36,7 +36,7 @@ public sealed class UsageDataEditionTests
         """;
 
     /// <summary>One data item of a 2002-introduced USAGE / PICTURE category, at COBOL-85, produces EXACTLY ONE
-    /// COBOLNET0900 naming that item — never two (the dual USAGE-clause + PICTURE analysis paths that both fired
+    /// COBOL0900 naming that item — never two (the dual USAGE-clause + PICTURE analysis paths that both fired
     /// before 14g.1 now resolve to one item, gated once).</summary>
     [Theory]
     [InlineData("01 WITM PIC N(4).")]                  // national (PIC N)

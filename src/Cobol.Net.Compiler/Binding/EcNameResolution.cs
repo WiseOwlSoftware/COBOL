@@ -9,7 +9,7 @@ namespace CobolNet.Binding;
 
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN EXCEPTION-NAME (kb/Work R05). Before it, the unknown-name
-/// diagnostic (COBOLNET0711) and the introduction gate (COBOLNET0878) existed as FOUR verbatim copies each —
+/// diagnostic (COBOL0711) and the introduction gate (COBOL0878) existed as FOUR verbatim copies each —
 /// &gt;&gt;TURN (TurnState), the Format-3 USE builder (ProcedureTableBuilder), the exception-checking PERFORM's
 /// WHEN list (EcBinder.ExceptionPerform), and RAISE / EXIT–GOBACK RAISING (EcBinder) — which is exactly the
 /// shape under which R05's §15.33 width advisory would have been added to one arm of six
@@ -23,10 +23,10 @@ namespace CobolNet.Binding;
 /// </summary>
 internal static class EcNameResolution
 {
-    /// <summary>Resolve a written exception-name: COBOLNET0711 when it is neither in the §14.6.13.1 catalog nor
-    /// a valid EC-USER- name; optionally COBOLNET0710 when a level-1/-2 name stands where
+    /// <summary>Resolve a written exception-name: COBOL0711 when it is neither in the §14.6.13.1 catalog nor
+    /// a valid EC-USER- name; optionally COBOL0710 when a level-1/-2 name stands where
     /// only level-3 is legal (the RAISE/RAISING contexts — checked BEFORE the introduction gate so the level
-    /// error keeps priority for a level-2 name of a later family); COBOLNET0878 when the name's family postdates
+    /// error keeps priority for a level-2 name of a later family); COBOL0878 when the name's family postdates
     /// the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §15.33 width advisory AND the
     /// declined-facility postures (the EC-SCREEN / EC-VALIDATE refusals, the EC-MCS
     /// accept-inert warning), and returns false when it refused.
@@ -57,7 +57,7 @@ internal static class EcNameResolution
         // When the screen module is ever claimed, delete its row exactly as PB64 T1 deleted this one — one rule.
         if (level3 is { } site && info.Level != 3)
         {
-            edition.Error("COBOLNET0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
+            edition.Error("COBOL0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
                 + $"name; only a LEVEL-3 exception-name may be raised ({site.Cite(site.Level3Rule)})");
             return false;
         }
@@ -109,8 +109,8 @@ internal static class EcNameResolution
     /// wave (kb/Work PB260) landed its own predicate for the same job an hour before this one merged —
     /// two mechanisms for "a declined module's exception-names", which is the anti-pattern
     /// (feedback_one_mechanism_per_job). Folded in as one row, carrying its OWN descriptor: the screen
-    /// module is refused under COBOLNET1707 (its statement surface's code, so the negative witnesses keep
-    /// naming the construct) while the A.4.14 and A.4.3 families are refused under COBOLNET1710. The
+    /// module is refused under COBOL1707 (its statement surface's code, so the negative witnesses keep
+    /// naming the construct) while the A.4.14 and A.4.3 families are refused under COBOL1710. The
     /// descriptor also carries whether <c>--permissive</c> moves the refusal, so the row is the only place
     /// a module's posture is written down.
     /// <para>⛔ EC-MCS IS THE ACCEPT-INERT ROW (kb/Work PB374). Its names had the SAME zero-setting-site shape and
@@ -119,7 +119,7 @@ internal static class EcNameResolution
     /// syntactically-detectable processor-dependent language elements not supported by that implementation" — and
     /// not A.4.1's accept-only-when-claimed. Refusing the names would be the wrong posture, not a stricter one, and
     /// an inert reading exists: the facility's own statements (SEND, RECEIVE) are accepted inert under the same
-    /// COBOLNET1578, so they set no EC-MCS condition, and a name that is accepted is still a correct operand of
+    /// COBOL1578, so they set no EC-MCS condition, and a name that is accepted is still a correct operand of
     /// &gt;&gt;TURN, a USE declarative, a WHEN phrase and RAISE — which raises it exactly as for any other level-3 name.
     /// The row is the module's procedure-surface code, as EC-SCREEN's is.</para>
     /// <para>EC-LOCALE-* was in this table until kb/Work PB64 adopted the locale module whole, at which point its
@@ -160,7 +160,7 @@ internal static class EcNameResolution
         return null;
     }
 
-    /// <summary>The §15.33 width advisory (COBOLNET1636, Warning — legal source stays legal): §15.33.3 r1 fixes
+    /// <summary>The §15.33 width advisory (COBOL1636, Warning — legal source stays legal): §15.33.3 r1 fixes
     /// FUNCTION EXCEPTION-STATUS's value at 31 characters while COBOL-2023 words run to 63 (§8.3.2.1) and the
     /// §14.6.13.1.1 open-family suffixes are unbounded, so a level-3 name of 32..63 characters is LEGAL and
     /// indistinguishable from anything sharing its first 31 characters through that ONE function — checking,

@@ -8,7 +8,7 @@
       *>   not be specified in a data description entry that: a) Has a
       *>   level-number of 01, 66, 77, or 88". A is a level-01 entry that
       *>   carries OCCURS, which compiled as a table before the
-      *>   clause-placement table's NotAtLevel row (COBOLNET2404). The
+      *>   clause-placement table's NotAtLevel row (COBOL2404). The
       *>   rule has no version proviso, so it is refused at all four
       *>   editions; the legal spelling puts the table under a group.
       *> cite.py --check 13.18.38.3 "Has a level-number of 01, 66, 77,

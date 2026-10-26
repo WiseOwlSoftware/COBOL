@@ -7,7 +7,7 @@
       *> ISO 13.18.33.3 SR1: "A level-number is required as the first
       *> element in each data description or screen description entry."
       *> The remaining arm of the clause, and the one arm that is enforced
-      *> STRUCTURALLY rather than by the COBOLNET1746 screen: every
+      *> STRUCTURALLY rather than by the COBOL1746 screen: every
       *> grammar rule that spells an entry -- dataDescriptionEntry,
       *> linkageProcedureParameter, reportGroupEntry,
       *> screenDescriptionEntry -- opens with a mandatory levelNumber, so

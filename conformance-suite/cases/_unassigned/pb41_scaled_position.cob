@@ -61,7 +61,7 @@
       *> positions above and did not generalize to every ordinal use of a scaled
       *> item. An OCCURS DEPENDING ON item cannot be scaled at all - 13.18.38.3
       *> SR17 "Data-name-1 shall describe an integer" makes that illegal source,
-      *> which COBOLNET0852 already rejects.
+      *> which COBOL0852 already rejects.
            SET W-IX TO W-S.
            MOVE W-T (W-IX) TO W-R.
            DISPLAY "SETIDX=" W-R.

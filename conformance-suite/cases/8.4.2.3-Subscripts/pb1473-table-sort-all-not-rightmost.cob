@@ -12,7 +12,7 @@
       *>     -> OK §14.9.40.3 13)
       *> E2 lies in R2 OCCURS 2, so `SORT E2(1, ALL)` is the legal spelling (the legal twin is
       *> 2002/pb1055_table_sort_nested_subject, leg 2) while ALL in the FIRST of two positions names no table the
-      *> statement could sort. Each statement is refused (COBOLNET2363); with the nested-subject binding landed
+      *> statement could sort. Each statement is refused (COBOL2363); with the nested-subject binding landed
       *> (kb/Work PB1055) an unscreened ALL would have compiled and sorted, which is why the position is pinned here.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1473NG.

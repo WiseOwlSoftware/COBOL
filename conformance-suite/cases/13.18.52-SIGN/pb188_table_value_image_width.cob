@@ -9,7 +9,7 @@
        PROGRAM-ID. PB188TVW.
       *> kb/Work PB188 — THE WIDTH OF A FORMAT 2 (TABLE) VALUE SEEDED INTO A CHARACTER-IMAGE NUMERIC LEAF.
       *> PB188 landed the fix reasoning that its arm was DEAD: DataBinder.ValidateValueCategory meets a quoted
-      *> literal on a numeric subject first (COBOLNET1657) and either errors or rewrites the raw text to the
+      *> literal on a numeric subject first (COBOL1657) and either errors or rewrites the raw text to the
       *> number, so item.RawValue no longer starts with a quote by the time either seeder sees it.  That was
       *> true of the FORMAT 1 input only.  ValueInitializer.InitializerFor's effRaw is
       *> `item.ValueAt(subs)`, whose Format-2 arm is fed per occurrence by the binder's TableValuePlan from
@@ -29,7 +29,7 @@
       *> clause shall be numeric" - so the quoted `VALUE "012"` this fixture used to write is a violation in
       *> format 2 exactly as in format 1, and it was accepted only because the format-2 screen did not exist.
       *> It exists now (DataBinder.ScreenValueLiteral, one funnel for every format), so the quoted spelling is
-      *> COBOLNET1657 at strict and the numeric store under --permissive - the negative twin is
+      *> COBOL1657 at strict and the numeric store under --permissive - the negative twin is
       *> conformance-suite/cases/13.18.63-VALUE/pb208-table-value-alphanumeric-on-numeric.cob.  THE WIDTH PIN IS
       *> UNCHANGED BY THAT: PB188's whole point was that the CCVS-leniency arm and the numeric arm are ONE
       *> encode (an alphanumeric literal on a numeric item is read AS the numeric literal SR2 asked for), so a

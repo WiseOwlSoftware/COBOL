@@ -102,7 +102,7 @@ reserves a subscript trigger (`PreviousTokenCouldBeDataName`, primed by `TokenRe
 CONSTRUCT GATE at parse time is a D7 defect**, and three remain, all on the declined Annex A.4 surface
 (`CobolDeclined.g4`): `{is2002()}? validationClause`, the INVALID arm of `{is2002()}? validateValidPhrase`, and
 `{is2023()}? applyCommitClause` refuse a construct that has no other reading below its introduction with a bare
-COBOL0001 where this pass should name the edition (COBOLNET0900); moving them waits on a constructs.json row form for
+COBOL0001 where this pass should name the edition (COBOL0900); moving them waits on a constructs.json row form for
 a construct refused by name AT its introduction. DESIGN-architecture-review §8.4 defines the reads by a rule (a
 parser-superclass, lexer or retype-stage member whose body reaches edition state — the parser's `Edition`, an
 `EditionInfo`, or a lexer field primed from one — and every predicate, action, listener or other front-end member that
@@ -172,16 +172,16 @@ that records itself on `EditionContext`: `BoundRejected`, and the operand-level 
 `Report(edition, rule, message, feature)` does both), `Unbuilt` (a legal shape WiseOwl COBOL has not built) or `Carry`
 (the same failure moved to another value channel); `BoundConditionError` has its one site in
 `ConditionBinder.Refused`. The ONE funnel every statement passes, `StatementBinder.BindStatement`, reads the ledger:
-a statement that bound a refusal and drew no error fails the compile with the internal COBOLNET2362 (a refused
-condition keeps COBOLNET2319), and a statement that drew no error announces its `BoundUnsupported` or its first
-unbuilt operand as the COBOLNET1756 warning. ⛔ **THE RESOLVER'S ANSWER IS CLOSED (kb/Work PB1030).**
+a statement that bound a refusal and drew no error fails the compile with the internal COBOL2362 (a refused
+condition keeps COBOL2319), and a statement that drew no error announces its `BoundUnsupported` or its first
+unbuilt operand as the COBOL1756 warning. ⛔ **THE RESOLVER'S ANSWER IS CLOSED (kb/Work PB1030).**
 `ReferenceResolver.Resolve` / `ResolveForItem` (and `ExpressionBinder.ResolveSending`) return a `RefResolution` —
 exactly one of `Place`, `Reported` (the resolver reported the rule: an undefined name, a subscript screen, something in
-a subscript position that is not a subscript — COBOLNET2363, a reference to a refused declaration — COBOLNET2364) or
+a subscript position that is not a subscript — COBOL2363, a reference to a refused declaration — COBOL2364) or
 `Deferred` (a legal shape not built, named by one `DeferredShape` census member). The resolver puts every deferral on
 the unbuilt ledger before any caller sees it, so a caller that drops the answer cannot make it silent, and a caller
 builds its node FROM the answer (`Refusal` / `OperandError` / `ExprError` / `BoolError`; `PlaceOrReported` where the
-caller cannot carry a deferral, which reports it as recognized-not-implemented, COBOLNET0899). The receiving
+caller cannot carry a deferral, which reports it as recognized-not-implemented, COBOL0899). The receiving
 chokepoint `ResolveReceiving` consumes the answer itself and still returns `Place?`, null meaning reported. A data
 reference is IDENTIFIED in one place, `ReferenceResolver.Identify` (kb/Work PB3287): the registers and implicit names,
 the §8.4.2.2 lookup with its one report, the §13.7.3 SR4 LINKAGE screen and the written subscripts; `Resolve` builds the
@@ -328,7 +328,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
   (`ReferenceResolver.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
   §8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
-  COBOLNET1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
+  COBOL1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
   not a reference. *(Rejected: a `name → cell` map de-duplicated on insert — two tables' `INDEXED BY IX` silently
   shared one cell and the qualified form was "not defined", kb/Work PB919.)*
 - **Level-88 → C# `bool` properties** over the parent Place (`Ok => St == 1`); SET cond TO TRUE moves the 88's first
@@ -358,7 +358,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   silently discarded for every image-stored leaf). Both lanes thread the OCCURRENCE CONTEXT — the subscripts of
   the OCCURS levels already entered — so the VALUE may sit on an entry SUBORDINATE to the OCCURS (§13.18.63.3 SR18)
   or span several dimensions, and a GROUP entry's table VALUE deposits §13.18.63.4 GR5's area per occurrence
-  (kb/Work PB505 — one staged COBOLNET0899 used to refuse all three, conforming source included).
+  (kb/Work PB505 — one staged COBOL0899 used to refuse all three, conforming source included).
   **Its literals ride the same screen as a format-1 one**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries
   SRs 10–15 into format 2, so `DataBinder.ScreenTableValueLiterals` calls `DataBinder.ScreenValueLiteral` per
   occurrence-literal at ENTRY BIND — beside the format-1 call site — and stores the text it returns (the
@@ -366,7 +366,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   `item.RawValue`). The Format-1
   glued-multi-literal defect is fixed: `DataBinder.ExtractValue` GLUES a bare multi-operand list via `GetText` over
   the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
-  (COBOLNET1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).
+  (COBOL1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).
 - **A GROUP-level VALUE initializes the AREA, and there is ONE rule that says what the area contains.**
   ISO §13.18.63.4 GR5 — "the group area is initialized without consideration for the individual elementary or group
   items contained within this group" — so the operand's characters are deposited positionally across the group's
@@ -396,7 +396,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   `BitLayout.StartBitWithin`) and the image lane packs the same area through `CobolBits.Pack`. A group that is
   NOT a bit group but has a `USAGE BIT` descendant returns no area at all: it is never conforming source
   (§13.18.63.3 SR14 requires usage DISPLAY of every item subordinate to an alphanumeric group item carrying a
-  VALUE — COBOLNET1702; §13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
+  VALUE — COBOL1702; §13.18.29.3 SR3 requires usage national under a national group), and both lanes stay
   total over that residue.
 - **A bit group's IMAGE is its packed area, never its members' images concatenated**
   (`GroupImageCodec.BitAreaOf` — ONE composition, ridden by the generated `AsBits()`/`FromBits`, by the
@@ -405,7 +405,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   the members' widths — a member whose LEVEL NUMBER differs from its predecessor's is not "of the same level" and
   starts at the next byte.
 - **The group-level VALUE SYNTAX rules are screened at bind time, in one place**
-  (`DataBinder.CheckGroupValueDeclarations` → COBOLNET1702 / COBOLNET1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
+  (`DataBinder.CheckGroupValueDeclarations` → COBOL1702 / COBOL1703; ISO §13.18.63.3 SR1 + SR13/SR14, and
   SR16 extends SR13/SR14 to the format 2 table VALUE). SR1 bars a strongly-typed group item or a variable-length
   group from BEING the subject; SR14 forbids a JUSTIFIED or SYNCHRONIZED subordinate **and** requires every data
   item subordinate to an *alphanumeric* group item carrying a VALUE to be explicitly or implicitly usage DISPLAY;
@@ -437,7 +437,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
      its picture is "one instance of the picture symbol 'N', or 'X'" (§13.18.19.3 SR1)
      and "the picture symbol determines the class" (§13.18.19.4 GR1).
      Passing `pic.Length` there REJECTED LEGAL SOURCE — `01 UN PIC N DYNAMIC LENGTH VALUE
-     N"SEED".` drew COBOLNET0898 while its alphanumeric twin compiled and ran (pinned by
+     N"SEED".` drew COBOL0898 while its alphanumeric twin compiled and ran (pinned by
      `2014/pb206_value_size_categories`).
   2. **The size belongs to the subject KIND, and there are THREE kinds, not two** (kb/Work PB598). Those size
      sentences name an elementary item and a group item; the third subject §13.18.63.3 addresses is a
@@ -446,15 +446,15 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
      (§13.16.2), which admits no PICTURE clause, so nothing EXPLICIT indicates a size, and §13.18.63.4 GR19 gives
      a condition-name its conditional variable's characteristics only IMPLICITLY. While the size was an
      `int? sizePositions` parameter the three level-88 call sites each computed the CONDITIONAL VARIABLE's size
-     and handed it over, so `01 XV PIC X. 88 XC VALUE "cd".` was COBOLNET1740 — legal source rejected, and a
+     and handed it over, so `01 XV PIC X. 88 XC VALUE "cd".` was COBOL1740 — legal source rejected, and a
      GnuCOBOL differential flip. It is now `ValueSubject` (`Binding/ValueSubject.cs`), a descriptor built only by
      `ForElementary` / `ForGroup` / `ForConditionName`, each stating its size rule with its citation: a fourth
      subject kind must add a factory and cannot inherit a size by accident. The CLASS half of SR4/SR5/SR10 is
      unaffected and still binds a condition-name.
   3. The ALPHANUMERIC size arm had **no implementation anywhere** while its national and boolean twins had theirs,
      so BOTH of SR4's size sentences silently truncated (`PIC X(2) VALUE "ABCD"` → `AB`; a 6-character literal on
-     a 4-character group → `ABCD`). It is now **COBOLNET1740**, error at every edition — Annex E.2 item 27's 2023
-     size change is scoped to NUMERIC-EDITED items (COBOLNET1570), not to this. A FIGURATIVE operand is exempt by
+     a 4-character group → `ABCD`). It is now **COBOL1740**, error at every edition — Annex E.2 item 27's 2023
+     size change is scoped to NUMERIC-EDITED items (COBOL1570), not to this. A FIGURATIVE operand is exempt by
      rule, not omission: §8.3.3.6.4 GR2 repeats it to the subject's size and truncates from the right.
   The one asymmetry is deliberate: the SR4-sentence-1 vendor leniency that stores a numeric literal's digits on an
   alphanumeric subject under `--permissive` is withheld from a group subject, because GR5's area deposit is
@@ -481,8 +481,8 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   rule is expressible.** The bit-packed group VALUE was the standing example: before it was refused, the
   multi-member shape raised an unhandled `ArgumentOutOfRangeException` out of `GroupValueSlicer.SliceInit` and
   the single-member shape stored ONE boolean position where the literal has four, so it was refused by name
-  (COBOLNET0899, `bit-group-level-value`) instead. That area rule is now EXPRESSED — in boolean positions, the
-  two bullets above — so the refusal and its descriptor are DELETED (kb/Work PB207); COBOLNET0899 keeps its
+  (COBOL0899, `bit-group-level-value`) instead. That area rule is now EXPRESSED — in boolean positions, the
+  two bullets above — so the refusal and its descriptor are DELETED (kb/Work PB207); COBOL0899 keeps its
   other populations and `bit-group-level-value` is gone. A staged loud is a debt with a name, not a resting
   state: it is removed in the change set that implements the rule, never left standing beside it.
 - **`ByName` becomes a MULTIMAP** (`Dictionary<string,List<DataItem>>`) — COBOL permits duplicate names disambiguated
@@ -651,11 +651,11 @@ pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
   reached ONLY via a `Dispatch(declStart, declEnd)` call from the runtime I/O/error path, never main fall-through.
   The declaratives' STRUCTURAL syntax rules live at three funnels, never per verb (kb/Work PB361–PB363): §14.9.49.3
   SR1's USE placement — the legal first sentence is consumed by `DeclCollectSection`, so any `useStatement` that
-  reaches `BindStatementCore` is misplaced (COBOLNET2377); SR3/SR4's reference boundary — asked of section identity
+  reaches `BindStatementCore` is misplaced (COBOL2377); SR3/SR4's reference boundary — asked of section identity
   in `ResolveProcedureOperand`, the one procedure-name funnel, with only PERFORM (SR4) and RESUME (SR3) exempt
-  (COBOLNET2376 error / COBOLNET2375 warning, determination D-DECLREF); SR10/SR11's USE BEFORE REPORTING
+  (COBOL2376 error / COBOL2375 warning, determination D-DECLREF); SR10/SR11's USE BEFORE REPORTING
   restrictions — `ctx.Enclosing.InBeforeReportingProcedure`, read by GENERATE/INITIATE/TERMINATE and by
-  `BindStatement`'s store check over `BoundStores.StoresInto` (COBOLNET2378).
+  `BindStatement`'s store check over `BoundStores.StoresInto` (COBOL2378).
   (Avoid the legacy off-by-N: dispatch order excluding declaratives while pc values include them.)
 - **EVALUATE → a chained if/else-if/else, NOT a C# switch** (ISO §14.9.13.4 GR4: process each WHEN left-to-right,
   first match). WHEN arms are ranges/conditions/multiple-ALSO/ANY/partial-expressions — not constant case labels.
@@ -843,14 +843,14 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
   ONE node, `BoundPredefinedNull`, produced ONLY by `ExpressionBinder.NullAdmittingOperand` in a §8.4.3.10.3 SR1
   context (INITIALIZE REPLACING, a program-prototype CALL / function-prototype activation / method-invocation
   argument, a relation or EVALUATE operand); every other slot binds through `NonNumericLiteralOperand`, which refuses
-  it — **COBOLNET2576**, the one SR1 screen — so a slot nobody thought about is refused by construction instead of
+  it — **COBOL2576**, the one SR1 screen — so a slot nobody thought about is refused by construction instead of
   running NULL as LOW-VALUE. Admission is not acceptance: each context then decides NULL against its other operand
   or formal (the Format-3 relation band, §14.8.2 conformance, INITIALIZE's SET-form category agreement). The
   renderers throw on it outside those contexts. The positions that decode a literal WITHOUT the operand model — a
   constant entry's AS operand, every VALUE clause operand (data item, condition-name, report group; the one
   `DataBinder.IsLiteralValueOperand` predicate, which does not count NULL a literal), a concatenation operand, an
   externalized name — refuse it with the same code and the same text, `PredefinedNullRule.Report`; §13.16.3 SR10's
-  class-pointer VALUE screen (COBOLNET2168) keys on the clause being WRITTEN, so `USAGE POINTER VALUE NULL` draws
+  class-pointer VALUE screen (COBOL2168) keys on the clause being WRITTEN, so `USAGE POINTER VALUE NULL` draws
   both rules. `PredefinedNullContextDriftTests` pins the producer and its callers, the one reporter, and that every
   literal decoder outside the PROCEDURE DIVISION binders decides the `predefinedNull` arm.
 - **A typed `StringLvalue` IS a `Place`** (§14.1) — not a second abstraction.
@@ -948,7 +948,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   (kb/Work PB1173, PB1052), asked of the data description by all three key-naming statements (SORT Format 1 §14.9.40.3
   SR6, Format 2 SR14, MERGE §14.9.24.3 SR4): a key subject to OCCURS (file verbs; Format 2's own is SR14 e) over the walk
   to data-name-2), of class boolean / object / pointer (message-tag has no representation yet), a dynamic-length
-  elementary item, a variable-length group or an occurs-depending group item is refused BY NAME, COBOLNET1757, before
+  elementary item, a variable-length group or an occurs-depending group item is refused BY NAME, COBOL1757, before
   the record's image or the key's window is asked about. The file verbs read SR6 d)'s "occurs-depending-on data item" as
   including the occurs-depending GROUP (§13.18.38.4 GR8): a key whose length varies cannot be "the same byte positions"
   of SR6 e). The refusal quotes the copy of the rule printed for ITS statement, verbatim (MERGE SR4 d) has a comma before
@@ -1059,7 +1059,7 @@ record through the merge, and the I-O status routes to the owner's local status 
 A record may be GLOBAL when its FD is not (§13.18.27.3 SR1 b)): the record-name is visible in a contained program
 and its FILE is not, so the container's non-global FileModels are kept in `DataBinder.ContainerLocalFiles` for ONE
 question — `ResolveRecordName` refuses a contained WRITE / REWRITE of such a record by WRITE §14.9.51.3 SR21 /
-REWRITE §14.9.35.3 SR3 (COBOLNET1757; kb/Work PB1193), never by the false "not a logical record" arm;
+REWRITE §14.9.35.3 SR3 (COBOL1757; kb/Work PB1193), never by the false "not a logical record" arm;
 OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
 sequential RELATIVE WRITE assigns the next slot and MOVEs it into the RELATIVE KEY field; LINAGE (LINAGE-COUNTER,
 page reset/overflow, footing area, END-OF-PAGE). After each I/O verb the compiler stores `LastStatus` into the FILE
@@ -1162,7 +1162,7 @@ members/methods + static data.
 ### 10.3 INVOKE + attributes
 
 `Class "New" RETURNING o`→`o = (C?)__FACTORY_C.__Instance.__New()` (New is the standard class BASE's factory method,
-§16.2 — present only in a class that INHERITS FROM BASE, COBOLNET2448 otherwise; its creation step is the generated
+§16.2 — present only in a class that INHERITS FROM BASE, COBOL2448 otherwise; its creation step is the generated
 ctor: base ctor first, then VALUE-init own instance fields — OO deep-dive D4); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M()` (virtual — runtime-class dispatch,
 §8.4.3.8 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
 item, or a universal `object?` receiver)→`recv.__CobolInvoke(name, args)` (a per-class switch — reflection-free).
@@ -1171,9 +1171,9 @@ Instance methods are `virtual` by default (COBOL forbids implicit hiding, §11.7
 same class/category — so `ref` is conformant); RETURNING → C# return value. **Parametric polymorphism is DECLINED, not
 merely deferred** — an OPTIONAL element (ISO **§9.3.5.3**, rule 7 "Parametric polymorphism is an optional feature in
 this Working Draft International Standard"; Annex **A.4.10 item 3**) whose support WiseOwl COBOL does not claim: a duplicate
-method name is refused BY NAME with `COBOLNET0822`, naming the facility and its A.4.10 item. (`PIC 9(4)`/`PIC 9(8)`
+method name is refused BY NAME with `COBOL0822`, naming the facility and its A.4.10 item. (`PIC 9(4)`/`PIC 9(8)`
 both map to `long`, so a signature-keyed resolution would collide in the emitted type anyway.) ⚠ The `§12063` this
-paragraph and the two `COBOLNET0822` emit sites used to cite is **not a clause** — ISO/IEC 1989:2023 ends at §16 and
+paragraph and the two `COBOL0822` emit sites used to cite is **not a clause** — ISO/IEC 1989:2023 ends at §16 and
 that number was a stray line anchor (`DESIGN-SPEC-RECONCILIATION.md` finding 44); all three now carry the
 `cite.py --check`ed §9.3.5.3.
 
@@ -1217,7 +1217,7 @@ stateful runtime + emitted guards that appear ONLY when a program uses the featu
 - **EVALUATE → chained if/else-if** (§5.3).
 - **Level-88 → expression-bodied `bool` properties** derived from the live parent value (§3.5); SET cond TO TRUE
   moves the first VALUE; SET TO FALSE moves the WHEN SET TO FALSE literal (§14.9.39.4 GR6/GR7 — ONE store path
-  with a `ToTrue` selector; COBOLNET2049 when the FALSE phrase is absent, COBOLNET2048 when §13.18.63.3 SR27
+  with a `ToTrue` selector; COBOL2049 when the FALSE phrase is absent, COBOL2048 when §13.18.63.3 SR27
   makes literal-4 a TRUE value).
 - **Class conditions** run over the character image via a new `CobolClass` runtime; for a pure numeric `long`,
   IS NUMERIC folds to `true` (revisit when REDEFINES/file aliasing lets it hold non-digits). ALPHABETIC is the closed
@@ -1237,7 +1237,7 @@ stateful runtime + emitted guards that appear ONLY when a program uses the featu
 
 `CobolNet.Runtime.Exceptions`: `ExceptionCatalog` (generated from ISO Table 13 — level-3→level-2→EC-ALL hierarchy +
 fatality), `ExceptionState` (last-exception register, EXCEPTION-OBJECT, file/location/statement), `CobolException`/
-`CobolFatalException`, `ExceptionDispatch` (declarative registry). New diagnostics → a `COBOLNET07xx` band (§14.10).
+`CobolFatalException`, `ExceptionDispatch` (declarative registry). New diagnostics → a `COBOL07xx` band (§14.10).
 
 ### 11.4 Hard problems / edge cases
 
@@ -1324,10 +1324,10 @@ result does not feed it — decision 20.
   `ShapeRefusal` has an item-keyed overload that the bound-operand entry DELEGATES to (SR7/SR6 stay at the bound
   entry, since a data item can never be a figurative constant), and `VariableLengthRefusal` is SR9's relation,
   framed for the written MOVE by `MoveBinder.MoveCategoryLegality` — which keeps only the MOVE statement's framing
-  (which operand shapes unwrap to a data item, and COBOLNET1931) and still reads the ONE
+  (which operand shapes unwrap to a data item, and COBOL1931) and still reads the ONE
   `VariableLengthCompatibility` module. Asking Table 16 ALONE was measurably wrong, because SR10 governs only
   "all other cases not described in Syntax rules 8 and 9": a `BINARY-LONG` namesake paired with a `PIC X(5)` one
-  and overwrote it while the written MOVE of the same two items was COBOLNET0819, and a variable-length-group
+  and overwrote it while the written MOVE of the same two items was COBOL0819, and a variable-length-group
   namesake paired with an elementary one and reached the run time. SR4's SET half stays
   `CheckInitializeReplacingSetCategoryAgrees`, and `InitializeLaneDriftTests` pins that every category-name is
   screened by exactly one of SR4's two paragraphs. SR1 (identifier-1's class) is one predicate over the one
@@ -1335,7 +1335,7 @@ result does not feed it — decision 20.
   exclusion of an index item *contained in* identifier-1 is a different rule that must keep its silence. SR5's
   RENAMES check runs on the RESOLVED item. ⚠ One residue: §14.9.25.3 SR5's figurative→numeric prohibition is an
   EDITION row in `VersionConformancePass.GateMove`, re-derived from a bound MOVE this statement never builds, so
-  `INITIALIZE … REPLACING NUMERIC DATA BY SPACE` is un-gated at 2023 where the explicit MOVE is COBOLNET0902.
+  `INITIALIZE … REPLACING NUMERIC DATA BY SPACE` is un-gated at 2023 where the explicit MOVE is COBOL0902.
   A receiver whose category
   is one of GR4's five — data-pointer, function-pointer, message-tag, object-reference, program-pointer — takes the
   implicit **SET** rather than the MOVE path: `InitializeSetNull` for GR6a1/GR6a2 and GR6c's NULL rows,
@@ -1346,7 +1346,7 @@ result does not feed it — decision 20.
   `REPLACING NUMERIC ALPHANUMERIC DATA BY …` is conforming COBOL-85 source. `InitializeCategorySet` (a bitmask over
   `InitializeCategory`) is that set, so §14.9.20.3 SR6's "the same category shall not be repeated in a REPLACING
   phrase" and §5.2.6.4's "only once" are ONE check over ONE accumulator, and the fourteenth word would be one enum
-  member. The `{ALL | category-name}` before TO VALUE is a plain BRACE — mandatory (§5.2.6.3), COBOLNET1981 when
+  member. The `{ALL | category-name}` before TO VALUE is a plain BRACE — mandatory (§5.2.6.3), COBOL1981 when
   omitted; `TO` and `THEN` are optional words in both phrases (not underlined). The eight post-85 category names are
   gated per word at the edition §8.9 reserves the word (`initialize-category-2002/-2014/-2023`), and
   `InitializeLaneDriftTests` pins the grammar rule, the enum and those bands against `reserved-words.json`.
@@ -1371,10 +1371,10 @@ result does not feed it — decision 20.
   switch), a device's input/output capability and a feature's WRITE ADVANCING rule. Both walkers of the
   switch-name/feature-name/device-name entry — `DataBinder.BindImplementorNameEntry` (switch mnemonics + status
   condition-names) and `Procedure.MnemonicRegistry` (the per-unit mnemonic map, OO scopes included) — classify
-  through ONE reader, `ImplementorNameEntry`; an unavailable name is COBOLNET2241 at the declaration. The mnemonic
+  through ONE reader, `ImplementorNameEntry`; an unavailable name is COBOL2241 at the declaration. The mnemonic
   map's value is the ROW, so every use is decided by the name's KIND: ACCEPT/DISPLAY (`MnemonicDevice`, SR7 +
-  capability, COBOLNET0817), SET (switch only, §14.9.39.3 SR5), WRITE ADVANCING (feature only, §14.9.51.3 SR16,
-  COBOLNET2243 — C01 = the PAGE advance, CSP = zero lines). A new name is a ROW; `ImplementorNamesDriftTests`
+  capability, COBOL0817), SET (switch only, §14.9.39.3 SR5), WRITE ADVANCING (feature only, §14.9.51.3 SR16,
+  COBOL2243 — C01 = the PAGE advance, CSP = zero lines). A new name is a ROW; `ImplementorNamesDriftTests`
   keeps docs/CONFORMANCE.md §7 and the diagnostic text in step with the table. The entry's SHAPE (a required
   continuation; ON/OFF in either order, each once) is the grammar's (kb/Work PB716).
 - **ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA** = a SPECIAL-NAMES config object threaded into emit (mostly
@@ -1608,11 +1608,12 @@ UNSTRING. **Named loser:** the data-model design's `CobolString.RefMod/SpliceInt
 
 ### 14.10 Diagnostic numbering (settled for new diagnostics)
 
-New WiseOwl COBOL diagnostics use ONE band: **`COBOLNET07xx`** (conditions), and per-subsystem sub-bands within a single
-`COBOLNET`-prefixed scheme (REDEFINES uses `COBOLNET_REDEF_*` *names* mapped into the numeric band). **Named loser:**
-mixing the legacy `COBOLxxxx`/`CBLxxxx` codes into new diagnostics. Whether to additionally *reuse* legacy codes for
-continuity with existing diagnostic-asserting tests is an owner question (§15) — but the default for new work is the
-`COBOLNET` scheme.
+Every WiseOwl COBOL diagnostic carries ONE prefix, **`COBOL####`**, in ONE number space (owner decision 2026-10-23,
+kb/Work PB3575): the parser's series is `COBOL0001`-`COBOL0313`, every other compiler diagnostic is `COBOL0400` and up
+(conditions start at `COBOL07xx`), each registered in `DiagnosticCatalog` and numbered by `scripts/orchestrator/alloc.py
+code`; the COPY preprocessor's codes are `CBL####`. Until PB3575 the codes from 0400 up carried the prefix `COBOLNET`; the rename
+kept every number (`scripts/rename_diagnostic_prefix.py`), so the two series never overlapped. **Named loser:** reusing the
+deleted legacy engine's codes for continuity.
 
 ### 14.11 Dialect, EC-default, and the differential harness are threaded consistently
 
@@ -1684,9 +1685,9 @@ everywhere (§11.1); conditional phrases are always active. The differential har
     PERMANENT typed-native mechanism for whole-group MOVE/compare, or must mixed-usage (national/COMP-member) groups go
     through the G6 byte path for byte-exact fidelity? (Pure DISPLAY groups are fine via `AsImage`.)
 
-12. **Diagnostic numbering scheme.** Adopt the fresh `COBOLNET`-prefixed scheme for all new diagnostics (the §14.10
-    default), or also reuse the legacy `COBOLxxxx`/`CBLxxxx` codes for continuity with existing diagnostic-asserting
-    tests?
+12. **Diagnostic numbering scheme — RESOLVED (kb/Work PB3575, 2026-10-23).** One prefix, `COBOL####`, in one number
+    space, every number of the codes once prefixed `COBOLNET` kept; the deleted legacy engine's codes are not reused
+    (§14.10).
 
 13. **Differential-oracle dependency — RESOLVED (R69, 2026-10-06).** The conformance/CI harness does not depend on the legacy
     compiler: the engine is deleted from `main` (`docs/rearchitecture/LEGACY-ARCHIVE.md`), and the committed goldens plus the
@@ -1783,7 +1784,7 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 > the compiler as N per-edition compilers; Phase 0 done). NIST-85 is the 85 positive corpus; the negative
 > (rejected-construct) corpus is NEW.
 > ✔ Reconciled (ALTER family): ALTER + the target-less GO TO are 85-only — REJECTED at
-> `--std 2002|2014|2023` as deleted elements (COBOLNET0810/0811, matching the ISO history and the legacy
+> `--std 2002|2014|2023` as deleted elements (COBOL0810/0811, matching the ISO history and the legacy
 > CBL3601/3605); §18 #10 and the control-flow deep-dive edition table updated in the same change set.
 
 - OO → .NET classes (§10): single-inheritance, NEW/INVOKE/SELF/SUPER, instance vs static scopes, FACTORY, PROPERTY;
@@ -2041,8 +2042,8 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
    a >18-digit picture (not the early NC/SM/IC/IF waves) — not earlier.
 5. **COMP-5 / BINARY-\*.** True binary-width two's-complement **wrap** (`PIC S9(4) COMP-5` wraps at ±32768) — the
    locked semantics; replace `CobolNum.Store`'s digit-truncation TODO before COMP-5 tests are in scope.
-6. **Diagnostics.** A fresh **`COBOLNET-`**-prefixed code scheme (clean slate); the legacy `COBOLxxxx`/`CBLxxxx`
-   codes are not reused.
+6. **Diagnostics.** One **`COBOL####`** code scheme in one number space (§14.10, kb/Work PB3575); the deleted legacy
+   engine's codes are not reused.
 7. **Conformance harness.** The harness compares against the committed goldens and the `.txt` oracles, which remain the
    ground truth. (A live differential against the legacy compiler was the original decision; R69 deleted that engine,
    `docs/rearchitecture/LEGACY-ARCHIVE.md`.)
@@ -2053,7 +2054,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
    deferred.
 10. **ALTER / GOBACK / UNTIL EXIT.** ALTER + the target-less GO TO are **85-ONLY**: obsolete in ANSI X3.23-1985
     (accepted at `--std 85`, no failing diagnostic), DELETED by ISO/IEC 1989:2002 → REJECTED at 2002/2014/2023
-    (COBOLNET0810/0811) — the earlier "gated ON through 2014" was reconciled against the ISO history (the 2023
+    (COBOL0810/0811) — the earlier "gated ON through 2014" was reconciled against the ISO history (the 2023
     standard has no ALTER; §14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
     `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); a STOP RUN / main-program `GOBACK` WITH
     {NORMAL|ERROR} STATUS (§14.9.42.4 GR5 / §14.9.18.4 GR10) writes the termination status into the run-unit
@@ -2079,7 +2080,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
     name and IS; a FOR phrase written after the definition — once an accepted "historical superset" on ALPHABET and a
     bare parse error on CLASS — is the grammar's `misplacedSpecialNamesForPhrase` error production, refused by name
-    (COBOLNET2315) for ALPHABET, CLASS and SYMBOLIC CHARACTERS alike in `ClosedFormatPass`, kb/Work PB977):
+    (COBOL2315) for ALPHABET, CLASS and SYMBOLIC CHARACTERS alike in `ClosedFormatPass`, kb/Work PB977):
     - **⛔ ONE literal-operand decoder for the ALPHABET and CLASS clauses** (kb/Work PB976). §12.3.7.3 states the
       same operand rules twice — SR14 b/c for the ALPHABET literal phrase, SR17 b/c for the CLASS clause, under
       different item numbers — so `DataBinder.LiteralPhraseOperand` decodes every operand of both, held to a
@@ -2123,7 +2124,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
       Table 6): referencing them as a collating sequence is rejected (0898), and their coded-set role reaches the
       medium only as the documented A.3 item 27 non-support — a variable-width medium encoding is not a code this
       processor writes (item 14a below; the CODE-SET boundary codec itself is LIVE, kb/Work PB793).
-    **§12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOLNET1906` / `COBOLNET1907`): a) no character
+    **§12.3.7.3 SR14/SR15 are enforced once, for both arms** (`COBOL1906` / `COBOL1907`): a) no character
     twice (recovery keeps the first), b1/c1 BOTH halves of its one sentence -- an UNSIGNED integer AND the 1..65,536 range, b2/c2 the operand's literal class,
     b3/c3 one character under THROUGH/ALSO, and SR15 — **a TABLE, `Binding/ImplementorCodeNames.cs`, not a pair of
     arms** (kb/Work PB793). SR15 says "The implementor shall specify the names supported for code-name-1 and
@@ -2167,7 +2168,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     sites that reference the CODED CHARACTER SET — "*the class condition, the CLASS clause …, a SYMBOLIC CHARACTERS
     clause, or the CODE-SET clause*" — and Table 6 which phrases define one (every phrase but LOCALE). ONE model
     serves all four: `Binding/CodedCharacterSet.cs` — `CodedCharacterSet.Of(AlphabetDef)` / `Of(NationalAlphabetDef)`
-    (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOLNET1669
+    (null for a LOCALE alphabet, and the ONE refusal `DataBinder.CodedCharacterSetOf(name, site, rule)` → COBOL1669
     at every site — §8.8.4.4.3 SR2, §12.3.7.3 SR16g / SR17d, §13.18.13.3 SR1/SR2), with `CharAt(ordinal)` (the
     character at an ORDINAL POSITION — GR11 b/c, GR12 a), `Contains(rune)` (the class test, §8.8.4.4.4 GR3 a) and
     `Medium` + `MediumCorrespondence` (the medium codec, §13.18.13.4 GR2/GR6 — the ONE classifier that says whether
@@ -2228,7 +2229,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
 16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — ISO §5000), enabled only by
     `>>TURN`/phrases; an unhandled **fatal** EC terminates the run unit with a diagnostic + nonzero exit.
 17. **VALIDATE.** Declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): the statement compiles inert with the
-    COBOLNET1580 warning, no EC-VALIDATE condition is raised, and it is marked obsolete (2023 Table 13).
+    COBOL1580 warning, no EC-VALIDATE condition is raised, and it is marked obsolete (2023 Table 13).
 18. **OO multiple inheritance.** Single inheritance in v1 (covers the whole current corpus); a multi-base program
     triggers an owner decision then (linearize one C# base + `IMPLEMENTS` interfaces with forwarding).
 19. **Intrinsic internals.** Never `decimal` — exact via unscaled `long`/`Int128`, float via `double` (extends the

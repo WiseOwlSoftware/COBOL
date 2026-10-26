@@ -118,7 +118,7 @@ internal static class OoDefinitionRules
     /// d) A file description entry. e) A report description entry." The grammar admits the clause in exactly these
     /// rules, so the list a)–e) is the grammar's; b)'s level and section residence is the clause-placement screen's
     /// (<c>ClausePlacementRules</c>, §13.16.3 SR6). c) has no row because the screen-description grammar carries no
-    /// GLOBAL clause (the screen module is not provided, COBOLNET1560). <c>OoDefinitionRulesDriftTests</c> holds
+    /// GLOBAL clause (the screen module is not provided, COBOL1560). <c>OoDefinitionRulesDriftTests</c> holds
     /// this list equal to the parser rules whose ATN matches the GLOBAL token (minus the USE statement's GLOBAL
     /// PHRASE, §14.9.49.2, which is not this clause), so a GLOBAL clause added to the grammar joins SR4 here.</summary>
     internal static readonly IReadOnlyList<GlobalClauseSite> GlobalClauseSites =

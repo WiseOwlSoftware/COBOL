@@ -78,7 +78,7 @@ public sealed class ArithmeticOperandClassTests
                 + "       01 X PIC X(4) VALUE \"0012\".\n       01 R PIC 9(6).",
                 "           " + stmt), edition);
             Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §8.8.1.1");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
 
@@ -190,7 +190,7 @@ public sealed class ArithmeticOperandClassTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, "           SET IDX TO 2.\n           " + stmt), edition);
             Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §13.18.60.3 SR10 / §8.8.1.1");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
 
@@ -229,14 +229,14 @@ public sealed class ArithmeticOperandClassTests
             "       01 N PIC 9(4) VALUE 12.\n       01 E PIC ZZ9 VALUE 7.\n       01 R PIC 9(6).",
             "           COMPUTE R = N + E + 1.\n           DISPLAY \"R=\" R."), 2023);
         Assert.False(ok, $"a numeric-edited arithmetic operand must be rejected (ISO §8.8.1.1); got: {output}");
-        Assert.Contains("COBOLNET0844", detail + output);
+        Assert.Contains("COBOL0844", detail + output);
     }
 
     /// <summary>⛔ ONE SOURCE DEFECT, ONE DIAGNOSTIC (kb/Work PB220). The token renderer's fast path used to run
     /// its §8.8.1.1 screen INSIDE the token loop, and the loop's exits to the D18 materializer are
     /// ORDER-DEPENDENT: a later token with no case arm — <c>**</c> — abandons the fast path AFTER the earlier
     /// name was screened, and D18 then re-binds the same operand through the expression binder, which screens it
-    /// again. Measured before the fix: <b>two</b> COBOLNET0844s for one <c>E(XE ** 2)</c>, in BOTH lanes
+    /// again. Measured before the fix: <b>two</b> COBOL0844s for one <c>E(XE ** 2)</c>, in BOTH lanes
     /// (Error+Error under strict, Warning+Warning under --permissive). The screens are now queued and flushed
     /// only when the fast path commits, so an exit discards them — deduplication by control flow, not by a set,
     /// which is what makes the NEXT late exit automatic.</summary>
@@ -249,9 +249,9 @@ public sealed class ArithmeticOperandClassTests
             + "       01 T.\n          05 E PIC X OCCURS 3 TIMES.";
         var (ok, errors, warnings) = EditionHarness.CompileFull(
             Program(ws, "           MOVE \"ABC\" TO T.\n           MOVE E(XE ** 2) TO R."), 2023, permissive);
-        int hits = errors.Concat(warnings).Count(d => d.Contains("COBOLNET0844", StringComparison.Ordinal));
+        int hits = errors.Concat(warnings).Count(d => d.Contains("COBOL0844", StringComparison.Ordinal));
         Assert.True(hits == 1,
-            $"[permissive={permissive}] one non-numeric subscript name must draw ONE COBOLNET0844, not {hits} — "
+            $"[permissive={permissive}] one non-numeric subscript name must draw ONE COBOL0844, not {hits} — "
             + "the fast-path screen and the D18 route are two readings of ONE rule, and the reader must not be "
             + "told twice. Got: " + string.Join(" ;; ", errors.Concat(warnings)));
         Assert.Equal(permissive, ok);   // the leniency still decides acceptance; only the COUNT changed
@@ -280,7 +280,7 @@ public sealed class ArithmeticOperandClassTests
         Assert.True(ok == permissive,
             $"[permissive={permissive}] '{bound}' — r7 admits an index-name only as a subscript, in PERFORM/SEARCH "
             + $"VARYING, in SET, or in a relation condition. Got ok={ok}: {string.Join(" ;; ", errors)}");
-        EditionHarness.AssertHasDiagnostic(permissive ? warnings : errors, "COBOLNET1637");
+        EditionHarness.AssertHasDiagnostic(permissive ? warnings : errors, "COBOL1637");
         if (!permissive) return;
         var (runOk, output, detail) = EditionHarness.CompileAndRun(Program(ws, body), 2023, permissive: true);
         Assert.True(runOk, detail);
@@ -292,7 +292,7 @@ public sealed class ArithmeticOperandClassTests
     /// screen — so a caller that commits the probe's Place into the bound tree silently loses every screen.
     /// Four did. Measured before the fix on this same tree: <c>CALL "S" USING BY CONTENT E(XE)</c> with
     /// <c>XE PIC X(4)</c> compiled CLEAN under strict while the adjacent <c>BY REFERENCE</c> operand — and the
-    /// byte-identical <c>MOVE E(XE)</c> — drew COBOLNET0844. One statement, one rule, two verdicts.</summary>
+    /// byte-identical <c>MOVE E(XE)</c> — drew COBOL0844. One statement, one rule, two verdicts.</summary>
     [Fact]
     public void ProbedCallByContentOperand_IsScreenedLikeEveryOtherReference()
     {
@@ -306,8 +306,8 @@ public sealed class ArithmeticOperandClassTests
         Assert.False(contentOk,
             "BY CONTENT commits a Probe's Place; the §8.8.1.1 position screen must still apply to it — "
             + string.Join(" ;; ", contentErrors));
-        EditionHarness.AssertHasDiagnostic(contentErrors, "COBOLNET0844");
-        EditionHarness.AssertHasDiagnostic(moveErrors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(contentErrors, "COBOL0844");
+        EditionHarness.AssertHasDiagnostic(moveErrors, "COBOL0844");
     }
 
     /// <summary>⛔ THE REFUSAL NAMES THE CLASS §8.5.2.1 GIVES THE OPERAND (kb/Work PB1400). The refusal of a group as an
@@ -348,7 +348,7 @@ public sealed class ArithmeticOperandClassTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, "           " + stmt), edition);
             Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §8.8.1.1");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
             EditionHarness.AssertHasDiagnostic(errors, reason);
         }
     }

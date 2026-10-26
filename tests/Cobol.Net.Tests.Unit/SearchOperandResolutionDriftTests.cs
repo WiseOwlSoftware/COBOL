@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// operand, so the compiler could pick a DIFFERENT table, and a different level-88, from the one the programmer
 /// wrote.
 /// <para>⛔ WHY THIS IS SEPARATE FROM <see cref="DecidedRuleStageDriftTests"/>. That class guards the STAGE of a
-/// decided rule (an error naming the rule, never the COBOLNET1756 deferral announce), and it would pass in
+/// decided rule (an error naming the rule, never the COBOL1756 deferral announce), and it would pass in
 /// exactly the state PB443 opened in: the wrong-answer half produced NO diagnostic at all, at any stage — it
 /// compiled clean and returned the wrong value. What falsifies it is an ANSWER, so every row below runs the
 /// program and reads what it printed.</para>
@@ -130,7 +130,7 @@ MAIN.
         else
         {
             Assert.False(ok, stdout);
-            Assert.Contains("COBOLNET1965", detail, StringComparison.Ordinal);
+            Assert.Contains("COBOL1965", detail, StringComparison.Ordinal);
             Assert.Contains("§14.9.37.3 SR11", detail, StringComparison.Ordinal);
         }
     }
@@ -195,7 +195,7 @@ MAIN.
     /// <summary>⛔ THE PB3365 INVARIANT: a SEARCH or SEARCH ALL of a dynamic-capacity table nested under another table
     /// is bounded by the CURRENT CAPACITY of the one enclosing occurrence the statement names (ISO §8.5.1.9.1,
     /// §8.5.1.9.2) — in identifier-1 or, as §14.9.37.4 GR1 puts it, in the WHEN phrases — in BOTH formats and BOTH
-    /// spellings. It used to compile clean (COBOLNET1756) and abort the run unit. The row runs the program and reads
+    /// spellings. It used to compile clean (COBOL1756) and abort the run unit. The row runs the program and reads
     /// the answer, with the capacities chosen so that a bound taken from the wrong occurrence changes it: E(1) holds
     /// three occurrences (A B C), E(2) one (X), E(3) four (P Q R S) — a too-small bound loses "S" at 4, a too-large
     /// one finds SPACE in the occurrence E(2) does not hold.</summary>

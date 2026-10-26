@@ -50,7 +50,7 @@ public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, Bou
 /// §8.4.3.2.3 SR1 excludes it only from a RECEIVING operand; §14.9.22.4 GR1/GR7/GR20 make identifier-1 sending
 /// in Format 1 and receiving in Formats 2/3/4. <b>The invariant that keeps this sound is exactly the emitter's
 /// existing <c>mutated</c> flag: a non-<see cref="BoundFieldOperand"/> target can only ever appear where nothing
-/// stores back</b>, which is Format 1 — the correspondence is checked in <c>InspectBinder</c> (COBOLNET1632)
+/// stores back</b>, which is Format 1 — the correspondence is checked in <c>InspectBinder</c> (COBOL1632)
 /// and asserted at the store site rather than assumed.
 /// </para></summary>
 public sealed record BoundInspect(

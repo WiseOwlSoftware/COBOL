@@ -15,7 +15,7 @@
       *>     magnitude and/or range ..." -> OK  §7.3.6.2 2)
       *> The documented restriction (docs/CONFORMANCE.md DOC-A.1-29):
       *>   an intermediate result whose magnitude is not below about
-      *>   7.9E28 is a compile-time error, COBOLNET1547 in a constant
+      *>   7.9E28 is a compile-time error, COBOL1547 in a constant
       *>   entry - never a wrapped or truncated value; the row's own
       *>   example is 9999999999999999999999999999 * 10.
       *> The product below is 99999999999999999999999999990 (about

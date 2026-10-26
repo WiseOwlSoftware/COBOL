@@ -20,7 +20,7 @@
       *> are intrinsic-function-names the REPOSITORY identifies, written
       *> without the word FUNCTION (§8.4.3.2.3 SR2): the approximations
       *> of pi and e (§15.73, §15.27). It used to refuse SQRT and E
-      *> (COBOLNET1649) and not know MYPI or EULER (COBOLNET1639).
+      *> (COBOL1649) and not know MYPI or EULER (COBOL1639).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083CW.
        ENVIRONMENT DIVISION.

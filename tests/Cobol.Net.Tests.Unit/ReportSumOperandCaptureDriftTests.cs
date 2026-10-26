@@ -47,12 +47,12 @@ public sealed class ReportSumOperandCaptureDriftTests
         // dropped — the opposite of §13.18.54.3 SR5's addend, which is an identifier.
         // ⚠ RESIDUE, reported to the registrar rather than fixed here (it is PB562's clause, not PB482's): the
         // grammar's `dataReference` will still PARSE `DEPENDING ON WS-T(2)`, and the subscript is then dropped in
-        // silence instead of being refused the way COBOLNET2046 refuses a subscripted UPON operand.
+        // silence instead of being refused the way COBOL2046 refuses a subscripted UPON operand.
         ["ReportOccursOf"] = "OCCURS … DEPENDING ON data-name-1 (§13.18.38.2 Format 3) — a data-name position: "
                              + "qualification only (§8.4.2.2.2 Format 1), no reference modification (§8.4.3.3.3 SR5 NOTE)",
         // ⛔ THE SOURCE CLAUSE'S ARM IS NO LONGER ONE OF THESE (kb/Work PB1292). §13.18.53's identifier-1 is an
         // identifier exactly as §13.18.54.3 SR5's is, and `BindSourceReference` — the one bare capture that dropped
-        // its subscript and reference modification and staged COBOLNET0899 — is DELETED: the identifier is kept as its
+        // its subscript and reference modification and staged COBOL0899 — is DELETED: the identifier is kept as its
         // WRITTEN reference (`FieldReferenceSource`) and bound in the procedure phase by the one operand binder.
         // The RD CODE clause's identifier-1 shared that arm, so it keeps the whole reference too and asks the
         // key helper only for the BASE item its §13.18.12.3 SR2 screen is about:
@@ -150,12 +150,12 @@ public sealed class ReportSumOperandCaptureDriftTests
         // Read the DESCRIPTORS, not their source text: the concatenation is already resolved, so a re-wrap of
         // the catalogue cannot make this guard pass or fail for the wrong reason.
         var sr5 = DiagnosticCatalog.ReportSumAddendNotNumeric;
-        Assert.Equal("COBOLNET2045", sr5.Code);
+        Assert.Equal("COBOL2045", sr5.Code);
         Assert.Contains(rules[5], sr5.Title);
         Assert.Contains("13.18.54.3", sr5.IsoSection);
 
         var sr7 = DiagnosticCatalog.ReportSumUponNotDetail;
-        Assert.Equal("COBOLNET2046", sr7.Code);
+        Assert.Equal("COBOL2046", sr7.Code);
         Assert.Contains(rules[7], sr7.Title);
         Assert.Contains("13.18.54.3", sr7.IsoSection);
     }

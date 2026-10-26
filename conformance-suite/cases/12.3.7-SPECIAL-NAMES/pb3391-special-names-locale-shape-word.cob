@@ -11,7 +11,7 @@
       *> clause was the one reading left, and its word test refused FOO, so the parse used to stop at
       *> a bare COBOL0001 "cannot parse construct near 'FOO'" plus a false "a data-name is expected
       *> here" at the literal. FOO is now refused BY NAME in the SPECIAL-NAMES paragraph's format
-      *> (COBOLNET1970), the one diagnostic, at every edition.
+      *> (COBOL1970), the one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3391SN.
        ENVIRONMENT DIVISION.

@@ -15,7 +15,7 @@
       *>   source element uses the word as a data-name AND an
       *>   object-class-name. The object definition's census records the
       *>   class-name reference (OoClassTable.RecordReferenceUse) and
-      *>   refuses it COBOLNET2692; the word is not exempt (the
+      *>   refuses it COBOL2692; the word is not exempt (the
       *>   exceptions are a compilation-variable-name, a level-number
       *>   that matches a paragraph-name or section-name, and the
       *>   constant-name / data-name / property-name / record-key-name /

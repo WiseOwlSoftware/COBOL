@@ -41,7 +41,7 @@ public static partial class ReferenceFormatProcessor
     /// the comment-entry as commentary in the column-aware preprocessor: discard the entry — the rest of the
     /// header line and its content up to the next Area-A header — and keep the paragraph HEADER, written
     /// <c>AUTHOR. .</c> (the paragraph's terminating period standing for the entry, which COBOL-85 ended at the next
-    /// Area-A word), so the parser and the ONE removal gate (<c>VersionConformancePass</c>, COBOLNET0902 from 2002) see a
+    /// Area-A word), so the parser and the ONE removal gate (<c>VersionConformancePass</c>, COBOL0902 from 2002) see a
     /// fixed-form paragraph exactly as they see a free-form one (kb/Work PB1494, PB1758) — no embedded-period or
     /// terminating-period edge cases reach the grammar.
     /// </summary>
@@ -69,9 +69,9 @@ public static partial class ReferenceFormatProcessor
     /// <summary>
     /// The edition-aware overload (W3 preprocessor threading, VCR rows 2/4/94 — DEVLOG 598): fixed-form
     /// continuation carries TWO per-edition obligations the column-blind path cannot see downstream:
-    /// the col-7 hyphen indicator itself is OBSOLETE at 2023 (Annex F.2 item 4 → COBOLNET0903, once per
+    /// the col-7 hyphen indicator itself is OBSOLETE at 2023 (Annex F.2 item 4 → COBOL0903, once per
     /// compilation), and continuing a COBOL WORD across lines is REMOVED at 2023 (Annex E.2 item 1 bullet 2
-    /// → COBOLNET0902, error strict / warning permissive — the pre-removal join semantics preserved).
+    /// → COBOL0902, error strict / warning permissive — the pre-removal join semantics preserved).
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText, ReferenceFormatDiagnostics? gates, string sourcePath,
         InitialReferenceFormat initial = InitialReferenceFormat.Fixed)
@@ -196,7 +196,7 @@ public static partial class ReferenceFormatProcessor
     /// cannot be gated with its siblings are asked here: this stage CONSUMES the &gt;&gt;SOURCE FORMAT line (it must —
     /// the following segment's reference format depends on it), so the line never reaches the shared
     /// directive-recognition point in ConditionalCompilationProcessor. Same producer, same row
-    /// (source-format-directive-2002 → COBOLNET0900; COBOLNET1911 for the operand), one stage earlier (kb/Work PB725,
+    /// (source-format-directive-2002 → COBOL0900; COBOL1911 for the operand), one stage earlier (kb/Work PB725,
     /// PB794). Both are silent when the conversion carries no DiagnosticBag.</para>
     /// <para>Recognition is by the directive WORD through the ONE compiler-directive line parse
     /// (<see cref="CompilerDirectiveLine"/>), never by the whole line's shape: the end-anchored regex that preceded it

@@ -18,7 +18,7 @@
       *> is satisfied (each base is in its REPOSITORY) and SR3 is
       *> satisfied (neither class names itself), so SR4 is the only
       *> ground for rejection.
-      *> The .err holds the rule the cycle arm names: COBOLNET2791 is
+      *> The .err holds the rule the cycle arm names: COBOL2791 is
       *> shared by the SR3, SR4 and SR7 arms (kb/Work PB1505), and its
       *> message ends with the rule it caught.
       *> Reject-at names 2002 onward: class definitions are COBOL-2002.

@@ -10,7 +10,7 @@
       *> abbreviate after it. The comparison arm that binds it seeded the abbreviation carry like any relation, so
       *> the program compiled and printed T, expanded as B1 <> B3 - a silent wrong reading of source the standard
       *> does not define. The prohibition is now a property of the relation's operand class, decided where the carry
-      *> is seeded (COBOLNET2723).
+      *> is seeded (COBOL2723).
       *>   cite.py --check 8.8.4.12.3 "Relation-condition-1 shall not be a boolean relation condition." -> OK 1)
       *>   cite.py --check 8.8.4.2.1 "A relation condition involving operands of class boolean is a boolean
       *>     relation condition" -> OK

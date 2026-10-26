@@ -11,7 +11,7 @@
 *>---
       *> kb/Work PB1099 Q1 - the SOURCE phrase of the RECORD KEY and ALTERNATE RECORD KEY clauses at its
       *> provisional introducing edition COBOL-2002 (VCR row 7.36; constructs.json record-key-source-2002;
-      *> below 2002 it is COBOLNET0900, negative pb1099-record-key-source-85). Annex A.3 item 40 makes the
+      *> below 2002 it is COBOL0900, negative pb1099-record-key-source-85). Annex A.3 item 40 makes the
       *> capability processor-dependent; this implementation provides it.
       *>   cite.py --check 12.4.5.12.4 "Record-key-name-1 defines a record key consisting of the
       *>     concatenation of all occurrences of data-name-2 in the order specified" -> OK 12.4.5.12.4 2)

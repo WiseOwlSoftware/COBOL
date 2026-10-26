@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB978 - ISO 8.4.2.2.3 SR1 over a report description's CONTROL operand: K OF G names
       *> A.G.K and B.G.K, so the qualification does not preclude ambiguity. The report binder's private
-      *> lookup used to take the first and break control on it. Expected: COBOLNET1639 at every edition.
+      *> lookup used to take the first and break control on it. Expected: COBOL1639 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB978NRC.
        ENVIRONMENT DIVISION.

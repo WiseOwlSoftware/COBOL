@@ -13,7 +13,7 @@
       *> deferred-adjudication mark; every other picture-less elementary entry escaped the binder with a null
       *> PicInfo and CRASHED the compiler - an unhandled System.NullReferenceException in
       *> MoveEmitter.ConvertSource, with no diagnostic of any kind.  It needs no exotic clause to reach: this
-      *> program is the whole repro.  It is now COBOLNET0881 (the usage-clause compatibility band, whose
+      *> program is the whole repro.  It is now COBOL0881 (the usage-clause compatibility band, whose
       *> picture-less-usage arm this generalizes) and a recovery PicInfo, so nothing reaches the emitter
       *> without one.
        IDENTIFICATION DIVISION.

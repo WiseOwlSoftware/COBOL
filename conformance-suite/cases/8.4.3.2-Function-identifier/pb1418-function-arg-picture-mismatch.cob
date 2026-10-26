@@ -12,7 +12,7 @@
       *> (whose list names "a function") requires the formal and the
       *> argument to "have the same ALIGN, BLANK WHEN ZERO, DYNAMIC
       *> LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses". PIC X(4)
-      *> against PIC 9(4) differs -> COBOLNET2470. (Before the fix the
+      *> against PIC 9(4) differs -> COBOL2470. (Before the fix the
       *> function aliased WX's characters and printed X=0013.)
       *> cite.py --check 8.4.3.2.3 "the rules for conformance specified
       *>   in 14.8.2, Parameters and 14.8.3, Returning items, apply"

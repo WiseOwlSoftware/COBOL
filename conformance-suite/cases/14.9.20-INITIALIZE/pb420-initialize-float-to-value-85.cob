@@ -9,7 +9,7 @@
 *> COBOL-85 source, so the ONLY thing this program asks for beyond the edition is the INITIALIZE VALUE
 *> phrase itself: ISO 14.9.20.2's general format acquired `[ ALL | category-name ] TO VALUE` at COBOL-2002,
 *> and with it general rule 5c1 and general rule 6a, the operand-selection and sender rules that phrase
-*> carries. At --std 85 the initialize-to-value construct row refuses it, COBOLNET0831.
+*> carries. At --std 85 the initialize-to-value construct row refuses it, COBOL0831.
 *> It compiles and runs at 2002 and above — the positive witness for the same statement over the same
 *> receiver kind is conformance-suite/cases/14.9.20-INITIALIZE/pb420_initialize_float_value_default_2002, whose V1 arm reads the
 *> VALUE clause's literal back out of the float leaves; and the COBOL-85-reachable half of GR4's implicit

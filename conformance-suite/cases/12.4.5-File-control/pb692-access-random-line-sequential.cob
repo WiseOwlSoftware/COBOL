@@ -14,9 +14,9 @@
 *> reject-at names 2023 ALONE. ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 introduction
 *> (the Foreword's list of the main changes over ISO/IEC 1989:2014; constructs.json row
 *> file-organization-line-sequential-2023), so at 85, 2002 and 2014 this source is rejected by
-*> the edition gate on the ORGANIZATION clause (COBOLNET0900, kb/Work PB688) and 12.4.5.5.2
+*> the edition gate on the ORGANIZATION clause (COBOL0900, kb/Work PB688) and 12.4.5.5.2
 *> syntax rule 2 never gets to speak. 2023 is the only edition at which the organization exists,
-*> so it is the only edition at which this rule is the operative one. COBOLNET1858 (kb/Work PB692).
+*> so it is the only edition at which this rule is the operative one. COBOL1858 (kb/Work PB692).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB692N4.
        ENVIRONMENT DIVISION.

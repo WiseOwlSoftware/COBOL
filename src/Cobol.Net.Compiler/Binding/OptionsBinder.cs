@@ -163,7 +163,7 @@ internal static class OptionsBinder
     {
         if (m.STANDARD_BINARY() is not null)
         {
-            edition?.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
+            edition?.Error("COBOL0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
                 + "element (ISO Annex A.3 item 2) for which support is not claimed (§4.2.6); it is also obsolete "
                 + "(§8.8.1.4.1 NOTE 1 / Annex F.2 item 3). Use NATIVE or STANDARD-DECIMAL");
             return ArithmeticMode.StandardBinary;
@@ -174,9 +174,9 @@ internal static class OptionsBinder
     }
 
     /// <summary>The FLOAT-DECIMAL clause (ISO §11.9.9) — DECLINED, accepted inert with the §4.2.6 ¶3 warning
-    /// (COBOLNET2424, kb/Work R43). Annex A.3 item 13 makes the clause dependent "both on the capabilities of the
+    /// (COBOL2424, kb/Work R43). Annex A.3 item 13 makes the clause dependent "both on the capabilities of the
     /// processor and on support for the standard decimal floating-point usages", and FLOAT-DECIMAL-16/-34 are not
-    /// provided (A.3 item 19, refused COBOLNET1564 in <c>PictureAnalyzer.ParseUsage</c>). Every rule the clause
+    /// provided (A.3 item 19, refused COBOL1564 in <c>PictureAnalyzer.ParseUsage</c>). Every rule the clause
     /// states implies a phrase for "any data item described with a standard decimal floating-point usage"
     /// (§11.9.9.3 SR1-SR6), and no such item can exist, so the model records NOTHING: the two fields this method
     /// used to fill were read by nobody (kb/Work PB298), which is what an inert clause's model looks like when it
@@ -287,7 +287,7 @@ internal static class OptionsBinder
     /// <c>LOCAL-STORAGE | SCREEN | WORKING-STORAGE</c> in CHOICE INDICATORS inside braces, so §5.2.6.4 admits "any
     /// single alternative … only once" (in any order): the grammar's <c>optionsInitializeSection+</c> is the
     /// any-order half and each alternative's once-only half is read by the ONE reader,
-    /// <see cref="ChoiceIndicators.AtMostOnce{T}"/> (COBOLNET2104; kb/Work PB1508 — a bitwise OR folded
+    /// <see cref="ChoiceIndicators.AtMostOnce{T}"/> (COBOL2104; kb/Work PB1508 — a bitwise OR folded
     /// <c>WORKING-STORAGE WORKING-STORAGE</c> into one target in silence). The first occurrence of each is bound.</summary>
     private static OptionsSections SectionsOf(Core.OptionsInitializeTargetContext target, EditionContext? edition)
     {

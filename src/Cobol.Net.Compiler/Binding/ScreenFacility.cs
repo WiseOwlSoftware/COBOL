@@ -16,13 +16,13 @@ using Core = CobolParserCore;
 /// <para><b>The licence, and why a refusal rather than a warning.</b> A.4.1: "An implementation shall accept the
 /// syntax and provide the functionality for an optional element only when support for that language element is
 /// claimed by the implementor." That is a prohibition on ACCEPTING, which is why the whole module is an ERROR
-/// here and not the §4.2.6 recognize-and-warn the Annex A.3 processor-dependent facilities get (COBOLNET1578
+/// here and not the §4.2.6 recognize-and-warn the Annex A.3 processor-dependent facilities get (COBOL1578
 /// MCS, 1579 COMMIT/ROLLBACK, 1580 VALIDATE). A.4.1 ¶2 — "Any associated syntax rules, general rules, other
 /// rules, exception conditions, and I-O status values are also optional, even if not explicitly listed" —
 /// extends the licence from the 27 printed items to the clauses' rules and to the EC-SCREEN family.</para>
 ///
 /// <para><b>What this replaced.</b> Before it, ONE of the module's six source shapes was diagnosed — the SCREEN
-/// SECTION header, and by a bare <c>"COBOLNET1560"</c> string literal with no descriptor, so the code had no
+/// SECTION header, and by a bare <c>"COBOL1560"</c> string literal with no descriptor, so the code had no
 /// docs/DIAGNOSTICS.md row and the catalog still called its band "earmarked". The other five were a SILENT
 /// REINTERPRETATION as a supported format (<c>ACCEPT screen-name</c> and <c>DISPLAY screen-name</c> are
 /// token-identical to their DEVICE formats and bound as those — a declined facility that compiled and moved the
@@ -33,7 +33,7 @@ using Core = CobolParserCore;
 /// <para><b>The clause table is the mechanism, not a list.</b> Every alternative of the grammar's
 /// <c>screenClause</c> rule has a row here naming the clause and its ISO §, and every site passes that name to
 /// <see cref="EditionContext.Declined"/> as the <c>seen</c> phrase, so the emitted message OPENS with what the
-/// user wrote — <c>COBOLNET1560: the AUTO clause (ISO §13.18.3): A SCREEN SECTION construct …</c> — because a
+/// user wrote — <c>COBOL1560: the AUTO clause (ISO §13.18.3): A SCREEN SECTION construct …</c> — because a
 /// witness that could only assert "some screen thing was refused" would pass for the wrong reason on every one
 /// of the nineteen clauses. <c>ScreenFacilityConstructDriftTests</c> reads <c>CobolScreen.g4</c> and fails when
 /// an alternative has no row, so a clause added to the grammar cannot ship un-named
@@ -43,7 +43,7 @@ internal static class ScreenFacility
 {
     /// <summary>One screen construct: the phrase the diagnostic opens with (the <c>seen</c> half handed to
     /// <see cref="EditionContext.Declined"/>), and the ISO clause that defines it. The phrase is the witness
-    /// discriminator — a negative golden's <c>.err</c> reads <c>COBOLNET1560: the AUTO clause</c>, which no
+    /// discriminator — a negative golden's <c>.err</c> reads <c>COBOL1560: the AUTO clause</c>, which no
     /// other site can produce.</summary>
     private readonly record struct Fact(string Phrase, string Iso);
 
@@ -95,7 +95,7 @@ internal static class ScreenFacility
     /// <summary>The rule names the drift test expects to find as <c>screenClause</c> alternatives.</summary>
     internal static IReadOnlyCollection<string> CoveredClauseRules => ClauseFacts.Keys;
 
-    // ── The data / environment division surface — COBOLNET1560 ────────────────────────────────────────────────
+    // ── The data / environment division surface — COBOL1560 ────────────────────────────────────────────────
 
     /// <summary>Refuse a SCREEN SECTION (ISO §13.9) and everything in it: the section header, each screen
     /// description entry (§13.17) that names a screen-name (the entry-name clause format 2, §13.18.20), and each
@@ -169,7 +169,7 @@ internal static class ScreenFacility
             + "is set only by an ACCEPT screen statement");
     }
 
-    // ── The procedure division surface — COBOLNET1707 ─────────────────────────────────────────────────────────
+    // ── The procedure division surface — COBOL1707 ─────────────────────────────────────────────────────────
 
     /// <summary>Refuse ACCEPT format 3 (ISO §14.9.1; Annex A.4.2 item 1). <paramref name="why"/> records HOW the
     /// screen format was recognized, because the two recognitions are not equally obvious: a positioning or
@@ -205,6 +205,6 @@ internal static class ScreenFacility
     // (§14.9.28), RAISE (§14.9.29) and the &gt;&gt;TURN directive (§7.3.25) — are the SAME six every
     // declined module owns, so the refusal lives in the ONE resolution funnel that serves them all:
     // `EcNameResolution.Advise`, over the `DeclinedEcFamilies` table, where this module is one row
-    // carrying COBOLNET1707 as its descriptor. This wave shipped a second predicate for that job and the
+    // carrying COBOL1707 as its descriptor. This wave shipped a second predicate for that job and the
     // A.4.14/A.4.3 wave shipped the table; the table won (feedback_one_mechanism_per_job).
 }

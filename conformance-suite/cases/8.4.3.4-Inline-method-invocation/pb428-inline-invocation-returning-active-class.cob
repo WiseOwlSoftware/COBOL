@@ -13,7 +13,7 @@
       *> activation and an ACTIVE-CLASS reference has no class until the
       *> runtime class of the receiver is known — which is why the same
       *> method is legal through an INVOKE statement with a written RETURNING
-      *> identifier.  COBOLNET2140.
+      *> identifier.  COBOL2140.
       *> THIS FIXTURE TAKES THE ACTIVE-CLASS ARM; its ANY LENGTH twin is
       *> pb1167-inline-invocation-returning-any-length.  kb/Work PB428, PB1167.
        IDENTIFICATION DIVISION.

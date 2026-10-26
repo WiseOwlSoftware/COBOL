@@ -9,10 +9,10 @@ namespace CobolNet.Tests.Conformance;
 /// negative goldens hold several violations each and so only prove that SOMETHING rejects; these tests compile
 /// each shape ALONE, at every edition, so a screen that stops seeing one arm goes red here by name.
 /// <list type="bullet">
-/// <item>COBOLNET2421 — ISO §13.18.16.2 prints <c>FINAL [ data-name-1 ] …</c>: FINAL once, first (§5.2.7).</item>
-/// <item>COBOLNET2423 — §13.14.2 / §13.18.39.2 print each RD clause and PAGE phrase in its own bracket with no
+/// <item>COBOL2421 — ISO §13.18.16.2 prints <c>FINAL [ data-name-1 ] …</c>: FINAL once, first (§5.2.7).</item>
+/// <item>COBOL2423 — §13.14.2 / §13.18.39.2 print each RD clause and PAGE phrase in its own bracket with no
 /// ellipsis (§5.2.6.2, §5.2.7); §13.14.3 SR2 and §13.18.39.3 SR4 license ORDER only.</item>
-/// <item>COBOLNET2422 — §13.18.52.3 SR1 (the subject: a numeric entry with 'S', or an alphanumeric / national /
+/// <item>COBOL2422 — §13.18.52.3 SR1 (the subject: a numeric entry with 'S', or an alphanumeric / national /
 /// strongly-typed group) and SR2 (an elementary subject's usage is display or national).</item>
 /// </list>
 /// </summary>
@@ -69,11 +69,11 @@ public sealed class ReportClauseFormatScreenTests
 
     [Theory, MemberData(nameof(Editions))]
     public void ControlFinal_Twice_2421(int ed) =>
-        Rejects(Report("RCF1", "CONTROLS ARE FINAL FINAL WK PAGE LIMIT 30 LINES"), ed, "COBOLNET2421");
+        Rejects(Report("RCF1", "CONTROLS ARE FINAL FINAL WK PAGE LIMIT 30 LINES"), ed, "COBOL2421");
 
     [Theory, MemberData(nameof(Editions))]
     public void ControlFinal_AfterDataName_2421(int ed) =>
-        Rejects(Report("RCF2", "CONTROLS ARE WK FINAL PAGE LIMIT 30 LINES"), ed, "COBOLNET2421");
+        Rejects(Report("RCF2", "CONTROLS ARE WK FINAL PAGE LIMIT 30 LINES"), ed, "COBOL2421");
 
     [Theory, MemberData(nameof(Editions))]
     public void ControlFinal_FirstThenDataNames_Accepted(int ed) =>
@@ -81,11 +81,11 @@ public sealed class ReportClauseFormatScreenTests
 
     [Theory, MemberData(nameof(Editions))]
     public void ControlClause_Twice_2423(int ed) =>
-        Rejects(Report("RCF4", "CONTROL WK CONTROL WJ PAGE LIMIT 30 LINES"), ed, "COBOLNET2423");
+        Rejects(Report("RCF4", "CONTROL WK CONTROL WJ PAGE LIMIT 30 LINES"), ed, "COBOL2423");
 
     [Theory, MemberData(nameof(Editions))]
     public void PageClause_Twice_2423(int ed) =>
-        Rejects(Report("RCF5", "PAGE LIMIT 30 LINES PAGE LIMIT 40 LINES"), ed, "COBOLNET2423");
+        Rejects(Report("RCF5", "PAGE LIMIT 30 LINES PAGE LIMIT 40 LINES"), ed, "COBOL2423");
 
     [Theory]
     [InlineData("HEADING 1 HEADING 2")]
@@ -93,7 +93,7 @@ public sealed class ReportClauseFormatScreenTests
     [InlineData("LAST DETAIL 20 LAST DETAIL 21")]
     [InlineData("FOOTING 25 FOOTING 26")]
     public void PagePhrase_Twice_2423(string phrases) =>
-        Rejects(Report("RCF6", $"PAGE LIMIT 30 LINES {phrases}"), 2023, "COBOLNET2423");
+        Rejects(Report("RCF6", $"PAGE LIMIT 30 LINES {phrases}"), 2023, "COBOL2423");
 
     [Theory]
     [InlineData("01 A PIC 9(3) SIGN IS LEADING.")]
@@ -106,7 +106,7 @@ public sealed class ReportClauseFormatScreenTests
     public void SignClause_IllegalSubject_2422_AllEditions(string entries)
     {
         foreach (int ed in new[] { 85, 2002, 2014, 2023 })
-            Rejects(Data("SGN1", "       " + entries), ed, "COBOLNET2422");
+            Rejects(Data("SGN1", "       " + entries), ed, "COBOL2422");
     }
 
     [Theory]
@@ -118,12 +118,12 @@ public sealed class ReportClauseFormatScreenTests
     [InlineData("01 G GROUP-USAGE BIT.\n          05 H SIGN LEADING.\n             10 A PIC 1(4).")]
     [InlineData("01 T TYPEDEF.\n          05 A PIC X SIGN IS LEADING.")]
     public void SignClause_IllegalSubject_2422_2023(string entries) =>
-        Rejects(Data("SGN2", "       " + entries), 2023, "COBOLNET2422");
+        Rejects(Data("SGN2", "       " + entries), 2023, "COBOL2422");
 
     [Fact]
     public void SignClause_ReportEntryWithoutS_2422() =>
         Rejects(Report("SGN3", "PAGE LIMIT 30 LINES", "02 COLUMN 1 PIC 9(3) SIGN LEADING SEPARATE SOURCE WN."),
-            2023, "COBOLNET2422");
+            2023, "COBOL2422");
 
     [Theory]
     [InlineData("01 A PIC S9(4) SIGN IS LEADING SEPARATE VALUE -12.")]

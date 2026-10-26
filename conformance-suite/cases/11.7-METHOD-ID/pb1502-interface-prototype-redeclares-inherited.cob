@@ -9,7 +9,7 @@
       *> MQ5J inherits the prototype PING from MQ5I and declares PING again.  OVERRIDE, the only way to redeclare an
       *> inherited method, is forbidden in a prototype (SR2, cite.py --check 11.7.3 "The OVERRIDE phrase shall not
       *> be specified in a method prototype" -> OK 11.7.3 2)), so there is no legal spelling.  The class arm (SR4 a)
-      *> was enforced already (COBOLNET0837); only the interface arm was missing.  COBOLNET2761.  kb/Work PB1502.
+      *> was enforced already (COBOL0837); only the interface arm was missing.  COBOL2761.  kb/Work PB1502.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1502N2.
        PROCEDURE DIVISION.

@@ -9,7 +9,7 @@
       *> (8.3.5 rule 3 needs a following space) - and the ',' by a space, a separator (8.3.5 rule 2):
       *> character-string-1 is "999." and VALUE follows it. kb/Work PB569's refutation called the '.'
       *> arm structurally enforced; it is not - this compiled silently at every edition as [000.].
-      *> Refused COBOLNET2419.
+      *> Refused COBOL2419.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB569N2.
        DATA DIVISION.

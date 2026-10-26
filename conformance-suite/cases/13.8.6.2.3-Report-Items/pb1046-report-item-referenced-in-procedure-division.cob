@@ -9,8 +9,8 @@
       *> 1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type DETAIL are
       *> accessed by the GENERATE statement." PV is a printable item (SOURCE W), not a sum counter, so MOVE PV TO W
       *> is refused; 13.15.3 SR7 says the same of the entry's data-name: "The data-name shall not be referenced in any
-      *> other way". The program used to draw COBOLNET1639 "'PV' is not defined - no declaration in this source
-      *> element gives the name 'PV'", false about a name the report section declares; it now draws COBOLNET5092,
+      *> other way". The program used to draw COBOL1639 "'PV' is not defined - no declaration in this source
+      *> element gives the name 'PV'", false about a name the report section declares; it now draws COBOL5092,
       *> which cites the two rules. The control (the same report with the permitted references only) is
       *> pb1046_report_sum_counter_in_contained_program.
        IDENTIFICATION DIVISION.

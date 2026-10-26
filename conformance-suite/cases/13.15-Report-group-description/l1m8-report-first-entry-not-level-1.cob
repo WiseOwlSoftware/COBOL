@@ -17,7 +17,7 @@
       *> GENERATEs; the only defect is the leading entry not being
       *> level 1.
       *> Expected diagnostic: the report-group arm (ReportGroupBefore01).
-      *> Its code is the COBOLNET0899 "recognized but not implemented"
+      *> Its code is the COBOL0899 "recognized but not implemented"
       *> band, a misfiling owned by kb/Work PB1559, so the .err pins the
       *> message head only, never the code.
        IDENTIFICATION DIVISION.

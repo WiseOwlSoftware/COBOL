@@ -57,7 +57,7 @@ public sealed class NumericByteFormDriftTests
             [Usage.FloatExtended] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
             [Usage.FloatBinary32] = (NumericByteForm.Ieee32, NumericTruncation.DigitCount),
             [Usage.FloatBinary64] = (NumericByteForm.Ieee64, NumericTruncation.DigitCount),
-            // ── The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — no byte
+            // ── The processor-dependent non-support formats (rejected at ParseUsage, COBOL1564) — no byte
             // form; None states that rather than defaulting to a lie. ──
             [Usage.FloatBinary128] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FloatDecimal16] = (NumericByteForm.None, NumericTruncation.DigitCount),
@@ -72,7 +72,7 @@ public sealed class NumericByteFormDriftTests
             // every digit / sign / de-edit rule ONCE; the CHARACTER→BYTE step is applied separately and once, by
             // NationalWindow.PositionsOf + CobolBits.NatBytes at every byte boundary. A second "NationalZoned"
             // byte form would have had to re-derive all of them. ⛔ This row read None while §13.18.60.3 SR12's
-            // numeric and numeric-edited shapes were refused by name at COBOLNET0899 — the table stated a
+            // numeric and numeric-edited shapes were refused by name at COBOL0899 — the table stated a
             // representation for a population that could not be compiled, so nothing could contradict it. ──
             [Usage.National] = (NumericByteForm.Zoned, NumericTruncation.DigitCount),
             [Usage.Bit] = (NumericByteForm.None, NumericTruncation.DigitCount),
@@ -80,7 +80,7 @@ public sealed class NumericByteFormDriftTests
             [Usage.ProgramPointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FunctionPointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
             // ── USAGE MESSAGE-TAG (kb/Work PB487): DECLINED non-support, refused by name in ParseUsage
-            // (COBOLNET1943) exactly like FLOAT-BINARY-128 above. It has no numeric byte form and cannot acquire
+            // (COBOL1943) exactly like FLOAT-BINARY-128 above. It has no numeric byte form and cannot acquire
             // one: §13.18.60.4 GR9 — "The class and category of a message-tag data item are message-tag" — so the
             // item is not of class numeric at all, and None states that rather than defaulting to a lie. ──
             [Usage.MessageTag] = (NumericByteForm.None, NumericTruncation.DigitCount),

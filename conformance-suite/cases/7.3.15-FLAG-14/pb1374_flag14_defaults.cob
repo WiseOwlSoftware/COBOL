@@ -16,7 +16,7 @@
       *> omitted, the bare directive, a lone OFF, and several options in any order with OFF.
       *>
       *> Each directive sits between data description entries (7.3.15.3 SR1), and the PROCEDURE DIVISION runs
-      *> only if the whole compilation group was accepted: any of them rejected with COBOLNET1622 (the pre-fix
+      *> only if the whole compilation group was accepted: any of them rejected with COBOL1622 (the pre-fix
       *> behaviour for every spelling with ON or ALL omitted) is a compile failure and the program never prints.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN: R is VALUE 7 -> "7".

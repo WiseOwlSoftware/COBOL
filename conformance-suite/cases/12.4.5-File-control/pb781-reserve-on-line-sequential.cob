@@ -10,7 +10,7 @@
       *> The RESERVE clause is written BEFORE the ORGANIZATION clause here, so the screen
       *> must read the whole entry first. LINE SEQUENTIAL is new in ISO/IEC 1989:2023, so
       *> the rule is reachable only there (below it the organization itself is refused).
-      *> Refused, COBOLNET2921.
+      *> Refused, COBOL2921.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB781RL.
        ENVIRONMENT DIVISION.

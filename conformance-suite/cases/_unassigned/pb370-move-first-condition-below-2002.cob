@@ -13,7 +13,7 @@
       *> are ISO/IEC 1989:2002 introductions, so at COBOL-85 this source
       *> does not describe a program and the compiler refuses the FIRST
       *> construct the edition does not have - the >>TURN line - with
-      *> COBOLNET0900 rather than running the MOVE unchecked.
+      *> COBOL0900 rather than running the MOVE unchecked.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB370MN.
        DATA DIVISION.

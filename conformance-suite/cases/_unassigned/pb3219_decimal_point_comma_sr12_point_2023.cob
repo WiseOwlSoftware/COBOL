@@ -15,8 +15,8 @@
       *>   - SR12 b of the no-FOR form: "Each of the symbols from the set 'CR', 'DB', 'E', 'S', 'V' '.' may appear
       *>     only once in character-string-1" - so a floating-point numeric-edited significand holds ONE comma
       *>     and any number of periods, which are simple insertion (grouping) symbols.
-      *> The compiler read a literal period in both: it refused the legal comma of a FOR picture (COBOLNET1596),
-      *> refused the second grouping period of a significand (COBOLNET1658), and admitted the period of a FOR
+      *> The compiler read a literal period in both: it refused the legal comma of a FOR picture (COBOL1596),
+      *> refused the second grouping period of a significand (COBOL1658), and admitted the period of a FOR
       *> picture and the second comma of a significand. The negative siblings
       *> negative/pb3219-decimal-comma-for-form-period and negative/pb3219-decimal-comma-float-two-points hold the
       *> two refusals the swap makes; this golden holds the images the legal spellings render.

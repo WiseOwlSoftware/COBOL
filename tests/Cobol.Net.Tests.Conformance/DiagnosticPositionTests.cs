@@ -67,8 +67,8 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("b.cob", Head + "       PROCEDURE DIVISION.\n           MOVE UNDEF TO W.\n           STOP RUN.\n");
         var (ok, lines) = Compile("b.cob");
         Assert.False(ok);
-        AssertPositioned(lines, "b.cob", 7, "error COBOLNET1639");
-        Assert.Contains(lines, d => d.Contains("b.cob(7,12): error COBOLNET1639"));   // column 12 = the M of MOVE
+        AssertPositioned(lines, "b.cob", 7, "error COBOL1639");
+        Assert.Contains(lines, d => d.Contains("b.cob(7,12): error COBOL1639"));   // column 12 = the M of MOVE
     }
 
     [Fact] // kb/Work PB1728: a PICTURE string's trimmed clause separator (`PIC X, VALUE …`) must not shift the column
@@ -82,7 +82,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             Write(name, Head + $"       01 V PIC X{pictureTail} VALUE \"A\"B.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
             var (ok, lines) = Compile(name);
             Assert.False(ok);
-            string d = Assert.Single(lines, l => l.Contains("COBOLNET2633"));   // §8.3.5 5): anchored on the literal
+            string d = Assert.Single(lines, l => l.Contains("COBOL2633"));   // §8.3.5 5): anchored on the literal
             return d[d.IndexOf($"{name}(", StringComparison.Ordinal)..d.IndexOf(')')];
         }
         Assert.Equal(At("s.cob", " ").Replace("s.cob", ""), At("c.cob", ",").Replace("c.cob", ""));
@@ -94,7 +94,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("d.cob", Head + "       01 V PIC 9 VALUE 123.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         var (ok, lines) = Compile("d.cob");
         Assert.False(ok);
-        AssertPositioned(lines, "d.cob", 6, "error COBOLNET");
+        AssertPositioned(lines, "d.cob", 6, "error COBOL1625");   // §13.18.63.3 SR2: 123 is no value of PIC 9
     }
 
     [Fact] // COPY: the lines AFTER a COPY are the main file's own; the copied text names the copybook
@@ -135,7 +135,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             + "           STOP RUN.\n");
         var (ok, lines) = Compile("r.cob");
         Assert.False(ok);
-        AssertPositioned(lines, "r.cob", 8, "error COBOLNET1639");
+        AssertPositioned(lines, "r.cob", 8, "error COBOL1639");
     }
 
     [Fact] // a fixed-form continuation JOINS two physical lines; the lines after it keep their physical numbers
@@ -149,7 +149,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             + "           STOP RUN.\n");
         var (ok, lines) = Compile("f.cob");
         Assert.False(ok);
-        AssertPositioned(lines, "f.cob", 9, "error COBOLNET1639");
+        AssertPositioned(lines, "f.cob", 9, "error COBOL1639");
     }
 
     [Fact] // under --nist a CCVS archive marker line is blanked, not dropped — the physical numbering holds (kb/Work PB1803)
@@ -158,7 +158,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("n.cob", "*HEADER,COBOL,PB82N\n" + Head + "       PROCEDURE DIVISION.\n           MOVE UNDEF TO W.\n           STOP RUN.\n");
         var (ok, lines) = Compile("n.cob", nist: "PB82N");
         Assert.False(ok);
-        AssertPositioned(lines, "n.cob", 8, "error COBOLNET1639");
+        AssertPositioned(lines, "n.cob", 8, "error COBOL1639");
     }
 
     [Fact] // and without --nist the same line is NOT discarded: its indicator area holds 'R' (§6.3.3; kb/Work PB1803)
@@ -167,7 +167,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("m.cob", "*HEADER,COBOL,PB82N\n" + Head + "       PROCEDURE DIVISION.\n           STOP RUN.\n");
         var (ok, lines) = Compile("m.cob", format: InitialReferenceFormat.Fixed);   // the standard default (§7.3.24.3 2))
         Assert.False(ok);
-        AssertPositioned(lines, "m.cob", 1, "error COBOLNET2616");
+        AssertPositioned(lines, "m.cob", 1, "error COBOL2616");
     }
 
     /// <summary>⛔ kb/Work PB1688 / PB1801 — a diagnostic names the PHYSICAL COLUMN, in every producer arm of the source
@@ -180,13 +180,13 @@ public sealed class DiagnosticPositionTests : IDisposable
     // a plain fixed-form line: the parse error at the '.' written in column 21
     [InlineData("plain", "       PROCEDURE DIVISION.\n           MOVE 1 TO.\n           STOP RUN.\n", "plain.cob(7,21)", "COBOL0001")]
     // the binder's statement cursor on a plain fixed-form line: DISPLAY at column 12
-    [InlineData("cursor", "       PROCEDURE DIVISION.\n           DISPLAY UNDEF.\n           STOP RUN.\n", "cursor.cob(7,12)", "COBOLNET1639")]
+    [InlineData("cursor", "       PROCEDURE DIVISION.\n           DISPLAY UNDEF.\n           STOP RUN.\n", "cursor.cob(7,12)", "COBOL1639")]
     // a fixed continuation FRAGMENT: the '.' is on the continuation line, at its own line and column
     [InlineData("contin", "       PROCEDURE DIVISION.\n           MOVE \"ABC\n      -    \"DEF\" TO.\n           STOP RUN.\n", "contin.cob(8,20)", "COBOL0001")]
     // a TAB in the program text counts ONE column, as in the editor (the tab expanded to positions 18-24)
     [InlineData("tabbed", "       PROCEDURE DIVISION.\n           MOVE 1\tTO.\n           STOP RUN.\n", "tabbed.cob(7,21)", "COBOL0001")]
     // after a >>SOURCE FORMAT FREE switch the line is read whole: DISPLAY at column 4
-    [InlineData("switch", "       >>SOURCE FORMAT FREE\nPROCEDURE DIVISION.\n   DISPLAY UNDEF.\n   STOP RUN.\n", "switch.cob(8,4)", "COBOLNET1639")]
+    [InlineData("switch", "       >>SOURCE FORMAT FREE\nPROCEDURE DIVISION.\n   DISPLAY UNDEF.\n   STOP RUN.\n", "switch.cob(8,4)", "COBOL1639")]
     public void FixedForm_DiagnosticNamesThePhysicalColumn(string name, string tail, string position, string code)
     {
         Write(name + ".cob", Head + tail);
@@ -249,7 +249,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         (ok, lines) = Compile("nk.cob", edition: 85, nist: "NK");
         Assert.False(ok);
         Assert.Contains(lines, d => d.Contains("NC.CPY(1,31): error COBOL0307"));
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET0900"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
     }
 
     /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §8.1.3.2 4)): four UTF-16 units, two
@@ -263,9 +263,9 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// line (the span a join appends), free form, and a copybook.</summary>
     [Theory]
     // ZZZ stands in character position 24 of the line, after two letters of two units each (positions 12-13)
-    [InlineData("supplementary", "       01  Wide PIC X(2) ZZZ.\n", "supplementary.cob(6,24)", "COBOLNET1941")]
+    [InlineData("supplementary", "       01  Wide PIC X(2) ZZZ.\n", "supplementary.cob(6,24)", "COBOL1941")]
     // a TAB counts one column and the letters one each: the TAB, 01, two blanks, two letters, PIC X(2) and a blank precede ZZZ
-    [InlineData("suptab", "\t01  Wide PIC X(2) ZZZ.\n", "suptab.cob(6,18)", "COBOLNET1941")]
+    [InlineData("suptab", "\t01  Wide PIC X(2) ZZZ.\n", "suptab.cob(6,18)", "COBOL1941")]
     public void FixedForm_SupplementaryCharactersCountOnePosition(string name, string dataLine, string position, string code)
     {
         Write(name + ".cob", Head + dataLine.Replace("Wide", Wide) + "       PROCEDURE DIVISION.\n           STOP RUN.\n");
@@ -284,11 +284,11 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("one.cob", Head + $"       01  {Wide} PIC X(2) ZZZ.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         var (ok, lines) = Compile("one.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("one.cob(6,24): error COBOLNET1941"));
+        Assert.Contains(lines, d => d.Contains("one.cob(6,24): error COBOL1941"));
         Write("two.cob", Head + $"       01  {Wide} PIC X(2) ZZZ.*> c\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         (ok, lines) = Compile("two.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("two.cob(6,28): error COBOLNET2495"));
+        Assert.Contains(lines, d => d.Contains("two.cob(6,28): error COBOL2495"));
     }
 
     [Fact] // a continuation line's text is joined onto the latest logical line as spans of its own: the '.' is at position 20
@@ -316,7 +316,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("scopy.cob", Head + "       COPY \"sup.cpy\".\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         var (ok, lines) = Compile("scopy.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("sup.cpy(1,24): error COBOLNET1941"));
+        Assert.Contains(lines, d => d.Contains("sup.cpy(1,24): error COBOL1941"));
     }
 
     /// <summary>⛔ kb/Work PB3031 — text a stage WRITES is counted in character positions too (ISO §6.1 1) a), §6.3.1): a
@@ -352,13 +352,13 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("seq.cob", Head + $"       PROCEDURE DIVISION.\n           DISPLAY N\"A\n{sequence}-    \"B\".\n           STOP RUN.\n");
         var (ok, lines) = Compile("seq.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("seq.cob(8,7): error COBOLNET2685"));
-        Assert.Contains(lines, d => d.Contains("seq.cob(8,7): warning COBOLNET0903"));   // the 2023 obsolescence gate, same column
+        Assert.Contains(lines, d => d.Contains("seq.cob(8,7): error COBOL2685"));
+        Assert.Contains(lines, d => d.Contains("seq.cob(8,7): warning COBOL0903"));   // the 2023 obsolescence gate, same column
 
         // a TAB-led hyphen is program text at position 9, not a continuation indicator: no continuation gate fires
         Write("tab.cob", Head + "       PROCEDURE DIVISION.\n           DISPLAY \"A\n\t-    \"B\".\n           STOP RUN.\n");
         (_, lines) = Compile("tab.cob", format: InitialReferenceFormat.Fixed);
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET0903") || d.Contains("COBOLNET2685") || d.Contains("COBOLNET2687"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL0903") || d.Contains("COBOL2685") || d.Contains("COBOL2687"));
     }
 
     [Fact] // kb/Work PB2490 - a debugging line that is SOURCE (the unit says WITH DEBUGGING MODE) between the parts of a
@@ -376,13 +376,13 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("dbgon.cob", unit(" WITH DEBUGGING MODE"));
         var (ok, lines) = Compile("dbgon.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("DBG.CPY(2,7): error COBOLNET3473"));
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET0900"));
+        Assert.Contains(lines, d => d.Contains("DBG.CPY(2,7): error COBOL3473"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
         // without the clause the same line is a comment (§6.3.5 2)), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.True(ok, string.Join("\n", lines));
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET3473"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL3473"));
     }
 
     [Fact] // kb/Work PB1671 — a COPY / REPLACE / directive diagnostic names the column of what it is about, not column 1
@@ -396,15 +396,15 @@ public sealed class DiagnosticPositionTests : IDisposable
             + "           STOP RUN.\n");
         var (ok, lines) = Compile("t7.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("t7.cob(6,12): error COBOLNET2651"));
+        Assert.Contains(lines, d => d.Contains("t7.cob(6,12): error COBOL2651"));
         Assert.Contains(lines, d => d.Contains("t7.cob(8,12): error CBL3620"));
-        Assert.Contains(lines, d => d.Contains("t7.cob(9,20): error COBOLNET1641"));
+        Assert.Contains(lines, d => d.Contains("t7.cob(9,20): error COBOL1641"));
         // >>SOURCE FORMAT is read by the reference-format stage, not the directive stage: the same indicator column
         // (train 1055 review — it named column 1)
         Write("s7.cob", Head + "           >>SOURCE FORMAT BOGUS\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         (ok, lines) = Compile("s7.cob", format: InitialReferenceFormat.Fixed);
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("s7.cob(6,12): error COBOLNET1911"));
+        Assert.Contains(lines, d => d.Contains("s7.cob(6,12): error COBOL1911"));
     }
 
     [Fact] // the parse-tree conformance arm: an edition gate names the construct's position
@@ -413,14 +413,14 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("e.cob", Head + "       PROCEDURE DIVISION.\n       P1.\n           EXIT PARAGRAPH.\n           STOP RUN.\n");
         var (ok, lines) = Compile("e.cob", edition: 85);
         Assert.False(ok);
-        AssertPositioned(lines, "e.cob", 8, "COBOLNET0900");
+        AssertPositioned(lines, "e.cob", 8, "COBOL0900");
     }
 
     [Fact] // a diagnostic with no positioned construct stays bare — never a fabricated "line 0"
     public void UnpositionedDiagnostic_HasNoPrefix()
     {
         var ed = new Binding.EditionContext(2023) { SourceFile = "x.cob" };
-        ed.Error("COBOLNET0000", "about the unit as a whole");
-        Assert.Equal("error COBOLNET0000: about the unit as a whole", ed.Diagnostics.Single());
+        ed.Error("COBOL0000", "about the unit as a whole");
+        Assert.Equal("error COBOL0000: about the unit as a whole", ed.Diagnostics.Single());
     }
 }

@@ -7,8 +7,8 @@
       *> ISO 14.9.10.3 SR1: "The DELETE RECORD statement shall not be
       *> specified for a file with sequential organization."
       *> This is a HARD error at every edition and strictness -- NOT a
-      *> leniency, and deliberately not routed through the COBOLNET1720
-      *> seam. It had no negative fixture at all: COBOLNET0865 occurred
+      *> leniency, and deliberately not routed through the COBOL1720
+      *> seam. It had no negative fixture at all: COBOL0865 occurred
       *> exactly ONCE in the repository, at its own emit site, so the rule
       *> was enforced and never proved (kb/Work PB144).
        IDENTIFICATION DIVISION.

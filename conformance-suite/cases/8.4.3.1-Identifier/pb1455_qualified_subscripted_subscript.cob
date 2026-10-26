@@ -13,7 +13,7 @@
       *> `E (1) OF T` is refused (negative pb1455-subscript-before-qualifier). This positive pins the standard
       *> order in the one position the compiler got WRONG: a qualified, subscripted identifier used AS A SUBSCRIPT.
       *> The splitter that decides whether a '(' belongs to the name before it asked only the LAST word - `T`, a
-      *> group with no OCCURS - so `X (E OF T OF G (2))` became two subscripts of X and was refused COBOLNET2270.
+      *> group with no OCCURS - so `X (E OF T OF G (2))` became two subscripts of X and was refused COBOL2270.
       *> 8.4.2.3.3 SR2 asks it of qualified-data-name-1, which here is `E OF T OF G`, a table element.
       *>
       *> EXPECTED OUTPUT, computed from the rules (8.4.2.3.4 GR1b: the subscript is the value of the expression):

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1425 - ISO 8.4.3.5.3 SR2: "An object-view shall not be specified as a receiving operand."
       *>   The receiver of SET Format 5 and the RETURNING identifier of INVOKE are receiving operands, so
-      *>   both object-views are refused by SR2 (COBOLNET2871), never by the reserved-word diagnostic AS
+      *>   both object-views are refused by SR2 (COBOL2871), never by the reserved-word diagnostic AS
       *>   used to draw.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425W2.

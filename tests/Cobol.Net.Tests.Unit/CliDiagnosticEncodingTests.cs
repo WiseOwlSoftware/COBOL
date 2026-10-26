@@ -21,7 +21,7 @@ namespace CobolNet.Tests.Unit;
 /// </para>
 /// <para>
 /// ⛔ NO GOLDEN COULD SEE IT, which is why this fact asserts BYTES and not text. The corpus runner matches
-/// <c>.err</c> files on a diagnostic CODE substring (<c>COBOLNET0901</c>), which is pure ASCII; and the test
+/// <c>.err</c> files on a diagnostic CODE substring (<c>COBOL0901</c>), which is pure ASCII; and the test
 /// harness decodes every child capture as UTF-8 (<c>ProcessObserver</c>), so a mangled byte would come back as
 /// a control character nobody asserts on. The observation has to be taken at the byte level, through a
 /// REDIRECTED stream, which is what a user and a CI log actually read.
@@ -68,7 +68,7 @@ public sealed class CliDiagnosticEncodingTests
         string work = ScratchDirectory.Create("cobolnet-pb899-");
         try
         {
-            // INITIAL + RECURSIVE on one PROGRAM-ID is rejected by COBOLNET0886, whose message carries the
+            // INITIAL + RECURSIVE on one PROGRAM-ID is rejected by COBOL0886, whose message carries the
             // §-bearing citation. A unique PROGRAM-ID keeps .NET from serving a stale same-named assembly.
             string source = Path.Combine(work, "pb899enc.cob");
             File.WriteAllText(source,
@@ -122,7 +122,7 @@ public sealed class CliDiagnosticEncodingTests
 
             byte[] bytes = File.ReadAllBytes(captured);
             string decoded = Encoding.UTF8.GetString(bytes);
-            Assert.True(decoded.Contains("COBOLNET0886", StringComparison.Ordinal),
+            Assert.True(decoded.Contains("COBOL0886", StringComparison.Ordinal),
                 $"the probe did not produce the expected diagnostic, so nothing was measured: {decoded}");
 
             Assert.True(IndexOf(bytes, SectionSignUtf8) >= 0,

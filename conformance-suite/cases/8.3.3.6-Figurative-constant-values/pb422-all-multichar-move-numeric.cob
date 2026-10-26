@@ -9,7 +9,7 @@
 *> kb/Work PB422: this is NOT 14.9.25.3 SR5 - SR5's digit-only exception has no length qualifier, so ALL "57"
 *> is inside what SR5 permits and only SR3 bars it. It rode SR5's 2023 removal row, which accepted it silently
 *> at 2002/2014 and at 2023 named the wrong rule. Edge DERIVED (VCR Table 7 row 7.13): an obsolete ANSI-85
-*> element deleted by ISO 2002 - the 85 positive twin is 85/pb422_all_multichar_numeric_85. COBOLNET0902.
+*> element deleted by ISO 2002 - the 85 positive twin is 85/pb422_all_multichar_numeric_85. COBOL0902.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB422NMV.
        DATA DIVISION.

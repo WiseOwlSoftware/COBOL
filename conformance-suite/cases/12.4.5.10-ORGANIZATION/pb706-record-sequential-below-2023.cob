@@ -10,7 +10,7 @@
       *> (the Foreword names "Line Sequential file organization"; 9.1.7.2
       *> is what splits sequential files into record and line types).
       *> Before 2023 the format printed a lone SEQUENTIAL, so the word
-      *> RECORD there is not a pre-2023 spelling: COBOLNET0900 names the
+      *> RECORD there is not a pre-2023 spelling: COBOL0900 names the
       *> edition.  The bare SEQUENTIAL spelling stays legal at every
       *> edition (kb/Work PB706).
        IDENTIFICATION DIVISION.

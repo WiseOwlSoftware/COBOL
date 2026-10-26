@@ -7,7 +7,7 @@
       *> ISO 14.2.2 SR2 - a data-name in a BY VALUE phrase shall be defined as a data item of
       *> class numeric, message-tag, object, or pointer. A formal described by a TYPE clause
       *> whose TYPEDEF is alphanumeric is of class alphanumeric (8.5.2.1 Table 2) and is refused
-      *> (COBOLNET1553): the class is the composed description's, not an absent PICTURE.
+      *> (COBOL1553): the class is the composed description's, not an absent PICTURE.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3222-BVTA.
        DATA DIVISION.

@@ -11,7 +11,7 @@
       *> could not open at the sign, so the literal drew a bare parse error ("COBOL0001: unexpected '-'")
       *> naming no format.  The run now opens at a sign-led numeric literal as it opens at a one-token
       *> literal: XYZ is the computer-name and -1 is refused BY NAME in the SOURCE-COMPUTER paragraph's
-      *> format (COBOLNET1970), quoted whole, the one diagnostic, at every edition.
+      *> format (COBOL1970), quoted whole, the one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3373SS.
        ENVIRONMENT DIVISION.

@@ -10,9 +10,9 @@
       *> The phrase here is written at the GROUP level, and 13.18.60.4 GR1 applies that clause "only to each
       *> elementary item in the group" - so W1 is the subject the NO SIGN phrase is specified for, and its
       *> PICTURE contains 'S'. The elementary spelling `01 W1 PIC S9(4) PACKED-DECIMAL WITH NO SIGN.` has drawn
-      *> COBOLNET1566 since the phrase landed; this, its only other legal spelling, compiled CLEAN at every
+      *> COBOL1566 since the phrase landed; this, its only other legal spelling, compiled CLEAN at every
       *> edition and laid W1 out with the signed 3-byte representation (kb/Work PB570).
-      *> Rejected at all four editions: below 2023 the phrase ALSO draws its introduction gate (COBOLNET0900),
+      *> Rejected at all four editions: below 2023 the phrase ALSO draws its introduction gate (COBOL0900),
       *> but SR31 is edition-independent and fires alongside it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB570NEGSIGNED.

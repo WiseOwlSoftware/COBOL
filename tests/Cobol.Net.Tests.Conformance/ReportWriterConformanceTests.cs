@@ -20,7 +20,7 @@ public sealed class ReportWriterConformanceTests
     /// Report Writer itself is a COBOL-85 subsystem, but every fact here is asserted by reading the report file
     /// back through a second SELECT with <c>ORGANIZATION LINE SEQUENTIAL</c> — and that organization is a
     /// COBOL-2023 introduction (ISO §12.4.5.10.3 GR2; the Foreword lists "Line Sequential file organization"
-    /// among the main changes over ISO/IEC 1989:2014), so below 2023 the read-back is COBOLNET0900. It cannot be
+    /// among the main changes over ISO/IEC 1989:2014), so below 2023 the read-back is COBOL0900. It cannot be
     /// swapped for a record-sequential read either: WiseOwl COBOL frames a report file as line-delimited text
     /// whatever the file's ORGANIZATION, while the record-sequential connector reads fixed-size records — so a
     /// WiseOwl COBOL report file is not readable at all below 2023. The report-writer BEHAVIOR under test is
@@ -608,7 +608,7 @@ public sealed class ReportWriterConformanceTests
              // increments of its own instance, the break footing would read 05 as well.
              // ⚠ The DIRECT observable for GR9 b) — a declarative reading its group's own sum counter
              // (§13.18.54.4 GR5 + GR12) — is not available: a named sum counter is rejected as undefined in the
-             // procedure division (COBOLNET1639). That is a separate defect, reported with kb/Work PB367b.
+             // procedure division (COBOL1639). That is a separate defect, reported with kb/Work PB367b.
     public void UseBeforeReporting_Gr9ab_AfterBreakProcessingAndAfterSumIncrement()
         => AssertSpec("""
             IDENTIFICATION DIVISION.

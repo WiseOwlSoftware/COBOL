@@ -9,8 +9,8 @@
       *> identifier check compares tuples.  ISO 14.2.1 prints (PDF page 557, folio 527):
       *>     RAISING { exception-name-1 | [ FACTORY OF ] object-class-name-1 | interface-name-1 } ...
       *> with FACTORY underlined and OF plain (an optional word, 5.2.3).  Before PB815 the rule was
-      *> `RAISING cobolWord+`, so every FACTORY header below was COBOLNET0901 and every interface header
-      *> COBOLNET0858 ("interface names are a later refinement").  Each method writes one alternative:
+      *> `RAISING cobolWord+`, so every FACTORY header below was COBOL0901 and every interface header
+      *> COBOL0858 ("interface names are a later refinement").  Each method writes one alternative:
       *>   WORK-F  RAISING FACTORY OF CE815  + identifier FACTORY OF CE815 -- 14.9.18.3 SR4 a) (same FACTORY)
       *>   WORK-G  RAISING FACTORY CE815     + identifier FACTORY CE815    -- the same, OF omitted on BOTH ends
       *>   WORK-I  RAISING IR815             + identifier IR815            -- SR4 b) (the same interface

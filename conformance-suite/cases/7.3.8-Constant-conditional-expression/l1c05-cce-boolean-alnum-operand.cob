@@ -17,7 +17,7 @@
       *>   literals" -> OK  §7.3.7.2 1)  (Syntax rule)
       *> The >>IF below is otherwise a well-formed relation cce; only
       *>   the non-boolean operand of B-AND breaks §7.3.7, so the only
-      *>   reason to reject is SR3 (COBOLNET1619).
+      *>   reason to reject is SR3 (COBOL1619).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C05I.
        PROCEDURE DIVISION.

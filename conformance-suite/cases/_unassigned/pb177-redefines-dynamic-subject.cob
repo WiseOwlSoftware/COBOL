@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> COBOLNET1525's SURVIVING half - and the one side of this family for which "no syntax rule literally
+      *> COBOL1525's SURVIVING half - and the one side of this family for which "no syntax rule literally
       *> names it" is TRUE. The SUBJECT of the REDEFINES is itself a dynamic-capacity table: 13.18.38.3 carries
       *> no REDEFINES restriction, and 13.18.44.3 SR17 does not reach it either, because 8.5.1.12.1 defines
       *> "variable-length group" over items SUBORDINATE to the group - an elementary dynamic table is not one.

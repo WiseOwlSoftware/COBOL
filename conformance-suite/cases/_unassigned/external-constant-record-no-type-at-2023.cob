@@ -6,7 +6,7 @@
 *>---
 *> VCR 16 (ISO 13.16.3 SR13 para 2; Annex E.2 item 10): at >=2023 an EXTERNAL CONSTANT
 *> RECORD requires a TYPE clause naming a strongly typed definition. A bare external
-*> constant record (no TYPE) is rejected COBOLNET1549. Below 2023 it is the legacy
+*> constant record (no TYPE) is rejected COBOL1549. Below 2023 it is the legacy
 *> accepted form (the 2014 positive corpus pins that half).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. EXTCRNOTYPE.

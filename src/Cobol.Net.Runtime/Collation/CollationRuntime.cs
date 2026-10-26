@@ -44,7 +44,7 @@ public sealed record CollationRuntimeStatus(bool Initialized, string UcaVersion,
 /// the root order.</item>
 /// </list>
 /// The COMPILER (<c>cobol.exe</c>) does not call either: compiling never collates. It reaches the same subsystem
-/// only when it VALIDATES a name at compile time — an <c>ORDER TABLE</c> literal (COBOLNET1662 when
+/// only when it VALIDATES a name at compile time — an <c>ORDER TABLE</c> literal (COBOL1662 when
 /// <see cref="CollationEngine.TryGetOrderingTable"/> cannot resolve it) — and that resolution loads what it needs on
 /// demand.
 /// </summary>

@@ -10,7 +10,7 @@
       *> ROUNDED (COMPUTE 5/2 -> 2, nearest-even; the old grammar made the paragraph a bare parse error),
       *> and M2's OWN paragraph overrides per 11.9.4 GR1 for ITS body only (5/2 -> 3, nearest-away) with
       *> no leak back. (2) The class SPECIAL-NAMES device mnemonic (SYSOUT IS MYCONSOLE) resolves inside
-      *> a method - the old MnemonicRegistry walk never met the class configuration (COBOLNET0817 on
+      *> a method - the old MnemonicRegistry walk never met the class configuration (COBOL0817 on
       *> legal source) while the SWITCH map from the SAME rule resolved. Derived: CLS-EVEN=0002,
       *> MTH-AWAY=0003.
        IDENTIFICATION DIVISION.

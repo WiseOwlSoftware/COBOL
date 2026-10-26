@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.4.3.2.3 SR10 - when the formal parameter corresponding to argument-1 is specified
       *> with a BY VALUE phrase, argument-1 shall be of class numeric, object, or pointer: an
-      *> alphanumeric literal argument is rejected (COBOLNET1554).
+      *> alphanumeric literal argument is rejected (COBOL1554).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. BVF-P10UV.
        DATA DIVISION.

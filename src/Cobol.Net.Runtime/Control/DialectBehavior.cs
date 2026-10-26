@@ -63,7 +63,7 @@ public enum DialectBehavior
     /// status is '61' (§9.1.13.9 item 1). It passes the admission test above the other way round: not by an Annex E
     /// item (Annex E is the 2014 to 2023 window) but by §A.4.1, <i>"Any associated syntax rules, general rules, other
     /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
-    /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOLNET0900</c> below 2002), so a COBOL-85
+    /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOL0900</c> below 2002), so a COBOL-85
     /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> a file connector therefore
     /// has the implementor-defined sharing mode §9.1.15 allows ("a mode completely specified by the implementor", which
     /// need not be one of the three): <b>no mode restricts another connector</b>. Two connectors of one run unit open the

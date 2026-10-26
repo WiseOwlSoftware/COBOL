@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1222 - ISO 13.18.14.3 SR8 b): "The rightmost column positions of all absolute items shall not exceed the page
       *> width."   cite.py: OK  13.18.14.3 8) b)  (Syntax rules)
-      *> The page width is 12 and the item at COLUMN 10 is five wide, so its rightmost column is 14. (SR6, COBOLNET2710, bounds the
+      *> The page width is 12 and the item at COLUMN 10 is five wide, so its rightmost column is 14. (SR6, COBOL2710, bounds the
       *> OPERAND, 10; SR8 b) bounds the item's end.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W11EPB1222COLUMNPASTPAGE.

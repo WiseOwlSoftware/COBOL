@@ -13,7 +13,7 @@
       *> S PIC S9(4) USAGE NATIONAL SIGN LEADING SEPARATE holds N"-0012", FIVE national positions, and
       *> GR5 b)/c) bound leftmost-position and length by five. Before the fix the position count read the
       *> PICTURE length (4, the digits alone): T(1:5) and T(5:1) were refused as past "the 4-position
-      *> item" (COBOLNET2670, legal source rejected) and S(2:) ran one position short.
+      *> item" (COBOL2670, legal source rejected) and S(2:) ran one position short.
       *> DERIVATION (S = "-0012", T = "0012-"):
       *>   FUNCTION LENGTH(S) / LENGTH(S(1:))      -> 5|5
       *>   MOVE S(2:) TO X Y  (PIC N(8))           -> 0012    |0012    |   (GR1 intermediate: 4 positions)

@@ -102,7 +102,7 @@ public static class CobolWordsDirectiveProcessor
 
             // §7.3.10.3 SR1 — a COBOL-WORDS directive after the first IDENTIFICATION DIVISION is illegal — is judged by
             // the ONE placement screen, from the row's directivePlacement data (DirectiveSiteProcessor.
-            // JudgeFirstUnitPlacement, COBOLNET2652, kb/Work PB1377), for the directive itself and for a PUSH/POP naming
+            // JudgeFirstUnitPlacement, COBOL2652, kb/Work PB1377), for the directive itself and for a PUSH/POP naming
             // it, against the FirstUnitLine this stage returns. The boundary is also STATE: the map is the set in effect
             // where the region closes.
 
@@ -135,7 +135,7 @@ public static class CobolWordsDirectiveProcessor
     }
 
     /// <summary>Parse the operand after <c>COBOL-WORDS</c> into one option (§7.3.10.2), enforcing SR2 per literal
-    /// and the §8.3.2.2 user-word form for the fresh word. Returns false (with a COBOLNET1623) when malformed.
+    /// and the §8.3.2.2 user-word form for the fresh word. Returns false (with a COBOL1623) when malformed.
     /// <para><paramref name="definitionOf"/> reads the DEFINE timeline for a compilation-variable-name in a literal
     /// slot; null is the SYNTAX-ONLY parse of <see cref="CheckOperand"/>, where such a name is accepted by its shape
     /// and no word is looked up.</para></summary>
@@ -312,7 +312,7 @@ public static class CobolWordsDirectiveProcessor
     /// whose line is in an OMITTED conditional-compilation branch ("syntactically correct in the initial source text and
     /// library text"; kb/Work PB2003): the option, its arity and join word, and each literal's form (SR2) and, for the
     /// fresh word, its user-word shape (SR4). Nothing is applied and nothing is looked up — SR3/SR4's word categories,
-    /// SR5's uniqueness and the DEFINE timeline belong to the directive that is compiled. Reports COBOLNET1623.</summary>
+    /// SR5's uniqueness and the DEFINE timeline belong to the directive that is compiled. Reports COBOL1623.</summary>
     internal static void CheckOperand(string operand, DiagnosticBag diagnostics, SourceLocation loc) =>
         TryParseOption(operand, default, diagnostics, loc, definitionOf: null, out _);
 

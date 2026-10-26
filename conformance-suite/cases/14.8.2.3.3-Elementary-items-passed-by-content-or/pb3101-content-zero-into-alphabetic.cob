@@ -7,7 +7,7 @@
       *> kb/Work PB3101 - a figurative constant BY CONTENT takes 14.8.2.3.3 rule 2 d)'s MOVE, the WHOLE
       *> 14.9.25.3 question: SR6 "The figurative constant ZERO shall not be moved to an alphabetic data item",
       *> so ZERO into the PIC A(4) formal of a contained program activated with the NESTED phrase does not
-      *> conform -> COBOLNET1688 naming SR6. The activation lanes asked Table 16 alone of a figurative, whose
+      *> conform -> COBOL1688 naming SR6. The activation lanes asked Table 16 alone of a figurative, whose
       *> row the context chooses, and the program ran, storing "0000" in an alphabetic item.
       *> cite.py --check 14.9.25.3 "The figurative constant ZERO shall not be moved to an alphabetic data
       *>   item" -> OK 14.9.25.3 6)

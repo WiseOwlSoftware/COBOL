@@ -8,7 +8,7 @@
       *> figurative constant ZERO (ZEROS, ZEROES)" and "the figurative constant ALL literal, where
       *> literal is a boolean literal". SPACE is neither; the refusal was bound as a boolean error node
       *> WITHOUT a diagnostic, so the program compiled clean and aborted the run unit at the COMPUTE.
-      *> Expected: COBOLNET1511 (boolean operand) at every edition (COBOL-85 also draws its 0900 gate).
+      *> Expected: COBOL1511 (boolean operand) at every edition (COBOL-85 also draws its 0900 gate).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1029NBF.
        DATA DIVISION.

@@ -80,7 +80,7 @@ public sealed class StandardDecimalTests
         var (ok85, diags85) = EditionHarness.Compile(
             Program("    ARITHMETIC IS NATIVE.", "01 W PIC 9.", "DISPLAY W."), 85);
         Assert.False(ok85, "OPTIONS must be REJECTED at --std 85");
-        EditionHarness.AssertHasDiagnostic(diags85, "COBOLNET0804");
+        EditionHarness.AssertHasDiagnostic(diags85, "COBOL0804");
         EditionHarness.AssertHasDiagnostic(diags85, "2002");
 
         var (ok2002, diags2002) = EditionHarness.Compile(
@@ -105,7 +105,7 @@ public sealed class StandardDecimalTests
             """;
         var (ok, diags) = EditionHarness.Compile(src, 85);
         Assert.False(ok, "ROUNDED MODE IS must be REJECTED at --std 85");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0803");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0803");
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public sealed class StandardDecimalTests
         var (ok, diags) = EditionHarness.Compile(
             Program("    ARITHMETIC IS STANDARD-BINARY.", "01 W PIC 9.", "DISPLAY W."), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0806");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0806");
         EditionHarness.AssertHasDiagnostic(diags, "obsolete");
     }
 
@@ -136,6 +136,6 @@ public sealed class StandardDecimalTests
             """;
         var (ok, diags) = EditionHarness.Compile(src, 2023);
         Assert.False(ok, "a 40-digit composite must be REJECTED (ISO §14.7.7 rule 2 a) caps at 31)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0805");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0805");
     }
 }

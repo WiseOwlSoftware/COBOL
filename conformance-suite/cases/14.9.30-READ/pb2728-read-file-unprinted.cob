@@ -10,7 +10,7 @@
 *>   cite.py --check 5.2.1 "shall be written in the compilation group in the sequence
 *>     given in the general format" -> OK
 *> The `{ record-name-1 | FILE file-name-1 }` choice is WRITE's (14.9.51.2) and REWRITE's
-*> (14.9.35.2) alone, where Annex A.4.13 declines it (COBOLNET1706, a413-write-file-format-1 /
+*> (14.9.35.2) alone, where Annex A.4.13 declines it (COBOL1706, a413-write-file-format-1 /
 *> a413-write-file-format-2 / a413-rewrite-file-declined). readStatement carried a copy of that two-arm head that nothing
 *> refused, so this program compiled clean at every --std and RAN as a plain READ (kb/Work
 *> PB2728). FILE is a reserved word and never a file-name, so with the arm gone the parser

@@ -21,10 +21,10 @@ namespace CobolNet.Tests.Unit;
 /// (DESIGN-conformance-suite.md §5): its <c>diagnostic</c> pattern, which <c>run.py</c> reads a flagged test's
 /// diagnostics with, matches every diagnostic the compiler can report, as the compiler's own formatters render it —
 /// the parse layer's <see cref="FrontendDiagnostic"/> (the COBOL<i>n</i> parser and CBL<i>n</i> COPY codes, and the
-/// parse-layer COBOLNET twins) and the binder's <see cref="EditionContext"/> (every <see cref="DiagnosticCatalog"/>
+/// parse-layer COBOL#### twins) and the binder's <see cref="EditionContext"/> (every <see cref="DiagnosticCatalog"/>
 /// code) — and reads the file and the line from it. A pattern that missed a code would judge a flagged test FAIL
-/// ("no diagnostic reported") although the compiler flagged the marked line: the pattern once required COBOLNET and
-/// so never saw a parse error (kb/Work PB3175, review R1-2).
+/// ("no diagnostic reported") although the compiler flagged the marked line: the pattern once required the catalog's
+/// former prefix and so never saw a parse error (kb/Work PB3175, review R1-2).
 /// </summary>
 public sealed class ConformanceSuiteAdapterDriftTests
 {
@@ -36,6 +36,14 @@ public sealed class ConformanceSuiteAdapterDriftTests
         string python = doc.RootElement.GetProperty("diagnostic").GetString()!;
         return new Regex(python.Replace("(?P<", "(?<", StringComparison.Ordinal), RegexOptions.CultureInvariant);
     }
+
+    /// <summary>The series a code belongs to (kb/Work PB3575): <c>CBL####</c> is the COPY preprocessor's ("copy"), a
+    /// <c>COBOL####</c> below 0400 the parser's ("parser") and one from 0400 up every other compiler diagnostic's
+    /// ("compiler"); any other shape is "malformed", which no series check accepts.</summary>
+    private static string SeriesOf(string code) =>
+        Regex.Match(code, @"^(CBL|COBOL)(\d{4})$") is not { Success: true } m ? "malformed"
+        : m.Groups[1].Value == "CBL" ? "copy"
+        : int.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) < 400 ? "parser" : "compiler";
 
     /// <summary>⛔ THE OBLIGATION, with its population: both registries enumerate to their known size and span the three
     /// code families, and every code, at every severity it can be reported at, rendered by its own formatter, is
@@ -50,8 +58,11 @@ public sealed class ConformanceSuiteAdapterDriftTests
         var catalog = DiagnosticCatalog.All.Select(d => d.Code).Distinct(StringComparer.Ordinal).ToArray();
         Assert.True(frontend.Length >= 20, $"DiagnosticDescriptors enumerated to {frontend.Length} code(s); the reflection is broken");
         Assert.True(catalog.Length >= 500, $"DiagnosticCatalog.All enumerated to {catalog.Length} code(s)");
-        foreach (string family in new[] { "COBOL0", "CBL", "COBOLNET" })
-            Assert.Contains(frontend.Concat(catalog), c => c.StartsWith(family, StringComparison.Ordinal));
+        // the three series of the two prefixes (kb/Work PB3575): the parser's COBOL0001-COBOL0313, the COPY
+        // preprocessor's CBL####, and every other compiler diagnostic, COBOL0400 and up
+        Assert.Contains(frontend.Concat(catalog), c => SeriesOf(c) == "parser");
+        Assert.Contains(frontend.Concat(catalog), c => SeriesOf(c) == "copy");
+        Assert.Contains(frontend.Concat(catalog), c => SeriesOf(c) == "compiler");
 
         var problems = new List<string>();
         void Expect(string rendered, string code, string file, int? line)

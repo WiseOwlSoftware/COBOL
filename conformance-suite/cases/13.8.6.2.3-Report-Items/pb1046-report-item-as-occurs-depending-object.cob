@@ -6,7 +6,7 @@
       *>---
       *> kb/Work PB1046. 13.8.6.2.3 bars "any clauses in any other section of the data division" from accessing or
       *> referring to a report item. The OCCURS ... DEPENDING ON clause of the working-storage table TAB names CNT,
-      *> a printable item of the report section: refused as COBOLNET5092 where it used to be COBOLNET0851
+      *> a printable item of the report section: refused as COBOL5092 where it used to be COBOL0851
       *> "data-name-1 is not defined", false about a name the report section declares.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1046R5.

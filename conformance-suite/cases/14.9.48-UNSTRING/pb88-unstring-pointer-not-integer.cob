@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.48.3 SR6: identifier-7 (the POINTER) "shall be described as an elementary numeric integer data
-      *> item ... The symbol 'P' shall not be used" - a PIC 9V9 pointer is not one. kb/Work PB88: COBOLNET1651 at
+      *> item ... The symbol 'P' shall not be used" - a PIC 9V9 pointer is not one. kb/Work PB88: COBOL1651 at
       *> bind (a run-time stage before).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NUNSPTR.

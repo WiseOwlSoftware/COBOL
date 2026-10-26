@@ -16,10 +16,10 @@
       *>   (b) A literal in a STATEMENT - the decimal128 range, about 1E-6176 to 9.99E+6144.  That lane has its
       *>       OWN fixture, pb99-floating-literal-range-statement.cob, and this one has no PROCEDURE-DIVISION
       *>       literal at all (kb/Work PB276).  ⛔ THE HARNESS ASSERTS ONLY THAT SOME DIAGNOSTIC CONTAINS
-      *>       COBOLNET1661: while both lanes shared a file, F1-F4 alone satisfied that assertion and the
+      *>       COBOL1661: while both lanes shared a file, F1-F4 alone satisfied that assertion and the
       *>       statement screen was never witnessed - deleting it outright would have left this negative green.
       *>
-      *> Every entry here is COBOLNET1661 (kb/Work PB99 - before it Roslyn reported CS0594 on the generated C#
+      *> Every entry here is COBOL1661 (kb/Work PB99 - before it Roslyn reported CS0594 on the generated C#
       *> double literal, no COBOL diagnostic).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB99NR.

@@ -20,8 +20,8 @@ namespace CobolNet.Tests.Unit;
 /// the standard's (§13.4.3, §13.5.3, §13.6.3, §13.7.3, §13.8.3, §13.9.3 SR1 — each citation run through
 /// <c>cite.py --check</c>); (4) no site spells a placement refusal of its own: the method arm of
 /// <c>DataBinder.OoBindMethodData</c> and the class driver ask the table, and nothing raises
-/// <c>COBOLNET1519</c> by literal code; (5) the same screen's GLOBAL-clause walk (§13.18.27.3 SR4, kb/Work PB1045)
-/// knows every grammar rule that carries the clause, and is the only reporter of <c>COBOLNET1520</c>.
+/// <c>COBOL1519</c> by literal code; (5) the same screen's GLOBAL-clause walk (§13.18.27.3 SR4, kb/Work PB1045)
+/// knows every grammar rule that carries the clause, and is the only reporter of <c>COBOL1520</c>.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class OoDefinitionRulesDriftTests
@@ -87,8 +87,8 @@ public sealed class OoDefinitionRulesDriftTests
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs", SearchOption.AllDirectories)
                      .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
                                  && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")))
-            Assert.False(File.ReadAllText(file).Contains("\"COBOLNET1519\"", StringComparison.Ordinal),
-                $"{file} raises COBOLNET1519 by literal code — the placement family is DiagnosticCatalog.OoDataDivisionPlacement, asked only through OoDefinitionRules.Screen");
+            Assert.False(File.ReadAllText(file).Contains("\"COBOL1519\"", StringComparison.Ordinal),
+                $"{file} raises COBOL1519 by literal code — the placement family is DiagnosticCatalog.OoDataDivisionPlacement, asked only through OoDefinitionRules.Screen");
     }
 
     /// <summary>kb/Work PB1045 — §13.18.27.3 SR4 ("The GLOBAL clause shall not be specified in a factory definition,
@@ -124,7 +124,7 @@ public sealed class OoDefinitionRulesDriftTests
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs", SearchOption.AllDirectories)
                      .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
                                  && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")))
-            Assert.False(File.ReadAllText(file).Contains("\"COBOLNET1520\"", StringComparison.Ordinal),
-                $"{file} raises COBOLNET1520 by literal code — it is DiagnosticCatalog.GlobalInOoDefinition, reported only by OoDefinitionRules.Screen");
+            Assert.False(File.ReadAllText(file).Contains("\"COBOL1520\"", StringComparison.Ordinal),
+                $"{file} raises COBOL1520 by literal code — it is DiagnosticCatalog.GlobalInOoDefinition, reported only by OoDefinitionRules.Screen");
     }
 }

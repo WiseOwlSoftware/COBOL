@@ -10,7 +10,7 @@
       *> a MOVE statement with the returning item as the receiving item." Every activation is ALSO held to
       *> §14.8.3.3's identical-description rule for the returning item ("the receiving operand shall have the
       *> same ... PICTURE ... clauses"), which is STRICTER than MOVE-ability and which this implementation
-      *> enforces for every invocation (COBOLNET0828). A PIC 9(5) method returning item received into a
+      *> enforces for every invocation (COBOL0828). A PIC 9(5) method returning item received into a
       *> PIC 9(3) item is a legal MOVE (it truncates) but not an identical description, so the invocation is
       *> refused — the MOVE-ability half of rule 7 is therefore never weaker than what the compiler checks.
       *> The rule's second sentence introduces the EXACT-MATCH criteria, which only rank two or more same-named

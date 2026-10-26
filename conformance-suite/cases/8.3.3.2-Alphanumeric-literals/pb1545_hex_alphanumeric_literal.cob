@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1545 - the hexadecimal alphanumeric literal X"..." at its introducing edition, COBOL-2002
-      *> (VCR row 7.29; constructs.json hex-alphanumeric-literal-2002; below 2002 it is COBOLNET0900, negative
+      *> (VCR row 7.29; constructs.json hex-alphanumeric-literal-2002; below 2002 it is COBOL0900, negative
       *> pb1545-hex-alphanumeric-literal-below-2002).
       *>   cite.py --check 8.3.3.2.2 "Format 2 (hexadecimal-alphanumeric)" -> OK §8.3.3.2.2
       *>   cite.py --check 8.3.3.2.3 "Each hex-character-sequence-1 shall consist of the number of hexadecimal

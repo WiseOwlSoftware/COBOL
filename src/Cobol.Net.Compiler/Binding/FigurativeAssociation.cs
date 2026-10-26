@@ -16,7 +16,7 @@ namespace CobolNet.Binding;
 /// BY CONTENT argument into a numeric-edited formal) and the ONE relation checkpoint (<c>StatementValidation.CheckRelationalOperands</c>, which IF, EVALUATE
 /// pairings and ranges, PERFORM UNTIL and SEARCH WHEN all pass through). The third association, a binary
 /// operation, cannot reach a numeric item: the boolean-expression binder refuses every non-boolean operand first
-/// (COBOLNET1511).
+/// (COBOL1511).
 ///
 /// <para>⛔ THIS IS NOT §14.9.25.3 SR5. SR5's exception — "an ALL "literal" figurative constant (containing only
 /// digits) … to an integer numeric item" — carries no length qualifier, so <c>ALL "57"</c> is inside what SR5
@@ -33,7 +33,7 @@ namespace CobolNet.Binding;
 /// '74 tests of the shape (NC105A MOVE-TEST-176..178) only as "DELETED BY FCCTS" — consistent with the
 /// designation, not a proof of it. Hence the registry row
 /// <c>all-literal-multichar-numeric-removed-2002</c>: accepted at 85 with the §8.3.3.6.4 GR2 repeat-and-truncate
-/// value, COBOLNET0902 at 2002 and later (a warning under <c>--permissive</c>, the value preserved). The rejected
+/// value, COBOL0902 at 2002 and later (a warning under <c>--permissive</c>, the value preserved). The rejected
 /// reading — an error at EVERY edition, from the 2023 text alone — would reject a program the 1985 standard
 /// admits.</para>
 /// </summary>
@@ -123,7 +123,7 @@ public static class FigurativeAssociation
     /// subject, §13.18.63.3 SR2; an arithmetic-expression operand, §8.8.1.1) and the operand is ZERO written WITH
     /// the word ALL — and this reports it through the construct registry. ⚠ DETERMINATION (VCR Table 7 row 7.28,
     /// a DERIVED edge like SR3's row 7.13 above): accepted at 85, where ALL before a figurative word is redundant
-    /// and CCVS-85 writes <c>VALUE ALL ZEROS</c> on <c>PIC 999</c> (NC201A); COBOLNET0902 at 2002 and later, a
+    /// and CCVS-85 writes <c>VALUE ALL ZEROS</c> on <c>PIC 999</c> (NC201A); COBOL0902 at 2002 and later, a
     /// warning under <c>--permissive</c>. Where it is admitted the operand IS the figurative ZERO: the caller
     /// keeps the value zero either way, because a refused compile reaches no output.</summary>
     public static void GateAllZeroAsNumeric(EditionInfo edition, IDiagnosticSink sink, string where) =>

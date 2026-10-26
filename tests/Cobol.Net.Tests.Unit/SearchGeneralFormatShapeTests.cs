@@ -39,20 +39,20 @@ MAIN.
     /// <summary>Each shape no general format prints, at the first and the last edition (the formats did not
     /// change shape across 1985/2002/2014/2023), refused under the code that names it.</summary>
     [Theory]
-    [InlineData("A", "    SEARCH ALL E KEY IS K WHEN K (IX) = 3 DISPLAY \"H\" END-SEARCH.", "COBOLNET2269", "SEARCH ALL … KEY")]
-    [InlineData("B", "    SEARCH E KEY IS K WHEN K (IX) = 3 DISPLAY \"H\" END-SEARCH.", "COBOLNET2269", "SEARCH … KEY")]
+    [InlineData("A", "    SEARCH ALL E KEY IS K WHEN K (IX) = 3 DISPLAY \"H\" END-SEARCH.", "COBOL2269", "SEARCH ALL … KEY")]
+    [InlineData("B", "    SEARCH E KEY IS K WHEN K (IX) = 3 DISPLAY \"H\" END-SEARCH.", "COBOL2269", "SEARCH … KEY")]
     [InlineData("C", "    SEARCH ALL E WHEN K (IX) = 5 DISPLAY \"A\" WHEN K (IX) = 3 DISPLAY \"B\" END-SEARCH.",
-        "COBOLNET2269", "second WHEN phrase")]
+        "COBOL2269", "second WHEN phrase")]
     [InlineData("D", "    SEARCH ALL E WHEN K (IX) = 5 DISPLAY \"A\" WHEN K (IX) = 3 DISPLAY \"B\".",
-        "COBOLNET2269", "second WHEN phrase")]
+        "COBOL2269", "second WHEN phrase")]
     [InlineData("E", "    SEARCH ALL E NOT AT END DISPLAY \"Y\" WHEN K (IX) = 1 DISPLAY \"H\" END-SEARCH.",
-        "COBOLNET2269", "SEARCH ALL … NOT AT END")]
-    [InlineData("F", "    SEARCH E AT END NEXT SENTENCE WHEN K (IX) = 9 DISPLAY \"H\".", "COBOLNET2269", "NEXT SENTENCE:")]
-    [InlineData("G", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE DISPLAY \"T\".", "COBOLNET2269", "NEXT SENTENCE:")]
-    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOLNET2409", "§14.9.37.3 SR4")]
-    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOLNET2409", "§14.9.37.3 SR4")]
+        "COBOL2269", "SEARCH ALL … NOT AT END")]
+    [InlineData("F", "    SEARCH E AT END NEXT SENTENCE WHEN K (IX) = 9 DISPLAY \"H\".", "COBOL2269", "NEXT SENTENCE:")]
+    [InlineData("G", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE DISPLAY \"T\".", "COBOL2269", "NEXT SENTENCE:")]
+    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§14.9.37.3 SR4")]
+    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§14.9.37.3 SR4")]
     [InlineData("J", "    SEARCH E WHEN K (IX) = 9 DISPLAY \"N\" WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.",
-        "COBOLNET2409", "SEARCH: the END-SEARCH phrase")]
+        "COBOL2409", "SEARCH: the END-SEARCH phrase")]
     public void ShapeNoFormatPrints_IsRefusedAtCompileTime(string id, string body, string code, string text)
     {
         foreach (int ed in new[] { 85, 2023 })

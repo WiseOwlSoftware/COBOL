@@ -70,7 +70,7 @@ public sealed record DynamicLengthStructure(
     };
 
     /// <summary>Does the declaration lay the item out at all — a PREFIXED length field, a DELIMITED delimiter or both
-    /// (§12.3.7.4 GR18/GR19). False only for a physical-structure-name, which is refused (COBOLNET2257), so no item
+    /// (§12.3.7.4 GR18/GR19). False only for a physical-structure-name, which is refused (COBOL2257), so no item
     /// that reaches code generation names one.</summary>
     public bool HasLayout => PrefixBytes > 0 || Delimited;
 

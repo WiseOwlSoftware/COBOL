@@ -10,7 +10,7 @@
       *> phrase ... and argument-1 is a bit data item, argument-1 shall be
       *> described such that it is aligned on a byte boundary". B2 follows
       *> the one-bit B1 in a GROUP-USAGE BIT group, so it starts at bit 1
-      *> of its record -> COBOLNET2471. The formal has B2's own description
+      *> of its record -> COBOL2471. The formal has B2's own description
       *> (PIC 1(3) USAGE BIT), so 14.8.2.3.2 rule 2 is met and the
       *> alignment rule is the only violation.
       *> cite.py --check 8.4.3.2.3 "argument-1 shall be described such

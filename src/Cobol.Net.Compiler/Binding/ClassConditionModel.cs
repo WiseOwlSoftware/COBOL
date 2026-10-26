@@ -152,7 +152,7 @@ internal static class ClassConditionModel
     /// classifier, which answers for the operand shapes that are not a plain data-item reference (an index-NAME,
     /// an intrinsic of §15.2 item 6's index class, the NULL predefined address). Neither alone is total, and a
     /// hand-written class list beside them would be the third copy this table exists to prevent.</para>
-    /// <para>The strongly-typed-group arm keeps its own catalog entry (the COBOLNET1533 strong-typing family,
+    /// <para>The strongly-typed-group arm keeps its own catalog entry (the COBOL1533 strong-typing family,
     /// which is split by rule); the class and variable-length-group arms share this one. SR1 is therefore ONE
     /// rule reported through two codes, stated here so it is not re-argued.</para></summary>
     public static string? Sr1Refusal(BoundOperand op)
@@ -209,11 +209,11 @@ internal static class ClassConditionModel
     /// <paramref name="rule"/> — declared beside the predicate that tests it, so a message can never name a
     /// rule the predicate does not test and a code can never outlive its rule (CLAUDE.md rule 1: a citation
     /// that passes <c>--check</c> while pointing at the wrong rule is the failure mode).
-    /// <para>SR4 and SR8 keep COBOLNET0844, which has reported them (in their boolean-operand halves) since the
+    /// <para>SR4 and SR8 keep COBOL0844, which has reported them (in their boolean-operand halves) since the
     /// data increment; SR3 and SR5 had no arm at all and get their own codes.</para></summary>
     public static (string Code, string Clause, string Text) Wording(ClassOperandRule rule) => rule switch
     {
-        ClassOperandRule.NotBooleanNumericOrNumericEdited => ("COBOLNET0844", "ISO §8.8.4.4.3 SR4",
+        ClassOperandRule.NotBooleanNumericOrNumericEdited => ("COBOL0844", "ISO §8.8.4.4.3 SR4",
             "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the "
             + "category of the data item referenced by identifier-1 is boolean, numeric, or numeric-edited"),
         ClassOperandRule.NotNumericOrNumericEdited =>
@@ -235,7 +235,7 @@ internal static class ClassConditionModel
             + "phrase is specified, identifier-1 shall reference a data item described with a standard "
             + "floating-point usage (FLOAT-BINARY-32/-64/-128, FLOAT-DECIMAL-16/-34 — not FLOAT-SHORT, "
             + "FLOAT-LONG, FLOAT-EXTENDED, COMP-1 or COMP-2)"),
-        _ => ("COBOLNET0844", "ISO §8.8.4.4.3 SR8",
+        _ => ("COBOL0844", "ISO §8.8.4.4.3 SR8",
             "if the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is "
             + "display or national or whose category is numeric"),
     };

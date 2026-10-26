@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1087 - F1 is in a file-area clause with F2 and in a record-area clause WITHOUT F2.
       *>   cite.py --check 12.4.6.4.3 "If one or more file-names specified in a file-area format SAME clause are also specified in a record-area format SAME clause" -> OK
-      *> COBOLNET2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
+      *> COBOL2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1087N10.
        ENVIRONMENT DIVISION.

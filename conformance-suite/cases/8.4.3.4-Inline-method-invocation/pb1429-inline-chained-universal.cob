@@ -11,9 +11,9 @@
       *> `A1 :: "UNIV"` IS identifier-1 of the second invocation, and UNIV
       *> returns a UNIVERSAL object reference (§8.4.3.4.4 GR1 b): the temporary
       *> has the description of the RETURNING item).  SR2 refuses that receiver
-      *> with the same named diagnostic, COBOLNET2138, that a written universal
+      *> with the same named diagnostic, COBOL2138, that a written universal
       *> identifier-1 draws.  kb/Work PB1429: the chained segment's receiver was
-      *> never screened and the compile ended in the COBOLNET2362 internal error.
+      *> never screened and the compile ended in the COBOL2362 internal error.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1429N1.
        ENVIRONMENT DIVISION.

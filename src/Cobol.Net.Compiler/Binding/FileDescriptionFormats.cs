@@ -63,7 +63,7 @@ internal static class FileDescriptionFormats
     private const string FileControlEntry = "the file control entry (ISO §12.4.5.1)";
 
     /// <summary>Every <c>fileDescriptionClause</c> alternative except the <c>unrecognizedDataClause</c> error
-    /// production (refused by <c>ClosedFormatPass</c>, COBOLNET1970), in the order §13.4.5.2 prints them. The
+    /// production (refused by <c>ClosedFormatPass</c>, COBOL1970), in the order §13.4.5.2 prints them. The
     /// Format columns are the rendered §13.4.5.2 lists.</summary>
     public static readonly IReadOnlyList<FileDescriptionClauseRow> Rows =
     [

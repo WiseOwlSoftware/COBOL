@@ -16,7 +16,7 @@
       *> It lives in the 2002 corpus because that is the edition that
       *> INTRODUCES the four usages (constructs.json
       *> usage-binary-char-family-2002, introducedIn 2002; below 2002
-      *> the introduction gate COBOLNET0900 names the edition, which
+      *> the introduction gate COBOL0900 names the edition, which
       *> the version matrix already drives).  The band itself has no
       *> edition input at all - it is PicInfo.StorageWidth plus
       *> PicInfo.Truncation - so pinning it at the introducing edition

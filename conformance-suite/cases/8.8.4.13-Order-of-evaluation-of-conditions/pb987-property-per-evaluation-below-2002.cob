@@ -10,7 +10,7 @@
       *> PROPERTY specifier, a class definition and object references -
       *> ISO/IEC 1989:2002 introductions. At COBOL-85 this source does not
       *> describe a program, so the compiler refuses the first construct
-      *> the edition does not have with COBOLNET0900.
+      *> the edition does not have with COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB987N85.
        ENVIRONMENT DIVISION.

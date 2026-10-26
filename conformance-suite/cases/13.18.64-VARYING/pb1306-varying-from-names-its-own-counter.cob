@@ -7,7 +7,7 @@
       *> kb/Work PB1306 - ISO 13.18.64.3 SR3: "Data-name-1 shall not be referenced in arithmetic-expression-1 of the same
       *> VARYING clause, but may be referenced in arithmetic-expression-2 of the same VARYING clause or in
       *> arithmetic-expression-1 or arithmetic-expression-2 of a VARYING clause in a subordinate entry."
-      *> FROM K defines K from itself. COBOLNET1559. (The BY form, `BY K`, is the legal half - see
+      *> FROM K defines K from itself. COBOL1559. (The BY form, `BY K`, is the legal half - see
       *> conformance:cases/8.4.2.2-Qualification/pb1306_varying_scope.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1306N4.
