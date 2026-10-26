@@ -13,8 +13,8 @@
       *> returnAtEndPhrase: `NOT AT? END statementBlock (AT? END statementBlock)?` made the AT END HALF of the
       *> reversed pair optional too, so a screen that only asked whether the PHRASE NODE was present would
       *> have left this arm compiling (CLAUDE.md rule 4 — the two-arm dispatch with one arm fixed). The bind
-      *> screen asks instead whether the AT END BLOCK is null after PhraseBlocks.Split has normalized position
-      *> away, which is one test covering both arms.
+      *> screen asks instead whether the AT END BLOCK is null once PhraseBlocks.Bind has bound each phrase
+      *> by its role (the shared conditionalPhrases rule, kb/Work PB3830), one test covering every spelling.
       *> The legal complement — the SAME reversal with BOTH halves — is exercised by DRAIN-2 of
       *> conformance-suite/cases/14.9.34-RETURN/pb350_return_at_end_required.cob and must keep compiling.
        IDENTIFICATION DIVISION.

@@ -4,6 +4,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -26,7 +27,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (add.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
         var addends = operands.Select(host.Expr.BindExpr).ToList();
-        var sizeErr = host.BindSizeError(add.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(add.conditionalPhrases());
         if (add.arithmeticGivingPhrase() is { } giving)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.2.2 Format 2: the TO operand is an addend,
@@ -70,7 +71,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (sub.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
         var minuends = operands.Select(host.Expr.BindExpr).ToList();
-        var sizeErr = host.BindSizeError(sub.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(sub.conditionalPhrases());
         if (sub.arithmeticGivingPhrase() is { } giving && sub.subtractFromPhrase()?.receiversOrSendingOperand() is { } from)
         {
             Format2SendingOperand("SUBTRACT", "§14.9.44.2", from.receivingArithmeticOperand());
@@ -101,7 +102,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 + "literal-1 after the verb (ISO §14.9.26.2)");
         var a = host.Expr.BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
-        var sizeErr = host.BindSizeError(mul.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(mul.conditionalPhrases());
         if (mul.arithmeticGivingPhrase() is { } giving && byOps.Length > 0)
         {
             // §14.9.26.2 Format 2: ONE `BY {identifier-2 | literal-2}` sending operand, no ROUNDED.
@@ -126,7 +127,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (div.sendingOperand() is not { } aCtx) return DivideShape();
         var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
-        var sizeErr = host.BindSizeError(div.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(div.conditionalPhrases());
 
         // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (§14.9.12.2 — identifier-3 carries no ellipsis in either format).
         if (div.divideRemainderPhrase() is { } rem)
@@ -270,7 +271,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             return BuildComputeBoolean(compute, rerouted);
         }
         var rhs = host.Expr.BindExpr(expr);
-        return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
+        return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.conditionalPhrases()));
     }
 
     /// <summary>The refusal of a boolean COMPUTE whose right-hand operand is no boolean expression (ISO §14.9.8
@@ -281,22 +282,6 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
             + "(ISO §14.9.8 Format 2)");
-    }
-
-    /// <summary>The <c>booleanExpression</c> parse tree reduced to a sole figurative ZERO (<c>[ALL]
-    /// ZERO</c>/<c>ZEROS</c>/<c>ZEROES</c> — ALL is Format 1's OPTIONAL word, §8.3.3.6.2; kb/Work PB157
-    /// widened this from the bare form), or null for anything else — including <c>ALL B"…"</c> (Format 6,
-    /// the actual ALL literal). Used by the F2→F1 reroute; the SR3 screen now reads
-    /// <c>BoundBoolAll.IsAllLiteral</c> instead (one flag, set at the one Format-6 construction site).</summary>
-    private static Core.FigurativeConstantContext? SoleFigurativeZero(Core.BooleanExpressionContext? b)
-    {
-        if (b?.booleanXorTerm() is not [{ } xor]) return null;
-        if (xor.booleanAndTerm() is not [{ } and]) return null;
-        if (and.booleanShiftTerm() is not [{ } shift]) return null;
-        if (shift.booleanShiftSuffix().Length != 0) return null;
-        if (shift.booleanFactor() is not { } factor) return null;
-        var fig = factor.valueOperand()?.nonNumericLiteral()?.figurativeConstant();
-        return fig is not null && fig.zeroWord() is not null ? fig : null;   // [ALL] ZERO — ALL is optional (PB157)
     }
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
@@ -310,16 +295,20 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // `valueOperand` leaf admits the figurative. `BindBoolExpr` then normalises it to `BoundBoolAll("0")`
         // (§8.3.3.6.4 GR4's boolean reading), indistinguishable from `ALL B"0"` by the time SR3 runs.
         // ⚠ THE TEST IS ON THE PARSE TREE, NOT THE BOUND NODE, precisely because that normalisation is lossy:
-        // `SoleFigurativeZero` asks whether the SOURCE wrote a bare ZERO/ZEROS/ZEROES, so `ALL B"0"` and
-        // `ALL ZERO` keep their existing verdicts (§8.3.3.6.3 SR1a — "the only figurative constant permitted is
-        // ZERO … WITHOUT the ALL phrase").
+        // `ComputeFormats.SoleFigurativeZero` asks whether the SOURCE wrote a sole figurative ZERO, so `ALL B"0"`
+        // keeps its Format-2 verdict. It is the ONE reading: §14.5.3.3's phrase association asks it too, so the SIZE
+        // ERROR pair a Format-1 reading admits was associated with this COMPUTE at parse (kb/Work PB3830 review
+        // R2-1). The operand is then read by the ONE arithmetic-operand reading (ComputeZeroOperand), so `ALL ZERO`
+        // meets §8.3.3.6.3 SR1 a)'s edition gate exactly as `ADD ALL ZERO TO X` does ("the only figurative constant
+        // permitted is ZERO (ZEROS, ZEROES) without the ALL phrase": COBOL0902 from 2002; kb/Work PB1415) — the
+        // re-route built a bare zero and compiled `COMPUTE X = ALL ZERO` clean at 2023.
         // ⚠ AND IT IS GATED ON A NON-BOOLEAN RECEIVER: with a boolean receiver GR4's boolean reading is the right
         // one and Format 2 genuinely applies, so that path is untouched.
         // ⚙ MEASURED SCOPE: every OTHER arithmetic position already accepts a bare ZERO — ADD/SUBTRACT/MULTIPLY,
         // the GIVING forms, IF and MOVE all have their own operand rules that admit the figurative. COMPUTE is
         // the one verb whose RHS is a bare `arithmeticExpression`, which is why this is a targeted re-route and
         // not the grammar re-architecture the queue entry proposed.
-        if (SoleFigurativeZero(boolExpr) is not null
+        if (ComputeFormats.SoleFigurativeZero(boolExpr) is { } zero
             && compute.computeStore().Length > 0
             // OperandPic (kb/Work PB157): a GROUP-USAGE BIT receiver is boolean (§13.18.29.4 GR1b) — raw Pic
             // read it as non-boolean and misrouted `COMPUTE <bit-group> = ZERO` to the arithmetic channel.
@@ -327,8 +316,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 || ctx.Refs.Probe(r0) is not { Item.OperandPic.Category: PicCategory.Boolean }))
         {
             // §8.3.3.6.4 GR4 — "the numeric value '0' … depending on context"; a numeric receiver IS that context.
-            return new BoundCompute(new BoundNumLiteral("0"), host.Expr.Receivers(compute.computeStore()),
-                host.BindSizeError(compute.computeOnSizeError()));
+            return new BoundCompute(host.Expr.ComputeZeroOperand(zero), host.Expr.Receivers(compute.computeStore()),
+                host.BindSizeError(compute.conditionalPhrases()));
         }
 
         // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
@@ -349,10 +338,14 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Shared tail for both the direct Format-2 bind and the F1→F2 re-route: receiver conformance
-    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width.</summary>
+    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width. The
+    /// SIZE ERROR arm is reached only by a right side BOTH formats print — a sole identifier, or a sole figurative
+    /// ZERO (<see cref="ComputeFormats"/>) — that a boolean receiver makes Format 2: §14.5.3.3 associates the phrase
+    /// with such a COMPUTE, since it may be Format 1. A right side only Format 2 prints never owns the phrase
+    /// (ConditionalPhraseAssociation's BooleanCompute selector; COBOL2269 at the phrase, kb/Work PB3830).</summary>
     private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
     {
-        if (compute.computeOnSizeError() is not null)
+        if (ConditionalPhrases.HasFamily(compute.conditionalPhrases(), ConditionalPhraseFamily.SizeError))
             ctx.Edition.Error("COBOL1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
                 + "(ISO §14.9.8 Format 2 — no size-error phrase)");
         var targets = new List<Place>();

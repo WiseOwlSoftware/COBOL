@@ -398,9 +398,14 @@ goToStatement
 // SEARCH (§14.9.37 — Linear Search)
 // ==========================================
 
+// `[ AT END imperative-statement-1 ]` — and nothing else, in both SEARCH formats (kb/Work PB446; PDF page 750): the
+// one AT END phrase is `conditionalPhrases`, and ConditionalPhraseAssociation's table gives SEARCH the AT END phrase
+// alone, so a NOT AT END never associates with a SEARCH (§14.5.3.3) and arrives as a syntax error that
+// CobolErrorStrategy re-codes by name (COBOL2269, the one statement-format-shape code). AT is printed without an
+// underline in every AT END phrase (§5.2.3 optional word), so `SEARCH … END …` is conforming ISO.
 searchStatement
     : SEARCH dataReference (VARYING receivingIdentifier)?
-      searchAtEndClause?
+      conditionalPhrases
       searchWhenClause+
       END_SEARCH?
     ;
@@ -411,18 +416,6 @@ searchStatement
 // (`StatementBinder.BindArm`) is what admits it — and only as the WHOLE arm (kb/Work PB396, PB446).
 searchWhenClause
     : WHEN condition statementBlock
-    ;
-
-// ⛔ `[ AT END imperative-statement-1 ]` — AND NOTHING ELSE, IN BOTH FORMATS (kb/Work PB446; PDF page 750). This
-// rule used to carry a `(NOT AT? END statementBlock)?` arm: the READ/RETURN phrase, which neither SEARCH format
-// prints, admitted on BOTH at once because the rule is shared — and refused only downstream, by a binder helper
-// that existed solely to name a shape the grammar should never have produced. The shape now arrives as a syntax
-// error that CobolErrorStrategy re-codes by name (COBOL2269, the one statement-format-shape code).
-// ISO 5.2.3: AT is printed WITHOUT an underline in every AT END phrase in the standard — measured across all
-// 11 occurrences on pages 600-829, none underlined. It is an OPTIONAL WORD, so `SEARCH … END …` is CONFORMING
-// ISO, not a vendor extension.
-searchAtEndClause
-    : AT? END statementBlock
     ;
 
 // ==========================================
@@ -439,7 +432,7 @@ searchAtEndClause
 // discarded. Both shapes now arrive as syntax errors that CobolErrorStrategy re-codes as COBOL2269.
 searchAllStatement
     : SEARCH ALL dataReference
-      searchAtEndClause?
+      conditionalPhrases
       searchAllWhenClause
       END_SEARCH?
     ;
