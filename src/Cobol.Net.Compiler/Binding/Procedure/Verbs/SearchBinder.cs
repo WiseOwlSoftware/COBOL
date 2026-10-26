@@ -5,6 +5,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -118,11 +119,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <param name="table">identifier-1's table; when it is a dynamic-capacity table nested under other tables the
     /// WHEN conditions are bound under <see cref="ReferenceResolver.CaptureEnclosingSubscripts"/>.</param>
     private (List<BoundStatement>? AtEnd, List<BoundSearchWhen> Whens, ReferenceResolver.EnclosingOccurrence? WhenEnclosing) Phrases(
-        string verb, DataItem table, Core.SearchAtEndClauseContext? ae, ITerminalNode? endSearch,
+        string verb, DataItem table, Core.ConditionalPhrasesContext phrases, ITerminalNode? endSearch,
         IReadOnlyList<(Core.ConditionContext Cond, Core.StatementBlockContext Arm)> whens)
     {
         ctx.Validation.CheckSearchEndSearchNextSentence(verb, endSearch, whens.Select(w => w.Arm));
-        var atEnd = ae is null ? null : host.BindBlocks([ae.statementBlock()]);
+        var (atEnd, _) = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
         // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a
         // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
@@ -197,7 +198,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             else return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 
-        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH", table, s.searchAtEndClause(), s.END_SEARCH(),
+        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH", table, s.conditionalPhrases(), s.END_SEARCH(),
             [.. s.searchWhenClause().Select(wc => (wc.condition(), wc.statementBlock()))]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
@@ -245,7 +246,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // Format 2 prints exactly ONE WHEN phrase (its ellipsis is on the AND bracket — kb/Work PB446), and the
         // grammar now spells that, so there is one arm.
         var wc = s.searchAllWhenClause();
-        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH ALL", table, s.searchAtEndClause(), s.END_SEARCH(),
+        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH ALL", table, s.conditionalPhrases(), s.END_SEARCH(),
             [(wc.condition(), wc.statementBlock())]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;

@@ -5,6 +5,7 @@ using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -47,7 +48,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         int unbuiltMark = ctx.Edition.UnbuiltMark;
         foreach (var dref in r.dataReference()) _ = host.Expr.ResolveSending(dref);
         if (r.arithmeticExpression() is { } seconds) _ = host.Expr.BindExpr(seconds);
-        BindExceptionPhrases(r.mcsExceptionPhrases());
+        BindExceptionPhrases(r.conditionalPhrases());
         ctx.Edition.TakeUnbuiltSince(unbuiltMark);
     }
 
@@ -69,14 +70,12 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         if (s.cobolWord() is { } exceptionName)
             _ = EcNameResolution.TryResolve(ctx.Edition, exceptionName.GetText(),
                 $"SEND RAISING EXCEPTION '{exceptionName.GetText()}'", out _);
-        BindExceptionPhrases(s.mcsExceptionPhrases());
+        BindExceptionPhrases(s.conditionalPhrases());
         ctx.Edition.TakeUnbuiltSince(unbuiltMark);
     }
 
-    private void BindExceptionPhrases(Core.McsExceptionPhrasesContext? phrases)
-    {
-        if (phrases is not null) _ = host.BindBlocks(phrases.statementBlock());
-    }
+    private void BindExceptionPhrases(Core.ConditionalPhrasesContext phrases) =>
+        _ = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
 
     /// <summary>The data references written directly after one of <paramref name="keywords"/> — the grammar gives
     /// SEND's three operand slots one <c>dataReference</c> rule, so the slot is read from the keyword that opens it.</summary>

@@ -197,7 +197,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // It was nevertheless PARSED and then dropped on the floor with no diagnostic and no branch: the program
         // compiled clean at every edition and neither imperative ran (kb/Work PB691). That is the third arm of
         // one silent drop — PB144 screened it for REWRITE just below, PB334 for READ — and the reason it hid is
-        // that WRITE's `writeInvalidKey` sub-rule was consumed by the KEYED binder only (feedback_two_arm_dispatch).
+        // that WRITE's INVALID KEY phrase was consumed by the KEYED binder only (feedback_two_arm_dispatch).
         // Gated through the ONE severity seam (StatementValidation.ScreenForbiddenPhrase → COBOLNET1720): an
         // error under strict, a warning under --permissive with the phrase BOUND, not dropped — because
         // §9.1.14's final rule item 2 gives the NOT INVALID KEY imperative a live meaning even here ("If the I-O
@@ -209,29 +209,28 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // read once: SR13, SR17, SR18 and the bind all ask about the SAME phrase.
         Core.WriteBeforeAfterContext? adv = w.writeBeforeAfter();
         KeyedInvalidKey? winvalid = null;
-        if (w.writeInvalidKey() is { } wik)
+        if (ConditionalPhrases.FirstOf(w.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } wik)
         {
             ctx.Validation.ScreenForbiddenPhrase(true,
-                PhraseBlocks.StartsWithNot(wik) ? "NOT INVALID KEY" : "INVALID KEY", "WRITE",
+                ConditionalPhrases.KindOf(wik).Words, "WRITE",
                 "a file with sequential organization", "ISO §14.9.51.3 SR2");
-            winvalid = keyedIo.KeyedInvalidPhrase(wik.statementBlock(), PhraseBlocks.StartsWithNot(wik));
+            winvalid = keyedIo.KeyedInvalidPhrase(w.conditionalPhrases());
         }
 
-        // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): the grammar rule `writeAtEndOfPage` admits either phrase
-        // first (the readAtEnd block shape), and PhraseBlocks reads the order off the leading NOT.
+        // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): either may be written first (§5.2.6.4), and
+        // PhraseBlocks binds each by its role.
         List<BoundStatement>? atEop = null, notAtEop = null;
-        if (w.writeAtEndOfPage() is { } eop)
+        if (ConditionalPhrases.HasFamily(w.conditionalPhrases(), ConditionalPhraseFamily.EndOfPage))
         {
-            var (blocks, notFirst) = (eop.statementBlock(), PhraseBlocks.StartsWithNot(eop));
             // SR19 (the silent-drop bug class): the END-OF-PAGE / NOT END-OF-PAGE phrase requires a LINAGE clause
             // in the file's file description entry — a bind-time rejection, never a dropped branch.
             ctx.Validation.CheckWriteEopLinage(file);                                     // SR19 — pure check
             // SR18 names the END-OF-PAGE phrase — the AT phrase, imperative-statement-1's (GR27 b) — and SR19 names
             // it and the NOT END-OF-PAGE phrase separately, so a NOT-only phrase beside ADVANCING PAGE is legal
             // (and its imperative never runs: ADVANCING PAGE is a page overflow, GR7 c) 1 → GR26 a), kb/Work PB578).
-            ctx.Validation.CheckWriteEopAdvancingPage(
-                AnyAdvancePage(adv) && PhraseBlocks.HasOnBranch(blocks, notFirst));   // SR18 — pure check
-            (atEop, notAtEop) = PhraseBlocks.Split(blocks, notFirst, b => host.BindBlocks([b]));
+            ctx.Validation.CheckWriteEopAdvancingPage(AnyAdvancePage(adv) && ConditionalPhrases.Find(w.conditionalPhrases(),
+                new(ConditionalPhraseFamily.EndOfPage, Negated: false)) is not null);   // SR18 — pure check
+            (atEop, notAtEop) = PhraseBlocks.Bind(w.conditionalPhrases(), ConditionalPhraseFamily.EndOfPage, b => host.BindBlocks([b]));
         }
         // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
         // implementor positioning rules and the logical-page model are mutually exclusive).
@@ -267,9 +266,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             && ctx.Refs.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
-        List<BoundStatement>? atEnd = null, notAtEnd = null;
-        if (r.readAtEnd() is { } ae)
-            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
+        var (atEnd, notAtEnd) = PhraseBlocks.Bind(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
         // The READ lock phrases bind on the sequential organization too — §14.9.30's GR7–GR12 lock rules are
         // ALL-FORMATS rules, and the sequential record's lock identity is its ordinal position (§9.1.16).
         // The two INDEPENDENT lock brackets of §14.9.30.2, bound in the order the rules read them: bracket 2
@@ -309,13 +306,13 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // raises no '2x' status (§9.1.13.5), so the invalid key condition cannot exist for it. Dropping the
         // whole bracket, as this arm did, compiled a NOT INVALID KEY block away in silence (kb/Work PB334).
         KeyedInvalidKey? invalid = null;
-        if (r.readInvalidKey() is { } ik)
+        if (ConditionalPhrases.FirstOf(r.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } ik)
         {
             ctx.Validation.ScreenForbiddenPhrase(true,
-                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "READ",
+                ConditionalPhrases.KindOf(ik).Words, "READ",
                 "a file with sequential organization, whose READ is a Format-1 sequential read",
                 "ISO §14.9.30.2 Format 1 · §14.9.30.4 GR19");
-            invalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+            invalid = keyedIo.KeyedInvalidPhrase(r.conditionalPhrases());
         }
         return new BoundRead(file, intoMove, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
         {
@@ -367,12 +364,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // certainly has — so under --permissive the tolerated phrase still meant nothing and printed nothing.
         // Bound now, exactly as the WRITE arm above and as the keyed twin in KeyedIoBinder.BindRewrite.
         KeyedInvalidKey? rinvalid = null;
-        if (rw.rewriteInvalidKeyPhrase() is { } ik)
+        if (ConditionalPhrases.FirstOf(rw.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } ik)
         {
             ctx.Validation.ScreenForbiddenPhrase(true,
-                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "REWRITE",
+                ConditionalPhrases.KindOf(ik).Words, "REWRITE",
                 "a file with sequential organization", "ISO §14.9.35.3 SR2");
-            rinvalid = keyedIo.KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+            rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         return new BoundRewrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.recordFromPhrase()?.sendingOperand()),

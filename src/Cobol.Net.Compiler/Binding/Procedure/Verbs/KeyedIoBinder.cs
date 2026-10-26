@@ -4,6 +4,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -49,11 +50,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             && ctx.Refs.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
-        List<BoundStatement>? atEnd = null, notAtEnd = null;
-        if (r.readAtEnd() is { } ae)
-            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
-        KeyedInvalidKey? invalid =
-            r.readInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
+        var (atEnd, notAtEnd) = PhraseBlocks.Bind(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
+        KeyedInvalidKey? invalid = KeyedInvalidPhrase(r.conditionalPhrases());
 
         bool next = r.readDirection()?.NEXT() is not null;
         bool previous = r.readDirection()?.PREVIOUS() is not null;
@@ -78,7 +76,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // for the one spelling SR9 exists to name (kb/Work PB340). A bare READ under dynamic access, with
             // none of the three, stays the Format-2 random read.
             FileAccessMode.Dynamic => previous ? ReadKind.Previous
-                : next || contention?.readAdvancingOnLock() is not null || r.readAtEnd() is not null
+                : next || contention?.readAdvancingOnLock() is not null
+                       || ConditionalPhrases.HasFamily(r.conditionalPhrases(), ConditionalPhraseFamily.AtEnd)
                     ? ReadKind.Next
                     : ReadKind.Random,
             // §14.9.30 SR8 — sequential access: NEXT implied.
@@ -156,7 +155,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindWrite(Core.WriteStatementContext w, FileModel file, Place record,
         BoundRecordLock lock_, RetrySpec? retry)
     {
-        if (w.writeBeforeAfter() is not null || w.writeAtEndOfPage() is not null)
+        if (w.writeBeforeAfter() is not null || ConditionalPhrases.HasFamily(w.conditionalPhrases(), ConditionalPhraseFamily.EndOfPage))
             // ⛔ A SYNTAX RULE, NOT A DEFERRAL (kb/Work PB909): SR3 is SR2's mirror, and COBOLNET1720 is where SR2
             // already lands. It is an error in BOTH lanes — Format 2 gives a print-control phrase no meaning to bind.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoPhraseForbiddenHere, $"the "
@@ -165,8 +164,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + $"{file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}': \"If the organization "
                 + "of the write file is indexed or relative, format 2 shall be specified\" (ISO §14.9.51.3 SR3), and "
                 + "Format 2 prints no print-control phrase");
-        KeyedInvalidKey? invalid =
-            w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
+        KeyedInvalidKey? invalid = KeyedInvalidPhrase(w.conditionalPhrases());
         return new BoundKeyedWrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.recordFromPhrase()?.sendingOperand()), invalid)
         { Lock = lock_, Retry = retry };
@@ -184,14 +182,14 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // PB144). Gated through the ONE severity seam: error under strict, warning + unchanged bind under
         // --permissive, where the phrase stays dead in the status-first branches.
         KeyedInvalidKey? invalid = null;
-        if (rw.rewriteInvalidKeyPhrase() is { } ik)
+        if (ConditionalPhrases.FirstOf(rw.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } ik)
         {
             ctx.Validation.ScreenForbiddenPhrase(
                 file.Organization == FileOrganization.Relative
                     && file.AccessMode == FileAccessMode.Sequential,
-                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "REWRITE",
+                ConditionalPhrases.KindOf(ik).Words, "REWRITE",
                 "a file with relative organization and sequential access mode", "ISO §14.9.35.3 SR2");
-            invalid = KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+            invalid = KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         return new BoundKeyedRewrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.recordFromPhrase()?.sendingOperand()), invalid)
@@ -223,12 +221,12 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // DELETE raises only 4x statuses, so the tolerated phrase stays dead in the status-first branches and is
         // never silently rerouted.
         KeyedInvalidKey? invalid = null;
-        if (del.deleteInvalidKeyPhrase() is { } ik)
+        if (ConditionalPhrases.FirstOf(del.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } ik)
         {
             ctx.Validation.ScreenForbiddenPhrase(file.AccessMode == FileAccessMode.Sequential,
-                PhraseBlocks.StartsWithNot(ik) ? "NOT INVALID KEY" : "INVALID KEY", "DELETE RECORD",
+                ConditionalPhrases.KindOf(ik).Words, "DELETE RECORD",
                 "a file that is in sequential access mode", "ISO §14.9.10.3 SR2");
-            invalid = KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik));
+            invalid = KeyedInvalidPhrase(del.conditionalPhrases());
         }
         return new BoundKeyedDelete(file, invalid)
         { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §14.7.9 / §14.9.10 GR6
@@ -257,9 +255,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // it previously compiled and the statement's TWO status channels answered oppositely (kb/Work PB140).
             if (ctx.Validation.ScreenSortMergeFile(file, "DELETE FILE") is not null)
                 continue;   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
-            List<BoundStatement>? on = null, notOn = null;
-            if (df.deleteFileOnException() is { } ex)
-                (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
+            var (on, notOn) = PhraseBlocks.Bind(df.conditionalPhrases(), ConditionalPhraseFamily.Exception, b => host.BindBlocks([b]));
             steps.Add(new BoundKeyedDeleteFile(file, on, notOn)
             {
                 Retry = fileLock.BindVerbRetry(df.retryPhrase()),   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
@@ -293,8 +289,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (file.AccessMode == FileAccessMode.Random)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §14.9.41.3 SR1)");
-        KeyedInvalidKey? invalid =
-            st.startInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
+        KeyedInvalidKey? invalid = KeyedInvalidPhrase(st.conditionalPhrases());
 
         if (st.FIRST() is not null || st.LAST() is not null)
         {
@@ -513,8 +508,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
     // ── Shared keyed-I/O helpers ───────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Build the INVALID/NOT INVALID pair from the phrase's statement blocks — the shared two-branch
-    /// shape via the ONE <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b), splitting an
+    /// <summary>Build the INVALID/NOT INVALID pair, or null when neither phrase is written — the shared two-branch
+    /// shape via the ONE <see cref="PhraseBlocks.Bind"/> (P7 Step 10b; kb/Work PB3830), splitting an
     /// <c>INVALID KEY</c> / <c>NOT INVALID KEY</c> bracket into its two imperatives (§14.9.30.2 /
     /// §14.9.51.2 / §14.9.35.2 / §14.9.10.2 / §14.9.41.2 — a §5.2.6.4 choice-indicator group, so either
     /// order). Internal rather than private because the SEQUENTIAL arm binds the pair too: §14.9.30.2 Format 1
@@ -522,10 +517,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// the report routes through <c>EditionContext.Removed</c>, which under <c>--permissive</c> leaves the bind
     /// standing — and §9.1.14 still governs what a standing bind MEANS, so both binders build the node here
     /// rather than each writing the split out (kb/Work PB334, PB691).</summary>
-    internal KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
+    internal KeyedInvalidKey? KeyedInvalidPhrase(Core.ConditionalPhrasesContext phrases)
     {
-        var (inv, not) = PhraseBlocks.Split(blocks, notFirst, b => host.BindBlocks([b]));
-        return new KeyedInvalidKey(inv, not);
+        var (inv, not) = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.InvalidKey, b => host.BindBlocks([b]));
+        return inv is null && not is null ? null : new KeyedInvalidKey(inv, not);
     }
 
 }
