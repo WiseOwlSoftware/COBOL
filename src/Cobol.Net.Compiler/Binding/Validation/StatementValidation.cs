@@ -1823,8 +1823,9 @@ internal sealed class StatementValidation(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand compared with an "
                     + "operand of class alphanumeric, alphabetic or national shall be \"an integer literal or an integer "
                     + "numeric data item of usage display or national\" (ISO §8.8.4.2.5; §8.8.4.2.1 item 6 is the only "
-                    + "such pair the standard defines) — a non-integer, COMPUTATIONAL, packed, floating-point or "
-                    + "arithmetic-expression operand has no defined comparison with it");
+                    + "such pair the standard defines) — a non-integer, COMPUTATIONAL, packed, floating-point, "
+                    + "arithmetic-expression or numeric, integer or index function-identifier operand (§15.2 states no "
+                    + "usage for the item such a function returns) has no defined comparison with it");
                 break;
         }
     }
