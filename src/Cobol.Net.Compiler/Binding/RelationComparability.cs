@@ -69,17 +69,24 @@ internal static class RelationComparability
     /// (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/> — "An integer literal is a fixed-point numeric
     /// literal that contains no decimal point", §8.3.3.3.2; <see cref="PicInfo.IsIntegerDescription"/> for an item);
     /// the USAGE conjunct is this rule's own. An arithmetic expression is none of the admitted forms.
-    /// <para>An INTEGER intrinsic function (§15.2 item 5) is admitted as the integer numeric temporary §15.4 makes it,
-    /// in its literal text form — the SAME determination by which it moves to an alphanumeric receiver as the Table-16
-    /// Integer row (docs/CONFORMANCE.md §7, A.1 item 92; kb/Work PB73). §8.8.4.2.5 itself routes the comparison "according
-    /// to the rules of the MOVE statement", so a relation and a MOVE of the same function agree; a NUMERIC function
-    /// (§15.2 item 4) is the Table-16 noninteger row there and is refused here for the same reason.</para></summary>
+    /// <para>⛔ A NUMERIC, INTEGER OR INDEX FUNCTION-IDENTIFIER IS NO SUCH OPERAND (kb/Work PB3691; owner 2026-10-25,
+    /// docs/CONFORMANCE.md D-FNUSE). It is not "an integer literal" (§8.4.3.2.1: it "references the unique data item
+    /// that results from the evaluation of a function" — a data item, the FOLDED <c>FUNCTION LENGTH</c> literal
+    /// included), and it is not an integer data item "of usage display or national", because §15.2 4), 5) and 6) state
+    /// no usage for the item such a function returns. That is the question STRING SR1 and INSPECT SR2 ask of the same
+    /// operand, and it is asked of the ONE reader they ask
+    /// (<see cref="IntrinsicArgumentRules.FunctionIsNotDisplayOrNational"/>), so a rule that refuses a COMPUTATIONAL
+    /// item refuses the function that has no better description. Before this the INTEGER functions were admitted
+    /// "as the integer numeric temporary §15.4 makes it" — a reading that leaned on <c>SendingValueTemp</c>'s
+    /// USAGE DISPLAY carrier, an implementor representation (§15.4.1) and no §15.2 description — and
+    /// <c>IF FUNCTION INTEGER(N) = "0007"</c> compared the function's literal-form text (DOC-A.1-92), answering not
+    /// equal for N = 7 where the same test of a USAGE DISPLAY <c>N</c> answers equal.</para></summary>
     private static bool IsNumericIntegerOperand(BoundOperand o) => o switch
     {
+        _ when IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(o, out _) => false,
         BoundNumericLiteral => IntrinsicResultType.IsIntegerOperand(o),
         BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { Usage: Usage.Display or Usage.National } } } =>
             IntrinsicResultType.IsIntegerOperand(o),
-        BoundComputedOperand { Expr: BoundIntrinsicCall } => IntrinsicResultType.IsIntegerOperand(o),
         // A COUNTER REGISTER is an unsigned integer data item (§8.4.3.15.3 SR1 admits PAGE-COUNTER and LINE-COUNTER
         // "in any context where an integer data item may appear", and this is one — kb/Work PB1153), but only the
         // one whose implicit description is usage display qualifies HERE: LINAGE-COUNTER's PIC 9(d) is, LINE- /
