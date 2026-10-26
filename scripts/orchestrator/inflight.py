@@ -359,7 +359,7 @@ def collision_set(primary: str, declared: list[Claim]) -> Claim:
 
 def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
     """Whether two claims meet on the file `f` both hold, and on what: `f` when either claims it whole, `f#<member>`
-    when a member of one matches a member of the other (source_units.match: `collision` meets `plan_wave.collision`,
+    when a member of one matches a member of the other (source_units.match: `collision` meets `inflight.collision`,
     a type meets its members, a section its subsections), None when their members are disjoint. A file a merge driver
     merges by key (merge_drivers.covered_by_driver: the diagnostics catalogue, the traceability inventory, the work
     notes) never meets: two landings both editing it merge by entry, the rule enqueue.py's re-gate already reads

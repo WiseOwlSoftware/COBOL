@@ -24,7 +24,7 @@ from reports import Report  # noqa: E402
 from inflight import Claim  # noqa: E402
 from clusters import Note, cluster_claim  # noqa: E402
 if TYPE_CHECKING:
-    from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports the planner back)
+    from prune_worktrees import Replay  # noqa: E402  (a type only: the survey's replay record, finisher_pred's input)
 
 def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
     """The pred of a group planned as the CONTINUATION of finished branches whose files it meets (kb/Work PB2807):

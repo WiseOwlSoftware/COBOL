@@ -17,7 +17,7 @@ who acts next:
   IN FLIGHT        a live dispatch owns it: its worktree is locked by an agent whose process is alive (the harness
                    writes `claude agent <id> (pid N)`; a lock with no pid was placed by hand and counts as live), a
                    dispatch-ledger wave group still in flight names it (`<coord>/inflight-groups.json`, the planner's
-                   ledger, read through plan_wave.inflight_file_sets; the branch name starts with the group's slug
+                   ledger, read through inflight.inflight_file_sets; the branch name starts with the group's slug
                    `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
                    Nobody touches it.
                    A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
@@ -45,17 +45,17 @@ who acts next:
                    rule, so the survey and the planner never disagree on WHO carries whom).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, coord.py REPORT_NAME, under
-       coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
+       coord.reports_dir()) is FINISHED (reports.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
        the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
-       report's HEAD is its header's HEAD field, else the head its review stamp names (plan_wave.parse_report: the
+       report's HEAD is its header's HEAD field, else the head its review stamp names (reports.parse_report: the
        reviewer stamps the head it reviewed, kb/Work PB3476). A report naming neither, or followed by a commit no
        report describes (an agent resumed after writing it), covers nothing: DECISION, with the count;
     2. its header's review stamp COVERS the tip (`stamp_covers`, the one rule the planner's FINDINGS arm reads too,
        kb/Work PB3394): the stamp names the tip, or an older head the same coverage reaches; CLEAN and FINDINGS alike;
     3. the landing lane's newest attempt AT THE TIP (land_lane.view: its head, or the end head its run left).
   WAITING FOR REVIEW  coverage 1 holds, but no review stamp covers the tip (none, or one at an older head followed by
-                   commits that are not mechanical; plan_wave.REVIEW, written by review_findings.py stamp): ONE
+                   commits that are not mechanical; reports.REVIEW, written by review_findings.py stamp): ONE
                    read-only cobol-reviewer reviews it (the `review` skill's branch form, kb/Work PB3027; a diff-only
                    re-review of the commits since an older stamp, PB3381). The landing step never reviews and never
                    fixes a finding. A FINDINGS stamp at an older head is unreviewed work too, never a finisher's: the
@@ -370,7 +370,7 @@ def replays(branches: list[str], carriers: list[str], rank: Callable[[str], int]
 
 
 def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[str], graph: Ancestry) -> dict[str, Replay]:
-    """`replays` over the branches both of its readers mean (kb/Work PB3170, PB3652): the PLANNER (plan_wave.branch_replays:
+    """`replays` over the branches both of its readers mean (kb/Work PB3170, PB3652): the PLANNER (inflight.branch_replays:
     which branch gets a finisher) and the SURVEY (contained(): which branch is a DECISION row). One function builds the
     inputs, so the two cannot disagree on who carries whom. `ranked`: {branch: the position of its newest report,
     oldest first} for each UNLANDED branch that has a report: the branches allowed to carry work, the later report
@@ -747,7 +747,7 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         return 'LANDED', f'{row.content}{f" ({row.how})" if row.how else ""}: its work is on main; --apply deletes it'
     rep = row.report
     if row.content not in LANDED_CONTENT and rep and rep.finished:
-        # A FINISHED report (plan_wave.Report.finished) decides the branch only where it COVERS the tip: its HEAD is the
+        # A FINISHED report (reports.Report.finished) decides the branch only where it COVERS the tip: its HEAD is the
         # tip, or every commit after it is mechanical (unreviewed_since, the coverage rule of the review stamp and of
         # `enqueue.py land`). Never the report's age (kb/Work PB3181: enqueue.py's merge and DEVLOG stamp postdate it).
         if rep.lead_terminal:
@@ -810,7 +810,7 @@ def note_terminal(work_dir: pathlib.Path | None = None) -> Callable[[str], bool]
 def in_flight_slugs(coord_dir: pathlib.Path | None, terminal: Callable[[str], bool],
                     reports_dir: pathlib.Path | None = None) -> set[str]:
     """The `w<wave><letter>` slugs of the dispatch-ledger wave groups still in flight, by the planner's own liveness rule
-    (plan_wave.inflight_file_sets, source 3: a group with a note that is not landed or retired and that no report in
+    (inflight.inflight_file_sets, source 3: a group with a note that is not landed or retired and that no report in
     `reports_dir` answers, kb/Work PB2795), read from its `meta` (each entry's recorded slug), never parsed back out of
     an owner label. A dispatch made without a rendered group has no ledger entry (kb/Work PB3186); its worktree is
     caught by its live lock or its recency instead."""
@@ -955,7 +955,7 @@ def contained(rows: list[Row], graph: Ancestry, reports: list[IndexedReport], wo
     the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing.
 
     AN UNFINISHED (SPLIT, NOT STARTED) BRANCH IS CARRIED TOO (kb/Work PB3652): the planner reads one a finished branch
-    contains (plan_wave.branch_carrier) or that another branch REPLAYS (plan_wave.branch_replays: the planner's own
+    contains (inflight.branch_carrier) or that another branch REPLAYS (inflight.branch_replays: the planner's own
     FINISH-FIRST pred tells a SPLIT successor to CHERRY-PICK its predecessor, so the successor is no descendant of it)
     as carried: under --drain it waits for the carrier, and otherwise its finisher's pred names the carrier (as for a
     carried FINDINGS branch). Either way the work lands through the carrier, and the survey listed it as a DECISION row
@@ -1059,7 +1059,7 @@ def answered_by_carrier(findings_review, carrier_review, graph: Ancestry) -> boo
 
 
 def findings_answered_by(v: dict, rv, graph: Ancestry) -> bool:
-    """Does the review `rv` (plan_wave.Review, or None) answer the findings of the reading `v` (kb/Work PB3404)? ONE FINDINGS CASE, ONE OWNER
+    """Does the review `rv` (reports.Review, or None) answer the findings of the reading `v` (kb/Work PB3404)? ONE FINDINGS CASE, ONE OWNER
     (review_findings.capped): a CAPPED verdict (the round after the last review finisher) belongs to its branch's
     next-wave finisher, which no review of a successor answers; an UNCAPPED one had a review finisher dispatched that
     came back without answering, and the successor that merged the branch is reviewed over the whole branch, the
@@ -1178,7 +1178,7 @@ def locked(rows: list[Row], live: Callable[[str | None], bool] = live_lock) -> s
     """The LOCK-ONLY half of owned() (kb/Work PB3653): the branches whose worktree a live agent holds (live_lock, the
     one liveness rule lifecycle() reads first). owned() folds three signals into one set: this lock, a dispatch-ledger
     group still out, and a touch inside --min-age. The planner's finisher arm needs them apart. A ledger dispatch
-    leaves its own record (plan_wave.held_by_dispatch), and a just-touched SPLIT branch is the normal state of one
+    leaves its own record (dispatch_ledger.held_by_dispatch), and a just-touched SPLIT branch is the normal state of one
     whose agent has just returned (holding it would stall every finisher for --min-age), but a lock is someone working
     IN that worktree right now with no record anywhere else, e.g. an agent the operator started by hand on a SPLIT
     branch: a finisher planned over it would cherry-pick the same commits twice (plan_wave.plan's branch-unit hold,
@@ -1196,7 +1196,7 @@ def verdict(rows: list[Row]) -> str:
 
 
 def note_rank(work_dir: pathlib.Path | None = None) -> Callable[[str], tuple[int, int]]:
-    """`rank(note id)`: a sort key, most urgent first: minus the note's harm weight (plan_wave.harm_weights, the
+    """`rank(note id)`: a sort key, most urgent first: minus the note's harm weight (clusters.harm_weights, the
     planner's weights), then a compiler note (0) before a process-only one (1). A note main does not hold yet (filed on
     its own branch) ranks as harmless process work."""
     sys.path.insert(0, str(REPO / 'scripts' / 'spec'))

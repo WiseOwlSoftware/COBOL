@@ -31,8 +31,9 @@ side of where it lands, so two insertions at one place (two members appended to 
 would conflict on them.
 
 Two CLAIMS meet on a file when either claims the whole file, or a name of one MATCHES a name of the other (`match`):
-one's dotted segments occur as a contiguous run inside the other's (`collision` matches `collision`, `plan_wave.collision`
-and nothing else; `DataBinder` matches every `DataBinder.*` member; `Report.finished` matches `Report.finished`), and a
+one's dotted segments occur as a contiguous run inside the other's (`collision` matches `collision`,
+`inflight.collision` and nothing else; `DataBinder` matches every `DataBinder.*` member; `Report.finished` matches
+`Report.finished`), and a
 section number (`§8.7`, read from a note as `8.7`) matches a Markdown section whose heading starts with it (`8.7 The wave
 plan's shape`, `8.7.1 ...`). Parameter lists are dropped: overloads are one unit.
 
@@ -711,7 +712,7 @@ def self_test() -> int:
 
     expect("match: a bare member, a qualified one, a type and its member, a module-qualified function",
            [match("collision", "collision"), match("Report.finished", "finished"), match("DataBinder", "DataBinder.Bind"),
-            match("plan_wave.collision", "collision"), match("collision", "collision_set"),
+            match("inflight.collision", "collision"), match("collision", "collision_set"),
             match("DataBinder.Bind", "DataBinder.Text"), match("Bind(int)", "DataBinder.Bind")],
            [True, True, True, True, False, False, True])
     expect("match: a section number and its subsections, never a longer number",

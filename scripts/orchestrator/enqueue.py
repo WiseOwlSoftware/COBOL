@@ -644,12 +644,12 @@ def gate_main(wt: pathlib.Path, host: str, sha: str, *, rows=None, say: Say = pr
 
 def record_blocked(branch: str, wt: pathlib.Path, line: str, say: Say,
                    reports_dir: pathlib.Path | None = None) -> None:
-    """Append `line` to the branch's newest fix-lane report (prune_worktrees' reader), so the finisher and the next
-    survey see why the landing stopped. A branch with no report is said so; nothing is invented."""
-    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
+    """Append `line` to the branch's newest fix-lane report (reports.newest_report, the survey's reader), so the
+    finisher and the next survey see why the landing stopped. A branch with no report is said so; nothing is invented."""
+    from reports import newest_report, report_index  # noqa: PLC0415  (THE fleet-report reader, the survey's index)
     import coord  # noqa: PLC0415
     rdir = reports_dir or coord.reports_dir()
-    rep = prune_worktrees.newest_report(prune_worktrees.report_index(rdir, lambda n: False), branch, str(wt))
+    rep = newest_report(report_index(rdir, lambda n: False), branch, str(wt))
     if rep is None:
         say(f"enqueue: no fix-lane report under {rdir} names {branch}; recorded nowhere but here: {line}")
         return
@@ -660,15 +660,16 @@ def record_blocked(branch: str, wt: pathlib.Path, line: str, say: Say,
 
 def review_gate(branch: str, wt: pathlib.Path, base: str, reports_dir: pathlib.Path | None = None) -> str | None:
     """THE REVIEW BEFORE THE LANDING (MANDATORY-PRACTICES I10, L9; kb/Work PB3027; DESIGN-test-build-ci.md section
-    3.17.2 step 2): None when the branch may land, else why not. Its newest fix-lane report (prune_worktrees' reader)
-    must carry `**Review:** CLEAN <reviewer> <head>` naming a commit of the branch, and every commit of the branch after
+    3.17.2 step 2): None when the branch may land, else why not. Its newest fix-lane report (reports.newest_report,
+    the survey's reader) must carry `**Review:** CLEAN <reviewer> <head>` naming a commit of the branch, and every commit of the branch after
     that head must be main's or mechanical (`prune_worktrees.unreviewed_since`, the one coverage rule the survey's
     WAITING TO LAND reads too): a finisher's fix, a hand-resolved conflict, any later commit is unreviewed work, and the
     new tip is reviewed before it lands."""
-    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
+    import prune_worktrees  # noqa: PLC0415  (scripts/: the review's coverage rule, unreviewed_since)
+    from reports import newest_report, report_index  # noqa: PLC0415  (THE fleet-report reader, the survey's index)
     import coord  # noqa: PLC0415
     rdir = reports_dir or coord.reports_dir()
-    rep = prune_worktrees.newest_report(prune_worktrees.report_index(rdir, lambda n: False), branch, str(wt))
+    rep = newest_report(report_index(rdir, lambda n: False), branch, str(wt))
     if rep is None:
         return (f"no fix-lane report under {rdir} names {branch}, so no review stamp does (a lane I10 does not review "
                 f"names itself: --lane {'|'.join(UNREVIEWED_LANES)})")
@@ -884,7 +885,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
     the same head. `linux_half`: whether a Linux half is required (default: this host runs one, `Host.runs_linux_leg`;
     the self-test names it so it reads the same on every host)."""
     import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its record and its verdict's vocabulary)
-    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
+    import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and the report reader back)
     root = wt / run_gate_legs.RUN_ROOT
     runs = run_gate_legs.run_dirs(root)[::-1]
     if not runs:

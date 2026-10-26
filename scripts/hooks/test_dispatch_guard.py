@@ -81,7 +81,7 @@ if not (expired.returncode == 2 and "gave no verdict within" in expired.stderr):
     fails.append(("a practices check with no verdict in time refuses the dispatch", True))
 # kb/Work PB3186: the hook writes NO dispatch ledger. Its retired rule 3 recorded every note id an admitted dispatch's
 # prompt (and the files it named) mentioned, with the union of their file sets; the ledger is the planner's and the spec
-# renderer's alone (plan_wave.record_dispatch, through make_dispatch_specs.py).
+# renderer's alone (dispatch_ledger.record_dispatch, through make_dispatch_specs.py).
 LEDGER = COORD / "inflight-groups.json"
 HAND_BRIEF = TMP / "hand-brief.md"
 HAND_BRIEF.write_text("# Brief\nAuthor kb/Work PB2296 step 1.\n", encoding="utf-8", newline="\n")
