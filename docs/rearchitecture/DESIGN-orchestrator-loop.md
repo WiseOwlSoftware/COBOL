@@ -722,7 +722,8 @@ mechanisms, in order of how little they trust the model:
 3. **The synthesized handoff** (`checkpoint.py synthesize`): when a unit ends with no valid handoff (a crash, a kill,
    the background-task ceiling, a malformed file) the supervisor writes one from the last checkpoint, the five last
    milestones and the worktrees AS THEY ARE NOW: `outcome: split`, `next_unit: resume`, `synthesized: true`,
-   `branches_pending` for every worktree that holds work. The unit still counts as failed for the breaker, and
+   `branches_pending` for every worktree that holds work or that git could not measure (`ahead_of_main` or `uncommitted`
+   null: an unknown state is never read as clean, and the summary names those branches; kb/Work PB3715). The unit still counts as failed for the breaker, and
    `units.jsonl` records `synthesized (<what was wrong>)`. If the SUPERVISOR dies mid-unit (a reboot), `checkpoint.json`
    is still on disk at the next start (a finished unit's checkpoint is moved to `logs\`, never left), and the supervisor
    turns it into the missing handoff before choosing the first unit.
@@ -1203,7 +1204,7 @@ concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reope
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
-`account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean; a synthesized handoff checked
+`account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean, unreadable; a synthesized handoff checked
 against the schema's required and permitted keys), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
@@ -1642,9 +1643,25 @@ it never declines (a line is atomic; a stale symbol fails the build, RS0017, as 
 line becomes `src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi` with its comment; `merge_drivers.py --check` holds the
 registry and the attributes together as it does for every driver, and `MergeDriverDriftTests.TheSelfTests_DeclareEveryArm`
 names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
-`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`. The
-landing also sorts the two baselines once (the driver's output order), so the first driven merge changes nothing but
-the merged lines.
+`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`.
+Corrected at the landing: THE LANDING LEAVES THE BASELINES AS MAIN HAS THEM, unsorted. Until a branch lands, its
+landing merges main in through MAIN's registry (`enqueue.py land` runs main's `merge_drivers`), which defines no driver
+for a name only the branch's registry holds, so git falls back to its line merge; a baseline the branch had sorted met
+every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
+that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
+DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
+sides changed them, whose output the driver sorts. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
+`runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
+so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
+implementation: the driver's patterns are matched by git's rules in the registry too
+(`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
+span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
+the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
+catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
+(`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
+by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
+landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
+measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
 ### 16.10 The order, the waves and PB3637
 
